@@ -31,18 +31,8 @@ import type {ConfirmPort} from './confirmPort.js';
  * from — the name stored inside the file never contradicts the name on disk.
  */
 import {watch} from 'vue';
-import {
-  currentProject,
-  currentViewSnapshot,
-  driverName,
-  focusedProject,
-  markProjectSaved,
-  openProjectOnce,
-  openProjects,
-  newProjectDriver,
-  requireFocusedProject,
-} from './appState.js';
-import {presentationState} from './presentationState.js';
+import type {AppState} from './appState.js';
+import type {PresentationState} from './presentationState.js';
 import {
   type BackupRepo,
   copyOfName,
@@ -63,13 +53,6 @@ import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} fro
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
-}
-
-// Save/export/share operate on committed project state. An open What-if? is transient, so
-// these boundaries cancel it before reading or promoting anything.
-function endWhatIfBeforeIO(): void {
-  focusedProject()?.cancelWhatIf();
-  presentationState.editDriver = false;
 }
 
 export interface DesignIO {
@@ -107,7 +90,15 @@ export interface DesignIO {
  * Access API does not persist handles across a page load.
  */
 function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
-export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort }): DesignIO {
+export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort; appState: AppState; presentation: PresentationState }): DesignIO {
+  const { currentViewSnapshot, driverName, focusedProject, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
+  const presentationState = deps.presentation;
+  // Save/export/share operate on committed project state. An open What-if? is transient, so
+  // these boundaries cancel it before reading or promoting anything.
+  function endWhatIfBeforeIO(): void {
+    focusedProject()?.cancelWhatIf();
+    presentationState.editDriver = false;
+  }
   const flash = (msg: string) => deps.logging.flash(msg);
   const { download } = createFileSave();
 
@@ -167,7 +158,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   /** Save — commit the edited project and refresh the browser-storage copy. */
   async function saveProject(): Promise<boolean> {
     endWhatIfBeforeIO();
-    const project = currentProject();
+    const project = requireFocusedProject();
     project.save();
     const result = deps.projectRepo.saveToStorage(project);
     if (result.kind === 'failed') {
@@ -205,9 +196,9 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   async function saveProjectAs(): Promise<void> {
     endWhatIfBeforeIO();
     const hadOpenFile = deps.fileStorage.openFileName() != null;
-    const currentName = currentProject().name.value;
+    const currentName = requireFocusedProject().name.value;
     const suggested = projectFilename(hadOpenFile ? copyOfName(currentName) : currentName);
-    const result = await deps.projectRepo.saveToNewFile(currentProject(), owprNaming(suggested));
+    const result = await deps.projectRepo.saveToNewFile(requireFocusedProject(), owprNaming(suggested));
     if (result.cancelled) return;
     adoptFileName(result.name, suggested);
     const fileName = result.name ?? suggested;
@@ -225,7 +216,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   // repo's `stateToUrl` rather than the managed method, whose share-link pair is scoped to
   // the project record alone (a narrower, domain-only link for other consumers).
   async function shareLink(): Promise<void> {
-    const url = await deps.projectRepo.stateToUrl(currentProject(), currentViewSnapshot());
+    const url = await deps.projectRepo.stateToUrl(requireFocusedProject(), currentViewSnapshot());
     setShareUrl(url);
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(url).then(

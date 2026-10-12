@@ -20,7 +20,7 @@ import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModa
 import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
-import {projectChanged} from '../../../logic/appState.js';
+import {useApp} from '../../../logic/app.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
 
@@ -33,6 +33,7 @@ const {
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
 } = useMobileShell();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
+const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
 const winisdDifferences = injectWinisdDifferencesModal();
 const diagnostics = injectDiagnosticsModal();

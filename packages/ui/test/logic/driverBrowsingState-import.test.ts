@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {ref} from 'vue';
-import {createEngine} from '@openisd/design/engine';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import {
   createBundledDriverRepo,
   createFileStorage,
@@ -32,7 +32,8 @@ describe('My Drivers Load File flashes what it did', () => {
   const fakeConfirmPort: ConfirmPort = { ask: async () => true };
 
   function setUp() {
-    const engine = createEngine();
+    const { appState, presentation } = createAppStateFixture();
+    const engine = appState.engine;
     const storage = createMemoryStorage();
     const files = new DesignFiles(engine, createProjectRepo(engine, createFileStorage(), storage, 'http://localhost'));
     const logging: Logging = { message: ref(''), flash: vi.fn() };
@@ -41,7 +42,8 @@ describe('My Drivers Load File flashes what it did', () => {
         fetch: () => Promise.reject(new Error('fetch not used')), baseUrl: '/', engine, maxAge_ms: 1, now: Date.now,
       }),
       myDriverRepo: createMyDriverRepo(storage, engine), prefs: createPrefsRepo(storage), logging,
-      selection: createDriverSelection(), files, confirmReset: fakeConfirmPort,
+      selection: createDriverSelection({ appState, presentation }), files, confirmReset: fakeConfirmPort,
+      appState, presentation,
     });
     vi.stubGlobal('HTMLInputElement', FakeInput);
     vi.stubGlobal('FileReader', class {

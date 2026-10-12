@@ -12,7 +12,7 @@ import NumInput from '../../components/NumInput.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
-import {projectChanged} from '../../../logic/appState.js';
+import {useApp} from '../../../logic/app.js';
 import NumReadout from '../../components/NumReadout.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
@@ -75,6 +75,7 @@ const {
 const winisdDifferences = injectWinisdDifferencesModal();
 const diagnostics = injectDiagnosticsModal();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
+const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
 </script>
 

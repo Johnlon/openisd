@@ -164,7 +164,7 @@ test('chart failure lists the missing circuit values returned by the sweep', asy
   await openAProject(page, COMPLETE_OWPR);
 
   await page.evaluate(async () => {
-    function isAppStateModule(m: unknown): m is typeof import('../../src/logic/appState.js') {
+    function isAppStateModule(m: unknown): m is import('../../src/logic/appState.js').AppState {
       return typeof m === 'object' && m !== null
         && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
     }

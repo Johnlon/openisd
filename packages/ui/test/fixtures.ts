@@ -252,7 +252,7 @@ export type EditorTab = 'General' | 'Parameters' | 'Advanced' | 'Dimensions';
  *  dev server serves — the app ships no debug handle for this. */
 export async function focusedBoxVolume(page: Page): Promise<number> {
   return page.evaluate(async (path) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -268,7 +268,7 @@ export async function focusedBoxVolume(page: Page): Promise<number> {
 /** Write the focused project's main (box) volume, so its design differs from its saved one. */
 export async function setFocusedBoxVolume(page: Page, volume_m3: number): Promise<void> {
   await page.evaluate(async ({path, v}) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -290,7 +290,7 @@ export interface DriveGroupState {
 
 export async function focusedDriveGroup(page: Page): Promise<DriveGroupState> {
   return page.evaluate(async (path): Promise<DriveGroupState> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -304,7 +304,7 @@ export async function focusedDriveGroup(page: Page): Promise<DriveGroupState> {
 /** Number of points in the latest computed SPL curve (0 until the first sweep lands). */
 export async function curvesSplLength(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'curvesData' in m;
     }
@@ -317,7 +317,7 @@ export async function curvesSplLength(page: Page): Promise<number> {
 /** The focused project's box type, as the domain holds it. */
 export async function focusedBoxType(page: Page): Promise<string> {
   return page.evaluate(async (path): Promise<string> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -332,7 +332,7 @@ export type BoxTypeName = 'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'abc
 
 export async function setFocusedBoxType(page: Page, boxType: BoxTypeName): Promise<void> {
   await page.evaluate(async ({path, value}) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -346,7 +346,7 @@ export async function setFocusedBoxType(page: Page, boxType: BoxTypeName): Promi
  *  has none, so the Advanced tab falls back to the Options environment. */
 export async function clearFocusedEnvironment(page: Page): Promise<void> {
   await page.evaluate(async (path) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -367,7 +367,7 @@ export type DriverSpecEntries = Partial<Record<'Fs_hz' | 'Qes' | 'Qms' | 'Qts' |
  *  the What-if? panel would. */
 export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntries): Promise<void> {
   await page.evaluate(async ({path, values}) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -385,7 +385,7 @@ export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntri
 /** Set the focused project's series source resistance Rs (ohm), as the Signal tab does. */
 export async function setFocusedSeriesResistance(page: Page, ohm: number): Promise<void> {
   await page.evaluate(async ({path, v}) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -399,7 +399,7 @@ export async function setFocusedSeriesResistance(page: Page, ohm: number): Promi
  *  losses popup does. */
 export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa: number}): Promise<void> {
   await page.evaluate(async ({path, values}) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -415,7 +415,7 @@ export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa
 /** The focused sealed box's resonance Fsc and Qtc as the domain holds them. */
 export async function focusedSealedReadouts(page: Page): Promise<{fsc: number | null; qtc: number | null}> {
   return page.evaluate(async (path) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -429,7 +429,7 @@ export async function focusedSealedReadouts(page: Page): Promise<{fsc: number | 
 /** The focused vented box's vent length target-unreachable flag and DQ issue count. */
 export async function focusedVentLengthDq(page: Page): Promise<{unreachable: boolean; dqCount: number}> {
   return page.evaluate(async (path) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -444,7 +444,7 @@ export async function focusedVentLengthDq(page: Page): Promise<{unreachable: boo
  *  domain seam the typing drives, so the solver produces a vent length. */
 export async function setFocusedVentedDesign(page: Page, design: {volume_m3: number; tuning_hz: number; diameter_m: number}): Promise<void> {
   await page.evaluate(async ({path, d}) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -460,7 +460,7 @@ export async function setFocusedVentedDesign(page: Page, design: {volume_m3: num
 /** The focused bandpass6 rear chamber's tuning goal (Hz). */
 export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -475,7 +475,7 @@ export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
 /** The focused bandpass6 front chamber's tuning goal (Hz) and the vented box's tuning goal (Hz, null when blank). */
 export async function focusedBandpass6Tunings(page: Page): Promise<{front: number | null; vented: number | null}> {
   return page.evaluate(async (path): Promise<{front: number | null; vented: number | null}> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -495,7 +495,7 @@ export interface FocusedPortVents {
 
 export async function focusedPortVents(page: Page): Promise<FocusedPortVents> {
   return page.evaluate(async (path): Promise<FocusedPortVents> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -522,7 +522,7 @@ export interface FocusedPassiveRadiatorSpec {
 
 export async function focusedPassiveRadiatorSpec(page: Page): Promise<FocusedPassiveRadiatorSpec> {
   return page.evaluate(async (path) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -541,7 +541,7 @@ export async function focusedPassiveRadiatorSpec(page: Page): Promise<FocusedPas
 /** The focused project's port air-velocity limit (m/s). */
 export async function focusedPortVelocityLimit(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -554,7 +554,7 @@ export async function focusedPortVelocityLimit(page: Page): Promise<number> {
 /** One driver spec value of the focused project's driver (SI units); fails when it has no value. */
 export async function focusedDriverSpec(page: Page, field: 'Fs_hz' | 'Mms_kg'): Promise<number> {
   return page.evaluate(async ({path, f}): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -570,7 +570,7 @@ export async function focusedDriverSpec(page: Page, field: 'Fs_hz' | 'Mms_kg'): 
  *  call behind the project list's "＋ Copy". */
 export async function duplicateFocusedProject(page: Page, newName: string): Promise<void> {
   await page.evaluate(async ({path, name}) => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'duplicateFocusedProject' in m;
     }
@@ -583,7 +583,7 @@ export async function duplicateFocusedProject(page: Page, newName: string): Prom
 /** The Options environment temperature (K) as the application settings hold it. */
 export async function appEnvDefaultsTempK(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'envDefaults' in m;
     }
@@ -596,26 +596,26 @@ export async function appEnvDefaultsTempK(page: Page): Promise<number> {
 /** The user name saved by the Options dialog. */
 export async function savedUsername(page: Page): Promise<string | undefined> {
   return page.evaluate(async (path): Promise<string | undefined> => {
-    type PresentationState = typeof import('../src/logic/presentationState.js');
+    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
     function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'presentationState' in m;
+      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
     }
     const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    return m.presentationState.ui.username;
+    return m.ui.username;
   }, 'presentationState');
 }
 
 /** The persisted display-unit token for the box volume field (`NumberField.BOX_VB_L`). */
 export async function boxVolumeUnitToken(page: Page): Promise<string | undefined> {
   const rotation = await page.evaluate(async (path): Promise<Record<string, string>> => {
-    type PresentationState = typeof import('../src/logic/presentationState.js');
+    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
     function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'presentationState' in m;
+      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
     }
     const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    return {...m.presentationState.ui.unitTokens};
+    return {...m.ui.unitTokens};
   }, 'presentationState');
   return NumberField.BOX_VB_L.unitTokenFor(rotation);
 }
@@ -623,20 +623,20 @@ export async function boxVolumeUnitToken(page: Page): Promise<string | undefined
 /** Set the app-wide chart frequency sweep range, as a drag-zoom does. */
 export async function setSweepRange(page: Page, range: {min: number; max: number}): Promise<void> {
   await page.evaluate(async ({path, r}) => {
-    type PresentationState = typeof import('../src/logic/presentationState.js');
+    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
     function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'presentationState' in m;
+      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
     }
     const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
     if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    m.presentationState.sweepRange = r;
+    m.sweepRange = r;
   }, {path: 'presentationState', r: range});
 }
 
 /** Sum of the latest computed SPL curve — changes whenever the swept response changes. */
 export async function curvesSplSum(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'curvesData' in m;
     }
@@ -649,7 +649,7 @@ export async function curvesSplSum(page: Page): Promise<number> {
 /** Number of filters in the focused project's filter chain. */
 export async function focusedFilterCount(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -662,7 +662,7 @@ export async function focusedFilterCount(page: Page): Promise<number> {
 /** The focused project's drive power (W) — the one stored drive fact; voltage derives from it. */
 export async function focusedPowerDrive_W(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -677,7 +677,7 @@ export async function focusedPowerDrive_W(page: Page): Promise<number> {
 /** Whether the focused project has unsaved changes — the flag behind every unsaved marker. */
 export async function focusedIsModified(page: Page): Promise<boolean> {
   return page.evaluate(async (path): Promise<boolean> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -690,7 +690,7 @@ export async function focusedIsModified(page: Page): Promise<boolean> {
 /** The focused project's name. */
 export async function focusedProjectName(page: Page): Promise<string> {
   return page.evaluate(async (path): Promise<string> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -703,7 +703,7 @@ export async function focusedProjectName(page: Page): Promise<string> {
 /** Dirty the focused design: add a highpass filter and move the drive power off its 1 W reference. */
 export async function dirtyFocusedDesign(page: Page): Promise<void> {
   await page.evaluate(async (path): Promise<void> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -718,7 +718,7 @@ export async function dirtyFocusedDesign(page: Page): Promise<void> {
 /** The focused project serialised as `.owpr` JSON, saved first so the saved layer holds the design. */
 export async function focusedProjectOwpr(page: Page): Promise<unknown> {
   return page.evaluate(async (path): Promise<unknown> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }
@@ -734,7 +734,7 @@ export async function focusedProjectOwpr(page: Page): Promise<unknown> {
 /** The focused project's driver added cone mass (kg). */
 export async function focusedAddedMass_kg(page: Page): Promise<number> {
   return page.evaluate(async (path): Promise<number> => {
-    type AppState = typeof import('../src/logic/appState.js');
+    type AppState = import('../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }

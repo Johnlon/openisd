@@ -7,13 +7,13 @@
  * own hook, so it needs no mobile-specific copy.
  */
 import {computed} from 'vue';
-import {envDefaults, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createErrorSwitches} from './errorSwitches.js';
 
 export function useMobileAdvancedTab() {
+  const {envDefaults, projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const { engine } = useApp();
 

@@ -9,18 +9,19 @@
  */
 import {effectScope, nextTick, watch} from 'vue';
 import type {ProjectRepo, ViewStateRepo} from '@openisd/persistence';
-import {applyViewSnapshot, currentViewSnapshot, focusedProject, openProjects, projectChanged, restoreProjects} from './appState.js';
-import {hiddenTraces, traceVisibilityRevision} from './traceVisibility.js';
+import type {AppState} from './appState.js';
 
 /** The storage doors the sync reads and writes through. */
 export interface SessionSyncDeps {
   readonly projectRepo: Pick<ProjectRepo, 'saveOpenProjects' | 'loadOpenProjects' | 'watchOpenProjects'>;
   readonly viewStateRepo: Pick<ViewStateRepo, 'save' | 'load' | 'watch'>;
+  readonly appState: AppState;
 }
 
 /** Start saving and adopting. Returns the call that stops both. Call it after the boot has
  *  restored the session, never before — a save armed during the boot overwrites what it reads. */
 export function startSessionSync(deps: SessionSyncDeps): () => void {
+  const {hiddenTraces, traceVisibilityRevision, applyViewSnapshot, currentViewSnapshot, focusedProject, openProjects, projectChanged, restoreProjects} = deps.appState;
   let adopting = false;
   const saveProjects = () => { if (!adopting) deps.projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects())); };
   const saveView = () => { if (!adopting) deps.viewStateRepo.save(currentViewSnapshot()); };

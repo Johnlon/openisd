@@ -10,25 +10,26 @@
  * notifies its watchers only when its VALUE changes — a signal can be recomputing on every
  * edit and still never wake a watcher.
  */
-import {describe, it} from 'vitest';
+import {describe, it, beforeEach} from 'vitest';
 import assert from 'node:assert/strict';
 import {nextTick, watch} from 'vue';
 import type {Filter} from '@openisd/design/engine';
-import {
-    focusProject,
-    newProject,
-    openProjects,
-    projectChanged,
-    removeProject,
-    requireFocusedProject,
-} from '../../src/logic/appState.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+
+let appState: AppState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+});
 
 const hp = (fc: number): Filter => ({ id: 'f-hp', type: 'highpass', family: 'sos', order: 2, enabled: true, fc, Q: 0.7071 });
 
 /** Count how many times a real watcher on the signal wakes while `body` runs. */
 async function firingsDuring(body: () => void): Promise<number> {
   let fired = 0;
-  const stop = watch(projectChanged, () => { fired++; });
+  const stop = watch(appState.projectChanged, () => { fired++; });
   try {
     body();
     await nextTick();
@@ -40,9 +41,9 @@ async function firingsDuring(body: () => void): Promise<number> {
 
 describe('projectChanged fires on a change to the focused project', () => {
   it('an edit to the focused project wakes a watcher', async () => {
-    newProject();   // the app starts with NO project (QO121), so this test opens its own
+    appState.newProject();   // the app starts with NO project (QO121), so this test opens its own
     const fired = await firingsDuring(() => {
-      requireFocusedProject().box.sealed.losses.Ql.set(11);
+      appState.requireFocusedProject().box.sealed.losses.Ql.set(11);
     });
     assert.ok(fired > 0, 'an edit to the focused project must wake the persistence hook');
   });
@@ -50,32 +51,32 @@ describe('projectChanged fires on a change to the focused project', () => {
   it('two consecutive edits each wake the watcher — it is a counter, not a state reading', async () => {
     // The trap this guards: a signal derived from current state (e.g. "is a project open")
     // recomputes on both edits, compares equal to itself, and notifies on NEITHER.
-    newProject();
+    appState.newProject();
     const fired = await firingsDuring(() => {
-      requireFocusedProject().box.sealed.losses.Ql.set(21);
-      requireFocusedProject().box.sealed.losses.Qa.set(31);
+      appState.requireFocusedProject().box.sealed.losses.Ql.set(21);
+      appState.requireFocusedProject().box.sealed.losses.Qa.set(31);
     });
     assert.ok(fired > 0, 'a second edit that leaves derived state unchanged must still signal');
   });
 
   it('opening a second project wakes a watcher', async () => {
-    const fired = await firingsDuring(() => { newProject(); });
+    const fired = await firingsDuring(() => { appState.newProject(); });
     assert.ok(fired > 0, 'a newly opened project changes what the hook would persist');
-    removeProject(openProjects().length - 1);
+    appState.removeProject(appState.openProjects().length - 1);
   });
 
   it('switching focus wakes a watcher', async () => {
-    newProject();   // one to switch AWAY from
-    newProject();   // focuses the new one, at the last index
-    const fired = await firingsDuring(() => { focusProject(0); });
+    appState.newProject();   // one to switch AWAY from
+    appState.newProject();   // focuses the new one, at the last index
+    const fired = await firingsDuring(() => { appState.focusProject(0); });
     assert.ok(fired > 0, 'focus moving to a different project changes what the hook would persist');
-    removeProject(openProjects().length - 1);
+    appState.removeProject(appState.openProjects().length - 1);
   });
 });
 
 describe('projectChanged hands over nothing', () => {
   it('the signal is a plain number, carrying no route to any project', () => {
-    const v: number = projectChanged.value;
+    const v: number = appState.projectChanged.value;
     assert.equal(typeof v, 'number',
       'the hook must learn THAT something changed and get no access to the domain object — ' +
       'handing out an OpenISDProject is the leak this signal exists to remove (QO92)');
@@ -85,24 +86,24 @@ describe('projectChanged hands over nothing', () => {
 /**
  * Filter edits must drive a re-sweep: the sweep is re-run by `watch(live, scheduleSweep)` in
  * appState.ts, and `scheduleSweep` throttles (leading-edge), so this asserts the deterministic half
- * of that chain — writing `filters` through the project's own field fires `projectChanged`.
+ * of that chain — writing `filters` through the project's own field fires `appState.projectChanged`.
  */
 describe('projectChanged fires on filter edits (drives the re-sweep)', () => {
   it('editing a filter field wakes projectChanged', async () => {
-    newProject();   // the app starts with NO project (QO121), so this test opens its own
-    requireFocusedProject().filters.set([hp(80)]);
+    appState.newProject();   // the app starts with NO project (QO121), so this test opens its own
+    appState.requireFocusedProject().filters.set([hp(80)]);
     const fired = await firingsDuring(() => {
-      const edited = requireFocusedProject().filters.value.map(f => ({ ...f, fc: 120 }));
-      requireFocusedProject().filters.set(edited);
+      const edited = appState.requireFocusedProject().filters.value.map(f => ({ ...f, fc: 120 }));
+      appState.requireFocusedProject().filters.set(edited);
     });
-    assert.ok(fired > 0, 'editing a filter field must wake projectChanged (drives the re-sweep)');
+    assert.ok(fired > 0, 'editing a filter field must wake appState.projectChanged (drives the re-sweep)');
   });
 
   it('adding a filter wakes projectChanged', async () => {
-    newProject();
-    requireFocusedProject().filters.set([]);
+    appState.newProject();
+    appState.requireFocusedProject().filters.set([]);
     const fired = await firingsDuring(() => {
-      requireFocusedProject().filters.set([...requireFocusedProject().filters.value, hp(60)]);
+      appState.requireFocusedProject().filters.set([...appState.requireFocusedProject().filters.value, hp(60)]);
     });
     assert.ok(fired > 0, 'adding a filter must wake projectChanged');
   });

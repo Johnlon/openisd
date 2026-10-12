@@ -13,27 +13,24 @@
  *   3. `setVentedLimits` recalls every OPEN project, not only the focused one — the marks on a
  *      background tab's cells must not be left stale.
  *
- * `appState.ts` caches its state on an HMR singleton shared with every other test file in this
- * run, so these assert deltas and always restore the factory band in `afterEach`.
+ * Each test builds its own `AppState` over a fresh in-memory settings store.
  */
-import {afterEach, describe, expect, it} from 'vitest';
+import {describe, expect, it, beforeEach} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {
     DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type EnvDefaults, type VentedDesignLimits,
 } from '@openisd/design/engine';
 import {createAppSettingsRepo, createMemoryStorage} from '@openisd/persistence';
-import {
-    addProject,
-    engine,
-    envDefaults,
-    installAppSettings,
-    openProjects,
-    removeProject,
-    setEnvDefaults,
-    setVentedLimits,
-    ventedLimits,
-} from '../../src/logic/appState.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+
+let appState: AppState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+});
 
 /** A band that rejects the extrapolated C4-at-Qts-1.0 design (1684 L, 5.4 Hz) and accepts an
  *  ordinary one. */
@@ -64,105 +61,97 @@ function testDriver(): OpenISDDriver {
       },
     },
   };
-  const driver = OpenISDDriver.fromConformingRecord(record, engine);
+  const driver = OpenISDDriver.fromConformingRecord(record, appState.engine);
   if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
   return driver;
 }
 
 /** A vented project whose designed box is the extrapolated one — 1.684 m³, 5.4 Hz. */
 function implausibleVentedProject(): OpenISDProject {
-  return new ProjectBuilder(testDriver(), engine).vented().volume_m3(1.684).tuning_goal_hz(5.4).build();
+  return new ProjectBuilder(testDriver(), appState.engine).vented().volume_m3(1.684).tuning_goal_hz(5.4).build();
 }
 
 /** Open `project` in the registry for the duration of one test. */
 function opened(project: OpenISDProject): OpenISDProject {
-  addProject(project);
+  appState.addProject(project);
   return project;
 }
 
-afterEach(() => {
-  // Restore the factory band AND a clean storage, so a band written here cannot reach the next
-  // test file through the shared HMR singleton.
-  installAppSettings(createAppSettingsRepo(createMemoryStorage()));
-  // Close anything this file opened — the registry is shared with every other test file.
-  while (openProjects().length > 0) removeProject(openProjects().length - 1);
-});
-
 describe('appState — the application settings seam', () => {
   it('starts on the factory band', () => {
-    assert.deepEqual(ventedLimits(), DEFAULT_VENTED_DESIGN_LIMITS);
+    assert.deepEqual(appState.ventedLimits(), DEFAULT_VENTED_DESIGN_LIMITS);
   });
 
   it('reads the band from the repo the composition root installed', () => {
-    const repo = createAppSettingsRepo(createMemoryStorage());
-    repo.setVentedLimits(NARROW);
+    const storage = createMemoryStorage();
+    createAppSettingsRepo(storage).setVentedLimits(NARROW);
 
-    installAppSettings(repo);
+    appState = createAppStateFixture(storage).appState;
 
-    assert.deepEqual(ventedLimits(), NARROW);
+    assert.deepEqual(appState.ventedLimits(), NARROW);
   });
 
   it('writes the band through the installed repo, so it survives a reload', () => {
     const storage = createMemoryStorage();
-    installAppSettings(createAppSettingsRepo(storage));
+    appState = createAppStateFixture(storage).appState;
 
-    setVentedLimits(NARROW);
+    appState.setVentedLimits(NARROW);
 
     // A SECOND repo over the same storage is what a reload is — it must read the band back.
     assert.deepEqual(createAppSettingsRepo(storage).ventedLimits(), NARROW);
   });
 
-  it("the engine reads the band at call time — a later write changes its answer, nothing rebuilt", () => {
-    setVentedLimits(WIDE);
-    assert.equal(engine.vented.volumeIssue(1.684), null);
+  it("the appState.engine reads the band at call time — a later write changes its answer, nothing rebuilt", () => {
+    appState.setVentedLimits(WIDE);
+    assert.equal(appState.engine.vented.volumeIssue(1.684), null);
 
-    setVentedLimits(NARROW);
+    appState.setVentedLimits(NARROW);
 
-    const issue = engine.vented.volumeIssue(1.684);
+    const issue = appState.engine.vented.volumeIssue(1.684);
     assert.notEqual(issue, null);
     assert.equal(issue?.kind, 'out-of-range');
   });
 
   it('marks an open project\'s cells when the band narrows', () => {
-    setVentedLimits(WIDE);
+    appState.setVentedLimits(WIDE);
     const project = opened(implausibleVentedProject());
     assert.deepEqual(project.box.vented.volume_m3.dq, []);
 
-    setVentedLimits(NARROW);
+    appState.setVentedLimits(NARROW);
 
     const dq = project.box.vented.volume_m3.dq;
     assert.equal(dq.length, 1);
-    expect(dq[0]).toEqual(engine.issues.quantityOutOfBand('Vb', 1.684, NARROW.minVb_m3, NARROW.maxVb_m3));
+    expect(dq[0]).toEqual(appState.engine.issues.quantityOutOfBand('Vb', 1.684, NARROW.minVb_m3, NARROW.maxVb_m3));
   });
 
   it('unmarks again when the band widens — the recall is not one-way', () => {
-    setVentedLimits(NARROW);
+    appState.setVentedLimits(NARROW);
     const project = opened(implausibleVentedProject());
     assert.equal(project.box.vented.volume_m3.dq.length, 1);
 
-    setVentedLimits(WIDE);
+    appState.setVentedLimits(WIDE);
 
     assert.deepEqual(project.box.vented.volume_m3.dq, []);
   });
 
   it('recalls EVERY open project, not only the focused one', () => {
-    setVentedLimits(WIDE);
+    appState.setVentedLimits(WIDE);
     const first = opened(implausibleVentedProject());
     const second = opened(implausibleVentedProject());
-    // `addProject` focuses what it adds, so `first` is now a background tab.
+    // `appState.addProject` focuses what it adds, so `first` is now a background tab.
 
-    setVentedLimits(NARROW);
+    appState.setVentedLimits(NARROW);
 
     assert.equal(first.box.vented.volume_m3.dq.length, 1, 'background project left stale');
     assert.equal(second.box.vented.volume_m3.dq.length, 1);
   });
 
   it('does not change the designed value, and does not make the project edited', () => {
-    setVentedLimits(WIDE);
+    appState.setVentedLimits(WIDE);
     const project = opened(implausibleVentedProject());
     project.save();
 
-    setVentedLimits(NARROW);
+    appState.setVentedLimits(NARROW);
 
     assert.equal(project.box.vented.volume_m3.value, 1.684);
     assert.equal(project.isModified(), false);
@@ -174,23 +163,23 @@ const ARCTIC: EnvDefaults = {tempK: 250, humidityPct: 80, pressurePa: 99000};
 
 describe('appState — the environment defaults, Options → General → Environment', () => {
   it('starts on the factory environment', () => {
-    assert.deepEqual(envDefaults(), DEFAULT_ENV_DEFAULTS);
+    assert.deepEqual(appState.envDefaults(), DEFAULT_ENV_DEFAULTS);
   });
 
   it('reads the environment from the repo the composition root installed', () => {
-    const repo = createAppSettingsRepo(createMemoryStorage());
-    repo.setEnvDefaults(ARCTIC);
+    const storage = createMemoryStorage();
+    createAppSettingsRepo(storage).setEnvDefaults(ARCTIC);
 
-    installAppSettings(repo);
+    appState = createAppStateFixture(storage).appState;
 
-    assert.deepEqual(envDefaults(), ARCTIC);
+    assert.deepEqual(appState.envDefaults(), ARCTIC);
   });
 
   it('writes the environment through the installed repo, so it survives a reload', () => {
     const storage = createMemoryStorage();
-    installAppSettings(createAppSettingsRepo(storage));
+    appState = createAppStateFixture(storage).appState;
 
-    setEnvDefaults(ARCTIC);
+    appState.setEnvDefaults(ARCTIC);
 
     assert.deepEqual(createAppSettingsRepo(storage).envDefaults(), ARCTIC);
   });
@@ -200,7 +189,7 @@ describe('appState — the environment defaults, Options → General → Environ
     assert.equal(project.envTempK.entered, false);
     assert.equal(project.envTempK.value, DEFAULT_ENV_DEFAULTS.tempK);
 
-    setEnvDefaults(ARCTIC);
+    appState.setEnvDefaults(ARCTIC);
 
     assert.equal(project.envTempK.value, ARCTIC.tempK);
     assert.equal(project.envTempK.calculated, true);
@@ -212,7 +201,7 @@ describe('appState — the environment defaults, Options → General → Environ
     const project = opened(implausibleVentedProject());
     project.envTempK.set(300);
 
-    setEnvDefaults(ARCTIC);
+    appState.setEnvDefaults(ARCTIC);
 
     assert.equal(project.envTempK.value, 300);
     assert.equal(project.envTempK.entered, true);
@@ -226,7 +215,7 @@ describe('appState — the environment defaults, Options → General → Environ
     first.subscribe(() => { firstNotified++; });
     second.subscribe(() => { secondNotified++; });
 
-    setEnvDefaults(ARCTIC);
+    appState.setEnvDefaults(ARCTIC);
 
     // The background project hears exactly the one recall. The focused one hears more: the
     // vent-group watcher on `live` re-solves against the new air and its writes notify too.
@@ -238,7 +227,7 @@ describe('appState — the environment defaults, Options → General → Environ
     const project = opened(implausibleVentedProject());
     project.save();
 
-    setEnvDefaults(ARCTIC);
+    appState.setEnvDefaults(ARCTIC);
 
     assert.equal(project.isModified(), false);
   });

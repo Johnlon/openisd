@@ -1,7 +1,7 @@
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
 import type {OpenISDDriver} from '@openisd/design';
 import {Chip} from '@openisd/design/filter';
-import {presentationState} from './presentationState.js';
+import type {PresentationState} from './presentationState.js';
 import {readDriverFileText} from './driverFileText.js';
 import {DriverFileFormat, sniff} from '../fileFormat.js';
 import {DriverScope} from '../driverScope.js';
@@ -29,7 +29,7 @@ import {
 import {driverFromFileText, type DriverSelection} from './driverSelection.js';
 import type {DesignFiles} from './fileImportExport.js';
 import {inputFrom} from './domEvents.js';
-import {focusedProject, newProjectDriver} from './appState.js';
+import type {AppState} from './appState.js';
 
 /** A My Drivers row: the storage uuid this repo minted (the delete/edit handle) plus the driver
  *  itself. The uuid is NOT on the driver — it is the key into the saved-driver map, assigned only
@@ -172,10 +172,14 @@ export interface DriverBrowsingStateDeps {
   files: DesignFiles;
   /** Asks the user to confirm a destructive action. The injected confirm port. */
   confirmReset: ConfirmPort;
+  appState: AppState;
+  presentation: PresentationState;
 }
 
 export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): DriverBrowsingState {
   const { driverRepo, myDriverRepo, prefs, logging, selection } = deps;
+  const { focusedProject, newProjectDriver } = deps.appState;
+  const presentationState = deps.presentation;
 
   // `shallowRef`, not `ref`: `myDrivers` holds `OpenISDDriver` — a class with `#private` fields —
   // and Vue's deep `UnwrapRef` mapped type loses that field's nominal branding while unwrapping.

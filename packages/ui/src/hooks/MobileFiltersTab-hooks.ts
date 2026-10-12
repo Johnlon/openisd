@@ -1,5 +1,4 @@
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {projectChanged} from '../logic/appState.js';
 import {useApp} from '../logic/app.js';
 import {OriginalFilters, type OriginalFiltersAPI} from './OriginalFilters-hooks.js';
 
@@ -10,6 +9,7 @@ import {OriginalFilters, type OriginalFiltersAPI} from './OriginalFilters-hooks.
  * reused directly (see MobileFiltersTab.vue) rather than duplicating a second Filters UI.
  */
 export function useMobileFiltersTab(): OriginalFiltersAPI {
+  const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const { filters } = useApp().engine;
   return new OriginalFilters(project, projectChanged, filters);

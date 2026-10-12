@@ -1,12 +1,22 @@
-import {describe, expect, it} from 'vitest';
-import {computed, defineComponent, effectScope, h} from 'vue';
+import {describe, expect, it, beforeEach} from 'vitest';
+import {computed, defineComponent, effectScope, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {addProject, removeProject, openProjects} from '../../src/logic/appState.js';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {useOriginalWhatIf, type OriginalWhatIfAPI} from '../../src/hooks/OriginalWhatIf-hooks.js';
 import {runHook} from './runHook.js';
+import {testAppLogic} from './testAppLogic.js';
+import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
+import type {AppState} from '../../src/logic/appState.js';
+
+let logic: AppLogic;
+let appState: AppState;
+
+beforeEach(() => {
+  logic = testAppLogic();
+  appState = logic.appState;
+});
 
 function createProject() {
   const engine = createEngine();
@@ -30,6 +40,7 @@ async function renderHook(project = createProject()): Promise<OriginalWhatIfAPI>
   });
   const Root = defineComponent({
     setup() {
+      provide(APP_LOGIC, logic);
       provideFocusedProject(computed(() => project));
       return () => h(Child);
     },
@@ -74,7 +85,7 @@ describe('OriginalWhatIf-hooks', () => {
     const project = createProject();
     project.save();
     const scope = effectScope();
-    const api = scope.run(() => runHook(computed(() => project), useOriginalWhatIf));
+    const api = scope.run(() => runHook(computed(() => project), useOriginalWhatIf, logic));
     if (api === undefined) throw new Error('the hook did not run');
     api.enterField('Fs_hz', 55);
     scope.stop();
@@ -214,8 +225,8 @@ describe('OriginalWhatIf-hooks', () => {
    */
   it('re-reads Vb after a write rather than answering the cached one', async () => {
     const project = createProject();
-    const opened = openProjects().length;
-    addProject(project);
+    const opened = appState.openProjects().length;
+    appState.addProject(project);
     try {
       const api = await renderHook(project);
       // Evaluate FIRST — this is the read whose cache the write has to invalidate.
@@ -223,39 +234,39 @@ describe('OriginalWhatIf-hooks', () => {
       api.setVb_m3(0.02);
       expect(api.vb_m3.value).toBeCloseTo(0.02, 9);
     } finally {
-      removeProject(openProjects().length - 1);
-      expect(openProjects().length).toBe(opened);
+      appState.removeProject(appState.openProjects().length - 1);
+      expect(appState.openProjects().length).toBe(opened);
     }
   });
 
   it('shows a volume written by another panel, as the Box tab writes it', async () => {
     const project = createProject();
-    const opened = openProjects().length;
-    addProject(project);
+    const opened = appState.openProjects().length;
+    appState.addProject(project);
     try {
       // runHook, not renderToString: only a client-side computed caches, so only it can go stale.
-      const api = runHook(computed(() => project), useOriginalWhatIf);
+      const api = runHook(computed(() => project), useOriginalWhatIf, logic);
       expect(api.vb_m3.value).toBeCloseTo(0.012, 9);
       project.box.sealed.volume_m3.set(0.027);
       expect(api.vb_m3.value).toBeCloseTo(0.027, 9);
     } finally {
-      removeProject(openProjects().length - 1);
-      expect(openProjects().length).toBe(opened);
+      appState.removeProject(appState.openProjects().length - 1);
+      expect(appState.openProjects().length).toBe(opened);
     }
   });
 
   it('re-reads ebp after a write rather than answering the cached one', async () => {
     const project = createProject();
-    const opened = openProjects().length;
-    addProject(project);
+    const opened = appState.openProjects().length;
+    appState.addProject(project);
     try {
       const api = await renderHook(project);
       expect(api.ebp.value).toBeCloseTo(40 / 0.45, 6);
       api.enterField('Fs_hz', 80);
       expect(api.ebp.value).toBeCloseTo(80 / 0.45, 6);
     } finally {
-      removeProject(openProjects().length - 1);
-      expect(openProjects().length).toBe(opened);
+      appState.removeProject(appState.openProjects().length - 1);
+      expect(appState.openProjects().length).toBe(opened);
     }
   });
 });

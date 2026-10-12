@@ -9,52 +9,55 @@
  * `appState.ts` caches its registry on a module-scope singleton shared across every test file in
  * a run, so these assert DELTAS from whatever the registry already holds, never absolute counts.
  */
-import {describe, expect, it} from 'vitest';
-import {
-    IMPLEMENTED_BOX_TYPES,
-    boxTypeIsSimulatable,
-    definePassiveRadiator,
-    focusedProject,
-    newProject,
-    openProjects
-} from '../../src/logic/appState.js';
-import {presentationState} from '../../src/logic/presentationState.js';
+import {describe, expect, it, beforeEach} from 'vitest';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
 
 describe('newProject', () => {
   it('starts with Rg not at the driver side (WinISD default)', () => {
-    newProject();
+    appState.newProject();
 
-    expect(focusedProject()!.rgAtDriverSide.value).toBe(false);
+    expect(appState.focusedProject()!.rgAtDriverSide.value).toBe(false);
   });
 
   it('adds one project and focuses it', () => {
-    const before = openProjects().length;
+    const before = appState.openProjects().length;
 
-    newProject();
+    appState.newProject();
 
-    expect(openProjects().length).toBe(before + 1);
-    expect(focusedProject()).toBe(openProjects()[before]);
+    expect(appState.openProjects().length).toBe(before + 1);
+    expect(appState.focusedProject()).toBe(appState.openProjects()[before]);
   });
 
   it('starts with no driver chosen, which is what the wizard then fills in', () => {
-    newProject();
+    appState.newProject();
 
-    expect(focusedProject()!.driver.brand.value).toBe('');
-    expect(focusedProject()!.driver.specs.Fs_hz.value).toBe(null);
+    expect(appState.focusedProject()!.driver.brand.value).toBe('');
+    expect(appState.focusedProject()!.driver.specs.Fs_hz.value).toBe(null);
   });
 
   it('holds a radiator already, so a switch to a passive-radiator box is legal', () => {
-    newProject();
+    appState.newProject();
 
-    focusedProject()!.box.passiveRadiator.radiator.spec.Fs_hz.set(12);
-    expect(focusedProject()!.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(12);
+    appState.focusedProject()!.box.passiveRadiator.radiator.spec.Fs_hz.set(12);
+    expect(appState.focusedProject()!.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(12);
   });
 
   it('gives each new project its own records', () => {
-    newProject();
-    const one = focusedProject()!;
-    newProject();
-    const two = focusedProject()!;
+    appState.newProject();
+    const one = appState.focusedProject()!;
+    appState.newProject();
+    const two = appState.focusedProject()!;
 
     one.driver.model.set('RS225');
 
@@ -65,9 +68,9 @@ describe('newProject', () => {
     const previous = presentationState.ui.username;
     presentationState.ui.username = 'johnl';
     try {
-      newProject();
-      expect(focusedProject()!.creator.value).toBe('johnl');
-      expect(focusedProject()!.driver.providedBy.value).toBe('johnl');
+      appState.newProject();
+      expect(appState.focusedProject()!.creator.value).toBe('johnl');
+      expect(appState.focusedProject()!.driver.providedBy.value).toBe('johnl');
     } finally {
       presentationState.ui.username = previous;
     }
@@ -77,9 +80,9 @@ describe('newProject', () => {
     const previous = presentationState.ui.username;
     presentationState.ui.username = undefined;
     try {
-      newProject();
-      expect(focusedProject()!.creator.value).toBe('');
-      expect(focusedProject()!.driver.providedBy.value).toBeNull();
+      appState.newProject();
+      expect(appState.focusedProject()!.creator.value).toBe('');
+      expect(appState.focusedProject()!.driver.providedBy.value).toBeNull();
     } finally {
       presentationState.ui.username = previous;
     }
@@ -88,11 +91,11 @@ describe('newProject', () => {
 
 describe('definePassiveRadiator', () => {
   it('puts a blank radiator in the focused project, so the editor has one to fill in', () => {
-    newProject();
-    const project = focusedProject();
+    appState.newProject();
+    const project = appState.focusedProject();
     if (!project) throw new Error('newProject must focus the project it created');
 
-    definePassiveRadiator();
+    appState.definePassiveRadiator();
 
     // A blank radiator states nothing, but the slot is no longer empty — writing to it is
     // exactly what the editor does next, and an empty slot refuses a write.
@@ -101,13 +104,13 @@ describe('definePassiveRadiator', () => {
   });
 
   it('replaces whatever radiator was there, so Define is not an edit of the old one', () => {
-    newProject();
-    const project = focusedProject();
+    appState.newProject();
+    const project = appState.focusedProject();
     if (!project) throw new Error('newProject must focus the project it created');
-    definePassiveRadiator();
+    appState.definePassiveRadiator();
     project.box.passiveRadiator.radiator.model.set('Old PR');
 
-    definePassiveRadiator();
+    appState.definePassiveRadiator();
 
     expect(project.box.passiveRadiator.radiator.model.value).toBe('');
   });
@@ -116,9 +119,9 @@ describe('definePassiveRadiator', () => {
     const previous = presentationState.ui.username;
     presentationState.ui.username = 'johnl';
     try {
-      newProject();
-      definePassiveRadiator();
-      expect(focusedProject()!.box.passiveRadiator.radiator.providedBy.value).toBe('johnl');
+      appState.newProject();
+      appState.definePassiveRadiator();
+      expect(appState.focusedProject()!.box.passiveRadiator.radiator.providedBy.value).toBe('johnl');
     } finally {
       presentationState.ui.username = previous;
     }
@@ -128,7 +131,7 @@ describe('definePassiveRadiator', () => {
 describe('boxTypeIsSimulatable', () => {
   it('accepts every box type — bandpass6 and ABC gained circuits in df81902c, so none is pending', () => {
     for (const box of ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'] as const) {
-      expect(boxTypeIsSimulatable(box), box).toBe(true);
+      expect(appState.boxTypeIsSimulatable(box), box).toBe(true);
     }
   });
 });
@@ -136,6 +139,6 @@ describe('boxTypeIsSimulatable', () => {
 describe('IMPLEMENTED_BOX_TYPES', () => {
   it('lists every box type — no picker row is dimmed', () => {
     for (const box of ['sealed', 'vented', 'bandpass4', 'bandpass6', 'abc', 'box-passive-radiator'] as const)
-      expect(IMPLEMENTED_BOX_TYPES.includes(box), box).toBe(true);
+      expect(appState.IMPLEMENTED_BOX_TYPES.includes(box), box).toBe(true);
   });
 });

@@ -6,7 +6,7 @@
  * `OriginalWhatIf-hooks.ts`.
  */
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
-import {presentationState} from '../../../logic/presentationState.js';
+import {useApp} from '../../../logic/app.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
 import {cellClassOf} from '../../../logic/driverCells.js';
@@ -15,6 +15,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import {inputValue, listeningElement} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import {useOriginalWhatIf} from '../../../hooks/OriginalWhatIf-hooks.js';
+const presentationState = useApp().presentation;
 
 const project = useFocusedProject();
 const whatIf = useOriginalWhatIf();

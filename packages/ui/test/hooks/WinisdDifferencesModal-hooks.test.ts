@@ -5,27 +5,27 @@ import {useWinisdDifferencesModal} from '../../src/hooks/WinisdDifferencesModal-
 
 describe('useWinisdDifferencesModal', () => {
   it('starts closed, and lists every section of the page', () => {
-    const h = useWinisdDifferencesModal();
+    const h = useWinisdDifferencesModal({differenceCuesShown: () => true});
     expect(h.open.value).toBe(false);
     expect(h.sections).toEqual(WinisdDifferenceSection.ALL);
   });
 
   it('the Help menu opens the page at the top', () => {
-    const h = useWinisdDifferencesModal();
+    const h = useWinisdDifferencesModal({differenceCuesShown: () => true});
     h.show();
     expect(h.open.value).toBe(true);
     expect(h.target.value).toBeNull();
   });
 
   it('a group heading\'s help link opens the page at that group\'s section', () => {
-    const h = useWinisdDifferencesModal();
+    const h = useWinisdDifferencesModal({differenceCuesShown: () => true});
     h.showGroup(CompatSwitchGroup.OPTIONS);
     expect(h.open.value).toBe(true);
     expect(h.target.value).toBe(WinisdDifferenceSection.OPTIONS);
   });
 
   it('a ≠W cue opens the page at that cue\'s entry', () => {
-    const h = useWinisdDifferencesModal();
+    const h = useWinisdDifferencesModal({differenceCuesShown: () => true});
     h.showDeviation(WinisdFilterDeviation.LINKWITZ_RILEY_ORDER);
     expect(h.target.value).toBe(WinisdDifference.forDeviation(WinisdFilterDeviation.LINKWITZ_RILEY_ORDER));
     h.showDeviation(WinisdDeviation.VA_MODEL);
@@ -33,7 +33,7 @@ describe('useWinisdDifferencesModal', () => {
   });
 
   it('closing clears the target, so the menu reopens at the top', () => {
-    const h = useWinisdDifferencesModal();
+    const h = useWinisdDifferencesModal({differenceCuesShown: () => true});
     h.showGroup(CompatSwitchGroup.BUGS);
     h.close();
     expect(h.open.value).toBe(false);

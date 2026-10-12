@@ -7,7 +7,6 @@
  */
 import {computed, ref} from 'vue';
 import type {ComputedRef} from 'vue';
-import {definePassiveRadiator} from '../logic/appState.js';
 import type {OpenISDProject} from '@openisd/design';
 import type {SaveNameField} from './saveNameField.js';
 import type {BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo} from '@openisd/persistence';
@@ -16,9 +15,11 @@ export interface PassiveRadiatorActionsDeps {
   project: ComputedRef<OpenISDProject>;
   myPassiveRadiators: MyPassiveRadiatorRepo;
   bundledPassiveRadiators: BundledPassiveRadiatorRepo;
+  /** "Define new PR": put a blank radiator in the focused project's box. */
+  definePassiveRadiator(): void;
 }
 
-export function createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators }: PassiveRadiatorActionsDeps) {
+export function createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator }: PassiveRadiatorActionsDeps) {
   const prBrowseOpen = ref(false);
   function loadPREntry(uuid: string) {
     const entry = myPassiveRadiators.list().find(e => e.uuid === uuid);

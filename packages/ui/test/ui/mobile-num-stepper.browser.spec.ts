@@ -145,7 +145,7 @@ test('pressing a step button focuses the button, not the field', async ({ page }
 // neighbours. Every stepper lines up whether or not its row has a unit.
 test('a unitless row\'s step buttons line up with a row that has a unit', async ({ page }) => {
   await page.evaluate(async (p) => {
-    type AppState = typeof import('../../src/logic/appState.js');
+    type AppState = import('../../src/logic/appState.js').AppState;
     function isAppState(m: unknown): m is AppState {
       return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
     }

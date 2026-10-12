@@ -6,8 +6,18 @@
  */
 import {afterEach, beforeEach, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import {curvesData, maxData, newProject, requireFocusedProject, syncedP} from '../../src/logic/appState.js';
-import {presentationState} from '../../src/logic/presentationState.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {AppState} from '../../src/logic/appState.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let appState: AppState;
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  appState = fixture.appState;
+  presentationState = fixture.presentation;
+});
 
 // Fake timers, so the sweep's settle run (`SweepScheduler`, 150 ms after the last edit) is stepped
 // through, never slept through: no wall-clock wait, so no flake on a loaded machine.
@@ -24,8 +34,8 @@ async function awaitSweepThrottle(): Promise<void> {
 }
 
 function aSimulatableSealedProject(): void {
-  newProject();
-  const p = requireFocusedProject();
+  appState.newProject();
+  const p = appState.requireFocusedProject();
   p.driver.specs.Fs_hz.set(45);
   p.driver.specs.Qts.set(0.49);
   p.driver.specs.Qes.set(0.57);
@@ -46,10 +56,10 @@ describe('the store sweeps the range the chart axis shows', () => {
     presentationState.sweepRange = {min: 1, max: 5000};
     await awaitSweepThrottle();
 
-    assert.equal(syncedP.value.fmin, 1);
-    assert.equal(syncedP.value.fmax, 5000);
-    const sw = curvesData.value;
-    const mx = maxData.value;
+    assert.equal(appState.syncedP.value.fmin, 1);
+    assert.equal(appState.syncedP.value.fmax, 5000);
+    const sw = appState.curvesData.value;
+    const mx = appState.maxData.value;
     assert.ok(sw && mx, 'a sized sealed box with a complete driver must produce curves');
     assert.ok(Math.abs(sw.fs[0] - 1) < 1e-9, `curves must start at the plot start, got ${sw.fs[0]} Hz`);
     assert.ok(Math.abs(sw.fs[sw.fs.length - 1] - 5000) < 1e-6, `curves must end at the plot end, got ${sw.fs[sw.fs.length - 1]} Hz`);
@@ -61,7 +71,7 @@ describe('the store sweeps the range the chart axis shows', () => {
     aSimulatableSealedProject();
     await awaitSweepThrottle();
 
-    const sw = curvesData.value;
+    const sw = appState.curvesData.value;
     assert.ok(sw, 'a sized sealed box with a complete driver must produce curves');
     assert.ok(Math.abs(sw.fs[0] - 10) < 1e-9, `got ${sw.fs[0]} Hz`);
     assert.ok(Math.abs(sw.fs[sw.fs.length - 1] - 20000) < 1e-6, `got ${sw.fs[sw.fs.length - 1]} Hz`);

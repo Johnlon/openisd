@@ -16,30 +16,8 @@
  */
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
-import {
-    allIssues,
-    IMPLEMENTED_BOX_TYPES,
-    boxTypeIsSimulatable,
-    copyProjectName,
-    curvesData,
-    driverName,
-    duplicateFocusedProject,
-    envDefaults,
-    focusedProject,
-    focusProject,
-    isModified,
-    markProjectSaved,
-    maxData,
-    openProjects,
-    projectChanged,
-    projectDisplayName,
-    projectHasUnsavedChanges,
-    removeProject,
-    resetProjectToGround,
-    syncedP,
-} from '../logic/appState.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
-import {cycleTraceColor, presentationState, setSkinOverride, traceColor} from '../logic/presentationState.js';
+import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
@@ -65,7 +43,6 @@ import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
 import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
-import {isTraceVisible, setTraceVisible} from '../logic/traceVisibility.js';
 import {useCompareOverlays} from './compareOverlays.js';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
@@ -166,6 +143,9 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
 
 // ---- The shell's one hook -----------------------------------------------------
 export function useOriginalShell(options?: { sealedReadouts?: typeof createSealedReadouts }) {
+  const { appState, presentation: presentationState } = useApp();
+  const { definePassiveRadiator, isTraceVisible, setTraceVisible, allIssues, IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, copyProjectName, curvesData, driverName, duplicateFocusedProject, envDefaults, focusedProject, focusProject, isModified, markProjectSaved, maxData, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround, syncedP } = appState;
+  const { setSkinOverride } = presentationState;
   const sealedReadouts = options?.sealedReadouts ?? createSealedReadouts;
 
   // The delegate-free reactivity adapter (docs/design/REACTIVITY.md): touching `project.value`
@@ -327,7 +307,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     void designIO.openFromDisk(() => fileInput.value?.click());
   }
   function openStoredProject(id: string) {
-    const result = openStoredProjectFromStore(projectRepo, id);
+    const result = openStoredProjectFromStore(appState, projectRepo, id);
     if (result.kind === 'refused') {
       alert('Could not open the saved project: ' + result.errors.join('; '));
       return;
@@ -466,7 +446,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (idx >= 0) focusProject(idx);
   }
 
-  const overlays = useCompareOverlays(engine.simulation, project);
+  const overlays = useCompareOverlays(engine.simulation, project, appState, presentationState);
 
   /** "+ Copy" — duplicate the focused project's committed design into a new, independent tab. */
   function copyCurrentProject() {
@@ -589,7 +569,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Delegated to the unit-tested `createPassiveRadiatorActions` above.
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
-    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators });
+    createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
   function startEdit() { editProjectDriver(); }
 
   // R1 refresh fidelity — RECORD an open What-if? panel / Driver Editor so a reload can restore it.

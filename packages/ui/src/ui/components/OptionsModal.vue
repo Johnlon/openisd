@@ -47,7 +47,6 @@
 //             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartId`.
 import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
 import {reactive, ref} from 'vue';
-import {presentationState, resetUnitTokens} from '../../logic/presentationState.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
 import {useBackupSettings} from '../../hooks/useBackupSettings.js';
@@ -62,7 +61,8 @@ function close() { emit('close'); }
 function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); }
 useEscToClose(() => true, close);
 
-const { confirmPort } = useApp();
+const { confirmPort, presentation: presentationState } = useApp();
+const { resetUnitTokens } = presentationState;
 const { downloadBackup, restoreFromFile } = useBackupSettings();
 const backupFileInput = ref<HTMLInputElement | null>(null);
 function pickBackupFile() { backupFileInput.value?.click(); }

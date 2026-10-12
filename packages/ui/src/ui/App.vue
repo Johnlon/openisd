@@ -12,18 +12,8 @@ import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import SplashModal from './components/SplashModal.vue';
 import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
-import {
-  applyState,
-  currentViewSnapshot,
-  focusedProject,
-  openProjects,
-  projectChanged,
-  requireFocusedProject,
-} from '../logic/appState.js';
 import {bootApplication} from '../logic/boot.js';
 import {startSessionSync} from '../logic/sessionSync.js';
-import {hiddenTraces} from '../logic/traceVisibility.js';
-import {presentationState} from '../logic/presentationState.js';
 import {provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
@@ -31,7 +21,8 @@ import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hoo
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 
-const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, confirmPort } = useApp();
+const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, confirmPort, appState, presentation: presentationState } = useApp();
+const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 
 // The automatic half of the skin switch. Read `matchMedia` SYNCHRONOUSLY here — before this
@@ -97,10 +88,12 @@ onMounted(async () => {
     viewStateRepo,
     logging,
     editProjectDriver: () => selection.editProjectDriver(),
+    appState,
+    presentation: presentationState,
   });
   viewStateRepo.save(currentViewSnapshot());
   projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
-  stopSessionSync = startSessionSync({ projectRepo, viewStateRepo });
+  stopSessionSync = startSessionSync({ projectRepo, viewStateRepo, appState });
   window.addEventListener('hashchange', handleHashChange);
 });
 

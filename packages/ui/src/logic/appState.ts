@@ -13,7 +13,7 @@
  * project registry, and bridge notifications into Vue's reactivity system.
  */
 
-import {computed, ref, type ComputedRef, type Ref, shallowRef, type ShallowRef, triggerRef, watch, type WritableComputedRef} from 'vue';
+import {computed, reactive, ref, type ComputedRef, type Ref, shallowRef, type ShallowRef, triggerRef, watch, type WritableComputedRef} from 'vue';
 import type {
     BoxType, ChartId, DriverError, DriverPrerequisite, MaxCurvesResult, MaxCurvesSolveResult, SweepIssue, SweepResult,
     VentedDesignLimits,
@@ -44,7 +44,6 @@ import {
     type ViewSnapshot,
 } from '@openisd/persistence';
 import {assignTraceColor, type PresentationState} from './presentationState.js';
-import {setTraceVisible} from './traceVisibility.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {ventSolveSuspended} from './ventGroup.js';
 import {notifyPrChanged} from './prGroup.js';
@@ -211,6 +210,13 @@ export interface AppState {
   applyViewSnapshot(v: ViewSnapshot): void;
   applyState(o: { project: OpenISDProject; view: ViewSnapshot }): void;
   readonly simVcInductance: WritableComputedRef<boolean>;
+  /** Read by computeds that depend on `isTraceVisible`; bumped by every `setTraceVisible`. */
+  readonly traceVisibilityRevision: Ref<number>;
+  /** Whether `p`'s trace is drawn on the graphs. */
+  isTraceVisible(p: OpenISDProject): boolean;
+  setTraceVisible(p: OpenISDProject, visible: boolean): void;
+  /** Which of `projects` have their trace hidden — what the open-project session saves. */
+  hiddenTraces(projects: readonly OpenISDProject[]): Set<OpenISDProject>;
 }
 
 export function createAppState(deps: AppStateDeps): AppState {
@@ -226,6 +232,24 @@ export function createAppState(deps: AppStateDeps): AppState {
   const engine: Engine = deps.engine;
   /** Bumped on every write of a UI-only app setting, so a computed reading it re-derives. */
   const appSettingsTick = ref(0);
+
+  // Whether each open project's trace is drawn on the graphs (the Projects list's show/hide
+  // checkbox, shared by both skins). Never saved in a project file; the open-project session
+  // stores it (`hiddenTraces`), so a reload restores it. `traceVisibilityRevision` is the
+  // dependency computeds read: a reactive WeakMap's key operations are not reliably trackable
+  // inside a computed, while a plain ref always fires.
+  const visibleOf = reactive(new WeakMap<OpenISDProject, boolean>());
+  const traceVisibilityRevision = ref(0);
+  function isTraceVisible(p: OpenISDProject): boolean {
+    return visibleOf.get(p) ?? true;
+  }
+  function setTraceVisible(p: OpenISDProject, visible: boolean): void {
+    visibleOf.set(p, visible);
+    traceVisibilityRevision.value++;
+  }
+  function hiddenTraces(projects: readonly OpenISDProject[]): Set<OpenISDProject> {
+    return new Set(projects.filter(p => !isTraceVisible(p)));
+  }
 
   /** The WinISD difference markers (≠W) show (Options → General). Reactive. */
   function differenceCuesShown(): boolean {
@@ -862,6 +886,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     newProjectBoxTypeOptions, definePassiveRadiator, createProject, openProjectFromDriver,
     newProjectDriver, copyProjectName, projectChanged, currentViewSnapshot, applyLoadedProject,
     applyViewSnapshot, applyState, simVcInductance,
+    traceVisibilityRevision, isTraceVisible, setTraceVisible, hiddenTraces,
   };
 
 }

@@ -26,11 +26,22 @@ function setUp(bundled: OpenISDPassiveRadiatorStandalone = OpenISDPassiveRadiato
     index: vi.fn(async () => []),
     load: vi.fn(async () => bundled),
   };
-  const actions = createPassiveRadiatorActions({ project: computed(() => project), myPassiveRadiators, bundledPassiveRadiators });
-  return { project, myPassiveRadiators, actions };
+  const definePassiveRadiator = vi.fn();
+  const actions = createPassiveRadiatorActions({ project: computed(() => project), myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
+  return { project, myPassiveRadiators, actions, definePassiveRadiator };
 }
 
 describe('createPassiveRadiatorActions', () => {
+  it('Define new PR asks the app state for a blank radiator and closes the browser', () => {
+    const { actions, definePassiveRadiator } = setUp();
+    actions.prBrowseOpen.value = true;
+
+    actions.defineNewPREntry();
+
+    expect(definePassiveRadiator).toHaveBeenCalledTimes(1);
+    expect(actions.prBrowseOpen.value).toBe(false);
+  });
+
   // John, 2026-10-05: "Save PR to library needs to ask for a name confirmation dialog."
   it('opening Save to library prefills the name with the page\'s passive radiator name and saves nothing yet', () => {
     const { project, myPassiveRadiators, actions } = setUp();

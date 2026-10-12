@@ -4,13 +4,14 @@
  */
 import {type ComputedRef, createApp} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
-import {APP_LOGIC} from '../../src/logic/app.js';
+import {APP_LOGIC, type AppLogic} from '../../src/logic/app.js';
 import {FOCUSED_PROJECT} from '../../src/logic/focusedProjectContext.js';
 import {testAppLogic} from './testAppLogic.js';
 
-export function runHook<T>(project: ComputedRef<OpenISDProject>, hook: () => T): T {
+/** `logic` defaults to a fresh one; pass the test's own when it also reads or writes its `appState`. */
+export function runHook<T>(project: ComputedRef<OpenISDProject>, hook: () => T, logic: AppLogic = testAppLogic()): T {
   const app = createApp({ render: () => null });
-  app.provide(APP_LOGIC, testAppLogic());
+  app.provide(APP_LOGIC, logic);
   app.provide(FOCUSED_PROJECT, project);
   return app.runWithContext(hook);
 }

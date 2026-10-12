@@ -5,9 +5,7 @@
  * (`DriverBrowser`, `DriverEditorModal`), reached the same way the desktop shell reaches them.
  */
 import {computed} from 'vue';
-import {driverName, projectChanged} from '../logic/appState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {presentationState} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {ARRAY_WIRING_OPTIONS, NumberField} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
@@ -15,6 +13,8 @@ import {selectedOption} from '../logic/domEvents.js';
 const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
 export function useMobileDriverTab() {
+  const {appState, presentation: presentationState} = useApp();
+  const {driverName, projectChanged} = appState;
   const project = useFocusedProject();
   const { selection } = useApp();
 

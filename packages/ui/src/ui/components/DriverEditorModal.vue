@@ -4,7 +4,6 @@ import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, ref, watch} from 'vue';
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
-import {presentationState} from '../../logic/presentationState.js';
 import {useApp} from '../../logic/app.js';
 import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
@@ -29,7 +28,7 @@ function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calcul
   return fieldOf(field);
 }
 
-const { selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts, confirmPort } = useApp();
+const { presentation: presentationState, selection, myDrivers, logging, driverFileStorage, designFiles, driverDrafts, confirmPort } = useApp();
 
 // Driver editor — a modal. Recreates WinISD's "Driver editor" dialog (docs/winisd_screenshots/edit_driver_pg*.png):
 // 4 tabs — General / Parameters / Advanced / Dimension

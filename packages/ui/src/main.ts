@@ -110,18 +110,18 @@ const fileStorage = createFileStorage();
 const driverFileStorage = createFileStorage();
 
 // --- application layer: the app's state and what it does next ---
-const selection = createDriverSelection();
+const selection = createDriverSelection({ appState, presentation });
 const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, report => faultLog.recordRepair(report));
 const designFiles = new DesignFiles(engine, projectRepo);
 const driverDrafts = new DriverDrafts(engine, appState.appContext);
 const confirmPort = createConfirmPort();
 const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-  confirmReset: confirmPort.port,
+  confirmReset: confirmPort.port, appState, presentation,
 });
 const viewStateRepo = createViewStateRepo(storage);
 const backup = createBackupRepo(storage);
-const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port });
+const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation });
 
 // sessionStorage wrapper for release watch (survives page reload, not browser restart)
 const releaseSessionStorage: SessionStorageLike = {

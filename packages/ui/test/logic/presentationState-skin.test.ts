@@ -3,9 +3,17 @@
  * (`logic/viewport.ts`) feeding `presentationState.narrowViewport`; `App.vue`'s `activeSkin`
  * combines the two, override winning when present.
  */
-import {describe, it} from 'vitest';
+import {describe, it, beforeEach} from 'vitest';
 import assert from 'node:assert/strict';
-import {presentationState, setSkinOverride} from '../../src/logic/presentationState.js';
+import {createAppStateFixture} from '../fixtures/appStateFixture.js';
+import type {PresentationState} from '../../src/logic/presentationState.js';
+
+let presentationState: PresentationState;
+
+beforeEach(() => {
+  const fixture = createAppStateFixture();
+  presentationState = fixture.presentation;
+});
 
 describe('setSkinOverride', () => {
   it('has no override by default', () => {
@@ -13,15 +21,15 @@ describe('setSkinOverride', () => {
   });
 
   it('sets an explicit override', () => {
-    setSkinOverride('mobile');
+    presentationState.setSkinOverride('mobile');
     assert.equal(presentationState.ui.skinOverride, 'mobile');
-    setSkinOverride('original');
+    presentationState.setSkinOverride('original');
     assert.equal(presentationState.ui.skinOverride, 'original');
   });
 
   it('null clears the override back to absent, not to a stored null', () => {
-    setSkinOverride('mobile');
-    setSkinOverride(null);
+    presentationState.setSkinOverride('mobile');
+    presentationState.setSkinOverride(null);
     assert.equal(presentationState.ui.skinOverride, undefined);
     assert.equal('skinOverride' in presentationState.ui, false,
       'a cleared override must not round-trip to storage as a literal null');
