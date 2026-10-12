@@ -1,7 +1,8 @@
 id: T007
 repo: openisd
 owner: maryu
-status: open
+status: superseded
+why: 'John, 12 Oct 2026: "I don't need ci spike now"'
 phase: P3
 timebox: 2 days
 goal: Find out whether the browser suite runs green on GitHub runners; if not within the time box, record the fallback and stop.

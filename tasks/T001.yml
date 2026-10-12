@@ -8,7 +8,7 @@ goal: scripts/land.sh lands one task's branch onto main serially, running only t
 done_test: timeout 600 bash scripts/land/test/land.e2e.test.sh
 locked:
   - path: scripts/land/test/land.e2e.test.sh
-    sha256: 9f28ca65c09bbb43bf1470f66cf6d1df963ca009b0285ba9599e979be0a825b9
+    sha256: eb89a20f02d0bc83059ba4dedef7123487101cda5796212f333edc4afaff147c
 # land.e2e asserts, in a scratch repo with real processes:
 #  - two concurrent land.sh calls both land, one after the other (flock), main = both commits
 #  - a rebase conflict aborts the rebase, sets status: blocked, leaves the worktree committed

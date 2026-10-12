@@ -102,9 +102,11 @@ fi
 # A newer run that is still waiting (live owner) will test a later sha: this one is superseded.
 for rec in "$PENDING"/*; do
   [ -e "$rec" ] && [ "$rec" != "$MINE" ] || continue
-  [[ "$(basename "$rec")" > "$(basename "$MINE")" ]] || continue
+  # "Newer" means a descendant commit, not a later arrival: two runs started together arrive in any order.
+  rsha="$(basename "$rec")"; rsha="${rsha#*-}"
+  [ "$rsha" != "$SHA" ] && git merge-base --is-ancestor "$SHA" "$rsha" 2>/dev/null || continue
   if ! ( flock -n 7 ) 7< "$rec" 2> /dev/null; then
-    newer="$(basename "$rec")"; echo "post-land: superseded by ${newer#*-}"; exit 0
+    echo "post-land: superseded by $rsha"; exit 0
   fi
 done
 

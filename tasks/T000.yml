@@ -1,7 +1,8 @@
 id: T000
 repo: openisd
 owner: lots
-status: open
+status: done
+landed: see git log (T050, 12 Oct 2026)
 phase: P0
 goal: The bootstrap landing — T001-T004 land together the current way, once, when nothing else runs, after bob has landed his bp6 WIP.
 done_test: bash scripts/land.sh --self-check

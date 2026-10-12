@@ -1,7 +1,8 @@
 id: T049
 repo: openisd
 owner: fable
-status: claimed
+status: done
+landed: 61e1e975 (done_test green on main, 12 Oct 2026)
 goal: Every task file's status matches main: landed tasks say done with their sha, dropped goals say superseded, only real work is open
 done_test: bash scripts/land/test/task-status.test.sh
 files:

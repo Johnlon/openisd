@@ -8,7 +8,7 @@ goal: After every land, one full unit and browser run on the landed sha, one at 
 done_test: timeout 600 bash scripts/land/test/post-land.e2e.test.sh
 locked:
   - path: scripts/land/test/post-land.e2e.test.sh
-    sha256: 6fdff796e9a3bb21de0c4fd2197c2b3761c2816ab0cf23f354680738d77e577a
+    sha256: daa568c48a71da1a2a8ed938fa91a6372f97dc7b34a9c1e50ac502772e667691
 # asserts: green run records its sha; red run (incl. a spec that fails once then passes) opens
 # tasks/fixes/F<n>.yml naming the spec,  runs on a clean copy, holds no tree;
 # second land queues on the flock; deploy.yml triggers on main.
