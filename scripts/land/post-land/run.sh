@@ -27,6 +27,10 @@ ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
 [ -f land.conf ] || { echo "post-land: no land.conf in $ROOT" >&2; exit 2; }
 # shellcheck source=/dev/null
+# paths.sh sets POST_LAND_LOCK (and the runtime dir); land.conf does not, and this script is started
+# detached, so nothing is inherited. 12 Oct: every post-land run died here with POST_LAND_LOCK unbound.
+# shellcheck source=/dev/null
+. "$ROOT/scripts/paths.sh"
 . ./land.conf
 SHA="$(git rev-parse --verify "$SHA_ARG^{commit}")" || exit 2
 
