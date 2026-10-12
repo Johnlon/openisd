@@ -2,51 +2,34 @@ id: T055
 repo: openisd
 owner: fable
 status: held
-goal: Numbered releases. openisd.app serves the latest release, not main HEAD. Every release stays hosted and linkable. Storage is stamped with the build that wrote it, snapshotted on upgrade, old builds keep working.
+goal: Storage carries one layout number. A newer app snapshots then migrates; an older app refuses what it cannot read and offers a snapshot. Goldens prove every old layout loads into the current app.
 spec: |
-  Version
-  - The app version is the build stamp from scripts/version-info.mjs, minute resolution: v20260101T0102Z (seconds dropped). Already shown in the toolbar; also sent in the telemetry launch event.
-  - Every stored or transmitted date (stamp, snapshot key, v/index.json fields, telemetry) is ISO 8601 basic format UTC, 20260101T0102Z. Human text like "1 Jan 2026, 01:02" is display only, produced by the one design date formatter, never stored.
-  Release
-  - scripts/release.sh: refuses unless on a landed green main commit; tags HEAD with the build stamp (annotated tag vYYYYMMDDThhmmZ), pushes the tag. No version bump commit.
-  - .github/workflows/release.yml on tag push: build with that stamp, zip dist as openisd-<stamp>.zip, GitHub Release with zip and generated notes.
-  - deploy.yml no longer deploys on push to main. The release workflow deploys Pages: fetch current gh-pages tree, write new build to root (latest) and to v/<stamp>/, keep all older v/ dirs, write v/index.json (stamp, date, tag, release URL per build), deploy.
-  - main HEAD published to next/ by a separate workflow on push to main.
-  Versions list in app
-  - App fetches /v/index.json at start (no store, no schema). About shows Versions: current highlighted, date shown as "1 Jan 2026, 01:02", each row links to /v/<stamp>/ and its GitHub release. Fetch failure shows current only.
-  - Old build shows "latest is <date>" when index lists a newer one.
-  Storage
-  - Two numbers. Build stamp names a release. STORAGE_LAYOUT, one integer in packages/persistence, bumped by hand in the commit that changes how any stored key is read; it alone decides whether a build can read the store.
-  - Key openisd_storage_layout = STORAGE_LAYOUT of the app that last wrote the store, written with every store write. Key openisd_storage_build = build stamp of that app, informational.
+  Dates
+  - Every stored or transmitted date is ISO 8601 basic format UTC, 20260101T0102Z. Human text like "1 Jan 2026, 01:02" is display only, from the one design date formatter, never stored.
+  Layout
+  - STORAGE_LAYOUT, one integer in packages/persistence. It alone decides whether a build can read the store. First value after this task: 2 (layout 1 = main before T055).
+  - Key openisd_storage_layout = STORAGE_LAYOUT of the app that last wrote the store, written with every store write. Key openisd_storage_build = build stamp of that app (v20260101T0102Z, minute resolution), informational.
   - Same layout: load, no snapshot, no prompt. Swapping between builds of one layout is silent.
-  - Store layout older than the app: copy every openisd_* key to openisd_snapshot_<buildstamp of the app that wrote the store> before migrating, then migrate and stamp. Snapshot write failure stops the upgrade with an export-first message (repair rule, reset only after export). Snapshot measures first and drops oldest snapshots until it fits.
+  - Store layout older than the app: copy every openisd_* key to openisd_snapshot_<build stamp that wrote the store> before migrating, then migrate one layout at a time, then stamp. Snapshot measures first and drops oldest snapshots until it fits; if it still cannot fit, stop the upgrade with an export-first message (repair rule, reset only after export).
   - Keep the last 10 snapshots, oldest dropped, but never the newest snapshot of each layout.
-  - Store layout newer than the app: does not load the live store. Offers restore of a snapshot with its layout into the live store, or read-only on it. Never silent loss.
-  - One version number for data: STORAGE_LAYOUT. Stored records drop their own schemaVersion, the store layout covers them. Exported files (backups, drivers, radiators, projects) carry layout: <N> at the top; import migrates from that layout with the same stepwise code, and an export case sits in the goldens.
-  - version-info.mjs takes the stamp from the tag when GITHUB_REF is a v tag, else now, minute resolution.
-  - Check for a service worker; if one exists each v/ copy registers its own scope or none.
-  Upgrade goldens
-  - packages/persistence/test/goldens/<case>/ is one real store: dump-layout-<K>.json, a full localStorage dump (every openisd_* key) as written by a layout K app, where K is the layout the case was born in. As many cases as diversity dictates: empty store, one project, many projects, custom drivers, passive radiators, open sessions, backups, the lost-projects bug store.
-  - Beside it, one expected dump per later layout: dump-layout-<K+1>.json ... dump-layout-<current>.json, each the exact store the migration must produce at that layout. A case born in N-2 has dumps for N-2, N-1, N. A case born in N-1 has N-1, N. Migration is stepwise, so every step is checked, and the dump at each layout is itself a valid input for the next step.
-  - Also expected.json: the projects, drivers, sessions and settings the current app must yield after loading the case.
-  - Bumping STORAGE_LAYOUT fails the gate until every case has a dump for the new layout. Adding the dumps is part of the commit that bumps.
-  - storageUpgrade.test.ts, for every case: load the oldest dump into a fresh fake store, migrate one layout at a time asserting each dump, then load with the current app asserting expected.json, assert a snapshot keyed by the writing build stamp was taken, assert a second load is silent.
-  - The gate decides the bump, not memory: the test loads every case's newest dump through the current loaders and writes the store back. Written store differs from the dump with no bump: fail, "layout changed, bump STORAGE_LAYOUT and add dumps". Bumped with no difference in any case: fail, needless bump.
-  - A dump is never edited once written. A later layout adds a new dump file, it does not change old ones.
-  - First cases are dumped from the current main at layout 1 before T055 lands.
-  Options menu
-  - New page Storage history: one row per snapshot (build date, project count, size) with Export to file, Restore (confirm, snapshots live store first), Delete, plus Snapshot now.
+  - Store layout newer than the app: do not load the live store. Offer, in order: restore a snapshot this layout can read into the live store (snapshotting the live store first), read-only on such a snapshot, raw export of the live store. Never silent loss.
+  - In-store records drop their own schemaVersion; the store layout covers them. Exported files keep their existing fields unchanged and gain layout: <N> at the top. Import migrates from that layout with the same stepwise code. No existing export becomes unreadable.
+  Goldens
+  - packages/persistence/test/goldens/<case>/dump-layout-<K>.json: a full localStorage dump (every openisd_* key) as a layout K app writes it, K = the layout the case was born in. Beside it one expected dump per later layout up to current. A case born in N-2 has dumps N-2, N-1, N; a case born in N-1 has N-1, N.
+  - expected.json per case: the projects, drivers, radiators, sessions and settings the current app yields after loading it.
+  - Cases are synthetic or built from the probe pair (W5-1138SMF), never a copy of a live store. As many as diversity dictates: empty, one project, many projects, custom drivers, passive radiators, open sessions, backup, exported driver file, exported project file.
+  - A dump at the current layout is a fixed point: load then write reproduces it byte for byte.
+  - storageUpgrade.test.ts, per case: load the oldest dump into a fresh fake store, migrate one layout at a time asserting each dump, load with the current app asserting expected.json, assert a snapshot keyed by the writing build stamp exists, assert a second load is silent and writes nothing.
+  - The gate decides the bump: load every case's newest dump through the current loaders, write back. Differs with no bump: fail, "layout changed, bump STORAGE_LAYOUT and add dumps". Bumped but no case differs: fail, needless bump. Bumped and a case lacks a dump for the new layout: fail.
+  - A dump is never edited once written. A later layout adds a file, it changes none.
+  - First cases are dumped at layout 1 from main before this task's loader changes.
 done_test: |
   bash scripts/test.sh packages/persistence/test/storageUpgrade.test.ts
   bash scripts/test.sh packages/persistence/test/storageSnapshot.test.ts
-  bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
-  bash scripts/land/test/release.test.sh
 files:
   - tasks/T055.yml
-  - scripts/version-info.mjs
-  - scripts/release.sh
-  - scripts/land/test/release.test.sh
-  - .github/workflows/release.yml
-  - .github/workflows/deploy.yml
+  - packages/persistence/src/storageLayout.ts
   - packages/persistence/src/repos/storageSnapshot.ts
-  - packages/ui/src/logic/versionIndex.ts
+  - packages/persistence/test/storageUpgrade.test.ts
+  - packages/persistence/test/storageSnapshot.test.ts
+  - packages/persistence/test/goldens/**

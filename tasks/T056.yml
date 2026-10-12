@@ -1,0 +1,27 @@
+id: T056
+repo: openisd
+owner: fable
+status: held
+after: T055
+goal: Numbered releases on GitHub. openisd.app root serves the latest release, every release stays hosted at /v/<stamp>/, main HEAD at /next/.
+spec: |
+  Version
+  - The release name is the build stamp from scripts/version-info.mjs at minute resolution, v20260101T0102Z. version-info.mjs takes the stamp from the tag when GITHUB_REF is a v tag, else now. Sent in the telemetry launch event.
+  Release
+  - scripts/release.sh: refuses unless HEAD equals origin/main and no F is open (green-main check proper waits for S7); tags HEAD with the stamp, annotated, pushes the tag. No version commit.
+  - .github/workflows/release.yml on v tag push: build with that stamp and base ./, zip dist as openisd-<stamp>.zip, GitHub Release with the zip and generated notes.
+  Hosting
+  - Pages is workflow mode: every deploy replaces the whole site. The release workflow rebuilds the tree from the GitHub Releases: download every openisd-*.zip, unpack each to v/<stamp>/, the newest also at root, write v/index.json (stamp, tag, release URL per build, dates ISO 8601 basic), deploy. Releases are the only source of truth, no gh-pages branch.
+  - deploy.yml no longer deploys root on push to main. On push to main it builds main HEAD into next/ and redeploys the same tree with next/ replaced.
+  - about/ and install/ pages work at root and under each v/<stamp>/.
+  - If a service worker exists, each v/ copy registers its own scope or none.
+done_test: |
+  bash scripts/land/test/release.test.sh
+files:
+  - tasks/T056.yml
+  - scripts/version-info.mjs
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - .github/workflows/release.yml
+  - .github/workflows/deploy.yml
+  - vite.config.js
