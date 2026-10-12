@@ -58,7 +58,14 @@ function isTolerableCalculatedDrift(a, b) {
  * FIRST point they diverge, or `null` if they are identical. Used to report exactly where an
  * openisd.json round trip went wrong, not merely that it did.
  */
-export function firstDivergence(a, b, path = '$') {
+export /** The entry without its `precision` member. */
+function withoutPrecision(entry) {
+  const rest = { ...entry };
+  delete rest.precision;
+  return rest;
+}
+
+function firstDivergence(a, b, path = '$') {
   if (a === b) return null;
   // A record written before QT84 holds its one role as a bare string; the reader upgrades it to a
   // one-role list. That is the one accepted upgrade, not loss: the same role, in the new shape.
@@ -80,9 +87,7 @@ export function firstDivergence(a, b, path = '$') {
   // same as its value (QO167) — the source owns neither, so present on one side only, or
   // different, is not loss.
   if (isCalculatedEntry(a) && isCalculatedEntry(b) && ('precision' in a || 'precision' in b)) {
-    const {precision: _a, ...aRest} = a;
-    const {precision: _b, ...bRest} = b;
-    return firstDivergence(aRest, bRest, path);
+    return firstDivergence(withoutPrecision(a), withoutPrecision(b), path);
   }
   // No allowance for a record written under an older entry shape: a corpus or golden whose
   // model has changed is deleted and rebuilt, never read through a compatibility path.
