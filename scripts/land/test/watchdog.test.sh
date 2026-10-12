@@ -70,7 +70,16 @@ WATCHDOG_NOW=3000 tick > /dev/null
 sleep 2
 WATCHDOG_NOW=3200 tick > /dev/null
 dead "$HP" && fail "CPU-bound run was killed" || ok "CPU-bound run left alone"
-kill -KILL -- "-$HP"; wait "$HP" 2> /dev/null; rm -f "$WATCHDOG_HOLDER"
+
+# 3b. live run whose busy child is in ANOTHER process group (run.sh uses set -m): left alone
+setsid bash -c 'set -m; bash -c "while :; do :; done" & wait' & HP=$!; PIDS+=("$HP"); sleep 0.5
+KID=$(ps -o pid= --ppid "$HP" | tr -d ' ')
+hold "$HP"
+WATCHDOG_NOW=3500 tick > /dev/null
+sleep 2
+WATCHDOG_NOW=3700 tick > /dev/null
+dead "$HP" && fail "run with a busy child group was killed" || ok "busy child in its own group counts as alive"
+kill -KILL -- "-$HP" 2> /dev/null; [ -n "$KID" ] && kill -KILL -- "-$KID" 2> /dev/null; wait "$HP" 2> /dev/null; rm -f "$WATCHDOG_HOLDER"
 
 # 4. scratch repo with a bare origin, open Fs
 git init -q --bare "$SCRATCH/origin.git"

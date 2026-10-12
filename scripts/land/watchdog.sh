@@ -74,12 +74,25 @@ out=$(timeout 120 bash "$HOUSEKEEPING" 2>&1); rc=$?
 log "housekeeping exit $rc: $(printf '%s' "$out" | tail -n 1)"
 
 # --- (b) hung post-land run -----------------------------------------------------------------
-group_cpu() { # group_cpu <pgid>: utime+stime in clock ticks over every process in the group
-  local total=0 s p
+tree_cpu() { # tree_cpu <pid>: utime+stime in clock ticks over <pid> and every descendant.
+  # Descendants, not the process group: run.sh starts the suite under set -m, so the suite is its
+  # own group and the holder's group alone sits idle for the whole run (12 Oct: a live full run
+  # was "quiet for 632s of 1200s" and would have been killed at 20 min).
+  local root="$1" p s total=0 kids pid
+  declare -A PPID_OF TICKS
   for p in /proc/[0-9]*; do
     s=$(cat "$p/stat" 2> /dev/null) || continue
-    s=${s##*) }; set -- $s            # $1 state, $2 ppid, $3 pgrp, $12 utime, $13 stime
-    [ "$3" = "$PGID_WANTED" ] && total=$((total + ${12} + ${13}))
+    pid=${p#/proc/}; s=${s##*) }; set -- $s     # $2 ppid, $12 utime, $13 stime
+    PPID_OF[$pid]=$2; TICKS[$pid]=$(( ${12} + ${13} ))
+  done
+  kids="$root"
+  while [ -n "$kids" ]; do
+    local next=""
+    for pid in $kids; do
+      total=$((total + ${TICKS[$pid]:-0}))
+      for p in "${!PPID_OF[@]}"; do [ "${PPID_OF[$p]}" = "$pid" ] && next="$next $p"; done
+    done
+    kids="$next"
   done
   echo "$total"
 }
@@ -95,7 +108,7 @@ check_hung() {
     rm -f "$STATE/hung.state"; log "post-land holder $pid is not running (stale holder file); left to the next run"; return 0
   fi
   size=$(stat -c %s "$plog" 2> /dev/null || echo 0); mtime=$(stat -c %Y "$plog" 2> /dev/null || echo 0)
-  PGID_WANTED="$pid" cpu=$(group_cpu); t=$(now)
+  cpu=$(tree_cpu "$pid"); t=$(now)
   # state: pid start size mtime cpu since
   prev=$(cat "$STATE/hung.state" 2> /dev/null || true)
   set -- $prev

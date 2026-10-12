@@ -1,0 +1,10 @@
+id: T052
+repo: openisd
+owner: fable
+status: claimed
+goal: The watchdog judges a post-land run alive by the CPU of the holder and every descendant, not the holder's process group, so a full suite running under set -m with a quiet log is never killed as hung.
+done_test: bash scripts/land/test/watchdog.test.sh
+files:
+  - tasks/T052.yml
+  - scripts/land/watchdog.sh
+  - scripts/land/test/watchdog.test.sh
