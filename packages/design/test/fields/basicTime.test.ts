@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {basicUtc, parseBasicUtc} from '../../fields/basicTime.js';
+import {basicUtc} from '../../fields/basicTime.js';
+import {parseBasicUtc} from '../../fields/format.js';
 
 describe('ISO 8601 basic UTC time', () => {
   it('writes seconds in UTC with no separators', () => {
@@ -17,7 +18,7 @@ describe('ISO 8601 basic UTC time', () => {
   });
 
   it('refuses text that is not a basic UTC time', () => {
-    for (const bad of ['', '2026-01-01T01:02:03Z', '20260101T0102', '20260101 0102Z', 'v20260101T0102Z']) {
+    for (const bad of ['', '2026-01-01T01:02:03Z', '20260101T0102', '20260101 0102Z']) {
       expect(parseBasicUtc(bad)).toBeNull();
     }
   });

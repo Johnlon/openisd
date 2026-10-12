@@ -6,7 +6,7 @@
 import {injectSplashModal} from '../../hooks/SplashModal-hooks.js';
 import SplashContent from './SplashContent.vue';
 
-const {open, dismiss, driverCount, passiveRadiatorCount} = injectSplashModal();
+const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplashModal();
 </script>
 
 <template>
@@ -19,6 +19,22 @@ const {open, dismiss, driverCount, passiveRadiatorCount} = injectSplashModal();
 
       <SplashContent :driver-count="driverCount" :passive-radiator-count="passiveRadiatorCount" />
 
+      <section v-if="versions !== null && versions.rows.length > 0" class="sp-versions">
+        <h3>Versions</h3>
+        <p v-if="versions.staleNotice" class="sp-stale">{{ versions.staleNotice }}</p>
+        <ul>
+          <li v-for="row in versions.rows" :key="row.stamp" :class="{'sp-current': row.current}">
+            <span class="sp-ver-date">{{ row.date }}</span>
+            <span v-if="row.kind === 'snap'" class="sp-ver-tag">Snapshot</span>
+            <span v-if="row.current" class="sp-ver-tag sp-ver-here">This build</span>
+            <template v-if="row.hostedPath !== null">
+              <a :href="row.hostedPath">Open</a>
+              <a v-if="row.githubUrl !== null" :href="row.githubUrl" target="_blank" rel="noopener">GitHub</a>
+            </template>
+          </li>
+        </ul>
+      </section>
+
       <footer>
         <button class="sp-go" @click="dismiss">Start designing</button>
       </footer>
@@ -27,6 +43,15 @@ const {open, dismiss, driverCount, passiveRadiatorCount} = injectSplashModal();
 </template>
 
 <style scoped>
+.sp-versions h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.sp-versions ul { list-style: none; margin: 0; padding: 0; }
+.sp-versions li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 4px 6px; border-radius: 4px; }
+.sp-versions li.sp-current { background: #1b2a3a; }
+.sp-versions a { color: #4fb0ff; }
+.sp-ver-date { min-width: 150px; color: #e6edf3; }
+.sp-ver-tag { font-size: 11px; color: #7f93a8; border: 1px solid #2b3a49; border-radius: 3px; padding: 0 5px; }
+.sp-ver-here { color: #4fb0ff; border-color: #4fb0ff; }
+.sp-stale { color: #e0b050; margin: 0 0 6px; }
 .sp-backdrop {
   position: fixed; inset: 0; z-index: 200;
   background: rgba(0, 0, 0, 0.55);

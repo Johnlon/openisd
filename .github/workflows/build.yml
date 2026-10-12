@@ -1,0 +1,46 @@
+name: build
+
+# A snapshot build of main: every push (at most one per two hours), or on demand. Until the
+# post-land gate is exposed (S7) a push is the only signal; then this waits for that gate's green.
+# scripts/snap.sh does the work and says whether it built; only then does the site deploy.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    outputs:
+      built: ${{ steps.snap.outputs.built }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - id: snap
+        run: bash scripts/snap.sh ${{ github.event_name == 'push' && '--if-due' || '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  deploy:
+    needs: snapshot
+    if: needs.snapshot.outputs.built == 'true'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

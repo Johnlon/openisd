@@ -20,6 +20,7 @@ import type {FaultLog} from '../diagnostics/faultLog.js';
 import type {Engine} from '@openisd/design/engine';
 import type {ReleaseWatch} from './releaseWatch.js';
 import type {AppVersionPort} from './appVersion.js';
+import type {VersionIndex} from './versionIndex.js';
 import type {AppState} from './appState.js';
 import type {PresentationState} from './presentationState.js';
 
@@ -58,6 +59,8 @@ export interface AppLogic {
   faultLog: FaultLog;
   releases: ReleaseWatch;
   appVersion: AppVersionPort;
+  /** Every hosted build, read once at start; About lists them. */
+  versionIndex: VersionIndex;
   confirmPort: { port: ConfirmPort; state: ConfirmDialogState };
   /** The open projects, focused project's curves and issues, application settings. */
   appState: AppState;

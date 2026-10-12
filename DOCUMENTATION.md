@@ -13,6 +13,8 @@
 | [bugs/](bugs/)                                                     | Known open bugs                                                                  |
 | [TESTING_STRATEGY.md](TESTING_STRATEGY.md)                         | How the app is tested                                                            |
 | [CONTRIBUTING.md](CONTRIBUTING.md)                                 | How to contribute                                                                |
+| [RELEASES.md](RELEASES.md)                                         | Every release: stamp, date, commit, links, notes                                 |
+| [RELEASING.md](RELEASING.md)                                       | How a snapshot build, a release and a rollback happen                            |
 
 `questions.yml` is the decision ledger.
 

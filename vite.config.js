@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import {VitePWA} from 'vite-plugin-pwa';
 import {fileURLToPath} from 'url';
 import {join} from 'path';
-import {createReadStream, existsSync, readFileSync} from 'fs';
+import {createReadStream, existsSync, readFileSync, writeFileSync} from 'fs';
 import {execFileSync} from 'child_process';
 
 // Optional desktop target, built by `make electron`. It shares the entire UI and engine
@@ -16,12 +16,14 @@ import {execFileSync} from 'child_process';
 // With ELECTRON unset every one of these falls back to the web behaviour.
 const ELECTRON = !!process.env.ELECTRON;
 
-// Served at the custom domain https://openisd.app/ (Pages custom domain, root path) — not the
-// /openisd/ subpath a plain johnlon.github.io project site would use, so the web base is '/'
-// for production and local dev alike. Electron addresses its assets relative to the app://
-// document `electron/main.cjs` serves, which is what './' gives it.
+// Hosting (T056): one build is served from several places — https://openisd.app/ (the Latest
+// release), /v/<stamp>/ (every release) and /snap/<stamp>/ (snapshot builds) — and is the SAME
+// bytes in each, so a published build uses the relative base './' (OPENISD_RELATIVE_BASE=1,
+// set by scripts/snap.sh). Local dev and the browser suite keep '/'. Electron addresses its
+// assets relative to the app:// document `electron/main.cjs` serves, which './' also gives it.
+const RELATIVE_BASE = process.env.OPENISD_RELATIVE_BASE === '1';
 function resolveBase() {
-  return ELECTRON ? './' : '/';
+  return ELECTRON || RELATIVE_BASE ? './' : '/';
 }
 const base = resolveBase();
 
@@ -38,6 +40,34 @@ export function buildVersion(command) {
   }
 }
 const UI_ROOT = join(fileURLToPath(import.meta.url), '..', 'packages', 'ui');
+
+// vite-plugin-pwa puts a manifest link and a registerSW.js script, both relative to the page, into
+// every html page. On about/ and install/ under a hosted copy (v/<stamp>/about/) they resolve to
+// files that do not exist, and the script would register a worker at the wrong address. Those
+// pages are static and are already covered by the app's worker, so only the app page keeps them.
+export function stripPwaFromSubpages(html, path) {
+  if (path === '/index.html') return html;
+  return html
+    .replace(/<link rel="manifest"[^>]*>/g, '')
+    .replace(/<script src="[^"]*registerSW\.js"[^>]*><\/script>/g, '');
+}
+// vite-plugin-pwa edits the written pages when the build closes, so this runs then, last in the
+// plugin list, and rewrites the finished about/ and install/ pages.
+let builtOutDir = '';
+const stripPwaFromSubpagesPlugin = {
+  name: 'strip-pwa-from-subpages',
+  apply: 'build',
+  configResolved(config) { builtOutDir = join(config.root, config.build.outDir); },
+  closeBundle: {
+    order: 'post',
+    handler() {
+      for (const page of ['about', 'install']) {
+        const file = join(builtOutDir, page, 'index.html');
+        if (existsSync(file)) writeFileSync(file, stripPwaFromSubpages(readFileSync(file, 'utf8'), `/${page}/index.html`));
+      }
+    },
+  },
+};
 
 // In dev mode, inject a script that unregisters any stale PWA service worker on every
 // page load. Prevents cached compiled JS from masking source changes after a prod build.
@@ -183,7 +213,10 @@ export default defineConfig(({ command, mode }) => ({
         theme_color: '#11151c',
         background_color: '#11151c',
         display: 'standalone',
+        // Relative, so each hosted copy installs (if at all) as itself, with its own scope. Only
+        // the root copy's install page invites it (see packages/ui/install/index.html).
         start_url: base,
+        scope: base,
         icons: [
           { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' },
         ],
@@ -196,9 +229,12 @@ export default defineConfig(({ command, mode }) => ({
         // registerType 'autoUpdate' reloads open pages onto a new build.
         globPatterns: ['**/*.{js,css,html,svg,ico}'],
         globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
-        // /about/ and /install/ are pages of their own: without this an installed app answers
-        // them with the app shell. They are precached, so they still open offline.
-        navigateFallbackDenylist: [/^\/(about|install)(\/|$)/],
+        // about/ and install/ are pages of their own: without this an installed app answers
+        // them with the app shell. They are precached, so they still open offline. v/ and snap/
+        // are the hosted copies: the root worker's scope covers them, and it must not answer a
+        // copy's address with the ROOT build's shell. Not anchored to the origin root, because a
+        // copy's own worker sees /v/<stamp>/about/ too.
+        navigateFallbackDenylist: [/\/(about|install|v|snap)(\/|$)/],
         // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
         // this file's variables would not exist.
         runtimeCaching: [{
@@ -208,5 +244,7 @@ export default defineConfig(({ command, mode }) => ({
         }],
       },
     })]),
+    // Last, so it sees what vite-plugin-pwa injected.
+    stripPwaFromSubpagesPlugin,
   ],
 }));

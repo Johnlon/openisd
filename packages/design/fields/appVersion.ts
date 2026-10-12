@@ -18,7 +18,23 @@ const MONTH_NAMES = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ] as const;
 
-const VERSION_REGEX = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/;
+/** A build is named by its stamp, "20260101T0102Z". The published version and the release tag
+ *  carry one prefix letter in front of it; the hosted copies live in one folder per build kind. */
+const VERSION_PREFIX = 'v';
+export type BuildKind = 'release' | 'snap';
+const HOSTED_DIR: Readonly<Record<BuildKind, string>> = { release: 'v', snap: 'snap' };
+
+/** "v20260101T0102Z" or "20260101T0102Z" → "20260101T0102Z". */
+export function stampOfVersion(version: string): string {
+  return version.startsWith(VERSION_PREFIX) ? version.slice(VERSION_PREFIX.length) : version;
+}
+
+/** Where a build's copy is hosted, root-relative: "/v/<stamp>/" or "/snap/<stamp>/". */
+export function hostedPathOf(kind: BuildKind, stamp: string): string {
+  return `/${HOSTED_DIR[kind]}/${stamp}/`;
+}
+
+const VERSION_REGEX = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
 
 function parseUtcStampToEpochMs(version: string): number | null {
   const match = VERSION_REGEX.exec(version);
@@ -28,7 +44,7 @@ function parseUtcStampToEpochMs(version: string): number | null {
   const day = Number(match[3]);
   const hour = Number(match[4]);
   const minute = Number(match[5]);
-  const second = Number(match[6]);
+  const second = Number(match[6] ?? '00');
   if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) {
     return null;
   }

@@ -4,6 +4,7 @@
  * the composition root's facade without a cast. `overrides` replaces whichever piece the test
  * actually exercises.
  */
+import {VersionIndex} from '../../src/logic/versionIndex.js';
 import {
   createBundledDriverRepo,
   createBundledPassiveRadiatorRepo,
@@ -84,6 +85,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       recordDismissedVersion: () => {},
     }, { log: () => {} }),
     appVersion: createAppVersionPort(false, '', null, testLocalTime),
+    versionIndex: new VersionIndex('', Promise.resolve(null)),
     confirmPort, appState, presentation,
   };
   return Object.assign({}, base, overrides);

@@ -42,6 +42,7 @@ import {createAppState, NoFocusedProjectError} from './logic/appState.js';
 import {createPresentationState} from './logic/presentationState.js';
 import {installTestHooks} from './logic/testHooks.js';
 import {createDevVersionPort, createAppVersionPort, type HotUpdateSource} from './logic/appVersion.js';
+import {startVersionIndex} from './logic/versionIndex.js';
 import {BeaconTelemetry, NoTelemetry, type Telemetry} from './logic/telemetry/telemetry.js';
 import {chooseEndpoint} from './logic/telemetry/endpoint.js';
 import {CrashReports} from './logic/telemetry/crashReports.js';
@@ -203,6 +204,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
   const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
   const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, toLocalTime, hotUpdateSource);
 
+  // Every hosted build, read once now (nothing is stored); About lists them.
+  const versionIndex = startVersionIndex(appVersionText, fetch);
+
   const crashReports = new CrashReports(
     telemetry,
     () => appState.focusedProject()?.box.boxType.value ?? '',
@@ -236,7 +240,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, viewStateRepo, releases, appVersion,
+    driverFileStorage, faultLog, projectRepo, viewStateRepo, releases, appVersion, versionIndex,
     confirmPort, appState, presentation,
   });
 

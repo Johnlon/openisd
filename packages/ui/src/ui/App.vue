@@ -23,7 +23,7 @@ import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import CrashScreen from './components/CrashScreen.vue';
 
-const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, confirmPort, appState, presentation: presentationState } = useApp();
+const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appState, presentation: presentationState } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch } = useTelemetryUi();
@@ -62,7 +62,7 @@ provideFocusedProject(computed(() => requireFocusedProject()));
 provideSplashModal(presentationState, {
   driverCount: async () => (await bundledDrivers.index()).length,
   passiveRadiatorCount: async () => (await bundledPassiveRadiators.index()).length,
-});
+}, versionIndex);
 
 // One help page "OpenISD and WinISD differences": the Help menus, the WinISD Compatibility group
 // headings and the ≠W cues all open this instance.

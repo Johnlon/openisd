@@ -1,18 +1,18 @@
 import {afterEach, describe, it, expect, vi} from 'vitest';
-import {formatCount, formatDate, formatDateTime} from '../../fields/format.js';
+import {formatCount, formatDate, formatDateTime, parseBasicUtc} from '../../fields/format.js';
 
-// John, 2026-10-05: "never never never use US style" dates; "yyyy-mm-dd was good enough
-// everywhere". One shape everywhere a user sees a date: ISO order, 24-hour clock, no seconds.
+// John, 2026-10-05: "never never never use US style" dates. Date and time for a user: day, month
+// name, year, 24-hour clock, no seconds ("1 Jan 2026, 01:02", T056); a bare date stays yyyy-mm-dd.
 describe('date and time formatting', () => {
   afterEach(() => { vi.restoreAllMocks(); });
 
-  it('formatDateTime: "2026-10-05 23:32"', () => {
-    expect(formatDateTime(new Date(2026, 9, 5, 23, 32, 59))).toBe('2026-10-05 23:32');
+  it('formatDateTime: "5 Oct 2026, 23:32"', () => {
+    expect(formatDateTime(new Date(2026, 9, 5, 23, 32, 59))).toBe('5 Oct 2026, 23:32');
   });
 
   it('formatDateTime: midnight is 00:00, minutes padded', () => {
-    expect(formatDateTime(new Date(2026, 0, 1, 0, 0))).toBe('2026-01-01 00:00');
-    expect(formatDateTime(new Date(2026, 11, 31, 9, 5))).toBe('2026-12-31 09:05');
+    expect(formatDateTime(new Date(2026, 0, 1, 0, 0))).toBe('1 Jan 2026, 00:00');
+    expect(formatDateTime(new Date(2026, 11, 31, 9, 5))).toBe('31 Dec 2026, 09:05');
   });
 
   it('formatDate: date only, month and day padded', () => {
@@ -31,11 +31,20 @@ describe('date and time formatting', () => {
     expect(before).not.toBe(d.toLocaleString('en-US'));
   });
 
-  // John, 2026-10-05: 05/10/2026 hides the day/month order; year first never does.
-  it('writes the year first and never a "/"', () => {
-    for (const text of [formatDateTime(new Date(2026, 9, 5, 23, 32)), formatDate(new Date(2026, 1, 3))]) {
-      expect(text).toMatch(/^\d{4}-\d{2}-\d{2}/);
-      expect(text).not.toContain('/');
+  // John, 2026-10-05: 05/10/2026 hides the day/month order; a month name never does.
+  it('names the month and never writes a "/"', () => {
+    expect(formatDateTime(new Date(2026, 9, 5, 23, 32))).not.toContain('/');
+    expect(formatDate(new Date(2026, 1, 3))).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('parseBasicUtc: minute and second stamps, with or without the v', () => {
+    expect(parseBasicUtc('20260101T0102Z')?.toISOString()).toBe('2026-01-01T01:02:00.000Z');
+    expect(parseBasicUtc('v20260101T010203Z')?.toISOString()).toBe('2026-01-01T01:02:03.000Z');
+  });
+
+  it('parseBasicUtc: null for anything else', () => {
+    for (const bad of ['', 'banana', '2026-01-01T01:02Z', '20261301T0102Z', '20260230T0102Z', '20260101T2502Z']) {
+      expect(parseBasicUtc(bad)).toBeNull();
     }
   });
 

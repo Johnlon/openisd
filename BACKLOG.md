@@ -68,6 +68,12 @@ list is the smaller engineering and UI work items around what already ships.
 | Evaluate Chrome DevTools MCP as an alternative to Playwright for UI testing. | research spike |
 | WinISD parity: field calculations are covered; curve-level parity is blocked because WinISD cannot export curve data. Chart parity relies on manual probes (see [RESEARCH.md](RESEARCH.md#golden-files-from-winisd)). | `packages/design/test/winisd/` |
 
+## Agent and CLI use
+
+| Item | Files |
+|---|---|
+| An agent-friendly OpenISD that runs at the command line (John, 12 Oct 2026): a local tool, installed from npm packages of the app's own code, that takes inputs, gives help, gives results and generates charts. Probably exposed to agents through a skill or an MCP server. Needs design and thought first: which inputs and commands, one engine shared with the app (no second copy of the maths), chart output format, how an agent discovers what it can do. | new package, `packages/design` engine |
+
 ## Cross-repo
 
 Items outside this repository, tracked here because openisd's docs depend on them:

@@ -8,6 +8,8 @@ import {onMounted, ref} from 'vue';
 import SplashContent from '../src/ui/components/SplashContent.vue';
 import {INSTALL_URL, REPO_URL, SITE_URL} from '../src/ui/siteLinks.js';
 
+/** One level up from about/: the site root of whichever copy serves this page. A bound value, so the build leaves it alone. */
+const LOGO_URL = '../logo-wide.svg';
 const driverCount = ref<number | null>(null);
 const passiveRadiatorCount = ref<number | null>(null);
 
@@ -22,14 +24,14 @@ async function indexLength(url: string): Promise<number | null> {
 }
 
 onMounted(async () => {
-  driverCount.value = await indexLength('/drivers-index.json');
-  passiveRadiatorCount.value = await indexLength('/passive-radiators-index.json');
+  driverCount.value = await indexLength('../drivers-index.json');
+  passiveRadiatorCount.value = await indexLength('../passive-radiators-index.json');
 });
 </script>
 
 <template>
   <main class="about">
-    <img class="about-logo" src="/logo-wide.svg" alt="OpenISD — open loudspeaker enclosure simulator">
+    <img class="about-logo" :src="LOGO_URL" alt="OpenISD — open loudspeaker enclosure simulator">
     <p class="about-cta">
       <a class="about-open" :href="SITE_URL">Open OpenISD</a>
       <a class="about-secondary" :href="INSTALL_URL">Add it as an app</a>

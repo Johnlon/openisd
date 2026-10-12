@@ -77,13 +77,13 @@ export { WinisdDifferenceSection, type WinisdDifferenceTone } from './winisdDiff
 /** The sealed-box loss model — a field's closed value set. */
 export { LOSSLESS_Q } from './losslessQ.js';
 
-export { basicUtc, parseBasicUtc } from './basicTime.js';
+export { basicUtc } from './basicTime.js';
 export { lostDataSentence } from './lostData.js';
-export { formatCount, formatDate, formatDateTime, formatFixed, formatFixedOrDash } from './format.js';
+export { formatCount, formatDate, formatDateTime, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
-export { type AppVersion, type LocalTimeParts, type ToLocalTime, formatAppVersion } from './appVersion.js';
+export { type AppVersion, type BuildKind, type LocalTimeParts, type ToLocalTime, formatAppVersion, hostedPathOf, stampOfVersion } from './appVersion.js';
 
 /** The What-if? sheet's rows per box type. */
 export { WhatIfField, type WhatIfSlot } from './whatIfField.js';

@@ -8,7 +8,7 @@ spec: |
   - A build's name is its stamp from scripts/version-info.mjs at minute resolution, v20260101T0102Z. version-info.mjs takes the stamp from GITHUB_REF when it is a snap- or v tag, else now. Sent in the telemetry launch event.
   Snapshot trail
   - .github/workflows/build.yml on push to main, only when the post-land gate reports green for that commit (until S7 exposes it: on push) and at least two hours since the last snapshot build; scripts/snap.sh builds one now from main HEAD regardless (workflow_dispatch): stamp = now, build with base ./, zip dist as openisd-<stamp>.zip, tag the commit snap-<stamp>, GitHub pre-release "Snapshot <stamp>" with the zip and generated notes since the last release.
-  - Hosted at openisd.app/snap/<stamp>/. Last 20 snapshot builds kept, older pre-releases, tags and folders deleted by the same workflow.
+  - Hosted at openisd.app/snap/<stamp>/. Last 10 snapshot builds kept, older pre-releases, tags and folders deleted by the same workflow.
   Release trail
   - scripts/release.sh <stamp>: refuses unless snap-<stamp> exists and no F is open (green-main check proper waits for S7). Adds tag v<stamp> on the same commit (snap- tag stays), flips the pre-release to a release and marks it Latest, downloads nothing, builds nothing. Same bytes.
   - scripts/release.sh also fast-forwards a read-only branch `release` to the promoted commit. Nothing lands on it.
@@ -24,11 +24,13 @@ spec: |
   Versions list in app
   - App fetches /v/index.json at start, no store, no schema. About shows Versions: releases first, then snapshot builds marked Snapshot, current highlighted, date as "1 Jan 2026, 01:02", links to the hosted copy and its GitHub page. Fetch failure shows current only. Old build shows "latest release is <date>".
   Branch t056-hosting, runs in parallel with t055-releases.
-done_test: |
-  bash scripts/land/test/release.test.sh
-  bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
+done_test: bash scripts/land/test/release.test.sh && bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
 files:
   - tasks/T056.yml
+  - RELEASES.md
+  - RELEASING.md
+  - README.md
+  - DOCUMENTATION.md
   - scripts/version-info.mjs
   - scripts/release.sh
   - scripts/land/test/release.test.sh

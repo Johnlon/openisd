@@ -10,9 +10,7 @@ spec: |
   - The launch telemetry event carries keysLost: [names] when that happens.
   - Ruling (John, 12 Oct 2026): a backup MUST ALWAYS take place. Every write that removes or replaces a stored key, in any path (restore, delete, migrate, repair write-back, reset), first backups the whole store as openisd_backup_<build stamp>. There is no path without it. One function in persistence does the backup, every destructive write goes through it, and a test proves each destructive path produces a backup.
   - Restore keeps keys the file lacks unless the user ticks "replace everything". The replace test in backupRepo.test.ts changes to match.
-done_test: |
-  bash scripts/test.sh packages/persistence/test/storageLog.test.ts
-  bash scripts/test.sh packages/persistence/test/backupRepo.test.ts
+done_test: bash scripts/test.sh packages/persistence/test/storageLog.test.ts && bash scripts/test.sh packages/persistence/test/backupRepo.test.ts
 files:
   - tasks/T058.yml
   - packages/persistence/src/repos/storageLog.ts

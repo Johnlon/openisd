@@ -84,3 +84,25 @@ describe('useSplashModal — catalogue counts', () => {
     expect(api.passiveRadiatorCount.value).toBeNull();
   });
 });
+
+describe('useSplashModal — versions', () => {
+  const view = {rows: [], staleNotice: 'latest release is 1 Jan 2026, 01:02'};
+
+  it('asks for the hosted builds only once the splash is on screen', async () => {
+    let asked = 0;
+    const api = useSplashModal(state(true), undefined, {view: async () => { asked++; return view; }});
+    await flush();
+    expect(asked).toBe(0);
+    expect(api.versions.value).toBeNull();
+    api.show();
+    await flush();
+    expect(asked).toBe(1);
+    expect(api.versions.value).toEqual(view);
+  });
+
+  it('leaves the section out when the list cannot be described', async () => {
+    const api = useSplashModal(state(), undefined, {view: () => Promise.reject(new Error('x'))});
+    await flush();
+    expect(api.versions.value).toBeNull();
+  });
+});
