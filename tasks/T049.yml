@@ -1,0 +1,9 @@
+id: T049
+repo: openisd
+owner: fable
+status: claimed
+goal: Every task file's status matches main: landed tasks say done with their sha, dropped goals say superseded, only real work is open
+done_test: bash scripts/land/test/task-status.test.sh
+files:
+  - tasks/*.yml
+  - scripts/land/test/task-status.test.sh

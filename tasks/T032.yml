@@ -1,7 +1,8 @@
 id: T032
 repo: openisd
 owner: bob
-status: open
+status: done
+landed: 4a752b8b (done_test green on main, 12 Oct 2026)
 goal: The "new version available" notice never loops. A dev server (vite serve) bakes no version, so it never shows the notice; after a reload, the notice is not shown again for the same published version (BUG_20261010_new-version-notice-stuck).
 done_test: bash scripts/test.sh packages/ui/test/logic/releaseWatch.test.ts packages/ui/test/scripts/vite-config.test.ts packages/design/test/fields/appVersion.test.ts packages/ui/test/logic/appVersion.test.ts
 files:

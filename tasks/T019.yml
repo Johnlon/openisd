@@ -1,7 +1,8 @@
 id: T019
 repo: openisd
 owner: bob
-status: open
+status: done
+landed: e25da0ef (done_test green on main, 12 Oct 2026)
 goal: The dev server accepts requests addressed to the host name "lap" (John 2026-10-09, "do it add lap"), so the app loads at http://lap:4000.
 done_test: bash scripts/test.sh packages/ui/test/scripts/vite-config.test.ts
 files:

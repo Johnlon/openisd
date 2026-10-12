@@ -1,7 +1,8 @@
 id: T001
 repo: openisd
 owner: maryu
-status: open
+status: done
+landed: 4d5c1ae6 (done_test green on main, 12 Oct 2026)
 phase: P1
 goal: scripts/land.sh lands one task's branch onto main serially, running only the fast gates, and is the only path to main.
 done_test: timeout 600 bash scripts/land/test/land.e2e.test.sh

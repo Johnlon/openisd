@@ -1,7 +1,8 @@
 id: T041
 repo: openisd
 owner: claude
-status: open
+status: done
+landed: 82851e82 (done_test green on main, 12 Oct 2026)
 goal: Stored projects from before T036 (list, open session) load, start-up moves their chamber Qicl to the box Qiclfr using the one design function instead of a second copy that dropped the front value, and an entry the build refuses stays byte-identical in storage; real pre-T036 .owpr fixtures guard every future schema change.
 done_test: bash scripts/test.sh packages/persistence/test/stored-pre-t036.test.ts packages/persistence/test/projectRepo.test.ts
 files:

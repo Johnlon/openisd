@@ -1,7 +1,8 @@
 id: T039
 repo: openisd
 owner: claude
-status: open
+status: done
+landed: dffbd0b8 (done_test green on main, 12 Oct 2026)
 goal: A project saved with a chamber Qicl loads with that value moved to box[type].Qiclfr (rear before front, an already-set Qiclfr untouched, WinISD's default when neither), and no chamber Qicl left; T026's in-place start-up migration, backup and repair report are unchanged.
 done_test: bash scripts/test.sh packages/design/test/domain/chamber-qicl-move.test.ts packages/design/test/domain/front-chamber-qicl.test.ts
 files:

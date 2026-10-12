@@ -1,7 +1,8 @@
 id: T034
 repo: openisd
 owner: bob
-status: open
+status: done
+landed: 22bb8719 (artefact on main, done_test is a browser spec, 12 Oct 2026)
 goal: No logic or component calls the browser's confirm(). One injected confirm port and one in-app confirm dialog, used by both skins, for every question the app asks (BUG_20261011_native-confirm-called-from-logic).
 done_test: bash scripts/test.sh packages/ui/test/logic/confirmPort.test.ts packages/ui/test/architecture-no-native-confirm.test.ts packages/ui/test/ui/confirm-dialog.browser.spec.ts
 files:

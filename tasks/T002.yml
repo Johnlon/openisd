@@ -1,7 +1,8 @@
 id: T002
 repo: openisd
 owner: maryu
-status: open
+status: done
+landed: 4d5c1ae6 (done_test green on main, 12 Oct 2026)
 phase: P1
 goal: The task-file gates refuse a commit outside its task's files allowlist and a claim whose allowlist overlaps an open claimed task.
 done_test: timeout 600 bash scripts/land/test/task-gates.e2e.test.sh

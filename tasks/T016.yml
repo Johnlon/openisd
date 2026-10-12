@@ -1,7 +1,8 @@
 id: T016
 repo: openisd
 owner: bob
-status: open
+status: done
+landed: 006a5004 (done_test green on main, 12 Oct 2026)
 goal: A project file that marks both sides of a vent tuning/length pair as entered loads with the tuning entered and the length calculated from it, for all six pairs (John 2026-10-09, QO178 "tuning"); repaired at the loader, never two disagreeing entered values.
 done_test: bash scripts/test.sh packages/design/test/domain/vent-pair-states.test.ts
 files:

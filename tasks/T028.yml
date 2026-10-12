@@ -1,7 +1,8 @@
 id: T028
 repo: openisd
 owner: lots
-status: open
+status: done
+landed: 49c9ecc0 (artefact landed 10 Oct 2026; the plan text was later pruned, done_test no longer matches, 12 Oct 2026)
 goal: The consolidated work list is current as of 10 Oct (done, in flight, waiting on John, no worker, what the delegated CLIs can do).
 done_test: grep -q "State at 10 Oct" docs/plans/PLAN_20261009_CONSOLIDATED.md
 files:

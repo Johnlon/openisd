@@ -1,7 +1,8 @@
 id: T003
 repo: openisd
 owner: maryu
-status: open
+status: done
+landed: 4d5c1ae6 (done_test green on main, 12 Oct 2026)
 phase: P1
 goal: After every land, one full unit and browser run on the landed sha, one at a time, records the green sha and opens (amended by lots, 10 Oct: no release branch) a fixes task on red, with no rerun.
 done_test: timeout 600 bash scripts/land/test/post-land.e2e.test.sh

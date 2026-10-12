@@ -1,7 +1,8 @@
 id: T026
 repo: openisd
 owner: lots
-status: open
+status: done
+landed: 6dd47e4d (artefact on main, done_test is a browser spec, 12 Oct 2026)
 goal: Save reuses existing store IDs and merges copies on start-up, retired front Qicl migrates silently at boot, and mobile file-open shows the file list without diagnostics.
 done_test: bash scripts/test.sh packages/persistence/test/projectRepo.test.ts packages/design/test/domain/front-chamber-qicl.test.ts && bash scripts/test.sh packages/ui/test/ui/mobile-file-open.browser.spec.ts
 files:
