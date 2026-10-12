@@ -20,17 +20,10 @@ test.describe('Projects across addresses', () => {
     await expect(storeLabel).toContainText('Projects saved in this browser at http://localhost');
 
     // Click Export all projects
-    await setFocusedBoxVolume(page, 0.05); // edit project to make it dirty
-    await page.locator('.tb-btn[title^="Save"]').first().click();
-
-    // The save failure asks through the in-app confirm dialog (applicationIO handleSaveFailure).
-    await expect(page.locator('.confirm-overlay')).toBeVisible();
-    await expect(page.locator('.confirm-modal')).toContainText('Browser storage is full');
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.confirm-dialog-confirm').click(); // Export
-    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
-
+    await page.locator('.export-projects').click();
     const download = await downloadPromise;
+    
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
   });
   
@@ -85,30 +78,16 @@ test.describe('Projects across addresses', () => {
     // Enable the quota error
     await page.evaluate(() => { Reflect.set(window, 'forceQuotaError', true); });
     
-    const downloadPromise = page.waitForEvent('download');
-    
-    // Set up dialog waiting
-    let confirmMessage = '';
-    const dialogPromise = new Promise<void>(resolve => {
-      page.once('dialog', async dialog => {
-        confirmMessage = dialog.message();
-        await dialog.accept();
-        resolve();
-      });
-    });
-    
     await setFocusedBoxVolume(page, 0.05); // edit project to make it dirty
-    
-    // We can also click Save explicitly
     await page.locator('.tb-btn[title^="Save"]').first().click();
 
-    // Wait for the dialog to be handled
-    await dialogPromise;
+    // The save failure asks through the in-app confirm dialog (applicationIO handleSaveFailure).
+    await expect(page.locator('.confirm-overlay')).toBeVisible();
+    await expect(page.locator('.confirm-modal')).toContainText('Browser storage is full');
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('.confirm-dialog-confirm').click(); // Export
+    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
-    // Check confirm message
-    expect(confirmMessage).toContain('Could not save: browser storage is full');
-    
-    // Check if export was triggered
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
   });
