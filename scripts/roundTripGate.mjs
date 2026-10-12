@@ -53,19 +53,19 @@ function isTolerableCalculatedDrift(a, b) {
   return Math.abs(a.value - b.value) / scale <= CALCULATED_VALUE_RELATIVE_TOLERANCE;
 }
 
-/**
- * Deep-compares two JSON-shaped values and returns a slash-separated path string naming the
- * FIRST point they diverge, or `null` if they are identical. Used to report exactly where an
- * openisd.json round trip went wrong, not merely that it did.
- */
-export /** The entry without its `precision` member. */
+/** The entry without its `precision` member. */
 function withoutPrecision(entry) {
   const rest = { ...entry };
   delete rest.precision;
   return rest;
 }
 
-function firstDivergence(a, b, path = '$') {
+/**
+ * Deep-compares two JSON-shaped values and returns a slash-separated path string naming the
+ * FIRST point they diverge, or `null` if they are identical. Used to report exactly where an
+ * openisd.json round trip went wrong, not merely that it did.
+ */
+export function firstDivergence(a, b, path = '$') {
   if (a === b) return null;
   // A record written before QT84 holds its one role as a bare string; the reader upgrades it to a
   // one-role list. That is the one accepted upgrade, not loss: the same role, in the new shape.
