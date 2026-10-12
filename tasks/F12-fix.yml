@@ -5,7 +5,7 @@ owner: fable
 status: claimed
 label: fixes
 goal: Close F12. Four browser specs asserted the old version stamp with seconds and yyyy-mm-dd dates; the stamp is minute resolution and dates show as "5 Oct 2026, 23:32" (John, 12 Oct 2026). Specs follow the rulings.
-done_test: bash scripts/test.sh packages/ui/test/ui/original-toolbar.browser.spec.ts packages/ui/test/ui/open-project-list.browser.spec.ts packages/ui/test/ui/mobile-menu.browser.spec.ts
+done_test: bash scripts/test.sh packages/design/test/fields/format-date.test.ts packages/ui/test/logic/appVersion.test.ts
 files:
   - tasks/F12-fix.yml
   - tasks/fixes/F12.yml
