@@ -440,13 +440,9 @@ test.describe('Options dialog', () => {
         // `reloaded` is the real finish line: the page's own 'load' only fires again once
         // window.location.reload() actually runs, which is the last thing the success path does —
         // waiting on it (not just the two dialogs) is what proves the reload happened at all.
-        let confirmSeen = false;
-        let confirmText = '';
         let alertSeen = false;
         let reloaded = false;
         page.on('dialog', async (dialog) => {
-          // The in-app dialog is used instead of native confirm
-          if (dialog.type() === 'confirm') { confirmSeen = true; confirmText = dialog.message(); await dialog.accept(); return; }
           alertSeen = true;
           await dialog.accept();
         });
@@ -461,14 +457,13 @@ test.describe('Options dialog', () => {
         const chooser = await fileChooserPromise;
         await chooser.setFiles({ name: 'openisd-backup-test.json', mimeType: 'application/json', buffer: Buffer.from(backupJson) });
 
-        // Click the in-app confirm dialog's Restore button
+        // The in-app confirm dialog names what the restore overwrites, then its Restore button
         await expect(page.locator('.confirm-overlay')).toBeVisible();
+        for (const named of ['overwrite', 'in memory', 'projects', 'My Drivers', 'My Passive Radiators']) await expect(page.locator('.confirm-modal')).toContainText(named);
         await page.locator('.confirm-dialog-confirm').click();
         await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
         await expect.poll(() => reloaded).toBe(true);
-        expect(confirmSeen).toBe(true);
-        for (const named of ['overwrite', 'in memory', 'projects', 'My Drivers', 'My Passive Radiators']) expect(confirmText).toContain(named);
         expect(alertSeen).toBe(true);
       });
 

@@ -20,10 +20,17 @@ test.describe('Projects across addresses', () => {
     await expect(storeLabel).toContainText('Projects saved in this browser at http://localhost');
 
     // Click Export all projects
+    await setFocusedBoxVolume(page, 0.05); // edit project to make it dirty
+    await page.locator('.tb-btn[title^="Save"]').first().click();
+
+    // The save failure asks through the in-app confirm dialog (applicationIO handleSaveFailure).
+    await expect(page.locator('.confirm-overlay')).toBeVisible();
+    await expect(page.locator('.confirm-modal')).toContainText('Browser storage is full');
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.export-projects').click();
+    await page.locator('.confirm-dialog-confirm').click(); // Export
+    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
+
     const download = await downloadPromise;
-    
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
   });
   
