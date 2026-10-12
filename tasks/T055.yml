@@ -25,11 +25,13 @@ spec: |
   - version-info.mjs takes the stamp from the tag when GITHUB_REF is a v tag, else now, minute resolution.
   - Check for a service worker; if one exists each v/ copy registers its own scope or none.
   Upgrade goldens
-  - packages/persistence/test/goldens/layout-<N>/ holds a full localStorage dump (every openisd_* key) written by the last release of layout N, plus expected.json: the projects, drivers, sessions and settings that dump must yield after loading in the current app.
-  - Bumping STORAGE_LAYOUT without adding the golden of the layout just left fails the gate: a test asserts a golden dir exists for every layout 1..STORAGE_LAYOUT-1.
-  - storageUpgrade.test.ts loads every golden into a fresh fake store, runs the app's load path, asserts expected.json, asserts a snapshot named by that golden's build stamp was taken, and asserts a second load is silent. So any release N-M upgrades to N, for every M.
-  - A golden is never edited after it is written. If a later layout changes what an old store must yield, expected.json of that golden changes, the dump does not.
-  - First golden is layout 1, dumped from the current main before T055 lands.
+  - packages/persistence/test/goldens/<case>/ is one real store: dump-layout-<K>.json, a full localStorage dump (every openisd_* key) as written by a layout K app, where K is the layout the case was born in. As many cases as diversity dictates: empty store, one project, many projects, custom drivers, passive radiators, open sessions, backups, the lost-projects bug store.
+  - Beside it, one expected dump per later layout: dump-layout-<K+1>.json ... dump-layout-<current>.json, each the exact store the migration must produce at that layout. A case born in N-2 has dumps for N-2, N-1, N. A case born in N-1 has N-1, N. Migration is stepwise, so every step is checked, and the dump at each layout is itself a valid input for the next step.
+  - Also expected.json: the projects, drivers, sessions and settings the current app must yield after loading the case.
+  - Bumping STORAGE_LAYOUT fails the gate until every case has a dump for the new layout. Adding the dumps is part of the commit that bumps.
+  - storageUpgrade.test.ts, for every case: load the oldest dump into a fresh fake store, migrate one layout at a time asserting each dump, then load with the current app asserting expected.json, assert a snapshot keyed by the writing build stamp was taken, assert a second load is silent.
+  - A dump is never edited once written. A later layout adds a new dump file, it does not change old ones.
+  - First cases are dumped from the current main at layout 1 before T055 lands.
   Options menu
   - New page Storage history: one row per snapshot (build date, project count, size) with Export to file, Restore (confirm, snapshots live store first), Delete, plus Snapshot now.
 done_test: |
