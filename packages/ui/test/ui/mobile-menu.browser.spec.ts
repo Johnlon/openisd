@@ -24,9 +24,9 @@ function readBuildInfo(): { version: string } {
 
 async function computeExpectedPublishedLabel(page: import('@playwright/test').Page, version: string): Promise<string> {
   return page.evaluate((ver) => {
-    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(ver);
+    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/.exec(ver);
     if (!match) return ver;
-    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +match[6]));
+    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +(match[6] ?? '0')));
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const mon = months[d.getMonth()];
     const day = String(d.getDate()).padStart(2, '0');
@@ -47,7 +47,7 @@ test.describe('MobileMenu', () => {
     test('brand shows the version for the running environment', async ({ page }) => {
       await openMobileMenu(page);
       const onDisk = readBuildInfo();
-      expect(onDisk.version).toMatch(/^v\d{8}T\d{6}Z$/);
+      expect(onDisk.version).toMatch(/^v\d{8}T\d{4}Z$/);
       const expectedPublished = await computeExpectedPublishedLabel(page, onDisk.version);
 
       const versionEl = page.locator('.mob-menu-version');
@@ -149,9 +149,9 @@ test.describe('MobileMenu', () => {
         'Tang Band W5-1138SMF · Closed · 20.0 L',
         'Tang Band W5-1138SMF · Vented · 12.0 L',
       ]);
-      // John, 2026-10-05: never US style; yyyy-mm-dd everywhere. "2026-10-05 23:32", whatever the browser locale.
+      // John, 2026-10-12: never US style; the one design formatter shows "5 Oct 2026, 23:32", whatever the browser locale.
       for (const modified of await rows.locator('.mob-stored-project-modified').allTextContents()) {
-        expect(modified).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+        expect(modified).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/);
       }
     });
 

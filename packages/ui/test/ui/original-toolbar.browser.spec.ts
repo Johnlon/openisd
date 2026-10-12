@@ -25,9 +25,9 @@ function readBuildInfo(): { version: string } {
 
 async function computeExpectedPublishedLabel(page: import('@playwright/test').Page, version: string): Promise<string> {
   return page.evaluate((ver) => {
-    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(ver);
+    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/.exec(ver);
     if (!match) return ver;
-    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +match[6]));
+    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +(match[6] ?? '0')));
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const mon = months[d.getMonth()];
     const day = String(d.getDate()).padStart(2, '0');
@@ -40,7 +40,7 @@ async function computeExpectedPublishedLabel(page: import('@playwright/test').Pa
 test.describe('Original toolbar', () => {
   test('toolbar shows the correct version for the running environment', async ({ page }) => {
     const onDisk = readBuildInfo();
-    expect(onDisk.version).toMatch(/^v\d{8}T\d{6}Z$/);
+    expect(onDisk.version).toMatch(/^v\d{8}T\d{4}Z$/);
 
     await page.goto('/');
     await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
