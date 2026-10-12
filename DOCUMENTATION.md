@@ -68,20 +68,14 @@ The WinISD reverse-engineering work lives in the sibling `winisd_research` repos
 
 ## Plans
 
-Active plans are in [docs/plans/](docs/plans/); finished or superseded ones are in
-[docs/plans/archive/](docs/plans/archive/).
+Plans are in [docs/plans/](docs/plans/). Finished or superseded plans are deleted, not archived.
 
-| Plan                                                                               | Purpose                                                |
-|------------------------------------------------------------------------------------|--------------------------------------------------------|
-| [PLAN_WINISD_GAPS.md](docs/plans/PLAN_WINISD_GAPS.md)                              | Close the open WinISD behaviour gaps                   |
-| [FIX_WIZARD_VENTED-remains.md](docs/plans/FIX_WIZARD_VENTED-remains.md)            | What the vented wizard work left open                  |
-| [PLAN_STATE_STORAGE_SPLIT.md](docs/plans/PLAN_STATE_STORAGE_SPLIT.md)              | Split view state into project and app state            |
-| [PLAN_LAYER_REORGANIZATION.md](docs/plans/PLAN_LAYER_REORGANIZATION.md)            | Layer reorganisation (draft)                           |
-| [PLAN_LAYER_REORGANIZATION_LOWLEVEL.md](docs/plans/PLAN_LAYER_REORGANIZATION_LOWLEVEL.md) | Layer reorganisation, execution steps            |
-| [PLAN_FIELD_KEY_CONSOLIDATION.md](docs/plans/PLAN_FIELD_KEY_CONSOLIDATION.md)      | One domain-named field-key enum                         |
-| [PLAN_RETIRE_CALCS_FROM_SCRAPERS.md](docs/plans/PLAN_RETIRE_CALCS_FROM_SCRAPERS.md) | Move calculation and DQ out of the scrapers           |
-| [PLAN_QO129_BROWSER_EVALUATION_TO_VITEST.md](docs/plans/PLAN_QO129_BROWSER_EVALUATION_TO_VITEST.md) | Move arithmetic checks from Playwright to Vitest |
-| [PLAN_DOMAIN_REFACTOR.md](docs/plans/PLAN_DOMAIN_REFACTOR.md)                      | `openisdDomain.ts` symbol-by-symbol task queue          |
+| Plan | Purpose |
+|------|---------|
+| [PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md](docs/plans/PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md) | High-fidelity driver extraction and a strict transfer file |
+| [PLAN_MULTI_BOX.md](docs/plans/PLAN_MULTI_BOX.md) | A project holds a collection of boxes |
+| [PLAN_20261009_APP_WORK.md](docs/plans/PLAN_20261009_APP_WORK.md) | Outstanding app work |
+| [PLAN_20261009_CONSOLIDATED.md](docs/plans/PLAN_20261009_CONSOLIDATED.md) | Consolidated plan for all agents |
 
 ## Records
 

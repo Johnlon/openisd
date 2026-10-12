@@ -1,6 +1,6 @@
 # BUG_20261007_bp6-abc-front-tuning-edits-the-vented-box
 
-**Status:** OPEN
+**Status:** RESOLVED (12 Oct 2026): `ventGroupOf` returns the front chamber for bandpass6 and ABC since abb6a6db
 
 ## Symptom
 On a 6th-order bandpass or ABC box, the Front chamber tuning box (Ffc) on the Box tab shows and edits the vented box's
@@ -18,7 +18,7 @@ Run 2026-10-07 (tsx script): `box.ventGroupOf('bandpass6').tuning_goal_hz === bo
 
 ## Fix
 `ventGroupOf` returns the front chamber (volume, tuning, front vent) for bandpass6 and ABC; a rear group is added for Frc.
-Mobile gets an Ffc row. See plan step 3.
+Mobile gets an Ffc row.
 
 ## Verification
 - New domain spec: `ventGroupOf('bandpass6')` and `('abc')` are the front chamber's own cells, and setting its tuning changes `sweepPlan`.

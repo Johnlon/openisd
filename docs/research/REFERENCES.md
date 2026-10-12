@@ -108,7 +108,7 @@ reference index.
 - **micka.de** — sealed + vented cross-check oracle (`#ideal` calculator; no
   PR/bandpass). <https://www.micka.de/en/index.php> · see
   [`COMPETITIVE_LANDSCAPE.md` "SpeakerBoxLite"](COMPETITIVE_LANDSCAPE.md) and
-  [`../plans/archive/PLAN_SBL_CROSSCHECK.md`](../plans/archive/PLAN_SBL_CROSSCHECK.md).
+  the SpeakerBoxLite cross-check plan.
 - **SpeakerBoxLite** — second oracle covering PR + bandpass.
   <https://speakerboxlite.com/subwoofer-box-calculator/> · see
   [`COMPETITIVE_LANDSCAPE.md` "SpeakerBoxLite"](COMPETITIVE_LANDSCAPE.md).

@@ -12,7 +12,6 @@ files:
   - app.html
   - bugs/BUG_20261009_wsl-mirrored-route-churn-aborts-browser-specs.md
   - bugs/BUG_20261010_new-version-notice-stuck.md
-  - docs/plans/PLAN_20261008_SDLC_CLEANUP.md
   - docs/plans/PLAN_20261009_APP_WORK.md
   - docs/plans/PLAN_20261009_CONSOLIDATED.md
   - docs/plans/PLAN_20261010_PURE_EXTRACTOR_DECOUPLING.md

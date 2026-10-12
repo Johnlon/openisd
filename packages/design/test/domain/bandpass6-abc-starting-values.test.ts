@@ -1,8 +1,7 @@
 /**
  * A new 6th-order bandpass or ABC project starts with the values WinISD's wizard gives one
- * (capture winisd_research/runs/bp6_abc_wizard_defaults/, plan PLAN_20261007_bp6_abc_complete.md
- * step 1): rear 0.03 m³ at 35 Hz, front 0.02 m³ at 25 Hz, round vents 0.102 m across; the ABC
- * connecting vent 0.050 m long.
+ * (capture winisd_research/runs/bp6_abc_wizard_defaults/): rear 0.03 m³ at 35 Hz, front 0.02 m³ at 25 Hz,
+ * round vents 0.102 m across; the ABC connecting vent 0.050 m long.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';

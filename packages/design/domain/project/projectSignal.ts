@@ -10,7 +10,7 @@ const DEFAULT_DRIVE_VOLTAGE_V = 1;
 const MIN_DRIVE_VOLTAGE_V = 0.01;
 
 /** A project's own signal window (drive power/voltage), built fresh on every access — same
- *  reasoning as `driver`/`box`/`ProjectMeta`/`ProjectEnvironment` (PLAN_openisdproject_split.md).
+ *  reasoning as `driver`/`box`/`ProjectMeta`/`ProjectEnvironment`.
  *  `usableRe`/`rsOhm`/`signalIssues` are passed in rather than reached for: the facade already
  *  knows how to build them (`driverOver`, the public `Rs_ohm` field, `#issues.signal`), and this
  *  class has no business constructing a driver window of its own. */

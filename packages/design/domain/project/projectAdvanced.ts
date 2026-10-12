@@ -5,7 +5,7 @@ import type { Filter } from '../../engine/index.js';
 import type { OpenISDProjectJson } from '../openisdSchema.js';
 
 /** A project's own advanced/compatibility window, built fresh on every access — same reasoning
- *  as `driver`/`box`/`ProjectMeta`/`ProjectEnvironment` (PLAN_openisdproject_split.md). `filters`
+ *  as `driver`/`box`/`ProjectMeta`/`ProjectEnvironment`. `filters`
  *  lives on its own top-level slot, not under `advanced`, so `wrap` takes both lenses; nothing
  *  here needs the engine. */
 export class ProjectAdvanced {

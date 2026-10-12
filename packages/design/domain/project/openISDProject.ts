@@ -40,7 +40,7 @@ import { ProjectSignal } from './projectSignal.js';
 // This class holds the record (`#saved`/`#edited`/`#whatif`/`#engine` — see
 // `architecture-project-has-three-fields.test.ts`) and the public surface built fresh from it on
 // every access, same as `driver`/`box` always have. Responsibility split across sibling modules
-// by area (PLAN_openisdproject_split.md): `projectResolve.ts` (the solve cascade),
+// by area: `projectResolve.ts` (the solve cascade),
 // `projectMeta.ts` (name/creator/description), `projectEnvironment.ts` (temp/humidity/pressure),
 // `projectSignal.ts` (drive power/voltage), `projectAdvanced.ts` (filters and the WinISD
 // compatibility switches), `projectChartsView.ts` (which charts, trace colour, sweep N),
@@ -729,7 +729,7 @@ export class OpenISDProject {
 
     /** Everything `projectSweep.ts`'s free functions need to read off this project — built fresh
      *  on every sweep/maxCurves/boxParamsIssues/ventAchievedFb/ventMaxReachableFb call, same
-     *  reasoning as `driver`/`box` (PLAN_openisdproject_split.md module 8). A structural
+     *  reasoning as `driver`/`box`. A structural
      *  interface, not `OpenISDProject` itself, so `projectSweep.ts` never imports this class back. */
     #sweepSource(): ProjectSweepSource {
         const root = this.#root();

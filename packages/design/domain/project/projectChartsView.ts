@@ -14,7 +14,7 @@ export interface OpenCharts {
 }
 
 /** A project's own chart-view window, built fresh on every access — same reasoning as
- *  `driver`/`box`/`ProjectMeta`/`ProjectAdvanced` (PLAN_openisdproject_split.md). `boxType` is
+ *  `driver`/`box`/`ProjectMeta`/`ProjectAdvanced`. `boxType` is
  *  passed in rather than reached for: it lives on `OpenISDProject.box`, and this class has no
  *  business constructing a box window of its own.
  *

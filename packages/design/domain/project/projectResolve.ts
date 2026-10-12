@@ -13,7 +13,7 @@ import type { ProjectIssues } from './projectIssues.js';
 import { sealedVolumeAsSolverField } from './sealedVolumeAsSolverField.js';
 
 /** WinISD's reference drive: 1 W — the power the signal pair settles on, entered, once a usable
- *  Re appears with nothing else stated (moved with `settleSignal`, PLAN_openisdproject_split.md). */
+ *  Re appears with nothing else stated (moved with `settleSignal`). */
 const DEFAULT_DRIVE_POWER_W = 1;
 
 /** Everything `resolveProject` needs from the project that it does not itself compute — every
@@ -46,7 +46,7 @@ export interface ProjectResolveContext {
  * in S2-7c before its own auto-resolve was pulled out of the shared driver constructor (see that
  * class's own note).
  *
- * Moved out of `OpenISDProject#resolve()` verbatim (PLAN_openisdproject_split.md): same control
+ * Moved out of `OpenISDProject#resolve()` verbatim: same control
  * flow, same reads, same writes: only the collaborators that were `this.#x` are now `ctx.x`.
  */
 export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
@@ -176,8 +176,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
 
 /** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read
  *  off `driverOver`, the permanent facade collaborator every caller of `resolveProject` already supplies. Exported: also
- *  used by the facade's own `#signalOver` to build the `usableRe` callback `ProjectSignal` needs
- *  (PLAN_openisdproject_split.md). */
+ *  used by the facade's own `#signalOver` to build the `usableRe` callback `ProjectSignal` needs */
 export function usableRe(root: SimpleField<OpenISDProjectJson>, driverOver: ProjectResolveContext['driverOver']): number | null {
     const {alfaVC_per_K, vcTempRise_K} = root.value.driverEmbedding;
     return driverOver(root).hotRe_ohm(alfaVC_per_K, vcTempRise_K);

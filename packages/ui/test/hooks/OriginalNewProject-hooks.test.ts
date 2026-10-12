@@ -211,7 +211,7 @@ describe('useOgNewProject', () => {
     expect(project?.box.vented.tuning_goal_hz.value).toBeCloseTo(wizard.ventedTuning_hz.value, 12);
   });
 
-  it("the wizard preview's Ql is the SCHEMA's new-project Ql, not a hook-local copy (plan FIX_WIZARD_VENTED-remains #3)", () => {
+  it("the wizard preview's Ql is the SCHEMA's new-project Ql, not a hook-local copy", () => {
     // The preview constant and the box record's starting value must be ONE declaration: if the
     // schema's NO_VENTED_LOSSES ever changes, a hook-local `10` would silently disagree with
     // the project the wizard creates. The design is made from the created project's OWN Ql

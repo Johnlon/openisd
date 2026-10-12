@@ -3,7 +3,7 @@
 John, 2026-10-08. Judgement lives in task files and gates, not in a coordinator's head. A worker
 
 Enforcement of every rule here, and the failure each one prevents: [SDLC.md](SDLC.md).
-loops until a command passes; it never decides. Plan: `docs/plans/PLAN_20261008_SDLC_CLEANUP.md`.
+loops until a command passes; it never decides.
 
 ## Roles
 

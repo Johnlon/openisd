@@ -1,6 +1,6 @@
 # Model, counter-examples, and repair report — vented wizard + plausibility + Options modal
 
-**Date:** 2026-10-01 · **Scope:** the 10 changed files around `FIX_WIZARD_VENTED-remains`
+**Date:** 2026-10-01 · **Scope:** the 10 changed files around the vented wizard work
 (engine: `VentedEngine.ts`, `plausibility.ts`, `issueText.ts`; UI: `OptionsModal-hooks.ts`,
 `OptionsModal.vue`, `OriginalNewProject-hooks.ts`; their tests).
 **Method:** build the model → derive invariants → attack them with counter-examples →

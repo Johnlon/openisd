@@ -306,7 +306,7 @@ test.describe('New Project wizard', () => {
       await expect(modal.locator('.selected-driver-banner')).toBeVisible();
       await expect(modal.locator('.dlist')).toBeVisible();
 
-      // Complete the wizard: vented box has an alignment step, C4 default (docs/plans/archive/FIX_WIZARD_VENTED.md); the .wdr
+      // Complete the wizard: vented box has an alignment step, C4 default; the .wdr
       // driver must be the project's driver.
       await modal.locator('button', { hasText: 'Next' }).click();   // step 2
       await modal.locator('button', { hasText: 'Next' }).click();   // step 3

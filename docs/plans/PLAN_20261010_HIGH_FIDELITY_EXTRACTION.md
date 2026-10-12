@@ -1,6 +1,6 @@
 # Plan: high-fidelity extraction and a strict transfer file
 
-**Status: PROPOSED — not agreed by John.** 10 Oct 2026, from John's words that day. It replaces the earlier pure-extractor plan (in git history). Nothing here is decided until John says so about this plan.
+**Status: PROPOSED — not agreed by John.** 10 Oct 2026, from John's words that day. Nothing here is decided until John says so about this plan.
 
 John, 10 Oct 2026:
 - "it is obvious to me that the data the scrapers pull needs to be recorded in higher fidelity than it is at present and in the transfer file with a strong schema"
@@ -52,7 +52,7 @@ Schema rules (John, 2026-10-11: "the reconciliation programme writes the other s
 - **Where it runs:** on every landing in either repo that touches the master, and as a test that fails if the generated copy is stale.
 - **Covers** the transfer file `driver_spec.json` and `driver_human.json`, which uses the same schema. Unknown fields are refused, and `schema_version` is checked on every read.
 - **Master: the Zod schema** (decided 2026-10-11 by the design agent, as John asked). The Zod record schema is short and declarative, with a few one-expression refinements, so a bounded translator can read it as code. `model_driver.py` mixes the schema with emitter logic and arbitrary validator bodies. openisd is the format's reader, so its acceptance is the definition. Long term, a full move to TypeScript removes the pydantic copy altogether.
-- **Built:** `scripts/schemagen/` (run `npx tsx scripts/schemagen/main.ts`) writes `scripts/schemagen/out/driver_model.py`. Proof on 2026-10-11: 5382 cases (every driver.json and openisd.json in the catalogue, the fixtures, 97 edge cases), 0 differences. `packages/design/test/schemagen/driver-model-is-current.test.ts` fails when the generated module is stale. Still to do: tools switches from the hand-written `model_driver.py` to the generated module.
+- **To do:** tools switches from the hand-written `model_driver.py` to the generated module.
 
 ## 2a. The human decision file: `driver_human.json`
 
@@ -118,10 +118,9 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
    - scope tests: every current exclusion as a case, with its logged reason.
 2. **Schema** in both repos.
 3. **tools**: one shared extraction writing `driver_spec.json`; per-manufacturer code only locates documents and cells; the shared scope check.
-4. **openisd**: parser and interpretation in `packages/design`; the bridge reads `driver_spec.json` and builds `openisd.json` in the new driver-type structure. openisd T017 (refused-reading types) and T018 (picker) fold in here.
+4. **openisd**: parser and interpretation in `packages/design`; the bridge reads `driver_spec.json` and builds `openisd.json` in the new driver-type structure.
    - **A reading keeps its datasheet text** (John, 2026-10-11): "N/A", "banana" and "143c cm²" are stored as printed, as a rejected reading with its reason.
-   - **`.wdr` cannot hold a rejected reading** (John, 2026-10-11): a `.wdr` field is a flag and a number only. A rejected reading is written to `.wdr` as N (not available), value 0, and a comment carrying the printed text. Loading a `.wdr` never makes a rejected reading. T017's "a .wdr text cell becomes a rejected reading" is wrong and is replaced by this.
-   - T017's first worker stopped at its usage limit mid-change; another worker finishes it.
+   - **`.wdr` cannot hold a rejected reading** (John, 2026-10-11): a `.wdr` field is a flag and a number only. A rejected reading is written to `.wdr` as N (not available), value 0, and a comment carrying the printed text. Loading a `.wdr` never makes a rejected reading.
    - **Roles are decided and merged** (QT84/QT85, John 2026-10-08; branch openisd-roles merged 2026-10-11): `driver_type` is a non-empty list of roles. **Remaining: the type chips link up sanely with the roles** (John, 2026-10-11). A driver shows under the chip of every role it has; the chip set and the role set are one list in `packages/design`, shared with tools; a combo (e.g. tweeter-mid) shows under each of its roles. The list is a tree (John, 2026-10-11): a role also answers to the roles it contains. A mid-woofer is a mid and a woofer; a full-range is a woofer, a mid and a tweeter. The product name and the T/S values are evidence too (John, 2026-10-11): "if the product name has the word woofer in it then it's a woofer"; "an FS of 45 … obviously a woofer … an FS of 5000 … obviously a tweeter". A T/S verdict fills a role no word gives. Fs outranks a word in the product description (John, 2026-10-11: "I would trust the FS over the product description if there's ever a conflict"); the clash is still reported. **Fs always decides woofer vs tweeter** (John, 2026-10-11: "the fs will always be used to determine whether it's a woofer or tweeter"), with a mid band in between that overlaps both, so a driver in the grey zone answers to two roles. The stated frequency range counts too (John, 2026-10-11): a woofer starts at a low Fs and its range extends up to some limit; a tweeter's range starts at a high bottom end and extends upwards. The band edges come from the stated types, Fs values and frequency ranges in the bundled catalogue (study 2026-10-11, 2007 records). A record with no evidence at all is Unclassified, and goes to triage (section 4a). All type logic lives in `packages/design`, none in `packages/ui`. One test row per role pins its chips.
      - **The bands (John, 2026-10-11: "anything with an FS over 800 is defo acting as a tweeter and anything with a FS less than 65 is a woofer and anything in the middle is a mid"):**
        - **Tweeter: Fs > 800 Hz.**
@@ -132,7 +131,7 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
      - **Fs cannot tell a midrange from a woofer:** most stated midranges, mid-woofers and mid-basses have woofer Fs (30–70 Hz). Those labels come from the words.
      - **Coaxial:** 13 of 34 coaxials carry the tweeter's Fs (above 1000 Hz), not the woofer's. The rule applies to the woofer section's Fs.
      - Outliers for triage (section 4a): woofers with high Fs (beyma 6mcf200nd 406 Hz, beyma 10mcf400nd 260 Hz); "midrange" SC 10 N at 1700 Hz; woofer range high edges of 1–9 Hz (a unit or parse error).
-   - **No winner means no value** (John, 2026-10-11): when every reading is impossible or rejected, the field gets no value and the comment records every value seen and why each was rejected. T018 carries this.
+   - **No winner means no value** (John, 2026-10-11): when every reading is impossible or rejected, the field gets no value and the comment records every value seen and why each was rejected.
 5. **Parity**: both pipelines over every cached input. For every reading, the SI value matches the old pipeline, or the change is listed and explained. The old pipeline stays until this passes.
 6. **Switch**: delete the old record writing and the 17 per-manufacturer `emit.py` files; rename `driver_spec.json` to `driver.json`; rebuild the corpus (John clears it), then the swap.
 7. **Triage** (section 4a): the AI review step runs after the rebuild and after every later extraction run; its reader and rule faults feed the next round of work.
@@ -153,7 +152,7 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
 ## 7. Open for John
 
 - Confirm this plan, or change it.
-- Held until then: QT93 step 2, the shared-rule batches, the bridge `printed` job, openisd T017/T018 (parked, committed).
+- Held until then: QT93 step 2, the shared-rule batches, the bridge `printed` job.
 
 ## 8. Later work
 

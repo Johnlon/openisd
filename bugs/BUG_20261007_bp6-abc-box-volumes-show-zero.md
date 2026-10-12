@@ -1,6 +1,6 @@
 # BUG_20261007_bp6-abc-box-volumes-show-zero
 
-**Status:** OPEN
+**Status:** RESOLVED (12 Oct 2026): starting values shipped in 192b2df2 (bandpass6 and ABC start with WinISD wizard values) and 47a723bb (wizard takes rear and front volumes and tunings); pinned by `packages/design/test/domain/bandpass6-abc-starting-values.test.ts`
 
 ## Symptom
 New 6th-order bandpass or ABC project: Box tab Vb (rear) and Vf (front) show 0, Frc and Ffc are blank,
@@ -21,8 +21,7 @@ The New Project wizard has no volume step for them (`isDual` is bandpass4 only, 
 builder call there is `b.bandpass6()` with nothing passed (`OriginalNewProject-hooks.ts:451-452`).
 
 ## Fix
-`applyStartingValues` gives bandpass6 and ABC volumes, tunings and vent geometry (values from the WinISD capture `winisd_research/runs/bp6_abc_wizard_defaults/`: Vr 0.03 m3, Fr 35 Hz, Vf 0.02 m3, Ff 25 Hz, round vents dia 0.102 m; rear len 0.5906 m, front len 1.8812 m; ABC adds an intra vent dia 0.102 m, len 0.050 m; see
-`docs/plans/PLAN_20261007_bp6_abc_complete.md`). The wizard passes its volumes through.
+`applyStartingValues` gives bandpass6 and ABC volumes, tunings and vent geometry (values from the WinISD capture `winisd_research/runs/bp6_abc_wizard_defaults/`: Vr 0.03 m3, Fr 35 Hz, Vf 0.02 m3, Ff 25 Hz, round vents dia 0.102 m; rear len 0.5906 m, front len 1.8812 m; ABC adds an intra vent dia 0.102 m, len 0.050 m). The wizard passes its volumes through.
 
 ## Verification
 - New domain spec: a built bandpass6 and ABC project has Vr, Vf > 0, Fr, Ff stated, vents with a size, and `sweepPlan` is `ready`.

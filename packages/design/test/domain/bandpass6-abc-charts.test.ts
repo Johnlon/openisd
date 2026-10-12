@@ -1,7 +1,6 @@
 /**
  * Every chart `chartsFor` lists for a 6th-order bandpass or ABC box draws from a freshly built
- * project's sweep: the sweep is non-null and each chart's series holds finite points (plan
- * PLAN_20261007_bp6_abc_complete.md step 11).
+ * project's sweep: the sweep is non-null and each chart's series holds finite points.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';

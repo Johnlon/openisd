@@ -16,8 +16,6 @@ Vas / Qms / Fs / Sd / Xmax
 [OriginalNewProject-hooks.ts](http://localhost:8000/winisd/openisd/packages/ui/src/hooks/OriginalNewProject-hooks.ts#L153-L157):
 `hasAlignmentStep` is sealed or vented only, so every other type skips step 4;
 `createProject` builds `b.passiveRadiator().volume_m3(...)` with no `.radiator(...)`.
-Tracked as item 7 of
-[FIX_WIZARD_VENTED-remains.md](http://localhost:8000/winisd/openisd/docs/plans/FIX_WIZARD_VENTED-remains.md?html).
 
 ## Fix
 A passive-radiator step: pick from the PR picker (saved, bundled, define new) and edit

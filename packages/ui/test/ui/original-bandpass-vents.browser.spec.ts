@@ -3,8 +3,7 @@ import {fillAndBlur} from '../fixtures/numField.js';
 
 /**
  * The Original shell's Vents pane for the 6th-order bandpass and ABC: one column per port,
- * each editing its own vent (bugs/BUG_20261007_bp6-abc-front-tuning-edits-the-vented-box.md,
- * plan PLAN_20261007_bp6_abc_complete.md step 5).
+ * each editing its own vent (bugs/BUG_20261007_bp6-abc-front-tuning-edits-the-vented-box.md).
  */
 
 test.beforeEach(async ({page}) => {

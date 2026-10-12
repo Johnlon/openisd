@@ -160,7 +160,7 @@ physical constants in [`packages/design/engine/constants.ts`](../../packages/des
 ### 4.1 Driver — `deriveDriver(raw: DriverRaw) → Result<Driver>`
 
 > `DriverRaw`/`Driver` are condemned by `ARCHITECTURE.md` AD-8/AD-9 — `OpenISDDriver` is
-> their planned successor ([`../plans/archive/PLAN_OPENISD_DRIVER_MODEL.md`](../plans/archive/PLAN_OPENISD_DRIVER_MODEL.md)),
+> their planned successor (the OpenISD driver model plan),
 > not yet built. This section describes the shapes as they exist today.
 
 **Input `DriverRaw`** — every field optional (a partial driver is a valid intermediate state).

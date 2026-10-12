@@ -3,7 +3,7 @@ import type { Entered, Readable, SimpleField, Writable } from '../cell.js';
 import type { OpenISDProjectJson } from '../openisdSchema.js';
 
 /** A project's own metadata window, built fresh on every access from `lens` — same reasoning as
- *  `driver`/`box` on `OpenISDProject` (PLAN_openisdproject_split.md). No engine: nothing here
+ *  `driver`/`box` on `OpenISDProject`. No engine: nothing here
  *  reads or derives anything, it only addresses one slot of the record. */
 export class ProjectMeta {
     static wrap(lens: SimpleField<OpenISDProjectJson['meta']>): ProjectMeta {

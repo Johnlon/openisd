@@ -12,7 +12,7 @@ import { engineCircuitModel } from '../driver/engineCircuitModel.js';
 import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
 
 /** Everything the engine's sweep/max-curves/enclosure-check needs beyond the frequency grid,
- *  read off THIS project — PLAN_openisdproject_split.md module 8. A structural interface, not
+ *  read off THIS project. A structural interface, not
  *  the concrete `OpenISDProject`, so this module never imports it back (avoids the cycle
  *  `OpenISDProject` -> `projectSweep` -> `OpenISDProject` would make). `OpenISDProject` builds a
  *  fresh one on every sweep/maxCurves/boxParamsIssues/ventAchievedFb/ventMaxReachableFb call, the

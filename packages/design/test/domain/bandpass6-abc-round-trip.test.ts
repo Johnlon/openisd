@@ -1,6 +1,6 @@
 /**
  * A 6th-order bandpass or ABC project keeps its volumes, tunings and vents through `.owpr`
- * save/load and through `.wpr` export/import (plan PLAN_20261007_bp6_abc_complete.md step 10).
+ * save/load and through `.wpr` export/import.
  * Golden values: the sample `.wpr` files under `../winisd/fixtures/` (bp6-w5-base2, abc-w5-base2),
  * which WinISD itself wrote.
  */

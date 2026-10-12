@@ -1,18 +1,8 @@
 # Consolidated plan — all agents, 9 Oct 2026
 
-Give this file to one agent. It runs bucket R first, then the other buckets. Buckets A, I and T touch disjoint files and repos, so they can run in parallel when credit allows; when only one agent runs, the order is R → A → I → T.
+Give this file to one agent. Buckets A, I and T touch disjoint files and repos, so they can run in parallel when credit allows; when only one agent runs, the order is A → I → T.
 
-## State at 10 Oct (lots keeps this section current — John: "the work list it MUST maintain")
-
-### Done since 9 Oct
-- T024 open-once (3fcd2261), T025 plans, T027 deploy from main + GitHub CI deleted (0b542728). A release = the GitHub Pages deploy on every push to main; no release branch, no tags (John). Buckets R1/R2 are moot.
-
-### In flight
-- **F3/F4** (post-land red after T024: mobile-project-list spec opened the same project twice): fix in `openisd-f4`, being landed/run by maryu (217ddec3). Blocks every other landing until closed.
-- **T026** (worktree `openisd-t024`, reviewed, committed c7a51e67): stored copies merged into one (backup keeps all), retired front Qicl dropped silently at start-up, mobile file-open shows files. Lands after F3/F4 close.
-- maryu: remove the release-branch push and NO_RELEASE_PUSH from post-land/run.sh (an opencode run in `openisd-norel`, branch drop-release); the clear-defaults rulings job (re-briefing on another model).
-
-### Pure-extractor plan: NOT agreed by John; nothing decided. Work it touches is held, not killed
+## Waiting and held (lots keeps this section current — John: "the work list it MUST maintain")
 
 ### Waiting on John
 - **PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md** (author unknown, 46e31b58): go/no-go. lots' review: right direction; schema must keep every reading (a list, not one per source role), every URL, a locator and the printed label on each reading, and drop sku/manufacturer per QT93; Phase 4 test = per-reading SI match or listed change, not bit-for-bit. If go: stop Python lib batches and QT93 step 2 for good; split the plan into tools tasks and openisd tasks.
@@ -21,13 +11,10 @@ Give this file to one agent. It runs bucket R first, then the other buckets. Buc
 ### No worker today (tools)
 - Complete-loudspeaker refusal (8 Visaton items) — killed on John's order, tree clean.
 - Identity fixes (#105).
-- QT93 step 2 — held for the pure-extractor decision.
+- QT93 step 2 — held for the extraction go/no-go.
 
-### Delegated CLIs — what we know (10 Oct)
-- **agy (Gemini)**: good output (batch 3 verify + 3 real defects; T026 code needed one review round for a data-loss bug). Quota per model, short: default model reset 4h42m, gemini-3.8-flash-high 2h12m, both used up in one morning. Throughput ≈ one agy job per quota window.
-- **opencode**: big-pickle gave a sound T024 fix; one run died on "cannot connect to API"; one run timed out at 45 min (maryu). Other runs were killed by holds, untested.
-- **freebuff**: never used.
-- **Needed**: a quota-aware plan — one job per tool at a time, small briefs, rotate agy models → opencode free models → freebuff; record each quota reset time here.
+### Delegated CLIs
+- Needed: a quota-aware plan — one job per tool at a time, small briefs, rotate agy models → opencode free models → freebuff; record each quota reset time here.
 
 ## How every agent works
 
@@ -58,12 +45,10 @@ Rules that save the most: one targeted spec per change; typecheck only through `
 
 In order:
 
-1. **T017** readings union (worktree `openisd-t017`, WIP 65da80bf): a read value is kept as printed — `Usable`, `RejectedParsed` (has a number), `RejectedUnparsed` (no number), `Unrecognised` (unknown reason, raw text, one issue raised); a `.wdr` text cell becomes a not-available entry that keeps its readings ("N/A" round-trips). done_test: `bash scripts/test.sh packages/design/test/domain/reads-schema.test.ts`. Remove the duplicate `bugs/BUG_20261009_post-land-unit-red-skips-browser-specs.md` from the branch before landing.
-2. **T018** picker (`selectOrigin.ts`): drop impossible readings, then majority (more than half of the survivors), then precedence; rejected readings never picked. done_test: the selectOrigin test.
-3. **Bridge accepts `printed`**: the driver.json parser accepts tools' `printed` list (typed) and leaves it out of openisd.json; rebuild `packages/design/dist/openisd-bridge.js` once, after T017. Test: the bridge-bundle test. Unblocks tools' `test_the_projection_ignores_printed`.
-4. **Clear gives a default** (maryu's worktree `openisd-coal`, bug `BUG_20261009_pr-added-mass-can-be-cleared-to-blank`): ruled by John — PR added mass → 0; port size → 50 mm round (or a slot from the driver); port width → driver Dd; PR count and driver count → 1; Rg → 0.1 Ω. Not ruled, leave alone: PR/vented volumes, bandpass/ABC values, Ql/Qa/Qp/Qicl, end correction, filters. Test: the domain clear tests for each field.
-5. **Loading icon overlay**: an OpenISD icon overlay in `packages/ui/index.html`, shown from first paint until the app mounts (at least ~0.7 s), shown again when the page becomes visible after > 30 s hidden; both skins. Today only Android's own launch screen shows it, on cold start only. Test: one browser spec (overlay present at load, gone after mount, back after a simulated hide/show).
-6. Then `docs/plans/PLAN_20261009_APP_WORK.md`: section A bugs (verify the "probably fixed" ones, mark RESOLVED), then section B parity starting with drivers other than the W5-1138SMF.
+1. **Bridge accepts `printed`**: the driver.json parser accepts tools' `printed` list (typed) and leaves it out of openisd.json; rebuild `packages/design/dist/openisd-bridge.js` once. Test: the bridge-bundle test. Unblocks tools' `test_the_projection_ignores_printed`.
+2. **Clear gives a default** (maryu's worktree `openisd-coal`, bug `BUG_20261009_pr-added-mass-can-be-cleared-to-blank`): ruled by John — PR added mass → 0; port size → 50 mm round (or a slot from the driver); port width → driver Dd; PR count and driver count → 1; Rg → 0.1 Ω. Not ruled, leave alone: PR/vented volumes, bandpass/ABC values, Ql/Qa/Qp/Qicl, end correction, filters. Test: the domain clear tests for each field.
+3. **Loading icon overlay**: an OpenISD icon overlay in `packages/ui/index.html`, shown from first paint until the app mounts (at least ~0.7 s), shown again when the page becomes visible after > 30 s hidden; both skins. Today only Android's own launch screen shows it, on cold start only. Test: one browser spec (overlay present at load, gone after mount, back after a simulated hide/show).
+4. Then `docs/plans/PLAN_20261009_APP_WORK.md`: section A bugs (verify the "probably fixed" ones, mark RESOLVED), then section B parity starting with drivers other than the W5-1138SMF.
 
 ## Bucket I — openisd infra (scripts/, workspace gates)
 
@@ -91,5 +76,4 @@ In order; each batch = one brief, before/after diff over every cached input, rev
 
 ## Cross-bucket links
 
-- A3 (bridge `printed`) needs T's step 1, which is done.
-- T11 needs T10. A1–A5 and I do not depend on T.
+- T11 needs T10. Buckets A and I do not depend on T.

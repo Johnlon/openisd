@@ -19,7 +19,7 @@ export function envFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>, 
 }
 
 /** A project's own environment window, built fresh on every access — same reasoning as
- *  `driver`/`box`/`ProjectMeta` (PLAN_openisdproject_split.md). */
+ *  `driver`/`box`/`ProjectMeta`. */
 export class ProjectEnvironment {
     readonly #lens: SimpleField<OpenISDEnvironmentJson>;
     readonly #engine: EnvironmentEngine;

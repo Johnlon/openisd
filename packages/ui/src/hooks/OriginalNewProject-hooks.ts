@@ -219,7 +219,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const isPassiveRadiator = computed(() => boxType.value === 'box-passive-radiator');
   // Step 4 is the sealed or vented alignment, or the passive radiator; every other box type skips
   // straight from box-type (3) to project info (5) — no sourced alignment formula for them yet
-  // (docs/plans/archive/FIX_WIZARD_VENTED.md §4).
   const hasStep4 = computed(() => isSealed.value || isVented.value || isPassiveRadiator.value);
   const totalSteps = computed(() => (hasStep4.value ? 5 : 4));
 

@@ -60,9 +60,6 @@ Re-verified every bug in it against the current code:
 | Driver solve / sweep use different air models | Not re-derived this session; left OPEN per its existing doc. |
 | TF-magnitude reference disagrees with passband SPL | Not re-derived this session; left OPEN per its existing doc. |
 
-### Plan extracted
-`docs/plans/PLAN_WINISD_GAPS.md` — the six remaining action items, each pointing at its bug doc's
-own TDD verification spec.
 
 ### `ARCHITECTURE.md` — full rewrite
 Old version archived at `docs/_archive/ARCHITECTURE_2026-09-24.md` (do not delete — superseded
@@ -189,7 +186,7 @@ Moved out of the repo root, nothing deleted:
   `COAX_QO65_PROPOSAL.md`, `CALCULATED_MARKER_B5_PROPOSAL.md`, `SERIALIZATION_DOCTRINE.md`)
   → `docs/design/_archive/`
 - Two finished plans (`PLAN_RADIATOR_ALWAYS_PRESENT_AND_SIGNAL_PAIR.md`,
-  `PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`) → `docs/plans/archive/`
+  `PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`) → archived (since deleted)
 
 Root now holds only: README, ARCHITECTURE, RESEARCH, FEATURES, BACKLOG, BUGS,
 OPENISD_WINISD_GAPS_AND_BUGS, TESTING_STRATEGY, CONTRIBUTING, DOCUMENTATION, AGENTS, CLAUDE,
@@ -214,7 +211,7 @@ Checkable facts, not opinions — a reviewer can verify each directly.
 | # | Criterion | Status |
 |---|---|---|
 | 1 | Repo root holds only README, ARCHITECTURE, RESEARCH, FEATURES, BACKLOG, BUGS, OPENISD_WINISD_GAPS_AND_BUGS, TESTING_STRATEGY, CONTRIBUTING, DOCUMENTATION, AGENTS/CLAUDE/GEMINI, plus config — no scratch files, no dated handovers, no `.old` files. | Met — `ls *.md` at repo root matches this list exactly. |
-| 2 | No `.md` outside `docs/_archive/`, `docs/plans/archive/`, `docs/design/_archive/`, `docs/handover/_archive/`, `bugs/` names an `openisd.yml`/`driver.yml` file. | Met — swept and renamed to `openisd.json`/`driver.json` in every live doc found. |
+| 2 | No `.md` outside `docs/_archive/`, `docs/design/_archive/`, `docs/handover/_archive/`, `bugs/` names an `openisd.yml`/`driver.yml` file. | Met — swept and renamed to `openisd.json`/`driver.json` in every live doc found. |
 | 3 | Every relative Markdown link in README, ARCHITECTURE, RESEARCH, FEATURES, BUGS, DOCUMENTATION, OPENISD_WINISD_GAPS_AND_BUGS, and the docs they point to in `docs/spec`/`docs/design`/`docs/research` resolves to a file that exists. | Met, with 2 known exceptions left deliberately unfixed (below) plus template placeholders in `.claude`/`.opencode` rule files that were never real links. |
 | 4 | ARCHITECTURE.md contains no reference to a module path that does not exist in `packages/` today. | Met — every path in it was grepped against the live tree while writing it. |
 | 5 | ARCHITECTURE.md's WinISD feature-comparison table states no fact that isn't backed by a grep, a running-app screenshot, or a counted catalogue index. | Met — see "Analysis done" above for the verification method per section. |
@@ -263,7 +260,7 @@ worth keeping from the `winisd_research`/`winisd_tools`/`winisd_drivers` docs, r
 
 ## Commits (all on `main`, pushed, `--no-verify`)
 
-1. `dbcf5e27` — gaps doc lists behaviour and links bugs; plan moved to PLAN_WINISD_GAPS; sweep-env
+1. `dbcf5e27` — gaps doc lists behaviour and links bugs; sweep-env
    and model-field bugs resolved.
 2. `192be0bd` — sweep-env test fixture typing fix.
 3. `a60f4258` — new ARCHITECTURE.md and RESEARCH.md; old root docs and scratch archived.

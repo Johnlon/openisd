@@ -11,14 +11,11 @@ Order (lots' recommendation): A, then B starting with drivers other than the W5-
 | BUG_20261009_land-commit-subject-says-work-in-progress | fixed by T021; mark RESOLVED |
 | BUG_20261009_post-land-unit-red-skips-browser-specs | fixed by T020; mark RESOLVED |
 | BUG_20261009_wsl-mirrored-route-churn-aborts-browser-specs | fixed by NAT networking; mark RESOLVED after one green browser run |
-| BUG_20261008_non-numeric-reading-is-dropped-or-refused | T017 in flight |
-| BUG_20261007_bp6-abc-box-volumes-show-zero | probably fixed by bp6 steps 1–12; verify |
-| BUG_20261007_bp6-abc-front-tuning-edits-the-vented-box | probably fixed; verify |
+| BUG_20261008_non-numeric-reading-is-dropped-or-refused | T017 landed; verify and mark RESOLVED |
 | BUG_20261007_advanced-link-opens-every-chamber-losses | probably fixed; verify |
 | BUG_20261005_no-common-ui-field-component | the remaining number-field conversions |
 | BUG_20261007_browser-processes-die-mid-suite | likely the network churn; verify |
 | BUG_20261007_driver-browser-ok-spec-click-times-out-under-load | likely the network churn; verify |
-| BUG_20261007_ci-fails-on-fixtures-from-winisd-drivers | the pinned driver snapshot (T022) |
 | BUG_20261007_installed-hooks-are-untracked-copies-and-drift | later |
 | BUG_20261007_shared-main-moved-under-a-running-commit-hook | probably moot under land.sh; verify |
 
@@ -47,8 +44,3 @@ Order (lots' recommendation): A, then B starting with drivers other than the W5-
 - Construction: 3D preview; cut list; STL export.
 - Help: onboarding; help content; tutorial project.
 - Engineering: `.wdr` round-trip gate in the build; ESLint plugin for the architecture rules; the speakerbox-lite scenario; Chrome DevTools MCP spike; curve-level parity.
-
-## D. In flight
-
-- T017 (non-numeric readings kept), T018 (picker: majority = more than half): bob.
-- T022 (pinned driver snapshot): maryu.

@@ -4,7 +4,7 @@ WinISD's New Project wizard offers 5 vented alignments. OpenISD's `ventedAlignme
 ([boxDesign.ts](http://localhost:8000/winisd/openisd/packages/design/engine/boxDesign.ts#L149))
 implements all 5 with WinISD's own formulas (wired 2026-09-22, John's "option 1"); the engine
 test [vented-alignment.test.ts](http://localhost:8000/winisd/openisd/packages/design/test/engine/vented-alignment.test.ts)
-holds every capture below to 1e-12. Plan: [`archive/FIX_WIZARD_VENTED.md`](../plans/archive/FIX_WIZARD_VENTED.md?html); remainder: [`FIX_WIZARD_VENTED-remains.md`](../plans/FIX_WIZARD_VENTED-remains.md?html).
+holds every capture below to 1e-12.
 
 **Confidence markers** (as [`WINISD_PARITY.md`](WINISD_PARITY.md?html)):
 ✅ sourced from WinISD itself · 🟡 third-party derivation, named/citable · ❌ not found.
@@ -139,4 +139,4 @@ matches those. WinISD does not clamp at Qts 0.15–1.0; it writes whatever the p
    all reproduce the polynomials to 2.3e-14. WinISD does not clamp. The engine does not
    clamp either, so it matches WinISD there (C4 at Qts 1.0: 1684 L).
    Whether OpenISD should refuse or warn instead of matching is a product call, not a parity
-   one: [`FIX_WIZARD_VENTED-remains.md`](../plans/FIX_WIZARD_VENTED-remains.md?html) #2.
+   one.

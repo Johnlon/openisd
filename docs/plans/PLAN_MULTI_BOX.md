@@ -1,18 +1,10 @@
 # Plan — a project holds a collection of boxes, not one switchable box
 
-Ruling: John, 2026-09-29, live on his phone — raised as an alternative to
-`bugs/archive/BUG_20260929_box-type-switch-leaves-volume-zero.md`'s "default the fields on switch"
-approach. **Not started. Parked behind finishing the smaller fix (John's own call, same
-conversation).** Recorded here so the idea and its open questions aren't lost.
-
-## The problem this solves
-
-Switching a project's box type in place (Box tab, `selectedBox`) left the new type's own
-volume/tuning/geometry at 0 — nothing had ever written a value for a type the project had not
-used before. `BUG_20260929_box-type-switch-leaves-volume-zero.md` fixes that by auto-defaulting
-on switch (sealed/vented/PR so far). John's alternative: don't let a box switch type in place at
-all — adding a different box type becomes a new trip through the New Project wizard, which
-already asks every question the type needs and never leaves a field blank.
+Ruling: John, 2026-09-29, live on his phone. **Not started.** Switching a box type in place
+auto-fills fields the user did not ask for; John's alternative: do not let a box switch type in
+place at all. Adding a different box type becomes a new trip through the New Project wizard, which
+already asks every question the type needs and never leaves a field blank. Recorded here so the
+idea and its open questions aren't lost.
 
 ## The core idea
 

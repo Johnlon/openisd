@@ -1,6 +1,5 @@
 /**
- * The mobile Box and Enclosure tabs for a 6th-order bandpass and ABC (plan
- * PLAN_20261007_bp6_abc_complete.md steps 7 and 8): the front chamber's tuning on the Box tab, and
+ * The mobile Box and Enclosure tabs for a 6th-order bandpass and ABC: the front chamber's tuning on the Box tab, and
  * one vent panel per port on the Enclosure tab, each editing its own vent.
  */
 import {expect, focusedBandpass6Tunings, focusedPortVents, openAMobileProject, test} from '../fixtures.js';
