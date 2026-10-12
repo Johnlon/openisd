@@ -16,10 +16,14 @@ spec: |
   - App fetches /v/index.json at start (no store, no schema). About shows Versions: current highlighted, date shown as "1 Jan 2026, 01:02", each row links to /v/<stamp>/ and its GitHub release. Fetch failure shows current only.
   - Old build shows "latest is <date>" when index lists a newer one.
   Storage
-  - Key openisd_storage_version = build stamp of the app that last wrote the store. Every store write stamps it.
-  - Newer app than stamp: copy every openisd_* key to openisd_snapshot_<oldstamp> before migrating, then migrate and stamp. Snapshot write failure stops the upgrade with an export-first message (repair rule, reset only after export).
-  - Keep the last 10 snapshots, oldest dropped.
-  - Older app than stamp: does not load the live store. Offers restore of its own snapshot into the live store, or read-only on the snapshot. Never silent loss.
+  - Two numbers. Build stamp names a release. STORAGE_LAYOUT, one integer in packages/persistence, bumped by hand in the commit that changes how any stored key is read; it alone decides whether a build can read the store.
+  - Key openisd_storage_layout = STORAGE_LAYOUT of the app that last wrote the store, written with every store write. Key openisd_storage_build = build stamp of that app, informational.
+  - Same layout: load, no snapshot, no prompt. Swapping between builds of one layout is silent.
+  - Store layout older than the app: copy every openisd_* key to openisd_snapshot_<buildstamp of the app that wrote the store> before migrating, then migrate and stamp. Snapshot write failure stops the upgrade with an export-first message (repair rule, reset only after export). Snapshot measures first and drops oldest snapshots until it fits.
+  - Keep the last 10 snapshots, oldest dropped, but never the newest snapshot of each layout.
+  - Store layout newer than the app: does not load the live store. Offers restore of a snapshot with its layout into the live store, or read-only on it. Never silent loss.
+  - version-info.mjs takes the stamp from the tag when GITHUB_REF is a v tag, else now, minute resolution.
+  - Check for a service worker; if one exists each v/ copy registers its own scope or none.
   Options menu
   - New page Storage history: one row per snapshot (build date, project count, size) with Export to file, Restore (confirm, snapshots live store first), Delete, plus Snapshot now.
 done_test: |
