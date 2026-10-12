@@ -1,4 +1,5 @@
 id: T012
+release_note: "The New Project wizard sets up 6th-order bandpass and ABC boxes with rear and front chambers and tunings."
 repo: openisd
 owner: lots
 status: done

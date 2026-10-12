@@ -1,4 +1,5 @@
 id: T040
+release_note: "The new-project wizard no longer offers Edit or Clone driver in its first step."
 repo: openisd
 owner: lots
 status: done

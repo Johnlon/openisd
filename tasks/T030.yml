@@ -1,4 +1,5 @@
 id: T030
+release_note: "The OpenISD icon shows while the app starts and when you return to it after a long time away."
 repo: openisd
 owner: bob
 status: done

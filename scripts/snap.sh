@@ -43,23 +43,20 @@ TAG="snap-$STAMP"
 if [ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]; then refuse "$TAG already exists on the remote"; fi
 
 SHA="$(git rev-parse HEAD)"
-SUBJECT="$(git log -1 --format=%s "$SHA")"
 git fetch --quiet --tags origin
 LAST_RELEASE="$(gh release list --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName // empty')"
 
 NOTES="$(mktemp "${TMPDIR:-/tmp}/snap-notes.XXXXXX")"
 trap 'rm -f "$NOTES"' EXIT
-{
-  echo "$SUBJECT"
-  echo
-  if [ -n "$LAST_RELEASE" ] && git rev-parse -q --verify "refs/tags/$LAST_RELEASE^{commit}" > /dev/null; then
-    echo "Changes since $LAST_RELEASE:"
-    git log --format='- %h %s' -n 200 "refs/tags/$LAST_RELEASE..$SHA"
-  else
-    echo "Recent changes:"
-    git log --format='- %h %s' -n 30 "$SHA"
-  fi
-} > "$NOTES"
+# The notes cover what changed since the last release, else since the newest snapshot, else the
+# last 30 commits. scripts/hosting/releaseNotes.mjs writes plain sentences: no hashes, no ids.
+if [ -n "$LAST_RELEASE" ] && git rev-parse -q --verify "refs/tags/$LAST_RELEASE^{commit}" > /dev/null; then
+  FROM="refs/tags/$LAST_RELEASE"
+else
+  PREV_SNAP="$(git tag -l 'snap-*' --sort=-refname | head -1)"
+  FROM="${PREV_SNAP:+refs/tags/$PREV_SNAP}"
+fi
+node scripts/hosting/releaseNotes.mjs notes "${FROM:-}" "$SHA" > "$NOTES"
 
 GITHUB_REF="refs/tags/$TAG" OPENISD_RELATIVE_BASE=1 bash -c "$BUILD_CMD"
 [ -f "$DIST/index.html" ] || refuse "the build left no $DIST/index.html"
@@ -71,6 +68,6 @@ if command -v zip > /dev/null; then (cd "$DIST" && zip -qr "$ZIP" .); else (cd "
 git tag "$TAG" "$SHA"
 git push --quiet origin "refs/tags/$TAG"
 gh release create "$TAG" "$ZIP" --prerelease --verify-tag --title "Snapshot $STAMP" --notes-file "$NOTES"
-echo "snap: published $TAG ($SUBJECT)"
+echo "snap: published $TAG"
 bash scripts/snap-prune.sh
 built true

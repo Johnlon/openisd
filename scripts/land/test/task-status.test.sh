@@ -26,6 +26,18 @@ for f in tasks/T*.yml; do
     fi
   fi
 done
+# Every task file (T*.yml and F*-fix.yml) carries release_note: the word internal, or one plain
+# sentence for users. A sentence never holds a task id, a hash or a branch name: the release notes
+# print it as written.
+for f in tasks/*.yml; do
+  note=$(sed -n 's/^release_note:[[:space:]]*//p' "$f" | head -1 | sed 's/^"\(.*\)"$/\1/')
+  if [ -z "$note" ]; then echo "FAIL $f: no release_note (a user sentence, or internal)"; bad=1; continue; fi
+  [ "$note" = internal ] && continue
+  case "$note" in *.) ;; *) echo "FAIL $f: release_note is not a sentence ending in a full stop"; bad=1 ;; esac
+  if printf '%s' "$note" | grep -qE '(^|[^A-Za-z0-9])([TFQ][0-9]{1,3}|[0-9a-f]{7,40})([^A-Za-z0-9]|$)'; then
+    echo "FAIL $f: release_note holds a task id or a hash"; bad=1
+  fi
+done
 [ "$n" -gt 0 ] || { echo "FAIL no tasks/T*.yml"; exit 1; }
 [ "$bad" -eq 0 ] && echo "ok   $n task files say the truth about $BASE"
 exit "$bad"

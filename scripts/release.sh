@@ -2,6 +2,8 @@
 # Promotes a tested snapshot build to a release. Builds nothing, downloads nothing: same bytes.
 #   bash scripts/release.sh <stamp>            e.g. 20260101T0102Z
 #   bash scripts/release.sh --latest <stamp>   mark an existing release Latest (rollback)
+#   bash scripts/release.sh --notes-file F <stamp>   promote with notes from F; without it the
+#                                                    snapshot's own notes are kept
 # Promote refuses unless snap-<stamp> exists and no F is open (tasks/fixes/*.yml, status: open).
 # It then adds tag v<stamp> on the same commit (the snap- tag stays), turns the pre-release into a
 # release marked Latest, and fast-forwards the read-only branch `release` to that commit.
@@ -14,7 +16,14 @@ STAMP_RE='^[0-9]{8}T[0-9]{4}Z$'
 refuse() { echo "release: $*" >&2; exit 1; }
 
 LATEST_ONLY=0
-if [ "${1:-}" = "--latest" ]; then LATEST_ONLY=1; shift; fi
+NOTES_FILE=''
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --latest) LATEST_ONLY=1; shift ;;
+    --notes-file) NOTES_FILE="${2:-}"; [ -f "$NOTES_FILE" ] || refuse "no notes file '$NOTES_FILE'"; shift 2 ;;
+    *) break ;;
+  esac
+done
 STAMP="${1:-}"
 [[ "$STAMP" =~ $STAMP_RE ]] || { echo "usage: release.sh [--latest] <stamp>   (stamp like 20260101T0102Z)" >&2; exit 2; }
 SNAP="snap-$STAMP"
@@ -39,7 +48,9 @@ SHA="$(git rev-parse "refs/tags/$SNAP^{commit}")"
 
 git tag "$REL" "$SHA"
 git push --quiet origin "refs/tags/$REL"
-gh release edit "$SNAP" --tag "$REL" --title "Release $STAMP" --prerelease=false --latest
+NOTES_ARGS=()
+[ -z "$NOTES_FILE" ] || NOTES_ARGS=(--notes-file "$NOTES_FILE")
+gh release edit "$SNAP" --tag "$REL" --title "Release $STAMP" --prerelease=false --latest ${NOTES_ARGS[@]+"${NOTES_ARGS[@]}"}
 
 # The read-only `release` branch only ever moves forward. Promoting an older snapshot than the
 # one it already holds leaves it where it is.
@@ -52,7 +63,8 @@ fi
 
 # RELEASES.md: one row per release, newest first. Left in the working tree for the caller to commit.
 DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"
-SUBJECT="$(git log -1 --format=%s "$SHA")"
+if [ -n "$NOTES_FILE" ]; then NOTE_TEXT="$(cat "$NOTES_FILE")"; else NOTE_TEXT="$(gh release view "$REL" --json body --jq .body)"; fi
+SUBJECT="$(printf '%s\n' "$NOTE_TEXT" | node scripts/hosting/releaseNotes.mjs headline | tr '|' '/')"
 ROW="| $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
 if [ ! -f RELEASES.md ]; then
   printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|\n' > RELEASES.md

@@ -1,4 +1,5 @@
 id: T013
+release_note: "6th-order bandpass and ABC designs save and reload exactly, and every chart draws for them."
 repo: openisd
 owner: lots
 status: done

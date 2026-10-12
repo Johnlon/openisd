@@ -1,4 +1,5 @@
 id: T053
+release_note: "The app sends anonymous usage and crash reports; nothing is stored and it never delays start-up."
 repo: openisd
 owner: fable
 status: claimed

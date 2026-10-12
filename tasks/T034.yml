@@ -1,4 +1,5 @@
 id: T034
+release_note: "Questions the app asks use its own dialog on both skins instead of the browser's."
 repo: openisd
 owner: bob
 status: done

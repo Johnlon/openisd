@@ -36,7 +36,7 @@ case "$sub" in
   "release view")
     tag="$1"; shift; jqx=''
     while [ $# -gt 0 ]; do case "$1" in --jq) jqx="$2"; shift ;; esac; shift; done
-    jq -e --arg t "$tag" '.[] | select(.tag_name == $t) | {isPrerelease: .prerelease}' "$R" > "$GH_STATE/view.json" || exit 1
+    jq -e --arg t "$tag" '.[] | select(.tag_name == $t) | {isPrerelease: .prerelease, body: .body}' "$R" > "$GH_STATE/view.json" || exit 1
     jq -r "$jqx" "$GH_STATE/view.json" ;;
   "release create")
     tag="$1"; shift; title=''; notes=''; pre=false; zip=''
@@ -51,7 +51,8 @@ case "$sub" in
     while [ $# -gt 0 ]; do case "$1" in
       --tag) newtag="$2"; shift ;; --title) edit="$edit | (if .tag_name == \"$tag\" then .name = \"$2\" else . end)"; shift ;;
       --prerelease=false) edit="$edit | (if .tag_name == \"$tag\" then .prerelease = false else . end)" ;;
-      --latest) edit="$edit | (.latest = (.tag_name == \"$tag\"))" ;; esac; shift; done
+      --latest) edit="$edit | (.latest = (.tag_name == \"$tag\"))" ;;
+      --notes-file) edit="$edit | (if .tag_name == \"$tag\" then .body = $(jq -Rs . < "$2") else . end)"; shift ;; esac; shift; done
     save "map($edit)"
     if [ "$newtag" != "$tag" ]; then
       save "map(if .tag_name == \"$tag\" then .tag_name = \"$newtag\" | .html_url = \"https://example.test/r/$newtag\" else . end)"
@@ -68,7 +69,10 @@ case "$sub" in
   "api repos/{owner}/{repo}/releases")
     jq -c '.[]' "$R" ;;
   "api repos/{owner}/{repo}/releases/latest")
-    t="$(jq -r '[.[] | select(.latest)] | first | .tag_name // empty' "$R")"; [ -n "$t" ] || exit 1; echo "$t" ;;
+    t="$(jq -r '[.[] | select(.latest)] | first | .tag_name // empty' "$R")"
+    # gh prints the 404 body and exits non-zero when no release is Latest
+    [ -n "$t" ] || { echo '{"message":"Not Found","status":"404"}'; exit 1; }
+    echo "$t" ;;
   *) echo "gh shim: unsupported: $sub $*" >&2; exit 99 ;;
 esac
 SHIM
@@ -81,10 +85,13 @@ git init -q --bare "$GH_REMOTE"
 W="$S/work"; git init -q "$W"; cd "$W" || exit 1
 mkdir -p scripts tasks/fixes
 cp "$REPO/scripts/snap.sh" "$REPO/scripts/snap-prune.sh" "$REPO/scripts/release.sh" "$REPO/scripts/version-info.mjs" scripts/
+mkdir -p scripts/hosting; cp "$REPO/scripts/hosting/releaseNotes.mjs" scripts/hosting/
 printf 'id: F1\nstatus: closed\n' > tasks/fixes/F1.yml
 git remote add origin "$GH_REMOTE"
 git add -A; git commit -q -m "first change"; git push -q origin main
-echo more > more.txt; git add more.txt; git commit -q -m "second change"; git push -q origin main
+printf 'id: T001\nrelease_note: "Users can do the second thing."\n' > tasks/T001.yml
+printf 'id: T002\nrelease_note: "Fixed T012 in abc1234def."\n' > tasks/T002.yml
+echo more > more.txt; git add more.txt tasks/T001.yml tasks/T002.yml; git commit -q -m "(auto) T001: second change"; git push -q origin main
 HEAD_SHA="$(git rev-parse HEAD)"
 
 # the fake build: a dist with an index.html, and a record of what the build was told
@@ -102,8 +109,10 @@ remote_has snap-20260101T0102Z && ok "tag snap-<stamp> pushed (minute stamp, sec
 rel="$(release_json snap-20260101T0102Z)"
 [ "$(jq -r .prerelease <<< "$rel")" = true ] && ok "published as a pre-release" || fail "not a pre-release: $rel"
 [ "$(jq -r .name <<< "$rel")" = "Snapshot 20260101T0102Z" ] && ok "titled Snapshot <stamp>" || fail "title: $rel"
-[ "$(jq -r .body <<< "$rel" | head -1)" = "second change" ] && ok "notes lead with the head commit subject" || fail "notes: $(jq -r .body <<< "$rel")"
-jq -r .body <<< "$rel" | grep -q 'second change' && jq -r .body <<< "$rel" | grep -q 'first change' && ok "notes list commits (no release yet)" || fail "notes list"
+body="$(jq -r .body <<< "$rel")"
+grep -q '^- Users can do the second thing\.$' <<< "$body" && ok "notes carry the task's release_note sentence" || fail "notes: $body"
+grep -q '^and 1 internal change\.$' <<< "$body" && ok "notes count internal changes" || fail "internal count: $body"
+! grep -qE '[0-9a-f]{7,}|T0[0-9]{2}|first change|second change|[Mm]erge' <<< "$body" && ok "notes hold no hash, task id, subject or merge line (a note that names an id is dropped)" || fail "leak in notes: $body"
 zip="$GH_STATE/assets/snap-20260101T0102Z/openisd-20260101T0102Z.zip"
 [ -f "$zip" ] && unzip -l "$zip" | grep -q ' index.html$' && ok "zip openisd-<stamp>.zip holds the dist" || fail "zip missing or without index.html"
 unzip -p "$zip" build-env.txt 2> /dev/null | grep -q '^refs/tags/snap-20260101T0102Z 1$' && ok "built with the tag's ref and the relative base switch" || fail "build env: $(unzip -p "$zip" build-env.txt 2>&1)"
@@ -158,7 +167,7 @@ rel="$(release_json v20260101T0102Z)"
 [ "$(jq -r .prerelease <<< "$rel")" = false ] && [ "$(jq -r .latest <<< "$rel")" = true ] && ok "release is no longer a pre-release, and is Latest" || fail "release state: $rel"
 [ -z "$(release_json snap-20260101T0102Z)" ] && ok "the snapshot release became the release" || fail "snapshot release remains"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$HEAD_SHA" ] && ok "branch release at the promoted commit" || fail "release branch"
-grep -q '^| 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | second change |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
+grep -q '^| 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
 ! grep -qE 'release (download|create)|npm|vite' "$GH_STATE/calls.log" && ok "downloads nothing, builds nothing, creates nothing" || fail "unexpected calls: $(cat "$GH_STATE/calls.log")"
 out=$(bash scripts/release.sh 20260101T0102Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'already exists' <<< "$out" && ok "promoting twice is refused" || fail "twice: $r $out"
@@ -168,7 +177,11 @@ echo third > third.txt; git add third.txt; git commit -q -m "third change"; git 
 NEW_SHA="$(git rev-parse HEAD)"
 export OPENISD_NOW=2026-01-02T00:00:00Z FAKE_GH_NOW=2026-01-02T00:00:00Z
 bash scripts/snap.sh > /dev/null 2>&1
-bash scripts/release.sh 20260102T0000Z > /dev/null 2>&1
+printf -- '## New\n\n- Hand-written note.\n' > "$S/notes.md"
+bash scripts/release.sh --notes-file "$S/notes.md" 20260102T0000Z > /dev/null 2>&1
+[ "$(release_json v20260102T0000Z | jq -r .body)" = "$(cat "$S/notes.md")" ] && ok "--notes-file replaces the notes" || fail "--notes-file body"
+grep -q 'Hand-written note\.' RELEASES.md && ok "RELEASES.md row uses the given notes" || fail "RELEASES.md notes cell"
+out=$(bash scripts/release.sh --notes-file "$S/missing.md" 20260101T0310Z 2>&1); [ $? = 1 ] && ok "--notes-file with no such file is refused" || fail "missing notes file"
 [ "$(grep -n '^| 2026' RELEASES.md | head -1 | grep -c 20260102T0000Z)" = 1 ] && ok "RELEASES.md is newest first" || fail "RELEASES.md order"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$NEW_SHA" ] && ok "branch release fast-forwarded" || fail "release branch not advanced"
 [ "$(release_json v20260102T0000Z | jq -r .latest)" = true ] && [ "$(release_json v20260101T0102Z | jq -r .latest)" = false ] && ok "newest release is Latest" || fail "latest flags"
@@ -205,7 +218,7 @@ check "dates.js bundle written" test -s "$OUT/dates.js"
 grep -q 'Snapshot builds may upgrade your saved data' "$OUT/snap/index.html" && ok "snap/ page warns about saved data" || fail "snap/ warning"
 jq 'map(.latest = false)' "$GH_STATE/releases.json" > "$GH_STATE/n" && mv "$GH_STATE/n" "$GH_STATE/releases.json"
 out=$(bash "$REPO/scripts/hosting/assemble-site.sh" "$S/site2" 2>&1); r=$?
-[ $r = 1 ] && grep -q 'no release is marked Latest' <<< "$out" && ok "no Latest release: refuses to build an empty root" || fail "no latest: $r $out"
+[ $r = 1 ] && grep -q 'no release is marked Latest' <<< "$out" && ! grep -q 'Not Found' <<< "$out" && ok "no Latest release: refuses to build an empty root" || fail "no latest: $r $out"
 
 echo
 if [ "$fails" = 0 ]; then echo "release.test.sh: all passed"; else echo "release.test.sh: $fails FAILED"; exit 1; fi

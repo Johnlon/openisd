@@ -1,4 +1,5 @@
 id: T056
+release_note: "Every snapshot build and release is hosted at openisd.app, and About lists them."
 repo: openisd
 owner: fable
 status: claimed
@@ -33,6 +34,8 @@ files:
   - DOCUMENTATION.md
   - scripts/version-info.mjs
   - scripts/release.sh
+  - scripts/hosting/releaseNotes.mjs
+  - tasks/*.yml
   - scripts/land/test/release.test.sh
   - .github/workflows/build.yml
   - .github/workflows/release.yml

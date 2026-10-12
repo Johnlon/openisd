@@ -1,4 +1,5 @@
 id: T036
+release_note: "The PR panel layout, User Options spacing and shell layout are fixed, and Qicl sits with the box settings."
 repo: openisd
 owner: claude
 status: done
