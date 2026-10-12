@@ -25,6 +25,7 @@ const STEPS: readonly LayoutStep[] = [1, 2].map((from): LayoutStep => ({
   from,
   migrate: (data: StoreData): StoreData => Object.fromEntries(
     Object.entries(data).map(([k, v]) => [k, k === OPENISD_PROJECTS_KEY ? `${v}+${from + 1}` : v])),
+  migrateFile: file => file,
 }));
 
 const deps = (layout: number) => ({

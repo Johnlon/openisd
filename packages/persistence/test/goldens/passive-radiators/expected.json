@@ -1,0 +1,36 @@
+{
+  "projects": [],
+  "drivers": [],
+  "radiators": [
+    {
+      "uuid": "00000000-0000-4000-8000-000000000201",
+      "radiator": "Golden PR-1"
+    },
+    {
+      "uuid": "00000000-0000-4000-8000-000000000202",
+      "radiator": "Golden PR-2"
+    }
+  ],
+  "openSession": null,
+  "settings": {
+    "vented": {
+      "minVb_m3": 0.001,
+      "maxVb_m3": 1,
+      "minFb_hz": 10,
+      "maxFb_hz": 150
+    },
+    "env": {
+      "tempK": 293.15,
+      "humidityPct": 30,
+      "pressurePa": 101325
+    },
+    "differenceCues": true
+  },
+  "favourites": {
+    "drivers": [],
+    "radiators": [
+      "00000000-0000-4000-8000-000000000201"
+    ]
+  },
+  "view": null
+}

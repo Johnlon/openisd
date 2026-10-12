@@ -27,7 +27,7 @@ import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProjec
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
-import {backupRepoOn, projectRepoOn} from '../fixtures/repoOn.js';
+import {backupRepoOn, projectRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
 
 let appState: AppState;
 let presentationState: PresentationState;
@@ -71,7 +71,7 @@ function ioOver(storage = createMemoryStorage()): { io: DesignIO; repo: ProjectR
     fileStorage: createFileStorage(),
     fileOpen: createFileOpen(),
     projectRepo: repo,
-    files: new DesignFiles(appState.engine, repo),
+    files: new DesignFiles(appState.engine, repo, exportedFilesOn()),
     backup: backupRepoOn(createMemoryStorage()),
     confirmPort: fakeConfirmPort,
     appState, presentation: presentationState,

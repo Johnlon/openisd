@@ -12,6 +12,7 @@ import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESS
 import type {StorageBackup} from './storageBackup.js';
 import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
 import {createStoredDataFault} from './storedDataFault.js';
+import type {ExportedFiles} from './exportedFile.js';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
 
@@ -147,7 +148,6 @@ export interface StoredProjectEntry {
 }
 
 export interface StoredProjectsPayload {
-  version: 1;
   entries: StoredProjectEntry[];
 }
 
@@ -177,7 +177,7 @@ export function storedProjectsPayload(value: unknown): StoredProjectsPayload | n
     if (!('modified' in entry) || typeof entry.modified !== 'string') return null;
     entries.push({ id: entry.id, text: entry.text, modified: entry.modified });
   }
-  return { version: 1, entries };
+  return { entries };
 }
 
 function openSessionPayload(value: unknown): OpenSessionPayload | null {
@@ -232,6 +232,7 @@ export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
   storage: KeyValueStorage, storeAddress: string,
   backup: StorageBackup,
+  exportedFiles: ExportedFiles,
   onRepaired: (report: ProjectRepairReport) => void = () => undefined,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
@@ -337,7 +338,7 @@ function deduplicateProjectEntries(entries: readonly StoredProjectEntry[]): { en
   }
 
   function writeStoredEntries(entries: StoredProjectEntry[]): void {
-    const payload: StoredProjectsPayload = { version: 1, entries };
+    const payload: StoredProjectsPayload = { entries };
     const text = JSON.stringify(payload);
     storage.set(PROJECTS_STORAGE_KEY, text);
     if (storage.get(PROJECTS_STORAGE_KEY) !== text) {
@@ -471,16 +472,20 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
-      return readRepairing(text, null);
+      const opened = exportedFiles.open(text);
+      if (opened.kind === 'newer') {
+        return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads})`];
+      }
+      return readRepairing(opened.text, null);
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.save(project.toOwprText(),
+      return fileStorage.save(exportedFiles.stamp(project.toOwprText()),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
 
     saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
-      return fileStorage.saveAs(project.toOwprText(),
+      return fileStorage.saveAs(exportedFiles.stamp(project.toOwprText()),
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
 

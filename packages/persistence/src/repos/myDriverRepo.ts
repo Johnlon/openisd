@@ -55,7 +55,6 @@ export interface MyDriverRepo {
 export function createMyDriverRepo(storage: KeyValueStorage, engine: Engine, backup: StorageBackup): MyDriverRepo {
   const library: SavedEntries<OpenISDDriver> = createSavedEntries(storage, {
     key: MY_DRIVERS_KEY,
-    schemaVersion: 1,
     open: (record) => OpenISDDriver.fromConformingRecord(record, engine),
     snapshot: (driver) => driver.cloneDriver(),
   }, backup);

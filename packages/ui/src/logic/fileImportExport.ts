@@ -13,7 +13,7 @@
 import {OpenISDDriver, OpenISDProject, WinIsdDriverConverter, WinIsdProjectConverter} from '@openisd/design';
 import {DriverFileFormat, ProjectFileFormat} from '../fileFormat.js';
 import type {DriverError, Engine} from '@openisd/design/engine';
-import type {ProjectRepo} from '@openisd/persistence';
+import type {ExportedFiles, ProjectRepo} from '@openisd/persistence';
 
 export interface Bytes {
   value: Uint8Array<ArrayBuffer> | null;
@@ -29,21 +29,25 @@ export function driverToWdrBytes(driver: OpenISDDriver): Bytes {
   return { value: value === null ? null : utf8(value), errors };
 }
 
-/** The current driver as `.owdr` bytes (openisd driver YAML). Always succeeds — a driver
- *  always has a complete record. */
-export function driverToOwdrBytes(driver: OpenISDDriver): Uint8Array<ArrayBuffer> {
-  return utf8(driver.toOwdrText());
-}
-
 /** Reads every driver/project file format into a domain object, with the one engine the
  *  composition root built and the project repo that brings a stored project up to schema. */
 export class DesignFiles {
   readonly #drivers: WinIsdDriverConverter;
   readonly #projects: WinIsdProjectConverter;
 
-  constructor(private readonly engine: Engine, private readonly projectRepo: ProjectRepo) {
+  constructor(
+    private readonly engine: Engine,
+    private readonly projectRepo: ProjectRepo,
+    private readonly exportedFiles: ExportedFiles,
+  ) {
     this.#drivers = new WinIsdDriverConverter(engine);
     this.#projects = new WinIsdProjectConverter(engine);
+  }
+
+  /** The current driver as `.owdr` bytes, stamped with the storage layout. Always succeeds — a
+   *  driver always has a complete record. */
+  driverToOwdrBytes(driver: OpenISDDriver): Uint8Array<ArrayBuffer> {
+    return utf8(this.exportedFiles.stamp(driver.toOwdrText()));
   }
 
   /** The whole project as WinISD `.wpr` bytes. `value` is null when the project cannot be
@@ -57,7 +61,12 @@ export class DesignFiles {
    *  goes through the WinISD converter; an `.owdr` IS the app's own record. */
   driverFromText(text: string, format: DriverFileFormat): { value: OpenISDDriver | null; errors: DriverError[] } {
     if (format === DriverFileFormat.Wdr) return this.#drivers.winIsdDriverToOpenIsdDriver(text);
-    const result = OpenISDDriver.fromOwdrText(text, this.engine);
+    const opened = this.exportedFiles.open(text);
+    if (opened.kind === 'newer') {
+      const message = `this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads})`;
+      return { value: null, errors: [{ level: 'error', field: 'driver', message }] };
+    }
+    const result = OpenISDDriver.fromOwdrText(opened.text, this.engine);
     if (Array.isArray(result)) {
       return { value: null, errors: result.map(message => ({ level: 'error', field: 'driver', message })) };
     }

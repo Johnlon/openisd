@@ -26,7 +26,7 @@ import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppLogic} from '../../src/logic/app.js';
 import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
 import {createAppVersionPort} from '../../src/logic/appVersion.js';
-import {appSettingsRepoOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
+import {appSettingsRepoOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
@@ -61,7 +61,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const driverFileStorage = createFileStorage();
   const selection = createDriverSelection({ appState, presentation });
   const projectRepo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
-  const designFiles = new DesignFiles(engine, projectRepo);
+  const designFiles = new DesignFiles(engine, projectRepo, exportedFilesOn());
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({

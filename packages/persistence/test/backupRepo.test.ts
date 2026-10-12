@@ -70,7 +70,8 @@ describe('createBackupRepo', () => {
 
     assert.deepEqual(result, {kind: 'ok', keysRestored: 2});
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), '{"projects":["a"]}');
-    assert.equal(storage.get(OPENISD_MY_DRIVERS_KEY), '{"schema":1,"entries":["d1"]}');
+    // the backup holds no layout key, so it is layout 1: restoring it migrates it
+    assert.equal(storage.get(OPENISD_MY_DRIVERS_KEY), '{"entries":["d1"]}');
   });
 
   const onlyProjects = JSON.stringify({

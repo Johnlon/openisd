@@ -72,7 +72,7 @@ const BACKUP_FILE = JSON.stringify({
   data: {[OPENISD_PROJECTS_KEY]: '{"version":1,"entries":[]}'},
 });
 
-const STEP_1_TO_2: LayoutStep = {from: 1, migrate: data => Object.fromEntries(Object.entries(data).map(([k, v]) => [k, `${v}`]))};
+const STEP_1_TO_2: LayoutStep = {from: 1, migrate: data => Object.fromEntries(Object.entries(data).map(([k, v]) => [k, `${v}`])), migrateFile: file => file};
 
 const PATHS: readonly DestructivePath[] = [
   // --- restore
@@ -145,7 +145,7 @@ const PATHS: readonly DestructivePath[] = [
     destroys: [OPENISD_MY_DRIVERS_KEY],
     act: s => {
       createSavedEntries<string>(s, {
-        key: OPENISD_MY_DRIVERS_KEY, schemaVersion: 2,
+        key: OPENISD_MY_DRIVERS_KEY,
         open: record => typeof record === 'string' ? record : ['not text'],
         snapshot: value => value,
       }, backupOn(s)).read();
@@ -181,7 +181,7 @@ const PATHS: readonly DestructivePath[] = [
     destroys: [OPENISD_MY_DRIVERS_KEY, OPENISD_PROJECTS_KEY],
     act: s => {
       createStoreOpening(s, {build: createBuildStamp('v20260301T040506Z'), now: () => FIXED_NOW_MS, memoryStorage: createMemoryStorage, rules: {layout: 2, steps: [{
-        from: STEP_1_TO_2.from, migrate: data => ({...data, [OPENISD_PROJECTS_KEY]: 'migrated'}),
+        from: STEP_1_TO_2.from, migrate: data => ({...data, [OPENISD_PROJECTS_KEY]: 'migrated'}), migrateFile: file => file,
       }]}});
     },
   },

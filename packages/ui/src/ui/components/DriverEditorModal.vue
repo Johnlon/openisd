@@ -7,7 +7,7 @@ import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
 import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
-import {driverToOwdrBytes, driverToWdrBytes} from '../../logic/fileImportExport.js';
+import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
 import {commitMyDriver} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
@@ -554,7 +554,7 @@ async function writeDriver(format: DriverFileFormat) {
   // that knows the format — and a driver too incomplete to project says so rather than writing
   // a file WinISD would refuse.
   const { value: body, errors } = format === DriverFileFormat.Owdr
-    ? { value: driverToOwdrBytes(draftDriver.value), errors: [] }
+    ? { value: designFiles.driverToOwdrBytes(draftDriver.value), errors: [] }
     : driverToWdrBytes(draftDriver.value);
   if (!body) { logging.flash(`Cannot export .${format.value}: ${errors[0]?.message ?? 'the driver is incomplete'}`); return; }
   // Then the SYSTEM save dialog — the user picks folder and name, as a desktop app would.

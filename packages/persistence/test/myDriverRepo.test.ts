@@ -28,7 +28,7 @@ function memoryStorage(): ListableStorage & { raw(key: string): string | null } 
 }
 
 describe('myDriverRepo', () => {
-  it('writes { schema, entries: [{ uuid, record }] }', () => {
+  it('writes { entries: [{ uuid, record }] }, with no version of its own', () => {
     const storage = memoryStorage();
     const repo = myDriverRepoOn(storage, engine);
 
@@ -36,7 +36,7 @@ describe('myDriverRepo', () => {
 
     const written: unknown = JSON.parse(storage.raw(MY_DRIVERS_KEY) ?? 'null');
     if (!isRecord(written)) throw new Error('the bucket must hold an object');
-    assert.equal(typeof written.schema, 'number', 'the envelope states its schema version');
+    assert.equal('schema' in written, false, 'the store layout covers the bucket; it states no version');
     if (!Array.isArray(written.entries)) throw new Error('the envelope holds `entries`, the shared field name');
     const entries: unknown[] = written.entries;
 

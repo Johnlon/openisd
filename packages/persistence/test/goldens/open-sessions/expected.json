@@ -1,0 +1,41 @@
+{
+  "projects": [
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "name": "Alpha",
+      "modified": "2026-01-01T01:02:03.000Z",
+      "summary": "Golden G-1 · sealed"
+    }
+  ],
+  "drivers": [],
+  "radiators": [],
+  "openSession": {
+    "names": [
+      "Alpha",
+      "Bravo"
+    ],
+    "focused": "Bravo",
+    "traceHidden": [
+      "Alpha"
+    ]
+  },
+  "settings": {
+    "vented": {
+      "minVb_m3": 0.001,
+      "maxVb_m3": 1,
+      "minFb_hz": 10,
+      "maxFb_hz": 150
+    },
+    "env": {
+      "tempK": 293.15,
+      "humidityPct": 30,
+      "pressurePa": 101325
+    },
+    "differenceCues": true
+  },
+  "favourites": {
+    "drivers": [],
+    "radiators": []
+  },
+  "view": null
+}

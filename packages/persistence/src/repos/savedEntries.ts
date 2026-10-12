@@ -1,6 +1,10 @@
 /** The envelope both saved libraries share — My Drivers and My Passive Radiators.
  *
- *      { schema: number, entries: [{ uuid: string, record: <the thing's own record> }] }
+ *      { entries: [{ uuid: string, record: <the thing's own record> }] }
+ *
+ *  The bucket carries no version of its own: the store's layout covers it (T055). A bucket from
+ *  layout 1 (`schema` beside `entries`, or a bare array) is brought to this shape by the layout
+ *  step, and an old one met here is adopted in place.
  *
  *  The two libraries differ in ONE thing: what `record` holds, and therefore which domain seam
  *  validates it. Everything else — the uuid the repo mints, the broken-entry bucket, the
@@ -26,7 +30,7 @@ import type {Guarded, StorageBackup} from './storageBackup.js';
 export interface SavedEntry { uuid: string; record: unknown }
 
 /** The bucket as written. `entries` is the shared field name — both libraries, one shape. */
-export interface SavedEnvelope { schema: number; entries: SavedEntry[] }
+export interface SavedEnvelope { entries: SavedEntry[]; /** false for a layout-1 bucket (a bare array, or `schema` beside `entries`). */ current: boolean }
 
 /** A stored entry the current shape cannot read — preserved untouched, surfaced by name. */
 export interface BrokenEntry {
@@ -56,11 +60,10 @@ export type SavedRead<T> =
    *  decides; `raw` is the one copy of their data, offered verbatim by Export. */
   | { kind: 'unreadable'; raw: string };
 
-/** What one library supplies: its storage key, the schema version it writes, and the two
+/** What one library supplies: its storage key and the two
  *  directions between a stored record and the domain object it stands for. */
 export interface SavedEntriesSpec<T> {
   key: string;
-  schemaVersion: number;
   /** The domain's own seam — `OpenISDDriver.fromConformingRecord` and friends. Answers with
    *  the object, or the reasons the record is not one. */
   open(record: unknown): T | string[];
@@ -124,17 +127,16 @@ function isSavedEntry(blob: unknown): blob is SavedEntry {
 
 /** The envelope `raw` holds, or null when it is not one. Accepts the two shapes that reach a
  *  bucket: the envelope itself, and a bare array (the pre-envelope shape), which is RECOGNISED
- *  as version 1 rather than repaired. */
+ *  as an old shape rather than repaired. */
 function envelopeOf(raw: string): SavedEnvelope | null {
   let parsed: unknown;
   try { parsed = JSON.parse(raw); } catch { return null; }
 
-  if (Array.isArray(parsed)) return { schema: 1, entries: entriesOf(parsed) };
+  if (Array.isArray(parsed)) return { entries: entriesOf(parsed), current: false };
   if (!parsed || typeof parsed !== 'object') return null;
   if (!('entries' in parsed) || !Array.isArray(parsed.entries)) return null;
 
-  const schema = 'schema' in parsed && typeof parsed.schema === 'number' ? parsed.schema : 1;
-  return { schema, entries: entriesOf(parsed.entries) };
+  return { entries: entriesOf(parsed.entries), current: !('schema' in parsed) };
 }
 
 /** Every element that is a stored slot, in order. A blob that is not one is dropped HERE and
@@ -149,9 +151,9 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     try { return { ok: true, raw: storage.get(spec.key) }; } catch { return { ok: false }; }
   }
 
-  function write(envelope: SavedEnvelope): boolean {
+  function write(entries: SavedEntry[]): boolean {
     try {
-      storage.set(spec.key, JSON.stringify(envelope));
+      storage.set(spec.key, JSON.stringify({ entries }));
       return true;
     } catch { return false; }
   }
@@ -190,7 +192,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
 
     // A bucket written in the pre-envelope shape is adopted in place, same identities, so the
     // next read no longer has to recognise it. An ordinary read never rewrites the user's bytes.
-    if (envelope.schema !== spec.schemaVersion) backup.guard(() => writeBack(slots, brokenRaw));
+    if (!envelope.current) backup.guard(() => writeBack(slots, brokenRaw));
 
     return { state: { kind: 'ok', entries, broken }, slots, brokenRaw };
   }
@@ -206,7 +208,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
   }
 
   function writeBack(slots: SavedEntry[], brokenRaw: unknown[]): boolean {
-    return write({ schema: spec.schemaVersion, entries: [...slots, ...brokenRaw].filter(isSavedEntry) });
+    return write([...slots, ...brokenRaw].filter(isSavedEntry));
   }
 
   /** The outcome of a guarded write that reports whether it wrote. */
@@ -267,7 +269,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
 
     deleteAll() {
       const wiped = backup.guard(() => {
-        try { storage.set(spec.key, JSON.stringify({ schema: spec.schemaVersion, entries: [] })); }
+        try { storage.set(spec.key, JSON.stringify({ entries: [] })); }
         catch { /* unavailable storage: nothing to wipe */ }
       });
       return wiped.kind === 'ran' ? 'done' : 'noRoom';

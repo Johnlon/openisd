@@ -3,14 +3,17 @@
  *  time, never in a jump, so every step is checked against its own golden dump. */
 export type StoreData = Readonly<Record<string, string>>;
 
+/** An exported file's top-level object (`.owpr`, `.owdr`), without its `layout` stamp. */
+export type FileJson = Readonly<Record<string, unknown>>;
+
 export interface LayoutStep {
   /** The layout this step reads; it writes `from + 1`. */
   readonly from: number;
+  /** The store's data as `from` wrote it, as `from + 1` reads it. */
   migrate(data: StoreData): StoreData;
+  /** An exported file as `from` wrote it, as `from + 1` reads it. */
+  migrateFile(file: FileJson): FileJson;
 }
-
-/** Steps in layout order. Layout 1 is the first: there is nothing to migrate yet. */
-export const LAYOUT_STEPS: readonly LayoutStep[] = [];
 
 /** The layout a build writes, and the steps that bring an older store up to it. The composition
  *  root builds the app's from `STORAGE_LAYOUT` and `LAYOUT_STEPS`; a test passes its own to prove
@@ -27,6 +30,9 @@ export interface LayoutMigrator {
   /** `data` migrated from layout `from` up to the current layout, one step at a time; null when
    *  a step is missing. `onStep` hears each layout reached, with its data, before the next step runs. */
   migrate(data: StoreData, from: number, onStep?: (layout: number, data: StoreData) => void): StoreData | null;
+  /** An exported file migrated from layout `from` up to the current layout, one step at a time;
+   *  null when a step is missing. */
+  migrateFile(file: FileJson, from: number): FileJson | null;
 }
 
 export function createLayoutMigrator(rules: LayoutRules): LayoutMigrator {
@@ -43,6 +49,15 @@ export function createLayoutMigrator(rules: LayoutRules): LayoutMigrator {
         if (step === null) return null;
         current = step.migrate(current);
         onStep(layout + 1, current);
+      }
+      return current;
+    },
+    migrateFile(file, from) {
+      let current = file;
+      for (let layout = from; layout < rules.layout; layout++) {
+        const step = stepFrom(layout);
+        if (step === null) return null;
+        current = step.migrateFile(current);
       }
       return current;
     },

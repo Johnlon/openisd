@@ -1,6 +1,6 @@
 /**
  * myPassiveRadiatorRepo — the My Passive Radiators saved library. It stores the same envelope
- * as My Drivers, `{ schema, entries: [{ uuid, record }] }`, where each `record` is a passive
+ * as My Drivers, `{ entries: [{ uuid, record }] }`, where each `record` is a passive
  * radiator record validated by the domain's own seam (`fromConformingRecord`).
  *
  * bugs/archive/BUG_20260909_the_my_passive_radiators_library_stores_five_loose_numbers_instead_of_a_radiator_record.md
@@ -31,7 +31,7 @@ describe('myPassiveRadiatorRepo', () => {
 
     const written: unknown = JSON.parse(storage.raw(MY_PASSIVE_RADIATORS_KEY) ?? 'null');
     if (!isRecord(written)) throw new Error('the bucket must hold an object');
-    assert.equal(typeof written.schema, 'number', 'the envelope states its schema version');
+    assert.equal('schema' in written, false, 'the store layout covers the bucket; it states no version');
     if (!Array.isArray(written.entries)) throw new Error('the envelope holds `entries`, same field name as My Drivers');
     const entries: unknown[] = written.entries;
 

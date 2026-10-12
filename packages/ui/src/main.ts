@@ -16,6 +16,7 @@ import {
     createFileStorage,
     createBuildStamp,
     createFileSave,
+    createExportedFiles,
     createLocalStorage,
     createMemoryStorage,
     LAYOUT_STEPS,
@@ -136,8 +137,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
 
   // --- application layer: the app's state and what it does next ---
   const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
-  const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, report => faultLog.recordRepair(report));
-  const designFiles = new DesignFiles(engine, projectRepo);
+  const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report));
+  const designFiles = new DesignFiles(engine, projectRepo, exportedFiles);
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
@@ -289,6 +290,7 @@ const loadingOverlay = overlayElement && import.meta.env.MODE !== 'test'
 // THE LOAD RULES come before anything is built or read: the browser store is opened (or refused)
 // by `openStore`. An older layout is backed up and migrated; a newer one is not opened at all.
 const layoutRules = { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS };
+const exportedFiles = createExportedFiles(layoutRules);
 const baked: unknown = import.meta.env.VITE_BUILD_VERSION;
 const opening = createStoreOpening(createLocalStorage(), {
   build: createBuildStamp(typeof baked === 'string' ? baked : ''),

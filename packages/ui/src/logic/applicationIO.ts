@@ -3,7 +3,6 @@ import type { Engine } from '@openisd/design/engine';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
 import {
   type DesignFiles,
-  driverToOwdrBytes,
   driverToWdrBytes,
 } from './fileImportExport.js';
 import type {ConfirmPort} from './confirmPort.js';
@@ -247,7 +246,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   function exportOwdr(): void {
     endWhatIfBeforeIO();
     const fileName = sanitizeFilename(driverName.value) + '.owdr';
-    download(fileName, driverToOwdrBytes(requireFocusedProject().driver), DriverFileFormat.Owdr.mime);
+    download(fileName, deps.files.driverToOwdrBytes(requireFocusedProject().driver), DriverFileFormat.Owdr.mime);
     flash(`Driver exported as ${fileName}`);
   }
 

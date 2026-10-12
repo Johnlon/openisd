@@ -1,0 +1,25 @@
+{
+  "projects": [],
+  "drivers": [],
+  "radiators": [],
+  "openSession": null,
+  "settings": {
+    "vented": {
+      "minVb_m3": 0.001,
+      "maxVb_m3": 1,
+      "minFb_hz": 10,
+      "maxFb_hz": 150
+    },
+    "env": {
+      "tempK": 293.15,
+      "humidityPct": 30,
+      "pressurePa": 101325
+    },
+    "differenceCues": true
+  },
+  "favourites": {
+    "drivers": [],
+    "radiators": []
+  },
+  "view": null
+}

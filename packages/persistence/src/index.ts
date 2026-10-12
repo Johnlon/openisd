@@ -41,7 +41,9 @@ export {
 
 export { STORAGE_LAYOUT } from './storageLayout.js';
 export { BuildStamp, createBuildStamp } from './repos/buildStamp.js';
-export { type LayoutRules, type LayoutStep, LAYOUT_STEPS } from './repos/layoutMigration.js';
+export { type LayoutRules, type LayoutStep, type FileJson } from './repos/layoutMigration.js';
+export { LAYOUT_STEPS } from './repos/layoutSteps.js';
+export { createExportedFiles, type ExportedFiles, type OpenedFile } from './repos/exportedFile.js';
 export {
   type BackupInfo, type BackupResult, type Guarded, type StorageBackup, MAX_BACKUPS, NO_ROOM_TO_BACK_UP, createStorageBackup,
 } from './repos/storageBackup.js';

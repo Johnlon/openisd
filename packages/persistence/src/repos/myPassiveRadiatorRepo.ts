@@ -43,7 +43,6 @@ export interface MyPassiveRadiatorRepo {
 export function createMyPassiveRadiatorRepo(storage: KeyValueStorage, backup: StorageBackup): MyPassiveRadiatorRepo {
   const library: SavedEntries<OpenISDPassiveRadiatorStandalone> = createSavedEntries(storage, {
     key: MY_PASSIVE_RADIATORS_KEY,
-    schemaVersion: 1,
     open: (record) => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record),
     snapshot: (pr) => pr.clonePassiveRadiator(),
   }, backup);

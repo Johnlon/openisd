@@ -16,7 +16,7 @@ import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js'
 import {DesignFiles, driverToWdrBytes} from '../../src/logic/fileImportExport.js';
 import {ProjectFileFormat} from '../../src/fileFormat.js';
 import type {ConfirmPort} from '../../src/logic/confirmPort.js';
-import {myDriverRepoOn, projectRepoOn} from '../fixtures/repoOn.js';
+import {myDriverRepoOn, projectRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
 
 /** John, 2026-10-05: a driver file loaded into My Drivers says so, naming the driver; one that
  *  cannot be loaded says why, naming the file. */
@@ -34,7 +34,7 @@ describe('My Drivers Load File flashes what it did', () => {
     const { appState, presentation } = createAppStateFixture();
     const engine = appState.engine;
     const storage = createMemoryStorage();
-    const files = new DesignFiles(engine, projectRepoOn(engine, createFileStorage(), storage, 'http://localhost'));
+    const files = new DesignFiles(engine, projectRepoOn(engine, createFileStorage(), storage, 'http://localhost'), exportedFilesOn());
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const browsing = createDriverBrowsingState({
       driverRepo: createBundledDriverRepo({

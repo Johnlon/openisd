@@ -11,7 +11,9 @@ import {createStorageBackup, type StorageBackup} from '../../src/repos/storageBa
 import {createViewStateRepo} from '../../src/repos/viewStateRepo.js';
 import type {ProjectRepairReport} from '../../src/repos/projectRepo.js';
 import type {StoredDataFault} from '../../src/repos/storedDataFault.js';
-import {LAYOUT_STEPS, type LayoutRules} from '../../src/repos/layoutMigration.js';
+import type {LayoutRules} from '../../src/repos/layoutMigration.js';
+import {createExportedFiles} from '../../src/repos/exportedFile.js';
+import {LAYOUT_STEPS} from '../../src/repos/layoutSteps.js';
 import {STORAGE_LAYOUT} from '../../src/storageLayout.js';
 
 /** The layout rules of the running app. */
@@ -20,6 +22,8 @@ export const APP_RULES: LayoutRules = {layout: STORAGE_LAYOUT, steps: LAYOUT_STE
 /** 1 Jan 2026 01:02 UTC. */
 export const FIXED_NOW_MS = Date.UTC(2026, 0, 1, 1, 2, 3);
 
+export const exportedFilesOn = () => createExportedFiles(APP_RULES);
+
 export function backupOn(storage: ListableStorage): StorageBackup {
   return createStorageBackup(storage, () => FIXED_NOW_MS);
 }
@@ -27,7 +31,7 @@ export function backupOn(storage: ListableStorage): StorageBackup {
 export const projectRepoOn = (
   engine: Engine, files: FileStorage, storage: ListableStorage, address: string,
   onRepaired?: (report: ProjectRepairReport) => void,
-) => createProjectRepo(engine, files, storage, address, backupOn(storage), onRepaired);
+) => createProjectRepo(engine, files, storage, address, backupOn(storage), exportedFilesOn(), onRepaired);
 
 export const myDriverRepoOn = (storage: ListableStorage, engine: Engine) =>
   createMyDriverRepo(storage, engine, backupOn(storage));

@@ -1,0 +1,40 @@
+{
+  "projects": [],
+  "drivers": [
+    {
+      "uuid": "00000000-0000-4000-8000-000000000101",
+      "driver": "Golden G-1"
+    },
+    {
+      "uuid": "00000000-0000-4000-8000-000000000102",
+      "driver": "Golden G-2"
+    },
+    {
+      "uuid": "00000000-0000-4000-8000-000000000103",
+      "driver": "Silver S-3"
+    }
+  ],
+  "radiators": [],
+  "openSession": null,
+  "settings": {
+    "vented": {
+      "minVb_m3": 0.001,
+      "maxVb_m3": 1,
+      "minFb_hz": 10,
+      "maxFb_hz": 150
+    },
+    "env": {
+      "tempK": 293.15,
+      "humidityPct": 30,
+      "pressurePa": 101325
+    },
+    "differenceCues": true
+  },
+  "favourites": {
+    "drivers": [
+      "00000000-0000-4000-8000-000000000102"
+    ],
+    "radiators": []
+  },
+  "view": null
+}
