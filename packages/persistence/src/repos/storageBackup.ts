@@ -1,5 +1,5 @@
 /** REPO: the ONE whole-store backup. Copies every data key of the store to
- *  `openisd_backup_<build stamp of the app that wrote the store>_<time taken, to the second>`, and runs every destructive
+ *  `openisd_backup_<build stamp of the app that wrote the store>_<time taken, to the second>` (plus `_01`.. when that key is already held), and runs every destructive
  *  write behind that copy.
  *
  *  John's ruling (12 Oct 2026, T058): a backup MUST ALWAYS take place. Any write that removes or
@@ -106,10 +106,21 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     }
   }
 
+  /** `base`, or `base_01` .. `base_99` when a backup is already held under it (same build, same second). */
+  function freeKey(base: string): string | null {
+    if (storage.get(base) === null) return base;
+    for (let n = 1; n <= 99; n++) {
+      const key = `${base}_${String(n).padStart(2, '0')}`;
+      if (storage.get(key) === null) return key;
+    }
+    return null;
+  }
+
   function take(): BackupResult {
     const snapshot = snapshots.take();
     if (snapshot === null) return {kind: 'nothingToBackUp'};
-    const key = `${OPENISD_BACKUP_PREFIX}${snapshot.build.text}_${snapshot.exportedAt}`;
+    const key = freeKey(`${OPENISD_BACKUP_PREFIX}${snapshot.build.text}_${snapshot.exportedAt}`);
+    if (key === null) return {kind: 'noRoom'};
     if (!place(key, envelopeText(snapshot, false))) return {kind: 'noRoom'};
     trim(key);
     return {kind: 'taken', key};

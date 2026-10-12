@@ -27,6 +27,7 @@ spec: |
   - Options menu page: one row per backup (build date, layout, project count, size) with Export to file, Restore (confirm; backups the live store first), Delete, plus Back up now. Logic in persistence/design, UI display only, mobile skin gets the same page as a full-screen dialog.
   Order on the branch: commit 1 = layout key, backup function, every destructive path backed up, storage log (T058). Review. Commit 2 = goldens, fixed point, schemaVersion drop, layout 2, Storage history page. Review. One land.
   Lands with T058 on branch t055-releases.
+release_note: Your saved projects, drivers and settings are now backed up before any change, and a backup list in Options lets you export, restore or delete them.
 done_test: bash scripts/test.sh packages/ui/test/logic/storageHistory.test.ts && bash scripts/test.sh packages/persistence/test/storageUpgrade.test.ts && bash scripts/test.sh packages/persistence/test/storageBackup.test.ts
 files:
   - tasks/T055.yml

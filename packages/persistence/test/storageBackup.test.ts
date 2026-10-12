@@ -66,6 +66,17 @@ describe('take', () => {
     assert.equal(first.snapshot.data[OPENISD_PROJECTS_KEY], 'first', 'the earlier backup was not overwritten');
   });
 
+  it('two backups from one build in the same second get a two-digit counter, and neither is lost', () => {
+    const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'first', [OPENISD_STORAGE_LAYOUT_KEY]: '1', [OPENISD_STORAGE_BUILD_KEY]: 'v20251231T2359Z'});
+    const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
+    assert.deepEqual(backup.take(), {kind: 'taken', key: takenKey('v20251231T2359Z')});
+    storage.set(OPENISD_PROJECTS_KEY, 'second');
+    assert.deepEqual(backup.take(), {kind: 'taken', key: `${takenKey('v20251231T2359Z')}_01`});
+    const first = readEnvelope(storage.get(takenKey('v20251231T2359Z')) ?? '');
+    assert.ok(first.kind === 'ok');
+    assert.equal(first.snapshot.data[OPENISD_PROJECTS_KEY], 'first');
+  });
+
   it('a store with no data has nothing to back up, and writes nothing', () => {
     const storage = createMemoryStorage({[OPENISD_STORAGE_LOG_KEY]: 'only a log'});
     assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take(), {kind: 'nothingToBackUp'});
