@@ -1,6 +1,6 @@
 id: F11
 owner: Johnlon
-status: open
+status: closed
 sha: 4ec048af9df815cc3f5949a8f50c65bbd5b19044
 goal: main is red at 4ec048af9d; make the full suite pass again
 commits: |

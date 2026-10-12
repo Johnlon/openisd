@@ -1,10 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
-import {BeaconTelemetry, NoTelemetry} from '../../src/telemetry/telemetry.js';
-import {errorEventOf, type TelemetryEvent} from '../../src/telemetry/events.js';
-import {crashHash} from '../../src/telemetry/crashHash.js';
-import {LaunchReporter, platformOf, referrerHost, type LaunchEnvironment} from '../../src/telemetry/launch.js';
-import {chooseEndpoint, TELEMETRY_ENDPOINT} from '../../src/telemetry/endpoint.js';
-import {CrashReports} from '../../src/telemetry/crashReports.js';
+import {BeaconTelemetry, NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
+import {errorEventOf, type TelemetryEvent} from '../../src/logic/telemetry/events.js';
+import {crashHash} from '../../src/logic/telemetry/crashHash.js';
+import {LaunchReporter, platformOf, referrerHost, type LaunchEnvironment} from '../../src/logic/telemetry/launch.js';
+import {chooseEndpoint, TELEMETRY_ENDPOINT} from '../../src/logic/telemetry/endpoint.js';
+import {CrashReports} from '../../src/logic/telemetry/crashReports.js';
 
 const ENV: LaunchEnvironment = {
   standalone: true, platformHint: undefined, userAgent: 'Mozilla/5.0 (Linux; Android 14)',

@@ -1,6 +1,6 @@
 import {type App, inject, type InjectionKey} from 'vue';
-import type {CrashReports} from './crashReports.js';
-import type {LaunchReporter} from './launch.js';
+import type {CrashReports} from '../logic/telemetry/crashReports.js';
+import type {LaunchReporter} from '../logic/telemetry/launch.js';
 
 /** What the presentation layer is given of telemetry. */
 export interface TelemetryUi {

@@ -151,7 +151,8 @@ for attempt in 1 2 3; do
   if [ -n "$green" ] && git merge-base --is-ancestor "$green" "$SHA" 2>/dev/null; then range="$green..$SHA"; else range="-n 20 $SHA"; fi
   # The failing spec names, in full: an F that keeps only the log tail lost them (F7-F9 cost a
   # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
-  failing="$(grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' "$OUT" | sed 's/^/  /' | head -n 200)"
+  # vitest echoes a test's console output as "stderr | <file> > <name>": not a failure (F11 listed six).
+  failing="$(grep -Ev '^[[:space:]]*(stderr|stdout) \|' "$OUT" | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
   # One F per fault, not one per pushed commit: a red while an F is open is appended to that F.
   open="$(grep -l '^status: open' "$FIX"/tasks/fixes/F*.yml 2>/dev/null | head -n 1)"
   if [ -n "$open" ]; then

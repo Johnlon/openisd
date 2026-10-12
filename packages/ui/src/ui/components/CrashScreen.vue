@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import {useTelemetryUi} from '../../telemetry/context.js';
-import {useCrashScreen} from '../../telemetry/CrashScreen-hooks.js';
+import {useTelemetryUi} from '../../hooks/telemetryContext.js';
+import {useCrashScreen} from '../../hooks/CrashScreen-hooks.js';
 
 const {visible, note, contact, send, dismiss} = useCrashScreen(useTelemetryUi().crashReports);
 </script>

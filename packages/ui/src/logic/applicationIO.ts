@@ -45,8 +45,8 @@ import {
   type ProjectRepo,
   type RestoreResult
 } from '@openisd/persistence';
-import {NoTelemetry, type Telemetry} from '../telemetry/telemetry.js';
-import type {SaveFormat} from '../telemetry/events.js';
+import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
+import type {SaveFormat} from './telemetry/events.js';
 import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';

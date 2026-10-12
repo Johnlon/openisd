@@ -13,8 +13,8 @@
  * project registry, and bridge notifications into Vue's reactivity system.
  */
 
-import {NoTelemetry, type Telemetry} from '../telemetry/telemetry.js';
-import type {ProjectSource} from '../telemetry/events.js';
+import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
+import type {ProjectSource} from './telemetry/events.js';
 import {computed, reactive, ref, type ComputedRef, type Ref, shallowRef, type ShallowRef, triggerRef, watch, type WritableComputedRef} from 'vue';
 import type {
     BoxType, ChartId, DriverError, DriverPrerequisite, MaxCurvesResult, MaxCurvesSolveResult, SweepIssue, SweepResult,

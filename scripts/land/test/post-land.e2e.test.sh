@@ -38,7 +38,7 @@ setup() {
     cat > suite.sh <<'EOF'
 #!/usr/bin/env bash
 pwd > "$SUITE_LOG/cwd.$$"; echo start >> "$SUITE_LOG/seq"; trap 'echo end >> "$SUITE_LOG/seq"' EXIT
-[ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }
+[ -f FAIL ] && { echo "stderr | test/noisy.test.ts > a passing test that logs"; echo "spec broken.spec.ts failed"; exit 1; }
 if [ -f ONCE ] && [ ! -f "$SUITE_LOG/once.done" ]; then touch "$SUITE_LOG/once.done"; echo "spec flaky.spec.ts failed"; exit 1; fi
 if [ -f SLOW ]; then [ -p "$SUITE_LOG/entered.fifo" ] && echo up > "$SUITE_LOG/entered.fifo"; sleep 3; fi
 date +%s%N >> "$SUITE_LOG/runs"; exit 0
@@ -66,7 +66,7 @@ if [ $r = 0 ] && [ "$(green)" = "$s" ] && [ -n "$cwd" ] && [ "$cwd" != "$SCRATCH
 setup; before=$(release); s=$(commit_push two FAIL); post "$s" a; r=$?
 git -C "$SCRATCH/w/c" pull -q origin main
 f=$(grep -l "sha: $s" "$SCRATCH"/w/c/tasks/fixes/F*.yml 2>/dev/null | head -1)
-if [ $r = 1 ] && [ "$(release)" = "$before" ] && [ -n "$f" ] && grep -q '^status: open' "$f" && grep -q broken.spec.ts "$f"; then
+if [ $r = 1 ] && [ "$(release)" = "$before" ] && [ -n "$f" ] && grep -q '^status: open' "$f" && grep -q broken.spec.ts "$f" && ! sed -n '/^failing:/,/^output:/p' "$f" | grep -q noisy.test.ts; then
     ok "red opens fixes task, release unmoved"; else fail "red (r=$r f=$f)"; fi
 
 # 3. a flake (fails once, passes on retry) is a red: no rerun

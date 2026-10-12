@@ -1,5 +1,5 @@
 import {computed, ref, type ComputedRef, type Ref} from 'vue';
-import type {CrashReports} from './crashReports.js';
+import type {CrashReports} from '../logic/telemetry/crashReports.js';
 
 export interface CrashScreenHook {
   readonly visible: ComputedRef<boolean>;

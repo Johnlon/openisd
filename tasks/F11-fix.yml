@@ -1,0 +1,21 @@
+id: F11-fix
+repo: openisd
+owner: fable
+status: claimed
+label: fixes
+goal: Close F11. The telemetry module sits in the ruled layers (logic/telemetry for the reporters, hooks for the Vue context and crash-screen hook) so the layer-edge gate passes; the F writer no longer lists vitest "stderr |" echo lines as failures.
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture.test.ts packages/ui/test/logic/telemetry.test.ts && bash scripts/land/test/post-land.e2e.test.sh
+files:
+  - tasks/F11-fix.yml
+  - tasks/fixes/F11.yml
+  - packages/ui/src/logic/telemetry/**
+  - packages/ui/src/hooks/telemetryContext.ts
+  - packages/ui/src/hooks/CrashScreen-hooks.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/CrashScreen.vue
+  - packages/ui/test/logic/telemetry.test.ts
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/post-land.e2e.test.sh

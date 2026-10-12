@@ -20,7 +20,7 @@ import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
-import {useTelemetryUi} from '../telemetry/context.js';
+import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import CrashScreen from './components/CrashScreen.vue';
 
 const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, confirmPort, appState, presentation: presentationState } = useApp();
