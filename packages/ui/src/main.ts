@@ -33,6 +33,14 @@ import {createAppState, NoFocusedProjectError} from './logic/appState.js';
 import {createPresentationState} from './logic/presentationState.js';
 import {installTestHooks} from './logic/testHooks.js';
 import {createDevVersionPort, createAppVersionPort, type HotUpdateSource} from './logic/appVersion.js';
+import {BeaconTelemetry, NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
+import {chooseEndpoint} from './telemetry/endpoint.js';
+import {CrashReports} from './telemetry/crashReports.js';
+import {crashHash} from './telemetry/crashHash.js';
+import {LaunchReporter, platformHintOf, type LaunchEnvironment} from './telemetry/launch.js';
+import {installBrowserListeners} from './telemetry/browserListeners.js';
+import {driverPickRecorder} from './telemetry/driverPick.js';
+import {provideTelemetryUi} from './telemetry/context.js';
 import {createEngine} from '@openisd/design/engine';
 import type {LocalTimeParts, ToLocalTime} from '@openisd/design/fields';
 import '@fontsource/inter/400.css';
@@ -79,6 +87,26 @@ const faultLog = createFaultLog((fileName, text) => {
   (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
 faultLog.install();
 
+// TELEMETRY: anonymous usage events, fire-and-forget. Built here and handed to what records them.
+// A dev server and the browser suite get `NoTelemetry` (the suite opts one spec in).
+const buildVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
+const appVersionText = typeof buildVersion === 'string' ? buildVersion : '';
+const telemetryEndpoint = chooseEndpoint({
+  hostname: location.hostname,
+  mode: import.meta.env.MODE,
+  testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
+});
+const telemetry: Telemetry = telemetryEndpoint === null
+  ? new NoTelemetry()
+  : new BeaconTelemetry({
+      endpoint: telemetryEndpoint,
+      version: appVersionText,
+      beacon: (url, body) => navigator.sendBeacon(url, body),
+      online: () => navigator.onLine,
+      now: () => Date.now(),
+      sessionId: crypto.randomUUID(),
+    });
+
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 
@@ -91,7 +119,7 @@ const engine = createEngine({
 });
 // The two live state objects, built once here and handed to everything that needs them.
 const presentation = createPresentationState();
-const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation });
+const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry });
 const logging = createLogging();
 // The bundled catalogue — docs/design/BUNDLED_CATALOGUE_API.md. Two repos over the same
 // mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
@@ -110,7 +138,7 @@ const fileStorage = createFileStorage();
 const driverFileStorage = createFileStorage();
 
 // --- application layer: the app's state and what it does next ---
-const selection = createDriverSelection({ appState, presentation });
+const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
 const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, report => faultLog.recordRepair(report));
 const designFiles = new DesignFiles(engine, projectRepo);
 const driverDrafts = new DriverDrafts(engine, appState.appContext);
@@ -121,7 +149,7 @@ const driverBrowsing = createDriverBrowsingState({
 });
 const viewStateRepo = createViewStateRepo(storage);
 const backup = createBackupRepo(storage);
-const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation });
+const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry });
 
 // sessionStorage wrapper for release watch (survives page reload, not browser restart)
 const releaseSessionStorage: SessionStorageLike = {
@@ -141,7 +169,7 @@ const releaseLogger: Logger = {
 
 // The running build's version is baked in at build time; a dev server has none, which turns the
 // check off. Narrowed, not cast: the env value is untyped.
-const bakedVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
+const bakedVersion: unknown = buildVersion;
 const isDev = import.meta.env.DEV;
 // The browser suite's seam into the app; a no-op in every build but `--mode test` (testHooks.ts).
 installTestHooks({appState, presentationState: presentation}, import.meta.env.MODE);
@@ -179,10 +207,35 @@ const hotUpdateSource: HotUpdateSource = {
 const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
 const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, toLocalTime, hotUpdateSource);
 
+const crashReports = new CrashReports(
+  telemetry,
+  () => appState.focusedProject()?.box.boxType.value ?? '',
+  (message, frames) => crashHash(appVersionText, message, frames),
+);
+const launchEnvironment = (): LaunchEnvironment => ({
+  standalone: matchMedia('(display-mode: standalone)').matches,
+  platformHint: platformHintOf(navigator),
+  userAgent: navigator.userAgent,
+  screenW: screen.width,
+  screenH: screen.height,
+  lang: navigator.language,
+  referrer: document.referrer,
+});
+const defer = (work: () => void): void => {
+  if ('requestIdleCallback' in window) window.requestIdleCallback(work); else setTimeout(work, 0);
+};
+installBrowserListeners({
+  target: window,
+  visibility: () => document.visibilityState,
+  telemetry,
+  onUncaught: thrown => crashReports.capture(thrown),
+});
+
 const app = createApp(App)
   .directive('expo-step', vExpoStep)
   .directive('limits', vLimits);
 
+provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer)});
 provideApp(app, {
   engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
@@ -200,6 +253,7 @@ app.config.errorHandler = (err, instance, info) => {
     ? 'Something needed an open project, but none is open. Please report this.'
     : `Unexpected error: ${err instanceof Error ? err.message : String(err)}`;
   logging.flash(message);
+  crashReports.capture(err);
 };
 
 app.mount('#app');

@@ -117,6 +117,8 @@ export interface DriverSelection {
 export interface DriverSelectionDeps {
   appState: AppState;
   presentation: PresentationState;
+  /** Told which driver the user chose, for usage statistics. Omitted means nobody is told. */
+  driverPicked?: (driver: OpenISDDriver) => void;
 }
 
 export function createDriverSelection(deps: DriverSelectionDeps): DriverSelection {
@@ -156,6 +158,7 @@ export function createDriverSelection(deps: DriverSelectionDeps): DriverSelectio
      */
     async selectDriver(d) {
       embedInProject(d.detach());
+      deps.driverPicked?.(d);
       return { ok: true };
     },
 

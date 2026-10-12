@@ -45,6 +45,8 @@ import {
   type ProjectRepo,
   type RestoreResult
 } from '@openisd/persistence';
+import {NoTelemetry, type Telemetry} from '../telemetry/telemetry.js';
+import type {SaveFormat} from '../telemetry/events.js';
 import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
@@ -90,7 +92,10 @@ export interface DesignIO {
  * Access API does not persist handles across a page load.
  */
 function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
-export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort; appState: AppState; presentation: PresentationState }): DesignIO {
+export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort; appState: AppState; presentation: PresentationState; telemetry?: Telemetry }): DesignIO {
+  const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
+  const recordSave = (format: SaveFormat, project: OpenISDProject | null): void =>
+    telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? ''});
   const { currentViewSnapshot, driverName, focusedProject, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
   const presentationState = deps.presentation;
   // Save/export/share operate on committed project state. An open What-if? is transient, so
@@ -138,6 +143,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     }
     
     download(fileName, buildProjectsArchive(all), 'application/json');
+    recordSave('archive', null);
     flash(`Projects exported as ${fileName}`);
   }
 
@@ -166,6 +172,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
       return false;
     }
     markProjectSaved();
+    recordSave('stored', project);
     return true;
   }
 
@@ -183,6 +190,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
         return savedCount; // stop saving on failure
       }
       savedCount++;
+      recordSave('stored', project);
     }
     flash(savedCount === 0 ? 'Nothing to save' : `Saved projects: ${savedCount}`);
     return savedCount;
@@ -207,6 +215,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
       return;
     }
     markProjectSaved();
+    recordSave('owpr', requireFocusedProject());
     flash(`Project saved as ${fileName}`);
   }
 
@@ -248,6 +257,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     const { value: bytes, errors } = deps.files.projectToWprBytes(requireFocusedProject());
     if (!bytes) { flash(`Could not export ${fileName}: ${errors[0]?.message ?? 'the project is incomplete'}`); return; }
     download(fileName, bytes, ProjectFileFormat.Wpr.mime);
+    recordSave('wpr', requireFocusedProject());
     // What the export changed to keep WinISD working (e.g. a filter order clamped to 10).
     const filterWarnings = errors.filter(e => e.field === 'Filters');
     flash(`Project exported as ${fileName}` + (filterWarnings.length ? `: ${filterWarnings.map(e => e.message).join('; ')}` : ''));

@@ -8,6 +8,8 @@ import {fillAndBlur} from './fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
+const TELEMETRY_COLLECTOR_ORIGIN = 'https://openisd-stats.john-lonergan-0e9.workers.dev';
+
 /**
  * Shared Playwright fixtures for all UI/browser tests.
  *
@@ -114,6 +116,9 @@ export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }
     };
 
     page.on('console', m => {
+      // A spec that blocks the telemetry collector (telemetry.browser.spec.ts) makes the browser
+      // log the refused beacon; that is the point of the spec, not an app fault.
+      if (m.location().url.startsWith(TELEMETRY_COLLECTOR_ORIGIN)) return;
       if (m.type() === 'error') log.consoleErrors.push(m.text());
       else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
     });

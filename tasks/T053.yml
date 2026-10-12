@@ -1,0 +1,19 @@
+id: T053
+repo: openisd
+owner: fable
+status: claimed
+goal: The app reports anonymous usage events (launch, install, project open, project save, driver pick, error, user crash report) to a fixed collector endpoint with sendBeacon, always on, fire-and-forget, never on the boot path, never persisted, dropped when offline.
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts packages/ui/test/ui/telemetry.browser.spec.ts
+files:
+  - tasks/T053.yml
+  - packages/ui/src/telemetry/**
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/driverSelection.ts
+  - packages/ui/src/logic/presentationState.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/**/CrashScreen.vue
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/test/ui/telemetry.browser.spec.ts
+  - packages/ui/test/fixtures.ts

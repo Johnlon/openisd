@@ -13,6 +13,8 @@
  * project registry, and bridge notifications into Vue's reactivity system.
  */
 
+import {NoTelemetry, type Telemetry} from '../telemetry/telemetry.js';
+import type {ProjectSource} from '../telemetry/events.js';
 import {computed, reactive, ref, type ComputedRef, type Ref, shallowRef, type ShallowRef, triggerRef, watch, type WritableComputedRef} from 'vue';
 import type {
     BoxType, ChartId, DriverError, DriverPrerequisite, MaxCurvesResult, MaxCurvesSolveResult, SweepIssue, SweepResult,
@@ -152,6 +154,8 @@ export interface AppStateDeps {
   engine: Engine;
   appSettings: AppSettingsRepo;
   presentation: PresentationState;
+  /** Where usage events go; omitted means none are recorded. */
+  telemetry?: Telemetry;
 }
 
 /** The app's live reactive state: the open-project registry, the focused project's sweep curves
@@ -220,6 +224,9 @@ export interface AppState {
 }
 
 export function createAppState(deps: AppStateDeps): AppState {
+  const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
+  const recordOpen = (source: ProjectSource, p: OpenISDProject): void =>
+    telemetry.record({kind: 'project_open', source, box: p.box.boxType.value});
   // ---- Application settings: what the user set for the APP, not for a project ---------------
   // The band that decides which designed values get a DQ mark is one of these (John 2026-09-22:
   // "we can make the limits application level limit settings in a new settings tab").
@@ -386,6 +393,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     }
     openIdentities.set(project, identity);
     addProject(project);
+    recordOpen(identity.kind, project);
     return project;
   }
 
@@ -397,6 +405,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       setTraceVisible(p, !traceHidden.has(p));
     }
     projects.value = restored.slice();
+    for (const p of restored) recordOpen('stored', p);
     focusedIndex.value = restored.length === 0 ? 0 : Math.min(Math.max(requestedFocus, 0), restored.length - 1);
   }
 
@@ -705,6 +714,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     // A new project opens on one chart, as WinISD does (`OpenISDProject.openCharts`).
     const p = ProjectBuilder.empty(engine, appContext);
     addProject(p);
+    recordOpen('new', p);
     return p;
   }
 
@@ -740,9 +750,14 @@ export function createAppState(deps: AppStateDeps): AppState {
    *  chose; everything unstated gets the type's starting values (`OpenISDBox.applyStartingValues`).
    *  Registered and focused, like `newProject()`. */
   function createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder): OpenISDProject {
+    return buildProject('wizard', driver, box);
+  }
+
+  function buildProject(source: ProjectSource, driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder): OpenISDProject {
     presentation.yRanges = {};
     const p = box(new ProjectBuilder(driver, engine, appContext)).build();
     addProject(p);
+    recordOpen(source, p);
     return p;
   }
 
@@ -750,7 +765,7 @@ export function createAppState(deps: AppStateDeps): AppState {
    *  `driver`, focused, with `name` for the tab. Used by File → Open when no project is focused;
    *  when one IS focused the caller swaps the driver in place instead (`loadDriver`). */
   function openProjectFromDriver(driver: OpenISDDriver, name: string): void {
-    const p = createProject(driver, (b) => b.sealed().volume_m3(NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L)));
+    const p = buildProject('driver', driver, (b) => b.sealed().volume_m3(NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L)));
     p.name.set(name);
   }
 

@@ -20,10 +20,13 @@ import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
+import {useTelemetryUi} from '../telemetry/context.js';
+import CrashScreen from './components/CrashScreen.vue';
 
 const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, confirmPort, appState, presentation: presentationState } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
+const { launch } = useTelemetryUi();
 
 // The automatic half of the skin switch. Read `matchMedia` SYNCHRONOUSLY here — before this
 // component's first render — so a phone loads straight into the mobile shell with no
@@ -95,6 +98,7 @@ onMounted(async () => {
   projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
   stopSessionSync = startSessionSync({ projectRepo, viewStateRepo, appState });
   window.addEventListener('hashchange', handleHashChange);
+  launch.report(activeSkin.value);
 });
 
 onUnmounted(() => {
@@ -132,6 +136,8 @@ onUnmounted(() => {
     <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
     <DriverBrowser />
     <Flash />
+    <!-- Offers to send a report after an uncaught error. -->
+    <CrashScreen />
     <!-- Raises itself on the first uncaught error, rejection or console.error. -->
     <DiagnosticsModal />
     <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
