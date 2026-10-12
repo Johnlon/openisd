@@ -30,6 +30,7 @@ spec: |
   - Also expected.json: the projects, drivers, sessions and settings the current app must yield after loading the case.
   - Bumping STORAGE_LAYOUT fails the gate until every case has a dump for the new layout. Adding the dumps is part of the commit that bumps.
   - storageUpgrade.test.ts, for every case: load the oldest dump into a fresh fake store, migrate one layout at a time asserting each dump, then load with the current app asserting expected.json, assert a snapshot keyed by the writing build stamp was taken, assert a second load is silent.
+  - The gate decides the bump, not memory: the test loads every case's newest dump through the current loaders and writes the store back. Written store differs from the dump with no bump: fail, "layout changed, bump STORAGE_LAYOUT and add dumps". Bumped with no difference in any case: fail, needless bump.
   - A dump is never edited once written. A later layout adds a new dump file, it does not change old ones.
   - First cases are dumped from the current main at layout 1 before T055 lands.
   Options menu
