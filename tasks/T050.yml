@@ -1,7 +1,7 @@
 id: T050
 repo: openisd
 owner: fable
-status: claimed
+status: done
 goal: land.sh self-check is green, the post-land coalesce test passes, the slow-run queue and Vite watchdog are deleted, and the last open task files say done or superseded
 done_test: bash scripts/land.sh --self-check && bash scripts/land/test/post-land-coalesce.test.sh && bash scripts/land/test/old-machinery-gone.test.sh && bash scripts/land/test/task-status.test.sh
 files:
@@ -31,3 +31,4 @@ files:
   - packages/design/compat/README.md
   - .claude/rules/test-diagnosis.md
   - .opencode/rules/verify.md
+landed: aa128f84 (done_test green on main, 12 Oct 2026)
