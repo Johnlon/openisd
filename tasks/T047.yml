@@ -1,0 +1,17 @@
+id: T047
+repo: openisd
+owner: fable
+status: claimed
+goal: A 5-minute systemd user timer runs scripts/land/watchdog.sh, which kills hung runs, frees dead grants, re-alerts unread results and unowned open Fs, prunes merged worktrees, and types alerts into the owner's tmux window.
+done_test: bash scripts/land/test/watchdog.test.sh && bash scripts/land/test/agents-into-tmux.test.sh
+files:
+  - tasks/T047.yml
+  - docs/SDLC.md
+  - scripts/land/watchdog.sh
+  - scripts/land/watchdog.service
+  - scripts/land/watchdog.timer
+  - scripts/land/watchdog-install.sh
+  - scripts/land/record-refusal.sh
+  - scripts/land/agents-into-tmux.sh
+  - scripts/land/test/watchdog.test.sh
+  - scripts/land/test/agents-into-tmux.test.sh

@@ -82,23 +82,24 @@ named) or **to build**.
 - Where: `scripts/land/post-land/run.sh`, `scripts/admit.sh`, `scripts/land/test/post-land-coalesce.test.sh`.
 - Proof: scratch-repo e2e, two runs started 10 s apart, the first is dead within 30 s.
 
-### S3 — a watchdog on a systemd timer, alerts typed into the agent's window (R3, R4) — to build, effort M
+### S3 — a watchdog on a systemd timer, alerts typed into the agent's window (R3, R4) — live T047
 
-- What: `scripts/watchdog.sh` every 5 min: kills a run with no log growth and ~0 % CPU for
-  20 min (by recorded pid and start time); frees grants held by dead pids; re-alerts an
-  unacknowledged `zoo-run.sh` result every 30 min; alerts on an open F older than 30 min with no
-  owner; opens an `infra` F when the same gate is refused twice in an hour; prunes merged clean
-  worktrees. Alerts go by `tmux send-keys` into the owner's window in session `agents` (John's
-  choice); no window, a line in `zoo/ASK.md`. The watchdog never asks John to run a command.
-- Where: `scripts/watchdog.sh`, `~/.config/systemd/user/openisd-watchdog.{service,timer}`,
-  `scripts/agents-into-tmux.sh` (one live session per name; refuses a duplicate name — two
-  maryus ran at once on 10 Oct 20:39).
+- What: `scripts/land/watchdog.sh` every 5 min: runs housekeeping (dead grants); kills a post-land
+  run with no log growth and under 1 s of group CPU for 20 min (by recorded pid and start time);
+  re-alerts an unread `zoo-run.sh` result and an open F older than 30 min every 30 min; writes an
+  `infra` F when a gate is refused twice in an hour; removes merged clean worktrees. Alerts go by
+  `tmux send-keys` into the owner's window in session `agents`; no window, a line in `zoo/ASK.md`
+  and the leader's window. It never asks John to run a command. Every action is in `build/test-logs/watchdog.log`.
+- Result: `scripts/land/test/watchdog.test.sh` and `agents-into-tmux.test.sh` green (kill, spare, alert, no-repeat, infra F, worktree prune).
+  Install once from main: `bash scripts/land/watchdog-install.sh`.
+- Open: `land.sh` does not yet call `scripts/land/record-refusal.sh`, so the refusal check reads an empty log (own landing; land.sh is live).
+- Where: `scripts/land/watchdog.sh`, `scripts/land/watchdog.{service,timer}`, `scripts/land/watchdog-install.sh`
+  (links `~/.config/systemd/user/openisd-watchdog.{service,timer}`), `scripts/land/agents-into-tmux.sh`
+  (one live session per name; refuses a duplicate — two maryus ran on 10 Oct 20:39), `scripts/land/record-refusal.sh`.
+  Not `scripts/watchdog.sh` / `vite-watchdog.sh`: those are the Vite port watchdog.
 - Stops: hung runs holding lanes for hours; results nobody reads; "I will check every 30 min"
   promises; an agent diagnosing "hung" by eye.
-- Proof: scratch-repo e2e with a stub run at 0 % CPU and an unacked result; both produce a
-  kill and a typed alert.
-- Brief-ready: yes. Depends on nothing. `gates.py` refuses `systemctl --user stop|disable|mask`
-  on the timer.
+- Depends on nothing. `gates.py` refuses `systemctl --user stop|disable|mask` on the timer.
 
 ### S4 — `integrate.sh`: merges run the branch's tests and the stored-data corpus (R5) — to build, effort M
 

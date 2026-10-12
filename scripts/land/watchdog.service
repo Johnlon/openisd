@@ -1,0 +1,6 @@
+[Unit]
+Description=OpenISD watchdog tick (SDLC S3)
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /home/john/work/winisd/openisd/scripts/land/watchdog.sh
