@@ -1,4 +1,5 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, openAProject, test} from '../fixtures.js';
+import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.describe('In-app confirm dialog', () => {
   test.describe('Original skin', () => {
@@ -63,31 +64,20 @@ test.describe('In-app confirm dialog', () => {
 
   test.describe('Mobile skin', () => {
     test.beforeEach(async ({ page }) => {
+      await forceMobileSkin(page);
       await page.goto('/');
-      await page.evaluate(() => {
-        localStorage.setItem('openisd_skinOverride', 'mobile');
-      });
-      await page.reload();
       await expect(page.locator('.mobile-root')).toBeVisible();
     });
 
     test('Revert prompt shows in-app dialog with Discard/Keep buttons', async ({ page }) => {
       // Open a project and modify it
-      await page.locator('.mob-menu-button').click();
-      await page.locator('.mob-menu-item', { hasText: 'Open a file' }).click();
-      await page.locator('input[type="file"]').setInputFiles('packages/ui/test/fixtures/sample-project.owpr');
-      await expect(page.locator('.mobile-root')).toBeVisible();
+      await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
 
-      await page.locator('.mob-menu-button').click();
-      await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();
-      const nameInput = page.locator('.field', { hasText: 'Name' }).locator('input');
+      await tapMobileMenuItem(page, 'Project details');
+      const nameInput = page.locator('#mob-proj-name');
       await nameInput.fill('Modified Project Name');
       await nameInput.blur();
       await page.locator('.mob-dlg-close').click();
-
-      // Open menu and click Revert
-      await page.locator('.mob-menu-button').click();
-      const revertBtn = page.locator('.mob-menu-item', { hasText: 'Revert unsaved changes' });
 
       // Listen for native dialog - should NOT fire
       let nativeDialogFired = false;
@@ -96,7 +86,8 @@ test.describe('In-app confirm dialog', () => {
         await dialog.dismiss();
       });
 
-      await revertBtn.click();
+      // Open menu and click Revert
+      await tapMobileMenuItem(page, 'Revert unsaved changes');
 
       // In-app dialog should appear
       await expect(page.locator('.confirm-overlay')).toBeVisible();
@@ -110,14 +101,12 @@ test.describe('In-app confirm dialog', () => {
       await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
       // Project should still be modified
-      await page.locator('.mob-menu-button').click();
-      await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();
+      await tapMobileMenuItem(page, 'Project details');
       await expect(nameInput).toHaveValue('Modified Project Name');
       await page.locator('.mob-dlg-close').click();
 
       // Click Revert again
-      await page.locator('.mob-menu-button').click();
-      await revertBtn.click();
+      await tapMobileMenuItem(page, 'Revert unsaved changes');
       await expect(page.locator('.confirm-overlay')).toBeVisible();
 
       // Click Discard - should revert
@@ -125,8 +114,7 @@ test.describe('In-app confirm dialog', () => {
       await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
       // Name should be reverted
-      await page.locator('.mob-menu-button').click();
-      await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();
+      await tapMobileMenuItem(page, 'Project details');
       await expect(nameInput).not.toHaveValue('Modified Project Name');
       await page.locator('.mob-dlg-close').click();
 
