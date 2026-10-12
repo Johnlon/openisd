@@ -20,7 +20,7 @@ No `openisd_my_drivers`, `openisd_app_settings`, favourites or radiator keys.
 The only app code that removes that key is Restore from backup (`backupRepo.ts` importAll clears keys the file lacks). John did not restore. No other path removes it.
 
 ## Baseline
-12 Oct 2026, evening: John created and saved one project at http://localhost:4000/. The store is the four keys above. If a key is missing at a later check, this is the reference.
+12 Oct 2026, evening: John created and saved one project at http://localhost:4000/. The store is the four keys above. John will not delete this project. If it is missing at a later check, the loss is the app's or the browser's, not his. This is the reference.
 
 ## Plan
 T058: storage log at every start, on-screen notice when a key seen before is gone, telemetry carries it. Ruling: every destructive storage write snapshots the whole store first.
