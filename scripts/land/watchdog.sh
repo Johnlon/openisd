@@ -203,7 +203,7 @@ check_worktrees() {
   t=$(now)
   prune_one() {
     [ -n "$wt" ] && [ -n "$branch" ] || return 0
-    case "$wt" in *.postland*|*.slowrun*) return 0 ;; esac
+    case "$wt" in *.postland*) return 0 ;; esac
     case "$branch" in main|master) return 0 ;; esac
     git -C "$REPO" merge-base --is-ancestor "refs/heads/$branch" origin/main 2> /dev/null || return 0
     [ -z "$(git -C "$wt" status --porcelain 2> /dev/null)" ] || return 0

@@ -1,7 +1,7 @@
 # Compatibility suite
 
 Long-running checks, run rarely and one screen or feature at a time. They are **not** part of the
-pre-commit suite or `scripts/health-check.sh`.
+post-land run.
 
 Three kinds of check, named by what is compared:
 

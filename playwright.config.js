@@ -93,7 +93,7 @@ const PORT = process.env.OPENISD_TEST_PORT;
 
 // Specs that reach a third-party site. The default gate must depend on THIS repo only:
 // combined with "A SKIP IS A FAIL" below, an outage at micka.de would otherwise turn
-// `npx playwright test` and scripts/health-check.sh red for a cause outside the codebase.
+// `npx playwright test` and the post-land run red for a cause outside the codebase.
 // They stay fully runnable — `npm run test:crosscheck` sets OPENISD_EXTERNAL=1, and so can
 // any ad-hoc run: `OPENISD_EXTERNAL=1 npx playwright test <path>`.
 const EXTERNAL_NETWORK_SPECS = ['**/micka-crosscheck.browser.spec.ts'];

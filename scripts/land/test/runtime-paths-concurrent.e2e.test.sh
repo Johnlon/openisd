@@ -19,7 +19,7 @@ export OPENISD_RUNTIME_DIR="$XDG_RUNTIME_DIR/openisd"
 fails=0
 
 # Clean up any pre-existing legacy paths so we can detect new ones created by our runs
-for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/slow-run-queue /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
+for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
     rm -rf "$f" 2>/dev/null || true
 done
 
@@ -159,7 +159,7 @@ fi
 
 # Verify no legacy /tmp/openisd-* files exist
 legacy_found=0
-for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/slow-run-queue /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
+for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
     if [ -e "$f" ]; then
         echo "LEGACY PATH EXISTS: $f"
         legacy_found=1
@@ -228,7 +228,7 @@ fi
 
 # Verify no legacy /tmp/openisd-* files exist (again)
 legacy_found=0
-for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/slow-run-queue /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
+for f in /tmp/openisd-land.lock /tmp/openisd-post-land.lock /tmp/openisd-admit /tmp/openisd-heavy-gate-reservations /tmp/openisd-ui-test-reservations; do
     if [ -e "$f" ]; then
         echo "LEGACY PATH EXISTS: $f"
         legacy_found=1

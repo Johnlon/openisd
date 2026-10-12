@@ -1,0 +1,33 @@
+id: T050
+repo: openisd
+owner: fable
+status: claimed
+goal: land.sh self-check is green, the post-land coalesce test passes, the slow-run queue and Vite watchdog are deleted, and the last open task files say done or superseded
+done_test: bash scripts/land.sh --self-check && bash scripts/land/test/post-land-coalesce.test.sh && bash scripts/land/test/old-machinery-gone.test.sh && bash scripts/land/test/task-status.test.sh
+files:
+  - tasks/*.yml
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/old-machinery-gone.test.sh
+  - scripts/land/test/runtime-paths.test.sh
+  - scripts/land/test/runtime-paths-concurrent.e2e.test.sh
+  - scripts/land/watchdog.sh
+  - scripts/slow-run/**
+  - scripts/vite-watchdog.sh
+  - scripts/watchdog.sh
+  - scripts/health-check.sh
+  - scripts/test-setup/own-queue-state.mjs
+  - scripts/test.sh
+  - scripts/test-browser.sh
+  - scripts/quiet-test.sh
+  - scripts/paths.sh
+  - scripts/hooks-local/heavy-gate-concurrency.sh
+  - packages/ui/test/scripts/**
+  - gates.py
+  - vitest.config.ts
+  - playwright.config.js
+  - TESTING_STRATEGY.md
+  - docs/DEV_PROCESS.md
+  - docs/SDLC.md
+  - packages/design/compat/README.md
+  - .claude/rules/test-diagnosis.md
+  - .opencode/rules/verify.md

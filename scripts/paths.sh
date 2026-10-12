@@ -1,7 +1,7 @@
 #!/bin/sh
 # Single source of truth for openisd runtime paths.
 # Sourced by every script that needs a stable per-user directory.
-# Env overrides (SLOW_RUN_DIR, OPENISD_HEAVY_GATE_DIR, OPENISD_RESERVATION_DIR, ADMIT_DIR)
+# Env overrides (OPENISD_HEAVY_GATE_DIR, OPENISD_RESERVATION_DIR, ADMIT_DIR)
 # still win so tests can point at scratch dirs.
 
 # OPENISD_RUNTIME_DIR is the one root. Default follows XDG_RUNTIME_DIR, then /run/user/<uid>/openisd.
@@ -21,9 +21,6 @@ OPENISD_HEAVY_GATE_ACCOUNTING_LOCK="${OPENISD_HEAVY_GATE_ACCOUNTING_LOCK:-$OPENI
 # UI test reservations (scripts/test-concurrency.sh)
 OPENISD_RESERVATION_DIR="${OPENISD_RESERVATION_DIR:-$OPENISD_RUNTIME_DIR/ui-test-reservations}"
 OPENISD_RESERVATION_LOCK="${OPENISD_RESERVATION_LOCK:-$OPENISD_RESERVATION_DIR.lock}"
-
-# Slow-run queue (scripts/slow-run/queue.sh)
-SLOW_RUN_DIR="${SLOW_RUN_DIR:-$OPENISD_RUNTIME_DIR/slow-run-queue}"
 
 # Admit slots (scripts/admit/record.sh) — per-repo default still uses repo name, but under runtime dir.
 # The default is constructed in admit_dir() using the repo name; ADMIT_DIR env still overrides fully.

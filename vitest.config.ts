@@ -21,11 +21,9 @@ const DESIGN_ARCHITECTURE = ['test/architecture*.test.ts'];
 // No other test has a time limit either (0): a test that keeps making progress is never cut off,
 // and a stuck run is caught by the idle watchdog in scripts/quiet-test.sh.
 const TEST_TIMEOUT = 0;
-// blocked-at.mjs reports where the event loop is blocked and never fails a test; own-queue-state.mjs
-// keeps a test from inheriting the queue ticket of the slow run that runs it.
+// blocked-at.mjs reports where the event loop is blocked and never fails a test.
 const BLOCKED_AT_SETUP = [
   fileURLToPath(new URL('./scripts/test-setup/blocked-at.mjs', import.meta.url)),
-  fileURLToPath(new URL('./scripts/test-setup/own-queue-state.mjs', import.meta.url)),
 ];
 const UI_ARCHITECTURE = ['test/architecture/**/*.test.ts'];
 

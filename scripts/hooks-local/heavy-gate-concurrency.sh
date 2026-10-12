@@ -1,19 +1,16 @@
 #!/bin/sh
-# Worker tuning for the one slow run (pre-commit gate, pre-push suite, health check) that holds
-# the machine-wide slow-run queue.
+# Worker tuning for the one heavy run that holds the machine's admission slot (scripts/admit.sh).
 #
-# The rule (John, 2026-10-07: concurrent slow runs kill the machine): slow runs never overlap.
-# scripts/slow-run/queue.sh serialises whole slow runs in one FIFO queue shared by every repo on
-# the machine; a second slow run waits. This file no longer shares CPU among concurrent gates —
-# there are none. It still sizes the single run's vitest workers and typecheck processes to the
+# The rule (John, 2026-10-07: concurrent heavy runs kill the machine): heavy runs never overlap.
+# scripts/admit.sh serialises them; a second heavy run waits. This file no longer shares CPU among
+# concurrent gates — there are none. It still sizes the single run's vitest workers and typecheck processes to the
 # box's real load, because the box is never idle: targeted test runs in other sessions' TDD loops
-# (never queued — they must never block), wine, builds. Before 2026-10-07 gates overlapped and
+# (never queued, they must never block), wine, builds. Before 2026-10-07 gates overlapped and
 # shared CPU here; four or five at once drove load average to 26 on a 10-core box and forced an
 # emergency `killall node` (2026-09-26).
 #
 # Source it, don't exec it — the reservation is keyed on this shell's own PID ($$), so
-# release_heavy_gate_slot must run in the SAME shell that reserved it. scripts/slow-run/slow-run.sh
-# does this after it reaches the head of the queue:
+# release_heavy_gate_slot must run in the SAME shell that reserved it:
 #
 #   . "$SRC/scripts/hooks-local/heavy-gate-concurrency.sh"
 #   reserve_heavy_gate_slot
@@ -61,7 +58,7 @@ reserve_heavy_gate_slot() {
   local f pid active cores budget my_workers load1 load_centi cores_centi load_workers my_typecheck_concurrency
 
   # This lock guards only the bookkeeping below (read the reservation dir, write our own file) —
-  # a few milliseconds. Serialising the runs themselves is the slow-run queue's job.
+  # a few milliseconds. Serialising the runs themselves is admit.sh's job.
   exec 9>"$OPENISD_HEAVY_GATE_ACCOUNTING_LOCK"
   flock 9
 

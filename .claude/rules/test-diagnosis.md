@@ -18,7 +18,7 @@ narrow scope can't reproduce it.
    calling the hook correctly), not logic.
 4. Escalate to a full browser test only if the failure doesn't reproduce below that layer — real
    timing, real DOM, real integration.
-5. Run the full suite (`bash scripts/health-check.sh`) only as the final gate before declaring
+5. Run the full suite (the post-land run) only as the final gate before declaring
    done, never as a diagnostic step.
 
 "It fails in the full suite but I can't reproduce it narrower" is itself a finding — the bug is

@@ -6,7 +6,7 @@ Exit 0 passes; non-zero blocks the tool call and shows stderr to the agent.
 
 PreToolUse / Bash: NO AD-HOC TEST RUNNER. A test run goes through `scripts/test.sh` (unit or
 browser specs, targeted, quiet, worker-capped) or `scripts/quiet-test.sh`; the full suite runs
-only inside the pre-commit hook and `scripts/health-check.sh`. A bare `npx vitest run`,
+only in the post-land run. A bare `npx vitest run`,
 `vitest`, `npx playwright test`, `npm test` or `npm run test:unit` typed by an agent is blocked
 (John, 2026-09-29: "prohibit ad-hoc npx vitest run etc, provide only compliant test scripts and
 mandate their usage" — uncapped runs from several sessions pushed the load average to 26 on 10
@@ -18,7 +18,7 @@ import json
 import re
 import sys
 
-COMPLIANT = re.compile(r"scripts/(test|quiet-test|health-check|test-browser)\.sh|\bgit\s+commit\b")
+COMPLIANT = re.compile(r"scripts/(test|quiet-test|test-browser)\.sh|\bgit\s+commit\b")
 # A runner as the FIRST word of a command segment (after ;, &&, |, ( or the start), allowing env
 # assignments, `timeout N`, `time`, `env` and a package-manager prefix before it. A runner named
 # elsewhere — `ls playwright.config.js`, `grep vitest foo` — is not a run.
@@ -48,7 +48,7 @@ def check_bash(command: str) -> int:
         "  prints only failures:\n"
         "    bash scripts/test.sh packages/design/test/engine/foo.test.ts\n"
         "    bash scripts/test.sh packages/ui/test/ui/foo.browser.spec.ts\n"
-        "  The full suite runs only in the pre-commit hook and scripts/health-check.sh.\n"
+        "  The full suite runs only in the post-land run.\n"
         "  Rule: .claude/rules/verify.md.",
         file=sys.stderr,
     )

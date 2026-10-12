@@ -96,7 +96,6 @@ named) or **to build**.
 - Where: `scripts/land/watchdog.sh`, `scripts/land/watchdog.{service,timer}`, `scripts/land/watchdog-install.sh`
   (links `~/.config/systemd/user/openisd-watchdog.{service,timer}`), `scripts/land/agents-into-tmux.sh`
   (one live session per name; refuses a duplicate — two maryus ran on 10 Oct 20:39), `scripts/land/record-refusal.sh`.
-  Not `scripts/watchdog.sh` / `vite-watchdog.sh`: those are the Vite port watchdog.
 - Stops: hung runs holding lanes for hours; results nobody reads; "I will check every 30 min"
   promises; an agent diagnosing "hung" by eye.
 - Depends on nothing. `gates.py` refuses `systemctl --user stop|disable|mask` on the timer.

@@ -61,22 +61,15 @@ ERROR: the full suite is not run by hand. Name the specs for your change:
   bash scripts/test.sh packages/design/test/engine/circuit.test.ts
   bash scripts/test.sh packages/ui/test/ui/visual.browser.spec.ts
 
-The full suite runs in the pre-commit hook and scripts/health-check.sh only
-(.claude/rules/verify.md, John 2026-09-29).
+The full suite runs in the post-land run only (.claude/rules/verify.md).
 EOF
     exit 1
   fi
-  # The full gate is a slow run: it waits in the machine-wide queue (scripts/slow-run/queue.sh;
-  # John, 2026-10-07). Under a hook or health check that already holds the queue it passes through.
-  # shellcheck source=./slow-run/queue.sh
-  . "$SCRIPT_DIR/slow-run/queue.sh"
-  slow_queue_enter "npm test (full)"
-  trap slow_queue_leave EXIT
-  bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run
-  # The browser stage reruns a few failing spec files once (John, 2026-10-07): 1-10 failing files are
-  # rerun alone, all passing on the rerun means a pass logged FLAKY in build/test-logs/flaky.log, more
-  # than 10 fails at once. See scripts/slow-run/rerun.mjs.
-  node "$SCRIPT_DIR/slow-run/rerun.mjs" playwright
+  # Both halves always run, then the verdict (a flaky spec is a red; there is no rerun).
+  unit=0; browser=0
+  bash "$SCRIPT_DIR/quiet-test.sh" npx vitest run || unit=$?
+  bash "$SCRIPT_DIR/test-browser.sh" || browser=$?
+  [ "$unit" = 0 ] && [ "$browser" = 0 ] || exit 1
   exit 0
 fi
 
