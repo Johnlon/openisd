@@ -24,9 +24,16 @@ spec: |
   - Store layout newer than the app: does not load the live store. Offers restore of a snapshot with its layout into the live store, or read-only on it. Never silent loss.
   - version-info.mjs takes the stamp from the tag when GITHUB_REF is a v tag, else now, minute resolution.
   - Check for a service worker; if one exists each v/ copy registers its own scope or none.
+  Upgrade goldens
+  - packages/persistence/test/goldens/layout-<N>/ holds a full localStorage dump (every openisd_* key) written by the last release of layout N, plus expected.json: the projects, drivers, sessions and settings that dump must yield after loading in the current app.
+  - Bumping STORAGE_LAYOUT without adding the golden of the layout just left fails the gate: a test asserts a golden dir exists for every layout 1..STORAGE_LAYOUT-1.
+  - storageUpgrade.test.ts loads every golden into a fresh fake store, runs the app's load path, asserts expected.json, asserts a snapshot named by that golden's build stamp was taken, and asserts a second load is silent. So any release N-M upgrades to N, for every M.
+  - A golden is never edited after it is written. If a later layout changes what an old store must yield, expected.json of that golden changes, the dump does not.
+  - First golden is layout 1, dumped from the current main before T055 lands.
   Options menu
   - New page Storage history: one row per snapshot (build date, project count, size) with Export to file, Restore (confirm, snapshots live store first), Delete, plus Snapshot now.
 done_test: |
+  bash scripts/test.sh packages/persistence/test/storageUpgrade.test.ts
   bash scripts/test.sh packages/persistence/test/storageSnapshot.test.ts
   bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
   bash scripts/land/test/release.test.sh
