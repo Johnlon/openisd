@@ -1,7 +1,8 @@
 id: T017
 repo: openisd
 owner: bob
-status: open
+status: done
+landed: ff8d8d69 (done_test green on main, 12 Oct 2026)
 goal: A reading keeps its printed text even when it is not a number (QO177; winisd_tools QT86, John 2026-10-08 "a spec that says N/A or banana should store the read value as that value"). Reading is a discriminated union, Usable {actual_reading, read_value} | Rejected {actual_reading?, rejected}; the schema accepts Rejected, the converter keeps rejected readings with their text. A .wdr holds only a flag and a number (John, 2026-10-11): a rejected reading is WRITTEN to .wdr as N (not available), value 0, with the printed text in the .wdr comment; LOADING a .wdr never makes a rejected reading (no .wdr text cell becomes a Rejected reading), and never NaN. The union's doc comment states the rule with worked examples (Sd "N/A", "banana", "143c cm²", a field nobody printed, "21 Hz"); docs/FIELD_REFERENCE.md links to it.
 done_test: bash scripts/test.sh packages/design/test/domain/reads-schema.test.ts
 files:

@@ -1,7 +1,8 @@
 id: T020
 repo: openisd
 owner: maryu
-status: open
+status: done
+landed: 0d360e2f (done_test green on main, 12 Oct 2026)
 goal: Post-land runs coalesce to the latest pushed commit (a run superseded by a newer waiting one ends cleanly, and a red names every commit since the last green), and a red unit half never skips the browser half.
 done_test: bash scripts/land/test/post-land-coalesce.test.sh && bash scripts/land/test/suite-both-halves.test.sh
 files:

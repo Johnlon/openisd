@@ -13,9 +13,11 @@ mkdir -p "$SRC/node_modules" "$COPY/scripts/land/post-land" "$SCRATCH/bin" "$SCR
 cp "$REPO/scripts/land/post-land/suite.sh" "$COPY/scripts/land/post-land/"
 export SEEN="$SCRATCH/seen" ADMIT_TOKEN=test-token PATH="$SCRATCH/bin:$PATH"
 # the unit half (fake npx) and the browser half each leave a marker, and fail when told to
-printf '#!/usr/bin/env bash\ntouch "$SEEN/unit"\n[ -f "$SEEN/unit-fails" ] && { echo "unit spec a.test.ts failed"; exit 1; }\nexit 0\n' > "$SCRATCH/bin/npx"
+# suite.sh runs node_modules/.bin/vitest (S9: no npx inside the funnel); the copy hardlinks node_modules from SRC.
+mkdir -p "$SRC/node_modules/.bin"
+printf '#!/usr/bin/env bash\ntouch "$SEEN/unit"\n[ -f "$SEEN/unit-fails" ] && { echo "unit spec a.test.ts failed"; exit 1; }\nexit 0\n' > "$SRC/node_modules/.bin/vitest"
 printf '#!/usr/bin/env bash\ntouch "$SEEN/browser"\n[ -f "$SEEN/browser-fails" ] && { echo "browser spec b.spec.ts failed"; exit 1; }\nexit 0\n' > "$COPY/scripts/test-browser.sh"
-chmod +x "$SCRATCH/bin/npx"
+chmod +x "$SRC/node_modules/.bin/vitest"
 run() { rm -f "$SEEN/unit" "$SEEN/browser"; ( cd "$COPY" && POST_LAND_SRC="$SRC" timeout 60 bash scripts/land/post-land/suite.sh ) > "$SCRATCH/out" 2>&1; echo $?; }
 
 rm -f "$SEEN"/*-fails; r=$(run)
