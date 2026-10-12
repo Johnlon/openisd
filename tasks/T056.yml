@@ -24,9 +24,7 @@ spec: |
   Versions list in app
   - App fetches /v/index.json at start, no store, no schema. About shows Versions: releases first, then snapshot builds marked Snapshot, current highlighted, date as "1 Jan 2026, 01:02", links to the hosted copy and its GitHub page. Fetch failure shows current only. Old build shows "latest release is <date>".
   Branch t056-hosting, runs in parallel with t055-releases.
-done_test: |
-  bash scripts/land/test/release.test.sh
-  bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
+done_test: bash scripts/land/test/release.test.sh && bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
 files:
   - tasks/T056.yml
   - RELEASES.md
