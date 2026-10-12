@@ -460,7 +460,7 @@ describe('OpenISDDriver record', () => {
       const d = vasAndSd();
       const entry = wooferOf(d.cloneDriver())?.Cms_m_per_N;
       expect(entry).toMatchObject({ state: 'C' });
-      expect(entry).toMatchObject({ value: expect.closeTo(d.specs.Cms_m_per_N.value!, 12) });
+      expect(entry?.value).toBeCloseTo(d.specs.Cms_m_per_N.value!, 12);
     });
 
     it('changing a stated input changes what the derived field reports', () => {
@@ -486,14 +486,14 @@ describe('OpenISDDriver record', () => {
       const d = qesQms();
       const entry = wooferOf(d.cloneDriver())?.Qts;
       expect(entry).toMatchObject({ state: 'C' });
-      expect(entry).toMatchObject({ value: expect.closeTo((0.4 * 3.0) / (0.4 + 3.0), 12) });
+      expect(entry?.value).toBeCloseTo((0.4 * 3.0) / (0.4 + 3.0), 12);
     });
 
     it('setting a field the record already resolved from changes the dependent calculated entry', () => {
       const d = qesQms();
       d.specs.Qms.set(6.0);
       const entry = wooferOf(d.cloneDriver())?.Qts;
-      expect(entry).toMatchObject({ value: expect.closeTo((0.4 * 6.0) / (0.4 + 6.0), 12) });
+      expect(entry?.value).toBeCloseTo((0.4 * 6.0) / (0.4 + 6.0), 12);
     });
 
     it('an entered Qts survives a resolve untouched, even though it disagrees with Qes/Qms', () => {
