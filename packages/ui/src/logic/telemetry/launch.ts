@@ -11,6 +11,8 @@ export interface LaunchEnvironment {
   readonly screenH: number;
   readonly lang: string;
   readonly referrer: string;
+  /** The storage keys that were in this browser at the last start and are gone now. */
+  readonly keysLost: readonly string[];
 }
 
 export function platformOf(hint: string | undefined, userAgent: string): Platform {
@@ -33,6 +35,7 @@ export function launchEventOf(env: LaunchEnvironment, skin: Skin): LaunchEvent {
   return {
     kind: 'launch', mode, platform: platformOf(env.platformHint, env.userAgent), skin,
     w: env.screenW, h: env.screenH, lang: env.lang, ref: referrerHost(env.referrer),
+    keysLost: env.keysLost,
   };
 }
 

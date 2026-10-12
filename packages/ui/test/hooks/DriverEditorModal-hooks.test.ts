@@ -1,8 +1,9 @@
 import {describe, expect, it} from 'vitest';
-import {MY_DRIVERS_KEY, createMemoryStorage, createMyDriverRepo} from '@openisd/persistence';
+import {MY_DRIVERS_KEY, createMemoryStorage} from '@openisd/persistence';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {commitMyDriver, ebpVal} from '../../src/hooks/DriverEditorModal-hooks.js';
+import {myDriverRepoOn} from '../fixtures/repoOn.js';
 
 function completeDriver(): OpenISDDriver {
   const engine = createEngine();
@@ -31,7 +32,7 @@ describe('DriverEditorModal-hooks', () => {
 
   describe('commitMyDriver', () => {
     function savedWith(model: string) {
-      const myDrivers = createMyDriverRepo(createMemoryStorage(), createEngine());
+      const myDrivers = myDriverRepoOn(createMemoryStorage(), createEngine());
       const driver = completeDriver();
       driver.brand.set('Test');
       driver.model.set(model);
@@ -55,7 +56,7 @@ describe('DriverEditorModal-hooks', () => {
 
     it('answers false while My Drivers is unreadable (read-only)', () => {
       const storage = createMemoryStorage();
-      const myDrivers = createMyDriverRepo(storage, createEngine());
+      const myDrivers = myDriverRepoOn(storage, createEngine());
       storage.set(MY_DRIVERS_KEY, 'not json');
       expect(commitMyDriver(myDrivers, completeDriver(), '')).toBe(false);
     });

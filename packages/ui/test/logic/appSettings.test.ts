@@ -21,9 +21,10 @@ import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {
     DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS, type EnvDefaults, type VentedDesignLimits,
 } from '@openisd/design/engine';
-import {createAppSettingsRepo, createMemoryStorage} from '@openisd/persistence';
+import {createMemoryStorage} from '@openisd/persistence';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
+import {appSettingsRepoOn} from '../fixtures/repoOn.js';
 
 let appState: AppState;
 
@@ -84,7 +85,7 @@ describe('appState — the application settings seam', () => {
 
   it('reads the band from the repo the composition root installed', () => {
     const storage = createMemoryStorage();
-    createAppSettingsRepo(storage).setVentedLimits(NARROW);
+    appSettingsRepoOn(storage).setVentedLimits(NARROW);
 
     appState = createAppStateFixture(storage).appState;
 
@@ -98,7 +99,7 @@ describe('appState — the application settings seam', () => {
     appState.setVentedLimits(NARROW);
 
     // A SECOND repo over the same storage is what a reload is — it must read the band back.
-    assert.deepEqual(createAppSettingsRepo(storage).ventedLimits(), NARROW);
+    assert.deepEqual(appSettingsRepoOn(storage).ventedLimits(), NARROW);
   });
 
   it("the appState.engine reads the band at call time — a later write changes its answer, nothing rebuilt", () => {
@@ -168,7 +169,7 @@ describe('appState — the environment defaults, Options → General → Environ
 
   it('reads the environment from the repo the composition root installed', () => {
     const storage = createMemoryStorage();
-    createAppSettingsRepo(storage).setEnvDefaults(ARCTIC);
+    appSettingsRepoOn(storage).setEnvDefaults(ARCTIC);
 
     appState = createAppStateFixture(storage).appState;
 
@@ -181,7 +182,7 @@ describe('appState — the environment defaults, Options → General → Environ
 
     appState.setEnvDefaults(ARCTIC);
 
-    assert.deepEqual(createAppSettingsRepo(storage).envDefaults(), ARCTIC);
+    assert.deepEqual(appSettingsRepoOn(storage).envDefaults(), ARCTIC);
   });
 
   it("a project with no environment of its own reads the new default as calculated — nothing rebuilt", () => {

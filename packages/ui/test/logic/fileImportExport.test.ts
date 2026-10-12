@@ -8,8 +8,9 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {OpenISDDriver, OpenISDProject} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {createMemoryStorage, createProjectRepo, type FileStorage} from '@openisd/persistence';
+import {createMemoryStorage, type FileStorage} from '@openisd/persistence';
 import {parseSavedProject, projectOf, sampleDriverRecord, type SavedProjectWire} from '../fixtures/persistedProject.js';
+import {projectRepoOn} from '../fixtures/repoOn.js';
 
 /** A picker that KEEPS what was written, so a test can decode the file door's own bytes. */
 let written: string | null = null;
@@ -19,7 +20,7 @@ const capturingPicker: FileStorage = {
   openFileName: () => 'p.owpr',
   forget: () => {},
 };
-const fileRepo = createProjectRepo(createEngine(), capturingPicker, createMemoryStorage(), 'http://localhost');
+const fileRepo = projectRepoOn(createEngine(), capturingPicker, createMemoryStorage(), 'http://localhost');
 const owprNaming = { suggestedName: 'p.owpr', mime: 'application/json', label: 'OpenISD project', ext: '.owpr' };
 
 /** The bytes the FILE door writes, decoded independently. */

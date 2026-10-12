@@ -19,6 +19,7 @@
  *  on file is provenance).
  */
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import type {Guarded, StorageBackup} from './storageBackup.js';
 
 /** One stored slot: the uuid this repo minted or adopted, plus the thing's own record,
  *  unopened until the library's own domain seam validates it. */
@@ -36,6 +37,14 @@ export interface BrokenEntry {
   /** The entry's own bytes, verbatim JSON — what Export offers before any destructive choice. */
   raw: string;
 }
+
+/** How a write that removes or replaces entries ended. */
+export type SavedWrite =
+  | 'done'
+  /** The whole-store backup that must come first did not fit; nothing was changed. */
+  | 'noRoom'
+  /** Not done: the list is unreadable (read-only), or the entry named is not there. */
+  | 'refused';
 
 /** How a library read ended. */
 export type SavedRead<T> =
@@ -66,21 +75,21 @@ export interface SavedEntries<T> {
   /** Every saved entry, in saved order — `[]` when the bucket is unavailable or unreadable.
    *  Surfaces that must react to failure use `read()`. */
   list(): { uuid: string; value: T }[];
-  /** Replace the whole collection. Refused (false) while the bucket is unreadable. Each entry
+  /** Replace the whole collection. Refused while the bucket is unreadable. Each entry
    *  mints a fresh uuid. */
-  replaceAll(next: T[]): boolean;
+  replaceAll(next: T[]): SavedWrite;
   /** Save one. `uuid` absent mints a fresh identity (a new entry); `uuid` present overwrites
    *  that entry. Returns the uuid it was saved under; null = refused (read-only). */
   upsert(value: T, uuid?: string): { uuid: string; overwrote: boolean } | null;
-  /** Remove the entry with this uuid. Refused (false) while unreadable. */
-  remove(uuid: string): boolean;
+  /** Remove the entry with this uuid. Refused while unreadable. */
+  remove(uuid: string): SavedWrite;
   /** Remove ONE broken entry by its `BrokenEntry.key` — the surface challenges first. */
-  removeBroken(key: number): boolean;
+  removeBroken(key: number): SavedWrite;
   /** The stored string, verbatim — what the unreadable-bucket Export downloads. */
   exportRaw(): string | null;
   /** Wipe the bucket and start fresh — NEVER automatic; the surface challenges for an
-   *  un-exported session before calling this. */
-  deleteAll(): void;
+   *  un-exported session before calling this. 'noRoom' when the store could not be backed up first. */
+  deleteAll(): 'done' | 'noRoom';
 }
 
 /** Best-effort name for a blob the shape cannot read — so the surface can say WHICH entry.
@@ -134,7 +143,7 @@ function entriesOf(list: readonly unknown[]): SavedEntry[] {
   return list.filter(isSavedEntry);
 }
 
-export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntriesSpec<T>): SavedEntries<T> {
+export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntriesSpec<T>, backup: StorageBackup): SavedEntries<T> {
   /** null = storage inaccessible; distinct from an absent key (a fresh browser). */
   function rawString(): { ok: true; raw: string | null } | { ok: false } {
     try { return { ok: true, raw: storage.get(spec.key) }; } catch { return { ok: false }; }
@@ -181,7 +190,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
 
     // A bucket written in the pre-envelope shape is adopted in place, same identities, so the
     // next read no longer has to recognise it. An ordinary read never rewrites the user's bytes.
-    if (envelope.schema !== spec.schemaVersion) writeBack(slots, brokenRaw);
+    if (envelope.schema !== spec.schemaVersion) backup.guard(() => writeBack(slots, brokenRaw));
 
     return { state: { kind: 'ok', entries, broken }, slots, brokenRaw };
   }
@@ -200,6 +209,12 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     return write({ schema: spec.schemaVersion, entries: [...slots, ...brokenRaw].filter(isSavedEntry) });
   }
 
+  /** The outcome of a guarded write that reports whether it wrote. */
+  function writeResult(guarded: Guarded<boolean>): SavedWrite {
+    if (guarded.kind === 'refused') return 'noRoom';
+    return guarded.value ? 'done' : 'refused';
+  }
+
   return {
     read: () => readFull().state,
 
@@ -210,8 +225,9 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
 
     replaceAll(next) {
       const { state } = readFull();
-      if (state.kind === 'unreadable') return false; // read-only: the string is the only copy
-      return writeBack(next.map(v => ({ uuid: crypto.randomUUID(), record: spec.snapshot(v) })), []);
+      if (state.kind === 'unreadable') return 'refused'; // read-only: the string is the only copy
+      const replaced = backup.guard(() => writeBack(next.map(v => ({ uuid: crypto.randomUUID(), record: spec.snapshot(v) })), []));
+      return writeResult(replaced);
     },
 
     upsert(value, uuid) {
@@ -227,19 +243,21 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     },
 
     remove(uuid) {
-      if (!uuid) return false; // an unminted identity names nothing — refuse, never guess
+      if (!uuid) return 'refused'; // an unminted identity names nothing — refuse, never guess
       const { state, slots, brokenRaw } = readFull();
-      if (state.kind !== 'ok') return false;
+      if (state.kind !== 'ok') return 'refused';
       const kept = slots.filter(s => s.uuid !== uuid);
-      if (kept.length === slots.length) return false;
-      return writeBack(kept, brokenRaw);
+      if (kept.length === slots.length) return 'refused';
+      const removed = backup.guard(() => writeBack(kept, brokenRaw));
+      return writeResult(removed);
     },
 
     removeBroken(key) {
       const { state, slots, brokenRaw } = readFull();
-      if (state.kind !== 'ok') return false;
-      if (key < 0 || key >= brokenRaw.length) return false;
-      return writeBack(slots, brokenRaw.filter((_, i) => i !== key));
+      if (state.kind !== 'ok') return 'refused';
+      if (key < 0 || key >= brokenRaw.length) return 'refused';
+      const removed = backup.guard(() => writeBack(slots, brokenRaw.filter((_, i) => i !== key)));
+      return writeResult(removed);
     },
 
     exportRaw() {
@@ -248,8 +266,11 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     },
 
     deleteAll() {
-      try { storage.set(spec.key, JSON.stringify({ schema: spec.schemaVersion, entries: [] })); }
-      catch { /* unavailable storage: nothing to wipe */ }
+      const wiped = backup.guard(() => {
+        try { storage.set(spec.key, JSON.stringify({ schema: spec.schemaVersion, entries: [] })); }
+        catch { /* unavailable storage: nothing to wipe */ }
+      });
+      return wiped.kind === 'ran' ? 'done' : 'noRoom';
     },
   };
 }

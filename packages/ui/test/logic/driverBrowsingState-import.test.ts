@@ -8,16 +8,15 @@ import {
   createBundledDriverRepo,
   createFileStorage,
   createMemoryStorage,
-  createMyDriverRepo,
   createPrefsRepo,
-  createProjectRepo,
-} from '@openisd/persistence';
+  } from '@openisd/persistence';
 import type {Logging} from '../../src/logging/flash.js';
 import {createDriverSelection} from '../../src/logic/driverSelection.js';
 import {createDriverBrowsingState} from '../../src/logic/driverBrowsingState.js';
 import {DesignFiles, driverToWdrBytes} from '../../src/logic/fileImportExport.js';
 import {ProjectFileFormat} from '../../src/fileFormat.js';
 import type {ConfirmPort} from '../../src/logic/confirmPort.js';
+import {myDriverRepoOn, projectRepoOn} from '../fixtures/repoOn.js';
 
 /** John, 2026-10-05: a driver file loaded into My Drivers says so, naming the driver; one that
  *  cannot be loaded says why, naming the file. */
@@ -35,13 +34,13 @@ describe('My Drivers Load File flashes what it did', () => {
     const { appState, presentation } = createAppStateFixture();
     const engine = appState.engine;
     const storage = createMemoryStorage();
-    const files = new DesignFiles(engine, createProjectRepo(engine, createFileStorage(), storage, 'http://localhost'));
+    const files = new DesignFiles(engine, projectRepoOn(engine, createFileStorage(), storage, 'http://localhost'));
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const browsing = createDriverBrowsingState({
       driverRepo: createBundledDriverRepo({
         fetch: () => Promise.reject(new Error('fetch not used')), baseUrl: '/', engine, maxAge_ms: 1, now: Date.now,
       }),
-      myDriverRepo: createMyDriverRepo(storage, engine), prefs: createPrefsRepo(storage), logging,
+      myDriverRepo: myDriverRepoOn(storage, engine), prefs: createPrefsRepo(storage), logging,
       selection: createDriverSelection({ appState, presentation }), files, confirmReset: fakeConfirmPort,
       appState, presentation,
     });

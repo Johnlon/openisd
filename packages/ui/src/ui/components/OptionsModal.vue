@@ -65,22 +65,28 @@ const { confirmPort, presentation: presentationState } = useApp();
 const { resetUnitTokens } = presentationState;
 const { downloadBackup, restoreFromFile } = useBackupSettings();
 const backupFileInput = ref<HTMLInputElement | null>(null);
+// Off by default: a restore keeps whatever the file does not hold. Ticked, the browser becomes
+// exactly the file.
+const replaceEverything = ref(false);
 function pickBackupFile() { backupFileInput.value?.click(); }
 async function onBackupFile(e: Event) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
   input.value = '';
   if (!file) return;
+  const replace = replaceEverything.value;
   const confirmed = await confirmPort.port.ask({
     title: 'Restore from backup?',
-    message: 'Restore will overwrite, at once, everything the application holds in memory: all projects, '
-      + 'My Drivers, My Passive Radiators and preferences are replaced by what is in this file. '
-      + 'Anything not in the file is lost. This cannot be undone. Continue?',
+    message: replace
+      ? 'Everything in this browser is replaced by what is in this file: all projects, My Drivers, My Passive Radiators '
+        + 'and preferences. Anything not in the file is removed. A backup of what is here now is made first. Continue?'
+      : 'What is in this file (projects, My Drivers, My Passive Radiators and preferences) is put into this browser, '
+        + 'replacing the same items. Anything the file does not hold is kept. A backup of what is here now is made first. Continue?',
     confirmLabel: 'Restore',
     cancelLabel: 'Cancel',
   });
   if (!confirmed) return;
-  const result = await restoreFromFile(file);
+  const result = await restoreFromFile(file, replace);
   if (!result.ok) { alert(`Could not restore: ${result.reason}`); return; }
   alert(`Backup restored (${result.keysRestored} item${result.keysRestored === 1 ? '' : 's'}). The app will now reload.`);
   window.location.reload();
@@ -348,10 +354,14 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <button class="opt-reset-btn" title="Download a backup of everything in this browser as one JSON file." @click="downloadBackup">
                 Download backup
               </button>
-              <button class="opt-reset-btn" title="Restore from a previously downloaded backup file. This replaces everything currently in this browser." @click="pickBackupFile">
+              <button class="opt-reset-btn" title="Restore from a previously downloaded backup file. Whatever the file does not hold is kept, unless Replace everything is ticked." @click="pickBackupFile">
                 Restore from file…
               </button>
             </div>
+            <label class="opt-help">
+              <input v-model="replaceEverything" type="checkbox">
+              Replace everything (remove what the file does not hold)
+            </label>
             <input ref="backupFileInput" type="file" accept="application/json,.json" style="display:none" @change="onBackupFile">
           </fieldset>
         </template>

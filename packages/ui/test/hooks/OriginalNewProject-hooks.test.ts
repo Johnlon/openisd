@@ -3,10 +3,11 @@ import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits
 import { OpenISDDriver, ProjectBuilder } from '@openisd/design';
 import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
-import { type BundledPassiveRadiatorRepo, createMemoryStorage, createMyPassiveRadiatorRepo } from '@openisd/persistence';
+import { type BundledPassiveRadiatorRepo, createMemoryStorage } from '@openisd/persistence';
 import { vi } from 'vitest';
 import { createAppStateFixture } from '../fixtures/appStateFixture.js';
 import { nextTick } from 'vue';
+import {myPassiveRadiatorRepoOn} from '../fixtures/repoOn.js';
 
 /** No bundled catalogue: a test that reaches it has gone somewhere it did not mean to. */
 const noBundled: BundledPassiveRadiatorRepo = {
@@ -16,7 +17,7 @@ const noBundled: BundledPassiveRadiatorRepo = {
 
 /** Saved radiators over memory storage, and no bundled catalogue. */
 function testPassiveRadiators(bundled: BundledPassiveRadiatorRepo = noBundled): NewProjectPassiveRadiatorRepos {
-  return { saved: createMyPassiveRadiatorRepo(createMemoryStorage()), bundled };
+  return { saved: myPassiveRadiatorRepoOn(createMemoryStorage()), bundled };
 }
 
 /** A radiator stating the five parameters WinISD's wizard step asks for. */

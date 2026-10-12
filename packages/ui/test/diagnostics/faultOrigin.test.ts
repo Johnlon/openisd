@@ -1,6 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {createAppSettingsRepo, createStoredDataFault, isStoredDataFault, createMemoryStorage, createViewStateRepo} from '@openisd/persistence';
+import {createStoredDataFault, isStoredDataFault, createMemoryStorage} from '@openisd/persistence';
 import {createFaultLog, originLabel, type FaultLog} from '../../src/diagnostics/faultLog.js';
+import {appSettingsRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
 
 // BUG: the fault log could not say where a fault came from, so a stored-data problem, a code
 // bug and a half-reloaded dev page all looked alike and all offered the same repairs.
@@ -13,7 +14,7 @@ function installedLog(): {log: FaultLog; fire: (type: string, e: unknown) => voi
   vi.stubGlobal('window', {addEventListener: (type: string, fn: Listener) => { listeners.set(type, fn); }});
   const storage = createMemoryStorage();
   const log = createFaultLog(() => undefined, () => ({
-    view: createViewStateRepo(storage), appSettings: createAppSettingsRepo(storage),
+    view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
   }), storeOf);
   const raised: number[] = [];
   log.onFault(f => raised.push(f.id));
@@ -68,8 +69,8 @@ describe('repairs follow the origin', () => {
 
   it('a stored-data fault offers only the repair for its own store', () => {
     const storage = createMemoryStorage();
-    const view = createViewStateRepo(storage);
-    const appSettings = createAppSettingsRepo(storage);
+    const view = viewStateRepoOn(storage);
+    const appSettings = appSettingsRepoOn(storage);
     storage.set('openisd_view', '{"ui":{}}');
     appSettings.setEnvDefaults({tempK: 300, humidityPct: 40, pressurePa: 100000});
     vi.stubGlobal('window', {addEventListener: (type: string, fn: Listener) => { if (type === 'error') fire = fn; }});

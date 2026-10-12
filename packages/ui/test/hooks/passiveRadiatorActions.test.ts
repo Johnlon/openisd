@@ -9,12 +9,12 @@ function fakeMyPassiveRadiators(): MyPassiveRadiatorRepo {
   return {
     read: () => ({ kind: 'ok', passiveRadiators: [], broken: [] }),
     list: vi.fn(() => []),
-    replaceAll: () => true,
+    replaceAll: () => 'done',
     upsert: vi.fn(() => ({ uuid: 'pr-1', overwrote: false })),
-    remove: vi.fn(() => true),
-    removeBroken: () => true,
+    remove: vi.fn((): 'done' => 'done'),
+    removeBroken: () => 'done',
     exportRaw: () => null,
-    deleteAll: () => undefined,
+    deleteAll: () => 'done',
   };
 }
 

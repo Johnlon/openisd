@@ -16,11 +16,9 @@ import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
 import type {ConfirmPort} from '../../src/logic/confirmPort.js';
 import {
-  createBackupRepo,
   createFileOpen,
   createFileStorage,
   createMemoryStorage,
-  createProjectRepo,
   OPENISD_PROJECTS_KEY,
   type ProjectRepo,
 } from '@openisd/persistence';
@@ -29,6 +27,7 @@ import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProjec
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
+import {backupRepoOn, projectRepoOn} from '../fixtures/repoOn.js';
 
 let appState: AppState;
 let presentationState: PresentationState;
@@ -65,7 +64,7 @@ beforeEach(() => {
 });
 
 function ioOver(storage = createMemoryStorage()): { io: DesignIO; repo: ProjectRepo } {
-  const repo = createProjectRepo(appState.engine, createFileStorage(), storage, 'http://localhost');
+  const repo = projectRepoOn(appState.engine, createFileStorage(), storage, 'http://localhost');
   const fakeConfirmPort: ConfirmPort = { ask: async () => true };
   const io = createApplicationIO({ engine: appState.engine, 
     logging: createLogging(),
@@ -73,7 +72,7 @@ function ioOver(storage = createMemoryStorage()): { io: DesignIO; repo: ProjectR
     fileOpen: createFileOpen(),
     projectRepo: repo,
     files: new DesignFiles(appState.engine, repo),
-    backup: createBackupRepo(createMemoryStorage()),
+    backup: backupRepoOn(createMemoryStorage()),
     confirmPort: fakeConfirmPort,
     appState, presentation: presentationState,
   });

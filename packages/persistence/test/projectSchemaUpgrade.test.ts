@@ -6,10 +6,10 @@
 import {afterAll, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {gzipSync} from 'node:zlib';
-import {createProjectRepo} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {createEngine} from '@openisd/design/engine';
+import {projectRepoOn} from './fixtures/repoOn.js';
 
 /** A picker that is never reached — these tests exercise the link and text doors only. */
 const noFilePicker: FileStorage = {
@@ -18,7 +18,7 @@ const noFilePicker: FileStorage = {
   openFileName: () => null,
   forget: () => {},
 };
-const repo = createProjectRepo(createEngine(), noFilePicker, createMemoryStorage(), 'http://localhost');
+const repo = projectRepoOn(createEngine(), noFilePicker, createMemoryStorage(), 'http://localhost');
 
 /** A conforming driver RECORD — the form a driver takes inside a serialised payload. Every key
  *  the schema requires is present; the values are deliberately synthetic, since these tests are

@@ -9,7 +9,7 @@ import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, it, vi} from 'vitest';
 import {z} from 'zod';
-import {createProjectRepo, type ProjectRepairReport} from '../src/repos/projectRepo.js';
+import {type ProjectRepairReport} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {
@@ -17,6 +17,7 @@ import {
 } from '../src/repos/storageKeys.js';
 import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
+import {projectRepoOn} from './fixtures/repoOn.js';
 
 const engine = createEngine();
 const FIXTURE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'stored-pre-t036');
@@ -67,7 +68,7 @@ describe('a stored project list from before T036', () => {
   it('lists and loads every project, with no repair notice', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: storedList()});
     const onRepaired = vi.fn<(report: ProjectRepairReport) => void>();
-    const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost', onRepaired);
+    const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost', onRepaired);
     expect(repo.listStoredProjects().map(p => p.id).sort()).toEqual(fixtures.map(f => f.id));
     for (const f of fixtures) {
       const loaded = repo.loadStoredProject(f.id);
@@ -79,7 +80,7 @@ describe('a stored project list from before T036', () => {
 
   it('a two-chamber project reads its box Qiclfr from the old chamber value', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: storedList()});
-    const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
+    const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
     const loaded = repo.loadStoredProject('abc');
     if (Array.isArray(loaded)) throw new Error('refused: ' + loaded.join('; '));
     expect(loaded.box.abc.Qiclfr.value).toBe(100);
@@ -89,7 +90,7 @@ describe('a stored project list from before T036', () => {
 describe('an open session from before T036', () => {
   it('restores every project and refuses none', () => {
     const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: sessionRecord()});
-    const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
+    const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
     const session = repo.loadOpenProjects();
     if (session === null || Array.isArray(session)) throw new Error('expected a session');
     expect(session.refused).toEqual([]);
@@ -99,7 +100,7 @@ describe('an open session from before T036', () => {
   it('start-up stores it with a box Qiclfr, after backing up the original text', () => {
     const record = sessionRecord();
     const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: record});
-    createProjectRepo(engine, noFiles, storage, 'http://localhost');
+    projectRepoOn(engine, noFiles, storage, 'http://localhost');
     expect(storage.get(OPENISD_BACKUP_KEYS.openSessions)).toBe(record);
     expect(storage.get(OPENISD_OPEN_SESSIONS_KEY)).toContain('Qiclfr');
   });
@@ -123,7 +124,7 @@ describe('a front-only chamber Qicl in storage', () => {
   it('survives start-up as the box Qiclfr, in the stored text and on load', () => {
     const entry = {id: 'front-only', text: frontOnlyQicl(55), modified: MODIFIED};
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: JSON.stringify({version: 1, entries: [entry]})});
-    const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
+    const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
     expect(storage.get(OPENISD_PROJECTS_KEY)).not.toContain('"Qicl"');
     const loaded = repo.loadStoredProject('front-only');
     if (Array.isArray(loaded)) throw new Error('refused: ' + loaded.join('; '));
@@ -134,7 +135,7 @@ describe('a front-only chamber Qicl in storage', () => {
 describe('an entry the build refuses stays byte-identical in storage', () => {
   it('in the project list, through a boot and a save', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: storedList([{id: 'refused', text: REFUSED}])});
-    const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
+    const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
     const stored = (): string | undefined => storedText(storage.get(OPENISD_PROJECTS_KEY), 'refused');
     expect(stored()).toBe(REFUSED);
     const fresh = ProjectBuilder.empty(engine);
@@ -147,7 +148,7 @@ describe('an entry the build refuses stays byte-identical in storage', () => {
   it('in the open session, copied aside before the next save', () => {
     const record = sessionRecord([{id: 'refused', text: REFUSED}]);
     const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: record});
-    const repo = createProjectRepo(engine, noFiles, storage, 'http://localhost');
+    const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
     const session = repo.loadOpenProjects();
     if (session === null || Array.isArray(session)) throw new Error('expected a session');
     expect(session.refused).toHaveLength(1);

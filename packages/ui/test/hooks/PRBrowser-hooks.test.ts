@@ -6,20 +6,21 @@ import {usePRBrowser, type PRBrowserAPI} from '../../src/hooks/PRBrowser-hooks.j
 import {testAppLogic} from './testAppLogic.js';
 import {
   type BundledPassiveRadiatorRepo, type MyPassiveRadiatorRepo, type PrefsRepo,
-  createMemoryStorage, createMyPassiveRadiatorRepo, createPrefsRepo,
+  createMemoryStorage, createPrefsRepo,
 } from '@openisd/persistence';
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {myPassiveRadiatorRepoOn} from '../fixtures/repoOn.js';
 
 async function renderHook(emit = vi.fn()): Promise<{api: PRBrowserAPI; emit: ReturnType<typeof vi.fn>}> {
   const myPassiveRadiators: MyPassiveRadiatorRepo = {
     read: () => ({ kind: 'ok', passiveRadiators: [], broken: [] }),
     list: () => [],
-    replaceAll: () => true,
+    replaceAll: () => 'done',
     upsert: () => null,
-    remove: vi.fn(() => true),
-    removeBroken: () => true,
+    remove: vi.fn((): 'done' => 'done'),
+    removeBroken: () => 'done',
     exportRaw: () => null,
-    deleteAll: () => undefined,
+    deleteAll: () => 'done',
   };
   const bundledPassiveRadiators: BundledPassiveRadiatorRepo = {
     index: () => Promise.resolve([]),
@@ -67,7 +68,7 @@ describe('PRBrowser-hooks', () => {
 // bugs/BUG_20260909_passive_radiators_cannot_be_favourited_at_all.md
 describe('PRBrowser-hooks — favourites', () => {
   async function renderWith(prefs: PrefsRepo): Promise<{api: PRBrowserAPI; savedId: string}> {
-    const myPassiveRadiators = createMyPassiveRadiatorRepo(createMemoryStorage());
+    const myPassiveRadiators = myPassiveRadiatorRepoOn(createMemoryStorage());
     const pr = OpenISDPassiveRadiatorStandalone.empty();
     pr.model.set('Saved PR');
     const saved = myPassiveRadiators.upsert(pr);

@@ -2,7 +2,8 @@
 import {OpenISDDriver} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {type BrokenEntry, createSavedEntries, type SavedEntries} from './savedEntries.js';
+import {type BrokenEntry, createSavedEntries, type SavedEntries, type SavedWrite} from './savedEntries.js';
+import type {StorageBackup} from './storageBackup.js';
 import {OPENISD_MY_DRIVERS_KEY} from './storageKeys.js';
 
 // "My Drivers" — the user's own saved-driver collection, in browser storage.
@@ -36,28 +37,28 @@ export interface MyDriverRepo {
   list(): { uuid: string; driver: OpenISDDriver }[];
   /** Replace the whole collection — used by "reset to the demo samples". Refused (false)
    *  while the bucket is unreadable. Each entry mints a fresh uuid. */
-  replaceAll(list: OpenISDDriver[]): boolean;
+  replaceAll(list: OpenISDDriver[]): SavedWrite;
   /** Save one driver. `uuid` absent mints a fresh identity (a new entry); `uuid` present
    *  overwrites that entry. Returns the uuid it was saved under; null = refused (read-only). */
   upsert(d: OpenISDDriver, uuid?: string): { uuid: string; overwrote: boolean } | null;
   /** Remove the saved driver with this uuid. Refused (false) while unreadable. */
-  remove(uuid: string): boolean;
+  remove(uuid: string): SavedWrite;
   /** Remove ONE broken entry by its `BrokenEntry.key` — the surface challenges first. */
-  removeBroken(key: number): boolean;
+  removeBroken(key: number): SavedWrite;
   /** The stored string, verbatim — what the unreadable-bucket Export downloads. */
   exportRaw(): string | null;
   /** Wipe the bucket and start fresh — the unreadable-bucket Delete, NEVER automatic; the
    *  surface challenges for an un-exported session before calling this. */
-  deleteAll(): void;
+  deleteAll(): 'done' | 'noRoom';
 }
 
-export function createMyDriverRepo(storage: KeyValueStorage, engine: Engine): MyDriverRepo {
+export function createMyDriverRepo(storage: KeyValueStorage, engine: Engine, backup: StorageBackup): MyDriverRepo {
   const library: SavedEntries<OpenISDDriver> = createSavedEntries(storage, {
     key: MY_DRIVERS_KEY,
     schemaVersion: 1,
     open: (record) => OpenISDDriver.fromConformingRecord(record, engine),
     snapshot: (driver) => driver.cloneDriver(),
-  });
+  }, backup);
 
   return {
     read() {

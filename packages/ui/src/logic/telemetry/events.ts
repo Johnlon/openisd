@@ -18,6 +18,8 @@ export interface LaunchEvent {
   readonly h: number;
   readonly lang: string;
   readonly ref: string;
+  /** Storage keys that were here at the last start and are gone now; none when nothing was lost. */
+  readonly keysLost: readonly string[];
 }
 export interface InstallEvent { readonly kind: 'install' }
 export interface ProjectOpenEvent { readonly kind: 'project_open'; readonly source: ProjectSource; readonly box: string }
@@ -43,7 +45,10 @@ export interface WireEvent {
 
 export function fieldsOf(e: TelemetryEvent): Fields {
   switch (e.kind) {
-    case 'launch': return {mode: e.mode, platform: e.platform, skin: e.skin, w: e.w, h: e.h, lang: e.lang, ref: e.ref};
+    case 'launch': return {
+      mode: e.mode, platform: e.platform, skin: e.skin, w: e.w, h: e.h, lang: e.lang, ref: e.ref,
+      ...(e.keysLost.length === 0 ? {} : {keysLost: e.keysLost.join(',')}),
+    };
     case 'install': return {};
     case 'project_open': return {source: e.source, box: e.box};
     case 'project_save': return {format: e.format, box: e.box};

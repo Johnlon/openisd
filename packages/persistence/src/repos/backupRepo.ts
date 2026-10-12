@@ -1,85 +1,72 @@
-/** REPO: a single JSON snapshot of every key `storageKeys.ts` lists — projects, My Drivers, My
- *  Passive Radiators, favourites, view/prefs, app settings — and the one place that knows how
- *  to put one back.
+/** REPO: a single JSON snapshot of the store — projects, My Drivers, My Passive Radiators,
+ *  favourites, view/prefs, app settings — and the one place that knows how to put one back.
  *
  *  Deliberately excludes the BUNDLED catalogues (drivers/passive radiators): those are static
- *  shipped assets fetched over HTTP, never written to this storage, so they are not in
- *  `OPENISD_STORAGE_KEYS` and there is nothing here to exclude them FROM — the boundary is
- *  automatic, not a filter this repo has to apply.
+ *  shipped assets fetched over HTTP, never written to this storage, so there is nothing here to
+ *  exclude them FROM.
  *
- *  A restore is a REPLACE, not a merge: every key `OPENISD_STORAGE_KEYS` lists is either set to
- *  the backup's value or removed if the backup does not have it, so restoring an older backup
- *  actually reverts the browser to that point in time rather than layering old data over new.
- *  The caller (the UI) is responsible for confirming this with the user before calling
+ *  A restore KEEPS every key the file lacks, unless the user asks to replace everything: then
+ *  every data key the file lacks is removed too, so the browser reverts to the file's point in
+ *  time. Either way the whole store is backed up first (T058), and a file written by an older
+ *  layout is migrated, one layout at a time, before it is written. A file from a newer layout is
+ *  refused: this app cannot read it. The caller (the UI) confirms with the user before calling
  *  `importAll` — this repo does not ask. */
-import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {OPENISD_STORAGE_KEYS} from './storageKeys.js';
-
-/** Bumped only if the envelope's own shape changes — not on every app release. */
-const BACKUP_SCHEMA_VERSION = 1;
-
-interface BackupEnvelope {
-  openisdBackup: true;
-  schemaVersion: number;
-  exportedAt: string;
-  /** One entry per `OPENISD_STORAGE_KEYS` value that had something stored; an absent key means
-   *  that bucket was empty, not that it was skipped. */
-  data: Record<string, string>;
-}
+import type {ListableStorage} from '../storage/keyValueStorage.js';
+import {createLayoutMigrator, type LayoutRules} from './layoutMigration.js';
+import type {StorageBackup} from './storageBackup.js';
+import {createStorageSnapshot, emptySnapshot, envelopeText, isStoreDataKey, readEnvelope} from './storageSnapshot.js';
 
 export type RestoreResult =
-  | { kind: 'ok'; keysRestored: number }
-  | { kind: 'invalid'; reason: string };
+  | {kind: 'ok'; keysRestored: number}
+  | {kind: 'invalid'; reason: string}
+  /** The backup of what is here now would not fit, so nothing was changed. */
+  | {kind: 'refused'; reason: string};
+
+export interface RestoreOptions {
+  /** Remove every data key the file lacks, so the store becomes exactly the file. */
+  readonly replaceEverything: boolean;
+}
 
 export interface BackupRepo {
-  /** Every persisted key, as one JSON string ready to download. */
+  /** Every data key, as one JSON string ready to download. */
   exportAll(): string;
-  /** Replace every persisted key from a previously-exported JSON string. Validates the envelope
-   *  before writing anything — a malformed file changes nothing. */
-  importAll(json: string): RestoreResult;
+  /** Put a previously-exported JSON string back. Validates the envelope before writing anything
+   *  — a malformed file changes nothing. */
+  importAll(json: string, options: RestoreOptions): RestoreResult;
 }
 
-function isBackupEnvelope(parsed: unknown): parsed is BackupEnvelope {
-  if (typeof parsed !== 'object' || parsed === null) return false;
-  if (!('openisdBackup' in parsed) || parsed.openisdBackup !== true) return false;
-  if (!('data' in parsed) || typeof parsed.data !== 'object' || parsed.data === null) return false;
-  return Object.values(parsed.data).every(v => typeof v === 'string');
-}
-
-export function createBackupRepo(storage: KeyValueStorage): BackupRepo {
+export function createBackupRepo(
+  storage: ListableStorage, backup: StorageBackup, now: () => number,
+  rules: LayoutRules,
+): BackupRepo {
+  const migrator = createLayoutMigrator(rules);
+  const snapshots = createStorageSnapshot(storage, now);
   return {
-    exportAll(): string {
-      const data: Record<string, string> = {};
-      for (const key of Object.values(OPENISD_STORAGE_KEYS)) {
-        const v = storage.get(key);
-        if (v !== null) data[key] = v;
-      }
-      const envelope: BackupEnvelope = {
-        openisdBackup: true,
-        schemaVersion: BACKUP_SCHEMA_VERSION,
-        exportedAt: new Date().toISOString(),
-        data,
-      };
-      return JSON.stringify(envelope, null, 2);
-    },
+    exportAll: () => envelopeText(snapshots.take() ?? emptySnapshot(rules.layout, now()), true),
 
-    importAll(json: string): RestoreResult {
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(json);
-      } catch {
-        return { kind: 'invalid', reason: 'Not a valid JSON file.' };
+    importAll(json, options) {
+      const read = readEnvelope(json);
+      if (read.kind === 'invalid') return read;
+      const {snapshot} = read;
+      if (snapshot.layout > rules.layout) {
+        return {kind: 'invalid', reason: `This file was written by a newer OpenISD (storage layout ${snapshot.layout}; this one reads up to ${rules.layout}). Update the app to restore it.`};
       }
-      if (!isBackupEnvelope(parsed)) {
-        return { kind: 'invalid', reason: 'Not an OpenISD backup file (missing or malformed envelope).' };
+      const migrated = migrator.migrate(snapshot.data, snapshot.layout);
+      if (migrated === null) return {kind: 'invalid', reason: `This file is layout ${snapshot.layout} and this app cannot migrate it.`};
+      const incoming = Object.entries(migrated).filter(([key]) => isStoreDataKey(key));
+
+      const guarded = backup.guard(() => {
+        for (const [key, value] of incoming) storage.set(key, value);
+        if (options.replaceEverything) {
+          const kept = new Set(incoming.map(([key]) => key));
+          for (const key of storage.keys()) if (isStoreDataKey(key) && !kept.has(key)) storage.remove(key);
+        }
+        return incoming.length;
+      });
+      if (guarded.kind === 'refused') {
+        return {kind: 'refused', reason: 'The browser has no room to back up what is here now before restoring. Download a backup first, then restore.'};
       }
-      let keysRestored = 0;
-      for (const key of Object.values(OPENISD_STORAGE_KEYS)) {
-        const value = parsed.data[key];
-        if (value === undefined) storage.remove(key);
-        else { storage.set(key, value); keysRestored++; }
-      }
-      return { kind: 'ok', keysRestored };
+      return {kind: 'ok', keysRestored: guarded.value};
     },
   };
 }

@@ -6,6 +6,7 @@ import {readDriverFileText} from './driverFileText.js';
 import {DriverFileFormat, sniff} from '../fileFormat.js';
 import {DriverScope} from '../driverScope.js';
 import type {Logging} from '../logging/flash.js';
+import {flashIfNoRoom} from './backupRefusal.js';
 import type {ConfirmPort} from './confirmPort.js';
 import type {
     BrokenEntry,
@@ -347,13 +348,15 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   }
 
   function deleteAllMyDrivers(): void {
-    myDriverRepo.deleteAll();
+    const wiped = myDriverRepo.deleteAll();
+    flashIfNoRoom(logging, wiped);
+    if (wiped === 'noRoom') return;
     exportedThisSession.value = false;
     reloadMyDrivers();
   }
 
   function removeBrokenEntry(key: number): void {
-    myDriverRepo.removeBroken(key);
+    flashIfNoRoom(logging, myDriverRepo.removeBroken(key));
     reloadMyDrivers();
   }
 
@@ -366,7 +369,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       cancelLabel: 'Cancel',
     });
     if (!confirmed) return;
-    myDriverRepo.replaceAll([]);
+    flashIfNoRoom(logging, myDriverRepo.replaceAll([]));
     reloadMyDrivers();
   }
 
@@ -374,7 +377,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
    *  label (two unnamed drivers would both read as the same empty string). */
   function deleteMyDriver(uuid: string): void {
     if (!uuid) return;
-    myDriverRepo.remove(uuid);
+    flashIfNoRoom(logging, myDriverRepo.remove(uuid));
     reloadMyDrivers();
   }
 

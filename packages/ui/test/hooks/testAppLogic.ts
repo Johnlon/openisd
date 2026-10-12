@@ -5,18 +5,12 @@
  * actually exercises.
  */
 import {
-  createBackupRepo,
   createBundledDriverRepo,
   createBundledPassiveRadiatorRepo,
   createFileOpen,
   createFileStorage,
   createMemoryStorage,
-  createMyDriverRepo,
-  createMyPassiveRadiatorRepo,
   createPrefsRepo,
-  createProjectRepo,
-  createViewStateRepo,
-  createAppSettingsRepo,
   isStoredDataFault,
 } from '@openisd/persistence';
 import {createLogging} from '../../src/logging/flash.js';
@@ -31,6 +25,7 @@ import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppLogic} from '../../src/logic/app.js';
 import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
 import {createAppVersionPort} from '../../src/logic/appVersion.js';
+import {appSettingsRepoOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
@@ -50,21 +45,21 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const logging = createLogging();
   const storage = createMemoryStorage();
   const faultLog = createFaultLog(() => undefined, () => ({
-    view: createViewStateRepo(storage), appSettings: createAppSettingsRepo(storage),
+    view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
   }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
   const driverRepo = createBundledDriverRepo({
     fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });
-  const myDriverRepo = createMyDriverRepo(storage, engine);
+  const myDriverRepo = myDriverRepoOn(storage, engine);
   const prefs = createPrefsRepo(storage);
-  const myPassiveRadiators = createMyPassiveRadiatorRepo(storage);
+  const myPassiveRadiators = myPassiveRadiatorRepoOn(storage);
   const bundledPassiveRadiators = createBundledPassiveRadiatorRepo({
     fetch: unusedFetch, baseUrl: '/', maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });
   const fileStorage = createFileStorage();
   const driverFileStorage = createFileStorage();
   const selection = createDriverSelection({ appState, presentation });
-  const projectRepo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
+  const projectRepo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
   const designFiles = new DesignFiles(engine, projectRepo);
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
@@ -72,8 +67,8 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
     confirmReset: fakeConfirmPort, appState, presentation,
   });
-  const viewStateRepo = createViewStateRepo(storage);
-  const backup = createBackupRepo(storage);
+  const viewStateRepo = viewStateRepoOn(storage);
+  const backup = backupRepoOn(storage);
   const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: fakeConfirmPort, appState, presentation });
 
   const base: AppLogic = {

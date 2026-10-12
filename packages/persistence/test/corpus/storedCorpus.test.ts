@@ -12,10 +12,10 @@
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {WinIsdProjectConverter} from '@openisd/design';
-import {createProjectRepo} from '../../src/repos/projectRepo.js';
 import type {FileStorage} from '../../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../../src/storage/keyValueStorage.js';
 import {ROOT, engine, filesUnder, refused} from './corpusFiles.js';
+import {projectRepoOn} from '../fixtures/repoOn.js';
 
 const noFiles: FileStorage = {
   save: () => { throw new Error('the corpus writes no file'); },
@@ -23,7 +23,7 @@ const noFiles: FileStorage = {
   openFileName: () => null,
   forget: () => { throw new Error('the corpus writes no file'); },
 };
-const repo = createProjectRepo(engine, noFiles, createMemoryStorage(), 'http://localhost');
+const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
 
 describe('stored-data corpus', () => {
   it('every stored-project fixture parses', () => {

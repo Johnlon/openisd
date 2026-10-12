@@ -43,6 +43,7 @@ import {
   projectFilename,
   projectNameFromFilename,
   type ProjectRepo,
+  type RestoreOptions,
   type RestoreResult
 } from '@openisd/persistence';
 import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
@@ -81,7 +82,7 @@ export interface DesignIO {
   /** Restore every persisted key from a previously-downloaded backup file. Pure pass-through to
    *  `BackupRepo.importAll` — confirming with the user and reloading afterwards is the Options
    *  dialog's own job, not this module's. */
-  importBackup(json: string): RestoreResult;
+  importBackup(json: string, options: RestoreOptions): RestoreResult;
 }
 
 /**
@@ -355,8 +356,8 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     flash(`Backup downloaded as ${fileName}`);
   }
 
-  function importBackup(json: string): RestoreResult {
-    return deps.backup.importAll(json);
+  function importBackup(json: string, options: RestoreOptions): RestoreResult {
+    return deps.backup.importAll(json, options);
   }
 
   return {

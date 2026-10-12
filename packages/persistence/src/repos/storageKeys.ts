@@ -10,6 +10,18 @@ export const OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY = 'openisd_favourite_passiv
 export const OPENISD_QUARANTINE_SESSION_KEY = 'openisd_quarantine_session';
 export const OPENISD_APP_SETTINGS_KEY = 'openisd_app_settings';
 
+/** The layout of the app that last wrote the store, and that app's build stamp. Written with
+ *  every store write; not part of `OPENISD_STORAGE_KEYS` (they describe the store, they are not
+ *  its data). */
+export const OPENISD_STORAGE_LAYOUT_KEY = 'openisd_storage_layout';
+export const OPENISD_STORAGE_BUILD_KEY = 'openisd_storage_build';
+/** One entry per app start: which keys were present, and how long each was. */
+export const OPENISD_STORAGE_LOG_KEY = 'openisd_storage_log';
+/** Whole-store backups are `openisd_backup_<build stamp of the app that wrote the store>`. */
+export const OPENISD_BACKUP_PREFIX = 'openisd_backup_';
+/** Every key this app owns starts with this. */
+export const OPENISD_KEY_PREFIX = 'openisd_';
+
 /** Where each record's pre-repair text is kept: written before a repaired or replacing write,
  *  newest only, so the user can download what was there. */
 export const OPENISD_BACKUP_KEYS = Object.freeze({

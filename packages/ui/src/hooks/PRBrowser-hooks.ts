@@ -1,6 +1,7 @@
 import type {InjectionKey, Ref} from 'vue';
 import {computed, ref} from 'vue';
 import {useApp} from '../logic/app.js';
+import {flashIfNoRoom} from '../logic/backupRefusal.js';
 import {bundledPassiveRadiatorRows, type PassiveRadiatorRow, passiveRadiatorRows} from '../logic/driverDisplay.js';
 
 export interface PRBrowserAPI {
@@ -22,7 +23,7 @@ export interface PRBrowserAPI {
 export const PRBrowserKey: InjectionKey<PRBrowserAPI> = Symbol('PRBrowserAPI');
 
 export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
-  const { myPassiveRadiators, bundledPassiveRadiators, prefs } = useApp();
+  const { myPassiveRadiators, bundledPassiveRadiators, prefs, logging } = useApp();
   const filter = ref('');
 
   const savedRows = ref(passiveRadiatorRows(
@@ -54,7 +55,7 @@ export function usePRBrowser(emit: (event: 'close') => void): PRBrowserAPI {
   const fBundled = computed(() => matching(bundledRows.value, filter.value.trim().toLowerCase()));
 
   function remove(uuid: string): void {
-    myPassiveRadiators.remove(uuid);
+    flashIfNoRoom(logging, myPassiveRadiators.remove(uuid));
     savedRows.value = passiveRadiatorRows(
       myPassiveRadiators.list().map(e => ({ id: e.uuid, radiator: e.passiveRadiator })));
   }

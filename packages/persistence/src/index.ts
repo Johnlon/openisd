@@ -9,7 +9,7 @@ export {
 
 // The envelope both saved libraries share. A consumer names `BrokenEntry` (the unreadable-entry
 // surface); the envelope itself is storage's own business and is not exported.
-export type { BrokenEntry } from './repos/savedEntries.js';
+export type { BrokenEntry, SavedWrite } from './repos/savedEntries.js';
 
 export {
   MY_DRIVERS_KEY, type MyDriversRead,
@@ -25,7 +25,7 @@ export { FAVORITES_KEY, type PrefsRepo, createPrefsRepo } from './repos/prefsRep
 export { APP_SETTINGS_KEY, type AppSettingsRepo, createAppSettingsRepo } from './repos/appSettingsRepo.js';
 
 export {
-  type KeyValueStorage, type SharedMemoryStorage, createLocalStorage, createMemoryStorage, createSharedMemoryStorage,
+  type KeyValueStorage, type ListableStorage, type SharedMemoryStorage, createLocalStorage, createMemoryStorage, createSharedMemoryStorage,
 } from './storage/keyValueStorage.js';
 
 export { createFileSave, type FileSave } from './storage/fileSave.js';
@@ -36,7 +36,19 @@ export {
   OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY,
   OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY,
   OPENISD_STORAGE_KEYS, OPENISD_BACKUP_KEYS,
+  OPENISD_STORAGE_LAYOUT_KEY, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LOG_KEY, OPENISD_BACKUP_PREFIX,
 } from './repos/storageKeys.js';
+
+export { STORAGE_LAYOUT } from './storageLayout.js';
+export { BuildStamp, createBuildStamp } from './repos/buildStamp.js';
+export { type LayoutRules, type LayoutStep, LAYOUT_STEPS } from './repos/layoutMigration.js';
+export {
+  type BackupInfo, type BackupResult, type Guarded, type StorageBackup, MAX_BACKUPS, NO_ROOM_TO_BACK_UP, createStorageBackup,
+} from './repos/storageBackup.js';
+export { type LostKey, type LogEntry, type StorageLog, MAX_LOG_ENTRIES, createStorageLog } from './repos/storageLog.js';
+export {
+  type OpenStore, type StoreOpening, type BlockReason, type OpenStoreDeps, createStoreOpening,
+} from './repos/storeGate.js';
 
 export { type SaveResult, type FileStorage, createFileStorage } from './storage/fileStorage.js';
 
@@ -53,7 +65,7 @@ export {
 } from './repos/viewStateRepo.js';
 
 export {
-  type BackupRepo, type RestoreResult, createBackupRepo,
+  type BackupRepo, type RestoreResult, type RestoreOptions, createBackupRepo,
 } from './repos/backupRepo.js';
 
 export { type StoreName, type StoredDataFault, createStoredDataFault, isStoredDataFault } from './repos/storedDataFault.js';

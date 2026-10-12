@@ -6,7 +6,8 @@
  *  things specific to a radiator: which storage key, and which domain seam validates a record. */
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {type BrokenEntry, createSavedEntries, type SavedEntries} from './savedEntries.js';
+import {type BrokenEntry, createSavedEntries, type SavedEntries, type SavedWrite} from './savedEntries.js';
+import type {StorageBackup} from './storageBackup.js';
 import {OPENISD_MY_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
 
 export const MY_PASSIVE_RADIATORS_KEY = OPENISD_MY_PASSIVE_RADIATORS_KEY;
@@ -25,27 +26,27 @@ export interface MyPassiveRadiatorRepo {
   /** Every saved radiator, in saved order — `[]` when unavailable or unreadable. */
   list(): { uuid: string; passiveRadiator: OpenISDPassiveRadiatorStandalone }[];
   /** Replace the whole collection. Refused (false) while the bucket is unreadable. */
-  replaceAll(list: OpenISDPassiveRadiatorStandalone[]): boolean;
+  replaceAll(list: OpenISDPassiveRadiatorStandalone[]): SavedWrite;
   /** Save one radiator. `uuid` absent mints a fresh identity; `uuid` present overwrites that
    *  entry. Returns the uuid it was saved under; null = refused (read-only). */
   upsert(pr: OpenISDPassiveRadiatorStandalone, uuid?: string): { uuid: string; overwrote: boolean } | null;
   /** Remove the saved radiator with this uuid. Refused (false) while unreadable. */
-  remove(uuid: string): boolean;
+  remove(uuid: string): SavedWrite;
   /** Remove ONE broken entry by its `BrokenEntry.key` — the surface challenges first. */
-  removeBroken(key: number): boolean;
+  removeBroken(key: number): SavedWrite;
   /** The stored string, verbatim — what the unreadable-bucket Export downloads. */
   exportRaw(): string | null;
   /** Wipe the bucket and start fresh — NEVER automatic. */
-  deleteAll(): void;
+  deleteAll(): 'done' | 'noRoom';
 }
 
-export function createMyPassiveRadiatorRepo(storage: KeyValueStorage): MyPassiveRadiatorRepo {
+export function createMyPassiveRadiatorRepo(storage: KeyValueStorage, backup: StorageBackup): MyPassiveRadiatorRepo {
   const library: SavedEntries<OpenISDPassiveRadiatorStandalone> = createSavedEntries(storage, {
     key: MY_PASSIVE_RADIATORS_KEY,
     schemaVersion: 1,
     open: (record) => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record),
     snapshot: (pr) => pr.clonePassiveRadiator(),
-  });
+  }, backup);
 
   return {
     read() {

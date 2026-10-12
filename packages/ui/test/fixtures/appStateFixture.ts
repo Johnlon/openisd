@@ -4,9 +4,10 @@
  * nothing is shared between tests or files.
  */
 import {createEngine} from '@openisd/design/engine';
-import {type AppSettingsRepo, createAppSettingsRepo, createMemoryStorage, type KeyValueStorage} from '@openisd/persistence';
+import {type AppSettingsRepo, createMemoryStorage, type ListableStorage} from '@openisd/persistence';
 import {type AppState, createAppState} from '../../src/logic/appState.js';
 import {createPresentationState, type PresentationState} from '../../src/logic/presentationState.js';
+import {appSettingsRepoOn} from './repoOn.js';
 
 export interface AppStateFixture {
   readonly appState: AppState;
@@ -15,8 +16,8 @@ export interface AppStateFixture {
 }
 
 /** `storage` is where the application settings live; pass one to start from settings already written. */
-export function createAppStateFixture(storage: KeyValueStorage = createMemoryStorage()): AppStateFixture {
-  const appSettings = createAppSettingsRepo(storage);
+export function createAppStateFixture(storage: ListableStorage = createMemoryStorage()): AppStateFixture {
+  const appSettings = appSettingsRepoOn(storage);
   const engine = createEngine({
     ventedLimits: () => appSettings.ventedLimits(),
     envDefaults: () => appSettings.envDefaults(),

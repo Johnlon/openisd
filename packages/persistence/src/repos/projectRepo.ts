@@ -9,6 +9,7 @@ import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
+import type {StorageBackup} from './storageBackup.js';
 import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
 import {createStoredDataFault} from './storedDataFault.js';
 
@@ -230,6 +231,7 @@ const OPEN_SESSION_SOURCE: StoredSource = { key: OPENISD_OPEN_SESSIONS_KEY, back
 export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
   storage: KeyValueStorage, storeAddress: string,
+  backup: StorageBackup,
   onRepaired: (report: ProjectRepairReport) => void = () => undefined,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
@@ -249,7 +251,7 @@ export function createProjectRepo(
     if (Array.isArray(result)) return result;
     if (result.repaired.length > 0 && source !== null) {
       const original = storage.get(source.key);
-      if (original !== null) storage.set(source.backupKey, original);
+      if (original !== null) backup.guard(() => storage.set(source.backupKey, original));
       onRepaired({
         projectName: result.project.name.value,
         repaired: result.repaired,
@@ -389,8 +391,10 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const dedup = deduplicateProjectEntries(payload.entries);
       const migrated = migrateEntries(dedup.entries);
       if (dedup.changed || migrated.changed) {
-        storage.set(OPENISD_BACKUP_KEYS.projects, text);
-        writeStoredEntries(migrated.entries);
+        backup.guard(() => {
+          storage.set(OPENISD_BACKUP_KEYS.projects, text);
+          writeStoredEntries(migrated.entries);
+        });
       }
     } catch (err) {
       console.error(createStoredDataFault('project', `stored projects collection is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
@@ -409,8 +413,10 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       }
       const migrated = migrateEntries(payload.entries);
       if (migrated.changed) {
-        storage.set(OPENISD_BACKUP_KEYS.openSessions, text);
-        storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries: migrated.entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
+        backup.guard(() => {
+          storage.set(OPENISD_BACKUP_KEYS.openSessions, text);
+          storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries: migrated.entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
+        });
       }
     } catch (err) {
       console.error(createStoredDataFault('project', `open project session is not valid JSON: ${err instanceof Error ? err.message : String(err)}`));
@@ -422,8 +428,10 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     if (text === null) return;
     const res = migratePayloadText(text);
     if (res.changed) {
-      storage.set(OPENISD_BACKUP_KEYS.state, text);
-      storage.set(PROJECT_STORAGE_KEY, res.text);
+      backup.guard(() => {
+        storage.set(OPENISD_BACKUP_KEYS.state, text);
+        storage.set(PROJECT_STORAGE_KEY, res.text);
+      });
     }
   }
 

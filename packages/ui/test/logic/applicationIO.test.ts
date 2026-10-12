@@ -7,13 +7,14 @@ import {dirname, join} from 'node:path';
 import {createLogging, type Logging} from '../../src/logging/flash.js';
 import {createApplicationIO, type DesignIO} from '../../src/logic/applicationIO.js';
 import {DesignFiles} from '../../src/logic/fileImportExport.js';
-import {createBackupRepo, createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, createProjectRepo, type FileStorage} from '@openisd/persistence';
+import {createFileOpen, createFileStorage, createMemoryStorage, type FileOpen, type FilePick, type FileStorage} from '@openisd/persistence';
 import {createEngine} from '@openisd/design/engine';
 import {ensureSampleProject, SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import type {ConfirmPort} from '../../src/logic/confirmPort.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
+import {backupRepoOn, projectRepoOn} from '../fixtures/repoOn.js';
 
 let appState: AppState;
 let presentationState: PresentationState;
@@ -32,7 +33,7 @@ ensureSampleProject();
 // Backup export/import is exercised on its own in persistence/test/backupRepo.test.ts — every
 // createApplicationIO() call here just needs a BackupRepo to satisfy the dependency, never one
 // backed by the SAME storage another test in this file is asserting against.
-const backup = createBackupRepo(createMemoryStorage());
+const backup = backupRepoOn(createMemoryStorage());
 
 // Fake confirm port for tests — always confirms
 const fakeConfirmPort: ConfirmPort = {
@@ -102,7 +103,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     });
     try {
       const engine = createEngine();
-      const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
+      const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
       const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
@@ -174,7 +175,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     });
     try {
       const engine = createEngine();
-      const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
+      const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
       const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
@@ -211,7 +212,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       forget: () => {},
     };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
+    const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
     const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
     appState.newProject();
@@ -233,7 +234,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       forget: () => {},
     };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, fileStorage, storage, 'http://localhost');
+    const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
     const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
     appState.newProject();
@@ -256,7 +257,7 @@ describe('openFromDisk — one named filter, fallback to the file input', () => 
   function ioPicking(pick: FilePick, filters: unknown[]) {
     const fileOpen: FileOpen = { pickFile: async (filter) => { filters.push(filter); return pick; } };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
+    const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
     return createApplicationIO({ engine,  logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
   }
 
@@ -355,7 +356,7 @@ describe('every import and export says what it did', () => {
   function ioWith(fileStorage: FileStorage) {
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const engine = createEngine();
-    const repo = createProjectRepo(engine, fileStorage, createMemoryStorage(), 'http://localhost');
+    const repo = projectRepoOn(engine, fileStorage, createMemoryStorage(), 'http://localhost');
     const io = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
     return { io, flash: logging.flash };
   }

@@ -3,6 +3,7 @@
 import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/design/engine';
 import type {AppSettings, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
+import type {StorageBackup} from './storageBackup.js';
 import {OPENISD_APP_SETTINGS_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
 import {createStoredDataFault, type StoredDataFault} from './storedDataFault.js';
 
@@ -28,8 +29,9 @@ export interface AppSettingsRepo extends AppSettings {
   setDifferenceCuesShown(shown: boolean): void;
   /** The stored text verbatim, or null when none — what a backup saves. */
   exportRaw(): string | null;
-  /** Forget the stored settings; every setting reads its factory value. */
-  reset(): void;
+  /** Forget the stored settings; every setting reads its factory value. False when the store
+   *  could not be backed up first, and the settings were kept. */
+  reset(): boolean;
 }
 
 /** The stored record — one member per setting, so the next app-level setting is an added
@@ -104,6 +106,7 @@ function recordOf(p: ParsedAppSettings): StoredAppSettings {
  *  routes it to the fault log so the user is told which store, not left with silent defaults. */
 export function createAppSettingsRepo(
   storage: KeyValueStorage,
+  backup: StorageBackup,
   onUnreadable: (fault: StoredDataFault) => void = () => undefined,
 ): AppSettingsRepo {
   let reportedText: string | null = null;
@@ -122,7 +125,13 @@ export function createAppSettingsRepo(
   function write(next: (current: ParsedAppSettings) => StoredAppSettings): void {
     const text = storage.get(APP_SETTINGS_KEY);
     const current = parseStored(text);
-    if (text !== null && !current.clean) storage.set(OPENISD_BACKUP_KEYS.appSettings, text);
+    if (text !== null && !current.clean) {
+      backup.guard(() => {
+        storage.set(OPENISD_BACKUP_KEYS.appSettings, text);
+        storage.set(APP_SETTINGS_KEY, JSON.stringify(next(current)));
+      });
+      return;
+    }
     storage.set(APP_SETTINGS_KEY, JSON.stringify(next(current)));
   }
   return {
@@ -145,6 +154,6 @@ export function createAppSettingsRepo(
       write(current => recordOf({...current, differenceCues: shown}));
     },
     exportRaw: () => storage.get(APP_SETTINGS_KEY),
-    reset: () => storage.remove(APP_SETTINGS_KEY),
+    reset: () => backup.guard(() => storage.remove(APP_SETTINGS_KEY)).kind === 'ran',
   };
 }

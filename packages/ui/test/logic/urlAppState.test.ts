@@ -7,10 +7,11 @@ import {beforeEach, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {gunzipSync} from 'node:zlib';
 import {createEngine} from '@openisd/design/engine';
-import {createMemoryStorage, createProjectRepo, type ViewSnapshot} from '@openisd/persistence';
+import {createMemoryStorage, type ViewSnapshot} from '@openisd/persistence';
 import {noFilePicker, parseSavedProject, projectOf, sampleDriverRecord, type FixtureMeta} from '../fixtures/persistedProject.js';
+import {projectRepoOn} from '../fixtures/repoOn.js';
 
-const repo = createProjectRepo(createEngine(), noFilePicker, createMemoryStorage(), 'http://localhost');
+const repo = projectRepoOn(createEngine(), noFilePicker, createMemoryStorage(), 'http://localhost');
 
 /** The share-link payload, decoded independently of the app's own `stateToUrl`/gzip path —
  *  what a real browser would decode a link to. */

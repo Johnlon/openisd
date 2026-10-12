@@ -457,14 +457,28 @@ test.describe('Options dialog', () => {
         const chooser = await fileChooserPromise;
         await chooser.setFiles({ name: 'openisd-backup-test.json', mimeType: 'application/json', buffer: Buffer.from(backupJson) });
 
-        // The in-app confirm dialog names what the restore overwrites, then its Restore button
+        // The in-app confirm dialog names what the restore puts in and what it keeps, then its Restore button
         await expect(page.locator('.confirm-overlay')).toBeVisible();
-        for (const named of ['overwrite', 'in memory', 'projects', 'My Drivers', 'My Passive Radiators']) await expect(page.locator('.confirm-modal')).toContainText(named);
+        for (const named of ['replacing the same items', 'is kept', 'backup of what is here now', 'projects', 'My Drivers', 'My Passive Radiators']) await expect(page.locator('.confirm-modal')).toContainText(named);
         await page.locator('.confirm-dialog-confirm').click();
         await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
         await expect.poll(() => reloaded).toBe(true);
         expect(alertSeen).toBe(true);
+      });
+
+      test('with Replace everything ticked, the confirmation says what the file lacks is removed', async ({ page }) => {
+        await openBackupTab(page);
+        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
+        page.on('dialog', async (dialog) => { await dialog.accept(); });
+        await legend.getByLabel('Replace everything').check();
+        const backupJson = JSON.stringify({ openisdBackup: true, schemaVersion: 1, exportedAt: '20260101T000000Z', data: {} });
+        const fileChooserPromise = page.waitForEvent('filechooser');
+        await legend.locator('button', { hasText: 'Restore from file' }).click();
+        const chooser = await fileChooserPromise;
+        await chooser.setFiles({ name: 'openisd-backup-test.json', mimeType: 'application/json', buffer: Buffer.from(backupJson) });
+        await expect(page.locator('.confirm-modal')).toContainText('replaced by what is in this file');
+        await expect(page.locator('.confirm-modal')).toContainText('removed');
       });
 
       test('restoring an invalid file reports the error and does not reload', async ({ page }) => {

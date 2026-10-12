@@ -5,15 +5,15 @@ import {APP_LOGIC} from '../../src/logic/app.js';
 import {createFaultLog, type QuickFix, type SaveBackup} from '../../src/diagnostics/faultLog.js';
 import {useDiagnosticsModal, type DiagnosticsModalAPI} from '../../src/hooks/DiagnosticsModal-hooks.js';
 import {testAppLogic} from './testAppLogic.js';
+import {appSettingsRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
 import {
-  type KeyValueStorage, type StoreName, createStoredDataFault, isStoredDataFault, createAppSettingsRepo, createMemoryStorage, createViewStateRepo,
-} from '@openisd/persistence';
+  type ListableStorage, type StoreName, createStoredDataFault, isStoredDataFault, createMemoryStorage, } from '@openisd/persistence';
 
 async function renderHook(
-  saveBackup: SaveBackup = () => undefined, storage: KeyValueStorage = createMemoryStorage(),
+  saveBackup: SaveBackup = () => undefined, storage: ListableStorage = createMemoryStorage(),
 ): Promise<DiagnosticsModalAPI> {
   const faultLog = createFaultLog(saveBackup, () => ({
-    view: createViewStateRepo(storage), appSettings: createAppSettingsRepo(storage),
+    view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
   }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
   let api!: DiagnosticsModalAPI;
   const Child = defineComponent({

@@ -17,13 +17,23 @@ export interface KeyValueStorage {
   watch(key: string, onChange: () => void): () => void;
 }
 
+/** A storage that can also say which keys it holds — what a whole-store backup, the storage log
+ *  and the layout check need. Repos need only `KeyValueStorage`. */
+export interface ListableStorage extends KeyValueStorage {
+  /** Every key held, in no particular order. */
+  keys(): string[];
+}
+
 /**
  * The browser's own storage. Every call is guarded: storage can be disabled by the user or
  * full, and neither is a reason for the app to stop — a preference that cannot be written is
  * a preference that does not persist, not a crash.
  */
-export function createLocalStorage(): KeyValueStorage {
+export function createLocalStorage(): ListableStorage {
   return {
+    keys() {
+      try { return Object.keys(localStorage); } catch { return []; }
+    },
     get(key) { try { return localStorage.getItem(key); } catch { return null; } },
     set(key, value) { try { localStorage.setItem(key, value); } catch { /* disabled or full */ } },
     remove(key) { try { localStorage.removeItem(key); } catch { /* disabled */ } },
@@ -40,7 +50,7 @@ export function createLocalStorage(): KeyValueStorage {
 /** Storage shared by several tabs with no browser behind it — what a test injects to play more
  *  than one tab. Each `tab()` behaves as the browser's storage does in one tab. */
 export interface SharedMemoryStorage {
-  tab(): KeyValueStorage;
+  tab(): ListableStorage;
 }
 
 export function createSharedMemoryStorage(initial: Record<string, string> = {}): SharedMemoryStorage {
@@ -51,7 +61,8 @@ export function createSharedMemoryStorage(initial: Record<string, string> = {}):
   }
   return {
     tab() {
-      const tab: KeyValueStorage = {
+      const tab: ListableStorage = {
+        keys() { return [...map.keys()]; },
         get(key) { return map.get(key) ?? null; },
         set(key, value) {
           if (map.get(key) === value) return;
@@ -74,6 +85,6 @@ export function createSharedMemoryStorage(initial: Record<string, string> = {}):
 }
 
 /** An equivalent storage with no browser behind it, and no other tab — what a test injects. */
-export function createMemoryStorage(initial: Record<string, string> = {}): KeyValueStorage {
+export function createMemoryStorage(initial: Record<string, string> = {}): ListableStorage {
   return createSharedMemoryStorage(initial).tab();
 }

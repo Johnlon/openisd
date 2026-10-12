@@ -8,7 +8,7 @@ import {CrashReports} from '../../src/logic/telemetry/crashReports.js';
 
 const ENV: LaunchEnvironment = {
   standalone: true, platformHint: undefined, userAgent: 'Mozilla/5.0 (Linux; Android 14)',
-  screenW: 390, screenH: 844, lang: 'en-GB', referrer: 'https://example.org/page?x=1',
+  screenW: 390, screenH: 844, lang: 'en-GB', referrer: 'https://example.org/page?x=1', keysLost: [],
 };
 
 function rig(options: {online?: boolean; accepted?: boolean} = {}) {
@@ -37,6 +37,18 @@ describe('BeaconTelemetry', () => {
     expect(await r.bodies()).toEqual([[{
       name: 'launch', ts: 1000, version: 'v1', session: 'sess',
       fields: {mode: 'standalone', platform: 'Android', skin: 'mobile', w: 390, h: 844, lang: 'en-GB', ref: 'example.org'},
+    }]]);
+  });
+
+  it('names the storage keys lost since the last start, and only when some were', async () => {
+    const r = rig();
+    new LaunchReporter(r.telemetry, () => ({...ENV, keysLost: ['openisd_my_drivers', 'openisd_view']}), work => work()).report('mobile');
+    expect(await r.bodies()).toEqual([[{
+      name: 'launch', ts: 1000, version: 'v1', session: 'sess',
+      fields: {
+        mode: 'standalone', platform: 'Android', skin: 'mobile', w: 390, h: 844, lang: 'en-GB', ref: 'example.org',
+        keysLost: 'openisd_my_drivers,openisd_view',
+      },
     }]]);
   });
 

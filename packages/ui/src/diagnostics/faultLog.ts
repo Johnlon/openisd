@@ -100,13 +100,25 @@ export interface ResettableRecords {
   readonly appSettings: AppSettingsRepo;
 }
 
-/** Hand a record's stored text to `saveBackup`, then reset it. False when nothing was stored. */
-function backUpAndReset(record: ViewStateRepo | AppSettingsRepo, fileName: string, saveBackup: SaveBackup): boolean {
+/** How a reset ended: the record was reset, nothing was stored, or the whole-store backup that
+ *  must come first did not fit and the record was kept. */
+type ResetOutcome = 'reset' | 'nothingStored' | 'noRoom';
+
+/** Hand a record's stored text to `saveBackup`, then reset it. */
+function backUpAndReset(record: ViewStateRepo | AppSettingsRepo, fileName: string, saveBackup: SaveBackup): ResetOutcome {
   const raw = record.exportRaw();
-  if (raw === null) return false;
+  if (raw === null) return 'nothingStored';
   saveBackup(fileName, raw);
-  record.reset();
-  return true;
+  return record.reset() ? 'reset' : 'noRoom';
+}
+
+/** What the repair tells the user for each way a reset ended. */
+function resetAccount(outcome: ResetOutcome, done: string, nothing: string): string {
+  switch (outcome) {
+    case 'reset': return done;
+    case 'nothingStored': return nothing;
+    case 'noRoom': return 'Nothing was reset. There is no room in this browser to back up your saved data first. Export it, then try again.';
+  }
 }
 
 /**
@@ -126,8 +138,8 @@ export function repairLadder({ view, appSettings }: ResettableRecords): readonly
       keeps: 'every project, design, filter, My Drivers and your Options',
       loses: 'chart layout, open panels and which tab is shown (a backup file is saved first)',
       probe: () => view.exportRaw() !== null,
-      apply: (saveBackup) => backUpAndReset(view, 'openisd_view.backup.json', saveBackup)
-        ? 'Saved a backup of the chart layout, then reset it.' : 'There was no stored chart layout.',
+      apply: (saveBackup) => resetAccount(backUpAndReset(view, 'openisd_view.backup.json', saveBackup),
+        'Saved a backup of the chart layout, then reset it.', 'There was no stored chart layout.'),
     },
     {
       id: 'reset-app-settings',
@@ -137,8 +149,8 @@ export function repairLadder({ view, appSettings }: ResettableRecords): readonly
       keeps: 'every project, design, filter, chart layout and My Drivers',
       loses: 'Options settings such as the environment defaults (a backup file is saved first)',
       probe: () => appSettings.exportRaw() !== null,
-      apply: (saveBackup) => backUpAndReset(appSettings, 'openisd_app_settings.backup.json', saveBackup)
-        ? 'Saved a backup of Options, then reset them.' : 'There were no stored Options.',
+      apply: (saveBackup) => resetAccount(backUpAndReset(appSettings, 'openisd_app_settings.backup.json', saveBackup),
+        'Saved a backup of Options, then reset them.', 'There were no stored Options.'),
     },
   ];
 }
