@@ -1,0 +1,40 @@
+id: T055
+repo: openisd
+owner: fable
+status: claimed
+goal: Storage carries one layout number. A newer app backups then migrates; an older app refuses what it cannot read and offers a backup. Goldens prove every old layout loads into the current app.
+spec: |
+  Dates
+  - Every stored or transmitted date is ISO 8601 basic format UTC, 20260101T0102Z. Human text like "1 Jan 2026, 01:02" is display only, from the one design date formatter, never stored.
+  Layout
+  - STORAGE_LAYOUT, one integer in packages/persistence. It alone decides whether a build can read the store. First value after this task: 2 (layout 1 = main before T055).
+  - Key openisd_storage_layout = STORAGE_LAYOUT of the app that last wrote the store, written with every store write. Key openisd_storage_build = build stamp of that app (v20260101T0102Z, minute resolution), informational.
+  - Same layout: load, no backup, no prompt. Swapping between builds of one layout is silent.
+  - Store layout older than the app: copy every openisd_* key to openisd_backup_<build stamp that wrote the store> before migrating, then migrate one layout at a time, then stamp. Backup measures first and drops oldest backups until it fits; if it still cannot fit, stop the upgrade with an export-first message (repair rule, reset only after export).
+  - Keep the last 10 backups, oldest dropped, but never the newest backup of each layout.
+  - Store layout newer than the app: do not load the live store. Offer, in order: restore a backup this layout can read into the live store (backing up the live store first), read-only on such a backup, raw export of the live store. Never silent loss.
+  - In-store records drop their own schemaVersion; the store layout covers them. Exported files keep their existing fields unchanged and gain layout: <N> at the top. Import migrates from that layout with the same stepwise code. No existing export becomes unreadable.
+  Goldens
+  - packages/persistence/test/goldens/<case>/dump-layout-<K>.json: a full localStorage dump (every openisd_* key) as a layout K app writes it, K = the layout the case was born in. Beside it one expected dump per later layout up to current. A case born in N-2 has dumps N-2, N-1, N; a case born in N-1 has N-1, N.
+  - expected.json per case: the projects, drivers, radiators, sessions and settings the current app yields after loading it.
+  - Cases are synthetic or built from the probe pair (W5-1138SMF), never a copy of a live store. As many as diversity dictates: empty, one project, many projects, custom drivers, passive radiators, open sessions, backup, exported driver file, exported project file.
+  - A dump at the current layout is a fixed point: load then write reproduces it byte for byte.
+  - storageUpgrade.test.ts, per case: load the oldest dump into a fresh fake store, migrate one layout at a time asserting each dump, load with the current app asserting expected.json, assert a backup keyed by the writing build stamp exists, assert a second load is silent and writes nothing.
+  - The gate decides the bump: load every case's newest dump through the current loaders, write back. Differs with no bump: fail, "layout changed, bump STORAGE_LAYOUT and add dumps". Bumped but no case differs: fail, needless bump. Bumped and a case lacks a dump for the new layout: fail.
+  - A dump is never edited once written. A later layout adds a file, it changes none.
+  - First cases are dumped at layout 1 from main before this task's loader changes.
+  Storage history page (from T057)
+  - Options menu page: one row per backup (build date, layout, project count, size) with Export to file, Restore (confirm; backups the live store first), Delete, plus Back up now. Logic in persistence/design, UI display only, mobile skin gets the same page as a full-screen dialog.
+  Order on the branch: commit 1 = layout key, backup function, every destructive path backed up, storage log (T058). Review. Commit 2 = goldens, fixed point, schemaVersion drop, layout 2, Storage history page. Review. One land.
+  Lands with T058 on branch t055-releases.
+done_test: |
+  bash scripts/test.sh packages/ui/test/logic/storageHistory.test.ts
+  bash scripts/test.sh packages/persistence/test/storageUpgrade.test.ts
+  bash scripts/test.sh packages/persistence/test/storageBackup.test.ts
+files:
+  - tasks/T055.yml
+  - packages/persistence/src/storageLayout.ts
+  - packages/persistence/src/repos/storageBackup.ts
+  - packages/persistence/test/storageUpgrade.test.ts
+  - packages/persistence/test/storageBackup.test.ts
+  - packages/persistence/test/goldens/**
