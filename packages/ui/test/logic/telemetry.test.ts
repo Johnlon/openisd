@@ -117,11 +117,12 @@ describe('CrashReports', () => {
     crashes.capture(new Error('boom'));
     expect(r.beacon).toHaveBeenCalledTimes(1);
     expect(crashes.pending.value?.message).toBe('boom');
+    const frames = crashes.pending.value?.frames ?? '';
     crashes.submit('n'.repeat(2000), 'me@example.org');
     await vi.waitFor(() => expect(r.beacon).toHaveBeenCalledTimes(2));
     expect((await r.bodies())[1]?.[0]).toMatchObject({
       name: 'report',
-      fields: {note: 'n'.repeat(1000), contact: 'me@example.org', hash: `hash:boom:${crashes.pending.value?.frames ?? ''}`},
+      fields: {note: 'n'.repeat(1000), contact: 'me@example.org', hash: `hash:boom:${frames}`},
     });
     expect(crashes.pending.value).toBeNull();
   });

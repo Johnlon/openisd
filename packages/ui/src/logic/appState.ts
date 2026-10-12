@@ -405,7 +405,6 @@ export function createAppState(deps: AppStateDeps): AppState {
       setTraceVisible(p, !traceHidden.has(p));
     }
     projects.value = restored.slice();
-    for (const p of restored) recordOpen('stored', p);
     focusedIndex.value = restored.length === 0 ? 0 : Math.min(Math.max(requestedFocus, 0), restored.length - 1);
   }
 
