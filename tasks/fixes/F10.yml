@@ -1,0 +1,30 @@
+id: F10
+owner: Johnlon
+status: open
+sha: b1bc3664e22513dbfa754398bb1e3ad4b96a1c7d
+goal: main is red at b1bc3664e2; make the full suite pass again
+commits: |
+  b1bc3664e2 post-land run.sh sources paths.sh: POST_LAND_LOCK was unbound in every detached run, so no post-land run has completed since the coalesce change
+  d0279fcab5 roundTripGate: the precision helper sits above firstDivergence's doc comment, not inside its export
+  b25f88fb33 roundTripGate drops precision through a helper (two unused bindings failed lint); lint gate deadline 900 s for the 343-file diff
+  1092012d0f SDLC: S10 done (appState built by the composition root, full unit run green in 4.2 min); its plan file is finished and goes
+  e9cde2889d Merge branch 't047-appstate-injected' into t046-sdlc-enforcement
+  22edf21375 Tests build a fresh AppState per test; trace visibility moves onto AppState; architecture gates follow the factory
+  4e2e785dfd projects-across-addresses: the quota edit lands on the quota test, the export test is as it was
+  226c6b1b1d Browser specs follow the built app: project seam reads the test-hooks global, two specs expect the in-app confirm dialog, overlay spec goes
+  3bdcfa0605 WIP confirm-dialog spec: mobile block uses the mobile-skin fixtures (fable, unproven)
+  bb5d019120 Importers read appState and presentation from useApp or take them as arguments; nothing imports an instance
+  db25054bc8 Composition root builds appState and presentation once; AppLogic carries them; test hooks publish the instances
+  3d9a2009ec presentationState: createPresentationState() factory, methods on the instance
+  b97903bb27 appState: createAppState(deps) factory and explicit AppState interface, no module-level state
+  1201df131a SDLC: S9 result (43.5 min to 5.5 min, blocked-at was the cost), S10 appState injection in progress
+  43666e39c4 Plan: appState and presentationState built by the composition root, no module-level state
+  c41621a50b blocked-at monitor is off by default and installs once per worker: it hooked every async resource and tripled a test file's time
+  b606319e8c Merge commit 'aa0936f0313f951c973a4878ca8a694e61e0df5d' into t046-sdlc-enforcement
+  df939bfb23 Unit workers share their module cache (isolate off), globals and mocks reset per test; no overlay in test builds
+  f6be4b66d4 test-browser.sh keeps npx (its test drives a fake npx); the two reading shapes in openisdSchema are as const (no-globals gate)
+  680a7ba06b Browser suite runs against a built app (vite build --mode test + preview), fixtures read a test seam
+failing: |
+
+output: |
+  bash: scripts/admit.sh: No such file or directory
