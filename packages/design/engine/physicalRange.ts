@@ -76,7 +76,17 @@ export function checkRange(params: DriverSolverParams): readonly OutOfRangeIssue
  * extraction this check exists to catch. A name the registry does not know is always plausible.
  */
 export function isPhysicallyPlausible(field: string, value: number): boolean {
+  return rangeIssue(field, value) === undefined;
+}
+
+/** The out-of-range issue a single RAW reading of `field` raises, with the limit it broke; nothing
+ *  when it sits inside the band or the registry does not know the name. Same rules as
+ *  `isPhysicallyPlausible`: `0` is not special. This is how a reading the projection drops as
+ *  impossible (QO/T018) still reaches the tools as a warning (BUG_20260823 range marks). */
+export function rangeIssue(field: string, value: number): OutOfRangeIssue | undefined {
   const spec = NumberField.named(field);
-  if (!spec) return true;
-  return value >= spec.plausible.min && value <= spec.plausible.max;
+  if (!spec) return undefined;
+  if (value < spec.plausible.min) return outOfRange(field, value, spec.plausible.min, 'below');
+  if (value > spec.plausible.max) return outOfRange(field, value, spec.plausible.max, 'above');
+  return undefined;
 }

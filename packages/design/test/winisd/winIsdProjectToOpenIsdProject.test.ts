@@ -121,13 +121,13 @@ describe('winIsdProjectToOpenIsdProject', () => {
       );
     });
 
-    it('reports a driver error when a [Driver] spec is stated but not numeric', () => {
+    it('a [Driver] spec stated but not numeric is left out with a warning (T017: a WinISD text cell is never a reading)', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\nQts=notanumber\n[Box]\nBType=0\nVr=0.02\n';
       const engine = createEngine();
       const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
-      assert.equal(project, null);
-      assert.ok(errors.length > 0, 'expected at least one driver error');
-      assert.ok(errors.every((e) => e.field === 'driver'));
+      assert.ok(project !== null, 'a non-numeric cell is left out, not a reason to refuse the project');
+      assert.ok(errors.some((e) => e.level === 'warn' && /Qts/.test(`${e.field} ${e.message}`)),
+        `expected a Qts warning, got: ${JSON.stringify(errors)}`);
     });
 
     it('reports a clean error when a sealed box is missing Vr', () => {

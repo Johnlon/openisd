@@ -5,55 +5,92 @@ import {selectOrigin} from '../../domain/selectOrigin.js';
  *  unconditionally unless a test overrides it. */
 const alwaysPlausible = () => true;
 
-describe('selectOrigin — which source wins a field, three tiers', () => {
-  it('tier 1: excludes a physically impossible reading even when it outranks the alternative', () => {
+describe('selectOrigin — which source wins a field, four tiers', () => {
+  it('impossible dropped: excludes a physically impossible reading even when it outranks the alternative', () => {
     const readings = {
       manufacturer_datasheet: {read_value: 999999}, // impossible — e.g. Fs 999999 Hz
       distributor_datasheet: {read_value: 40},
     };
     const isPlausible = (_field: string, value: number) => value !== 999999;
-    expect(selectOrigin(readings, 'Fs_hz', isPlausible)).toBe('distributor_datasheet');
+    expect(selectOrigin(readings, 'Fs_hz', isPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
   });
 
-  it('tier 1 fallback: every reading impossible — an origin is still named (highest rank)', () => {
-    const readings = {
-      distributor_datasheet: {read_value: 999999},
-      manufacturer_datasheet: {read_value: 888888},
-    };
-    expect(selectOrigin(readings, 'Fs_hz', () => false)).toBe('manufacturer_datasheet');
-  });
-
-  it('tier 1 fallback: every survivor rejected — falls back to every reading, ranked', () => {
-    const readings = {
-      distributor_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
-      manufacturer_datasheet: {actual_reading: 'banana', rejected: 'no-numeric-value'},
-    };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('manufacturer_datasheet');
-  });
-
-  it('a rejected reading never wins over a usable one, whatever its rank', () => {
+  it('rejected dropped: a rejected reading never wins over a usable one, whatever its rank', () => {
     const readings = {
       manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
       manual: {read_value: 41},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('manual');
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manual'});
   });
 
-  it('tier 2: a strict majority on read_value wins over a lone higher-ranked outlier', () => {
+  it('3 readings 2 agree -> majority wins over rank', () => {
     const readings = {
       manufacturer_datasheet: {read_value: 40},
       distributor_datasheet: {read_value: 41},
       distributor_product_page: {read_value: 41},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('distributor_datasheet');
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
   });
 
-  it('a tie in counts is not a majority — falls through to rank', () => {
+  it('2/1/1 -> falls to rank (2 of 4 is not more than half)', () => {
+    const readings = {
+      manufacturer_product_page: {read_value: 41},
+      distributor_datasheet: {read_value: 41},
+      distributor_product_page: {read_value: 42},
+      manual: {read_value: 43},
+    };
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_product_page'});
+  });
+
+  it('4 survivors 2/2 -> rank (neither value has strict majority)', () => {
+    const readings = {
+      manufacturer_product_page: {read_value: 41},
+      distributor_datasheet: {read_value: 41},
+      distributor_product_page: {read_value: 42},
+      manual: {read_value: 42},
+    };
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_product_page'});
+  });
+
+  it('5 survivors 3/1/1 -> majority (3 of 5 is more than half)', () => {
     const readings = {
       manufacturer_datasheet: {read_value: 40},
       distributor_datasheet: {read_value: 41},
+      distributor_product_page: {read_value: 41},
+      distributor_listing_page: {read_value: 41},
+      manual: {read_value: 42},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('manufacturer_datasheet');
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
+  });
+
+  it('one survivor -> it wins', () => {
+    const readings = {manual: {read_value: 40}};
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manual'});
+  });
+
+  it('all impossible -> none (old fallbacks deleted)', () => {
+    const readings = {
+      distributor_datasheet: {read_value: 999999},
+      manufacturer_datasheet: {read_value: 888888},
+    };
+    expect(selectOrigin(readings, 'Fs_hz', () => false)).toEqual({kind: 'none'});
+  });
+
+  it('all rejected -> none (old fallbacks deleted)', () => {
+    const readings = {
+      distributor_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
+      manufacturer_datasheet: {actual_reading: 'banana', rejected: 'no-numeric-value'},
+    };
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toEqual({kind: 'none'});
+  });
+
+  it('mix impossible+rejected only -> none', () => {
+    const readings = {
+      distributor_datasheet: {read_value: 999999},
+      manufacturer_datasheet: {actual_reading: 'banana', rejected: 'no-numeric-value'},
+    };
+    const isPlausible = (_field: string, value: number) => value !== 999999;
+    expect(selectOrigin(readings, 'Fs_hz', isPlausible)).toEqual({kind: 'none'});
   });
 
   it('tier 3: no majority — the most authoritative rank wins', () => {
@@ -61,7 +98,7 @@ describe('selectOrigin — which source wins a field, three tiers', () => {
       manufacturer_product_page: {read_value: 41},
       manufacturer_datasheet: {read_value: 40},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('manufacturer_datasheet');
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_datasheet'});
   });
 
   it('tie-break: equal rank (both unranked) sorts alphabetically on role name', () => {
@@ -69,11 +106,6 @@ describe('selectOrigin — which source wins a field, three tiers', () => {
       beta_role: {read_value: 41},
       alpha_role: {read_value: 40},
     };
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('alpha_role');
-  });
-
-  it('a single reading is trivially its own origin', () => {
-    const readings = {manual: {read_value: 40}};
-    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toBe('manual');
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'alpha_role'});
   });
 });

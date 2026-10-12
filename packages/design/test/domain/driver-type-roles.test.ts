@@ -64,7 +64,7 @@ describe('driver_type roles — the bridge', () => {
     assert.ok(result.openisd !== null);
     const out: unknown = JSON.parse(result.openisd);
     assert.ok(typeof out === 'object' && out !== null && 'driver_type' in out && 'categories' in out);
-    const driverType: unknown = out.driver_type;
+    const driverType = out.driver_type;
     assert.ok(typeof driverType === 'object' && driverType !== null && 'value' in driverType);
     assert.deepEqual(driverType.value, ['woofer', 'midrange']);
   });

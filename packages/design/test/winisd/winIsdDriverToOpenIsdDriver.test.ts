@@ -14,7 +14,7 @@ function daytonDriverYml(): string {
 
 describe('winIsdDriverToOpenIsdDriver', () => {
   describe('winIsdDriverToOpenIsdDriver — the reverse direction, for .wdr/.owdr import', () => {
-    it('a .wdr with a stated field the driver schema rejects reads back as errors, not a driver', () => {
+    it('a .wdr with a non-numeric stated field loads, leaves the field out and warns (T017: a .wdr text cell is never a reading)', () => {
       const engine = createEngine();
       const { wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
       assert.ok(wdr !== null);
@@ -25,8 +25,9 @@ describe('winIsdDriverToOpenIsdDriver', () => {
 
       const { value, errors } = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(corrupted);
 
-      assert.equal(value, null, 'a driver with an unparseable mandatory field cannot be built');
-      assert.ok(errors.some(e => e.field === 'driver'), `expected a 'driver' field error, got: ${JSON.stringify(errors)}`);
+      assert.ok(value !== null, 'a non-numeric cell is left out, not a reason to refuse the driver');
+      assert.ok(errors.some(e => e.level === 'warn' && e.field === 'Qts' && /not a number: left out/.test(e.message)),
+        `expected a Qts warning, got: ${JSON.stringify(errors)}`);
     });
   });
 });

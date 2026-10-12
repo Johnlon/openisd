@@ -222,6 +222,12 @@ Every stored value carries its **origin** — which source it was read from, wha
 literally printed, and how precisely it could be read. A parameter a datasheet does not state is
 **absent** from the record, not present holding zero. Zero is a value; absence is not.
 
+When sources disagree, one reading wins, by John's rule (2026-08-30, 2026-10-11): readings that
+are rejected or physically impossible are dropped; a value held by more than half of the rest
+wins; otherwise the highest-ranked source wins. When no reading survives, the field gets no
+value: it is stored as not available, keeping every reading, and the `.wdr` comment lists each
+value seen and why it was rejected. The rule lives in `selectOrigin.ts`.
+
 That distinction matters in use: `Znom` is genuinely 0 in some real `.wdr` files, and WinISD
 treats that zero as a stated fact rather than as "unset".
 

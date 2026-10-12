@@ -423,11 +423,13 @@ function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
         if (diff !== 0) return diff;
         return a.localeCompare(b);
       });
-      const bestRole = roles[0];
-      const winner = bestRole ? readings[bestRole] : undefined;
-      const text = winner?.actual_reading ?? (winner && "rejected" in winner ? String(winner.rejected) : "");
-      if (text) {
-        lines.push(`${field}: ${text}`);
+      for (const role of roles) {
+        const r = readings[role];
+        if (!r) continue;
+        const reason = !isUsable(r) ? r.rejected : `impossible for ${field}`;
+        const textOrValue = r.actual_reading ?? (isUsable(r) || "read_value" in r ? String(r.read_value) : "");
+        const printedPart = textOrValue ? ` ${textOrValue}` : "";
+        lines.push(`${field}: ${role}${printedPart} — ${reason}`);
       }
     }
   }
@@ -798,11 +800,16 @@ export class WinIsdDriverConverter {
     if (!parsed.success) return entry;
 
     const { readings, dq_scraper } = parsed.data;
-    const origin = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
+    const originResult = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
+    // A reading outside the field's physical band never becomes a value (T018: the field is N
+    // and the .wdr comment lists it), but the tools still read the range mark as a warning
+    // (winisd_tools BUG_20260823 range/calc marks; AI triage of calculation-field failures).
+    for (const [, r] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+      if (!isUsable(r)) continue;
+      const issue = this.engine.driver.rangeIssue(field, r.read_value);
+      if (issue) warnings.push({ level: "warn", field, message: issue.text });
+    }
     const corroboration = corroborate(readings);
-    // `origin` always names one of `readings`' own keys — `selectOrigin` picks it FROM this same
-    // object — so this lookup can never miss.
-    const winner = readings[origin];
     if (corroboration === Corroboration.Mismatch) {
       const parts = Object.entries(readings)
         .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
@@ -852,21 +859,24 @@ export class WinIsdDriverConverter {
       }
     }
 
-    if (!isUsable(winner)) {
-      // Every reading is rejected: no number to be the value, so the field is not available and
-      // keeps its readings, so the printed text survives.
-      const notAvailable: Record<string, unknown> = {state: "N", readings};
-      if (dq_scraper !== undefined) notAvailable.dq_scraper = dq_scraper;
-      return notAvailable;
+    switch (originResult.kind) {
+      case "none": {
+        const notAvailable: Record<string, unknown> = { state: "N", readings };
+        if (dq_scraper !== undefined) notAvailable.dq_scraper = dq_scraper;
+        return notAvailable;
+      }
+      case "winner": {
+        const winner = originResult.reading;
+        const projected: Record<string, unknown> = {
+          state: "E",
+          value: winner.read_value,
+          origin: originResult.role,
+          corroboration: corroboration.value,
+          readings,
+        };
+        if (dq_scraper !== undefined) projected.dq_scraper = dq_scraper;
+        return projected;
+      }
     }
-    const projected: Record<string, unknown> = {
-      state: "E",
-      value: winner.read_value,
-      origin,
-      corroboration: corroboration.value,
-      readings,
-    };
-    if (dq_scraper !== undefined) projected.dq_scraper = dq_scraper;
-    return projected;
   }
 }

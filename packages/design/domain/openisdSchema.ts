@@ -329,15 +329,13 @@ const calculatedEntrySchema = z.strictObject({
     dq_calculated: dqMarks(),
 });
 
-/** A spec field a source printed but gave no usable number ("N/A", "banana"): `state:'N'`, no
- *  `value`, and the printed text kept in `readings`, every one of them Rejected. The field reads
- *  as not available; the text survives so nothing the source said is lost. */
+/** A spec field where no reading wins (T018, John 2026-10-11: "field gets no value"): every
+ *  reading is rejected ("N/A", "banana") or physically impossible (a passive radiator's Sd of
+ *  9 m²). `state:'N'`, no `value`, and every reading kept in `readings` — rejected ones and
+ *  usable-but-impossible ones alike — so nothing the source said is lost. */
 const notAvailableEntrySchema = z.strictObject({
     state: z.literal('N'),
-    readings: z.record(z.string(), z.union([
-        rejectedParsedReadingJsonSchema, rejectedUnparsedReadingJsonSchema,
-        rejectedUnrecognisedParsedReadingJsonSchema, rejectedUnrecognisedUnparsedReadingJsonSchema,
-    ])).refine(
+    readings: z.record(z.string(), readingJsonSchema).refine(
         r => Object.keys(r).length > 0, 'expected at least one reading'),
     dq_scraper: dqMarks(),
     dq_calculated: dqMarks(),

@@ -24,7 +24,7 @@ function scanspeakDriverYml(): string {
 
 describe('wdrRecordRoundTripDiffs', () => {
   describe('wdrRecordRoundTripDiffs — the .wdr -> record leg refusing to read back', () => {
-    it('reports wdr-record-round-trip when the .wdr we hold reads back as a record the driver seam refuses', () => {
+    it('reports wdr-record-round-trip when a non-numeric row in the .wdr we hold reads back without its value', () => {
       const engine = createEngine();
       const { openisd, wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
       assert.ok(openisd !== null && wdr !== null);
@@ -49,9 +49,12 @@ describe('wdrRecordRoundTripDiffs', () => {
 
       const diffs = new DriverRoundTripCheck(engine).wdrRecordRoundTripDiffs(driver1, corruptW2);
 
-      assert.equal(diffs.length, 1, `expected exactly one diff, got: ${JSON.stringify(diffs)}`);
-      assert.equal(diffs[0].field, 'wdr-record-round-trip');
-      assert.match(diffs[0].message, /the \.wdr we wrote reads back as a record the driver seam refuses/);
+      // T017: a .wdr text cell is left out with a warning, never refused, so the corrupted Qts no
+      // longer makes the record unreadable; it reads back without its entered Qts, and the round
+      // trip reports that as a mismatch.
+      assert.ok(diffs.length > 0, 'the lost Qts must be reported');
+      assert.ok(diffs.every(d => d.field === 'wdr-record-round-trip' && /snapshot mismatch/.test(d.message)),
+        `expected snapshot mismatches, got: ${JSON.stringify(diffs)}`);
     });
 
     it('reports a genuine mismatch through the success-path map when driver1 and w2 come from different real records', () => {

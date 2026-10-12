@@ -229,42 +229,18 @@ class CalculatedEntry(Strict):
     precision: Annotated[Number, Field(gt=0)] = None
     dq_calculated: list[TextFieldDqScraper] = None
 
-_union_not_available_entry_readings_7_member_0 = TypeAdapter(RejectedParsedReading)
-def _union_not_available_entry_readings_7_finish_0(out):
-    return out.model_dump(by_alias=True, exclude_unset=True)
-_union_not_available_entry_readings_7_member_1 = TypeAdapter(RejectedUnparsedReading)
-def _union_not_available_entry_readings_7_finish_1(out):
-    return out.model_dump(by_alias=True, exclude_unset=True)
-_union_not_available_entry_readings_7_member_2 = TypeAdapter(RejectedUnrecognisedParsedReading)
-def _union_not_available_entry_readings_7_finish_2(out):
-    return out.model_dump(by_alias=True, exclude_unset=True)
-_union_not_available_entry_readings_7_member_3 = TypeAdapter(RejectedUnrecognisedUnparsedReading)
-def _union_not_available_entry_readings_7_finish_3(out):
-    return out.model_dump(by_alias=True, exclude_unset=True)
-def _union_not_available_entry_readings_7(v):
-    return _union(v, [(_union_not_available_entry_readings_7_member_0, _union_not_available_entry_readings_7_finish_0), (_union_not_available_entry_readings_7_member_1, _union_not_available_entry_readings_7_finish_1), (_union_not_available_entry_readings_7_member_2, _union_not_available_entry_readings_7_finish_2), (_union_not_available_entry_readings_7_member_3, _union_not_available_entry_readings_7_finish_3)])
-
-NotAvailableEntryReadings = Annotated[object, BeforeValidator(_union_not_available_entry_readings_7)]
-
-def _not_available_entry_readings_8(r):
-    if not (len(list(r)) > 0):
-        raise ValueError("expected at least one reading")
-    return r
-
-NotAvailableEntryReadings2 = Annotated[dict[str, NotAvailableEntryReadings], AfterValidator(_not_available_entry_readings_8)]
-
 class NotAvailableEntry(Strict):
     state: Literal["N"]
-    readings: NotAvailableEntryReadings2
+    readings: EnteredEntryReadings
     dq_scraper: list[TextFieldDqScraper] = None
     dq_calculated: list[TextFieldDqScraper] = None
 
-def _tag_state_9(v):
+def _tag_state_7(v):
     if isinstance(v, dict) and v.get("state") in ("E", "C", "N"):
         return '<' + v["state"] + '>'
     return None
 
-SpecEntry = Annotated[Union[Annotated[EnteredEntry, Tag("<E>")], Annotated[CalculatedEntry, Tag("<C>")], Annotated[NotAvailableEntry, Tag("<N>")]], Discriminator(_tag_state_9)]
+SpecEntry = Annotated[Union[Annotated[EnteredEntry, Tag("<E>")], Annotated[CalculatedEntry, Tag("<C>")], Annotated[NotAvailableEntry, Tag("<N>")]], Discriminator(_tag_state_7)]
 
 class DriverSpecsWoofer(Strict):
     Fs_hz: SpecEntry = None
@@ -352,7 +328,7 @@ class RadiatorSpecsPassiveRadiator(Strict):
 class RadiatorSpecs(Strict):
     passive_radiator: RadiatorSpecsPassiveRadiator = Field(alias="passive-radiator")
 
-def _dispatch_specs_json_schema_10(v):
+def _dispatch_specs_json_schema_8(v):
     keyed = isinstance(v, dict)
     claims_0 = keyed and "woofer" in v
     claims_1 = keyed and "passive-radiator" in v
@@ -360,7 +336,7 @@ def _dispatch_specs_json_schema_10(v):
         return None  # a driver (a 'woofer' section, optionally with a 'tweeter' section) or a passive radiator (a 'passive-radiator' section) — not both, not neither
     return "<woofer>" if claims_0 else "<passive-radiator>"
 
-Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_10)]
+Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_8)]
 
 class RootCurvesValue(Strict):
     type: str
@@ -397,4 +373,4 @@ class Root(Strict):
 ROOT = Root
 TAGS = frozenset({"<woofer>", "<E>", "<C>", "<N>", "<passive-radiator>"})
 DISPATCH_TAGS = frozenset({"<woofer>", "<passive-radiator>"})
-DISCRIMINATOR_FIELD = {"_tag_state_9": "state", "_dispatch_specs_json_schema_10": None}
+DISCRIMINATOR_FIELD = {"_tag_state_7": "state", "_dispatch_specs_json_schema_8": None}

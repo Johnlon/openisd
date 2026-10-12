@@ -5,6 +5,11 @@ import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {fixedAppContext, scraped, wooferOf, specSection, whatIfSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
+/** An entry's numeric `value`, narrowed from what the record holds (no `any` from a matcher). */
+function numericValueOf(entry: unknown): number | undefined {
+  return typeof entry === 'object' && entry !== null && 'value' in entry && typeof entry.value === 'number' ? entry.value : undefined;
+}
+
 describe('OpenISDDriver record', () => {
   describe('OpenISDDriver.cloneDriver() — the persistence layer\'s one seam onto the raw record', () => {
     it('returns the record the driver holds, readable by a repo without any field access', () => {
@@ -460,7 +465,7 @@ describe('OpenISDDriver record', () => {
       const d = vasAndSd();
       const entry = wooferOf(d.cloneDriver())?.Cms_m_per_N;
       expect(entry).toMatchObject({ state: 'C' });
-      expect(entry?.value).toBeCloseTo(d.specs.Cms_m_per_N.value!, 12);
+      expect(numericValueOf(entry)).toBeCloseTo(d.specs.Cms_m_per_N.value!, 12);
     });
 
     it('changing a stated input changes what the derived field reports', () => {
@@ -486,14 +491,14 @@ describe('OpenISDDriver record', () => {
       const d = qesQms();
       const entry = wooferOf(d.cloneDriver())?.Qts;
       expect(entry).toMatchObject({ state: 'C' });
-      expect(entry?.value).toBeCloseTo((0.4 * 3.0) / (0.4 + 3.0), 12);
+      expect(numericValueOf(entry)).toBeCloseTo((0.4 * 3.0) / (0.4 + 3.0), 12);
     });
 
     it('setting a field the record already resolved from changes the dependent calculated entry', () => {
       const d = qesQms();
       d.specs.Qms.set(6.0);
       const entry = wooferOf(d.cloneDriver())?.Qts;
-      expect(entry?.value).toBeCloseTo((0.4 * 6.0) / (0.4 + 6.0), 12);
+      expect(numericValueOf(entry)).toBeCloseTo((0.4 * 6.0) / (0.4 + 6.0), 12);
     });
 
     it('an entered Qts survives a resolve untouched, even though it disagrees with Qes/Qms', () => {

@@ -318,8 +318,8 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
   });
 
   it('returns a warn entry ALONGSIDE a good wdr for an entered-zero field', () => {
-    // openisdDriver.ts's toWinISDDriver() pushes a 'warn' (not 'error') when an
-    // entered field's value is 0 — a successful conversion that still carries a warning,
+    // The projection pushes a 'warn' (not 'error') when a reading of 0 is dropped as
+    // impossible — a successful conversion that still carries a warning,
     // which is exactly the case the JSON envelope (over a bare-string return) exists to keep
     // visible to the Python caller.
     const yamlText = `
@@ -347,7 +347,8 @@ specs:
     const raw = runString('globalThis.driverYmlToOpenisdAndWdr(YAML_TEXT)', ctx);
     const parsed = parseBridgeResult(raw);
     assert.equal(typeof parsed.wdr, 'string');
-    assert.equal(parsed.errors.some(e => e.level === 'warn' && e.field === 'Re'), true,
-      `expected a 'warn' on field Re, got: ${JSON.stringify(parsed.errors)}`);
+    // T018: a reading of 0 is impossible, so Re_ohm gets no value and the projection warns on it.
+    assert.equal(parsed.errors.some(e => e.level === 'warn' && e.field === 'Re_ohm'), true,
+      `expected a 'warn' on field Re_ohm, got: ${JSON.stringify(parsed.errors)}`);
   });
 });
