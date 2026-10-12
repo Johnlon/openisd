@@ -1,7 +1,7 @@
 id: T055
 repo: openisd
 owner: fable
-status: held
+status: claimed
 goal: Storage carries one layout number. A newer app backups then migrates; an older app refuses what it cannot read and offers a backup. Goldens prove every old layout loads into the current app.
 spec: |
   Dates

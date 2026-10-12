@@ -1,7 +1,7 @@
 id: T056
 repo: openisd
 owner: fable
-status: held
+status: claimed
 goal: snapshot builds pile up on GitHub, one per push to main, each hosted and tryable. A release promotes one tested snapshot build, bytes unchanged. openisd.app root serves the latest release; every release stays hosted.
 spec: |
   Version
