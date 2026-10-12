@@ -1,11 +1,11 @@
-import {formatDateTime, parseBasicUtc} from '@openisd/design/fields';
+import {type BuildKind, formatDateTime, hostedPathOf, parseBasicUtc, stampOfVersion} from '@openisd/design/fields';
+
+export type {BuildKind};
 
 /** Where the deploy publishes the list of every hosted build. Root-relative on purpose: the same
  *  bytes run at the site root, under /v/<stamp>/ and under /snap/<stamp>/, and all of them read
  *  the one list at the root. */
 export const VERSION_INDEX_PATH = '/v/index.json';
-
-export type BuildKind = 'release' | 'snap';
 
 /** One hosted build, as v/index.json states it (scripts/hosting/siteIndex.mjs writes it). */
 export interface BuildEntry {
@@ -75,10 +75,6 @@ export async function fetchVersionIndex(fetchFn: typeof fetch): Promise<readonly
   }
 }
 
-function stampOfVersion(version: string): string {
-  return version.startsWith('v') ? version.slice(1) : version;
-}
-
 function dateOf(stamp: string): string {
   const d = parseBasicUtc(stamp);
   return d === null ? stamp : formatDateTime(d);
@@ -102,7 +98,7 @@ export function describeVersions(runningVersion: string, entries: readonly Build
     kind: e.kind,
     date: dateOf(e.stamp),
     current: e.stamp === running,
-    hostedPath: `/${e.kind === 'release' ? 'v' : 'snap'}/${e.stamp}/`,
+    hostedPath: hostedPathOf(e.kind, e.stamp),
     githubUrl: e.url,
   }));
   const latest = entries.find(e => e.kind === 'release' && e.latest);
