@@ -22,6 +22,7 @@ spec: |
   - Store layout older than the app: copy every openisd_* key to openisd_snapshot_<buildstamp of the app that wrote the store> before migrating, then migrate and stamp. Snapshot write failure stops the upgrade with an export-first message (repair rule, reset only after export). Snapshot measures first and drops oldest snapshots until it fits.
   - Keep the last 10 snapshots, oldest dropped, but never the newest snapshot of each layout.
   - Store layout newer than the app: does not load the live store. Offers restore of a snapshot with its layout into the live store, or read-only on it. Never silent loss.
+  - One version number for data: STORAGE_LAYOUT. Stored records drop their own schemaVersion, the store layout covers them. Exported files (backups, drivers, radiators, projects) carry layout: <N> at the top; import migrates from that layout with the same stepwise code, and an export case sits in the goldens.
   - version-info.mjs takes the stamp from the tag when GITHUB_REF is a v tag, else now, minute resolution.
   - Check for a service worker; if one exists each v/ copy registers its own scope or none.
   Upgrade goldens
