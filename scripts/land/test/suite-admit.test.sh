@@ -11,12 +11,15 @@ export ADMIT_DIR="$SCRATCH/admit"
 SRC="$SCRATCH/clone"; COPY="$SCRATCH/copies/c1"
 mkdir -p "$SRC/node_modules" "$COPY/scripts/land/post-land" "$SCRATCH/bin"
 cp -r "$REPO/scripts/admit" "$REPO/scripts/lib" "$COPY/scripts/"
+cp "$REPO/scripts/paths.sh" "$COPY/scripts/"   # admit/record.sh sources ../paths.sh
 cp "$REPO/scripts/admit.sh" "$COPY/scripts/"
 cp "$REPO/scripts/land/post-land/suite.sh" "$COPY/scripts/land/post-land/"
 # fake steps record what they saw while they ran
-printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/%s"\necho "token=${ADMIT_TOKEN:-none}" >> "$SEEN/token"\n' unit > "$SCRATCH/bin/npx"
+# suite.sh runs node_modules/.bin/vitest (S9: no npx inside the funnel); the copy hardlinks node_modules from SRC.
+mkdir -p "$SRC/node_modules/.bin"
+printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/%s"\necho "token=${ADMIT_TOKEN:-none}" >> "$SEEN/token"\n' unit > "$SRC/node_modules/.bin/vitest"
 printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/browser"\n' > "$COPY/scripts/test-browser.sh"
-chmod +x "$SCRATCH/bin/npx"
+chmod +x "$SRC/node_modules/.bin/vitest"
 export SEEN="$SCRATCH/seen"; mkdir -p "$SEEN"; export PATH="$SCRATCH/bin:$PATH"
 
 ( cd "$COPY" && POST_LAND_SRC="$SRC" timeout 60 bash scripts/land/post-land/suite.sh ) > "$SCRATCH/out" 2>&1; r=$?
