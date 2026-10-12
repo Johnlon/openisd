@@ -14,6 +14,7 @@ spec: |
   - .github/workflows/release.yml on v tag push or release published: redeploys Pages.
   Hosting
   - Pages is workflow mode: every deploy replaces the whole site. Each deploy rebuilds the tree from GitHub: every release zip to v/<stamp>/, newest release also at root, every kept WIP zip to wip/<stamp>/, v/index.json listing both trails (stamp, kind release|wip, tag, release URL, dates ISO 8601 basic). Releases on GitHub are the only source of truth, no gh-pages branch.
+  - The deploy writes two plain HTML index pages from the same data as v/index.json: openisd.app/wip/ (one row per WIP build: date, commit subject, Launch link, GitHub link) and openisd.app/v/ (same for releases, newest first). No app code, works on the phone.
   - about/ and install/ pages work at root and under each copy.
   - If a service worker exists, each copy registers its own scope or none.
   Versions list in app
