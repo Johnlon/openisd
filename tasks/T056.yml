@@ -15,7 +15,11 @@ spec: |
   - deploy.yml no longer deploys root on push to main. On push to main it builds main HEAD into next/ and redeploys the same tree with next/ replaced.
   - about/ and install/ pages work at root and under each v/<stamp>/.
   - If a service worker exists, each v/ copy registers its own scope or none.
+  Versions list (from T057)
+  - App fetches /v/index.json at start, no store, no schema. About shows Versions: current highlighted, date as "1 Jan 2026, 01:02", links to /v/<stamp>/ and its GitHub release. Fetch failure shows current only. Old build shows "latest is <date>" when the index lists a newer stamp.
+  Branch t056-hosting, runs in parallel with t055-releases.
 done_test: |
+  bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
   bash scripts/land/test/release.test.sh
 files:
   - tasks/T056.yml

@@ -2,6 +2,7 @@ id: T058
 repo: openisd
 owner: fable
 status: held
+with: T055
 goal: A lost storage key is seen and said. John lost all saved drivers at localhost:4000 on 12 Oct 2026 with no app path that removes the key; nothing recorded it.
 spec: |
   - On every start, before any load, the app writes openisd_storage_log: the ISO 8601 basic time and, per openisd_* key, present or absent and its length. Keep the last 30 entries.

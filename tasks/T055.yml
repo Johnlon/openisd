@@ -23,7 +23,11 @@ spec: |
   - The gate decides the bump: load every case's newest dump through the current loaders, write back. Differs with no bump: fail, "layout changed, bump STORAGE_LAYOUT and add dumps". Bumped but no case differs: fail, needless bump. Bumped and a case lacks a dump for the new layout: fail.
   - A dump is never edited once written. A later layout adds a file, it changes none.
   - First cases are dumped at layout 1 from main before this task's loader changes.
+  Storage history page (from T057)
+  - Options menu page: one row per snapshot (build date, layout, project count, size) with Export to file, Restore (confirm; snapshots the live store first), Delete, plus Snapshot now. Logic in persistence/design, UI display only, mobile skin gets the same page as a full-screen dialog.
+  Lands with T058 on branch t055-releases.
 done_test: |
+  bash scripts/test.sh packages/ui/test/logic/storageHistory.test.ts
   bash scripts/test.sh packages/persistence/test/storageUpgrade.test.ts
   bash scripts/test.sh packages/persistence/test/storageSnapshot.test.ts
 files:
