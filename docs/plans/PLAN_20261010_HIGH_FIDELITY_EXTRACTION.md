@@ -41,6 +41,7 @@ Per **reading** (every reading is kept: a list, never one per source):
 Per **document**: URL, role, fetch time, title, breadcrumb and categories in order, description, every table in full (unmapped rows included), and the facts planned but never stored so far: datasheet type words, size text, printed model code.
 
 Per **record**: brand, model, the record directory name (unchanged for existing records), `added` (first appearance; a harvest fact), every document, every reading, the product's scope log (section 4).
+Also per record: `sku`, `series` and `product_image` (URL), as printed on the product page (carried over from the pure-extractor plan, John, 12 Oct 2026: these have value and nothing replaced them). The description sits on each document, not on the record.
 
 Schema rules (John, 2026-10-11: "the reconciliation programme writes the other schema from the master and stops if it cannot get 100 same output"):
 
@@ -113,7 +114,7 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
 1. **Every unit test first:**
    - schema tests (Python and Zod) and the parity test;
    - reader tests: each reader's output on a fixed set of cached documents, positions and labels included;
-   - openisd parser tests: label mapping, section assignment, text → SI (ported from tools' unit tests), refused readings, roles, the picker;
+   - openisd parser tests: label mapping, section assignment, text → SI (ported from tools' unit tests), refused readings, roles, the picker; The parser handles fractions (`1/2"`), decimal-comma locales and the unit text to an SI factor; its cases are `winisd_tools/scrapers/tests/lib/test_units.py`, ported as `packages/design/test/domain/units.test.ts` (carried over 12 Oct 2026).
    - scope tests: every current exclusion as a case, with its logged reason.
 2. **Schema** in both repos.
 3. **tools**: one shared extraction writing `driver_spec.json`; per-manufacturer code only locates documents and cells; the shared scope check.
