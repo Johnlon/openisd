@@ -1,0 +1,76 @@
+id: F11
+owner: Johnlon
+status: open
+sha: 4ec048af9df815cc3f5949a8f50c65bbd5b19044
+goal: main is red at 4ec048af9d; make the full suite pass again
+commits: |
+  4ec048af9d Housekeeping removes post-land copies whose owner is dead
+  11f26b0622 T053: The app reports anonymous usage events (launch, install, project open, project save, driver pick, error, user crash report) to a fixed collector endpoint with sendBeacon, always on, fire-and-forget, never on the boot path, never persisted, dropped when offline.
+  6f0d9c1999 T053: restored tabs on relaunch are not project opens; crash-report test reads frames before submit clears them
+  a2fffc0d83 T053: The app reports anonymous usage events (launch, install, project open, project save, driver pick, error, user crash report) to a fixed collector endpoint with sendBeacon, always on, fire-and-forget, never on the boot path, never persisted, dropped when offline.
+  d53126eea2 T000, T008, T015, T029, T050 done at aa128f84
+  aa128f848b Old machinery deleted: slow-run queue, rerun.mjs, Vite watchdog, health-check.sh, queue-state test setup; full gate runs both suites once with no rerun
+  d56cd5f4c7 Locked e2e hashes refreshed (T001, T003), self-check green; T000, T015, T029, T049 done; T006, T007, T028 superseded
+  0a4080dbf4 Watchdog sums CPU over the holder's descendants, not its process group
+  de4bf62465 T048: stored-data corpus specs (fixtures, samples, bundled drivers in four shards)
+  1a9afd8bc0 T048: scripts/integrate.sh, its scratch-repo test, docs
+  61e1e975d7 T049: task files say the truth about main
+  8a7170433c S3 watchdog: one timer tick kills hung post-land runs, frees dead grants, re-alerts unread results and old open Fs, writes an infra F for a twice-refused gate, prunes merged clean worktrees; agents-into-tmux refuses a duplicate window
+  4445814839 Seven landed tasks marked done with their sha; suite-both-halves and land-subject tests stage paths.sh, a unit gate and the direct vitest call
+  dd57731363 Delete finished and superseded plans and the plans archive
+  5a8346d809 Docs cleanup: remove links and comments that cite finished plans; resolve the two bp6/ABC bugs; BACKLOG gains the two wizard items; prune dead sections of the four kept plans
+  f7dfc83e34 Extraction plan: description stays on the record (driver popup); sku decides the record directory (QO34), dropping it is a separate decision
+  f49c2522b1 High-fidelity extraction plan carries the record fields sku/series/product_image and the unit-parsing cases from the two plans it replaced; those two plans go
+  c3e2c0adf6 SDLC register: post-land runner unbound lock, suite.sh wrong root, blocked-at cost (rows 27-29)
+  12557932d6 suite-admit test stages paths.sh and a fake node_modules/.bin/vitest, as the suite now runs
+  191ecfa34c F10-fix: the post-land suite starts from the repo root, not scripts/; F10 closed
+failing: |
+  stderr | test/projectRepo.test.ts > projectRepo > loadOpenProjects — one refused entry > still reports an unusable record as a whole — there is nothing to restore from it
+  stderr | test/hooks/OriginalShell-hooks.test.ts > OriginalShell-hooks > frequency nudge buttons (startNudge) > nudging up from a pinned frequency multiplies it by 1.02 and locks the cursor there
+  stderr | test/hooks/OriginalShell-hooks.test.ts > OriginalShell-hooks > frequency nudge buttons (startNudge) > nudging down divides by 1.02
+  stderr | test/hooks/OriginalShell-hooks.test.ts > OriginalShell-hooks > frequency nudge buttons (startNudge) > nudging up with nothing pinned starts from the geometric mean of the axis
+  stderr | test/diagnostics/faultOrigin.test.ts > fault origin > a StoredDataFault logged through console.error names its store too
+  stderr | test/hooks/DiagnosticsModal-hooks.test.ts > useDiagnosticsModal > opens modal when a fault occurs
+       × every cross-layer import matches a ruled-legal edge 46ms
+   FAIL  |ui-architecture| test/architecture/architecture.test.ts > layer-edge legality — the ruled dependency matrix (QO80 closure, 2026-08-23) > every cross-layer import matches a ruled-legal edge
+output: |
+    ✓  566 packages/ui/test/ui/skin-selection.browser.spec.ts:35:1 › the Info menu's "Switch to Mobile view" overrides a wide viewport, and the choice survives a reload (703ms)
+    ✓  567 packages/ui/test/ui/skin-selection.browser.spec.ts:49:1 › the mobile shell's "Switch to Desktop view" overrides a narrow viewport, and the choice survives a reload (664ms)
+    ✓  568 packages/ui/test/ui/splash.browser.spec.ts:21:1 › a first visitor gets the splash, and it credits WinISD and links to the project (553ms)
+    ✓  569 packages/ui/test/ui/splash.browser.spec.ts:34:1 › it states how many devices the bundled catalogue holds (488ms)
+    ✓  570 packages/ui/test/ui/splash.browser.spec.ts:42:1 › dismissing it keeps it shut across a reload (643ms)
+    ✓  571 packages/ui/test/ui/splash.browser.spec.ts:52:1 › the close button at the top dismisses it too — the text is long enough that the bottom one is a scroll away (686ms)
+    ✓  572 packages/ui/test/ui/splash.browser.spec.ts:62:1 › Info -> About OpenISD reopens it (654ms)
+    ✓  573 packages/ui/test/ui/splash.browser.spec.ts:72:1 › it says there are desktop and mobile versions, both offline, and links to how to install (475ms)
+    ✓  574 packages/ui/test/ui/splash.browser.spec.ts:81:1 › the Info menu links to how to add the app to the desktop (529ms)
+    ✓  575 packages/ui/test/ui/telemetry.browser.spec.ts:10:1 › the app boots and renders with the collector blocked (483ms)
+    ✓  576 packages/ui/test/ui/telemetry.browser.spec.ts:17:1 › an uncaught error offers the report box and the report is sent with sendBeacon (573ms)
+    ✓  577 packages/ui/test/ui/ui-field-refusal.browser.spec.ts:20:1 › typing 0 into a positive field is refused, explained, kept on leaving, and Esc restores (1.0s)
+    ✓  578 packages/ui/test/ui/unit-toggle.browser.spec.ts:16:3 › Unit toggle › clicking an entered field's unit label rescales the DISPLAY and keeps the model SI (1.1s)
+    ✓  579 packages/ui/test/ui/unit-toggle.browser.spec.ts:39:3 › Unit toggle › a calculated readout also rescales when its unit is rotated (Hz → kHz) (1.0s)
+    ✓  580 packages/ui/test/ui/unit-toggle.browser.spec.ts:57:3 › Unit toggle › Added mass to cone: clicking the unit converts g → kg; the model stays SI (kg) (1.1s)
+    ✓  581 packages/ui/test/ui/unit-toggle.browser.spec.ts:76:3 › Unit toggle › Advanced Temperature: K → °C converts via OFFSET; the model stays in kelvin (934ms)
+    ✓  582 packages/ui/test/ui/unit-toggle.browser.spec.ts:93:3 › Unit toggle › Voice coil temp rise, resistance TC, and added mass all convert, each keeping its own resolution (1.3s)
+    ✓  583 packages/ui/test/ui/what-if-panel.browser.spec.ts:33:5 › What-if? panel › on the sample project › the What-if? changes the charts but never the project, and Close puts the curve back (1.4s)
+    ✓  584 packages/ui/test/ui/what-if-panel.browser.spec.ts:68:5 › What-if? panel › on the sample project › the What-if? Reset puts the project values back and stays open (1.1s)
+    ✓  585 packages/ui/test/ui/what-if-panel.browser.spec.ts:87:5 › What-if? panel › on the sample project › closing the What-if? via the titlebar ✕ discards the What-if, same as Close (1.1s)
+    ✓  586 packages/ui/test/ui/what-if-panel.browser.spec.ts:107:5 › What-if? panel › on the sample project › closing the What-if? does not corrupt the saved Mms value (1.2s)
+    ✓  587 packages/ui/test/ui/what-if-panel.browser.spec.ts:123:5 › What-if? panel › on the sample project › Escape closes the What-if? (973ms)
+    ✓  588 packages/ui/test/ui/what-if-panel.browser.spec.ts:131:5 › What-if? panel › on the sample project › the What-if? fields accept multi-character typing (no reformat-while-typing clobber) (1.1s)
+    ✓  589 packages/ui/test/ui/what-if-panel.browser.spec.ts:143:5 › What-if? panel › on the sample project › an open What-if? panel stays open across a reload (1.1s)
+    ✓  590 packages/ui/test/ui/what-if-panel.browser.spec.ts:154:5 › What-if? panel › on the sample project › the What-if? panel stays open when the box type changes underneath it (1.0s)
+    ✓  591 packages/ui/test/ui/what-if-panel.browser.spec.ts:166:5 › What-if? panel › on the sample project › the What-if? panel stays open across project tab changes (1.0s)
+    ✓  592 packages/ui/test/ui/what-if-panel.browser.spec.ts:179:5 › What-if? panel › on the sample project › What-if? keeps the Vb typed into it when the field loses focus (948ms)
+    ✓  593 packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › What-if? panel › on the sample project › switching focus to a different open project closes an open What-if? panel (1.4s)
+    ✓  594 packages/ui/test/ui/what-if-panel.browser.spec.ts:224:5 › What-if? panel › on the complete driver project › Mms and Bl are editable and override the calculation; clearing returns them to Calculated (1.3s)
+    ✓  595 packages/ui/test/ui/what-if-panel.browser.spec.ts:254:5 › What-if? panel › on the complete driver project › numeric fields are narrow and uniform, not stretched to fill the column (874ms)
+    ✓  597 packages/ui/test/ui/what-if-panel.browser.spec.ts:311:5 › What-if? panel › on the complete driver project › box volume is on the panel, shows on the charts, and Close puts it back (1.2s)
+    ✓  596 packages/ui/test/ui/what-if-panel.browser.spec.ts:268:5 › What-if? panel › on the complete driver project › a blank Q autocalculates from the other two, with the editor E/C/N marks and red border (1.4s)
+    ✓  598 packages/ui/test/ui/what-if-panel.browser.spec.ts:328:5 › What-if? panel › on the complete driver project › a box volume changed outside the open What-if? panel shows in the panel (945ms)
+    ✓  599 packages/ui/test/ui/what-if-panel.browser.spec.ts:335:5 › What-if? panel › on the complete driver project › a driver spec changed outside the open What-if? panel shows in the panel (937ms)
+    ✓  600 packages/ui/test/ui/what-if-panel.browser.spec.ts:342:5 › What-if? panel › on the complete driver project › a box volume typed on the Box tab shows in the open What-if? panel (1.1s)
+    ✓  601 packages/ui/test/ui/what-if-panel.browser.spec.ts:352:5 › What-if? panel › on the complete driver project › after editing in the What-if? panel, a later Box tab edit still shows in the panel (1.2s)
+  
+    601 passed (6.2m)
+  suite: unit exit 1, browser exit 0
+  post-land suite 16642-4ec048af9d finished: FAILED (exit 1) after 8m44s
