@@ -1,0 +1,9 @@
+id: T060
+repo: openisd
+owner: bob
+status: open
+goal: The backlog records John's idea of an agent-friendly OpenISD at the command line (skill or MCP, npm packages of the app code, inputs, help, results, charts); it needs design before any build.
+done_test: bash scripts/quiet-test.sh npx eslint --version
+files:
+  - BACKLOG.md
+  - tasks/T060.yml
