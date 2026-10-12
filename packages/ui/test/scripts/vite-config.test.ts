@@ -16,7 +16,10 @@ const ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..', '..', '..');
 
 // Import buildVersion directly for unit testing its logic
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-const {buildVersion} = (await import(join(ROOT, 'vite.config.js'))) as { buildVersion: (command?: string) => string };
+const {buildVersion, stripPwaFromSubpages} = (await import(join(ROOT, 'vite.config.js'))) as {
+  buildVersion: (command?: string) => string;
+  stripPwaFromSubpages: (html: string, path: string) => string;
+};
 
 // ── Vite config ──────────────────────────────────────────────────────────────
 
@@ -107,5 +110,19 @@ describe('the bundled catalogue artifacts', () => {
       'packages/ui/src/drivers-bundle.json must not exist — the catalogue lives in public/');
     assert.equal(existsSync(join(ROOT, 'packages', 'ui', 'public', 'drivers-bundle.json')), false,
       'packages/ui/public/drivers-bundle.json must not exist — the catalogue is an index plus one file per record');
+  });
+});
+
+describe('stripPwaFromSubpages', () => {
+  const html = '<head><link rel="manifest" href="./manifest.webmanifest"><script src="./registerSW.js"></script></head>';
+
+  it('leaves the app page alone', () => {
+    assert.equal(stripPwaFromSubpages(html, '/index.html'), html);
+  });
+
+  it('takes the manifest link and the worker script off about/ and install/, which 404 under a hosted copy', () => {
+    for (const path of ['/about/index.html', '/install/index.html']) {
+      assert.equal(stripPwaFromSubpages(html, path), '<head></head>');
+    }
   });
 });

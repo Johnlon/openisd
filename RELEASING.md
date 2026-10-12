@@ -13,7 +13,7 @@
 | Trigger | A push to main, at most one build per two hours. Or `bash scripts/snap.sh` on demand (workflow_dispatch). |
 | Build | `scripts/snap.sh` builds HEAD with relative paths and zips it as `openisd-<stamp>.zip`. |
 | Publish | Tag `snap-<stamp>`, GitHub pre-release "Snapshot <stamp>", notes since the last release. |
-| Keep | The newest 20. Older pre-releases, tags and site folders are deleted. |
+| Keep | The newest 10. Older pre-releases, tags and site folders are deleted. |
 | Try one | Open `openisd.app/snap/`, tap a row. Or `openisd.app/snap/<stamp>/`. |
 
 ## Releases

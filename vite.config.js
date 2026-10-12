@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import {VitePWA} from 'vite-plugin-pwa';
 import {fileURLToPath} from 'url';
 import {join} from 'path';
-import {createReadStream, existsSync, readFileSync} from 'fs';
+import {createReadStream, existsSync, readFileSync, writeFileSync} from 'fs';
 import {execFileSync} from 'child_process';
 
 // Optional desktop target, built by `make electron`. It shares the entire UI and engine
@@ -40,6 +40,34 @@ export function buildVersion(command) {
   }
 }
 const UI_ROOT = join(fileURLToPath(import.meta.url), '..', 'packages', 'ui');
+
+// vite-plugin-pwa puts a manifest link and a registerSW.js script, both relative to the page, into
+// every html page. On about/ and install/ under a hosted copy (v/<stamp>/about/) they resolve to
+// files that do not exist, and the script would register a worker at the wrong address. Those
+// pages are static and are already covered by the app's worker, so only the app page keeps them.
+export function stripPwaFromSubpages(html, path) {
+  if (path === '/index.html') return html;
+  return html
+    .replace(/<link rel="manifest"[^>]*>/g, '')
+    .replace(/<script src="[^"]*registerSW\.js"[^>]*><\/script>/g, '');
+}
+// vite-plugin-pwa edits the written pages when the build closes, so this runs then, last in the
+// plugin list, and rewrites the finished about/ and install/ pages.
+let builtOutDir = '';
+const stripPwaFromSubpagesPlugin = {
+  name: 'strip-pwa-from-subpages',
+  apply: 'build',
+  configResolved(config) { builtOutDir = join(config.root, config.build.outDir); },
+  closeBundle: {
+    order: 'post',
+    handler() {
+      for (const page of ['about', 'install']) {
+        const file = join(builtOutDir, page, 'index.html');
+        if (existsSync(file)) writeFileSync(file, stripPwaFromSubpages(readFileSync(file, 'utf8'), `/${page}/index.html`));
+      }
+    },
+  },
+};
 
 // In dev mode, inject a script that unregisters any stale PWA service worker on every
 // page load. Prevents cached compiled JS from masking source changes after a prod build.
@@ -216,5 +244,7 @@ export default defineConfig(({ command, mode }) => ({
         }],
       },
     })]),
+    // Last, so it sees what vite-plugin-pwa injected.
+    stripPwaFromSubpagesPlugin,
   ],
 }));

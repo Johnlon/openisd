@@ -5,7 +5,7 @@
 #                                   (the push-to-main path)
 # Stamp = scripts/version-info.mjs at minute resolution. Builds with the relative base './', zips
 # dist as openisd-<stamp>.zip, tags HEAD snap-<stamp>, creates the pre-release "Snapshot <stamp>"
-# with notes since the last release, then prunes to the newest 20. Writes built=true|false to
+# with notes since the last release, then prunes to the newest 10. Writes built=true|false to
 # $GITHUB_OUTPUT so the workflow deploys only after a build.
 # Test seams: SNAP_BUILD_CMD (default scripts/build-release.sh), SNAP_DIST (default
 # packages/ui/dist), SNAP_NOW_EPOCH (clock for the two-hour check), OPENISD_NOW (clock for the stamp).

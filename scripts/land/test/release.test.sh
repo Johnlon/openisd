@@ -126,7 +126,7 @@ out=$(bash scripts/snap.sh 2>&1); r=$?
 git show HEAD:more.txt > more.txt   # the scratch repo's tree back to its commit
 bash scripts/snap.sh --bogus > /dev/null 2>&1; [ $? = 2 ] && ok "unknown flag is a usage error" || fail "usage exit"
 
-# ---- 3. pruning keeps the newest 20 ----------------------------------------------------------------
+# ---- 3. pruning keeps the newest 10 ----------------------------------------------------------------
 for i in $(seq 1 22); do
   st="$(printf '202501%02dT0000Z' "$i")"
   git tag "snap-$st" HEAD; git push -q origin "refs/tags/snap-$st"
@@ -134,7 +134,7 @@ for i in $(seq 1 22); do
 done
 bash scripts/snap-prune.sh > /dev/null 2>&1
 n=$(jq '[.[] | select(.prerelease)] | length' "$GH_STATE/releases.json")
-[ "$n" = 20 ] && ok "20 snapshot pre-releases remain" || fail "$n remain"
+[ "$n" = 10 ] && ok "10 snapshot pre-releases remain" || fail "$n remain"
 ! remote_has snap-20250101T0000Z && ! remote_has snap-20250102T0000Z && ok "the oldest two tags are deleted" || fail "old tags remain"
 remote_has snap-20260101T0310Z && remote_has snap-20260101T0102Z && ok "the newest tags survive" || fail "newest tag pruned"
 
