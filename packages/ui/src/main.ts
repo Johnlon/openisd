@@ -29,11 +29,11 @@ import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {createConfirmPort} from './logic/confirmPort.js';
 import {provideApp} from './logic/app.js';
-import {appContext, engine, installAppSettings, NoFocusedProjectError} from './logic/appState.js';
-import * as appStateModule from './logic/appState.js';
-import * as presentationStateModule from './logic/presentationState.js';
+import {createAppState, NoFocusedProjectError} from './logic/appState.js';
+import {createPresentationState} from './logic/presentationState.js';
 import {installTestHooks} from './logic/testHooks.js';
 import {createDevVersionPort, createAppVersionPort, type HotUpdateSource} from './logic/appVersion.js';
+import {createEngine} from '@openisd/design/engine';
 import type {LocalTimeParts, ToLocalTime} from '@openisd/design/fields';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
@@ -82,13 +82,16 @@ faultLog.install();
 // STORAGE (port): the browser's own key-value storage.
 const storage = createLocalStorage();
 
-// ONE engine for the whole app — `appState`'s, not a second instance built here. The engine
-// carries the application settings, so a second one would answer the same plausibility question
-// against a different band depending on which of the two a caller happened to hold.
-// `installAppSettings` is what points it at the browser-backed store; until this line runs it
-// reads the factory band.
+// ONE engine for the whole app, built over the application settings: the engine carries the
+// plausibility band and environment, so it reads them from the same repo `appState` writes to.
 const appSettingsRepo = createAppSettingsRepo(storage, fault => console.error(fault));
-installAppSettings(appSettingsRepo);
+const engine = createEngine({
+  ventedLimits: () => appSettingsRepo.ventedLimits(),
+  envDefaults: () => appSettingsRepo.envDefaults(),
+});
+// The two live state objects, built once here and handed to everything that needs them.
+const presentation = createPresentationState();
+const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation });
 const logging = createLogging();
 // The bundled catalogue — docs/design/BUNDLED_CATALOGUE_API.md. Two repos over the same
 // mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
@@ -110,7 +113,7 @@ const driverFileStorage = createFileStorage();
 const selection = createDriverSelection();
 const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, report => faultLog.recordRepair(report));
 const designFiles = new DesignFiles(engine, projectRepo);
-const driverDrafts = new DriverDrafts(engine, appContext);
+const driverDrafts = new DriverDrafts(engine, appState.appContext);
 const confirmPort = createConfirmPort();
 const driverBrowsing = createDriverBrowsingState({
   driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
@@ -141,7 +144,7 @@ const releaseLogger: Logger = {
 const bakedVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
 const isDev = import.meta.env.DEV;
 // The browser suite's seam into the app; a no-op in every build but `--mode test` (testHooks.ts).
-installTestHooks({appState: appStateModule, presentationState: presentationStateModule}, import.meta.env.MODE);
+installTestHooks({appState, presentationState: presentation}, import.meta.env.MODE);
 const releases = new ReleaseWatch(
   typeof bakedVersion === 'string' ? bakedVersion : '',
   createBrowserReleasePort({
@@ -184,7 +187,7 @@ provideApp(app, {
   engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
   bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
   driverFileStorage, faultLog, projectRepo, viewStateRepo, releases, appVersion,
-  confirmPort,
+  confirmPort, appState, presentation,
 });
 
 // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a
