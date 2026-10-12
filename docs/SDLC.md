@@ -174,7 +174,7 @@ R8 has no gate. The policy already stands (Claude sessions brief, review, land; 
 work). S6's timebox and S7's token log make the cost visible per task; a token budget per task
 (`budget:` in the task file, `blocked` when exceeded) is in SDLC_DESIGN.md and needs John's numbers.
 
-### S9 — unit tests load their unit once, and the runner stops paying npx (John, 11 Oct: "unit tests should take milliseconds") — to build, effort S
+### S9 — unit tests load their unit once, and the runner stops paying npx (John, 11 Oct: "unit tests should take milliseconds") — live in part (12 Oct), effort S
 
 - Facts (11 Oct, box at load 20): the full unit run is 2280 s for 373 files, vitest's split import
   69 %, tests 22 %, transform 8 % (maryu). One 5-test file: 5.5–9.6 s inside vitest, 16.6 s wall
@@ -195,6 +195,21 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 - Stops: 38 min unit runs; a landing gate that waits 15 min for the unit half; "unit" tests that
   are integration runs by cost.
 - Owner: fable. After maryu's green push (no sweeps before it).
+- Done (12 Oct, fable): A and B are in (df939bfb, b87ffdb6, 0acf42d2 leaf imports under QO179),
+  and the real cost was a third thing: the `blocked-at` setup file hooked every async resource in
+  every worker and captured a stack for each; with isolate off it was installed again per file, so
+  a run slowed as it went (63,000 traces, 85 MB log). One 85-test file: 30.0 s with it, 9.5 s
+  without. Off by default now, installs once per worker (c41621a5).
+  Full unit run: 43.5 min and 381,715 memory-cap hits (8 workers, 11 Oct) → 5.5 min, 0 hits
+  (3 workers, 12 Oct, 4486 tests). The 5 GB heavy.slice cap stays as it is.
+- Left: 5 tests in 2 ui files red only when sharing a worker, because `appState.ts` holds the live
+  state at module level. Fix is S10.
+
+### S10 — appState and presentationState are built by the composition root (John, 12 Oct: "one of my rules was no global state"; "ok injected it") — in progress, effort M
+
+- Plan: `docs/plans/PLAN_20261012_APPSTATE_INJECTED.md`. Sonnet worker in `openisd-t047`
+  (branch `t047-appstate-injected`), fable reviews and lands.
+- Stops: cross-file state leaks in unit runs; 51 files importing one live instance; `hmrSingleton.ts`.
 
 ## Ready to brief now
 
@@ -209,7 +224,8 @@ work). S6's timebox and S7's token log make the cost visible per task; a token b
 | 6 | S7 counter, queue, event log | S | id clashes, order churn, measurement |
 | 7 | S5 remaining rows: config sandbox; main-folder gate; `new-worktree.sh` based on local main | S each | per-session stops; John typing `rm` |
 | 8 | S8 green tag deploy | S | needs John's ruling |
-| 9 | S9 unit tests load once, no npx in the funnel | S | 38 min unit runs; slow landing gate |
+| 9 | S9 unit tests load once, no npx in the funnel | S, done | 38 min unit runs; slow landing gate |
+| 10 | S10 appState built by the composition root | M | state leaks across unit files; 51 importers of one instance |
 
 ## Register — evidence only
 
