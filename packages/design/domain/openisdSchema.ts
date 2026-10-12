@@ -179,7 +179,7 @@ const readingCommonShape = {
     // to the literal they qualify, so "this is not what the page printed" is read in one glance.
     conformed_reading: z.string().optional(),
     conformed_by: z.string().optional(),
-};
+} as const;
 const readingTailShape = {
     // THE MEASUREMENT CONDITION, on a closed vocabulary (`record_registries.MeasurementNote`).
     // It qualifies THAT source's number: a sensitivity taken at 2.83 V/1 m is 3 dB louder than
@@ -190,7 +190,7 @@ const readingTailShape = {
     // (`readerVerdict`) and never stored.
     reads: z.partialRecord(z.enum(READER_VALUES), readerReadJsonSchema).refine(
         r => Object.keys(r).length > 0, 'expected at least one reader').optional(),
-};
+} as const;
 
 /** A reading with a number: `read_value` is a number, and `read_precision` is its half-width. */
 const usableReadingJsonSchema = z.strictObject({
