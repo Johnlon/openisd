@@ -1,0 +1,10 @@
+id: T054
+repo: openisd
+owner: fable
+status: claimed
+goal: Housekeeping removes a post-land clean copy whose owner pid is dead (a reboot or KILL leaves it), logged, with a live owner's copy kept; the watchdog tick inherits it.
+done_test: bash scripts/land/test/housekeeping.test.sh
+files:
+  - tasks/T054.yml
+  - scripts/housekeeping.sh
+  - scripts/land/test/housekeeping.test.sh

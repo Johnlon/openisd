@@ -66,5 +66,21 @@ sleep 0.5
 out=$(timeout 30 bash "$H" 2>&1); r=$?
 [ $r = 0 ] && grep -q 'another scan is running' <<< "$out" && ok "busy lock handled" || fail "busy lock r=$r: $out"
 
+# 6. post-land copies: a copy whose owner pid is dead goes, a live owner's copy stays
+export HOUSEKEEPING_POST_LAND_DIR="$SCRATCH/postland" HOUSEKEEPING_REPO="$SCRATCH/repo"
+git init -q "$HOUSEKEEPING_REPO" && git -C "$HOUSEKEEPING_REPO" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init
+mkdir -p "$HOUSEKEEPING_POST_LAND_DIR"
+git -C "$HOUSEKEEPING_REPO" worktree add -q --detach "$HOUSEKEEPING_POST_LAND_DIR/999996-deadbeef01" HEAD
+sleep 300 & LIVE=$!; PIDS+=("$LIVE")
+git -C "$HOUSEKEEPING_REPO" worktree add -q --detach "$HOUSEKEEPING_POST_LAND_DIR/$LIVE-cafebabe02" HEAD
+mkdir -p "$HOUSEKEEPING_POST_LAND_DIR/winisd_drivers"
+ADMIT_DIR="$SCRATCH/nope" out=$(timeout 30 bash "$H" 2>&1); r=$?
+[ $r = 0 ] && ok "copies scan exits 0" || fail "copies scan exit $r: $out"
+[ ! -e "$HOUSEKEEPING_POST_LAND_DIR/999996-deadbeef01" ] && ok "dead owner's copy removed" || fail "dead copy kept"
+[ -d "$HOUSEKEEPING_POST_LAND_DIR/$LIVE-cafebabe02" ] && ok "live owner's copy kept" || fail "live copy removed"
+[ -d "$HOUSEKEEPING_POST_LAND_DIR/winisd_drivers" ] && ok "non-copy dir untouched" || fail "winisd_drivers removed"
+grep -q 'removed post-land copy .*999996-deadbeef01 (owner pid 999996 is dead)' "$HOUSEKEEPING_LOG" && ok "removal logged" || fail "removal not logged"
+git -C "$HOUSEKEEPING_REPO" worktree list | grep -q deadbeef01 && fail "worktree record kept" || ok "worktree record pruned"
+
 [ $fails = 0 ] && echo "ALL OK" || echo "$fails FAILED"
 exit $((fails > 0))
