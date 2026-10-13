@@ -218,7 +218,7 @@ check "dates.js bundle written" test -s "$OUT/dates.js"
 grep -q 'Snapshot builds may upgrade your saved data' "$OUT/snap/index.html" && ok "snap/ page warns about saved data" || fail "snap/ warning"
 jq 'map(.latest = false)' "$GH_STATE/releases.json" > "$GH_STATE/n" && mv "$GH_STATE/n" "$GH_STATE/releases.json"
 out=$(bash "$REPO/scripts/hosting/assemble-site.sh" "$S/site2" 2>&1); r=$?
-[ $r = 1 ] && grep -q 'no release is marked Latest' <<< "$out" && ! grep -q 'Not Found' <<< "$out" && ok "no Latest release: refuses to build an empty root" || fail "no latest: $r $out"
+[ $r = 0 ] && ! grep -q 'Not Found' <<< "$out" && grep -q 'OpenISD releases' "$S/site2/index.html" && [ -f "$S/site2/snap/20250115T0000Z/index.html" ] && ok "no Latest release: root is the Versions page, snapshots still hosted" || fail "no latest: $r $out"
 
 echo
 if [ "$fails" = 0 ]; then echo "release.test.sh: all passed"; else echo "release.test.sh: $fails FAILED"; exit 1; fi

@@ -5,8 +5,8 @@
 #   /snap/<stamp>/        every kept snapshot build
 #   /v/index.json         both trails; /v/index.html and /snap/index.html list them
 #   /dates.js             the index pages' date formatter bundle
-# Releases are the only source: no branch holds a built site. Refuses (exit 1, nothing deployed)
-# when no release is marked Latest, because the root would be empty.
+# Releases are the only source: no branch holds a built site. While no release is marked Latest
+# (before the first release) the root is the Versions page, so snapshot builds can be tried.
 #
 #   bash scripts/hosting/assemble-site.sh <outdir>
 set -euo pipefail
@@ -21,7 +21,6 @@ gh api 'repos/{owner}/{repo}/releases' --paginate --jq '.[]' > "$WORK/releases.n
 # GitHub answers 404 when no release is Latest; gh then exits non-zero and prints the error body.
 # Capture status and output apart so that body is never taken for a tag.
 if LATEST_OUT="$(gh api 'repos/{owner}/{repo}/releases/latest' --jq .tag_name 2> /dev/null)"; then LATEST_TAG="$LATEST_OUT"; else LATEST_TAG=''; fi
-[ -n "$LATEST_TAG" ] || { echo "assemble-site: no release is marked Latest; refusing to build an empty root" >&2; exit 1; }
 
 node "$HERE/siteIndex.mjs" "$WORK/releases.ndjson" "$LATEST_TAG" "$WORK/site"
 node "$HERE/build-client.mjs" "$OUT/dates.js"
@@ -36,9 +35,14 @@ unzip_build() {
 }
 
 # Latest first at the root, then every build in its own folder. jq reads the index just written.
-LATEST_STAMP="$(jq -r --arg t "$LATEST_TAG" '.[] | select(.tag == $t) | .stamp' "$WORK/site/v/index.json")"
-[ -n "$LATEST_STAMP" ] || { echo "assemble-site: Latest release $LATEST_TAG is not a build of ours" >&2; exit 1; }
-unzip_build "$LATEST_TAG" "$LATEST_STAMP" "$OUT"
+if [ -n "$LATEST_TAG" ]; then
+  LATEST_STAMP="$(jq -r --arg t "$LATEST_TAG" '.[] | select(.tag == $t) | .stamp' "$WORK/site/v/index.json")"
+  [ -n "$LATEST_STAMP" ] || { echo "assemble-site: Latest release $LATEST_TAG is not a build of ours" >&2; exit 1; }
+  unzip_build "$LATEST_TAG" "$LATEST_STAMP" "$OUT"
+else
+  echo "assemble-site: no release is marked Latest yet; the root is the Versions page" >&2
+  cp "$WORK/site/v/index.html" "$OUT/index.html"
+fi
 while IFS=$'\t' read -r kind tag stamp; do
   case "$kind" in
     release) unzip_build "$tag" "$stamp" "$OUT/v/$stamp" ;;
@@ -48,4 +52,4 @@ done < <(jq -r '.[] | [.kind, .tag, .stamp] | @tsv' "$WORK/site/v/index.json")
 
 cp "$WORK/site/v/index.json" "$WORK/site/v/index.html" "$OUT/v/"
 cp "$WORK/site/snap/index.html" "$OUT/snap/"
-echo "assemble-site: $(jq length "$OUT/v/index.json") builds, Latest $LATEST_TAG → $OUT"
+echo "assemble-site: $(jq length "$OUT/v/index.json") builds, Latest ${LATEST_TAG:-none} → $OUT"

@@ -1,0 +1,11 @@
+id: T065
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Before the first release the site still hosts the snapshot builds. With no release marked Latest, assemble-site puts the releases page at the root instead of refusing, so the snap and v lists are reachable.
+done_test: bash scripts/land/test/release.test.sh
+files:
+  - tasks/T065.yml
+  - scripts/hosting/assemble-site.sh
+  - scripts/land/test/release.test.sh
