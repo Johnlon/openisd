@@ -168,12 +168,13 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   async function saveProject(): Promise<boolean> {
     endWhatIfBeforeIO();
     const project = requireFocusedProject();
-    project.save();
+    // Storage first: a refused write must leave the project showing its unsaved changes.
     const result = deps.projectRepo.saveToStorage(project);
     if (result.kind === 'failed') {
       await handleSaveFailure();
       return false;
     }
+    project.save();
     markProjectSaved();
     recordSave('stored', project);
     return true;
@@ -186,12 +187,12 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     let savedCount = 0;
     for (const project of dirty) {
       project.cancelWhatIf();
-      project.save();
       const result = deps.projectRepo.saveToStorage(project);
       if (result.kind === 'failed') {
         await handleSaveFailure();
-        return savedCount; // stop saving on failure
+        return savedCount; // stop saving on failure; this project still shows its unsaved changes
       }
+      project.save();
       savedCount++;
       recordSave('stored', project);
     }

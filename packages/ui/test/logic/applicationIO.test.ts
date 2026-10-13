@@ -225,6 +225,29 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     assert.equal(restored.name.value, 'Saved from toolbar');
   });
 
+  it('a Save that browser storage refuses leaves the project showing its unsaved changes', async () => {
+    const full = createMemoryStorage();
+    const storage = { ...full, set: () => { /* the browser is full: nothing lands */ } };
+    const fileStorage: FileStorage = {
+      save: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      saveAs: async () => { throw new Error('toolbar Save must not open a file picker'); },
+      openFileName: () => null,
+      forget: () => {},
+    };
+    const engine = createEngine();
+    const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
+    const declinesExport: ConfirmPort = { ask: async () => false };
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: declinesExport, appState, presentation: presentationState });
+
+    appState.newProject();
+    const project = appState.requireFocusedProject();
+    project.name.set('Never stored');
+    const saved = await io.saveProject();
+
+    assert.equal(saved, false);
+    assert.equal(project.isModified(), true, 'the project still has unsaved changes');
+  });
+
   it('Save all commits every open project with unsaved edits, the unfocused ones too', async () => {
     const storage = createMemoryStorage();
     const fileStorage: FileStorage = {

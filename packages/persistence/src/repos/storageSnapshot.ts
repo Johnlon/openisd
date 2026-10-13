@@ -5,7 +5,8 @@ import {basicUtc} from '@openisd/design/fields';
 import {BuildStamp} from './buildStamp.js';
 import type {ListableStorage} from '../storage/keyValueStorage.js';
 import {
-  OPENISD_BACKUP_PREFIX, OPENISD_KEY_PREFIX, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY, OPENISD_STORAGE_LOG_KEY,
+  OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_KEY_PREFIX, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
+  OPENISD_STORAGE_LOG_KEY,
 } from './storageKeys.js';
 
 /** Bumped only if the envelope's own shape changes — not on every app release. */
@@ -36,6 +37,14 @@ export function isStoreDataKey(key: string): boolean {
     && key !== OPENISD_STORAGE_BUILD_KEY;
 }
 
+/** Whether a whole-store backup copies `key`: store data that is not itself a pre-repair copy
+ *  (`openisd_<record>_backup`). A backup holding those copies was a backup of backups: on 13 Oct
+ *  2026 one such copy came to 2.8 MB of a 5 MB browser and saving stopped. */
+export function isBackedUpKey(key: string): boolean {
+  return isStoreDataKey(key) && !PRE_REPAIR_COPY_KEYS.has(key);
+}
+const PRE_REPAIR_COPY_KEYS: ReadonlySet<string> = new Set(Object.values(OPENISD_BACKUP_KEYS));
+
 /** A layout number as read from storage or a file: a whole number of 1 or more, else null. */
 export function parseLayout(value: string | number | null): number | null {
   const n = typeof value === 'string' ? Number(value) : value;
@@ -56,7 +65,7 @@ export interface StorageSnapshot {
 export function createStorageSnapshot(storage: ListableStorage, now: () => number): StorageSnapshot {
   function data(): Record<string, string> {
     const held: Record<string, string> = {};
-    for (const key of storage.keys().filter(isStoreDataKey).sort()) {
+    for (const key of storage.keys().filter(isBackedUpKey).sort()) {
       const value = storage.get(key);
       if (value !== null) held[key] = value;
     }

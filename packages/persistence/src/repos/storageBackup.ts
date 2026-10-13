@@ -59,9 +59,9 @@ export interface StorageBackup {
   /** Delete the backup under `key`. False, and nothing deleted, when `key` is not a backup. A
    *  backup is not itself backed up: it is the copy. */
   discard(key: string): boolean;
-  /** Write a data key, dropping the oldest droppable backups until it fits. False when it does not
-   *  fit even then. Live data outranks its own backups: a save never fails for want of room a
-   *  backup is using. */
+  /** Write a data key, dropping backups oldest first until it fits, the newest last. False when it
+   *  does not fit even with every backup gone. Live data outranks its own backups: a save never
+   *  fails for want of room a backup is using. */
   write(key: string, text: string): boolean;
 }
 
@@ -105,6 +105,18 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     }
   }
 
+  /** `place`, then, for live data only, every remaining backup oldest first: a save of the
+   *  user's work outranks a copy of it. False only when the store cannot hold the data at all. */
+  function writeData(key: string, text: string): boolean {
+    if (place(key, text)) return true;
+    for (const info of list().reverse()) {
+      storage.remove(info.key);
+      storage.set(key, text);
+      if (storage.get(key) === text) return true;
+    }
+    return false;
+  }
+
   function trim(keep: string): void {
     while (list().length > MAX_BACKUPS) {
       const victim = droppable(keep);
@@ -141,7 +153,7 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     },
     list,
     read: key => storage.get(key),
-    write: place,
+    write: writeData,
     discard(key) {
       if (!key.startsWith(OPENISD_BACKUP_PREFIX) || storage.get(key) === null) return false;
       storage.remove(key);

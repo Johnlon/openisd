@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import {createStorageBackup, MAX_BACKUPS} from '../src/repos/storageBackup.js';
 import {envelopeText, readEnvelope} from '../src/repos/storageSnapshot.js';
 import {
-  OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY,
+  OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY,
   OPENISD_STORAGE_LAYOUT_KEY, OPENISD_STORAGE_LOG_KEY,
 } from '../src/repos/storageKeys.js';
 import {BuildStamp} from '../src/repos/buildStamp.js';
@@ -81,6 +81,16 @@ describe('take', () => {
     const storage = createMemoryStorage({[OPENISD_STORAGE_LOG_KEY]: 'only a log'});
     assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take(), {kind: 'nothingToBackUp'});
     assert.deepEqual(storage.keys(), [OPENISD_STORAGE_LOG_KEY]);
+  });
+
+  it('a backup never holds a pre-repair copy of a record', () => {
+    const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p', [OPENISD_BACKUP_KEYS.projects]: 'old p', [OPENISD_BACKUP_KEYS.state]: 'old s'});
+    const result = createStorageBackup(storage, () => FIXED_NOW_MS).take();
+    assert.equal(result.kind, 'taken');
+    const read = readEnvelope(storage.get(takenKey('vunknown')) ?? '');
+    assert.equal(read.kind, 'ok');
+    if (read.kind !== 'ok') return;
+    assert.deepEqual(Object.keys(read.snapshot.data).sort(), [OPENISD_PROJECTS_KEY]);
   });
 
   it('a backup never holds another backup', () => {
@@ -164,6 +174,18 @@ describe('space', () => {
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), bigger, 'the save landed');
     assert.equal(storage.get(keyOf('v20250101T0000Z')), null, 'the oldest backup went to make room');
     assert.notEqual(storage.get(keyOf('v20250202T0000Z')), null, 'the newest of the layout stayed');
+  });
+
+  it('a data write drops even the last backup rather than fail', () => {
+    const only = backupText(1, '20250202T000000Z', 'v20250202T0000Z', {k: data});
+    const storage = createQuotaStorage(1300, {[OPENISD_PROJECTS_KEY]: data, [keyOf('v20250202T0000Z')]: only});
+    const bigger = 'y'.repeat(900);
+
+    const ok = createStorageBackup(storage, () => FIXED_NOW_MS).write(OPENISD_PROJECTS_KEY, bigger);
+
+    assert.equal(ok, true);
+    assert.equal(storage.get(OPENISD_PROJECTS_KEY), bigger, 'the save landed');
+    assert.equal(storage.get(keyOf('v20250202T0000Z')), null, 'the last backup went');
   });
 
   it('a data write that cannot fit even then is false and leaves the key as it was', () => {
