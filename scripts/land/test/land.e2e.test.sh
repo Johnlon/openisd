@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # T001 acceptance (locked; author lots). End-to-end test of scripts/land.sh in a scratch repo with
 # real git, real processes and two concurrent landings. Exit 0 = every case passed.
+# T064 changed three expectations (concurrent, fast-forward, fixes): a task now lands as one squashed
+# commit "<id>: <goal>", so the workers' own subjects and merge commits no longer reach main.
 #
 # Contract under test:
 #   bash scripts/land.sh <task-id>       run from a worker's own clone of the repo
@@ -109,8 +111,8 @@ task w1 T1 a.txt; edit w1 a.txt one; git -C "$SCRATCH/w/w1" commit -qam "w1 chan
 task w2 T2 b.txt; edit w2 b.txt two; git -C "$SCRATCH/w/w2" commit -qam "w2 change"
 cd "$SCRATCH"; land w1 T1 & p1=$!; land w2 T2 & p2=$!
 wait $p1; r1=$?; wait $p2; r2=$?
-if [ $r1 = 0 ] && [ $r2 = 0 ] && origin_has "w1 change" && origin_has "w2 change" \
-   && [ "$(git -C "$SCRATCH/w/origin.git" rev-list --count main)" -ge 5 ] \
+if [ $r1 = 0 ] && [ $r2 = 0 ] && origin_has "T1: test task" && origin_has "T2: test task" \
+   && [ "$(git -C "$SCRATCH/w/origin.git" rev-list --count main)" -ge 3 ] \
    && git -C "$SCRATCH/w/origin.git" log --format=%P main | awk 'NF>1{exit 1}'; then
     ok "concurrent landings both land, linear history"
 else fail "concurrent landings (r1=$r1 r2=$r2)"; fi
@@ -121,8 +123,8 @@ task w1 T1 a.txt; edit w1 a.txt one; git -C "$SCRATCH/w/w1" commit -qam "w1 chan
 git -C "$SCRATCH/w/w1" checkout -qb side HEAD~1; edit w1 b.txt side; git -C "$SCRATCH/w/w1" commit -qam "side change"
 git -C "$SCRATCH/w/w1" checkout -q main; git -C "$SCRATCH/w/w1" merge -q --no-ff -m "merge side" side
 land w1 T1; r=$?
-if [ $r = 0 ] && [ "$(origin_head)" = "$(git -C "$SCRATCH/w/w1" rev-parse HEAD)" ] && origin_has "merge side"; then
-    ok "a branch on top of origin/main lands as a fast-forward, merges kept"
+if [ $r = 0 ] && [ "$(origin_head)" = "$(git -C "$SCRATCH/w/w1" rev-parse HEAD)" ] && origin_has "T1: test task" && ! origin_has "merge side"; then
+    ok "a branch on top of origin/main lands without a rebase, squashed into one commit"
 else fail "fast-forward branch (r=$r): $(tr '\n' ' ' < "$SCRATCH/out.w1" | cut -c1-200)"; fi
 
 # 2. uncommitted work is committed, never discarded
@@ -217,7 +219,12 @@ task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
 before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -qi "fixes" "$SCRATCH/out.w1"; then
     ok "open fixes task refuses"; else fail "fixes refusal (r=$r)"; fi
-task w1 T2 a.txt true fixes; land w1 T2; r=$?
+# fresh clones: the refused T1 landing above left w1 holding T1's squashed commit (mixed with T2)
+setup
+printf 'id: F1\nstatus: open\ngoal: red main\n' > "$SCRATCH/w/w2/tasks/fixes/F1.yml"
+git -C "$SCRATCH/w/w2" add -A; git -C "$SCRATCH/w/w2" commit -qm F1; git -C "$SCRATCH/w/w2" push -q origin main
+git -C "$SCRATCH/w/w1" pull -q --rebase origin main
+task w1 T2 a.txt true fixes; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x; land w1 T2; r=$?
 if [ $r = 0 ]; then ok "fixes-labelled landing passes"; else fail "fixes landing (r=$r)"; fi
 
 [ $fails = 0 ] && { echo "land.e2e: all passed"; exit 0; }

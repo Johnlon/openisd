@@ -1,0 +1,13 @@
+id: T064
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: land.sh lands a task as one commit. After the rebase, when origin/main..HEAD is more than one commit, it squashes them with git reset --soft origin/main and commits as "<id>: <goal>" with the task's release_note as the body. Before that commit it sets status done in tasks/<id>.yml so the landing commit is also the done marker. At the start of every landing it fills landed with the sha of the main commit whose subject starts with "<id>:" for any done task missing landed, in the same landing commit. Commits whose subject names a different task id stay unsquashed and the landing refuses with reason mixed.
+done_test: bash scripts/land/test/land-squash.test.sh && bash scripts/land/test/land-subject.test.sh && bash scripts/land/test/task-status.test.sh
+files:
+  - tasks/T064.yml
+  - scripts/land.sh
+  - scripts/land/core
+  - scripts/land/test/land-squash.test.sh
+  - RELEASING.md

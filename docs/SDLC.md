@@ -61,6 +61,9 @@ named) or **to build**.
 
 ### S1 — the landing gate runs the unit tests (R1) — to build, effort S
 
+A task lands as one commit, subject "<id>: <goal>", body the release note; land.sh writes status done and landed.
+
+
 - What: `land.sh` runs the unit half of every package the change touches, plus every existing spec
   that imports a changed file (import graph), before the push. `done_test` may not name a
   `*.browser.spec.ts`; browser specs run post-land with their own deadline.

@@ -43,4 +43,6 @@
 | `v<stamp>` | A release. The same commit as its `snap-` tag. |
 | branch `release` | The latest promoted commit. Read-only; nothing lands on it. |
 
+A task lands as one commit, subject "<id>: <goal>", body the release note; land.sh writes status done and landed.
+
 The site is rebuilt from the GitHub Releases on every deploy. There is no gh-pages branch.

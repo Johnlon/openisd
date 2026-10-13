@@ -41,6 +41,8 @@ Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 
 ## `scripts/land.sh <id>` — the only path to main
 
+A task lands as one commit, subject "<id>: <goal>", body the release note; land.sh writes status done and landed.
+
 One landing at a time (flock `LAND_LOCK`). In order:
 
 1. Commit everything in the worktree.

@@ -82,3 +82,34 @@ task_self_check() {
   echo "self-check: $checked locked file(s) checked, $bad wrong, $pending pending"
   [ "$bad" = 0 ]
 }
+
+# task_mark_done <file>: status open or claimed becomes done; any other status is left alone.
+task_mark_done() {
+  sed -i -e 's/^status: *\(open\|claimed\) *$/status: done/' "$1"
+}
+
+# task_mark_landed <file> <sha>: add `landed: <sha>` after the status line.
+task_mark_landed() {
+  sed -i "/^status:/a landed: $2" "$1"
+}
+
+# task_first_sentence <goal>: up to the first sentence end followed by a space.
+task_first_sentence() {
+  printf '%s' "$1" | sed 's/\([.!?]\) .*/\1/'
+}
+
+# task_commit_subject <id> <goal>: "<id>: <first sentence of goal>", the sentence cut to 72 chars.
+task_commit_subject() {
+  local sentence
+  sentence="$(task_first_sentence "$2")"
+  [ -n "$sentence" ] || { printf '%s' "$1"; return; }
+  printf '%s: %s' "$1" "${sentence:0:72}"
+}
+
+# task_commit_message <id> <goal> <release_note>: subject, then the full goal when the subject cut
+# the first sentence short, then the release note (omitted when `internal` or empty).
+task_commit_message() {
+  printf '%s\n' "$(task_commit_subject "$1" "$2")"
+  if [ "$(task_first_sentence "$2" | wc -c)" -gt 72 ]; then printf '\n%s\n' "$2"; fi
+  if [ -n "$3" ] && [ "$3" != internal ]; then printf '\n%s\n' "$3"; fi
+}

@@ -41,11 +41,11 @@ s=$(subjects "$base")
 if [ $r = 0 ] && [ "$s" = "T9: Make the thing say what it did." ]; then ok "land.sh's commit subject is '<id>: <goal>'"
 else fail "subject (r=$r): '$s' $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-160)"; fi
 
-# 2. the worker's own commit keeps its subject and land.sh adds none
+# 2. the worker's own commit is squashed under the task subject (T064: one commit per task)
 setup; base=$(git rev-parse HEAD); echo change > f.txt; git add -A; git commit -qm "the worker's own words"
 timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
 s=$(subjects "$base")
-if [ $r = 0 ] && [ "$s" = "the worker's own words" ]; then ok "a worker's commit keeps its subject; none added"
+if [ $r = 0 ] && [ "$s" = "T9: Make the thing say what it did." ]; then ok "a worker's commit lands as '<id>: <goal>'"
 else fail "own commit (r=$r): '$s'"; fi
 
 [ $fails = 0 ] && { echo "land-subject: all passed"; exit 0; }

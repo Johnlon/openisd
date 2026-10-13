@@ -13,6 +13,8 @@
 # Steps, in order, all under one flock (LAND_LOCK) so landings run one at a time:
 #   1. commit everything in the worktree (nothing is ever discarded)
 #   2. fetch, rebase onto origin/main
+#   2b. the branch is squashed into one commit "<id>: <goal>" (body: release note), status done and
+#      `landed` of earlier done tasks written into it; commits of other tasks refuse (mixed)
 #   3. the task's contract is intact: locked files match their hash, done_test and locked entries
 #      are what origin/main has
 #   4. no open tasks/fixes/*.yml, unless this task is labelled `fixes`
@@ -91,6 +93,36 @@ elif ! git rebase -q origin/main > "$WORK/rebase.out" 2>&1; then
   git add "$TASK" && git commit -q -m "$ID: blocked, rebase onto origin/main conflicts"
   echo "land: BLOCKED $ID: rebase conflicts in ${conflicts:-unknown files}" >&2
   exit 3
+fi
+
+# 2b. a task lands as one commit. Done tasks that lack `landed` get it from main's history; every
+# commit of this branch must be this task's own; then the branch is squashed into "<id>: <goal>"
+# with status done and the release note as the body (T064).
+edited=0
+for tf in tasks/*.yml tasks/fixes/*.yml; do
+  [ -f "$tf" ] || continue
+  [ "$(task_field "$tf" status)" = done ] && [ -z "$(task_field "$tf" landed)" ] || continue
+  tid="$(task_field "$tf" id)"
+  [ -n "$tid" ] || continue
+  lsha="$(git log origin/main --format='%H %s' | awk -v p="$tid:" 'index($2, p) == 1 { print $1; exit }')"
+  [ -n "$lsha" ] || continue
+  task_mark_landed "$tf" "$lsha"
+  edited=1
+done
+others="$(git log --format=%s origin/main..HEAD | grep -E '^[TF][0-9]+(-fix)?([: ]|$)' | grep -vE "^$ID([: ]|\$)")"
+[ -z "$others" ] || { GATE_OUT=/dev/null; refuse mixed "the branch carries commits of other tasks, land them on their own branches: $(printf '%s' "$others" | tr '\n' '|')"; }
+if [ "$(task_field "$TASK" status)" != done ]; then
+  case "$(task_field "$TASK" status)" in open|claimed) task_mark_done "$TASK"; edited=1 ;; esac
+fi
+# The squash discards the branch's own messages, so the attribution gate reads them first.
+for sha in $(git rev-list origin/main..HEAD); do
+  git log -1 --format=%B "$sha" > "$WORK/message"
+  run_gate attribution "$WORK/message" "$ATTRIBUTION_CMD"
+done
+if [ -n "$(git rev-list origin/main..HEAD)" ] || [ "$edited" = 1 ]; then
+  task_commit_message "$ID" "$(task_field "$TASK" goal)" "$(task_field "$TASK" release_note)" > "$WORK/squash.msg"
+  git reset -q --soft origin/main && git add -A && git commit -q -F "$WORK/squash.msg" \
+    || { echo "land: squash commit failed" >&2; exit 2; }
 fi
 
 # 3. the task's contract is intact
