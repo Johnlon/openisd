@@ -1,5 +1,4 @@
 id: T055
-release_note: "Saved data carries a layout number: a newer app backs up and upgrades it, and an older app refuses what it cannot read and offers a backup."
 repo: openisd
 owner: fable
 status: claimed
