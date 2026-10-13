@@ -2,7 +2,8 @@ id: F10-fix
 release_note: internal
 repo: openisd
 owner: fable
-status: claimed
+status: done
+landed: 191ecfa34c3a660effa73df73211036a21d175c6
 label: fixes
 goal: Close F10. The post-land suite runs from the repo root (suite.sh cd'd to scripts/ and died on scripts/admit.sh), so the full suite actually runs after a landing.
 done_test: bash scripts/land/test/suite-admit.test.sh

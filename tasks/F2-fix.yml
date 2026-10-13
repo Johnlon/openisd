@@ -2,7 +2,8 @@ id: F2-fix
 release_note: internal
 repo: openisd
 owner: bob
-status: open
+status: done
+landed: 2c66a00658e7dea54c7abed1938a6b9fea62e4ef
 label: fixes
 goal: Close F2. The bandpass6/ABC charts spec's frequency grid is typed as FrequencyGrid, as the architecture test requires.
 done_test: bash scripts/test.sh packages/design/test/architecture-fixtures-are-typed.test.ts packages/design/test/domain/bandpass6-abc-charts.test.ts

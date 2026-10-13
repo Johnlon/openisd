@@ -1,0 +1,15 @@
+id: T099
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: A task whose "<id>:" commit is on main is marked done and landed at the next landing whatever its status said, so no claim outlives its landing; T053's stale claim is cleared the same way.
+done_test: bash scripts/land/test/land-squash.test.sh && bash scripts/land/test/check-commit-landed-stamp.test.sh
+files:
+  - tasks/T099.yml
+  - tasks/T053.yml
+  - tasks/F11-fix.yml
+  - scripts/land.sh
+  - scripts/land/task-gates/check-commit.sh
+  - scripts/land/test/land-squash.test.sh
+  - scripts/land/test/check-commit-landed-stamp.test.sh

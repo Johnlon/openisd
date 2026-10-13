@@ -2,7 +2,8 @@ id: T053
 release_note: "The app sends anonymous usage and crash reports; nothing is stored and it never delays start-up."
 repo: openisd
 owner: fable
-status: claimed
+status: done
+landed: 11f26b062265148405dba5b794135129660837fa
 goal: The app reports anonymous usage events (launch, install, project open, project save, driver pick, error, user crash report) to a fixed collector endpoint with sendBeacon, always on, fire-and-forget, never on the boot path, never persisted, dropped when offline.
 done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts
 files:

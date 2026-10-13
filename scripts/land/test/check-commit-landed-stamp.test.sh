@@ -32,6 +32,18 @@ setup; echo 2 > src/x.ts; printf 'landed: %s\n' "$(git rev-parse HEAD)" >> tasks
 check; r=$?
 [ $r = 0 ] && ok "landed stamp on T1 passes while landing T2" || fail "landed stamp refused (r=$r): $(cat "$SCRATCH/out")"
 
+# a2. the stamp with status claimed -> done (T099) passes too
+setup; echo 2 > src/x.ts; sed -i 's/^status: done$/status: claimed/' tasks/T1.yml; git add -A; git commit -qm claimed
+sed -i "s/^status: claimed$/status: done\nlanded: $(git rev-parse HEAD)/" tasks/T1.yml; git add -A
+check; r=$?
+[ $r = 0 ] && ok "status done plus landed stamp passes" || fail "done+stamp refused (r=$r): $(cat "$SCRATCH/out")"
+
+# a3. status done alone, no landed line, refuses (that is a worker's edit, not land.sh's)
+setup; sed -i 's/^status: done$/status: claimed/' tasks/T1.yml; git add -A; git commit -qm claimed
+sed -i 's/^status: claimed$/status: done/' tasks/T1.yml; git add -A
+check; r=$?
+[ $r = 1 ] && ok "status change without landed refused" || fail "status alone (r=$r)"
+
 # b. any other edit to the earlier task file still refuses
 setup; echo 2 > src/x.ts; sed -i 's/^goal: g$/goal: rewritten/' tasks/T1.yml; git add -A
 check; r=$?

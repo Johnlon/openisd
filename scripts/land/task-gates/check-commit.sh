@@ -21,14 +21,15 @@ TASK="tasks/$ID.yml"
 specs=(":(literal)$TASK")
 while IFS= read -r glob; do specs+=(":(glob)$glob"); done < <(task_files "$TASK")
 
-# land.sh's own stamp: a later landing writes `landed: <sha>` into an earlier task's file (T064 step
-# 2b). That one-line change to another task file is land.sh's, not the worker's, and passes; any
-# other change to a task file outside the allowlist still refuses (T091).
+# land.sh's own stamp: a later landing writes `landed: <sha>` (and status done) into an earlier
+# task's file (T064 step 2b, T099). Those lines in another task file are land.sh's, not the
+# worker's, and pass; any other change to a task file outside the allowlist still refuses (T091).
 landed_stamp_only() {
   case "$1" in tasks/*.yml) ;; *) return 1 ;; esac
   local lines
   lines="$(git diff --cached -U0 -- "$1" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ')"
-  [ -n "$lines" ] && ! printf '%s\n' "$lines" | grep -qvE '^\+landed: [0-9a-f]{7,40}$'
+  [ -n "$lines" ] && printf '%s\n' "$lines" | grep -qE '^\+landed: ' \
+    && ! printf '%s\n' "$lines" | grep -qvE '^(\+landed: [0-9a-f]{7,40}|-status: *(open|claimed) *|\+status: done)$'
 }
 
 outside="$(comm -23 <(git diff --cached --name-only | sort) <(git diff --cached --name-only -- "${specs[@]}" | sort) \

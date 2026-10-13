@@ -2,7 +2,8 @@ id: T063
 release_note: internal
 repo: openisd
 owner: fable
-status: claimed
+status: done
+landed: cb69d6a4824b319e790003bcfdf9ba4109df1d6e
 goal: Task hygiene. T055, T058, T061, T062 and F12-fix are landed and green; their files say done with the landed sha.
 done_test: bash scripts/land/test/task-status.test.sh
 files:

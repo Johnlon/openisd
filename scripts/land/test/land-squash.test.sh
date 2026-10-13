@@ -68,5 +68,17 @@ st=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T9.yml | sed -n 's/^status: 
 if [ $r = 0 ] && [ "$(count "$base")" = 1 ] && [ "$(msg %s)" = "T9: Make the thing say what it did." ] && [ "$st" = done ]; then ok "single commit lands with status done"
 else fail "single (r=$r st=$st)"; fi
 
+# e. T099: a task still claimed whose "<id>:" commit is on main is marked done and landed by the next landing
+setup
+printf 'id: T8\nowner: t\nstatus: claimed\nrelease_note: internal\ngoal: Old one.\ndone_test: true\nfiles:\n  - g.txt\n' > tasks/T8.yml
+echo g > g.txt; git add -A; git commit -qm "T8: Old one."; git push -q origin main
+echo 1 > f.txt; git add -A; git commit -qm "wip"
+bash scripts/land.sh T9 > /dev/null 2>&1; r=$?
+t8sha=$(git -C "$SCRATCH/w/origin.git" log --format='%H %s' main | awk '$2 == "T8:" { print $1; exit }')
+st8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml | sed -n 's/^status: //p')
+ld8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml | sed -n 's/^landed: //p')
+if [ $r = 0 ] && [ "$st8" = done ] && [ "$ld8" = "$t8sha" ]; then ok "claimed T8 with its commit on main becomes done + landed"
+else fail "stale claim (r=$r st=$st8 landed=$ld8 want=$t8sha)"; fi
+
 [ $fails = 0 ] && { echo "land-squash: all passed"; exit 0; }
 echo "land-squash: $fails failed"; exit 1

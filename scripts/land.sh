@@ -95,17 +95,21 @@ elif ! git rebase -q origin/main > "$WORK/rebase.out" 2>&1; then
   exit 3
 fi
 
-# 2b. a task lands as one commit. Done tasks that lack `landed` get it from main's history; every
-# commit of this branch must be this task's own; then the branch is squashed into "<id>: <goal>"
-# with status done and the release note as the body (T064).
+# 2b. a task lands as one commit. Any other task whose "<id>:" commit is on main and that lacks
+# `landed` gets status done and the sha here, whatever its status said (T099: claims that outlived
+# their landing, T053 and F11-fix, blocked other claims for a day); every commit of this branch must
+# be this task's own; then the branch is squashed into "<id>: <goal>" with status done and the
+# release note as the body (T064).
 edited=0
 for tf in tasks/*.yml tasks/fixes/*.yml; do
-  [ -f "$tf" ] || continue
-  [ "$(task_field "$tf" status)" = done ] && [ -z "$(task_field "$tf" landed)" ] || continue
+  [ -f "$tf" ] && [ "$tf" != "$TASK" ] || continue
+  [ -z "$(task_field "$tf" landed)" ] || continue
+  case "$(task_field "$tf" status)" in open|claimed|done) ;; *) continue ;; esac
   tid="$(task_field "$tf" id)"
   [ -n "$tid" ] || continue
   lsha="$(git log origin/main --format='%H %s' | awk -v p="$tid:" 'index($2, p) == 1 { print $1; exit }')"
   [ -n "$lsha" ] || continue
+  task_mark_done "$tf"
   task_mark_landed "$tf" "$lsha"
   edited=1
 done
