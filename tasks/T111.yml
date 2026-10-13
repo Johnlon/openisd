@@ -3,6 +3,7 @@ release_note: Mobile: the bottom bar stays on screen in Firefox Android and Duck
 repo: openisd
 owner: fable
 status: done
+landed: 79e4718c8c47fa8316812089b94d6cf5d3ea17f8
 goal: Mobile shell height follows visualViewport so the bottom bar stays visible on Firefox Android and DuckDuckGo
 done_test: bash scripts/test.sh packages/ui/test/logic/visibleViewport.test.ts
 files:

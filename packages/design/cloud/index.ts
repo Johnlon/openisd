@@ -51,3 +51,15 @@ export {
   parseStoredGrant,
 } from './storedGrant.js';
 
+export type {
+  DecideSyncInputs,
+  LedgerRowState,
+  LocalDocState,
+  SyncRuleAction,
+} from './syncRules.js';
+export {
+  compareLamport,
+  decideDocSync,
+  shouldPurgeTombstone,
+} from './syncRules.js';
+

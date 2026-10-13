@@ -1,0 +1,18 @@
+id: T109
+release_note: Groundwork for cloud sync: the sync run itself.
+repo: openisd
+owner: maryu
+status: done
+goal: syncEngine.ts runs one sync: pull remote changes, push local edits, keep both copies on a conflict, edits beat deletes, backup before any removal (Drive sync plan P1-10)
+done_test: bash scripts/test.sh packages/persistence/test/cloud/syncEngine.test.ts
+files:
+  - tasks/T109.yml
+  - packages/persistence/src/cloud/syncEngine.ts
+  - packages/persistence/src/cloud/syncRun.ts
+  - packages/persistence/src/cloud/localDocs.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - packages/persistence/test/cloud/fakeCloudStore.ts
+  - packages/persistence/test/cloud/fakeLocalDocs.ts
+  - packages/design/cloud/syncRules.ts
+  - packages/design/cloud/index.ts
+  - packages/design/test/cloud/syncRules.test.ts
