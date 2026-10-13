@@ -13,7 +13,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '@openisd/design/engine';
 import {createBuildStamp} from '../src/repos/buildStamp.js';
-import {APP_SETTINGS_KEY} from '../src/repos/appSettingsRepo.js';
+import {APP_SETTINGS_KEY, createFavouritesRepo} from '../src/repos/appSettingsRepo.js';
 import {createBackupRepo} from '../src/repos/backupRepo.js';
 import type {LayoutStep} from '../src/repos/layoutMigration.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
@@ -21,7 +21,8 @@ import {createMemoryStorage, type ListableStorage} from '../src/storage/keyValue
 import {createSavedEntries} from '../src/repos/savedEntries.js';
 import {readEnvelope} from '../src/repos/storageSnapshot.js';
 import {
-  OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY, OPENISD_OPEN_SESSIONS_KEY,
+  OPENISD_BACKUP_PREFIX, OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY,
+  OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY, OPENISD_OPEN_SESSIONS_KEY,
   OPENISD_PROJECTS_KEY, OPENISD_STATE_KEY, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY, OPENISD_STORAGE_LOG_KEY,
   OPENISD_VIEW_KEY,
 } from '../src/repos/storageKeys.js';
@@ -136,6 +137,84 @@ const PATHS: readonly DestructivePath[] = [
     seed: withRadiators,
     destroys: [OPENISD_MY_PASSIVE_RADIATORS_KEY],
     act: s => { myPassiveRadiatorRepoOn(s).replaceAll([]); },
+  },
+  {
+    name: 'delete a stored project via projectRepo.removeStoredDoc',
+    seed: () => ({[OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'))}),
+    destroys: [OPENISD_PROJECTS_KEY],
+    act: s => {
+      projectRepoOn(engine, noFiles, s, ADDRESS).removeStoredDoc('id-1');
+    },
+  },
+  {
+    name: 'replace a stored project via projectRepo.putStoredDoc',
+    seed: () => ({[OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'))}),
+    destroys: [OPENISD_PROJECTS_KEY],
+    act: s => {
+      projectRepoOn(engine, noFiles, s, ADDRESS).putStoredDoc('id-1', goodProjectText('mine-replaced'));
+    },
+  },
+  {
+    name: 'delete a saved driver via savedEntries.removeById',
+    seed: withDrivers,
+    destroys: [OPENISD_MY_DRIVERS_KEY],
+    act: s => {
+      const entries = createSavedEntries<unknown>(s, {
+        key: OPENISD_MY_DRIVERS_KEY,
+        open: r => r,
+        snapshot: v => v,
+      }, backupOn(s));
+      const list = entries.list();
+      entries.removeById(list[0].uuid);
+    },
+  },
+  {
+    name: 'replace a saved driver via savedEntries.upsert',
+    seed: withDrivers,
+    destroys: [OPENISD_MY_DRIVERS_KEY],
+    act: s => {
+      const entries = createSavedEntries<unknown>(s, {
+        key: OPENISD_MY_DRIVERS_KEY,
+        open: r => r,
+        snapshot: v => v,
+      }, backupOn(s));
+      const list = entries.list();
+      entries.upsert({ brand: 'New' }, list[0].uuid);
+    },
+  },
+  {
+    name: 'replace Options whole doc body via appSettingsRepo.replaceDoc',
+    seed: () => ({[APP_SETTINGS_KEY]: JSON.stringify({differenceCues: true})}),
+    destroys: [APP_SETTINGS_KEY],
+    act: s => { appSettingsRepoOn(s).replaceDoc(JSON.stringify({differenceCues: false})); },
+  },
+  {
+    name: 'delete Options whole doc body via appSettingsRepo.removeDoc',
+    seed: () => ({[APP_SETTINGS_KEY]: JSON.stringify({differenceCues: true})}),
+    destroys: [APP_SETTINGS_KEY],
+    act: s => { appSettingsRepoOn(s).removeDoc(); },
+  },
+  {
+    name: 'replace favourites whole doc body via favouritesRepo.replaceDoc',
+    seed: () => ({
+      [OPENISD_FAVOURITE_DRIVERS_KEY]: JSON.stringify(['d-1']),
+      [OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY]: JSON.stringify(['pr-1']),
+    }),
+    destroys: [OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY],
+    act: s => {
+      createFavouritesRepo(s, backupOn(s)).replaceDoc(JSON.stringify({drivers: ['d-2'], passiveRadiators: ['pr-2']}));
+    },
+  },
+  {
+    name: 'delete favourites whole doc body via favouritesRepo.removeDoc',
+    seed: () => ({
+      [OPENISD_FAVOURITE_DRIVERS_KEY]: JSON.stringify(['d-1']),
+      [OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY]: JSON.stringify(['pr-1']),
+    }),
+    destroys: [OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY],
+    act: s => {
+      createFavouritesRepo(s, backupOn(s)).removeDoc();
+    },
   },
   // --- migrate
   {

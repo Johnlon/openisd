@@ -14,6 +14,7 @@ import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage, createSharedMemoryStorage, type KeyValueStorage} from '../src/storage/keyValueStorage.js';
 import {
   OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,
+  OPENISD_STORAGE_LAYOUT_KEY,
 } from '../src/repos/storageKeys.js';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
@@ -570,6 +571,119 @@ describe('projectRepo', () => {
       if (result.kind === 'failed') {
         expect(result.reason).toContain('Quota full');
       }
+    });
+  });
+
+  describe('stored docs (cloud sync support)', () => {
+    it('storedDocs returns empty list when store is empty', () => {
+      const storage = createMemoryStorage();
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      expect(r.storedDocs()).toEqual({ kind: 'ok', docs: [] });
+    });
+
+    it('storedDocs lists stored projects with id, body, and layout', () => {
+      const text = goodProjectText('My Project');
+      const storage = createMemoryStorage({
+        [OPENISD_STORAGE_LAYOUT_KEY]: '1',
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [{ id: 'p-1', text, modified: '2026-01-01T00:00:00Z' }],
+        }),
+      });
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      const res = r.storedDocs();
+      expect(res.kind).toBe('ok');
+      if (res.kind !== 'ok') return;
+      expect(res.docs).toHaveLength(1);
+      expect(res.docs[0].id).toBe('p-1');
+      expect(res.docs[0].body).toBe(text);
+      expect(res.docs[0].layout).toBe(1);
+    });
+
+    it('storedDocs returns unreadable on corrupt store', () => {
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: 'not-json',
+      });
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      expect(r.storedDocs()).toEqual({ kind: 'unreadable' });
+      errorSpy.mockRestore();
+    });
+
+    it('putStoredDoc adds a new project doc by id', () => {
+      const storage = createMemoryStorage();
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      const text = goodProjectText('Fresh');
+      const res = r.putStoredDoc('p-new', text);
+      expect(res).toBe('done');
+      const docsRes = r.storedDocs();
+      expect(docsRes.kind).toBe('ok');
+      if (docsRes.kind !== 'ok') return;
+      expect(docsRes.docs).toHaveLength(1);
+      expect(docsRes.docs[0].id).toBe('p-new');
+    });
+
+    it('putStoredDoc replaces an existing project in place and guards write with backup', () => {
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [{ id: 'p-1', text: goodProjectText('Old'), modified: '2026-01-01T00:00:00Z' }],
+        }),
+      });
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      const res = r.putStoredDoc('p-1', goodProjectText('Updated'));
+      expect(res).toBe('done');
+      const docsRes = r.storedDocs();
+      expect(docsRes.kind).toBe('ok');
+      if (docsRes.kind !== 'ok') return;
+      expect(docsRes.docs).toHaveLength(1);
+      expect(docsRes.docs[0].body).toContain('Updated');
+
+      const hasBackup = storage.keys().some(k => k.startsWith('openisd_backup_'));
+      expect(hasBackup).toBe(true);
+    });
+
+    it('putStoredDoc renames incoming project with uniqueName on name collision with a different project', () => {
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [{ id: 'p-1', text: goodProjectText('SameName'), modified: '2026-01-01T00:00:00Z' }],
+        }),
+      });
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      const res = r.putStoredDoc('p-2', goodProjectText('SameName'));
+      expect(res).toBe('done');
+      const docsRes = r.storedDocs();
+      expect(docsRes.kind).toBe('ok');
+      if (docsRes.kind !== 'ok') return;
+      expect(docsRes.docs).toHaveLength(2);
+      const secondDoc = docsRes.docs.find(d => d.id === 'p-2');
+      expect(secondDoc?.body).toContain('SameName (2)');
+    });
+
+    it('removeStoredDoc removes an existing project through backup guard', () => {
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({
+          version: 1,
+          entries: [{ id: 'p-1', text: goodProjectText('Mine'), modified: '2026-01-01T00:00:00Z' }],
+        }),
+      });
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      const res = r.removeStoredDoc('p-1');
+      expect(res).toBe('done');
+      const docsRes = r.storedDocs();
+      expect(docsRes.kind).toBe('ok');
+      if (docsRes.kind !== 'ok') return;
+      expect(docsRes.docs).toHaveLength(0);
+
+      const hasBackup = storage.keys().some(k => k.startsWith('openisd_backup_'));
+      expect(hasBackup).toBe(true);
+    });
+
+    it('removeStoredDoc returns refused for absent id', () => {
+      const storage = createMemoryStorage();
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      expect(r.removeStoredDoc('non-existent')).toBe('refused');
     });
   });
 });

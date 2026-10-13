@@ -50,6 +50,14 @@ export type {
 export {
   parseStoredGrant,
 } from './storedGrant.js';
+export {
+  conflictProjectName,
+  setProjectNameInBody,
+} from './conflictNames.js';
+export {
+  unwrapDoc,
+  wrapDoc,
+} from './docMigrate.js';
 
 export type {
   DecideSyncInputs,

@@ -8,11 +8,13 @@ import {OpenISDProject, ProjectSummary, newUuid, withMovedChamberQicl, type Fiel
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
-import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
+import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY, OPENISD_BACKUP_KEYS, OPENISD_STORAGE_LAYOUT_KEY} from './storageKeys.js';
 import type {StorageBackup} from './storageBackup.js';
 import {createProjectSchemaUpgrade} from './projectSchemaUpgrade.js';
 import {createStoredDataFault} from './storedDataFault.js';
 import type {ExportedFiles} from './exportedFile.js';
+import {parseLayout} from './storageSnapshot.js';
+import {setProjectNameInBody} from '@openisd/design/cloud';
 
 export interface FileNaming { suggestedName: string; mime: string; label: string; ext: string }
 
@@ -93,7 +95,23 @@ export interface ProjectRepo {
    *  Called when a record holds entries that would not read, so the next save cannot take
    *  them with it. A no-op when there is no stored record. */
   quarantineOpenSession(): void;
+  /** All stored projects as docs with layout, or 'unreadable'. */
+  storedDocs(): StoredDocsResult;
+  /** Save one stored doc by uuid; name clash is resolved via uniqueName. */
+  putStoredDoc(id: string, body: string): 'done' | 'refused';
+  /** Remove one stored doc by uuid. */
+  removeStoredDoc(id: string): 'done' | 'refused';
 }
+
+export interface StoredProjectDoc {
+  readonly id: string;
+  readonly body: string;
+  readonly layout: number;
+}
+
+export type StoredDocsResult =
+  | { readonly kind: 'ok'; readonly docs: readonly StoredProjectDoc[] }
+  | { readonly kind: 'unreadable' };
 
 /** A project that loaded only after fields were reset to their defaults. The user must be told;
  *  `backupKey` holds the stored text as it was (null when the source was a file or a link,
@@ -603,6 +621,99 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     quarantineOpenSession(): void {
       const text = storage.get(OPEN_SESSION_STORAGE_KEY);
       if (text !== null) storage.set(QUARANTINE_SESSION_STORAGE_KEY, text);
+    },
+    storedDocs(): StoredDocsResult {
+      const text = storage.get(PROJECTS_STORAGE_KEY);
+      if (text === null) return { kind: 'ok', docs: [] };
+      try {
+        const parsed: unknown = JSON.parse(text);
+        const payload = storedProjectsPayload(parsed);
+        if (!payload) return { kind: 'unreadable' };
+        const storedLayout = parseLayout(storage.get(OPENISD_STORAGE_LAYOUT_KEY));
+        let layout = storedLayout;
+        if (layout === null) {
+          const stamped: unknown = JSON.parse(exportedFiles.stamp('{}'));
+          layout = typeof stamped === 'object' && stamped !== null && 'layout' in stamped && typeof stamped.layout === 'number'
+            ? stamped.layout
+            : 1;
+        }
+        return {
+          kind: 'ok',
+          docs: payload.entries.map(e => ({ id: e.id, body: e.text, layout })),
+        };
+      } catch {
+        return { kind: 'unreadable' };
+      }
+    },
+    putStoredDoc(id: string, body: string): 'done' | 'refused' {
+      const text = storage.get(PROJECTS_STORAGE_KEY);
+      let currentEntries: StoredProjectEntry[] = [];
+      if (text !== null) {
+        try {
+          const parsed: unknown = JSON.parse(text);
+          const payload = storedProjectsPayload(parsed);
+          if (!payload) return 'refused';
+          currentEntries = payload.entries;
+        } catch {
+          return 'refused';
+        }
+      }
+
+      const existingIdx = currentEntries.findIndex(e => e.id === id);
+      let finalBody = body;
+      const incomingName = projectNameOf(body);
+      if (incomingName !== null) {
+        const otherNames: string[] = [];
+        for (const e of currentEntries) {
+          if (e.id !== id) {
+            const name = projectNameOf(e.text);
+            if (name !== null) otherNames.push(name);
+          }
+        }
+        if (otherNames.includes(incomingName)) {
+          const finalName = uniqueName(incomingName, otherNames);
+          finalBody = setProjectNameInBody(finalBody, finalName);
+        }
+      }
+
+      const nowIso = new Date().toISOString();
+      if (existingIdx >= 0) {
+        const guarded = backup.guard(() => {
+          const nextEntries = [...currentEntries];
+          nextEntries[existingIdx] = { id, text: finalBody, modified: nowIso };
+          writeStoredEntries(nextEntries);
+        });
+        return guarded.kind === 'ran' ? 'done' : 'refused';
+      }
+
+      try {
+        const nextEntries = [...currentEntries, { id, text: finalBody, modified: nowIso }];
+        writeStoredEntries(nextEntries);
+        return 'done';
+      } catch {
+        return 'refused';
+      }
+    },
+    removeStoredDoc(id: string): 'done' | 'refused' {
+      const text = storage.get(PROJECTS_STORAGE_KEY);
+      if (text === null) return 'refused';
+      let payload: StoredProjectsPayload | null = null;
+      try {
+        const parsed: unknown = JSON.parse(text);
+        payload = storedProjectsPayload(parsed);
+      } catch {
+        return 'refused';
+      }
+      if (!payload) return 'refused';
+      const existingIdx = payload.entries.findIndex(e => e.id === id);
+      if (existingIdx < 0) return 'refused';
+
+      const nonNullPayload = payload;
+      const guarded = backup.guard(() => {
+        const nextEntries = nonNullPayload.entries.filter(e => e.id !== id);
+        writeStoredEntries(nextEntries);
+      });
+      return guarded.kind === 'ran' ? 'done' : 'refused';
     },
   };
 }

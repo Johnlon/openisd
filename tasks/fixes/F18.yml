@@ -1,6 +1,7 @@
 id: F18
 owner: Johnlon
-status: open
+status: done
+landed: 23f5a8fac066fde31639a529f862a272b876acfe
 sha: 51fd3c2cf8fed5d884edf64d440caca7bc118e04
 goal: main is red at 51fd3c2cf8; make the full suite pass again
 commits: |

@@ -25,6 +25,7 @@
 import {newUuid} from '@openisd/design';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import type {Guarded, StorageBackup} from './storageBackup.js';
+import {OPENISD_MY_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
 
 /** One stored slot: the uuid this repo minted or adopted, plus the thing's own record,
  *  unopened until the library's own domain seam validates it. */
@@ -74,6 +75,7 @@ export interface SavedEntriesSpec<T> {
 
 /** The operations both libraries expose, over whatever `T` each holds. */
 export interface SavedEntries<T> {
+  readonly kind: 'driver' | 'pr';
   /** The bucket, with its failure states made explicit. */
   read(): SavedRead<T>;
   /** Every saved entry, in saved order — `[]` when the bucket is unavailable or unreadable.
@@ -87,6 +89,8 @@ export interface SavedEntries<T> {
   upsert(value: T, uuid?: string): { uuid: string; overwrote: boolean } | null;
   /** Remove the entry with this uuid. Refused while unreadable. */
   remove(uuid: string): SavedWrite;
+  /** Remove the entry with this uuid. Refused while unreadable. */
+  removeById(uuid: string): SavedWrite;
   /** Remove ONE broken entry by its `BrokenEntry.key` — the surface challenges first. */
   removeBroken(key: number): SavedWrite;
   /** The stored string, verbatim — what the unreadable-bucket Export downloads. */
@@ -218,7 +222,10 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     return guarded.value ? 'done' : 'refused';
   }
 
+  const kind: 'driver' | 'pr' = spec.key === OPENISD_MY_PASSIVE_RADIATORS_KEY ? 'pr' : 'driver';
+
   return {
+    kind,
     read: () => readFull().state,
 
     list() {
@@ -239,10 +246,15 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
       const id = uuid ?? newUuid();
       const idx = slots.findIndex(s => s.uuid === id);
       const nextSlots = [...slots];
-      if (idx >= 0) nextSlots[idx] = { uuid: id, record: spec.snapshot(value) };
-      else nextSlots.push({ uuid: id, record: spec.snapshot(value) });
-      writeBack(nextSlots, brokenRaw);
-      return { uuid: id, overwrote: idx >= 0 };
+      if (idx >= 0) {
+        nextSlots[idx] = { uuid: id, record: spec.snapshot(value) };
+        const guarded = backup.guard(() => writeBack(nextSlots, brokenRaw));
+        if (guarded.kind === 'refused' || !guarded.value) return null;
+        return { uuid: id, overwrote: true };
+      }
+      nextSlots.push({ uuid: id, record: spec.snapshot(value) });
+      const ok = writeBack(nextSlots, brokenRaw);
+      return ok ? { uuid: id, overwrote: false } : null;
     },
 
     remove(uuid) {
@@ -253,6 +265,10 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
       if (kept.length === slots.length) return 'refused';
       const removed = backup.guard(() => writeBack(kept, brokenRaw));
       return writeResult(removed);
+    },
+
+    removeById(uuid) {
+      return this.remove(uuid);
     },
 
     removeBroken(key) {

@@ -606,6 +606,7 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     'ui/logic->model', 'ui/logic->persistence', 'ui/logic->ui/root', 'ui/logic->winisd', 'ui/logic->engine',
     'persistence-repos->model', 'persistence-repos->engine', 'persistence-storage->model',
     'persistence-cloud->model', // fable ruling 2026-10-13: cloud services use the pure cloud logic in @openisd/design/cloud
+    'persistence-cloud->persistence-repos', // fable ruling 2026-10-13: buckets call the repos that own the keys, never raw storage
     'model->winisd', // human-approved 2026-08-23: toWinISDDriver/toWinISDProject/fromWinISDProject
     'winisd->model', // the correct-direction bridge (winisd/src/bridge.ts)
     'winisd->engine', // human-approved 2026-09-28: `winisd/bridge.ts` is the Python bridge's own main — "an independent program and application context" — and a composition root constructs the engine (ARCHITECTURE.md §7, "Application contexts and composition roots")
@@ -644,6 +645,9 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     // ratchet above) — the honest demonstration is that the Set itself separates a known-legal
     // edge from a known-unruled one, proving ALLOWED_EDGES is not vacuously permissive.
     assert.equal(ALLOWED_EDGES.has('ui/logic->model'), true, 'a real ruled-legal edge must be recognised');
+    // fable ruling 2026-10-13: cloud buckets call the repos that own the keys; repos never call cloud.
+    assert.equal(ALLOWED_EDGES.has('persistence-cloud->persistence-repos'), true);
+    assert.equal(ALLOWED_EDGES.has('persistence-repos->persistence-cloud'), false);
     // any edge not on the matrix will do — replace if this one is ever ruled.
     assert.equal(ALLOWED_EDGES.has('ui/components->winisd'), false,
       'an edge nobody ruled legal must be absent from the matrix, proving it is not vacuously permissive');

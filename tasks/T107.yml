@@ -1,0 +1,25 @@
+id: T107
+release_note: Groundwork for cloud sync: how stored projects, drivers and settings are read and written for syncing.
+repo: openisd
+owner: maryu
+status: done
+goal: Sync buckets: projectBucket, savedEntriesBucket and singletonBucket give the sync engine LocalDocs over the stored projects, drivers, PRs, settings and favourites, with per-doc migrate, write-by-id and conflict copies (Drive sync plan P1-8)
+done_test: bash scripts/test.sh packages/persistence/test/cloud/buckets/projectBucket.test.ts packages/persistence/test/cloud/buckets/savedEntriesBucket.test.ts packages/persistence/test/cloud/buckets/singletonBucket.test.ts
+files:
+  - tasks/T107.yml
+  - packages/persistence/src/cloud/buckets/**
+  - packages/persistence/src/cloud/localDocs.ts
+  - packages/ui/test/architecture/architecture.test.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/repos/savedEntries.ts
+  - packages/persistence/src/repos/appSettingsRepo.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/persistence/test/savedEntries.test.ts
+  - packages/persistence/test/appSettingsRepo.test.ts
+  - packages/persistence/test/cloud/buckets/**
+  - packages/persistence/test/destructivePaths.test.ts
+  - packages/design/cloud/docMigrate.ts
+  - packages/design/cloud/conflictNames.ts
+  - packages/design/cloud/index.ts
+  - packages/design/test/cloud/docMigrate.test.ts
+  - packages/design/test/cloud/conflictNames.test.ts
