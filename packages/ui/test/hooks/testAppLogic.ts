@@ -87,6 +87,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     appVersion: createAppVersionPort(false, '', null, testLocalTime),
     versionIndex: new VersionIndex('', Promise.resolve(null)),
     confirmPort, appState, presentation,
+    recordedProjectId: () => null,
   };
   return Object.assign({}, base, overrides);
 }

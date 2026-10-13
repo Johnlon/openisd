@@ -44,6 +44,7 @@ function recording(overrides: {
   hash?: () => Awaited<ReturnType<ProjectRepo['loadFromHash']>>;
   session?: () => OpenProjectSession | string[] | null;
   view?: () => ViewSnapshot | null;
+  recordedProjectId?: () => string | null;
 } = {}): Recorded {
   const log: string[] = [];
   const deps: BootDeps = {
@@ -57,6 +58,7 @@ function recording(overrides: {
     logging: {flash: (m: string) => { log.push('flash: ' + m); }},
     editProjectDriver: () => { log.push('open-editor'); },
     appState, presentation: presentationState,
+    recordedProjectId: overrides.recordedProjectId ?? (() => null),
   };
   return {log, deps};
 }
@@ -142,5 +144,35 @@ describe('bootApplication', () => {
     await bootApplication(deps);
     expect(presentationState.editDriver).toBe(false);
     expect(presentationState.editDriverInfo).toBe(false);
+  });
+
+  it('a recorded project id focuses that project after session restore', async () => {
+    const session = {projects: [project('one'), project('two')], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({
+      session: () => session,
+      recordedProjectId: () => session.projects[1].uuid(),
+    });
+    await bootApplication(deps);
+    expect(appState.focusedProject()?.name.value).toBe('two');
+  });
+
+  it('a recorded project id that does not match any open project changes nothing', async () => {
+    const session = {projects: [project('one')], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({
+      session: () => session,
+      recordedProjectId: () => 'non-existent-uuid',
+    });
+    await bootApplication(deps);
+    expect(appState.focusedProject()?.name.value).toBe('one');
+  });
+
+  it('a missing recorded project id (null) changes nothing', async () => {
+    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({
+      session: () => session,
+      recordedProjectId: () => null,
+    });
+    await bootApplication(deps);
+    expect(appState.focusedProject()?.name.value).toBe('two');
   });
 });

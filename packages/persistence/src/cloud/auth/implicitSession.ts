@@ -6,12 +6,12 @@ import {
   type OAuthConfig,
 } from '@openisd/design/cloud';
 import type { Revoker } from './googleRevoker.js';
+import type { RedirectGuard } from './redirectGuard.js';
 import type { TokenStore } from './tokenStore.js';
 
 export interface SessionLocation {
   readonly href: string;
   readonly hash: string;
-  assign(url: string): void;
   replaceState(url: string): void;
 }
 
@@ -22,6 +22,7 @@ export interface ImplicitSessionDeps {
   readonly store: TokenStore;
   readonly clock: () => number;
   readonly revoker: Revoker;
+  readonly guard: RedirectGuard;
 }
 
 function bytesToHex(bytes: Uint8Array): string {
@@ -45,7 +46,7 @@ function stripFragment(location: SessionLocation): void {
 const EXPIRY_BUFFER_MS = 60_000;
 
 export function createImplicitSession(deps: ImplicitSessionDeps): CloudSession {
-  const { config, store, location, clock, random, revoker } = deps;
+  const { config, store, location, clock, random, revoker, guard } = deps;
 
   return {
     grant(): { readonly kind: 'none' } | { readonly kind: 'connected'; readonly account: string } | { readonly kind: 'reconnect'; readonly account: string } {
@@ -178,7 +179,7 @@ export function createImplicitSession(deps: ImplicitSessionDeps): CloudSession {
               });
               const url = buildAuthUrl(config, { state, prompt: 'none' });
               if (url !== null) {
-                location.assign(url);
+                guard.leave(url);
               }
             },
           };
@@ -209,7 +210,7 @@ export function createImplicitSession(deps: ImplicitSessionDeps): CloudSession {
       const prompt: AuthPrompt = reason === 'reconnect' ? 'select_account' : 'consent';
       const url = buildAuthUrl(config, { state, prompt });
       if (url !== null) {
-        location.assign(url);
+        guard.leave(url);
       }
     },
 

@@ -72,3 +72,24 @@ export {
 } from './repos/backupRepo.js';
 
 export { type StoreName, type StoredDataFault, createStoredDataFault, isStoredDataFault } from './repos/storedDataFault.js';
+
+export {
+  type RedirectGuard,
+  type RedirectGuardDeps,
+  type RedirectLocation,
+  createRedirectGuard,
+} from './cloud/auth/redirectGuard.js';
+
+export {
+  type ImplicitSessionDeps,
+  type SessionLocation,
+  createImplicitSession,
+} from './cloud/auth/implicitSession.js';
+
+export {
+  type AuthStorage,
+  type TokenStore,
+  OPENISD_CLOUD_AUTH_KEY,
+  createTokenStore,
+} from './cloud/auth/tokenStore.js';
+

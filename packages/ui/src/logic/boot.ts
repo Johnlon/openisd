@@ -13,6 +13,7 @@
  * rather than by a guard at each site.
  */
 import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persistence';
+import {isOAuthFragment} from '@openisd/design/cloud';
 import type {AppState} from './appState.js';
 import type {PresentationState} from './presentationState.js';
 
@@ -26,6 +27,7 @@ export interface BootDeps {
   readonly editProjectDriver: () => void;
   readonly appState: AppState;
   readonly presentation: PresentationState;
+  readonly recordedProjectId: () => string | null;
 }
 
 /** A share link carries the WHOLE session, project and view together (human ruling
@@ -97,6 +99,30 @@ function restorePanels(deps: BootDeps): void {
   if (presentation.ui.originalEditorOpen === true && !presentation.editDriverInfo) deps.editProjectDriver();
 }
 
+export interface OAuthBootLocation {
+  readonly search: string;
+  readonly hash: string;
+}
+
+export interface OAuthBootSession {
+  onBoot(loc: OAuthBootLocation): Promise<unknown>;
+}
+
+/**
+ * If the location hash carries an OAuth reply, hand it to the session before the store gate opens.
+ * Returns true if handled, false for a plain load (which never redirects).
+ */
+export async function handleOAuthBoot(
+  session: OAuthBootSession,
+  location: OAuthBootLocation,
+): Promise<boolean> {
+  if (!isOAuthFragment(location.hash)) {
+    return false;
+  }
+  await session.onBoot(location);
+  return true;
+}
+
 /**
  * Restore the application, in order. Resolves once every phase has run; the caller arms
  * persistence after that, so nothing written during startup can overwrite what it was still
@@ -111,7 +137,17 @@ export async function bootApplication(deps: BootDeps): Promise<void> {
   if (session === 'none') restoreLegacyProject(deps);
   restoreView(deps);
   restorePanels(deps);
+  const recordedId = deps.recordedProjectId();
+  if (recordedId !== null) {
+    const projects = deps.appState.openProjects();
+    const idx = projects.findIndex(p => p.uuid() === recordedId);
+    if (idx >= 0) {
+      deps.appState.focusProject(idx);
+    }
+  }
   // A restored session carries each project's own saved and edited layers, so its unsaved edits
   // stay unsaved. Only the single legacy project has no such layers: it is the ground state.
   if (session !== 'restored') deps.appState.markProjectSaved();
 }
+
+

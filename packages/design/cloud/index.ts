@@ -42,6 +42,7 @@ export type {
 } from './oauthRedirect.js';
 export {
   buildAuthUrl,
+  isOAuthFragment,
   parseCallbackFragment,
 } from './oauthRedirect.js';
 export type {

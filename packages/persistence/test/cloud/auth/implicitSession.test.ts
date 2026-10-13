@@ -3,6 +3,7 @@ import {
   createImplicitSession,
   type SessionLocation,
 } from '../../../src/cloud/auth/implicitSession.js';
+import type { RedirectGuard } from '../../../src/cloud/auth/redirectGuard.js';
 import type { Revoker } from '../../../src/cloud/auth/googleRevoker.js';
 import {
   createTokenStore,
@@ -29,23 +30,31 @@ function createMemoryStorage(initial: Record<string, string> = {}): AuthStorage 
 }
 
 interface MockLocation extends SessionLocation {
-  assignCalls: string[];
   replaceStateCalls: string[];
 }
 
 function createMockLocation(initialHref: string, initialHash = ''): MockLocation {
-  const assignCalls: string[] = [];
   const replaceStateCalls: string[] = [];
   return {
     href: initialHref,
     hash: initialHash,
-    assignCalls,
     replaceStateCalls,
-    assign(url: string): void {
-      assignCalls.push(url);
-    },
     replaceState(url: string): void {
       replaceStateCalls.push(url);
+    },
+  };
+}
+
+interface MockGuard extends RedirectGuard {
+  readonly leaveCalls: string[];
+}
+
+function createMockGuard(): MockGuard {
+  const leaveCalls: string[] = [];
+  return {
+    leaveCalls,
+    leave(url: string): void {
+      leaveCalls.push(url);
     },
   };
 }
@@ -127,6 +136,7 @@ describe('implicitSession', () => {
       'https://openisd.app/#access_token=ya29.xyz&expires_in=3600&state=wrong-state',
       '#access_token=ya29.xyz&expires_in=3600&state=wrong-state',
     );
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -134,6 +144,7 @@ describe('implicitSession', () => {
       clock: () => 1000000,
       random: dummyRandom,
       revoker: noopRevoker,
+      guard,
     });
 
     const bootRes = await session.onBoot({
@@ -159,6 +170,7 @@ describe('implicitSession', () => {
       account: 'test@example.com',
     });
     const location = createMockLocation('https://openisd.app/');
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -166,12 +178,13 @@ describe('implicitSession', () => {
       clock: () => now,
       random: dummyRandom,
       revoker: noopRevoker,
+      guard,
     });
 
     const tokenAnswer = await session.accessToken();
 
     expect(tokenAnswer).toEqual({ kind: 'reconnect' });
-    expect(location.assignCalls).toEqual([]);
+    expect(guard.leaveCalls).toEqual([]);
     expect(session.grant()).toEqual({ kind: 'reconnect', account: 'test@example.com' });
     expect(store.read()).toEqual({ kind: 'reconnect', account: 'test@example.com' });
   });
@@ -187,6 +200,7 @@ describe('implicitSession', () => {
       account: 'user@example.com',
     });
     const location = createMockLocation('https://openisd.app/project/2');
+    const guard1 = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -194,6 +208,7 @@ describe('implicitSession', () => {
       clock: () => now,
       random: () => new Uint8Array([0x11, 0x22, 0x33]),
       revoker: noopRevoker,
+      guard: guard1,
     });
 
     // Boot 1: answers willRedirect
@@ -202,8 +217,8 @@ describe('implicitSession', () => {
     if (boot1.kind === 'willRedirect') {
       boot1.go();
     }
-    expect(location.assignCalls.length).toBe(1);
-    const assignUrl = new URL(location.assignCalls[0] ?? '');
+    expect(guard1.leaveCalls.length).toBe(1);
+    const assignUrl = new URL(guard1.leaveCalls[0] ?? '');
     expect(assignUrl.searchParams.get('prompt')).toBe('none');
     expect(assignUrl.searchParams.get('state')).toBe('112233');
     expect(store.read()).toEqual({
@@ -216,6 +231,7 @@ describe('implicitSession', () => {
 
     // Boot 2: re-booting with pending{silent: true} already written
     const location2 = createMockLocation('https://openisd.app/project/2');
+    const guard2 = createMockGuard();
     const session2 = createImplicitSession({
       config: baseConfig,
       store,
@@ -223,11 +239,12 @@ describe('implicitSession', () => {
       clock: () => now + 1000,
       random: () => new Uint8Array([0x44, 0x55, 0x66]),
       revoker: noopRevoker,
+      guard: guard2,
     });
 
     const boot2 = await session2.onBoot({ search: '', hash: '' });
     expect(boot2.kind).toBe('notACallback');
-    expect(location2.assignCalls).toEqual([]); // did not redirect a second time
+    expect(guard2.leaveCalls).toEqual([]); // did not redirect a second time
     expect(session2.grant()).toEqual({ kind: 'reconnect', account: 'user@example.com' });
     expect(store.read()).toEqual({ kind: 'reconnect', account: 'user@example.com' });
   });
@@ -236,6 +253,7 @@ describe('implicitSession', () => {
     const storage = createMemoryStorage();
     const store = createTokenStore(storage);
     const location = createMockLocation('https://openisd.app/test');
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -243,12 +261,13 @@ describe('implicitSession', () => {
       clock: () => 1000000,
       random: () => new Uint8Array([0xde, 0xad, 0xbe, 0xef]),
       revoker: noopRevoker,
+      guard,
     });
 
     session.beginConnect('connect');
 
-    expect(location.assignCalls.length).toBe(1);
-    const url = new URL(location.assignCalls[0] ?? '');
+    expect(guard.leaveCalls.length).toBe(1);
+    const url = new URL(guard.leaveCalls[0] ?? '');
     expect(url.searchParams.get('state')).toBe('deadbeef');
     expect(store.read()).toEqual({
       kind: 'pending',
@@ -272,6 +291,7 @@ describe('implicitSession', () => {
       'https://openisd.app/#error=interaction_required&state=silent-state',
       '#error=interaction_required&state=silent-state',
     );
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -279,6 +299,7 @@ describe('implicitSession', () => {
       clock: () => 1000000,
       random: dummyRandom,
       revoker: noopRevoker,
+      guard,
     });
 
     const bootRes = await session.onBoot({
@@ -305,6 +326,7 @@ describe('implicitSession', () => {
       'https://openisd.app/#error=access_denied&state=user-state',
       '#error=access_denied&state=user-state',
     );
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -312,6 +334,7 @@ describe('implicitSession', () => {
       clock: () => 1000000,
       random: dummyRandom,
       revoker: noopRevoker,
+      guard,
     });
 
     const bootRes = await session.onBoot({
@@ -332,6 +355,7 @@ describe('implicitSession', () => {
     const storage = createMemoryStorage();
     const store = createTokenStore(storage);
     const location = createMockLocation('https://openisd.app/');
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: nullConfig,
       store,
@@ -339,11 +363,12 @@ describe('implicitSession', () => {
       clock: () => 1000000,
       random: dummyRandom,
       revoker: noopRevoker,
+      guard,
     });
 
     expect(session.grant()).toEqual({ kind: 'none' });
     session.beginConnect('connect');
-    expect(location.assignCalls).toEqual([]);
+    expect(guard.leaveCalls).toEqual([]);
     expect(store.read()).toEqual({ kind: 'none' });
     expect(session.grant()).toEqual({ kind: 'none' });
   });
@@ -362,6 +387,7 @@ describe('implicitSession', () => {
       'https://openisd.app/#access_token=ya29.ok&expires_in=3600&state=valid-state',
       '#access_token=ya29.ok&expires_in=3600&state=valid-state',
     );
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -369,6 +395,7 @@ describe('implicitSession', () => {
       clock: () => 1000000,
       random: dummyRandom,
       revoker: noopRevoker,
+      guard,
     });
 
     const bootRes = await session.onBoot({
@@ -402,6 +429,7 @@ describe('implicitSession', () => {
     const revokeFn = vi.fn(async (_token: string) => {});
     const revoker: Revoker = { revoke: revokeFn };
     const location = createMockLocation('https://openisd.app/');
+    const guard = createMockGuard();
     const session = createImplicitSession({
       config: baseConfig,
       store,
@@ -409,6 +437,7 @@ describe('implicitSession', () => {
       clock: () => 1000000,
       random: dummyRandom,
       revoker,
+      guard,
     });
 
     await session.disconnect();

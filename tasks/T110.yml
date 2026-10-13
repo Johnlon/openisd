@@ -1,0 +1,22 @@
+id: T110
+release_note: Groundwork for cloud sync: work in progress is saved before the app goes to Google sign-in.
+repo: openisd
+owner: maryu
+status: done
+goal: redirectGuard.ts saves the open work before the app leaves for Google sign-in, and boot handles the sign-in reply before the store gate (Drive sync plan P1-6)
+done_test: bash scripts/test.sh packages/persistence/test/cloud/auth/redirectGuard.test.ts
+files:
+  - tasks/T110.yml
+  - packages/persistence/src/cloud/auth/redirectGuard.ts
+  - packages/persistence/src/cloud/auth/implicitSession.ts
+  - packages/persistence/test/cloud/auth/**
+  - packages/ui/src/logic/boot.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/persistence/src/index.ts
+  - packages/ui/test/logic/boot.test.ts
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/ui/test/cloud/redirectRoundTrip.browser.spec.ts

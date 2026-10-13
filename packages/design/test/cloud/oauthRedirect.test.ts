@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildAuthUrl,
+  isOAuthFragment,
   parseCallbackFragment,
   type OAuthConfig,
 } from '../../cloud/oauthRedirect.js';
@@ -117,4 +118,46 @@ describe('oauthRedirect', () => {
       expect(parseCallbackFragment('#some_random_key=value')).toEqual({ kind: 'notACallback' });
     });
   });
+
+  describe('isOAuthFragment', () => {
+    it('returns true when fragment has access_token together with state', () => {
+      expect(isOAuthFragment('#access_token=ya29.test-token&state=st-123')).toBe(true);
+      expect(isOAuthFragment('access_token=ya29.test-token&expires_in=3600&state=st-123')).toBe(true);
+    });
+
+    it('returns true when fragment has error together with state', () => {
+      expect(isOAuthFragment('#error=access_denied&state=st-123')).toBe(true);
+      expect(isOAuthFragment('error=interaction_required&state=st-xyz')).toBe(true);
+    });
+
+    it('returns false when fragment has access_token or error without state', () => {
+      expect(isOAuthFragment('#access_token=ya29.test-token')).toBe(false);
+      expect(isOAuthFragment('#error=access_denied')).toBe(false);
+      expect(isOAuthFragment('#error=access_denied&state=')).toBe(false);
+      expect(isOAuthFragment('#access_token=ya29.test-token&state=')).toBe(false);
+    });
+
+    it('returns false when fragment has state without access_token or error', () => {
+      expect(isOAuthFragment('#state=st-123')).toBe(false);
+      expect(isOAuthFragment('#state=st-123&other=value')).toBe(false);
+    });
+
+    it('returns false for share-link fragment', () => {
+      expect(isOAuthFragment('#s=eJzT0yMAAGQAAdw')).toBe(false);
+      expect(isOAuthFragment('#s=eyJmb28iOiJlcnJvcj1iYXIifQ')).toBe(false);
+    });
+
+    it('returns false for fragment that merely contains error= in a value', () => {
+      expect(isOAuthFragment('#param=error=something')).toBe(false);
+      expect(isOAuthFragment('#filter=error=failed&page=1')).toBe(false);
+      expect(isOAuthFragment('#state=123&note=error=none')).toBe(false);
+    });
+
+    it('returns false for empty or non-OAuth fragments', () => {
+      expect(isOAuthFragment('')).toBe(false);
+      expect(isOAuthFragment('#')).toBe(false);
+      expect(isOAuthFragment('#section-title')).toBe(false);
+    });
+  });
 });
+

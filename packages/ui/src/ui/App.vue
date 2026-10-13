@@ -23,7 +23,7 @@ import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import CrashScreen from './components/CrashScreen.vue';
 
-const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appState, presentation: presentationState } = useApp();
+const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appState, presentation: presentationState, recordedProjectId } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch } = useTelemetryUi();
@@ -93,6 +93,7 @@ onMounted(async () => {
     editProjectDriver: () => selection.editProjectDriver(),
     appState,
     presentation: presentationState,
+    recordedProjectId,
   });
   viewStateRepo.save(currentViewSnapshot());
   projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));

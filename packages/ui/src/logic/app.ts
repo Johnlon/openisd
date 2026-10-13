@@ -69,6 +69,8 @@ export interface AppLogic {
   appState: AppState;
   /** Which dialogs are open, chart zoom, unit and colour preferences. */
   presentation: PresentationState;
+  /** Reads the project ID recorded before an OAuth redirect, so boot can refocus it. */
+  recordedProjectId: () => string | null;
 }
 
 export const APP_LOGIC: InjectionKey<AppLogic> = Symbol('openisd.app');

@@ -76,3 +76,36 @@ export function parseCallbackFragment(fragment: string): CallbackFragment {
   }
   return { kind: 'notACallback' };
 }
+
+/**
+ * Whether a URL fragment carries an OAuth redirect response.
+ * Exact: true only when the fragment, parsed as URL params, has access_token or error together with state.
+ */
+export function isOAuthFragment(fragment: string): boolean {
+  if (fragment === '') {
+    return false;
+  }
+  let query = fragment;
+  const hashIdx = query.indexOf('#');
+  if (hashIdx >= 0) {
+    query = query.slice(hashIdx + 1);
+  }
+  const qIdx = query.indexOf('?');
+  if (qIdx >= 0) {
+    query = query.slice(qIdx + 1);
+  }
+  if (query === '') {
+    return false;
+  }
+  const params = new URLSearchParams(query);
+  const state = params.get('state');
+  if (state === null || state === '') {
+    return false;
+  }
+  const accessToken = params.get('access_token');
+  const error = params.get('error');
+  const hasToken = accessToken !== null && accessToken !== '';
+  const hasError = error !== null && error !== '';
+  return hasToken || hasError;
+}
+

@@ -63,10 +63,19 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import './style.css';
 
+const REDIRECT_PROJECT_KEY = 'openisd_redirect_project';
+
+/** The project open when the app left for Google sign-in; sessionStorage, so it lasts one tab visit. */
+interface RecordedProjectIdStore {
+  get(): string | null;
+  set(id: string): void;
+  clear(): void;
+}
+
 const forgetCloudSyncRecord = (): void => undefined;
 
 /** THE COMPOSITION ROOT: build the app on an open store and mount it. */
-function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
+function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProjectIdStore: RecordedProjectIdStore): void {
   // THE COMPOSITION ROOT (ARCHITECTURE.md §2).
   //
   // The only place in the app that constructs anything. Every service is built here with its
@@ -152,6 +161,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
     confirmReset: confirmPort.port, appState, presentation,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
+
   const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules, forgetCloudSyncRecord);
   const storageHistory = createStorageHistory(storageBackup, backup, layoutRules);
   const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse });
@@ -250,6 +260,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
     driverFileStorage, faultLog, projectRepo, viewStateRepo, storageHistory, releases, appVersion, versionIndex,
     confirmPort, appState, presentation,
+    recordedProjectId: recordedProjectIdStore.get,
   });
 
   // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a
@@ -294,6 +305,7 @@ const loadingOverlay = overlayElement && import.meta.env.MODE !== 'test'
     })
   : null;
 
+
 // THE LOAD RULES come before anything is built or read: the browser store is opened (or refused)
 // by `openStore`. An older layout is backed up and migrated; a newer one is not opened at all.
 const layoutRules = { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS };
@@ -306,14 +318,26 @@ const opening = createStoreOpening(createLocalStorage(), {
   memoryStorage: createMemoryStorage,
 }, forgetCloudSyncRecord);
 
+const recordedProjectIdStore: RecordedProjectIdStore = {
+  get: (): string | null => {
+    try { return sessionStorage.getItem(REDIRECT_PROJECT_KEY); } catch { return null; }
+  },
+  set: (id: string): void => {
+    try { sessionStorage.setItem(REDIRECT_PROJECT_KEY, id); } catch { /* ignore */ }
+  },
+  clear: (): void => {
+    try { sessionStorage.removeItem(REDIRECT_PROJECT_KEY); } catch { /* ignore */ }
+  },
+};
+
 if (opening.kind === 'ready') {
-  startApp(opening, loadingOverlay);
+  startApp(opening, loadingOverlay, recordedProjectIdStore);
 } else {
   const session = createStoreGateSession(opening, {
     formatTime: formatDateTime,
     download: (fileName, text) => createFileSave().download(fileName, text, 'application/json'),
     now: Date.now,
-    onReady: open => { gate.unmount(); startApp(open, loadingOverlay); },
+    onReady: (open) => { gate.unmount(); startApp(open, loadingOverlay, recordedProjectIdStore); },
   });
   const gate = createApp(StoreGate, {session});
   gate.mount('#app');
