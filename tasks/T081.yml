@@ -1,0 +1,11 @@
+id: T081
+release_note: Groundwork for cloud sync: document ids, content hashing and checked reading of Google Drive replies.
+repo: openisd
+owner: maryu
+status: done
+goal: packages/persistence/src/cloud has syncDoc.ts (DocId sum type, brands, canonical bodyHashOf, docFileName), cloudStore.ts port types, and drive/driveJson.ts parsers that refuse malformed Drive replies (Drive sync plan P1-3).
+done_test: bash scripts/test.sh packages/persistence/test/cloud/syncDoc.test.ts packages/persistence/test/cloud/driveJson.test.ts
+files:
+  - tasks/T081.yml
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
