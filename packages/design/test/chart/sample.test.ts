@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {interpolatedY, snapFrequency} from '../../chart/sample.js';
+import {crossingFrequency, interpolatedY, snapFrequency} from '../../chart/sample.js';
 
 describe('snapFrequency — nearest peak or trough on one side of the cursor', () => {
   const xs = [10, 20, 50, 100, 200, 500];
@@ -42,5 +42,34 @@ describe('interpolatedY', () => {
   it('holds the end values outside the series', () => {
     expect(interpolatedY([10, 100], [1, 2], 5)).toBe(1);
     expect(interpolatedY([10, 100], [1, 2], 500)).toBe(2);
+  });
+});
+
+describe('crossingFrequency — lowest frequency where the trace reaches a level', () => {
+  const xs = [10, 20, 40, 80, 160];
+  const ys = [-20, -8, -2, 0, -1];
+
+  it('interpolates linearly between the two samples straddling the level', () => {
+    expect(crossingFrequency(xs, ys, -5)).toBeCloseTo(20 + 20 * (3 / 6), 10);
+  });
+
+  it('a sample exactly on the level is the crossing', () => {
+    expect(crossingFrequency(xs, ys, -2)).toBe(40);
+  });
+
+  it('the lowest crossing wins when the trace dips back below the level', () => {
+    expect(crossingFrequency([10, 20, 40, 80], [-9, -1, -9, -1], -3)).toBeCloseTo(10 + 10 * (6 / 8), 10);
+  });
+
+  it('a trace already at or above the level at its first sample crosses at that sample', () => {
+    expect(crossingFrequency(xs, ys, -30)).toBe(10);
+  });
+
+  it('null when the trace never reaches the level', () => {
+    expect(crossingFrequency(xs, ys, 5)).toBeNull();
+  });
+
+  it('non-finite samples are skipped', () => {
+    expect(crossingFrequency([10, 20, 40], [NaN, -8, -2], -5)).toBeCloseTo(20 + 20 * (3 / 6), 10);
   });
 });

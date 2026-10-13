@@ -129,3 +129,24 @@ describe('buildPlotData — a design draws only on charts its box type has', () 
     assert.ok(out.series.some(s => s.name.startsWith('b: ')));
   });
 });
+
+describe('buildPlotData — F3 and F10 on the transfer function chart', () => {
+  it('TFMag carries F3 and F10: where the current trace first reaches −3 dB and −10 dB', () => {
+    const out = buildPlotData(engine, 'TFMag', 10, 2000, design('a', '#4fb0ff'), []).value!;
+    assert.deepEqual(out.rolloffs.map(r => r.label), ['F3', 'F10']);
+    const [f3, f10] = out.rolloffs.map(r => r.f);
+    assert.ok(f3 !== null && f10 !== null, 'a sealed W5 box reaches both levels');
+    assert.ok(f10 < f3, `F10 ${f10} sits below F3 ${f3}`);
+    assert.ok(Math.abs(f3 - engine.simulation.rolloffFreq(SW, 3)!) < 0.1 * f3, 'near the SPL chart\'s F3');
+  });
+
+  it('a trace that never reaches a level has f null for it', () => {
+    const flat: Design = { ...design('flat', '#4fb0ff'), curves: { ...SW, tfMag: SW.tfMag.map(() => 0) } };
+    const out = buildPlotData(engine, 'TFMag', 10, 2000, flat, []).value!;
+    assert.equal(out.rolloffs[0].f, 10);
+  });
+
+  it('the other charts carry none', () => {
+    assert.deepEqual(buildPlotData(engine, 'SPL', 10, 2000, design('a', '#4fb0ff'), []).value!.rolloffs, []);
+  });
+});

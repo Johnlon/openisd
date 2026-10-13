@@ -1,5 +1,5 @@
 import {NumberField} from '@openisd/design/fields';
-import type {PlotData} from '@openisd/design/chart';
+import type {FrequencyAxis, PlotData} from '@openisd/design/chart';
 import type {DragRange, Geo} from '../types.js';
 
 // Returns geo so the caller can map pixel → frequency for crosshair.
@@ -160,6 +160,7 @@ export function drawOne(
         html += `  Δ <b>${levelAxis.statLabel(st.ripple)} ${u}</b>`;
         html += `<br>peak <b>${levelAxis.statLabel(st.peak)} ${u}</b>  trough <b>${levelAxis.statLabel(st.trough)} ${u}</b>`;
       }
+      html += rolloffLine(plotData, freqAxis, hz);
       readEl.innerHTML = html; readEl.style.display = 'block';
     }
   }
@@ -187,10 +188,19 @@ export function drawOne(
       ctx.fillStyle = s.color; ctx.beginPath(); ctx.arc(X(fx), Y(y), 2.6, 0, 7); ctx.fill();
       html += ` <span style="color:${s.color}">${levelAxis.readout(y, plotData.unit)}</span>`;
     }
+    html += rolloffLine(plotData, freqAxis, hz);
     if (readEl) { readEl.innerHTML = html; readEl.style.display = 'block'; }
   } else if (readEl && !dragRange) {
     readEl.style.display = 'none';
   }
 
   return geo;
+}
+
+/** The readout's F3/F10 line on the transfer function chart: `F3 52 Hz  F10 38 Hz`, or `not reached`
+ *  for a level the trace never gets to; empty on every other chart. */
+function rolloffLine(plotData: PlotData, freqAxis: FrequencyAxis, hz: string): string {
+  if (!plotData.rolloffs.length) return '';
+  const parts = plotData.rolloffs.map(r => `${r.label} <b>${r.f === null ? 'not reached' : `${freqAxis.cursorLabel(r.f)} ${hz}`}</b>`);
+  return `<br>${parts.join('  ')}`;
 }

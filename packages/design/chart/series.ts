@@ -9,7 +9,8 @@ export interface ChartEngineAreas {
   /** Which charts each box type has (`chartsFor`): a design draws only on those. */
   readonly box: BoxEngine;
 }
-import type {Design, PlotData, PlotParams, Series} from './types.js';
+import {crossingFrequency} from './sample.js';
+import type {Design, PlotData, PlotParams, Rolloff, Series} from './types.js';
 import {FrequencyAxis, LevelAxis} from './axis.js';
 
 /**
@@ -486,6 +487,7 @@ export function buildPlotData(
   // The focused design's reference lines (0 dB, −3 dB, F3 …) go after every project's entry,
   // so the legend lists the projects first.
   const references: Series[] = [];
+  let currentTrace: Series | null = null;
   if (designs.length === 0) return { value: null, errors: chartErrors };
   for (const [di, d] of designs.entries()) {
     const isCurrent = d === currentDesign;
@@ -500,18 +502,28 @@ export function buildPlotData(
     // WinISD trace colour for the active project — matches its Color swatch.
     if (isCurrent && opts.primaryColor) prim.color = opts.primaryColor;
     out.series.push(prim);
-    if (isCurrent) references.push(...pd.series.slice(1));
+    if (isCurrent) { currentTrace = prim; references.push(...pd.series.slice(1)); }
     out.ymin = Math.min(out.ymin, pd.ymin); out.ymax = Math.max(out.ymax, pd.ymax);
     out.logy = out.logy || pd.logy;
   }
   if (!out) return { value: null, errors: chartErrors };
   out.series.push(...references);
+  const trace: Series | null = currentTrace;
+  const rolloffs: Rolloff[] = chartId === 'TFMag' && trace ? TF_ROLLOFFS.map(r => rolloffOf(trace, r.label, r.dropDb)) : [];
   const value: PlotData = {
     ...out, fmin, fmax,
     freqAxis: new FrequencyAxis(fmin || 10, fmax || 1000),
     levelAxis: new LevelAxis(out.ymin, out.ymax, out.logy),
+    rolloffs,
   };
   return { value, errors: chartErrors };
+}
+
+/** The transfer function chart's two reference levels: 0 dB is the passband, so a drop of `dropDb` is the level `-dropDb`. */
+const TF_ROLLOFFS: readonly {label: string; dropDb: number}[] = [{label: 'F3', dropDb: 3}, {label: 'F10', dropDb: 10}];
+
+function rolloffOf(trace: Series, label: string, dropDb: number): Rolloff {
+  return {label, dropDb, f: crossingFrequency(trace.xs, trace.ys, -dropDb)};
 }
 
 export interface RangeStats { peak: number; peakF: number | null; trough: number; ripple: number; avg: number }

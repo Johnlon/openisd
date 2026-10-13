@@ -3,7 +3,7 @@ import {useApp} from '../logic/app.js';
 import {computed, ref, watch} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
-  buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats,
+  buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
 } from '@openisd/design/chart';
 import type {ChartId, DriverError} from '@openisd/design/engine';
@@ -43,6 +43,10 @@ export interface GraphPanelAPI {
   /** A click on the chart at `f`: locks the cursor there; while locked, a click near the pinned
    *  point unlocks it, and a click elsewhere moves the cursor there unlocked. */
   clickCursorAt(f: number): void;
+  /** The current trace's F3 and F10 on the transfer function chart; empty elsewhere or with no plot. */
+  readonly rolloffs: Readonly<Ref<readonly Rolloff[]>>;
+  /** Moves the cursor to `f` and locks it there, whatever its state before. */
+  jumpCursorTo(f: number): void;
   /** The peak or trough of this chart's trace nearest `f` on one side; null when none. */
   snapFrequency(f: number | null, direction: SnapDirection, extremum: SnapExtremum): number | null;
 }
@@ -133,6 +137,15 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     return s ? snapFrequency(s.xs, s.ys, f, direction, extremum) : null;
   }
 
+  const rolloffs = computed<readonly Rolloff[]>(() => plotData.value?.rolloffs ?? []);
+
+  function jumpCursorTo(f: number): void {
+    const p = project.value;
+    p.pinnedF.set(f);
+    p.cursorF.set(f);
+    p.cursorLocked.set(true);
+  }
+
   function clickCursorAt(f: number): void {
     const p = project.value;
     const pinnedF = p.pinnedF.value;
@@ -164,6 +177,8 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     setAutoY,
     frequencyAxis,
     clickCursorAt,
+    rolloffs,
+    jumpCursorTo,
     rangeStats,
     snapFrequency: snapFrequencyOnTrace,
   };

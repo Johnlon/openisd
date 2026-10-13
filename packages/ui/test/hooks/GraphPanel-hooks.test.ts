@@ -145,6 +145,41 @@ describe('GraphPanel-hooks', () => {
       });
     });
 
+    describe('F3 and F10 on the transfer function chart', () => {
+      function hookOn(project: OpenISDProject, chartId: 'TFMag' | 'SPL') {
+        return runHook(computed(() => project), () => useGraphPanel({chartId}, createEngine()), logic);
+      }
+
+      it('jumpCursorTo pins and locks the cursor at the frequency, also when already locked elsewhere', () => {
+        const project = createTestProject();
+        const api = hookOn(project, 'TFMag');
+        api.clickCursorAt(200);
+        api.jumpCursorTo(55);
+        expect(project.cursorLocked.value).toBe(true);
+        expect(project.pinnedF.value).toBe(55);
+        expect(project.cursorF.value).toBe(55);
+      });
+
+      it('rolloffs is empty with no plot to read them from', () => {
+        expect(hookOn(createTestProject(), 'TFMag').rolloffs.value).toEqual([]);
+      });
+
+      it('rolloffs names F3 then F10 on the transfer function chart, and none on SPL', async () => {
+        const project = createTestProject();
+        project.driver.specs.Sd_m2.set(0.0094);
+        project.driver.specs.Re_ohm.set(3.4);
+        project.driver.specs.Le_H.set(0.34e-3);
+        project.driver.specs.Xmax_m.set(0.00925);
+        project.driver.specs.Pe_W.set(80);
+        appState.addProject(project);
+        const tf = hookOn(project, 'TFMag');
+        const spl = hookOn(project, 'SPL');
+        await vi.waitFor(() => expect(tf.rolloffs.value.length).toBe(2), {timeout: 30_000});
+        expect(tf.rolloffs.value.map(r => r.label)).toEqual(['F3', 'F10']);
+        expect(spl.rolloffs.value).toEqual([]);
+      });
+    });
+
     describe('clickCursorAt', () => {
       function hookOn(project: OpenISDProject) {
         return runHook(computed(() => project), () => useGraphPanel({chartId: 'SPL'}, createEngine()), logic);

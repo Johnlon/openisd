@@ -34,6 +34,7 @@ const warningsDismissed = graph.warningsDismissed;
 const viewPlot = graph.viewPlot;
 const autoY = graph.autoY;
 const yRangeLabel = graph.yRangeLabel;
+const rolloffs = graph.rolloffs;
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
 function resetY() { graph.setAutoY(true); }
 
@@ -240,6 +241,11 @@ function pinHere() {
   closeMenu();
 }
 
+function jumpAction(f: number) {
+  graph.jumpCursorTo(f);
+  closeMenu();
+}
+
 function onDocClick() {
   if (ctxMenu.value.visible) closeMenu();
 }
@@ -320,6 +326,15 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
       <div class="ctx-item" @click="snapAction('left',  'min')" title="Snap cursor left to the nearest trough (local minimum)">◄ Min to left</div>
       <div class="ctx-item" @click="snapAction('right', 'max')" title="Snap cursor right to the nearest peak (local maximum)">Max to right ►</div>
       <div class="ctx-item" @click="snapAction('right', 'min')" title="Snap cursor right to the nearest trough (local minimum)">Min to right ►</div>
+      <template v-if="rolloffs.length">
+        <div class="ctx-sep"></div>
+        <template v-for="r in rolloffs" :key="r.label">
+          <div v-if="r.f !== null" class="ctx-item" @click="jumpAction(r.f)"
+               :title="`Move the cursor to ${r.label}, where the response is ${r.dropDb} dB below the passband`">Jump to {{ r.label }}</div>
+          <div v-else class="ctx-item ctx-off"
+               :title="`${r.label} is not reached: the response never gets to ${r.dropDb} dB below the passband`">Jump to {{ r.label }}</div>
+        </template>
+      </template>
     </div>
   </Teleport>
 </template>
@@ -433,6 +448,8 @@ canvas { touch-action: none; }
   cursor: pointer;
 }
 .ctx-item:hover { background: var(--panel2); }
+.ctx-off { color: var(--mut); cursor: default; }
+.ctx-off:hover { background: transparent; }
 .ctx-sep {
   height: 1px;
   background: var(--line);

@@ -93,6 +93,28 @@ test.describe('Original chart view', () => {
     await expect(page.locator('.chart-close')).toHaveCount(0);
   });
 
+  test('the Transfer function magnitude readout shows F3 and F10, and the right-click menu jumps the cursor to either', async ({ page }) => {
+    await page.locator('.chart-select').click();
+    await page.locator('.chart-select .menu-item', { hasText: /^Transfer function magnitude$/ }).click();
+    await expect.poll(() => graphCanvasDrawn(page)).toBe(true);
+    const canvas = page.locator('.graph-wrap canvas');
+    const box = (await canvas.boundingBox())!;
+    const readout = page.locator('.graph-wrap .gread');
+
+    await page.mouse.move(box.x + box.width * 0.8, box.y + box.height * 0.5);
+    await expect(readout).toContainText('F3');
+    await expect(readout).toContainText('F10');
+
+    await page.mouse.click(box.x + box.width * 0.8, box.y + box.height * 0.5, { button: 'right' });
+    await page.locator('.ctx-menu .ctx-item', { hasText: 'Jump to F3' }).click();
+    await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.2);
+    const text = (await readout.textContent()) ?? '';
+    const f3 = Number(/F3 (\S+) Hz/.exec(text)![1]);
+    const cursor = Number(/^(\S+) ?Hz/.exec(text)![1]);   // the locked cursor, not the mouse
+    expect(Math.abs(cursor - f3)).toBeLessThan(f3 * 0.1);
+    await expect(page.locator('.ctx-menu')).toHaveCount(0);
+  });
+
   test('"Charts high" stacks that many charts in the height; more open charts add columns', async ({ page }) => {
     await page.setViewportSize({ width: 1400, height: 900 });
     await page.locator('.chart-select').click();

@@ -13,6 +13,22 @@ export function interpolatedY(xs: readonly number[], ys: readonly number[], x: n
   return ys[i - 1] + t * (ys[i] - ys[i - 1]);
 }
 
+/** The lowest frequency at which the trace reaches `level`: linear interpolation between the
+ *  two samples straddling it, or the first sample itself when the trace starts at or above it.
+ *  `xs` ascending; non-finite samples are skipped; null when the trace never reaches `level`. */
+export function crossingFrequency(xs: readonly number[], ys: readonly number[], level: number): number | null {
+  let prev = -1;
+  for (let i = 0; i < xs.length; i++) {
+    if (!isFinite(ys[i])) continue;
+    if (ys[i] >= level) {
+      if (prev < 0) return xs[i];
+      return xs[prev] + (xs[i] - xs[prev]) * (level - ys[prev]) / (ys[i] - ys[prev]);
+    }
+    prev = i;
+  }
+  return null;
+}
+
 export type SnapDirection = 'left' | 'right';
 export type SnapExtremum = 'max' | 'min';
 

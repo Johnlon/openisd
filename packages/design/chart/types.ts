@@ -21,6 +21,13 @@ export interface Series {
   current?: boolean;
 }
 
+/** Where a trace first reaches `dropDb` below its passband: `f` in Hz, null when it never does. */
+export interface Rolloff {
+  label: string;
+  dropDb: number;
+  f: number | null;
+}
+
 /** A chart's full plot bundle. */
 export interface PlotData {
   series: Series[];
@@ -34,6 +41,8 @@ export interface PlotData {
   freqAxis: FrequencyAxis;
   /** Level axis over `ymin … ymax`. */
   levelAxis: LevelAxis;
+  /** The current trace's F3 and F10 on the transfer function chart; empty on every other chart. */
+  rolloffs: readonly Rolloff[];
 }
 
 /**

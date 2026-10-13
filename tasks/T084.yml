@@ -1,0 +1,20 @@
+id: T084
+release_note: The Transfer function magnitude chart readout shows F3 and F10, and the chart popup can jump the cursor to either.
+repo: openisd
+owner: bob
+status: done
+goal: The Transfer function magnitude chart readout shows the -3 dB and -10 dB frequencies, and the popup has Jump to F3 and Jump to F10 buttons that move and lock the cursor there.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T084.yml
+  - packages/design/chart/sample.ts
+  - packages/design/chart/types.ts
+  - packages/design/chart/index.ts
+  - packages/design/chart/series.ts
+  - packages/design/test/chart/sample.test.ts
+  - packages/design/test/chart/build-plot-data.test.ts
+  - packages/ui/src/hooks/GraphPanel-hooks.ts
+  - packages/ui/src/ui/canvas.ts
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/test/hooks/GraphPanel-hooks.test.ts
+  - packages/ui/test/ui/original-chart-view.browser.spec.ts
