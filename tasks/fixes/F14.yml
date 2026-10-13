@@ -1,6 +1,6 @@
 id: F14
 owner: Johnlon
-status: open
+status: closed
 sha: e8bbb6a1f477cd7a8ea1bb32aea1dc9c19aaf046
 goal: main is red at e8bbb6a1f4; make the full suite pass again
 commits: |

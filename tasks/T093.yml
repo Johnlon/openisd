@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 542ca12692dc7c0a96b5178900f92a169b21aa40
 goal: main is green again: F14's failing specs pass (the F3/F10 readout types no unit beside a value)
 label: fixes
 done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-units-come-from-the-rotation.test.ts

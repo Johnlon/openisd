@@ -1,0 +1,12 @@
+id: T095
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+label: fixes
+goal: F14 is closed, the post-land suite was green at 542ca12692 after T093; and tasks/F11-fix.yml is marked done and landed at f06ee510, freeing its claim on main.ts and logic/telemetry.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T095.yml
+  - tasks/F11-fix.yml
+  - tasks/fixes/F14.yml
