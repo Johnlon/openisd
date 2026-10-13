@@ -3,6 +3,7 @@ release_note: The Diagnostics dialog says "Nothing to report" when nothing is wr
 repo: openisd
 owner: fable
 status: done
+landed: b3ae613919c922c2271de05dc7393b74dfccf922
 goal: The Diagnostics dialog opened from the menu with no fault and no repair was titled "Saved projects were repaired" with an empty body. It is titled Diagnostics and says nothing to report.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

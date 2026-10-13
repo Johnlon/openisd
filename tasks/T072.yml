@@ -1,0 +1,11 @@
+id: T072
+release_note: Usage stats are sent again. The app's launch report was never reaching the collector from Chrome.
+repo: openisd
+owner: fable
+status: todo
+goal: The telemetry beacon body was typed application/json, so Chrome sent a CORS preflight and never the POST. The body is typed text/plain, a simple request the collector already parses, so launches and crashes arrive.
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts
+files:
+  - tasks/T072.yml
+  - packages/ui/src/logic/telemetry/telemetry.ts
+  - packages/ui/test/logic/telemetry.test.ts

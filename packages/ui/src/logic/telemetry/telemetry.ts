@@ -25,7 +25,8 @@ export interface BeaconTelemetryDeps {
 export const MAX_BATCH_EVENTS = 50;
 export const MAX_BATCH_BYTES = 16 * 1024;
 
-/** Queues events in memory and sends them as JSON arrays with `sendBeacon`. A failed or offline
+/** Queues events in memory and sends them as JSON arrays with `sendBeacon`, typed text/plain so the
+ *  request needs no CORS preflight (Chrome drops a beacon that needs one; the collector parses the text). A failed or offline
  *  batch is lost: nothing is retried and nothing is stored. */
 export class BeaconTelemetry implements Telemetry {
   private queue: WireEvent[] = [];
@@ -42,7 +43,7 @@ export class BeaconTelemetry implements Telemetry {
     this.queue = [];
     if (batch.length === 0 || !this.deps.online()) return;
     for (const chunk of chunked(batch)) {
-      this.deps.beacon(this.deps.endpoint, new Blob([JSON.stringify(chunk)], {type: 'application/json'}));
+      this.deps.beacon(this.deps.endpoint, new Blob([JSON.stringify(chunk)], {type: 'text/plain'}));
     }
   }
 }

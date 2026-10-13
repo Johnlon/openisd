@@ -33,7 +33,7 @@ describe('BeaconTelemetry', () => {
     new LaunchReporter(r.telemetry, () => ENV, work => work()).report('mobile');
     expect(r.beacon).toHaveBeenCalledTimes(1);
     expect(r.sent[0]?.url).toBe(TELEMETRY_ENDPOINT);
-    expect(r.sent[0]?.body.type).toBe('application/json');
+    expect(r.sent[0]?.body.type).toBe('text/plain');
     expect(await r.bodies()).toEqual([[{
       name: 'launch', ts: 1000, version: 'v1', session: 'sess',
       fields: {mode: 'standalone', platform: 'Android', skin: 'mobile', w: 390, h: 844, lang: 'en-GB', ref: 'example.org'},
