@@ -2,7 +2,8 @@ id: T074
 release_note: The mobile Box tab no longer shows the line pointing to the Vented tab; the tab bar already shows it.
 repo: openisd
 owner: fable
-status: todo
+status: done
+landed: cacb7dfab4acb21e2810841855dd69f23010b9e0
 goal: The mobile Box tab's hint "Vents and enclosure details for Vented are on the Vented tab" is removed, since the tab bar already shows that tab.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

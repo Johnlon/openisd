@@ -1,0 +1,16 @@
+id: T103
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Task files with status todo count as open: land.sh marks them done and landed like any other, so T072, T074, T075, T076 and T077 get their landed sha.
+done_test: bash scripts/land/test/land-squash.test.sh
+files:
+  - tasks/T103.yml
+  - tasks/T072.yml
+  - tasks/T074.yml
+  - tasks/T075.yml
+  - tasks/T076.yml
+  - tasks/T077.yml
+  - scripts/land.sh
+  - scripts/land/core/task.sh

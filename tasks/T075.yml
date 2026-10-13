@@ -2,7 +2,8 @@ id: T075
 release_note: Saving a project no longer fails with "Browser storage is full" while old backups are using the space. The save drops the oldest backups until it fits; the newest backup is always kept.
 repo: openisd
 owner: fable
-status: todo
+status: done
+landed: d2b12f6e83b3d87cd41dd6ea7ddb40dfa795bfce
 goal: A project save that did not fit in browser storage failed with "storage is full" while up to ten whole-store backups held the space. The save drops the oldest droppable backups until it fits, via StorageBackup.write; the newest backup of each layout is kept.
 done_test: bash scripts/test.sh packages/persistence/test/storageBackup.test.ts
 files:

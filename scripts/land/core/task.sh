@@ -85,7 +85,7 @@ task_self_check() {
 
 # task_mark_done <file>: status open or claimed becomes done; any other status is left alone.
 task_mark_done() {
-  sed -i -e 's/^status: *\(open\|claimed\) *$/status: done/' "$1"
+  sed -i -e 's/^status: *\(open\|claimed\|todo\) *$/status: done/' "$1"
 }
 
 # task_mark_landed <file> <sha>: add `landed: <sha>` after the status line.

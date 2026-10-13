@@ -3,6 +3,7 @@ release_note: Groundwork for cloud sync: the Cloud sync dialog and the cloud ico
 repo: openisd
 owner: maryu
 status: done
+landed: b4c3eefa4352ddbb48a9cb31510a8efe2f503219
 goal: Shared Cloud sync dialog and cloud toolbar glyphs render the SyncDisplay model from packages/design/cloud (Drive sync plan P1-13)
 done_test: bash scripts/test.sh packages/ui/test/ui/CloudSyncDialog.test.ts
 files:

@@ -2,7 +2,8 @@ id: T073
 release_note: internal
 repo: openisd
 owner: fable
-status: todo
+status: done
+landed: 775dd671dc4bd8bc53538d2d21c04589aefcc780
 goal: RELEASES.md records release v20261013T1646Z, promoted from snapshot 20261013T1646Z.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

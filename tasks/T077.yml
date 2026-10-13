@@ -2,7 +2,8 @@ id: T077
 release_note: On the phone, tapping anywhere outside the open chart list closes it.
 repo: openisd
 owner: fable
-status: todo
+status: done
+landed: b193c5ec37fe03bb38ed040ba2be5dfe1e396520
 goal: The mobile chart picker closes when the user taps anywhere outside the open list, not only on the picker button or a chart name.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

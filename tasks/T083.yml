@@ -2,7 +2,8 @@ id: T083
 release_note: internal
 repo: openisd
 owner: fable
-status: todo
+status: done
+landed: 89ccac0a7fbebd9c254b47391b1a870e3b33d059
 goal: Task ids are claimed by scripts/new-task.sh, which takes the next free number with an atomic mkdir and git branch, opens the worktree and commits the task file, so two sessions can no longer pick the same id.
 done_test: bash scripts/land/test/new-task.test.sh
 files:

@@ -104,7 +104,7 @@ edited=0
 for tf in tasks/*.yml tasks/fixes/*.yml; do
   [ -f "$tf" ] && [ "$tf" != "$TASK" ] || continue
   [ -z "$(task_field "$tf" landed)" ] || continue
-  case "$(task_field "$tf" status)" in open|claimed|done) ;; *) continue ;; esac
+  case "$(task_field "$tf" status)" in open|claimed|todo|done) ;; *) continue ;; esac
   tid="$(task_field "$tf" id)"
   [ -n "$tid" ] || continue
   lsha="$(git log origin/main --format='%H %s' | awk -v p="$tid:" 'index($2, p) == 1 { print $1; exit }')"
@@ -116,7 +116,7 @@ done
 others="$(git log --format=%s origin/main..HEAD | grep -E '^[TF][0-9]+(-fix)?([: ]|$)' | grep -vE "^$ID([: ]|\$)")"
 [ -z "$others" ] || { GATE_OUT=/dev/null; refuse mixed "the branch carries commits of other tasks, land them on their own branches: $(printf '%s' "$others" | tr '\n' '|')"; }
 if [ "$(task_field "$TASK" status)" != done ]; then
-  case "$(task_field "$TASK" status)" in open|claimed) task_mark_done "$TASK"; edited=1 ;; esac
+  case "$(task_field "$TASK" status)" in open|claimed|todo) task_mark_done "$TASK"; edited=1 ;; esac
 fi
 # The squash discards the branch's own messages, so the attribution gate reads them first.
 for sha in $(git rev-list origin/main..HEAD); do

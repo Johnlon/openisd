@@ -2,7 +2,8 @@ id: T076
 release_note: Saving no longer fails with "Browser storage is full" because of the app's own backups, and a save the browser refuses leaves the project showing its unsaved changes. Backups no longer copy earlier backups, so they are a third of the size.
 repo: openisd
 owner: fable
-status: todo
+status: done
+landed: 5f6f531d2b353c53083e07fa5eee8b694841ef7f
 goal: Whole-store backups skip the pre-repair record copies, a project save that still does not fit drops every backup oldest first rather than fail, and a refused save leaves the project showing its unsaved changes.
 done_test: bash scripts/test.sh packages/persistence/test/storageBackup.test.ts packages/ui/test/logic/applicationIO.test.ts
 files:
