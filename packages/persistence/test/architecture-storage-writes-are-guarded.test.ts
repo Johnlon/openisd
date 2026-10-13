@@ -29,7 +29,7 @@ const STORE_MODULES: ReadonlySet<string> = new Set(['stampedStore.ts', 'storageB
 const ORDINARY_SAVES: ReadonlyMap<string, number> = new Map<string, number>([
   ['appSettingsRepo.ts', 1], // save Options
   ['prefsRepo.ts', 2], // favourites
-  ['projectRepo.ts', 4], // save a project, autosave, open sessions
+  ['projectRepo.ts', 2], // open sessions, quarantine copy; project saves go through backup.write (T075)
   ['savedEntries.ts', 1], // save a My Drivers / My Passive Radiators entry
   ['viewStateRepo.ts', 1], // save the view
 ]);

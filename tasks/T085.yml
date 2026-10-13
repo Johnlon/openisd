@@ -1,0 +1,11 @@
+id: T085
+release_note: Test-only fix; no change for users.
+repo: openisd
+owner: maryu
+status: done
+label: fixes
+goal: The storage-guard architecture test counts two ordinary project-repo saves, since T075 moved the project saves onto backup.write (half of F13).
+done_test: bash scripts/test.sh packages/persistence/test/architecture-storage-writes-are-guarded.test.ts
+files:
+  - tasks/T085.yml
+  - packages/persistence/test/architecture-storage-writes-are-guarded.test.ts
