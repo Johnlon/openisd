@@ -3,6 +3,7 @@ release_note: On the phone with several charts, dragging a chart's axis stretche
 repo: openisd
 owner: maryu
 status: done
+landed: 5c9f446e112c93285b172405df453dc35133d2fb
 goal: On the mobile stacked Graph page, the Y-axis and X-axis strips take touch drags as chart stretch/move only and never scroll the page; the plot body still scrolls the stack.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

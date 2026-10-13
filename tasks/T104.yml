@@ -1,0 +1,10 @@
+id: T104
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: docs/test-plans/MANUAL_TEST_PLAN_20261013.md is the manual test plan for the next release: every user-visible change since v20261013T1438Z, with phone and desktop steps.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T104.yml
+  - docs/test-plans/**
