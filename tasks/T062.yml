@@ -1,0 +1,10 @@
+id: T062
+release_note: internal
+repo: openisd
+owner: fable
+status: claimed
+goal: Task hygiene. T055's done_test named a test path guessed before the code existed (ui/test/logic/storageHistory.test.ts); the Storage history page's logic test is ui/test/hooks/StorageHistory-hooks.test.ts. Same three tests, one path corrected, amended on main before T055 lands so the land gate's contract lock holds.
+done_test: bash scripts/land/test/task-status.test.sh
+files:
+  - tasks/T062.yml
+  - tasks/T055.yml
