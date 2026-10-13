@@ -1,0 +1,11 @@
+id: T093
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: main is green again: F14's failing specs pass (the F3/F10 readout types no unit beside a value)
+label: fixes
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-units-come-from-the-rotation.test.ts
+files:
+  - tasks/T093.yml
+  - packages/ui/src/ui/components/GraphPanel.vue

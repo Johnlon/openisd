@@ -330,9 +330,9 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
         <div class="ctx-sep"></div>
         <template v-for="r in rolloffs" :key="r.label">
           <div v-if="r.f !== null" class="ctx-item" @click="jumpAction(r.f)"
-               :title="`Move the cursor to ${r.label}, where the response is ${r.dropDb} dB below the passband`">Jump to {{ r.label }}</div>
+               :title="`Move the cursor to ${r.label}`">Jump to {{ r.label }}</div>
           <div v-else class="ctx-item ctx-off"
-               :title="`${r.label} is not reached: the response never gets to ${r.dropDb} dB below the passband`">Jump to {{ r.label }}</div>
+               :title="`${r.label} is not reached: the response never falls that far`">Jump to {{ r.label }}</div>
         </template>
       </template>
     </div>
