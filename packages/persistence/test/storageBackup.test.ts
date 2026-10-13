@@ -152,6 +152,27 @@ describe('space', () => {
     assert.notEqual(storage.get(keyOf('v20250202T0000Z')), null, 'the newest of the layout stayed');
   });
 
+  it('a data write that does not fit drops the oldest backups until it does, keeping the newest', () => {
+    const old = backupText(1, '20250101T000000Z', 'v20250101T0000Z', {k: data});
+    const newer = backupText(1, '20250202T000000Z', 'v20250202T0000Z', {k: data});
+    const storage = createQuotaStorage(1800, {[OPENISD_PROJECTS_KEY]: data, [keyOf('v20250101T0000Z')]: old, [keyOf('v20250202T0000Z')]: newer});
+    const bigger = 'y'.repeat(900);
+
+    const ok = createStorageBackup(storage, () => FIXED_NOW_MS).write(OPENISD_PROJECTS_KEY, bigger);
+
+    assert.equal(ok, true);
+    assert.equal(storage.get(OPENISD_PROJECTS_KEY), bigger, 'the save landed');
+    assert.equal(storage.get(keyOf('v20250101T0000Z')), null, 'the oldest backup went to make room');
+    assert.notEqual(storage.get(keyOf('v20250202T0000Z')), null, 'the newest of the layout stayed');
+  });
+
+  it('a data write that cannot fit even then is false and leaves the key as it was', () => {
+    const storage = createQuotaStorage(600, {[OPENISD_PROJECTS_KEY]: data});
+    const ok = createStorageBackup(storage, () => FIXED_NOW_MS).write(OPENISD_PROJECTS_KEY, 'z'.repeat(700));
+    assert.equal(ok, false);
+    assert.equal(storage.get(OPENISD_PROJECTS_KEY), data);
+  });
+
   it('when it cannot fit even then, says so, writes nothing and refuses the destructive write', () => {
     const storage = createQuotaStorage(600, {[OPENISD_PROJECTS_KEY]: data});
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);

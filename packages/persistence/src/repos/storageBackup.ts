@@ -59,6 +59,10 @@ export interface StorageBackup {
   /** Delete the backup under `key`. False, and nothing deleted, when `key` is not a backup. A
    *  backup is not itself backed up: it is the copy. */
   discard(key: string): boolean;
+  /** Write a data key, dropping the oldest droppable backups until it fits. False when it does not
+   *  fit even then. Live data outranks its own backups: a save never fails for want of room a
+   *  backup is using. */
+  write(key: string, text: string): boolean;
 }
 
 function byAge(a: BackupInfo, b: BackupInfo): number {
@@ -137,6 +141,7 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     },
     list,
     read: key => storage.get(key),
+    write: place,
     discard(key) {
       if (!key.startsWith(OPENISD_BACKUP_PREFIX) || storage.get(key) === null) return false;
       storage.remove(key);

@@ -340,8 +340,7 @@ function deduplicateProjectEntries(entries: readonly StoredProjectEntry[]): { en
   function writeStoredEntries(entries: StoredProjectEntry[]): void {
     const payload: StoredProjectsPayload = { entries };
     const text = JSON.stringify(payload);
-    storage.set(PROJECTS_STORAGE_KEY, text);
-    if (storage.get(PROJECTS_STORAGE_KEY) !== text) {
+    if (!backup.write(PROJECTS_STORAGE_KEY, text)) {
       throw new Error('browser storage is full');
     }
   }
@@ -502,8 +501,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       
       try {
         writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
-        storage.set(PROJECT_STORAGE_KEY, entry.text);
-        if (storage.get(PROJECT_STORAGE_KEY) !== entry.text) {
+        if (!backup.write(PROJECT_STORAGE_KEY, entry.text)) {
           throw new Error('browser storage is full');
         }
       } catch (e) {
