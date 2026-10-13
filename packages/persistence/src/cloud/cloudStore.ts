@@ -5,6 +5,7 @@ import type {
 export interface CloudStore {
   listAll(): Promise<CloudResult<CloudFileList>>;
   changesSince(cursor: ChangeCursor): Promise<CloudResult<CloudChanges>>;
+  startCursor(): Promise<CloudResult<ChangeCursor>>;
   read(fileId: FileId): Promise<CloudResult<CloudDoc>>;
   create(id: DocId, body: string, meta: WriteMeta): Promise<CloudResult<CloudMeta>>;
   update(fileId: FileId, expectedRevision: RevisionId, body: string, meta: WriteMeta): Promise<CloudResult<CloudMeta>>;
@@ -12,13 +13,7 @@ export interface CloudStore {
   purge(fileId: FileId): Promise<CloudResult<void>>;
 }
 
-export interface Http {
-  fetch(url: string, init: { method: string; headers: Record<string, string>; body?: string }): Promise<{
-    readonly status: number;
-    readonly headers: { get(name: string): string | null };
-    text(): Promise<string>;
-  }>;
-}
+export type { Http, HttpRequest, HttpResponse } from './http.js';
 
 export interface CloudSession {
   grant(): { readonly kind: 'none' } | { readonly kind: 'connected'; readonly account: string } | { readonly kind: 'reconnect'; readonly account: string };

@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": 403,
+    "message": "User Rate Limit Exceeded",
+    "errors": [
+      {
+        "reason": "userRateLimitExceeded",
+        "message": "User Rate Limit Exceeded"
+      }
+    ]
+  }
+}

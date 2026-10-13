@@ -1,5 +1,5 @@
 import type { DocId } from './syncDoc.js';
-import type { CloudMeta, CloudResult, CloudChange, CloudChanges, CloudFileList } from './cloudTypes.js';
+import type { CloudMeta, CloudResult, CloudError, CloudChange, CloudChanges, CloudFileList } from './cloudTypes.js';
 import { FileId, RevisionId, ChangeCursor, BodyHash, field } from './syncDoc.js';
 
 interface DriveFile {
@@ -466,7 +466,28 @@ export function parseWriteReply(jsonText: string): CloudResult<CloudMeta> {
   };
 }
 
-export function parseErrorResponse(status: number, jsonText: string): CloudResult<never> {
+export function parseStartPageToken(jsonText: string): CloudResult<ChangeCursor> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    return { kind: 'malformed', reason: 'Invalid JSON' };
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return { kind: 'malformed', reason: 'Not an object' };
+  }
+  const token = field(parsed, 'startPageToken');
+  if (typeof token !== 'string' || token === '') {
+    return { kind: 'malformed', reason: 'Missing startPageToken' };
+  }
+  const cursor = ChangeCursor.of(token);
+  if (!cursor) {
+    return { kind: 'malformed', reason: 'Invalid startPageToken' };
+  }
+  return { kind: 'ok', value: cursor };
+}
+
+export function parseErrorResponse(status: number, jsonText: string, retryAfter_ms?: number): CloudError {
   let parsed: unknown;
   try {
     parsed = JSON.parse(jsonText);
@@ -483,8 +504,11 @@ export function parseErrorResponse(status: number, jsonText: string): CloudResul
     return { kind: 'unauthorised' };
   }
   if (status === 403 || status === 429) {
-    const retryAfter = errors?.[0]?.reason === 'userRateLimitExceeded' ? 60000 : 30000;
-    return { kind: 'quota', retryAfter_ms: retryAfter };
+    const isRate = status === 429 || reason === 'userRateLimitExceeded' || reason === 'rateLimitExceeded' || errors?.[0]?.reason === 'userRateLimitExceeded';
+    if (isRate) {
+      const retryAfter = retryAfter_ms !== undefined ? retryAfter_ms : (errors?.[0]?.reason === 'userRateLimitExceeded' ? 60000 : 30000);
+      return { kind: 'quota', retryAfter_ms: retryAfter };
+    }
   }
   if (status === 410) {
     return { kind: 'cursorExpired' };

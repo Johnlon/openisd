@@ -26,8 +26,7 @@ export interface WriteMeta {
   readonly hash: BodyHash;
 }
 
-export type CloudResult<T> =
-  | { readonly kind: 'ok'; readonly value: T }
+export type CloudError =
   | { readonly kind: 'moved'; readonly head: CloudMeta }
   | { readonly kind: 'offline' }
   | { readonly kind: 'unauthorised' }
@@ -35,6 +34,10 @@ export type CloudResult<T> =
   | { readonly kind: 'cursorExpired' }
   | { readonly kind: 'malformed'; readonly reason: string }
   | { readonly kind: 'failed'; readonly status: number; readonly reason: string };
+
+export type CloudResult<T> =
+  | { readonly kind: 'ok'; readonly value: T }
+  | CloudError;
 
 export type CloudChange = CloudMeta | { readonly fileId: FileId; readonly gone: true };
 

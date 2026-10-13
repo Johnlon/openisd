@@ -1,0 +1,17 @@
+{
+  "id": "file-tombstone-1",
+  "name": "project-del-123.owpr",
+  "mimeType": "text/plain",
+  "headRevisionId": "rev-tomb-1",
+  "appProperties": {
+    "app": "openisd",
+    "kind": "project",
+    "uuid": "del-123",
+    "layout": "2",
+    "parentRevision": "rev-tomb-0",
+    "seq": "10",
+    "writer": "device-1",
+    "hash": "a1b2c3d4e5f6",
+    "deleted": "1"
+  }
+}

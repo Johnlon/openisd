@@ -29,6 +29,8 @@ export type {DocId, DocKind} from './syncDoc.js';
 export {BodyHash, ChangeCursor, FileId, RevisionId, bodyHashOf, docFileName, field} from './syncDoc.js';
 export {sha256} from './sha256.js';
 export type {
-  CloudChange, CloudChanges, CloudDoc, CloudFileList, CloudMeta, CloudResult, WriteMeta,
+  CloudChange, CloudChanges, CloudDoc, CloudError, CloudFileList, CloudMeta, CloudResult, WriteMeta,
 } from './cloudTypes.js';
-export {parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseWriteReply} from './driveJson.js';
+export {
+  parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseStartPageToken, parseWriteReply,
+} from './driveJson.js';

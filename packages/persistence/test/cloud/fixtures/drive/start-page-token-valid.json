@@ -1,0 +1,4 @@
+{
+  "kind": "drive#startPageToken",
+  "startPageToken": "start-page-token-123"
+}

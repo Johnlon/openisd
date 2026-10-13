@@ -1,0 +1,12 @@
+{
+  "error": {
+    "code": 401,
+    "message": "Invalid Credentials",
+    "errors": [
+      {
+        "reason": "authError",
+        "message": "Invalid Credentials"
+      }
+    ]
+  }
+}

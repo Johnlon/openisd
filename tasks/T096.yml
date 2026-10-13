@@ -1,0 +1,17 @@
+id: T096
+release_note: Groundwork for cloud sync: reading and writing the app's files in Google Drive.
+repo: openisd
+owner: maryu
+status: done
+goal: driveStore.ts implements the CloudStore port over an injected Http against Drive v3 appDataFolder (Drive sync plan P1-4)
+done_test: bash scripts/test.sh packages/persistence/test/cloud/driveStore.test.ts
+files:
+  - tasks/T096.yml
+  - packages/persistence/src/cloud/drive/**
+  - packages/persistence/src/cloud/cloudStore.ts
+  - packages/persistence/src/cloud/http.ts
+  - packages/persistence/test/cloud/driveStore.test.ts
+  - packages/persistence/test/cloud/fixtures/drive/**
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/ui/test/architecture/architecture.test.ts

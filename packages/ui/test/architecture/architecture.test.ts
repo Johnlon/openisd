@@ -541,6 +541,7 @@ function fileLayer(file: string): string {
     const pr = relative(PERSISTENCE_SRC, file).replace(/\\/g, '/');
     if (pr.startsWith('repos/')) return 'persistence-repos';
     if (pr.startsWith('storage/')) return 'persistence-storage';
+    if (pr.startsWith('cloud/')) return 'persistence-cloud';
     return 'persistence';
   }
   const r = relative(UI_SRC, file).replace(/\\/g, '/');
@@ -604,6 +605,7 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     'ui/hooks->engine', // dqIssueText/plausibilityToText: the engine's own DqIssue rendering, one door, no ui/logic re-export sitting in front of it (A9)
     'ui/logic->model', 'ui/logic->persistence', 'ui/logic->ui/root', 'ui/logic->winisd', 'ui/logic->engine',
     'persistence-repos->model', 'persistence-repos->engine', 'persistence-storage->model',
+    'persistence-cloud->model', // fable ruling 2026-10-13: cloud services use the pure cloud logic in @openisd/design/cloud
     'model->winisd', // human-approved 2026-08-23: toWinISDDriver/toWinISDProject/fromWinISDProject
     'winisd->model', // the correct-direction bridge (winisd/src/bridge.ts)
     'winisd->engine', // human-approved 2026-09-28: `winisd/bridge.ts` is the Python bridge's own main — "an independent program and application context" — and a composition root constructs the engine (ARCHITECTURE.md §7, "Application contexts and composition roots")
@@ -659,6 +661,7 @@ describe('layer-edge legality — the ruled dependency matrix (QO80 closure, 202
     assert.equal(specLayer(anyUiFile, '@openisd/design/winisd'), 'winisd');
     assert.equal(specLayer(anyUiFile, '@openisd/design'), 'model');
     assert.equal(specLayer(anyUiFile, '@openisd/persistence'), 'persistence');
+    assert.equal(fileLayer(join(PERSISTENCE_SRC, 'cloud', 'drive', 'driveStore.ts')), 'persistence-cloud');
   });
 });
 
