@@ -1,0 +1,10 @@
+id: T071
+release_note: The Diagnostics dialog says "Nothing to report" when nothing is wrong, instead of claiming projects were repaired.
+repo: openisd
+owner: fable
+status: done
+goal: The Diagnostics dialog opened from the menu with no fault and no repair was titled "Saved projects were repaired" with an empty body. It is titled Diagnostics and says nothing to report.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T071.yml
+  - packages/ui/src/ui/components/DiagnosticsModal.vue

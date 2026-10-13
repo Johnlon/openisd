@@ -18,7 +18,7 @@ const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copy
   <div v-if="open" class="dg-backdrop">
     <div class="dg" role="alertdialog" aria-labelledby="dg-title">
       <header>
-        <h2 id="dg-title">{{ faultLog.faults.length ? 'Something went wrong' : 'Saved projects were repaired' }}</h2>
+        <h2 id="dg-title">{{ faultLog.faults.length ? 'Something went wrong' : faultLog.repairs.length ? 'Saved projects were repaired' : 'Diagnostics' }}</h2>
         <button class="dg-x" title="Dismiss — the app stays as it is" @click="open = false">&times;</button>
       </header>
 
@@ -59,6 +59,11 @@ const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copy
       <p v-else-if="faultLog.faults.length" class="dg-nofix">
         No stored-state repair applies — this fault is in the running code, not in your saved
         data. Copy the report below.
+      </p>
+
+      <p v-if="!faultLog.faults.length && !faultLog.repairs.length" class="dg-keeps">
+        Nothing to report. No fault has occurred and no saved project needed repair. Copy diagnostics
+        gives a report of this browser's stored data if you want to send one.
       </p>
 
       <p v-if="outcome" class="dg-outcome">{{ outcome }}</p>
