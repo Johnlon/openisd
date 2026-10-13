@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {OPENISD_STORAGE_KEYS} from '../src/repos/storageKeys.js';
+import {OPENISD_CLOUD_PREFIX, OPENISD_STORAGE_KEYS} from '../src/repos/storageKeys.js';
 
 describe('OpenISD browser storage keys', () => {
   it('publishes one complete, stable key list', () => {
@@ -13,7 +13,11 @@ describe('OpenISD browser storage keys', () => {
       favouriteDrivers: 'openisd_favourite_drivers',
       favouritePassiveRadiators: 'openisd_favourite_passive_radiators',
       quarantineSession: 'openisd_quarantine_session',
-    appSettings: 'openisd_app_settings',
+      appSettings: 'openisd_app_settings',
     });
+  });
+
+  it('publishes OPENISD_CLOUD_PREFIX', () => {
+    expect(OPENISD_CLOUD_PREFIX).toBe('openisd_cloud_');
   });
 });

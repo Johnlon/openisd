@@ -19,6 +19,8 @@ export const OPENISD_STORAGE_BUILD_KEY = 'openisd_storage_build';
 export const OPENISD_STORAGE_LOG_KEY = 'openisd_storage_log';
 /** Whole-store backups are `openisd_backup_<build stamp of the app that wrote the store>`. */
 export const OPENISD_BACKUP_PREFIX = 'openisd_backup_';
+/** Cloud sync tokens, ledger and per-device state start with this. */
+export const OPENISD_CLOUD_PREFIX = 'openisd_cloud_';
 /** Every key this app owns starts with this. */
 export const OPENISD_KEY_PREFIX = 'openisd_';
 

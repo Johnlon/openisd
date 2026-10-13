@@ -10,7 +10,7 @@
 import {basicUtc} from '@openisd/design/fields';
 import type {ListableStorage} from '../storage/keyValueStorage.js';
 import {
-  OPENISD_APP_SETTINGS_KEY, OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY,
+  OPENISD_APP_SETTINGS_KEY, OPENISD_CLOUD_PREFIX, OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY,
   OPENISD_KEY_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY, OPENISD_OPEN_SESSIONS_KEY,
   OPENISD_PROJECTS_KEY, OPENISD_STATE_KEY, OPENISD_STORAGE_LOG_KEY, OPENISD_VIEW_KEY,
 } from './storageKeys.js';
@@ -84,7 +84,7 @@ export function createStorageLog(storage: ListableStorage, now: () => number): S
     const keys: Record<string, number | null> = {};
     for (const tracked of TRACKED) keys[tracked.key] = null;
     for (const key of storage.keys()) {
-      if (!key.startsWith(OPENISD_KEY_PREFIX) || key === OPENISD_STORAGE_LOG_KEY) continue;
+      if (!key.startsWith(OPENISD_KEY_PREFIX) || key === OPENISD_STORAGE_LOG_KEY || key.startsWith(OPENISD_CLOUD_PREFIX)) continue;
       keys[key] = storage.get(key)?.length ?? null;
     }
     return keys;

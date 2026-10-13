@@ -5,7 +5,7 @@ import {basicUtc} from '@openisd/design/fields';
 import {BuildStamp} from './buildStamp.js';
 import type {ListableStorage} from '../storage/keyValueStorage.js';
 import {
-  OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_KEY_PREFIX, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
+  OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_CLOUD_PREFIX, OPENISD_KEY_PREFIX, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
   OPENISD_STORAGE_LOG_KEY,
 } from './storageKeys.js';
 
@@ -27,11 +27,12 @@ export type EnvelopeRead =
   | {kind: 'ok'; snapshot: StoreSnapshot}
   | {kind: 'invalid'; reason: string};
 
-/** Whether `key` is store DATA: an `openisd_` key that is not a whole-store backup, the log, or
- *  the layout/build stamps. A backup copies exactly these. */
+/** Whether `key` is store DATA: an `openisd_` key that is not a whole-store backup, the log,
+ *  the layout/build stamps, or per-device cloud keys. A backup copies exactly these. */
 export function isStoreDataKey(key: string): boolean {
   return key.startsWith(OPENISD_KEY_PREFIX)
     && !key.startsWith(OPENISD_BACKUP_PREFIX)
+    && !key.startsWith(OPENISD_CLOUD_PREFIX)
     && key !== OPENISD_STORAGE_LOG_KEY
     && key !== OPENISD_STORAGE_LAYOUT_KEY
     && key !== OPENISD_STORAGE_BUILD_KEY;

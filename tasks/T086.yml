@@ -3,6 +3,7 @@ release_note: Test-only fix; no change for users.
 repo: openisd
 owner: maryu
 status: done
+landed: 9a7f02fbca43e509b956a4cff304bf5660a03726
 label: fixes
 goal: The mobile Box tab spec expects no Vented-tab hint, since T074 removed it on purpose; F13 is closed.
 done_test: bash scripts/quiet-test.sh npm run typecheck

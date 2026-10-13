@@ -80,6 +80,18 @@ describe('recordStart', () => {
     assert.deepEqual(createStorageLog(storage, () => T1).recordStart(), []);
     assert.equal(entriesOf(storage).length, 1);
   });
+
+  it('never logs keys starting with openisd_cloud_', () => {
+    const storage = createMemoryStorage({
+      openisd_cloud_auth: 'token',
+      openisd_cloud_state: 'state',
+      [OPENISD_PROJECTS_KEY]: 'p',
+    });
+    createStorageLog(storage, () => T1).recordStart();
+    const [entry] = entriesOf(storage);
+    assert.ok(!('openisd_cloud_auth' in entry.keys));
+    assert.ok(!('openisd_cloud_state' in entry.keys));
+  });
 });
 
 describe('observe', () => {
@@ -112,6 +124,16 @@ describe('observe', () => {
     assert.equal(storage.get(OPENISD_STATE_KEY), 's');
     assert.equal(observed.get(OPENISD_PROJECTS_KEY), 'p');
     assert.ok(observed.keys().includes(OPENISD_STATE_KEY));
+  });
+
+  it('a write to openisd_cloud_auth leaves no storage-log entry', () => {
+    const storage = createMemoryStorage();
+    const log = createStorageLog(storage, () => T1);
+    log.recordStart();
+    log.observe(storage).set('openisd_cloud_auth', 'token');
+
+    const [entry] = entriesOf(storage);
+    assert.ok(!('openisd_cloud_auth' in entry.keys));
   });
 });
 

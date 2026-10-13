@@ -1,0 +1,16 @@
+id: T079
+release_note: Cloud sync login data is never put in backups, exports or the storage log.
+repo: openisd
+owner: maryu
+status: done
+goal: Keys starting openisd_cloud_ are left out of whole-store backups, exports and the storage log (Drive sync plan P1-1).
+done_test: bash scripts/test.sh packages/persistence/test/storageSnapshot.test.ts packages/persistence/test/storageLog.test.ts
+files:
+  - tasks/T079.yml
+  - tasks/T086.yml
+  - packages/persistence/src/repos/storageSnapshot.ts
+  - packages/persistence/src/repos/storageLog.ts
+  - packages/persistence/src/repos/storageKeys.ts
+  - packages/persistence/test/storageSnapshot.test.ts
+  - packages/persistence/test/storageLog.test.ts
+  - packages/persistence/test/storageKeys.test.ts
