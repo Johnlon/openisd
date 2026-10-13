@@ -1,0 +1,10 @@
+id: T073
+release_note: internal
+repo: openisd
+owner: fable
+status: todo
+goal: RELEASES.md records release v20261013T1646Z, promoted from snapshot 20261013T1646Z.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T073.yml
+  - RELEASES.md
