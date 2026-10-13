@@ -88,7 +88,7 @@ export function drawOne(
   for (const s of plotData.series) {
     if (s.phantom) continue;
     // The focused project's own trace, drawn heavier so it reads apart from compare overlays.
-    ctx.lineWidth = s.dash ? 1.1 : (s.current ? 2.6 : 1.7);
+    ctx.lineWidth = s.dash ? 1.1 : (s.lineWidth ?? 1.7);
     if (s.dash) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
     if (s.xlim) {
       // Two-pass: Xmax-limited (design color) then Pe-limited (amber)
@@ -121,7 +121,7 @@ export function drawOne(
     const lh = 13, lx = m.l + 6;
     let ly = m.t + 6;
     for (const s of namedSeries) {
-      ctx.strokeStyle = s.color; ctx.lineWidth = s.dash ? 1.1 : (s.current ? 2.6 : 1.7);
+      ctx.strokeStyle = s.color; ctx.lineWidth = s.dash ? 1.1 : (s.lineWidth ?? 1.7);
       if (s.dash) ctx.setLineDash([4, 3]); else ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(lx, ly + 3); ctx.lineTo(lx + 14, ly + 3); ctx.stroke();
       ctx.setLineDash([]);

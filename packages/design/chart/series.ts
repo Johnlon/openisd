@@ -499,6 +499,7 @@ export function buildPlotData(
       if (!isCurrent) delete prim.xlim; // compare overlays: solid color, no segmented coloring
       else prim.current = true; // the focused project's own trace, drawn emphasized
     }
+    if (isCurrent) prim.lineWidth = (multi ? TRACE_WIDTH_BESIDE_OVERLAYS_PX : TRACE_WIDTH_PX) * ACTIVE_TRACE_WIDER;
     // WinISD trace colour for the active project — matches its Color swatch.
     if (isCurrent && opts.primaryColor) prim.color = opts.primaryColor;
     out.series.push(prim);
@@ -518,6 +519,11 @@ export function buildPlotData(
   };
   return { value, errors: chartErrors };
 }
+
+/** Trace widths in px: a lone trace, the focused trace beside overlays, and how much wider the active trace is drawn than either. */
+const TRACE_WIDTH_PX = 1.7;
+const TRACE_WIDTH_BESIDE_OVERLAYS_PX = 2.6;
+const ACTIVE_TRACE_WIDER = 1.59;
 
 /** The transfer function chart's two reference levels: 0 dB is the passband, so a drop of `dropDb` is the level `-dropDb`. */
 const TF_ROLLOFFS: readonly {label: string; dropDb: number}[] = [{label: 'F3', dropDb: 3}, {label: 'F10', dropDb: 10}];

@@ -19,6 +19,8 @@ export interface Series {
   /** This is the focused project's own trace, not a compare overlay — the legend and the
    *  line itself are drawn emphasized so it reads apart from the overlays around it. */
   current?: boolean;
+  /** Line width in px, set only on the focused project's own trace; absent, the canvas draws its default. */
+  lineWidth?: number;
 }
 
 /** Where a trace first reaches `dropDb` below its passband: `f` in Hz, null when it never does. */

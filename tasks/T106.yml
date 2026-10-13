@@ -1,0 +1,13 @@
+id: T106
+release_note: The active project's line on a chart is drawn 59% thicker.
+repo: openisd
+owner: bob
+status: done
+goal: The active project's chart trace is drawn 59% thicker than before.
+done_test: bash scripts/test.sh packages/design/test/chart/build-plot-data.test.ts
+files:
+  - tasks/T106.yml
+  - packages/design/chart/types.ts
+  - packages/design/chart/series.ts
+  - packages/design/test/chart/build-plot-data.test.ts
+  - packages/ui/src/ui/canvas.ts

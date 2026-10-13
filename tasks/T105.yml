@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: c1936b888c286b6c8b984dad0b820952dd6da21a
 goal: The manual test plan names the build under test, snapshot 20261013T1911Z.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
