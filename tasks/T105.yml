@@ -1,0 +1,10 @@
+id: T105
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The manual test plan names the build under test, snapshot 20261013T1911Z.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T105.yml
+  - docs/test-plans/**

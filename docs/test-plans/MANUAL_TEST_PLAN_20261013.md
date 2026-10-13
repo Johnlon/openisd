@@ -1,6 +1,6 @@
 # Manual test plan, next release (13 Oct 2026)
 
-Build under test: snapshot **SNAPSTAMP** at https://openisd.app/snap/SNAPSTAMP/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
+Build under test: snapshot **20261013T1911Z** at https://openisd.app/snap/20261013T1911Z/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
 
 Before you start, on each device: open the snapshot URL, close the tab, open it again (the second open runs the new worker). About must show "Snapshot 13 Oct 2026, …". If it shows an older stamp, open it once more.
 
