@@ -1,0 +1,67 @@
+id: F16
+owner: Johnlon
+status: open
+sha: b2897301b5a00295f4da23345692c0d536a9f38a
+goal: main is red at b2897301b5; make the full suite pass again
+commits: |
+  b2897301b5 T097: Phase-1 Google login: tokenStore, oauthRedirect and implicitSession impl
+  f74b272c64 T098: syncLedger.ts keeps the per-device sync record: rows, cursor, device id,
+  0831d795ea F15: the full suite is red at 9b1a538dfb
+  9b1a538dfb T096: driveStore.ts implements the CloudStore port over an injected Http again
+  10bf265eb7 T106: The active project's chart trace is drawn 59% thicker than before.
+  c1936b888c T105: The manual test plan names the build under test, snapshot 20261013T1911Z
+  85fd686fee T104: docs/test-plans/MANUAL_TEST_PLAN_20261013.md is the manual test plan for
+  5c9f446e11 T082: On the mobile stacked Graph page, the Y-axis and X-axis strips take touc
+  9e8fce4e3d T103: Task files with status todo count as open: land.sh marks them done and l
+  b4c3eefa43 T090: Shared Cloud sync dialog and cloud toolbar glyphs render the SyncDisplay
+  9e4d5097a4 T102: The driver_pick telemetry event carries the catalogue name of a bundled
+  00d75016b5 T101: The pure cloud modules (doc ids, SHA-256 body hash, Drive JSON parsers a
+  16714f23c1 T100: RELEASES.md records release v20261013T1842Z, promoted from snapshot 2026
+  62445e48dc T099: A task whose "<id>:" commit is on main is marked done and landed at the
+  80432682fd T081: packages/persistence/src/cloud has syncDoc.ts (DocId sum type, brands, c
+  f07d6b94de T092: The app reports which charts are viewed and which features are used, onc
+  06388ab84c T095: F14 is closed, the post-land suite was green at 542ca12692 after T093; a
+failing: |
+    ✘  501 packages/ui/test/ui/original-project-list.browser.spec.ts:62:3 › Original project list › hiding a project removes its trace from the chart, and showing it brings it back (20.2s)
+    ✘  502 packages/ui/test/ui/original-project-list.browser.spec.ts:86:3 › Original project list › a hidden project is still hidden after a reload, and the chart still leaves its trace out (20.0s)
+output: |
+      - Timeout 20000ms exceeded while waiting on the predicate
+  
+        71 |     await overlayCheckbox.click();
+        72 |     await expect(overlayCheckbox).not.toBeChecked();
+      > 73 |     await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+           |                                               ^
+        74 |     const hidden = await settledInk(page);
+        75 |
+        76 |     // Back to the two-trace level. NOT an exact match: this census counts every distinct
+          at /home/john/work/winisd/.postland/1543953-b2897301b5/packages/ui/test/ui/original-project-list.browser.spec.ts:73:47
+  
+      Error Context: test-results/ui-original-project-list.b-b7170-d-showing-it-brings-it-back/error-context.md
+  
+    2) packages/ui/test/ui/original-project-list.browser.spec.ts:86:3 › Original project list › a hidden project is still hidden after a reload, and the chart still leaves its trace out 
+  
+      Error: expect(received).toBeLessThan(expected)
+  
+      Expected: < 43
+      Received:   45
+  
+      Call Log:
+      - Timeout 20000ms exceeded while waiting on the predicate
+  
+        91 |     await overlayCheckbox.click();
+        92 |     await expect(overlayCheckbox).not.toBeChecked();
+      > 93 |     await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+           |                                               ^
+        94 |     const hidden = await settledInk(page);
+        95 |
+        96 |     await page.reload();
+          at /home/john/work/winisd/.postland/1543953-b2897301b5/packages/ui/test/ui/original-project-list.browser.spec.ts:93:47
+  
+      Error Context: test-results/ui-original-project-list.b-6a375--still-leaves-its-trace-out/error-context.md
+  
+    2 failed
+      packages/ui/test/ui/original-project-list.browser.spec.ts:62:3 › Original project list › hiding a project removes its trace from the chart, and showing it brings it back 
+      packages/ui/test/ui/original-project-list.browser.spec.ts:86:3 › Original project list › a hidden project is still hidden after a reload, and the chart still leaves its trace out 
+    617 passed (6.3m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1543953-b2897301b5 finished: FAILED (exit 1) after 9m16s
