@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: ae8cd8ad8b91673507d9928e1d72dfa0f58801ab
 goal: RELEASES.md records the first release, v20261013T1438Z, promoted from snapshot 20261013T1438Z on 13 Oct 2026.
 done_test: bash scripts/land/test/task-status.test.sh
 files:

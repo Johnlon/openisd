@@ -37,6 +37,11 @@ export function hostedPathOf(kind: BuildKind, stamp: string): string {
   return `/${HOSTED_DIR[kind]}/${stamp}/`;
 }
 
+/** The hosted list page of one build kind, root-relative: "/v/" (releases) or "/snap/". */
+export function hostedListPathOf(kind: BuildKind): string {
+  return `/${HOSTED_DIR[kind]}/`;
+}
+
 const VERSION_REGEX = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
 
 function parseUtcStampToEpochMs(version: string): number | null {

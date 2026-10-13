@@ -22,6 +22,10 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
       <section v-if="versions !== null && versions.rows.length > 0" class="sp-versions">
         <h3>Versions</h3>
         <p v-if="versions.staleNotice" class="sp-stale">{{ versions.staleNotice }}</p>
+        <p class="sp-ver-pages">
+          <a :href="versions.releasesPath" class="sp-ver-btn">All releases</a>
+          <a v-if="versions.snapshotsPath !== null" :href="versions.snapshotsPath" class="sp-ver-btn">Snapshot builds</a>
+        </p>
         <ul>
           <li v-for="row in versions.rows" :key="row.stamp" :class="{'sp-current': row.current}">
             <span class="sp-ver-date">{{ row.date }}</span>
@@ -48,6 +52,8 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
 .sp-versions li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 4px 6px; border-radius: 4px; }
 .sp-versions li.sp-current { background: #1b2a3a; }
 .sp-versions a { color: #4fb0ff; }
+.sp-ver-pages { display: flex; gap: 8px; margin: 0 0 8px; }
+.sp-ver-btn { display: inline-block; padding: 4px 10px; border: 1px solid #4fb0ff; border-radius: 4px; text-decoration: none; }
 .sp-ver-date { min-width: 150px; color: #e6edf3; }
 .sp-ver-tag { font-size: 11px; color: #7f93a8; border: 1px solid #2b3a49; border-radius: 3px; padding: 0 5px; }
 .sp-ver-here { color: #4fb0ff; border-color: #4fb0ff; }

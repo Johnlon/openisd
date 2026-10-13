@@ -1,0 +1,15 @@
+id: T070
+release_note: About has an All releases button, and release builds no longer list snapshot builds.
+repo: openisd
+owner: fable
+status: done
+goal: About's Versions section has an All releases button to the hosted releases page. Snapshot builds are shown, with their own button, only when the running build is itself a snapshot build or the dev server; a release's users never see them.
+done_test: bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts packages/ui/test/hooks/SplashModal-hooks.test.ts
+files:
+  - tasks/T070.yml
+  - packages/design/fields/appVersion.ts
+  - packages/design/fields/index.ts
+  - packages/ui/src/logic/versionIndex.ts
+  - packages/ui/src/ui/components/SplashModal.vue
+  - packages/ui/test/logic/versionIndex.test.ts
+  - packages/ui/test/hooks/SplashModal-hooks.test.ts

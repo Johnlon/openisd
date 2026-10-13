@@ -53,10 +53,24 @@ describe('fetchVersionIndex', () => {
 describe('describeVersions', () => {
   const entries = [S1, R1, S2, R2];
 
-  it('lists releases first, then snapshots, each newest first', () => {
+  it('a release build lists releases only, newest first, and links to the releases page', () => {
     const view = describeVersions('v20260201T1000Z', entries);
+    expect(view.rows.map(r => r.stamp)).toEqual(['20260201T1000Z', '20260101T0102Z']);
+    expect(view.releasesPath).toBe('/v/');
+    expect(view.snapshotsPath).toBeNull();
+  });
+
+  it('a snapshot build lists releases first, then snapshots, each newest first, and links to both pages', () => {
+    const view = describeVersions('v20260210T0900Z', entries);
     expect(view.rows.map(r => r.stamp)).toEqual(['20260201T1000Z', '20260101T0102Z', '20260211T0900Z', '20260210T0900Z']);
     expect(view.rows.map(r => r.kind)).toEqual(['release', 'release', 'snap', 'snap']);
+    expect(view.snapshotsPath).toBe('/snap/');
+  });
+
+  it('the dev server, which has no version, lists both kinds', () => {
+    const view = describeVersions('', entries);
+    expect(view.rows).toHaveLength(4);
+    expect(view.snapshotsPath).toBe('/snap/');
   });
 
   it('marks the running build and no other', () => {
@@ -74,7 +88,7 @@ describe('describeVersions', () => {
   });
 
   it('links each build to its hosted copy and its GitHub page', () => {
-    const view = describeVersions('v20260101T0102Z', [R1, S1]);
+    const view = describeVersions('v20260210T0900Z', [R1, S1]); // running a snapshot, so both are listed
     expect(view.rows[0]).toMatchObject({hostedPath: '/v/20260101T0102Z/', githubUrl: R1.url});
     expect(view.rows[1]).toMatchObject({hostedPath: '/snap/20260210T0900Z/', githubUrl: S1.url});
   });
@@ -97,7 +111,7 @@ describe('describeVersions', () => {
   });
 
   it('shows nothing on a dev server, which has no version', () => {
-    expect(describeVersions('', null)).toEqual({rows: [], staleNotice: null});
+    expect(describeVersions('', null)).toEqual({rows: [], staleNotice: null, releasesPath: '/v/', snapshotsPath: null});
     expect(describeVersions('', entries).staleNotice).toBeNull();
   });
 });
