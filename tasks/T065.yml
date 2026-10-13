@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 0cb9747178b5d1d52367ee82b6135ac57056aade
 goal: Before the first release the site still hosts the snapshot builds. With no release marked Latest, assemble-site puts the releases page at the root instead of refusing, so the snap and v lists are reachable.
 done_test: bash scripts/land/test/release.test.sh
 files:

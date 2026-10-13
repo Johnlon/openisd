@@ -13,6 +13,7 @@ export type { Readable, Entered, Calculated, Precise, Writable, Clearable, Calcu
 export type { AppContext } from './appContext.js';
 export type { FieldPath } from './schemaRepair.js';
 export { realAppContext } from './appContext.js';
+export { newUuid } from './newUuid.js';
 export type { VentShape, Vent } from './vent.js';
 // A VALUE export, not a type-only one: `VoiceCoilWiring.Series` must be usable at runtime, which
 // is the whole point of it being an enum rather than a bare string literal.

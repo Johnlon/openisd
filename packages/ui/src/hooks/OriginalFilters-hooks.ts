@@ -1,5 +1,5 @@
 import {computed, type ComputedRef, type Ref} from 'vue';
-import type {OpenISDProject} from '@openisd/design';
+import {newUuid, type OpenISDProject} from '@openisd/design';
 import type {
   AllpassFilter, AllpassPatch, Filter, FilterEngine, FilterType, LinkwitzFilter, LinkwitzPatch, PassOrderEntry,
   ParametricEqFilter, ParametricEqPatch, PassFilter, PassPatch, PeakHighpassFilter, PeakHighpassPatch,
@@ -60,7 +60,7 @@ export class OriginalFilters implements OriginalFiltersAPI {
   }
 
   add(type: FilterType): string {
-    const id = crypto.randomUUID();
+    const id = newUuid();
     const chain = this.project.value.filters;
     chain.set([...chain.value, {...this.engine.default(type), id}]);
     return id;

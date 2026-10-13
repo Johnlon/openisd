@@ -22,6 +22,7 @@
  *  stored uuid is ADOPTED on read, never re-minted (the driver precedent, QO81: an id already
  *  on file is provenance).
  */
+import {newUuid} from '@openisd/design';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import type {Guarded, StorageBackup} from './storageBackup.js';
 
@@ -228,14 +229,14 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     replaceAll(next) {
       const { state } = readFull();
       if (state.kind === 'unreadable') return 'refused'; // read-only: the string is the only copy
-      const replaced = backup.guard(() => writeBack(next.map(v => ({ uuid: crypto.randomUUID(), record: spec.snapshot(v) })), []));
+      const replaced = backup.guard(() => writeBack(next.map(v => ({ uuid: newUuid(), record: spec.snapshot(v) })), []));
       return writeResult(replaced);
     },
 
     upsert(value, uuid) {
       const { state, slots, brokenRaw } = readFull();
       if (state.kind === 'unreadable') return null;
-      const id = uuid ?? crypto.randomUUID();
+      const id = uuid ?? newUuid();
       const idx = slots.findIndex(s => s.uuid === id);
       const nextSlots = [...slots];
       if (idx >= 0) nextSlots[idx] = { uuid: id, record: spec.snapshot(value) };

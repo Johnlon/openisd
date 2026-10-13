@@ -1,0 +1,16 @@
+id: T066
+release_note: The app no longer hangs on its loading screen when opened over plain http from another device.
+repo: openisd
+owner: fable
+status: done
+goal: The app boots over plain http on any host. Every id is minted through newUuid() in the design package, which guards crypto.randomUUID; a gate test refuses a bare call anywhere else. Bug BUG_20261013_app-hangs-on-plain-http-host.
+done_test: bash scripts/test.sh packages/design/test/architecture-no-bare-random-uuid.test.ts
+files:
+  - tasks/T066.yml
+  - bugs/BUG_20261013_app-hangs-on-plain-http-host.md
+  - packages/design/domain/index.ts
+  - packages/design/test/architecture-no-bare-random-uuid.test.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/hooks/OriginalFilters-hooks.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/repos/savedEntries.ts

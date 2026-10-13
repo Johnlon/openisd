@@ -53,6 +53,7 @@ import {LaunchReporter, platformHintOf, type LaunchEnvironment} from './logic/te
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
+import {newUuid} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {basicUtc, formatDateTime, type LocalTimeParts, type ToLocalTime} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
@@ -101,7 +102,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
         beacon: (url, body) => navigator.sendBeacon(url, body),
         online: () => navigator.onLine,
         now: () => Date.now(),
-        sessionId: crypto.randomUUID(),
+        sessionId: newUuid(),
       });
 
   // STORAGE (port): the browser's key-value storage, opened by the load rules in main.ts: stamped with

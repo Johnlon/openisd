@@ -4,7 +4,7 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath} from '@openisd/design';
+import {OpenISDProject, ProjectSummary, newUuid, withMovedChamberQicl, type FieldPath} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
@@ -529,7 +529,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         existingNames.push(finalName);
         
         project.name.set(finalName);
-        addedEntries.push({ id: crypto.randomUUID(), text: project.toOwprText(), modified: new Date(now++).toISOString() });
+        addedEntries.push({ id: newUuid(), text: project.toOwprText(), modified: new Date(now++).toISOString() });
       }
       if (addedEntries.length > 0) {
         lastSavedAt = now;
