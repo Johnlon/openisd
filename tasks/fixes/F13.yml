@@ -56,3 +56,7 @@ output: |
     609 passed (6.5m)
   suite: unit exit 1, browser exit 1
   post-land suite 825948-b193c5ec37 finished: FAILED (exit 1) after 11m55s
+also_red:
+  - sha: fd5965c5781907dae30d4ad8a41809fb5b3cff78
+    failing: |
+        ✘  167 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:66:3 › MobileBoxTab › the Qtc row shows only for a sealed box (20.6s)
