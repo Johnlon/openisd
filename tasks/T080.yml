@@ -3,6 +3,7 @@ release_note: Groundwork for cloud sync: the sync states and what each one shows
 repo: openisd
 owner: maryu
 status: done
+landed: 0c3f006e389f7091552d8ed08a567d783f01ea3f
 goal: packages/design/cloud has the SyncStatus sum type and the SyncDisplay model that maps each status to icon tone, badge, text, dialog lines, strip, hint and conflict notice (Drive sync plan P1-2, sections 2.3 and 6.1-6.2).
 done_test: bash scripts/test.sh packages/design/test/cloud/syncDisplay.test.ts
 files:

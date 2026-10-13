@@ -32,6 +32,7 @@ Open tasks may overlap; claimed tasks may not (checked at claim).
 
 | Step | Command                                         | Result                                          |
 |------|-------------------------------------------------|-------------------------------------------------|
+| 0    | `bash scripts/new-task.sh <owner> "<goal>"`     | prints `T<nnn> <worktree>`: the id is claimed, never typed |
 | 1    | `bash scripts/land/task-gates/claim.sh T<nnn>`  | status claimed; `.task` written                 |
 | 2    | edit only the listed files                      | pre-commit refuses anything else                |
 | 3    | run `done_test` until it exits 0                | —                                               |
