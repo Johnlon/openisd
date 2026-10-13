@@ -1,6 +1,6 @@
-import type { DocId } from '../syncDoc.js';
-import type { CloudMeta, CloudResult, CloudChange, CloudChanges, CloudFileList } from '../cloudStore.js';
-import { FileId, RevisionId, ChangeCursor, BodyHash, field } from '../syncDoc.js';
+import type { DocId } from './syncDoc.js';
+import type { CloudMeta, CloudResult, CloudChange, CloudChanges, CloudFileList } from './cloudTypes.js';
+import { FileId, RevisionId, ChangeCursor, BodyHash, field } from './syncDoc.js';
 
 interface DriveFile {
   readonly id: string;

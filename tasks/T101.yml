@@ -1,0 +1,15 @@
+id: T101
+release_note: Internal tidy-up; no change for users.
+repo: openisd
+owner: maryu
+status: done
+goal: The pure cloud modules (doc ids, SHA-256 body hash, Drive JSON parsers and their result types) live in packages/design/cloud; persistence/src/cloud keeps only I/O services and ports, so the ui architecture factory rule passes
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture.test.ts packages/design/test/cloud/syncDoc.test.ts packages/design/test/cloud/driveJson.test.ts
+label: fixes
+files:
+  - tasks/T101.yml
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/design/package.json

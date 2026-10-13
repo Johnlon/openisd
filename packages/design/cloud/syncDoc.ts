@@ -118,4 +118,3 @@ export function docFileName(id: DocId): string {
   }
 }
 
-export { sha256 } from './sha256.js';

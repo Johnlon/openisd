@@ -3,13 +3,13 @@ import {
   bodyHashOf,
   docFileName,
   field,
-  sha256,
   FileId,
   RevisionId,
   ChangeCursor,
   BodyHash,
   type DocId
-} from '../../src/cloud/syncDoc.js';
+} from '../../cloud/syncDoc.js';
+import { sha256 } from '../../cloud/sha256.js';
 
 describe('syncDoc', () => {
   describe('bodyHashOf', () => {

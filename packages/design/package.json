@@ -32,6 +32,10 @@
     "./ini": {
       "types": "./ini/index.ts",
       "default": "./ini/index.ts"
+    },
+    "./cloud": {
+      "types": "./cloud/index.ts",
+      "default": "./cloud/index.ts"
     }
   },
   "scripts": {
