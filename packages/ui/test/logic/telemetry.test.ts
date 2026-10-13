@@ -25,7 +25,7 @@ function rig(options: {online?: boolean; accepted?: boolean} = {}) {
   return {telemetry, beacon, sent, bodies};
 }
 
-const PICK: TelemetryEvent = {kind: 'driver_pick', source: 'bundled', id: 'abc'};
+const PICK: TelemetryEvent = {kind: 'driver_pick', source: 'bundled', id: 'abc', name: 'Morel MW 1258'};
 
 describe('BeaconTelemetry', () => {
   it('sends launch with the right fields on install', async () => {

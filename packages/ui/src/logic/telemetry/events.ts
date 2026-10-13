@@ -26,7 +26,8 @@ export interface LaunchEvent {
 export interface InstallEvent { readonly kind: 'install' }
 export interface ProjectOpenEvent { readonly kind: 'project_open'; readonly source: ProjectSource; readonly box: string }
 export interface ProjectSaveEvent { readonly kind: 'project_save'; readonly format: SaveFormat; readonly box: string }
-export interface DriverPickEvent { readonly kind: 'driver_pick'; readonly source: DriverSource; readonly id: string }
+/** `name` is the catalogue's own name for a bundled driver; empty for a driver the user owns, whose name is theirs. */
+export interface DriverPickEvent { readonly kind: 'driver_pick'; readonly source: DriverSource; readonly id: string; readonly name: string }
 export type FeatureName =
   | 'whatif' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics';
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
@@ -58,7 +59,7 @@ export function fieldsOf(e: TelemetryEvent): Fields {
     case 'install': return {};
     case 'project_open': return {source: e.source, box: e.box};
     case 'project_save': return {format: e.format, box: e.box};
-    case 'driver_pick': return {source: e.source, id: e.id};
+    case 'driver_pick': return {source: e.source, id: e.id, ...(e.name === '' ? {} : {name: e.name})};
     case 'chart_view': return {chart: e.chart};
     case 'feature': return {name: e.name};
     case 'error': return {message: e.message, frames: e.frames, box: e.box};

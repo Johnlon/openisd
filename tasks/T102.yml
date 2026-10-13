@@ -1,0 +1,13 @@
+id: T102
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: The driver_pick telemetry event carries the catalogue name of a bundled driver, so the stats dashboard shows names, not ids.
+done_test: bash scripts/test.sh packages/ui/test/logic/driverPick.test.ts packages/ui/test/logic/telemetry.test.ts
+files:
+  - tasks/T102.yml
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/driverPick.ts
+  - packages/ui/test/logic/driverPick.test.ts
+  - packages/ui/test/logic/telemetry.test.ts
