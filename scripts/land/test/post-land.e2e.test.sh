@@ -87,10 +87,24 @@ seq=$(tr '\n' ' ' < "$SUITE_LOG/seq")
 if [ "$n" = 2 ] && [ "$seq" = "start end start end " ] && [ "$(green)" = "$s2" ] && ! grep -q . <(ls "$SCRATCH/copies" 2>/dev/null); then
     ok "post-land runs serialised"; else fail "serialised (n=$n seq=$seq)"; fi
 
-# 5. deploy.yml in the repo under test deploys from main
-if grep -Eq 'branches: *\[ *main *\]' "$REPO/.github/workflows/deploy.yml" \
-   && ! grep -Eq 'branches: *\[ *release *\]' "$REPO/.github/workflows/deploy.yml"; then
-    ok "deploy triggers on main"; else fail "deploy trigger"; fi
+# 5. deploy.yml never deploys the root on a push to main by itself (T056: root = Latest release;
+#    build.yml makes a snapshot build on push and calls deploy.yml)
+if grep -Eq '^  workflow_call:' "$REPO/.github/workflows/deploy.yml" \
+   && ! grep -Eq '^  push:' "$REPO/.github/workflows/deploy.yml" \
+   && grep -Eq 'branches: *\[ *main *\]' "$REPO/.github/workflows/build.yml"; then
+    ok "deploy runs only when called; build triggers on main"; else fail "deploy trigger"; fi
+
+# 6. started from a task worktree that is removed while the suite runs: the run still completes
+setup; s=$(commit_push six SLOW)
+git -C "$SCRATCH/w/c" worktree add -q "$SCRATCH/w/task" -b task "$s"
+mkfifo "$SUITE_LOG/entered.fifo"
+( cd "$SCRATCH/w/task" && timeout 120 bash scripts/land/post-land/run.sh "$s" > "$SCRATCH/out.a" 2>&1 ) & p1=$!
+timeout 10 cat "$SUITE_LOG/entered.fifo" > /dev/null || fail "worktree gone: run never entered the suite"
+rm -f "$SUITE_LOG/entered.fifo"
+git -C "$SCRATCH/w/c" worktree remove --force "$SCRATCH/w/task"
+wait $p1; r=$?
+if [ $r = 0 ] && [ "$(green)" = "$s" ] && ! grep -q . <(ls "$SCRATCH/copies" 2>/dev/null) && ! grep -qi "getcwd\|No such file" "$SCRATCH/out.a"; then
+    ok "run survives its starting worktree being removed"; else fail "worktree gone (r=$r out=$(tail -2 "$SCRATCH/out.a" | tr '\n' ' '))"; fi
 
 [ $fails = 0 ] && { echo "post-land.e2e: all passed"; exit 0; }
 echo "post-land.e2e: $fails failed"; exit 1

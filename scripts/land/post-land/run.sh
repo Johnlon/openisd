@@ -23,7 +23,10 @@
 set -uo pipefail
 
 SHA_ARG="${1:?usage: run.sh <sha>}"
-ROOT="$(git rev-parse --show-toplevel)" || exit 2
+# ROOT is the main checkout (the owner of .git), never the lander's worktree: land.sh starts this run
+# from a task worktree, and the watchdog removes merged worktrees while a run is still going (T060,
+# 12 Oct: the run lost its cwd and reported a bogus red). Everything below works from ROOT.
+ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" || exit 2
 cd "$ROOT" || exit 2
 [ -f land.conf ] || { echo "post-land: no land.conf in $ROOT" >&2; exit 2; }
 # shellcheck source=/dev/null
