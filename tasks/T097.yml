@@ -3,6 +3,7 @@ release_note: Groundwork for cloud sync: connecting to Google.
 repo: openisd
 owner: maryu
 status: done
+landed: b2897301b5a00295f4da23345692c0d536a9f38a
 goal: Phase-1 Google login: tokenStore, oauthRedirect and implicitSession implement CloudSession with the client-side token flow (Drive sync plan P1-5)
 done_test: bash scripts/test.sh packages/persistence/test/cloud/auth/implicitSession.test.ts packages/persistence/test/cloud/auth/oauthRedirect.test.ts
 files:

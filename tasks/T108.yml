@@ -1,0 +1,14 @@
+id: T108
+release_note: Groundwork for cloud sync: when sync runs.
+repo: openisd
+owner: maryu
+status: done
+goal: syncScheduler.ts turns open, focus, save, reconnect and a 60 s visible tick into debounced, serialised, cross-tab-locked sync runs, and cloudSync.ts is the facade the UI holds (Drive sync plan P1-11)
+done_test: bash scripts/test.sh packages/persistence/test/cloud/syncScheduler.test.ts packages/persistence/test/cloud/cloudSync.test.ts
+files:
+  - tasks/T108.yml
+  - packages/persistence/src/cloud/syncScheduler.ts
+  - packages/persistence/src/cloud/cloudSync.ts
+  - packages/persistence/src/cloud/syncRun.ts
+  - packages/persistence/test/cloud/syncScheduler.test.ts
+  - packages/persistence/test/cloud/cloudSync.test.ts
