@@ -11,6 +11,8 @@ export {
 } from './syncStatus.js';
 
 export type {
+  SyncDialogAction,
+  SyncDialogButton,
   SyncDialogModel,
   SyncDisplay,
   SyncDisplayInputs,

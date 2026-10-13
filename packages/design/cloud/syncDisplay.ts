@@ -12,6 +12,7 @@ export interface SyncDisplayInputs {
   readonly hintDismissed: boolean;
   readonly launches: number;
   readonly updateBannerShown: boolean;
+  readonly configured: boolean;
 }
 
 export interface SyncDisplay {
@@ -28,16 +29,60 @@ export interface SyncDisplay {
   readonly dialog: SyncDialogModel;
 }
 
+export type SyncDialogAction = 'connect' | 'syncNow' | 'reconnect' | 'disconnect';
+
+export interface SyncDialogButton {
+  readonly action: SyncDialogAction;
+  readonly label: string;
+  readonly enabled: boolean;
+  readonly primary: boolean;
+}
+
 export interface SyncDialogModel {
+  readonly title: string;
+  readonly providerHeading: string;
+  readonly tone: SyncTone;
   readonly headline: string;
   readonly account: string | null;
   readonly pendingLine: string | null;
-  readonly buttons: readonly ('connect' | 'syncNow' | 'reconnect' | 'disconnect')[];
+  readonly offExplainer: string | null;
+  readonly notConfiguredLine: string | null;
+  readonly buttons: readonly SyncDialogButton[];
+  readonly conflictsHeading: string;
+  readonly conflictOpenLabel: string;
   readonly conflicts: readonly {
     readonly id: ConflictCopy['id'];
     readonly title: string;
     readonly sub: string;
   }[];
+  readonly disconnectConfirm: {
+    readonly title: string;
+    readonly body: string;
+    readonly yes: string;
+    readonly no: string;
+  };
+}
+
+const DISCONNECT_CONFIRM = {
+  title: 'Disconnect Google Drive?',
+  body: 'Your work stays in this browser and in your Drive. Changes made after this will not sync.',
+  yes: 'Disconnect',
+  no: 'Keep connected',
+} as const;
+
+const OFF_EXPLAINER = 'Keeps your saved projects, drivers, passive radiators, favourites and Options in a hidden folder in your own Google Drive, so they follow you to your other devices. Nothing is stored anywhere else.';
+
+function buttonOf(action: SyncDialogAction, configured: boolean): SyncDialogButton {
+  switch (action) {
+    case 'connect':
+      return {action, label: 'Connect Google Drive', enabled: configured, primary: true};
+    case 'syncNow':
+      return {action, label: 'Sync now', enabled: true, primary: true};
+    case 'reconnect':
+      return {action, label: 'Reconnect', enabled: true, primary: true};
+    case 'disconnect':
+      return {action, label: 'Disconnect', enabled: true, primary: false};
+  }
 }
 
 export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
@@ -52,7 +97,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
   let tap: SyncTap = 'openDialog';
   let account: string | null = null;
   let pendingLine: string | null = null;
-  let buttons: readonly ('connect' | 'syncNow' | 'reconnect' | 'disconnect')[];
+  let buttons: readonly SyncDialogButton[];
 
   switch (status.kind) {
     case 'off': {
@@ -64,7 +109,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tooltip = 'Sync your work across devices through your Google Drive. Tap to turn on.';
       account = null;
       pendingLine = null;
-      buttons = ['connect'];
+      buttons = [buttonOf('connect', inputs.configured)];
       break;
     }
 
@@ -90,7 +135,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tooltip = 'Syncing…';
       account = status.account;
       pendingLine = null;
-      buttons = ['disconnect'];
+      buttons = [buttonOf('disconnect', inputs.configured)];
       break;
     }
 
@@ -114,7 +159,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       }
       account = status.account;
       pendingLine = null;
-      buttons = ['syncNow', 'disconnect'];
+      buttons = [buttonOf('syncNow', inputs.configured), buttonOf('disconnect', inputs.configured)];
       break;
     }
 
@@ -127,7 +172,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tooltip = `${formatCountOf(status.changes, 'change')} will sync in a moment.`;
       account = status.account;
       pendingLine = `${formatCountOf(status.changes, 'change')} not synced`;
-      buttons = ['syncNow', 'disconnect'];
+      buttons = [buttonOf('syncNow', inputs.configured), buttonOf('disconnect', inputs.configured)];
       break;
     }
 
@@ -144,7 +189,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       pendingLine = status.changes > 0
         ? `${formatCountOf(status.changes, 'change')} not synced`
         : null;
-      buttons = ['syncNow', 'disconnect'];
+      buttons = [buttonOf('syncNow', inputs.configured), buttonOf('disconnect', inputs.configured)];
       break;
     }
 
@@ -162,7 +207,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       pendingLine = status.changes > 0
         ? `${formatCountOf(status.changes, 'change')} not synced`
         : null;
-      buttons = ['reconnect', 'disconnect'];
+      buttons = [buttonOf('reconnect', inputs.configured), buttonOf('disconnect', inputs.configured)];
       break;
     }
 
@@ -175,7 +220,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tooltip = text;
       account = status.account;
       pendingLine = null;
-      buttons = ['syncNow', 'disconnect'];
+      buttons = [buttonOf('syncNow', inputs.configured), buttonOf('disconnect', inputs.configured)];
       break;
     }
 
@@ -190,7 +235,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tooltip = text;
       account = status.account;
       pendingLine = null;
-      buttons = ['disconnect'];
+      buttons = [buttonOf('disconnect', inputs.configured)];
       break;
     }
 
@@ -203,7 +248,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tooltip = text;
       account = status.account;
       pendingLine = null;
-      buttons = ['syncNow', 'disconnect'];
+      buttons = [buttonOf('syncNow', inputs.configured), buttonOf('disconnect', inputs.configured)];
       break;
     }
   }
@@ -233,15 +278,23 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
     : null;
 
   const dialog: SyncDialogModel = {
+    title: 'Cloud sync',
+    providerHeading: 'Google Drive',
+    tone,
     headline: text,
     account,
     pendingLine,
+    offExplainer: status.kind === 'off' ? OFF_EXPLAINER : null,
+    notConfiguredLine: !inputs.configured ? 'Not set up yet.' : null,
     buttons,
+    conflictsHeading: 'Conflict copies',
+    conflictOpenLabel: 'Open',
     conflicts: inputs.conflicts.map(c => ({
       id: c.id,
       title: c.name,
       sub: 'Both versions kept',
     })),
+    disconnectConfirm: DISCONNECT_CONFIRM,
   };
 
   return {

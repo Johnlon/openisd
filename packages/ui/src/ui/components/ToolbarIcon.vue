@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type {SyncGlyph} from '@openisd/design/cloud';
+
 /**
  * Shared WinISD-style toolbar icon set — ONE source, so every toolbar that draws an icon
  * draws the same one. Shapes/colours are modelled on the real WinISD 0.7.0.950
@@ -10,7 +12,7 @@
  * addition), so the ribbon/tag motif is reused for it rather than invented from nothing.
  */
 defineProps<{
-  name: 'open' | 'new' | 'import' | 'save' | 'saveAll' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart' | 'revert';
+  name: 'open' | 'new' | 'import' | 'save' | 'saveAll' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart' | 'revert' | SyncGlyph;
 }>();
 </script>
 
@@ -90,5 +92,26 @@ defineProps<{
   </svg>
   <svg v-else-if="name === 'revert'" width="19" height="19" viewBox="0 0 24 24">
     <path d="M12 4c-4.41 0-8 3.59-8 8s3.59 8 8 8 8-3.59 8-8c0-2.2-.9-4.19-2.34-5.66l-1.42 1.42C17.43 9.05 18 10.45 18 12c0 3.31-2.69 6-6 6s-6-2.69-6-6 2.69-6 6-6c1.66 0 3.16.68 4.25 1.76L13 11h7V4l-2.44 2.44C16.14 5.02 14.17 4 12 4z" fill="#4a7ebb" stroke="#2d5284" stroke-width="0.5"/>
+  </svg>
+  <svg v-else-if="name === 'cloudOff'" width="22" height="19" viewBox="0 0 22 19">
+    <path d="M6 15 h11 a4 4 0 0 0 1.5-7.7 A5 5 0 0 0 9 6 a4.5 4.5 0 0 0-4.8 5.4 A3.5 3.5 0 0 0 6 15 Z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+  </svg>
+  <svg v-else-if="name === 'cloudBusy'" width="22" height="19" viewBox="0 0 22 19">
+    <path d="M6 15 h11 a4 4 0 0 0 1.5-7.7 A5 5 0 0 0 9 6 a4.5 4.5 0 0 0-4.8 5.4 A3.5 3.5 0 0 0 6 15 Z" fill="currentColor" fill-opacity="0.18" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M9 10.5 a2.5 2.5 0 0 1 4.2-1.5 l.8-.8 M14 9.5 v-2 h-2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M13 11.5 a2.5 2.5 0 0 1-4.2 1.5 l-.8.8 M8 12.5 v2 h2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <svg v-else-if="name === 'cloudDone'" width="22" height="19" viewBox="0 0 22 19">
+    <path d="M6 15 h11 a4 4 0 0 0 1.5-7.7 A5 5 0 0 0 9 6 a4.5 4.5 0 0 0-4.8 5.4 A3.5 3.5 0 0 0 6 15 Z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <path d="M8.5 11.5 L10.5 13.5 L14.5 9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <svg v-else-if="name === 'cloudSlash'" width="22" height="19" viewBox="0 0 22 19">
+    <path d="M6 15 h11 a4 4 0 0 0 1.5-7.7 A5 5 0 0 0 9 6 a4.5 4.5 0 0 0-4.8 5.4 A3.5 3.5 0 0 0 6 15 Z" fill="currentColor" fill-opacity="0.15" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <line x1="4" y1="16" x2="18" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <svg v-else-if="name === 'cloudAlert'" width="22" height="19" viewBox="0 0 22 19">
+    <path d="M6 15 h11 a4 4 0 0 0 1.5-7.7 A5 5 0 0 0 9 6 a4.5 4.5 0 0 0-4.8 5.4 A3.5 3.5 0 0 0 6 15 Z" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <line x1="11.5" y1="8" x2="11.5" y2="11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="11.5" cy="13.5" r="0.8" fill="currentColor"/>
   </svg>
 </template>

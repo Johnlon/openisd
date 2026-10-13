@@ -1,0 +1,17 @@
+id: T090
+release_note: Groundwork for cloud sync: the Cloud sync dialog and the cloud icons.
+repo: openisd
+owner: maryu
+status: done
+goal: Shared Cloud sync dialog and cloud toolbar glyphs render the SyncDisplay model from packages/design/cloud (Drive sync plan P1-13)
+done_test: bash scripts/test.sh packages/ui/test/ui/CloudSyncDialog.test.ts
+files:
+  - tasks/T090.yml
+  - packages/ui/src/ui/components/ToolbarIcon.vue
+  - packages/ui/src/ui/components/CloudSyncDialog.vue
+  - packages/ui/src/ui/components/CloudSyncBadge.vue
+  - packages/ui/test/ui/CloudSyncDialog.test.ts
+  - packages/design/cloud/syncDisplay.ts
+  - packages/design/cloud/index.ts
+  - packages/design/package.json
+  - packages/design/test/cloud/syncDisplay.test.ts

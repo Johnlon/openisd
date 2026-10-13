@@ -25,14 +25,24 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
   // Test time: 13 Oct 2026, 23:32 local time
   const sampleTime = new Date(2026, 9, 13, 23, 32).getTime();
 
-  const defaultInputs = (status: SyncStatus): SyncDisplayInputs => ({
+  const defaultInputs = (status: SyncStatus, configured = true): SyncDisplayInputs => ({
     status,
     conflicts: [],
     conflictsSeen: 0,
     hintDismissed: false,
     launches: 1,
     updateBannerShown: false,
+    configured,
   });
+
+  const disconnectConfirm = {
+    title: 'Disconnect Google Drive?',
+    body: 'Your work stays in this browser and in your Drive. Changes made after this will not sync.',
+    yes: 'Disconnect',
+    no: 'Keep connected',
+  };
+
+  const offExplainer = 'Keeps your saved projects, drivers, passive radiators, favourites and Options in a hidden folder in your own Google Drive, so they follow you to your other devices. Nothing is stored anywhere else.';
 
   describe('6.1 display model rows', () => {
     it('row 1: off', () => {
@@ -48,12 +58,29 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.hint).toBeNull();
       expect(display.conflictNotice).toBeNull();
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'muted',
         headline: 'Cloud sync is off',
         account: null,
         pendingLine: null,
-        buttons: ['connect'],
+        offExplainer,
+        notConfiguredLine: null,
+        buttons: [{action: 'connect', label: 'Connect Google Drive', enabled: true, primary: true}],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
+    });
+
+    it('row 1: off when not configured', () => {
+      const display = syncDisplayOf(defaultInputs({kind: 'off'}, false));
+      expect(display.dialog.buttons).toEqual([
+        {action: 'connect', label: 'Connect Google Drive', enabled: false, primary: true},
+      ]);
+      expect(display.dialog.notConfiguredLine).toBe('Not set up yet.');
+      expect(display.dialog.offExplainer).toBe(offExplainer);
     });
 
     it('row 2: connecting', () => {
@@ -67,11 +94,19 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.strip).toBeNull();
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'accent',
         headline: 'Connecting to Google Drive…',
         account: null,
         pendingLine: null,
+        offExplainer: null,
+        notConfiguredLine: null,
         buttons: [],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -89,11 +124,19 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.strip).toBeNull();
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'accent',
         headline: 'Syncing…',
         account: 'john@gmail.com',
         pendingLine: null,
-        buttons: ['disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [{action: 'disconnect', label: 'Disconnect', enabled: true, primary: false}],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -113,11 +156,22 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.strip).toBeNull();
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'good',
         headline: 'Synced 13 Oct 2026, 23:32',
         account: 'john@gmail.com',
         pendingLine: null,
-        buttons: ['syncNow', 'disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -147,7 +201,10 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.dialog.headline).toBe('Synced 13 Oct 2026, 23:32');
       expect(display.dialog.account).toBe('john@gmail.com');
       expect(display.dialog.pendingLine).toBeNull();
-      expect(display.dialog.buttons).toEqual(['syncNow', 'disconnect']);
+      expect(display.dialog.buttons).toEqual([
+        {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+        {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+      ]);
       expect(display.dialog.conflicts).toEqual([
         {id: conflict1.id, title: conflict1.name, sub: 'Both versions kept'},
         {id: conflict2.id, title: conflict2.name, sub: 'Both versions kept'},
@@ -169,11 +226,22 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tooltip).toBe('2 changes will sync in a moment.');
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'accent',
         headline: '2 changes not synced',
         account: 'john@gmail.com',
         pendingLine: '2 changes not synced',
-        buttons: ['syncNow', 'disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -192,11 +260,22 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tooltip).toBe('No connection. They will sync when you are back online.');
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'muted',
         headline: 'Offline. 3 changes not synced',
         account: 'john@gmail.com',
         pendingLine: '3 changes not synced',
-        buttons: ['syncNow', 'disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -235,11 +314,22 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         button: 'Reconnect',
       });
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'warn',
         headline: 'Google needs you to connect again. 3 changes not synced',
         account: 'john@gmail.com',
         pendingLine: '3 changes not synced',
-        buttons: ['reconnect', 'disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'reconnect', label: 'Reconnect', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -258,11 +348,22 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tooltip).toBe('Update the app to sync 4 projects saved by a newer version');
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'warn',
         headline: 'Update the app to sync 4 projects saved by a newer version',
         account: 'john@gmail.com',
         pendingLine: null,
-        buttons: ['syncNow', 'disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -280,11 +381,19 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tooltip).toBe('Nothing synced. No room in this browser to back up first. Export, then try again.');
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'bad',
         headline: 'Nothing synced. No room in this browser to back up first. Export, then try again.',
         account: 'john@gmail.com',
         pendingLine: null,
-        buttons: ['disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [{action: 'disconnect', label: 'Disconnect', enabled: true, primary: false}],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
 
@@ -302,11 +411,22 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tooltip).toBe('Sync failed: Sign-in service unreachable. It will try again.');
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
+        title: 'Cloud sync',
+        providerHeading: 'Google Drive',
+        tone: 'bad',
         headline: 'Sync failed: Sign-in service unreachable. It will try again.',
         account: 'john@gmail.com',
         pendingLine: null,
-        buttons: ['syncNow', 'disconnect'],
+        offExplainer: null,
+        notConfiguredLine: null,
+        buttons: [
+          {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
+          {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
+        ],
+        conflictsHeading: 'Conflict copies',
+        conflictOpenLabel: 'Open',
         conflicts: [],
+        disconnectConfirm,
       });
     });
   });

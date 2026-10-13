@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 9e4d5097a4f8e1ab4d81372090f55767bdb1278d
 goal: The driver_pick telemetry event carries the catalogue name of a bundled driver, so the stats dashboard shows names, not ids.
 done_test: bash scripts/test.sh packages/ui/test/logic/driverPick.test.ts packages/ui/test/logic/telemetry.test.ts
 files:
