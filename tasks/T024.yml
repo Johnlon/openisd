@@ -1,4 +1,5 @@
 id: T024
+release_note: "Opening a project that is already open switches to it, and the stored project list shows the newest first."
 repo: openisd
 owner: lots
 status: done

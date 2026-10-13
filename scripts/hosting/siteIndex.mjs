@@ -19,9 +19,11 @@ export function toBasic(iso) {
   return iso.replace(BASIC_FROM_ISO, '');
 }
 
-/** The first non-blank line of a release body: the head commit's subject, as snap.sh writes it. */
+/** The first line of a release body a person reads: the first bullet, else the first plain line.
+ *  Headings are skipped. snap.sh writes distilled notes (scripts/hosting/releaseNotes.mjs). */
 export function subjectOf(body) {
-  return (body ?? '').split('\n').map(l => l.trim()).find(l => l !== '') ?? '';
+  const lines = (body ?? '').split('\n').map(l => l.trim().replace(/^-\s+/, ''));
+  return lines.find(l => l !== '' && !l.startsWith('#')) ?? '';
 }
 
 /** One hosted build from a GitHub release, or null when it is not one of ours. */

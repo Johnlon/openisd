@@ -1,4 +1,5 @@
 id: T058
+release_note: "The app notices and reports when a stored key such as saved drivers goes missing."
 repo: openisd
 owner: fable
 status: claimed

@@ -1,4 +1,5 @@
 id: T014
+release_note: "6th-order bandpass and ABC boxes are available."
 repo: openisd
 owner: lots
 status: done

@@ -1,7 +1,9 @@
 id: T056
+release_note: "Every snapshot build and release is hosted at openisd.app, and About lists them."
 repo: openisd
 owner: fable
-status: claimed
+status: done
+landed: 009cb130a2 (first T056 commit, green on main, 12 Oct 2026)
 goal: snapshot builds pile up on GitHub, one per push to main, each hosted and tryable. A release promotes one tested snapshot build, bytes unchanged. openisd.app root serves the latest release; every release stays hosted.
 spec: |
   Version
@@ -33,6 +35,8 @@ files:
   - DOCUMENTATION.md
   - scripts/version-info.mjs
   - scripts/release.sh
+  - scripts/hosting/releaseNotes.mjs
+  - tasks/*.yml
   - scripts/land/test/release.test.sh
   - .github/workflows/build.yml
   - .github/workflows/release.yml

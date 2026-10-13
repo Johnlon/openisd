@@ -1,4 +1,5 @@
 id: T017
+release_note: "A driver reading that is not a number, such as N/A, keeps its printed text."
 repo: openisd
 owner: bob
 status: done

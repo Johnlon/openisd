@@ -1,4 +1,5 @@
 id: T038
+release_note: "A cleared field now returns to a sensible default instead of staying blank."
 repo: openisd
 owner: bob
 status: done

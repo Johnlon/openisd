@@ -1,4 +1,5 @@
 id: T026
+release_note: "Saving no longer creates duplicate stored projects, and old front Qicl values are moved silently on start-up."
 repo: openisd
 owner: lots
 status: done

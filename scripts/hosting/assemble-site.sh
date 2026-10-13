@@ -18,7 +18,9 @@ trap 'rm -rf "$WORK"' EXIT
 rm -rf "$OUT"; mkdir -p "$OUT/v" "$OUT/snap"
 
 gh api 'repos/{owner}/{repo}/releases' --paginate --jq '.[]' > "$WORK/releases.ndjson"
-LATEST_TAG="$(gh api 'repos/{owner}/{repo}/releases/latest' --jq .tag_name 2> /dev/null || true)"
+# GitHub answers 404 when no release is Latest; gh then exits non-zero and prints the error body.
+# Capture status and output apart so that body is never taken for a tag.
+if LATEST_OUT="$(gh api 'repos/{owner}/{repo}/releases/latest' --jq .tag_name 2> /dev/null)"; then LATEST_TAG="$LATEST_OUT"; else LATEST_TAG=''; fi
 [ -n "$LATEST_TAG" ] || { echo "assemble-site: no release is marked Latest; refusing to build an empty root" >&2; exit 1; }
 
 node "$HERE/siteIndex.mjs" "$WORK/releases.ndjson" "$LATEST_TAG" "$WORK/site"

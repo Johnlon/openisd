@@ -1,0 +1,81 @@
+id: F12
+owner: Johnlon
+status: closed
+sha: 009cb130a2f103b1551a4f0711f1ad2bd60bd113
+goal: main is red at 009cb130a2; make the full suite pass again
+commits: |
+  009cb130a2 T055 T056 T058: done_test on one line for the land gate
+  9c8fc09c97 T056: version prefix and hosted folder names live in the design version format
+  a06e59b49b (auto) T056: keep 10 snapshot builds, esbuild devDependency, no manifest or worker script on about and install pages
+  2530378827 (auto) T056: snapshot builds, release promotion, hosted version trails, Versions list in About
+  a8846fdf9e Merge branch 't055-releases' into t056-hosting
+  52360d292f T055 T056 T058 claimed
+  d52c1cf5c9 T056: snapshot builds at most every two hours plus snap.sh on demand, release branch pointer
+  37f64f809c T055/T056: rollback via Latest, gated snapshot builds, two tags, install at root, two-step T055
+  199009f270 T056: index rows are clickable
+  bbcd7c5e23 T056: snapshot build is the full name, snap- the tag
+  fcf81ed1bb T055: wording
+  e750d9a187 Naming: builds are snaps, store copies are backups
+  48e434e82a T056: wip/ and v/ index pages
+  70a4b4dcef T060: backlog: an agent-friendly command-line OpenISD (idea, needs design)
+  0755d78870 T056: WIP builds on every push, release promotes one unchanged
+  2df6a0b187 T057 folded into T055 and T056: two branches, two lands
+  d8316c7cb6 bug: baseline project is kept, a later absence is a confirmed loss
+  43606f8d21 bug: saved drivers gone at localhost:4000, baseline recorded
+  b9051e5aae T058: ruling, every destructive storage write snapshots first
+  256e48407b T058: detect and report a lost storage key, held
+  16980ceef7 T055-T057: split releases plan into storage layout, release hosting, UI
+  27d9008226 T055: one data version, exports carry the layout
+  6dcce0ba4b T055: gate detects a missing or needless layout bump
+  679b1e1b33 T055: goldens are cases with one dump per layout, checked stepwise
+  80bba54c96 T055: upgrade goldens prove every old layout loads into the current app
+  5bbb3a4bbb T055: storage layout number independent of the build stamp
+  14acaf1d5d T055: dates stored ISO 8601 basic, formatted only for display
+  243ac6fdf4 T055: version is the minute build stamp, snapshots keyed by it
+  aa76fe25bb T055: numbered releases, versioned storage, held
+failing: |
+    ✘  203 packages/ui/test/ui/mobile-menu.browser.spec.ts:47:5 › MobileMenu › layout › brand shows the version for the running environment (1.1s)
+    ✘  210 packages/ui/test/ui/mobile-menu.browser.spec.ts:135:5 › MobileMenu › Open project… › each saved project shows its driver, box type and volume under its name (2.1s)
+    ✘  336 packages/ui/test/ui/open-project-list.browser.spec.ts:8:1 › each saved project shows its driver, box type and volume under its name (3.1s)
+    ✘  528 packages/ui/test/ui/original-toolbar.browser.spec.ts:41:3 › Original toolbar › toolbar shows the correct version for the running environment (266ms)
+output: |
+      Expected pattern: /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/
+      Received string:  "13 Oct 2026, 00:32"
+  
+        27 |   // John, 2026-10-05: never US style; yyyy-mm-dd everywhere. "2026-10-05 23:32", whatever the browser locale.
+        28 |   for (const modified of await rows.locator('.stored-project-modified').allTextContents()) {
+      > 29 |     expect(modified).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+           |                      ^
+        30 |   }
+        31 | });
+        32 |
+          at /home/john/work/winisd/.postland/182974-009cb130a2/packages/ui/test/ui/open-project-list.browser.spec.ts:29:22
+  
+      Error Context: test-results/ui-open-project-list.brows-b9d25-e-and-volume-under-its-name/error-context.md
+  
+    4) packages/ui/test/ui/original-toolbar.browser.spec.ts:41:3 › Original toolbar › toolbar shows the correct version for the running environment 
+  
+      Error: expect(received).toMatch(expected)
+  
+      Expected pattern: /^v\d{8}T\d{6}Z$/
+      Received string:  "v20261012T2325Z"
+  
+        41 |   test('toolbar shows the correct version for the running environment', async ({ page }) => {
+        42 |     const onDisk = readBuildInfo();
+      > 43 |     expect(onDisk.version).toMatch(/^v\d{8}T\d{6}Z$/);
+           |                            ^
+        44 |
+        45 |     await page.goto('/');
+        46 |     await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+          at /home/john/work/winisd/.postland/182974-009cb130a2/packages/ui/test/ui/original-toolbar.browser.spec.ts:43:28
+  
+      Error Context: test-results/ui-original-toolbar.browse-87dbe-for-the-running-environment/error-context.md
+  
+    4 failed
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:47:5 › MobileMenu › layout › brand shows the version for the running environment 
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:135:5 › MobileMenu › Open project… › each saved project shows its driver, box type and volume under its name 
+      packages/ui/test/ui/open-project-list.browser.spec.ts:8:1 › each saved project shows its driver, box type and volume under its name 
+      packages/ui/test/ui/original-toolbar.browser.spec.ts:41:3 › Original toolbar › toolbar shows the correct version for the running environment 
+    597 passed (11.1m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 182974-009cb130a2 finished: FAILED (exit 1) after 13m51s

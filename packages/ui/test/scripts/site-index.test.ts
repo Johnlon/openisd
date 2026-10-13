@@ -38,6 +38,7 @@ describe('toBasic / subjectOf', () => {
 
   it('takes the first non-blank line of the notes as the subject', () => {
     assert.equal(subjectOf('\n  Fix the thing \n\nmore'), 'Fix the thing');
+    assert.equal(subjectOf('## New\n\n- A user sentence.\n'), 'A user sentence.');
     assert.equal(subjectOf(null), '');
   });
 });

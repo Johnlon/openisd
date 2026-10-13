@@ -1,4 +1,5 @@
 id: T041
+release_note: "Stored projects from before the Qicl move load correctly, including the front Qicl value."
 repo: openisd
 owner: claude
 status: done
