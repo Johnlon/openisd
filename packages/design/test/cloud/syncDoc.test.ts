@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   bodyHashOf,
   docFileName,
+  docIdEquals,
   field,
   FileId,
   RevisionId,
@@ -155,6 +156,51 @@ describe('syncDoc', () => {
 
     it('returns undefined for missing properties', () => {
       expect(field({ a: 1 }, 'c')).toBeUndefined();
+    });
+  });
+
+  describe('docIdEquals', () => {
+    it('returns true for same settings DocId', () => {
+      expect(docIdEquals({ kind: 'settings' }, { kind: 'settings' })).toBe(true);
+    });
+
+    it('returns true for same favourites DocId', () => {
+      expect(docIdEquals({ kind: 'favourites' }, { kind: 'favourites' })).toBe(true);
+    });
+
+    it('returns false for settings vs favourites', () => {
+      expect(docIdEquals({ kind: 'settings' }, { kind: 'favourites' })).toBe(false);
+    });
+
+    it('returns true for projects with same uuid', () => {
+      expect(docIdEquals({ kind: 'project', uuid: 'u1' }, { kind: 'project', uuid: 'u1' })).toBe(true);
+    });
+
+    it('returns false for projects with different uuid', () => {
+      expect(docIdEquals({ kind: 'project', uuid: 'u1' }, { kind: 'project', uuid: 'u2' })).toBe(false);
+    });
+
+    it('returns true for drivers with same uuid', () => {
+      expect(docIdEquals({ kind: 'driver', uuid: 'u1' }, { kind: 'driver', uuid: 'u1' })).toBe(true);
+    });
+
+    it('returns false for drivers with different uuid', () => {
+      expect(docIdEquals({ kind: 'driver', uuid: 'u1' }, { kind: 'driver', uuid: 'u2' })).toBe(false);
+    });
+
+    it('returns true for pr with same uuid', () => {
+      expect(docIdEquals({ kind: 'pr', uuid: 'u1' }, { kind: 'pr', uuid: 'u1' })).toBe(true);
+    });
+
+    it('returns false for pr with different uuid', () => {
+      expect(docIdEquals({ kind: 'pr', uuid: 'u1' }, { kind: 'pr', uuid: 'u2' })).toBe(false);
+    });
+
+    it('returns false for different kinds with same uuid', () => {
+      expect(docIdEquals({ kind: 'project', uuid: 'u1' }, { kind: 'driver', uuid: 'u1' })).toBe(false);
+      expect(docIdEquals({ kind: 'project', uuid: 'u1' }, { kind: 'pr', uuid: 'u1' })).toBe(false);
+      expect(docIdEquals({ kind: 'driver', uuid: 'u1' }, { kind: 'pr', uuid: 'u1' })).toBe(false);
+      expect(docIdEquals({ kind: 'project', uuid: 'u1' }, { kind: 'settings' })).toBe(false);
     });
   });
 });

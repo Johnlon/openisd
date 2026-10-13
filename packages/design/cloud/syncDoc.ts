@@ -118,3 +118,18 @@ export function docFileName(id: DocId): string {
   }
 }
 
+export function docIdEquals(a: DocId, b: DocId): boolean {
+  switch (a.kind) {
+    case 'settings':
+      return b.kind === 'settings';
+    case 'favourites':
+      return b.kind === 'favourites';
+    case 'project':
+      return b.kind === 'project' && a.uuid === b.uuid;
+    case 'driver':
+      return b.kind === 'driver' && a.uuid === b.uuid;
+    case 'pr':
+      return b.kind === 'pr' && a.uuid === b.uuid;
+  }
+}
+

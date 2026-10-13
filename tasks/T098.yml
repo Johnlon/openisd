@@ -1,0 +1,13 @@
+id: T098
+release_note: Groundwork for cloud sync: each device's record of what it last synced.
+repo: openisd
+owner: maryu
+status: done
+goal: syncLedger.ts keeps the per-device sync record: rows, cursor, device id, Lamport seq, conflict copies, forgetAll (Drive sync plan P1-7)
+done_test: bash scripts/test.sh packages/persistence/test/cloud/syncLedger.test.ts
+files:
+  - tasks/T098.yml
+  - packages/persistence/src/cloud/syncLedger.ts
+  - packages/persistence/test/cloud/syncLedger.test.ts
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
