@@ -1,6 +1,6 @@
 # BUG_20261013_land-stamps-previous-task-outside-allowlist
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 Landing a task right after another task landed fails with
@@ -15,14 +15,10 @@ file inside the next landing's squash commit, and the pre-commit allowlist check
 then refuses the commit.
 
 ## Cause
-land.sh writes the `landed:` sha of a task into that task's file in a later landing, where the file
-is outside the new task's `files` allowlist. ⚠ The exact spot in land.sh that writes it is not yet
-located.
+land.sh step 2b (T064, `scripts/land.sh` after the rebase) gives every done task that lacks `landed:` the sha of its commit on main, then squashes the branch with `git add -A`. The pre-commit allowlist (`check-commit.sh`) saw that one-line change to the earlier task's file as the worker's.
 
 ## Fix
-Write `landed:` in the same landing's own commit (the task being landed is in its own allowlist),
-or exempt land.sh's own `landed:` stamp from check-commit. Per .claude/rules/processes.md rule 7,
-prove the change end to end in a scratch repo before wiring it in.
+T091: `check-commit.sh` passes a `tasks/*.yml` file outside the allowlist when its only staged change is one added `landed: <sha>` line. Any other change to such a file still refuses. `scripts/land/test/check-commit-landed-stamp.test.sh` covers both.
 
 ## Verification
 Two tasks landed back to back from separate worktrees: both land with exit 0 and no allowlist

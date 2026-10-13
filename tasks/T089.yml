@@ -3,6 +3,7 @@ release_note: Bug record only; no change for users.
 repo: openisd
 owner: maryu
 status: done
+landed: 34dfbe32120049228c81898648ecfdf220d91a25
 goal: The land.sh previous-task stamp bug is recorded in bugs/.
 done_test: test -s bugs/BUG_20261013_land-stamps-previous-task-outside-allowlist.md
 files:

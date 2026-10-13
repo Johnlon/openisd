@@ -21,7 +21,18 @@ TASK="tasks/$ID.yml"
 specs=(":(literal)$TASK")
 while IFS= read -r glob; do specs+=(":(glob)$glob"); done < <(task_files "$TASK")
 
-outside="$(comm -23 <(git diff --cached --name-only | sort) <(git diff --cached --name-only -- "${specs[@]}" | sort))"
+# land.sh's own stamp: a later landing writes `landed: <sha>` into an earlier task's file (T064 step
+# 2b). That one-line change to another task file is land.sh's, not the worker's, and passes; any
+# other change to a task file outside the allowlist still refuses (T091).
+landed_stamp_only() {
+  case "$1" in tasks/*.yml) ;; *) return 1 ;; esac
+  local lines
+  lines="$(git diff --cached -U0 -- "$1" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---) ')"
+  [ -n "$lines" ] && ! printf '%s\n' "$lines" | grep -qvE '^\+landed: [0-9a-f]{7,40}$'
+}
+
+outside="$(comm -23 <(git diff --cached --name-only | sort) <(git diff --cached --name-only -- "${specs[@]}" | sort) \
+  | while IFS= read -r path; do landed_stamp_only "$path" || echo "$path"; done)"
 if [ -n "$outside" ]; then
   echo "check-commit: task $ID may not touch:" >&2
   echo "$outside" | sed 's/^/  /' >&2

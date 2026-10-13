@@ -1,0 +1,12 @@
+id: T091
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: land.sh stamps the previous task's landed sha without tripping the commit allowlist; check-commit passes a task file whose only staged change is that one landed line.
+done_test: bash scripts/land/test/check-commit-landed-stamp.test.sh
+files:
+  - tasks/T091.yml
+  - bugs/BUG_20261013_land-stamps-previous-task-outside-allowlist.md
+  - scripts/land/task-gates/check-commit.sh
+  - scripts/land/test/check-commit-landed-stamp.test.sh
