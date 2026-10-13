@@ -1,0 +1,13 @@
+id: T086
+release_note: Test-only fix; no change for users.
+repo: openisd
+owner: maryu
+status: done
+label: fixes
+goal: The mobile Box tab spec expects no Vented-tab hint, since T074 removed it on purpose; F13 is closed.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T086.yml
+  - tasks/fixes/F13.yml
+  - tasks/T085.yml
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts

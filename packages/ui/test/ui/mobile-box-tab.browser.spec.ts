@@ -70,9 +70,8 @@ test.describe('MobileBoxTab', () => {
 
     await page.locator('#mob-box-type').selectOption('vented');
     await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toHaveCount(0);
-    // Bug (John, 2026-09-29): there is no tab literally named "Enclosure" — the hint must name the
-    // tab bar's own dynamic label ("Vented" here) instead of a hardcoded string.
-    await expect(page.locator('.mob-hint', { hasText: '"Vented" tab' })).toBeVisible();
+    // T074: the line pointing to the Vented tab is gone; the tab bar already shows that tab.
+    await expect(page.locator('.mob-hint', { hasText: '"Vented" tab' })).toHaveCount(0);
   });
 
   // Same flex-shrink clipping bug as the Advanced tab's scroll test (see mobile-advanced-tab).

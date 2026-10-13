@@ -3,6 +3,7 @@ release_note: Test-only fix; no change for users.
 repo: openisd
 owner: maryu
 status: done
+landed: fd5965c5781907dae30d4ad8a41809fb5b3cff78
 label: fixes
 goal: The storage-guard architecture test counts two ordinary project-repo saves, since T075 moved the project saves onto backup.write (half of F13).
 done_test: bash scripts/test.sh packages/persistence/test/architecture-storage-writes-are-guarded.test.ts
