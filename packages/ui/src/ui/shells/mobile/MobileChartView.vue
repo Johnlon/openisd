@@ -8,7 +8,7 @@ import MobileWhatIfSheet from './MobileWhatIfSheet.vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
-const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
+const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
   chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, whatIfOpen } = useMobileChartView();
 </script>
 
@@ -29,6 +29,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
         </select>
       </label>
     </div>
+    <div v-if="pickerOpen" class="mob-chart-backdrop" @click="closePicker"></div>
     <ul v-if="pickerOpen" class="mob-chart-list">
       <li v-for="item in chartItems" :key="item.tab" class="mob-chart-row" :class="{ sep: item.sep }">
         <input type="checkbox" :checked="item.open" :aria-label="'Stack ' + item.label" @change="toggle(item.tab)">
@@ -58,6 +59,8 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
 }
 .mob-chart-head {
   display: flex;
+  position: relative;
+  z-index: 6; /* above .mob-chart-backdrop, so the picker button and per-screen select stay tappable while the list is open */
   gap: 8px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--line);
@@ -107,6 +110,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, 
 }
 .mob-chart-pick-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* The checklist drops over the charts rather than pushing them down. */
+.mob-chart-backdrop { position: absolute; inset: 0; z-index: 4; }
 .mob-chart-list {
   position: absolute;
   left: 12px;

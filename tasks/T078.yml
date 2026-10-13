@@ -3,6 +3,7 @@ release_note: Design plan for optional Google Drive sync across devices (no code
 repo: openisd
 owner: opus
 status: done
+landed: 056ecbb7be476217cbbd817e12f1d708813b2d7f
 goal: The Google Drive sync design plan, phases 0 to 3 with the reviewed sync rules and the approved screens for both skins, is in docs/plans.
 done_test: test -s docs/plans/PLAN_20261013_GOOGLE_DRIVE_SYNC.md
 files:

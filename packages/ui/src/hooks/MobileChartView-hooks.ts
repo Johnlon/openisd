@@ -26,6 +26,8 @@ export function useMobileChartView() {
   /** Whether the chart checklist is showing. */
   const pickerOpen = ref(false);
   function togglePicker(): void { pickerOpen.value = !pickerOpen.value; }
+  /** Tapping anywhere outside the list closes it (John, 13 Oct 2026). */
+  function closePicker(): void { pickerOpen.value = false; }
   /** Tapping a chart's name shows it alone and closes the list. */
   function showOnly(id: ChartId): void { selection.showOnly(id); pickerOpen.value = false; }
   /** Ticking a chart's box opens or closes it and leaves the list open. */
@@ -44,6 +46,6 @@ export function useMobileChartView() {
 
   const traceColour = computed(() => { void projectChanged.value; return traceColor(project.value); });
 
-  return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, showOnly, toggle,
+  return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
     chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, whatIfOpen };
 }

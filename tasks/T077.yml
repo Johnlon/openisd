@@ -1,0 +1,12 @@
+id: T077
+release_note: On the phone, tapping anywhere outside the open chart list closes it.
+repo: openisd
+owner: fable
+status: todo
+goal: The mobile chart picker closes when the user taps anywhere outside the open list, not only on the picker button or a chart name.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T077.yml
+  - packages/ui/src/hooks/MobileChartView-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/test/ui/mobile-chart-view.browser.spec.ts

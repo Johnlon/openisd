@@ -58,6 +58,20 @@ test('the per-screen number sizes each stacked chart to a whole fraction of the 
   }
 });
 
+test('tapping outside the open list closes it and changes nothing', async ({ page }) => {
+  await page.locator('.mob-chart-pick').click();
+  await expect(page.locator('.mob-chart-list')).toBeVisible();
+  const before = await page.locator('.mob-chart-pick-label').textContent();
+
+  const stack = page.locator('.mob-chart-stack');
+  await stack.evaluate(e => e.scrollTo(0, 0));
+  const bottom = await stack.evaluate(e => { const r = e.getBoundingClientRect(); return { x: r.left + 20, y: r.bottom - 20 }; });
+  await page.mouse.click(bottom.x, bottom.y); // below the list, on the chart
+
+  await expect(page.locator('.mob-chart-list')).toHaveCount(0);
+  await expect(page.locator('.mob-chart-pick-label')).toHaveText(before ?? '');
+});
+
 test('tapping a chart name shows it alone, and the choice survives switching tabs', async ({ page }) => {
   await page.locator('.mob-chart-pick').click();
   await pickerRow(page, 'Impedance').locator('.mob-chart-name').click();
