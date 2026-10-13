@@ -1,0 +1,69 @@
+id: F14
+owner: Johnlon
+status: open
+sha: e8bbb6a1f477cd7a8ea1bb32aea1dc9c19aaf046
+goal: main is red at e8bbb6a1f4; make the full suite pass again
+commits: |
+  e8bbb6a1f4 T091: land.sh stamps the previous task's landed sha without tripping the commi
+  34dfbe3212 T089: The land.sh previous-task stamp bug is recorded in bugs/.
+  9e91a6c9fe T084: The Transfer function magnitude chart readout shows the -3 dB and -10 dB
+  89ccac0a7f T083: Task ids are claimed by scripts/new-task.sh, which takes the next free n
+  0c3f006e38 T080: packages/design/cloud has the SyncStatus sum type and the SyncDisplay mo
+  7213031cfa T079: Keys starting openisd_cloud_ are left out of whole-store backups, export
+  9a7f02fbca T086: The mobile Box tab spec expects no Vented-tab hint, since T074 removed i
+  501a0ffa1c F13: still red at fd5965c578
+  fd5965c578 T085: The storage-guard architecture test counts two ordinary project-repo sav
+  9717d468e2 F13: the full suite is red at b193c5ec37
+  b193c5ec37 T077: The mobile chart picker closes when the user taps anywhere outside the o
+  056ecbb7be T078: The Google Drive sync design plan, phases 0 to 3 with the reviewed sync
+  5f6f531d2b T076: Whole-store backups skip the pre-repair record copies, a project save th
+  d2b12f6e83 T075: A project save that did not fit in browser storage failed with "storage
+  cacb7dfab4 T074: The mobile Box tab's hint "Vents and enclosure details for Vented are on
+  775dd671dc T073: RELEASES.md records release v20261013T1646Z, promoted from snapshot 2026
+  4ee31eb6db T072: The telemetry beacon body was typed application/json, so Chrome sent a C
+failing: |
+       × no template or hook types a unit beside a shown value 1562ms
+   FAIL  |ui-architecture| test/architecture/architecture-units-come-from-the-rotation.test.ts > units come from the rotation > no template or hook types a unit beside a shown value
+    ✘  593 packages/ui/test/ui/what-if-panel.browser.spec.ts:33:5 › What-if? panel › on the sample project › the What-if? changes the charts but never the project, and Close puts the curve back (27.7s)
+    ✘  592 packages/ui/test/ui/unit-toggle.browser.spec.ts:93:3 › Unit toggle › Voice coil temp rise, resistance TC, and added mass all convert, each keeping its own resolution (29.5s)
+output: |
+  
+  
+        126 |     await madd.fill('100');
+        127 |     await madd.dispatchEvent('input');
+      > 128 |     await madd.blur();
+            |                ^
+        129 |     await maddUnit.click();                       // g → kg
+        130 |     await expect(maddUnit).toHaveText('kg');
+        131 |     await expect(madd).toHaveValue('0.10000000');
+          at /home/john/work/winisd/.postland/1171129-e8bbb6a1f4/packages/ui/test/ui/unit-toggle.browser.spec.ts:128:16
+  
+      Error Context: test-results/ui-unit-toggle.browser-Uni-40c4f--keeping-its-own-resolution/error-context.md
+  
+    2) packages/ui/test/ui/what-if-panel.browser.spec.ts:33:5 › What-if? panel › on the sample project › the What-if? changes the charts but never the project, and Close puts the curve back 
+  
+      TimeoutError: locator.waitFor: Timeout 20000ms exceeded.
+      Call log:
+        - waiting for locator('.original-root') to be visible
+  
+  
+         at fixtures.ts:213
+  
+        211 |     buffer: readFileSync(owprPath),
+        212 |   });
+      > 213 |   await page.locator('.original-root').waitFor({ state: 'visible' });
+            |                                        ^
+        214 | }
+        215 |
+        216 | /**
+          at openAProject (/home/john/work/winisd/.postland/1171129-e8bbb6a1f4/packages/ui/test/fixtures.ts:213:40)
+          at /home/john/work/winisd/.postland/1171129-e8bbb6a1f4/packages/ui/test/ui/what-if-panel.browser.spec.ts:30:7
+  
+      Error Context: test-results/ui-what-if-panel.browser-W-f9b38-d-Close-puts-the-curve-back/error-context.md
+  
+    2 failed
+      packages/ui/test/ui/unit-toggle.browser.spec.ts:93:3 › Unit toggle › Voice coil temp rise, resistance TC, and added mass all convert, each keeping its own resolution 
+      packages/ui/test/ui/what-if-panel.browser.spec.ts:33:5 › What-if? panel › on the sample project › the What-if? changes the charts but never the project, and Close puts the curve back 
+    609 passed (7.6m)
+  suite: unit exit 1, browser exit 1
+  post-land suite 1171129-e8bbb6a1f4 finished: FAILED (exit 1) after 10m43s
