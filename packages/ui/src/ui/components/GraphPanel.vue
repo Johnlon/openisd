@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {computed, onMounted, onUnmounted, ref, shallowRef, watch, type CSSProperties} from 'vue';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import type {Design, FrequencyAxis, FrequencyDragMode, LevelAxis, LevelDragMode, SnapDirection, SnapExtremum} from '@openisd/design/chart';
 import type {Geo} from '../../types.js';
@@ -44,7 +44,7 @@ const effectiveF = computed(() => {
   return p.cursorLocked.value ? p.pinnedF.value : (p.cursorF.value ?? p.pinnedF.value);
 });
 
-let geoRef: Geo | null = null;
+const geoRef = shallowRef<Geo | null>(null);
 let dragOrigin: { clientX: number; f: number } | null = null; // set on pointerdown (frequency band-select)
 let yDrag: { mode: LevelDragMode; startY: number; axis: LevelAxis; ph: number } | null = null; // Y-axis drag
 let xDrag: { mode: FrequencyDragMode; startX: number; axis: FrequencyAxis; pw: number } | null = null; // X-axis (frequency) drag
@@ -54,10 +54,10 @@ let xDrag: { mode: FrequencyDragMode; startX: number; axis: FrequencyAxis; pw: n
 //   'zoomTop' (top quarter) / 'zoomBot' (bottom quarter) → zoom that end
 //   'pan' (middle) → shift the window;  Shift key → 'zoomSym' (symmetric zoom)
 function yAxisZone(e: PointerEvent | MouseEvent): LevelDragMode | null {
-  if (!geoRef || !viewPlot.value) return null;
+  if (!geoRef.value || !viewPlot.value) return null;
   const rect = canvasEl.value!.getBoundingClientRect();
   const xIn = e.clientX - rect.left, yIn = e.clientY - rect.top;
-  const { m, ph } = geoRef;
+  const { m, ph } = geoRef.value;
   if (xIn < 0 || xIn > m.l || yIn < m.t || yIn > m.t + ph) return null;
   if (e.shiftKey) return 'zoomSym';
   if (yIn <= m.t + 0.25 * ph) return 'zoomTop';
@@ -69,10 +69,10 @@ function yAxisZone(e: PointerEvent | MouseEvent): LevelDragMode | null {
 //   'zoomLo' (left quarter) / 'zoomHi' (right quarter) → zoom that end
 //   'pan' (middle) → shift the frequency window;  Shift → 'zoomSym'
 function xAxisZone(e: PointerEvent | MouseEvent): FrequencyDragMode | null {
-  if (!geoRef) return null;
+  if (!geoRef.value) return null;
   const rect = canvasEl.value!.getBoundingClientRect();
   const xIn = e.clientX - rect.left, yIn = e.clientY - rect.top;
-  const { m, pw, ph } = geoRef;
+  const { m, pw, ph } = geoRef.value;
   if (yIn < m.t + ph || xIn < m.l || xIn > m.l + pw) return null;
   if (e.shiftKey) return 'zoomSym';
   if (xIn <= m.l + 0.25 * pw) return 'zoomLo';
@@ -81,8 +81,8 @@ function xAxisZone(e: PointerEvent | MouseEvent): FrequencyDragMode | null {
 }
 
 function freqAt(clientX: number): number | null {
-  if (!geoRef) return null;
-  const { m, pw, axis } = geoRef;
+  if (!geoRef.value) return null;
+  const { m, pw, axis } = geoRef.value;
   const rect = canvasEl.value!.getBoundingClientRect();
   const frac = (clientX - rect.left - m.l) / pw;
   if (frac < 0 || frac > 1) return null;
@@ -100,18 +100,19 @@ const localDragRange = computed(() => {
 
 function redraw() {
   if (!canvasEl.value) return;
-  if (blocked.value || !viewPlot.value) { geoRef = null; return; }
-  geoRef = drawOne(canvasEl.value, viewPlot.value, localDragRange.value ? null : effectiveF.value, readEl.value, localDragRange.value);
+  if (blocked.value || !viewPlot.value) { geoRef.value = null; return; }
+  geoRef.value = drawOne(canvasEl.value, viewPlot.value, localDragRange.value ? null : effectiveF.value, readEl.value, localDragRange.value);
 }
 
 function onPointerDown(e: PointerEvent) {
-  if (e.button !== 0 || !geoRef) return;
+  if (e.button !== 0 || !geoRef.value) return;
   // Y-axis strip → start a level pan/zoom drag (takes priority over the freq band).
   const zone = yAxisZone(e);
   if (zone) {
     const p = viewPlot.value!;
-    yDrag = { mode: zone, startY: e.clientY, ph: geoRef.ph, axis: p.levelAxis };
-    canvasEl.value!.setPointerCapture(e.pointerId);
+    yDrag = { mode: zone, startY: e.clientY, ph: geoRef.value.ph, axis: p.levelAxis };
+    const el = e.currentTarget;
+    if (el instanceof Element) el.setPointerCapture(e.pointerId);
     e.preventDefault();
     return;
   }
@@ -119,10 +120,11 @@ function onPointerDown(e: PointerEvent) {
   const xzone = xAxisZone(e);
   if (xzone) {
     xDrag = {
-      mode: xzone, startX: e.clientX, pw: geoRef.pw,
+      mode: xzone, startX: e.clientX, pw: geoRef.value.pw,
       axis: graph.frequencyAxis(),
     };
-    canvasEl.value!.setPointerCapture(e.pointerId);
+    const el = e.currentTarget;
+    if (el instanceof Element) el.setPointerCapture(e.pointerId);
     e.preventDefault();
     return;
   }
@@ -130,7 +132,8 @@ function onPointerDown(e: PointerEvent) {
   if (f !== null) {
     project.value.dragRange.set(null); // clear previous selection
     dragOrigin = { clientX: e.clientX, f };
-    canvasEl.value!.setPointerCapture(e.pointerId);
+    const el = e.currentTarget;
+    if (el instanceof Element) el.setPointerCapture(e.pointerId);
   }
 }
 
@@ -173,8 +176,8 @@ function onPointerMove(e: PointerEvent) {
       return;
     }
   }
-  if (project.value.cursorLocked.value || !geoRef) return;
-  const { m, pw, axis } = geoRef;
+  if (project.value.cursorLocked.value || !geoRef.value) return;
+  const { m, pw, axis } = geoRef.value;
   const rect = canvasEl.value!.getBoundingClientRect();
   const frac = (e.clientX - rect.left - m.l) / pw;
   if (frac < 0 || frac > 1) { if (project.value.cursorF.value !== null) project.value.cursorF.set(null); return; }
@@ -282,6 +285,34 @@ const canvasStyles = computed(() => {
   return styles;
 });
 
+const yAxisOverlayStyle = computed<CSSProperties>(() => {
+  if (!geoRef.value) return { display: 'none' };
+  const { m, ph } = geoRef.value;
+  return {
+    position: 'absolute',
+    left: '0',
+    top: m.t + 'px',
+    width: m.l + 'px',
+    height: ph + 'px',
+    touchAction: 'none',
+    zIndex: 1,
+  };
+});
+
+const xAxisOverlayStyle = computed<CSSProperties>(() => {
+  if (!geoRef.value) return { display: 'none' };
+  const { m, pw, ph } = geoRef.value;
+  return {
+    position: 'absolute',
+    left: m.l + 'px',
+    top: m.t + ph + 'px',
+    width: pw + 'px',
+    height: m.b + 'px',
+    touchAction: 'none',
+    zIndex: 1,
+  };
+});
+
 watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { flush: 'post' });
 </script>
 
@@ -296,6 +327,24 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
             @pointercancel="onPointerCancel"
             @dblclick="onDblClick"
             @contextmenu="onContextMenu" />
+    <!-- Y-axis strip overlay (left margin) — intercepts vertical touch drags for Y-axis zoom/pan -->
+    <div class="axis-overlay y-axis-overlay"
+         :style="yAxisOverlayStyle"
+         @pointerdown="onPointerDown"
+         @pointerup="onPointerUp"
+         @pointermove="onPointerMove"
+         @pointerleave="onPointerLeave"
+         @pointercancel="onPointerCancel"
+         @dblclick="onDblClick" />
+    <!-- X-axis strip overlay (bottom margin) — intercepts vertical touch drags on X-axis strip -->
+    <div class="axis-overlay x-axis-overlay"
+         :style="xAxisOverlayStyle"
+         @pointerdown="onPointerDown"
+         @pointerup="onPointerUp"
+         @pointermove="onPointerMove"
+         @pointerleave="onPointerLeave"
+         @pointercancel="onPointerCancel"
+         @dblclick="onDblClick" />
     <div class="gtitle">{{ meta.name }}</div>
     <label v-if="!blocked && !hideAutoY" class="gautoy"
            title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
@@ -343,6 +392,10 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
 canvas { touch-action: none; }
 
 .gpanel { position: relative; }
+
+.axis-overlay {
+  pointer-events: auto;
+}
 
 /* Auto Y switch: the empty corner left of the frequency labels, below the level labels. */
 .gautoy {

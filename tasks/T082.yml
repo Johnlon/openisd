@@ -1,0 +1,17 @@
+id: T082
+release_note: On the phone with several charts, dragging a chart's axis stretches or moves the chart again instead of scrolling the page.
+repo: openisd
+owner: maryu
+status: done
+goal: On the mobile stacked Graph page, the Y-axis and X-axis strips take touch drags as chart stretch/move only and never scroll the page; the plot body still scrolls the stack.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T082.yml
+  - bugs/BUG_20261013_mobile-stacked-chart-axis-drag-scrolls-page.md
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/src/hooks/GraphPanel-hooks.ts
+  - packages/ui/src/hooks/MobileChartView-hooks.ts
+  - packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts
+  - packages/ui/test/ui/mobile-chart-view.browser.spec.ts
+  - packages/ui/test/hooks/GraphPanel-hooks.test.ts

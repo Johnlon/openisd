@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 9e8fce4e3d3bd3726e073481a3d94376396aa93b
 goal: Task files with status todo count as open: land.sh marks them done and landed like any other, so T072, T074, T075, T076 and T077 get their landed sha.
 done_test: bash scripts/land/test/land-squash.test.sh
 files:
