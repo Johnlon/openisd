@@ -3,6 +3,7 @@ release_note: Cloud sync login data is never put in backups, exports or the stor
 repo: openisd
 owner: maryu
 status: done
+landed: 7213031cfa9ed425620114bf5d104d5975b020a7
 goal: Keys starting openisd_cloud_ are left out of whole-store backups, exports and the storage log (Drive sync plan P1-1).
 done_test: bash scripts/test.sh packages/persistence/test/storageSnapshot.test.ts packages/persistence/test/storageLog.test.ts
 files:

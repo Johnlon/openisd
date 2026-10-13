@@ -1,0 +1,260 @@
+import {formatCountOf, formatDateTime, formatTime} from '../fields/format.js';
+import type {ConflictCopy, SyncStatus} from './syncStatus.js';
+
+export type SyncTone = 'muted' | 'accent' | 'good' | 'warn' | 'bad';
+export type SyncGlyph = 'cloudOff' | 'cloudBusy' | 'cloudDone' | 'cloudSlash' | 'cloudAlert';
+export type SyncTap = 'openDialog' | 'reconnect';
+
+export interface SyncDisplayInputs {
+  readonly status: SyncStatus;
+  readonly conflicts: readonly ConflictCopy[];
+  readonly conflictsSeen: number;
+  readonly hintDismissed: boolean;
+  readonly launches: number;
+  readonly updateBannerShown: boolean;
+}
+
+export interface SyncDisplay {
+  readonly glyph: SyncGlyph;
+  readonly tone: SyncTone;
+  readonly badge: number | null;
+  readonly shortText: string;
+  readonly text: string;
+  readonly tooltip: string;
+  readonly tap: SyncTap;
+  readonly strip: { readonly text: string; readonly button: string } | null;
+  readonly hint: { readonly text: string; readonly yes: string; readonly no: string } | null;
+  readonly conflictNotice: { readonly text: string; readonly button: string } | null;
+  readonly dialog: SyncDialogModel;
+}
+
+export interface SyncDialogModel {
+  readonly headline: string;
+  readonly account: string | null;
+  readonly pendingLine: string | null;
+  readonly buttons: readonly ('connect' | 'syncNow' | 'reconnect' | 'disconnect')[];
+  readonly conflicts: readonly {
+    readonly id: ConflictCopy['id'];
+    readonly title: string;
+    readonly sub: string;
+  }[];
+}
+
+export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
+  const {status} = inputs;
+
+  let glyph: SyncGlyph;
+  let tone: SyncTone;
+  let badge: number | null;
+  let shortText: string;
+  let text: string;
+  let tooltip: string;
+  let tap: SyncTap = 'openDialog';
+  let account: string | null = null;
+  let pendingLine: string | null = null;
+  let buttons: readonly ('connect' | 'syncNow' | 'reconnect' | 'disconnect')[];
+
+  switch (status.kind) {
+    case 'off': {
+      glyph = 'cloudOff';
+      tone = 'muted';
+      badge = null;
+      shortText = 'Off';
+      text = 'Cloud sync is off';
+      tooltip = 'Sync your work across devices through your Google Drive. Tap to turn on.';
+      account = null;
+      pendingLine = null;
+      buttons = ['connect'];
+      break;
+    }
+
+    case 'connecting': {
+      glyph = 'cloudBusy';
+      tone = 'accent';
+      badge = null;
+      shortText = 'Connecting';
+      text = 'Connecting to Google Drive…';
+      tooltip = 'Connecting to Google Drive…';
+      account = null;
+      pendingLine = null;
+      buttons = [];
+      break;
+    }
+
+    case 'syncing': {
+      glyph = 'cloudBusy';
+      tone = 'accent';
+      badge = null;
+      shortText = 'Syncing';
+      text = 'Syncing…';
+      tooltip = 'Syncing…';
+      account = status.account;
+      pendingLine = null;
+      buttons = ['disconnect'];
+      break;
+    }
+
+    case 'synced': {
+      const date = new Date(status.at_ms);
+      const conflictCount = status.conflicts > 0 ? status.conflicts : inputs.conflicts.length;
+      if (conflictCount > 0) {
+        glyph = 'cloudAlert';
+        tone = 'warn';
+        badge = conflictCount;
+        shortText = formatCountOf(conflictCount, 'conflict');
+        text = `Synced ${formatDateTime(date)}`;
+        tooltip = `${formatCountOf(conflictCount, 'item')} changed on two devices. Both kept. Tap to see them.`;
+      } else {
+        glyph = 'cloudDone';
+        tone = 'good';
+        badge = null;
+        shortText = `Synced ${formatTime(date)}`;
+        text = `Synced ${formatDateTime(date)}`;
+        tooltip = 'Up to date with Google Drive.';
+      }
+      account = status.account;
+      pendingLine = null;
+      buttons = ['syncNow', 'disconnect'];
+      break;
+    }
+
+    case 'pending': {
+      glyph = 'cloudBusy';
+      tone = 'accent';
+      badge = status.changes > 0 ? status.changes : null;
+      shortText = `${status.changes} not synced`;
+      text = `${formatCountOf(status.changes, 'change')} not synced`;
+      tooltip = `${formatCountOf(status.changes, 'change')} will sync in a moment.`;
+      account = status.account;
+      pendingLine = `${formatCountOf(status.changes, 'change')} not synced`;
+      buttons = ['syncNow', 'disconnect'];
+      break;
+    }
+
+    case 'offline': {
+      glyph = 'cloudSlash';
+      tone = 'muted';
+      badge = status.changes > 0 ? status.changes : null;
+      shortText = 'Offline';
+      text = status.changes > 0
+        ? `Offline. ${formatCountOf(status.changes, 'change')} not synced`
+        : 'Offline';
+      tooltip = 'No connection. They will sync when you are back online.';
+      account = status.account;
+      pendingLine = status.changes > 0
+        ? `${formatCountOf(status.changes, 'change')} not synced`
+        : null;
+      buttons = ['syncNow', 'disconnect'];
+      break;
+    }
+
+    case 'reconnect': {
+      glyph = 'cloudAlert';
+      tone = 'warn';
+      badge = status.changes > 0 ? status.changes : null;
+      shortText = 'Reconnect';
+      text = status.changes > 0
+        ? `Google needs you to connect again. ${formatCountOf(status.changes, 'change')} not synced`
+        : 'Google needs you to connect again.';
+      tooltip = text;
+      tap = 'reconnect';
+      account = status.account;
+      pendingLine = status.changes > 0
+        ? `${formatCountOf(status.changes, 'change')} not synced`
+        : null;
+      buttons = ['reconnect', 'disconnect'];
+      break;
+    }
+
+    case 'held': {
+      glyph = 'cloudAlert';
+      tone = 'warn';
+      badge = status.heldDocs > 0 ? status.heldDocs : null;
+      shortText = 'Update app';
+      text = `Update the app to sync ${formatCountOf(status.heldDocs, 'project')} saved by a newer version`;
+      tooltip = text;
+      account = status.account;
+      pendingLine = null;
+      buttons = ['syncNow', 'disconnect'];
+      break;
+    }
+
+    case 'refused': {
+      glyph = 'cloudAlert';
+      tone = 'bad';
+      badge = null;
+      shortText = 'Not synced';
+      text = status.reason === 'bucketUnreadable'
+        ? 'Nothing synced. A local file is unreadable.'
+        : 'Nothing synced. No room in this browser to back up first. Export, then try again.';
+      tooltip = text;
+      account = status.account;
+      pendingLine = null;
+      buttons = ['disconnect'];
+      break;
+    }
+
+    case 'failed': {
+      glyph = 'cloudAlert';
+      tone = 'bad';
+      badge = null;
+      shortText = 'Sync failed';
+      text = `Sync failed: ${status.reason}. It will try again.`;
+      tooltip = text;
+      account = status.account;
+      pendingLine = null;
+      buttons = ['syncNow', 'disconnect'];
+      break;
+    }
+  }
+
+  const strip = status.kind === 'reconnect' && !inputs.updateBannerShown
+    ? {
+        text: status.changes > 0
+          ? `⚠ Google needs you to connect again. ${formatCountOf(status.changes, 'change')} not synced.`
+          : '⚠ Google needs you to connect again.',
+        button: 'Reconnect',
+      }
+    : null;
+
+  const hint = inputs.launches >= 2 && status.kind === 'off' && !inputs.hintDismissed
+    ? {
+        text: 'Sync your projects across devices?',
+        yes: 'Turn on',
+        no: 'No thanks',
+      }
+    : null;
+
+  const conflictNotice = inputs.conflicts.length > inputs.conflictsSeen
+    ? {
+        text: `${formatCountOf(inputs.conflicts.length, 'item')} changed on two devices. Both kept.`,
+        button: 'View',
+      }
+    : null;
+
+  const dialog: SyncDialogModel = {
+    headline: text,
+    account,
+    pendingLine,
+    buttons,
+    conflicts: inputs.conflicts.map(c => ({
+      id: c.id,
+      title: c.name,
+      sub: 'Both versions kept',
+    })),
+  };
+
+  return {
+    glyph,
+    tone,
+    badge,
+    shortText,
+    text,
+    tooltip,
+    tap,
+    strip,
+    hint,
+    conflictNotice,
+    dialog,
+  };
+}

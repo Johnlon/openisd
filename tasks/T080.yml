@@ -1,0 +1,15 @@
+id: T080
+release_note: Groundwork for cloud sync: the sync states and what each one shows on screen.
+repo: openisd
+owner: maryu
+status: done
+goal: packages/design/cloud has the SyncStatus sum type and the SyncDisplay model that maps each status to icon tone, badge, text, dialog lines, strip, hint and conflict notice (Drive sync plan P1-2, sections 2.3 and 6.1-6.2).
+done_test: bash scripts/test.sh packages/design/test/cloud/syncDisplay.test.ts
+files:
+  - tasks/T080.yml
+  - tasks/T079.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/design/fields/format.ts
+  - packages/design/test/fields/format.test.ts
+  - packages/design/test/architecture-no-casts.test.ts

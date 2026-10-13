@@ -18,9 +18,14 @@ export function formatDate(d: Date): string {
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] as const;
 
+/** "23:32" — local 24-hour clock, no seconds. Every user-visible time. */
+export function formatTime(d: Date): string {
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
 /** "5 Oct 2026, 23:32" — local date and 24-hour clock, no seconds. Every date/time a user sees. */
 export function formatDateTime(d: Date): string {
-  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${formatTime(d)}`;
 }
 
 const BASIC_UTC = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;

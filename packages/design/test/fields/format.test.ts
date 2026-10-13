@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {formatFixed, formatByteSize, formatCountOf, formatFixedOrDash} from '../../fields/format.js';
+import {formatFixed, formatByteSize, formatCountOf, formatFixedOrDash, formatTime} from '../../fields/format.js';
 
 describe('fixed-decimal number formatting', () => {
   it('formatFixed: the value to the decimals asked', () => {
@@ -27,4 +27,11 @@ describe('fixed-decimal number formatting', () => {
     expect(formatCountOf(1, 'project')).toBe('1 project');
     expect(formatCountOf(1200, 'project')).toBe('1,200 projects');
   });
+
+  it('formatTime: "23:32" — local 24-hour clock, padded hours and minutes', () => {
+    expect(formatTime(new Date(2026, 9, 13, 23, 32))).toBe('23:32');
+    expect(formatTime(new Date(2026, 9, 13, 9, 5))).toBe('09:05');
+    expect(formatTime(new Date(2026, 9, 13, 0, 0))).toBe('00:00');
+  });
 });
+
