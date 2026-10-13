@@ -132,6 +132,7 @@ export function aProjectFromFile(text: string): string {
 
 /** `text` (an `.owpr`) with the driver id the domain mints afresh on every read blanked, so two
  *  reads of one project compare equal. */
+// Blanks the driver id that every read re-mints: bugs/BUG_20261013_project-driver-uuid-reminted-on-read.md
 function withoutMintedDriverId(text: string): string {
   const read = OpenISDProject.fromOwprText(text, engine);
   if (Array.isArray(read)) return text;
