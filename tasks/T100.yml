@@ -1,0 +1,10 @@
+id: T100
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: RELEASES.md records release v20261013T1842Z, promoted from snapshot 20261013T1842Z.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T100.yml
+  - RELEASES.md

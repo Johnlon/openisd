@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 62445e48dcec889f4213e0551164abf2f84711f4
 goal: A task whose "<id>:" commit is on main is marked done and landed at the next landing whatever its status said, so no claim outlives its landing; T053's stale claim is cleared the same way.
 done_test: bash scripts/land/test/land-squash.test.sh && bash scripts/land/test/check-commit-landed-stamp.test.sh
 files:
