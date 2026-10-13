@@ -34,3 +34,20 @@ export type {
 export {
   parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseStartPageToken, parseWriteReply,
 } from './driveJson.js';
+export type {
+  AuthPrompt,
+  BuildAuthUrlParams,
+  CallbackFragment,
+  OAuthConfig,
+} from './oauthRedirect.js';
+export {
+  buildAuthUrl,
+  parseCallbackFragment,
+} from './oauthRedirect.js';
+export type {
+  StoredGrant,
+} from './storedGrant.js';
+export {
+  parseStoredGrant,
+} from './storedGrant.js';
+
