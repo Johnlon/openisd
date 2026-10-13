@@ -1,0 +1,11 @@
+id: T074
+release_note: The mobile Box tab no longer shows the line pointing to the Vented tab; the tab bar already shows it.
+repo: openisd
+owner: fable
+status: todo
+goal: The mobile Box tab's hint "Vents and enclosure details for Vented are on the Vented tab" is removed, since the tab bar already shows that tab.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T074.yml
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/hooks/MobileBoxTab-hooks.ts

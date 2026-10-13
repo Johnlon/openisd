@@ -18,7 +18,7 @@ export function useMobileBoxTab() {
   const { engine } = useApp();
   const isSimulatable = boxTypeIsSimulatable;
 
-  const { selectedBox, pending, isDual, boxLabel, showEnclosureTab, enclosureNavLabel } =
+  const { selectedBox, pending, isDual, boxLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
@@ -58,7 +58,7 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, rearTuningCell, showEnclosureTab, enclosureNavLabel,
+    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, rearTuningCell,
     boxResonance, rearQtc, boxVolumeCell,
     activeTuning, FB_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,

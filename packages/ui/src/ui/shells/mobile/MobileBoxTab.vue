@@ -13,7 +13,7 @@ import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
 const {
-  selectedBox, pending, isDual, frontVolumeCell, rearTuningCell, boxLabel, showEnclosureTab, enclosureNavLabel,
+  selectedBox, pending, isDual, frontVolumeCell, rearTuningCell, boxLabel,
   boxResonance, rearQtc, boxVolumeCell,
   activeTuning, FB_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
@@ -80,10 +80,6 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       <button class="mob-btn" @click="lossesOpen = 'front'">Box losses -&gt;</button>
     </div>
   </div>
-
-  <p v-if="showEnclosureTab" class="mob-hint">
-    Vents and enclosure details for {{ boxLabel }} are on the "{{ enclosureNavLabel }}" tab.
-  </p>
 
   <div v-if="sealedAlignmentOpen" class="mob-align-overlay" @click.self="sealedAlignmentEditor.cancel">
     <div class="mob-align-sheet">
