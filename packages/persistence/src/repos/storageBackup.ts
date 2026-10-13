@@ -56,6 +56,9 @@ export interface StorageBackup {
   list(): BackupInfo[];
   /** The backup text under `key` (an envelope, as `readEnvelope` reads it), or null. */
   read(key: string): string | null;
+  /** Delete the backup under `key`. False, and nothing deleted, when `key` is not a backup. A
+   *  backup is not itself backed up: it is the copy. */
+  discard(key: string): boolean;
 }
 
 function byAge(a: BackupInfo, b: BackupInfo): number {
@@ -134,5 +137,10 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     },
     list,
     read: key => storage.get(key),
+    discard(key) {
+      if (!key.startsWith(OPENISD_BACKUP_PREFIX) || storage.get(key) === null) return false;
+      storage.remove(key);
+      return true;
+    },
   };
 }

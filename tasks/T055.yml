@@ -28,7 +28,7 @@ spec: |
   Order on the branch: commit 1 = layout key, backup function, every destructive path backed up, storage log (T058). Review. Commit 2 = goldens, fixed point, schemaVersion drop, layout 2, Storage history page. Review. One land.
   Lands with T058 on branch t055-releases.
 release_note: Your saved projects, drivers and settings are now backed up before any change, and a backup list in Options lets you export, restore or delete them.
-done_test: bash scripts/test.sh packages/ui/test/logic/storageHistory.test.ts && bash scripts/test.sh packages/persistence/test/storageUpgrade.test.ts && bash scripts/test.sh packages/persistence/test/storageBackup.test.ts
+done_test: bash scripts/test.sh packages/ui/test/hooks/StorageHistory-hooks.test.ts && bash scripts/test.sh packages/persistence/test/storageUpgrade.test.ts && bash scripts/test.sh packages/persistence/test/storageBackup.test.ts
 files:
   - tasks/T055.yml
   - packages/persistence/src/storageLayout.ts
@@ -36,3 +36,7 @@ files:
   - packages/persistence/test/storageUpgrade.test.ts
   - packages/persistence/test/storageBackup.test.ts
   - packages/persistence/test/goldens/**
+  - packages/persistence/test/storageHistory.test.ts
+  - packages/persistence/src/repos/storageHistory.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/ui/components/StorageHistory.vue

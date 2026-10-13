@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {formatFixed, formatFixedOrDash} from '../../fields/format.js';
+import {formatFixed, formatByteSize, formatCountOf, formatFixedOrDash} from '../../fields/format.js';
 
 describe('fixed-decimal number formatting', () => {
   it('formatFixed: the value to the decimals asked', () => {
@@ -12,5 +12,19 @@ describe('fixed-decimal number formatting', () => {
     expect(formatFixedOrDash(null, 2)).toBe('—');
     expect(formatFixedOrDash(Number.NaN, 2)).toBe('—');
     expect(formatFixedOrDash(Number.POSITIVE_INFINITY, 2)).toBe('—');
+  });
+
+  it('formatByteSize: bytes, then KB or MB to one decimal', () => {
+    expect(formatByteSize(0)).toBe('0 B');
+    expect(formatByteSize(1023)).toBe('1023 B');
+    expect(formatByteSize(1024)).toBe('1.0 KB');
+    expect(formatByteSize(12595)).toBe('12.3 KB');
+    expect(formatByteSize(1024 * 1024 * 1.25)).toBe('1.3 MB');
+  });
+
+  it('formatCountOf: a count with its noun, plural unless one', () => {
+    expect(formatCountOf(0, 'project')).toBe('0 projects');
+    expect(formatCountOf(1, 'project')).toBe('1 project');
+    expect(formatCountOf(1200, 'project')).toBe('1,200 projects');
   });
 });

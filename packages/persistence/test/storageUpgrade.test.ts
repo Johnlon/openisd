@@ -183,7 +183,8 @@ describe('exported files: a layout-1 file opens, and the current app writes the 
       assert.ok(fromOne.kind === 'ok' && fromTwo.kind === 'ok');
       assert.equal(fromOne.text, file1, 'a layout-1 file carries no stamp and no step changes it');
       assert.equal(fromTwo.text, file1, 'the stamp comes off, leaving the fields as they were');
-      assert.deepEqual(Object.values(expected as Record<string, string>), [read(fromOne.text)]);
+      assert.ok(typeof expected === 'object' && expected !== null);
+      assert.deepEqual(Object.values(expected), [read(fromOne.text)]);
       assert.equal(files.stamp(fromTwo.text), file2, 'fixed point');
       assert.ok(file2.startsWith('{\n  "layout": 2,'));
     });

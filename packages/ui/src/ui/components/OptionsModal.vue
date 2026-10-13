@@ -53,6 +53,7 @@ import {useBackupSettings} from '../../hooks/useBackupSettings.js';
 import {useApp} from '../../logic/app.js';
 import type {ChartId} from '@openisd/design/engine';
 import NumInput from './NumInput.vue';
+import StorageHistory from './StorageHistory.vue';
 import UnitToggle from './UnitToggle.vue';
 import {inputValue} from '../../logic/domEvents.js';
 
@@ -103,7 +104,7 @@ const {
   canApply, apply: applyAppSettings,
 } = useOptionsModal();
 
-type Tab = 'General' | 'Plot Window' | 'Backup';
+type Tab = 'General' | 'Plot Window' | 'Backup' | 'Storage history';
 const limitsMoreOpen = ref(false);
 const tab = reactive<{ v: Tab }>({ v: 'General' });
 
@@ -234,6 +235,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
         <button class="opt-tab" :class="{ on: tab.v === 'General' }" @click="tab.v = 'General'">General</button>
         <button class="opt-tab" :class="{ on: tab.v === 'Plot Window' }" @click="tab.v = 'Plot Window'">Plot Window</button>
         <button class="opt-tab" :class="{ on: tab.v === 'Backup' }" @click="tab.v = 'Backup'">Backup</button>
+        <button class="opt-tab" :class="{ on: tab.v === 'Storage history' }" @click="tab.v = 'Storage history'">Storage history</button>
       </div>
 
       <div class="opt-body">
@@ -365,6 +367,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
             <input ref="backupFileInput" type="file" accept="application/json,.json" style="display:none" @change="onBackupFile">
           </fieldset>
         </template>
+
+        <StorageHistory v-else-if="tab.v === 'Storage history'" />
 
         <template v-else>
           <fieldset class="opt-group">

@@ -1,7 +1,7 @@
 /** Test seams: a repo built over a storage with a whole-store backup on that same storage, as the
  *  composition root builds them. */
 import {
-  createAppSettingsRepo, createBackupRepo, createExportedFiles, createMyDriverRepo, createMyPassiveRadiatorRepo, createProjectRepo,
+  createAppSettingsRepo, createBackupRepo, createExportedFiles, createStorageHistory, createMyDriverRepo, createMyPassiveRadiatorRepo, createProjectRepo,
   createStorageBackup, createViewStateRepo, LAYOUT_STEPS, STORAGE_LAYOUT,
   type FileStorage, type ListableStorage, type ProjectRepairReport, type StorageBackup, type StoredDataFault,
 } from '@openisd/persistence';
@@ -30,6 +30,9 @@ export const viewStateRepoOn = (storage: ListableStorage) => createViewStateRepo
 
 export const appSettingsRepoOn = (storage: ListableStorage, onUnreadable?: (fault: StoredDataFault) => void) =>
   createAppSettingsRepo(storage, backupOn(storage), onUnreadable);
+
+export const storageHistoryOn = (storage: ListableStorage) =>
+  createStorageHistory(backupOn(storage), backupRepoOn(storage), { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS });
 
 export const backupRepoOn = (storage: ListableStorage) =>
   createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS });

@@ -8,14 +8,18 @@ function parsed(text: string): unknown {
   try { return JSON.parse(text); } catch { return undefined; }
 }
 
+function isUnknownArray(value: unknown): value is readonly unknown[] {
+  return Array.isArray(value);
+}
+
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** The list a layout-1 saved-entries bucket holds: a bare array, or `{schema, entries}`. */
 function entriesOfBucket(value: unknown): readonly unknown[] | null {
-  if (Array.isArray(value)) return value;
-  if (isRecord(value) && Array.isArray(value.entries)) return value.entries;
+  if (isUnknownArray(value)) return value;
+  if (isRecord(value) && isUnknownArray(value.entries)) return value.entries;
   return null;
 }
 

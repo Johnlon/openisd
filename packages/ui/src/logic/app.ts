@@ -13,6 +13,7 @@ import type {
     MyPassiveRadiatorRepo,
     PrefsRepo,
     ProjectRepo,
+    StorageHistory,
     ViewStateRepo
 } from '@openisd/persistence';
 import type {Logging} from '../logging/flash.js';
@@ -56,6 +57,8 @@ export interface AppLogic {
   driverFileStorage: FileStorage;
   projectRepo: ProjectRepo;
   viewStateRepo: ViewStateRepo;
+  /** The backups held in this browser: the Options "Storage history" page. */
+  storageHistory: StorageHistory;
   faultLog: FaultLog;
   releases: ReleaseWatch;
   appVersion: AppVersionPort;

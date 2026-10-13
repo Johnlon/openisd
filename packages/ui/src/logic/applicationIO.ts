@@ -42,6 +42,7 @@ import {
   projectFilename,
   projectNameFromFilename,
   type ProjectRepo,
+  type HistoryFile,
   type RestoreOptions,
   type RestoreResult
 } from '@openisd/persistence';
@@ -78,6 +79,8 @@ export interface DesignIO {
    *  `download` rather than a second `FileSave` instance. */
   exportProjectsArchive(): void;
   exportBackup(): void;
+  /** Save a stored backup (`StorageHistory.exportFile`) as a file. */
+  saveStoredBackup(file: HistoryFile): void;
   /** Restore every persisted key from a previously-downloaded backup file. Pure pass-through to
    *  `BackupRepo.importAll` — confirming with the user and reloading afterwards is the Options
    *  dialog's own job, not this module's. */
@@ -355,12 +358,17 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     flash(`Backup downloaded as ${fileName}`);
   }
 
+  function saveStoredBackup(file: HistoryFile): void {
+    download(file.fileName, file.text, 'application/json');
+    flash(`Backup saved as ${file.fileName}`);
+  }
+
   function importBackup(json: string, options: RestoreOptions): RestoreResult {
     return deps.backup.importAll(json, options);
   }
 
   return {
     saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
-    exportBackup, importBackup,
+    exportBackup, saveStoredBackup, importBackup,
   };
 }

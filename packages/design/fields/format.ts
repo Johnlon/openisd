@@ -41,3 +41,15 @@ export function parseBasicUtc(stamp: string): Date | null {
 export function formatCount(n: number): string {
   return String(Math.trunc(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
+
+/** "512 B", "12.3 KB", "1.2 MB" — a length in bytes, 1024 to the unit, one decimal above bytes. */
+export function formatByteSize(bytes: number): string {
+  if (bytes < 1024) return `${Math.trunc(bytes)} B`;
+  if (bytes < 1024 * 1024) return `${formatFixed(bytes / 1024, 1)} KB`;
+  return `${formatFixed(bytes / (1024 * 1024), 1)} MB`;
+}
+
+/** "1 project", "3 projects", "0 projects" — a count and its noun, plural unless exactly one. */
+export function formatCountOf(n: number, noun: string): string {
+  return `${formatCount(n)} ${noun}${n === 1 ? '' : 's'}`;
+}

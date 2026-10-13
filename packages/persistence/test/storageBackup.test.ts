@@ -188,3 +188,15 @@ describe('guard', () => {
     assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).guard(() => 'fresh'), {kind: 'ran', value: 'fresh'});
   });
 });
+
+describe('discard', () => {
+  it('deletes a backup, and only a backup', () => {
+    const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p', [keyOf('v1')]: backupText(1, '20250101T000000Z', 'v20250101T0000Z')});
+    const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
+    assert.equal(backup.discard(OPENISD_PROJECTS_KEY), false);
+    assert.equal(storage.get(OPENISD_PROJECTS_KEY), 'p');
+    assert.equal(backup.discard(keyOf('v1')), true);
+    assert.equal(storage.get(keyOf('v1')), null);
+    assert.equal(backup.discard(keyOf('v1')), false);
+  });
+});

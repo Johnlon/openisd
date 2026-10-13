@@ -79,7 +79,7 @@ export { LOSSLESS_Q } from './losslessQ.js';
 
 export { basicUtc } from './basicTime.js';
 export { lostDataSentence } from './lostData.js';
-export { formatCount, formatDate, formatDateTime, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
+export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';

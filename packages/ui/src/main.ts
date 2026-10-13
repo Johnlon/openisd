@@ -17,6 +17,7 @@ import {
     createBuildStamp,
     createFileSave,
     createExportedFiles,
+    createStorageHistory,
     createLocalStorage,
     createMemoryStorage,
     LAYOUT_STEPS,
@@ -147,6 +148,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup);
   const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules);
+  const storageHistory = createStorageHistory(storageBackup, backup, layoutRules);
   const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry });
 
   // sessionStorage wrapper for release watch (survives page reload, not browser restart)
@@ -241,7 +243,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, viewStateRepo, releases, appVersion, versionIndex,
+    driverFileStorage, faultLog, projectRepo, viewStateRepo, storageHistory, releases, appVersion, versionIndex,
     confirmPort, appState, presentation,
   });
 
