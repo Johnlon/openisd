@@ -1,7 +1,10 @@
 /** The version of the running app, typed as a sum type so formatting is exhaustive. */
+import {formatDateTime, parseBasicUtc} from './format.js';
+
 export type AppVersion =
   | { kind: 'published'; version: string }
-  | { kind: 'dev'; sha: string; hasChanges: boolean }
+  /** `committedAt` is the commit's ISO 8601 basic UTC stamp, "20261013T1041Z"; '' when the dev server could not read it. */
+  | { kind: 'dev'; sha: string; hasChanges: boolean; committedAt: string }
   | { kind: 'unknown' };
 
 export interface LocalTimeParts {
@@ -69,8 +72,12 @@ export function formatAppVersion(v: AppVersion, toLocalTime: ToLocalTime): strin
       const minute = String(parts.minute).padStart(2, '0');
       return `${month} ${day} ${hour}:${minute}`;
     }
-    case 'dev':
-      return v.hasChanges ? `dev ${v.sha} + changes` : `dev ${v.sha}`;
+    case 'dev': {
+      // A commit id is not a "when" (John, 13 Oct 2026): the commit's date and time lead, the id follows.
+      const when = parseBasicUtc(v.committedAt);
+      const label = when ? `dev ${formatDateTime(when)} · ${v.sha}` : `dev ${v.sha}`;
+      return v.hasChanges ? `${label} + changes` : label;
+    }
     case 'unknown':
       return 'unknown';
   }

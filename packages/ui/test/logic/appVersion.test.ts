@@ -47,8 +47,8 @@ describe('AppVersion sum type', () => {
   });
 
   it('parseDevVersion parses valid dev version', () => {
-    const v = parseDevVersion({ sha: 'abc1234', hasChanges: true });
-    expect(v).toEqual({ kind: 'dev', sha: 'abc1234', hasChanges: true });
+    const v = parseDevVersion({ sha: 'abc1234', hasChanges: true, committedAt: '20261013T1041Z' });
+    expect(v).toEqual({ kind: 'dev', sha: 'abc1234', hasChanges: true, committedAt: '20261013T1041Z' });
   });
 
   it('parseDevVersion returns unknown for missing sha', () => {
@@ -80,10 +80,10 @@ describe('AppVersion sum type', () => {
 describe('DevVersionPort', () => {
   it('fetchDevVersion returns parsed version on success', async () => {
     const port = createFakeDevPort({
-      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: false }),
+      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' }),
     });
     const dev = await port.fetchDevVersion();
-    expect(dev).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false });
+    expect(dev).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' });
   });
 
   it('fetchDevVersion returns null on failure', async () => {
@@ -107,7 +107,7 @@ describe('createDevVersionPort', () => {
     const fetchFn = vi.fn<typeof fetch>(() => Promise.resolve(new Response(JSON.stringify({ sha: 'abc123', hasChanges: true }))));
     const port = createDevVersionPort('/base/', fetchFn);
     const result = await port.fetchDevVersion();
-    expect(result).toEqual({ kind: 'dev', sha: 'abc123', hasChanges: true });
+    expect(result).toEqual({ kind: 'dev', sha: 'abc123', hasChanges: true, committedAt: '' });
     expect(fetchFn).toHaveBeenCalledWith('/base/dev-version.json', { cache: 'no-store' });
   });
 
@@ -136,11 +136,11 @@ describe('createDevVersionPort', () => {
 describe('createAppVersionPort', () => {
   it('returns dev version in dev mode', async () => {
     const devPort: DevVersionPort = {
-      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: false }),
+      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' }),
     };
     const port = createAppVersionPort(true, '', devPort, testLocalTime);
     const version = await port.getVersion();
-    expect(version).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false });
+    expect(version).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' });
   });
 
   it('returns unknown in dev mode when devPort is null', async () => {
@@ -172,7 +172,7 @@ describe('createAppVersionPort', () => {
 
   it('returns formatted label in dev mode', async () => {
     const devPort: DevVersionPort = {
-      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: true }),
+      fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: true, committedAt: '' }),
     };
     const port = createAppVersionPort(true, '', devPort, testLocalTime);
     expect(await port.getVersionLabel()).toBe('dev 5a3f9c1 + changes');
@@ -199,7 +199,7 @@ describe('createAppVersionPort', () => {
 
   it('updates reactive label on hot update in dev mode', async () => {
     const hotSource = createFakeHotUpdateSource();
-    let currentDev = { kind: 'dev' as const, sha: 'aaa', hasChanges: false };
+    let currentDev = { kind: 'dev' as const, sha: 'aaa', hasChanges: false, committedAt: '' };
     const devPort: DevVersionPort = {
       fetchDevVersion: vi.fn(() => Promise.resolve(currentDev)),
     };
@@ -210,12 +210,12 @@ describe('createAppVersionPort', () => {
     expect(port.label.value).toBe('dev aaa');
 
     // Change dev version to sha "bbb" and fire hot update
-    currentDev = { kind: 'dev', sha: 'bbb', hasChanges: false };
+    currentDev = { kind: 'dev', sha: 'bbb', hasChanges: false, committedAt: '' };
     await hotSource.fire();
     expect(port.label.value).toBe('dev bbb');
 
     // Flip hasChanges to true and fire hot update
-    currentDev = { kind: 'dev', sha: 'bbb', hasChanges: true };
+    currentDev = { kind: 'dev', sha: 'bbb', hasChanges: true, committedAt: '' };
     await hotSource.fire();
     expect(port.label.value).toBe('dev bbb + changes');
   });
@@ -223,7 +223,7 @@ describe('createAppVersionPort', () => {
   it('never refetches in a published build even if hot update fires', async () => {
     const hotSource = createFakeHotUpdateSource();
     const devPort: DevVersionPort = {
-      fetchDevVersion: vi.fn((): Promise<DevAppVersion | null> => Promise.resolve({ kind: 'dev', sha: 'ccc', hasChanges: false })),
+      fetchDevVersion: vi.fn((): Promise<DevAppVersion | null> => Promise.resolve({ kind: 'dev', sha: 'ccc', hasChanges: false, committedAt: '' })),
     };
     const port = createAppVersionPort(false, 'v20261009T234100Z', devPort, testLocalTime, hotSource.source);
     expect(port.label.value).toBe(await port.getVersionLabel());
@@ -235,7 +235,7 @@ describe('createAppVersionPort', () => {
 
   it('keeps previous label on fetch failure during refresh rather than flashing unknown', async () => {
     const hotSource = createFakeHotUpdateSource();
-    let result: DevAppVersion | null = { kind: 'dev', sha: 'bbb', hasChanges: true };
+    let result: DevAppVersion | null = { kind: 'dev', sha: 'bbb', hasChanges: true, committedAt: '' };
     const devPort: DevVersionPort = {
       fetchDevVersion: vi.fn((): Promise<DevAppVersion | null> => Promise.resolve(result)),
     };

@@ -31,8 +31,9 @@ export function parseDevVersion(raw: unknown): AppVersion {
   if (raw && typeof raw === 'object' && 'sha' in raw && 'hasChanges' in raw) {
     const sha = raw.sha;
     const hasChanges = raw.hasChanges;
+    const committedAt = 'committedAt' in raw && typeof raw.committedAt === 'string' ? raw.committedAt : '';
     if (typeof sha === 'string' && typeof hasChanges === 'boolean') {
-      return { kind: 'dev', sha, hasChanges };
+      return { kind: 'dev', sha, hasChanges, committedAt };
     }
   }
   return { kind: 'unknown' };

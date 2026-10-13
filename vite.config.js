@@ -135,10 +135,19 @@ function createServeDevVersion(command) {
         if (url !== '/dev-version.json') return next();
         let sha = 'unknown';
         let hasChanges = false;
+        // The commit's instant as an ISO 8601 basic UTC stamp at minute resolution ("20261013T1041Z"),
+        // the form every stored and sent date takes; the app formats it for display.
+        let committedAt = '';
         try {
           sha = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
         } catch {
           sha = 'unknown';
+        }
+        try {
+          const iso = execFileSync('git', ['log', '-1', '--format=%cI'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
+          committedAt = new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\d{2}\.\d+Z$/, 'Z');
+        } catch {
+          committedAt = '';
         }
         try {
           const status = execFileSync('git', ['status', '--porcelain'], { cwd: REPO_ROOT, encoding: 'utf8' }).trim();
@@ -147,7 +156,7 @@ function createServeDevVersion(command) {
           hasChanges = false;
         }
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify({ sha, hasChanges }));
+        res.end(JSON.stringify({ sha, hasChanges, committedAt }));
       });
     },
   };

@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {formatAppVersion, type AppVersion, type ToLocalTime} from '../../fields/appVersion.js';
+import {formatDateTime} from '../../fields/format.js';
 
 const fakeUtcZero: ToLocalTime = (epochMs: number) => {
   const d = new Date(epochMs);
@@ -45,14 +46,24 @@ describe('formatAppVersion', () => {
     expect(formatAppVersion(v2, fakeUtcZero)).toBe('invalid-stamp');
   });
 
-  it('formats dev version without changes', () => {
-    const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: false };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe('dev 5a3f9c1');
+  // The commit's instant is shown by the one design formatter, in the machine's local time.
+  const committedAt = '20261013T1041Z';
+  const shown = formatDateTime(new Date(Date.UTC(2026, 9, 13, 10, 41)));
+
+  it('formats dev version as the commit date and time, then the id', () => {
+    const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt };
+    expect(formatAppVersion(v, fakeUtcZero)).toBe(`dev ${shown} · 5a3f9c1`);
+    expect(shown).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/);
   });
 
   it('formats dev version with changes', () => {
-    const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: true };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe('dev 5a3f9c1 + changes');
+    const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: true, committedAt };
+    expect(formatAppVersion(v, fakeUtcZero)).toBe(`dev ${shown} · 5a3f9c1 + changes`);
+  });
+
+  it('dev version without a readable commit time shows the id alone', () => {
+    const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' };
+    expect(formatAppVersion(v, fakeUtcZero)).toBe('dev 5a3f9c1');
   });
 
   it('formats unknown version', () => {
@@ -64,8 +75,8 @@ describe('formatAppVersion', () => {
     const variants: AppVersion[] = [
       { kind: 'published', version: 'v20261009T234100Z' },
       { kind: 'published', version: 'custom-tag' },
-      { kind: 'dev', sha: 'abc', hasChanges: false },
-      { kind: 'dev', sha: 'abc', hasChanges: true },
+      { kind: 'dev', sha: 'abc', hasChanges: false, committedAt: '20261013T1041Z' },
+      { kind: 'dev', sha: 'abc', hasChanges: true, committedAt: '' },
       { kind: 'unknown' },
     ];
     for (const v of variants) {
