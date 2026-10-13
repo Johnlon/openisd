@@ -42,6 +42,8 @@ if [ -n "$LATEST_TAG" ]; then
 else
   echo "assemble-site: no release is marked Latest yet; the root is the Versions page" >&2
   cp "$WORK/site/v/index.html" "$OUT/index.html"
+  # Devices that opened the old root app keep its service worker until this URL serves a new one.
+  cp "$HERE/killSwitchWorker.js" "$OUT/sw.js"
 fi
 while IFS=$'\t' read -r kind tag stamp; do
   case "$kind" in

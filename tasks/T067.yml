@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 2580e990b02ab73383ad2cd12b7c47ae707f9d49
 goal: The dev version label shows the commit's date and time before its id, "dev 13 Oct 2026, 10:41 · f5d7a487", through the one design date formatter. The dev server sends the commit instant as an ISO 8601 basic UTC stamp. Snapshot and release labels already show a date.
 done_test: bash scripts/test.sh packages/design/test/fields/appVersion.test.ts packages/ui/test/logic/appVersion.test.ts
 files:

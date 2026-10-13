@@ -1,0 +1,12 @@
+id: T068
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Devices that opened the old openisd.app app keep its service worker, which answers every snapshot address with the cached old app. While no release is marked Latest the site root serves a kill-switch worker at sw.js that unregisters itself and reloads its pages, so those devices load the hosted builds from the network.
+done_test: bash scripts/land/test/release.test.sh
+files:
+  - tasks/T068.yml
+  - scripts/hosting/killSwitchWorker.js
+  - scripts/hosting/assemble-site.sh
+  - scripts/land/test/release.test.sh

@@ -219,6 +219,8 @@ grep -q 'Snapshot builds may upgrade your saved data' "$OUT/snap/index.html" && 
 jq 'map(.latest = false)' "$GH_STATE/releases.json" > "$GH_STATE/n" && mv "$GH_STATE/n" "$GH_STATE/releases.json"
 out=$(bash "$REPO/scripts/hosting/assemble-site.sh" "$S/site2" 2>&1); r=$?
 [ $r = 0 ] && ! grep -q 'Not Found' <<< "$out" && grep -q 'OpenISD releases' "$S/site2/index.html" && [ -f "$S/site2/snap/20250115T0000Z/index.html" ] && ok "no Latest release: root is the Versions page, snapshots still hosted" || fail "no latest: $r $out"
+grep -q 'registration.unregister()' "$S/site2/sw.js" 2>/dev/null && ok "no Latest release: root sw.js is the kill-switch worker" || fail "no latest: sw.js $(head -c 80 "$S/site2/sw.js" 2>&1)"
+! grep -q 'registration.unregister()' "$OUT/sw.js" 2>/dev/null && ok "with a Latest release: root sw.js is the release's own, not the kill switch" || fail "latest: root sw.js is the kill switch"
 
 echo
 if [ "$fails" = 0 ]; then echo "release.test.sh: all passed"; else echo "release.test.sh: $fails FAILED"; exit 1; fi
