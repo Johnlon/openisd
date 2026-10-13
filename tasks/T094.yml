@@ -1,0 +1,23 @@
+id: T094
+release_note: Groundwork for cloud sync: restoring, resetting or repairing stored data tells sync to start afresh.
+repo: openisd
+owner: maryu
+status: done
+goal: Every restore, reset and repair that replaces stored data calls an injected onReplaced callback once, so the cloud sync record can be forgotten (Drive sync plan P1-9)
+done_test: bash scripts/test.sh packages/persistence/test/cloud/forgetOnReplace.test.ts packages/persistence/test/backupRepo.test.ts
+files:
+  - tasks/T094.yml
+  - packages/persistence/src/repos/backupRepo.ts
+  - packages/persistence/src/repos/appSettingsRepo.ts
+  - packages/persistence/src/repos/viewStateRepo.ts
+  - packages/persistence/src/repos/savedEntries.ts
+  - packages/persistence/src/repos/layoutMigration.ts
+  - packages/persistence/src/repos/storeGate.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/backupRepo.test.ts
+  - packages/persistence/test/cloud/forgetOnReplace.test.ts
+  - packages/persistence/test/*.test.ts
+  - packages/ui/src/main.ts
+  - packages/persistence/test/fixtures/repoOn.ts
+  - packages/ui/test/fixtures/repoOn.ts
+  - packages/ui/test/logic/storeGate.test.ts

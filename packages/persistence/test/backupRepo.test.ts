@@ -20,8 +20,8 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null;
 }
 
-function repoOn(storage = createMemoryStorage()) {
-  return {storage, repo: createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, APP_RULES)};
+function repoOn(storage = createMemoryStorage(), onReplaced: () => void = () => undefined) {
+  return {storage, repo: createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, APP_RULES, onReplaced)};
 }
 
 const REPLACE = {replaceEverything: true};

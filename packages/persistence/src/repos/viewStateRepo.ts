@@ -75,7 +75,11 @@ function readsCleanly(text: string): boolean {
   return !('chart' in parsed) || parseChartView(parsed.chart) !== null;
 }
 
-export function createViewStateRepo(storage: KeyValueStorage, backup: StorageBackup): ViewStateRepo {
+export function createViewStateRepo(
+  storage: KeyValueStorage,
+  backup: StorageBackup,
+  onReplaced: () => void,
+): ViewStateRepo {
   return {
     save(v: ViewSnapshot): void {
       // A stored view this repo could not read is about to be overwritten: keep its text.
@@ -109,6 +113,10 @@ export function createViewStateRepo(storage: KeyValueStorage, backup: StorageBac
       return storage.watch(VIEW_STATE_KEY, onChange);
     },
     exportRaw: () => storage.get(VIEW_STATE_KEY),
-    reset: () => backup.guard(() => storage.remove(VIEW_STATE_KEY)).kind === 'ran',
+    reset(): boolean {
+      const ran = backup.guard(() => storage.remove(VIEW_STATE_KEY)).kind === 'ran';
+      if (ran) onReplaced();
+      return ran;
+    },
   };
 }

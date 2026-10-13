@@ -22,7 +22,7 @@ const backupText = (layout: number, build: string, takenAt: string, data: Record
 
 function historyOver(storage: ListableStorage) {
   const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
-  return createStorageHistory(backup, createBackupRepo(storage, backup, () => FIXED_NOW_MS, APP_RULES), APP_RULES);
+  return createStorageHistory(backup, createBackupRepo(storage, backup, () => FIXED_NOW_MS, APP_RULES, () => undefined), APP_RULES);
 }
 
 const seeded = () => createMemoryStorage({

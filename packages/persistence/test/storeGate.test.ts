@@ -53,7 +53,7 @@ const olderStore = () => createMemoryStorage({
 describe('a store of this layout', () => {
   it('opens a fresh store as it is: no backup, nothing lost', () => {
     const storage = createMemoryStorage();
-    const open = ready(createStoreOpening(storage, deps(3)));
+    const open = ready(createStoreOpening(storage, deps(3), () => undefined));
     assert.deepEqual(open.lostKeys, []);
     assert.deepEqual(backupKeys(storage), []);
     assert.equal(open.readOnly, false);
@@ -63,7 +63,7 @@ describe('a store of this layout', () => {
     const storage = createMemoryStorage({
       [OPENISD_PROJECTS_KEY]: 'projects', [OPENISD_STORAGE_LAYOUT_KEY]: '3', [OPENISD_STORAGE_BUILD_KEY]: OLD_BUILD,
     });
-    ready(createStoreOpening(storage, deps(3)));
+    ready(createStoreOpening(storage, deps(3), () => undefined));
     assert.deepEqual(backupKeys(storage), []);
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), 'projects');
     assert.equal(storage.get(OPENISD_STORAGE_BUILD_KEY), OLD_BUILD, 'swapping builds of one layout writes nothing until the app writes');
@@ -71,7 +71,7 @@ describe('a store of this layout', () => {
 
   it('records the start in the storage log', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p', [OPENISD_STORAGE_LAYOUT_KEY]: '3'});
-    ready(createStoreOpening(storage, deps(3)));
+    ready(createStoreOpening(storage, deps(3), () => undefined));
     assert.ok(storage.get(OPENISD_STORAGE_LOG_KEY) !== null);
   });
 
@@ -79,16 +79,16 @@ describe('a store of this layout', () => {
     const storage = createMemoryStorage({
       [OPENISD_PROJECTS_KEY]: 'projects', [OPENISD_STORAGE_LAYOUT_KEY]: '3', [OPENISD_STORAGE_BUILD_KEY]: OLD_BUILD,
     });
-    ready(createStoreOpening(storage, deps(3))).storage.set(OPENISD_MY_DRIVERS_KEY, 'a driver');
+    ready(createStoreOpening(storage, deps(3), () => undefined)).storage.set(OPENISD_MY_DRIVERS_KEY, 'a driver');
     assert.equal(storage.get(OPENISD_STORAGE_LAYOUT_KEY), '3');
     assert.equal(storage.get(OPENISD_STORAGE_BUILD_KEY), 'v20260301T0405Z');
   });
 
   it('reports a key that vanished since the last start', () => {
     const storage = createMemoryStorage({[OPENISD_MY_DRIVERS_KEY]: 'drivers', [OPENISD_STORAGE_LAYOUT_KEY]: '3'});
-    ready(createStoreOpening(storage, deps(3)));
+    ready(createStoreOpening(storage, deps(3), () => undefined));
     storage.remove(OPENISD_MY_DRIVERS_KEY);
-    const second = ready(createStoreOpening(storage, deps(3)));
+    const second = ready(createStoreOpening(storage, deps(3), () => undefined));
     assert.deepEqual(second.lostKeys.map(l => l.key), [OPENISD_MY_DRIVERS_KEY]);
   });
 });
@@ -96,7 +96,7 @@ describe('a store of this layout', () => {
 describe('a store of an older layout', () => {
   it('backs the whole store up under the build that wrote it, then migrates one layout at a time', () => {
     const storage = olderStore();
-    ready(createStoreOpening(storage, deps(3)));
+    ready(createStoreOpening(storage, deps(3), () => undefined));
 
     const backup = readEnvelope(storage.get(`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`) ?? '');
     assert.ok(backup.kind === 'ok');
@@ -110,16 +110,16 @@ describe('a store of an older layout', () => {
 
   it('reads a store with data but no layout key as layout 1', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'projects'});
-    ready(createStoreOpening(storage, deps(2)));
+    ready(createStoreOpening(storage, deps(2), () => undefined));
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), 'projects+2');
     assert.ok(storage.get(`${OPENISD_BACKUP_PREFIX}vunknown_20260101T010203Z`) !== null, 'named for an unknown build');
   });
 
   it('a second start is silent: no new backup, no new migration', () => {
     const storage = olderStore();
-    ready(createStoreOpening(storage, deps(3)));
+    ready(createStoreOpening(storage, deps(3), () => undefined));
     const after = dump(storage);
-    ready(createStoreOpening(storage, deps(3)));
+    ready(createStoreOpening(storage, deps(3), () => undefined));
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), 'projects+2+3');
     assert.deepEqual(backupKeys(storage), [`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`]);
     assert.equal(storage.get(`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`), after[`${OPENISD_BACKUP_PREFIX}${OLD_BUILD}_20260101T010203Z`]);
@@ -130,7 +130,7 @@ describe('a store of an older layout', () => {
       [OPENISD_PROJECTS_KEY]: 'p'.repeat(120), [OPENISD_STORAGE_LAYOUT_KEY]: '1', [OPENISD_STORAGE_BUILD_KEY]: OLD_BUILD,
     });
     const before = dump(storage);
-    const opening = createStoreOpening(storage, deps(3));
+    const opening = createStoreOpening(storage, deps(3), () => undefined);
 
     assert.ok(opening.kind === 'blocked');
     assert.equal(opening.reason, 'noRoom');
@@ -142,7 +142,7 @@ describe('a store of an older layout', () => {
 
   it('stops when a layout has no migration step', () => {
     const storage = olderStore();
-    const opening = createStoreOpening(storage, {...deps(3), rules: {layout: 3, steps: []}});
+    const opening = createStoreOpening(storage, {...deps(3), rules: {layout: 3, steps: []}}, () => undefined);
     assert.ok(opening.kind === 'blocked');
     assert.equal(opening.reason, 'noStep');
   });
@@ -160,7 +160,7 @@ describe('a store of a newer layout', () => {
   });
 
   function newer(storage: ListableStorage) {
-    const opening = createStoreOpening(storage, deps(3));
+    const opening = createStoreOpening(storage, deps(3), () => undefined);
     assert.ok(opening.kind === 'newer');
     return opening;
   }

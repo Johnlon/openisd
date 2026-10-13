@@ -63,7 +63,11 @@ export interface OpenStoreDeps {
   readonly memoryStorage: (initial: Record<string, string>) => ListableStorage;
 }
 
-export function createStoreOpening(raw: ListableStorage, deps: OpenStoreDeps): StoreOpening {
+export function createStoreOpening(
+  raw: ListableStorage,
+  deps: OpenStoreDeps,
+  onReplaced: () => void,
+): StoreOpening {
   const {rules} = deps;
   const {layout} = rules;
   const stamp = {layout, build: deps.build};
@@ -100,6 +104,7 @@ export function createStoreOpening(raw: ListableStorage, deps: OpenStoreDeps): S
     });
     if (migrated === null) return {kind: 'blocked', reason: 'noStep', storeLayout: found, exportRaw: rawExport};
     stampStore(raw, stamp);
+    onReplaced();
     return openLive();
   }
 
@@ -111,10 +116,10 @@ export function createStoreOpening(raw: ListableStorage, deps: OpenStoreDeps): S
     restore(key) {
       const text = backup.read(key);
       if (text === null) return openingAfterFailedRestore();
-      const repo = createBackupRepo(createStampedStore(raw, stamp), backup, deps.now, rules);
+      const repo = createBackupRepo(createStampedStore(raw, stamp), backup, deps.now, rules, onReplaced);
       const result = repo.importAll(text, {replaceEverything: true});
       if (result.kind !== 'ok') return openingAfterFailedRestore();
-      return createStoreOpening(raw, deps);
+      return createStoreOpening(raw, deps, onReplaced);
     },
     readOnly(key) {
       const text = backup.read(key);
@@ -131,7 +136,7 @@ export function createStoreOpening(raw: ListableStorage, deps: OpenStoreDeps): S
 
   /** A restore that did not happen leaves the store as it was: the same decision again. */
   function openingAfterFailedRestore(): StoreOpening {
-    return createStoreOpening(raw, deps);
+    return createStoreOpening(raw, deps, onReplaced);
   }
 }
 

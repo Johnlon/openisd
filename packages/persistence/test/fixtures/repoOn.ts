@@ -39,7 +39,7 @@ export const myDriverRepoOn = (storage: ListableStorage, engine: Engine) =>
 export const myPassiveRadiatorRepoOn = (storage: ListableStorage) =>
   createMyPassiveRadiatorRepo(storage, backupOn(storage));
 
-export const viewStateRepoOn = (storage: ListableStorage) => createViewStateRepo(storage, backupOn(storage));
+export const viewStateRepoOn = (storage: ListableStorage) => createViewStateRepo(storage, backupOn(storage), () => undefined);
 
 export const appSettingsRepoOn = (storage: ListableStorage, onUnreadable?: (fault: StoredDataFault) => void) =>
-  createAppSettingsRepo(storage, backupOn(storage), onUnreadable);
+  createAppSettingsRepo(storage, backupOn(storage), onUnreadable, () => undefined);

@@ -63,6 +63,8 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import './style.css';
 
+const forgetCloudSyncRecord = (): void => undefined;
+
 /** THE COMPOSITION ROOT: build the app on an open store and mount it. */
 function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
   // THE COMPOSITION ROOT (ARCHITECTURE.md §2).
@@ -113,7 +115,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
 
   // ONE engine for the whole app, built over the application settings: the engine carries the
   // plausibility band and environment, so it reads them from the same repo `appState` writes to.
-  const appSettingsRepo = createAppSettingsRepo(storage, storageBackup, fault => console.error(fault));
+  const appSettingsRepo = createAppSettingsRepo(storage, storageBackup, fault => console.error(fault), forgetCloudSyncRecord);
   const engine = createEngine({
     ventedLimits: () => appSettingsRepo.ventedLimits(),
     envDefaults: () => appSettingsRepo.envDefaults(),
@@ -149,8 +151,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
     confirmReset: confirmPort.port, appState, presentation,
   });
-  const viewStateRepo = createViewStateRepo(storage, storageBackup);
-  const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules);
+  const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
+  const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules, forgetCloudSyncRecord);
   const storageHistory = createStorageHistory(storageBackup, backup, layoutRules);
   const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse });
 
@@ -302,7 +304,7 @@ const opening = createStoreOpening(createLocalStorage(), {
   now: Date.now,
   rules: layoutRules,
   memoryStorage: createMemoryStorage,
-});
+}, forgetCloudSyncRecord);
 
 if (opening.kind === 'ready') {
   startApp(opening, loadingOverlay);

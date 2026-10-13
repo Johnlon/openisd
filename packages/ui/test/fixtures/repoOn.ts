@@ -26,13 +26,13 @@ export const myDriverRepoOn = (storage: ListableStorage, engine: Engine) =>
 export const myPassiveRadiatorRepoOn = (storage: ListableStorage) =>
   createMyPassiveRadiatorRepo(storage, backupOn(storage));
 
-export const viewStateRepoOn = (storage: ListableStorage) => createViewStateRepo(storage, backupOn(storage));
+export const viewStateRepoOn = (storage: ListableStorage) => createViewStateRepo(storage, backupOn(storage), () => undefined);
 
 export const appSettingsRepoOn = (storage: ListableStorage, onUnreadable?: (fault: StoredDataFault) => void) =>
-  createAppSettingsRepo(storage, backupOn(storage), onUnreadable);
+  createAppSettingsRepo(storage, backupOn(storage), onUnreadable, () => undefined);
 
 export const storageHistoryOn = (storage: ListableStorage) =>
   createStorageHistory(backupOn(storage), backupRepoOn(storage), { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS });
 
 export const backupRepoOn = (storage: ListableStorage) =>
-  createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS });
+  createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS }, () => undefined);

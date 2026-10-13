@@ -38,6 +38,7 @@ export interface BackupRepo {
 export function createBackupRepo(
   storage: ListableStorage, backup: StorageBackup, now: () => number,
   rules: LayoutRules,
+  onReplaced: () => void,
 ): BackupRepo {
   const migrator = createLayoutMigrator(rules);
   const snapshots = createStorageSnapshot(storage, now);
@@ -66,6 +67,7 @@ export function createBackupRepo(
       if (guarded.kind === 'refused') {
         return {kind: 'refused', reason: 'The browser has no room to back up what is here now before restoring. Download a backup first, then restore.'};
       }
+      onReplaced();
       return {kind: 'ok', keysRestored: guarded.value};
     },
   };

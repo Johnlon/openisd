@@ -29,7 +29,7 @@ const BUILD = createBuildStamp('v20260301T040506Z');
 const cases = storeCases();
 
 function open(storage: ListableStorage) {
-  return createStoreOpening(storage, {build: BUILD, now: () => FIXED_NOW_MS, rules: APP_RULES, memoryStorage: createMemoryStorage});
+  return createStoreOpening(storage, {build: BUILD, now: () => FIXED_NOW_MS, rules: APP_RULES, memoryStorage: createMemoryStorage}, () => undefined);
 }
 
 function ready(storage: ListableStorage) {
@@ -147,7 +147,7 @@ describe('case backup-file: a layout-1 backup file restores into the current app
 
   function restoreInto() {
     const opening = ready(createMemoryStorage());
-    const repo = createBackupRepo(opening.storage, opening.backup, () => FIXED_NOW_MS, APP_RULES);
+    const repo = createBackupRepo(opening.storage, opening.backup, () => FIXED_NOW_MS, APP_RULES, () => undefined);
     return {opening, repo};
   }
 

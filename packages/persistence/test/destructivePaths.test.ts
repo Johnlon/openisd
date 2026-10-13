@@ -80,13 +80,13 @@ const PATHS: readonly DestructivePath[] = [
     name: 'restore, keeping keys the file lacks',
     seed: () => ({...withDrivers(), [OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'))}),
     destroys: [OPENISD_PROJECTS_KEY],
-    act: s => { createBackupRepo(s, backupOn(s), () => FIXED_NOW_MS, APP_RULES).importAll(BACKUP_FILE, {replaceEverything: false}); },
+    act: s => { createBackupRepo(s, backupOn(s), () => FIXED_NOW_MS, APP_RULES, () => undefined).importAll(BACKUP_FILE, {replaceEverything: false}); },
   },
   {
     name: 'restore, replacing everything',
     seed: () => ({...withDrivers(), [OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'))}),
     destroys: [OPENISD_MY_DRIVERS_KEY, OPENISD_PROJECTS_KEY],
-    act: s => { createBackupRepo(s, backupOn(s), () => FIXED_NOW_MS, APP_RULES).importAll(BACKUP_FILE, {replaceEverything: true}); },
+    act: s => { createBackupRepo(s, backupOn(s), () => FIXED_NOW_MS, APP_RULES, () => undefined).importAll(BACKUP_FILE, {replaceEverything: true}); },
   },
   // --- delete
   {
@@ -182,7 +182,7 @@ const PATHS: readonly DestructivePath[] = [
     act: s => {
       createStoreOpening(s, {build: createBuildStamp('v20260301T040506Z'), now: () => FIXED_NOW_MS, memoryStorage: createMemoryStorage, rules: {layout: 2, steps: [{
         from: STEP_1_TO_2.from, migrate: data => ({...data, [OPENISD_PROJECTS_KEY]: 'migrated'}), migrateFile: file => file,
-      }]}});
+      }]}}, () => undefined);
     },
   },
   // --- repair write-back
