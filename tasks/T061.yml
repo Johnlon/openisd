@@ -2,7 +2,8 @@ id: T061
 release_note: internal
 repo: openisd
 owner: fable
-status: claimed
+status: done
+landed: 7614082498
 goal: The post-land run works from the main checkout, never from the lander's worktree, so a worktree removed during the run (watchdog or lander) cannot break it. The 70a4b4dc run lost its cwd that way and reported a bogus red.
 done_test: bash scripts/land/test/post-land.e2e.test.sh
 files:

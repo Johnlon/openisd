@@ -1,7 +1,8 @@
 id: T058
 repo: openisd
 owner: fable
-status: claimed
+status: done
+landed: c9a980690f
 with: T055
 goal: A lost storage key is seen and said. John lost all saved drivers at localhost:4000 on 12 Oct 2026 with no app path that removes the key; nothing recorded it.
 spec: |
