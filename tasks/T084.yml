@@ -3,6 +3,7 @@ release_note: The Transfer function magnitude chart readout shows F3 and F10, an
 repo: openisd
 owner: bob
 status: done
+landed: 9e91a6c9feda882bfe98f8e55badf77288d8103c
 goal: The Transfer function magnitude chart readout shows the -3 dB and -10 dB frequencies, and the popup has Jump to F3 and Jump to F10 buttons that move and lock the cursor there.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

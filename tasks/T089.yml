@@ -1,0 +1,11 @@
+id: T089
+release_note: Bug record only; no change for users.
+repo: openisd
+owner: maryu
+status: done
+goal: The land.sh previous-task stamp bug is recorded in bugs/.
+done_test: test -s bugs/BUG_20261013_land-stamps-previous-task-outside-allowlist.md
+files:
+  - tasks/T089.yml
+  - tasks/T084.yml
+  - bugs/BUG_20261013_land-stamps-previous-task-outside-allowlist.md
