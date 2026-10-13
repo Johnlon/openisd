@@ -1,0 +1,13 @@
+id: T111
+release_note: Mobile: the bottom bar stays on screen in Firefox Android and DuckDuckGo, and the page no longer runs past the screen
+repo: openisd
+owner: fable
+status: done
+goal: Mobile shell height follows visualViewport so the bottom bar stays visible on Firefox Android and DuckDuckGo
+done_test: bash scripts/test.sh packages/ui/test/logic/visibleViewport.test.ts
+files:
+  - tasks/T111.yml
+  - packages/ui/src/logic/visibleViewport.ts
+  - packages/ui/test/logic/visibleViewport.test.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/App.vue

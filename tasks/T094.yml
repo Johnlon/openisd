@@ -3,6 +3,7 @@ release_note: Groundwork for cloud sync: restoring, resetting or repairing store
 repo: openisd
 owner: maryu
 status: done
+landed: f7a8aadaa6e332ce102d086c2f8d9cb113c3f927
 goal: Every restore, reset and repair that replaces stored data calls an injected onReplaced callback once, so the cloud sync record can be forgotten (Drive sync plan P1-9)
 done_test: bash scripts/test.sh packages/persistence/test/cloud/forgetOnReplace.test.ts packages/persistence/test/backupRepo.test.ts
 files:

@@ -9,6 +9,7 @@ import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse} from './telemetryContext.js';
 import {inputFrom} from '../logic/domEvents.js';
+import {visibleViewportHeightPx} from '../logic/visibleViewport.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
@@ -279,14 +280,22 @@ export function useMobileShell(): MobileShellApi {
 
   // CSS `100vh`/`100dvh` is not enough on its own: real browsers vary in whether/when they
   // shrink it for their own chrome (a mobile address bar, a download shelf, any other bar a
-  // given browser version adds) — a bug John hit live, where the bottom tab bar ended up mostly
-  // hidden under one of these. `window.innerHeight` is the one number that is ALWAYS the actual
-  // visible height regardless of the cause, and every one of those bars appearing or disappearing
-  // fires `resize`, so this stays correct without needing to know what the bar even was.
-  const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : window.innerHeight);
-  function updateViewportHeight(): void { viewportHeightPx.value = window.innerHeight; }
-  onMounted(() => window.addEventListener('resize', updateViewportHeight));
-  onUnmounted(() => window.removeEventListener('resize', updateViewportHeight));
+  // given browser version adds). The shell takes its height from a JS measurement instead —
+  // `visibleViewportHeightPx` says which number and why — re-read on every event any browser
+  // fires when such a bar appears or disappears.
+  const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : visibleViewportHeightPx(window));
+  function updateViewportHeight(): void { viewportHeightPx.value = visibleViewportHeightPx(window); }
+  onMounted(() => {
+    window.addEventListener('resize', updateViewportHeight);
+    window.visualViewport?.addEventListener('resize', updateViewportHeight);
+    window.visualViewport?.addEventListener('scroll', updateViewportHeight);
+    updateViewportHeight();
+  });
+  onUnmounted(() => {
+    window.removeEventListener('resize', updateViewportHeight);
+    window.visualViewport?.removeEventListener('resize', updateViewportHeight);
+    window.visualViewport?.removeEventListener('scroll', updateViewportHeight);
+  });
 
   // Scroll affordance (John, 2026-10-02: "a visual indicator that there's something to scroll
   // down [or] up to") — a shadow under the top bar / above the tab bar, driven by the content
