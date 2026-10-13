@@ -7,6 +7,7 @@ import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import type {TabId} from '../logic/tabId.js';
@@ -123,6 +124,13 @@ export function useMobileShell(): MobileShellApi {
   const projectTitle = computed(() => { void projectChanged.value; return focusedProject()?.title() ?? ''; });
   const destination = ref<MobileDestination>('box');
   const pane = ref<MobilePane | null>(null);
+  const featureUse = useFeatureUse();
+  watch(destination, d => {
+    if (d === 'filters') featureUse.feature('filters');
+    if (d === 'enclosure') featureUse.feature('vents');
+  }, { immediate: true });
+  watch(pane, p => { if (p === 'drivers') featureUse.feature('driver_db'); });
+  watch(() => presentationState.browseOpen, open => { if (open) featureUse.feature('driver_db'); });
   // The menu drawer's own identity line (John, 2026-10-02: "get my name in there somewhere") —
   // the same free-text app-level preference the Options dialog's "Username" field edits
   // (OptionsModal.vue), not a new setting of its own.
@@ -250,6 +258,7 @@ export function useMobileShell(): MobileShellApi {
   }
 
   const optionsOpen = ref(false);
+  watch(optionsOpen, open => { if (open) featureUse.feature('options'); });
   function openOptions(): void { optionsOpen.value = true; closeMenu(); }
   function goToProject(): void { pane.value = 'project'; closeMenu(); }
   function goToAdvanced(): void { pane.value = 'advanced'; closeMenu(); }

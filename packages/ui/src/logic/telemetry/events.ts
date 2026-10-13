@@ -2,6 +2,8 @@
  * The usage events the app reports, and their wire form. One discriminated union: adding a
  * variant fails `fieldsOf` and `nameOf` until both handle it.
  */
+import type {ChartId} from '@openisd/design/engine';
+
 export type Skin = 'original' | 'mobile';
 export type DisplayMode = 'standalone' | 'browser';
 export type Platform = 'Android' | 'iOS' | 'Windows' | 'macOS' | 'Linux' | 'other';
@@ -25,11 +27,15 @@ export interface InstallEvent { readonly kind: 'install' }
 export interface ProjectOpenEvent { readonly kind: 'project_open'; readonly source: ProjectSource; readonly box: string }
 export interface ProjectSaveEvent { readonly kind: 'project_save'; readonly format: SaveFormat; readonly box: string }
 export interface DriverPickEvent { readonly kind: 'driver_pick'; readonly source: DriverSource; readonly id: string }
+export type FeatureName =
+  | 'whatif' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics';
+export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
+export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface ErrorEvent { readonly kind: 'error'; readonly message: string; readonly frames: string; readonly box: string }
 export interface ReportEvent { readonly kind: 'report'; readonly hash: string; readonly note: string; readonly contact: string }
 
 export type TelemetryEvent =
-  | LaunchEvent | InstallEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | ErrorEvent | ReportEvent;
+  | LaunchEvent | InstallEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent;
 
 export type FieldValue = string | number | boolean;
 export type Fields = Record<string, FieldValue>;
@@ -53,6 +59,8 @@ export function fieldsOf(e: TelemetryEvent): Fields {
     case 'project_open': return {source: e.source, box: e.box};
     case 'project_save': return {format: e.format, box: e.box};
     case 'driver_pick': return {source: e.source, id: e.id};
+    case 'chart_view': return {chart: e.chart};
+    case 'feature': return {name: e.name};
     case 'error': return {message: e.message, frames: e.frames, box: e.box};
     case 'report': return {hash: e.hash, note: e.note, contact: e.contact};
   }

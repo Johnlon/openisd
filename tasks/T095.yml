@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 06388ab84c2e0bd077d2f6e7345aa2c095aebe86
 label: fixes
 goal: F14 is closed, the post-land suite was green at 542ca12692 after T093; and tasks/F11-fix.yml is marked done and landed at f06ee510, freeing its claim on main.ts and logic/telemetry.
 done_test: bash scripts/quiet-test.sh npm run typecheck

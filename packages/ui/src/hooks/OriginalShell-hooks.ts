@@ -28,6 +28,7 @@ import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './char
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
+import {useFeatureUse} from './telemetryContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
@@ -247,6 +248,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // closes that chart in the stack and leaves the menu open.
   const chartSelection = new ChartSelection(focusedProject, projectChanged, engine.box);
   const { openCharts, chartItems, chartLabel } = chartSelection;
+  const featureUse = useFeatureUse();
+  watch(openCharts, charts => { for (const c of charts) featureUse.chart(c); }, { immediate: true });
   function toggleChart(id: ChartId): void { chartSelection.toggle(id); }
   function selectChart(item: ChartItem) {
     chartSelection.showOnly(item.tab);
@@ -434,6 +437,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     get: () => { const t = presentationState.ui.originalProjectTab; return isTabId(t) ? t : 'box'; },
     set: (v: TabId) => { presentationState.ui.originalProjectTab = v; },
   });
+  watch(activeTab, tab => {
+    if (tab === 'filters') featureUse.feature('filters');
+    if (tab === 'enclosure') featureUse.feature('vents');
+  }, { immediate: true });
   watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
 
   // ---- Projects list -------------------------------------------------------------
@@ -557,10 +564,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
   const optionsOpen = ref(false);
+  watch(optionsOpen, open => { if (open) featureUse.feature('options'); });
+  watch(() => presentationState.browseOpen, open => { if (open) featureUse.feature('driver_db'); });
 
   // What-if? opens the project's What-if layer. The project's own values stay underneath it,
   // untouched; closing the panel discards the What-if.
   function startWhatIf() {
+    featureUse.feature('whatif');
     project.value.beginWhatIf();
     presentationState.editDriver = true;
   }

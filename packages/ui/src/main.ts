@@ -51,6 +51,7 @@ import {CrashReports} from './logic/telemetry/crashReports.js';
 import {crashHash} from './logic/telemetry/crashHash.js';
 import {LaunchReporter, platformHintOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
+import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
@@ -138,6 +139,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
   const driverFileStorage = createFileStorage();
 
   // --- application layer: the app's state and what it does next ---
+  const featureUse = new FeatureUse(telemetry);
   const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
   const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report));
   const designFiles = new DesignFiles(engine, projectRepo, exportedFiles);
@@ -150,7 +152,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
   const viewStateRepo = createViewStateRepo(storage, storageBackup);
   const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules);
   const storageHistory = createStorageHistory(storageBackup, backup, layoutRules);
-  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry });
+  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse });
 
   // sessionStorage wrapper for release watch (survives page reload, not browser restart)
   const releaseSessionStorage: SessionStorageLike = {
@@ -240,7 +242,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null): void {
     .directive('expo-step', vExpoStep)
     .directive('limits', vLimits);
 
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer)});
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer), featureUse});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,

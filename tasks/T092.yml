@@ -1,0 +1,17 @@
+id: T092
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The app reports which charts are viewed and which features are used, once per feature per session, so the stats dashboard's "Charts viewed" and "Features used" tables fill.
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts packages/ui/test/logic/featureUse.test.ts
+files:
+  - tasks/T092.yml
+  - packages/ui/src/logic/telemetry/**
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/hooks/**
+  - packages/ui/src/ui/**
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/test/logic/featureUse.test.ts
+  - packages/ui/test/fixtures/**

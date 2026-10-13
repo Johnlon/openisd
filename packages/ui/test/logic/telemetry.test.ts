@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {BeaconTelemetry, NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
-import {errorEventOf, type TelemetryEvent} from '../../src/logic/telemetry/events.js';
+import {errorEventOf, fieldsOf, type TelemetryEvent} from '../../src/logic/telemetry/events.js';
 import {crashHash} from '../../src/logic/telemetry/crashHash.js';
 import {LaunchReporter, platformOf, referrerHost, type LaunchEnvironment} from '../../src/logic/telemetry/launch.js';
 import {chooseEndpoint, TELEMETRY_ENDPOINT} from '../../src/logic/telemetry/endpoint.js';
@@ -84,6 +84,15 @@ describe('BeaconTelemetry', () => {
     r.telemetry.record(PICK);
     r.telemetry.flush();
     expect(r.beacon).not.toHaveBeenCalled();
+  });
+});
+
+describe('fieldsOf usage events', () => {
+  it('chart_view carries the chart', () => {
+    expect(fieldsOf({kind: 'chart_view', chart: 'SPL'})).toEqual({chart: 'SPL'});
+  });
+  it('feature carries the name', () => {
+    expect(fieldsOf({kind: 'feature', name: 'whatif'})).toEqual({name: 'whatif'});
   });
 });
 

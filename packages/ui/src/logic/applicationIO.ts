@@ -48,6 +48,7 @@ import {
 } from '@openisd/persistence';
 import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
 import type {SaveFormat} from './telemetry/events.js';
+import {FeatureUse} from './telemetry/featureUse.js';
 import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
@@ -95,8 +96,9 @@ export interface DesignIO {
  * Access API does not persist handles across a page load.
  */
 function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
-export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort; appState: AppState; presentation: PresentationState; telemetry?: Telemetry }): DesignIO {
+export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort; appState: AppState; presentation: PresentationState; telemetry?: Telemetry; featureUse?: FeatureUse }): DesignIO {
   const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
+  const featureUse = deps.featureUse ?? new FeatureUse(telemetry);
   const recordSave = (format: SaveFormat, project: OpenISDProject | null): void =>
     telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? ''});
   const { currentViewSnapshot, driverName, focusedProject, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
@@ -131,6 +133,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   }
 
   function exportProjectsArchive(): void {
+    featureUse.feature('export');
     const fileName = `openisd-projects-${new Date().toISOString().slice(0, 10)}.json`;
     const projects = deps.projectRepo.listStoredProjects()
       .map(p => deps.projectRepo.loadStoredProject(p.id))
@@ -206,6 +209,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
    * gives a genuinely new project rather than a second file claiming the same name.
    */
   async function saveProjectAs(): Promise<void> {
+    featureUse.feature('save_file');
     endWhatIfBeforeIO();
     const hadOpenFile = deps.fileStorage.openFileName() != null;
     const currentName = requireFocusedProject().name.value;
@@ -229,6 +233,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   // repo's `stateToUrl` rather than the managed method, whose share-link pair is scoped to
   // the project record alone (a narrower, domain-only link for other consumers).
   async function shareLink(): Promise<void> {
+    featureUse.feature('share_link');
     const url = await deps.projectRepo.stateToUrl(requireFocusedProject(), currentViewSnapshot());
     setShareUrl(url);
     if (navigator.clipboard?.writeText) {
@@ -239,6 +244,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   }
 
   function exportWdr(): void {
+    featureUse.feature('export');
     endWhatIfBeforeIO();
     const fileName = sanitizeFilename(driverName.value) + '.wdr';
     const { value: bytes, errors } = driverToWdrBytes(requireFocusedProject().driver);
@@ -248,6 +254,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   }
 
   function exportOwdr(): void {
+    featureUse.feature('export');
     endWhatIfBeforeIO();
     const fileName = sanitizeFilename(driverName.value) + '.owdr';
     download(fileName, deps.files.driverToOwdrBytes(requireFocusedProject().driver), DriverFileFormat.Owdr.mime);
@@ -256,6 +263,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
 
   /** Export the current design as a WinISD .wpr project (WINISD_WPR_FILE_SCHEMA.md). */
   function exportWpr(): void {
+    featureUse.feature('export');
     endWhatIfBeforeIO();
     const fileName = sanitizeFilename(driverName.value) + '.wpr';
     const { value: bytes, errors } = deps.files.projectToWprBytes(requireFocusedProject());
@@ -269,6 +277,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
 
   /** Load a driver/design from a picked File. */
   function importFile(f: File): void {
+    featureUse.feature('import');
     const failed = (reason: string) => flash(`Could not import ${f.name}: ${reason}`);
     void readDriverFileText(f).then(({ text }) => {
       try {

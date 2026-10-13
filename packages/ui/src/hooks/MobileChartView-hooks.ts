@@ -3,7 +3,8 @@
  * desktop skin), stacked one column wide with the chosen number to the screen, and the picker
  * that opens and closes them. Mobile only renders this destination once a project is open.
  */
-import {computed, ref} from 'vue';
+import {computed, ref, watch} from 'vue';
+import {useFeatureUse} from './telemetryContext.js';
 import {traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
@@ -22,6 +23,8 @@ export function useMobileChartView() {
   const selection = new ChartSelection(focusedProject, projectChanged, engine.box);
   const overlays = useCompareOverlays(engine.simulation, project, appState, presentationState);
   const { openCharts, chartItems, chartLabel } = selection;
+  const featureUse = useFeatureUse();
+  watch(openCharts, charts => { for (const c of charts) featureUse.chart(c); }, { immediate: true });
 
   /** Whether the chart checklist is showing. */
   const pickerOpen = ref(false);

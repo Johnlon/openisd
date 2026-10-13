@@ -1,6 +1,7 @@
 import type {InjectionKey, Ref} from 'vue';
 import {inject, provide, ref} from 'vue';
 import {useApp} from '../logic/app.js';
+import {useFeatureUse} from './telemetryContext.js';
 import type {QuickFix, RepairNotice} from '../diagnostics/faultLog.js';
 
 export interface DiagnosticsModalAPI {
@@ -20,6 +21,7 @@ export const DiagnosticsModalKey: InjectionKey<DiagnosticsModalAPI> = Symbol('Di
 
 export function useDiagnosticsModal(): DiagnosticsModalAPI {
   const { faultLog } = useApp();
+  const featureUse = useFeatureUse();
   const open = ref(false);
   const outcome = ref<string | null>(null);
   const copied = ref(false);
@@ -34,6 +36,7 @@ export function useDiagnosticsModal(): DiagnosticsModalAPI {
   if (faultLog.repairs.length > 0) open.value = true;
 
   function show(): void {
+    featureUse.feature('diagnostics');
     open.value = true;
   }
 

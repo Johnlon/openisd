@@ -10,6 +10,7 @@
  */
 import {computed, ref} from 'vue';
 import {useApp} from '../logic/app.js';
+import {useFeatureUse} from './telemetryContext.js';
 import type {ComputedRef, Ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createWhatIfSession, type WhatIfRow} from './whatIfSession.js';
@@ -58,6 +59,7 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
   const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const session = createWhatIfSession({ project, projectChanged });
+  const featureUse = useFeatureUse();
 
   const isOpen = computed(() => open());
   const sheetEl = ref<HTMLElement | null>(null);
@@ -70,6 +72,7 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
   }
 
   function openSheet(): void {
+    featureUse.feature('whatif');
     session.begin();
     setOpen(true);
   }
