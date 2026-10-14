@@ -23,6 +23,8 @@ export interface CloudSyncReport {
   readonly pendingChanges: number;
   /** Kept until the next successful sync. */
   readonly lastFault: CloudFaultRecord | null;
+  /** Google refused to name the signed-in account; kept until disconnect. */
+  readonly accountFault: CloudFaultRecord | null;
 }
 
 /** The sign-in does not name the account yet; the store then holds an empty name. */
@@ -58,6 +60,12 @@ function attemptLine(attempt: CloudAttempt | null): string {
   }
 }
 
+function accountFaultLines(record: CloudFaultRecord | null): readonly string[] {
+  if (record === null) return [];
+  const {fault} = record;
+  return [`  account lookup failed: ${formatDateTime(new Date(record.at_ms))}, HTTP ${fault.status}, ${fault.reason}`];
+}
+
 function faultLines(record: CloudFaultRecord | null): readonly string[] {
   if (record === null) return ['  last error: none since the last successful sync'];
   const {fault} = record;
@@ -75,6 +83,7 @@ export function cloudSyncReportLines(report: CloudSyncReport | null): readonly s
   if (report === null) return ['Cloud sync: not available in this window'];
   return [
     `Cloud sync: ${grantText(report.grant)}`,
+    ...accountFaultLines(report.accountFault),
     `  pending changes: ${report.pendingChanges}`,
     attemptLine(report.lastAttempt),
     ...faultLines(report.lastFault),

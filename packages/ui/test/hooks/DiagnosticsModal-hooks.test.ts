@@ -45,6 +45,7 @@ describe('useDiagnosticsModal', () => {
       lastAttempt: {kind: 'ended', started_ms: at_ms, ended_ms: at_ms, outcome: {kind: 'failed'}},
       pendingChanges: 2,
       lastFault: {fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'}, at_ms},
+      accountFault: null,
     };
     const api = await renderHook(() => undefined, createMemoryStorage(), () => report);
     const lines = api.faultLog.cloudSyncLines();
@@ -59,7 +60,7 @@ describe('useDiagnosticsModal', () => {
 
   it('a healthy cloud sync adds no summary', async () => {
     const api = await renderHook(() => undefined, createMemoryStorage(), () => ({
-      grant: {kind: 'connected', account: 'john@example.com'}, lastAttempt: null, pendingChanges: 0, lastFault: null,
+      grant: {kind: 'connected', account: 'john@example.com'}, lastAttempt: null, pendingChanges: 0, lastFault: null, accountFault: null,
     }));
     expect(api.faultLog.cloudSyncSummary()).toBeNull();
   });

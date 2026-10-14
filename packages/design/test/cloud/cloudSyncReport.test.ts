@@ -14,7 +14,7 @@ describe('cloudSyncReportLines', () => {
 
   it('a window that never connected says so, with no attempt and no error', () => {
     const report: CloudSyncReport = {
-      grant: {kind: 'none'}, lastAttempt: null, pendingChanges: 0, lastFault: null,
+      grant: {kind: 'none'}, lastAttempt: null, pendingChanges: 0, lastFault: null, accountFault: null,
     };
     expect(cloudSyncReportLines(report)).toEqual([
       'Cloud sync: not connected',
@@ -30,6 +30,7 @@ describe('cloudSyncReportLines', () => {
       lastAttempt: {kind: 'ended', started_ms: AT_MS, ended_ms: END_MS, outcome: {kind: 'stopped', reason: 'offline'}},
       pendingChanges: 3,
       lastFault: null,
+      accountFault: null,
     };
     expect(cloudSyncReportLines(report)).toEqual([
       'Cloud sync: connected as john@example.com',
@@ -44,7 +45,7 @@ describe('cloudSyncReportLines', () => {
       grant: {kind: 'reconnect', account: 'john@example.com'},
       lastAttempt: {kind: 'ended', started_ms: AT_MS, ended_ms: END_MS, outcome: {kind: 'reconnect'}},
       pendingChanges: 1,
-      lastFault: null,
+      lastFault: null, accountFault: null,
     };
     expect(cloudSyncReportLines(report).slice(0, 3)).toEqual([
       'Cloud sync: must reconnect john@example.com',
@@ -58,16 +59,24 @@ describe('cloudSyncReportLines', () => {
       grant: {kind: 'connected', account: 'john@example.com'},
       lastAttempt: {kind: 'running', started_ms: AT_MS, pushed: 16},
       pendingChanges: 21,
-      lastFault: null,
+      lastFault: null, accountFault: null,
     };
     expect(cloudSyncReportLines(report)[2]).toBe(`  last attempt: running since ${AT}, 16 pushed so far`);
   });
 
   it('an account the sign-in did not name is said to be unavailable, never left blank', () => {
     const lines = (grant: CloudSyncReport['grant']): string =>
-      cloudSyncReportLines({grant, lastAttempt: null, pendingChanges: 0, lastFault: null})[0] ?? '';
+      cloudSyncReportLines({grant, lastAttempt: null, pendingChanges: 0, lastFault: null, accountFault: null})[0] ?? '';
     expect(lines({kind: 'connected', account: ''})).toBe('Cloud sync: connected as Google account (name not available)');
     expect(lines({kind: 'reconnect', account: ''})).toBe('Cloud sync: must reconnect Google account (name not available)');
+  });
+
+  it('a refused account lookup says what Google replied', () => {
+    const lines = cloudSyncReportLines({
+      grant: {kind: 'connected', account: ''}, lastAttempt: null, pendingChanges: 0, lastFault: null,
+      accountFault: {fault: {operation: 'about', status: 403, reason: 'insufficientPermissions', reply: '{}'}, at_ms: AT_MS},
+    });
+    expect(lines).toContain(`  account lookup failed: ${AT}, HTTP 403, insufficientPermissions`);
   });
 
   it('the last error is shown in full', () => {
@@ -79,6 +88,7 @@ describe('cloudSyncReportLines', () => {
         fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'},
         at_ms: AT_MS,
       },
+      accountFault: null,
     };
     expect(cloudSyncReportLines(report)).toEqual([
       'Cloud sync: connected as john@example.com',
@@ -95,7 +105,7 @@ describe('cloudSyncReportLines', () => {
   it('names every attempt outcome in words', () => {
     const lineFor = (outcome: CloudAttemptOutcome): string =>
       cloudSyncReportLines({
-        grant: {kind: 'none'}, lastAttempt: {kind: 'ended', started_ms: AT_MS, ended_ms: END_MS, outcome}, pendingChanges: 0, lastFault: null,
+        grant: {kind: 'none'}, lastAttempt: {kind: 'ended', started_ms: AT_MS, ended_ms: END_MS, outcome}, pendingChanges: 0, lastFault: null, accountFault: null,
       })[2] ?? '';
     expect(lineFor({kind: 'synced'})).toBe(`  last attempt: started ${AT}, ended ${END}, synced`);
     expect(lineFor({kind: 'stopped', reason: 'quota'})).toBe(`  last attempt: started ${AT}, ended ${END}, stopped: Drive quota`);
@@ -107,7 +117,7 @@ describe('cloudSyncReportLines', () => {
 
 describe('cloudSyncSummary', () => {
   const healthy: CloudSyncReport = {
-    grant: {kind: 'connected', account: 'john@example.com'}, lastAttempt: null, pendingChanges: 0, lastFault: null,
+    grant: {kind: 'connected', account: 'john@example.com'}, lastAttempt: null, pendingChanges: 0, lastFault: null, accountFault: null,
   };
 
   it('has nothing to say when there is no cloud sync or no error', () => {

@@ -38,7 +38,7 @@ export type {CloudFaultRecord, CloudGrant} from './cloudTypes.js';
 export {cloudSyncReportLines, cloudSyncSummary} from './cloudSyncReport.js';
 export type {CloudAttempt, CloudAttemptOutcome, CloudSyncReport} from './cloudSyncReport.js';
 export {
-  parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseStartPageToken, parseWriteReply,
+  parseAboutUser, parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseStartPageToken, parseWriteReply,
 } from './driveJson.js';
 export type {
   AuthPrompt,

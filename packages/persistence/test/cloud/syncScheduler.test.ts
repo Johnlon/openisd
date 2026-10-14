@@ -1,12 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import type { CloudSession } from '../../src/cloud/cloudStore.js';
 import type { RunOutcome, SyncEngine } from '../../src/cloud/syncRun.js';
+import type { AccountNamer } from '../../src/cloud/accountNamer.js';
 import {
   createSyncScheduler,
   type RunLock,
   type SyncScheduler,
   type Timer,
 } from '../../src/cloud/syncScheduler.js';
+
+class FakeNamer implements AccountNamer {
+  calls = 0;
+  async nameIfUnknown(): Promise<void> {
+    this.calls++;
+  }
+}
 
 interface PendingTimer {
   readonly id: number;
@@ -127,6 +135,7 @@ class FakeSyncEngine implements SyncEngine {
 }
 
 class FakeCloudSession implements CloudSession {
+  nameAccount(): void {}
   currentGrant: { kind: 'none' } | { kind: 'connected'; account: string } | { kind: 'reconnect'; account: string } = {
     kind: 'connected',
     account: 'john@example.com',
@@ -159,10 +168,12 @@ function createHarness(options?: { isVisible?: boolean }) {
   const lock = new InMemoryRunLock();
   let visibleState = options?.isVisible ?? true;
   const outcomes: RunOutcome[] = [];
+  const namer = new FakeNamer();
 
   const scheduler: SyncScheduler = createSyncScheduler({
     engine,
     session,
+    namer,
     timer,
     lock,
     visible: () => visibleState,
@@ -176,6 +187,7 @@ function createHarness(options?: { isVisible?: boolean }) {
 
   return {
     engine,
+    namer,
     session,
     timer,
     lock,
@@ -194,6 +206,18 @@ async function flush(): Promise<void> {
 }
 
 describe('syncScheduler', () => {
+  it('names the account before each run', async () => {
+    const h = createHarness();
+    let namedBeforeRun = false;
+    const run = h.engine.run.bind(h.engine);
+    h.engine.run = async () => {
+      namedBeforeRun = h.namer.calls === 1;
+      return run();
+    };
+    await h.scheduler.syncNow();
+    expect(namedBeforeRun).toBe(true);
+  });
+
   it('three saves in 3 s → one run', async () => {
     const h = createHarness();
 
@@ -314,6 +338,7 @@ describe('syncScheduler', () => {
     const scheduler1 = createSyncScheduler({
       engine: engine1,
       session: session1,
+      namer: new FakeNamer(),
       timer,
       lock,
       visible: () => true,
@@ -328,6 +353,7 @@ describe('syncScheduler', () => {
     const scheduler2 = createSyncScheduler({
       engine: engine2,
       session: session2,
+      namer: new FakeNamer(),
       timer,
       lock,
       visible: () => true,
@@ -363,12 +389,12 @@ describe('syncScheduler', () => {
 
     // Tab 1 starts run
     const p1 = scheduler1.syncNow();
-    await Promise.resolve();
+    await flush();
     expect(engine1.runCount).toBe(1);
 
     // Tab 2 starts run concurrently
     const p2 = scheduler2.syncNow();
-    await Promise.resolve();
+    await flush();
 
     // Tab 2 has not started its engine run yet because Tab 1 holds the lock
     expect(engine2.runCount).toBe(0);

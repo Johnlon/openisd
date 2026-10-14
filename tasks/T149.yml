@@ -1,0 +1,17 @@
+id: T149
+release_note: Cloud sync shows the Google account's email after connecting; if Google will not give it, Diagnostics says why.
+repo: openisd
+owner: maryu
+status: done
+goal: After connect the app asks Drive for the signed-in email and shows it as the account; a refusal is recorded in Diagnostics
+done_test: bash scripts/test.sh packages/persistence/test/cloud/accountNamer.test.ts packages/persistence/test/cloud/driveStore.test.ts packages/persistence/test/cloud/auth/implicitSession.test.ts
+files:
+  - tasks/T149.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/persistence/src/index.ts
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/test/fixtures/driveEmulator.ts
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts

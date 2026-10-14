@@ -456,6 +456,28 @@ export function parseWriteReply(jsonText: string): CloudResult<CloudMeta> {
   };
 }
 
+/** The signed-in user's email from about.get with fields=user(emailAddress). */
+export function parseAboutUser(jsonText: string): CloudResult<string> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(jsonText);
+  } catch {
+    return { kind: 'malformed', reason: 'Invalid JSON' };
+  }
+  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    return { kind: 'malformed', reason: 'Not an object' };
+  }
+  const user = field(parsed, 'user');
+  if (typeof user !== 'object' || user === null || Array.isArray(user)) {
+    return { kind: 'malformed', reason: 'Missing user' };
+  }
+  const email = field(user, 'emailAddress');
+  if (typeof email !== 'string' || email === '') {
+    return { kind: 'malformed', reason: 'Missing emailAddress' };
+  }
+  return { kind: 'ok', value: email };
+}
+
 export function parseStartPageToken(jsonText: string): CloudResult<ChangeCursor> {
   let parsed: unknown;
   try {

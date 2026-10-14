@@ -1,4 +1,4 @@
-import type { CloudAttempt, CloudAttemptOutcome, CloudFaultRecord, CloudSyncReport, ConflictCopy, SyncStatus } from '@openisd/design/cloud';
+import type { CloudAttempt, CloudAttemptOutcome, CloudFault, CloudFaultRecord, CloudSyncReport, ConflictCopy, SyncStatus } from '@openisd/design/cloud';
 import type { CloudSession } from './cloudStore.js';
 import type { SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine } from './syncRun.js';
@@ -18,6 +18,8 @@ export interface CloudSync {
   runStarted(): void;
   /** The running run has pushed `count` items so far. */
   runPushed(count: number): void;
+  /** Google refused to name the signed-in account. */
+  accountRefused(fault: CloudFault): void;
   /** The grant, the last run, the pending count and the last fault (kept until a run succeeds). */
   diagnostics(): CloudSyncReport;
 }
@@ -36,6 +38,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
   let lastSyncAt_ms: number | null = null;
   let lastFault: CloudFaultRecord | null = null;
   let lastAttempt: CloudAttempt | null = null;
+  let accountFault: CloudFaultRecord | null = null;
   const listeners = new Set<() => void>();
 
   function notify(): void {
@@ -212,6 +215,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     lastSyncAt_ms = null;
     lastAttempt = null;
     lastFault = null;
+    accountFault = null;
     notify();
   }
 
@@ -234,6 +238,10 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     syncNow,
     conflictSeen,
     onOutcome,
+    accountRefused: (fault) => {
+      accountFault = { fault, at_ms: clock() };
+      notify();
+    },
     runStarted: () => {
       lastAttempt = { kind: 'running', started_ms: clock(), pushed: 0 };
       notify();
@@ -248,6 +256,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
       lastAttempt,
       pendingChanges: pendingChanges(),
       lastFault,
+      accountFault,
     }),
   };
 }

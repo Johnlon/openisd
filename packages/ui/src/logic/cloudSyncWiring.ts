@@ -34,6 +34,7 @@ import {
   createSingletonDocs,
   createSyncEngine,
   createSyncLedger,
+  createAccountNamer,
   createSyncScheduler,
   createTokenStore,
 } from '@openisd/persistence';
@@ -192,9 +193,17 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     },
   });
 
+  const namer = createAccountNamer({
+    grant: () => session.grant(),
+    identity: driveStore,
+    nameAccount: (email) => session.nameAccount(email),
+    onRefused: (fault) => cloudSync?.accountRefused(fault),
+  });
+
   const scheduler = createSyncScheduler({
     engine,
     session,
+    namer,
     timer,
     lock,
     visible,

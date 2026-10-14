@@ -40,6 +40,7 @@ class FakeHttp implements Http {
 }
 
 class FakeCloudSession implements CloudSession {
+  nameAccount(): void {}
   private tokenResult:
     | { readonly kind: 'ok'; readonly token: string }
     | { readonly kind: 'none' }
@@ -437,6 +438,26 @@ describe('DriveStore', () => {
   });
 
   describe('error and offline mapping', () => {
+    it('signedInEmail asks Drive about the user and returns the email', async () => {
+      const store = createDriveStore({ http, session });
+      http.queueResponse({ status: 200, text: JSON.stringify({ user: { emailAddress: 'john@example.com' } }) });
+      const res = await store.signedInEmail();
+      expect(res).toEqual({ kind: 'ok', value: 'john@example.com' });
+      expect(http.recorded[0]?.url).toBe('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)');
+      expect(http.recorded[0]?.method).toBe('GET');
+    });
+
+    it('signedInEmail refused by Google is a fault naming the about request and the status', async () => {
+      const store = createDriveStore({ http, session });
+      const body = JSON.stringify({ error: { code: 403, message: 'Insufficient Permission', errors: [{ reason: 'insufficientPermissions' }] } });
+      http.queueResponse({ status: 403, text: body });
+      const res = await store.signedInEmail();
+      expect(res.kind).toBe('faulted');
+      if (res.kind !== 'faulted') return;
+      expect(res.fault.operation).toBe('about');
+      expect(res.fault.status).toBe(403);
+    });
+
     it('a reply the parser refuses is a fault naming the request, the status and the reply start', async () => {
       const store = createDriveStore({ http, session });
       const reply = JSON.stringify({ files: 'none' }) + ' '.repeat(400);

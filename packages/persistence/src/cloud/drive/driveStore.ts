@@ -1,10 +1,11 @@
 import type {CloudSession, CloudStore} from '../cloudStore.js';
+import type {CloudIdentity} from '../accountNamer.js';
 import type {
   CloudChange, CloudChanges, CloudDoc, CloudError, CloudFileList, CloudMeta, CloudOperation, CloudResult, WriteMeta,
 } from '@openisd/design/cloud';
 import type { Http, HttpMethod } from '../http.js';
 import {
-  ChangeCursor, cloudFaultOf, type DocId, docFileName, FileId, parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata,
+  ChangeCursor, cloudFaultOf, type DocId, docFileName, FileId, parseAboutUser, parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata,
   parseStartPageToken, parseWriteReply, RevisionId,
 } from '@openisd/design/cloud';
 
@@ -110,11 +111,20 @@ function readReply<T>(operation: CloudOperation, res: { readonly status: number;
   return { kind: 'faulted', fault: cloudFaultOf(operation, res.status, parsed.reason, res.text) };
 }
 
-export function createDriveStore(deps: DriveStoreDeps): CloudStore {
+export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdentity {
   const http = deps.http;
   const session = deps.session;
   const baseUrl = deps.baseUrl ?? DEFAULT_BASE_URL;
   const uploadUrl = deps.uploadUrl ?? DEFAULT_UPLOAD_URL;
+
+  async function signedInEmail(): Promise<CloudResult<string>> {
+    const url = `${baseUrl}/drive/v3/about?fields=user(emailAddress)`;
+    const res = await dispatch(http, session, 'about', { method: 'GET', url });
+    if (res.kind !== 'ok') {
+      return res;
+    }
+    return readReply('about', res, parseAboutUser(res.text));
+  }
 
   async function listAll(): Promise<CloudResult<CloudFileList>> {
     const allDocs: CloudMeta[] = [];
@@ -390,6 +400,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
   }
 
   return {
+    signedInEmail,
     listAll,
     changesSince,
     startCursor,

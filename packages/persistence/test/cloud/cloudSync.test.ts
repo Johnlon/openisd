@@ -11,6 +11,7 @@ import type { RunOutcome, SyncEngine } from '../../src/cloud/syncRun.js';
 import type { SyncScheduler } from '../../src/cloud/syncScheduler.js';
 
 class FakeCloudSession implements CloudSession {
+  nameAccount(): void {}
   currentGrant: { kind: 'none' } | { kind: 'connected'; account: string } | { kind: 'reconnect'; account: string } = {
     kind: 'connected',
     account: 'john@example.com',
@@ -306,6 +307,20 @@ describe('cloudSync', () => {
     expect(sync.status().kind).toBe('synced');
   });
 
+  it('diagnostics() keeps a refused account lookup until disconnect', async () => {
+    const session = new FakeCloudSession();
+    const sync = createCloudSync({
+      session, scheduler: new FakeSyncScheduler(), ledger: new FakeSyncLedger(), engine: new FakeSyncEngine(), now: () => 7000,
+    });
+    const fault = { operation: 'about' as const, status: 403, reason: 'insufficientPermissions', reply: '{}' };
+    sync.accountRefused(fault);
+    expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
+    await sync.disconnect();
+    expect(sync.diagnostics().accountFault).toBeNull();
+  });
+
   it('diagnostics() reports the grant, the last attempt, the pending count and the last fault', () => {
     let nowTime = 1000;
     const session = new FakeCloudSession();
@@ -323,6 +338,7 @@ describe('cloudSync', () => {
       lastAttempt: null,
       pendingChanges: 0,
       lastFault: null,
+      accountFault: null,
     });
 
     const fault = { operation: 'list' as const, status: 200, reason: 'Not a file list', reply: '{"files":[]}' };
@@ -333,6 +349,7 @@ describe('cloudSync', () => {
       lastAttempt: { kind: 'ended', started_ms: 2000, ended_ms: 2000, outcome: { kind: 'failed' } },
       pendingChanges: 4,
       lastFault: { fault, at_ms: 2000 },
+      accountFault: null,
     });
 
     nowTime = 3000;

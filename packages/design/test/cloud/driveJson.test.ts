@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  parseAboutUser,
   parseFileList,
   parseChangeList,
   parseFileMetadata,
@@ -18,6 +19,18 @@ function fixture(name: string): string {
 }
 
 describe('driveJson parsers', () => {
+  describe('parseAboutUser', () => {
+    it('reads the email from about.get fields=user(emailAddress)', () => {
+      expect(parseAboutUser('{"user":{"emailAddress":"john@example.com"}}')).toEqual({kind: 'ok', value: 'john@example.com'});
+    });
+
+    it('refuses a reply with no email', () => {
+      expect(parseAboutUser('{"user":{}}').kind).toBe('malformed');
+      expect(parseAboutUser('{"user":{"emailAddress":""}}').kind).toBe('malformed');
+      expect(parseAboutUser('not json').kind).toBe('malformed');
+    });
+  });
+
   // The exact shape Drive sends for the fields= strings driveStore asks for: only the named
   // fields, so no top-level `kind` and no `mimeType` (the first real sign-in failed on this).
   const props = {app: 'openisd', kind: 'project', uuid: 'p-1', layout: '3', seq: '1', writer: 'abc', hash: 'h1'};

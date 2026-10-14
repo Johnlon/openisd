@@ -17,6 +17,8 @@ export type { Http, HttpRequest, HttpResponse } from './http.js';
 
 export interface CloudSession {
   grant(): CloudGrant;
+  /** Stores the signed-in email as the held token's account name. */
+  nameAccount(email: string): void;
   accessToken(): Promise<{ readonly kind: 'ok'; readonly token: string } | { readonly kind: 'none' } | { readonly kind: 'reconnect' } | { readonly kind: 'offline' }>;
   onBoot(location: { readonly search: string; readonly hash: string }): Promise<
     | { readonly kind: 'notACallback' }

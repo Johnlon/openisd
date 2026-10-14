@@ -1,4 +1,5 @@
 import type { CloudSession } from './cloudStore.js';
+import type { AccountNamer } from './accountNamer.js';
 import type { RunOutcome, SyncEngine } from './syncRun.js';
 
 export interface SyncTriggers {
@@ -21,6 +22,8 @@ export interface RunLock {
 export interface SyncSchedulerDeps {
   readonly engine: SyncEngine;
   readonly session: CloudSession;
+  /** Names an unnamed account before each run. */
+  readonly namer: AccountNamer;
   readonly timer: Timer;
   readonly lock: RunLock;
   readonly visible: () => boolean;
@@ -48,6 +51,7 @@ export function createSyncScheduler(deps: SyncSchedulerDeps): SyncScheduler {
       if (deps.session.grant().kind === 'none') {
         return;
       }
+      await deps.namer.nameIfUnknown();
       const outcome = await deps.engine.run();
       deps.onOutcome(outcome);
     });

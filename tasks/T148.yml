@@ -3,6 +3,7 @@ release_note: The cloud sync status says "Syncing…" while a sync is running.
 repo: openisd
 owner: maryu
 status: done
+landed: 54856425a02dddc34737f949c5ea661d04ee8e7d
 goal: The sync status shows Syncing while a run is going
 done_test: bash scripts/test.sh packages/persistence/test/cloud/cloudSync.test.ts
 files:

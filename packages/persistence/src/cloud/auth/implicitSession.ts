@@ -189,6 +189,12 @@ export function createImplicitSession(deps: ImplicitSessionDeps): CloudSession {
       return { kind: 'notACallback' };
     },
 
+    nameAccount(email: string): void {
+      const stored = store.read();
+      if (stored.kind !== 'token') return;
+      store.write({ ...stored, account: email });
+    },
+
     beginConnect(reason: 'connect' | 'reconnect'): void {
       if (config.clientId === null || config.clientId === '') {
         return;

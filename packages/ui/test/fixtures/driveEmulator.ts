@@ -88,6 +88,9 @@ export class DriveEmulator {
         .map(f => ({fileId: f.id, removed: false, file: this.metaOf(f)}));
       return this.json({newStartPageToken: String(this.changeCounter), changes});
     }
+    if (path === '/drive/v3/about' && method === 'GET') {
+      return this.json({user: {emailAddress: 'tester@example.com'}});
+    }
     if (path === '/drive/v3/files' && method === 'GET') {
       return this.json({files: [...this.files.values()].map(f => this.metaOf(f))});
     }

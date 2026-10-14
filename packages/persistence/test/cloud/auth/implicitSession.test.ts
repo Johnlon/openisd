@@ -447,3 +447,33 @@ describe('implicitSession', () => {
     expect(session.grant()).toEqual({ kind: 'none' });
   });
 });
+
+describe('implicitSession nameAccount', () => {
+  const baseConfig: OAuthConfig = {
+    clientId: 'client-id-123.apps.googleusercontent.com',
+    redirectUri: 'https://openisd.app/',
+    scopes: ['https://www.googleapis.com/auth/drive.appdata'],
+  };
+
+  it('stores the email on the held token, keeping the token', () => {
+    const store = createTokenStore(createMemoryStorage());
+    store.write({ kind: 'token', accessToken: 'tok', expiresAt_ms: 10_000_000, account: '' });
+    const session = createImplicitSession({
+      config: baseConfig, store, location: createMockLocation('https://openisd.app/'), clock: () => 1000,
+      random: dummyRandom, revoker: noopRevoker, guard: createMockGuard(),
+    });
+    session.nameAccount('john@example.com');
+    expect(store.read()).toEqual({ kind: 'token', accessToken: 'tok', expiresAt_ms: 10_000_000, account: 'john@example.com' });
+    expect(session.grant()).toEqual({ kind: 'connected', account: 'john@example.com' });
+  });
+
+  it('does nothing when no token is held', () => {
+    const store = createTokenStore(createMemoryStorage());
+    const session = createImplicitSession({
+      config: baseConfig, store, location: createMockLocation('https://openisd.app/'), clock: () => 1000,
+      random: dummyRandom, revoker: noopRevoker, guard: createMockGuard(),
+    });
+    session.nameAccount('john@example.com');
+    expect(store.read()).toEqual({ kind: 'none' });
+  });
+});

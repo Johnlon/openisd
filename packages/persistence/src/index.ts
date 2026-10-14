@@ -182,6 +182,12 @@ export {
 } from './cloud/syncScheduler.js';
 
 export {
+  type AccountNamer,
+  type CloudIdentity,
+  createAccountNamer,
+} from './cloud/accountNamer.js';
+
+export {
   type CloudSync,
   type CloudSyncDeps,
   createCloudSync,
