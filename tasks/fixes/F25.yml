@@ -1,0 +1,51 @@
+id: F25
+owner: Johnlon
+status: open
+sha: 789cd8117748635a8b48d1aac792ed1b8c40af78
+goal: main is red at 789cd81177; make the full suite pass again
+commits: |
+  789cd81177 T173: Open project: sort by name and date, search box, cleaner consistent layo
+failing: |
+    ✘  365 packages/ui/test/ui/no-project-shell.browser.spec.ts:193:5 › No-project shell › opening a saved project › Open shows saved browser projects with Import project first (20.6s)
+          43 × locator resolved to <button class="on" type="button" data-v-75c8c729="">Newest first</button>
+output: |
+    ✓  656 packages/ui/test/ui/what-if-panel.browser.spec.ts:311:5 › What-if? panel › on the complete driver project › box volume is on the panel, shows on the charts, and Close puts it back (1.3s)
+    ✓  655 packages/ui/test/ui/what-if-panel.browser.spec.ts:268:5 › What-if? panel › on the complete driver project › a blank Q autocalculates from the other two, with the editor E/C/N marks and red border (1.6s)
+    ✓  658 packages/ui/test/ui/what-if-panel.browser.spec.ts:335:5 › What-if? panel › on the complete driver project › a driver spec changed outside the open What-if? panel shows in the panel (920ms)
+    ✓  657 packages/ui/test/ui/what-if-panel.browser.spec.ts:328:5 › What-if? panel › on the complete driver project › a box volume changed outside the open What-if? panel shows in the panel (950ms)
+    ✓  659 packages/ui/test/ui/what-if-panel.browser.spec.ts:342:5 › What-if? panel › on the complete driver project › a box volume typed on the Box tab shows in the open What-if? panel (1.4s)
+    ✓  660 packages/ui/test/ui/what-if-panel.browser.spec.ts:352:5 › What-if? panel › on the complete driver project › after editing in the What-if? panel, a later Box tab edit still shows in the panel (1.6s)
+  
+  
+    1) packages/ui/test/ui/no-project-shell.browser.spec.ts:193:5 › No-project shell › opening a saved project › Open shows saved browser projects with Import project first 
+  
+      Error: expect(locator).toHaveText(expected) failed
+  
+      Locator:  locator('.open-project-dialog').locator('button').first()
+      Expected: "Import project"
+      Received: "Newest first"
+      Timeout:  20000ms
+  
+      Call log:
+        - Expect "toHaveText" with timeout 20000ms
+        - waiting for locator('.open-project-dialog').locator('button').first()
+          43 × locator resolved to <button class="on" type="button" data-v-75c8c729="">Newest first</button>
+             - unexpected value "Newest first"
+  
+  
+        197 |       const dialog = page.locator('.open-project-dialog');
+        198 |       await expect(dialog).toBeVisible();
+      > 199 |       await expect(dialog.locator('button').first()).toHaveText('Import project');
+            |                                                      ^
+        200 |       await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
+        201 |     });
+        202 |
+          at /home/john/work/winisd/.postland/3937284-789cd81177/packages/ui/test/ui/no-project-shell.browser.spec.ts:199:54
+  
+      Error Context: test-results/ui-no-project-shell.browse-08f18-s-with-Import-project-first/error-context.md
+  
+    1 failed
+      packages/ui/test/ui/no-project-shell.browser.spec.ts:193:5 › No-project shell › opening a saved project › Open shows saved browser projects with Import project first 
+    659 passed (6.6m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 3937284-789cd81177 finished: FAILED (exit 1) after 8m24s
