@@ -30,11 +30,6 @@ import {appSettingsRepoOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
-const testLocalTime = (epochMs: number) => {
-  const d = new Date(epochMs);
-  return { monthIndex: d.getMonth(), day: d.getDate(), hour: d.getHours(), minute: d.getMinutes() };
-};
-
 // Fake confirm port for tests — always confirms
 const fakeConfirmPort: ConfirmPort = {
   ask: async () => true,
@@ -84,7 +79,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       getDismissedVersion: () => null,
       recordDismissedVersion: () => {},
     }, { log: () => {} }),
-    appVersion: createAppVersionPort(false, '', null, testLocalTime),
+    appVersion: createAppVersionPort(false, '', null),
     versionIndex: new VersionIndex('', Promise.resolve(null)),
     confirmPort, appState, presentation,
     recordedProjectId: () => null,

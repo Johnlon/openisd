@@ -83,7 +83,7 @@ export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime,
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
-export { type AppVersion, type BuildKind, type LocalTimeParts, type ToLocalTime, formatAppVersion, hostedListPathOf, hostedPathOf, stampOfVersion } from './appVersion.js';
+export { type AppVersion, type BuildKind, formatAppVersion, hostedListPathOf, hostedPathOf, stampOfVersion } from './appVersion.js';
 
 /** The What-if? sheet's rows per box type. */
 export { WhatIfField, type WhatIfSlot } from './whatIfField.js';

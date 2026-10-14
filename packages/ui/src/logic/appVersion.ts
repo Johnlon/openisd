@@ -1,5 +1,5 @@
 import {ref, type Ref} from 'vue';
-import type {AppVersion, ToLocalTime} from '@openisd/design/fields';
+import type {AppVersion} from '@openisd/design/fields';
 import {formatAppVersion} from '@openisd/design/fields';
 
 /** Narrowed dev version representing git commit info. */
@@ -64,12 +64,11 @@ export function createAppVersionPort(
   isDev: boolean,
   bakedVersion: string,
   devPort: DevVersionPort | null,
-  toLocalTime: ToLocalTime,
   hotUpdateSource?: HotUpdateSource | null,
 ): AppVersionPort {
   const initialVersion: AppVersion = isDev ? { kind: 'unknown' } : createPublishedVersion(bakedVersion);
   let currentVersion: AppVersion = initialVersion;
-  const label = ref(isDev ? '' : formatAppVersion(initialVersion, toLocalTime));
+  const label = ref(isDev ? '' : formatAppVersion(initialVersion));
 
   async function refresh(): Promise<string> {
     if (!isDev || !devPort) return label.value;
@@ -77,7 +76,7 @@ export function createAppVersionPort(
       const dev = await devPort.fetchDevVersion();
       if (dev) {
         currentVersion = dev;
-        label.value = formatAppVersion(dev, toLocalTime);
+        label.value = formatAppVersion(dev);
       }
     } catch {
       // Keep previous label on refresh failure
@@ -104,7 +103,7 @@ export function createAppVersionPort(
   async function getVersionLabel(): Promise<string> {
     if (isDev) {
       await refresh();
-      return label.value || formatAppVersion(currentVersion, toLocalTime);
+      return label.value || formatAppVersion(currentVersion);
     }
     return label.value;
   }

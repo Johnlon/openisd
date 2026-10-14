@@ -7,15 +7,6 @@ export type AppVersion =
   | { kind: 'dev'; sha: string; hasChanges: boolean; committedAt: string }
   | { kind: 'unknown' };
 
-export interface LocalTimeParts {
-  readonly monthIndex: number;
-  readonly day: number;
-  readonly hour: number;
-  readonly minute: number;
-}
-
-export type ToLocalTime = (epochMs: number) => LocalTimeParts;
-
 const MONTH_NAMES = [
   'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -63,19 +54,21 @@ function parseUtcStampToEpochMs(version: string): number | null {
 /**
  * Format an AppVersion into the label text shown in the UI.
  * This is John's direct order and overrides the usual date style for this label only.
+ * The time is UTC with a Z suffix (John, 13 Oct 2026: "I want utc time"), so the label reads the
+ * same as the build stamp and the hosted folder name wherever the phone happens to be.
  */
-export function formatAppVersion(v: AppVersion, toLocalTime: ToLocalTime): string {
+export function formatAppVersion(v: AppVersion): string {
   switch (v.kind) {
     case 'published': {
       const epochMs = parseUtcStampToEpochMs(v.version);
       if (epochMs === null) return v.version;
-      const parts = toLocalTime(epochMs);
-      const month = MONTH_NAMES[parts.monthIndex];
+      const d = new Date(epochMs);
+      const month = MONTH_NAMES[d.getUTCMonth()];
       if (!month) return v.version;
-      const day = String(parts.day).padStart(2, '0');
-      const hour = String(parts.hour).padStart(2, '0');
-      const minute = String(parts.minute).padStart(2, '0');
-      return `${month} ${day} ${hour}:${minute}`;
+      const day = String(d.getUTCDate()).padStart(2, '0');
+      const hour = String(d.getUTCHours()).padStart(2, '0');
+      const minute = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${month} ${day} ${hour}:${minute}Z`;
     }
     case 'dev': {
       // A commit id is not a "when" (John, 13 Oct 2026): the commit's date and time lead, the id follows.

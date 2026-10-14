@@ -56,7 +56,7 @@ import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {basicUtc, formatDateTime, type LocalTimeParts, type ToLocalTime} from '@openisd/design/fields';
+import {basicUtc, formatDateTime} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
@@ -200,17 +200,6 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     releaseLogger,
   );
 
-  // Local-time conversion for published build timestamp formatting (supplied once at composition root).
-  const toLocalTime: ToLocalTime = (epochMs: number): LocalTimeParts => {
-    const d = new Date(epochMs);
-    return {
-      monthIndex: d.getMonth(),
-      day: d.getDate(),
-      hour: d.getHours(),
-      minute: d.getMinutes(),
-    };
-  };
-
   // Hot update source: on dev server (where import.meta.hot exists), re-fetch version on vite:afterUpdate.
   const hotUpdateSource: HotUpdateSource = {
     onUpdate: (listener: () => void) => {
@@ -220,7 +209,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
 
   // App version port: in dev mode fetch from /dev-version.json, in production use baked version.
   const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
-  const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, toLocalTime, hotUpdateSource);
+  const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, hotUpdateSource);
 
   // Every hosted build, read once now (nothing is stored); About lists them.
   const versionIndex = startVersionIndex(appVersionText, fetch);

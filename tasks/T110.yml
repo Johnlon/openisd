@@ -3,6 +3,7 @@ release_note: Groundwork for cloud sync: work in progress is saved before the ap
 repo: openisd
 owner: maryu
 status: done
+landed: d0f4b008b7c74223194dbc9227de84267318f1dd
 goal: redirectGuard.ts saves the open work before the app leaves for Google sign-in, and boot handles the sign-in reply before the store gate (Drive sync plan P1-6)
 done_test: bash scripts/test.sh packages/persistence/test/cloud/auth/redirectGuard.test.ts
 files:

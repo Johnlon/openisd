@@ -1,0 +1,16 @@
+id: T113
+release_note: The version label shows the build time in UTC with a Z suffix
+repo: openisd
+owner: fable
+status: done
+goal: Version label shows the build time in UTC with a Z suffix, not local time
+done_test: bash scripts/test.sh packages/design/test/fields/appVersion.test.ts packages/ui/test/logic/appVersion.test.ts
+files:
+  - tasks/T113.yml
+  - packages/design/fields/appVersion.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/appVersion.test.ts
+  - packages/ui/src/logic/appVersion.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/logic/appVersion.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts

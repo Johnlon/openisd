@@ -1,49 +1,25 @@
 import {describe, expect, it} from 'vitest';
-import {formatAppVersion, type AppVersion, type ToLocalTime} from '../../fields/appVersion.js';
+import {formatAppVersion, type AppVersion} from '../../fields/appVersion.js';
 import {formatDateTime} from '../../fields/format.js';
 
-const fakeUtcZero: ToLocalTime = (epochMs: number) => {
-  const d = new Date(epochMs);
-  return {
-    monthIndex: d.getUTCMonth(),
-    day: d.getUTCDate(),
-    hour: d.getUTCHours(),
-    minute: d.getUTCMinutes(),
-  };
-};
-
-const fakeUtcPlus10: ToLocalTime = (epochMs: number) => {
-  const d = new Date(epochMs + 10 * 60 * 60 * 1000);
-  return {
-    monthIndex: d.getUTCMonth(),
-    day: d.getUTCDate(),
-    hour: d.getUTCHours(),
-    minute: d.getUTCMinutes(),
-  };
-};
-
 describe('formatAppVersion', () => {
-  it('formats published version in local time at UTC+0', () => {
+  it('formats a published version as its UTC build time with a Z suffix', () => {
     const v: AppVersion = { kind: 'published', version: 'v20261009T234100Z' };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe('Oct 09 23:41');
+    expect(formatAppVersion(v)).toBe('Oct 09 23:41Z');
   });
 
-  it('formats published version in local time at UTC+10 (rolls over midnight)', () => {
-    const v: AppVersion = { kind: 'published', version: 'v20261009T234100Z' };
-    expect(formatAppVersion(v, fakeUtcPlus10)).toBe('Oct 10 09:41');
-  });
 
   it('formats published version without leading v', () => {
     const v: AppVersion = { kind: 'published', version: '20261009T234100Z' };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe('Oct 09 23:41');
+    expect(formatAppVersion(v)).toBe('Oct 09 23:41Z');
   });
 
   it('preserves unparseable published version verbatim', () => {
     const v1: AppVersion = { kind: 'published', version: 'v1' };
-    expect(formatAppVersion(v1, fakeUtcZero)).toBe('v1');
+    expect(formatAppVersion(v1)).toBe('v1');
 
     const v2: AppVersion = { kind: 'published', version: 'invalid-stamp' };
-    expect(formatAppVersion(v2, fakeUtcZero)).toBe('invalid-stamp');
+    expect(formatAppVersion(v2)).toBe('invalid-stamp');
   });
 
   // The commit's instant is shown by the one design formatter, in the machine's local time.
@@ -52,23 +28,23 @@ describe('formatAppVersion', () => {
 
   it('formats dev version as the commit date and time, then the id', () => {
     const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe(`dev ${shown} · 5a3f9c1`);
+    expect(formatAppVersion(v)).toBe(`dev ${shown} · 5a3f9c1`);
     expect(shown).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/);
   });
 
   it('formats dev version with changes', () => {
     const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: true, committedAt };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe(`dev ${shown} · 5a3f9c1 + changes`);
+    expect(formatAppVersion(v)).toBe(`dev ${shown} · 5a3f9c1 + changes`);
   });
 
   it('dev version without a readable commit time shows the id alone', () => {
     const v: AppVersion = { kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe('dev 5a3f9c1');
+    expect(formatAppVersion(v)).toBe('dev 5a3f9c1');
   });
 
   it('formats unknown version', () => {
     const v: AppVersion = { kind: 'unknown' };
-    expect(formatAppVersion(v, fakeUtcZero)).toBe('unknown');
+    expect(formatAppVersion(v)).toBe('unknown');
   });
 
   it('exhaustive match: all variants handled', () => {
@@ -80,7 +56,7 @@ describe('formatAppVersion', () => {
       { kind: 'unknown' },
     ];
     for (const v of variants) {
-      const res = formatAppVersion(v, fakeUtcZero);
+      const res = formatAppVersion(v);
       expect(typeof res).toBe('string');
       expect(res.length).toBeGreaterThan(0);
     }
