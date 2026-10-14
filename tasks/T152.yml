@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 3d66f56d30c1da3c5ecf207957982510484507cc
 label: fixes
 goal: Main is green again; faultLog takes the Cloud sync lines and summary as injected functions and imports nothing from design/cloud (F22)
 done_test: bash scripts/test.sh packages/ui/test/architecture/architecture.test.ts packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts packages/ui/test/diagnostics/faultOrigin.test.ts

@@ -17,6 +17,8 @@ export class FakeLocalDocs implements LocalDocs {
   refuseRemove = false;
   refuseConflict = false;
   migrator: ((doc: LocalDoc) => string | null) | null = null;
+  /** A store that re-saves a body in its own form, as the settings store does. */
+  normalise: ((body: string) => string) | null = null;
 
   putCalls: LocalDoc[] = [];
   removeCalls: DocId[] = [];
@@ -39,6 +41,9 @@ export class FakeLocalDocs implements LocalDocs {
       return 'refused';
     }
     this.putCalls.push(doc);
+    if (this.normalise !== null) {
+      doc = { ...doc, body: this.normalise(doc.body) };
+    }
     const existingIndex = this.docs.findIndex((d) => this.idsEqual(d.id, doc.id));
     if (existingIndex >= 0) {
       this.docs[existingIndex] = doc;

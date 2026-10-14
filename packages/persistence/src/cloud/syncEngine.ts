@@ -40,6 +40,16 @@ export interface SyncEngineDeps {
 /** New items upload this many at a time; each is one request that names nothing another uses. */
 const CREATE_CONCURRENCY = 4;
 
+/** The hash of the body a store holds for `id` after a write: a store may re-save a body in its
+ *  own form, and the ledger must record what is there, or the doc counts as changed forever. */
+function storedHashOf(bucket: LocalDocs, id: DocId): BodyHash | null {
+  const read = bucket.list();
+  if (read.kind !== 'ok') return null;
+  const key = docIdKey(id);
+  const doc = read.docs.find(d => docIdKey(d.id) === key);
+  return doc === undefined ? null : bodyHashOf(doc.body);
+}
+
 function docIdKey(id: DocId): string {
   switch (id.kind) {
     case 'project':
@@ -190,6 +200,8 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     const cursor = deps.ledger.cursor();
     const remoteDocs = new Map<string, CloudMeta>();
     let newCursor: ChangeCursor | null = null;
+    // True when remoteDocs holds only what changed since the cursor, not every Drive file.
+    let changesOnly = false;
 
     if (cursor === null) {
       const listRes = await deps.cloud.listAll();
@@ -229,6 +241,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         return mapCloudError(changesRes, 0);
       } else {
         newCursor = changesRes.value.kind === 'done' ? changesRes.value.newStart : changesRes.value.next;
+        changesOnly = true;
         for (const ch of changesRes.value.changed) {
           if ('id' in ch) {
             remoteDocs.set(docIdKey(ch.id), ch);
@@ -257,6 +270,27 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     const ledgerRows = new Map<string, LedgerRow>();
     for (const row of deps.ledger.rows()) {
       ledgerRows.set(docIdKey(row.id), row);
+    }
+
+    // A changes-only pull omits every Drive file that did not change since the cursor. Such a file
+    // is, for this device, exactly what its ledger row says: unchanged, at that revision and hash.
+    const unchangedSinceLedger = new Set<string>();
+    if (changesOnly) {
+      for (const [key, row] of ledgerRows) {
+        if (remoteDocs.has(key)) continue;
+        unchangedSinceLedger.add(key);
+        remoteDocs.set(key, {
+          id: row.id,
+          fileId: row.fileId,
+          revision: row.revision,
+          parentRevision: null,
+          layout: deps.layout,
+          seq: row.seq,
+          writer: '',
+          deleted: false,
+          remoteHash: row.hash,
+        });
+      }
     }
 
     // Collect all doc keys
@@ -304,11 +338,11 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       let remoteHash: BodyHash | null = remoteMeta?.remoteHash ?? null;
 
       if (remoteMeta !== null && !remoteMeta.deleted) {
-        const canSkipRead =
+        const canSkipRead = unchangedSinceLedger.has(key) || (
           localDoc !== null &&
           localHash !== null &&
           remoteMeta.remoteHash !== null &&
-          remoteMeta.remoteHash.toString() === localHash.toString();
+          remoteMeta.remoteHash.toString() === localHash.toString());
 
         if (!canSkipRead) {
           const readRes = await deps.cloud.read(remoteMeta.fileId);
@@ -331,7 +365,8 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
             remoteHash = bodyHashOf(fetchedBody);
           }
         } else {
-          remoteBody = localDoc.body;
+          // An unchanged file's body is never needed: the rules can only push or do nothing.
+          remoteBody = localDoc?.body ?? null;
         }
       }
 
@@ -480,7 +515,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     function applyLocalWrites(): void {
       for (const w of plannedLocalWrites) {
         w.bucket.put(w.doc);
-        deps.ledger.set(w.row);
+        deps.ledger.set({ ...w.row, hash: storedHashOf(w.bucket, w.doc.id) ?? w.row.hash });
         pulledCount++;
       }
       for (const r of plannedLocalRemoves) {
@@ -495,7 +530,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           id: c.remoteDoc.id,
           fileId: c.remoteMeta.fileId,
           revision: c.remoteMeta.revision,
-          hash: c.remoteHash,
+          hash: storedHashOf(c.bucket, c.remoteDoc.id) ?? c.remoteHash,
           seq: c.remoteMeta.seq,
         });
         pulledCount++;
@@ -763,6 +798,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       pushed: pushedCount,
       conflicts: deps.ledger.conflicts(),
       held: heldCount,
+      left: countPendingLocal(),
     };
   }
 

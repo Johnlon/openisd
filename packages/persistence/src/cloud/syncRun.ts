@@ -7,6 +7,8 @@ export type RunOutcome =
       readonly pushed: number;
       readonly conflicts: readonly ConflictCopy[];
       readonly held: number;
+      /** Local changes still not on Drive after the run. */
+      readonly left: number;
     }
   | {
       readonly kind: 'stopped';

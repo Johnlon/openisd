@@ -107,7 +107,8 @@ describe('cloudSyncReportLines', () => {
       cloudSyncReportLines({
         grant: {kind: 'none'}, lastAttempt: {kind: 'ended', started_ms: AT_MS, ended_ms: END_MS, outcome}, pendingChanges: 0, lastFault: null, accountFault: null,
       })[2] ?? '';
-    expect(lineFor({kind: 'synced'})).toBe(`  last attempt: started ${AT}, ended ${END}, synced`);
+    expect(lineFor({kind: 'synced', left: 0})).toBe(`  last attempt: started ${AT}, ended ${END}, synced`);
+    expect(lineFor({kind: 'synced', left: 2})).toBe(`  last attempt: started ${AT}, ended ${END}, synced, 2 left`);
     expect(lineFor({kind: 'stopped', reason: 'quota'})).toBe(`  last attempt: started ${AT}, ended ${END}, stopped: Drive quota`);
     expect(lineFor({kind: 'notConnected'})).toBe(`  last attempt: started ${AT}, ended ${END}, not connected`);
     expect(lineFor({kind: 'refused', reason: 'noRoom'})).toBe(`  last attempt: started ${AT}, ended ${END}, refused: no room on Drive`);

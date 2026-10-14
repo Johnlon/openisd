@@ -101,7 +101,7 @@ class FakeSyncEngine implements SyncEngine {
   pending = 0;
 
   async run(): Promise<RunOutcome> {
-    return { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 };
+    return { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 };
   }
 
   pendingLocal(): number {
@@ -158,6 +158,7 @@ describe('cloudSync', () => {
       pushed: 0,
       conflicts: [],
       held: 0,
+      left: 0,
     });
     expect(sync.status()).toEqual({
       kind: 'synced',
@@ -182,6 +183,7 @@ describe('cloudSync', () => {
       pushed: 0,
       conflicts: [],
       held: 3,
+      left: 0,
     });
     expect(sync.status()).toEqual({
       kind: 'held',
@@ -198,6 +200,7 @@ describe('cloudSync', () => {
       pushed: 0,
       conflicts: [],
       held: 0,
+      left: 0,
     });
     expect(sync.status()).toEqual({
       kind: 'pending',
@@ -277,7 +280,7 @@ describe('cloudSync', () => {
     expect(sync.diagnostics().lastFault?.fault).toEqual(fault);
 
     // 7. the fault is kept until a run succeeds
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 });
     expect(sync.diagnostics().lastFault).toBeNull();
   });
 
@@ -302,8 +305,8 @@ describe('cloudSync', () => {
     expect(changes).toBe(2);
 
     nowTime = 4000;
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], held: 0 });
-    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced' } });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], held: 0, left: 0 });
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced', left: 0 } });
     expect(sync.status().kind).toBe('synced');
   });
 
@@ -315,7 +318,7 @@ describe('cloudSync', () => {
     const fault = { operation: 'about' as const, status: 403, reason: 'insufficientPermissions', reply: '{}' };
     sync.accountRefused(fault);
     expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 });
     expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
     await sync.disconnect();
     expect(sync.diagnostics().accountFault).toBeNull();
@@ -389,6 +392,7 @@ describe('cloudSync', () => {
       pushed: 0,
       conflicts: [],
       held: 0,
+      left: 0,
     });
     expect(sync.status().kind).toBe('synced');
 
@@ -478,11 +482,11 @@ describe('cloudSync', () => {
       calls++;
     });
 
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 });
     expect(calls).toBe(1);
 
     unwatch();
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 });
     expect(calls).toBe(1);
   });
 });

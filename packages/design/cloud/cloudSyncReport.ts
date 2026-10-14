@@ -3,7 +3,7 @@ import type {CloudFaultRecord, CloudGrant} from './cloudTypes.js';
 
 /** How the last sync run ended. The fault itself is in the report's `lastFault`. */
 export type CloudAttemptOutcome =
-  | { readonly kind: 'synced' }
+  | { readonly kind: 'synced'; readonly left: number }
   | { readonly kind: 'stopped'; readonly reason: 'offline' | 'quota' }
   | { readonly kind: 'notConnected' }
   | { readonly kind: 'reconnect' }
@@ -42,7 +42,7 @@ function grantText(grant: CloudGrant): string {
 
 function outcomeText(outcome: CloudAttemptOutcome): string {
   switch (outcome.kind) {
-    case 'synced': return 'synced';
+    case 'synced': return outcome.left === 0 ? 'synced' : `synced, ${outcome.left} left`;
     case 'stopped': return outcome.reason === 'offline' ? 'stopped: offline' : 'stopped: Drive quota';
     case 'notConnected': return 'not connected';
     case 'reconnect': return 'must reconnect';

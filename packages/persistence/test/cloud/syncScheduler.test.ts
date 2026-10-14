@@ -97,7 +97,7 @@ class FakeSyncEngine implements SyncEngine {
   maxConcurrentRuns = 0;
   pending = 0;
   private deferredRun: { resolve: (outcome: RunOutcome) => void; promise: Promise<RunOutcome> } | null = null;
-  outcomeToReturn: RunOutcome = { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 };
+  outcomeToReturn: RunOutcome = { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 };
 
   async run(): Promise<RunOutcome> {
     this.runCount++;
@@ -257,7 +257,7 @@ describe('syncScheduler', () => {
     expect(h.engine.runCount).toBe(1);
 
     // Resolve run 1
-    deferred1.resolve({ kind: 'synced', pulled: 1, pushed: 0, conflicts: [], held: 0 });
+    deferred1.resolve({ kind: 'synced', pulled: 1, pushed: 0, conflicts: [], held: 0, left: 0 });
     await flush();
 
     // Exactly one more run was queued and executed
@@ -322,7 +322,7 @@ describe('syncScheduler', () => {
     await flush();
 
     // Complete run 2
-    deferred.resolve({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    deferred.resolve({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 });
     await flush();
 
     // No queued run from the tick
@@ -400,7 +400,7 @@ describe('syncScheduler', () => {
     expect(engine2.runCount).toBe(0);
 
     // Finish Tab 1
-    deferred1.resolve({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    deferred1.resolve({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0 });
     await p1;
 
     // Now Tab 2 runs and finishes

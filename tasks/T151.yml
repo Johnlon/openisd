@@ -1,0 +1,14 @@
+id: T151
+release_note: Cloud sync no longer uploads every item again as a new file on later syncs, Options and favourites pulled from Drive no longer stay "not synced", and a sync that leaves changes says how many.
+repo: openisd
+owner: maryu
+status: done
+goal: A sync run never ends synced with changes left; pulled singletons record the hash of what was stored, and later runs see unchanged Drive files
+done_test: bash scripts/test.sh packages/persistence/test/cloud/syncEngine.test.ts packages/design/test/cloud/cloudSyncReport.test.ts
+files:
+  - tasks/T151.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts

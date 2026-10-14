@@ -91,6 +91,68 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
     });
   }
 
+  describe('Nothing is left pending after a synced run', () => {
+    async function firstSync() {
+      localProjects.docs = [
+        { id: project1Id, body: body1, layout: APP_LAYOUT },
+        { id: project2Id, body: body2, layout: APP_LAYOUT },
+      ];
+      localSettings.docs = [{ id: settingsId, body: '{"theme":"dark"}', layout: APP_LAYOUT }];
+      const engine = createEngine();
+      expect(await engine.run()).toMatchObject({ kind: 'synced' });
+      expect(engine.pendingLocal()).toBe(0);
+      // A second, idle run moves the change cursor past this device's own uploads.
+      expect(await engine.run()).toMatchObject({ kind: 'synced' });
+      return engine;
+    }
+
+    it('a second run with nothing changed pushes nothing and creates no files', async () => {
+      const engine = await firstSync();
+      const files = cloud.files.size;
+      expect(await engine.run()).toMatchObject({ kind: 'synced', pushed: 0, left: 0 });
+      expect(cloud.files.size).toBe(files);
+      expect(engine.pendingLocal()).toBe(0);
+    });
+
+    it('an edit after the first run is pushed as an update of the same file', async () => {
+      const engine = await firstSync();
+      const files = cloud.files.size;
+      localProjects.docs = [
+        { id: project1Id, body: body1Updated, layout: APP_LAYOUT },
+        { id: project2Id, body: body2, layout: APP_LAYOUT },
+      ];
+      expect(engine.pendingLocal()).toBe(1);
+      expect(await engine.run()).toMatchObject({ kind: 'synced', pushed: 1 });
+      expect(cloud.files.size).toBe(files);
+      expect(engine.pendingLocal()).toBe(0);
+    });
+
+    it('a delete after the first run reaches Drive as a tombstone', async () => {
+      const engine = await firstSync();
+      localProjects.docs = [{ id: project2Id, body: body2, layout: APP_LAYOUT }];
+      expect(engine.pendingLocal()).toBe(1);
+      expect(await engine.run()).toMatchObject({ kind: 'synced', pushed: 1 });
+      const deleted = [...cloud.files.values()].filter(f => f.meta.deleted).map(f => f.meta.id);
+      expect(deleted).toEqual([project1Id]);
+      expect(engine.pendingLocal()).toBe(0);
+    });
+
+    it('a pulled singleton the store re-saves in its own form is not left pending', async () => {
+      cloud.seedFile({
+        meta: {
+          id: settingsId, fileId: FileId.of('file-s')!, revision: RevisionId.of('rev-s')!, parentRevision: null,
+          layout: APP_LAYOUT, seq: 5, writer: 'device-other', deleted: false, remoteHash: bodyHashOf('{"theme":"light"}')!,
+        },
+        body: '{"theme":"light"}',
+      });
+      localSettings.docs = [{ id: settingsId, body: '{"theme":"dark"}', layout: APP_LAYOUT }];
+      localSettings.normalise = (body) => JSON.stringify({ ...JSON.parse(body), units: 'mm' });
+      const engine = createEngine();
+      expect(await engine.run()).toMatchObject({ kind: 'synced' });
+      expect(engine.pendingLocal()).toBe(0);
+    });
+  });
+
   describe('Upload concurrency', () => {
     function newProjects(n: number) {
       return Array.from({ length: n }, (_, i) => ({
