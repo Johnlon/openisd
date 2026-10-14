@@ -3,6 +3,7 @@ release_note: The Edit Driver view no longer scrolls sideways, and its colour le
 repo: openisd
 owner: bob
 status: done
+landed: de22dfbaa652521b421ac178db94c49a40e28480
 goal: The Edit Driver view has clean tab and background styling, its colour legend is one horizontal row with the buttons below it, and it lays out correctly in Firefox.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

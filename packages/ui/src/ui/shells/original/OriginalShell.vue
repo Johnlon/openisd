@@ -9,6 +9,7 @@
 import {CompatSwitchGroup, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
+import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
@@ -736,6 +737,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </div>
       </div>
     </div>
+
+    <ProvenanceLegend />
 
     <!-- ===== Box losses modal: the one chamber set whose Advanced-> opened it ===== -->
     <div class="overlay" :class="{ open: lossesOpen !== null }" @click.self="lossesOpen = null">

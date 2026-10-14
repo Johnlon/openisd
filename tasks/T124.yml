@@ -1,0 +1,14 @@
+id: T124
+release_note: The screens that show green, blue and black values have a one-row legend at the bottom: Entered, Calculated, Not entered.
+repo: openisd
+owner: bob
+status: done
+goal: Every screen that shows green, blue or black values has the Entered/Calculated/Not entered legend as one thin row at the bottom.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T124.yml
+  - packages/ui/src/ui/components/ProvenanceLegend.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/provenance-legend.browser.spec.ts

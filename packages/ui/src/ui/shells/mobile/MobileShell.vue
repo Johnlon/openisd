@@ -3,6 +3,7 @@
 // Holds NO logic: every ref/computed/write lives in `useMobileShell()`
 // (src/hooks/MobileShell-hooks.ts), mirroring OriginalShell.vue's own 1-to-1 hook rule.
 import MobileTabBar from './MobileTabBar.vue';
+import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import MobileBoxTab from './MobileBoxTab.vue';
 import MobileDriverTab from './MobileDriverTab.vue';
 import MobileSignalTab from './MobileSignalTab.vue';
@@ -78,6 +79,7 @@ const diagnostics = injectDiagnosticsModal();
         <MobileFiltersTab v-else-if="destination === 'filters'" />
         <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
       </main>
+      <ProvenanceLegend v-if="destination === 'box' || destination === 'signal' || destination === 'enclosure'" />
       <MobilePaneDialog v-if="pane === 'drivers'" title="Manage drivers" @close="closePane">
         <MobileManageDriversTab @chosen="destination = 'driver'; closePane()" />
       </MobilePaneDialog>

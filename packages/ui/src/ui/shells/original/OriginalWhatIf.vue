@@ -9,6 +9,7 @@ import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {useApp} from '../../../logic/app.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
+import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import {cellClassOf} from '../../../logic/driverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
@@ -268,6 +269,7 @@ useEscToClose(() => presentationState.editDriver, close);
       <button title="Back to the project's values" @click="reset">Reset</button>
       <button class="footer-buttons-pri" title="Close. The project is not changed." @click="close">Close</button>
     </div>
+    <ProvenanceLegend class="what-if-legend" />
   </div>
 </template>
 
@@ -282,6 +284,7 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-titlebar { display: flex; align-items: center; justify-content: space-between; font-weight: 600; margin-bottom: 6px; }
 .what-if-titlebar .close-btn { cursor: pointer; padding: 0 4px; }
 .what-if-titlebar .close-btn:hover { background: #e64545; color: #fff; }
+.what-if-legend { margin-top: 10px; border: 1px solid var(--line); border-radius: 4px; }
 .what-if-hint { color: #777; font-style: italic; font-size: 11.5px; margin-bottom: 8px; }
 .what-if-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
 /* Right-aligned so each label ends against its own input. 34px holds the widest ("Xmax"). */
