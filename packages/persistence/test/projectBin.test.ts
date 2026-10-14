@@ -97,4 +97,17 @@ describe('projectBin', () => {
     expect(bin.activeProjects().map(p => p.name)).toEqual(['Sub 12']);
     expect(bin.moveToBin(idOf('Sub 12'))).toBe('refused');
   });
+
+  it('Delete forever also drops a copy kept of that project when it would not load', () => {
+    const {storage, projects, bin, idOf} = binWith('Sub 12', 'Mid 5');
+    const backup = backupOn(storage);
+    const docs = projects.storedDocs();
+    const text = docs.kind === 'ok' ? docs.docs.find(d => d.id === idOf('Sub 12'))?.body ?? '' : '';
+    backup.refuse('wouldNotLoad', 'Sub 12', text);
+    backup.refuse('wouldNotLoad', 'Other', 'other text');
+    expect(bin.moveToBin(idOf('Sub 12'))).toBe('done');
+    expect(bin.deleteForever(idOf('Sub 12'))).toBe('done');
+    expect(backup.refusedCopies().map(c => c.name)).toEqual(['Other']);
+  });
 });
+

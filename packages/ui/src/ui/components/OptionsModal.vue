@@ -77,19 +77,19 @@ async function onBackupFile(e: Event) {
   if (!file) return;
   const replace = replaceEverything.value;
   const confirmed = await confirmPort.port.ask({
-    title: 'Restore from backup?',
+    title: 'Import this file?',
     message: replace
-      ? 'Everything in this browser is replaced by what is in this file: all projects, My Drivers, My Passive Radiators '
-        + 'and preferences. Anything not in the file is removed. A backup of what is here now is made first. Continue?'
-      : 'What is in this file (projects, My Drivers, My Passive Radiators and preferences) is put into this browser, '
+      ? 'Everything in this browser is replaced by what is in this file. Anything not in the file is removed. '
+        + 'A backup of what is here now is made first. Continue?'
+      : 'What is in the file (projects, My Drivers, My Passive Radiators, settings) is put into this browser, '
         + 'replacing the same items. Anything the file does not hold is kept. A backup of what is here now is made first. Continue?',
-    confirmLabel: 'Restore',
+    confirmLabel: 'Import',
     cancelLabel: 'Cancel',
   });
   if (!confirmed) return;
   const result = await restoreFromFile(file, replace);
-  if (!result.ok) { alert(`Could not restore: ${result.reason}`); return; }
-  alert(`Backup restored (${result.keysRestored} item${result.keysRestored === 1 ? '' : 's'}). The app will now reload.`);
+  if (!result.ok) { alert(`Could not import: ${result.reason}`); return; }
+  alert(`Restored (${result.keysRestored} item${result.keysRestored === 1 ? '' : 's'}). The app will now reload.`);
   window.location.reload();
 }
 
@@ -104,7 +104,7 @@ const {
   canApply, apply: applyAppSettings,
 } = useOptionsModal();
 
-type Tab = 'General' | 'Plot Window' | 'Backup' | 'Storage history';
+type Tab = 'General' | 'Plot Window' | 'Your data';
 const limitsMoreOpen = ref(false);
 const tab = reactive<{ v: Tab }>({ v: 'General' });
 
@@ -234,8 +234,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
       <div class="opt-tabs">
         <button class="opt-tab" :class="{ on: tab.v === 'General' }" @click="tab.v = 'General'">General</button>
         <button class="opt-tab" :class="{ on: tab.v === 'Plot Window' }" @click="tab.v = 'Plot Window'">Plot Window</button>
-        <button class="opt-tab" :class="{ on: tab.v === 'Backup' }" @click="tab.v = 'Backup'">Backup</button>
-        <button class="opt-tab" :class="{ on: tab.v === 'Storage history' }" @click="tab.v = 'Storage history'">Storage history</button>
+        <button class="opt-tab" :class="{ on: tab.v === 'Your data' }" @click="tab.v = 'Your data'">Your data</button>
       </div>
 
       <div class="opt-body">
@@ -344,31 +343,29 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
           </fieldset>
         </template>
 
-        <template v-else-if="tab.v === 'Backup'">
+        <template v-else-if="tab.v === 'Your data'">
+          <StorageHistory />
           <fieldset class="opt-group">
-            <legend>Backup</legend>
+            <legend>Export / Import</legend>
             <p class="opt-help">
-              Everything in this browser — every project, My Drivers, My Passive Radiators, and your
-              preferences — as one JSON file. The bundled driver/radiator catalogue is never included;
-              it ships with the app itself and needs no backup.
+              Everything in this browser as one file: projects, My Drivers, My Passive Radiators and settings.
+              The built-in driver catalogue is not included.
             </p>
             <div class="opt-group-actions">
-              <button class="opt-reset-btn" title="Download a backup of everything in this browser as one JSON file." @click="downloadBackup">
-                Download backup
+              <button class="opt-reset-btn" title="Save everything in this browser as one file." @click="downloadBackup">
+                Export everything
               </button>
-              <button class="opt-reset-btn" title="Restore from a previously downloaded backup file. Whatever the file does not hold is kept, unless Replace everything is ticked." @click="pickBackupFile">
-                Restore from file…
+              <button class="opt-reset-btn" title="Put what is in an exported file into this browser. Whatever the file does not hold is kept, unless the box below is ticked." @click="pickBackupFile">
+                Import file…
               </button>
             </div>
             <label class="opt-help">
               <input v-model="replaceEverything" type="checkbox">
-              Replace everything (remove what the file does not hold)
+              Remove what the file does not hold
             </label>
             <input ref="backupFileInput" type="file" accept="application/json,.json" style="display:none" @change="onBackupFile">
           </fieldset>
         </template>
-
-        <StorageHistory v-else-if="tab.v === 'Storage history'" />
 
         <template v-else>
           <fieldset class="opt-group">

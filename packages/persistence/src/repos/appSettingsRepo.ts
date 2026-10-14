@@ -4,7 +4,7 @@ import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/desig
 import type {AppSettings, EnvDefaults, VentedDesignLimits} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import type {StorageBackup} from './storageBackup.js';
-import {OPENISD_APP_SETTINGS_KEY, OPENISD_BACKUP_KEYS, OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
+import {OPENISD_APP_SETTINGS_KEY, OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY} from './storageKeys.js';
 import {createStoredDataFault, type StoredDataFault} from './storedDataFault.js';
 
 // What the user configured for the application itself — today, the band that decides which
@@ -140,8 +140,8 @@ export function createAppSettingsRepo(
     const text = storage.get(APP_SETTINGS_KEY);
     const current = parseStored(text);
     if (text !== null && !current.clean) {
-      backup.guard(() => {
-        storage.set(OPENISD_BACKUP_KEYS.appSettings, text);
+      backup.guard('repair', () => {
+        backup.keepPreRepairCopy('appSettings', text);
         storage.set(APP_SETTINGS_KEY, JSON.stringify(next(current)));
       });
       onSaved();
@@ -176,7 +176,7 @@ export function createAppSettingsRepo(
       }
       const exists = storage.get(APP_SETTINGS_KEY) !== null;
       if (exists) {
-        const guarded = backup.guard(() => storage.set(APP_SETTINGS_KEY, body));
+        const guarded = backup.guard('sync', () => storage.set(APP_SETTINGS_KEY, body));
         return guarded.kind === 'ran' ? 'done' : 'refused';
       }
       const ok = backup.write(APP_SETTINGS_KEY, body);
@@ -184,7 +184,7 @@ export function createAppSettingsRepo(
     },
     removeDoc() {
       if (storage.get(APP_SETTINGS_KEY) === null) return 'refused';
-      const guarded = backup.guard(() => storage.remove(APP_SETTINGS_KEY));
+      const guarded = backup.guard('sync', () => storage.remove(APP_SETTINGS_KEY));
       return guarded.kind === 'ran' ? 'done' : 'refused';
     },
     ventedLimits(): VentedDesignLimits {
@@ -207,7 +207,7 @@ export function createAppSettingsRepo(
     },
     exportRaw: () => storage.get(APP_SETTINGS_KEY),
     reset(): boolean {
-      const ran = backup.guard(() => storage.remove(APP_SETTINGS_KEY)).kind === 'ran';
+      const ran = backup.guard('reset', () => storage.remove(APP_SETTINGS_KEY)).kind === 'ran';
       if (ran) {
         onReplaced();
         onSaved();
@@ -284,7 +284,7 @@ export function createFavouritesRepo(storage: KeyValueStorage, backup: StorageBa
       const exists = storage.get(OPENISD_FAVOURITE_DRIVERS_KEY) !== null
         || storage.get(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY) !== null;
       if (exists) {
-        const guarded = backup.guard(() => {
+        const guarded = backup.guard('sync', () => {
           storage.set(OPENISD_FAVOURITE_DRIVERS_KEY, driversText);
           storage.set(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY, prsText);
         });
@@ -299,7 +299,7 @@ export function createFavouritesRepo(storage: KeyValueStorage, backup: StorageBa
       if (storage.get(OPENISD_FAVOURITE_DRIVERS_KEY) === null && storage.get(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY) === null) {
         return 'refused';
       }
-      const guarded = backup.guard(() => {
+      const guarded = backup.guard('sync', () => {
         storage.remove(OPENISD_FAVOURITE_DRIVERS_KEY);
         storage.remove(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY);
       });

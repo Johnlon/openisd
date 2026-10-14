@@ -13,7 +13,7 @@ import {type ProjectRepairReport} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {
-  OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY,
+  OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY,
 } from '../src/repos/storageKeys.js';
 import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
@@ -101,7 +101,7 @@ describe('an open session from before T036', () => {
     const record = sessionRecord();
     const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: record});
     projectRepoOn(engine, noFiles, storage, 'http://localhost');
-    expect(storage.get(OPENISD_BACKUP_KEYS.openSessions)).toBe(record);
+    expect(backupOn(storage).readPreRepairCopy('openSessions')).toBe(record);
     expect(storage.get(OPENISD_OPEN_SESSIONS_KEY)).toContain('Qiclfr');
   });
 });

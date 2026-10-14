@@ -75,7 +75,7 @@ export function createStoreOpening(
   const snapshots = createStorageSnapshot(raw, deps.now);
 
   function rawExport(): string {
-    return envelopeText(snapshots.take() ?? emptySnapshot(layout, deps.now()), true);
+    return envelopeText(snapshots.take() ?? emptySnapshot(layout, deps.now()), true, null);
   }
 
   function openLive(): StoreOpening {
@@ -96,7 +96,7 @@ export function createStoreOpening(
   if (found === null || found === layout) return openLive();
 
   if (found < layout) {
-    const taken = createStorageBackup(raw, deps.now).take();
+    const taken = createStorageBackup(raw, deps.now).take('startUpRewrite');
     if (taken.kind === 'noRoom') return {kind: 'blocked', reason: 'noRoom', storeLayout: found, exportRaw: rawExport};
     const migrated = migrator.migrate(data, found, (reached, stepData) => {
       writeData(stepData);

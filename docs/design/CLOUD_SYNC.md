@@ -9,12 +9,31 @@
 | `openisd_my_passive_radiators` | `pr`, one doc per entry | yes | keep both |
 | `openisd_app_settings` | `settings`, one doc | yes | Lamport `seq`, tie → writer id |
 | `openisd_favourite_drivers`, `openisd_favourite_passive_radiators` | `favourites`, one doc | yes | Lamport `seq`, tie → writer id |
+| `openisd_project_bin` (marks `{id, at_ms, by, hash}`) | `projectBin`, one doc per binned project, file `bin-<uuid>.json` | yes | Lamport `seq`, tie → writer id |
 | `openisd_state`, `openisd_open_sessions`, `openisd_quarantine_session` | — | no | this device's open tabs |
 | `openisd_view` | — | no | panel sizes, chart ranges |
 | `openisd_backup_*`, `openisd_storage_log`, layout/build stamps | — | no | this device's store history |
 | `openisd_cloud_auth`, `openisd_cloud_ledger`, `openisd_cloud_ui` | — | no, and excluded from backup/export/log | tokens, sync ledger, dismissed notices |
 
 **Not synced:** autosave of open projects (`openisd_open_sessions`), view state (`openisd_view`), backups, storage log, and all cloud-internal keys (`openisd_cloud_*`).
+
+## The Bin
+
+Delete moves a project to the Bin; only Delete forever and Empty Bin remove it (John, 14 Oct 2026).
+
+- A binned project keeps its `project` doc unchanged. A separate `projectBin` mark doc says it is binned: `{at_ms, by, hash}`, where `hash` is the body hash of the project when it was binned.
+- A project is in the Bin only while its mark exists AND its stored body still hashes to `mark.hash`. An edit made anywhere after binning changes the body, so the project is back on the list on every device with no write. When a pulled edit brings one back, the event log says `restored from Bin: edited on <device> ("<name>")`.
+- Restore removes the mark; sync sends the mark's tombstone, so it is restored on every device.
+- Delete forever / Empty Bin take one whole-store backup, then remove the project and its mark; both tombstones sync.
+- No automatic purge.
+
+## Doc kinds a build does not know
+
+A Drive file whose `kind` appProperty this build does not know (written by a newer build) is skipped: never pulled, never deleted, never an error. The event log says `skipped N items of a newer kind` once per run. A file with no `kind` is malformed.
+
+## Device name on Drive files
+
+Every file written carries the appProperty `device`: the writing device's name (e.g. `Android phone`). It names the device in conflict copies and in the "restored from Bin: edited on …" event; a file written before this property shows "another device".
 
 ## Where it is stored
 
@@ -49,7 +68,7 @@ Conflict copies appear in the Cloud sync dialog until the user presses **Open** 
 
 ## Backups before destructive writes
 
-Before a sync run removes or replaces a local doc, it takes a **whole-store backup** once per run (`StorageBackup.guard`). The backup is pinned — `droppable` never picks the newest backup of each layout, which already holds. If no room for the backup, the removing step is refused (status `refused: noRoom`); pushes still happen.
+Before a sync run removes or replaces a local doc, it takes a **whole-store backup** once per run (`StorageBackup.guard('sync', …)`); the backup records the reason "Before sync". The newest 3 backups are kept, plus the newest backup of each older layout (the pre-upgrade copy), which only the space-pressure last resort may drop. If no room for the backup, the removing step is refused (status `refused: noRoom`); pushes still happen. Options → Backups lists them.
 
 ## Module map
 

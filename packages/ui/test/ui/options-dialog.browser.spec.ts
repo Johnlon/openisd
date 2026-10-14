@@ -24,7 +24,7 @@ async function openPlotWindow(page: Page): Promise<void> {
 
 async function openBackupTab(page: Page): Promise<void> {
   await openOptions(page);
-  await page.locator('.opt-tab', { hasText: 'Backup' }).click();
+  await page.locator('.opt-tab', { hasText: 'Your data' }).click();
 }
 
 async function openOptions(page: Page): Promise<void> {
@@ -409,21 +409,21 @@ test.describe('Options dialog', () => {
     });
 
     test.describe('Backup', () => {
-      test('Backup and restore live on their own tab, not on General', async ({ page }) => {
+      test('Export / Import lives on the Your data tab, not on General', async ({ page }) => {
         await openOptions(page);
-        await expect(page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) })).toHaveCount(0);
-        await page.locator('.opt-tab', { hasText: 'Backup' }).click();
-        await expect(page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) })).toBeVisible();
+        await expect(page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Export / Import' }) })).toHaveCount(0);
+        await page.locator('.opt-tab', { hasText: 'Your data' }).click();
+        await expect(page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Export / Import' }) })).toBeVisible();
       });
 
       test('the Backup section downloads a JSON snapshot of this browser\'s storage', async ({ page }) => {
         await openBackupTab(page);
-        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
+        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Export / Import' }) });
         await expect(legend).toBeVisible();
 
         const [download] = await Promise.all([
           page.waitForEvent('download'),
-          legend.locator('button', { hasText: 'Download backup' }).click(),
+          legend.locator('button', { hasText: 'Export everything' }).click(),
         ]);
         expect(download.suggestedFilename()).toMatch(/^openisd-backup-\d{4}-\d{2}-\d{2}\.json$/);
 
@@ -434,7 +434,7 @@ test.describe('Options dialog', () => {
 
       test('restoring a backup asks for confirmation, then reloads the page', async ({ page }) => {
         await openBackupTab(page);
-        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
+        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Export / Import' }) });
 
         // Confirm, then the post-restore reload notice — both native dialogs this flow raises.
         // `reloaded` is the real finish line: the page's own 'load' only fires again once
@@ -453,7 +453,7 @@ test.describe('Options dialog', () => {
           data: {},
         });
         const fileChooserPromise = page.waitForEvent('filechooser');
-        await legend.locator('button', { hasText: 'Restore from file' }).click();
+        await legend.locator('button', { hasText: 'Import file' }).click();
         const chooser = await fileChooserPromise;
         await chooser.setFiles({ name: 'openisd-backup-test.json', mimeType: 'application/json', buffer: Buffer.from(backupJson) });
 
@@ -469,12 +469,12 @@ test.describe('Options dialog', () => {
 
       test('with Replace everything ticked, the confirmation says what the file lacks is removed', async ({ page }) => {
         await openBackupTab(page);
-        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
+        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Export / Import' }) });
         page.on('dialog', async (dialog) => { await dialog.accept(); });
-        await legend.getByLabel('Replace everything').check();
+        await legend.getByLabel('Remove what the file does not hold').check();
         const backupJson = JSON.stringify({ openisdBackup: true, schemaVersion: 1, exportedAt: '20260101T000000Z', data: {} });
         const fileChooserPromise = page.waitForEvent('filechooser');
-        await legend.locator('button', { hasText: 'Restore from file' }).click();
+        await legend.locator('button', { hasText: 'Import file' }).click();
         const chooser = await fileChooserPromise;
         await chooser.setFiles({ name: 'openisd-backup-test.json', mimeType: 'application/json', buffer: Buffer.from(backupJson) });
         await expect(page.locator('.confirm-modal')).toContainText('replaced by what is in this file');
@@ -483,17 +483,17 @@ test.describe('Options dialog', () => {
 
       test('restoring an invalid file reports the error and does not reload', async ({ page }) => {
         await openBackupTab(page);
-        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Backup' }) });
+        const legend = page.locator('.opt-group', { has: page.locator('legend', { hasText: 'Export / Import' }) });
 
         let sawInvalidAlert = false;
         page.on('dialog', async (dialog) => {
           if (dialog.type() === 'confirm') { await dialog.accept(); return; }
-          if (dialog.message().includes('Could not restore')) sawInvalidAlert = true;
+          if (dialog.message().includes('Could not import')) sawInvalidAlert = true;
           await dialog.accept();
         });
 
         const fileChooserPromise = page.waitForEvent('filechooser');
-        await legend.locator('button', { hasText: 'Restore from file' }).click();
+        await legend.locator('button', { hasText: 'Import file' }).click();
         const chooser = await fileChooserPromise;
         await chooser.setFiles({ name: 'not-a-backup.json', mimeType: 'application/json', buffer: Buffer.from('{"nope":true}') });
 

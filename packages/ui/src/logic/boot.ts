@@ -65,7 +65,7 @@ function restoreSession(deps: BootDeps): SessionRestore {
   if (session.refused.length > 0) {
     const notKept = deps.projectRepo.keepRefusedEntries(session.refusedEntries);
     deps.logging.flash(`Could not restore ${session.refused.length} of your open projects: ` + session.refused.join('; ')
-      + (notKept === 0 ? '. They are kept in this browser.' : `. ${notKept} could not be kept: there is no room.`));
+      + (notKept === 0 ? '. They are kept in Options › Your data › Backups.' : `. ${notKept} could not be kept: there is no room.`));
   }
   // Every entry refused: the record could not say what was open, so it says nothing.
   if (session.projects.length === 0) return session.refused.length > 0 ? 'none' : 'empty';

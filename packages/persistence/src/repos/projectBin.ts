@@ -72,10 +72,24 @@ export function createProjectBin(deps: ProjectBinDeps): ProjectBin {
     return new Set(holding().map(e => e.id));
   }
 
+  /** Drop the copies kept of these project texts when they would not load: deleted forever means
+   *  no copy of the project stays in this browser. */
+  function discardRefusedOf(texts: ReadonlySet<string>): void {
+    for (const copy of deps.backup.refusedCopies()) {
+      const text = deps.backup.readRefused(copy.key)?.text;
+      if (text !== undefined && texts.has(text)) deps.backup.discardRefused(copy.key);
+    }
+  }
+
   function deleteAll(ids: readonly string[]): 'done' | 'refused' {
     if (ids.length === 0) return 'done';
-    const guarded = deps.backup.guard(() => ids.every(id =>
-      projects.deleteStoredProject(id) === 'done' && marks.remove(id) === 'done'));
+    const held = bodies();
+    const texts = new Set(ids.flatMap(id => held.get(id) ?? []));
+    const guarded = deps.backup.guard('deleteForever', () => {
+      const deleted = ids.every(id => projects.deleteStoredProject(id) === 'done' && marks.remove(id) === 'done');
+      if (deleted) discardRefusedOf(texts);
+      return deleted;
+    });
     if (guarded.kind !== 'ran' || !guarded.value) return 'refused';
     deps.onSaved();
     return 'done';

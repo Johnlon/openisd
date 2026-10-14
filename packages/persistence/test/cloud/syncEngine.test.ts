@@ -10,6 +10,7 @@ import {
 import type { KeyValueStorage } from '../../src/storage/keyValueStorage.js';
 import { createSyncLedger, type SyncLedger } from '../../src/cloud/syncLedger.js';
 import type { StorageBackup, Guarded, BackupResult, PreRepairCopy, BackupInfo, RefusedCopy, RefusedCopyRecord } from '../../src/repos/storageBackup.js';
+import type { BackupReason } from '../../src/repos/storageSnapshot.js';
 import { FakeCloudStore } from './fakeCloudStore.js';
 import { FakeLocalDocs } from './fakeLocalDocs.js';
 import { createSyncEngine } from '../../src/cloud/syncEngine.js';
@@ -27,7 +28,7 @@ class FakeBackup implements StorageBackup {
   guardCalls = 0;
   refuseGuard = false;
 
-  guard<T>(destructive: () => T): Guarded<T> {
+  guard<T>(_reason: BackupReason, destructive: () => T): Guarded<T> {
     this.guardCalls++;
     if (this.refuseGuard) {
       return { kind: 'refused', shortfall: { copyChars: 900, storeChars: 4000 } };
@@ -39,8 +40,11 @@ class FakeBackup implements StorageBackup {
   list(): BackupInfo[] { return []; }
   read(): string | null { return null; }
   discard(): boolean { return false; }
+  keepPreRepairCopy(): void { /* no copies kept */ }
   preRepairCopies(): PreRepairCopy[] { return []; }
+  readPreRepairCopy(): string | null { return null; }
   discardCopy(): boolean { return false; }
+  discardAll(): number { return 0; }
   write(): boolean { return true; }
   refuse(): boolean { return true; }
   refusedCopies(): RefusedCopy[] { return []; }

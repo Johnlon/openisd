@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-f24-open-sessions
 status: done
+landed: 17beb22e815e910800f3069fdc77c39215193e6c
 label: fixes
 goal: F24: open-sessions spec expects the removed quarantine key; it now expects the refused copy
 done_test: bash scripts/test.sh packages/persistence/test/storageRefused.test.ts

@@ -22,7 +22,7 @@ const takenKey = (stamp: string) => `${keyOf(stamp)}_20260101T010203Z`;
 
 /** A stored backup envelope, as an earlier take would have left it. */
 function backupText(layout: number, takenAt: string, stamp: string, data: Record<string, string> = {a: 'b'}): string {
-  return envelopeText({layout, build: BuildStamp.ofStored(stamp), exportedAt: takenAt, data}, false);
+  return envelopeText({layout, build: BuildStamp.ofStored(stamp), exportedAt: takenAt, data}, false, 'manual');
 }
 
 describe('take', () => {
@@ -32,7 +32,7 @@ describe('take', () => {
       [OPENISD_STORAGE_LAYOUT_KEY]: '1', [OPENISD_STORAGE_BUILD_KEY]: 'v20251231T2359Z',
       [OPENISD_STORAGE_LOG_KEY]: 'a log',
     });
-    const result = createStorageBackup(storage, () => FIXED_NOW_MS).take();
+    const result = createStorageBackup(storage, () => FIXED_NOW_MS).take('manual');
 
     assert.deepEqual(result, {kind: 'taken', key: takenKey('v20251231T2359Z')});
     const read = readEnvelope(storage.get(takenKey('v20251231T2359Z')) ?? '');
@@ -45,7 +45,7 @@ describe('take', () => {
 
   it('a store written before stamps existed is named for an unknown build', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'projects'});
-    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take(), {kind: 'taken', key: takenKey('vunknown')});
+    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take('manual'), {kind: 'taken', key: takenKey('vunknown')});
   });
 
   it('two backups of a store written by one build, taken at different seconds, are both kept', () => {
@@ -54,10 +54,10 @@ describe('take', () => {
     });
     let now = FIXED_NOW_MS;
     const backup = createStorageBackup(storage, () => now);
-    backup.take();
+    backup.take('manual');
     storage.set(OPENISD_PROJECTS_KEY, 'second');
     now += 1000;
-    backup.take();
+    backup.take('manual');
 
     const held = storage.keys().filter(k => k.startsWith(OPENISD_BACKUP_PREFIX)).sort();
     assert.deepEqual(held, [takenKey('v20251231T2359Z'), `${keyOf('v20251231T2359Z')}_20260101T010204Z`]);
@@ -69,9 +69,9 @@ describe('take', () => {
   it('two backups from one build in the same second get a two-digit counter, and neither is lost', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'first', [OPENISD_STORAGE_LAYOUT_KEY]: '1', [OPENISD_STORAGE_BUILD_KEY]: 'v20251231T2359Z'});
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
-    assert.deepEqual(backup.take(), {kind: 'taken', key: takenKey('v20251231T2359Z')});
+    assert.deepEqual(backup.take('manual'), {kind: 'taken', key: takenKey('v20251231T2359Z')});
     storage.set(OPENISD_PROJECTS_KEY, 'second');
-    assert.deepEqual(backup.take(), {kind: 'taken', key: `${takenKey('v20251231T2359Z')}_01`});
+    assert.deepEqual(backup.take('manual'), {kind: 'taken', key: `${takenKey('v20251231T2359Z')}_01`});
     const first = readEnvelope(storage.get(takenKey('v20251231T2359Z')) ?? '');
     assert.ok(first.kind === 'ok');
     assert.equal(first.snapshot.data[OPENISD_PROJECTS_KEY], 'first');
@@ -79,13 +79,13 @@ describe('take', () => {
 
   it('a store with no data has nothing to back up, and writes nothing', () => {
     const storage = createMemoryStorage({[OPENISD_STORAGE_LOG_KEY]: 'only a log'});
-    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take(), {kind: 'nothingToBackUp'});
+    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).take('manual'), {kind: 'nothingToBackUp'});
     assert.deepEqual(storage.keys(), [OPENISD_STORAGE_LOG_KEY]);
   });
 
   it('a backup never holds a pre-repair copy of a record', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p', [OPENISD_BACKUP_KEYS.projects]: 'old p', [OPENISD_BACKUP_KEYS.state]: 'old s'});
-    const result = createStorageBackup(storage, () => FIXED_NOW_MS).take();
+    const result = createStorageBackup(storage, () => FIXED_NOW_MS).take('manual');
     assert.equal(result.kind, 'taken');
     const read = readEnvelope(storage.get(takenKey('vunknown')) ?? '');
     assert.equal(read.kind, 'ok');
@@ -96,7 +96,7 @@ describe('take', () => {
   it('a backup never holds another backup', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p', [keyOf('vold')]: backupText(1, '20250101T000000Z', 'vold')});
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
-    backup.take();
+    backup.take('manual');
     const read = readEnvelope(storage.get(takenKey('vunknown')) ?? '');
     assert.ok(read.kind === 'ok');
     assert.deepEqual(Object.keys(read.snapshot.data), [OPENISD_PROJECTS_KEY]);
@@ -111,7 +111,7 @@ describe('retention', () => {
       initial[keyOf(stamp)] = backupText(1, `2025010${i}T000000Z`, stamp);
     }
     const storage = createMemoryStorage(initial);
-    createStorageBackup(storage, () => FIXED_NOW_MS).take();
+    createStorageBackup(storage, () => FIXED_NOW_MS).take('manual');
 
     const held = storage.keys().filter(k => k.startsWith(OPENISD_BACKUP_PREFIX));
     assert.equal(held.length, MAX_BACKUPS);
@@ -119,21 +119,34 @@ describe('retention', () => {
     assert.ok(held.includes(takenKey('vunknown')), 'the new one is held');
   });
 
-  it('never drops the newest backup of a layout, however old', () => {
+  it('keeps the newest 3 backups after each new one, whatever their layout (John, 14 Oct 2026)', () => {
+    assert.equal(MAX_BACKUPS, 3);
     const initial: Record<string, string> = {[OPENISD_PROJECTS_KEY]: 'p', [OPENISD_STORAGE_LAYOUT_KEY]: '2'};
-    // The only layout-1 backup is the OLDEST of all; nine layout-2 backups follow it.
     initial[keyOf('v20240101T0000Z')] = backupText(1, '20240101T000000Z', 'v20240101T0000Z');
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= 4; i++) {
       const stamp = `v2025010${i}T0000Z`;
       initial[keyOf(stamp)] = backupText(2, `2025010${i}T000000Z`, stamp);
     }
     const storage = createMemoryStorage(initial);
-    createStorageBackup(storage, () => FIXED_NOW_MS).take();
+    const taken = createStorageBackup(storage, () => FIXED_NOW_MS).take('manual');
 
-    const held = storage.keys().filter(k => k.startsWith(OPENISD_BACKUP_PREFIX));
-    assert.equal(held.length, MAX_BACKUPS);
-    assert.ok(held.includes(keyOf('v20240101T0000Z')), 'the only layout-1 backup stays');
-    assert.ok(!held.includes(keyOf('v20250101T0000Z')), 'the oldest layout-2 backup went instead');
+    const held = storage.keys().filter(k => k.startsWith(OPENISD_BACKUP_PREFIX)).sort();
+    assert.deepEqual(held, [
+      keyOf('v20240101T0000Z'), keyOf('v20250103T0000Z'), keyOf('v20250104T0000Z'), taken.kind === 'taken' ? taken.key : '',
+    ].sort(), 'the newest 3 of this layout, plus the pre-upgrade layout-1 backup outside the count');
+  });
+
+  it('never drops the newest backup of an older layout to keep the count, however many backups follow', () => {
+    const initial: Record<string, string> = {[OPENISD_PROJECTS_KEY]: 'p', [OPENISD_STORAGE_LAYOUT_KEY]: '2'};
+    initial[keyOf('v20230101T0000Z')] = backupText(1, '20230101T000000Z', 'v20230101T0000Z');
+    initial[keyOf('v20240101T0000Z')] = backupText(1, '20240101T000000Z', 'v20240101T0000Z');
+    const storage = createMemoryStorage(initial);
+    let tick = FIXED_NOW_MS;
+    const backup = createStorageBackup(storage, () => (tick += 1000));
+    for (let i = 0; i < 6; i++) backup.take('sync');
+    const layouts = backup.list().map(b => b.layout);
+    assert.deepEqual(layouts, [2, 2, 2, 1]);
+    assert.equal(backup.list()[3]?.key, keyOf('v20240101T0000Z'), 'the newest layout-1 backup stays; the older one went');
   });
 
   it('lists newest first with layout, build and time', () => {
@@ -156,7 +169,7 @@ describe('space', () => {
     const newer = backupText(1, '20250202T000000Z', 'v20250202T0000Z', {k: data});
     const storage = createQuotaStorage(1800, {[OPENISD_PROJECTS_KEY]: data, [keyOf('v20250101T0000Z')]: old, [keyOf('v20250202T0000Z')]: newer});
     // Layout 1's newest is v2025-02-02; the January one is droppable.
-    const result = createStorageBackup(storage, () => FIXED_NOW_MS).take();
+    const result = createStorageBackup(storage, () => FIXED_NOW_MS).take('manual');
     assert.equal(result.kind, 'taken');
     assert.equal(storage.get(keyOf('v20250101T0000Z')), null, 'the oldest went to make room');
     assert.notEqual(storage.get(keyOf('v20250202T0000Z')), null, 'the newest of the layout stayed');
@@ -200,14 +213,14 @@ describe('space', () => {
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
     let ran = false;
 
-    const taken = backup.take();
+    const taken = backup.take('manual');
     assert.equal(taken.kind, 'noRoom');
     // The sizes it saw: a copy bigger than the room left, and the live data the store held.
     if (taken.kind === 'noRoom') {
       assert.ok(taken.shortfall.copyChars > data.length);
       assert.equal(taken.shortfall.storeChars, OPENISD_PROJECTS_KEY.length + data.length);
     }
-    const guarded = backup.guard(() => { ran = true; });
+    const guarded = backup.guard('delete', () => { ran = true; });
 
     assert.deepEqual(guarded, {kind: 'refused', shortfall: taken.kind === 'noRoom' ? taken.shortfall : null});
     assert.equal(ran, false);
@@ -233,7 +246,7 @@ describe('space: last resort', () => {
   /** The size of the backup a take writes for `store`, measured on a store with no limit. */
   function copySize(): number {
     const free = createMemoryStorage(store);
-    createStorageBackup(free, () => FIXED_NOW_MS).take();
+    createStorageBackup(free, () => FIXED_NOW_MS).take('manual');
     return takenKey('vunknown').length + (free.get(takenKey('vunknown')) ?? '').length;
   }
   function removals(storage: ListableStorage): string[] {
@@ -247,7 +260,7 @@ describe('space: last resort', () => {
     const roomAfterTwo = size(store) - size({[keyOf('v20250101T0000Z')]: older, [OPENISD_BACKUP_KEYS.projects]: store[OPENISD_BACKUP_KEYS.projects]}) + copySize();
     const storage = createQuotaStorage(roomAfterTwo, store);
     const removed = removals(storage);
-    assert.equal(createStorageBackup(storage, () => FIXED_NOW_MS).take().kind, 'taken');
+    assert.equal(createStorageBackup(storage, () => FIXED_NOW_MS).take('manual').kind, 'taken');
     assert.deepEqual(removed, [keyOf('v20250101T0000Z'), OPENISD_BACKUP_KEYS.projects]);
     assert.notEqual(storage.get(keyOf('v20250202T0000Z')), null, 'the newest backup stayed');
   });
@@ -257,7 +270,7 @@ describe('space: last resort', () => {
     // the copy then keeps it.
     const storage = createQuotaStorage(size({[OPENISD_PROJECTS_KEY]: data}) + copySize(), store);
     const removed = removals(storage);
-    assert.equal(createStorageBackup(storage, () => FIXED_NOW_MS).take().kind, 'taken');
+    assert.equal(createStorageBackup(storage, () => FIXED_NOW_MS).take('manual').kind, 'taken');
     assert.deepEqual(removed, [
       keyOf('v20250101T0000Z'),
       OPENISD_BACKUP_KEYS.projects, OPENISD_BACKUP_KEYS.openSessions, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_BACKUP_KEYS.state,
@@ -272,17 +285,17 @@ describe('guard', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'before'});
     let now = FIXED_NOW_MS;
     const backup = createStorageBackup(storage, () => now);
-    const outer = backup.guard(() => {
+    const outer = backup.guard('delete', () => {
       now += 1000;
-      const inner = backup.guard(() => 'inner ran');
+      const inner = backup.guard('delete', () => 'inner ran');
       now += 1000;
-      const again = backup.guard(() => 'again');
+      const again = backup.guard('delete', () => 'again');
       return [inner, again];
     });
     assert.deepEqual(outer, {kind: 'ran', value: [{kind: 'ran', value: 'inner ran'}, {kind: 'ran', value: 'again'}]});
     assert.equal(backup.list().length, 1);
     now += 1000;
-    backup.guard(() => undefined);
+    backup.guard('delete', () => undefined);
     assert.equal(backup.list().length, 2, 'outside a guard, a guard backs up as before');
   });
 
@@ -290,7 +303,7 @@ describe('guard', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'before'});
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
 
-    const guarded = backup.guard(() => {
+    const guarded = backup.guard('delete', () => {
       const read = readEnvelope(storage.get(takenKey('vunknown')) ?? '');
       assert.ok(read.kind === 'ok', 'the backup exists by the time the write runs');
       assert.equal(read.snapshot.data[OPENISD_PROJECTS_KEY], 'before');
@@ -304,7 +317,7 @@ describe('guard', () => {
 
   it('runs the write on a store with nothing in it', () => {
     const storage = createMemoryStorage();
-    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).guard(() => 'fresh'), {kind: 'ran', value: 'fresh'});
+    assert.deepEqual(createStorageBackup(storage, () => FIXED_NOW_MS).guard('delete', () => 'fresh'), {kind: 'ran', value: 'fresh'});
   });
 });
 
@@ -319,3 +332,22 @@ describe('discard', () => {
     assert.equal(backup.discard(keyOf('v1')), false);
   });
 });
+
+describe('pre-repair copies', () => {
+  it('a copy kept now is dated, and reads back as the record text it holds', () => {
+    const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p'});
+    const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
+    backup.keepPreRepairCopy('view', 'the old view');
+    assert.deepEqual(backup.preRepairCopies(), [{kind: 'view', takenAt: '20260101T010203Z', size: 'the old view'.length}]);
+    assert.equal(backup.readPreRepairCopy('view'), 'the old view');
+    assert.equal(backup.readPreRepairCopy('state'), null);
+  });
+
+  it('every guarded backup records why it was taken', () => {
+    const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'p'});
+    const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
+    backup.guard('deleteForever', () => storage.remove(OPENISD_PROJECTS_KEY));
+    assert.deepEqual(backup.list().map(b => b.reason), ['deleteForever']);
+  });
+});
+

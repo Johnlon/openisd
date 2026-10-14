@@ -16,6 +16,7 @@ import type {
     ProjectBin,
     ProjectRepo,
     StorageHistory,
+    StorageUsage,
     ViewStateRepo
 } from '@openisd/persistence';
 import type {Logging} from '../logging/flash.js';
@@ -61,8 +62,10 @@ export interface AppLogic {
   /** Moving saved projects into and out of the Bin. */
   projectBin: ProjectBin;
   viewStateRepo: ViewStateRepo;
-  /** The backups held in this browser: the Options "Storage history" page. */
+  /** The backups held in this browser: the Options "Your data" Backups group. */
   storageHistory: StorageHistory;
+  /** What each kind of data takes in this browser: the Options "Your data" Storage group. */
+  storageUsage: StorageUsage;
   faultLog: FaultLog;
   releases: ReleaseWatch;
   appVersion: AppVersionPort;

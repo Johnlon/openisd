@@ -102,7 +102,7 @@ test('a store written by a newer layout is not opened: the user is offered the d
 
 async function openStorageHistory(page: Page): Promise<void> {
   await page.getByRole('button', {name: 'Options'}).or(page.locator('.tb-btn[title="Options"]')).first().click();
-  await page.locator('.opt-tab', {hasText: 'Storage history'}).click();
+  await page.locator('.opt-tab', {hasText: 'Your data'}).click();
   await expect(page.locator('.sh-page')).toBeVisible();
 }
 
@@ -116,7 +116,7 @@ async function withSomethingSaved(page: Page): Promise<void> {
   await page.reload();
 }
 
-test('Storage history: Back up now adds a row with build, layout, projects and size; Export, Delete and Restore act on it', async ({ page }) => {
+test('Backups: Back up now adds a row with build, layout, projects and size; Export, Delete and Restore act on it', async ({ page }) => {
   await withSomethingSaved(page);
   await openStorageHistory(page);
   // the test harness seeds the view before the app starts, so the app has already backed that up once
@@ -124,9 +124,8 @@ test('Storage history: Back up now adds a row with build, layout, projects and s
 
   await page.locator('.sh-backup-now').click();
   await expect(page.locator('.sh-row')).toHaveCount(before + 1);
-  // the one just made is layout 2; the harness-seeded start-up backup is layout 1
-  const row = page.locator('.sh-row').filter({ has: page.locator('.sh-layout', { hasText: /^2$/ }) });
-  await expect(row.locator('.sh-layout')).toHaveText('2');
+  const row = page.locator('.sh-row').filter({ has: page.locator('.sh-reason', { hasText: 'Back up now' }) });
+  await expect(row.locator('.sh-reason')).toHaveText('Back up now');
   await expect(row.locator('.sh-projects')).toHaveText('0 projects');
   await expect(row.locator('.sh-size')).toContainText(/\d+(\.\d)? (B|KB)/);
 
@@ -140,7 +139,7 @@ test('Storage history: Back up now adds a row with build, layout, projects and s
   expect(backups).toHaveLength(before);
 });
 
-test('Storage history: Restore asks first, backs the live store up, then reloads', async ({ page }) => {
+test('Backups: Restore asks first, backs the live store up, then reloads', async ({ page }) => {
   await withSomethingSaved(page);
   await openStorageHistory(page);
   const before = await page.locator('.sh-row').count();
@@ -151,7 +150,7 @@ test('Storage history: Restore asks first, backs the live store up, then reloads
   let reloaded = false;
   page.on('load', () => { reloaded = true; });
   page.on('dialog', async dialog => { await dialog.accept(); });
-  await page.locator('.sh-row').filter({ has: page.locator('.sh-layout', { hasText: /^2$/ }) }).locator('.sh-restore').click();
+  await page.locator('.sh-row').filter({ has: page.locator('.sh-reason', { hasText: 'Back up now' }) }).locator('.sh-restore').click();
   await expect(page.locator('.confirm-modal')).toContainText('A backup of what is here now is made first');
   await page.locator('.confirm-dialog-confirm').click();
   await expect.poll(() => reloaded).toBe(true);
@@ -161,14 +160,15 @@ test('Storage history: Restore asks first, backs the live store up, then reloads
   expect(backups.length).toBeGreaterThanOrEqual(2);
 });
 
-test('Storage history lists a copy kept before a repair with its size; Delete removes it', async ({ page }) => {
+test('Backups lists a copy kept before a repair with its size; Delete removes it', async ({ page }) => {
   await withSomethingSaved(page);
   await page.evaluate(() => { localStorage.setItem('openisd_view_backup', 'x'.repeat(40)); });
   await openStorageHistory(page);
   const copy = page.locator('.sh-copy-row');
-  await expect(copy.locator('.sh-copy-label')).toHaveText(['Window layout']);
-  await expect(copy.locator('.sh-copy-size')).toHaveText('40 B');
-  await copy.locator('.sh-copy-delete').click();
+  await expect(copy.locator('.sh-holds')).toHaveText(['Window layout']);
+  await expect(copy.locator('.sh-reason')).toHaveText('Before repair');
+  await expect(copy.locator('.sh-size')).toHaveText('40 B');
+  await copy.locator('.sh-delete').click();
   await page.locator('.confirm-dialog-confirm').click();
   await expect(copy).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('openisd_view_backup'))).toBeNull();

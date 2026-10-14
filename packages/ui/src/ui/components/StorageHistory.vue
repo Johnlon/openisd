@@ -1,73 +1,102 @@
 <script setup lang="ts">
-// The Options "Storage history" page: one row per backup held in this browser. Display only —
-// rows, wording and every action come from `StorageHistory-hooks.ts`.
+// The Options "Your data" Storage and Backups groups: what each kind of data takes, and everything
+// kept in this browser, one row each. Display only — rows, wording and every action come from
+// `StorageHistory-hooks.ts`.
 import {useStorageHistory} from '../../hooks/StorageHistory-hooks.js';
 
-const { rows, copies, backUpNow, exportRow, restoreRow, deleteRow, deleteCopy } = useStorageHistory();
+const {
+  usedLine, usageRows, binHasProjects, emptyBin, deleteAllBackups,
+  rows, totalSize, keepRule, picker, backUpNow, exportRow, restoreRow, openPicker, closePicker, restoreProject, deleteRow,
+} = useStorageHistory();
 
 async function onRestore(key: string) {
   const outcome = await restoreRow(key);
   if (outcome.kind === 'cancelled') return;
   if (outcome.kind === 'failed') { alert(`Could not restore: ${outcome.reason}`); return; }
-  alert(`Backup restored (${outcome.keysRestored} item${outcome.keysRestored === 1 ? '' : 's'}). The app will now reload.`);
+  alert(`Restored (${outcome.keysRestored} item${outcome.keysRestored === 1 ? '' : 's'}). The app will now reload.`);
   window.location.reload();
 }
 </script>
 
 <template>
-  <fieldset class="opt-group sh-page">
-    <legend>Storage history</legend>
-    <p class="opt-help">
-      A backup of everything in this browser is made before anything is restored, migrated, repaired or deleted.
-      The newest ten are kept.
-    </p>
+  <fieldset class="opt-group su-page">
+    <legend>Storage</legend>
+    <p class="opt-help su-used">{{ usedLine }}</p>
+    <dl class="su-rows">
+      <div v-for="u in usageRows" :key="u.label" class="su-row"><dt>{{ u.label }}</dt><dd>{{ u.size }}</dd></div>
+    </dl>
     <div class="opt-group-actions">
+      <button class="opt-reset-btn su-empty-bin" :disabled="!binHasProjects" @click="emptyBin">Empty Bin</button>
+      <button class="opt-reset-btn su-delete-all" :disabled="rows.length === 0" @click="deleteAllBackups">Delete all backups</button>
+    </div>
+  </fieldset>
+  <fieldset class="opt-group sh-page">
+    <legend>Backups</legend>
+    <p class="opt-help">{{ keepRule }}</p>
+    <div class="opt-group-actions sh-head">
       <button class="opt-reset-btn sh-backup-now" title="Make a backup of everything in this browser now." @click="backUpNow">
         Back up now
       </button>
+      <span class="sh-total">Total {{ totalSize }}</span>
     </div>
     <p v-if="rows.length === 0" class="opt-help sh-empty">No backups yet.</p>
     <ul v-else class="sh-rows">
-      <li v-for="row in rows" :key="row.key" class="sh-row">
-        <dl class="sh-facts">
-          <div><dt>Built</dt><dd class="sh-build">{{ row.build }}</dd></div>
-          <div><dt>Layout</dt><dd class="sh-layout">{{ row.layout }}</dd></div>
-          <div><dt>Projects</dt><dd class="sh-projects">{{ row.projects }}</dd></div>
-          <div><dt>Size</dt><dd class="sh-size">{{ row.size }}</dd></div>
-          <div><dt>Taken</dt><dd class="sh-taken">{{ row.takenAt }}</dd></div>
-        </dl>
-        <p v-if="row.note" class="opt-help sh-note">{{ row.note }}</p>
-        <div class="sh-actions">
-          <button class="opt-reset-btn sh-export" @click="exportRow(row.key)">Export</button>
-          <button class="opt-reset-btn sh-restore" :disabled="!row.restorable" @click="onRestore(row.key)">Restore</button>
-          <button class="opt-reset-btn sh-delete" @click="deleteRow(row.key)">Delete</button>
-        </div>
-      </li>
-    </ul>
-    <template v-if="copies.length > 0">
-      <h4 class="sh-copies-head">Copies kept before a repair</h4>
-      <p class="opt-help">When a record would not read, it was repaired and the old one kept here. They are dropped first when a backup needs room.</p>
-      <ul class="sh-rows sh-copies">
-        <li v-for="copy in copies" :key="copy.kind" class="sh-copy-row">
-          <span class="sh-copy-label">{{ copy.label }}</span>
-          <span class="sh-copy-size">{{ copy.size }}</span>
-          <button class="opt-reset-btn sh-copy-delete" @click="deleteCopy(copy)">Delete</button>
+      <template v-for="row in rows" :key="row.kind === 'copy' ? row.copy : row.key">
+        <li v-if="row.kind === 'backup'" class="sh-row">
+          <div class="sh-line">
+            <span class="sh-taken">{{ row.takenAt }}</span>
+            <span class="sh-reason">{{ row.reason }}</span>
+            <span class="sh-projects">{{ row.projects }}</span>
+            <span class="sh-size">{{ row.size }}</span>
+          </div>
+          <p v-if="row.note" class="opt-help sh-note">{{ row.note }}</p>
+          <div class="sh-actions">
+            <button class="opt-reset-btn sh-restore" :disabled="!row.restorable" @click="onRestore(row.key)">Restore everything</button>
+            <button class="opt-reset-btn sh-restore-one" :disabled="!row.restorable" @click="openPicker(row.key)">Restore one project</button>
+            <button class="opt-reset-btn sh-export" @click="exportRow(row)">Export</button>
+            <button class="opt-reset-btn sh-delete" @click="deleteRow(row)">Delete</button>
+          </div>
+          <div v-if="picker !== null && picker.key === row.key" class="sh-picker">
+            <p v-if="picker.projects.length === 0" class="opt-help">This backup holds no saved project.</p>
+            <div v-for="p in picker.projects" :key="p.id" class="sh-picker-row">
+              <span class="sh-picker-name">{{ p.name }}</span>
+              <button class="opt-reset-btn sh-picker-restore" :disabled="!p.readable" @click="restoreProject(p)">Restore</button>
+            </div>
+            <button class="opt-reset-btn sh-picker-close" @click="closePicker">Close</button>
+          </div>
         </li>
-      </ul>
-    </template>
+        <li v-else class="sh-row sh-copy-row">
+          <div class="sh-line">
+            <span class="sh-taken">{{ row.takenAt }}</span>
+            <span class="sh-reason">{{ row.reason }}</span>
+            <span class="sh-holds">{{ row.holds }}</span>
+            <span class="sh-size">{{ row.size }}</span>
+          </div>
+          <div class="sh-actions">
+            <button class="opt-reset-btn sh-export" @click="exportRow(row)">Export</button>
+            <button class="opt-reset-btn sh-delete" @click="deleteRow(row)">Delete</button>
+          </div>
+        </li>
+      </template>
+    </ul>
   </fieldset>
 </template>
 
 <style scoped>
+.su-rows { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 4px 0 0; }
+.su-row { display: flex; gap: 6px; }
+.su-row dt { color: var(--mut); }
+.su-row dd { margin: 0; }
+.sh-head { align-items: center; }
+.sh-total { color: var(--mut); }
 .sh-rows { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .sh-row { border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; }
-.sh-facts { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; }
-.sh-facts div { display: flex; gap: 6px; }
-.sh-facts dt { color: var(--mut); }
-.sh-facts dd { margin: 0; }
-.sh-copies-head { margin: 14px 0 4px; font-size: inherit; }
-.sh-copy-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; }
-.sh-copy-label { flex: 1; min-width: 0; }
-.sh-copy-size { color: var(--mut); }
+.sh-line { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.sh-reason { font-weight: 600; }
+.sh-size, .sh-projects, .sh-holds { color: var(--mut); }
 .sh-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.sh-picker { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.sh-picker-row { display: flex; align-items: center; gap: 8px; }
+.sh-picker-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.sh-picker-close { align-self: flex-start; }
 </style>

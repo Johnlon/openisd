@@ -16,7 +16,7 @@ export function createQuarantineRetirement(storage: ListableStorage, backup: Sto
   return {
     run() {
       if (storage.get(OPENISD_QUARANTINE_SESSION_KEY) === null) return 'nothingToDo';
-      const guarded = backup.guard(() => storage.remove(OPENISD_QUARANTINE_SESSION_KEY));
+      const guarded = backup.guard('startUpRewrite', () => storage.remove(OPENISD_QUARANTINE_SESSION_KEY));
       return guarded.kind === 'ran' ? 'retired' : 'refused';
     },
   };

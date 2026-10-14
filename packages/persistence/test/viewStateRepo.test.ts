@@ -4,9 +4,8 @@
  */
 import {describe, expect, it} from 'vitest';
 import {VIEW_STATE_KEY} from '../src/repos/viewStateRepo.js';
-import {OPENISD_BACKUP_KEYS} from '../src/repos/storageKeys.js';
 import {createSharedMemoryStorage} from '../src/storage/keyValueStorage.js';
-import {viewStateRepoOn} from './fixtures/repoOn.js';
+import {backupOn, viewStateRepoOn} from './fixtures/repoOn.js';
 
 describe('view state repo — chart ranges', () => {
   it('round-trips the sweep range and per-chart Y ranges', () => {
@@ -33,7 +32,7 @@ describe('view state repo — chart ranges', () => {
     const storage = createSharedMemoryStorage().tab();
     storage.set(VIEW_STATE_KEY, 'not json');
     viewStateRepoOn(storage).save({ui: {}});
-    expect(storage.get(OPENISD_BACKUP_KEYS.view)).toBe('not json');
+    expect(backupOn(storage).readPreRepairCopy('view')).toBe('not json');
   });
 
   it('saving over a readable view takes no backup', () => {
@@ -41,7 +40,7 @@ describe('view state repo — chart ranges', () => {
     const repo = viewStateRepoOn(storage);
     repo.save({ui: {}});
     repo.save({ui: {}});
-    expect(storage.get(OPENISD_BACKUP_KEYS.view)).toBeNull();
+    expect(backupOn(storage).readPreRepairCopy('view')).toBeNull();
   });
 });
 

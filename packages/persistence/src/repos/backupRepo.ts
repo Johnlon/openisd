@@ -43,7 +43,7 @@ export function createBackupRepo(
   const migrator = createLayoutMigrator(rules);
   const snapshots = createStorageSnapshot(storage, now);
   return {
-    exportAll: () => envelopeText(snapshots.take() ?? emptySnapshot(rules.layout, now()), true),
+    exportAll: () => envelopeText(snapshots.take() ?? emptySnapshot(rules.layout, now()), true, null),
 
     importAll(json, options) {
       const read = readEnvelope(json);
@@ -56,7 +56,7 @@ export function createBackupRepo(
       if (migrated === null) return {kind: 'invalid', reason: `This file is layout ${snapshot.layout} and this app cannot migrate it.`};
       const incoming = Object.entries(migrated).filter(([key]) => isStoreDataKey(key));
 
-      const guarded = backup.guard(() => {
+      const guarded = backup.guard('restore', () => {
         for (const [key, value] of incoming) storage.set(key, value);
         if (options.replaceEverything) {
           const kept = new Set(incoming.map(([key]) => key));

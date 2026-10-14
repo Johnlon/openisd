@@ -197,7 +197,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
 
     // A bucket written in the pre-envelope shape is adopted in place, same identities, so the
     // next read no longer has to recognise it. An ordinary read never rewrites the user's bytes.
-    if (!envelope.current) backup.guard(() => writeBack(slots, brokenRaw));
+    if (!envelope.current) backup.guard('startUpRewrite', () => writeBack(slots, brokenRaw));
 
     return { state: { kind: 'ok', entries, broken }, slots, brokenRaw };
   }
@@ -236,7 +236,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     replaceAll(next) {
       const { state } = readFull();
       if (state.kind === 'unreadable') return 'refused'; // read-only: the string is the only copy
-      const replaced = backup.guard(() => writeBack(next.map(v => ({ uuid: newUuid(), record: spec.snapshot(v) })), []));
+      const replaced = backup.guard('overwrite', () => writeBack(next.map(v => ({ uuid: newUuid(), record: spec.snapshot(v) })), []));
       return writeResult(replaced);
     },
 
@@ -248,7 +248,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
       const nextSlots = [...slots];
       if (idx >= 0) {
         nextSlots[idx] = { uuid: id, record: spec.snapshot(value) };
-        const guarded = backup.guard(() => writeBack(nextSlots, brokenRaw));
+        const guarded = backup.guard('overwrite', () => writeBack(nextSlots, brokenRaw));
         if (guarded.kind === 'refused' || !guarded.value) return null;
         return { uuid: id, overwrote: true };
       }
@@ -263,7 +263,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
       if (state.kind !== 'ok') return 'refused';
       const kept = slots.filter(s => s.uuid !== uuid);
       if (kept.length === slots.length) return 'refused';
-      const removed = backup.guard(() => writeBack(kept, brokenRaw));
+      const removed = backup.guard('delete', () => writeBack(kept, brokenRaw));
       return writeResult(removed);
     },
 
@@ -275,7 +275,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
       const { state, slots, brokenRaw } = readFull();
       if (state.kind !== 'ok') return 'refused';
       if (key < 0 || key >= brokenRaw.length) return 'refused';
-      const removed = backup.guard(() => writeBack(slots, brokenRaw.filter((_, i) => i !== key)));
+      const removed = backup.guard('delete', () => writeBack(slots, brokenRaw.filter((_, i) => i !== key)));
       return writeResult(removed);
     },
 
@@ -285,7 +285,7 @@ export function createSavedEntries<T>(storage: KeyValueStorage, spec: SavedEntri
     },
 
     deleteAll() {
-      const wiped = backup.guard(() => {
+      const wiped = backup.guard('delete', () => {
         try { storage.set(spec.key, JSON.stringify({ entries: [] })); }
         catch { /* unavailable storage: nothing to wipe */ }
       });

@@ -260,13 +260,14 @@ async function gzipDecodeBase64Url(encoded: string): Promise<string> {
 /** A stored record a project is read from, and where its pre-repair text is kept. */
 interface StoredSource {
   readonly key: string;
+  readonly copy: 'state' | 'projects' | 'openSessions';
   readonly backupKey: string;
 }
 
-const AUTOSAVE_SOURCE: StoredSource = { key: OPENISD_STATE_KEY, backupKey: OPENISD_BACKUP_KEYS.state };
-const LEGACY_AUTOSAVE_SOURCE: StoredSource = { key: LEGACY_PROJECT_STORAGE_KEY, backupKey: OPENISD_BACKUP_KEYS.state };
-const SAVED_PROJECTS_SOURCE: StoredSource = { key: OPENISD_PROJECTS_KEY, backupKey: OPENISD_BACKUP_KEYS.projects };
-const OPEN_SESSION_SOURCE: StoredSource = { key: OPENISD_OPEN_SESSIONS_KEY, backupKey: OPENISD_BACKUP_KEYS.openSessions };
+const AUTOSAVE_SOURCE: StoredSource = { key: OPENISD_STATE_KEY, copy: 'state', backupKey: OPENISD_BACKUP_KEYS.state };
+const LEGACY_AUTOSAVE_SOURCE: StoredSource = { key: LEGACY_PROJECT_STORAGE_KEY, copy: 'state', backupKey: OPENISD_BACKUP_KEYS.state };
+const SAVED_PROJECTS_SOURCE: StoredSource = { key: OPENISD_PROJECTS_KEY, copy: 'projects', backupKey: OPENISD_BACKUP_KEYS.projects };
+const OPEN_SESSION_SOURCE: StoredSource = { key: OPENISD_OPEN_SESSIONS_KEY, copy: 'openSessions', backupKey: OPENISD_BACKUP_KEYS.openSessions };
 
 export function createProjectRepo(
   engine: Engine, fileStorage: FileStorage,
@@ -293,7 +294,7 @@ export function createProjectRepo(
     if (Array.isArray(result)) return result;
     if (result.repaired.length > 0 && source !== null) {
       const original = storage.get(source.key);
-      if (original !== null) backup.guard(() => storage.set(source.backupKey, original));
+      if (original !== null) backup.guard('repair', () => backup.keepPreRepairCopy(source.copy, original));
       onRepaired({
         projectName: result.project.name.value,
         repaired: result.repaired,
@@ -448,8 +449,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const dedup = deduplicateProjectEntries(payload.entries);
       const migrated = migrateEntries(dedup.entries);
       if (dedup.changed || migrated.changed) {
-        backup.guard(() => {
-          storage.set(OPENISD_BACKUP_KEYS.projects, text);
+        backup.guard('startUpRewrite', () => {
+          backup.keepPreRepairCopy('projects', text);
           writeStoredEntries(migrated.entries);
         });
       }
@@ -470,8 +471,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       }
       const migrated = migrateEntries(payload.entries);
       if (migrated.changed) {
-        backup.guard(() => {
-          storage.set(OPENISD_BACKUP_KEYS.openSessions, text);
+        backup.guard('startUpRewrite', () => {
+          backup.keepPreRepairCopy('openSessions', text);
           storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries: migrated.entries, focusedId: payload.focusedId } satisfies OpenSessionPayload));
         });
       }
@@ -485,8 +486,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     if (text === null) return;
     const res = migratePayloadText(text);
     if (res.changed) {
-      backup.guard(() => {
-        storage.set(OPENISD_BACKUP_KEYS.state, text);
+      backup.guard('startUpRewrite', () => {
+        backup.keepPreRepairCopy('state', text);
         storage.set(PROJECT_STORAGE_KEY, res.text);
       });
     }
@@ -720,7 +721,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
 
       const nowIso = new Date().toISOString();
       if (existingIdx >= 0) {
-        const guarded = backup.guard(() => {
+        const guarded = backup.guard('sync', () => {
           const nextEntries = [...currentEntries];
           nextEntries[existingIdx] = { id, text: finalBody, modified: nowIso };
           writeStoredEntries(nextEntries);
@@ -743,7 +744,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const entries = readStoredEntries();
       const gone = entries.find(e => e.id === id);
       if (gone === undefined) return 'refused';
-      const guarded = backup.guard(() => {
+      const guarded = backup.guard('delete', () => {
         writeStoredEntries(entries.filter(e => e.id !== id));
         if (storage.get(PROJECT_STORAGE_KEY) === gone.text) storage.remove(PROJECT_STORAGE_KEY);
         for (const key of [OPEN_SESSION_STORAGE_KEY, QUARANTINE_SESSION_STORAGE_KEY]) {
@@ -770,7 +771,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       if (existingIdx < 0) return 'refused';
 
       const nonNullPayload = payload;
-      const guarded = backup.guard(() => {
+      const guarded = backup.guard('sync', () => {
         const nextEntries = nonNullPayload.entries.filter(e => e.id !== id);
         writeStoredEntries(nextEntries);
       });

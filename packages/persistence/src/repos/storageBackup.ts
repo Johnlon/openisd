@@ -13,11 +13,15 @@
  *  REFUSED: the user exports first (repair rule).
  *
  *  One backup per guarded operation: a guard that starts while another runs takes none, since
- *  the outer backup already holds the whole store (a sync run's pulled writes, T153). */
-import {basicUtc} from '@openisd/design/fields';
+ *  the outer backup already holds the whole store (a sync run's pulled writes, T153).
+ *
+ *  Count: the newest three backups are kept; after each new one the older ones are removed
+ *  (John, 14 Oct 2026). The newest backup of each older layout is outside that count. Each backup
+ *  records why it was taken. */
 import type {ListableStorage} from '../storage/keyValueStorage.js';
 import type {BuildStamp} from './buildStamp.js';
-import {createStorageSnapshot, envelopeText, readEnvelope} from './storageSnapshot.js';
+import {basicUtc} from '@openisd/design/fields';
+import {createStorageSnapshot, envelopeText, readEnvelope, type BackupReason} from './storageSnapshot.js';
 import {OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_REFUSED_PREFIX} from './storageKeys.js';
 
 /** What the user is told when a write that would remove or replace saved data is refused because
@@ -25,8 +29,8 @@ import {OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_QUARANTINE_SESSION_K
 export const NO_ROOM_TO_BACK_UP =
   'Nothing was changed. There is no room in this browser to back up your saved data first. Export it, then try again.';
 
-/** Backups kept, oldest dropped first. */
-export const MAX_BACKUPS = 10;
+/** Backups kept: after each new one, all but the newest this many are removed. */
+export const MAX_BACKUPS = 3;
 
 export interface BackupInfo {
   /** The storage key the backup lives under. */
@@ -37,6 +41,8 @@ export interface BackupInfo {
   readonly build: BuildStamp | null;
   /** When the backup was taken, ISO 8601 basic UTC; '' when unreadable. */
   readonly takenAt: string;
+  /** Why it was taken; null when unreadable, or taken before reasons were recorded. */
+  readonly reason: BackupReason | null;
   /** Length of the backup text, in characters. */
   readonly size: number;
 }
@@ -80,11 +86,11 @@ export type Guarded<T> =
   | {kind: 'refused'; shortfall: RoomShortfall};
 
 export interface StorageBackup {
-  /** Copy the whole store to its backup key. */
-  take(): BackupResult;
+  /** Copy the whole store to its backup key, recording why. */
+  take(reason: BackupReason): BackupResult;
   /** Run `destructive` only after the whole store is backed up; refuse it when the backup does
    *  not fit. THE door for every write that removes or replaces a stored key. */
-  guard<T>(destructive: () => T): Guarded<T>;
+  guard<T>(reason: BackupReason, destructive: () => T): Guarded<T>;
   /** Every backup held, newest first. */
   list(): BackupInfo[];
   /** The backup text under `key` (an envelope, as `readEnvelope` reads it), or null. */
@@ -92,10 +98,16 @@ export interface StorageBackup {
   /** Delete the backup under `key`. False, and nothing deleted, when `key` is not a backup. A
    *  backup is not itself backed up: it is the copy. */
   discard(key: string): boolean;
+  /** Keep `text` as the pre-repair copy of `kind`, dated now, before a repair rewrites that record. */
+  keepPreRepairCopy(kind: Exclude<PreRepairKind, 'quarantineSession'>, text: string): void;
   /** The pre-repair copies held, in the order they would be dropped for room. */
   preRepairCopies(): PreRepairCopy[];
+  /** The record text the copy of `kind` holds, or null when none is held. */
+  readPreRepairCopy(kind: PreRepairKind): string | null;
   /** Delete the pre-repair copy of `kind`. False when none is held. */
   discardCopy(kind: PreRepairKind): boolean;
+  /** Delete every backup and every kept copy (refused copies too), the pre-upgrade backup too. Returns how many went. */
+  discardAll(): number;
   /** Write a data key, dropping backups oldest first until it fits, the newest last. False when it
    *  does not fit even with every backup gone. Live data outranks its own backups: a save never
    *  fails for want of room a backup is using. */
@@ -117,8 +129,27 @@ export type PreRepairKind = 'projects' | 'openSessions' | 'quarantineSession' | 
 /** One copy a repair kept, as the Backups page lists it. */
 export interface PreRepairCopy {
   readonly kind: PreRepairKind;
-  /** Length of the copy, in characters. */
+  /** When the copy was kept, ISO 8601 basic UTC; '' for a copy kept before dates were recorded. */
+  readonly takenAt: string;
+  /** Length of the record's text, in characters. */
   readonly size: number;
+}
+
+/** A pre-repair copy is held as `{openisdPreRepair, at, text}`; one kept before that is the bare text. */
+function readCopy(held: string): {takenAt: string; text: string} {
+  try {
+    const parsed: unknown = JSON.parse(held);
+    if (typeof parsed === 'object' && parsed !== null && 'openisdPreRepair' in parsed && parsed.openisdPreRepair === true
+      && 'at' in parsed && typeof parsed.at === 'string' && 'text' in parsed && typeof parsed.text === 'string') {
+      return {takenAt: parsed.at, text: parsed.text};
+    }
+  } catch { /* the bare text of an older copy */ }
+  return {takenAt: '', text: held};
+}
+
+/** The record text a pre-repair copy holds, as `held` under its key. */
+export function preRepairCopyText(held: string): string {
+  return readCopy(held).text;
 }
 
 /** The copies a repair keeps of a record it rewrote, dropped in this order when a backup needs room. */
@@ -159,8 +190,8 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
   function infoOf(key: string): BackupInfo {
     const text = storage.get(key) ?? '';
     const read = readEnvelope(text);
-    if (read.kind === 'invalid') return {key, layout: 0, build: null, takenAt: '', size: text.length};
-    return {key, layout: read.snapshot.layout, build: read.snapshot.build, takenAt: read.snapshot.exportedAt, size: text.length};
+    if (read.kind === 'invalid') return {key, layout: 0, build: null, takenAt: '', reason: null, size: text.length};
+    return {key, layout: read.snapshot.layout, build: read.snapshot.build, takenAt: read.snapshot.exportedAt, reason: read.reason, size: text.length};
   }
 
   function list(): BackupInfo[] {
@@ -222,12 +253,20 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     return false;
   }
 
+  /** Remove all but the newest MAX_BACKUPS, never `keep`. The newest backup of each older layout
+   *  (the copy from before an upgrade) is outside the count: a backup must always exist across
+   *  upgrades (John's ruling, 14 Oct 2026). Only `lastResort`, for room, may drop it. */
   function trim(keep: string): void {
-    while (list().length > MAX_BACKUPS) {
-      const victim = droppable(keep);
-      if (victim === null) return;
-      storage.remove(victim.key);
+    const all = list();
+    const currentLayout = all.find(b => b.key === keep)?.layout ?? 0;
+    const preUpgrade = new Set<string>();
+    const seen = new Set<number>();
+    for (const info of all) { // newest first
+      if (info.layout !== 0 && info.layout !== currentLayout && !seen.has(info.layout)) preUpgrade.add(info.key);
+      seen.add(info.layout);
     }
+    const counted = all.filter(b => b.key !== keep && !preUpgrade.has(b.key));
+    for (const info of counted.slice(MAX_BACKUPS - 1)) storage.remove(info.key);
   }
 
   /** `base`, or `base_01` .. `base_99` when a backup is already held under it (same build, same second). */
@@ -245,10 +284,10 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     return storage.keys().reduce((sum, key) => sum + key.length + (storage.get(key)?.length ?? 0), 0);
   }
 
-  function take(): BackupResult {
+  function take(reason: BackupReason): BackupResult {
     const snapshot = snapshots.take();
     if (snapshot === null) return {kind: 'nothingToBackUp'};
-    const text = envelopeText(snapshot, false);
+    const text = envelopeText(snapshot, false, reason);
     const noRoom = (): BackupResult => ({kind: 'noRoom', shortfall: {copyChars: text.length, storeChars: storeChars()}});
     const key = freeKey(`${OPENISD_BACKUP_PREFIX}${snapshot.build.text}_${snapshot.exportedAt}`);
     if (key === null) return noRoom();
@@ -284,9 +323,9 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
 
   return {
     take,
-    guard<T>(destructive: () => T): Guarded<T> {
+    guard<T>(reason: BackupReason, destructive: () => T): Guarded<T> {
       if (guarding) return {kind: 'ran', value: destructive()};
-      const taken = take();
+      const taken = take(reason);
       if (taken.kind === 'noRoom') return {kind: 'refused', shortfall: taken.shortfall};
       guarding = true;
       try {
@@ -315,17 +354,35 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
       storage.remove(key);
       return true;
     },
+    keepPreRepairCopy(kind, text) {
+      const copy = PRE_REPAIR_COPIES.find(c => c.kind === kind);
+      if (copy !== undefined) storage.set(copy.key, JSON.stringify({openisdPreRepair: true, at: basicUtc(now()), text}));
+    },
     preRepairCopies() {
       return PRE_REPAIR_COPIES.flatMap(({kind, key}) => {
-        const text = storage.get(key);
-        return text === null ? [] : [{kind, size: text.length}];
+        const held = storage.get(key);
+        if (held === null) return [];
+        const {takenAt, text} = readCopy(held);
+        return [{kind, takenAt, size: text.length}];
       });
+    },
+    readPreRepairCopy(kind) {
+      const held = storage.get(PRE_REPAIR_COPIES.find(c => c.kind === kind)?.key ?? '');
+      return held === null ? null : readCopy(held).text;
     },
     discardCopy(kind) {
       const copy = PRE_REPAIR_COPIES.find(c => c.kind === kind);
       if (copy === undefined || storage.get(copy.key) === null) return false;
       storage.remove(copy.key);
       return true;
+    },
+    discardAll() {
+      const keys = [
+        ...list().map(b => b.key), ...PRE_REPAIR_COPIES.map(c => c.key).filter(key => storage.get(key) !== null),
+        ...storage.keys().filter(key => key.startsWith(OPENISD_REFUSED_PREFIX)),
+      ];
+      for (const key of keys) storage.remove(key);
+      return keys.length;
     },
   };
 }

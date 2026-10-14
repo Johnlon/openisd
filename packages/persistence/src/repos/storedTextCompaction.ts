@@ -75,7 +75,7 @@ export function createStoredTextCompaction(storage: ListableStorage, backup: Sto
     run() {
       const rewrites = pending();
       if (rewrites.length === 0) return {kind: 'nothingToDo'};
-      const done = backup.guard(() => {
+      const done = backup.guard('startUpRewrite', () => {
         for (const rewrite of rewrites) {
           storage.set(rewrite.key, rewrite.after);
           if (rewrite.key === OPENISD_PROJECTS_KEY) for (const entry of rewrite.entries) projectRewritten(entry.id, entry.before, entry.after);

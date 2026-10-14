@@ -9,7 +9,7 @@ import {createStoredDataFault} from './storedDataFault.js';
 import type {ChartView, ViewRange, ViewSnapshot} from './projectRepo.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import type {StorageBackup} from './storageBackup.js';
-import {OPENISD_VIEW_KEY, OPENISD_BACKUP_KEYS} from './storageKeys.js';
+import {OPENISD_VIEW_KEY} from './storageKeys.js';
 
 export const VIEW_STATE_KEY = OPENISD_VIEW_KEY;
 
@@ -85,8 +85,8 @@ export function createViewStateRepo(
       // A stored view this repo could not read is about to be overwritten: keep its text.
       const before = storage.get(VIEW_STATE_KEY);
       if (before !== null && !readsCleanly(before)) {
-        backup.guard(() => {
-          storage.set(OPENISD_BACKUP_KEYS.view, before);
+        backup.guard('repair', () => {
+          backup.keepPreRepairCopy('view', before);
           storage.set(VIEW_STATE_KEY, canonicalJson(v));
         });
         return;
@@ -114,7 +114,7 @@ export function createViewStateRepo(
     },
     exportRaw: () => storage.get(VIEW_STATE_KEY),
     reset(): boolean {
-      const ran = backup.guard(() => storage.remove(VIEW_STATE_KEY)).kind === 'ran';
+      const ran = backup.guard('reset', () => storage.remove(VIEW_STATE_KEY)).kind === 'ran';
       if (ran) onReplaced();
       return ran;
     },

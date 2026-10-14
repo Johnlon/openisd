@@ -200,7 +200,11 @@ export interface FaultLog {
 
 /** `records` is a thunk: the fault log is created before the repos (so a fault while the app is
  *  being wired is still caught); until they exist, no repair is offered. */
-export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault, cloudSync: CloudSyncText): FaultLog {
+/** `keptCopy` reads the record text a repair kept under `key`, or null when none is held. */
+export function createFaultLog(
+  saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault, cloudSync: CloudSyncText,
+  keptCopy: (key: string) => string | null,
+): FaultLog {
   function ladder(): readonly QuickFix[] {
     try { return repairLadder(records()); } catch { return []; }
   }
@@ -237,7 +241,7 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
     },
     downloadOriginal: (notice) => {
       if (notice.backupKey === null) return false;
-      const text = localStorage.getItem(notice.backupKey);
+      const text = keptCopy(notice.backupKey);
       if (text === null) return false;
       saveBackup(`${notice.backupKey}.json`, text);
       return true;

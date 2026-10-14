@@ -81,7 +81,7 @@ export function createProjectBinMarks(storage: KeyValueStorage, backup: StorageB
       const held = read();
       if (held.kind !== 'ok') return 'refused';
       if (!held.entries.some(e => e.id === id)) return 'done';
-      const guarded = backup.guard(() => written(held.entries.filter(e => e.id !== id)));
+      const guarded = backup.guard('binRestore', () => written(held.entries.filter(e => e.id !== id)));
       return guarded.kind === 'ran' && guarded.value ? 'done' : 'refused';
     },
   };

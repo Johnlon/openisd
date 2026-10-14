@@ -19,7 +19,7 @@ async function renderHook(
   }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {
     lines: () => cloudSyncReportLines(cloudSync()),
     summary: () => cloudSyncSummary(cloudSync()),
-  });
+  }, key => storage.get(key));
   let api!: DiagnosticsModalAPI;
   const Child = defineComponent({
     setup() {
@@ -180,15 +180,11 @@ describe('useDiagnosticsModal', () => {
 
     it('Download the original hands the backed-up text to the backup writer', async () => {
       const saveBackup = vi.fn<SaveBackup>();
-      vi.stubGlobal('localStorage', {getItem: (k: string) => k === REPORT.backupKey ? 'the original' : null});
-      try {
-        const api = await renderHook(saveBackup);
-        api.faultLog.recordRepair(REPORT);
-        api.downloadOriginal(api.faultLog.repairs[0]);
-        expect(saveBackup).toHaveBeenCalledWith('openisd_open_sessions_backup.json', 'the original');
-      } finally {
-        vi.unstubAllGlobals();
-      }
+      const storage = createMemoryStorage({[REPORT.backupKey ?? '']: 'the original'});
+      const api = await renderHook(saveBackup, storage);
+      api.faultLog.recordRepair(REPORT);
+      api.downloadOriginal(api.faultLog.repairs[0]);
+      expect(saveBackup).toHaveBeenCalledWith('openisd_open_sessions_backup.json', 'the original');
     });
   });
 });

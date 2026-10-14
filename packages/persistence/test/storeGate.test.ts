@@ -153,10 +153,10 @@ describe('a store of a newer layout', () => {
     [OPENISD_PROJECTS_KEY]: 'projects from the future', [OPENISD_STORAGE_LAYOUT_KEY]: '4', [OPENISD_STORAGE_BUILD_KEY]: 'v20270101T0000Z',
     [`${OPENISD_BACKUP_PREFIX}v20260101T0000Z`]: envelopeText({
       layout: 2, build: BuildStamp.ofStored('v20260101T0000Z'), exportedAt: '20260101T000000Z', data: {[OPENISD_PROJECTS_KEY]: 'old projects'},
-    }, false),
+    }, false, 'manual'),
     [`${OPENISD_BACKUP_PREFIX}v20270101T0000Z`]: envelopeText({
       layout: 4, build: BuildStamp.ofStored('v20270101T0000Z'), exportedAt: '20270101T000000Z', data: {[OPENISD_PROJECTS_KEY]: 'newer backup'},
-    }, false),
+    }, false, 'manual'),
   });
 
   function newer(storage: ListableStorage) {

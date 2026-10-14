@@ -13,7 +13,7 @@ import {
   createMemoryStorage,
   createPrefsRepo,
   isStoredDataFault,
-  createProjectBin,
+  createProjectBin, createStorageUsage,
   createProjectBinMarks,
 } from '@openisd/persistence';
 import {createLogging} from '../../src/logging/flash.js';
@@ -44,7 +44,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const storage = createMemoryStorage();
   const faultLog = createFaultLog(() => undefined, () => ({
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
-  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {lines: () => [], summary: () => null});
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {lines: () => [], summary: () => null}, () => null);
   const driverRepo = createBundledDriverRepo({
     fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });
@@ -77,7 +77,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage),
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage: createStorageUsage(storage, projectBin),
     releases: new ReleaseWatch('', {
       latestVersion: () => Promise.resolve(null),
       reloadOntoLatest: () => Promise.resolve(),

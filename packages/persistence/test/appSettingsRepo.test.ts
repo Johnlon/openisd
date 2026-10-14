@@ -12,7 +12,7 @@ import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/desig
 import type {VentedDesignLimits, EnvDefaults} from '@openisd/design/engine';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {APP_SETTINGS_KEY, createAppSettingsRepo, createFavouritesRepo} from '../src/repos/appSettingsRepo.js';
-import {OPENISD_BACKUP_KEYS, OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY} from '../src/repos/storageKeys.js';
+import {OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY} from '../src/repos/storageKeys.js';
 import {isStoredDataFault, type StoredDataFault} from '../src/repos/storedDataFault.js';
 import {appSettingsRepoOn, backupOn} from './fixtures/repoOn.js';
 
@@ -159,7 +159,7 @@ describe('createAppSettingsRepo', () => {
       const text = JSON.stringify({vented: 'garbage', env: ENV});
       const storage = createMemoryStorage({[APP_SETTINGS_KEY]: text});
       appSettingsRepoOn(storage).setVentedLimits(EDITED);
-      assert.equal(storage.get(OPENISD_BACKUP_KEYS.appSettings), text);
+      assert.equal(backupOn(storage).readPreRepairCopy('appSettings'), text);
       assert.deepEqual(appSettingsRepoOn(storage).envDefaults(), ENV);
     });
 
@@ -167,7 +167,7 @@ describe('createAppSettingsRepo', () => {
       const storage = createMemoryStorage();
       appSettingsRepoOn(storage).setVentedLimits(EDITED);
       appSettingsRepoOn(storage).setEnvDefaults(ENV);
-      assert.equal(storage.get(OPENISD_BACKUP_KEYS.appSettings), null);
+      assert.equal(backupOn(storage).readPreRepairCopy('appSettings'), null);
     });
   });
 });

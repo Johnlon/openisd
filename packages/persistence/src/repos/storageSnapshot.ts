@@ -23,8 +23,17 @@ export interface StoreSnapshot {
   readonly data: Readonly<Record<string, string>>;
 }
 
+/** Why a whole-store backup was taken. Recorded in the backup, shown on the Backups page. */
+export type BackupReason =
+  | 'manual' | 'sync' | 'delete' | 'deleteForever' | 'binRestore' | 'repair' | 'startUpRewrite' | 'restore' | 'reset' | 'overwrite';
+
+const BACKUP_REASONS: readonly BackupReason[] = [
+  'manual', 'sync', 'delete', 'deleteForever', 'binRestore', 'repair', 'startUpRewrite', 'restore', 'reset', 'overwrite',
+];
+
+/** `reason` is null for a downloaded export, and for a backup taken before reasons were recorded. */
 export type EnvelopeRead =
-  | {kind: 'ok'; snapshot: StoreSnapshot}
+  | {kind: 'ok'; snapshot: StoreSnapshot; reason: BackupReason | null}
   | {kind: 'invalid'; reason: string};
 
 /** Whether `key` is store DATA: an `openisd_` key that is not a whole-store backup, the log,
@@ -95,13 +104,15 @@ export function emptySnapshot(layout: number, nowMs: number): StoreSnapshot {
   return {layout, build: BuildStamp.UNKNOWN, exportedAt: basicUtc(nowMs), data: {}};
 }
 
-export function envelopeText(snapshot: StoreSnapshot, pretty: boolean): string {
+/** `reason` is why an in-store backup was taken; null for an export. */
+export function envelopeText(snapshot: StoreSnapshot, pretty: boolean, reason: BackupReason | null): string {
   const envelope = {
     openisdBackup: true,
     schemaVersion: ENVELOPE_VERSION,
     layout: snapshot.layout,
     build: snapshot.build.text,
     exportedAt: snapshot.exportedAt,
+    ...(reason === null ? {} : {reason}),
     data: snapshot.data,
   };
   return pretty ? JSON.stringify(envelope, null, 2) : JSON.stringify(envelope);
@@ -131,5 +142,6 @@ export function readEnvelope(text: string): EnvelopeRead {
   }
   const build = 'build' in parsed && typeof parsed.build === 'string' ? BuildStamp.ofStored(parsed.build) : BuildStamp.UNKNOWN;
   const exportedAt = 'exportedAt' in parsed && typeof parsed.exportedAt === 'string' ? parsed.exportedAt : '';
-  return {kind: 'ok', snapshot: {layout, build, exportedAt, data}};
+  const reason = 'reason' in parsed ? BACKUP_REASONS.find(r => r === parsed.reason) ?? null : null;
+  return {kind: 'ok', snapshot: {layout, build, exportedAt, data}, reason};
 }

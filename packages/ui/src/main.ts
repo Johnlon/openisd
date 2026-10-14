@@ -18,6 +18,8 @@ import {
     createFileSave,
     createExportedFiles,
     createStorageHistory,
+    createStorageUsage,
+    preRepairCopyText,
     createLocalStorage,
     createMemoryStorage,
     LAYOUT_STEPS,
@@ -132,7 +134,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     {
       lines: () => cloudSyncReportLines(cloudSync === null ? null : cloudSync.diagnostics()),
       summary: () => cloudSyncSummary(cloudSync === null ? null : cloudSync.diagnostics()),
-    });
+    },
+    key => { const held = storage.get(key); return held === null ? null : preRepairCopyText(held); });
   faultLog.install();
 
   // TELEMETRY: anonymous usage events, fire-and-forget. Built here and handed to what records them.
@@ -213,7 +216,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
 
   const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules, forgetCloudSyncRecord);
-  const storageHistory = createStorageHistory(storageBackup, backup, layoutRules);
+  const storageHistory = createStorageHistory(storageBackup, backup, layoutRules, projectRepo);
+  const storageUsage = createStorageUsage(storage, projectBin);
   const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse });
 
   // sessionStorage wrapper for release watch (survives page reload, not browser restart)
@@ -376,7 +380,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, releases, appVersion, versionIndex,
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, releases, appVersion, versionIndex,
     confirmPort, appState, presentation,
     recordedProjectId: recordedProjectIdStore.get,
     cloudSync,

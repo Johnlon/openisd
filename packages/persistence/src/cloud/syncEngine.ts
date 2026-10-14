@@ -541,7 +541,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     let backupRefused: RoomShortfall | null = null;
 
     if (hasDestructive) {
-      const guardRes = deps.backup.guard(() => {
+      const guardRes = deps.backup.guard('sync', () => {
         applyLocalWrites();
       });
       if (guardRes.kind === 'refused') {
@@ -738,7 +738,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
 
               let copyRes: { readonly id: DocId } | 'refused';
               if (!backupRan) {
-                const g = deps.backup.guard(() => doConflict());
+                const g = deps.backup.guard('sync', () => doConflict());
                 if (g.kind === 'ran') {
                   copyRes = g.value;
                   backupRan = true;

@@ -1,0 +1,58 @@
+id: T168
+release_note: Options has one "Your data" tab. Storage shows how much each kind of data takes, with Empty Bin and Delete all backups. Backups lists everything kept, newest first, with when and why it was made; you can restore everything, restore one project, export or delete each one. The newest 3 backups are kept, plus the last one made before an app update. Export / Import is the same tab.
+repo: openisd
+owner: maryu
+status: done
+goal: Options "Your data" tab — Storage, Backups (one list, reason, keep 3, restore one project), Export / Import
+done_test: bash scripts/test.sh packages/persistence/test/storageBackup.test.ts packages/persistence/test/storageHistory.test.ts packages/persistence/test/storageUsage.test.ts packages/ui/test/hooks/StorageHistory-hooks.test.ts
+files:
+  - tasks/T168.yml
+  - packages/ui/test/ui/mobile-storage-history.browser.spec.ts
+  - docs/design/CLOUD_SYNC.md
+  - packages/design/fields/format.ts
+  - packages/design/fields/index.ts
+  - packages/persistence/src/cloud/syncEngine.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/repos/appSettingsRepo.ts
+  - packages/persistence/src/repos/backupRepo.ts
+  - packages/persistence/src/repos/projectBin.ts
+  - packages/persistence/src/repos/projectBinMarks.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/repos/savedEntries.ts
+  - packages/persistence/src/repos/storageBackup.ts
+  - packages/persistence/src/repos/storageHistory.ts
+  - packages/persistence/src/repos/storageSnapshot.ts
+  - packages/persistence/src/repos/storeGate.ts
+  - packages/persistence/src/repos/storedTextCompaction.ts
+  - packages/persistence/src/repos/viewStateRepo.ts
+  - packages/persistence/test/appSettingsRepo.test.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/persistence/test/storageBackup.test.ts
+  - packages/persistence/test/storageHistory.test.ts
+  - packages/persistence/test/storeGate.test.ts
+  - packages/persistence/test/stored-pre-t036.test.ts
+  - packages/persistence/test/viewStateRepo.test.ts
+  - packages/ui/src/diagnostics/faultLog.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/src/ui/components/StorageHistory.vue
+  - packages/ui/test/fixtures/repoOn.ts
+  - packages/ui/test/hooks/StorageHistory-hooks.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/ui/mobile-backups.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/storage-guard.browser.spec.ts
+  - docs/plans/PLAN_20261014_YOUR_DATA.md
+  - packages/design/fields/backupText.ts
+  - packages/persistence/src/repos/storageUsage.ts
+  - packages/persistence/test/storageUsage.test.ts
+  - packages/ui/test/ui/backups-restore-project.browser.spec.ts
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+  - packages/ui/test/diagnostics/faultOrigin.test.ts
+  - packages/ui/test/ui/project-bin.browser.spec.ts
+  - packages/ui/src/logic/boot.ts
+  - packages/persistence/src/repos/quarantineRetirement.ts
+  - packages/persistence/test/projectBin.test.ts

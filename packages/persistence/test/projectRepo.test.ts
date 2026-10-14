@@ -115,7 +115,7 @@ describe('projectRepo', () => {
       expect(session.projects.map(p => p.name.value)).toEqual(['mine']);
       expect(session.refused).toEqual([]);
       expect(session.projects[0].portVelocityLimit_m_per_s.value).toBe(17);
-      expect(storage.get(OPENISD_BACKUP_KEYS.openSessions)).toBe(record);
+      expect(backupOn(storage).readPreRepairCopy('openSessions')).toBe(record);
       expect(onRepaired).toHaveBeenCalledWith({
         projectName: 'mine',
         repaired: [['saved', 'box', 'portVelocityLimit_m_per_s']],
@@ -132,7 +132,7 @@ describe('projectRepo', () => {
       if (project === null || Array.isArray(project)) throw new Error('expected a project');
 
       expect(project.name.value).toBe('autosaved');
-      expect(storage.get(OPENISD_BACKUP_KEYS.state)).toBe(text);
+      expect(backupOn(storage).readPreRepairCopy('state')).toBe(text);
       expect(onRepaired).toHaveBeenCalledTimes(1);
     });
 
@@ -145,7 +145,7 @@ describe('projectRepo', () => {
       projectRepoOn(engine, noFiles, storage, 'http://localhost', onRepaired).loadFromStorage();
 
       expect(onRepaired).not.toHaveBeenCalled();
-      expect(storage.get(OPENISD_BACKUP_KEYS.state)).toBeNull();
+      expect(backupOn(storage).readPreRepairCopy('state')).toBeNull();
     });
   });
 
@@ -405,7 +405,7 @@ describe('projectRepo', () => {
       const list = repo.listStoredProjects();
       expect(list).toHaveLength(1);
       expect(list[0].id).toBe('id-3');
-      const backupText = storage.get(OPENISD_BACKUP_KEYS.projects);
+      const backupText = backupOn(storage).readPreRepairCopy('projects');
       assert.ok(backupText !== null, 'backup must be written when copies are merged');
       expect(backupText).toContain('"id":"id-1"');
       expect(backupText).toContain('"id":"id-2"');
@@ -472,7 +472,7 @@ describe('projectRepo', () => {
       const sessionStored = storage.get(OPENISD_OPEN_SESSIONS_KEY);
       assert.ok(sessionStored !== null);
       expect(sessionStored).not.toContain('"Qicl": 77');
-      const backupSession = storage.get(OPENISD_BACKUP_KEYS.openSessions);
+      const backupSession = backupOn(storage).readPreRepairCopy('openSessions');
       assert.ok(backupSession !== null);
       expect(backupSession).toContain('"id":"s-1"');
     });
@@ -512,7 +512,7 @@ describe('projectRepo', () => {
       // Start-up 1
       projectRepoOn(engine, noFiles, storage, 'http://localhost');
 
-      const backupText = storage.get(OPENISD_BACKUP_KEYS.projects);
+      const backupText = backupOn(storage).readPreRepairCopy('projects');
       assert.ok(backupText !== null, 'backup must be present after repair');
       expect(backupText).toContain('"id":"id-1"');
       expect(backupText).toContain('"id":"id-2"');
@@ -539,7 +539,7 @@ describe('projectRepo', () => {
       // Start-up 2
       projectRepoOn(engine, noFiles, storage, 'http://localhost');
 
-      const backupText2 = storage.get(OPENISD_BACKUP_KEYS.projects);
+      const backupText2 = backupOn(storage).readPreRepairCopy('projects');
       expect(backupText2).toBe(backupText);
       const storeText2 = storage.get(OPENISD_PROJECTS_KEY);
       expect(storeText2).toBe(storeText);

@@ -3,7 +3,7 @@
 import {
   createAppSettingsRepo, createBackupRepo, createExportedFiles, createStorageHistory, createMyDriverRepo, createMyPassiveRadiatorRepo, createProjectRepo,
   createStorageBackup, createViewStateRepo, LAYOUT_STEPS, STORAGE_LAYOUT,
-  type FileStorage, type ListableStorage, type ProjectRepairReport, type StorageBackup, type StoredDataFault,
+  type FileStorage, type ListableStorage, type ProjectRepairReport, type ProjectRepo, type StorageBackup, type StoredDataFault,
 } from '@openisd/persistence';
 import type {Engine} from '@openisd/design/engine';
 
@@ -32,8 +32,8 @@ export const viewStateRepoOn = (storage: ListableStorage) => createViewStateRepo
 export const appSettingsRepoOn = (storage: ListableStorage, onUnreadable: (fault: StoredDataFault) => void = () => undefined, onSaved: () => void = () => undefined) =>
   createAppSettingsRepo(storage, backupOn(storage), onUnreadable, () => undefined, onSaved);
 
-export const storageHistoryOn = (storage: ListableStorage) =>
-  createStorageHistory(backupOn(storage), backupRepoOn(storage), { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS });
+export const storageHistoryOn = (storage: ListableStorage, projects: Pick<ProjectRepo, 'readProjectText' | 'importArchive'>) =>
+  createStorageHistory(backupOn(storage), backupRepoOn(storage), { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS }, projects);
 
 export const backupRepoOn = (storage: ListableStorage) =>
   createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS }, () => undefined);
