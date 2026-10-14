@@ -3,6 +3,7 @@ release_note: The screens that show green, blue and black values have a one-row 
 repo: openisd
 owner: bob
 status: done
+landed: 5ed46fba3d77a7e5fea64a3b2040e5c9bf455c6b
 goal: Every screen that shows green, blue or black values has the Entered/Calculated/Not entered legend as one thin row at the bottom.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

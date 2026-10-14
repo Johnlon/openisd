@@ -1,6 +1,6 @@
 id: F20
 owner: Johnlon
-status: open
+status: done
 sha: 5ed46fba3d77a7e5fea64a3b2040e5c9bf455c6b
 goal: main is red at 5ed46fba3d; make the full suite pass again
 commits: |

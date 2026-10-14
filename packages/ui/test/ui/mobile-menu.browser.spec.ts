@@ -22,18 +22,17 @@ function readBuildInfo(): { version: string } {
   return parsed;
 }
 
-async function computeExpectedPublishedLabel(page: import('@playwright/test').Page, version: string): Promise<string> {
-  return page.evaluate((ver) => {
-    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/.exec(ver);
-    if (!match) return ver;
-    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +(match[6] ?? '0')));
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const mon = months[d.getMonth()];
-    const day = String(d.getDate()).padStart(2, '0');
-    const hr = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    return `${mon} ${day} ${hr}:${min}`;
-  }, version);
+// The label is the build stamp in UTC with a Z suffix (T113), the same on every device.
+function computeExpectedPublishedLabel(version: string): string {
+  const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/.exec(version);
+  if (!match) return version;
+  const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +(match[6] ?? '0')));
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const mon = months[d.getUTCMonth()];
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const hr = String(d.getUTCHours()).padStart(2, '0');
+  const min = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${mon} ${day} ${hr}:${min}Z`;
 }
 
 test.beforeEach(async ({ page }) => {
@@ -48,7 +47,7 @@ test.describe('MobileMenu', () => {
       await openMobileMenu(page);
       const onDisk = readBuildInfo();
       expect(onDisk.version).toMatch(/^v\d{8}T\d{4}Z$/);
-      const expectedPublished = await computeExpectedPublishedLabel(page, onDisk.version);
+      const expectedPublished = computeExpectedPublishedLabel(onDisk.version);
 
       const versionEl = page.locator('.mob-menu-version');
       await expect(versionEl).toBeVisible();

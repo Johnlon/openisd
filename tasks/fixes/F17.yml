@@ -1,6 +1,7 @@
 id: F17
 owner: Johnlon
 status: done
+closed_by: T117 bug (land.sh step 2b auto-closed fix tasks); real fixes T119 (Bucket names) and T120 (project-list ink count)
 landed: 9df6b330314c32ae490ddca5d2df69b47cc00308
 sha: 79e4718c8c47fa8316812089b94d6cf5d3ea17f8
 goal: main is red at 79e4718c8c; make the full suite pass again

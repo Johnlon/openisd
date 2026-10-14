@@ -1,0 +1,18 @@
+id: T126
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+label: fixes
+goal: F20 closed: the two version-label browser specs expect the UTC label with its Z suffix (T113); F15 to F19 noted as closed by the T117 bug
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T126.yml
+  - tasks/fixes/F20.yml
+  - tasks/fixes/F15.yml
+  - tasks/fixes/F16.yml
+  - tasks/fixes/F17.yml
+  - tasks/fixes/F18.yml
+  - tasks/fixes/F19.yml
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/ui/original-toolbar.browser.spec.ts

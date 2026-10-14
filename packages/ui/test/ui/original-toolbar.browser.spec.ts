@@ -23,18 +23,17 @@ function readBuildInfo(): { version: string } {
   return parsed;
 }
 
-async function computeExpectedPublishedLabel(page: import('@playwright/test').Page, version: string): Promise<string> {
-  return page.evaluate((ver) => {
-    const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/.exec(ver);
-    if (!match) return ver;
-    const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +(match[6] ?? '0')));
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const mon = months[d.getMonth()];
-    const day = String(d.getDate()).padStart(2, '0');
-    const hr = String(d.getHours()).padStart(2, '0');
-    const min = String(d.getMinutes()).padStart(2, '0');
-    return `${mon} ${day} ${hr}:${min}`;
-  }, version);
+// The label is the build stamp in UTC with a Z suffix (T113), the same on every device.
+function computeExpectedPublishedLabel(version: string): string {
+  const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/.exec(version);
+  if (!match) return version;
+  const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +(match[6] ?? '0')));
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const mon = months[d.getUTCMonth()];
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  const hr = String(d.getUTCHours()).padStart(2, '0');
+  const min = String(d.getUTCMinutes()).padStart(2, '0');
+  return `${mon} ${day} ${hr}:${min}Z`;
 }
 
 test.describe('Original toolbar', () => {
@@ -51,7 +50,7 @@ test.describe('Original toolbar', () => {
     // In dev mode (vite serve), the version chip shows "dev <sha> + changes" format.
     // In production, it shows the published version from build-info.json in browser local time.
     const versionChip = brand.locator('.version-chip');
-    const expectedPublished = await computeExpectedPublishedLabel(page, onDisk.version);
+    const expectedPublished = computeExpectedPublishedLabel(onDisk.version);
     const escaped = expectedPublished.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     await expect(versionChip).toHaveText(new RegExp(`^(?:\\(dev [a-f0-9]{7,8}(?: \\+ changes)?\\)|\\(${escaped}\\))$`));
     // The brand icon renders either from the public /icon.svg or inline as a data-URI SVG
