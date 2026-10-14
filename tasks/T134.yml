@@ -3,6 +3,7 @@ release_note: The splash and about page mention optional cloud sync through your
 repo: openisd
 owner: maryu
 status: done
+landed: 8f39bf066878a46fbe3af0bf26c04a6d3f271e97
 goal: The splash and about page list optional cloud sync through your own Google Drive
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

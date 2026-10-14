@@ -1,0 +1,11 @@
+id: T135
+release_note: The about page has a Privacy section (openisd.app/about/#privacy).
+repo: openisd
+owner: maryu
+status: done
+goal: The about page has a Privacy section at /about/#privacy that stands alone as the privacy policy
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T135.yml
+  - packages/ui/about/AboutPage.vue
+  - packages/ui/test/ui/about-page.browser.spec.ts

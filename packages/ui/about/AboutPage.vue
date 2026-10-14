@@ -38,6 +38,26 @@ onMounted(async () => {
       <a class="about-secondary" :href="REPO_URL">Source on GitHub</a>
     </p>
     <SplashContent :driver-count="driverCount" :passive-radiator-count="passiveRadiatorCount" />
+    <section id="privacy" class="about-privacy">
+      <h3>Privacy</h3>
+      <p>
+        OpenISD is a free, open-source loudspeaker design app that runs in your web browser. It keeps
+        your projects and drivers in your browser, on your own device.
+      </p>
+      <p>
+        Cloud sync is off until you turn it on. When on, it copies your saved projects, drivers,
+        passive radiators, favourites and Options to a hidden folder in your own Google Drive that
+        only OpenISD can open. OpenISD can see no other file in your Drive. No OpenISD server sees
+        your files, and they are not shared or sold. Disconnect stops it.
+      </p>
+      <p>
+        The app does send anonymous usage counts (launches with device type and screen size, which
+        charts and features are used, box types opened and saved, which catalogue drivers are picked,
+        and errors) to a stats collector. They carry no project data, no account and no raw address.
+        An error report you choose to send also carries the note and contact you type.
+      </p>
+      <p>Questions: <a :href="`${REPO_URL}/issues`">open an issue on GitHub</a>.</p>
+    </section>
     <p class="about-cta about-cta-end">
       <a class="about-open" :href="SITE_URL">Start designing</a>
     </p>
@@ -60,4 +80,8 @@ onMounted(async () => {
 }
 .about-open:hover { background: #6cbcff; }
 .about-secondary { color: #4fb0ff; font-size: 13px; }
+.about-privacy { font-size: 13px; line-height: 1.55; color: #c7d3df; }
+.about-privacy h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.about-privacy p { margin: 0 0 8px; }
+.about-privacy a { color: #4fb0ff; }
 </style>

@@ -14,6 +14,16 @@ test('the about page carries the splash text and leads to the app and the instal
   await expect(page.locator('.sp-stat')).toContainText(/\d+ drivers and \d+ passive radiators/);
 });
 
+test('the privacy section stands alone at /about/#privacy', async ({page}) => {
+  await page.goto('/about/#privacy');
+  const privacy = page.locator('section#privacy');
+  await expect(privacy).toBeInViewport();
+  await expect(privacy.locator('h3')).toHaveText('Privacy');
+  await expect(privacy).toContainText('hidden folder in your own Google Drive');
+  await expect(privacy).toContainText('anonymous usage counts');
+  await expect(privacy.locator('a[href$="/issues"]')).toBeVisible();
+});
+
 test('the install page names each browser and links back to the app', async ({page}) => {
   await page.goto('/install/');
   await expect(page.locator('h1')).toHaveText('Add OpenISD as an app');
