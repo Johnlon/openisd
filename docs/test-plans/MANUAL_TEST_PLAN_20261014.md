@@ -1,8 +1,8 @@
 # Manual test plan, next release (14 Oct 2026)
 
-Build under test: snapshot **20261014T0113Z** at https://openisd.app/snap/20261014T0113Z/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
+Build under test: snapshot **20261014T0145Z** at https://openisd.app/snap/20261014T0145Z/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
 
-Before you start, on each device: open the snapshot URL, close the tab, open it again (the second open runs the new worker). About must show "Snapshot 14 Oct 2026, …" and the footer label "Oct 14 01:13Z". If it shows an older stamp, open it once more.
+Before you start, on each device: open the snapshot URL, close the tab, open it again (the second open runs the new worker). About must show "Snapshot 14 Oct 2026, …" and the footer label "Oct 14 01:45Z". If it shows an older stamp, open it once more.
 
 Report: one line per failure, "step N: what you saw". For anything odd, menu → Diagnostics → Copy diagnostics, paste it.
 
@@ -99,7 +99,7 @@ Dashboard: on the private links page. Top line says "You are viewing from visito
 
 | # | Where | Step | Expect |
 |---|---|---|---|
-| 10.1 | P, D | Read the version label (footer / About) | "Oct 14 01:13Z", the Z present, the time equal to the snapshot stamp, not your local time |
+| 10.1 | P, D | Read the version label (footer / About) | "Oct 14 01:45Z", the Z present, the time equal to the snapshot stamp, not your local time |
 
 ## 11. Chart legend and traces (T106, T114, T116)
 
@@ -117,6 +117,24 @@ Dashboard: on the private links page. Top line says "You are viewing from visito
 | 12.1 | P, D | Transfer phase (or Impedance phase on a design whose phase crosses ±180°) | No solid vertical line at the wrap; a faint dotted segment joins the two ends |
 | 12.2 | P, D | A phase chart with no wrap | Nothing extra drawn |
 
+## 13. Edit Driver layout (T122, T125)
+
+| # | Where | Step | Expect |
+|---|---|---|---|
+| 13.1 | D (Chrome and Firefox) | Open a project, Driver, Edit; visit General, Parameters, Advanced, Dimensions | No horizontal scrollbar on the editor body on any tab |
+| 13.2 | D | Editor footer | One thin row Entered / Calculated / Not entered on top; below it Export, Import, Copy to My Drivers at the left and OK, Reset, Cancel at the right |
+| 13.3 | P | Edit Driver | Tab titles General, Parameters, Advanced, Dimensions all visible in one row, no sideways scroll |
+| 13.4 | P | Editor footer | Legend row (wraps if narrow), then Export/Import/Copy, then OK/Reset/Cancel; nothing past the screen edge |
+
+## 14. Value legend row on other screens (T124)
+
+| # | Where | Step | Expect |
+|---|---|---|---|
+| 14.1 | D | Open a project | Thin row at the very bottom of the window: Entered / Calculated / Not entered with green, blue, grey swatches, one line |
+| 14.2 | D | Open Driver, then What-if? | The same row at the bottom of each panel |
+| 14.3 | P | Box, Signal, Enclosure tabs | The row sits between the content and the bottom tab bar |
+| 14.4 | P | Driver, Filters, Graph tabs | No legend row |
+
 ## Not in this build
 
-Google Drive sync: groundwork only, nothing visible (sign-in and sync UI are the next pieces). Edit Driver styling, cne legend row and footer legend on other screens: bob, still in progress. Developer label with commit time: dev builds only.
+Google Drive sync: groundwork only, nothing visible (sign-in and sync UI are the next pieces). Edit Driver tab and background colours: unchanged (no detail given yet). Developer label with commit time: dev builds only.

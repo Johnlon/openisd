@@ -1,0 +1,10 @@
+id: T127
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The manual test plan names snapshot 20261014T0145Z and covers T122, T124, T125
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T127.yml
+  - docs/test-plans/MANUAL_TEST_PLAN_20261014.md

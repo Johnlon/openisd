@@ -3,6 +3,7 @@ release_note: The Edit Driver tab titles share the row on a phone instead of scr
 repo: openisd
 owner: bob
 status: done
+landed: 8f9ac353e704468247f12f6199bffb219e72886e
 goal: The Edit Driver tab titles never scroll sideways, on a phone or on a desktop.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
