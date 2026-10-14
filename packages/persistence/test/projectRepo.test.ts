@@ -680,6 +680,57 @@ describe('projectRepo', () => {
       expect(hasBackup).toBe(true);
     });
 
+    it('deleteStoredProject removes it from the list, the open session and the refused session, under one backup, and asks for a sync', () => {
+      const entry = (id: string, name: string) => ({ id, text: goodProjectText(name), modified: '2026-01-01T00:00:00Z' });
+      const sessionOf = (...ids: string[]) => JSON.stringify({
+        entries: ids.map(id => ({ ...entry(id, id), traceHidden: false })), focusedId: ids[0] ?? null,
+      });
+      const storage = createMemoryStorage({
+        [OPENISD_PROJECTS_KEY]: JSON.stringify({ version: 1, entries: [entry('p-1', 'Gone'), entry('p-2', 'Kept')] }),
+        [OPENISD_OPEN_SESSIONS_KEY]: sessionOf('p-1', 'p-2'),
+        [OPENISD_QUARANTINE_SESSION_KEY]: sessionOf('p-1', 'p-3'),
+      });
+      let saves = 0;
+      const r = createProjectRepo(engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(), () => undefined, () => { saves++; });
+      expect(r.deleteStoredProject('p-1')).toBe('done');
+      expect(r.listStoredProjects().map(p => p.id)).toEqual(['p-2']);
+      const ids = (key: string): unknown => {
+        const parsed: unknown = JSON.parse(storage.get(key) ?? 'null');
+        assert.ok(isRecord(parsed) && Array.isArray(parsed.entries));
+        return parsed.entries.map((e: unknown) => (isRecord(e) ? e.id : null));
+      };
+      expect(ids(OPENISD_OPEN_SESSIONS_KEY)).toEqual(['p-2']);
+      expect(ids(OPENISD_QUARANTINE_SESSION_KEY)).toEqual(['p-3']);
+      expect(storage.keys().filter(k => k.startsWith('openisd_backup_'))).toHaveLength(1);
+      expect(saves).toBe(1);
+    });
+
+    it('deleting the last saved project leaves the list empty; the last-saved copy does not bring it back', () => {
+      const storage = createMemoryStorage();
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      expect(r.saveToStorage(project('Only')).kind).toBe('saved');
+      const [only] = r.listStoredProjects();
+      assert.ok(only);
+      expect(r.deleteStoredProject(only.id)).toBe('done');
+      expect(r.listStoredProjects()).toEqual([]);
+      expect(storage.get(OPENISD_STATE_KEY)).toBeNull();
+    });
+
+    it('storedIdOf names the saved-list id of a project it saved, and null for one it never saw', () => {
+      const r = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const saved = project('Saved');
+      r.saveToStorage(saved);
+      expect(r.storedIdOf(saved)).toBe(r.listStoredProjects()[0]?.id);
+      expect(r.storedIdOf(project('Other'))).toBeNull();
+    });
+
+    it('deleteStoredProject refuses an id that is not stored, and writes nothing', () => {
+      const storage = createMemoryStorage();
+      const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      expect(r.deleteStoredProject('nope')).toBe('refused');
+      expect(storage.keys()).toEqual([]);
+    });
+
     it('removeStoredDoc returns refused for absent id', () => {
       const storage = createMemoryStorage();
       const r = projectRepoOn(engine, noFiles, storage, 'http://localhost');

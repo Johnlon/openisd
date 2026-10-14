@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-compact-storage
 status: done
+landed: 5b08beb4ea9e49746cc5fd722e51c1ae3d593645
 goal: Stored projects and sessions are compact JSON without dq_calculated; old pretty entries rewritten on load after one backup
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

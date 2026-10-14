@@ -147,6 +147,14 @@ const PATHS: readonly DestructivePath[] = [
     },
   },
   {
+    name: 'delete a stored project via projectRepo.deleteStoredProject',
+    seed: () => ({[OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'))}),
+    destroys: [OPENISD_PROJECTS_KEY],
+    act: s => {
+      projectRepoOn(engine, noFiles, s, ADDRESS).deleteStoredProject('id-1');
+    },
+  },
+  {
     name: 'replace a stored project via projectRepo.putStoredDoc',
     seed: () => ({[OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'))}),
     destroys: [OPENISD_PROJECTS_KEY],

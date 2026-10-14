@@ -100,6 +100,27 @@ describe('cloud sync first connect', () => {
     expect(phone.storage.get(OPENISD_MY_DRIVERS_KEY)).toContain('Peerless');
   });
 
+  it('Delete on one device removes the project from the other device after both sync', async () => {
+    const drive = new DriveEmulator();
+    const desktop = deviceOn(drive, 1);
+    desktop.saveProject('Sub 12');
+    const desktopSync = desktop.connect();
+    expect((await desktopSync.engine.run()).kind).toBe('synced');
+    const phone = deviceOn(drive, 2);
+    const phoneSync = phone.connect();
+    expect((await phoneSync.engine.run()).kind).toBe('synced');
+    expect(phone.projectRepo.listStoredProjects().map(p => p.name)).toEqual(['Sub 12']);
+
+    const [saved] = desktop.projectRepo.listStoredProjects();
+    expect(desktop.projectRepo.deleteStoredProject(saved?.id ?? '')).toBe('done');
+    expect(desktopSync.engine.pendingLocal()).toBe(1);
+    expect((await desktopSync.engine.run()).kind).toBe('synced');
+    expect(desktopSync.engine.pendingLocal()).toBe(0);
+
+    expect((await phoneSync.engine.run()).kind).toBe('synced');
+    expect(phone.projectRepo.listStoredProjects()).toEqual([]);
+  });
+
   it('a pulled run that replaces several saved drivers takes one whole-store backup, not one per item', async () => {
     const drive = new DriveEmulator();
     const desktop = deviceOn(drive, 1);

@@ -15,6 +15,7 @@ import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
 import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
+import {deleteStoredProject as deleteStoredProjectFromStore} from '../logic/storedProjectDelete.js';
 import {
   type ConflictCopy,
   type SyncDisplay,
@@ -104,6 +105,7 @@ export interface MobileShellApi {
   storedProjects: import('vue').Ref<StoredProjectRow[]>;
   openProjectDialog: () => void;
   openStoredProject: (id: string) => void;
+  deleteStoredProject: (row: StoredProjectRow) => Promise<void>;
   /** Every open project, saved or not — the same registry as desktop's Projects panel. */
   openProjectRows: import('vue').ComputedRef<OpenProjectRow[]>;
   selectOpenProject: (row: OpenProjectRow) => void;
@@ -203,6 +205,11 @@ export function useMobileShell(): MobileShellApi {
       return;
     }
     openDialogOpen.value = false;
+  }
+  async function deleteStoredProject(row: StoredProjectRow): Promise<void> {
+    const result = await deleteStoredProjectFromStore(appState, projectRepo, confirmPort.port, row.id, row.name);
+    if (result === 'refused') alert('Could not delete the saved project: there is no room in browser storage for the backup taken first.');
+    storedProjects.value = storedProjectRows(projectRepo.listStoredProjects(), presentationState.ui.unitTokens ?? {});
   }
 
   // "Open projects" — the registry desktop's Projects panel lists (OriginalShell-hooks.ts), so a
@@ -431,7 +438,7 @@ export function useMobileShell(): MobileShellApi {
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
-    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
+    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject, deleteStoredProject,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,
     onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel, openCloudSync,

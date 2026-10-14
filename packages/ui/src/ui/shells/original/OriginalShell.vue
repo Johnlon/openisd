@@ -43,7 +43,7 @@ const {
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
+  openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, deleteStoredProject, switchToMobile,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
@@ -886,11 +886,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="open-project-list">
             <p class="store-label">{{ storeLabel }}</p>
             <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
-            <button v-for="projectEntry in storedProjects" :key="projectEntry.id" class="stored-project-row" @click="openStoredProject(projectEntry.id)">
-              <span class="stored-project-name">{{ projectEntry.name }}</span>
-              <small class="stored-project-modified">{{ projectEntry.modified }}</small>
-              <small class="stored-project-summary">{{ projectEntry.summary }}</small>
-            </button>
+            <div v-for="projectEntry in storedProjects" :key="projectEntry.id" class="stored-project-item">
+              <button class="stored-project-row" @click="openStoredProject(projectEntry.id)">
+                <span class="stored-project-name">{{ projectEntry.name }}</span>
+                <small class="stored-project-modified">{{ projectEntry.modified }}</small>
+                <small class="stored-project-summary">{{ projectEntry.summary }}</small>
+              </button>
+              <button class="stored-project-delete" :title="`Delete ${projectEntry.name}`" @click="deleteStoredProject(projectEntry)">Delete</button>
+            </div>
           </div>
         </div>
       </div>
@@ -1496,6 +1499,9 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .open-project-body { display:flex; flex-direction:column; gap:10px; }
 .open-from-disk { align-self:stretch; text-align:left; padding:8px 10px; font-weight:600; }
 .open-project-list { display:flex; flex-direction:column; gap:4px; max-height:42vh; overflow-y:auto; border-top:1px solid #ccc; padding-top:8px; }
+.stored-project-item { display:flex; align-items:center; gap:6px; }
+.stored-project-item .stored-project-row { flex:1; min-width:0; }
+.stored-project-delete { flex:none; }
 .stored-project-row { display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:2px; border:0; background:transparent; padding:8px 6px; text-align:left; cursor:pointer; }
 .stored-project-summary { grid-column:1 / -1; font-size:11px; }
 .stored-project-row:hover { background:#dbeafe; }

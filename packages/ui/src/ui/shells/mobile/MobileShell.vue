@@ -32,7 +32,7 @@ const {
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, openDialogOpen, storedProjects, storeLabel, openProjectDialog, openStoredProject,
+  username, appVersion, openDialogOpen, storedProjects, storeLabel, openProjectDialog, openStoredProject, deleteStoredProject,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
   openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud,
@@ -203,12 +203,14 @@ const diagnostics = injectDiagnosticsModal();
       <p class="store-label">{{ storeLabel }}</p>
       <button type="button" class="mob-cta mob-cta-secondary mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
       <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
-      <button v-for="p in storedProjects" :key="p.id" type="button" class="mob-stored-project-row"
-        @click="openStoredProject(p.id)">
-        <span class="mob-stored-project-name">{{ p.name }}</span>
-        <span class="mob-stored-project-summary">{{ p.summary }}</span>
-        <span class="mob-stored-project-modified">{{ p.modified }}</span>
-      </button>
+      <div v-for="p in storedProjects" :key="p.id" class="mob-stored-project-item">
+        <button type="button" class="mob-stored-project-row" @click="openStoredProject(p.id)">
+          <span class="mob-stored-project-name">{{ p.name }}</span>
+          <span class="mob-stored-project-summary">{{ p.summary }}</span>
+          <span class="mob-stored-project-modified">{{ p.modified }}</span>
+        </button>
+        <button type="button" class="mob-stored-project-delete" :aria-label="`Delete ${p.name}`" @click="deleteStoredProject(p)">Delete</button>
+      </div>
     </MobilePaneDialog>
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
@@ -426,12 +428,14 @@ const diagnostics = injectDiagnosticsModal();
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   padding: 10px 16px;
-  border-top: 1px solid var(--line);
   cursor: pointer;
 }
-.mob-stored-project-row:first-of-type { border-top: none; }
+.mob-stored-project-item { display: flex; align-items: center; border-top: 1px solid var(--line); }
+.mob-stored-project-item:first-of-type { border-top: none; }
+.mob-stored-project-delete { all: unset; box-sizing: border-box; flex: none; padding: 10px 16px; font-size: 13px; color: var(--bad); cursor: pointer; }
 .mob-stored-project-name { font-size: 15px; color: var(--fg); }
 .mob-stored-project-summary { font-size: 13px; color: var(--mut); }
 .mob-stored-project-modified { font-size: 12px; color: var(--mut); }

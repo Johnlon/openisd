@@ -101,6 +101,11 @@ export interface ProjectRepo {
   putStoredDoc(id: string, body: string): 'done' | 'refused';
   /** Remove one stored doc by uuid. */
   removeStoredDoc(id: string): 'done' | 'refused';
+  /** The user's Delete: remove the project from the saved list, the open session and the refused
+   *  session, under one backup, then ask for a sync so Drive and other devices drop it too. */
+  deleteStoredProject(id: string): 'done' | 'refused';
+  /** The saved-list id `project` was loaded from or saved as, or null when it has none yet. */
+  storedIdOf(project: OpenISDProject): string | null;
 }
 
 export interface StoredProjectDoc {
@@ -346,7 +351,9 @@ function deduplicateProjectEntries(entries: readonly StoredProjectEntry[]): { en
       try {
         const parsed: unknown = JSON.parse(collectionText);
         const payload = storedProjectsPayload(parsed);
-        if (payload && payload.entries.length > 0) return payload.entries;
+        // A readable list is the answer even when empty: the user deleted the last one, and the
+        // single-project keys below would bring it back.
+        if (payload) return payload.entries;
       } catch { /* fall through to the legacy single-project key */ }
     }
     for (const key of [PROJECT_STORAGE_KEY, LEGACY_PROJECT_STORAGE_KEY]) {
@@ -363,6 +370,20 @@ function deduplicateProjectEntries(entries: readonly StoredProjectEntry[]): { en
       throw new Error('browser storage is full');
     }
   }
+
+/** The session stored as `text` without project `id`, or null when it holds no such entry (or
+ *  cannot be read, which is the session loader's to repair, not Delete's). */
+function sessionWithout(text: string | null, id: string): OpenSessionPayload | null {
+  if (text === null) return null;
+  let parsed: unknown;
+  try { parsed = JSON.parse(text); } catch { return null; }
+  const payload = openSessionPayload(parsed);
+  if (!payload || !payload.entries.some(e => e.id === id)) return null;
+  return {
+    entries: payload.entries.filter(e => e.id !== id),
+    focusedId: payload.focusedId === id ? null : payload.focusedId,
+  };
+}
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -696,6 +717,25 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       } catch {
         return 'refused';
       }
+    },
+    storedIdOf(project: OpenISDProject): string | null {
+      return storedIdentity.get(project) ?? null;
+    },
+    deleteStoredProject(id: string): 'done' | 'refused' {
+      const entries = readStoredEntries();
+      const gone = entries.find(e => e.id === id);
+      if (gone === undefined) return 'refused';
+      const guarded = backup.guard(() => {
+        writeStoredEntries(entries.filter(e => e.id !== id));
+        if (storage.get(PROJECT_STORAGE_KEY) === gone.text) storage.remove(PROJECT_STORAGE_KEY);
+        for (const key of [OPEN_SESSION_STORAGE_KEY, QUARANTINE_SESSION_STORAGE_KEY]) {
+          const session = sessionWithout(storage.get(key), id);
+          if (session !== null) storage.set(key, JSON.stringify(session));
+        }
+      });
+      if (guarded.kind !== 'ran') return 'refused';
+      onSaved();
+      return 'done';
     },
     removeStoredDoc(id: string): 'done' | 'refused' {
       const text = storage.get(PROJECTS_STORAGE_KEY);
