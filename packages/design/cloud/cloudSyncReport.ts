@@ -1,4 +1,4 @@
-import {formatDateTime} from '../fields/format.js';
+import {formatDateTime, formatTime} from '../fields/format.js';
 import type {CloudFaultRecord, CloudGrant} from './cloudTypes.js';
 
 /** How the last sync run ended. The fault itself is in the report's `lastFault`. */
@@ -10,10 +10,10 @@ export type CloudAttemptOutcome =
   | { readonly kind: 'refused'; readonly reason: 'noRoom' | 'bucketUnreadable' }
   | { readonly kind: 'failed' };
 
-export interface CloudAttempt {
-  readonly at_ms: number;
-  readonly outcome: CloudAttemptOutcome;
-}
+/** The last sync run: still running, with the pushes so far, or ended with its outcome. */
+export type CloudAttempt =
+  | { readonly kind: 'running'; readonly started_ms: number; readonly pushed: number }
+  | { readonly kind: 'ended'; readonly started_ms: number; readonly ended_ms: number; readonly outcome: CloudAttemptOutcome };
 
 /** What the diagnostics report says about cloud sync. */
 export interface CloudSyncReport {
@@ -25,11 +25,16 @@ export interface CloudSyncReport {
   readonly lastFault: CloudFaultRecord | null;
 }
 
+/** The sign-in does not name the account yet; the store then holds an empty name. */
+function accountText(account: string): string {
+  return account === '' ? 'Google account (name not available)' : account;
+}
+
 function grantText(grant: CloudGrant): string {
   switch (grant.kind) {
     case 'none': return 'not connected';
-    case 'connected': return `connected as ${grant.account}`;
-    case 'reconnect': return `must reconnect ${grant.account}`;
+    case 'connected': return `connected as ${accountText(grant.account)}`;
+    case 'reconnect': return `must reconnect ${accountText(grant.account)}`;
   }
 }
 
@@ -46,7 +51,11 @@ function outcomeText(outcome: CloudAttemptOutcome): string {
 
 function attemptLine(attempt: CloudAttempt | null): string {
   if (attempt === null) return '  last attempt: none since the app opened';
-  return `  last attempt: ${formatDateTime(new Date(attempt.at_ms))}, ${outcomeText(attempt.outcome)}`;
+  const started = formatDateTime(new Date(attempt.started_ms));
+  switch (attempt.kind) {
+    case 'running': return `  last attempt: running since ${started}, ${attempt.pushed} pushed so far`;
+    case 'ended': return `  last attempt: started ${started}, ended ${formatTime(new Date(attempt.ended_ms))}, ${outcomeText(attempt.outcome)}`;
+  }
 }
 
 function faultLines(record: CloudFaultRecord | null): readonly string[] {

@@ -120,6 +120,11 @@ function makeConflict(uuid: string, name: string): ConflictCopy {
   };
 }
 
+function endedOutcome(sync: CloudSync): unknown {
+  const attempt = sync.diagnostics().lastAttempt;
+  return attempt?.kind === 'ended' ? attempt.outcome : null;
+}
+
 describe('cloudSync', () => {
   it('status() maps each RunOutcome kind', () => {
     let nowTime = 1000;
@@ -275,6 +280,30 @@ describe('cloudSync', () => {
     expect(sync.diagnostics().lastFault).toBeNull();
   });
 
+  it('diagnostics() shows a run in progress from its start, with the pushes so far, until it ends', () => {
+    let nowTime = 1000;
+    const sync = createCloudSync({
+      session: new FakeCloudSession(),
+      scheduler: new FakeSyncScheduler(),
+      ledger: new FakeSyncLedger(),
+      engine: new FakeSyncEngine(),
+      now: () => nowTime,
+    });
+    let changes = 0;
+    sync.watch(() => { changes++; });
+
+    sync.runStarted();
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'running', started_ms: 1000, pushed: 0 });
+    nowTime = 1500;
+    sync.runPushed(16);
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'running', started_ms: 1000, pushed: 16 });
+    expect(changes).toBe(2);
+
+    nowTime = 4000;
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], held: 0 });
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced' } });
+  });
+
   it('diagnostics() reports the grant, the last attempt, the pending count and the last fault', () => {
     let nowTime = 1000;
     const session = new FakeCloudSession();
@@ -299,26 +328,26 @@ describe('cloudSync', () => {
     sync.onOutcome({ kind: 'failed', fault, pendingLocal: 4 });
     expect(sync.diagnostics()).toEqual({
       grant: { kind: 'connected', account: 'john@example.com' },
-      lastAttempt: { at_ms: 2000, outcome: { kind: 'failed' } },
+      lastAttempt: { kind: 'ended', started_ms: 2000, ended_ms: 2000, outcome: { kind: 'failed' } },
       pendingChanges: 4,
       lastFault: { fault, at_ms: 2000 },
     });
 
     nowTime = 3000;
     sync.onOutcome({ kind: 'stopped', reason: 'quota', pushedSoFar: 0, pendingLocal: 4 });
-    expect(sync.diagnostics().lastAttempt).toEqual({ at_ms: 3000, outcome: { kind: 'stopped', reason: 'quota' } });
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 3000, ended_ms: 3000, outcome: { kind: 'stopped', reason: 'quota' } });
     expect(sync.diagnostics().lastFault).toEqual({ fault, at_ms: 2000 });
 
     session.currentGrant = { kind: 'reconnect', account: 'john@example.com' };
     sync.onOutcome({ kind: 'reconnect', pendingLocal: 4 });
     expect(sync.diagnostics().grant).toEqual({ kind: 'reconnect', account: 'john@example.com' });
-    expect(sync.diagnostics().lastAttempt?.outcome).toEqual({ kind: 'reconnect' });
+    expect(endedOutcome(sync)).toEqual({ kind: 'reconnect' });
 
     sync.onOutcome({ kind: 'refused', reason: 'noRoom', pendingLocal: 4 });
-    expect(sync.diagnostics().lastAttempt?.outcome).toEqual({ kind: 'refused', reason: 'noRoom' });
+    expect(endedOutcome(sync)).toEqual({ kind: 'refused', reason: 'noRoom' });
 
     sync.onOutcome({ kind: 'notConnected' });
-    expect(sync.diagnostics().lastAttempt?.outcome).toEqual({ kind: 'notConnected' });
+    expect(endedOutcome(sync)).toEqual({ kind: 'notConnected' });
   });
 
   it('disconnect clears to off', async () => {

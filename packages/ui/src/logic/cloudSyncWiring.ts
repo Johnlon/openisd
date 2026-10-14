@@ -176,6 +176,8 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     now,
   });
 
+  let cloudSync: CloudSync | null = null;
+
   const engine = createSyncEngine({
     cloud: driveStore,
     local: [projectDocs, driverDocs, prDocs, settingsDocs, favouritesDocs],
@@ -184,9 +186,11 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     layout: deps.rules.layout,
     now,
     deviceName: deps.deviceName,
+    progress: {
+      started: () => cloudSync?.runStarted(),
+      pushed: (count) => cloudSync?.runPushed(count),
+    },
   });
-
-  let cloudSync: CloudSync | null = null;
 
   const scheduler = createSyncScheduler({
     engine,

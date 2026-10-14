@@ -75,8 +75,12 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
     nowMs = 1776100000000;
   });
 
+  let progress: string[];
+
   function createEngine(layout = APP_LAYOUT) {
+    progress = [];
     return createSyncEngine({
+      progress: { started: () => progress.push('started'), pushed: (n) => progress.push(`pushed ${n}`) },
       cloud,
       local: [localProjects, localDrivers, localSettings],
       ledger,
@@ -86,6 +90,18 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       deviceName: DeviceName.ofBrowser('', 0),
     });
   }
+
+  describe('Progress', () => {
+    it('reports the start of a run and each push as it lands', async () => {
+      localProjects.docs = [
+        { id: project1Id, body: body1, layout: APP_LAYOUT },
+        { id: project2Id, body: body2, layout: APP_LAYOUT },
+      ];
+      const outcome = await createEngine().run();
+      expect(outcome.kind).toBe('synced');
+      expect(progress).toEqual(['started', 'pushed 1', 'pushed 2']);
+    });
+  });
 
   describe('Core invariants', () => {
     it('equal hashes never make a copy: adopts revision without copy or push', async () => {

@@ -14,6 +14,10 @@ export interface CloudSync {
   syncNow(): Promise<void>;
   conflictSeen(id: ConflictCopy['id']): void;
   onOutcome(outcome: RunOutcome): void;
+  /** A run has started. */
+  runStarted(): void;
+  /** The running run has pushed `count` items so far. */
+  runPushed(count: number): void;
   /** The grant, the last run, the pending count and the last fault (kept until a run succeeds). */
   diagnostics(): CloudSyncReport;
 }
@@ -53,7 +57,9 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
 
   function onOutcome(outcome: RunOutcome): void {
     lastRunOutcome = outcome;
-    lastAttempt = { at_ms: clock(), outcome: attemptOutcome(outcome) };
+    const ended_ms = clock();
+    const started_ms = lastAttempt?.kind === 'running' ? lastAttempt.started_ms : ended_ms;
+    lastAttempt = { kind: 'ended', started_ms, ended_ms, outcome: attemptOutcome(outcome) };
     if (outcome.kind === 'synced') {
       lastSyncAt_ms = clock();
       lastFault = null;
@@ -224,6 +230,15 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     syncNow,
     conflictSeen,
     onOutcome,
+    runStarted: () => {
+      lastAttempt = { kind: 'running', started_ms: clock(), pushed: 0 };
+      notify();
+    },
+    runPushed: (count) => {
+      if (lastAttempt?.kind !== 'running') return;
+      lastAttempt = { ...lastAttempt, pushed: count };
+      notify();
+    },
     diagnostics: () => ({
       grant: deps.session.grant(),
       lastAttempt,

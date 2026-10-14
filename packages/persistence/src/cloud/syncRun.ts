@@ -31,3 +31,9 @@ export interface SyncEngine {
   run(): Promise<RunOutcome>;
   pendingLocal(): number;
 }
+
+/** What a run says while it runs: that it started, and each push as it lands. */
+export interface SyncProgress {
+  started(): void;
+  pushed(count: number): void;
+}

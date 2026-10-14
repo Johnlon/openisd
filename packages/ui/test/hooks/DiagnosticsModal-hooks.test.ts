@@ -42,7 +42,7 @@ describe('useDiagnosticsModal', () => {
     const at_ms = Date.UTC(2026, 9, 14, 11, 0, 0);
     const report: CloudSyncReport = {
       grant: {kind: 'connected', account: 'john@example.com'},
-      lastAttempt: {at_ms, outcome: {kind: 'failed'}},
+      lastAttempt: {kind: 'ended', started_ms: at_ms, ended_ms: at_ms, outcome: {kind: 'failed'}},
       pendingChanges: 2,
       lastFault: {fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'}, at_ms},
     };

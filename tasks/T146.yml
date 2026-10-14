@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-version-trail
 status: done
+landed: 3bd6009d3dbffcdffbf5da87d35d312b54ddbc81
 goal: Version label names the trail (snap/test) and About shows Running from URL
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

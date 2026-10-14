@@ -21,7 +21,7 @@ import {
 import type { CloudStore } from './cloudStore.js';
 import type { LocalDoc, LocalDocs } from './localDocs.js';
 import type { LedgerRow, SyncLedger } from './syncLedger.js';
-import type { RunOutcome, SyncEngine } from './syncRun.js';
+import type { RunOutcome, SyncEngine, SyncProgress } from './syncRun.js';
 import type { StorageBackup } from '../repos/storageBackup.js';
 
 export interface SyncEngineDeps {
@@ -33,6 +33,8 @@ export interface SyncEngineDeps {
   readonly now: () => number;
   /** Names this device in conflict copies. */
   readonly deviceName: DeviceName;
+  /** Told when a run starts and after each push lands. */
+  readonly progress: SyncProgress;
 }
 
 function docIdKey(id: DocId): string {
@@ -168,6 +170,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   }
 
   async function run(): Promise<RunOutcome> {
+    deps.progress.started();
     // 1. Check bucket readability
     for (const bucket of deps.local) {
       const read = bucket.list();
@@ -547,6 +550,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           seq: res.value.seq,
         });
         pushedCount++;
+        deps.progress.pushed(pushedCount);
       } else if (push.kind === 'pushUpdate') {
         const meta: WriteMeta = {
           parentRevision: push.expectedRevision,
@@ -608,6 +612,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                     seq: retryRes.value.seq,
                   });
                   pushedCount++;
+                  deps.progress.pushed(pushedCount);
                 }
               }
             } else {
@@ -664,6 +669,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                 const createRes = await deps.cloud.create(copyRes.id, push.body, copyMeta);
                 if (createRes.kind === 'ok') {
                   pushedCount++;
+                  deps.progress.pushed(pushedCount);
                 }
               }
             }
@@ -679,6 +685,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
             seq: res.value.seq,
           });
           pushedCount++;
+          deps.progress.pushed(pushedCount);
         }
       } else {
         const meta: WriteMeta = {
@@ -699,6 +706,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         } else {
           deps.ledger.drop(push.docId);
           pushedCount++;
+          deps.progress.pushed(pushedCount);
         }
       }
     }
