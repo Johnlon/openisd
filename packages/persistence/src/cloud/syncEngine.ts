@@ -23,7 +23,7 @@ import type { CloudStore } from './cloudStore.js';
 import type { LocalDoc, LocalDocs } from './localDocs.js';
 import type { LedgerRow, SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine, SyncProgress } from './syncRun.js';
-import type { StorageBackup } from '../repos/storageBackup.js';
+import type { RoomShortfall, StorageBackup } from '../repos/storageBackup.js';
 
 export interface SyncEngineDeps {
   readonly cloud: CloudStore;
@@ -528,14 +528,14 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       plannedConflicts.some(c => c.replacesExisting);
 
     let backupRan = false;
-    let backupRefused = false;
+    let backupRefused: RoomShortfall | null = null;
 
     if (hasDestructive) {
       const guardRes = deps.backup.guard(() => {
         applyLocalWrites();
       });
       if (guardRes.kind === 'refused') {
-        backupRefused = true;
+        backupRefused = guardRes.shortfall;
       } else {
         backupRan = true;
       }
@@ -815,10 +815,11 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       deps.ledger.setCursor(newCursor);
     }
 
-    if (backupRefused) {
+    if (backupRefused !== null) {
       return {
         kind: 'refused',
         reason: 'noRoom',
+        shortfall: backupRefused,
         pendingLocal: countPendingLocal(),
       };
     }

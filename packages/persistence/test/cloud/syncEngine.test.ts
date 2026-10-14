@@ -30,7 +30,7 @@ class FakeBackup implements StorageBackup {
   guard<T>(destructive: () => T): Guarded<T> {
     this.guardCalls++;
     if (this.refuse) {
-      return { kind: 'refused' };
+      return { kind: 'refused', shortfall: { copyChars: 900, storeChars: 4000 } };
     }
     return { kind: 'ran', value: destructive() };
   }
@@ -459,7 +459,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
 
       expect(outcome.kind).toBe('refused');
       if (outcome.kind === 'refused') {
-        expect(outcome.reason).toBe('noRoom');
+        expect(outcome).toMatchObject({ reason: 'noRoom', shortfall: { copyChars: 900, storeChars: 4000 } });
       }
       // Removal was refused:
       expect(localProjects.docs.some(d => d.id.kind === 'project' && d.id.uuid === 'proj-1')).toBe(true);

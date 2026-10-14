@@ -23,6 +23,11 @@ export function formatTime(d: Date): string {
   return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
+/** "23:32:07" — local 24-hour clock with seconds, for event logs where minutes are too coarse. */
+export function formatClock(d: Date): string {
+  return `${formatTime(d)}:${pad2(d.getSeconds())}`;
+}
+
 /** "5 Oct 2026, 23:32" — local date and 24-hour clock, no seconds. Every date/time a user sees. */
 export function formatDateTime(d: Date): string {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${formatTime(d)}`;

@@ -1,14 +1,28 @@
-import {formatDateTime, formatTime} from '../fields/format.js';
-import type {CloudFaultRecord, CloudGrant} from './cloudTypes.js';
+import {formatClock, formatDateTime, formatTime} from '../fields/format.js';
+import type {CloudFault, CloudFaultRecord, CloudGrant} from './cloudTypes.js';
 
-/** How the last sync run ended. The fault itself is in the report's `lastFault`. */
+/** How a sync run ended, with its counts. A fault itself is in the report's `lastFault` and events. */
 export type CloudAttemptOutcome =
-  | { readonly kind: 'synced'; readonly left: number; readonly removedDuplicates: number }
-  | { readonly kind: 'stopped'; readonly reason: 'offline' | 'quota' }
+  | { readonly kind: 'synced'; readonly pulled: number; readonly pushed: number; readonly left: number; readonly removedDuplicates: number }
+  | { readonly kind: 'stopped'; readonly reason: 'offline' | 'quota'; readonly pushedSoFar: number }
   | { readonly kind: 'notConnected' }
   | { readonly kind: 'reconnect' }
-  | { readonly kind: 'refused'; readonly reason: 'noRoom' | 'bucketUnreadable' }
+  /** The whole-store backup taken before a destructive write did not fit: the copy, and what the store held. */
+  | { readonly kind: 'refused'; readonly reason: 'noRoom'; readonly copyChars: number; readonly storeChars: number }
+  | { readonly kind: 'refused'; readonly reason: 'bucketUnreadable' }
   | { readonly kind: 'failed' };
+
+/** One thing cloud sync did, for the diagnostics log of this page session. */
+export type CloudSyncEvent =
+  | { readonly kind: 'started'; readonly at_ms: number }
+  | { readonly kind: 'ended'; readonly at_ms: number; readonly outcome: CloudAttemptOutcome }
+  | { readonly kind: 'error'; readonly at_ms: number; readonly fault: CloudFault };
+
+/** How many events the log keeps; older ones drop off. */
+export const CLOUD_SYNC_EVENTS_KEPT = 30;
+
+/** How much of a reply an event line shows. */
+const REPLY_START_CHARS = 200;
 
 /** The last sync run: still running, with the pushes so far, or ended with its outcome. */
 export type CloudAttempt =
@@ -25,6 +39,8 @@ export interface CloudSyncReport {
   readonly lastFault: CloudFaultRecord | null;
   /** Google refused to name the signed-in account; kept until disconnect. */
   readonly accountFault: CloudFaultRecord | null;
+  /** The last `CLOUD_SYNC_EVENTS_KEPT` events of this page session, newest first. */
+  readonly events: readonly CloudSyncEvent[];
 }
 
 /** The sign-in does not name the account yet; the store then holds an empty name. */
@@ -40,17 +56,24 @@ function grantText(grant: CloudGrant): string {
   }
 }
 
+function refusalText(outcome: Extract<CloudAttemptOutcome, {kind: 'refused'}>): string {
+  switch (outcome.reason) {
+    case 'noRoom': return `refused: no room in this browser for the backup (copy ${outcome.copyChars} chars, store held ${outcome.storeChars} chars)`;
+    case 'bucketUnreadable': return 'refused: a local store is unreadable';
+  }
+}
+
 function outcomeText(outcome: CloudAttemptOutcome): string {
   switch (outcome.kind) {
     case 'synced': {
       const left = outcome.left === 0 ? '' : `, ${outcome.left} left`;
       const removed = outcome.removedDuplicates === 0 ? '' : `, removed ${outcome.removedDuplicates} duplicate copies`;
-      return `synced${left}${removed}`;
+      return `synced, ${outcome.pulled} pulled, ${outcome.pushed} pushed${left}${removed}`;
     }
-    case 'stopped': return outcome.reason === 'offline' ? 'stopped: offline' : 'stopped: Drive quota';
+    case 'stopped': return `stopped: ${outcome.reason === 'offline' ? 'offline' : 'Drive quota'}, ${outcome.pushedSoFar} pushed`;
     case 'notConnected': return 'not connected';
     case 'reconnect': return 'must reconnect';
-    case 'refused': return outcome.reason === 'noRoom' ? 'refused: no room on Drive' : 'refused: Drive folder unreadable';
+    case 'refused': return refusalText(outcome);
     case 'failed': return 'failed';
   }
 }
@@ -82,6 +105,23 @@ function faultLines(record: CloudFaultRecord | null): readonly string[] {
   ];
 }
 
+function eventLine(event: CloudSyncEvent): string {
+  const at = formatClock(new Date(event.at_ms));
+  switch (event.kind) {
+    case 'started': return `    ${at} run started`;
+    case 'ended': return `    ${at} run ended: ${outcomeText(event.outcome)}`;
+    case 'error': {
+      const {fault} = event;
+      return `    ${at} error: ${fault.operation}, HTTP ${fault.status}, ${fault.reason}, reply: ${fault.reply.slice(0, REPLY_START_CHARS)}`;
+    }
+  }
+}
+
+function eventLines(events: readonly CloudSyncEvent[]): readonly string[] {
+  if (events.length === 0) return ['  recent events: none since the page opened'];
+  return ['  recent events, newest first:', ...events.map(eventLine)];
+}
+
 /** The Cloud sync block of the diagnostics report; null when this window has no cloud sync. */
 export function cloudSyncReportLines(report: CloudSyncReport | null): readonly string[] {
   if (report === null) return ['Cloud sync: not available in this window'];
@@ -91,6 +131,7 @@ export function cloudSyncReportLines(report: CloudSyncReport | null): readonly s
     `  pending changes: ${report.pendingChanges}`,
     attemptLine(report.lastAttempt),
     ...faultLines(report.lastFault),
+    ...eventLines(report.events),
   ];
 }
 

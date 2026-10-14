@@ -252,6 +252,7 @@ describe('cloudSync', () => {
     sync.onOutcome({
       kind: 'refused',
       reason: 'noRoom',
+      shortfall: { copyChars: 900, storeChars: 4000 },
       pendingLocal: 1,
     });
     expect(sync.status()).toEqual({
@@ -292,6 +293,23 @@ describe('cloudSync', () => {
     expect(sync.diagnostics().lastFault).toBeNull();
   });
 
+  it('diagnostics() keeps the last 30 events, newest first: starts, ends and errors', () => {
+    let t = 0;
+    const sync = createCloudSync({
+      session: new FakeCloudSession(), scheduler: new FakeSyncScheduler(), ledger: new FakeSyncLedger(), engine: new FakeSyncEngine(), now: () => t,
+    });
+    const fault = { operation: 'list' as const, status: 0, reason: 'Failed to fetch', reply: '' };
+    t = 1; sync.runStarted();
+    t = 2; sync.onOutcome({ kind: 'failed', fault, pendingLocal: 0 });
+    expect(sync.diagnostics().events).toEqual([
+      { kind: 'ended', at_ms: 2, outcome: { kind: 'failed' } },
+      { kind: 'error', at_ms: 2, fault },
+      { kind: 'started', at_ms: 1 },
+    ]);
+    for (let i = 0; i < 20; i++) { sync.runStarted(); sync.onOutcome({ kind: 'notConnected' }); }
+    expect(sync.diagnostics().events).toHaveLength(30);
+  });
+
   it('a quota stop is waiting, not offline, and pending and failed say when the next run is due', () => {
     const scheduler = new FakeSyncScheduler();
     scheduler.nextAt = 9000;
@@ -327,7 +345,7 @@ describe('cloudSync', () => {
 
     nowTime = 4000;
     sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], held: 0, left: 0, removedDuplicates: 0 });
-    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced', left: 0, removedDuplicates: 0 } });
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced', pulled: 0, pushed: 37, left: 0, removedDuplicates: 0 } });
     expect(sync.status().kind).toBe('synced');
   });
 
@@ -363,6 +381,7 @@ describe('cloudSync', () => {
       pendingChanges: 0,
       lastFault: null,
       accountFault: null,
+      events: [],
     });
 
     const fault = { operation: 'list' as const, status: 200, reason: 'Not a file list', reply: '{"files":[]}' };
@@ -374,11 +393,15 @@ describe('cloudSync', () => {
       pendingChanges: 4,
       lastFault: { fault, at_ms: 2000 },
       accountFault: null,
+      events: [
+        { kind: 'ended', at_ms: 2000, outcome: { kind: 'failed' } },
+        { kind: 'error', at_ms: 2000, fault },
+      ],
     });
 
     nowTime = 3000;
     sync.onOutcome({ kind: 'stopped', reason: 'quota', pushedSoFar: 0, pendingLocal: 4 });
-    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 3000, ended_ms: 3000, outcome: { kind: 'stopped', reason: 'quota' } });
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 3000, ended_ms: 3000, outcome: { kind: 'stopped', reason: 'quota', pushedSoFar: 0 } });
     expect(sync.diagnostics().lastFault).toEqual({ fault, at_ms: 2000 });
 
     session.currentGrant = { kind: 'reconnect', account: 'john@example.com' };
@@ -386,8 +409,8 @@ describe('cloudSync', () => {
     expect(sync.diagnostics().grant).toEqual({ kind: 'reconnect', account: 'john@example.com' });
     expect(endedOutcome(sync)).toEqual({ kind: 'reconnect' });
 
-    sync.onOutcome({ kind: 'refused', reason: 'noRoom', pendingLocal: 4 });
-    expect(endedOutcome(sync)).toEqual({ kind: 'refused', reason: 'noRoom' });
+    sync.onOutcome({ kind: 'refused', reason: 'noRoom', shortfall: { copyChars: 900, storeChars: 4000 }, pendingLocal: 4 });
+    expect(endedOutcome(sync)).toEqual({ kind: 'refused', reason: 'noRoom', copyChars: 900, storeChars: 4000 });
 
     sync.onOutcome({ kind: 'notConnected' });
     expect(endedOutcome(sync)).toEqual({ kind: 'notConnected' });

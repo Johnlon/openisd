@@ -1,4 +1,4 @@
-import type { CloudAttempt, CloudAttemptOutcome, CloudFault, CloudFaultRecord, CloudSyncReport, ConflictCopy, SyncStatus } from '@openisd/design/cloud';
+import { CLOUD_SYNC_EVENTS_KEPT, type CloudAttempt, type CloudAttemptOutcome, type CloudFault, type CloudFaultRecord, type CloudSyncEvent, type CloudSyncReport, type ConflictCopy, type SyncStatus } from '@openisd/design/cloud';
 import type { CloudSession } from './cloudStore.js';
 import type { SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine } from './syncRun.js';
@@ -40,6 +40,12 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
   let lastAttempt: CloudAttempt | null = null;
   let accountFault: CloudFaultRecord | null = null;
   const listeners = new Set<() => void>();
+  /** Newest first, at most CLOUD_SYNC_EVENTS_KEPT; this page session only, never stored. */
+  let events: readonly CloudSyncEvent[] = [];
+
+  function record(event: CloudSyncEvent): void {
+    events = [event, ...events].slice(0, CLOUD_SYNC_EVENTS_KEPT);
+  }
 
   function notify(): void {
     for (const listener of listeners) {
@@ -49,11 +55,14 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
 
   function attemptOutcome(outcome: RunOutcome): CloudAttemptOutcome {
     switch (outcome.kind) {
-      case 'synced': return { kind: 'synced', left: outcome.left, removedDuplicates: outcome.removedDuplicates };
-      case 'stopped': return { kind: 'stopped', reason: outcome.reason };
+      case 'synced': return { kind: 'synced', pulled: outcome.pulled, pushed: outcome.pushed, left: outcome.left, removedDuplicates: outcome.removedDuplicates };
+      case 'stopped': return { kind: 'stopped', reason: outcome.reason, pushedSoFar: outcome.pushedSoFar };
       case 'notConnected': return { kind: 'notConnected' };
       case 'reconnect': return { kind: 'reconnect' };
-      case 'refused': return { kind: 'refused', reason: outcome.reason };
+      case 'refused':
+        return outcome.reason === 'noRoom'
+          ? { kind: 'refused', reason: 'noRoom', copyChars: outcome.shortfall.copyChars, storeChars: outcome.shortfall.storeChars }
+          : { kind: 'refused', reason: 'bucketUnreadable' };
       case 'failed': return { kind: 'failed' };
     }
   }
@@ -63,6 +72,8 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     const ended_ms = clock();
     const started_ms = lastAttempt?.kind === 'running' ? lastAttempt.started_ms : ended_ms;
     lastAttempt = { kind: 'ended', started_ms, ended_ms, outcome: attemptOutcome(outcome) };
+    if (outcome.kind === 'failed') record({ kind: 'error', at_ms: ended_ms, fault: outcome.fault });
+    record({ kind: 'ended', at_ms: ended_ms, outcome: lastAttempt.outcome });
     if (outcome.kind === 'synced') {
       lastSyncAt_ms = clock();
       lastFault = null;
@@ -246,10 +257,12 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     onOutcome,
     accountRefused: (fault) => {
       accountFault = { fault, at_ms: clock() };
+      record({ kind: 'error', at_ms: accountFault.at_ms, fault });
       notify();
     },
     runStarted: () => {
       lastAttempt = { kind: 'running', started_ms: clock(), pushed: 0 };
+      record({ kind: 'started', at_ms: lastAttempt.started_ms });
       notify();
     },
     runPushed: (count) => {
@@ -263,6 +276,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
       pendingChanges: pendingChanges(),
       lastFault,
       accountFault,
+      events,
     }),
   };
 }

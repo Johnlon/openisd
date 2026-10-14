@@ -1,3 +1,4 @@
+import type {RoomShortfall} from '../repos/storageBackup.js';
 import type { CloudFault, ConflictCopy } from '@openisd/design/cloud';
 
 export type RunOutcome =
@@ -22,7 +23,14 @@ export type RunOutcome =
   | { readonly kind: 'reconnect'; readonly pendingLocal: number }
   | {
       readonly kind: 'refused';
-      readonly reason: 'noRoom' | 'bucketUnreadable';
+      readonly reason: 'noRoom';
+      /** What the backup taken first saw when it did not fit. */
+      readonly shortfall: RoomShortfall;
+      readonly pendingLocal: number;
+    }
+  | {
+      readonly kind: 'refused';
+      readonly reason: 'bucketUnreadable';
       readonly pendingLocal: number;
     }
   | {

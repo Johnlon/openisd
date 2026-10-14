@@ -40,16 +40,22 @@ export interface BackupInfo {
   readonly size: number;
 }
 
+/** What a backup that did not fit saw: the copy it tried to write, and what the store held then. */
+export interface RoomShortfall {
+  readonly copyChars: number;
+  readonly storeChars: number;
+}
+
 export type BackupResult =
   | {kind: 'taken'; key: string}
   /** The store holds no data, so there is nothing a write could lose. */
   | {kind: 'nothingToBackUp'}
   /** The copy does not fit, even with every droppable backup gone. Export first. */
-  | {kind: 'noRoom'};
+  | {kind: 'noRoom'; shortfall: RoomShortfall};
 
 export type Guarded<T> =
   | {kind: 'ran'; value: T}
-  | {kind: 'refused'};
+  | {kind: 'refused'; shortfall: RoomShortfall};
 
 export interface StorageBackup {
   /** Copy the whole store to its backup key. */
@@ -166,12 +172,19 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     return null;
   }
 
+  /** Every key and value held now, in characters. */
+  function storeChars(): number {
+    return storage.keys().reduce((sum, key) => sum + key.length + (storage.get(key)?.length ?? 0), 0);
+  }
+
   function take(): BackupResult {
     const snapshot = snapshots.take();
     if (snapshot === null) return {kind: 'nothingToBackUp'};
+    const text = envelopeText(snapshot, false);
+    const noRoom = (): BackupResult => ({kind: 'noRoom', shortfall: {copyChars: text.length, storeChars: storeChars()}});
     const key = freeKey(`${OPENISD_BACKUP_PREFIX}${snapshot.build.text}_${snapshot.exportedAt}`);
-    if (key === null) return {kind: 'noRoom'};
-    if (!placeCopy(key, envelopeText(snapshot, false))) return {kind: 'noRoom'};
+    if (key === null) return noRoom();
+    if (!placeCopy(key, text)) return noRoom();
     trim(key);
     return {kind: 'taken', key};
   }
@@ -182,7 +195,8 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     take,
     guard<T>(destructive: () => T): Guarded<T> {
       if (guarding) return {kind: 'ran', value: destructive()};
-      if (take().kind === 'noRoom') return {kind: 'refused'};
+      const taken = take();
+      if (taken.kind === 'noRoom') return {kind: 'refused', shortfall: taken.shortfall};
       guarding = true;
       try {
         return {kind: 'ran', value: destructive()};

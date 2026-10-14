@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: sonnet-close-f23
 status: done
+landed: 6047b22821e40041047a6f75140dd56729beb660
 goal: Main is green again after T158: F23 closed (architecture factory, open-sessions spec)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

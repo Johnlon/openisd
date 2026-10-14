@@ -200,10 +200,16 @@ describe('space', () => {
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
     let ran = false;
 
-    assert.deepEqual(backup.take(), {kind: 'noRoom'});
+    const taken = backup.take();
+    assert.equal(taken.kind, 'noRoom');
+    // The sizes it saw: a copy bigger than the room left, and the live data the store held.
+    if (taken.kind === 'noRoom') {
+      assert.ok(taken.shortfall.copyChars > data.length);
+      assert.equal(taken.shortfall.storeChars, OPENISD_PROJECTS_KEY.length + data.length);
+    }
     const guarded = backup.guard(() => { ran = true; });
 
-    assert.deepEqual(guarded, {kind: 'refused'});
+    assert.deepEqual(guarded, {kind: 'refused', shortfall: taken.kind === 'noRoom' ? taken.shortfall : null});
     assert.equal(ran, false);
     assert.equal(storage.get(OPENISD_PROJECTS_KEY), data, 'the data is untouched');
   });
