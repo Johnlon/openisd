@@ -49,7 +49,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
 
   function attemptOutcome(outcome: RunOutcome): CloudAttemptOutcome {
     switch (outcome.kind) {
-      case 'synced': return { kind: 'synced', left: outcome.left };
+      case 'synced': return { kind: 'synced', left: outcome.left, removedDuplicates: outcome.removedDuplicates };
       case 'stopped': return { kind: 'stopped', reason: outcome.reason };
       case 'notConnected': return { kind: 'notConnected' };
       case 'reconnect': return { kind: 'reconnect' };

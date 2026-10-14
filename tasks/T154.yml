@@ -1,0 +1,15 @@
+id: T154
+release_note: Cloud sync removes the duplicate files an earlier sync bug left in Google Drive, keeping the newest copy of each item.
+repo: openisd
+owner: maryu
+status: done
+goal: Sync removes the duplicate Drive files the re-upload bug left; one full listing per device, newest copy of each doc kept, the rest deleted, count reported
+done_test: bash scripts/test.sh packages/persistence/test/cloud/syncEngine.test.ts packages/persistence/test/cloud/syncLedger.test.ts packages/persistence/test/cloud/driveStore.test.ts
+files:
+  - tasks/T154.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/persistence/src/index.ts
+  - packages/ui/src/logic/cloudSyncWiring.ts

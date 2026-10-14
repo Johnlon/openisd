@@ -11,6 +11,9 @@ export interface CloudStore {
   update(fileId: FileId, expectedRevision: RevisionId, body: string, meta: WriteMeta): Promise<CloudResult<CloudMeta>>;
   tombstone(fileId: FileId, expectedRevision: RevisionId, meta: WriteMeta): Promise<CloudResult<CloudMeta>>;
   purge(fileId: FileId): Promise<CloudResult<void>>;
+  /** Deletes a file outright, with no tombstone: for a duplicate copy of a doc whose newest copy
+   *  stays, so no device ever reads the doc as deleted. */
+  removeFile(fileId: FileId): Promise<CloudResult<void>>;
 }
 
 export type { Http, HttpRequest, HttpResponse } from './http.js';

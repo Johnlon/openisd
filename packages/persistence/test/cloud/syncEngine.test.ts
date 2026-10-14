@@ -153,6 +153,37 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
     });
   });
 
+  describe('Duplicate Drive files', () => {
+    function copy(id: DocId, n: number, seq: number, body: string) {
+      cloud.seedFile({
+        meta: {
+          id, fileId: FileId.of(`dup-${n}`)!, revision: RevisionId.of(`rev-dup-${n}`)!, parentRevision: null,
+          layout: APP_LAYOUT, seq, writer: 'device-other', deleted: false, remoteHash: bodyHashOf(body)!,
+        },
+        body,
+      });
+    }
+
+    it('a full listing keeps the newest copy of each doc and deletes the others, never a doc listed once', async () => {
+      copy(project1Id, 1, 3, body1);
+      copy(project1Id, 2, 7, body1Updated);
+      copy(project1Id, 3, 5, body1);
+      copy(project2Id, 4, 2, body2);
+      const outcome = await createEngine().run();
+      expect(outcome).toMatchObject({ kind: 'synced', removedDuplicates: 2 });
+      expect(cloud.removeCalls.map(f => f.toString()).sort()).toEqual(['dup-1', 'dup-3']);
+      expect([...cloud.files.keys()].sort()).toEqual(['dup-2', 'dup-4']);
+      expect(localProjects.docs.find(d => d.id.kind === 'project' && d.id.uuid === project1Id.uuid)?.body).toBe(body1Updated);
+    });
+
+    it('nothing is deleted when every doc has one file', async () => {
+      copy(project1Id, 1, 3, body1);
+      copy(project2Id, 2, 2, body2);
+      expect(await createEngine().run()).toMatchObject({ kind: 'synced', removedDuplicates: 0 });
+      expect(cloud.removeCalls).toEqual([]);
+    });
+  });
+
   describe('Upload concurrency', () => {
     function newProjects(n: number) {
       return Array.from({ length: n }, (_, i) => ({

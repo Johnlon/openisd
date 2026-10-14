@@ -3,6 +3,7 @@ release_note: A cloud sync takes one backup of your saved data instead of one pe
 repo: openisd
 owner: maryu
 status: done
+landed: 8187598874c9f67a008c6a296b1c9af69c8dca64
 goal: A sync run takes one whole-store backup; a backup that does not fit drops older backups, then pre-repair copies, then the newest backup, and refuses only when live data alone cannot be copied
 done_test: bash scripts/test.sh packages/persistence/test/storageBackup.test.ts packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
 files:

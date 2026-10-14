@@ -2,6 +2,7 @@ import {
   BodyHash,
   type ChangeCursor,
   type CloudMeta,
+  type CloudResult,
   type DeviceName,
   type DocId,
   type DocKind,
@@ -184,6 +185,28 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
 
   async function run(): Promise<RunOutcome> {
     deps.progress.started();
+    let removedDuplicates = 0;
+
+    /** Of several Drive files for one doc, keeps the newest (highest seq) and deletes the rest. */
+    async function keepNewestCopies(docs: readonly CloudMeta[]): Promise<CloudResult<readonly CloudMeta[]>> {
+      const byDoc = new Map<string, CloudMeta[]>();
+      for (const doc of docs) {
+        const key = docIdKey(doc.id);
+        byDoc.set(key, [...(byDoc.get(key) ?? []), doc]);
+      }
+      const kept: CloudMeta[] = [];
+      for (const copies of byDoc.values()) {
+        const [newest, ...older] = [...copies].sort((a, b) => b.seq - a.seq || b.revision.toString().localeCompare(a.revision.toString()));
+        if (newest === undefined) continue;
+        kept.push(newest);
+        for (const copy of older) {
+          const res = await deps.cloud.removeFile(copy.fileId);
+          if (res.kind !== 'ok') return res;
+          removedDuplicates++;
+        }
+      }
+      return { kind: 'ok', value: kept };
+    }
     // 1. Check bucket readability
     for (const bucket of deps.local) {
       const read = bucket.list();
@@ -208,7 +231,11 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       if (listRes.kind !== 'ok') {
         return mapCloudError(listRes, 0);
       }
-      for (const doc of listRes.value.docs) {
+      const kept = await keepNewestCopies(listRes.value.docs);
+      if (kept.kind !== 'ok') {
+        return mapCloudError(kept, 0);
+      }
+      for (const doc of kept.value) {
         remoteDocs.set(docIdKey(doc.id), doc);
       }
       if (listRes.value.next !== null) {
@@ -226,7 +253,11 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         if (listRes.kind !== 'ok') {
           return mapCloudError(listRes, 0);
         }
-        for (const doc of listRes.value.docs) {
+        const kept = await keepNewestCopies(listRes.value.docs);
+        if (kept.kind !== 'ok') {
+          return mapCloudError(kept, 0);
+        }
+        for (const doc of kept.value) {
           remoteDocs.set(docIdKey(doc.id), doc);
         }
         if (listRes.value.next !== null) {
@@ -799,6 +830,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       conflicts: deps.ledger.conflicts(),
       held: heldCount,
       left: countPendingLocal(),
+      removedDuplicates,
     };
   }
 

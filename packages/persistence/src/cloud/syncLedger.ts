@@ -379,3 +379,14 @@ export function createSyncLedger(deps: { readonly storage: KeyValueStorage; read
     },
   };
 }
+/** Set once this device has listed every Drive file after the re-upload bug (T151) could leave
+ *  duplicate copies; a full listing is what finds and removes them. Per device, never backed up. */
+const RELISTED_KEY = 'openisd_cloud_relisted_t154';
+
+/** Drops the change cursor the first time it is called on this device, so the next run lists
+ *  every Drive file; afterwards it does nothing. */
+export function relistOnce(storage: KeyValueStorage, ledger: SyncLedger): void {
+  if (storage.get(RELISTED_KEY) !== null) return;
+  ledger.setCursor(null);
+  storage.set(RELISTED_KEY, '1');
+}

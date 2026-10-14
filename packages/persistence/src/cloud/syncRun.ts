@@ -9,6 +9,8 @@ export type RunOutcome =
       readonly held: number;
       /** Local changes still not on Drive after the run. */
       readonly left: number;
+      /** Duplicate Drive copies of a doc deleted by this run (the newest copy stays). */
+      readonly removedDuplicates: number;
     }
   | {
       readonly kind: 'stopped';

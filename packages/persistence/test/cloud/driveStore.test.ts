@@ -438,6 +438,15 @@ describe('DriveStore', () => {
   });
 
   describe('error and offline mapping', () => {
+    it('removeFile deletes the file outright, with no tombstone first', async () => {
+      const store = createDriveStore({ http, session });
+      http.queueResponse({ status: 204, text: '' });
+      const fileId = FileId.of('dup-1');
+      if (fileId === null) throw new Error('id');
+      expect(await store.removeFile(fileId)).toEqual({ kind: 'ok', value: undefined });
+      expect(http.recorded.map(r => `${r.method} ${r.url}`)).toEqual(['DELETE https://www.googleapis.com/drive/v3/files/dup-1']);
+    });
+
     it('signedInEmail asks Drive about the user and returns the email', async () => {
       const store = createDriveStore({ http, session });
       http.queueResponse({ status: 200, text: JSON.stringify({ user: { emailAddress: 'john@example.com' } }) });

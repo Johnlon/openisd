@@ -27,7 +27,7 @@ export interface WriteMeta {
 }
 
 /** The Drive request a fault came from; 'request' when the store does not say. */
-export type CloudOperation = 'list' | 'changes' | 'startCursor' | 'read' | 'create' | 'update' | 'tombstone' | 'purge' | 'about' | 'request';
+export type CloudOperation = 'list' | 'changes' | 'startCursor' | 'read' | 'create' | 'update' | 'tombstone' | 'purge' | 'removeDuplicate' | 'about' | 'request';
 
 /** What went wrong with one Drive request: the request, the HTTP status, Drive's error or the
  *  reason its reply did not read, and the start of the reply as Drive sent it. */

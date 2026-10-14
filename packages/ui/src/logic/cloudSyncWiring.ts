@@ -36,6 +36,7 @@ import {
   createSyncLedger,
   createAccountNamer,
   createSyncScheduler,
+  relistOnce,
   createTokenStore,
 } from '@openisd/persistence';
 
@@ -136,6 +137,7 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     storage: deps.storage,
     random,
   });
+  relistOnce(deps.storage, ledger);
 
   const projectDocs = createProjectDocs({
     repo: deps.projectRepo,

@@ -374,6 +374,15 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
     return readReply('tombstone', res, parseWriteReply(res.text));
   }
 
+  async function removeFile(fileId: FileId): Promise<CloudResult<void>> {
+    const url = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}`;
+    const res = await dispatch(http, session, 'removeDuplicate', { method: 'DELETE', url });
+    if (res.kind !== 'ok') {
+      return res;
+    }
+    return { kind: 'ok', value: undefined };
+  }
+
   async function purge(fileId: FileId): Promise<CloudResult<void>> {
     const headUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?fields=id,name,headRevisionId,appProperties`;
     const headRes = await dispatch(http, session, 'purge', { method: 'GET', url: headUrl });
@@ -401,6 +410,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
 
   return {
     signedInEmail,
+    removeFile,
     listAll,
     changesSince,
     startCursor,

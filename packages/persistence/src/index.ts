@@ -127,6 +127,7 @@ export {
   type LedgerRow,
   type SyncLedger,
   createSyncLedger,
+  relistOnce,
 } from './cloud/syncLedger.js';
 
 export {

@@ -32,6 +32,7 @@ export class FakeCloudStore implements CloudStore {
   simulateCursorExpired = false;
 
   purgeCalls: FileId[] = [];
+  removeCalls: FileId[] = [];
 
   seedFile(doc: CloudDoc, tombstonedAt_ms?: number): void {
     const meta: CloudMeta & { readonly tombstonedAt_ms?: number } = {
@@ -265,6 +266,17 @@ export class FakeCloudStore implements CloudStore {
       change: cloudMeta,
     });
     return { kind: 'ok', value: cloudMeta };
+  }
+
+  async removeFile(fileId: FileId): Promise<CloudResult<void>> {
+    const err = this.checkErrors();
+    if (err) return err;
+    this.removeCalls.push(fileId);
+    if (!this.files.delete(fileId.toString())) {
+      return { kind: 'failed', status: 404, reason: 'File not found' };
+    }
+    this.changes.push({ cursor: this.cursorCounter++, change: { fileId, gone: true } });
+    return { kind: 'ok', value: undefined };
   }
 
   async purge(fileId: FileId): Promise<CloudResult<void>> {

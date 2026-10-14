@@ -449,3 +449,21 @@ describe('syncLedger', () => {
     });
   });
 });
+describe('relistOnce', () => {
+  it('drops the change cursor once, so the next run lists every Drive file; later calls keep it', async () => {
+    const { relistOnce } = await import('../../src/cloud/syncLedger.js');
+    const { ChangeCursor } = await import('@openisd/design/cloud');
+    const storage = createMemoryStorage();
+    const ledger = createSyncLedger({ storage, random: () => new Uint8Array(16).fill(7) });
+    const cursor = ChangeCursor.of('c-1');
+    if (cursor === null) throw new Error('cursor');
+    ledger.setCursor(cursor);
+
+    relistOnce(storage, ledger);
+    expect(ledger.cursor()).toBeNull();
+
+    ledger.setCursor(cursor);
+    relistOnce(storage, ledger);
+    expect(ledger.cursor()?.toString()).toBe('c-1');
+  });
+});
