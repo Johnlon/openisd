@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DeviceId } from '@openisd/design/cloud';
 import { createEngine } from '@openisd/design/engine';
-import { createProjectBucket } from '../../../src/cloud/buckets/projectBucket.js';
+import { createProjectDocs } from '../../../src/cloud/docs/projectDocs.js';
 import { OPENISD_PROJECTS_KEY } from '../../../src/repos/storageKeys.js';
 import { createMemoryStorage } from '../../../src/storage/keyValueStorage.js';
 import { goodProjectText } from '../../fixtures/projectTexts.js';
@@ -25,11 +25,11 @@ const RULES: LayoutRules = { layout: 2, steps: LAYOUT_STEPS };
 function setup(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);
   const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
-  const bucket = createProjectBucket({ repo, rules: RULES, now: () => FIXED_NOW });
+  const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW });
   return { storage, repo, bucket };
 }
 
-describe('projectBucket', () => {
+describe('projectDocs', () => {
   it('lists stored projects with layout and body', () => {
     const text = goodProjectText('Sub 12');
     const { bucket } = setup({
@@ -130,7 +130,7 @@ describe('projectBucket', () => {
     };
     const storage = createQuotaStorage(JSON.stringify(seed).length + 20, seed);
     const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
-    const bucket = createProjectBucket({ repo, rules: RULES, now: () => FIXED_NOW });
+    const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW });
 
     const putRes = bucket.put({
       id: { kind: 'project', uuid: 'p-1' },

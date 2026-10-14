@@ -9,13 +9,13 @@ import type { SingletonDocRepo } from '../../repos/appSettingsRepo.js';
 import { createLayoutMigrator, type LayoutRules, type StoreData } from '../../repos/layoutMigration.js';
 import { OPENISD_APP_SETTINGS_KEY, OPENISD_FAVOURITE_DRIVERS_KEY } from '../../repos/storageKeys.js';
 
-export interface SingletonBucketDeps {
+export interface SingletonDocsDeps {
   readonly repo: SingletonDocRepo;
   readonly rules: LayoutRules;
   readonly now: () => number;
 }
 
-export function createSingletonBucket(deps: SingletonBucketDeps): LocalDocs {
+export function createSingletonDocs(deps: SingletonDocsDeps): LocalDocs {
   const { repo, rules } = deps;
   const { kind } = repo;
   const storeKey = kind === 'settings' ? OPENISD_APP_SETTINGS_KEY : OPENISD_FAVOURITE_DRIVERS_KEY;

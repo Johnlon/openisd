@@ -12,13 +12,13 @@ import type { ProjectRepo } from '../../repos/projectRepo.js';
 import { createLayoutMigrator, type LayoutRules, type StoreData } from '../../repos/layoutMigration.js';
 import { OPENISD_PROJECTS_KEY } from '../../repos/storageKeys.js';
 
-export interface ProjectBucketDeps {
+export interface ProjectDocsDeps {
   readonly repo: ProjectRepo;
   readonly rules: LayoutRules;
   readonly now: () => number;
 }
 
-export function createProjectBucket(deps: ProjectBucketDeps): LocalDocs {
+export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
   const { repo, rules } = deps;
   const migrator = createLayoutMigrator(rules);
 

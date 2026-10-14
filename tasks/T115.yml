@@ -3,6 +3,7 @@ release_note: On phase charts the vertical jump across the 180 degree cut is dra
 repo: openisd
 owner: bob
 status: done
+landed: 96735cfa79ac2abf93765aae7cd0f56ea2ad8ba2
 goal: On phase charts the vertical wrap-around segment is drawn dotted and faint, not as a solid line.
 done_test: bash scripts/test.sh packages/design/test/chart/sample.test.ts packages/design/test/chart/build-plot-data.test.ts
 files:

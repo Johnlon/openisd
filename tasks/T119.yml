@@ -1,0 +1,12 @@
+id: T119
+release_note: internal
+label: fixes
+repo: openisd
+owner: maryu
+status: done
+goal: Rename the sync buckets to docs (cloud/docs/projectDocs, savedEntryDocs, singletonDocs) so the persistence vocabulary rule passes; fixes F19 CHECK 5
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-persistence-vocabulary-drift.test.ts
+files:
+  - tasks/T119.yml
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**

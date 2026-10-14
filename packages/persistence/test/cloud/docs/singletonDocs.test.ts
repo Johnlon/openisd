@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DeviceId } from '@openisd/design/cloud';
-import { createSingletonBucket } from '../../../src/cloud/buckets/singletonBucket.js';
+import { createSingletonDocs } from '../../../src/cloud/docs/singletonDocs.js';
 import {
   OPENISD_APP_SETTINGS_KEY,
   OPENISD_FAVOURITE_DRIVERS_KEY,
@@ -20,7 +20,7 @@ function setupSettings(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);
   const backup = createStorageBackup(storage, () => FIXED_NOW);
   const repo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined);
-  const bucket = createSingletonBucket({ repo, rules: RULES, now: () => FIXED_NOW });
+  const bucket = createSingletonDocs({ repo, rules: RULES, now: () => FIXED_NOW });
   return { storage, backup, repo, bucket };
 }
 
@@ -28,11 +28,11 @@ function setupFavourites(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);
   const backup = createStorageBackup(storage, () => FIXED_NOW);
   const repo = createFavouritesRepo(storage, backup);
-  const bucket = createSingletonBucket({ repo, rules: RULES, now: () => FIXED_NOW });
+  const bucket = createSingletonDocs({ repo, rules: RULES, now: () => FIXED_NOW });
   return { storage, backup, repo, bucket };
 }
 
-describe('singletonBucket', () => {
+describe('singletonDocs', () => {
   describe('settings', () => {
     it('lists stored settings with layout and body', () => {
       const body = JSON.stringify({ differenceCues: true });
@@ -87,7 +87,7 @@ describe('singletonBucket', () => {
       const storage = createQuotaStorage(JSON.stringify(seed).length + 20, seed);
       const backup = createStorageBackup(storage, () => FIXED_NOW);
       const repo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined);
-      const bucket = createSingletonBucket({ repo, rules: RULES, now: () => FIXED_NOW });
+      const bucket = createSingletonDocs({ repo, rules: RULES, now: () => FIXED_NOW });
 
       const res = bucket.put({
         id: { kind: 'settings' },

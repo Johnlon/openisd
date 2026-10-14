@@ -10,13 +10,13 @@ import type { SavedEntries } from '../../repos/savedEntries.js';
 import { createLayoutMigrator, type LayoutRules, type StoreData } from '../../repos/layoutMigration.js';
 import { OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY } from '../../repos/storageKeys.js';
 
-export interface SavedEntriesBucketDeps {
+export interface SavedEntryDocsDeps {
   readonly repo: SavedEntries<unknown>;
   readonly rules: LayoutRules;
   readonly now: () => number;
 }
 
-export function createSavedEntriesBucket(deps: SavedEntriesBucketDeps): LocalDocs {
+export function createSavedEntryDocs(deps: SavedEntryDocsDeps): LocalDocs {
   const { repo, rules } = deps;
   const { kind } = repo;
   const storeKey = kind === 'driver' ? OPENISD_MY_DRIVERS_KEY : OPENISD_MY_PASSIVE_RADIATORS_KEY;

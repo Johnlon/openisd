@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DeviceId } from '@openisd/design/cloud';
-import { createSavedEntriesBucket } from '../../../src/cloud/buckets/savedEntriesBucket.js';
+import { createSavedEntryDocs } from '../../../src/cloud/docs/savedEntryDocs.js';
 import { OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY } from '../../../src/repos/storageKeys.js';
 import { createMemoryStorage } from '../../../src/storage/keyValueStorage.js';
 import { createStorageBackup } from '../../../src/repos/storageBackup.js';
@@ -20,7 +20,7 @@ function setupDriver(initialData: Record<string, string> = {}) {
     { key: OPENISD_MY_DRIVERS_KEY, open: r => r, snapshot: v => v },
     backup,
   );
-  const bucket = createSavedEntriesBucket({ repo: entries, rules: RULES, now: () => FIXED_NOW });
+  const bucket = createSavedEntryDocs({ repo: entries, rules: RULES, now: () => FIXED_NOW });
   return { storage, backup, entries, bucket };
 }
 
@@ -32,11 +32,11 @@ function setupPr(initialData: Record<string, string> = {}) {
     { key: OPENISD_MY_PASSIVE_RADIATORS_KEY, open: r => r, snapshot: v => v },
     backup,
   );
-  const bucket = createSavedEntriesBucket({ repo: entries, rules: RULES, now: () => FIXED_NOW });
+  const bucket = createSavedEntryDocs({ repo: entries, rules: RULES, now: () => FIXED_NOW });
   return { storage, backup, entries, bucket };
 }
 
-describe('savedEntriesBucket', () => {
+describe('savedEntryDocs', () => {
   describe('driver bucket', () => {
     it('lists stored drivers with layout and body', () => {
       const record = { brand: 'Scan-Speak', model: '18W' };
@@ -112,7 +112,7 @@ describe('savedEntriesBucket', () => {
         { key: OPENISD_MY_DRIVERS_KEY, open: r => r, snapshot: v => v },
         backup,
       );
-      const bucket = createSavedEntriesBucket({ repo: entries, rules: RULES, now: () => FIXED_NOW });
+      const bucket = createSavedEntryDocs({ repo: entries, rules: RULES, now: () => FIXED_NOW });
 
       const res = bucket.put({
         id: { kind: 'driver', uuid: 'd-1' },
