@@ -173,6 +173,26 @@ for sha in $(git rev-list origin/main..HEAD); do
   run_gate attribution "$WORK/message" "$ATTRIBUTION_CMD"
 done
 
+# 5b. health: main red for too long blocks everything but a fix. Missing state files mean unknown.
+GATE_OUT=/dev/null
+now_s="$(date +%s)"
+age_min() { echo $(( (now_s - $(stat -c %Y "$1")) / 60 )); }
+green_sha="$(cat "${POST_LAND_LOCK}.green" 2>/dev/null)"
+tested_sha="$(cat "${POST_LAND_LOCK}.tested" 2>/dev/null)"
+green_age=""; [ -f "${POST_LAND_LOCK}.green" ] && green_age="$(age_min "${POST_LAND_LOCK}.green")"
+run_state=none
+[ -f "${POST_LAND_LOCK}.running" ] && run_state="running $(age_min "${POST_LAND_LOCK}.running")m"
+load="$(cut -d' ' -f1 /proc/loadavg 2>/dev/null)"
+if [ -n "$green_sha" ] && [ -n "$tested_sha" ]; then
+  echo "land: health: green ${green_sha:0:10} ${green_age}m ago, tested ${tested_sha:0:10}, run ${run_state}, load ${load:-?}"
+else
+  echo "land: health: unknown (green ${green_sha:0:10}, tested ${tested_sha:0:10}), run ${run_state}, load ${load:-?}"
+fi
+if [ -n "$green_sha" ] && [ -n "$tested_sha" ] && [ "$tested_sha" != "$green_sha" ] \
+   && [ "$green_age" -gt "${HEALTH_RED_MAX_MIN:-120}" ] && [ "$(task_field "$TASK" label)" != "fixes" ]; then
+  refuse red-main "main has been red for $green_age min (last green ${green_sha:0:10}); land a task labelled fixes first"
+fi
+
 # 6. push
 git push -q origin HEAD:main > "$WORK/push.out" 2>&1 || { GATE_OUT="$WORK/push.out"; refuse push "origin rejected the push"; }
 pushed="$(git rev-parse HEAD)"

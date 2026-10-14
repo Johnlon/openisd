@@ -61,6 +61,8 @@ admit slots, matt restore) are derived from a single runtime root
 `$OPENISD_RUNTIME_DIR` (default `$XDG_RUNTIME_DIR/openisd` or `/run/user/<uid>/openisd`), set in
 `scripts/paths.sh` and sourced by every script. The old `/tmp/openisd-*` paths are no longer used;
 they must never both be live at once.
+`POST_LAND_DEADLINE_S` (default 5400): a post-land run past it has its process group killed and is recorded red ("TIMED OUT").
+`HEALTH_RED_MAX_MIN` (default 120): land.sh prints a health line and refuses `red-main` when main is red and the last green is older than this, unless the task has `label: fixes`.
 
 ## Integrating a branch
 

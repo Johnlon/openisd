@@ -1,0 +1,15 @@
+id: T121
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Post-land runs time out after 90 min and land.sh refuses to push onto a main that has been red for over two hours
+done_test: bash scripts/land/test/land-health.test.sh && bash scripts/land/test/post-land-timeout.test.sh
+files:
+  - tasks/T121.yml
+  - land.conf
+  - docs/DEV_PROCESS.md
+  - scripts/land.sh
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/land-health.test.sh
+  - scripts/land/test/post-land-timeout.test.sh

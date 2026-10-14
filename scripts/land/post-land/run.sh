@@ -18,7 +18,10 @@
 # OLDER commit's suite running (${POST_LAND_LOCK}.holder: pid, start time, sha) kills it by pid; the killed
 # run ends "superseded by <sha>; killed", exit 0. A run whose sha is an ancestor of the last tested sha
 # (${POST_LAND_LOCK}.tested) ends "superseded by <sha> (already tested)", exit 0. A red lists every commit since the last green in its F.
-# Config in land.conf: FULL_SUITE_CMD, POST_LAND_LOCK, POST_LAND_DIR.
+# A run past POST_LAND_DEADLINE_S (default 5400) has its whole process group killed and is a red whose
+# output says "post-land: TIMED OUT after <n>s at <sha>". While a run is in flight
+# ${POST_LAND_LOCK}.running holds "<pid> <start epoch> <sha>".
+# Config in land.conf: FULL_SUITE_CMD, POST_LAND_LOCK, POST_LAND_DIR, POST_LAND_DEADLINE_S.
 # A release is the GitHub Pages deploy on every push to main; post-land is the local full run.
 set -uo pipefail
 
@@ -35,6 +38,8 @@ cd "$ROOT" || exit 2
 # shellcheck source=/dev/null
 . "$ROOT/scripts/paths.sh"
 . ./land.conf
+DEADLINE_S="${POST_LAND_DEADLINE_S:-5400}"
+RUNNING="${POST_LAND_LOCK}.running"
 SHA="$(git rev-parse --verify "$SHA_ARG^{commit}")" || exit 2
 
 mkdir -p "$POST_LAND_DIR"
@@ -65,6 +70,7 @@ cleanup() {
   local status=$?
   stop_suite
   [ "$(cut -d' ' -f1 "$HOLDER" 2>/dev/null)" = "$$" ] && rm -f "$HOLDER"
+  [ "$(cut -d' ' -f1 "$RUNNING" 2>/dev/null)" = "$$" ] && rm -f "$RUNNING"
   git -C "$ROOT" worktree remove --force "$COPY" 2>/dev/null || rm -rf "$COPY"
   [ -z "$FIX" ] || { git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"; }
   git -C "$ROOT" worktree prune
@@ -117,13 +123,32 @@ git worktree add -q --detach "$COPY" "$SHA" || { echo "post-land: cannot check o
 printf '%s %s %s\n' "$$" "$(starttime $$)" "$SHA" > "$HOLDER"
 rm -f "$SUPERSEDE"
 echo "post-land: running the full suite on ${SHA:0:10}"
+printf '%s %s %s\n' "$$" "$(date +%s)" "$SHA" > "$RUNNING"
 set -m
 ( cd "$COPY" && export POST_LAND_SRC="$ROOT" && exec bash -c "$FULL_SUITE_CMD" ) > "$OUT" 2>&1 &
 BODY=$!
 set +m
-wait "$BODY"
+# Poll rather than wait: past the deadline the suite's whole process group (its pgid is its pid under
+# set -m) is killed by group, never by name.
+started=$SECONDS; timed_out=0
+while kill -0 "$BODY" 2>/dev/null; do
+  if [ $((SECONDS - started)) -ge "$DEADLINE_S" ]; then
+    timed_out=1
+    kill -TERM -- "-$BODY" 2>/dev/null || true
+    sleep 1
+    kill -KILL -- "-$BODY" 2>/dev/null || true
+    break
+  fi
+  sleep 1
+done
+wait "$BODY" 2>/dev/null
 rc=$?
 BODY=""
+if [ "$timed_out" = 1 ]; then
+  rc=124
+  echo "post-land: TIMED OUT after $((SECONDS - started))s at $SHA" | tee -a "$OUT"
+fi
+rm -f "$RUNNING"
 trap 'exit 143' TERM
 printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}.tested.$$" "${POST_LAND_LOCK}.tested"
 
