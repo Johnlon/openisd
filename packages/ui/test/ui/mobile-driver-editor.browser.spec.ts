@@ -145,3 +145,15 @@ test.describe('touch', () => {
     }
   });
 });
+
+test('the Driver Editor tab titles all fit without scrolling sideways at phone widths', async ({ page }) => {
+  await page.getByText('Edit', { exact: true }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+  for (const width of [320, 360, 375, 412]) {
+    await page.setViewportSize({ width, height: 800 });
+    const tabs = page.locator('.de-tabs');
+    const [scroll, client] = await tabs.evaluate(el => [el.scrollWidth, el.clientWidth]);
+    expect(scroll, `tabs at ${width}px`).toBeLessThanOrEqual(client);
+    for (const tab of await page.locator('.de-tab').all()) await expect(tab).toBeInViewport({ ratio: 1 });
+  }
+});

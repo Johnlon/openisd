@@ -1,0 +1,12 @@
+id: T125
+release_note: The Edit Driver tab titles share the row on a phone instead of scrolling sideways.
+repo: openisd
+owner: bob
+status: done
+goal: The Edit Driver tab titles never scroll sideways, on a phone or on a desktop.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T125.yml
+  - packages/ui/src/ui/App.vue
+  - packages/ui/test/ui/mobile-driver-editor.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-layout.browser.spec.ts

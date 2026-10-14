@@ -390,3 +390,12 @@ test('the colour legend is one row above the buttons: file actions left, OK Rese
   expect(ok.x).toBeGreaterThan(imp.x + imp.width);
   expect(cancel.x).toBeGreaterThan(ok.x);
 });
+
+test('the tab titles fit their row without a scrollbar on a narrow desktop window', async ({ page }) => {
+  await page.setViewportSize({ width: 700, height: 800 });
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+  const [scroll, client] = await page.locator('.de-tabs').evaluate(el => [el.scrollWidth, el.clientWidth]);
+  expect(scroll).toBeLessThanOrEqual(client);
+});

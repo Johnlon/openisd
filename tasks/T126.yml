@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 90d10e43873c68c8ad1322080bc3d4909ecfa15f
 label: fixes
 goal: F20 closed: the two version-label browser specs expect the UTC label with its Z suffix (T113); F15 to F19 noted as closed by the T117 bug
 done_test: bash scripts/quiet-test.sh npm run typecheck
