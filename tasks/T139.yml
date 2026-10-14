@@ -1,0 +1,10 @@
+id: T139
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The Google sign-in returns to the app that started it: the OAuth redirect URI is the running app's own directory, not the site root
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T139.yml
+  - packages/ui/src/main.ts

@@ -95,7 +95,10 @@ const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const googleClientId = typeof rawClientId === 'string' && rawClientId.trim() !== '' ? rawClientId.trim() : null;
 const oauthConfig: OAuthConfig = {
   clientId: googleClientId,
-  redirectUri: window.location.origin + '/',
+  // The app's own directory, so a snapshot at /snap/<stamp>/ comes back to itself and the root
+  // release to the root (John, 14 Oct 2026: Google sent his snapshot sign-in back to the root,
+  // which was the old release and ignored the token). The hash and query are not part of it.
+  redirectUri: new URL('./', window.location.href).href,
   scopes: ['https://www.googleapis.com/auth/drive.appdata'],
 };
 

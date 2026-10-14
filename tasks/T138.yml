@@ -3,6 +3,7 @@ release_note: A conflict copy names the device that made it in plain words, such
 repo: openisd
 owner: maryu
 status: done
+landed: f3e7516b13059cd6b9469c5bb1c7705b8aca2c57
 goal: Conflict copies name the device by a short readable name (Android phone, iPhone, Windows desktop) instead of its 32-character id
 done_test: bash scripts/test.sh packages/design/test/cloud/deviceName.test.ts packages/design/test/cloud/conflictNames.test.ts packages/persistence/test/cloud/syncEngine.test.ts
 files:
