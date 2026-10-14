@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: maryu
 status: done
+landed: e94226936b3b0931e13f2c5418a50cf4f5dd8c44
 goal: Rename the sync buckets to docs (cloud/docs/projectDocs, savedEntryDocs, singletonDocs) so the persistence vocabulary rule passes; fixes F19 CHECK 5
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-persistence-vocabulary-drift.test.ts
 files:

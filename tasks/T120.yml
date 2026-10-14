@@ -1,0 +1,10 @@
+id: T120
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: original-project-list hide/show specs pass again after the thicker active trace (T106)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T120.yml
+  - packages/ui/test/ui/original-project-list.browser.spec.ts

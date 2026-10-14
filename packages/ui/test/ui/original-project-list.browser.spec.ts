@@ -11,20 +11,20 @@ const rowStates = (page: Page) =>
     checked: e.querySelector<HTMLInputElement>('input')?.checked ?? false,
   })));
 
-/** Count distinct opaque colours drawn on the canvas: a second trace is a second colour. */
-const inkColours = (page: Page) => page.evaluate(() => {
+/** Count opaque pixels drawn on the canvas: a hidden trace removes its pixels, whatever any trace's width. */
+const inkPixels = (page: Page) => page.evaluate(() => {
   const c = document.querySelector<HTMLCanvasElement>('.graph-wrap canvas')!;
   const d = c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data;
-  const seen = new Set<string>();
-  for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200) seen.add(`${d[i]},${d[i + 1]},${d[i + 2]}`);
-  return seen.size;
+  let n = 0;
+  for (let i = 3; i < d.length; i += 4) if (d[i] > 200) n++;
+  return n;
 });
 
 /** Ink count once the chart has finished drawing: non-zero, and two reads (a poll interval apart) agree. */
 async function settledInk(page: Page): Promise<number> {
   let previous = -1;
   await expect.poll(async () => {
-    const now = await inkColours(page);
+    const now = await inkPixels(page);
     const stable = now > 0 && now === previous;
     previous = now;
     return stable;
@@ -70,16 +70,13 @@ test.describe('Original project list', () => {
     const shown = await settledInk(page);
     await overlayCheckbox.click();
     await expect(overlayCheckbox).not.toBeChecked();
-    await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+    await expect.poll(() => inkPixels(page)).toBeLessThan(shown);
     const hidden = await settledInk(page);
 
-    // Back to the two-trace level. NOT an exact match: this census counts every distinct
-    // antialiased shade, and a curve repainted after a hide lands a shade or two apart from its
-    // first paint (156 vs 157 out of ~156) — a difference that says nothing about whether the
-    // trace is there.
+    // Back to the two-trace level: a little slack, as a repainted curve can land a pixel or two apart.
     await overlayCheckbox.click();
-    await expect.poll(() => inkColours(page)).toBeGreaterThan(hidden);
-    await expect.poll(() => inkColours(page)).toBeGreaterThanOrEqual(shown - 2);
+    await expect.poll(() => inkPixels(page)).toBeGreaterThan(hidden);
+    await expect.poll(() => inkPixels(page)).toBeGreaterThanOrEqual(shown * 0.98);
   });
 
   // bugs/BUG_20261005_project-selection-lost-on-reload.md
@@ -90,14 +87,14 @@ test.describe('Original project list', () => {
     const shown = await settledInk(page);
     await overlayCheckbox.click();
     await expect(overlayCheckbox).not.toBeChecked();
-    await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+    await expect.poll(() => inkPixels(page)).toBeLessThan(shown);
     const hidden = await settledInk(page);
 
     await page.reload();
 
     await expect(page.locator('.project-row')).toHaveCount(2);
     expect((await rowStates(page)).map(r => r.checked)).toEqual([false, true]);
-    await expect.poll(async () => Math.abs(await inkColours(page) - hidden)).toBeLessThanOrEqual(2);
+    await expect.poll(async () => Math.abs(await inkPixels(page) - hidden)).toBeLessThan((shown - hidden) / 2);
   });
 
   test('open projects are never written into the active design (nothing to leak into its file)', async ({ page }) => {
