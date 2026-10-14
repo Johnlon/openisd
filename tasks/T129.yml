@@ -3,6 +3,7 @@ release_note: Cloud sync on phones: a sync icon in the header opens the Cloud sy
 repo: openisd
 owner: maryu
 status: done
+landed: 9a17d322857c66aa7bfa877529fae64fbbfd368d
 goal: Mobile skin shows cloud sync: header sync icon opens the Cloud sync dialog in a full-screen pane, menu row, reconnect banner, conflict notice (Drive sync plan P1-13b)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

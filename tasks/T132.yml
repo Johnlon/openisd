@@ -1,0 +1,16 @@
+id: T132
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Cloud sync is documented: docs/design/CLOUD_SYNC.md, a README privacy line and help text
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T132.yml
+  - docs/design/CLOUD_SYNC.md
+  - README.md
+  - packages/ui/src/ui/components/SplashContent.vue
+  - packages/design/test/cloud/syncDisplay.test.ts
+  - packages/ui/test/ui/splash.browser.spec.ts
+  - packages/ui/test/ui/about-page.browser.spec.ts
+  - packages/ui/test/ui/cloudSyncDialog.browser.spec.ts

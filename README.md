@@ -132,6 +132,12 @@ Contributions are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md) and the
 
 Maintainer: [John Lonergan](https://johnlon.github.io/).
 
+## Privacy
+
+OpenISD keeps your projects and drivers in your browser. Cloud sync is off until you turn it on. When on, it copies your saved projects, drivers, passive radiators, favourites and Options to a hidden folder in your own Google Drive that only OpenISD can open. No OpenISD server sees them. Disconnect stops it.
+
+The app does send anonymous usage counts (launches with device type and screen size, which charts and features are used, box types opened and saved, which catalogue drivers are picked, and errors) to a stats collector; they carry no project data, no account and no raw address. An error report you choose to send also carries the note and contact you type.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
