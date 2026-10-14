@@ -1,0 +1,52 @@
+id: F24
+owner: Johnlon
+status: open
+sha: 273d702d3fed1446cc28cabb098d16b9516bb290
+goal: main is red at 273d702d3f; make the full suite pass again
+commits: |
+  273d702d3f T169: A project that will not load is kept as a refused copy (openisd_refused_
+failing: |
+    ✘  103 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:168:3 › Advanced: every row holds the same number of fields (26.7s)
+    ✘  104 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:192:1 › Dimensions: the fields line up on ONE column edge (26.6s)
+    ✘  382 packages/ui/test/ui/open-sessions.browser.spec.ts:172:5 › Open sessions › an unreadable stored session › the unreadable record is kept, byte for byte, where the next save cannot reach it (442ms)
+output: |
+  
+         at fixtures.ts:208
+  
+        206 | export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT_OWPR, name: string = basename(owprPath)): Promise<void> {
+        207 |   ensureSampleProject();
+      > 208 |   await page.locator('.original-root input[type=file]').setInputFiles({
+            |   ^
+        209 |     name,
+        210 |     mimeType: 'application/json',
+        211 |     buffer: readFileSync(owprPath),
+          at openAProject (/home/john/work/winisd/.postland/3750858-273d702d3f/packages/ui/test/fixtures.ts:208:3)
+          at /home/john/work/winisd/.postland/3750858-273d702d3f/packages/ui/test/ui/driver-editor-layout.browser.spec.ts:5:3
+  
+      Error Context: test-results/ui-driver-editor-layout.br-cf801--line-up-on-ONE-column-edge/error-context.md
+  
+    3) packages/ui/test/ui/open-sessions.browser.spec.ts:172:5 › Open sessions › an unreadable stored session › the unreadable record is kept, byte for byte, where the next save cannot reach it 
+  
+      Error: expect(received).toBe(expected) // Object.is equality
+  
+      Expected: "{\"entries\":[{\"id\":\"a\",\"text\":\"{}\",\"modified\":\"\"},{\"id\":\"b\",\"text\":\"{}\",\"modified\":\"\"}],\"focusedId\":\"b\"}"
+      Received: null
+  
+        177 |       browserLog.reset();   // that message is expected; this test is about the record
+        178 |
+      > 179 |       expect(await quarantined(page)).toBe(UNREADABLE);
+            |                                       ^
+        180 |       expect(await storedSession(page)).not.toBe(UNREADABLE);   // the live key is usable again
+        181 |     });
+        182 |
+          at /home/john/work/winisd/.postland/3750858-273d702d3f/packages/ui/test/ui/open-sessions.browser.spec.ts:179:39
+  
+      Error Context: test-results/ui-open-sessions.browser-O-6b24f-e-next-save-cannot-reach-it/error-context.md
+  
+    3 failed
+      packages/ui/test/ui/driver-editor-layout.browser.spec.ts:168:3 › Advanced: every row holds the same number of fields 
+      packages/ui/test/ui/driver-editor-layout.browser.spec.ts:192:1 › Dimensions: the fields line up on ONE column edge 
+      packages/ui/test/ui/open-sessions.browser.spec.ts:172:5 › Open sessions › an unreadable stored session › the unreadable record is kept, byte for byte, where the next save cannot reach it 
+    651 passed (6.9m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 3750858-273d702d3f finished: FAILED (exit 1) after 9m10s
