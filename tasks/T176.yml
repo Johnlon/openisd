@@ -1,0 +1,10 @@
+id: T176
+release_note: internal
+repo: openisd
+owner: sonnet-wrap-dots
+status: done
+goal: The phase wrap segment is dotted at its trace's own width and colour, no fading
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T176.yml
+  - packages/ui/src/ui/canvas.ts
