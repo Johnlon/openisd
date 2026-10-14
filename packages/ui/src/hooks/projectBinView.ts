@@ -1,14 +1,21 @@
 /** The Open project list and its Bin view, as both shells show them: the rows, and the Bin's actions. */
-import {computed, ref, type ComputedRef, type Ref} from 'vue';
+import {computed, ref, shallowRef, type ComputedRef, type Ref} from 'vue';
 import type {ProjectBin, ProjectRepo} from '@openisd/persistence';
 import type {AppState} from '../logic/appState.js';
 import type {ConfirmPort} from '../logic/confirmPort.js';
 import {deleteForever, emptyBin, moveToBin} from '../logic/projectBinActions.js';
+import {PROJECT_LIST_ORDER_LIST, viewProjects, type ProjectListOrder} from '@openisd/design/fields';
 import {binRows, binTotalSize, storedProjectRows, type BinRow, type StoredProjectRow} from './storedProjectRows.js';
 
 export interface ProjectBinView {
   /** The saved projects not in the Bin. */
   readonly storedProjects: Ref<StoredProjectRow[]>;
+  /** `storedProjects` as the sort order and search box leave them. */
+  readonly shownProjects: ComputedRef<StoredProjectRow[]>;
+  /** What the search box holds. */
+  readonly query: Ref<string>;
+  readonly order: Ref<ProjectListOrder>;
+  readonly orders: readonly ProjectListOrder[];
   readonly binRows: Ref<BinRow[]>;
   /** The Bin's total size. */
   readonly binTotal: Ref<string>;
@@ -42,6 +49,8 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
   const rows = ref<BinRow[]>([]);
   const binTotal = ref('');
   const binOpen = ref(false);
+  const query = ref('');
+  const order = shallowRef<ProjectListOrder>(PROJECT_LIST_ORDER_LIST[0]);
 
   function refresh(): void {
     storedProjects.value = storedProjectRows(projectBin.activeProjects(), deps.unitTokens());
@@ -52,6 +61,10 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
 
   return {
     storedProjects,
+    shownProjects: computed(() => viewProjects(storedProjects.value, order.value, query.value)),
+    query,
+    order,
+    orders: PROJECT_LIST_ORDER_LIST,
     binRows: rows,
     binTotal,
     binOpen,

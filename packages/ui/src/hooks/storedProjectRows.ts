@@ -8,6 +8,7 @@ export interface StoredProjectRow {
   readonly name: string;
   /** When it was last saved, as "2026-10-05 23:32". */
   readonly modified: string;
+  readonly modifiedMs: number;
   /** "Tang Band W5-1138SMF · Vented · 12.0 L"; empty for a record that would not read. */
   readonly summary: string;
 }
@@ -18,6 +19,7 @@ export function storedProjectRows(listings: readonly StoredProjectListing[], uni
     id: listing.id,
     name: listing.name,
     modified: formatDateTime(new Date(listing.modified)),
+    modifiedMs: new Date(listing.modified).getTime(),
     summary: listing.kind === 'readable' ? listing.summary.line(unitTokens) : '',
   }));
 }

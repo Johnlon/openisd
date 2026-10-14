@@ -32,7 +32,7 @@ const {
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, openDialogOpen, storedProjects, storeLabel, openProjectDialog, openStoredProject,
+  username, appVersion, openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel, openProjectDialog, openStoredProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
@@ -201,12 +201,16 @@ const diagnostics = injectDiagnosticsModal();
 
     <!-- Outside the project template: the empty state opens it too. -->
     <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">
-      <p class="store-label">{{ storeLabel }}</p>
-      <button type="button" class="mob-cta mob-cta-secondary mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
-      <button type="button" class="mob-cta mob-cta-secondary mob-bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
       <template v-if="!binOpen">
+        <div class="mob-project-tools">
+          <input class="mob-project-search" type="search" v-model="projectQuery" placeholder="Search projects" aria-label="Search projects">
+          <div class="mob-project-sort" role="group" aria-label="Sort projects">
+            <button v-for="o in projectOrders" :key="o.label" type="button" :class="{on: projectOrder === o}" @click="projectOrder = o">{{ o.label }}</button>
+          </div>
+        </div>
         <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
-        <div v-for="p in storedProjects" :key="p.id" class="mob-stored-project-item">
+        <p v-else-if="shownProjects.length === 0" class="mob-hint">No project matches.</p>
+        <div v-for="p in shownProjects" :key="p.id" class="mob-stored-project-item">
           <button type="button" class="mob-stored-project-row" @click="openStoredProject(p.id)">
             <span class="mob-stored-project-name">{{ p.name }}</span>
             <span class="mob-stored-project-summary">{{ p.summary }}</span>
@@ -227,6 +231,11 @@ const diagnostics = injectDiagnosticsModal();
         </div>
         <button v-if="binRows.length > 0" type="button" class="mob-cta mob-cta-secondary mob-bin-empty" @click="emptyBin">Empty Bin ({{ binTotal }})</button>
       </template>
+      <div class="mob-project-actions">
+        <button type="button" class="mob-project-action mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
+        <button type="button" class="mob-project-action mob-bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
+      </div>
+      <p class="store-label mob-store-label">{{ storeLabel }}</p>
     </MobilePaneDialog>
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
@@ -452,7 +461,16 @@ const diagnostics = injectDiagnosticsModal();
 .mob-stored-project-item { display: flex; align-items: center; border-top: 1px solid var(--line); }
 .mob-stored-project-item:first-of-type { border-top: none; }
 .mob-stored-project-bin { all: unset; box-sizing: border-box; flex: none; display: inline-flex; align-items: center; padding: 10px 16px; font-size: 13px; color: var(--mut); cursor: pointer; }
-.mob-bin-toggle { margin-top: 8px; }
+.mob-project-tools { display: flex; flex-direction: column; gap: 8px; padding: 8px 16px; }
+.mob-project-search { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 12px; font: inherit; font-size: 15px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--fg); }
+.mob-project-sort { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.mob-project-sort button { all: unset; box-sizing: border-box; flex: 1; min-height: 40px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--mut); border-right: 1px solid var(--line); cursor: pointer; }
+.mob-project-sort button:last-child { border-right: 0; }
+.mob-project-sort button.on { background: var(--panel2); color: var(--fg); font-weight: 600; }
+.mob-project-actions { display: flex; justify-content: space-between; gap: 8px; margin: 8px 8px 0; border-top: 1px solid var(--line); padding-top: 4px; }
+.mob-project-action { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; font-size: 14px; color: var(--acc); cursor: pointer; }
+.mob-store-label { margin: 12px 16px; font-size: 11px; color: var(--mut); }
+.mob-bin-toggle { margin-top: 0; }
 .mob-bin-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-top: 1px solid var(--line); }
 .mob-bin-row:first-of-type { border-top: none; }
 .mob-bin-actions { display: flex; gap: 16px; margin-top: 4px; }

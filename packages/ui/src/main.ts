@@ -200,7 +200,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   if (!store.readOnly) createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
   // Refused copies replace the old quarantine copy of the session: it is removed once, behind the backup.
   if (!store.readOnly) createQuarantineRetirement(storage, storageBackup).run();
-  const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
+  const projectRepo = createProjectRepo(engine, fileStorage, storage, new URL('./', window.location.href).href, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
   const deviceName = DeviceName.ofBrowser(navigator.userAgent, navigator.maxTouchPoints);
   const binMarks = createProjectBinMarks(storage, storageBackup);
   const projectBin = createProjectBin({

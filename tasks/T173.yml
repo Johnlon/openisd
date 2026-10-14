@@ -1,0 +1,21 @@
+id: T173
+release_note: internal
+repo: openisd
+owner: sonnet-open-dialog2
+status: done
+goal: Open project: sort by name and date, search box, cleaner consistent layout in both skins
+done_test: bash scripts/test.sh packages/design/test/fields/projectListView.test.ts
+files:
+  - tasks/T173.yml
+  - packages/design/fields/projectListView.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/projectListView.test.ts
+  - packages/ui/src/hooks/storedProjectRows.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/open-project-list.browser.spec.ts
+  - packages/ui/test/ui/project-bin.browser.spec.ts
+  - packages/ui/src/main.ts

@@ -43,7 +43,7 @@ const {
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
+  openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
@@ -882,22 +882,26 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="win-controls"><span class="close-btn" @click="openDialogOpen = false">&#10005;</span></div>
         </div>
         <div class="modal-body open-project-body">
-          <button class="open-from-disk" @click="openFromDisk">Import project</button> <button class="export-projects" @click="exportProjectsArchive">Export all projects</button>
-          <div class="open-project-list-head">
-            <p class="store-label">{{ storeLabel }}</p>
-            <button class="bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
-          </div>
-          <div v-if="!binOpen" class="open-project-list">
-            <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
-            <div v-for="projectEntry in storedProjects" :key="projectEntry.id" class="stored-project-item">
-              <button class="stored-project-row" @click="openStoredProject(projectEntry.id)">
-                <span class="stored-project-name">{{ projectEntry.name }}</span>
-                <small class="stored-project-modified">{{ projectEntry.modified }}</small>
-                <small class="stored-project-summary">{{ projectEntry.summary }}</small>
-              </button>
-              <button class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" :aria-label="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)"><ToolbarIcon name="bin" /></button>
+          <template v-if="!binOpen">
+            <div class="open-project-tools">
+              <input class="open-project-search" type="search" v-model="projectQuery" placeholder="Search projects" aria-label="Search projects">
+              <div class="open-project-sort" role="group" aria-label="Sort projects">
+                <button v-for="o in projectOrders" :key="o.label" type="button" :class="{on: projectOrder === o}" @click="projectOrder = o">{{ o.label }}</button>
+              </div>
             </div>
-          </div>
+            <div class="open-project-list">
+              <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
+              <p v-else-if="shownProjects.length === 0" class="hint">No project matches</p>
+              <div v-for="projectEntry in shownProjects" :key="projectEntry.id" class="stored-project-item">
+                <button class="stored-project-row" @click="openStoredProject(projectEntry.id)">
+                  <span class="stored-project-name">{{ projectEntry.name }}</span>
+                  <small class="stored-project-modified">{{ projectEntry.modified }}</small>
+                  <small class="stored-project-summary">{{ projectEntry.summary }}</small>
+                </button>
+                <button class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" :aria-label="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)"><ToolbarIcon name="bin" /></button>
+              </div>
+            </div>
+          </template>
           <div v-else class="open-project-list bin-list">
             <p v-if="binRows.length === 0" class="hint">The Bin is empty</p>
             <div v-for="binned in binRows" :key="binned.id" class="bin-row">
@@ -910,6 +914,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
             <button v-if="binRows.length > 0" class="bin-empty" @click="emptyBin">Empty Bin ({{ binTotal }})</button>
           </div>
+          <p class="store-label">{{ storeLabel }}</p>
+        </div>
+        <div class="modal-footer open-project-footer">
+          <div class="footer-buttons">
+            <button class="open-from-disk" @click="openFromDisk">Import project</button>
+            <button class="export-projects" @click="exportProjectsArchive">Export all projects</button>
+          </div>
+          <button class="bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
         </div>
       </div>
     </div>
@@ -1504,6 +1516,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .overlay.open { display:flex; }
 .modal { margin-top:8vh; background:#f7f7f7; border:1px solid #888; box-shadow:3px 6px 18px rgba(0,0,0,.35); width:620px; max-width:92vw; }
 .modal.narrow { width:460px; }
+.open-project-dialog .modal.narrow { width:520px; }
 .modal-titlebar { display:flex; align-items:center; justify-content:space-between; background:#e9e9e9; border-bottom:1px solid #bbb; padding:8px 12px; font-size:15px; }
 .modal-titlebar .tb-left { display:flex; align-items:center; gap:8px; }
 .modal-titlebar .win-controls { display:flex; gap:12px; color:#555; }
@@ -1511,13 +1524,22 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .modal-titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
 .modal-body { padding:16px 20px; max-height:65vh; overflow:auto; }
 .open-project-body { display:flex; flex-direction:column; gap:10px; overflow-x:hidden; }
-.open-from-disk { align-self:stretch; text-align:left; padding:8px 10px; font-weight:600; }
-.open-project-list { display:flex; flex-direction:column; gap:4px; max-height:42vh; overflow-y:auto; overflow-x:hidden; border-top:1px solid #ccc; padding-top:8px; }
+.open-project-list .hint { margin:0; padding:12px; color:#666; font-size:13px; }
+.open-project-tools { display:flex; flex-direction:column; gap:8px; }
+.open-project-search { box-sizing:border-box; width:100%; padding:6px 8px; font-size:13px; border:1px solid #bbb; border-radius:3px; background:#fff; }
+.open-project-sort { display:flex; border:1px solid #bbb; border-radius:3px; overflow:hidden; align-self:flex-start; }
+.open-project-sort button { border:0; border-right:1px solid #bbb; background:#f7f7f7; padding:4px 12px; font-size:12px; cursor:pointer; }
+.open-project-sort button:last-child { border-right:0; }
+.open-project-sort button.on { background:#dbeafe; font-weight:600; }
+.open-project-footer .footer-buttons { display:flex; gap:8px; }
+.open-project-body .store-label { margin:0; font-size:11px; color:#666; }
+.open-project-list { display:flex; flex-direction:column; gap:0; max-height:42vh; min-height:80px; overflow-y:auto; overflow-x:hidden; border:1px solid #ccc; background:#fff; }
+.stored-project-item + .stored-project-item { border-top:1px solid #e4e4e4; }
 .stored-project-item { display:flex; align-items:center; gap:6px; }
 .stored-project-item .stored-project-row { flex:1; min-width:0; }
-.stored-project-bin { flex:none; display:inline-flex; align-items:center; padding:4px 6px; }
-.open-project-list-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.bin-toggle { flex:none; white-space:nowrap; }
+.stored-project-bin { flex:none; display:inline-flex; align-items:center; padding:4px 6px; margin-right:6px; border:0; background:transparent; }
+.stored-project-bin:hover { background:#dbeafe; }
+.bin-toggle { flex:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
 .bin-row { display:flex; align-items:center; gap:6px; padding:6px; }
 .bin-row-text { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
 .bin-detail { color:#666; }

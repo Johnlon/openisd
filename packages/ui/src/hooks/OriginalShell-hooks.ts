@@ -303,7 +303,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     appState, projectRepo, projectBin, confirm: confirmPort.port,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
   });
-  const {storedProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {storedProjects, shownProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
   function openClick() {
     binView.refresh();
     binOpen.value = false;
@@ -654,7 +655,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
+    openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,

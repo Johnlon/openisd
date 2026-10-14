@@ -80,6 +80,7 @@ export { LOSSLESS_Q } from './losslessQ.js';
 export { basicUtc } from './basicTime.js';
 export { lostDataSentence } from './lostData.js';
 export { deleteForeverMessage, emptyBinMessage, moveToBinMessage } from './projectBinText.js';
+export {PROJECT_LIST_ORDERS, PROJECT_LIST_ORDER_LIST, viewProjects, type ProjectListItem, type ProjectListOrder} from './projectListView.js';
 export { restoredProjectName, storageUsedLine } from './backupText.js';
 export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';

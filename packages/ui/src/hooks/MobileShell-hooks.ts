@@ -103,6 +103,10 @@ export interface MobileShellApi {
    *  (John, 2026-10-02: "the file menu offer no way to save and reopen projects"). */
   openDialogOpen: import('vue').Ref<boolean>;
   storedProjects: import('vue').Ref<StoredProjectRow[]>;
+  shownProjects: import('vue').ComputedRef<StoredProjectRow[]>;
+  projectQuery: import('vue').Ref<string>;
+  projectOrder: import('vue').Ref<import('@openisd/design/fields').ProjectListOrder>;
+  projectOrders: readonly import('@openisd/design/fields').ProjectListOrder[];
   openProjectDialog: () => void;
   openStoredProject: (id: string) => void;
   /** The Bin view inside the Open project sheet (projectBinView.ts). */
@@ -204,7 +208,8 @@ export function useMobileShell(): MobileShellApi {
     appState, projectRepo, projectBin, confirm: confirmPort.port,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
   });
-  const {storedProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {storedProjects, shownProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
   function openProjectDialog(): void {
     binView.refresh();
     binOpen.value = false;
@@ -446,7 +451,7 @@ export function useMobileShell(): MobileShellApi {
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
-    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
+    openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,
