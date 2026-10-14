@@ -285,16 +285,26 @@ export function useMobileShell(): MobileShellApi {
   // fires when such a bar appears or disappears.
   const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : visibleViewportHeightPx(window));
   function updateViewportHeight(): void { viewportHeightPx.value = visibleViewportHeightPx(window); }
+  // DuckDuckGo fires neither a window nor a visualViewport resize when it hides its address bar,
+  // and the bar's animation ends after the touch does: these events re-measure now and once more
+  // on the next frame.
+  function remeasureSoon(): void { updateViewportHeight(); requestAnimationFrame(updateViewportHeight); }
   onMounted(() => {
     window.addEventListener('resize', updateViewportHeight);
     window.visualViewport?.addEventListener('resize', updateViewportHeight);
     window.visualViewport?.addEventListener('scroll', updateViewportHeight);
+    window.addEventListener('scroll', remeasureSoon);
+    window.addEventListener('touchend', remeasureSoon);
+    window.addEventListener('orientationchange', remeasureSoon);
     updateViewportHeight();
   });
   onUnmounted(() => {
     window.removeEventListener('resize', updateViewportHeight);
     window.visualViewport?.removeEventListener('resize', updateViewportHeight);
     window.visualViewport?.removeEventListener('scroll', updateViewportHeight);
+    window.removeEventListener('scroll', remeasureSoon);
+    window.removeEventListener('touchend', remeasureSoon);
+    window.removeEventListener('orientationchange', remeasureSoon);
   });
 
   // Scroll affordance (John, 2026-10-02: "a visual indicator that there's something to scroll
