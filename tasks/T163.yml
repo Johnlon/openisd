@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-save-all-dirty
 status: done
+landed: 54b7a4dc25cdf60268edad53a7f0870bd32d2f6f
 goal: Mobile menu Save all is highlighted like Save when any project has unsaved changes
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

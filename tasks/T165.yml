@@ -1,0 +1,11 @@
+id: T165
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: questions.yml records QO180 (bob's hooks-off commit) and the project-view plan is committed
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T165.yml
+  - questions.yml
+  - docs/plans/PLAN_20261014_PROJECT_VIEW.md
