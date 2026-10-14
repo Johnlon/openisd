@@ -118,7 +118,7 @@ export function pageHtml(kind, entries) {
 <main>
   <h1>${p.title}</h1>
   <p>${p.lead}</p>
-${p.warn ? `  <p class="warn">${p.warn}</p>\n` : ''}  <p><a href="${p.other.href}">${p.other.text}</a> · <a href="../">OpenISD</a></p>
+${p.warn ? `  <p class="warn">${p.warn}</p>\n` : ''}  <p><a href="${p.other.href}">${p.other.text}</a> · <a href="../test/">Newest snapshot (/test/)</a> · <a href="../">OpenISD</a></p>
 ${list}
 </main>
 <script src="../dates.js"></script>

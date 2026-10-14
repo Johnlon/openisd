@@ -3,6 +3,7 @@ release_note: Cloud sync reads Google Drive's replies: the first sync no longer 
 repo: openisd
 owner: maryu
 status: done
+landed: c96548ec277f7b6d7a6f926863a347a9df851479
 goal: On first connect every item already saved on a device reaches Drive, and a second device pulls it
 done_test: bash scripts/test.sh packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
 files:
