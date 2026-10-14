@@ -10,7 +10,7 @@ import {
   ref,
   shallowRef,
 } from 'vue';
-import type { SyncStatus, CloudUiState, ConflictCopy, SyncDisplay } from '@openisd/design/cloud';
+import type { SyncStatus, CloudUiState, ConflictCopy, SyncDisplay, SyncTap } from '@openisd/design/cloud';
 import { syncDisplayOf } from '@openisd/design/cloud';
 import type { CloudSync, CloudUiStore } from '@openisd/persistence';
 
@@ -85,9 +85,13 @@ export interface CloudSyncUiAPI {
   viewConflicts(): void;
   hintTurnOn(): void;
   hintDismiss(): void;
+  tap(action: SyncTap): void;
 }
 
-export function useCloudSyncUi(updateBannerShown: Readonly<Ref<boolean>>): CloudSyncUiAPI {
+export function useCloudSyncUi(
+  updateBannerShown: Readonly<Ref<boolean>>,
+  openDialog: () => void,
+): CloudSyncUiAPI {
   const cloudSyncAPI = useCloudSync();
 
   const available = computed(() => cloudSyncAPI.sync !== null);
@@ -129,15 +133,26 @@ export function useCloudSyncUi(updateBannerShown: Readonly<Ref<boolean>>): Cloud
 
   function viewConflicts(): void {
     cloudSyncAPI.setConflictsSeen(cloudSyncAPI.conflicts.value.length);
+    openDialog();
   }
 
   function hintTurnOn(): void {
     cloudSyncAPI.dismissHint();
+    openDialog();
   }
 
   function hintDismiss(): void {
     cloudSyncAPI.dismissHint();
   }
+
+  function tap(action: SyncTap): void {
+    if (action === 'reconnect') {
+      reconnect();
+    } else {
+      openDialog();
+    }
+  }
+
   return {
     available,
     display,
@@ -149,5 +164,6 @@ export function useCloudSyncUi(updateBannerShown: Readonly<Ref<boolean>>): Cloud
     viewConflicts,
     hintTurnOn,
     hintDismiss,
+    tap,
   };
 }

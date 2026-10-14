@@ -17,6 +17,8 @@ import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import MobilePaneDialog from './MobilePaneDialog.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
+import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
+import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
@@ -32,6 +34,9 @@ const {
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, appVersion, openDialogOpen, storedProjects, storeLabel, openProjectDialog, openStoredProject,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
+  cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
+  openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud,
+  disconnectCloud, openConflict,
 } = useMobileShell();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
 const { projectChanged } = useApp().appState;
@@ -69,6 +74,15 @@ const diagnostics = injectDiagnosticsModal();
           <span>OpenISD</span>
         </div>
         <div v-if="projectTitle" class="mob-project-title" :title="projectTitle">{{ projectTitle }}</div>
+        <CloudSyncBadge
+          v-if="cloudEnabled"
+          class="mob-header-sync"
+          :display="cloudSyncDisplay"
+          @tap="handleSyncTap"
+          @pointerdown="onSyncPointerDown"
+          @pointerup="onSyncPointerUp"
+          @pointercancel="onSyncPointerCancel"
+        />
       </div>
 
       <main ref="contentEl" class="mob-content" @scroll="updateScrollEdges">
@@ -89,10 +103,35 @@ const diagnostics = injectDiagnosticsModal();
       <MobilePaneDialog v-else-if="pane === 'advanced'" title="Advanced" @close="closePane">
         <MobileAdvancedTab />
       </MobilePaneDialog>
+      <MobilePaneDialog v-else-if="pane === 'cloudSync'" :title="cloudSyncDisplay.dialog.title" @close="closePane">
+        <div class="mob-cloud-dialog-body">
+          <CloudSyncDialog
+            :model="cloudSyncDisplay.dialog"
+            @connect="connectCloud"
+            @syncNow="syncNowCloud"
+            @reconnect="reconnectCloud"
+            @disconnect="disconnectCloud"
+            @openConflict="openConflict"
+          />
+        </div>
+      </MobilePaneDialog>
       <div v-if="updateBannerVisible" class="mob-update-banner" role="status">
         <span>A new version of OpenISD is available.</span>
         <button type="button" class="mob-update-reload" @click="reloadForUpdate">Reload</button>
         <button type="button" class="mob-update-later" aria-label="Dismiss" @click="dismissUpdateBanner">&#10005;</button>
+      </div>
+      <div v-else-if="cloudEnabled && cloudSyncDisplay.strip !== null" class="mob-update-banner mob-reconnect-banner" role="status">
+        <span>{{ cloudSyncDisplay.strip.text }}</span>
+        <button type="button" class="mob-update-reload" @click="reconnectCloud">{{ cloudSyncDisplay.strip.button }}</button>
+      </div>
+      <div v-else-if="cloudEnabled && cloudSyncDisplay.conflictNotice !== null" class="mob-update-banner mob-conflict-banner" role="status">
+        <span>{{ cloudSyncDisplay.conflictNotice.text }}</span>
+        <button type="button" class="mob-update-reload" @click="openConflictNotice">{{ cloudSyncDisplay.conflictNotice.button }}</button>
+      </div>
+      <div v-else-if="cloudEnabled && cloudSyncDisplay.hint !== null" class="mob-update-banner mob-hint-banner" role="status">
+        <span>{{ cloudSyncDisplay.hint.text }}</span>
+        <button type="button" class="mob-update-reload" @click="turnOnHint">{{ cloudSyncDisplay.hint.yes }}</button>
+        <button type="button" class="mob-update-later" :aria-label="cloudSyncDisplay.hint.no" :title="cloudSyncDisplay.hint.no" @click="dismissHint">&#10005;</button>
       </div>
       <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel"
         :shadow-above="canScrollDown" />
@@ -143,6 +182,13 @@ const diagnostics = injectDiagnosticsModal();
             <div id="mob-menu-head-app" class="mob-menu-section-head">App</div>
             <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
             <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
+            <button v-if="cloudEnabled" type="button" class="mob-menu-item mob-menu-cloud" @click="openCloudSync">
+              <span>{{ cloudSyncDisplay.dialog.title }}</span>
+              <span class="mob-menu-cloud-status">
+                <span>{{ cloudSyncDisplay.shortText }}</span>
+                <ToolbarIcon :name="cloudSyncDisplay.glyph" />
+              </span>
+            </button>
             <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
             <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
             <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
@@ -256,6 +302,15 @@ const diagnostics = injectDiagnosticsModal();
   font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
+.mob-header-sync {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-left: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .mob-menu-overlay {
   /* absolute, not fixed: covers .mobile-root (its containing block — see .mobile-root's own
      position:relative) rather than the real browser window, so the drawer stays within the
@@ -306,6 +361,18 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-menu-item:disabled { color: var(--mut); cursor: default; }
 .mob-menu-item.dirty { color: var(--acc2); font-weight: 600; }
+.mob-menu-cloud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mob-menu-cloud-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mut);
+  font-size: 13px;
+}
 /* .mob-menu-item's own padding lands on THIS element too (its class list includes both) — zero
    it here so the trigger button below isn't double-indented (12px+12px) relative to every plain
    `<button class="mob-menu-item">` sibling. */
@@ -440,4 +507,27 @@ const diagnostics = injectDiagnosticsModal();
 .mob-update-banner span { flex: 1; }
 .mob-update-reload { min-height: 40px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
 .mob-update-later { min-height: 40px; min-width: 40px; border: none; background: none; color: #224466; font-size: 16px; cursor: pointer; }
+.mob-cloud-dialog-body { padding: 16px; }
+.mob-reconnect-banner {
+  background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f9faf9));
+  border-top-color: var(--acc2, #b8790f);
+  color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
+}
+.mob-reconnect-banner .mob-update-reload {
+  background: var(--acc2, #b8790f);
+  border-color: var(--acc2, #b8790f);
+}
+.mob-conflict-banner {
+  background: color-mix(in srgb, var(--acc, #1868d1) 15%, var(--panel, #f9faf9));
+  border-top-color: var(--acc, #1868d1);
+  color: color-mix(in srgb, var(--acc, #1868d1) 60%, black);
+}
+.mob-hint-banner {
+  background: var(--panel2, #e3e8e6);
+  border-top-color: var(--line, #c7cdcb);
+  color: var(--fg, #1b2120);
+}
+.mob-hint-banner .mob-update-later {
+  color: var(--fg, #1b2120);
+}
 </style>

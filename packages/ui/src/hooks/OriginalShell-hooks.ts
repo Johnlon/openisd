@@ -46,7 +46,7 @@ import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import {useCompareOverlays} from './compareOverlays.js';
 import {useCloudSyncUi} from './CloudSync-hooks.js';
-import type {ConflictCopy, SyncTap} from '@openisd/design/cloud';
+import type {ConflictCopy} from '@openisd/design/cloud';
 import {CLOUD_SYNC_MENU_LABEL, DriverId, ProjectId} from '@openisd/design/cloud';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
@@ -615,6 +615,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     return project.value.winisdAbcIntraPortVelocityApplies;
   });
 
+  const cloudDialogOpen = ref(false);
+  function openCloudDialog(): void { cloudDialogOpen.value = true; }
+  function closeCloudDialog(): void { cloudDialogOpen.value = false; }
+  useEscToClose(() => cloudDialogOpen.value, closeCloudDialog);
+
   // The Original skin has no update banner, so the cloud strip never gives way to one.
   const updateBannerShown = computed(() => false);
   const {
@@ -628,16 +633,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     viewConflicts: handleViewConflicts,
     hintTurnOn: handleHintTurnOn,
     hintDismiss: handleHintDismiss,
-  } = useCloudSyncUi(updateBannerShown);
-
-  const cloudDialogOpen = ref(false);
-  function openCloudDialog(): void { cloudDialogOpen.value = true; }
-  function closeCloudDialog(): void { cloudDialogOpen.value = false; }
-  useEscToClose(() => cloudDialogOpen.value, closeCloudDialog);
-
-  function handleCloudTap(_tap: SyncTap): void {
-    openCloudDialog();
-  }
+    tap: handleCloudTap,
+  } = useCloudSyncUi(updateBannerShown, openCloudDialog);
 
   // Shell-specific conflict handling: after marking the conflict seen, open the project or driver browser.
   function handleCloudOpenConflict(id: ConflictCopy['id']): void {

@@ -3,6 +3,7 @@ release_note: Cloud sync can be turned on from the toolbar: a sync icon after Op
 repo: openisd
 owner: maryu
 status: done
+landed: f3b62834ac1db7ea117d37decf98056f64e07d14
 goal: Original skin shows cloud sync: toolbar sync icon after Options opens the Cloud sync dialog, Info menu entry, reconnect strip, conflict notice, one-time hint (Drive sync plan P1-13a)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

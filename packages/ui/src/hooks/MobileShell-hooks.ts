@@ -3,7 +3,7 @@
  * destination, plus the manual skin switch and the no-project empty state. One hook, one
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
-import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
+import {type Ref, computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
@@ -15,6 +15,16 @@ import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
 import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
+import {
+  type ConflictCopy,
+  type SyncDisplay,
+  type SyncTap,
+  DriverId,
+  ProjectId,
+} from '@openisd/design/cloud';
+import {
+  useCloudSyncUi,
+} from './CloudSync-hooks.js';
 
 /** The mobile shell's own destinations: the same tab ids the desktop shell's content panel
  *  uses (so a shared field-wiring caller never has to ask "which shell is this"), plus `graph`
@@ -24,7 +34,7 @@ import {openStoredProject as openStoredProjectFromStore} from '../logic/storedPr
 export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'enclosure'> | 'graph';
 
 /** The panes the hamburger menu opens as full-screen dialogs over the current destination. */
-export type MobilePane = 'project' | 'advanced' | 'drivers';
+export type MobilePane = 'project' | 'advanced' | 'drivers' | 'cloudSync';
 
 export interface MobileShellApi {
   storeLabel: string;
@@ -100,6 +110,21 @@ export interface MobileShellApi {
   setOpenProjectTraceVisible: (row: OpenProjectRow, visible: boolean) => void;
   cycleOpenProjectColour: (row: OpenProjectRow) => void;
   closeOpenProject: (row: OpenProjectRow) => void;
+  cloudEnabled: Readonly<Ref<boolean>>;
+  cloudSyncDisplay: Readonly<Ref<SyncDisplay>>;
+  handleSyncTap: (action: SyncTap) => void;
+  onSyncPointerDown: () => void;
+  onSyncPointerUp: () => void;
+  onSyncPointerCancel: () => void;
+  openCloudSync: () => void;
+  reconnectCloud: () => void;
+  openConflictNotice: () => void;
+  turnOnHint: () => void;
+  dismissHint: () => void;
+  connectCloud: () => void;
+  syncNowCloud: () => void;
+  disconnectCloud: () => Promise<void>;
+  openConflict: (id: ConflictCopy['id']) => void;
 }
 
 /** One open project in the menu's "Open projects" list. */
@@ -118,7 +143,7 @@ export function useMobileShell(): MobileShellApi {
   const { appState, presentation: presentationState } = useApp();
   const { isTraceVisible, setTraceVisible, traceVisibilityRevision, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
   const { setSkinOverride } = presentationState;
-  const { designIO, projectRepo, releases, appVersion, confirmPort } = useApp();
+  const { designIO, projectRepo, releases, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -350,6 +375,56 @@ export function useMobileShell(): MobileShellApi {
     contentResizeObserver?.disconnect();
   });
 
+  const cloudSyncUi = useCloudSyncUi(updateBannerVisible, () => {
+    pane.value = 'cloudSync';
+  });
+
+  let longPressTimer: ReturnType<typeof setTimeout> | undefined;
+  let didLongPress = false;
+
+  function onSyncPointerDown(): void {
+    didLongPress = false;
+    clearTimeout(longPressTimer);
+    longPressTimer = setTimeout(() => {
+      didLongPress = true;
+      logging.flash(cloudSyncUi.display.value.tooltip);
+    }, 500);
+  }
+
+  function onSyncPointerUp(): void {
+    clearTimeout(longPressTimer);
+  }
+
+  function onSyncPointerCancel(): void {
+    clearTimeout(longPressTimer);
+  }
+
+  onUnmounted(() => {
+    clearTimeout(longPressTimer);
+  });
+
+  function handleSyncTap(action: SyncTap): void {
+    if (didLongPress) {
+      didLongPress = false;
+      return;
+    }
+    cloudSyncUi.tap(action);
+  }
+
+  function openCloudSync(): void {
+    pane.value = 'cloudSync';
+    closeMenu();
+  }
+
+  function openConflict(id: ConflictCopy['id']): void {
+    cloudSyncUi.openConflict(id);
+    if (id instanceof ProjectId) {
+      openStoredProject(id.text);
+    } else if (id instanceof DriverId) {
+      browseDrivers();
+    }
+  }
+
   return {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
@@ -358,5 +433,10 @@ export function useMobileShell(): MobileShellApi {
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
+    cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,
+    onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel, openCloudSync,
+    reconnectCloud: cloudSyncUi.reconnect, openConflictNotice: cloudSyncUi.viewConflicts,
+    turnOnHint: cloudSyncUi.hintTurnOn, dismissHint: cloudSyncUi.hintDismiss, connectCloud: cloudSyncUi.connect,
+    syncNowCloud: cloudSyncUi.syncNow, disconnectCloud: cloudSyncUi.disconnect, openConflict,
   };
 }
