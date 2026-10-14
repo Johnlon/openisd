@@ -33,6 +33,18 @@ export function hostedListPathOf(kind: BuildKind): string {
   return `/${HOSTED_DIR[kind]}/`;
 }
 
+/** Which trail of the site the app runs from: the root release, a /snap/<stamp>/ copy or the /test/ copy. */
+export type BuildTrail = 'release' | 'snap' | 'test';
+
+/** "/snap/20261014T1045Z/" → 'snap', "/test/" → 'test', anything else (the root, /v/<stamp>/) → 'release'. */
+export function trailOfPathname(pathname: string): BuildTrail {
+  if (/^\/snap\/[^/]+\//.test(pathname)) return 'snap';
+  if (/^\/test\//.test(pathname)) return 'test';
+  return 'release';
+}
+
+const TRAIL_PREFIX: Readonly<Record<BuildTrail, string>> = { release: '', snap: 'snap · ', test: 'test · ' };
+
 const VERSION_REGEX = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
 
 function parseUtcStampToEpochMs(version: string): number | null {
@@ -57,18 +69,19 @@ function parseUtcStampToEpochMs(version: string): number | null {
  * The time is UTC with a Z suffix (John, 13 Oct 2026: "I want utc time"), so the label reads the
  * same as the build stamp and the hosted folder name wherever the phone happens to be.
  */
-export function formatAppVersion(v: AppVersion): string {
+export function formatAppVersion(v: AppVersion, trail: BuildTrail): string {
   switch (v.kind) {
     case 'published': {
       const epochMs = parseUtcStampToEpochMs(v.version);
       if (epochMs === null) return v.version;
+      const prefix = TRAIL_PREFIX[trail];
       const d = new Date(epochMs);
       const month = MONTH_NAMES[d.getUTCMonth()];
       if (!month) return v.version;
       const day = String(d.getUTCDate()).padStart(2, '0');
       const hour = String(d.getUTCHours()).padStart(2, '0');
       const minute = String(d.getUTCMinutes()).padStart(2, '0');
-      return `${month} ${day} ${hour}:${minute}Z`;
+      return `${prefix}${month} ${day} ${hour}:${minute}Z`;
     }
     case 'dev': {
       // A commit id is not a "when" (John, 13 Oct 2026): the commit's date and time lead, the id follows.

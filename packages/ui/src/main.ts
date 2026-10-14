@@ -67,6 +67,7 @@ import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
+import {trailOfPathname} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
 import {basicUtc, formatDateTime} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
@@ -240,10 +241,10 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
 
   // App version port: in dev mode fetch from /dev-version.json, in production use baked version.
   const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
-  const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, hotUpdateSource);
+  const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, trailOfPathname(location.pathname), hotUpdateSource);
 
   // Every hosted build, read once now (nothing is stored); About lists them.
-  const versionIndex = startVersionIndex(appVersionText, fetch);
+  const versionIndex = startVersionIndex(appVersionText, fetch, new URL('./', location.href).href);
 
   const crashReports = new CrashReports(
     telemetry,

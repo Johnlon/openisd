@@ -19,8 +19,10 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
 
       <SplashContent :driver-count="driverCount" :passive-radiator-count="passiveRadiatorCount" />
 
-      <section v-if="versions !== null && versions.rows.length > 0" class="sp-versions">
+      <section v-if="versions !== null" class="sp-versions">
         <h3>Versions</h3>
+        <p class="sp-running" data-testid="running-from">Running from {{ versions.runningFrom }}</p>
+        <template v-if="versions.rows.length > 0">
         <p v-if="versions.staleNotice" class="sp-stale">{{ versions.staleNotice }}</p>
         <p class="sp-ver-pages">
           <a :href="versions.releasesPath" class="sp-ver-btn">All releases</a>
@@ -37,6 +39,7 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
             </template>
           </li>
         </ul>
+        </template>
       </section>
 
       <footer>

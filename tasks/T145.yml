@@ -3,6 +3,7 @@ release_note: When cloud sync has failed, the Diagnostics dialog says so at the 
 repo: openisd
 owner: maryu
 status: done
+landed: b8f87e93108acf01b9f8bd1e31756c7d5d0baef2
 goal: When the Cloud sync block holds an error, the Diagnostics summary says Cloud sync failed at <time>; details below, not Nothing to report
 done_test: bash scripts/test.sh packages/design/test/cloud/cloudSyncReport.test.ts packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
 files:

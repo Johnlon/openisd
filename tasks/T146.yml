@@ -1,0 +1,20 @@
+id: T146
+release_note: internal
+repo: openisd
+owner: sonnet-version-trail
+status: done
+goal: Version label names the trail (snap/test) and About shows Running from URL
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T146.yml
+  - packages/design/fields/appVersion.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/appVersion.test.ts
+  - packages/ui/src/logic/appVersion.ts
+  - packages/ui/src/logic/versionIndex.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/components/SplashModal.vue
+  - packages/ui/test/logic/appVersion.test.ts
+  - packages/ui/test/logic/versionIndex.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/hooks/SplashModal-hooks.test.ts

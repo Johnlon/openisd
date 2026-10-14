@@ -86,7 +86,7 @@ describe('useSplashModal — catalogue counts', () => {
 });
 
 describe('useSplashModal — versions', () => {
-  const view = {rows: [], staleNotice: 'latest release is 1 Jan 2026, 01:02', releasesPath: '/v/', snapshotsPath: null};
+  const view = {rows: [], staleNotice: 'latest release is 1 Jan 2026, 01:02', releasesPath: '/v/', snapshotsPath: null, runningFrom: 'http://localhost/'};
 
   it('asks for the hosted builds only once the splash is on screen', async () => {
     let asked = 0;

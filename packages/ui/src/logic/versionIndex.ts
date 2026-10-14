@@ -42,6 +42,8 @@ export interface VersionsView {
   /** The hosted snapshot builds page, "/snap/"; null for a release build, whose users never see
    *  snapshot builds (John, 13 Oct 2026). A snapshot build and the dev server show them. */
   readonly snapshotsPath: string | null;
+  /** The full URL of the directory the app runs from, "https://openisd.app/snap/20261014T1045Z/". */
+  readonly runningFrom: string;
 }
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -89,14 +91,14 @@ function dateOf(stamp: string): string {
  *  page. Snapshot builds appear only when the running build is itself a snapshot build or the dev
  *  server: a release's users are never shown them. Just the running build when the list is
  *  unavailable. */
-export function describeVersions(runningVersion: string, entries: readonly BuildEntry[] | null): VersionsView {
+export function describeVersions(runningVersion: string, entries: readonly BuildEntry[] | null, runningFrom: string): VersionsView {
   const running = stampOfVersion(runningVersion);
   const releasesPath = hostedListPathOf('release');
   if (entries === null) {
     const rows: VersionRow[] = running === ''
       ? []
       : [{stamp: running, kind: 'release', date: dateOf(running), current: true, hostedPath: null, githubUrl: null}];
-    return {rows, staleNotice: null, releasesPath, snapshotsPath: null};
+    return {rows, staleNotice: null, releasesPath, snapshotsPath: null, runningFrom};
   }
   const newestFirst = (a: BuildEntry, b: BuildEntry): number => (a.stamp < b.stamp ? 1 : a.stamp > b.stamp ? -1 : 0);
   const releases = entries.filter(e => e.kind === 'release').sort(newestFirst);
@@ -118,6 +120,7 @@ export function describeVersions(runningVersion: string, entries: readonly Build
     staleNotice: stale ? `latest release is ${dateOf(latest.stamp)}` : null,
     releasesPath,
     snapshotsPath: showSnapshots ? hostedListPathOf('snap') : null,
+    runningFrom,
   };
 }
 
@@ -126,14 +129,15 @@ export class VersionIndex {
   constructor(
     private readonly runningVersion: string,
     private readonly entries: Promise<readonly BuildEntry[] | null>,
+    private readonly runningFrom: string,
   ) {}
 
   async view(): Promise<VersionsView> {
-    return describeVersions(this.runningVersion, await this.entries);
+    return describeVersions(this.runningVersion, await this.entries, this.runningFrom);
   }
 }
 
 /** Starts the one fetch of the list; hand the result to whatever shows it. */
-export function startVersionIndex(runningVersion: string, fetchFn: typeof fetch): VersionIndex {
-  return new VersionIndex(runningVersion, fetchVersionIndex(fetchFn));
+export function startVersionIndex(runningVersion: string, fetchFn: typeof fetch, runningFrom: string): VersionIndex {
+  return new VersionIndex(runningVersion, fetchVersionIndex(fetchFn), runningFrom);
 }

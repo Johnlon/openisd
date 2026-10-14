@@ -127,13 +127,13 @@ describe('createAppVersionPort', () => {
     const devPort: DevVersionPort = {
       fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' }),
     };
-    const port = createAppVersionPort(true, '', devPort);
+    const port = createAppVersionPort(true, '', devPort, 'release');
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'dev', sha: '5a3f9c1', hasChanges: false, committedAt: '' });
   });
 
   it('returns unknown in dev mode when devPort is null', async () => {
-    const port = createAppVersionPort(true, '', null);
+    const port = createAppVersionPort(true, '', null, 'release');
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'unknown' });
   });
@@ -142,19 +142,19 @@ describe('createAppVersionPort', () => {
     const devPort: DevVersionPort = {
       fetchDevVersion: () => Promise.resolve(null),
     };
-    const port = createAppVersionPort(true, '', devPort);
+    const port = createAppVersionPort(true, '', devPort, 'release');
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'unknown' });
   });
 
   it('returns published version in production mode', async () => {
-    const port = createAppVersionPort(false, 'v20261010T123456Z', null);
+    const port = createAppVersionPort(false, 'v20261010T123456Z', null, 'release');
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'published', version: 'v20261010T123456Z' });
   });
 
   it('returns unknown in production mode when baked version is empty', async () => {
-    const port = createAppVersionPort(false, '', null);
+    const port = createAppVersionPort(false, '', null, 'release');
     const version = await port.getVersion();
     expect(version).toEqual({ kind: 'unknown' });
   });
@@ -163,17 +163,22 @@ describe('createAppVersionPort', () => {
     const devPort: DevVersionPort = {
       fetchDevVersion: () => Promise.resolve({ kind: 'dev', sha: '5a3f9c1', hasChanges: true, committedAt: '' }),
     };
-    const port = createAppVersionPort(true, '', devPort);
+    const port = createAppVersionPort(true, '', devPort, 'release');
     expect(await port.getVersionLabel()).toBe('dev 5a3f9c1 + changes');
   });
 
+  it('names the trail in the production label', async () => {
+    expect(await createAppVersionPort(false, 'v20261014T104500Z', null, 'snap').getVersionLabel()).toBe('snap · Oct 14 10:45Z');
+    expect(await createAppVersionPort(false, 'v20261014T104500Z', null, 'test').getVersionLabel()).toBe('test · Oct 14 10:45Z');
+  });
+
   it('returns formatted label in production mode in UTC', async () => {
-    const port = createAppVersionPort(false, 'v20261009T234100Z', null);
+    const port = createAppVersionPort(false, 'v20261009T234100Z', null, 'release');
     expect(await port.getVersionLabel()).toBe('Oct 09 23:41Z');
   });
 
   it('returns unparseable version verbatim in getVersionLabel', async () => {
-    const port = createAppVersionPort(false, 'custom-version', null);
+    const port = createAppVersionPort(false, 'custom-version', null, 'release');
     expect(await port.getVersionLabel()).toBe('custom-version');
   });
 
@@ -183,7 +188,7 @@ describe('createAppVersionPort', () => {
     const devPort: DevVersionPort = {
       fetchDevVersion: vi.fn(() => Promise.resolve(currentDev)),
     };
-    const port = createAppVersionPort(true, '', devPort, hotSource.source);
+    const port = createAppVersionPort(true, '', devPort, 'release', hotSource.source);
 
     // Initial fetch produces "dev aaa"
     await port.getVersionLabel();
@@ -205,7 +210,7 @@ describe('createAppVersionPort', () => {
     const devPort: DevVersionPort = {
       fetchDevVersion: vi.fn((): Promise<DevAppVersion | null> => Promise.resolve({ kind: 'dev', sha: 'ccc', hasChanges: false, committedAt: '' })),
     };
-    const port = createAppVersionPort(false, 'v20261009T234100Z', devPort, hotSource.source);
+    const port = createAppVersionPort(false, 'v20261009T234100Z', devPort, 'release', hotSource.source);
     expect(port.label.value).toBe(await port.getVersionLabel());
     expect(devPort.fetchDevVersion).not.toHaveBeenCalled();
 
@@ -219,7 +224,7 @@ describe('createAppVersionPort', () => {
     const devPort: DevVersionPort = {
       fetchDevVersion: vi.fn((): Promise<DevAppVersion | null> => Promise.resolve(result)),
     };
-    const port = createAppVersionPort(true, '', devPort, hotSource.source);
+    const port = createAppVersionPort(true, '', devPort, 'release', hotSource.source);
 
     await port.getVersionLabel();
     expect(port.label.value).toBe('dev bbb + changes');
