@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: e679c64c7df137025f4568a7b83d3591de6dda1d
 goal: The manual test plan names snapshot 20261014T0113Z and covers T106, T111, T113, T114, T115, T116, T118
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

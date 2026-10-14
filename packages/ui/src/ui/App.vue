@@ -210,7 +210,7 @@ onUnmounted(() => {
 /* Bug (John, live on his phone, 2026-10-05: "that screen is really broken due to the bottom
    bar"): the footer's legend and seven buttons, the tab row and long DQ formulas did not wrap,
    so their width pushed the editor past both screen edges. On a phone the editor is the screen's
-   width: tabs scroll sideways inside it, the legend is one item per line above the buttons, the
+   width: tabs scroll sideways inside it, the legend is one row above the buttons, the
    buttons wrap, and long formulas break. */
 .app-root-mobile :deep(.de-modal) { min-width: 0 !important; }
 .app-root-mobile :deep(.de-modal > *) { min-width: 0; }
@@ -218,11 +218,11 @@ onUnmounted(() => {
 .app-root-mobile :deep(.de-tab) { white-space: nowrap; flex-shrink: 0; }
 .app-root-mobile :deep(.de-toolbar) { flex-wrap: wrap; row-gap: 6px; }
 .app-root-mobile :deep(.de-incomplete) { overflow-wrap: anywhere; }
-.app-root-mobile :deep(.de-footer) { align-items: flex-start; padding-left: 10px; padding-right: 10px; }
-.app-root-mobile :deep(.de-legend2) { flex: none; flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 0; }
-.app-root-mobile :deep(.de-btns) { flex: 1 1 0; min-width: 0; flex-direction: column; align-items: flex-end; gap: 6px; }
-.app-root-mobile :deep(.de-btn-row) { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
-.app-root-mobile :deep(.de-btn-row > button) { order: 0; padding-left: 6px; padding-right: 6px; }
+.app-root-mobile :deep(.de-footer) { padding-left: 10px; padding-right: 10px; }
+.app-root-mobile :deep(.de-legend2) { flex-wrap: wrap; gap: 4px 12px; }
+.app-root-mobile :deep(.de-btns) { min-width: 0; flex-direction: column; align-items: flex-start; gap: 6px; }
+.app-root-mobile :deep(.de-btn-row) { gap: 4px; }
+.app-root-mobile :deep(.de-btn-row > button) { padding-left: 6px; padding-right: 6px; }
 .app-root-mobile :deep(.de-params) {
   grid-template-columns: max-content max-content 34px 16px !important;
 }

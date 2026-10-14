@@ -796,20 +796,19 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         </div>
         <div class="de-btns">
           <input type="file" ref="fileInput" style="display:none" @change="handleFileLoaded" :accept="DriverFileFormat.ACCEPT">
-          <!-- Two rows on a phone (App.vue mobile rules). Desktop is one line, OK first: the
-               `de-ord-*` classes restore that order there. -->
+          <!-- File actions left, dialog actions right; each group is its own row on a phone. -->
           <div class="de-btn-row">
-            <button class="de-ord-3" @click="requestExport" title="Export this driver to a file — choose the format, then where to put it">Export</button>
-            <button class="de-ord-4" @click="triggerLoad" title="Import a driver from a file">Import</button>
-            <button class="de-copy-my de-ord-2" @click="copyToMyDrivers"
+            <button @click="requestExport" title="Export this driver to a file — choose the format, then where to put it">Export</button>
+            <button @click="triggerLoad" title="Import a driver from a file">Import</button>
+            <button class="de-copy-my" @click="copyToMyDrivers"
                     :title="copiedMsg || 'Copy this driver into My Drivers as an independent copy — no link back to it'">
               {{ copiedMsg || 'Copy to My Drivers' }}
             </button>
           </div>
           <div class="de-btn-row">
-            <button class="pri de-ord-1" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
-            <button class="de-ord-5" @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
-            <button class="de-ord-6" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+            <button class="pri" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+            <button @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
+            <button @click="cancel" title="Discard edits made in this session and close">Cancel</button>
           </div>
         </div>
       </div>
@@ -1031,7 +1030,8 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
   grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
-  gap: 3px 6px !important;
+  /* 2px between tracks: 15 gaps across 16 tracks; at 6px the grid was wider than the modal's body in Chromium and wider still in Firefox, so the body scrolled sideways. */
+  gap: 3px 2px !important;
   align-items: center !important;
   align-content: start !important;
   justify-content: start !important;
@@ -1065,10 +1065,10 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 .de-diagram :deep(.dd-dim-svg) { width: 100%; max-width: 440px; max-height: 350px; height: auto; color: var(--fg); }
 .de-diagram :deep(text) { fill: var(--fg); }
 
-.de-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--line); }
-.de-btns { display: flex; gap: 6px; }
-.de-btn-row { display: contents; }
-.de-ord-1 { order: 1; } .de-ord-2 { order: 2; } .de-ord-3 { order: 3; } .de-ord-4 { order: 4; } .de-ord-5 { order: 5; } .de-ord-6 { order: 6; }
+.de-footer { display: flex; flex-direction: column; gap: 6px; padding: 8px 14px; border-top: 1px solid var(--line); }
+.de-footer .de-legend2 { margin-top: 0; }
+.de-btns { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; }
+.de-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
 .de-btns .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
 
 /* ONE FIELD = ONE COMPONENT, four parts: [label] [value] [unit] [alerts]. A unitless field

@@ -55,7 +55,7 @@ async function elementsPastScreenEdges(page: import('@playwright/test').Page, ro
 }
 
 // Bug (John, live on his phone, 2026-10-05: "that screen is really broken due to the bottom bar").
-test('at phone width the Driver Editor fits the screen: first tab, legend one per line, every footer button to its right', async ({ page }) => {
+test('at phone width the Driver Editor fits the screen: first tab, legend one row, every footer button below it', async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 915 });
   await page.getByText('Edit', { exact: true }).click();
   const modal = page.locator('.de-modal');
@@ -70,11 +70,11 @@ test('at phone width the Driver Editor fits the screen: first tab, legend one pe
   await expect(page.locator('.de-legend-item')).toHaveCount(3);
   const items = await page.locator('.de-legend-item').all();
   const boxes = await Promise.all(items.map(i => i.boundingBox()));
-  for (let i = 1; i < boxes.length; i++) expect(boxes[i]!.y).toBeGreaterThanOrEqual(boxes[i - 1]!.y + boxes[i - 1]!.height - 1);
+  for (let i = 1; i < boxes.length; i++) expect(boxes[i]!.y).toBeCloseTo(boxes[0]!.y, 0);
   const legend = (await page.locator('.de-legend2').boundingBox())!;
   for (const button of await page.locator('.de-btns button').all()) {
     const b = (await button.boundingBox())!;
-    expect(b.x).toBeGreaterThanOrEqual(legend.x + legend.width - 1);
+    expect(b.y).toBeGreaterThanOrEqual(legend.y + legend.height - 1);
     expect(b.x + b.width).toBeLessThanOrEqual(412 + 1);
   }
   await screenshotIfAsked(page);

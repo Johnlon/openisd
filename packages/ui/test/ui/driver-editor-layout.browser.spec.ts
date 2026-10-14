@@ -357,3 +357,36 @@ test('Dimensions: the rows are not spaced out', async ({ page }) => {
   expect(worst, `rows are ${gaps.join('/')}px apart — the list is padded out with dead space`)
     .toBeLessThanOrEqual(8);
 });
+
+test('no tab of the driver editor scrolls sideways, and the modal fits its window', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+  const tabs = await page.locator('.de-tab').allTextContents();
+  for (const tab of tabs) {
+    await page.getByRole('button', { name: tab, exact: true }).click();
+    const sideways = await page.evaluate(() => {
+      const modal = document.querySelector('.de-modal')!;
+      const scrollers = [modal, ...modal.querySelectorAll('*')].filter(el => el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible');
+      return scrollers.map(el => `${el.className} ${el.scrollWidth}>${el.clientWidth}`);
+    });
+    expect(sideways, `${tab} tab`).toEqual([]);
+  }
+});
+
+test('the colour legend is one row above the buttons: file actions left, OK Reset Cancel right', async ({ page }) => {
+  await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+  await page.locator('.driver-id-row').getByRole('button', { name: 'Edit' }).click();
+  const footer = page.locator('.de-footer');
+  await expect(footer).toBeVisible();
+  const items = await Promise.all((await footer.locator('.de-legend-item').all()).map(i => i.boundingBox()));
+  await expect(footer.locator('.de-legend-item')).toHaveCount(3);
+  for (const b of items) expect(b!.y).toBeCloseTo(items[0]!.y, 0);
+  const box = async (name: string) => (await footer.getByRole('button', { name, exact: true }).boundingBox())!;
+  const [exp, imp, ok, cancel] = [await box('Export'), await box('Import'), await box('OK'), await box('Cancel')];
+  expect(exp.y).toBeGreaterThanOrEqual(items[0]!.y + items[0]!.height - 1);
+  expect(imp.y).toBeCloseTo(exp.y, 0);
+  expect(ok.y).toBeCloseTo(exp.y, 0);
+  expect(ok.x).toBeGreaterThan(imp.x + imp.width);
+  expect(cancel.x).toBeGreaterThan(ok.x);
+});
