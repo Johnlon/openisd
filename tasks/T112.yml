@@ -3,6 +3,7 @@ release_note: Groundwork for cloud sync: the parts are connected at startup. Not
 repo: openisd
 owner: maryu
 status: done
+landed: a2dfa0283595dde2773e1f38c1a04de07ca33024
 goal: The composition root builds Google sign-in, the Drive store, the sync record, buckets, engine, scheduler and CloudSync, and starts sync on open, focus, save and reconnect; nothing is built on a read-only store (Drive sync plan P1-12)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

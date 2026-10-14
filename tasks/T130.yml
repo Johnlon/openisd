@@ -1,0 +1,13 @@
+id: T130
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+label: fixes
+goal: F21 closed: the cloud boot browser spec sits in packages/ui/test/ui/ as the test-folder rule requires
+done_test: bash scripts/test.sh packages/design/test/architecture-test-files-name-their-object.test.ts
+files:
+  - tasks/T130.yml
+  - tasks/fixes/F21.yml
+  - packages/ui/test/cloud/boot.browser.spec.ts
+  - packages/ui/test/ui/cloud-boot.browser.spec.ts
