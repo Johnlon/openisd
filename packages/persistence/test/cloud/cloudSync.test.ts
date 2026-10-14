@@ -268,11 +268,57 @@ describe('cloudSync', () => {
       account: 'john@example.com',
       fault,
     });
-    expect(sync.lastFault()?.fault).toEqual(fault);
+    expect(sync.diagnostics().lastFault?.fault).toEqual(fault);
 
     // 7. the fault is kept until a run succeeds
     sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
-    expect(sync.lastFault()).toBeNull();
+    expect(sync.diagnostics().lastFault).toBeNull();
+  });
+
+  it('diagnostics() reports the grant, the last attempt, the pending count and the last fault', () => {
+    let nowTime = 1000;
+    const session = new FakeCloudSession();
+    const engine = new FakeSyncEngine();
+    const sync = createCloudSync({
+      session,
+      scheduler: new FakeSyncScheduler(),
+      ledger: new FakeSyncLedger(),
+      engine,
+      now: () => nowTime,
+    });
+
+    expect(sync.diagnostics()).toEqual({
+      grant: { kind: 'connected', account: 'john@example.com' },
+      lastAttempt: null,
+      pendingChanges: 0,
+      lastFault: null,
+    });
+
+    const fault = { operation: 'list' as const, status: 200, reason: 'Not a file list', reply: '{"files":[]}' };
+    nowTime = 2000;
+    sync.onOutcome({ kind: 'failed', fault, pendingLocal: 4 });
+    expect(sync.diagnostics()).toEqual({
+      grant: { kind: 'connected', account: 'john@example.com' },
+      lastAttempt: { at_ms: 2000, outcome: { kind: 'failed' } },
+      pendingChanges: 4,
+      lastFault: { fault, at_ms: 2000 },
+    });
+
+    nowTime = 3000;
+    sync.onOutcome({ kind: 'stopped', reason: 'quota', pushedSoFar: 0, pendingLocal: 4 });
+    expect(sync.diagnostics().lastAttempt).toEqual({ at_ms: 3000, outcome: { kind: 'stopped', reason: 'quota' } });
+    expect(sync.diagnostics().lastFault).toEqual({ fault, at_ms: 2000 });
+
+    session.currentGrant = { kind: 'reconnect', account: 'john@example.com' };
+    sync.onOutcome({ kind: 'reconnect', pendingLocal: 4 });
+    expect(sync.diagnostics().grant).toEqual({ kind: 'reconnect', account: 'john@example.com' });
+    expect(sync.diagnostics().lastAttempt?.outcome).toEqual({ kind: 'reconnect' });
+
+    sync.onOutcome({ kind: 'refused', reason: 'noRoom', pendingLocal: 4 });
+    expect(sync.diagnostics().lastAttempt?.outcome).toEqual({ kind: 'refused', reason: 'noRoom' });
+
+    sync.onOutcome({ kind: 'notConnected' });
+    expect(sync.diagnostics().lastAttempt?.outcome).toEqual({ kind: 'notConnected' });
   });
 
   it('disconnect clears to off', async () => {

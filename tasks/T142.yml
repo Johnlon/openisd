@@ -3,6 +3,7 @@ release_note: Diagnostics shows the last cloud sync error in full, and the sync 
 repo: openisd
 owner: maryu
 status: done
+landed: 0f7badb0eee18a716876bbc4eb1998152497a1af
 goal: Diagnostics shows a Cloud sync section with the last Drive error in full, and the sync status says what Drive said
 done_test: bash scripts/test.sh packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts packages/persistence/test/cloud/driveStore.test.ts
 files:

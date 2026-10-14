@@ -1,0 +1,15 @@
+id: T143
+release_note: Diagnostics shows the cloud sync connection, account, last attempt and pending change count, as well as the last error.
+repo: openisd
+owner: maryu
+status: done
+goal: Diagnostics Cloud sync section also shows connected or not, the account, the last attempt time and outcome, and the pending change count
+done_test: bash scripts/test.sh packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/cloud/cloudSync.test.ts packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+files:
+  - tasks/T143.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/ui/src/main.ts
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts

@@ -8,7 +8,7 @@ import {testAppLogic} from './testAppLogic.js';
 import {appSettingsRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
 import {
   type ListableStorage, type StoreName, createStoredDataFault, isStoredDataFault, createMemoryStorage, } from '@openisd/persistence';
-import {cloudFaultReportLines, type CloudFaultRecord} from '@openisd/design/cloud';
+import {cloudSyncReportLines, type CloudSyncReport} from '@openisd/design/cloud';
 
 async function renderHook(
   saveBackup: SaveBackup = () => undefined, storage: ListableStorage = createMemoryStorage(),
@@ -38,17 +38,22 @@ async function renderHook(
 }
 
 describe('useDiagnosticsModal', () => {
-  it('the Cloud sync block shows the last sync error in full', async () => {
-    const record: CloudFaultRecord = {
-      fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'},
-      at_ms: Date.UTC(2026, 9, 14, 11, 0, 0),
+  it('the Cloud sync block shows the connection, the pending count and the last error in full', async () => {
+    const at_ms = Date.UTC(2026, 9, 14, 11, 0, 0);
+    const report: CloudSyncReport = {
+      grant: {kind: 'connected', account: 'john@example.com'},
+      lastAttempt: {at_ms, outcome: {kind: 'failed'}},
+      pendingChanges: 2,
+      lastFault: {fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'}, at_ms},
     };
-    const api = await renderHook(() => undefined, createMemoryStorage(), () => cloudFaultReportLines(record));
+    const api = await renderHook(() => undefined, createMemoryStorage(), () => cloudSyncReportLines(report));
     const lines = api.faultLog.cloudSyncLines();
-    expect(lines).toContain('  request: list');
-    expect(lines).toContain('  HTTP status: 200');
-    expect(lines).toContain('  reason: Not a file list');
-    expect(lines).toContain('  reply: {"files":[]}');
+    expect(lines).toContain('Cloud sync: connected as john@example.com');
+    expect(lines).toContain('  pending changes: 2');
+    expect(lines).toContain('    request: list');
+    expect(lines).toContain('    HTTP status: 200');
+    expect(lines).toContain('    reason: Not a file list');
+    expect(lines).toContain('    reply: {"files":[]}');
   });
 
   it('opens modal when a fault occurs', async () => {

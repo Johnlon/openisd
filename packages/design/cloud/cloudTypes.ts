@@ -46,6 +46,12 @@ export function cloudFaultOf(operation: CloudOperation, status: number, reason: 
   return {operation, status, reason, reply: body.slice(0, FAULT_REPLY_CHARS)};
 }
 
+/** Whether this browser holds a Google grant, and for which account. */
+export type CloudGrant =
+  | { readonly kind: 'none' }
+  | { readonly kind: 'connected'; readonly account: string }
+  | { readonly kind: 'reconnect'; readonly account: string };
+
 /** The last sync fault and when it happened; kept until the next successful sync. */
 export interface CloudFaultRecord {
   readonly fault: CloudFault;

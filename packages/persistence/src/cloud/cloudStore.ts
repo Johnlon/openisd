@@ -1,5 +1,5 @@
 import type {
-  ChangeCursor, CloudChanges, CloudDoc, CloudFileList, CloudMeta, CloudResult, DocId, FileId, RevisionId, WriteMeta,
+  ChangeCursor, CloudChanges, CloudGrant, CloudDoc, CloudFileList, CloudMeta, CloudResult, DocId, FileId, RevisionId, WriteMeta,
 } from '@openisd/design/cloud';
 
 export interface CloudStore {
@@ -16,7 +16,7 @@ export interface CloudStore {
 export type { Http, HttpRequest, HttpResponse } from './http.js';
 
 export interface CloudSession {
-  grant(): { readonly kind: 'none' } | { readonly kind: 'connected'; readonly account: string } | { readonly kind: 'reconnect'; readonly account: string };
+  grant(): CloudGrant;
   accessToken(): Promise<{ readonly kind: 'ok'; readonly token: string } | { readonly kind: 'none' } | { readonly kind: 'reconnect' } | { readonly kind: 'offline' }>;
   onBoot(location: { readonly search: string; readonly hash: string }): Promise<
     | { readonly kind: 'notACallback' }

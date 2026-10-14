@@ -34,8 +34,9 @@ export type {
   CloudChange, CloudChanges, CloudDoc, CloudError, CloudFault, CloudFileList, CloudMeta, CloudOperation, CloudResult, WriteMeta,
 } from './cloudTypes.js';
 export {FAULT_REPLY_CHARS, cloudFaultOf, cloudFaultText} from './cloudTypes.js';
-export type {CloudFaultRecord} from './cloudTypes.js';
-export {cloudFaultReportLines} from './cloudFaultReport.js';
+export type {CloudFaultRecord, CloudGrant} from './cloudTypes.js';
+export {cloudSyncReportLines} from './cloudSyncReport.js';
+export type {CloudAttempt, CloudAttemptOutcome, CloudSyncReport} from './cloudSyncReport.js';
 export {
   parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseStartPageToken, parseWriteReply,
 } from './driveJson.js';

@@ -1,4 +1,4 @@
-import type { CloudFaultRecord, ConflictCopy, SyncStatus } from '@openisd/design/cloud';
+import type { CloudAttempt, CloudAttemptOutcome, CloudFaultRecord, CloudSyncReport, ConflictCopy, SyncStatus } from '@openisd/design/cloud';
 import type { CloudSession } from './cloudStore.js';
 import type { SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine } from './syncRun.js';
@@ -14,8 +14,8 @@ export interface CloudSync {
   syncNow(): Promise<void>;
   conflictSeen(id: ConflictCopy['id']): void;
   onOutcome(outcome: RunOutcome): void;
-  /** The last failed run's fault, kept until a run succeeds. */
-  lastFault(): CloudFaultRecord | null;
+  /** The grant, the last run, the pending count and the last fault (kept until a run succeeds). */
+  diagnostics(): CloudSyncReport;
 }
 
 export interface CloudSyncDeps {
@@ -31,6 +31,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
   let lastRunOutcome: RunOutcome | null = null;
   let lastSyncAt_ms: number | null = null;
   let lastFault: CloudFaultRecord | null = null;
+  let lastAttempt: CloudAttempt | null = null;
   const listeners = new Set<() => void>();
 
   function notify(): void {
@@ -39,8 +40,20 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     }
   }
 
+  function attemptOutcome(outcome: RunOutcome): CloudAttemptOutcome {
+    switch (outcome.kind) {
+      case 'synced': return { kind: 'synced' };
+      case 'stopped': return { kind: 'stopped', reason: outcome.reason };
+      case 'notConnected': return { kind: 'notConnected' };
+      case 'reconnect': return { kind: 'reconnect' };
+      case 'refused': return { kind: 'refused', reason: outcome.reason };
+      case 'failed': return { kind: 'failed' };
+    }
+  }
+
   function onOutcome(outcome: RunOutcome): void {
     lastRunOutcome = outcome;
+    lastAttempt = { at_ms: clock(), outcome: attemptOutcome(outcome) };
     if (outcome.kind === 'synced') {
       lastSyncAt_ms = clock();
       lastFault = null;
@@ -187,6 +200,8 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     deps.ledger.forgetAll();
     lastRunOutcome = null;
     lastSyncAt_ms = null;
+    lastAttempt = null;
+    lastFault = null;
     notify();
   }
 
@@ -209,6 +224,11 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     syncNow,
     conflictSeen,
     onOutcome,
-    lastFault: () => lastFault,
+    diagnostics: () => ({
+      grant: deps.session.grant(),
+      lastAttempt,
+      pendingChanges: pendingChanges(),
+      lastFault,
+    }),
   };
 }
