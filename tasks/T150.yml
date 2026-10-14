@@ -3,6 +3,7 @@ release_note: The first cloud sync uploads new items four at a time, so it finis
 repo: openisd
 owner: maryu
 status: done
+landed: 110127219702dfd4eadb5930b3ea57601cd5e1b6
 goal: New-item uploads run 4 at a time; changed and deleted items stay one at a time
 done_test: bash scripts/test.sh packages/persistence/test/cloud/syncEngine.test.ts
 files:

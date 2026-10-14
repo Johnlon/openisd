@@ -15,7 +15,7 @@ function installedLog(): {log: FaultLog; fire: (type: string, e: unknown) => voi
   const storage = createMemoryStorage();
   const log = createFaultLog(() => undefined, () => ({
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
-  }), storeOf, () => null);
+  }), storeOf, {lines: () => [], summary: () => null});
   const raised: number[] = [];
   log.onFault(f => raised.push(f.id));
   log.install();
@@ -75,7 +75,7 @@ describe('repairs follow the origin', () => {
     appSettings.setEnvDefaults({tempK: 300, humidityPct: 40, pressurePa: 100000});
     vi.stubGlobal('window', {addEventListener: (type: string, fn: Listener) => { if (type === 'error') fire = fn; }});
     let fire: Listener = () => undefined;
-    const log = createFaultLog(() => undefined, () => ({view, appSettings}), storeOf, () => null);
+    const log = createFaultLog(() => undefined, () => ({view, appSettings}), storeOf, {lines: () => [], summary: () => null});
     log.install();
     fire({message: 'bad view', error: createStoredDataFault('view', 'bad view')});
     expect(log.applicable().map(f => f.id)).toEqual(['reset-view']);

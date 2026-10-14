@@ -8,7 +8,7 @@ import {testAppLogic} from './testAppLogic.js';
 import {appSettingsRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
 import {
   type ListableStorage, type StoreName, createStoredDataFault, isStoredDataFault, createMemoryStorage, } from '@openisd/persistence';
-import {type CloudSyncReport} from '@openisd/design/cloud';
+import {cloudSyncReportLines, cloudSyncSummary, type CloudSyncReport} from '@openisd/design/cloud';
 
 async function renderHook(
   saveBackup: SaveBackup = () => undefined, storage: ListableStorage = createMemoryStorage(),
@@ -16,7 +16,10 @@ async function renderHook(
 ): Promise<DiagnosticsModalAPI> {
   const faultLog = createFaultLog(saveBackup, () => ({
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
-  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, cloudSync);
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {
+    lines: () => cloudSyncReportLines(cloudSync()),
+    summary: () => cloudSyncSummary(cloudSync()),
+  });
   let api!: DiagnosticsModalAPI;
   const Child = defineComponent({
     setup() {
