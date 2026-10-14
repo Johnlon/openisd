@@ -1,4 +1,4 @@
-import type { DeviceId, DocId, DocKind } from '@openisd/design/cloud';
+import type { DeviceName, DocId, DocKind } from '@openisd/design/cloud';
 
 export interface LocalDoc {
   readonly id: DocId;
@@ -19,5 +19,5 @@ export interface LocalDocs {
   /** Returns the body in this app's layout, or null when no step reaches it. */
   migrate(doc: LocalDoc): string | null;
   /** The keep-both copy: a new uuid, a visible name mark. Never called when hashes are equal. */
-  putConflictCopy(doc: LocalDoc, from: DeviceId, at_ms: number): { readonly id: DocId } | 'refused';
+  putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): { readonly id: DocId } | 'refused';
 }

@@ -40,7 +40,7 @@ The scheduler (`syncScheduler.ts`) serialises runs; at most one extra run queues
 
 ## Conflicts
 
-- **Edit vs edit** (both devices changed the same doc): both copies kept. Remote wins the original id; local body becomes a conflict copy with a new uuid and a visible name mark (e.g. `Sub 12 (conflict, phone, 13 Oct 2026, 21:05)`).
+- **Edit vs edit** (both devices changed the same doc): both copies kept. Remote wins the original id; local body becomes a conflict copy with a new uuid and a visible name mark (e.g. `Sub 12 (conflict, Android phone, 13 Oct 2026, 21:05)`).
 - **Edit vs delete**: edit wins (pushes as update, effectively undeleting).
 - **Delete vs delete**: ledger row dropped.
 - **Settings / favourites** (singleton docs): Lamport clock decides. Higher `seq` wins; tie → higher `writer` id wins. Wall clock never decides.
@@ -64,6 +64,7 @@ Before a sync run removes or replaces a local doc, it takes a **whole-store back
 | `design/cloud/driveJson.ts` | Parses Drive JSON replies into typed models, refusing anything else. |
 | `design/cloud/sha256.ts` | SHA-256 for the body hash. |
 | `design/cloud/conflictNames.ts` | Names a keep-both copy with device and time. |
+| `design/cloud/deviceName.ts` | `DeviceName`: this device in plain words ("Android phone", "Mac"), from the user agent, for conflict copy names. |
 | `design/cloud/docMigrate.ts` | Wraps and unwraps a doc body with its layout; per-doc layout steps. |
 | `design/cloud/storedGrant.ts` | `StoredGrant`, parsed at the boundary. |
 | `design/cloud/oauthRedirect.ts` | Builds the Google authorize URL; parses and recognises the `#access_token=` return. |

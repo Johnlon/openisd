@@ -1,5 +1,5 @@
 import {
-  type DeviceId,
+  type DeviceName,
   type DocId,
   wrapDoc,
   unwrapDoc,
@@ -51,7 +51,7 @@ export function createSingletonDocs(deps: SingletonDocsDeps): LocalDocs {
     return unwrapDoc(storeKey, doc.id, migrated);
   }
 
-  function putConflictCopy(_doc: LocalDoc, _from: DeviceId, _at_ms: number): { readonly id: DocId } | 'refused' {
+  function putConflictCopy(_doc: LocalDoc, _from: DeviceName, _at_ms: number): { readonly id: DocId } | 'refused' {
     return 'refused';
   }
 

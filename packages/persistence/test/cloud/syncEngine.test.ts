@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   BodyHash,
+  DeviceName,
   type DocId,
   FileId,
   RevisionId,
@@ -82,6 +83,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       backup,
       layout,
       now: () => nowMs,
+      deviceName: DeviceName.ofBrowser('', 0),
     });
   }
 

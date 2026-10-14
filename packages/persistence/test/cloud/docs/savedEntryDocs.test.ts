@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { DeviceId } from '@openisd/design/cloud';
+import { DeviceName } from '@openisd/design/cloud';
+const ANDROID_PHONE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36';
+
 import { createSavedEntryDocs } from '../../../src/cloud/docs/savedEntryDocs.js';
 import { OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY } from '../../../src/repos/storageKeys.js';
 import { createMemoryStorage } from '../../../src/storage/keyValueStorage.js';
@@ -147,9 +149,7 @@ describe('savedEntryDocs', () => {
           entries: [{ uuid: 'd-1', record }],
         }),
       });
-      const device = DeviceId.of('phone');
-      expect(device).not.toBeNull();
-      if (device === null) return;
+      const device = DeviceName.ofBrowser(ANDROID_PHONE_UA, 5);
 
       const copyRes = bucket.putConflictCopy(
         { id: { kind: 'driver', uuid: 'd-1' }, body: JSON.stringify(record), layout: 2 },

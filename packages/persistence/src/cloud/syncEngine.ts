@@ -2,6 +2,7 @@ import {
   BodyHash,
   type ChangeCursor,
   type CloudMeta,
+  type DeviceName,
   type DocId,
   type DocKind,
   DriverId,
@@ -11,6 +12,7 @@ import {
   type RevisionId,
   type WriteMeta,
   bodyHashOf,
+  conflictProjectName,
   decideDocSync,
   shouldPurgeTombstone,
 } from '@openisd/design/cloud';
@@ -27,6 +29,8 @@ export interface SyncEngineDeps {
   readonly backup: StorageBackup;
   readonly layout: number;
   readonly now: () => number;
+  /** Names this device in conflict copies. */
+  readonly deviceName: DeviceName;
 }
 
 function docIdKey(id: DocId): string {
@@ -489,11 +493,11 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         pulledCount++;
 
         // Local body becomes a conflict copy
-        const copyRes = c.bucket.putConflictCopy(c.localDoc, deps.ledger.deviceId(), deps.now());
+        const copyRes = c.bucket.putConflictCopy(c.localDoc, deps.deviceName, deps.now());
         if (copyRes !== 'refused') {
           const conflictId = toConflictCopyId(copyRes.id);
           if (conflictId !== null) {
-            const conflictName = `${extractDocName(c.localDoc)} (conflict, ${deps.ledger.deviceId().text})`;
+            const conflictName = conflictProjectName(extractDocName(c.localDoc), deps.deviceName, deps.now());
             deps.ledger.addConflict({
               id: conflictId,
               name: conflictName,
@@ -619,7 +623,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
 
                 const copyRes = push.bucket.putConflictCopy(
                   { id: push.docId, body: push.body, layout: deps.layout },
-                  deps.ledger.deviceId(),
+                  deps.deviceName,
                   deps.now()
                 );
                 return copyRes;
@@ -643,7 +647,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                 if (conflictId !== null) {
                   deps.ledger.addConflict({
                     id: conflictId,
-                    name: `${extractDocName({ id: push.docId, body: push.body, layout: deps.layout })} (conflict, ${deps.ledger.deviceId().text})`,
+                    name: conflictProjectName(extractDocName({ id: push.docId, body: push.body, layout: deps.layout }), deps.deviceName, deps.now()),
                     from: deps.ledger.deviceId(),
                     at_ms: deps.now(),
                   });

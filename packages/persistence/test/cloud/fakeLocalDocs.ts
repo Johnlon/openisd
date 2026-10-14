@@ -1,5 +1,5 @@
 import {
-  type DeviceId,
+  type DeviceName,
   type DocId,
   type DocKind,
 } from '@openisd/design/cloud';
@@ -20,7 +20,7 @@ export class FakeLocalDocs implements LocalDocs {
 
   putCalls: LocalDoc[] = [];
   removeCalls: DocId[] = [];
-  conflictCalls: { doc: LocalDoc; from: DeviceId; at_ms: number }[] = [];
+  conflictCalls: { doc: LocalDoc; from: DeviceName; at_ms: number }[] = [];
 
   constructor(kind: DocKind, initialDocs: readonly LocalDoc[] = []) {
     this.kind = kind;
@@ -64,7 +64,7 @@ export class FakeLocalDocs implements LocalDocs {
     return doc.body;
   }
 
-  putConflictCopy(doc: LocalDoc, from: DeviceId, at_ms: number): { readonly id: DocId } | 'refused' {
+  putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): { readonly id: DocId } | 'refused' {
     if (this.refuseConflict) {
       return 'refused';
     }

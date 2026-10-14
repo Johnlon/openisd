@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { DeviceId } from '@openisd/design/cloud';
+import { DeviceName } from '@openisd/design/cloud';
+const ANDROID_PHONE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36';
+
 import { createEngine } from '@openisd/design/engine';
 import { createProjectDocs } from '../../../src/cloud/docs/projectDocs.js';
 import { OPENISD_PROJECTS_KEY } from '../../../src/repos/storageKeys.js';
@@ -191,9 +193,7 @@ describe('projectDocs', () => {
       }),
     });
 
-    const device = DeviceId.of('phone');
-    expect(device).not.toBeNull();
-    if (device === null) return;
+    const device = DeviceName.ofBrowser(ANDROID_PHONE_UA, 5);
 
     const copyRes = bucket.putConflictCopy(
       { id: { kind: 'project', uuid: 'p-1' }, body: text, layout: 2 },
@@ -220,7 +220,7 @@ describe('projectDocs', () => {
     expect(copyDoc).toBeDefined();
     const parsed: unknown = JSON.parse(copyDoc?.body ?? '{}');
     expect(parsed).toMatchObject({
-      label: 'Sub 12 (conflict, phone, 13 Oct 2026, 21:05)',
+      label: 'Sub 12 (conflict, Android phone, 13 Oct 2026, 21:05)',
     });
   });
 });

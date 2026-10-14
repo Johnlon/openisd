@@ -1,8 +1,8 @@
 import { formatDateTime } from '../fields/format.js';
-import type { DeviceId } from './syncStatus.js';
+import type { DeviceName } from './deviceName.js';
 
-export function conflictProjectName(name: string, from: DeviceId | string, at_ms: number): string {
-  const device = typeof from === 'string' ? from : from.text;
+export function conflictProjectName(name: string, from: DeviceName, at_ms: number): string {
+  const device = from.text;
   const time = formatDateTime(new Date(at_ms));
   return `${name} (conflict, ${device}, ${time})`;
 }

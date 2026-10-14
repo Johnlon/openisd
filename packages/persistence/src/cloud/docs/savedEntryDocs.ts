@@ -1,6 +1,6 @@
 import { newUuid } from '@openisd/design';
 import {
-  type DeviceId,
+  type DeviceName,
   type DocId,
   wrapDoc,
   unwrapDoc,
@@ -61,7 +61,7 @@ export function createSavedEntryDocs(deps: SavedEntryDocsDeps): LocalDocs {
     return unwrapDoc(storeKey, doc.id, migrated);
   }
 
-  function putConflictCopy(doc: LocalDoc, _from: DeviceId, _at_ms: number): { readonly id: DocId } | 'refused' {
+  function putConflictCopy(doc: LocalDoc, _from: DeviceName, _at_ms: number): { readonly id: DocId } | 'refused' {
     if (doc.id.kind !== kind) return 'refused';
     const newId = newUuid();
     const putRes = put({

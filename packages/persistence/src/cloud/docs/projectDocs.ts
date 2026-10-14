@@ -1,6 +1,6 @@
 import { newUuid } from '@openisd/design';
 import {
-  type DeviceId,
+  type DeviceName,
   type DocId,
   conflictProjectName,
   setProjectNameInBody,
@@ -53,7 +53,7 @@ export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
     return unwrapDoc(OPENISD_PROJECTS_KEY, doc.id, migrated);
   }
 
-  function putConflictCopy(doc: LocalDoc, from: DeviceId, at_ms: number): { readonly id: DocId } | 'refused' {
+  function putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): { readonly id: DocId } | 'refused' {
     if (doc.id.kind !== 'project') return 'refused';
     const rawName = projectNameOfBody(doc.body) ?? 'Project';
     const conflictMark = conflictProjectName(rawName, from, at_ms);

@@ -39,7 +39,7 @@ import {
     createCloudUiStore,
     createSaveSignal,
 } from '@openisd/persistence';
-import {isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
+import {DeviceName, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
 import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
@@ -319,6 +319,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       },
       random: randomBytes,
       now: Date.now,
+      deviceName: DeviceName.ofBrowser(navigator.userAgent, navigator.maxTouchPoints),
     });
 
     saves.listen(() => wiring.scheduler.onSave());

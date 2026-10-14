@@ -1,22 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { DeviceId } from '../../cloud/syncStatus.js';
+import { DeviceName } from '../../cloud/deviceName.js';
 import { conflictProjectName, setProjectNameInBody } from '../../cloud/conflictNames.js';
+
+const ANDROID_PHONE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36';
 
 describe('conflictNames', () => {
   it('formats project conflict name: <name> (conflict, <device>, 13 Oct 2026, 21:05)', () => {
     // 13 Oct 2026 21:05 UTC (or local depending on formatDateTime)
     const at = new Date(2026, 9, 13, 21, 5).getTime();
-    const device = DeviceId.of('phone');
-    expect(device).not.toBeNull();
-    if (device === null) return;
+    const device = DeviceName.ofBrowser(ANDROID_PHONE_UA, 5);
     const name = conflictProjectName('Sub 12', device, at);
-    expect(name).toBe('Sub 12 (conflict, phone, 13 Oct 2026, 21:05)');
-  });
-
-  it('accepts string device id as well', () => {
-    const at = new Date(2026, 9, 13, 21, 5).getTime();
-    const name = conflictProjectName('Sub 12', 'desktop', at);
-    expect(name).toBe('Sub 12 (conflict, desktop, 13 Oct 2026, 21:05)');
+    expect(name).toBe('Sub 12 (conflict, Android phone, 13 Oct 2026, 21:05)');
   });
 
   it('updates project name in .owpr JSON body', () => {

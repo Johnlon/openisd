@@ -1,4 +1,5 @@
 import type {
+  DeviceName,
   OAuthConfig,
 } from '@openisd/design/cloud';
 import {
@@ -97,6 +98,7 @@ export interface CloudSyncWiringDeps {
   readonly location: SessionLocation;
   readonly random: () => Uint8Array;
   readonly now: () => number;
+  readonly deviceName: DeviceName;
 }
 
 export interface CloudSyncWiring {
@@ -181,6 +183,7 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     backup: deps.backup,
     layout: deps.rules.layout,
     now,
+    deviceName: deps.deviceName,
   });
 
   let cloudSync: CloudSync | null = null;

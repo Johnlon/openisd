@@ -54,6 +54,9 @@ export {
   parseStoredGrant,
 } from './storedGrant.js';
 export {
+  DeviceName,
+} from './deviceName.js';
+export {
   conflictProjectName,
   setProjectNameInBody,
 } from './conflictNames.js';

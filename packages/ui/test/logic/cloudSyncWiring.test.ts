@@ -10,7 +10,7 @@ import {
   type FileStorage,
 } from '@openisd/persistence';
 import {createEngine} from '@openisd/design/engine';
-import {type OAuthConfig, ChangeCursor} from '@openisd/design/cloud';
+import {type OAuthConfig, ChangeCursor, DeviceName} from '@openisd/design/cloud';
 
 const noFiles: FileStorage = {
   save: () => { throw new Error('no test writes files'); },
@@ -69,6 +69,7 @@ function createWiringHarness() {
     location: { href: 'http://localhost/', hash: '', replaceState: () => undefined },
     random: () => new Uint8Array(16).fill(7),
     now: () => 0,
+    deviceName: DeviceName.ofBrowser('', 0),
   });
 
   return {

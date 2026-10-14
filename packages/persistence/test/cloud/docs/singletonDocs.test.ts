@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { DeviceId } from '@openisd/design/cloud';
+import { DeviceName } from '@openisd/design/cloud';
+const ANDROID_PHONE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36';
+
 import { createSingletonDocs } from '../../../src/cloud/docs/singletonDocs.js';
 import {
   OPENISD_APP_SETTINGS_KEY,
@@ -111,9 +113,7 @@ describe('singletonDocs', () => {
 
     it('putConflictCopy is refused for settings', () => {
       const { bucket } = setupSettings();
-      const device = DeviceId.of('phone');
-      expect(device).not.toBeNull();
-      if (device === null) return;
+      const device = DeviceName.ofBrowser(ANDROID_PHONE_UA, 5);
       const res = bucket.putConflictCopy(
         { id: { kind: 'settings' }, body: '{}', layout: 2 },
         device,

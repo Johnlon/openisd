@@ -1,0 +1,20 @@
+id: T138
+release_note: A conflict copy names the device that made it in plain words, such as "Android phone" or "Windows desktop".
+repo: openisd
+owner: maryu
+status: done
+goal: Conflict copies name the device by a short readable name (Android phone, iPhone, Windows desktop) instead of its 32-character id
+done_test: bash scripts/test.sh packages/design/test/cloud/deviceName.test.ts packages/design/test/cloud/conflictNames.test.ts packages/persistence/test/cloud/syncEngine.test.ts
+files:
+  - tasks/T138.yml
+  - packages/design/cloud/deviceName.ts
+  - packages/design/cloud/conflictNames.ts
+  - packages/design/cloud/index.ts
+  - packages/design/test/cloud/deviceName.test.ts
+  - packages/design/test/cloud/conflictNames.test.ts
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/test/logic/cloudSyncWiring.test.ts
+  - packages/ui/src/main.ts
+  - docs/design/CLOUD_SYNC.md
