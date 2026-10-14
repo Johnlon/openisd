@@ -3,6 +3,7 @@ release_note: Options → Storage history now lists the copies kept before a rep
 repo: openisd
 owner: maryu
 status: done
+landed: 8b315d395874f2dc0f1fcb0fd84a884c5be272af
 goal: Options Backups lists the pre-repair copies with size and a Delete button
 done_test: bash scripts/test.sh packages/persistence/test/storageHistory.test.ts packages/ui/test/hooks/StorageHistory-hooks.test.ts
 files:

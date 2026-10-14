@@ -91,10 +91,8 @@ export interface ProjectRepo {
   loadOpenProjects(): OpenProjectSession | string[] | null;
   /** Call `onChange` whenever another tab saves its open projects. Returns the call that stops it. */
   watchOpenProjects(onChange: () => void): () => void;
-  /** Copy the stored session record to the quarantine key, leaving the original in place.
-   *  Called when a record holds entries that would not read, so the next save cannot take
-   *  them with it. A no-op when there is no stored record. */
-  quarantineOpenSession(): void;
+  /** Keep each refused entry whole as a refused copy. Returns how many did not fit and were not kept. */
+  keepRefusedEntries(entries: readonly RefusedEntry[]): number;
   /** All stored projects as docs with layout, or 'unreadable'. */
   storedDocs(): StoredDocsResult;
   /** Save one stored doc by uuid; name clash is resolved via uniqueName. */
@@ -146,15 +144,34 @@ export interface UnreadableStoredProject {
   readonly modified: string;
 }
 
+/** One stored open-project entry that would not read. */
+export interface RefusedEntry {
+  readonly id: string;
+  /** The entry's text exactly as stored. */
+  readonly text: string;
+}
+
 export interface OpenProjectSession {
   readonly projects: OpenISDProject[];
   readonly focusedIndex: number;
   /** One message per entry the record held that could not be read. The entries that did read
    *  are in `projects` — a refusal costs its own project, never the others. The record itself
-   *  is untouched; `quarantineOpenSession()` copies it aside before anything overwrites it. */
+   *  is untouched; `keepRefusedEntries()` keeps each refused entry whole before anything overwrites it. */
   readonly refused: readonly string[];
+  /** The refused entries themselves, text as stored, for `keepRefusedEntries`. */
+  readonly refusedEntries: readonly RefusedEntry[];
   /** The restored projects whose trace was hidden on the charts. Every other one is shown. */
   readonly traceHidden: ReadonlySet<OpenISDProject>;
+}
+
+/** The project's name as its stored text states it; '' when the text will not parse. */
+function refusedNameOf(text: string): string {
+  try {
+    const parsed: unknown = JSON.parse(text);
+    return typeof parsed === 'object' && parsed !== null && 'label' in parsed && typeof parsed.label === 'string' ? parsed.label : '';
+  } catch {
+    return '';
+  }
 }
 
 const PROJECT_STORAGE_KEY = OPENISD_STATE_KEY;
@@ -624,12 +641,14 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       if (!payload) return ['open project session has an invalid shape'];
       const projects: OpenISDProject[] = [];
       const refused: string[] = [];
+      const refusedEntries: RefusedEntry[] = [];
       const traceHidden = new Set<OpenISDProject>();
       let focusedIndex = 0;
       for (const entry of payload.entries) {
         const project = readRepairing(entry.text, OPEN_SESSION_SOURCE);
         if (Array.isArray(project)) {
           refused.push(`entry ${entry.id}: ${project.join('; ')}`);
+          refusedEntries.push({ id: entry.id, text: entry.text });
           continue;
         }
         storedIdentity.set(project, entry.id);
@@ -637,14 +656,13 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         if (entry.id === payload.focusedId) focusedIndex = projects.length;
         projects.push(project);
       }
-      return { projects, focusedIndex, refused, traceHidden };
+      return { projects, focusedIndex, refused, refusedEntries, traceHidden };
     },
     watchOpenProjects(onChange: () => void): () => void {
       return storage.watch(OPEN_SESSION_STORAGE_KEY, onChange);
     },
-    quarantineOpenSession(): void {
-      const text = storage.get(OPEN_SESSION_STORAGE_KEY);
-      if (text !== null) storage.set(QUARANTINE_SESSION_STORAGE_KEY, text);
+    keepRefusedEntries(entries: readonly RefusedEntry[]): number {
+      return entries.filter(entry => !backup.refuse('wouldNotLoad', refusedNameOf(entry.text), entry.text)).length;
     },
     storedDocs(): StoredDocsResult {
       const text = storage.get(PROJECTS_STORAGE_KEY);

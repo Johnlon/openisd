@@ -19,7 +19,7 @@ import type {PresentationState} from './presentationState.js';
 
 /** The doors the boot reads through, and the one action it takes on the UI's behalf. */
 export interface BootDeps {
-  readonly projectRepo: Pick<ProjectRepo, 'loadFromHash' | 'loadOpenProjects' | 'loadFromStorage' | 'quarantineOpenSession'>;
+  readonly projectRepo: Pick<ProjectRepo, 'loadFromHash' | 'loadOpenProjects' | 'loadFromStorage' | 'keepRefusedEntries'>;
   readonly viewStateRepo: {load(): ViewSnapshot | null};
   readonly logging: {flash(message: string): void};
   /** Opens the Driver Editor on the focused project — the shell's own action, injected so the
@@ -53,19 +53,19 @@ type SessionRestore =
   | 'restored';
 
 /** Every project that was open at the last refresh. An entry that will not read costs its own
- *  project and no other; the record holding it is copied to quarantine first, so the next save
+ *  project and no other; each is kept whole as a refused copy first, so the next save
  *  cannot take the refused entries with it. */
 function restoreSession(deps: BootDeps): SessionRestore {
   const session: OpenProjectSession | string[] | null = deps.projectRepo.loadOpenProjects();
   if (session === null) return 'none';
   if (Array.isArray(session)) {
-    deps.projectRepo.quarantineOpenSession();
     deps.logging.flash('Could not restore open projects: ' + session.join('; '));
     return 'none';
   }
   if (session.refused.length > 0) {
-    deps.projectRepo.quarantineOpenSession();
-    deps.logging.flash(`Could not restore ${session.refused.length} of your open projects: ` + session.refused.join('; '));
+    const notKept = deps.projectRepo.keepRefusedEntries(session.refusedEntries);
+    deps.logging.flash(`Could not restore ${session.refused.length} of your open projects: ` + session.refused.join('; ')
+      + (notKept === 0 ? '. They are kept in this browser.' : `. ${notKept} could not be kept: there is no room.`));
   }
   // Every entry refused: the record could not say what was open, so it says nothing.
   if (session.projects.length === 0) return session.refused.length > 0 ? 'none' : 'empty';

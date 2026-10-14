@@ -13,11 +13,11 @@ import {type ProjectRepairReport} from '../src/repos/projectRepo.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {
-  OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY,
+  OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY,
 } from '../src/repos/storageKeys.js';
 import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {projectRepoOn} from './fixtures/repoOn.js';
+import {backupOn, projectRepoOn} from './fixtures/repoOn.js';
 
 const engine = createEngine();
 const FIXTURE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'stored-pre-t036');
@@ -145,15 +145,17 @@ describe('an entry the build refuses stays byte-identical in storage', () => {
     expect(stored()).toBe(REFUSED);
   });
 
-  it('in the open session, copied aside before the next save', () => {
+  it('in the open session, kept whole as a refused copy before the next save', () => {
     const record = sessionRecord([{id: 'refused', text: REFUSED}]);
     const storage = createMemoryStorage({[OPENISD_OPEN_SESSIONS_KEY]: record});
     const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
     const session = repo.loadOpenProjects();
     if (session === null || Array.isArray(session)) throw new Error('expected a session');
     expect(session.refused).toHaveLength(1);
-    repo.quarantineOpenSession();
+    expect(repo.keepRefusedEntries(session.refusedEntries)).toBe(0);
     repo.saveOpenProjects(session.projects, session.projects[0] ?? null, new Set());
-    expect(storedText(storage.get(OPENISD_QUARANTINE_SESSION_KEY), 'refused')).toBe(REFUSED);
+    const backup = backupOn(storage);
+    const [kept] = backup.refusedCopies();
+    expect(backup.readRefused(kept.key)?.text).toBe(REFUSED);
   });
 });

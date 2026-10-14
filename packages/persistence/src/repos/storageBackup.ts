@@ -14,10 +14,11 @@
  *
  *  One backup per guarded operation: a guard that starts while another runs takes none, since
  *  the outer backup already holds the whole store (a sync run's pulled writes, T153). */
+import {basicUtc} from '@openisd/design/fields';
 import type {ListableStorage} from '../storage/keyValueStorage.js';
 import type {BuildStamp} from './buildStamp.js';
 import {createStorageSnapshot, envelopeText, readEnvelope} from './storageSnapshot.js';
-import {OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_QUARANTINE_SESSION_KEY} from './storageKeys.js';
+import {OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_REFUSED_PREFIX} from './storageKeys.js';
 
 /** What the user is told when a write that would remove or replace saved data is refused because
  *  the whole-store backup that must come first does not fit. Nothing was changed. */
@@ -38,6 +39,27 @@ export interface BackupInfo {
   readonly takenAt: string;
   /** Length of the backup text, in characters. */
   readonly size: number;
+}
+
+/** Why a project was kept as a refused copy. */
+export type RefusedReason = 'wouldNotLoad';
+
+/** One refused copy as the Backups page lists it. `at`, `reason` and `name` are '' when the
+ *  copy's own record is damaged; it can still be discarded. */
+export interface RefusedCopy {
+  readonly key: string;
+  /** When it was kept, ISO 8601 basic UTC. */
+  readonly at: string;
+  readonly reason: RefusedReason | '';
+  /** The project's name, '' when it could not be read. */
+  readonly name: string;
+  /** Length of the stored record, in characters. */
+  readonly size: number;
+}
+
+export interface RefusedCopyRecord extends RefusedCopy {
+  /** The project text exactly as it was stored. */
+  readonly text: string;
 }
 
 /** What a backup that did not fit saw: the copy it tried to write, and what the store held then. */
@@ -78,6 +100,15 @@ export interface StorageBackup {
    *  does not fit even with every backup gone. Live data outranks its own backups: a save never
    *  fails for want of room a backup is using. */
   write(key: string, text: string): boolean;
+  /** Keep a project that would not load, whole. Whole-store backups go first for room; another
+   *  refused copy never does. The same text refused twice is kept once. False when it does not fit. */
+  refuse(reason: RefusedReason, name: string, text: string): boolean;
+  /** Every refused copy held, newest first. */
+  refusedCopies(): RefusedCopy[];
+  /** The refused copy under `key`, or null when `key` holds none or its record is damaged. */
+  readRefused(key: string): RefusedCopyRecord | null;
+  /** Delete the refused copy under `key`. False, and nothing deleted, when `key` is not one. */
+  discardRefused(key: string): boolean;
 }
 
 /** Which record a pre-repair copy holds. */
@@ -102,6 +133,25 @@ const PRE_REPAIR_COPIES: readonly {readonly kind: PreRepairKind; readonly key: s
 
 function byAge(a: BackupInfo, b: BackupInfo): number {
   return a.takenAt === b.takenAt ? a.key.localeCompare(b.key) : a.takenAt.localeCompare(b.takenAt);
+}
+
+interface RefusedRecord {
+  readonly at: string;
+  readonly reason: RefusedReason;
+  readonly name: string;
+  readonly text: string;
+}
+
+function refusedRecordOf(stored: string | null): RefusedRecord | null {
+  if (stored === null) return null;
+  let parsed: unknown;
+  try { parsed = JSON.parse(stored); } catch { return null; }
+  if (typeof parsed !== 'object' || parsed === null) return null;
+  if (!('at' in parsed) || typeof parsed.at !== 'string') return null;
+  if (!('reason' in parsed) || parsed.reason !== 'wouldNotLoad') return null;
+  if (!('name' in parsed) || typeof parsed.name !== 'string') return null;
+  if (!('text' in parsed) || typeof parsed.text !== 'string') return null;
+  return {at: parsed.at, reason: parsed.reason, name: parsed.name, text: parsed.text};
 }
 
 export function createStorageBackup(storage: ListableStorage, now: () => number): StorageBackup {
@@ -207,6 +257,29 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     return {kind: 'taken', key};
   }
 
+  function refusedKeys(): string[] {
+    return storage.keys().filter(key => key.startsWith(OPENISD_REFUSED_PREFIX));
+  }
+
+  function refusedCopyOf(key: string): RefusedCopy {
+    const stored = storage.get(key) ?? '';
+    const record = refusedRecordOf(stored);
+    return record === null
+      ? {key, at: '', reason: '', name: '', size: stored.length}
+      : {key, at: record.at, reason: record.reason, name: record.name, size: stored.length};
+  }
+
+  function refuse(reason: RefusedReason, name: string, text: string): boolean {
+    if (refusedKeys().some(key => {
+      const held = refusedRecordOf(storage.get(key));
+      return held !== null && held.reason === reason && held.text === text;
+    })) return true;
+    const at = basicUtc(now());
+    const key = freeKey(`${OPENISD_REFUSED_PREFIX}${at}`);
+    if (key === null) return false;
+    return place(key, JSON.stringify({at, reason, name, text} satisfies RefusedRecord));
+  }
+
   let guarding = false;
 
   return {
@@ -225,6 +298,18 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     list,
     read: key => storage.get(key),
     write: writeData,
+    refuse,
+    refusedCopies: () => refusedKeys().map(refusedCopyOf).sort((a, b) => a.at === b.at ? b.key.localeCompare(a.key) : b.at.localeCompare(a.at)),
+    readRefused(key) {
+      if (!key.startsWith(OPENISD_REFUSED_PREFIX)) return null;
+      const record = refusedRecordOf(storage.get(key));
+      return record === null ? null : {...refusedCopyOf(key), text: record.text};
+    },
+    discardRefused(key) {
+      if (!key.startsWith(OPENISD_REFUSED_PREFIX) || storage.get(key) === null) return false;
+      storage.remove(key);
+      return true;
+    },
     discard(key) {
       if (!key.startsWith(OPENISD_BACKUP_PREFIX) || storage.get(key) === null) return false;
       storage.remove(key);

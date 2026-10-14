@@ -46,7 +46,7 @@ export { LAYOUT_STEPS } from './repos/layoutSteps.js';
 export { createStorageHistory, type HistoryFile, type HistoryRow, type StorageHistory } from './repos/storageHistory.js';
 export { createExportedFiles, type ExportedFiles, type OpenedFile } from './repos/exportedFile.js';
 export {
-  type BackupInfo, type BackupResult, type Guarded, type PreRepairCopy, type PreRepairKind, type RoomShortfall, type StorageBackup, MAX_BACKUPS, NO_ROOM_TO_BACK_UP, createStorageBackup,
+  type BackupInfo, type BackupResult, type Guarded, type PreRepairCopy, type PreRepairKind, type RefusedCopy, type RefusedCopyRecord, type RefusedReason, type RoomShortfall, type StorageBackup, MAX_BACKUPS, NO_ROOM_TO_BACK_UP, createStorageBackup,
 } from './repos/storageBackup.js';
 export { type LostKey, type LogEntry, type StorageLog, MAX_LOG_ENTRIES, createStorageLog } from './repos/storageLog.js';
 export {
@@ -57,7 +57,7 @@ export { type SaveResult, type FileStorage, createFileStorage } from './storage/
 
 export {
   type ViewSnapshot,
-  type ProjectRepo, type StoredProjectListing, type OpenProjectSession, type FileNaming, type ProjectRepairReport,
+  type ProjectRepo, type StoredProjectListing, type OpenProjectSession, type RefusedEntry, type FileNaming, type ProjectRepairReport,
   createProjectRepo,
 
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
@@ -65,6 +65,7 @@ export {
 
 export { createLedgerFollowsRewrite } from './cloud/ledgerFollowsRewrite.js';
 export { type CompactionOutcome, createStoredTextCompaction } from './repos/storedTextCompaction.js';
+export { createQuarantineRetirement, type QuarantineRetirementOutcome } from './repos/quarantineRetirement.js';
 
 export {
   type ViewStateRepo, VIEW_STATE_KEY, createViewStateRepo,

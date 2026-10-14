@@ -31,6 +31,7 @@ import {
     createProjectBin,
     createProjectBinMarks,
     createStoredTextCompaction,
+    createQuarantineRetirement,
     createLedgerFollowsRewrite,
     createViewStateRepo,
     isStoredDataFault,
@@ -194,6 +195,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // Stored projects written by earlier builds are indented and carry dq_calculated: rewritten once,
   // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
   if (!store.readOnly) createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
+  // Refused copies replace the old quarantine copy of the session: it is removed once, behind the backup.
+  if (!store.readOnly) createQuarantineRetirement(storage, storageBackup).run();
   const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
   const deviceName = DeviceName.ofBrowser(navigator.userAgent, navigator.maxTouchPoints);
   const binMarks = createProjectBinMarks(storage, storageBackup);

@@ -11,9 +11,9 @@ import assert from 'node:assert/strict';
 import {createProjectRepo, type ProjectRepairReport, storedProjectsPayload} from '../src/repos/projectRepo.js';
 import {isStoredDataFault} from '../src/repos/storedDataFault.js';
 import type {FileStorage} from '../src/storage/fileStorage.js';
-import {createMemoryStorage, createSharedMemoryStorage, type KeyValueStorage} from '../src/storage/keyValueStorage.js';
+import {createMemoryStorage, createSharedMemoryStorage, type ListableStorage} from '../src/storage/keyValueStorage.js';
 import {
-  OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,
+  OPENISD_BACKUP_KEYS, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_REFUSED_PREFIX, OPENISD_STATE_KEY,
   OPENISD_STORAGE_LAYOUT_KEY,
 } from '../src/repos/storageKeys.js';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
@@ -89,7 +89,7 @@ function sessionRecord(texts: readonly string[], focusedId: string | null): stri
   return JSON.stringify({entries, focusedId});
 }
 
-function seeded(record: string): {repo: ReturnType<typeof createProjectRepo>; storage: KeyValueStorage} {
+function seeded(record: string): {repo: ReturnType<typeof createProjectRepo>; storage: ListableStorage} {
   const storage = createMemoryStorage();
   storage.set(OPENISD_OPEN_SESSIONS_KEY, record);
   return {repo: projectRepoOn(engine, noFiles, storage, 'http://localhost'), storage};
@@ -198,6 +198,7 @@ describe('projectRepo', () => {
       if (Array.isArray(session) || session === null) throw new Error('expected a session');
       expect(session.projects.map(p => p.name.value)).toEqual(['first', 'third']);
       expect(session.refused).toHaveLength(1);
+      expect(session.refusedEntries).toEqual([{id: session.refusedEntries[0].id, text: '{}'}]);
     });
 
     it('keeps the focus on the project the record named, counting only the entries that read', () => {
@@ -220,13 +221,16 @@ describe('projectRepo', () => {
     });
   });
 
-  describe('quarantineOpenSession', () => {
-    it('copies the record aside so the refused entries survive the next save', () => {
-      const record = sessionRecord([goodProjectText('first'), '{}'], 'a');
-      const {repo, storage} = seeded(record);
-      repo.quarantineOpenSession();
-      expect(storage.get(OPENISD_QUARANTINE_SESSION_KEY)).toBe(record);
-      expect(storage.get(OPENISD_OPEN_SESSIONS_KEY)).toBe(record);
+  describe('keepRefusedEntries', () => {
+    it('keeps each refused entry whole, once however often it is kept, and reports none lost', () => {
+      const {repo, storage} = seeded(sessionRecord([goodProjectText('first'), '{"label":"Box B"'], 'a'));
+      const session = repo.loadOpenProjects();
+      if (Array.isArray(session) || session === null) throw new Error('expected a session');
+      expect(repo.keepRefusedEntries(session.refusedEntries)).toBe(0);
+      expect(repo.keepRefusedEntries(session.refusedEntries)).toBe(0);
+      const kept = storage.keys().filter(key => key.startsWith(OPENISD_REFUSED_PREFIX));
+      expect(kept).toHaveLength(1);
+      expect(storage.get(kept[0])).toContain('"text":"{\\"label\\":\\"Box B\\""');
     });
   });
 

@@ -9,7 +9,7 @@ import {
 } from '@openisd/design/cloud';
 import type { KeyValueStorage } from '../../src/storage/keyValueStorage.js';
 import { createSyncLedger, type SyncLedger } from '../../src/cloud/syncLedger.js';
-import type { StorageBackup, Guarded, BackupResult, PreRepairCopy, BackupInfo } from '../../src/repos/storageBackup.js';
+import type { StorageBackup, Guarded, BackupResult, PreRepairCopy, BackupInfo, RefusedCopy, RefusedCopyRecord } from '../../src/repos/storageBackup.js';
 import { FakeCloudStore } from './fakeCloudStore.js';
 import { FakeLocalDocs } from './fakeLocalDocs.js';
 import { createSyncEngine } from '../../src/cloud/syncEngine.js';
@@ -25,11 +25,11 @@ class MemoryStorage implements KeyValueStorage {
 
 class FakeBackup implements StorageBackup {
   guardCalls = 0;
-  refuse = false;
+  refuseGuard = false;
 
   guard<T>(destructive: () => T): Guarded<T> {
     this.guardCalls++;
-    if (this.refuse) {
+    if (this.refuseGuard) {
       return { kind: 'refused', shortfall: { copyChars: 900, storeChars: 4000 } };
     }
     return { kind: 'ran', value: destructive() };
@@ -42,6 +42,10 @@ class FakeBackup implements StorageBackup {
   preRepairCopies(): PreRepairCopy[] { return []; }
   discardCopy(): boolean { return false; }
   write(): boolean { return true; }
+  refuse(): boolean { return true; }
+  refusedCopies(): RefusedCopy[] { return []; }
+  readRefused(): RefusedCopyRecord | null { return null; }
+  discardRefused(): boolean { return false; }
 }
 
 describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
@@ -460,7 +464,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
         body: body1,
       });
 
-      backup.refuse = true;
+      backup.refuseGuard = true;
 
       const engine = createEngine();
       const outcome = await engine.run();

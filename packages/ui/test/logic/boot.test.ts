@@ -52,7 +52,7 @@ function recording(overrides: {
       loadFromHash: async () => { log.push('hash'); return overrides.hash ? overrides.hash() : null; },
       loadOpenProjects: () => { log.push('session'); return overrides.session ? overrides.session() : null; },
       loadFromStorage: () => { log.push('legacy'); return null; },
-      quarantineOpenSession: () => { log.push('quarantine'); },
+      keepRefusedEntries: entries => { log.push(`keep ${entries.length}`); return 0; },
     },
     viewStateRepo: {load: () => { log.push('view'); return overrides.view ? overrides.view() : null; }},
     logging: {flash: (m: string) => { log.push('flash: ' + m); }},
@@ -86,7 +86,7 @@ describe('bootApplication', () => {
   });
 
   it('restores the session projects', async () => {
-    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({session: () => session});
     await bootApplication(deps);
     expect(appState.openProjects()).toHaveLength(2);
@@ -96,7 +96,7 @@ describe('bootApplication', () => {
   // bugs/BUG_20261005_project-selection-lost-on-reload.md
   it('restores which session projects had their trace hidden', async () => {
     const hidden = project('one');
-    const session = {projects: [hidden, project('two')], focusedIndex: 1, refused: [], traceHidden: new Set([hidden])};
+    const session = {projects: [hidden, project('two')], focusedIndex: 1, refused: [], refusedEntries: [], traceHidden: new Set([hidden])};
     const {deps} = recording({session: () => session});
     await bootApplication(deps);
     expect(appState.openProjects().map(p => appState.isTraceVisible(p))).toEqual([false, true]);
@@ -107,24 +107,24 @@ describe('bootApplication', () => {
     const savedName = edited.name.value;
     edited.name.set('edited, not saved');
     expect(edited.isModified()).toBe(true);
-    const {deps} = recording({session: () => ({projects: [edited], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()})});
+    const {deps} = recording({session: () => ({projects: [edited], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()})});
     await bootApplication(deps);
     expect(appState.focusedProject()?.isModified()).toBe(true);
     expect(await appState.focusedProject()?.cancel(async () => true)).toBe(true);
     expect(appState.focusedProject()?.name.value).toBe(savedName);
   });
 
-  it('quarantines a record that held an entry it could not read, and says so', async () => {
-    const session = {projects: [project('one')], focusedIndex: 0, refused: ['entry b: nope'], traceHidden: new Set<OpenISDProject>()};
+  it('keeps an entry it could not read as a refused copy, and says so', async () => {
+    const session = {projects: [project('one')], focusedIndex: 0, refused: ['entry b: nope'], refusedEntries: [{id: 'b', text: '{bad'}], traceHidden: new Set<OpenISDProject>()};
     const {log, deps} = recording({session: () => session});
     await bootApplication(deps);
-    expect(log).toContain('quarantine');
+    expect(log).toContain('keep 1');
     expect(log.some(l => l.startsWith('flash:'))).toBe(true);
     expect(appState.openProjects()).toHaveLength(1);
   });
 
   it('reopens a panel the stored view left open, once a project is there to open it on', async () => {
-    const session = {projects: [project('one')], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const session = {projects: [project('one')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
     const {log, deps} = recording({session: () => session, view: () => ({ui: {originalWhatIfOpen: true, originalEditorOpen: true}})});
     await bootApplication(deps);
     expect(presentationState.editDriver).toBe(true);
@@ -133,7 +133,7 @@ describe('bootApplication', () => {
 
   // John 2026-10-05: close the last project, reload, and the last project came back.
   it('a stored session with no open projects opens nothing — the stored project is not reopened', async () => {
-    const {log, deps} = recording({session: () => ({projects: [], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()})});
+    const {log, deps} = recording({session: () => ({projects: [], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()})});
     await bootApplication(deps);
     expect(log).not.toContain('legacy');
     expect(appState.openProjects()).toHaveLength(0);
@@ -147,7 +147,7 @@ describe('bootApplication', () => {
   });
 
   it('a recorded project id focuses that project after session restore', async () => {
-    const session = {projects: [project('one'), project('two')], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const session = {projects: [project('one'), project('two')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({
       session: () => session,
       recordedProjectId: () => session.projects[1].uuid(),
@@ -157,7 +157,7 @@ describe('bootApplication', () => {
   });
 
   it('a recorded project id that does not match any open project changes nothing', async () => {
-    const session = {projects: [project('one')], focusedIndex: 0, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const session = {projects: [project('one')], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({
       session: () => session,
       recordedProjectId: () => 'non-existent-uuid',
@@ -167,7 +167,7 @@ describe('bootApplication', () => {
   });
 
   it('a missing recorded project id (null) changes nothing', async () => {
-    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], traceHidden: new Set<OpenISDProject>()};
+    const session = {projects: [project('one'), project('two')], focusedIndex: 1, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
     const {deps} = recording({
       session: () => session,
       recordedProjectId: () => null,
