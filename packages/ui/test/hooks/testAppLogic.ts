@@ -47,7 +47,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });
   const myDriverRepo = myDriverRepoOn(storage, engine);
-  const prefs = createPrefsRepo(storage);
+  const prefs = createPrefsRepo(storage, () => undefined);
   const myPassiveRadiators = myPassiveRadiatorRepoOn(storage);
   const bundledPassiveRadiators = createBundledPassiveRadiatorRepo({
     fetch: unusedFetch, baseUrl: '/', maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,

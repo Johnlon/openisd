@@ -10,7 +10,7 @@ import {OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY} 
 describe('prefsRepo — passive-radiator favourites', () => {
   it('are kept apart from driver favourites, each under its own key', () => {
     const storage = createMemoryStorage();
-    const prefs = createPrefsRepo(storage);
+    const prefs = createPrefsRepo(storage, () => undefined);
 
     prefs.setFavorites(['driver-1']);
     prefs.setFavoritePassiveRadiators(['pr-1', 'pr-2']);
@@ -22,8 +22,18 @@ describe('prefsRepo — passive-radiator favourites', () => {
   });
 
   it('read as none when nothing or something unreadable is stored', () => {
-    expect(createPrefsRepo(createMemoryStorage()).favoritePassiveRadiators()).toEqual([]);
+    expect(createPrefsRepo(createMemoryStorage(), () => undefined).favoritePassiveRadiators()).toEqual([]);
     const garbled = createMemoryStorage({[OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY]: '{not json'});
-    expect(createPrefsRepo(garbled).favoritePassiveRadiators()).toEqual([]);
+    expect(createPrefsRepo(garbled, () => undefined).favoritePassiveRadiators()).toEqual([]);
+  });
+});
+
+describe('prefsRepo — a favourites write tells cloud sync', () => {
+  it('calls onSaved once per write, for drivers and for passive radiators', () => {
+    let saves = 0;
+    const prefs = createPrefsRepo(createMemoryStorage(), () => { saves += 1; });
+    prefs.setFavorites(['a']);
+    prefs.setFavoritePassiveRadiators(['b']);
+    expect(saves).toBe(2);
   });
 });

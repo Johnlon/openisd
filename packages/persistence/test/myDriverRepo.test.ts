@@ -9,10 +9,11 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {MY_DRIVERS_KEY} from '../src/repos/myDriverRepo.js';
+import {createMyDriverRepo, MY_DRIVERS_KEY} from '../src/repos/myDriverRepo.js';
+import {createSavedEntries} from '../src/repos/savedEntries.js';
 import {createMemoryStorage, type ListableStorage} from '../src/storage/keyValueStorage.js';
 import {createEngine} from '@openisd/design/engine';
-import {myDriverRepoOn} from './fixtures/repoOn.js';
+import {backupOn, myDriverRepoOn} from './fixtures/repoOn.js';
 import {aDriver} from './fixtures/savedRecords.js';
 
 const engine = createEngine();
@@ -59,4 +60,38 @@ describe('myDriverRepo', () => {
     assert.equal(back[0].driver.model.value, 'RS225');
     assert.equal(back[0].driver.brand.value, 'Dayton');
   });
+
+  describe('cloud sync onSaved trigger', () => {
+    it('notifies onSaved when upserting or removing a driver', () => {
+      const storage = memoryStorage();
+      let savedCount = 0;
+      const repo = createMyDriverRepo(storage, engine, backupOn(storage), () => { savedCount++; });
+
+      const res = repo.upsert(aDriver());
+      assert.ok(res !== null);
+      assert.equal(savedCount, 1);
+
+      repo.remove(res.uuid);
+      assert.equal(savedCount, 2);
+    });
+
+    it('does not notify onSaved when cloud doc put/remove operates on storage entries directly', () => {
+      const storage = memoryStorage();
+      let savedCount = 0;
+      createMyDriverRepo(storage, engine, backupOn(storage), () => { savedCount++; });
+
+      const cloudEntries = createSavedEntries<unknown>(
+        storage,
+        { key: MY_DRIVERS_KEY, open: r => r, snapshot: v => v },
+        backupOn(storage),
+      );
+      const res = cloudEntries.upsert({ brand: 'Test', model: 'M1' });
+      assert.ok(res !== null);
+      assert.equal(savedCount, 0);
+
+      cloudEntries.removeById(res.uuid);
+      assert.equal(savedCount, 0);
+    });
+  });
 });
+

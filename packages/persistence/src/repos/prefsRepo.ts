@@ -25,7 +25,8 @@ export interface PrefsRepo {
   setFavoritePassiveRadiators(keys: string[]): void;
 }
 
-export function createPrefsRepo(storage: KeyValueStorage): PrefsRepo {
+/** `onSaved` runs after each favourites write, so cloud sync can push it. */
+export function createPrefsRepo(storage: KeyValueStorage, onSaved: () => void): PrefsRepo {
   /** The ids stored under `key`; none when nothing, or nothing readable, is there. */
   function idsAt(key: string): string[] {
     try {
@@ -37,10 +38,12 @@ export function createPrefsRepo(storage: KeyValueStorage): PrefsRepo {
     favorites: () => idsAt(FAVORITES_KEY),
     setFavorites(keys) {
       storage.set(FAVORITES_KEY, JSON.stringify(keys));
+      onSaved();
     },
     favoritePassiveRadiators: () => idsAt(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY),
     setFavoritePassiveRadiators(keys) {
       storage.set(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY, JSON.stringify(keys));
+      onSaved();
     },
   };
 }

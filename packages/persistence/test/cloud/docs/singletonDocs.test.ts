@@ -19,7 +19,7 @@ const RULES: LayoutRules = { layout: 2, steps: LAYOUT_STEPS };
 function setupSettings(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);
   const backup = createStorageBackup(storage, () => FIXED_NOW);
-  const repo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined);
+  const repo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined, () => undefined);
   const bucket = createSingletonDocs({ repo, rules: RULES, now: () => FIXED_NOW });
   return { storage, backup, repo, bucket };
 }
@@ -86,7 +86,7 @@ describe('singletonDocs', () => {
       const seed = { [OPENISD_APP_SETTINGS_KEY]: JSON.stringify({ differenceCues: true }) };
       const storage = createQuotaStorage(JSON.stringify(seed).length + 20, seed);
       const backup = createStorageBackup(storage, () => FIXED_NOW);
-      const repo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined);
+      const repo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined, () => undefined);
       const bucket = createSingletonDocs({ repo, rules: RULES, now: () => FIXED_NOW });
 
       const res = bucket.put({

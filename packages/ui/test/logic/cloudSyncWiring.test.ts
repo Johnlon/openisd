@@ -33,6 +33,8 @@ function createWiringHarness() {
     'http://localhost/',
     backup,
     exportedFiles,
+    () => undefined,
+    () => undefined,
   );
   let onReplacedCalled = false;
   const appSettingsRepo = createAppSettingsRepo(
@@ -40,6 +42,7 @@ function createWiringHarness() {
     backup,
     () => undefined,
     () => { onReplacedCalled = true; },
+    () => undefined,
   );
 
   const config: OAuthConfig = {

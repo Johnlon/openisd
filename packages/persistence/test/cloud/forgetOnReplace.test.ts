@@ -69,7 +69,7 @@ describe('forgetOnReplace — appSettingsRepo', () => {
   it('calls onReplaced once when reset succeeds', () => {
     const storage = createMemoryStorage({[OPENISD_APP_SETTINGS_KEY]: '{"differenceCues":false}'});
     const onReplaced = vi.fn();
-    const repo = createAppSettingsRepo(storage, backupOn(storage), undefined, onReplaced);
+    const repo = createAppSettingsRepo(storage, backupOn(storage), () => undefined, onReplaced, () => undefined);
 
     const resetOk = repo.reset();
     expect(resetOk).toBe(true);
@@ -79,7 +79,7 @@ describe('forgetOnReplace — appSettingsRepo', () => {
   it('calls onReplaced zero times on ordinary saves', () => {
     const storage = createMemoryStorage();
     const onReplaced = vi.fn();
-    const repo = createAppSettingsRepo(storage, backupOn(storage), undefined, onReplaced);
+    const repo = createAppSettingsRepo(storage, backupOn(storage), () => undefined, onReplaced, () => undefined);
 
     repo.setVentedLimits(DEFAULT_VENTED_DESIGN_LIMITS);
     repo.setEnvDefaults(DEFAULT_ENV_DEFAULTS);

@@ -52,7 +52,7 @@ export interface MyDriverRepo {
   deleteAll(): 'done' | 'noRoom';
 }
 
-export function createMyDriverRepo(storage: KeyValueStorage, engine: Engine, backup: StorageBackup): MyDriverRepo {
+export function createMyDriverRepo(storage: KeyValueStorage, engine: Engine, backup: StorageBackup, onSaved: () => void): MyDriverRepo {
   const library: SavedEntries<OpenISDDriver> = createSavedEntries(storage, {
     key: MY_DRIVERS_KEY,
     open: (record) => OpenISDDriver.fromConformingRecord(record, engine),
@@ -66,11 +66,32 @@ export function createMyDriverRepo(storage: KeyValueStorage, engine: Engine, bac
       return { kind: 'ok', drivers: s.entries.map(e => ({ uuid: e.uuid, driver: e.value })), broken: s.broken };
     },
     list: () => library.list().map(e => ({ uuid: e.uuid, driver: e.value })),
-    replaceAll: (list) => library.replaceAll(list),
-    upsert: (d, uuid) => library.upsert(d, uuid),
-    remove: (uuid) => library.remove(uuid),
-    removeBroken: (key) => library.removeBroken(key),
+    replaceAll: (list) => {
+      const res = library.replaceAll(list);
+      if (res === 'done') onSaved();
+      return res;
+    },
+    upsert: (d, uuid) => {
+      const res = library.upsert(d, uuid);
+      if (res !== null) onSaved();
+      return res;
+    },
+    remove: (uuid) => {
+      const res = library.remove(uuid);
+      if (res === 'done') onSaved();
+      return res;
+    },
+    removeBroken: (key) => {
+      const res = library.removeBroken(key);
+      if (res === 'done') onSaved();
+      return res;
+    },
     exportRaw: () => library.exportRaw(),
-    deleteAll: () => library.deleteAll(),
+    deleteAll: () => {
+      const res = library.deleteAll();
+      if (res === 'done') onSaved();
+      return res;
+    },
   };
 }
+

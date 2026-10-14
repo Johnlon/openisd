@@ -40,7 +40,7 @@ export interface MyPassiveRadiatorRepo {
   deleteAll(): 'done' | 'noRoom';
 }
 
-export function createMyPassiveRadiatorRepo(storage: KeyValueStorage, backup: StorageBackup): MyPassiveRadiatorRepo {
+export function createMyPassiveRadiatorRepo(storage: KeyValueStorage, backup: StorageBackup, onSaved: () => void): MyPassiveRadiatorRepo {
   const library: SavedEntries<OpenISDPassiveRadiatorStandalone> = createSavedEntries(storage, {
     key: MY_PASSIVE_RADIATORS_KEY,
     open: (record) => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record),
@@ -58,11 +58,32 @@ export function createMyPassiveRadiatorRepo(storage: KeyValueStorage, backup: St
       };
     },
     list: () => library.list().map(e => ({ uuid: e.uuid, passiveRadiator: e.value })),
-    replaceAll: (list) => library.replaceAll(list),
-    upsert: (pr, uuid) => library.upsert(pr, uuid),
-    remove: (uuid) => library.remove(uuid),
-    removeBroken: (key) => library.removeBroken(key),
+    replaceAll: (list) => {
+      const res = library.replaceAll(list);
+      if (res === 'done') onSaved();
+      return res;
+    },
+    upsert: (pr, uuid) => {
+      const res = library.upsert(pr, uuid);
+      if (res !== null) onSaved();
+      return res;
+    },
+    remove: (uuid) => {
+      const res = library.remove(uuid);
+      if (res === 'done') onSaved();
+      return res;
+    },
+    removeBroken: (key) => {
+      const res = library.removeBroken(key);
+      if (res === 'done') onSaved();
+      return res;
+    },
     exportRaw: () => library.exportRaw(),
-    deleteAll: () => library.deleteAll(),
+    deleteAll: () => {
+      const res = library.deleteAll();
+      if (res === 'done') onSaved();
+      return res;
+    },
   };
 }
+

@@ -187,3 +187,9 @@ export {
   createCloudSync,
 } from './cloud/cloudSync.js';
 
+export {
+  type SaveSignal,
+  createSaveSignal,
+} from './cloud/saveSignal.js';
+
+

@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {DEFAULT_VENTED_DESIGN_LIMITS, DEFAULT_ENV_DEFAULTS} from '@openisd/design/engine';
 import type {VentedDesignLimits, EnvDefaults} from '@openisd/design/engine';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
-import {APP_SETTINGS_KEY, createFavouritesRepo} from '../src/repos/appSettingsRepo.js';
+import {APP_SETTINGS_KEY, createAppSettingsRepo, createFavouritesRepo} from '../src/repos/appSettingsRepo.js';
 import {OPENISD_BACKUP_KEYS, OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY} from '../src/repos/storageKeys.js';
 import {isStoredDataFault, type StoredDataFault} from '../src/repos/storedDataFault.js';
 import {appSettingsRepoOn, backupOn} from './fixtures/repoOn.js';
@@ -339,4 +339,34 @@ describe('createFavouritesRepo', () => {
     const repo = createFavouritesRepo(storage, backupOn(storage));
     expect(repo.removeDoc()).toBe('refused');
   });
+
+  describe('cloud sync onSaved trigger', () => {
+    it('notifies onSaved when changing app settings', () => {
+      const storage = createMemoryStorage();
+      let savedCount = 0;
+      const repo = createAppSettingsRepo(
+        storage, backupOn(storage), () => undefined, () => undefined, () => { savedCount++; },
+      );
+      repo.setVentedLimits(EDITED);
+      assert.equal(savedCount, 1);
+
+      repo.setDifferenceCuesShown(false);
+      assert.equal(savedCount, 2);
+    });
+
+    it('does not notify onSaved when cloud doc replaceDoc or removeDoc is called', () => {
+      const storage = createMemoryStorage();
+      let savedCount = 0;
+      const repo = createAppSettingsRepo(
+        storage, backupOn(storage), () => undefined, () => undefined, () => { savedCount++; },
+      );
+      const body = JSON.stringify({ vented: EDITED });
+      repo.replaceDoc(body);
+      assert.equal(savedCount, 0);
+
+      repo.removeDoc();
+      assert.equal(savedCount, 0);
+    });
+  });
 });
+

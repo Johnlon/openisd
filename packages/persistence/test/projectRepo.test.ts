@@ -18,7 +18,7 @@ import {
 } from '../src/repos/storageKeys.js';
 import {OpenISDDriver, OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {projectRepoOn} from './fixtures/repoOn.js';
+import {backupOn, exportedFilesOn, projectRepoOn} from './fixtures/repoOn.js';
 import {goodProjectText, projectWithABadField, projectWithFrontQicl} from './fixtures/projectTexts.js';
 
 const engine = createEngine();
@@ -686,5 +686,49 @@ describe('projectRepo', () => {
       expect(r.removeStoredDoc('non-existent')).toBe('refused');
     });
   });
+
+  describe('cloud sync onSaved trigger', () => {
+    it('notifies onSaved when saving a project to the saved-projects list', () => {
+      const storage = createMemoryStorage();
+      let savedCount = 0;
+      const repo = createProjectRepo(
+        engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(),
+        () => undefined,
+        () => { savedCount++; },
+      );
+      repo.saveToStorage(project('My Saved Project'));
+      assert.equal(savedCount, 1);
+    });
+
+    it('does not notify onSaved when cloud doc putStoredDoc or removeStoredDoc is called', () => {
+      const storage = createMemoryStorage();
+      let savedCount = 0;
+      const repo = createProjectRepo(
+        engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(),
+        () => undefined,
+        () => { savedCount++; },
+      );
+      const docBody = project('Synced Project').toOwprText();
+      repo.putStoredDoc('proj-1', docBody);
+      assert.equal(savedCount, 0);
+
+      repo.removeStoredDoc('proj-1');
+      assert.equal(savedCount, 0);
+    });
+
+    it('does not notify onSaved on autosave of the open session', () => {
+      const storage = createMemoryStorage();
+      let savedCount = 0;
+      const repo = createProjectRepo(
+        engine, noFiles, storage, 'http://localhost', backupOn(storage), exportedFilesOn(),
+        () => undefined,
+        () => { savedCount++; },
+      );
+      const p = project('Session Project');
+      repo.saveOpenProjects([p], p, new Set());
+      assert.equal(savedCount, 0);
+    });
+  });
 });
+
 

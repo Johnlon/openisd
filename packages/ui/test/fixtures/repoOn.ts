@@ -17,19 +17,20 @@ export function backupOn(storage: ListableStorage): StorageBackup {
 
 export const projectRepoOn = (
   engine: Engine, files: FileStorage, storage: ListableStorage, address: string,
-  onRepaired?: (report: ProjectRepairReport) => void,
-) => createProjectRepo(engine, files, storage, address, backupOn(storage), exportedFilesOn(), onRepaired);
+  onRepaired: (report: ProjectRepairReport) => void = () => undefined,
+  onSaved: () => void = () => undefined,
+) => createProjectRepo(engine, files, storage, address, backupOn(storage), exportedFilesOn(), onRepaired, onSaved);
 
-export const myDriverRepoOn = (storage: ListableStorage, engine: Engine) =>
-  createMyDriverRepo(storage, engine, backupOn(storage));
+export const myDriverRepoOn = (storage: ListableStorage, engine: Engine, onSaved: () => void = () => undefined) =>
+  createMyDriverRepo(storage, engine, backupOn(storage), onSaved);
 
-export const myPassiveRadiatorRepoOn = (storage: ListableStorage) =>
-  createMyPassiveRadiatorRepo(storage, backupOn(storage));
+export const myPassiveRadiatorRepoOn = (storage: ListableStorage, onSaved: () => void = () => undefined) =>
+  createMyPassiveRadiatorRepo(storage, backupOn(storage), onSaved);
 
 export const viewStateRepoOn = (storage: ListableStorage) => createViewStateRepo(storage, backupOn(storage), () => undefined);
 
-export const appSettingsRepoOn = (storage: ListableStorage, onUnreadable?: (fault: StoredDataFault) => void) =>
-  createAppSettingsRepo(storage, backupOn(storage), onUnreadable, () => undefined);
+export const appSettingsRepoOn = (storage: ListableStorage, onUnreadable: (fault: StoredDataFault) => void = () => undefined, onSaved: () => void = () => undefined) =>
+  createAppSettingsRepo(storage, backupOn(storage), onUnreadable, () => undefined, onSaved);
 
 export const storageHistoryOn = (storage: ListableStorage) =>
   createStorageHistory(backupOn(storage), backupRepoOn(storage), { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS });

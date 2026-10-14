@@ -251,7 +251,8 @@ export function createProjectRepo(
   storage: KeyValueStorage, storeAddress: string,
   backup: StorageBackup,
   exportedFiles: ExportedFiles,
-  onRepaired: (report: ProjectRepairReport) => void = () => undefined,
+  onRepaired: (report: ProjectRepairReport) => void,
+  onSaved: () => void,
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
   let lastSavedAt = 0;
@@ -527,6 +528,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       }
       
       storedIdentity.set(project, id);
+      onSaved();
       return { kind: 'saved' };
     },
     
@@ -550,6 +552,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       if (addedEntries.length > 0) {
         lastSavedAt = now;
         writeStoredEntries([...addedEntries, ...entries]);
+        onSaved();
       }
       return { added: addedEntries.length };
     },

@@ -119,8 +119,9 @@ function recordOf(p: ParsedAppSettings): StoredAppSettings {
 export function createAppSettingsRepo(
   storage: KeyValueStorage,
   backup: StorageBackup,
-  onUnreadable: ((fault: StoredDataFault) => void) | undefined = () => undefined,
+  onUnreadable: (fault: StoredDataFault) => void,
   onReplaced: () => void,
+  onSaved: () => void,
 ): AppSettingsRepo {
   let reportedText: string | null = null;
   /** Parse the stored text, reporting it once if any of it could not be read. */
@@ -143,9 +144,11 @@ export function createAppSettingsRepo(
         storage.set(OPENISD_BACKUP_KEYS.appSettings, text);
         storage.set(APP_SETTINGS_KEY, JSON.stringify(next(current)));
       });
+      onSaved();
       return;
     }
     storage.set(APP_SETTINGS_KEY, JSON.stringify(next(current)));
+    onSaved();
   }
   return {
     kind: 'settings',
@@ -205,7 +208,10 @@ export function createAppSettingsRepo(
     exportRaw: () => storage.get(APP_SETTINGS_KEY),
     reset(): boolean {
       const ran = backup.guard(() => storage.remove(APP_SETTINGS_KEY)).kind === 'ran';
-      if (ran) onReplaced();
+      if (ran) {
+        onReplaced();
+        onSaved();
+      }
       return ran;
     },
   };

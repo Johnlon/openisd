@@ -44,7 +44,7 @@ export function summaryOf(storage: ListableStorage): StoreSummary {
   const drivers = myDriverRepoOn(storage, engine).read();
   const radiators = myPassiveRadiatorRepoOn(storage).read();
   const settings = appSettingsRepoOn(storage);
-  const prefs = createPrefsRepo(storage);
+  const prefs = createPrefsRepo(storage, () => undefined);
   const session = projects.loadOpenProjects();
   return {
     projects: projects.listStoredProjects().map(p => ({
@@ -90,7 +90,7 @@ export function writeBack(storage: ListableStorage): void {
     settings.setDifferenceCuesShown(settings.differenceCuesShown());
   }
 
-  const prefs = createPrefsRepo(storage);
+  const prefs = createPrefsRepo(storage, () => undefined);
   if (storage.get('openisd_favourite_drivers') !== null) prefs.setFavorites(prefs.favorites());
   if (storage.get('openisd_favourite_passive_radiators') !== null) prefs.setFavoritePassiveRadiators(prefs.favoritePassiveRadiators());
 

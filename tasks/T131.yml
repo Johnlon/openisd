@@ -1,0 +1,36 @@
+id: T131
+release_note: Cloud sync runs a few seconds after you save a project, driver, passive radiator or Options change.
+repo: openisd
+owner: maryu
+status: done
+goal: A saved project, driver, passive radiator, favourite or Options change starts a debounced cloud sync run
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T131.yml
+  - packages/persistence/src/cloud/saveSignal.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/repos/appSettingsRepo.ts
+  - packages/persistence/src/repos/myDriverRepo.ts
+  - packages/persistence/src/repos/myPassiveRadiatorRepo.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/appSettingsRepo.test.ts
+  - packages/persistence/test/cloud/docs/singletonDocs.test.ts
+  - packages/persistence/test/cloud/forgetOnReplace.test.ts
+  - packages/persistence/test/cloud/saveSignal.test.ts
+  - packages/persistence/test/fixtures/repoOn.ts
+  - packages/persistence/test/myDriverRepo.test.ts
+  - packages/persistence/test/myPassiveRadiatorRepo.test.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/fixtures/repoOn.ts
+  - packages/ui/test/logic/cloudSyncWiring.test.ts
+  - packages/ui/test/ui/cloud-save-trigger.browser.spec.ts
+  - packages/ui/test/ui/cloudSync.original.browser.spec.ts
+  - packages/ui/test/ui/fixtures/cloudSyncStubs.ts
+
+  - packages/persistence/src/repos/prefsRepo.ts
+  - packages/persistence/test/fixtures/storeSummary.ts
+  - packages/persistence/test/prefsRepo.test.ts
+  - packages/ui/test/hooks/PRBrowser-hooks.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/driverBrowsingState-import.test.ts

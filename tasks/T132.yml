@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 624b535c565137c6778f1f0c985ef1346db590e3
 goal: Cloud sync is documented: docs/design/CLOUD_SYNC.md, a README privacy line and help text
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

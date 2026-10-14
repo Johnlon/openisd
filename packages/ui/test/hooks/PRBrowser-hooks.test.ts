@@ -94,19 +94,19 @@ describe('PRBrowser-hooks — favourites', () => {
 
   it('starring a radiator marks it and keeps it for the next session', async () => {
     const storage = createMemoryStorage();
-    const {api, savedId} = await renderWith(createPrefsRepo(storage));
+    const {api, savedId} = await renderWith(createPrefsRepo(storage, () => undefined));
     expect(api.isFavorite(savedId)).toBe(false);
 
     api.toggleFavorite(savedId);
 
     expect(api.isFavorite(savedId)).toBe(true);
-    expect(createPrefsRepo(storage).favoritePassiveRadiators()).toEqual([savedId]);
+    expect(createPrefsRepo(storage, () => undefined).favoritePassiveRadiators()).toEqual([savedId]);
     api.toggleFavorite(savedId);
     expect(api.isFavorite(savedId)).toBe(false);
   });
 
   it('Favorites shows only the starred radiators', async () => {
-    const {api, savedId} = await renderWith(createPrefsRepo(createMemoryStorage()));
+    const {api, savedId} = await renderWith(createPrefsRepo(createMemoryStorage(), () => undefined));
     api.toggleFavorite(savedId);
 
     api.toggleFavoritesOnly();

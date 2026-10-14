@@ -1,5 +1,6 @@
-import type {Locator, Page} from '@playwright/test';
+import type {Locator} from '@playwright/test';
 import {expect, openAProject, test} from '../fixtures.js';
+import {enableCloudSync, stubGoogleApis} from './fixtures/cloudSyncStubs.js';
 
 async function boxOf(locator: Locator): Promise<{x: number; width: number}> {
   const box = await locator.boundingBox();
@@ -7,86 +8,6 @@ async function boxOf(locator: Locator): Promise<{x: number; width: number}> {
   return box;
 }
 
-async function enableCloudSync(page: Page) {
-  await page.route('**/*main*', async route => {
-    const url = route.request().url();
-    if (!url.endsWith('.js') && !url.endsWith('.ts') && !url.includes('/assets/main-')) {
-      await route.continue();
-      return;
-    }
-    const response = await route.fetch();
-    let text = await response.text();
-    if (text.includes('clientId:null')) {
-      text = text.replace('clientId:null', 'clientId:"stubbed-client-id"');
-    }
-    await route.fulfill({
-      response,
-      body: text,
-    });
-  });
-}
-
-async function stubGoogleApis(page: Page) {
-  await page.route('**/accounts.google.com/**', async route => {
-    const url = new URL(route.request().url());
-    const redirectUri = url.searchParams.get('redirect_uri') ?? 'http://localhost:4100/';
-    const state = url.searchParams.get('state') ?? '';
-    const callbackUrl = `${redirectUri}#access_token=ya29.stubbed_test_token&token_type=Bearer&expires_in=3600&state=${state}`;
-    await route.fulfill({
-      status: 302,
-      headers: { Location: callbackUrl },
-    });
-  });
-
-  await page.route('**/www.googleapis.com/**', async route => {
-    const url = route.request().url();
-    if (url.includes('/drive/v3/about')) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ user: { emailAddress: 'john@gmail.com' } }),
-      });
-      return;
-    }
-    if (url.includes('/drive/v3/changes/startPageToken')) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ startPageToken: 'cursor-1' }),
-      });
-      return;
-    }
-    if (url.includes('/drive/v3/changes')) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ changes: [], newStartPageToken: 'cursor-1' }),
-      });
-      return;
-    }
-    if (url.includes('/drive/v3/files')) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ files: [] }),
-      });
-      return;
-    }
-    if (url.includes('/revoke')) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({}),
-      });
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({}),
-    });
-  });
-}
 
 test.describe('Original shell cloud sync — default unconfigured build (ADDENDUM)', () => {
   test('when OAuthConfig.clientId is null, NOTHING cloud-related renders', async ({ page }) => {

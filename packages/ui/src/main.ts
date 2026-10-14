@@ -36,7 +36,8 @@ import {
     createTokenStore,
     createImplicitSession,
     createSyncLedger,
-    createCloudUiStore
+    createCloudUiStore,
+    createSaveSignal,
 } from '@openisd/persistence';
 import {isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
@@ -146,9 +147,11 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // destructive write goes through first.
   const {storage, backup: storageBackup} = store;
 
+  const saves = createSaveSignal();
+
   // ONE engine for the whole app, built over the application settings: the engine carries the
   // plausibility band and environment, so it reads them from the same repo `appState` writes to.
-  const appSettingsRepo = createAppSettingsRepo(storage, storageBackup, fault => console.error(fault), forgetCloudSyncRecord);
+  const appSettingsRepo = createAppSettingsRepo(storage, storageBackup, fault => console.error(fault), forgetCloudSyncRecord, saves.notify);
   const engine = createEngine({
     ventedLimits: () => appSettingsRepo.ventedLimits(),
     envDefaults: () => appSettingsRepo.envDefaults(),
@@ -163,9 +166,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // republished catalogue without a reload. Nothing is awaited here — the app mounts first.
   const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
   const driverRepo = createBundledDriverRepo({ fetch, baseUrl: import.meta.env.BASE_URL, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
-  const myDriverRepo = createMyDriverRepo(storage, engine, storageBackup);
-  const prefs = createPrefsRepo(storage);
-  const myPassiveRadiators = createMyPassiveRadiatorRepo(storage, storageBackup);
+  const myDriverRepo = createMyDriverRepo(storage, engine, storageBackup, saves.notify);
+  const prefs = createPrefsRepo(storage, saves.notify);
+  const myPassiveRadiators = createMyPassiveRadiatorRepo(storage, storageBackup, saves.notify);
   const bundledPRs = createBundledPassiveRadiatorRepo({ fetch, baseUrl: import.meta.env.BASE_URL, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
   // STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
   // the project (retains the open project's file handle), one for the driver editor's one-shot
@@ -176,7 +179,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // --- application layer: the app's state and what it does next ---
   const featureUse = new FeatureUse(telemetry);
   const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
-  const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report));
+  const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
   const designFiles = new DesignFiles(engine, projectRepo, exportedFiles);
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
@@ -317,6 +320,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       random: randomBytes,
       now: Date.now,
     });
+
+    saves.listen(() => wiring.scheduler.onSave());
 
     cloudSync = wiring.cloudSync;
 

@@ -40,7 +40,7 @@ describe('My Drivers Load File flashes what it did', () => {
       driverRepo: createBundledDriverRepo({
         fetch: () => Promise.reject(new Error('fetch not used')), baseUrl: '/', engine, maxAge_ms: 1, now: Date.now,
       }),
-      myDriverRepo: myDriverRepoOn(storage, engine), prefs: createPrefsRepo(storage), logging,
+      myDriverRepo: myDriverRepoOn(storage, engine), prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({ appState, presentation }), files, confirmReset: fakeConfirmPort,
       appState, presentation,
     });
