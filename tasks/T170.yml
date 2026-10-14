@@ -1,0 +1,10 @@
+id: T170
+release_note: internal
+repo: openisd
+owner: sonnet-f24-open-sessions
+status: done
+label: fixes
+goal: F24: open-sessions spec expects the removed quarantine key; it now expects the refused copy
+done_test: bash scripts/test.sh packages/persistence/test/storageRefused.test.ts
+files:
+  - tasks/T170.yml

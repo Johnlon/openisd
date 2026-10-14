@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-refused-copies
 status: done
+landed: 273d702d3fed1446cc28cabb098d16b9516bb290
 goal: A project that will not load is kept as a refused copy (openisd_refused_<stamp>_<nn>) via StorageBackup.refuse; list/read/discard
 done_test: bash scripts/test.sh packages/persistence/test/storageRefused.test.ts packages/persistence/test/quarantineRetirement.test.ts packages/persistence/test/architecture-storage-writes-are-guarded.test.ts packages/ui/test/logic/boot.test.ts
 files:

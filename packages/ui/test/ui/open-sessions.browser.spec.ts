@@ -144,14 +144,14 @@ test.describe('Open sessions', () => {
      * every open project instead of failing one boot. Reported from https://openisd.app/ on
      * 2026-09-25 with exactly those 31 bytes in storage.
      *
-     * The boot copies such a record to `openisd_quarantine_session` before anything can write over
-     * it — the same move the driver doors make with a record they refuse. The app then carries on
+     * The boot keeps each refused entry whole as a refused copy (`openisd_refused_*`, T169) before
+     * anything can write over the record. The app then carries on
      * with a working session key instead of failing the same way on every future load, and the
      * bytes stay recoverable.
      */
 
     /** A session record of the right shape whose entries are not loadable projects — every entry
-     *  is refused, so the boot restores nothing and quarantines the record. */
+     *  is refused, so the boot restores nothing and keeps each as a refused copy. */
     const UNREADABLE = '{"entries":[{"id":"a","text":"{}","modified":""},{"id":"b","text":"{}","modified":""}],"focusedId":"b"}';
 
     async function bootWithUnreadableSession(page: import('@playwright/test').Page): Promise<void> {
@@ -166,17 +166,22 @@ test.describe('Open sessions', () => {
     const storedSession = (page: import('@playwright/test').Page) =>
       page.evaluate(() => localStorage.getItem('openisd_open_sessions'));
 
-    const quarantined = (page: import('@playwright/test').Page) =>
-      page.evaluate(() => localStorage.getItem('openisd_quarantine_session'));
+    /** The text of every refused copy held, as stored. */
+    const refusedTexts = (page: import('@playwright/test').Page) =>
+      page.evaluate(() => Object.keys(localStorage)
+        .filter(key => key.startsWith('openisd_refused_'))
+        .map((key): unknown => JSON.parse(localStorage.getItem(key) ?? 'null'))
+        .map(record => (typeof record === 'object' && record !== null && 'text' in record ? record.text : null)));
 
-    test('the unreadable record is kept, byte for byte, where the next save cannot reach it', async ({page, browserLog}) => {
+    test('each unreadable entry is kept whole as a refused copy, where the next save cannot reach it', async ({page, browserLog}) => {
       await bootWithUnreadableSession(page);
       // The boot reports the refusal to the user, which is how we know it has run far enough to
       // have written the record had it been going to.
       await expect(page.locator('.flash')).toContainText('of your open projects');
       browserLog.reset();   // that message is expected; this test is about the record
 
-      expect(await quarantined(page)).toBe(UNREADABLE);
+      // Both entries hold the same text, which is kept once.
+      expect(await refusedTexts(page)).toEqual(['{}']);
       expect(await storedSession(page)).not.toBe(UNREADABLE);   // the live key is usable again
     });
 

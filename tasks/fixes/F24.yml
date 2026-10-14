@@ -1,6 +1,6 @@
 id: F24
 owner: Johnlon
-status: open
+status: done
 sha: 273d702d3fed1446cc28cabb098d16b9516bb290
 goal: main is red at 273d702d3f; make the full suite pass again
 commits: |
