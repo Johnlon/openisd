@@ -1,0 +1,19 @@
+id: T140
+release_note: Cloud sync reads Google Drive's replies: the first sync no longer fails with "Not a file list".
+repo: openisd
+owner: maryu
+status: done
+goal: On first connect every item already saved on a device reaches Drive, and a second device pulls it
+done_test: bash scripts/test.sh packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
+files:
+  - tasks/T140.yml
+  - packages/ui/test/fixtures/driveEmulator.ts
+  - packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/test/logic/cloudSyncWiring.test.ts

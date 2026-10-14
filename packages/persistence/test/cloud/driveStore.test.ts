@@ -439,7 +439,7 @@ describe('DriveStore', () => {
   describe('error and offline mapping', () => {
     it('a reply the parser refuses is a fault naming the request, the status and the reply start', async () => {
       const store = createDriveStore({ http, session });
-      const reply = JSON.stringify({ files: [] }) + ' '.repeat(400);
+      const reply = JSON.stringify({ files: 'none' }) + ' '.repeat(400);
       http.queueResponse({ status: 200, text: reply });
 
       const res = await store.listAll();

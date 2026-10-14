@@ -3,6 +3,7 @@ release_note: Diagnostics shows the cloud sync connection, account, last attempt
 repo: openisd
 owner: maryu
 status: done
+landed: 4cad9078f81381dc03ee1b83ed3b5bb0c3ba0f33
 goal: Diagnostics Cloud sync section also shows connected or not, the account, the last attempt time and outcome, and the pending change count
 done_test: bash scripts/test.sh packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/cloud/cloudSync.test.ts packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
 files:

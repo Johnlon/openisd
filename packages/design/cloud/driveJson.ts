@@ -10,7 +10,6 @@ interface DriveFile {
 }
 
 interface DriveFileList {
-  readonly kind: 'drive#fileList';
   readonly nextPageToken?: string;
   readonly files: readonly DriveFile[];
 }
@@ -23,7 +22,6 @@ interface DriveChange {
 }
 
 interface DriveChangeList {
-  readonly kind: 'drive#changeList';
   readonly nextPageToken?: string;
   readonly newStartPageToken?: string;
   readonly changes: readonly DriveChange[];
@@ -78,21 +76,17 @@ function parseDriveFile(obj: unknown): DriveFile | null {
 
 function parseDriveFileList(obj: unknown): DriveFileList | null {
   if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return null;
-  if (field(obj, 'kind') !== 'drive#fileList') return null;
   const nextTokenVal = field(obj, 'nextPageToken');
   if (nextTokenVal !== undefined && typeof nextTokenVal !== 'string') return null;
   const filesVal = field(obj, 'files');
-  if (filesVal !== undefined && !Array.isArray(filesVal)) return null;
+  if (!Array.isArray(filesVal)) return null;
   const files: DriveFile[] = [];
-  if (Array.isArray(filesVal)) {
-    for (const item of filesVal) {
-      const file = parseDriveFile(item);
-      if (!file) return null;
-      files.push(file);
-    }
+  for (const item of filesVal) {
+    const file = parseDriveFile(item);
+    if (!file) return null;
+    files.push(file);
   }
   return {
-    kind: 'drive#fileList',
     ...(typeof nextTokenVal === 'string' ? { nextPageToken: nextTokenVal } : {}),
     files
   };
@@ -123,23 +117,19 @@ function parseDriveChange(obj: unknown): DriveChange | null {
 
 function parseDriveChangeList(obj: unknown): DriveChangeList | null {
   if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return null;
-  if (field(obj, 'kind') !== 'drive#changeList') return null;
   const nextTokenVal = field(obj, 'nextPageToken');
   if (nextTokenVal !== undefined && typeof nextTokenVal !== 'string') return null;
   const newStartTokenVal = field(obj, 'newStartPageToken');
   if (newStartTokenVal !== undefined && typeof newStartTokenVal !== 'string') return null;
   const changesVal = field(obj, 'changes');
-  if (changesVal !== undefined && !Array.isArray(changesVal)) return null;
+  if (!Array.isArray(changesVal)) return null;
   const changes: DriveChange[] = [];
-  if (Array.isArray(changesVal)) {
-    for (const item of changesVal) {
-      const change = parseDriveChange(item);
-      if (!change) return null;
-      changes.push(change);
-    }
+  for (const item of changesVal) {
+    const change = parseDriveChange(item);
+    if (!change) return null;
+    changes.push(change);
   }
   return {
-    kind: 'drive#changeList',
     ...(typeof nextTokenVal === 'string' ? { nextPageToken: nextTokenVal } : {}),
     ...(typeof newStartTokenVal === 'string' ? { newStartPageToken: newStartTokenVal } : {}),
     changes

@@ -18,6 +18,36 @@ function fixture(name: string): string {
 }
 
 describe('driveJson parsers', () => {
+  // The exact shape Drive sends for the fields= strings driveStore asks for: only the named
+  // fields, so no top-level `kind` and no `mimeType` (the first real sign-in failed on this).
+  const props = {app: 'openisd', kind: 'project', uuid: 'p-1', layout: '3', seq: '1', writer: 'abc', hash: 'h1'};
+  describe('replies shaped by our fields= request', () => {
+    it('files.list with fields=nextPageToken,files(id,name,headRevisionId,appProperties)', () => {
+      const reply = JSON.stringify({files: [{id: 'f-1', name: 'project-p-1.owpr', headRevisionId: 'r-1', appProperties: props}]});
+      const res = parseFileList(reply);
+      expect(res.kind).toBe('ok');
+      if (res.kind !== 'ok') return;
+      expect(res.value.docs).toHaveLength(1);
+      expect(res.value.next).toBeNull();
+    });
+
+    it('changes.list with fields=nextPageToken,newStartPageToken,changes(fileId,removed,file(id,name,headRevisionId,appProperties))', () => {
+      const reply = JSON.stringify({newStartPageToken: 't-2', changes: [{fileId: 'f-1', removed: false, file: {id: 'f-1', name: 'project-p-1.owpr', headRevisionId: 'r-1', appProperties: props}}]});
+      const res = parseChangeList(reply);
+      expect(res.kind).toBe('ok');
+      if (res.kind !== 'ok') return;
+      expect(res.value.changed).toHaveLength(1);
+    });
+
+    it('an empty app folder', () => {
+      expect(parseFileList('{"files":[]}').kind).toBe('ok');
+    });
+
+    it('a change list with no changes array is refused', () => {
+      expect(parseChangeList('{"newStartPageToken":"t-2"}').kind).toBe('malformed');
+    });
+  });
+
   describe('parseFileList', () => {
     it('parses a valid file list with openisd files', () => {
       const json = fixture('file-list-valid.json');
@@ -64,8 +94,8 @@ describe('driveJson parsers', () => {
       expect(result.kind).toBe('malformed');
     });
 
-    it('returns malformed for non-file-list response', () => {
-      const result = parseFileList('{"kind":"drive#changeList"}');
+    it('returns malformed for a reply with no files array', () => {
+      const result = parseFileList('{"changes":[]}');
       expect(result.kind).toBe('malformed');
     });
 
