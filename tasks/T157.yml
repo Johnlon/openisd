@@ -3,6 +3,7 @@ release_note: You can delete a saved project from Open project, on desktop and p
 repo: openisd
 owner: maryu
 status: done
+landed: 04bfedca9320ad41b25a6540d17c184a382b5331
 goal: Delete project in both skins; confirm naming it, one backup, removed from the list and closed if open; sync sends the tombstone
 done_test: bash scripts/test.sh packages/persistence/test/projectRepo.test.ts packages/ui/test/logic/storedProjectDelete.test.ts packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
 files:

@@ -92,14 +92,15 @@ describe('fileImportExport — provenance survives a file-save round trip', () =
     }
   });
 
-  it('the payload is the RECORD, so `specs` and its readings travel', async () => {
+  it('the payload is the RECORD, so `specs` and each field\'s state and value travel', async () => {
     const ser = await storedPayload(projectOf('sealed', { name: 'Provenance sample', creator: 'John', created: '2026-01-01',
       modified: '2026-01-02', description: '' }, sampleDriverRecord()));
     const record = ser.driverEmbedding?.device;
     assert.ok(record, 'the driver payload travels');
     assert.ok(record.specs, 'the driver payload is the openisd.yml record');
-    assert.ok(record.specs.woofer?.Fs_hz?.readings,
-      'each field carries its readings, not a bare number — that is what makes E/C survivable');
+    assert.ok(record.specs.woofer?.Fs_hz?.state,
+      'each field carries its state, not a bare number — that is what makes E/C survivable');
+    assert.equal(record.specs.woofer?.Fs_hz?.value, 30);
   });
 
   it('the driver always travels — a project cannot exist without one', async () => {

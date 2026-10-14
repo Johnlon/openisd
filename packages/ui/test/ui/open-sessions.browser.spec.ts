@@ -211,7 +211,7 @@ test.describe('Open sessions', () => {
       expect(raw).not.toBeNull();
       const record = OpenSessionRecord.parse(JSON.parse(raw ?? ''));
       const text = record.entries[0].text;
-      const broken = text.replace('"box": {', '"box": {"portVelocityLimit_m_per_s": "fast",');
+      const broken = text.replace('"box":{', '"box":{"portVelocityLimit_m_per_s":"fast",');
       expect(broken).not.toBe(text);
       record.entries[0].text = broken;
       await page.evaluate(next => localStorage.setItem('openisd_open_sessions', next), JSON.stringify(record));

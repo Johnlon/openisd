@@ -1,0 +1,22 @@
+id: T158
+release_note: internal
+label: fixes
+repo: openisd
+owner: sonnet-slim-embedded-driver
+status: done
+goal: A project's embedded driver carries only what the Driver Editor shows, in storage, owpr export and share links
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T158.yml
+  - packages/design/domain/cell.ts
+  - packages/design/domain/project/slimDriver.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/test/domain/project/slim-driver.test.ts
+  - packages/design/test/domain/project/stored-text.test.ts
+  - packages/persistence/src/cloud/ledgerFollowsRewrite.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/test/cloud/ledgerFollowsRewrite.test.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/fixtures/persistedProject.ts
+  - packages/ui/test/logic/fileImportExport.test.ts
+  - packages/ui/test/ui/open-sessions.browser.spec.ts

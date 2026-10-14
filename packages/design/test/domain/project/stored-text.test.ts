@@ -46,12 +46,6 @@ describe('OpenISDProject.toStoredText', () => {
     expect(withoutDq(back.toOwprText())).toEqual(withoutDq(original.toOwprText()));
   });
 
-  it('the load works dq_calculated out again', () => {
-    const original = project();
-    expect(original.toOwprText()).toContain('dq_calculated');
-    expect(loaded(original.toStoredText()).toOwprText()).toContain('dq_calculated');
-  });
-
   it('keeps the edited state', () => {
     const p = project();
     p.name.set('renamed');

@@ -13,7 +13,7 @@ import {z} from 'zod';
 export const driverWireRecordSchema = z.looseObject({
   specs: z.looseObject({
     woofer: z.looseObject({
-      Fs_hz: z.looseObject({ readings: z.unknown() }).optional(),
+      Fs_hz: z.looseObject({ state: z.unknown(), value: z.unknown() }).optional(),
     }).optional(),
   }),
 });

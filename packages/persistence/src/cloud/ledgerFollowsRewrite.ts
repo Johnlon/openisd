@@ -7,7 +7,7 @@ import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import type {ProjectRewritten} from '../repos/storedTextCompaction.js';
 import {createSyncLedger, LEDGER_KEY} from './syncLedger.js';
 
-export function followStoredTextRewrite(storage: KeyValueStorage, random: () => Uint8Array): ProjectRewritten {
+export function createLedgerFollowsRewrite(storage: KeyValueStorage, random: () => Uint8Array): ProjectRewritten {
   return (projectId, before, after) => {
     if (storage.get(LEDGER_KEY) === null) return;
     const ledger = createSyncLedger({storage, random});

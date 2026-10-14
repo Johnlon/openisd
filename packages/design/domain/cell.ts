@@ -407,9 +407,15 @@ export function entryField(
  *     a kilogram and nothing finer — `0.5` is not `0.50000` — so this is the right answer for a
  *     value that arrived as a number in a file and never went through a field. */
 function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
+  return statedPrecisionOf(entry) ?? halfUlp(entry.value);
+}
+
+/** Sources 1 and 2 of `entryPrecision`: what the entry states, without the printed-decimals
+ *  fallback, which the value alone supplies. Undefined when the entry states none. */
+export function statedPrecisionOf(entry: Extract<SpecEntryJson, {state: 'E'}>): number | undefined {
   const reading = entry.origin !== undefined ? entry.readings?.[entry.origin] : undefined;
   const precision = reading !== undefined && isUsable(reading) ? reading.read_precision : undefined;
-  return precision ?? entry.precision ?? halfUlp(entry.value);
+  return precision ?? entry.precision;
 }
 
 /** One `DqIssue` as the debug-trail mark it becomes (D14/D14a) — `params` carries the finding

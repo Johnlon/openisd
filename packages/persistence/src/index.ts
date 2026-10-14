@@ -63,7 +63,7 @@ export {
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
 } from './repos/projectRepo.js';
 
-export { followStoredTextRewrite } from './cloud/ledgerFollowsRewrite.js';
+export { createLedgerFollowsRewrite } from './cloud/ledgerFollowsRewrite.js';
 export { type CompactionOutcome, createStoredTextCompaction } from './repos/storedTextCompaction.js';
 
 export {

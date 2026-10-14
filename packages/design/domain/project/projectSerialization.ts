@@ -2,6 +2,7 @@ import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
 import { withMovedChamberQicl } from './movedChamberQicl.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { parseRepairing, type Repaired } from '../schemaRepair.js';
+import { slimmedProjectSession } from './slimDriver.js';
 import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
 
@@ -17,7 +18,7 @@ export function sessionOf(name: string, saved: OpenISDProjectJson, edited: OpenI
 /** A session as `.owpr` text — openisd's own format. Lossless: there is nothing to drop and no
  *  error to report. */
 export function owprTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(session, null, 2);
+    return JSON.stringify(slimmedProjectSession(session), null, 2);
 }
 
 /** `dq_calculated` marks are worked out again on every load, so the stored text leaves them out. */
@@ -34,7 +35,7 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 /** A session as the text browser storage holds it: one compact line, without what the load
  *  works out again. `.owpr` files keep their indented form with everything in it. */
 export function storedTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(session, withoutDerived);
+    return JSON.stringify(slimmedProjectSession(session), withoutDerived);
 }
 
 /** A stored or `.owpr` project text as `storedTextOf` writes it; null when the text is not a
@@ -47,7 +48,7 @@ export function compactedStoredText(text: string): string | null {
         return null;
     }
     if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
-    return JSON.stringify(parsed, withoutDerived);
+    return JSON.stringify(slimmedProjectSession(parsed), withoutDerived);
 }
 
 /** `.owpr` text parsed and validated, or everything wrong with it. Stops short of building an
