@@ -28,6 +28,8 @@ import {
     createMyPassiveRadiatorRepo,
     createPrefsRepo,
     createProjectRepo,
+    createStoredTextCompaction,
+    followStoredTextRewrite,
     createViewStateRepo,
     isStoredDataFault,
     type CloudSync,
@@ -187,6 +189,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // --- application layer: the app's state and what it does next ---
   const featureUse = new FeatureUse(telemetry);
   const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
+  // Stored projects written by earlier builds are indented and carry dq_calculated: rewritten once,
+  // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
+  if (!store.readOnly) createStoredTextCompaction(storage, storageBackup, followStoredTextRewrite(storage, randomBytes)).run();
   const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
   const designFiles = new DesignFiles(engine, projectRepo, exportedFiles);
   const driverDrafts = new DriverDrafts(engine, appState.appContext);

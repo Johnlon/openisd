@@ -1,0 +1,22 @@
+id: T156
+release_note: internal
+repo: openisd
+owner: sonnet-compact-storage
+status: done
+goal: Stored projects and sessions are compact JSON without dq_calculated; old pretty entries rewritten on load after one backup
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T156.yml
+  - packages/design/domain/index.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/test/domain/project/stored-text.test.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/repos/storedTextCompaction.ts
+  - packages/persistence/test/storedTextCompaction.test.ts
+  - packages/persistence/test/architecture-storage-writes-are-guarded.test.ts
+  - packages/ui/src/main.ts
+  - packages/persistence/src/cloud/ledgerFollowsRewrite.ts
+  - packages/persistence/src/cloud/syncLedger.ts
+  - packages/persistence/test/cloud/ledgerFollowsRewrite.test.ts

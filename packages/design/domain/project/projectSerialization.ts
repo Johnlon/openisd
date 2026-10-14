@@ -20,6 +20,36 @@ export function owprTextOf(session: OpenISDProjectSessionJson): string {
     return JSON.stringify(session, null, 2);
 }
 
+/** `dq_calculated` marks are worked out again on every load, so the stored text leaves them out. */
+const DERIVED_KEY = 'dq_calculated';
+
+function withoutDerived(key: string, value: unknown): unknown {
+    return key === DERIVED_KEY ? undefined : value;
+}
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** A session as the text browser storage holds it: one compact line, without what the load
+ *  works out again. `.owpr` files keep their indented form with everything in it. */
+export function storedTextOf(session: OpenISDProjectSessionJson): string {
+    return JSON.stringify(session, withoutDerived);
+}
+
+/** A stored or `.owpr` project text as `storedTextOf` writes it; null when the text is not a
+ *  project session, which the repo that owns it reports and this leaves untouched. */
+export function compactedStoredText(text: string): string | null {
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(text);
+    } catch {
+        return null;
+    }
+    if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
+    return JSON.stringify(parsed, withoutDerived);
+}
+
 /** `.owpr` text parsed and validated, or everything wrong with it. Stops short of building an
  *  `OpenISDProject`: minting its identity and attaching the engine is
  *  `OpenISDProject.fromOwprText`'s own job, not this function's. */

@@ -516,7 +516,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const id = storedIdentity.get(project) ?? existing?.id ?? project.uuid();
       const now = Math.max(Date.now(), lastSavedAt + 1);
       lastSavedAt = now;
-      const entry: StoredProjectEntry = { id, text: project.toOwprText(), modified: new Date(now).toISOString() };
+      const entry: StoredProjectEntry = { id, text: project.toStoredText(), modified: new Date(now).toISOString() };
       
       try {
         writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
@@ -547,7 +547,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         existingNames.push(finalName);
         
         project.name.set(finalName);
-        addedEntries.push({ id: newUuid(), text: project.toOwprText(), modified: new Date(now++).toISOString() });
+        addedEntries.push({ id: newUuid(), text: project.toStoredText(), modified: new Date(now++).toISOString() });
       }
       if (addedEntries.length > 0) {
         lastSavedAt = now;
@@ -586,7 +586,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const entries = projects.map((project): OpenSessionEntry => {
         const id = storedIdentity.get(project) ?? project.uuid();
         storedIdentity.set(project, id);
-        return { id, text: project.toOwprText(), modified: '', traceHidden: traceHidden.has(project) };
+        return { id, text: project.toStoredText(), modified: '', traceHidden: traceHidden.has(project) };
       });
       const focusedId = focused === null ? null : storedIdentity.get(focused) ?? focused.uuid();
       // Writing the session already stored would still change its text (each read mints the

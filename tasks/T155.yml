@@ -3,6 +3,7 @@ release_note: Cloud sync says "Offline" only when the device is offline; a reque
 repo: openisd
 owner: maryu
 status: done
+landed: d59237d5f3f4b188a93c9c75848e88194bc38f39
 goal: Offline shows only when the browser is offline; a request with no reply is a sync failure with its retry time; waiting changes say when they sync
 done_test: bash scripts/test.sh packages/persistence/test/cloud/http.test.ts packages/persistence/test/cloud/syncScheduler.test.ts packages/persistence/test/cloud/cloudSync.test.ts packages/design/test/cloud/syncDisplay.test.ts
 files:

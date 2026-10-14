@@ -19,7 +19,7 @@ import type { ErrorSwitchStates } from './errorSwitches.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
-import { owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf, withoutDriverId } from './projectSerialization.js';
+import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf, withoutDriverId } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
@@ -600,6 +600,12 @@ export class OpenISDProject {
      *  and no error to report. */
     toOwprText(): string {
         return owprTextOf(this.cloneSession());
+    }
+
+    /** This project as browser storage holds it: the `.owpr` content on one line, without the
+     *  `dq_calculated` marks that loading works out again. */
+    toStoredText(): string {
+        return storedTextOf(this.cloneSession());
     }
 
     /** `.owpr` text back to a project, or everything wrong with the text. The inverse of

@@ -14,7 +14,8 @@ import {
   RevisionId,
 } from '@openisd/design/cloud';
 
-const LEDGER_KEY = 'openisd_cloud_state';
+/** Where the ledger is stored; absent on a device that never synced. */
+export const LEDGER_KEY = 'openisd_cloud_state';
 
 interface StoredRow {
   readonly id: DocId;
