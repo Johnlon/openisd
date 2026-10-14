@@ -1,0 +1,90 @@
+id: F20
+owner: Johnlon
+status: open
+sha: 5ed46fba3d77a7e5fea64a3b2040e5c9bf455c6b
+goal: main is red at 5ed46fba3d; make the full suite pass again
+commits: |
+  5ed46fba3d T124: Every screen that shows green, blue or black values has the Entered/Calc
+  de22dfbaa6 T122: The Edit Driver view has clean tab and background styling, its colour le
+  e679c64c7d T123: The manual test plan names snapshot 20261014T0113Z and covers T106, T111
+  2f8ba89219 T118: The mobile shell re-measures its height when a browser hides or shows it
+  982570d3eb T116: The chart legend entry for a project is always the project name, with on
+  080829ac57 T120: original-project-list hide/show specs pass again after the thicker activ
+  e94226936b T119: Rename the sync buckets to docs (cloud/docs/projectDocs, savedEntryDocs,
+  96735cfa79 T115: On phase charts the vertical wrap-around segment is drawn dotted and fai
+  a2a04d02bf T117: land.sh step 2b never marks a tasks/fixes/F*.yml done: an F's own openin
+  abaae51003 T114: The chart legend names a project alone, without the chart name, unless t
+  536bfe22a6 T113: Version label shows the build time in UTC with a Z suffix, not local tim
+  efae8d369b F19: the full suite is red at d0f4b008b7
+  d0f4b008b7 T110: redirectGuard.ts saves the open work before the app leaves for Google si
+  d1324a9102 T107: Sync buckets: projectBucket, savedEntriesBucket and singletonBucket give
+  23f5a8fac0 F18: the full suite is red at 51fd3c2cf8
+  51fd3c2cf8 T109: syncEngine.ts runs one sync: pull remote changes, push local edits, keep
+  9df6b33031 F17: the full suite is red at 79e4718c8c
+  79e4718c8c T111: Mobile shell height follows visualViewport so the bottom bar stays visib
+  f7a8aadaa6 T094: Every restore, reset and repair that replaces stored data calls an injec
+  d32bc9eb57 T108: syncScheduler.ts turns open, focus, save, reconnect and a 60 s visible t
+  7ee6a1a195 F16: the full suite is red at b2897301b5
+  b2897301b5 T097: Phase-1 Google login: tokenStore, oauthRedirect and implicitSession impl
+  f74b272c64 T098: syncLedger.ts keeps the per-device sync record: rows, cursor, device id,
+  0831d795ea F15: the full suite is red at 9b1a538dfb
+  9b1a538dfb T096: driveStore.ts implements the CloudStore port over an injected Http again
+  10bf265eb7 T106: The active project's chart trace is drawn 59% thicker than before.
+  c1936b888c T105: The manual test plan names the build under test, snapshot 20261013T1911Z
+  85fd686fee T104: docs/test-plans/MANUAL_TEST_PLAN_20261013.md is the manual test plan for
+  5c9f446e11 T082: On the mobile stacked Graph page, the Y-axis and X-axis strips take touc
+  9e8fce4e3d T103: Task files with status todo count as open: land.sh marks them done and l
+  b4c3eefa43 T090: Shared Cloud sync dialog and cloud toolbar glyphs render the SyncDisplay
+  9e4d5097a4 T102: The driver_pick telemetry event carries the catalogue name of a bundled
+  00d75016b5 T101: The pure cloud modules (doc ids, SHA-256 body hash, Drive JSON parsers a
+  16714f23c1 T100: RELEASES.md records release v20261013T1842Z, promoted from snapshot 2026
+  62445e48dc T099: A task whose "<id>:" commit is on main is marked done and landed at the
+  80432682fd T081: packages/persistence/src/cloud has syncDoc.ts (DocId sum type, brands, c
+  f07d6b94de T092: The app reports which charts are viewed and which features are used, onc
+  06388ab84c T095: F14 is closed, the post-land suite was green at 542ca12692 after T093; a
+failing: |
+    ✘  214 packages/ui/test/ui/mobile-menu.browser.spec.ts:47:5 › MobileMenu › layout › brand shows the version for the running environment (20.6s)
+    ✘  542 packages/ui/test/ui/original-toolbar.browser.spec.ts:41:3 › Original toolbar › toolbar shows the correct version for the running environment (21.3s)
+          44 × locator resolved to <span data-v-3af93fc9="" class="mob-menu-version" data-testid="app-version">Oct 14 01:29Z</span>
+          43 × locator resolved to <span data-v-e26b3a4c="" class="version-chip">(Oct 14 01:29Z)</span>
+output: |
+        57 |     });
+        58 |
+        59 |     // John, 2026-10-04: the three save items sit together, Revert is its own section after them,
+          at /home/john/work/winisd/.postland/2198012-5ed46fba3d/packages/ui/test/ui/mobile-menu.browser.spec.ts:56:31
+  
+      Error Context: test-results/ui-mobile-menu.browser-Mob-9ef52-for-the-running-environment/error-context.md
+  
+    2) packages/ui/test/ui/original-toolbar.browser.spec.ts:41:3 › Original toolbar › toolbar shows the correct version for the running environment 
+  
+      Error: expect(locator).toHaveText(expected) failed
+  
+      Locator: locator('.app-brand').locator('.version-chip')
+      Expected pattern: /^(?:\(dev [a-f0-9]{7,8}(?: \+ changes)?\)|\(Oct 14 02:29\))$/
+      Received string:  "(Oct 14 01:29Z)"
+      Timeout: 20000ms
+  
+      Call log:
+        - Expect "toHaveText" with timeout 20000ms
+        - waiting for locator('.app-brand').locator('.version-chip')
+          43 × locator resolved to <span data-v-e26b3a4c="" class="version-chip">(Oct 14 01:29Z)</span>
+             - unexpected value "(Oct 14 01:29Z)"
+  
+  
+        54 |     const expectedPublished = await computeExpectedPublishedLabel(page, onDisk.version);
+        55 |     const escaped = expectedPublished.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      > 56 |     await expect(versionChip).toHaveText(new RegExp(`^(?:\\(dev [a-f0-9]{7,8}(?: \\+ changes)?\\)|\\(${escaped}\\))$`));
+           |                               ^
+        57 |     // The brand icon renders either from the public /icon.svg or inline as a data-URI SVG
+        58 |     // (the shell embeds the loudspeaker mark directly) — assert the icon exists and is SVG.
+        59 |     await expect(brand.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml|\/icon\.svg$/);
+          at /home/john/work/winisd/.postland/2198012-5ed46fba3d/packages/ui/test/ui/original-toolbar.browser.spec.ts:56:31
+  
+      Error Context: test-results/ui-original-toolbar.browse-87dbe-for-the-running-environment/error-context.md
+  
+    2 failed
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:47:5 › MobileMenu › layout › brand shows the version for the running environment 
+      packages/ui/test/ui/original-toolbar.browser.spec.ts:41:3 › Original toolbar › toolbar shows the correct version for the running environment 
+    622 passed (5.5m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 2198012-5ed46fba3d finished: FAILED (exit 1) after 8m04s
