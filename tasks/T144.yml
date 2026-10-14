@@ -3,6 +3,7 @@ release_note: The Releases and Snapshot builds pages link to /test/, the newest 
 repo: openisd
 owner: fable
 status: done
+landed: 44c27fd96a829ca74b63da8f7b8835b4622ed7c2
 goal: The Releases and Snapshot builds index pages link to /test/, the newest snapshot at a fixed URL
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

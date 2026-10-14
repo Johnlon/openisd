@@ -8,15 +8,15 @@ import {testAppLogic} from './testAppLogic.js';
 import {appSettingsRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
 import {
   type ListableStorage, type StoreName, createStoredDataFault, isStoredDataFault, createMemoryStorage, } from '@openisd/persistence';
-import {cloudSyncReportLines, type CloudSyncReport} from '@openisd/design/cloud';
+import {type CloudSyncReport} from '@openisd/design/cloud';
 
 async function renderHook(
   saveBackup: SaveBackup = () => undefined, storage: ListableStorage = createMemoryStorage(),
-  cloudSyncLines: () => readonly string[] = () => [],
+  cloudSync: () => CloudSyncReport | null = () => null,
 ): Promise<DiagnosticsModalAPI> {
   const faultLog = createFaultLog(saveBackup, () => ({
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
-  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, cloudSyncLines);
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, cloudSync);
   let api!: DiagnosticsModalAPI;
   const Child = defineComponent({
     setup() {
@@ -46,7 +46,7 @@ describe('useDiagnosticsModal', () => {
       pendingChanges: 2,
       lastFault: {fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'}, at_ms},
     };
-    const api = await renderHook(() => undefined, createMemoryStorage(), () => cloudSyncReportLines(report));
+    const api = await renderHook(() => undefined, createMemoryStorage(), () => report);
     const lines = api.faultLog.cloudSyncLines();
     expect(lines).toContain('Cloud sync: connected as john@example.com');
     expect(lines).toContain('  pending changes: 2');
@@ -54,6 +54,14 @@ describe('useDiagnosticsModal', () => {
     expect(lines).toContain('    HTTP status: 200');
     expect(lines).toContain('    reason: Not a file list');
     expect(lines).toContain('    reply: {"files":[]}');
+    expect(api.faultLog.cloudSyncSummary()).toMatch(/^Cloud sync failed at .+; details below\.$/);
+  });
+
+  it('a healthy cloud sync adds no summary', async () => {
+    const api = await renderHook(() => undefined, createMemoryStorage(), () => ({
+      grant: {kind: 'connected', account: 'john@example.com'}, lastAttempt: null, pendingChanges: 0, lastFault: null,
+    }));
+    expect(api.faultLog.cloudSyncSummary()).toBeNull();
   });
 
   it('opens modal when a fault occurs', async () => {

@@ -35,7 +35,7 @@ export type {
 } from './cloudTypes.js';
 export {FAULT_REPLY_CHARS, cloudFaultOf, cloudFaultText} from './cloudTypes.js';
 export type {CloudFaultRecord, CloudGrant} from './cloudTypes.js';
-export {cloudSyncReportLines} from './cloudSyncReport.js';
+export {cloudSyncReportLines, cloudSyncSummary} from './cloudSyncReport.js';
 export type {CloudAttempt, CloudAttemptOutcome, CloudSyncReport} from './cloudSyncReport.js';
 export {
   parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseStartPageToken, parseWriteReply,

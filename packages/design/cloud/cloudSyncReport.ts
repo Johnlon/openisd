@@ -71,3 +71,9 @@ export function cloudSyncReportLines(report: CloudSyncReport | null): readonly s
     ...faultLines(report.lastFault),
   ];
 }
+
+/** The line the diagnostics summary shows when cloud sync holds an error; null when it holds none. */
+export function cloudSyncSummary(report: CloudSyncReport | null): string | null {
+  if (report === null || report.lastFault === null) return null;
+  return `Cloud sync failed at ${formatDateTime(new Date(report.lastFault.at_ms))}; details below.`;
+}

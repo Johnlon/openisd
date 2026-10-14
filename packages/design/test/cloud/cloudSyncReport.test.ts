@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {cloudSyncReportLines, type CloudSyncReport} from '../../cloud/cloudSyncReport.js';
+import {cloudSyncReportLines, cloudSyncSummary, type CloudSyncReport} from '../../cloud/cloudSyncReport.js';
 import {formatDateTime} from '../../fields/format.js';
 
 const AT_MS = Date.UTC(2026, 9, 14, 11, 0, 0);
@@ -83,5 +83,24 @@ describe('cloudSyncReportLines', () => {
     expect(lineFor({kind: 'notConnected'})).toBe(`  last attempt: ${AT}, not connected`);
     expect(lineFor({kind: 'refused', reason: 'noRoom'})).toBe(`  last attempt: ${AT}, refused: no room on Drive`);
     expect(lineFor({kind: 'refused', reason: 'bucketUnreadable'})).toBe(`  last attempt: ${AT}, refused: Drive folder unreadable`);
+  });
+});
+
+describe('cloudSyncSummary', () => {
+  const healthy: CloudSyncReport = {
+    grant: {kind: 'connected', account: 'john@example.com'}, lastAttempt: null, pendingChanges: 0, lastFault: null,
+  };
+
+  it('has nothing to say when there is no cloud sync or no error', () => {
+    expect(cloudSyncSummary(null)).toBeNull();
+    expect(cloudSyncSummary(healthy)).toBeNull();
+  });
+
+  it('says when cloud sync failed, pointing at the details', () => {
+    const report: CloudSyncReport = {
+      ...healthy,
+      lastFault: {fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'}, at_ms: AT_MS},
+    };
+    expect(cloudSyncSummary(report)).toBe(`Cloud sync failed at ${AT}; details below.`);
   });
 });

@@ -17,6 +17,7 @@
  *     work, and throwing it away to clear an error destroys the evidence too.
  */
 
+import {type CloudSyncReport, cloudSyncReportLines, cloudSyncSummary} from '@openisd/design/cloud';
 import type {AppSettingsRepo, ProjectRepairReport, StoreName, ViewStateRepo} from '@openisd/persistence';
 
 /** Writes a file the user keeps — the backup every repair takes before it changes stored state. */
@@ -179,8 +180,10 @@ export interface FaultLog {
   repair: (fix: QuickFix) => string;
   /** A copyable report: the faults, the last cloud sync error, the stored-state shape, and the build. */
   report: () => string;
-  /** The Cloud sync block: the last sync error in full, kept until a sync succeeds. */
+  /** The Cloud sync block: the connection, the last attempt and the last error in full. */
   cloudSyncLines: () => readonly string[];
+  /** The summary line when cloud sync holds an error, else null. */
+  cloudSyncSummary: () => string | null;
   /** Start listening. Idempotent. */
   install: () => void;
   /** Called whenever a repair is recorded — raises the dialog too. */
@@ -191,7 +194,7 @@ export interface FaultLog {
 
 /** `records` is a thunk: the fault log is created before the repos (so a fault while the app is
  *  being wired is still caught); until they exist, no repair is offered. */
-export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault, cloudSyncLines: () => readonly string[]): FaultLog {
+export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault, cloudSync: () => CloudSyncReport | null): FaultLog {
   function ladder(): readonly QuickFix[] {
     try { return repairLadder(records()); } catch { return []; }
   }
@@ -238,7 +241,8 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
       .filter(f => faults.some(x => x.origin.kind === 'stored-data' && x.origin.store === f.store))
       .filter(f => { try { return f.probe(); } catch { return false; } })
       .slice().sort((a, b) => a.impact - b.impact),
-    cloudSyncLines,
+    cloudSyncLines: () => cloudSyncReportLines(cloudSync()),
+    cloudSyncSummary: () => cloudSyncSummary(cloudSync()),
     report: () => {
       const stored = (() => {
         try {
@@ -254,7 +258,7 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
         `faults (${faults.length}):`,
         ...faults.map(f => `  [${f.kind}] origin: ${originLabel(f.origin)} ×${f.count} ${f.message}\n${f.stack ? '    ' + f.stack.split('\n').slice(0, 6).join('\n    ') : ''}`),
         '',
-        ...cloudSyncLines(),
+        ...cloudSyncReportLines(cloudSync()),
         '',
         'stored keys:',
         `  ${stored || '(none)'}`].join('\n');

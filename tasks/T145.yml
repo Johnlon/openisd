@@ -1,0 +1,17 @@
+id: T145
+release_note: When cloud sync has failed, the Diagnostics dialog says so at the top instead of "Nothing to report".
+repo: openisd
+owner: maryu
+status: done
+goal: When the Cloud sync block holds an error, the Diagnostics summary says Cloud sync failed at <time>; details below, not Nothing to report
+done_test: bash scripts/test.sh packages/design/test/cloud/cloudSyncReport.test.ts packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+files:
+  - tasks/T145.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/ui/src/diagnostics/faultLog.ts
+  - packages/ui/src/ui/components/DiagnosticsModal.vue
+  - packages/ui/src/main.ts
+  - packages/ui/test/diagnostics/faultOrigin.test.ts
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts

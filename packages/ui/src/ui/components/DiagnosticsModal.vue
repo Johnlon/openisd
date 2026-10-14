@@ -61,7 +61,10 @@ const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copy
         data. Copy the report below.
       </p>
 
-      <p v-if="!faultLog.faults.length && !faultLog.repairs.length" class="dg-keeps">
+      <p v-if="!faultLog.faults.length && !faultLog.repairs.length && faultLog.cloudSyncSummary()" class="dg-nofix">
+        {{ faultLog.cloudSyncSummary() }}
+      </p>
+      <p v-else-if="!faultLog.faults.length && !faultLog.repairs.length" class="dg-keeps">
         Nothing to report. No fault has occurred and no saved project needed repair. Copy diagnostics
         gives a report of this browser's stored data if you want to send one.
       </p>
