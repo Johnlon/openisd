@@ -1,15 +1,14 @@
 export interface OAuthConfig {
   readonly clientId: string | null;
   readonly redirectUri: string;
-  readonly scope?: string;
-  readonly scopes?: readonly string[];
+  readonly scopes: readonly string[];
 }
 
 export type AuthPrompt = 'consent' | 'select_account' | 'none';
 
 export interface BuildAuthUrlParams {
   readonly state: string;
-  readonly prompt?: AuthPrompt;
+  readonly prompt: AuthPrompt;
 }
 
 export type CallbackFragment =
@@ -21,8 +20,8 @@ export function buildAuthUrl(config: OAuthConfig, params: BuildAuthUrlParams): s
   if (config.clientId === null || config.clientId === '') {
     return null;
   }
-  const scope = config.scope ?? (config.scopes ? config.scopes.join(' ') : 'https://www.googleapis.com/auth/drive.appdata');
-  const prompt = params.prompt ?? 'consent';
+  const scope = config.scopes.join(' ');
+  const prompt = params.prompt;
 
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.searchParams.set('client_id', config.clientId);

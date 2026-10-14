@@ -8,6 +8,7 @@ import type {ConfirmPort, ConfirmDialogState} from './confirmPort.js';
 import type {
     BundledDriverRepo,
     BundledPassiveRadiatorRepo,
+    CloudSync,
     FileStorage,
     MyDriverRepo,
     MyPassiveRadiatorRepo,
@@ -71,6 +72,8 @@ export interface AppLogic {
   presentation: PresentationState;
   /** Reads the project ID recorded before an OAuth redirect, so boot can refocus it. */
   recordedProjectId: () => string | null;
+  /** Cloud sync facade, or null when the store opened read-only. */
+  cloudSync: CloudSync | null;
 }
 
 export const APP_LOGIC: InjectionKey<AppLogic> = Symbol('openisd.app');

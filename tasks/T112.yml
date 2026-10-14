@@ -1,0 +1,24 @@
+id: T112
+release_note: Groundwork for cloud sync: the parts are connected at startup. Nothing shows yet.
+repo: openisd
+owner: maryu
+status: done
+goal: The composition root builds Google sign-in, the Drive store, the sync record, buckets, engine, scheduler and CloudSync, and starts sync on open, focus, save and reconnect; nothing is built on a read-only store (Drive sync plan P1-12)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T112.yml
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/src/logic/boot.ts
+  - packages/ui/test/cloud/**
+  - packages/ui/test/logic/cloudSyncWiring.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/ui/src/vite-env.d.ts

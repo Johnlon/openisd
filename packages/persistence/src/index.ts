@@ -93,3 +93,97 @@ export {
   createTokenStore,
 } from './cloud/auth/tokenStore.js';
 
+export {
+  type CloudUiStorage,
+  type CloudUiStore,
+  OPENISD_CLOUD_UI_KEY,
+  createCloudUiStore,
+} from './cloud/cloudUiStore.js';
+
+export {
+  type Http,
+  type HttpMethod,
+  type HttpRequest,
+  type HttpResponse,
+  createFetchHttp,
+} from './cloud/http.js';
+
+export {
+  type Revoker,
+  createGoogleRevoker,
+} from './cloud/auth/googleRevoker.js';
+
+export {
+  type CloudSession,
+  type CloudStore,
+} from './cloud/cloudStore.js';
+
+export {
+  type DriveStoreDeps,
+  createDriveStore,
+} from './cloud/drive/driveStore.js';
+
+export {
+  type LedgerRow,
+  type SyncLedger,
+  createSyncLedger,
+} from './cloud/syncLedger.js';
+
+export {
+  type LocalDoc,
+  type LocalDocs,
+  type LocalRead,
+} from './cloud/localDocs.js';
+
+export {
+  type ProjectDocsDeps,
+  createProjectDocs,
+} from './cloud/docs/projectDocs.js';
+
+export {
+  type SavedEntryDocsDeps,
+  createSavedEntryDocs,
+} from './cloud/docs/savedEntryDocs.js';
+
+export {
+  type SingletonDocsDeps,
+  createSingletonDocs,
+} from './cloud/docs/singletonDocs.js';
+
+export {
+  type SavedEntries,
+  type SavedEntriesSpec,
+  createSavedEntries,
+} from './repos/savedEntries.js';
+
+export {
+  type FavouritesRepo,
+  type SingletonDocRepo,
+  createFavouritesRepo,
+} from './repos/appSettingsRepo.js';
+
+export {
+  type RunOutcome,
+  type SyncEngine,
+} from './cloud/syncRun.js';
+
+export {
+  type SyncEngineDeps,
+  createSyncEngine,
+} from './cloud/syncEngine.js';
+
+export {
+  type RunLock,
+  type SyncScheduler,
+  type SyncSchedulerDeps,
+  type SyncTriggers,
+  type Timer,
+  createSyncScheduler,
+} from './cloud/syncScheduler.js';
+
+export {
+  type CloudSync,
+  type CloudSyncDeps,
+  createCloudSync,
+} from './cloud/cloudSync.js';
+

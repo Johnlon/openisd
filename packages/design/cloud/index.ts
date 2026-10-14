@@ -72,3 +72,11 @@ export {
   shouldPurgeTombstone,
 } from './syncRules.js';
 
+export type {
+  CloudUiState,
+} from './cloudUiState.js';
+export {
+  DEFAULT_CLOUD_UI_STATE,
+  parseCloudUiState,
+} from './cloudUiState.js';
+

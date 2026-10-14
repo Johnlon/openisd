@@ -29,8 +29,18 @@ import {
     createPrefsRepo,
     createProjectRepo,
     createViewStateRepo,
-    isStoredDataFault
+    isStoredDataFault,
+    type CloudSync,
+    type SessionLocation,
+    createRedirectGuard,
+    createTokenStore,
+    createImplicitSession,
+    createSyncLedger
 } from '@openisd/persistence';
+import {isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
+import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
+import {provideCloudSync} from './hooks/CloudSync-hooks.js';
+import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
 import {createFaultLog} from './diagnostics/faultLog.js';
 import {createDriverSelection} from './logic/driverSelection.js';
@@ -72,7 +82,20 @@ interface RecordedProjectIdStore {
   clear(): void;
 }
 
-const forgetCloudSyncRecord = (): void => undefined;
+const randomBytes = (): Uint8Array => crypto.getRandomValues(new Uint8Array(16));
+
+/** Restore, reset and repair replace stored data wholesale: the sync record is then stale. */
+const forgetCloudSyncRecord = (): void => {
+  createSyncLedger({storage: createLocalStorage(), random: randomBytes}).forgetAll();
+};
+
+const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const googleClientId = typeof rawClientId === 'string' && rawClientId.trim() !== '' ? rawClientId.trim() : null;
+const oauthConfig: OAuthConfig = {
+  clientId: googleClientId,
+  redirectUri: window.location.origin + '/',
+  scopes: ['https://www.googleapis.com/auth/drive.appdata'],
+};
 
 /** THE COMPOSITION ROOT: build the app on an open store and mount it. */
 function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProjectIdStore: RecordedProjectIdStore): void {
@@ -239,10 +262,80 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     onUncaught: thrown => crashReports.capture(thrown),
   });
 
+  let cloudSync: CloudSync | null = null;
+  if (!store.readOnly) {
+    const commitFocusedField = (): void => {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    };
+    const flushPendingSaves = (): void => {
+      const focused = appState.focusedProject();
+      if (focused !== null) {
+        projectRepo.saveToStorage(focused);
+      }
+      const open = appState.openProjects();
+      projectRepo.saveOpenProjects(open, focused, appState.hiddenTraces(open));
+      viewStateRepo.save(appState.currentViewSnapshot());
+    };
+    const recordOpenProjectId = (): void => {
+      const focused = appState.focusedProject();
+      if (focused !== null) {
+        recordedProjectIdStore.set(focused.uuid());
+      } else {
+        recordedProjectIdStore.clear();
+      }
+    };
+    const redirectGuard = createRedirectGuard({
+      commitFocusedField,
+      flushPendingSaves,
+      recordOpenProjectId,
+      location: { assign: (url: string) => window.location.assign(url) },
+    });
+
+    const wiring = createCloudSyncWiring({
+      storage,
+      projectRepo,
+      appSettingsRepo,
+      backup: storageBackup,
+      rules: layoutRules,
+      config: oauthConfig,
+      guard: redirectGuard,
+      fetch,
+      timer: createBrowserTimer(),
+      lock: createDefaultRunLock(),
+      visible: () => document.visibilityState === 'visible',
+      location: {
+        get href() { return window.location.href; },
+        get hash() { return window.location.hash; },
+        replaceState: (url: string) => { window.history.replaceState(null, '', url); },
+      },
+      random: randomBytes,
+      now: Date.now,
+    });
+
+    cloudSync = wiring.cloudSync;
+
+    wiring.triggers.onOpen();
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          wiring.triggers.onFocus();
+        }
+      });
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => {
+        wiring.triggers.onReconnect();
+      });
+    }
+  }
+
   const app = createApp(App)
     .directive('expo-step', vExpoStep)
     .directive('limits', vLimits);
 
+  provideCloudSync(cloudSync, app);
   provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer), featureUse});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
@@ -250,6 +343,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     driverFileStorage, faultLog, projectRepo, viewStateRepo, storageHistory, releases, appVersion, versionIndex,
     confirmPort, appState, presentation,
     recordedProjectId: recordedProjectIdStore.get,
+    cloudSync,
   });
 
   // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a
@@ -294,6 +388,29 @@ const loadingOverlay = overlayElement && import.meta.env.MODE !== 'test'
     })
   : null;
 
+
+if (typeof window !== 'undefined' && isOAuthFragment(window.location.hash)) {
+  const bootLocation: SessionLocation = {
+    get href() { return window.location.href; },
+    get hash() { return window.location.hash; },
+    replaceState(url: string) { window.history.replaceState(null, '', url); },
+  };
+  const bootTokenStore = createTokenStore(createLocalStorage());
+  const bootSession = createImplicitSession({
+    config: oauthConfig,
+    store: bootTokenStore,
+    guard: { leave: () => {} },
+    revoker: { revoke: async () => {} },
+    location: bootLocation,
+    clock: Date.now,
+    random: () => {
+      const buf = new Uint8Array(16);
+      crypto.getRandomValues(buf);
+      return buf;
+    },
+  });
+  await handleOAuthBoot(bootSession, { search: window.location.search, hash: window.location.hash });
+}
 
 // THE LOAD RULES come before anything is built or read: the browser store is opened (or refused)
 // by `openStore`. An older layout is backed up and migrated; a newer one is not opened at all.

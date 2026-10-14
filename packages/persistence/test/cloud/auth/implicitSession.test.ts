@@ -120,7 +120,7 @@ describe('implicitSession', () => {
   const baseConfig: OAuthConfig = {
     clientId: 'client-id-123.apps.googleusercontent.com',
     redirectUri: 'https://openisd.app/',
-    scope: 'https://www.googleapis.com/auth/drive.appdata',
+    scopes: ['https://www.googleapis.com/auth/drive.appdata'],
   };
 
   it('wrong state refused', async () => {
@@ -350,7 +350,7 @@ describe('implicitSession', () => {
     const nullConfig: OAuthConfig = {
       clientId: null,
       redirectUri: 'https://openisd.app/',
-      scope: 'drive.appdata',
+      scopes: ['drive.appdata'],
     };
     const storage = createMemoryStorage();
     const store = createTokenStore(storage);

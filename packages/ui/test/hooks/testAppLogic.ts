@@ -83,6 +83,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     versionIndex: new VersionIndex('', Promise.resolve(null)),
     confirmPort, appState, presentation,
     recordedProjectId: () => null,
+    cloudSync: null,
   };
   return Object.assign({}, base, overrides);
 }

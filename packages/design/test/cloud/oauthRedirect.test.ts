@@ -11,11 +11,11 @@ describe('oauthRedirect', () => {
     const baseConfig: OAuthConfig = {
       clientId: 'test-client-id.apps.googleusercontent.com',
       redirectUri: 'https://openisd.app/',
-      scope: 'https://www.googleapis.com/auth/drive.appdata',
+      scopes: ['https://www.googleapis.com/auth/drive.appdata'],
     };
 
     it('builds the Google auth URL with default consent prompt', () => {
-      const urlStr = buildAuthUrl(baseConfig, { state: 'state-123' });
+      const urlStr = buildAuthUrl(baseConfig, { state: 'state-123', prompt: 'consent' });
       expect(urlStr).not.toBeNull();
       if (!urlStr) return;
       const url = new URL(urlStr);
@@ -51,7 +51,7 @@ describe('oauthRedirect', () => {
         redirectUri: 'https://openisd.app/',
         scopes: ['https://www.googleapis.com/auth/drive.appdata', 'openid', 'email'],
       };
-      const urlStr = buildAuthUrl(configWithScopes, { state: 'state-scopes' });
+      const urlStr = buildAuthUrl(configWithScopes, { state: 'state-scopes', prompt: 'consent' });
       expect(urlStr).not.toBeNull();
       if (!urlStr) return;
       const url = new URL(urlStr);
@@ -62,9 +62,9 @@ describe('oauthRedirect', () => {
       const config: OAuthConfig = {
         clientId: null,
         redirectUri: 'https://openisd.app/',
-        scope: 'drive.appdata',
+        scopes: ['https://www.googleapis.com/auth/drive.appdata'],
       };
-      expect(buildAuthUrl(config, { state: 'st' })).toBeNull();
+      expect(buildAuthUrl(config, { state: 'st', prompt: 'consent' })).toBeNull();
     });
   });
 

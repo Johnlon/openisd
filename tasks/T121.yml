@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: cf39d3395eeb8e32591805af1dce5a693a725bfe
 goal: Post-land runs time out after 90 min and land.sh refuses to push onto a main that has been red for over two hours
 done_test: bash scripts/land/test/land-health.test.sh && bash scripts/land/test/post-land-timeout.test.sh
 files:
