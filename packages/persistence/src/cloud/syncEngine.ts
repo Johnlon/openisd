@@ -56,6 +56,7 @@ function docIdKey(id: DocId): string {
     case 'project':
     case 'driver':
     case 'pr':
+    case 'projectBin':
       return `${id.kind}:${id.uuid}`;
     case 'settings':
       return 'settings';
@@ -72,6 +73,7 @@ function toConflictCopyId(id: DocId): ProjectId | DriverId | PrId | null {
       return DriverId.of(id.uuid);
     case 'pr':
       return PrId.of(id.uuid);
+    case 'projectBin':
     case 'settings':
     case 'favourites':
       return null;
@@ -111,6 +113,8 @@ interface PlannedLocalWrite {
   readonly kind: 'applyRemote';
   readonly bucket: LocalDocs;
   readonly doc: LocalDoc;
+  /** The name of the device that wrote it. */
+  readonly from: string;
   readonly row: LedgerRow;
   readonly replacesExisting: boolean;
 }
@@ -186,6 +190,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   async function run(): Promise<RunOutcome> {
     deps.progress.started();
     let removedDuplicates = 0;
+    let skippedNewer = 0;
 
     /** Of several Drive files for one doc, keeps the newest (highest seq) and deletes the rest. */
     async function keepNewestCopies(docs: readonly CloudMeta[]): Promise<CloudResult<readonly CloudMeta[]>> {
@@ -238,6 +243,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       for (const doc of kept.value) {
         remoteDocs.set(docIdKey(doc.id), doc);
       }
+      skippedNewer += listRes.value.skipped;
       if (listRes.value.next !== null) {
         newCursor = listRes.value.next;
       } else {
@@ -260,6 +266,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         for (const doc of kept.value) {
           remoteDocs.set(docIdKey(doc.id), doc);
         }
+        skippedNewer += listRes.value.skipped;
         if (listRes.value.next !== null) {
           newCursor = listRes.value.next;
         } else {
@@ -273,6 +280,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       } else {
         newCursor = changesRes.value.kind === 'done' ? changesRes.value.newStart : changesRes.value.next;
         changesOnly = true;
+        skippedNewer += changesRes.value.skipped;
         for (const ch of changesRes.value.changed) {
           if ('id' in ch) {
             remoteDocs.set(docIdKey(ch.id), ch);
@@ -318,6 +326,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           layout: deps.layout,
           seq: row.seq,
           writer: '',
+          device: '',
           deleted: false,
           remoteHash: row.hash,
         });
@@ -444,6 +453,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
               kind: 'applyRemote',
               bucket,
               doc: { id, body: remoteBody, layout: deps.layout },
+              from: action.remote.device,
               row: {
                 id,
                 fileId: action.remote.fileId,
@@ -545,7 +555,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
 
     function applyLocalWrites(): void {
       for (const w of plannedLocalWrites) {
-        w.bucket.put(w.doc);
+        w.bucket.put(w.doc, w.from);
         deps.ledger.set({ ...w.row, hash: storedHashOf(w.bucket, w.doc.id) ?? w.row.hash });
         pulledCount++;
       }
@@ -556,7 +566,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       }
       for (const c of plannedConflicts) {
         // Remote wins the original id
-        c.bucket.put(c.remoteDoc);
+        c.bucket.put(c.remoteDoc, c.remoteMeta.device);
         deps.ledger.set({
           id: c.remoteDoc.id,
           fileId: c.remoteMeta.fileId,
@@ -609,6 +619,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           layout: deps.layout,
           seq: deps.ledger.nextSeq(),
           writer: deps.ledger.deviceId().text,
+          device: deps.deviceName.text,
           hash: push.hash,
         };
         const res = await deps.cloud.create(push.docId, push.body, meta);
@@ -645,6 +656,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           layout: deps.layout,
           seq: deps.ledger.nextSeq(),
           writer: deps.ledger.deviceId().text,
+          device: deps.deviceName.text,
           hash: push.hash,
         };
         const res = await deps.cloud.update(push.fileId, push.expectedRevision, push.body, meta);
@@ -673,10 +685,10 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
             }
             const headHash = headRead.value.meta.remoteHash ?? bodyHashOf(headRead.value.body);
 
-            if (push.docId.kind === 'settings' || push.docId.kind === 'favourites') {
-              // Singleton: higher seq wins
+            if (push.docId.kind === 'settings' || push.docId.kind === 'favourites' || push.docId.kind === 'projectBin') {
+              // One version wins: higher seq wins
               if (res.head.seq > meta.seq || (res.head.seq === meta.seq && res.head.writer > meta.writer)) {
-                push.bucket.put({ id: push.docId, body: headRead.value.body, layout: deps.layout });
+                push.bucket.put({ id: push.docId, body: headRead.value.body, layout: deps.layout }, res.head.device);
                 deps.ledger.set({
                   id: push.docId,
                   fileId: res.head.fileId,
@@ -706,7 +718,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
             } else {
               // Multi-doc: keep both!
               const doConflict = () => {
-                push.bucket.put({ id: push.docId, body: headRead.value.body, layout: deps.layout });
+                push.bucket.put({ id: push.docId, body: headRead.value.body, layout: deps.layout }, res.head.device);
                 deps.ledger.set({
                   id: push.docId,
                   fileId: res.head.fileId,
@@ -752,6 +764,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                   layout: deps.layout,
                   seq: deps.ledger.nextSeq(),
                   writer: deps.ledger.deviceId().text,
+                  device: deps.deviceName.text,
                   hash: push.hash,
                 };
                 const createRes = await deps.cloud.create(copyRes.id, push.body, copyMeta);
@@ -781,6 +794,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           layout: deps.layout,
           seq: deps.ledger.nextSeq(),
           writer: deps.ledger.deviceId().text,
+          device: deps.deviceName.text,
           hash: push.hash,
         };
         const res = await deps.cloud.tombstone(push.fileId, push.expectedRevision, meta);
@@ -832,6 +846,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       held: heldCount,
       left: countPendingLocal(),
       removedDuplicates,
+      skippedNewer,
     };
   }
 

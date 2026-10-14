@@ -32,7 +32,8 @@ const {
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, openDialogOpen, storedProjects, storeLabel, openProjectDialog, openStoredProject, deleteStoredProject,
+  username, appVersion, openDialogOpen, storedProjects, storeLabel, openProjectDialog, openStoredProject,
+  binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
   openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud,
@@ -202,15 +203,30 @@ const diagnostics = injectDiagnosticsModal();
     <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">
       <p class="store-label">{{ storeLabel }}</p>
       <button type="button" class="mob-cta mob-cta-secondary mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
-      <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
-      <div v-for="p in storedProjects" :key="p.id" class="mob-stored-project-item">
-        <button type="button" class="mob-stored-project-row" @click="openStoredProject(p.id)">
-          <span class="mob-stored-project-name">{{ p.name }}</span>
-          <span class="mob-stored-project-summary">{{ p.summary }}</span>
-          <span class="mob-stored-project-modified">{{ p.modified }}</span>
-        </button>
-        <button type="button" class="mob-stored-project-delete" :aria-label="`Delete ${p.name}`" @click="deleteStoredProject(p)">Delete</button>
-      </div>
+      <button type="button" class="mob-cta mob-cta-secondary mob-bin-toggle" @click="binOpen = !binOpen">{{ binOpen ? 'Back to projects' : binLabel }}</button>
+      <template v-if="!binOpen">
+        <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
+        <div v-for="p in storedProjects" :key="p.id" class="mob-stored-project-item">
+          <button type="button" class="mob-stored-project-row" @click="openStoredProject(p.id)">
+            <span class="mob-stored-project-name">{{ p.name }}</span>
+            <span class="mob-stored-project-summary">{{ p.summary }}</span>
+            <span class="mob-stored-project-modified">{{ p.modified }}</span>
+          </button>
+          <button type="button" class="mob-stored-project-bin" :aria-label="`Move ${p.name} to the Bin`" @click="moveToBin(p)">Bin</button>
+        </div>
+      </template>
+      <template v-else>
+        <p v-if="binRows.length === 0" class="mob-hint">The Bin is empty.</p>
+        <div v-for="b in binRows" :key="b.id" class="mob-bin-row">
+          <span class="mob-stored-project-name">{{ b.name }}</span>
+          <span class="mob-stored-project-summary">{{ b.binnedAt }} · {{ b.device }} · {{ b.size }}</span>
+          <div class="mob-bin-actions">
+            <button type="button" class="mob-bin-restore" @click="restoreFromBin(b)">Restore</button>
+            <button type="button" class="mob-bin-delete-forever" @click="deleteForever(b)">Delete forever</button>
+          </div>
+        </div>
+        <button v-if="binRows.length > 0" type="button" class="mob-cta mob-cta-secondary mob-bin-empty" @click="emptyBin">Empty Bin ({{ binTotal }})</button>
+      </template>
     </MobilePaneDialog>
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
@@ -435,7 +451,13 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-stored-project-item { display: flex; align-items: center; border-top: 1px solid var(--line); }
 .mob-stored-project-item:first-of-type { border-top: none; }
-.mob-stored-project-delete { all: unset; box-sizing: border-box; flex: none; padding: 10px 16px; font-size: 13px; color: var(--bad); cursor: pointer; }
+.mob-stored-project-bin { all: unset; box-sizing: border-box; flex: none; padding: 10px 16px; font-size: 13px; color: var(--mut); cursor: pointer; }
+.mob-bin-toggle { margin-top: 8px; }
+.mob-bin-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-top: 1px solid var(--line); }
+.mob-bin-row:first-of-type { border-top: none; }
+.mob-bin-actions { display: flex; gap: 16px; margin-top: 4px; }
+.mob-bin-restore, .mob-bin-delete-forever { all: unset; box-sizing: border-box; padding: 6px 0; font-size: 13px; cursor: pointer; color: var(--acc); }
+.mob-bin-delete-forever { color: var(--bad); }
 .mob-stored-project-name { font-size: 15px; color: var(--fg); }
 .mob-stored-project-summary { font-size: 13px; color: var(--mut); }
 .mob-stored-project-modified { font-size: 12px; color: var(--mut); }

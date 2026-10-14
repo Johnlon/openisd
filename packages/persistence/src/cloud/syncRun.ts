@@ -12,6 +12,8 @@ export type RunOutcome =
       readonly left: number;
       /** Duplicate Drive copies of a doc deleted by this run (the newest copy stays). */
       readonly removedDuplicates: number;
+      /** Drive files of a kind this build does not know, left alone. */
+      readonly skippedNewer: number;
     }
   | {
       readonly kind: 'stopped';

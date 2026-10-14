@@ -20,6 +20,8 @@ export interface CloudSync {
   runPushed(count: number): void;
   /** Google refused to name the signed-in account. */
   accountRefused(fault: CloudFault): void;
+  /** A pulled edit took project `name` out of the Bin; `editedOn` names the device. */
+  restoredFromBin(name: string, editedOn: string): void;
   /** The grant, the last run, the pending count and the last fault (kept until a run succeeds). */
   diagnostics(): CloudSyncReport;
 }
@@ -73,6 +75,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     const started_ms = lastAttempt?.kind === 'running' ? lastAttempt.started_ms : ended_ms;
     lastAttempt = { kind: 'ended', started_ms, ended_ms, outcome: attemptOutcome(outcome) };
     if (outcome.kind === 'failed') record({ kind: 'error', at_ms: ended_ms, fault: outcome.fault });
+    if (outcome.kind === 'synced' && outcome.skippedNewer > 0) record({ kind: 'skipped', at_ms: ended_ms, count: outcome.skippedNewer });
     record({ kind: 'ended', at_ms: ended_ms, outcome: lastAttempt.outcome });
     if (outcome.kind === 'synced') {
       lastSyncAt_ms = clock();
@@ -258,6 +261,10 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     accountRefused: (fault) => {
       accountFault = { fault, at_ms: clock() };
       record({ kind: 'error', at_ms: accountFault.at_ms, fault });
+      notify();
+    },
+    restoredFromBin: (name, editedOn) => {
+      record({ kind: 'restoredFromBin', at_ms: clock(), name, editedOn });
       notify();
     },
     runStarted: () => {

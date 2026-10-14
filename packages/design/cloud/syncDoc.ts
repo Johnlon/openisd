@@ -4,6 +4,8 @@ export type DocId =
   | { readonly kind: 'project'; readonly uuid: string }
   | { readonly kind: 'driver'; readonly uuid: string }
   | { readonly kind: 'pr'; readonly uuid: string }
+  /** That project `uuid` is in the Bin: a mark of its own, so Restore is a plain delete of the mark. */
+  | { readonly kind: 'projectBin'; readonly uuid: string }
   | { readonly kind: 'settings' }
   | { readonly kind: 'favourites' };
 
@@ -111,6 +113,8 @@ export function docFileName(id: DocId): string {
       return `driver-${id.uuid}.json`;
     case 'pr':
       return `pr-${id.uuid}.json`;
+    case 'projectBin':
+      return `bin-${id.uuid}.json`;
     case 'settings':
       return 'settings.json';
     case 'favourites':
@@ -130,6 +134,8 @@ export function docIdEquals(a: DocId, b: DocId): boolean {
       return b.kind === 'driver' && a.uuid === b.uuid;
     case 'pr':
       return b.kind === 'pr' && a.uuid === b.uuid;
+    case 'projectBin':
+      return b.kind === 'projectBin' && a.uuid === b.uuid;
   }
 }
 

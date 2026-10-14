@@ -72,6 +72,12 @@ export class DriveEmulator {
     return [...this.files.values()].map(f => ({name: f.name, appProperties: {...f.appProperties}}));
   }
 
+  /** Puts a file straight into the app folder, as another build might have written it. */
+  seed(name: string, appProperties: Readonly<Record<string, string>>, body: string): void {
+    const id = `file-${this.nextFileId++}`;
+    this.files.set(id, {id, name, revision: 1, appProperties: {...appProperties}, body, changedAt: this.changeCounter++});
+  }
+
   readonly fetch: typeof fetch = async (input, init) => {
     const url = urlOf(input);
     const method = init?.method ?? 'GET';

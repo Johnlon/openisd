@@ -28,6 +28,8 @@ import {
     createMyPassiveRadiatorRepo,
     createPrefsRepo,
     createProjectRepo,
+    createProjectBin,
+    createProjectBinMarks,
     createStoredTextCompaction,
     createLedgerFollowsRewrite,
     createViewStateRepo,
@@ -193,6 +195,11 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
   if (!store.readOnly) createStoredTextCompaction(storage, storageBackup, createLedgerFollowsRewrite(storage, randomBytes)).run();
   const projectRepo = createProjectRepo(engine, fileStorage, storage, window.location.origin, storageBackup, exportedFiles, report => faultLog.recordRepair(report), saves.notify);
+  const deviceName = DeviceName.ofBrowser(navigator.userAgent, navigator.maxTouchPoints);
+  const binMarks = createProjectBinMarks(storage, storageBackup);
+  const projectBin = createProjectBin({
+    projects: projectRepo, marks: binMarks, backup: storageBackup, device: () => deviceName.text, now: Date.now, onSaved: saves.notify,
+  });
   const designFiles = new DesignFiles(engine, projectRepo, exportedFiles);
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
@@ -316,6 +323,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     const wiring = createCloudSyncWiring({
       storage,
       projectRepo,
+      projectBin,
+      binMarks,
       appSettingsRepo,
       backup: storageBackup,
       rules: layoutRules,
@@ -333,7 +342,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       },
       random: randomBytes,
       now: Date.now,
-      deviceName: DeviceName.ofBrowser(navigator.userAgent, navigator.maxTouchPoints),
+      deviceName,
     });
 
     saves.listen(() => wiring.scheduler.onSave());
@@ -364,7 +373,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, viewStateRepo, storageHistory, releases, appVersion, versionIndex,
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, releases, appVersion, versionIndex,
     confirmPort, appState, presentation,
     recordedProjectId: recordedProjectIdStore.get,
     cloudSync,

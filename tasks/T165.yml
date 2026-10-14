@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 40254adc6343f9c3baae54e32a103f167ee7da99
 goal: questions.yml records QO180 (bob's hooks-off commit) and the project-view plan is committed
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

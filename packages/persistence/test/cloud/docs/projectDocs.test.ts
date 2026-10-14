@@ -27,7 +27,7 @@ const RULES: LayoutRules = { layout: 2, steps: LAYOUT_STEPS };
 function setup(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);
   const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
-  const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW });
+  const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW, binned: () => false, restoredFromBin: () => undefined });
   return { storage, repo, bucket };
 }
 
@@ -79,7 +79,7 @@ describe('projectDocs', () => {
       id: { kind: 'project', uuid: 'p-remote' },
       body: textB,
       layout: 2,
-    });
+    }, '');
     expect(putRes).toBe('done');
 
     const read = bucket.list();
@@ -109,7 +109,7 @@ describe('projectDocs', () => {
       id: { kind: 'project', uuid: 'p-1' },
       body: updatedText,
       layout: 2,
-    });
+    }, '');
     expect(putRes).toBe('done');
 
     const read = bucket.list();
@@ -132,13 +132,13 @@ describe('projectDocs', () => {
     };
     const storage = createQuotaStorage(JSON.stringify(seed).length + 20, seed);
     const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
-    const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW });
+    const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW, binned: () => false, restoredFromBin: () => undefined });
 
     const putRes = bucket.put({
       id: { kind: 'project', uuid: 'p-1' },
       body: goodProjectText('Sub 12 Modified'),
       layout: 2,
-    });
+    }, '');
     expect(putRes).toBe('refused');
     expect(storage.get(OPENISD_PROJECTS_KEY)).toBe(seed[OPENISD_PROJECTS_KEY]);
   });

@@ -13,8 +13,9 @@ export type LocalRead =
 export interface LocalDocs {
   readonly kind: DocKind;
   list(): LocalRead;
-  /** Body in this app's layout. A doc from an older layout is migrated by `migrate` first. */
-  put(doc: LocalDoc): 'done' | 'refused';
+  /** Body in this app's layout. A doc from an older layout is migrated by `migrate` first.
+   *  `from`: the name of the device that wrote it ('' when it did not say). */
+  put(doc: LocalDoc, from: string): 'done' | 'refused';
   remove(id: DocId): 'done' | 'refused';
   /** Returns the body in this app's layout, or null when no step reaches it. */
   migrate(doc: LocalDoc): string | null;

@@ -17,6 +17,8 @@ import {
   OPENISD_MY_DRIVERS_KEY,
   STORAGE_LAYOUT,
   LAYOUT_STEPS,
+  createProjectBin,
+  createProjectBinMarks,
 } from '@openisd/persistence';
 import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
@@ -39,19 +41,24 @@ const config: OAuthConfig = {
 const NOW = Date.UTC(2026, 9, 14, 10, 0, 0);
 
 /** One device: its own browser storage, repos and sync, signed in, sharing `drive`. */
-function deviceOn(drive: DriveEmulator, fill: number) {
+function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
   const engine = createEngine();
   const storage = createMemoryStorage();
   const backup = createStorageBackup(storage, () => NOW);
   const rules: LayoutRules = {layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS};
   const projectRepo = createProjectRepo(engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined);
   const appSettingsRepo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined, () => undefined);
+  const deviceName = DeviceName.ofBrowser(userAgent, 0);
+  const binMarks = createProjectBinMarks(storage, backup);
+  const projectBin = createProjectBin({projects: projectRepo, marks: binMarks, backup, device: () => deviceName.text, now: () => NOW, onSaved: () => undefined});
 
   function connect() {
     storage.set(OPENISD_CLOUD_AUTH_KEY, JSON.stringify({kind: 'token', accessToken: 'tok', expiresAt_ms: NOW + 3_600_000, account: 'john@example.com'}));
     return createCloudSyncWiring({
       storage,
       projectRepo,
+      projectBin,
+      binMarks,
       appSettingsRepo,
       backup,
       rules,
@@ -65,7 +72,7 @@ function deviceOn(drive: DriveEmulator, fill: number) {
       location: {href: 'http://localhost/', hash: '', replaceState: () => undefined},
       random: () => new Uint8Array(16).fill(fill),
       now: () => NOW,
-      deviceName: DeviceName.ofBrowser('', 0),
+      deviceName,
     });
   }
 
@@ -77,7 +84,7 @@ function deviceOn(drive: DriveEmulator, fill: number) {
     expect(saved).not.toHaveProperty('error');
   }
 
-  return {engine, storage, projectRepo, connect, saveProject};
+  return {engine, storage, projectRepo, projectBin, connect, saveProject};
 }
 
 describe('cloud sync first connect', () => {
@@ -119,6 +126,94 @@ describe('cloud sync first connect', () => {
 
     expect((await phoneSync.engine.run()).kind).toBe('synced');
     expect(phone.projectRepo.listStoredProjects()).toEqual([]);
+  });
+
+  describe('the Bin', () => {
+    /** Desktop saved and synced "Sub 12"; the iPhone has pulled it. */
+    async function twoDevicesWithOneProject() {
+      const drive = new DriveEmulator();
+      const desk = deviceOn(drive, 1, 'Windows');
+      desk.saveProject('Sub 12');
+      const deskSync = desk.connect();
+      expect((await deskSync.engine.run()).kind).toBe('synced');
+      const phone = deviceOn(drive, 2, 'iPhone');
+      const phoneSync = phone.connect();
+      expect((await phoneSync.engine.run()).kind).toBe('synced');
+      const id = desk.projectRepo.listStoredProjects()[0]?.id ?? '';
+      return {drive, desk, deskSync, phone, phoneSync, id};
+    }
+
+    it('a project binned on one device is in the Bin on the other, off its project list', async () => {
+      const {desk, deskSync, phone, phoneSync, id} = await twoDevicesWithOneProject();
+      expect(desk.projectBin.moveToBin(id)).toBe('done');
+      expect(desk.projectBin.activeProjects()).toEqual([]);
+      expect((await deskSync.engine.run()).kind).toBe('synced');
+      expect((await phoneSync.engine.run()).kind).toBe('synced');
+      expect(phone.projectBin.activeProjects()).toEqual([]);
+      expect(phone.projectBin.binned()).toMatchObject([{id, name: 'Sub 12', device: 'Windows desktop', binnedAt_ms: NOW}]);
+    });
+
+    it('Restore on the other device takes it out of the Bin on both', async () => {
+      const {desk, deskSync, phone, phoneSync, id} = await twoDevicesWithOneProject();
+      desk.projectBin.moveToBin(id);
+      await deskSync.engine.run();
+      await phoneSync.engine.run();
+      expect(phone.projectBin.restore(id)).toBe('done');
+      expect((await phoneSync.engine.run()).kind).toBe('synced');
+      expect((await deskSync.engine.run()).kind).toBe('synced');
+      expect(desk.projectBin.binned()).toEqual([]);
+      expect(desk.projectBin.activeProjects().map(p => p.name)).toEqual(['Sub 12']);
+    });
+
+    it('an edit made on another device after the bin brings it back, and the event log says where', async () => {
+      const {desk, deskSync, phone, phoneSync, id} = await twoDevicesWithOneProject();
+      desk.projectBin.moveToBin(id);
+      await deskSync.engine.run();
+      await phoneSync.engine.run();
+      const open = phone.projectRepo.loadStoredProject(id);
+      if (Array.isArray(open)) throw new Error(open.join('; '));
+      open.name.set('Sub 12 edited');
+      expect(phone.projectRepo.saveToStorage(open).kind).toBe('saved');
+      expect(phone.projectBin.binned()).toEqual([]);
+      expect((await phoneSync.engine.run()).kind).toBe('synced');
+      expect((await deskSync.engine.run()).kind).toBe('synced');
+      expect(desk.projectBin.binned()).toEqual([]);
+      expect(desk.projectBin.activeProjects().map(p => p.name)).toEqual(['Sub 12 edited']);
+      expect(deskSync.cloudSync.diagnostics().events).toContainEqual({kind: 'restoredFromBin', at_ms: NOW, name: 'Sub 12 edited', editedOn: 'iPhone'});
+    });
+
+    it('Empty Bin takes one backup, deletes them on Drive, and the other device drops them too', async () => {
+      const {drive, desk, deskSync, phone, phoneSync, id} = await twoDevicesWithOneProject();
+      desk.saveProject('Sub 15');
+      await deskSync.engine.run();
+      await phoneSync.engine.run();
+      const second = desk.projectRepo.listStoredProjects().find(p => p.name === 'Sub 15')?.id ?? '';
+      desk.projectBin.moveToBin(id);
+      desk.projectBin.moveToBin(second);
+      const backups = () => desk.storage.keys().filter(key => key.startsWith(OPENISD_BACKUP_PREFIX)).length;
+      const before = backups();
+      expect(desk.projectBin.emptyBin()).toBe('done');
+      expect(backups()).toBe(before + 1);
+      expect(desk.projectRepo.listStoredProjects()).toEqual([]);
+      expect((await deskSync.engine.run()).kind).toBe('synced');
+      expect(drive.listFiles().filter(f => f.name.startsWith('project-')).every(f => f.appProperties.deleted === '1')).toBe(true);
+      expect((await phoneSync.engine.run()).kind).toBe('synced');
+      expect(phone.projectRepo.listStoredProjects()).toEqual([]);
+      expect(phone.projectBin.binned()).toEqual([]);
+    });
+  });
+
+  it('a Drive file of a kind this build does not know is left alone, the rest syncs, and the log says so once', async () => {
+    const drive = new DriveEmulator();
+    drive.seed('future-1.json', {app: 'openisd', kind: 'futureThing', uuid: 'x-1', layout: '9', seq: '1', writer: 'dev-9', hash: 'h'}, '{}');
+    const desk = deviceOn(drive, 1);
+    desk.saveProject('Sub 12');
+    const deskSync = desk.connect();
+    await deskSync.scheduler.syncNow();
+    expect(deskSync.cloudSync.status().kind).toBe('synced');
+    expect(drive.listFiles().map(f => f.name)).toContain('future-1.json');
+    expect(drive.listFiles().filter(f => f.name.startsWith('project-'))).toHaveLength(1);
+    expect(deskSync.cloudSync.diagnostics().events.filter(e => e.kind === 'skipped')).toEqual([{kind: 'skipped', at_ms: NOW, count: 1}]);
   });
 
   it('a pulled run that replaces several saved drivers takes one whole-store backup, not one per item', async () => {

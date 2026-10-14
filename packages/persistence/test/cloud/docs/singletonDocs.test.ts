@@ -67,7 +67,7 @@ describe('singletonDocs', () => {
     it('puts new settings when absent', () => {
       const { bucket, storage } = setupSettings();
       const body = JSON.stringify({ differenceCues: false });
-      const res = bucket.put({ id: { kind: 'settings' }, body, layout: 2 });
+      const res = bucket.put({ id: { kind: 'settings' }, body, layout: 2 }, '');
       expect(res).toBe('done');
       expect(storage.get(OPENISD_APP_SETTINGS_KEY)).toBe(body);
     });
@@ -76,7 +76,7 @@ describe('singletonDocs', () => {
       const original = JSON.stringify({ differenceCues: true });
       const { bucket, storage } = setupSettings({ [OPENISD_APP_SETTINGS_KEY]: original });
       const updated = JSON.stringify({ differenceCues: false });
-      const res = bucket.put({ id: { kind: 'settings' }, body: updated, layout: 2 });
+      const res = bucket.put({ id: { kind: 'settings' }, body: updated, layout: 2 }, '');
       expect(res).toBe('done');
       expect(storage.get(OPENISD_APP_SETTINGS_KEY)).toBe(updated);
 
@@ -95,7 +95,7 @@ describe('singletonDocs', () => {
         id: { kind: 'settings' },
         body: JSON.stringify({ differenceCues: false }),
         layout: 2,
-      });
+      }, '');
       expect(res).toBe('refused');
       expect(storage.get(OPENISD_APP_SETTINGS_KEY)).toBe(seed[OPENISD_APP_SETTINGS_KEY]);
     });
@@ -154,7 +154,7 @@ describe('singletonDocs', () => {
         drivers: ['d-1'],
         passiveRadiators: ['pr-1', 'pr-2'],
       });
-      const res = bucket.put({ id: { kind: 'favourites' }, body, layout: 2 });
+      const res = bucket.put({ id: { kind: 'favourites' }, body, layout: 2 }, '');
       expect(res).toBe('done');
       expect(JSON.parse(storage.get(OPENISD_FAVOURITE_DRIVERS_KEY) ?? '[]')).toEqual(['d-1']);
       expect(JSON.parse(storage.get(OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY) ?? '[]')).toEqual(['pr-1', 'pr-2']);

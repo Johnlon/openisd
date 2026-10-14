@@ -62,8 +62,10 @@ export function compareLamport(
   return remote.writer > local.writer ? 'remote' : 'local';
 }
 
-function isSingleton(id: DocId): boolean {
-  return id.kind === 'settings' || id.kind === 'favourites';
+/** Docs where one version wins outright (Lamport) instead of keeping both: the singletons, and a
+ *  Bin mark, which two devices may write for one project and which has nothing to keep twice. */
+function oneVersionWins(id: DocId): boolean {
+  return id.kind === 'settings' || id.kind === 'favourites' || id.kind === 'projectBin';
 }
 
 export function decideDocSync(inputs: DecideSyncInputs): SyncRuleAction {
@@ -121,7 +123,7 @@ export function decideDocSync(inputs: DecideSyncInputs): SyncRuleAction {
   if (!hasLedger) {
     if (isLocalPresent) {
       // new + present (no ledger)
-      if (isSingleton(id)) {
+      if (oneVersionWins(id)) {
         const localLamport = {
           seq: prospectiveSeq !== undefined ? prospectiveSeq : 1,
           writer: deviceId,
@@ -166,7 +168,7 @@ export function decideDocSync(inputs: DecideSyncInputs): SyncRuleAction {
       return { kind: 'applyRemote', remote };
     }
     // lineage broken
-    if (isSingleton(id)) {
+    if (oneVersionWins(id)) {
       return { kind: 'applyRemote', remote };
     }
     return { kind: 'conflict', remote };
@@ -178,7 +180,7 @@ export function decideDocSync(inputs: DecideSyncInputs): SyncRuleAction {
   }
 
   // local edit + remote edit (lineage ok or broken)
-  if (isSingleton(id)) {
+  if (oneVersionWins(id)) {
     const localLamport = {
       seq: prospectiveSeq !== undefined ? prospectiveSeq : ledger.seq + 1,
       writer: deviceId,

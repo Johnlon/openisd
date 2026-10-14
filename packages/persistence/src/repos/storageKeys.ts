@@ -9,6 +9,8 @@ export const OPENISD_FAVOURITE_DRIVERS_KEY = 'openisd_favourite_drivers';
 export const OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY = 'openisd_favourite_passive_radiators';
 export const OPENISD_QUARANTINE_SESSION_KEY = 'openisd_quarantine_session';
 export const OPENISD_APP_SETTINGS_KEY = 'openisd_app_settings';
+/** Which saved projects are in the Bin: one mark per project id. */
+export const OPENISD_PROJECT_BIN_KEY = 'openisd_project_bin';
 
 /** The layout of the app that last wrote the store, and that app's build stamp. Written with
  *  every store write; not part of `OPENISD_STORAGE_KEYS` (they describe the store, they are not
@@ -45,4 +47,5 @@ export const OPENISD_STORAGE_KEYS = Object.freeze({
   favouritePassiveRadiators: OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY,
   quarantineSession: OPENISD_QUARANTINE_SESSION_KEY,
   appSettings: OPENISD_APP_SETTINGS_KEY,
+  projectBin: OPENISD_PROJECT_BIN_KEY,
 });

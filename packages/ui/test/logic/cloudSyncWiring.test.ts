@@ -8,6 +8,8 @@ import {
   createStorageBackup,
   createExportedFiles,
   type FileStorage,
+  createProjectBin,
+  createProjectBinMarks,
 } from '@openisd/persistence';
 import {createEngine} from '@openisd/design/engine';
 import {type OAuthConfig, ChangeCursor, DeviceName} from '@openisd/design/cloud';
@@ -54,9 +56,13 @@ function createWiringHarness() {
   const guard = { leave: vi.fn() };
   const dummyFetch: typeof fetch = () => Promise.resolve(new Response('{}', { status: 200 }));
 
+  const binMarks = createProjectBinMarks(storage, backup);
+  const projectBin = createProjectBin({projects: projectRepo, marks: binMarks, backup, device: () => 'Test', now: () => 0, onSaved: () => undefined});
   const wiring = createCloudSyncWiring({
     storage,
     projectRepo,
+    projectBin,
+    binMarks,
     appSettingsRepo,
     backup,
     rules,

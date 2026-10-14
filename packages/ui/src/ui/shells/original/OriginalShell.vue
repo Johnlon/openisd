@@ -43,7 +43,8 @@ const {
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, deleteStoredProject, switchToMobile,
+  openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
+  binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
@@ -883,8 +884,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </div>
         <div class="modal-body open-project-body">
           <button class="open-from-disk" @click="openFromDisk">Import project</button> <button class="export-projects" @click="exportProjectsArchive">Export all projects</button>
-          <div class="open-project-list">
+          <div class="open-project-list-head">
             <p class="store-label">{{ storeLabel }}</p>
+            <button class="bin-toggle" @click="binOpen = !binOpen">{{ binOpen ? 'Back to projects' : binLabel }}</button>
+          </div>
+          <div v-if="!binOpen" class="open-project-list">
             <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
             <div v-for="projectEntry in storedProjects" :key="projectEntry.id" class="stored-project-item">
               <button class="stored-project-row" @click="openStoredProject(projectEntry.id)">
@@ -892,8 +896,20 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <small class="stored-project-modified">{{ projectEntry.modified }}</small>
                 <small class="stored-project-summary">{{ projectEntry.summary }}</small>
               </button>
-              <button class="stored-project-delete" :title="`Delete ${projectEntry.name}`" @click="deleteStoredProject(projectEntry)">Delete</button>
+              <button class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)">Move to Bin</button>
             </div>
+          </div>
+          <div v-else class="open-project-list bin-list">
+            <p v-if="binRows.length === 0" class="hint">The Bin is empty</p>
+            <div v-for="binned in binRows" :key="binned.id" class="bin-row">
+              <div class="bin-row-text">
+                <span class="bin-name">{{ binned.name }}</span>
+                <small class="bin-detail">{{ binned.binnedAt }} · {{ binned.device }} · {{ binned.size }}</small>
+              </div>
+              <button class="bin-restore" @click="restoreFromBin(binned)">Restore</button>
+              <button class="bin-delete-forever" @click="deleteForever(binned)">Delete forever</button>
+            </div>
+            <button v-if="binRows.length > 0" class="bin-empty" @click="emptyBin">Empty Bin ({{ binTotal }})</button>
           </div>
         </div>
       </div>
@@ -1501,7 +1517,14 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .open-project-list { display:flex; flex-direction:column; gap:4px; max-height:42vh; overflow-y:auto; border-top:1px solid #ccc; padding-top:8px; }
 .stored-project-item { display:flex; align-items:center; gap:6px; }
 .stored-project-item .stored-project-row { flex:1; min-width:0; }
-.stored-project-delete { flex:none; }
+.stored-project-bin { flex:none; }
+.open-project-list-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.bin-toggle { flex:none; white-space:nowrap; }
+.bin-row { display:flex; align-items:center; gap:6px; padding:6px; }
+.bin-row-text { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.bin-detail { color:#666; }
+.bin-row button { flex:none; }
+.bin-empty { align-self:flex-start; margin-top:6px; }
 .stored-project-row { display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:2px; border:0; background:transparent; padding:8px 6px; text-align:left; cursor:pointer; }
 .stored-project-summary { grid-column:1 / -1; font-size:11px; }
 .stored-project-row:hover { background:#dbeafe; }

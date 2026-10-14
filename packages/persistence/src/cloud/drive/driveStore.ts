@@ -133,6 +133,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
 
   async function listAll(): Promise<CloudResult<CloudFileList>> {
     const allDocs: CloudMeta[] = [];
+    let skipped = 0;
     let pageToken: string | undefined = undefined;
 
     while (true) {
@@ -149,17 +150,19 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
       for (const doc of parsed.value.docs) {
         allDocs.push(doc);
       }
+      skipped += parsed.value.skipped;
       if (parsed.value.next === null) {
         break;
       }
       pageToken = parsed.value.next.value;
     }
 
-    return { kind: 'ok', value: { docs: allDocs, next: null } };
+    return { kind: 'ok', value: { docs: allDocs, next: null, skipped } };
   }
 
   async function changesSince(cursor: ChangeCursor): Promise<CloudResult<CloudChanges>> {
     const allChanged: CloudChange[] = [];
+    let skipped = 0;
     let currentCursor = cursor.value;
 
     while (true) {
@@ -175,13 +178,15 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
       for (const ch of parsed.value.changed) {
         allChanged.push(ch);
       }
+      skipped += parsed.value.skipped;
       if (parsed.value.kind === 'done') {
         return {
           kind: 'ok',
           value: {
             kind: 'done',
             changed: allChanged,
-            newStart: parsed.value.newStart
+            newStart: parsed.value.newStart,
+            skipped
           }
         };
       }
@@ -231,6 +236,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
       layout: String(meta.layout),
       seq: String(meta.seq),
       writer: meta.writer,
+      device: meta.device,
       hash: meta.hash.value
     };
     if ('uuid' in id) {
@@ -296,6 +302,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
       layout: String(meta.layout),
       seq: String(meta.seq),
       writer: meta.writer,
+      device: meta.device,
       hash: meta.hash.value,
       parentRevision: meta.parentRevision !== null ? meta.parentRevision.value : expectedRevision.value
     };
@@ -356,6 +363,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore & CloudIdenti
       layout: String(meta.layout),
       seq: String(meta.seq),
       writer: meta.writer,
+      device: meta.device,
       hash: meta.hash.value,
       parentRevision: meta.parentRevision !== null ? meta.parentRevision.value : expectedRevision.value,
       deleted: '1'

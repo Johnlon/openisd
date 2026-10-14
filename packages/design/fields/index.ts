@@ -79,6 +79,7 @@ export { LOSSLESS_Q } from './losslessQ.js';
 
 export { basicUtc } from './basicTime.js';
 export { lostDataSentence } from './lostData.js';
+export { deleteForeverMessage, emptyBinMessage, moveToBinMessage } from './projectBinText.js';
 export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';

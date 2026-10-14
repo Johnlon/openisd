@@ -64,6 +64,7 @@ export class FakeCloudStore implements CloudStore {
       layout: newMeta.layout ?? existing.meta.layout,
       seq: newMeta.seq ?? existing.meta.seq + 1,
       writer: newMeta.writer ?? 'concurrent-writer',
+      device: newMeta.device ?? '',
       deleted: false,
       remoteHash: newMeta.hash ?? null,
     };
@@ -92,6 +93,7 @@ export class FakeCloudStore implements CloudStore {
       value: {
         docs,
         next,
+        skipped: 0,
       },
     };
   }
@@ -123,6 +125,7 @@ export class FakeCloudStore implements CloudStore {
         kind: 'done',
         changed,
         newStart,
+        skipped: 0,
       },
     };
   }
@@ -170,6 +173,7 @@ export class FakeCloudStore implements CloudStore {
       layout: meta.layout,
       seq: meta.seq,
       writer: meta.writer,
+      device: meta.device,
       deleted: false,
       remoteHash: meta.hash,
     };
@@ -212,6 +216,7 @@ export class FakeCloudStore implements CloudStore {
       layout: meta.layout,
       seq: meta.seq,
       writer: meta.writer,
+      device: meta.device,
       deleted: false,
       remoteHash: meta.hash,
     };
@@ -253,6 +258,7 @@ export class FakeCloudStore implements CloudStore {
       layout: meta.layout,
       seq: meta.seq,
       writer: meta.writer,
+      device: meta.device,
       deleted: true,
       remoteHash: meta.hash,
       tombstonedAt_ms: Date.now(),

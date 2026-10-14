@@ -141,7 +141,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       cloud.seedFile({
         meta: {
           id: settingsId, fileId: FileId.of('file-s')!, revision: RevisionId.of('rev-s')!, parentRevision: null,
-          layout: APP_LAYOUT, seq: 5, writer: 'device-other', deleted: false, remoteHash: bodyHashOf('{"theme":"light"}')!,
+          layout: APP_LAYOUT, seq: 5, writer: 'device-other', device: '', deleted: false, remoteHash: bodyHashOf('{"theme":"light"}')!,
         },
         body: '{"theme":"light"}',
       });
@@ -158,7 +158,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       cloud.seedFile({
         meta: {
           id, fileId: FileId.of(`dup-${n}`)!, revision: RevisionId.of(`rev-dup-${n}`)!, parentRevision: null,
-          layout: APP_LAYOUT, seq, writer: 'device-other', deleted: false, remoteHash: bodyHashOf(body)!,
+          layout: APP_LAYOUT, seq, writer: 'device-other', device: '', deleted: false, remoteHash: bodyHashOf(body)!,
         },
         body,
       });
@@ -170,7 +170,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       copy(project1Id, 3, 5, body1);
       copy(project2Id, 4, 2, body2);
       const outcome = await createEngine().run();
-      expect(outcome).toMatchObject({ kind: 'synced', removedDuplicates: 2 });
+      expect(outcome).toMatchObject({ kind: 'synced', removedDuplicates: 2, skippedNewer: 0 });
       expect(cloud.removeCalls.map(f => f.toString()).sort()).toEqual(['dup-1', 'dup-3']);
       expect([...cloud.files.keys()].sort()).toEqual(['dup-2', 'dup-4']);
       expect(localProjects.docs.find(d => d.id.kind === 'project' && d.id.uuid === project1Id.uuid)?.body).toBe(body1Updated);
@@ -179,7 +179,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
     it('nothing is deleted when every doc has one file', async () => {
       copy(project1Id, 1, 3, body1);
       copy(project2Id, 2, 2, body2);
-      expect(await createEngine().run()).toMatchObject({ kind: 'synced', removedDuplicates: 0 });
+      expect(await createEngine().run()).toMatchObject({ kind: 'synced', removedDuplicates: 0, skippedNewer: 0 });
       expect(cloud.removeCalls).toEqual([]);
     });
   });
@@ -255,6 +255,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 1,
           writer: 'device-other',
+          device: '',
           deleted: false,
           remoteHash: hash1,
         },
@@ -316,6 +317,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: 3,
           seq: 2,
           writer: 'device-other',
+          device: '',
           deleted: false,
           remoteHash: BodyHash.of('hash-future')!,
         },
@@ -359,6 +361,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 1,
           writer: 'device-local',
+          device: '',
           deleted: false,
           remoteHash: hash1,
         },
@@ -369,6 +372,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       cloud.simulateConcurrentUpdate(fileId, JSON.stringify({ name: 'Sub 12', volume: 60 }), {
         seq: 2,
         writer: 'device-concurrent',
+        device: '',
         hash: BodyHash.of('hash-concurrent')!,
       });
 
@@ -408,6 +412,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 2,
           writer: 'device-other',
+          device: '',
           deleted: false,
           remoteHash: bodyHashOf(body1Updated)!,
         },
@@ -446,6 +451,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 2,
           writer: 'device-other',
+          device: '',
           deleted: true,
           remoteHash: null,
         },
@@ -550,6 +556,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 2,
           writer: 'device-B',
+          device: '',
           deleted: false,
           remoteHash: bodyHashOf(bodyB)!,
         },
@@ -592,6 +599,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 2,
           writer: 'device-B',
+          device: '',
           deleted: false,
           remoteHash: bodyHashOf(body1Updated)!,
         },
@@ -632,6 +640,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 1,
           writer: 'device-local',
+          device: '',
           deleted: false,
           remoteHash: hash1,
         },
@@ -672,6 +681,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 2,
           writer: 'device-B',
+          device: '',
           deleted: false,
           remoteHash: bodyHashOf(bodyB)!,
         },
@@ -710,6 +720,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 2,
           writer: 'device-A',
+          device: '',
           deleted: true,
           remoteHash: null,
         },
@@ -737,6 +748,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 1,
           writer: 'device-other',
+          device: '',
           deleted: false,
           remoteHash: hash1,
         },
@@ -788,6 +800,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
             layout: APP_LAYOUT,
             seq: 1,
             writer: 'device-other',
+            device: '',
             deleted: true,
             remoteHash: null,
           },
@@ -827,6 +840,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 10,
           writer: 'device-other',
+          device: '',
           deleted: false,
           remoteHash: bodyHashOf(bodyRemote)!,
         },
@@ -857,6 +871,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: 1, // older layout
           seq: 1,
           writer: 'device-other',
+          device: '',
           deleted: false,
           remoteHash: bodyHashOf(body1)!,
         },

@@ -248,6 +248,7 @@ describe('DriveStore', () => {
         layout: 2,
         seq: 1,
         writer: 'device-1',
+        device: '',
         hash
       };
 
@@ -284,6 +285,7 @@ describe('DriveStore', () => {
       layout: 2,
       seq: 2,
       writer: 'device-1',
+      device: '',
       hash: BodyHash.of('hash-updated')!
     };
 
@@ -344,6 +346,7 @@ describe('DriveStore', () => {
       layout: 2,
       seq: 3,
       writer: 'device-1',
+      device: '',
       hash: BodyHash.of('hash-del')!
     };
 

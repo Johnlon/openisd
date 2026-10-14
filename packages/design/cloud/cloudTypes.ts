@@ -9,6 +9,8 @@ export interface CloudMeta {
   readonly layout: number;
   readonly seq: number;
   readonly writer: string;
+  /** The writing device's name as people see it ('' when the writer did not say). */
+  readonly device: string;
   readonly deleted: boolean;
   readonly remoteHash: BodyHash | null;
 }
@@ -23,6 +25,8 @@ export interface WriteMeta {
   readonly layout: number;
   readonly seq: number;
   readonly writer: string;
+  /** This device's name as people see it. */
+  readonly device: string;
   readonly hash: BodyHash;
 }
 
@@ -83,10 +87,12 @@ export type CloudResult<T> =
 export type CloudChange = CloudMeta | { readonly fileId: FileId; readonly gone: true };
 
 export type CloudChanges =
-  | { readonly kind: 'more'; readonly changed: readonly CloudChange[]; readonly next: ChangeCursor }
-  | { readonly kind: 'done'; readonly changed: readonly CloudChange[]; readonly newStart: ChangeCursor };
+  | { readonly kind: 'more'; readonly changed: readonly CloudChange[]; readonly next: ChangeCursor; readonly skipped: number }
+  | { readonly kind: 'done'; readonly changed: readonly CloudChange[]; readonly newStart: ChangeCursor; readonly skipped: number };
 
 export interface CloudFileList {
   readonly docs: readonly CloudMeta[];
   readonly next: ChangeCursor | null;
+  /** Files of a kind this build does not know (a newer build wrote them): left alone. */
+  readonly skipped: number;
 }

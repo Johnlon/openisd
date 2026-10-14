@@ -32,7 +32,7 @@ export { createFileSave, type FileSave } from './storage/fileSave.js';
 export { createFileOpen, type FileOpen, type FilePick, type FilePickerFilter } from './storage/fileOpen.js';
 
 export {
-  OPENISD_STATE_KEY, OPENISD_PROJECTS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_VIEW_KEY,
+  OPENISD_STATE_KEY, OPENISD_PROJECTS_KEY, OPENISD_PROJECT_BIN_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_VIEW_KEY,
   OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY,
   OPENISD_FAVOURITE_DRIVERS_KEY, OPENISD_FAVOURITE_PASSIVE_RADIATORS_KEY,
   OPENISD_STORAGE_KEYS, OPENISD_BACKUP_KEYS,
@@ -201,5 +201,6 @@ export {
   type SaveSignal,
   createSaveSignal,
 } from './cloud/saveSignal.js';
-
-
+export {createProjectBinMarks, type BinMark, type BinMarkEntry, type ProjectBinMarks} from './repos/projectBinMarks.js';
+export {createProjectBin, type BinnedProject, type ProjectBin} from './repos/projectBin.js';
+export {createBinMarkDocs} from './cloud/docs/binMarkDocs.js';

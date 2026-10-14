@@ -17,7 +17,7 @@
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
-import {deleteStoredProject as deleteStoredProjectFromStore} from '../logic/storedProjectDelete.js';
+import {createProjectBinView} from './projectBinView.js';
 import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
@@ -43,7 +43,6 @@ import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
-import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import {useCompareOverlays} from './compareOverlays.js';
 import {useCloudSyncUi} from './CloudSync-hooks.js';
@@ -166,7 +165,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
   // `App.vue`'s `activeSkin` (`presentationState.narrowViewport`), which this override beats.
   function switchToMobile(): void { setSkinOverride('mobile'); }
-  const { projectRepo } = useApp();
+  const { projectRepo, projectBin } = useApp();
   const { editProjectDriver } = selection;
 
   const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
@@ -304,9 +303,14 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // toolbar file input (Open…)
   const fileInput = ref<HTMLInputElement | null>(null);
   const openDialogOpen = ref(false);
-  const storedProjects = ref<StoredProjectRow[]>([]);
+  const binView = createProjectBinView({
+    appState, projectRepo, projectBin, confirm: confirmPort.port,
+    unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
+  });
+  const {storedProjects, binRows, binTotal, binOpen, binLabel} = binView;
   function openClick() {
-    storedProjects.value = storedProjectRows(projectRepo.listStoredProjects(), presentationState.ui.unitTokens ?? {});
+    binView.refresh();
+    binOpen.value = false;
     openDialogOpen.value = true;
   }
   function openFromDisk() {
@@ -320,11 +324,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       return;
     }
     openDialogOpen.value = false;
-  }
-  async function deleteStoredProject(row: StoredProjectRow): Promise<void> {
-    const result = await deleteStoredProjectFromStore(appState, projectRepo, confirmPort.port, row.id, row.name);
-    if (result === 'refused') alert('Could not delete the saved project: there is no room in browser storage for the backup taken first.');
-    storedProjects.value = storedProjectRows(projectRepo.listStoredProjects(), presentationState.ui.unitTokens ?? {});
   }
   function onFile(e: Event) {
     const input = inputFrom(e);
@@ -659,7 +658,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, deleteStoredProject, switchToMobile,
+    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
+    binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,

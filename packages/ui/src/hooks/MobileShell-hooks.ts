@@ -13,9 +13,9 @@ import {visibleViewportHeightPx} from '../logic/visibleViewport.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
-import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
+import type {BinRow, StoredProjectRow} from './storedProjectRows.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
-import {deleteStoredProject as deleteStoredProjectFromStore} from '../logic/storedProjectDelete.js';
+import {createProjectBinView} from './projectBinView.js';
 import {
   type ConflictCopy,
   type SyncDisplay,
@@ -105,7 +105,15 @@ export interface MobileShellApi {
   storedProjects: import('vue').Ref<StoredProjectRow[]>;
   openProjectDialog: () => void;
   openStoredProject: (id: string) => void;
-  deleteStoredProject: (row: StoredProjectRow) => Promise<void>;
+  /** The Bin view inside the Open project sheet (projectBinView.ts). */
+  binRows: import('vue').Ref<BinRow[]>;
+  binTotal: import('vue').Ref<string>;
+  binOpen: import('vue').Ref<boolean>;
+  binLabel: import('vue').ComputedRef<string>;
+  moveToBin: (row: StoredProjectRow) => Promise<void>;
+  restoreFromBin: (row: BinRow) => void;
+  deleteForever: (row: BinRow) => Promise<void>;
+  emptyBin: () => Promise<void>;
   /** Every open project, saved or not — the same registry as desktop's Projects panel. */
   openProjectRows: import('vue').ComputedRef<OpenProjectRow[]>;
   selectOpenProject: (row: OpenProjectRow) => void;
@@ -145,7 +153,7 @@ export function useMobileShell(): MobileShellApi {
   const { appState, presentation: presentationState } = useApp();
   const { isTraceVisible, setTraceVisible, traceVisibilityRevision, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
   const { setSkinOverride } = presentationState;
-  const { designIO, projectRepo, releases, appVersion, confirmPort, logging } = useApp();
+  const { designIO, projectRepo, projectBin, releases, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -192,9 +200,14 @@ export function useMobileShell(): MobileShellApi {
   // own openDialogOpen/storedProjects/openStoredProject (OriginalShell-hooks.ts); mobile had no
   // equivalent (John, 2026-10-02: "the file menu offer no way to save and reopen projects").
   const openDialogOpen = ref(false);
-  const storedProjects = ref<StoredProjectRow[]>([]);
+  const binView = createProjectBinView({
+    appState, projectRepo, projectBin, confirm: confirmPort.port,
+    unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
+  });
+  const {storedProjects, binRows, binTotal, binOpen, binLabel} = binView;
   function openProjectDialog(): void {
-    storedProjects.value = storedProjectRows(projectRepo.listStoredProjects(), presentationState.ui.unitTokens ?? {});
+    binView.refresh();
+    binOpen.value = false;
     openDialogOpen.value = true;
     closeMenu();
   }
@@ -205,11 +218,6 @@ export function useMobileShell(): MobileShellApi {
       return;
     }
     openDialogOpen.value = false;
-  }
-  async function deleteStoredProject(row: StoredProjectRow): Promise<void> {
-    const result = await deleteStoredProjectFromStore(appState, projectRepo, confirmPort.port, row.id, row.name);
-    if (result === 'refused') alert('Could not delete the saved project: there is no room in browser storage for the backup taken first.');
-    storedProjects.value = storedProjectRows(projectRepo.listStoredProjects(), presentationState.ui.unitTokens ?? {});
   }
 
   // "Open projects" — the registry desktop's Projects panel lists (OriginalShell-hooks.ts), so a
@@ -438,7 +446,8 @@ export function useMobileShell(): MobileShellApi {
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
-    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject, deleteStoredProject,
+    openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
+    binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,
     onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel, openCloudSync,

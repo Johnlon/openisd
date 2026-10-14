@@ -16,7 +16,11 @@ export type CloudAttemptOutcome =
 export type CloudSyncEvent =
   | { readonly kind: 'started'; readonly at_ms: number }
   | { readonly kind: 'ended'; readonly at_ms: number; readonly outcome: CloudAttemptOutcome }
-  | { readonly kind: 'error'; readonly at_ms: number; readonly fault: CloudFault };
+  | { readonly kind: 'error'; readonly at_ms: number; readonly fault: CloudFault }
+  /** Drive held `count` files of a kind this build does not know; they were left alone. */
+  | { readonly kind: 'skipped'; readonly at_ms: number; readonly count: number }
+  /** A binned project came back to the list because another device edited it. */
+  | { readonly kind: 'restoredFromBin'; readonly at_ms: number; readonly name: string; readonly editedOn: string };
 
 /** How many events the log keeps; older ones drop off. */
 export const CLOUD_SYNC_EVENTS_KEPT = 30;
@@ -114,6 +118,8 @@ function eventLine(event: CloudSyncEvent): string {
       const {fault} = event;
       return `    ${at} error: ${fault.operation}, HTTP ${fault.status}, ${fault.reason}, reply: ${fault.reply.slice(0, REPLY_START_CHARS)}`;
     }
+    case 'skipped': return `    ${at} skipped ${event.count} items of a newer kind`;
+    case 'restoredFromBin': return `    ${at} restored from Bin: edited on ${event.editedOn === '' ? 'another device' : event.editedOn} ("${event.name}")`;
   }
 }
 

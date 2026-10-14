@@ -40,6 +40,7 @@ function makeMeta(params: {
     layout: params.layout ?? 2,
     seq: params.seq ?? 1,
     writer: params.writer ?? 'device-remote',
+    device: '',
     deleted: params.deleted ?? false,
     remoteHash,
     ...(params.tombstonedAt_ms !== undefined ? { tombstonedAt_ms: params.tombstonedAt_ms } : {}),

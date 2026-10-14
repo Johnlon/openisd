@@ -45,7 +45,7 @@ function parseDocId(val: unknown): DocId | null {
   const kind = field(val, 'kind');
   if (kind === 'settings') return { kind: 'settings' };
   if (kind === 'favourites') return { kind: 'favourites' };
-  if (kind === 'project' || kind === 'driver' || kind === 'pr') {
+  if (kind === 'project' || kind === 'driver' || kind === 'pr' || kind === 'projectBin') {
     const uuid = field(val, 'uuid');
     if (typeof uuid === 'string' && uuid.length > 0) {
       return { kind, uuid };

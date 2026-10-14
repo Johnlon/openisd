@@ -70,7 +70,7 @@ describe('savedEntryDocs', () => {
         id: { kind: 'driver', uuid: 'd-new' },
         body: JSON.stringify({ brand: 'Peerless', model: 'XXLS' }),
         layout: 2,
-      });
+      }, '');
       expect(res).toBe('done');
       const read = bucket.list();
       expect(read.kind).toBe('ok');
@@ -89,7 +89,7 @@ describe('savedEntryDocs', () => {
         id: { kind: 'driver', uuid: 'd-1' },
         body: JSON.stringify({ brand: 'New' }),
         layout: 2,
-      });
+      }, '');
       expect(res).toBe('done');
       const read = bucket.list();
       expect(read.kind).toBe('ok');
@@ -120,7 +120,7 @@ describe('savedEntryDocs', () => {
         id: { kind: 'driver', uuid: 'd-1' },
         body: JSON.stringify({ brand: 'New' }),
         layout: 2,
-      });
+      }, '');
       expect(res).toBe('refused');
       expect(storage.get(OPENISD_MY_DRIVERS_KEY)).toBe(seed[OPENISD_MY_DRIVERS_KEY]);
     });

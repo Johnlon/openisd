@@ -51,6 +51,8 @@ export function wrapDoc(
         }),
       };
     }
+    // A Bin mark is its own whole record; its form has not changed between layouts.
+    case 'projectBin':
     case 'settings':
     case 'favourites': {
       return {
@@ -99,6 +101,7 @@ export function unwrapDoc(
       }
       return null;
     }
+    case 'projectBin':
     case 'settings':
     case 'favourites': {
       return text;

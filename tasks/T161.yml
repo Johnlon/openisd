@@ -1,0 +1,33 @@
+id: T161
+release_note: Deleting a project now moves it to a Bin that syncs to your other devices. Open project shows the Bin, where you can restore a project or delete it forever, or empty the Bin. An edit made on another device brings a binned project back. Sync now leaves alone any Drive item a newer version wrote.
+repo: openisd
+owner: maryu
+status: done
+goal: Delete moves a project to a Bin that syncs; Restore, Delete forever and Empty Bin in both skins
+done_test: bash scripts/test.sh packages/persistence/test/projectBin.test.ts packages/ui/test/logic/projectBinActions.test.ts packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts packages/design/test/cloud/driveJson.test.ts
+files:
+  - tasks/T161.yml
+  - packages/design/cloud/**
+  - packages/design/fields/projectBinText.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/format.ts
+  - packages/design/test/cloud/**
+  - packages/persistence/src/**
+  - packages/persistence/test/**
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/src/logic/projectBinActions.ts
+  - packages/ui/src/logic/storedProjectDelete.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/ui/src/hooks/storedProjectRows.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/fixtures/driveEmulator.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/**
+  - packages/ui/test/ui/project-bin.browser.spec.ts
+  - packages/persistence/test/storageKeys.test.ts
+  - packages/ui/test/ui/delete-project.browser.spec.ts

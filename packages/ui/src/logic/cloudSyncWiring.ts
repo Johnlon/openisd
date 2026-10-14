@@ -29,6 +29,9 @@ import {
   createGoogleRevoker,
   createImplicitSession,
   createProjectDocs,
+  createBinMarkDocs,
+  type ProjectBin,
+  type ProjectBinMarks,
   createSavedEntries,
   createSavedEntryDocs,
   createSingletonDocs,
@@ -88,6 +91,8 @@ export function createBrowserTimer(): Timer {
 export interface CloudSyncWiringDeps {
   readonly storage: KeyValueStorage & AuthStorage;
   readonly projectRepo: ProjectRepo;
+  readonly projectBin: ProjectBin;
+  readonly binMarks: ProjectBinMarks;
   readonly appSettingsRepo: AppSettingsRepo;
   readonly backup: StorageBackup;
   readonly rules: LayoutRules;
@@ -141,11 +146,16 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
   });
   relistOnce(deps.storage, ledger);
 
+  // Built after the engine; the engine's progress and the project docs' events reach it through this.
+  let cloudSync: CloudSync | null = null;
   const projectDocs = createProjectDocs({
     repo: deps.projectRepo,
     rules: deps.rules,
     now,
+    binned: id => deps.projectBin.isBinned(id),
+    restoredFromBin: (name, editedOn) => cloudSync?.restoredFromBin(name, editedOn),
   });
+  const binMarkDocs = createBinMarkDocs({marks: deps.binMarks, rules: deps.rules});
 
   const driverEntries = createSavedEntries<unknown>(
     deps.storage,
@@ -181,11 +191,10 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     now,
   });
 
-  let cloudSync: CloudSync | null = null;
 
   const engine = createSyncEngine({
     cloud: driveStore,
-    local: [projectDocs, driverDocs, prDocs, settingsDocs, favouritesDocs],
+    local: [projectDocs, binMarkDocs, driverDocs, prDocs, settingsDocs, favouritesDocs],
     ledger,
     backup: deps.backup,
     layout: deps.rules.layout,

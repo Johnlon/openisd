@@ -14,6 +14,7 @@ describe('OpenISD browser storage keys', () => {
       favouritePassiveRadiators: 'openisd_favourite_passive_radiators',
       quarantineSession: 'openisd_quarantine_session',
       appSettings: 'openisd_app_settings',
+      projectBin: 'openisd_project_bin',
     });
   });
 

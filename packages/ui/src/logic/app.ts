@@ -13,6 +13,7 @@ import type {
     MyDriverRepo,
     MyPassiveRadiatorRepo,
     PrefsRepo,
+    ProjectBin,
     ProjectRepo,
     StorageHistory,
     ViewStateRepo
@@ -57,6 +58,8 @@ export interface AppLogic {
   myDrivers: MyDriverRepo;
   driverFileStorage: FileStorage;
   projectRepo: ProjectRepo;
+  /** Moving saved projects into and out of the Bin. */
+  projectBin: ProjectBin;
   viewStateRepo: ViewStateRepo;
   /** The backups held in this browser: the Options "Storage history" page. */
   storageHistory: StorageHistory;

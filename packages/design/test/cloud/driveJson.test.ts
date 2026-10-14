@@ -112,10 +112,17 @@ describe('driveJson parsers', () => {
       expect(result.kind).toBe('malformed');
     });
 
-    it('returns malformed for unknown kind', () => {
+    it('skips and counts a file of a kind this build does not know (a newer build wrote it)', () => {
       const json = fixture('file-list-unknown-kind.json');
       const result = parseFileList(json);
-      expect(result.kind).toBe('malformed');
+      expect(result).toMatchObject({kind: 'ok', value: {docs: [], skipped: 1}});
+    });
+
+    it('reads a Bin mark file, and the writing device name', () => {
+      const result = parseFileList(JSON.stringify({files: [{id: 'f-1', headRevisionId: 'r-1', appProperties: {
+        app: 'openisd', kind: 'projectBin', uuid: 'p-1', layout: '2', seq: '3', writer: 'dev-1', device: 'iPhone', hash: 'h',
+      }}]}));
+      expect(result).toMatchObject({kind: 'ok', value: {docs: [{id: {kind: 'projectBin', uuid: 'p-1'}, device: 'iPhone'}], skipped: 0}});
     });
   });
 

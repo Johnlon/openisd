@@ -16,6 +16,10 @@ export interface ProjectDocsDeps {
   readonly repo: ProjectRepo;
   readonly rules: LayoutRules;
   readonly now: () => number;
+  /** Whether saved project `id` is in the Bin. */
+  readonly binned: (id: string) => boolean;
+  /** A pulled edit took project `name` out of the Bin; `editedOn` names the device that edited it. */
+  readonly restoredFromBin: (name: string, editedOn: string) => void;
 }
 
 export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
@@ -33,9 +37,14 @@ export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
     return { kind: 'ok', docs };
   }
 
-  function put(doc: LocalDoc): 'done' | 'refused' {
+  function put(doc: LocalDoc, from: string): 'done' | 'refused' {
     if (doc.id.kind !== 'project') return 'refused';
-    return repo.putStoredDoc(doc.id.uuid, doc.body);
+    const wasBinned = deps.binned(doc.id.uuid);
+    const res = repo.putStoredDoc(doc.id.uuid, doc.body);
+    if (res === 'done' && wasBinned && !deps.binned(doc.id.uuid)) {
+      deps.restoredFromBin(projectNameOfBody(doc.body) ?? 'Project', from);
+    }
+    return res;
   }
 
   function remove(id: DocId): 'done' | 'refused' {

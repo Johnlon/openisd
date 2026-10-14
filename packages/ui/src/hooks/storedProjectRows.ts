@@ -1,6 +1,6 @@
 /** The Open project list's rows — desktop's dialog and mobile's sheet show the same rows. */
-import type {StoredProjectListing} from '@openisd/persistence';
-import {formatDateTime} from '@openisd/design/fields';
+import type {BinnedProject, StoredProjectListing} from '@openisd/persistence';
+import {formatByteSize, formatDateTime} from '@openisd/design/fields';
 
 /** One saved project in the Open project list. */
 export interface StoredProjectRow {
@@ -20,4 +20,30 @@ export function storedProjectRows(listings: readonly StoredProjectListing[], uni
     modified: formatDateTime(new Date(listing.modified)),
     summary: listing.kind === 'readable' ? listing.summary.line(unitTokens) : '',
   }));
+}
+
+/** One project in the Bin, as the Bin list shows it. */
+export interface BinRow {
+  readonly id: string;
+  readonly name: string;
+  /** When it was binned, as "14 Oct 2026, 13:20". */
+  readonly binnedAt: string;
+  /** The device that binned it. */
+  readonly device: string;
+  readonly size: string;
+}
+
+export function binRows(binned: readonly BinnedProject[]): BinRow[] {
+  return binned.map(p => ({
+    id: p.id,
+    name: p.name,
+    binnedAt: formatDateTime(new Date(p.binnedAt_ms)),
+    device: p.device,
+    size: formatByteSize(p.bytes),
+  }));
+}
+
+/** The Bin's total size, for its Empty Bin button. */
+export function binTotalSize(binned: readonly BinnedProject[]): string {
+  return formatByteSize(binned.reduce((sum, p) => sum + p.bytes, 0));
 }

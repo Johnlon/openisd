@@ -176,7 +176,13 @@ function parseDriveError(obj: unknown): DriveError | null {
   };
 }
 
-function parseAppProperties(props: Record<string, string> | undefined): { readonly kind: 'ok'; readonly data: AppProps } | { readonly kind: 'malformed'; readonly reason: string } {
+/** A file a newer build wrote, of a kind this build does not know: skipped and left alone. */
+type AppPropsResult =
+  | { readonly kind: 'ok'; readonly data: AppProps }
+  | { readonly kind: 'newerKind' }
+  | { readonly kind: 'malformed'; readonly reason: string };
+
+function parseAppProperties(props: Record<string, string> | undefined): AppPropsResult {
   if (!props) {
     return { kind: 'malformed', reason: 'Missing appProperties' };
   }
@@ -184,8 +190,11 @@ function parseAppProperties(props: Record<string, string> | undefined): { readon
     return { kind: 'malformed', reason: 'Not an openisd file' };
   }
   const kind = props.kind;
-  if (kind !== 'project' && kind !== 'driver' && kind !== 'pr' && kind !== 'settings' && kind !== 'favourites') {
-    return { kind: 'malformed', reason: `Unknown kind: ${kind}` };
+  if (kind === undefined || kind === '') {
+    return { kind: 'malformed', reason: 'Missing kind' };
+  }
+  if (kind !== 'project' && kind !== 'driver' && kind !== 'pr' && kind !== 'projectBin' && kind !== 'settings' && kind !== 'favourites') {
+    return { kind: 'newerKind' };
   }
   const uuid = props.uuid;
   if (!uuid && kind !== 'settings' && kind !== 'favourites') {
@@ -208,16 +217,17 @@ function parseAppProperties(props: Record<string, string> | undefined): { readon
   const deleted = props.deleted === '1';
   return {
     kind: 'ok',
-    data: { kind, uuid: uuid ?? '', layout, seq, writer, parentRevision, hash, deleted }
+    data: { kind, uuid: uuid ?? '', layout, seq, writer, device: props.device ?? '', parentRevision, hash, deleted }
   };
 }
 
 interface AppProps {
-  readonly kind: 'project' | 'driver' | 'pr' | 'settings' | 'favourites';
+  readonly kind: 'project' | 'driver' | 'pr' | 'projectBin' | 'settings' | 'favourites';
   readonly uuid: string;
   readonly layout: number;
   readonly seq: number;
   readonly writer: string;
+  readonly device: string;
   readonly parentRevision: string | null;
   readonly hash: string | null;
   readonly deleted: boolean;
@@ -231,6 +241,8 @@ function buildDocId(kind: AppProps['kind'], uuid: string): DocId {
       return { kind: 'driver', uuid };
     case 'pr':
       return { kind: 'pr', uuid };
+    case 'projectBin':
+      return { kind: 'projectBin', uuid };
     case 'settings':
       return { kind: 'settings' };
     case 'favourites':
@@ -250,8 +262,13 @@ export function parseFileList(jsonText: string): CloudResult<CloudFileList> {
     return { kind: 'malformed', reason: 'Not a file list' };
   }
   const docs: CloudMeta[] = [];
+  let skipped = 0;
   for (const file of fileList.files) {
     const propsResult = parseAppProperties(file.appProperties);
+    if (propsResult.kind === 'newerKind') {
+      skipped++;
+      continue;
+    }
     if (propsResult.kind === 'malformed') {
       if (propsResult.reason === 'Not an openisd file') {
         continue;
@@ -276,6 +293,7 @@ export function parseFileList(jsonText: string): CloudResult<CloudFileList> {
       layout: props.layout,
       seq: props.seq,
       writer: props.writer,
+      device: props.device,
       deleted: props.deleted,
       remoteHash: props.hash ? BodyHash.of(props.hash) : null
     });
@@ -287,7 +305,7 @@ export function parseFileList(jsonText: string): CloudResult<CloudFileList> {
       return { kind: 'malformed', reason: 'Invalid nextPageToken' };
     }
   }
-  return { kind: 'ok', value: { docs, next } };
+  return { kind: 'ok', value: { docs, next, skipped } };
 }
 
 export function parseChangeList(jsonText: string): CloudResult<CloudChanges> {
@@ -310,6 +328,7 @@ export function parseChangeList(jsonText: string): CloudResult<CloudChanges> {
   }
 
   const changed: CloudChange[] = [];
+  let skipped = 0;
   for (const change of changeList.changes) {
     if (change.removed === true) {
       const fid = FileId.of(change.fileId);
@@ -326,6 +345,10 @@ export function parseChangeList(jsonText: string): CloudResult<CloudChanges> {
     }
 
     const propsResult = parseAppProperties(file.appProperties);
+    if (propsResult.kind === 'newerKind') {
+      skipped++;
+      continue;
+    }
     if (propsResult.kind === 'malformed') {
       if (propsResult.reason === 'Not an openisd file') {
         continue;
@@ -350,6 +373,7 @@ export function parseChangeList(jsonText: string): CloudResult<CloudChanges> {
       layout: props.layout,
       seq: props.seq,
       writer: props.writer,
+      device: props.device,
       deleted: props.deleted,
       remoteHash: props.hash ? BodyHash.of(props.hash) : null
     });
@@ -360,7 +384,7 @@ export function parseChangeList(jsonText: string): CloudResult<CloudChanges> {
     if (!nextCursor) {
       return { kind: 'malformed', reason: 'Invalid nextPageToken' };
     }
-    return { kind: 'ok', value: { kind: 'more', changed, next: nextCursor } };
+    return { kind: 'ok', value: { kind: 'more', changed, next: nextCursor, skipped } };
   }
 
   if (newStartToken !== undefined && newStartToken !== '') {
@@ -368,7 +392,7 @@ export function parseChangeList(jsonText: string): CloudResult<CloudChanges> {
     if (!newStartCursor) {
       return { kind: 'malformed', reason: 'Invalid newStartPageToken' };
     }
-    return { kind: 'ok', value: { kind: 'done', changed, newStart: newStartCursor } };
+    return { kind: 'ok', value: { kind: 'done', changed, newStart: newStartCursor, skipped } };
   }
 
   return { kind: 'malformed', reason: 'Changes page has neither nextPageToken nor newStartPageToken' };
@@ -386,6 +410,9 @@ export function parseFileMetadata(jsonText: string): CloudResult<CloudMeta> {
     return { kind: 'malformed', reason: 'Not a file metadata' };
   }
   const propsResult = parseAppProperties(file.appProperties);
+  if (propsResult.kind === 'newerKind') {
+    return { kind: 'malformed', reason: 'A kind of file this build does not know' };
+  }
   if (propsResult.kind === 'malformed') {
     return { kind: 'malformed', reason: propsResult.reason };
   }
@@ -409,6 +436,7 @@ export function parseFileMetadata(jsonText: string): CloudResult<CloudMeta> {
       layout: props.layout,
       seq: props.seq,
       writer: props.writer,
+      device: props.device,
       deleted: props.deleted,
       remoteHash: props.hash ? BodyHash.of(props.hash) : null
     }
@@ -427,6 +455,9 @@ export function parseWriteReply(jsonText: string): CloudResult<CloudMeta> {
     return { kind: 'malformed', reason: 'Not a file write reply' };
   }
   const propsResult = parseAppProperties(file.appProperties);
+  if (propsResult.kind === 'newerKind') {
+    return { kind: 'malformed', reason: 'A kind of file this build does not know' };
+  }
   if (propsResult.kind === 'malformed') {
     return { kind: 'malformed', reason: propsResult.reason };
   }
@@ -450,6 +481,7 @@ export function parseWriteReply(jsonText: string): CloudResult<CloudMeta> {
       layout: props.layout,
       seq: props.seq,
       writer: props.writer,
+      device: props.device,
       deleted: props.deleted,
       remoteHash: props.hash ? BodyHash.of(props.hash) : null
     }

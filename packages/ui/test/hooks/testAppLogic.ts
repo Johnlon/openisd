@@ -13,6 +13,8 @@ import {
   createMemoryStorage,
   createPrefsRepo,
   isStoredDataFault,
+  createProjectBin,
+  createProjectBinMarks,
 } from '@openisd/persistence';
 import {createLogging} from '../../src/logging/flash.js';
 import {createFaultLog} from '../../src/diagnostics/faultLog.js';
@@ -26,7 +28,7 @@ import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppLogic} from '../../src/logic/app.js';
 import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
 import {createAppVersionPort} from '../../src/logic/appVersion.js';
-import {appSettingsRepoOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn, exportedFilesOn, storageHistoryOn} from '../fixtures/repoOn.js';
+import {appSettingsRepoOn, backupOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn, exportedFilesOn, storageHistoryOn} from '../fixtures/repoOn.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
 const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
@@ -56,6 +58,11 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const driverFileStorage = createFileStorage();
   const selection = createDriverSelection({ appState, presentation });
   const projectRepo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
+  const binBackup = backupOn(storage);
+  const projectBin = createProjectBin({
+    projects: projectRepo, marks: createProjectBinMarks(storage, binBackup), backup: binBackup,
+    device: () => 'Test device', now: Date.now, onSaved: () => undefined,
+  });
   const designFiles = new DesignFiles(engine, projectRepo, exportedFilesOn());
   const driverDrafts = new DriverDrafts(engine, appState.appContext);
   const confirmPort = createConfirmPort();
@@ -70,7 +77,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, viewStateRepo, storageHistory: storageHistoryOn(storage),
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage),
     releases: new ReleaseWatch('', {
       latestVersion: () => Promise.resolve(null),
       reloadOntoLatest: () => Promise.resolve(),
