@@ -64,9 +64,9 @@ describe('buildPlotData — comparing two or more designs', () => {
     assert.ok(!out.series[1].current);
   });
 
-  it('leaves the single-design case unmarked (no legend is drawn for it anyway)', () => {
+  it('names a lone design\'s entry after the project too', () => {
     const out = buildPlotData(engine, 'Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), []).value!;
-    assert.equal(out.series[0].name, '|Z|');
+    assert.equal(out.series[0].name, 'W5 sealed');
   });
 
   it('orders series by sortIndex, not by current-first — matches the sidebar project list', () => {
@@ -115,8 +115,7 @@ describe('buildPlotData — a design draws only on charts its box type has', () 
 
   it('a passive-radiator overlay draws nothing on the port velocity chart', () => {
     const out = buildPlotData(engine, 'RearPort', 10, 2000, of('vented', 'vent'), [of('box-passive-radiator', 'pr')]).value!;
-    // One design left, so its trace carries no project prefix.
-    assert.deepEqual(out.series.filter(s => !s.dash).map(s => s.name), ['Port vel']);
+    assert.deepEqual(out.series.filter(s => !s.dash).map(s => s.name), ['vent']);
   });
 
   it('a vented overlay still draws on the port velocity chart', () => {

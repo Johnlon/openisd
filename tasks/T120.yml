@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 080829ac57438faa6922bb153c6e7bee39ee03fd
 goal: original-project-list hide/show specs pass again after the thicker active trace (T106)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
