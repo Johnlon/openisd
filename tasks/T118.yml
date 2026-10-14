@@ -3,6 +3,7 @@ release_note: On the phone layout, the bottom bar stays at the bottom when the b
 repo: openisd
 owner: bob
 status: done
+landed: 2f8ba89219ee3a4393e04277596cac794c5ed895
 goal: The mobile shell re-measures its height when a browser hides or shows its address bar without a resize event (DuckDuckGo).
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

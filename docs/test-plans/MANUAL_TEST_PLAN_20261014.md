@@ -1,19 +1,19 @@
-# Manual test plan, next release (13 Oct 2026)
+# Manual test plan, next release (14 Oct 2026)
 
-Build under test: snapshot **20261013T1911Z** at https://openisd.app/snap/20261013T1911Z/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
+Build under test: snapshot **20261014T0113Z** at https://openisd.app/snap/20261014T0113Z/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
 
-Before you start, on each device: open the snapshot URL, close the tab, open it again (the second open runs the new worker). About must show "Snapshot 13 Oct 2026, …". If it shows an older stamp, open it once more.
+Before you start, on each device: open the snapshot URL, close the tab, open it again (the second open runs the new worker). About must show "Snapshot 14 Oct 2026, …" and the footer label "Oct 14 01:13Z". If it shows an older stamp, open it once more.
 
 Report: one line per failure, "step N: what you saw". For anything odd, menu → Diagnostics → Copy diagnostics, paste it.
 
-Legend: P = phone (Chrome Android, Mobile skin), D = desktop (Original skin).
+Legend: P = phone (Chrome Android, Mobile skin), D = desktop (Original skin), FF = Firefox Android, DDG = DuckDuckGo Android.
 
 ## 1. Boot and version (T066, T070)
 
 | # | Where | Step | Expect |
 |---|---|---|---|
 | 1.1 | P, D | Open the snapshot URL | App loads, no loading hang |
-| 1.2 | P, D | Menu → About | Versions section: "Snapshot 13 Oct 2026, hh:mm", button **All releases**, link **Snapshot builds** (snapshot build only) |
+| 1.2 | P, D | Menu → About | Versions section: "Snapshot 14 Oct 2026, hh:mm", button **All releases**, link **Snapshot builds** (snapshot build only) |
 | 1.3 | P, D | Tap All releases | https://openisd.app/v/ opens, lists 1438Z, 1646Z, 1709Z, 1842Z |
 | 1.4 | P | Open http://lap:4173/ (local preview, if running) | App loads over plain http (used to hang) |
 
@@ -86,6 +86,37 @@ Dashboard: on the private links page. Top line says "You are viewing from visito
 | 8.4 | P | Chrome menu → Install app (or address-bar icon) | Installs; the installed app opens to the same projects |
 | 8.5 | P, D | Options → change a unit, close, reopen | Unit kept |
 
+## 9. Bottom bar on other browsers (T111, T118)
+
+| # | Where | Step | Expect |
+|---|---|---|---|
+| 9.1 | FF, DDG | Open the snapshot URL | Bottom tab bar fully on screen on load, no page scroll needed |
+| 9.2 | FF, DDG | Swipe up so the browser's address bar hides, then swipe down so it shows | Bottom bar stays glued to the screen bottom both ways, no gap above it, no bar under the browser's own bar |
+| 9.3 | P | Same swipes in Chrome | Unchanged |
+| 9.4 | FF, DDG | Rotate to landscape and back | Bar still on screen |
+
+## 10. Version label (T113)
+
+| # | Where | Step | Expect |
+|---|---|---|---|
+| 10.1 | P, D | Read the version label (footer / About) | "Oct 14 01:13Z", the Z present, the time equal to the snapshot stamp, not your local time |
+
+## 11. Chart legend and traces (T106, T114, T116)
+
+| # | Where | Step | Expect |
+|---|---|---|---|
+| 11.1 | P, D | One project, Transfer function chart | Legend lists the project name first, not "Transfer function", then 0 dB and −3 dB |
+| 11.2 | P, D | Two projects open, Transfer function / SPL / Impedance / Group delay | Legend lists "ProjectA", "ProjectB" first, then the dB lines; no chart name after a project |
+| 11.3 | P, D | Two projects, click a project row to make it active | The active project's trace is clearly thicker than the other |
+| 11.4 | P | Same, legend at the top-left of the chart | Readable, not clipped |
+
+## 12. Phase charts (T115)
+
+| # | Where | Step | Expect |
+|---|---|---|---|
+| 12.1 | P, D | Transfer phase (or Impedance phase on a design whose phase crosses ±180°) | No solid vertical line at the wrap; a faint dotted segment joins the two ends |
+| 12.2 | P, D | A phase chart with no wrap | Nothing extra drawn |
+
 ## Not in this build
 
-Google Drive sync: groundwork only, nothing visible. Developer label with commit time: dev builds only.
+Google Drive sync: groundwork only, nothing visible (sign-in and sync UI are the next pieces). Edit Driver styling, cne legend row and footer legend on other screens: bob, still in progress. Developer label with commit time: dev builds only.

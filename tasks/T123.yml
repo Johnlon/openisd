@@ -1,0 +1,11 @@
+id: T123
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The manual test plan names snapshot 20261014T0113Z and covers T106, T111, T113, T114, T115, T116, T118
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T123.yml
+  - docs/test-plans/MANUAL_TEST_PLAN_20261013.md
+  - docs/test-plans/MANUAL_TEST_PLAN_20261014.md
