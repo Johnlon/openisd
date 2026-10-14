@@ -181,7 +181,9 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tone = 'accent';
       badge = status.changes > 0 ? status.changes : null;
       shortText = `${status.changes} not synced`;
-      text = `${formatCountOf(status.changes, 'change')} not synced`;
+      text = status.nextAt_ms === null
+        ? `${formatCountOf(status.changes, 'change')} not synced`
+        : `${formatCountOf(status.changes, 'change')} not synced, syncs at ${formatTime(new Date(status.nextAt_ms))}`;
       tooltip = `${formatCountOf(status.changes, 'change')} will sync in a moment.`;
       account = status.account;
       pendingLine = `${formatCountOf(status.changes, 'change')} not synced`;
@@ -257,7 +259,9 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tone = 'bad';
       badge = null;
       shortText = 'Sync failed';
-      text = cloudFaultText(status.fault);
+      text = status.retryAt_ms === null
+        ? cloudFaultText(status.fault)
+        : `${cloudFaultText(status.fault)} Retrying at ${formatTime(new Date(status.retryAt_ms))}.`;
       tooltip = text;
       account = status.account;
       pendingLine = null;

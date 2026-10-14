@@ -228,6 +228,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         account: 'john@gmail.com',
         at_ms: sampleTime,
         changes: 2,
+        nextAt_ms: null,
       }));
       expect(display.glyph).toBe('cloudBusy');
       expect(display.tone).toBe('accent');
@@ -413,11 +414,30 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       });
     });
 
+    it('row 6: pending says when the waiting changes sync', () => {
+      const at = new Date(2026, 9, 14, 13, 42).getTime();
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'pending', account: 'john@gmail.com', at_ms: sampleTime, changes: 2, nextAt_ms: at,
+      }));
+      expect(display.text).toBe('2 changes not synced, syncs at 13:42');
+    });
+
+    it('row 11: a request with no reply says so and when it tries again', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'failed',
+        account: 'john@gmail.com',
+        fault: {operation: 'list', status: 0, reason: 'Failed to fetch', reply: ''},
+        retryAt_ms: new Date(2026, 9, 14, 13, 43).getTime(),
+      }));
+      expect(display.text).toBe('Sync failed: list got no reply from Drive (Failed to fetch). Retrying at 13:43.');
+    });
+
     it('row 11: a 403 says Google did not grant access', () => {
       const display = syncDisplayOf(defaultInputs({
         kind: 'failed',
         account: 'john@gmail.com',
         fault: {operation: 'list', status: 403, reason: 'insufficientPermissions', reply: '{}'},
+        retryAt_ms: null,
       }));
       expect(display.text).toBe('Google did not grant Drive access. Disconnect and connect again.');
     });
@@ -427,6 +447,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         kind: 'failed',
         account: 'john@gmail.com',
         fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'},
+        retryAt_ms: null,
       }));
       expect(display.glyph).toBe('cloudAlert');
       expect(display.tone).toBe('bad');

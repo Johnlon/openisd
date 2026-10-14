@@ -58,6 +58,7 @@ function deviceOn(drive: DriveEmulator, fill: number) {
       config,
       guard: {leave: vi.fn()},
       fetch: drive.fetch,
+      online: () => true,
       timer: {after: () => () => undefined, every: () => () => undefined},
       lock: {withLock: (_name, f) => f()},
       visible: () => true,

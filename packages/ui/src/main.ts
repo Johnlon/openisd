@@ -317,6 +317,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       config: oauthConfig,
       guard: redirectGuard,
       fetch,
+      online: () => navigator.onLine,
       timer: createBrowserTimer(),
       lock: createDefaultRunLock(),
       visible: () => document.visibilityState === 'visible',

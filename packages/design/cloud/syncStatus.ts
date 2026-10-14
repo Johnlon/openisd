@@ -52,12 +52,12 @@ export type SyncStatus =
   | { readonly kind: 'connecting' }
   | { readonly kind: 'syncing'; readonly account: string }
   | { readonly kind: 'synced'; readonly account: string; readonly at_ms: number; readonly conflicts: number }
-  | { readonly kind: 'pending'; readonly account: string; readonly at_ms: number | null; readonly changes: number }
+  | { readonly kind: 'pending'; readonly account: string; readonly at_ms: number | null; readonly changes: number; readonly nextAt_ms: number | null }
   | { readonly kind: 'offline'; readonly account: string; readonly at_ms: number | null; readonly changes: number }
   | { readonly kind: 'reconnect'; readonly account: string; readonly changes: number }
   | { readonly kind: 'held'; readonly account: string; readonly at_ms: number | null; readonly heldDocs: number }
   | { readonly kind: 'refused'; readonly account: string; readonly reason: 'noRoom' | 'bucketUnreadable' }
-  | { readonly kind: 'failed'; readonly account: string; readonly fault: CloudFault };
+  | { readonly kind: 'failed'; readonly account: string; readonly fault: CloudFault; readonly retryAt_ms: number | null };
 
 export interface ConflictCopy {
   readonly id: ProjectId | DriverId | PrId;

@@ -13,14 +13,21 @@ export interface HttpResponse {
   readonly headers?: Record<string, string>;
 }
 
+/** A reply; or no reply because the browser is offline; or no reply although it is online. */
+export type HttpResult =
+  | HttpResponse
+  | { readonly kind: 'offline' }
+  | { readonly kind: 'unreachable'; readonly reason: string };
+
 export interface Http {
-  send(request: HttpRequest): Promise<HttpResponse | { readonly kind: 'offline' }>;
+  send(request: HttpRequest): Promise<HttpResult>;
 }
 
-/** The one Http over the browser's fetch; the composition root passes `globalThis.fetch`. */
-export function createFetchHttp(fetchFn: typeof fetch): Http {
+/** The one Http over the browser's fetch; the composition root passes `globalThis.fetch` and
+ *  `navigator.onLine`. A fetch that throws is "offline" only when the browser says it is. */
+export function createFetchHttp(fetchFn: typeof fetch, online: () => boolean): Http {
   return {
-    async send(req: HttpRequest): Promise<HttpResponse | { readonly kind: 'offline' }> {
+    async send(req: HttpRequest): Promise<HttpResult> {
       try {
         const res = await fetchFn(req.url, {
           method: req.method,
@@ -37,8 +44,9 @@ export function createFetchHttp(fetchFn: typeof fetch): Http {
           text,
           headers
         };
-      } catch {
-        return { kind: 'offline' };
+      } catch (err) {
+        if (!online()) return { kind: 'offline' };
+        return { kind: 'unreachable', reason: err instanceof Error ? err.message : String(err) };
       }
     }
   };

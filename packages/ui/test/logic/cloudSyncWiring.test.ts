@@ -63,6 +63,7 @@ function createWiringHarness() {
     config,
     guard,
     fetch: dummyFetch,
+    online: () => true,
     timer: { after: () => () => undefined, every: () => () => undefined },
     lock: { withLock: (_name, f) => f() },
     visible: () => true,

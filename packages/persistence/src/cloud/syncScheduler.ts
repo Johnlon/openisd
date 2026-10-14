@@ -25,6 +25,7 @@ export interface SyncSchedulerDeps {
   /** Names an unnamed account before each run. */
   readonly namer: AccountNamer;
   readonly timer: Timer;
+  readonly now: () => number;
   readonly lock: RunLock;
   readonly visible: () => boolean;
   readonly onOutcome: (outcome: RunOutcome) => void;
@@ -35,6 +36,8 @@ export interface SyncSchedulerDeps {
 
 export type SyncScheduler = SyncTriggers & {
   syncNow(): Promise<void>;
+  /** When the next run is due: the end of a save debounce, or the next tick, whichever is sooner. */
+  nextRunAt(): number | null;
 };
 
 export function createSyncScheduler(deps: SyncSchedulerDeps): SyncScheduler {
@@ -42,6 +45,8 @@ export function createSyncScheduler(deps: SyncSchedulerDeps): SyncScheduler {
   let queued = false;
   let saveTimerCancel: (() => void) | null = null;
   let focusCooldown = false;
+  let saveDueAt: number | null = null;
+  let nextTickAt = deps.now() + deps.tick_ms;
 
   let queuedResolvers: (() => void)[] = [];
   let queuedRejecters: ((err: unknown) => void)[] = [];
@@ -137,8 +142,10 @@ export function createSyncScheduler(deps: SyncSchedulerDeps): SyncScheduler {
       saveTimerCancel();
       saveTimerCancel = null;
     }
+    saveDueAt = deps.now() + deps.debounce_ms;
     saveTimerCancel = deps.timer.after(deps.debounce_ms, () => {
       saveTimerCancel = null;
+      saveDueAt = null;
       if (deps.session.grant().kind !== 'none') {
         void requestRun();
       }
@@ -173,8 +180,14 @@ export function createSyncScheduler(deps: SyncSchedulerDeps): SyncScheduler {
   }
 
   deps.timer.every(deps.tick_ms, () => {
+    nextTickAt = deps.now() + deps.tick_ms;
     onTick();
   });
+
+  function nextRunAt(): number | null {
+    if (deps.session.grant().kind === 'none') return null;
+    return saveDueAt === null ? nextTickAt : Math.min(saveDueAt, nextTickAt);
+  }
 
   return {
     onOpen,
@@ -183,5 +196,6 @@ export function createSyncScheduler(deps: SyncSchedulerDeps): SyncScheduler {
     onReconnect,
     onTick,
     syncNow,
+    nextRunAt,
   };
 }

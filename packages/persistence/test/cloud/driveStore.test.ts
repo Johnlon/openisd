@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDriveStore } from '../../src/cloud/drive/driveStore.js';
-import type { Http, HttpRequest, HttpResponse } from '../../src/cloud/http.js';
+import type { Http, HttpRequest, HttpResult } from '../../src/cloud/http.js';
 import type { CloudSession } from '../../src/cloud/cloudStore.js';
 import {
   FileId,
@@ -23,13 +23,13 @@ function fixture(name: string): string {
 
 class FakeHttp implements Http {
   readonly recorded: HttpRequest[] = [];
-  private responses: (HttpResponse | { readonly kind: 'offline' })[] = [];
+  private responses: HttpResult[] = [];
 
-  queueResponse(res: HttpResponse | { readonly kind: 'offline' }): void {
+  queueResponse(res: HttpResult): void {
     this.responses.push(res);
   }
 
-  async send(request: HttpRequest): Promise<HttpResponse | { readonly kind: 'offline' }> {
+  async send(request: HttpRequest): Promise<HttpResult> {
     this.recorded.push(request);
     const next = this.responses.shift();
     if (!next) {
@@ -438,6 +438,13 @@ describe('DriveStore', () => {
   });
 
   describe('error and offline mapping', () => {
+    it('a request with no reply on an online machine is a fault with status 0, not offline', async () => {
+      const store = createDriveStore({ http, session });
+      http.queueResponse({ kind: 'unreachable', reason: 'Failed to fetch' });
+      const res = await store.listAll();
+      expect(res).toEqual({ kind: 'faulted', fault: { operation: 'list', status: 0, reason: 'Failed to fetch', reply: '' } });
+    });
+
     it('removeFile deletes the file outright, with no tombstone first', async () => {
       const store = createDriveStore({ http, session });
       http.queueResponse({ status: 204, text: '' });

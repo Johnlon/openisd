@@ -90,7 +90,12 @@ async function dispatch(
     body: req.body
   });
   if ('kind' in res) {
-    return { kind: 'offline' };
+    switch (res.kind) {
+      case 'offline':
+        return { kind: 'offline' };
+      case 'unreachable':
+        return { kind: 'faulted', fault: cloudFaultOf(operation, 0, res.reason, '') };
+    }
   }
   if (res.status >= 400 || res.status < 200) {
     const retryAfter = parseRetryAfterMs(res.headers);

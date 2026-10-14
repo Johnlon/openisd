@@ -25,6 +25,10 @@ interface PendingTimer {
 
 class FakeTimer implements Timer {
   private now_ms = 0;
+
+  get time(): number {
+    return this.now_ms;
+  }
   private nextId = 1;
   private timers: PendingTimer[] = [];
 
@@ -175,6 +179,7 @@ function createHarness(options?: { isVisible?: boolean }) {
     session,
     namer,
     timer,
+    now: () => timer.time,
     lock,
     visible: () => visibleState,
     onOutcome: (outcome) => {
@@ -206,6 +211,19 @@ async function flush(): Promise<void> {
 }
 
 describe('syncScheduler', () => {
+  it('says when the next run is due: the next tick, or the end of a save debounce if sooner', async () => {
+    const h = createHarness();
+    expect(h.scheduler.nextRunAt()).toBe(60000);
+    h.scheduler.onSave();
+    expect(h.scheduler.nextRunAt()).toBe(3000);
+    h.timer.advance(3000);
+    await flush();
+    expect(h.scheduler.nextRunAt()).toBe(60000);
+    h.timer.advance(57000);
+    await flush();
+    expect(h.scheduler.nextRunAt()).toBe(120000);
+  });
+
   it('names the account before each run', async () => {
     const h = createHarness();
     let namedBeforeRun = false;
@@ -340,6 +358,7 @@ describe('syncScheduler', () => {
       session: session1,
       namer: new FakeNamer(),
       timer,
+      now: () => timer.time,
       lock,
       visible: () => true,
       onOutcome: () => {},
@@ -355,6 +374,7 @@ describe('syncScheduler', () => {
       session: session2,
       namer: new FakeNamer(),
       timer,
+      now: () => timer.time,
       lock,
       visible: () => true,
       onOutcome: () => {},

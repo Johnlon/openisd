@@ -61,6 +61,7 @@ export interface CloudFaultRecord {
 /** The status line for a fault: what Drive said, or what to do when Google refused access. */
 export function cloudFaultText(fault: CloudFault): string {
   if (fault.status === 403) return 'Google did not grant Drive access. Disconnect and connect again.';
+  if (fault.status === 0) return `Sync failed: ${fault.operation} got no reply from Drive (${fault.reason}).`;
   const said = fault.reply === '' ? '' : ` Drive said: ${fault.reply}`;
   return `Sync failed: ${fault.operation}, HTTP ${fault.status}, ${fault.reason}.${said}`;
 }

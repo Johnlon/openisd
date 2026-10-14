@@ -44,6 +44,11 @@ class FakeCloudSession implements CloudSession {
 
 class FakeSyncScheduler implements SyncScheduler {
   syncNowCalls = 0;
+  nextAt: number | null = null;
+
+  nextRunAt(): number | null {
+    return this.nextAt;
+  }
 
   onOpen(): void {}
   onFocus(): void {}
@@ -148,6 +153,7 @@ describe('cloudSync', () => {
       account: 'john@example.com',
       at_ms: null,
       changes: 0,
+      nextAt_ms: null,
     });
 
     // 1. synced outcome (no held, no pending, no conflicts)
@@ -207,6 +213,7 @@ describe('cloudSync', () => {
       account: 'john@example.com',
       at_ms: 2000,
       changes: 2,
+      nextAt_ms: null,
     });
     engine.pending = 0;
 
@@ -276,12 +283,26 @@ describe('cloudSync', () => {
       kind: 'failed',
       account: 'john@example.com',
       fault,
+      retryAt_ms: null,
     });
     expect(sync.diagnostics().lastFault?.fault).toEqual(fault);
 
     // 7. the fault is kept until a run succeeds
     sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0 });
     expect(sync.diagnostics().lastFault).toBeNull();
+  });
+
+  it('a quota stop is waiting, not offline, and pending and failed say when the next run is due', () => {
+    const scheduler = new FakeSyncScheduler();
+    scheduler.nextAt = 9000;
+    const sync = createCloudSync({
+      session: new FakeCloudSession(), scheduler, ledger: new FakeSyncLedger(), engine: new FakeSyncEngine(), now: () => 1000,
+    });
+    sync.onOutcome({ kind: 'stopped', reason: 'quota', pushedSoFar: 0, pendingLocal: 3 });
+    expect(sync.status()).toEqual({ kind: 'pending', account: 'john@example.com', at_ms: null, changes: 3, nextAt_ms: 9000 });
+    const fault = { operation: 'list' as const, status: 0, reason: 'Failed to fetch', reply: '' };
+    sync.onOutcome({ kind: 'failed', fault, pendingLocal: 3 });
+    expect(sync.status()).toEqual({ kind: 'failed', account: 'john@example.com', fault, retryAt_ms: 9000 });
   });
 
   it('diagnostics() shows a run in progress from its start, with the pushes so far, until it ends', () => {

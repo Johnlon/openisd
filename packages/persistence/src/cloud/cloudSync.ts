@@ -120,6 +120,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
         account,
         at_ms: null,
         changes: pending,
+        nextAt_ms: deps.scheduler.nextRunAt(),
       };
     }
 
@@ -140,6 +141,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
             account,
             at_ms: lastSyncAt_ms,
             changes: pending,
+            nextAt_ms: deps.scheduler.nextRunAt(),
           };
         }
         return {
@@ -151,12 +153,15 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
       }
 
       case 'stopped': {
-        return {
-          kind: 'offline',
-          account,
-          at_ms: lastSyncAt_ms,
-          changes: pendingChanges(),
-        };
+        // Offline only when the browser says so (the request layer decides); Drive asking to
+        // slow down is a wait for the next run, not a lost connection.
+        switch (lastRunOutcome.reason) {
+          case 'offline':
+            return { kind: 'offline', account, at_ms: lastSyncAt_ms, changes: pendingChanges() };
+          case 'quota':
+            return { kind: 'pending', account, at_ms: lastSyncAt_ms, changes: pendingChanges(), nextAt_ms: deps.scheduler.nextRunAt() };
+        }
+        break;
       }
 
       case 'notConnected': {
@@ -184,6 +189,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
           kind: 'failed',
           account,
           fault: lastRunOutcome.fault,
+          retryAt_ms: deps.scheduler.nextRunAt(),
         };
       }
     }

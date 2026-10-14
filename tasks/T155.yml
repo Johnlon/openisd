@@ -1,0 +1,18 @@
+id: T155
+release_note: Cloud sync says "Offline" only when the device is offline; a request that gets no reply says sync failed and when it retries, and waiting changes say when they sync.
+repo: openisd
+owner: maryu
+status: done
+goal: Offline shows only when the browser is offline; a request with no reply is a sync failure with its retry time; waiting changes say when they sync
+done_test: bash scripts/test.sh packages/persistence/test/cloud/http.test.ts packages/persistence/test/cloud/syncScheduler.test.ts packages/persistence/test/cloud/cloudSync.test.ts packages/design/test/cloud/syncDisplay.test.ts
+files:
+  - tasks/T155.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/logic/cloudSyncWiring.test.ts
+  - packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
+  - packages/ui/test/ui/**

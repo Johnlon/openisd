@@ -94,6 +94,8 @@ export interface CloudSyncWiringDeps {
   readonly config: OAuthConfig;
   readonly guard: RedirectGuard;
   readonly fetch: typeof fetch;
+  /** Whether the browser says it is online; a failed request is "offline" only when it is not. */
+  readonly online: () => boolean;
   readonly timer: Timer;
   readonly lock: RunLock;
   readonly visible: () => boolean;
@@ -117,7 +119,7 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
   const {now, random, timer, lock, visible, location} = deps;
 
   const tokenStore = createTokenStore(deps.storage);
-  const revoker = createGoogleRevoker(createFetchHttp(deps.fetch));
+  const revoker = createGoogleRevoker(createFetchHttp(deps.fetch, deps.online));
   const session = createImplicitSession({
     config: deps.config,
     store: tokenStore,
@@ -129,7 +131,7 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
   });
 
   const driveStore = createDriveStore({
-    http: createFetchHttp(deps.fetch),
+    http: createFetchHttp(deps.fetch, deps.online),
     session,
   });
 
@@ -207,6 +209,7 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     session,
     namer,
     timer,
+    now,
     lock,
     visible,
     onOutcome: (outcome: RunOutcome) => {

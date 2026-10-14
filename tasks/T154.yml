@@ -3,6 +3,7 @@ release_note: Cloud sync removes the duplicate files an earlier sync bug left in
 repo: openisd
 owner: maryu
 status: done
+landed: 720a2b7024a84a858719a1e3c8305c1e247b7ddd
 goal: Sync removes the duplicate Drive files the re-upload bug left; one full listing per device, newest copy of each doc kept, the rest deleted, count reported
 done_test: bash scripts/test.sh packages/persistence/test/cloud/syncEngine.test.ts packages/persistence/test/cloud/syncLedger.test.ts packages/persistence/test/cloud/driveStore.test.ts
 files:
