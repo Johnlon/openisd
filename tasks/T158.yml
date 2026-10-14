@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: sonnet-slim-embedded-driver
 status: done
+landed: ed7d3ed493278b2c01c9863a478b966d50a6de82
 goal: A project's embedded driver carries only what the Driver Editor shows, in storage, owpr export and share links
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

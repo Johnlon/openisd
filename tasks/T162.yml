@@ -1,0 +1,11 @@
+id: T162
+release_note: internal
+label: fixes
+repo: openisd
+owner: sonnet-close-f23
+status: done
+goal: Main is green again after T158: F23 closed (architecture factory, open-sessions spec)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T162.yml
+  - tasks/fixes/F23.yml
