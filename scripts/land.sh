@@ -99,9 +99,11 @@ fi
 # `landed` gets status done and the sha here, whatever its status said (T099: claims that outlived
 # their landing, T053 and F11-fix, blocked other claims for a day); every commit of this branch must
 # be this task's own; then the branch is squashed into "<id>: <goal>" with status done and the
-# release note as the body (T064).
+# release note as the body (T064). Never a tasks/fixes/F*.yml: its "F<n>: the full suite is red"
+# commit is on main from the moment it opens, so this loop closed F15 to F19 at the next landing
+# with nothing fixed (T117); a fix task is closed only by the `fixes`-labelled task that fixes it.
 edited=0
-for tf in tasks/*.yml tasks/fixes/*.yml; do
+for tf in tasks/*.yml; do
   [ -f "$tf" ] && [ "$tf" != "$TASK" ] || continue
   [ -z "$(task_field "$tf" landed)" ] || continue
   case "$(task_field "$tf" status)" in open|claimed|todo|done) ;; *) continue ;; esac

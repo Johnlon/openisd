@@ -80,5 +80,18 @@ ld8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml | sed -n 's/^landed:
 if [ $r = 0 ] && [ "$st8" = done ] && [ "$ld8" = "$t8sha" ]; then ok "claimed T8 with its commit on main becomes done + landed"
 else fail "stale claim (r=$r st=$st8 landed=$ld8 want=$t8sha)"; fi
 
+# f. T117: an open tasks/fixes/F*.yml stays open through a `fixes` landing even though its own
+# "F5:" commit is on main — only the fixing task closes it, never this loop
+setup
+printf 'id: F5\nowner: t\nstatus: open\ngoal: main is red.\n' > tasks/fixes/F5.yml
+git add -A; git commit -qm "F5: the full suite is red at abc"; git push -q origin main
+printf 'label: fixes\n' >> tasks/T9.yml
+echo 1 > f.txt; git add -A; git commit -qm "wip"
+bash scripts/land.sh T9 > /dev/null 2>&1; r=$?
+st5=$(git -C "$SCRATCH/w/origin.git" show main:tasks/fixes/F5.yml | sed -n 's/^status: //p')
+ld5=$(git -C "$SCRATCH/w/origin.git" show main:tasks/fixes/F5.yml | sed -n 's/^landed: //p')
+if [ $r = 0 ] && [ "$st5" = open ] && [ -z "$ld5" ]; then ok "open F5 is not closed by the next landing"
+else fail "fix task auto-closed (r=$r st=$st5 landed=$ld5)"; fi
+
 [ $fails = 0 ] && { echo "land-squash: all passed"; exit 0; }
 echo "land-squash: $fails failed"; exit 1

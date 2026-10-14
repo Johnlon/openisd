@@ -3,6 +3,7 @@ release_note: With two or more projects on a chart, the legend names each projec
 repo: openisd
 owner: bob
 status: done
+landed: abaae510038e48d2e577bd9fd5891012f1ad6061
 goal: The chart legend names a project alone, without the chart name, unless the chart draws several lines per project.
 done_test: bash scripts/test.sh packages/design/test/chart/build-plot-data.test.ts
 files:
