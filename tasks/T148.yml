@@ -1,0 +1,11 @@
+id: T148
+release_note: The cloud sync status says "Syncing…" while a sync is running.
+repo: openisd
+owner: maryu
+status: done
+goal: The sync status shows Syncing while a run is going
+done_test: bash scripts/test.sh packages/persistence/test/cloud/cloudSync.test.ts
+files:
+  - tasks/T148.yml
+  - packages/persistence/src/cloud/cloudSync.ts
+  - packages/persistence/test/cloud/cloudSync.test.ts

@@ -3,6 +3,7 @@ release_note: Diagnostics shows a cloud sync run in progress, with its start tim
 repo: openisd
 owner: maryu
 status: done
+landed: 2671ffc962d0aa0f4515862492eef3f9bc7aa2e1
 goal: Diagnostics Cloud sync names the account or says Google account (name not available), and shows a run in progress with its start time and pushed count
 done_test: bash scripts/test.sh packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/cloud/cloudSync.test.ts packages/persistence/test/cloud/syncEngine.test.ts
 files:

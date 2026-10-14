@@ -106,6 +106,10 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
 
     const account = grant.account;
 
+    if (lastAttempt?.kind === 'running') {
+      return { kind: 'syncing', account };
+    }
+
     if (lastRunOutcome === null) {
       const pending = pendingChanges();
       return {

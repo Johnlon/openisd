@@ -294,6 +294,7 @@ describe('cloudSync', () => {
 
     sync.runStarted();
     expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'running', started_ms: 1000, pushed: 0 });
+    expect(sync.status()).toEqual({ kind: 'syncing', account: 'john@example.com' });
     nowTime = 1500;
     sync.runPushed(16);
     expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'running', started_ms: 1000, pushed: 16 });
@@ -302,6 +303,7 @@ describe('cloudSync', () => {
     nowTime = 4000;
     sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], held: 0 });
     expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced' } });
+    expect(sync.status().kind).toBe('synced');
   });
 
   it('diagnostics() reports the grant, the last attempt, the pending count and the last fault', () => {
