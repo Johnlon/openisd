@@ -83,6 +83,7 @@ const libraryLine = computed(() => {
         <li><strong>Solvers that run in every direction</strong> — enter what you know, at either end, and it works out the rest.</li>
         <li><strong>Error messages that teach</strong> — what is wrong, which physics says so, and what to change.</li>
         <li><strong>Visible calculation provenance</strong> — trace any number back to the values and the formula it came from.</li>
+        <li><strong>Cloud sync, if you want it</strong> — your saved projects, drivers, passive radiators, favourites and Options follow you to your other devices through your own Google Drive. Off until you turn it on; no OpenISD server sees them.</li>
       </ul>
     </section>
 

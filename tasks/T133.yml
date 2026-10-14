@@ -3,6 +3,7 @@ release_note: Cloud sync to your own Google Drive, sign in from the toolbar (des
 repo: openisd
 owner: fable
 status: done
+landed: ff487497334796a39747699bcbdcf57cdaf05dfe
 goal: Snapshot builds carry the Google OAuth client id: build.yml passes the VITE_GOOGLE_CLIENT_ID repository variable to snap.sh
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

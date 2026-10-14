@@ -29,6 +29,7 @@ test('a first visitor gets the splash, and it credits WinISD and links to the pr
   await expect(splash.locator('a[href="https://github.com/Johnlon/openisd"]')).toBeVisible();
   await expect(splash.locator('a[href$="ARCHITECTURE.md"]')).toBeVisible();
   await expect(splash.locator('a[href$="OPENISD_WINISD_GAPS_AND_BUGS.md"]')).toBeVisible();
+  await expect(splash).toContainText('Cloud sync, if you want it');
 });
 
 test('it states how many devices the bundled catalogue holds', async ({page}) => {

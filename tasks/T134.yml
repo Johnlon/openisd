@@ -1,0 +1,11 @@
+id: T134
+release_note: The splash and about page mention optional cloud sync through your own Google Drive.
+repo: openisd
+owner: maryu
+status: done
+goal: The splash and about page list optional cloud sync through your own Google Drive
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T134.yml
+  - packages/ui/src/ui/components/SplashContent.vue
+  - packages/ui/test/ui/splash.browser.spec.ts
