@@ -1,5 +1,6 @@
 import {formatCountOf, formatDateTime, formatTime} from '../fields/format.js';
 import type {ConflictCopy, SyncStatus} from './syncStatus.js';
+import {cloudFaultText} from './cloudTypes.js';
 
 export type SyncTone = 'muted' | 'accent' | 'good' | 'warn' | 'bad';
 export type SyncGlyph = 'cloudOff' | 'cloudBusy' | 'cloudDone' | 'cloudSlash' | 'cloudAlert';
@@ -256,7 +257,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       tone = 'bad';
       badge = null;
       shortText = 'Sync failed';
-      text = `Sync failed: ${status.reason}. It will try again.`;
+      text = cloudFaultText(status.fault);
       tooltip = text;
       account = status.account;
       pendingLine = null;

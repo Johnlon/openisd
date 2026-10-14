@@ -1,10 +1,10 @@
 import type {CloudSession, CloudStore} from '../cloudStore.js';
 import type {
-  CloudChange, CloudChanges, CloudDoc, CloudError, CloudFileList, CloudMeta, CloudResult, WriteMeta,
+  CloudChange, CloudChanges, CloudDoc, CloudError, CloudFileList, CloudMeta, CloudOperation, CloudResult, WriteMeta,
 } from '@openisd/design/cloud';
 import type { Http, HttpMethod } from '../http.js';
 import {
-  ChangeCursor, type DocId, docFileName, FileId, parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata,
+  ChangeCursor, cloudFaultOf, type DocId, docFileName, FileId, parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata,
   parseStartPageToken, parseWriteReply, RevisionId,
 } from '@openisd/design/cloud';
 
@@ -66,6 +66,7 @@ type HttpDispatchResult =
 async function dispatch(
   http: Http,
   session: CloudSession,
+  operation: CloudOperation,
   req: {
     readonly method: HttpMethod;
     readonly url: string;
@@ -92,7 +93,8 @@ async function dispatch(
   }
   if (res.status >= 400 || res.status < 200) {
     const retryAfter = parseRetryAfterMs(res.headers);
-    return parseErrorResponse(res.status, res.text, retryAfter);
+    const err = parseErrorResponse(res.status, res.text, retryAfter);
+    return err.kind === 'failed' ? { kind: 'faulted', fault: cloudFaultOf(operation, res.status, err.reason, res.text) } : err;
   }
   return {
     kind: 'ok',
@@ -100,6 +102,12 @@ async function dispatch(
     text: res.text,
     headers: res.headers
   };
+}
+
+/** A parsed reply, or the parser's refusal as a fault that keeps the reply it refused. */
+function readReply<T>(operation: CloudOperation, res: { readonly status: number; readonly text: string }, parsed: CloudResult<T>): CloudResult<T> {
+  if (parsed.kind !== 'malformed') return parsed;
+  return { kind: 'faulted', fault: cloudFaultOf(operation, res.status, parsed.reason, res.text) };
 }
 
 export function createDriveStore(deps: DriveStoreDeps): CloudStore {
@@ -115,11 +123,11 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
     while (true) {
       const pageParam = pageToken !== undefined ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
       const url = `${baseUrl}/drive/v3/files?spaces=appDataFolder&fields=nextPageToken,files(id,name,headRevisionId,appProperties)${pageParam}`;
-      const res = await dispatch(http, session, { method: 'GET', url });
+      const res = await dispatch(http, session, 'list', { method: 'GET', url });
       if (res.kind !== 'ok') {
         return res;
       }
-      const parsed = parseFileList(res.text);
+      const parsed = readReply('list', res, parseFileList(res.text));
       if (parsed.kind !== 'ok') {
         return parsed;
       }
@@ -141,11 +149,11 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
 
     while (true) {
       const url = `${baseUrl}/drive/v3/changes?spaces=appDataFolder&pageToken=${encodeURIComponent(currentCursor)}&fields=nextPageToken,newStartPageToken,changes(fileId,removed,file(id,name,headRevisionId,appProperties))`;
-      const res = await dispatch(http, session, { method: 'GET', url });
+      const res = await dispatch(http, session, 'changes', { method: 'GET', url });
       if (res.kind !== 'ok') {
         return res;
       }
-      const parsed = parseChangeList(res.text);
+      const parsed = readReply('changes', res, parseChangeList(res.text));
       if (parsed.kind !== 'ok') {
         return parsed;
       }
@@ -168,26 +176,26 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
 
   async function startCursor(): Promise<CloudResult<ChangeCursor>> {
     const url = `${baseUrl}/drive/v3/changes/startPageToken?spaces=appDataFolder`;
-    const res = await dispatch(http, session, { method: 'GET', url });
+    const res = await dispatch(http, session, 'startCursor', { method: 'GET', url });
     if (res.kind !== 'ok') {
       return res;
     }
-    return parseStartPageToken(res.text);
+    return readReply('startCursor', res, parseStartPageToken(res.text));
   }
 
   async function read(fileId: FileId): Promise<CloudResult<CloudDoc>> {
     const metaUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?fields=id,name,headRevisionId,appProperties`;
-    const metaRes = await dispatch(http, session, { method: 'GET', url: metaUrl });
+    const metaRes = await dispatch(http, session, 'read', { method: 'GET', url: metaUrl });
     if (metaRes.kind !== 'ok') {
       return metaRes;
     }
-    const metaParsed = parseFileMetadata(metaRes.text);
+    const metaParsed = readReply('read', metaRes, parseFileMetadata(metaRes.text));
     if (metaParsed.kind !== 'ok') {
       return metaParsed;
     }
 
     const mediaUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?alt=media`;
-    const mediaRes = await dispatch(http, session, { method: 'GET', url: mediaUrl });
+    const mediaRes = await dispatch(http, session, 'read', { method: 'GET', url: mediaUrl });
     if (mediaRes.kind !== 'ok') {
       return mediaRes;
     }
@@ -233,7 +241,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
       `--${MULTIPART_BOUNDARY}--`;
 
     const url = `${uploadUrl}/drive/v3/files?uploadType=multipart&fields=id,name,headRevisionId,appProperties`;
-    const res = await dispatch(http, session, {
+    const res = await dispatch(http, session, 'create', {
       method: 'POST',
       url,
       headers: {
@@ -244,7 +252,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
     if (res.kind !== 'ok') {
       return res;
     }
-    return parseWriteReply(res.text);
+    return readReply('create', res, parseWriteReply(res.text));
   }
 
   async function update(
@@ -254,11 +262,11 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
     meta: WriteMeta
   ): Promise<CloudResult<CloudMeta>> {
     const headUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?fields=id,name,headRevisionId,appProperties`;
-    const headRes = await dispatch(http, session, { method: 'GET', url: headUrl });
+    const headRes = await dispatch(http, session, 'update', { method: 'GET', url: headUrl });
     if (headRes.kind !== 'ok') {
       return headRes;
     }
-    const headParsed = parseFileMetadata(headRes.text);
+    const headParsed = readReply('update', headRes, parseFileMetadata(headRes.text));
     if (headParsed.kind !== 'ok') {
       return headParsed;
     }
@@ -294,7 +302,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
       `--${MULTIPART_BOUNDARY}--`;
 
     const updateUrl = `${uploadUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?uploadType=multipart&fields=id,name,headRevisionId,appProperties`;
-    const res = await dispatch(http, session, {
+    const res = await dispatch(http, session, 'update', {
       method: 'PATCH',
       url: updateUrl,
       headers: {
@@ -305,7 +313,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
     if (res.kind !== 'ok') {
       return res;
     }
-    return parseWriteReply(res.text);
+    return readReply('update', res, parseWriteReply(res.text));
   }
 
   async function tombstone(
@@ -314,11 +322,11 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
     meta: WriteMeta
   ): Promise<CloudResult<CloudMeta>> {
     const headUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?fields=id,name,headRevisionId,appProperties`;
-    const headRes = await dispatch(http, session, { method: 'GET', url: headUrl });
+    const headRes = await dispatch(http, session, 'tombstone', { method: 'GET', url: headUrl });
     if (headRes.kind !== 'ok') {
       return headRes;
     }
-    const headParsed = parseFileMetadata(headRes.text);
+    const headParsed = readReply('tombstone', headRes, parseFileMetadata(headRes.text));
     if (headParsed.kind !== 'ok') {
       return headParsed;
     }
@@ -342,7 +350,7 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
     }
 
     const patchUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?fields=id,name,headRevisionId,appProperties`;
-    const res = await dispatch(http, session, {
+    const res = await dispatch(http, session, 'tombstone', {
       method: 'PATCH',
       url: patchUrl,
       headers: {
@@ -353,25 +361,25 @@ export function createDriveStore(deps: DriveStoreDeps): CloudStore {
     if (res.kind !== 'ok') {
       return res;
     }
-    return parseWriteReply(res.text);
+    return readReply('tombstone', res, parseWriteReply(res.text));
   }
 
   async function purge(fileId: FileId): Promise<CloudResult<void>> {
     const headUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}?fields=id,name,headRevisionId,appProperties`;
-    const headRes = await dispatch(http, session, { method: 'GET', url: headUrl });
+    const headRes = await dispatch(http, session, 'purge', { method: 'GET', url: headUrl });
     if (headRes.kind !== 'ok') {
       return headRes;
     }
-    const headParsed = parseFileMetadata(headRes.text);
+    const headParsed = readReply('purge', headRes, parseFileMetadata(headRes.text));
     if (headParsed.kind !== 'ok') {
       return headParsed;
     }
     if (!headParsed.value.deleted) {
-      return { kind: 'failed', status: 400, reason: 'File is not tombstoned' };
+      return { kind: 'faulted', fault: cloudFaultOf('purge', 400, 'File is not tombstoned', '') };
     }
 
     const deleteUrl = `${baseUrl}/drive/v3/files/${encodeURIComponent(fileId.value)}`;
-    const res = await dispatch(http, session, {
+    const res = await dispatch(http, session, 'purge', {
       method: 'DELETE',
       url: deleteUrl
     });

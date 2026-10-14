@@ -404,9 +404,9 @@ describe('DriveStore', () => {
       });
 
       const res = await store.purge(fid);
-      expect(res.kind).toBe('failed');
-      if (res.kind === 'failed') {
-        expect(res.reason).toContain('tombstone');
+      expect(res.kind).toBe('faulted');
+      if (res.kind === 'faulted') {
+        expect(res.fault.reason).toContain('tombstone');
       }
       expect(http.recorded).toHaveLength(1);
       expect(http.recorded[0].method).toBe('GET');
@@ -437,6 +437,31 @@ describe('DriveStore', () => {
   });
 
   describe('error and offline mapping', () => {
+    it('a reply the parser refuses is a fault naming the request, the status and the reply start', async () => {
+      const store = createDriveStore({ http, session });
+      const reply = JSON.stringify({ files: [] }) + ' '.repeat(400);
+      http.queueResponse({ status: 200, text: reply });
+
+      const res = await store.listAll();
+      expect(res.kind).toBe('faulted');
+      if (res.kind !== 'faulted') return;
+      expect(res.fault).toEqual({ operation: 'list', status: 200, reason: 'Not a file list', reply: reply.slice(0, 300) });
+    });
+
+    it('a Drive error reply is a fault carrying Drive\'s status and body', async () => {
+      const store = createDriveStore({ http, session });
+      const body = JSON.stringify({ error: { code: 403, message: 'Request had insufficient authentication scopes.', errors: [{ reason: 'insufficientPermissions' }] } });
+      http.queueResponse({ status: 403, text: body });
+
+      const res = await store.listAll();
+      expect(res.kind).toBe('faulted');
+      if (res.kind !== 'faulted') return;
+      expect(res.fault.operation).toBe('list');
+      expect(res.fault.status).toBe(403);
+      expect(res.fault.reason).toBe('insufficientPermissions');
+      expect(res.fault.reply).toBe(body);
+    });
+
     it('maps 401 to unauthorised', async () => {
       const store = createDriveStore({ http, session });
       http.queueResponse({

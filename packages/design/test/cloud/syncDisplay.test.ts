@@ -413,25 +413,34 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       });
     });
 
+    it('row 11: a 403 says Google did not grant access', () => {
+      const display = syncDisplayOf(defaultInputs({
+        kind: 'failed',
+        account: 'john@gmail.com',
+        fault: {operation: 'list', status: 403, reason: 'insufficientPermissions', reply: '{}'},
+      }));
+      expect(display.text).toBe('Google did not grant Drive access. Disconnect and connect again.');
+    });
+
     it('row 11: failed', () => {
       const display = syncDisplayOf(defaultInputs({
         kind: 'failed',
         account: 'john@gmail.com',
-        reason: 'Sign-in service unreachable',
+        fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'},
       }));
       expect(display.glyph).toBe('cloudAlert');
       expect(display.tone).toBe('bad');
       expect(display.badge).toBeNull();
       expect(display.shortText).toBe('Sync failed');
-      expect(display.text).toBe('Sync failed: Sign-in service unreachable. It will try again.');
-      expect(display.tooltip).toBe('Sync failed: Sign-in service unreachable. It will try again.');
+      expect(display.text).toBe('Sync failed: list, HTTP 200, Not a file list. Drive said: {"files":[]}');
+      expect(display.tooltip).toBe('Sync failed: list, HTTP 200, Not a file list. Drive said: {"files":[]}');
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
         closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'bad',
-        headline: 'Sync failed: Sign-in service unreachable. It will try again.',
+        headline: 'Sync failed: list, HTTP 200, Not a file list. Drive said: {"files":[]}',
         account: 'john@gmail.com',
         pendingLine: null,
         privacy: null,

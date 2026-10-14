@@ -257,16 +257,22 @@ describe('cloudSync', () => {
     });
 
     // 6. failed outcome
+    const fault = { operation: 'list' as const, status: 500, reason: 'backendError', reply: '{"error":{}}' };
     sync.onOutcome({
       kind: 'failed',
-      reason: 'Network timeout',
+      fault,
       pendingLocal: 2,
     });
     expect(sync.status()).toEqual({
       kind: 'failed',
       account: 'john@example.com',
-      reason: 'Network timeout',
+      fault,
     });
+    expect(sync.lastFault()?.fault).toEqual(fault);
+
+    // 7. the fault is kept until a run succeeds
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0 });
+    expect(sync.lastFault()).toBeNull();
   });
 
   it('disconnect clears to off', async () => {

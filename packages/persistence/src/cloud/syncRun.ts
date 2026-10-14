@@ -1,4 +1,4 @@
-import type { ConflictCopy } from '@openisd/design/cloud';
+import type { CloudFault, ConflictCopy } from '@openisd/design/cloud';
 
 export type RunOutcome =
   | {
@@ -23,7 +23,7 @@ export type RunOutcome =
     }
   | {
       readonly kind: 'failed';
-      readonly reason: string;
+      readonly fault: CloudFault;
       readonly pendingLocal: number;
     };
 

@@ -66,6 +66,11 @@ const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copy
         gives a report of this browser's stored data if you want to send one.
       </p>
 
+      <section class="dg-cloud">
+        <h3>Cloud sync</h3>
+        <pre class="dg-stack">{{ faultLog.cloudSyncLines().join('\n') }}</pre>
+      </section>
+
       <p v-if="outcome" class="dg-outcome">{{ outcome }}</p>
 
       <footer>

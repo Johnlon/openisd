@@ -1,0 +1,19 @@
+id: T142
+release_note: Diagnostics shows the last cloud sync error in full, and the sync status line says what Drive replied.
+repo: openisd
+owner: maryu
+status: done
+goal: Diagnostics shows a Cloud sync section with the last Drive error in full, and the sync status says what Drive said
+done_test: bash scripts/test.sh packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts packages/persistence/test/cloud/driveStore.test.ts
+files:
+  - tasks/T142.yml
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/persistence/src/cloud/**
+  - packages/persistence/test/cloud/**
+  - packages/ui/src/diagnostics/faultLog.ts
+  - packages/ui/src/ui/components/DiagnosticsModal.vue
+  - packages/ui/src/main.ts
+  - packages/ui/test/diagnostics/faultOrigin.test.ts
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts

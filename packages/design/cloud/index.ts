@@ -31,8 +31,11 @@ export type {DocId, DocKind} from './syncDoc.js';
 export {BodyHash, ChangeCursor, FileId, RevisionId, bodyHashOf, docFileName, docIdEquals, field} from './syncDoc.js';
 export {sha256} from './sha256.js';
 export type {
-  CloudChange, CloudChanges, CloudDoc, CloudError, CloudFileList, CloudMeta, CloudResult, WriteMeta,
+  CloudChange, CloudChanges, CloudDoc, CloudError, CloudFault, CloudFileList, CloudMeta, CloudOperation, CloudResult, WriteMeta,
 } from './cloudTypes.js';
+export {FAULT_REPLY_CHARS, cloudFaultOf, cloudFaultText} from './cloudTypes.js';
+export type {CloudFaultRecord} from './cloudTypes.js';
+export {cloudFaultReportLines} from './cloudFaultReport.js';
 export {
   parseChangeList, parseErrorResponse, parseFileList, parseFileMetadata, parseStartPageToken, parseWriteReply,
 } from './driveJson.js';

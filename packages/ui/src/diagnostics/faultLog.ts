@@ -177,8 +177,10 @@ export interface FaultLog {
   applicable: () => QuickFix[];
   /** Run one repair, giving it the backup writer. */
   repair: (fix: QuickFix) => string;
-  /** A copyable report: the faults, the stored-state shape, and the build. */
+  /** A copyable report: the faults, the last cloud sync error, the stored-state shape, and the build. */
   report: () => string;
+  /** The Cloud sync block: the last sync error in full, kept until a sync succeeds. */
+  cloudSyncLines: () => readonly string[];
   /** Start listening. Idempotent. */
   install: () => void;
   /** Called whenever a repair is recorded — raises the dialog too. */
@@ -189,7 +191,7 @@ export interface FaultLog {
 
 /** `records` is a thunk: the fault log is created before the repos (so a fault while the app is
  *  being wired is still caught); until they exist, no repair is offered. */
-export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault): FaultLog {
+export function createFaultLog(saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault, cloudSyncLines: () => readonly string[]): FaultLog {
   function ladder(): readonly QuickFix[] {
     try { return repairLadder(records()); } catch { return []; }
   }
@@ -236,6 +238,7 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
       .filter(f => faults.some(x => x.origin.kind === 'stored-data' && x.origin.store === f.store))
       .filter(f => { try { return f.probe(); } catch { return false; } })
       .slice().sort((a, b) => a.impact - b.impact),
+    cloudSyncLines,
     report: () => {
       const stored = (() => {
         try {
@@ -250,6 +253,8 @@ export function createFaultLog(saveBackup: SaveBackup, records: () => Resettable
         '',
         `faults (${faults.length}):`,
         ...faults.map(f => `  [${f.kind}] origin: ${originLabel(f.origin)} ×${f.count} ${f.message}\n${f.stack ? '    ' + f.stack.split('\n').slice(0, 6).join('\n    ') : ''}`),
+        '',
+        ...cloudSyncLines(),
         '',
         'stored keys:',
         `  ${stored || '(none)'}`].join('\n');

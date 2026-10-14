@@ -357,7 +357,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       const outcome = await engine.run();
       expect(outcome).toEqual({
         kind: 'failed',
-        reason: 'Invalid JSON response',
+        fault: { operation: 'request', status: 0, reason: 'Invalid JSON response', reply: '' },
         pendingLocal: 0,
       });
     });

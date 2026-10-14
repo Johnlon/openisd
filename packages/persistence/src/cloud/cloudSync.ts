@@ -1,4 +1,4 @@
-import type { ConflictCopy, SyncStatus } from '@openisd/design/cloud';
+import type { CloudFaultRecord, ConflictCopy, SyncStatus } from '@openisd/design/cloud';
 import type { CloudSession } from './cloudStore.js';
 import type { SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine } from './syncRun.js';
@@ -14,6 +14,8 @@ export interface CloudSync {
   syncNow(): Promise<void>;
   conflictSeen(id: ConflictCopy['id']): void;
   onOutcome(outcome: RunOutcome): void;
+  /** The last failed run's fault, kept until a run succeeds. */
+  lastFault(): CloudFaultRecord | null;
 }
 
 export interface CloudSyncDeps {
@@ -28,6 +30,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
   const clock = deps.now;
   let lastRunOutcome: RunOutcome | null = null;
   let lastSyncAt_ms: number | null = null;
+  let lastFault: CloudFaultRecord | null = null;
   const listeners = new Set<() => void>();
 
   function notify(): void {
@@ -40,6 +43,10 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     lastRunOutcome = outcome;
     if (outcome.kind === 'synced') {
       lastSyncAt_ms = clock();
+      lastFault = null;
+    }
+    if (outcome.kind === 'failed') {
+      lastFault = { fault: outcome.fault, at_ms: clock() };
     }
     notify();
   }
@@ -150,7 +157,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
         return {
           kind: 'failed',
           account,
-          reason: lastRunOutcome.reason,
+          fault: lastRunOutcome.fault,
         };
       }
     }
@@ -202,5 +209,6 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     syncNow,
     conflictSeen,
     onOutcome,
+    lastFault: () => lastFault,
   };
 }

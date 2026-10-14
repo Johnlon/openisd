@@ -12,6 +12,8 @@ import {
   type RevisionId,
   type WriteMeta,
   bodyHashOf,
+  type CloudError,
+  cloudFaultOf,
   conflictProjectName,
   decideDocSync,
   shouldPurgeTombstone,
@@ -734,42 +736,22 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     };
   }
 
-  function mapCloudError(
-    err: { readonly kind: string } & Record<string, unknown>,
-    pushedSoFar: number
-  ): RunOutcome {
+  function mapCloudError(err: CloudError, pushedSoFar: number): RunOutcome {
     switch (err.kind) {
       case 'offline':
-        return {
-          kind: 'stopped',
-          reason: 'offline',
-          pushedSoFar,
-          pendingLocal: countPendingLocal(),
-        };
       case 'quota':
-        return {
-          kind: 'stopped',
-          reason: 'quota',
-          pushedSoFar,
-          pendingLocal: countPendingLocal(),
-        };
+        return { kind: 'stopped', reason: err.kind, pushedSoFar, pendingLocal: countPendingLocal() };
       case 'unauthorised':
-        return {
-          kind: 'reconnect',
-          pendingLocal: countPendingLocal(),
-        };
+        return { kind: 'reconnect', pendingLocal: countPendingLocal() };
+      case 'faulted':
+        return { kind: 'failed', fault: err.fault, pendingLocal: countPendingLocal() };
       case 'malformed':
-        return {
-          kind: 'failed',
-          reason: typeof err.reason === 'string' ? err.reason : 'Malformed response',
-          pendingLocal: countPendingLocal(),
-        };
-      default:
-        return {
-          kind: 'failed',
-          reason: typeof err.reason === 'string' ? err.reason : 'Cloud request failed',
-          pendingLocal: countPendingLocal(),
-        };
+        return { kind: 'failed', fault: cloudFaultOf('request', 0, err.reason, ''), pendingLocal: countPendingLocal() };
+      case 'failed':
+        return { kind: 'failed', fault: cloudFaultOf('request', err.status, err.reason, ''), pendingLocal: countPendingLocal() };
+      case 'moved':
+      case 'cursorExpired':
+        return { kind: 'failed', fault: cloudFaultOf('request', 0, err.kind, ''), pendingLocal: countPendingLocal() };
     }
   }
 

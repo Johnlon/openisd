@@ -1,3 +1,4 @@
+import type {CloudFault} from './cloudTypes.js';
 export class DeviceId {
   private declare readonly brand: 'DeviceId';
   private constructor(readonly text: string) {}
@@ -56,7 +57,7 @@ export type SyncStatus =
   | { readonly kind: 'reconnect'; readonly account: string; readonly changes: number }
   | { readonly kind: 'held'; readonly account: string; readonly at_ms: number | null; readonly heldDocs: number }
   | { readonly kind: 'refused'; readonly account: string; readonly reason: 'noRoom' | 'bucketUnreadable' }
-  | { readonly kind: 'failed'; readonly account: string; readonly reason: string };
+  | { readonly kind: 'failed'; readonly account: string; readonly fault: CloudFault };
 
 export interface ConflictCopy {
   readonly id: ProjectId | DriverId | PrId;

@@ -39,7 +39,7 @@ import {
     createCloudUiStore,
     createSaveSignal,
 } from '@openisd/persistence';
-import {DeviceName, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
+import {DeviceName, cloudFaultReportLines, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
 import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
@@ -122,7 +122,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     a.click();
     URL.revokeObjectURL(a.href);
   }, () => ({ view: viewStateRepo, appSettings: appSettingsRepo }),
-    (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
+    (thrown) => isStoredDataFault(thrown) ? thrown.store : null,
+    () => cloudFaultReportLines(cloudSync === null ? null : cloudSync.lastFault()));
   faultLog.install();
 
   // TELEMETRY: anonymous usage events, fire-and-forget. Built here and handed to what records them.

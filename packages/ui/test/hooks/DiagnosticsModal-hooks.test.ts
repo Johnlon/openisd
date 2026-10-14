@@ -8,13 +8,15 @@ import {testAppLogic} from './testAppLogic.js';
 import {appSettingsRepoOn, viewStateRepoOn} from '../fixtures/repoOn.js';
 import {
   type ListableStorage, type StoreName, createStoredDataFault, isStoredDataFault, createMemoryStorage, } from '@openisd/persistence';
+import {cloudFaultReportLines, type CloudFaultRecord} from '@openisd/design/cloud';
 
 async function renderHook(
   saveBackup: SaveBackup = () => undefined, storage: ListableStorage = createMemoryStorage(),
+  cloudSyncLines: () => readonly string[] = () => [],
 ): Promise<DiagnosticsModalAPI> {
   const faultLog = createFaultLog(saveBackup, () => ({
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
-  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null);
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, cloudSyncLines);
   let api!: DiagnosticsModalAPI;
   const Child = defineComponent({
     setup() {
@@ -36,6 +38,19 @@ async function renderHook(
 }
 
 describe('useDiagnosticsModal', () => {
+  it('the Cloud sync block shows the last sync error in full', async () => {
+    const record: CloudFaultRecord = {
+      fault: {operation: 'list', status: 200, reason: 'Not a file list', reply: '{"files":[]}'},
+      at_ms: Date.UTC(2026, 9, 14, 11, 0, 0),
+    };
+    const api = await renderHook(() => undefined, createMemoryStorage(), () => cloudFaultReportLines(record));
+    const lines = api.faultLog.cloudSyncLines();
+    expect(lines).toContain('  request: list');
+    expect(lines).toContain('  HTTP status: 200');
+    expect(lines).toContain('  reason: Not a file list');
+    expect(lines).toContain('  reply: {"files":[]}');
+  });
+
   it('opens modal when a fault occurs', async () => {
     const api = await renderHook();
     expect(api.open.value).toBe(false);
