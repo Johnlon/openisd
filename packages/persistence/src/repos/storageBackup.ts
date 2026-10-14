@@ -6,13 +6,18 @@
  *  replaces a stored key — restore, delete, migrate, repair write-back, reset — first goes
  *  through `guard`. There is no path without it, and `storageBackup.test.ts` enumerates them.
  *
- *  Space: the copy is measured by writing it. When it does not fit, the oldest backups go until
- *  it does — never the newest backup of any layout. If it still does not fit, nothing is
- *  written and the destructive write is REFUSED: the user exports first (repair rule). */
+ *  Space: the copy is measured by writing it. When it does not fit, these go, in order, until it
+ *  does: the older backups (oldest first), then the pre-repair copies, then the newest backup of
+ *  each layout — a copy of live data outranks a copy of yesterday's (John, 14 Oct 2026, T153).
+ *  Only when live data alone cannot be copied is nothing written and the destructive write
+ *  REFUSED: the user exports first (repair rule).
+ *
+ *  One backup per guarded operation: a guard that starts while another runs takes none, since
+ *  the outer backup already holds the whole store (a sync run's pulled writes, T153). */
 import type {ListableStorage} from '../storage/keyValueStorage.js';
 import type {BuildStamp} from './buildStamp.js';
 import {createStorageSnapshot, envelopeText, readEnvelope} from './storageSnapshot.js';
-import {OPENISD_BACKUP_PREFIX} from './storageKeys.js';
+import {OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_QUARANTINE_SESSION_KEY} from './storageKeys.js';
 
 /** What the user is told when a write that would remove or replace saved data is refused because
  *  the whole-store backup that must come first does not fit. Nothing was changed. */
@@ -64,6 +69,12 @@ export interface StorageBackup {
    *  fails for want of room a backup is using. */
   write(key: string, text: string): boolean;
 }
+
+/** The copies a repair keeps of a record it rewrote, dropped in this order when a backup needs room. */
+const PRE_REPAIR_COPIES: readonly string[] = [
+  OPENISD_BACKUP_KEYS.projects, OPENISD_BACKUP_KEYS.openSessions, OPENISD_QUARANTINE_SESSION_KEY,
+  OPENISD_BACKUP_KEYS.state, OPENISD_BACKUP_KEYS.view, OPENISD_BACKUP_KEYS.appSettings,
+];
 
 function byAge(a: BackupInfo, b: BackupInfo): number {
   return a.takenAt === b.takenAt ? a.key.localeCompare(b.key) : a.takenAt.localeCompare(b.takenAt);
@@ -117,6 +128,26 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     return false;
   }
 
+  /** What goes when even `droppable` has nothing left: the pre-repair copies, then the newest
+   *  backups, oldest first. Never `keep`, never live data. */
+  function lastResort(keep: string): string | null {
+    const copy = PRE_REPAIR_COPIES.find(key => storage.get(key) !== null);
+    if (copy !== undefined) return copy;
+    const backups = list().filter(info => info.key !== keep);
+    return backups.length === 0 ? null : backups[backups.length - 1].key;
+  }
+
+  /** `place`, then the last resort: false only when live data alone cannot be copied. */
+  function placeCopy(key: string, text: string): boolean {
+    if (place(key, text)) return true;
+    for (let victim = lastResort(key); victim !== null; victim = lastResort(key)) {
+      storage.remove(victim);
+      storage.set(key, text);
+      if (storage.get(key) === text) return true;
+    }
+    return false;
+  }
+
   function trim(keep: string): void {
     while (list().length > MAX_BACKUPS) {
       const victim = droppable(keep);
@@ -140,16 +171,24 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     if (snapshot === null) return {kind: 'nothingToBackUp'};
     const key = freeKey(`${OPENISD_BACKUP_PREFIX}${snapshot.build.text}_${snapshot.exportedAt}`);
     if (key === null) return {kind: 'noRoom'};
-    if (!place(key, envelopeText(snapshot, false))) return {kind: 'noRoom'};
+    if (!placeCopy(key, envelopeText(snapshot, false))) return {kind: 'noRoom'};
     trim(key);
     return {kind: 'taken', key};
   }
 
+  let guarding = false;
+
   return {
     take,
     guard<T>(destructive: () => T): Guarded<T> {
+      if (guarding) return {kind: 'ran', value: destructive()};
       if (take().kind === 'noRoom') return {kind: 'refused'};
-      return {kind: 'ran', value: destructive()};
+      guarding = true;
+      try {
+        return {kind: 'ran', value: destructive()};
+      } finally {
+        guarding = false;
+      }
     },
     list,
     read: key => storage.get(key),

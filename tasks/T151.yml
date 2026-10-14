@@ -3,6 +3,7 @@ release_note: Cloud sync no longer uploads every item again as a new file on lat
 repo: openisd
 owner: maryu
 status: done
+landed: 02ef8d479365e1b6bdf0c79eedcf0c458b0cfd19
 goal: A sync run never ends synced with changes left; pulled singletons record the hash of what was stored, and later runs see unchanged Drive files
 done_test: bash scripts/test.sh packages/persistence/test/cloud/syncEngine.test.ts packages/design/test/cloud/cloudSyncReport.test.ts
 files:

@@ -12,6 +12,7 @@ import {
   createStorageBackup,
   createExportedFiles,
   type FileStorage,
+  OPENISD_BACKUP_PREFIX,
   OPENISD_CLOUD_AUTH_KEY,
   OPENISD_MY_DRIVERS_KEY,
   STORAGE_LAYOUT,
@@ -96,5 +97,20 @@ describe('cloud sync first connect', () => {
     expect(phoneRun.kind).toBe('synced');
     expect(phone.projectRepo.listStoredProjects().map(p => p.name)).toEqual(['Sub 12']);
     expect(phone.storage.get(OPENISD_MY_DRIVERS_KEY)).toContain('Peerless');
+  });
+
+  it('a pulled run that replaces several saved drivers takes one whole-store backup, not one per item', async () => {
+    const drive = new DriveEmulator();
+    const desktop = deviceOn(drive, 1);
+    const drivers = (brand: string) => JSON.stringify({entries: ['d-1', 'd-2', 'd-3'].map(uuid => ({uuid, record: {brand, model: uuid}}))});
+    desktop.storage.set(OPENISD_MY_DRIVERS_KEY, drivers('Peerless'));
+    expect((await desktop.connect().engine.run()).kind).toBe('synced');
+
+    const phone = deviceOn(drive, 2);
+    phone.storage.set(OPENISD_MY_DRIVERS_KEY, drivers('Scan-Speak'));
+    expect((await phone.connect().engine.run()).kind).toBe('synced');
+
+    expect(phone.storage.get(OPENISD_MY_DRIVERS_KEY)).toContain('Peerless');
+    expect(phone.storage.keys().filter(key => key.startsWith(OPENISD_BACKUP_PREFIX))).toHaveLength(1);
   });
 });

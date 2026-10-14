@@ -9,10 +9,10 @@ import {createStorageBackup, MAX_BACKUPS} from '../src/repos/storageBackup.js';
 import {envelopeText, readEnvelope} from '../src/repos/storageSnapshot.js';
 import {
   OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY,
-  OPENISD_STORAGE_LAYOUT_KEY, OPENISD_STORAGE_LOG_KEY,
+  OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STORAGE_LAYOUT_KEY, OPENISD_STORAGE_LOG_KEY,
 } from '../src/repos/storageKeys.js';
 import {BuildStamp} from '../src/repos/buildStamp.js';
-import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
+import {createMemoryStorage, type ListableStorage} from '../src/storage/keyValueStorage.js';
 import {FIXED_NOW_MS} from './fixtures/repoOn.js';
 import {createQuotaStorage} from './fixtures/quotaStorage.js';
 
@@ -209,7 +209,77 @@ describe('space', () => {
   });
 });
 
+describe('space: last resort', () => {
+  const data = 'x'.repeat(400);
+  const older = backupText(1, '20250101T000000Z', 'v20250101T0000Z', {k: data});
+  const newest = backupText(1, '20250202T000000Z', 'v20250202T0000Z', {k: data});
+  const store = {
+    [OPENISD_PROJECTS_KEY]: data,
+    [keyOf('v20250101T0000Z')]: older,
+    [keyOf('v20250202T0000Z')]: newest,
+    [OPENISD_BACKUP_KEYS.projects]: 'p'.repeat(300),
+    [OPENISD_BACKUP_KEYS.openSessions]: 'o'.repeat(300),
+    [OPENISD_QUARANTINE_SESSION_KEY]: 'q'.repeat(300),
+    [OPENISD_BACKUP_KEYS.state]: 's'.repeat(300),
+  };
+  const size = (entries: Record<string, string>): number =>
+    Object.entries(entries).reduce((sum, [k, v]) => sum + k.length + v.length, 0);
+  /** The size of the backup a take writes for `store`, measured on a store with no limit. */
+  function copySize(): number {
+    const free = createMemoryStorage(store);
+    createStorageBackup(free, () => FIXED_NOW_MS).take();
+    return takenKey('vunknown').length + (free.get(takenKey('vunknown')) ?? '').length;
+  }
+  function removals(storage: ListableStorage): string[] {
+    const removed: string[] = [];
+    const remove = storage.remove.bind(storage);
+    storage.remove = (key) => { removed.push(key); remove(key); };
+    return removed;
+  }
+
+  it('drops older backups first, then pre-repair copies, and keeps the newest backup when that is enough', () => {
+    const roomAfterTwo = size(store) - size({[keyOf('v20250101T0000Z')]: older, [OPENISD_BACKUP_KEYS.projects]: store[OPENISD_BACKUP_KEYS.projects]}) + copySize();
+    const storage = createQuotaStorage(roomAfterTwo, store);
+    const removed = removals(storage);
+    assert.equal(createStorageBackup(storage, () => FIXED_NOW_MS).take().kind, 'taken');
+    assert.deepEqual(removed, [keyOf('v20250101T0000Z'), OPENISD_BACKUP_KEYS.projects]);
+    assert.notEqual(storage.get(keyOf('v20250202T0000Z')), null, 'the newest backup stayed');
+  });
+
+  it('when nothing else makes room, the pre-repair copies and then the newest backup go: a copy of live data comes first', () => {
+    // The quarantined session is live data, so the copy holds it: it may go from live only because
+    // the copy then keeps it.
+    const storage = createQuotaStorage(size({[OPENISD_PROJECTS_KEY]: data}) + copySize(), store);
+    const removed = removals(storage);
+    assert.equal(createStorageBackup(storage, () => FIXED_NOW_MS).take().kind, 'taken');
+    assert.deepEqual(removed, [
+      keyOf('v20250101T0000Z'),
+      OPENISD_BACKUP_KEYS.projects, OPENISD_BACKUP_KEYS.openSessions, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_BACKUP_KEYS.state,
+      keyOf('v20250202T0000Z'),
+    ]);
+    assert.equal(storage.get(OPENISD_PROJECTS_KEY), data, 'live data is never dropped');
+  });
+});
+
 describe('guard', () => {
+  it('a guard inside a guard takes no second backup: the outer one covers the store', () => {
+    const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'before'});
+    let now = FIXED_NOW_MS;
+    const backup = createStorageBackup(storage, () => now);
+    const outer = backup.guard(() => {
+      now += 1000;
+      const inner = backup.guard(() => 'inner ran');
+      now += 1000;
+      const again = backup.guard(() => 'again');
+      return [inner, again];
+    });
+    assert.deepEqual(outer, {kind: 'ran', value: [{kind: 'ran', value: 'inner ran'}, {kind: 'ran', value: 'again'}]});
+    assert.equal(backup.list().length, 1);
+    now += 1000;
+    backup.guard(() => undefined);
+    assert.equal(backup.list().length, 2, 'outside a guard, a guard backs up as before');
+  });
+
   it('backs the store up, then runs the write, and hands back its value', () => {
     const storage = createMemoryStorage({[OPENISD_PROJECTS_KEY]: 'before'});
     const backup = createStorageBackup(storage, () => FIXED_NOW_MS);
