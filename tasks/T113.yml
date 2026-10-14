@@ -3,6 +3,7 @@ release_note: The version label shows the build time in UTC with a Z suffix
 repo: openisd
 owner: fable
 status: done
+landed: 536bfe22a6ccc48b910fe6fbd39d90c61cbb7be0
 goal: Version label shows the build time in UTC with a Z suffix, not local time
 done_test: bash scripts/test.sh packages/design/test/fields/appVersion.test.ts packages/ui/test/logic/appVersion.test.ts
 files:

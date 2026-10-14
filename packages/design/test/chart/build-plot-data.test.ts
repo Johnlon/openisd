@@ -54,8 +54,8 @@ describe('buildPlotData — the axes it draws on', () => {
 describe('buildPlotData — comparing two or more designs', () => {
   it('names the focused design\'s legend entry after the project, not the literal "Current"', () => {
     const out = buildPlotData(engine, 'Zmag', 10, 2000, design('W5 sealed', '#4fb0ff'), [design('p1', '#ffb454')]).value!;
-    assert.equal(out.series[0].name, 'W5 sealed: |Z|');
-    assert.equal(out.series[1].name, 'p1: |Z|');
+    assert.equal(out.series[0].name, 'W5 sealed');
+    assert.equal(out.series[1].name, 'p1');
   });
 
   it('marks the focused design\'s own series as current; overlays are not', () => {
@@ -77,14 +77,14 @@ describe('buildPlotData — comparing two or more designs', () => {
       design('W5 sealed', '#4fb0ff', 1),
       [design('p1', '#ffb454', 0)],
     ).value!;
-    assert.equal(out.series[0].name, 'p1: |Z|');
-    assert.equal(out.series[1].name, 'W5 sealed: |Z|');
+    assert.equal(out.series[0].name, 'p1');
+    assert.equal(out.series[1].name, 'W5 sealed');
     assert.equal(out.series[1].current, true);
   });
 
   it('lists the 0 dB and −3 dB lines below every project entry', () => {
     const out = buildPlotData(engine, 'TFMag', 10, 2000, design('W5 sealed', '#4fb0ff', 0), [design('p1', '#ffb454', 1)]).value!;
-    assert.deepEqual(out.series.map(s => s.name), ['W5 sealed: Transfer function', 'p1: Transfer function', '0 dB', '−3 dB']);
+    assert.deepEqual(out.series.map(s => s.name), ['W5 sealed', 'p1', '0 dB', '−3 dB']);
   });
 });
 
@@ -121,12 +121,12 @@ describe('buildPlotData — a design draws only on charts its box type has', () 
 
   it('a vented overlay still draws on the port velocity chart', () => {
     const out = buildPlotData(engine, 'RearPort', 10, 2000, of('vented', 'a'), [of('vented', 'b')]).value!;
-    assert.ok(out.series.some(s => s.name.startsWith('b: ')));
+    assert.ok(out.series.some(s => s.name === 'b'));
   });
 
   it('every design draws on a chart every box type has', () => {
     const out = buildPlotData(engine, 'SPL', 10, 2000, of('vented', 'a'), [of('box-passive-radiator', 'b')]).value!;
-    assert.ok(out.series.some(s => s.name.startsWith('b: ')));
+    assert.ok(out.series.some(s => s.name === 'b'));
   });
 });
 

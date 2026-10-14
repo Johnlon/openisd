@@ -1,0 +1,11 @@
+id: T114
+release_note: With two or more projects on a chart, the legend names each project alone, without repeating the chart name.
+repo: openisd
+owner: bob
+status: done
+goal: The chart legend names a project alone, without the chart name, unless the chart draws several lines per project.
+done_test: bash scripts/test.sh packages/design/test/chart/build-plot-data.test.ts
+files:
+  - tasks/T114.yml
+  - packages/design/chart/series.ts
+  - packages/design/test/chart/build-plot-data.test.ts

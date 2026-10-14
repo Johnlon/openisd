@@ -495,7 +495,10 @@ export function buildPlotData(
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit };
     const prim: Series = { ...pd.series[0] };
     if (multi) {
-      prim.color = d.color || DPAL[di % DPAL.length]; prim.name = d.name + ': ' + prim.name;
+      prim.color = d.color || DPAL[di % DPAL.length];
+      // The legend names the project alone; the chart name is added only when the project draws several lines here.
+      if (pd.series.filter(s => !s.dash && !s.phantom).length > 1) prim.name = d.name + ': ' + prim.name;
+      else prim.name = d.name ?? prim.name;
       if (!isCurrent) delete prim.xlim; // compare overlays: solid color, no segmented coloring
       else prim.current = true; // the focused project's own trace, drawn emphasized
     }
