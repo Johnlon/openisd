@@ -216,7 +216,7 @@ test.describe('Original chart view', () => {
     await expect(hz).toHaveValue(locked);
   });
 
-  test('the chart drop-down is a fixed width, and the longest chart name fits in it on one line', async ({ page }) => {
+  test('the chart drop-down is a fixed narrow width; a long chart name is cut short on one line and named in full by its tooltip', async ({ page }) => {
     const select = page.locator('.chart-select');
     const name = page.locator('.chart-select .chart-name');
     const widths: number[] = [];
@@ -224,7 +224,8 @@ test.describe('Original chart view', () => {
       await select.click();
       await page.locator('.chart-select .menu-item', { hasText: label }).first().click();
       widths.push((await select.boundingBox())!.width);
-      expect(await name.evaluate(el => el.scrollWidth <= el.clientWidth && el.getClientRects()[0].height < 30)).toBe(true);
+      expect(await name.evaluate(el => el.getClientRects()[0].height < 30)).toBe(true);
+      expect(await name.getAttribute('title')).toContain(label);
     }
     expect(widths[0]).toBe(widths[1]);
   });

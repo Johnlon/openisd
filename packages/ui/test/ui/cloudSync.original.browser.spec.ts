@@ -61,11 +61,6 @@ test.describe('Original shell cloud sync — configured build (Plan P1-13a)', ()
       expect(btnBox.x + btnBox.width).toBeLessThanOrEqual(width);
     }
 
-    // The version chip stays visible at every width: John reads it to know the build.
-    const chip = page.locator('.version-chip');
-    await expect(chip).toBeVisible();
-    const chipBox = await boxOf(chip);
-    expect(chipBox.x + chipBox.width).toBeLessThanOrEqual(width);
   });
 
   test('at 1366px the brand text and every toolbar button are inside the viewport and document.documentElement.scrollWidth <= innerWidth', async ({ page }) => {
@@ -97,8 +92,6 @@ test.describe('Original shell cloud sync — configured build (Plan P1-13a)', ()
       expect(btnBox.x + btnBox.width).toBeLessThanOrEqual(width);
     }
 
-    // Verify version chip is visible at 1366px
-    await expect(page.locator('.version-chip')).toBeVisible();
   });
 
   test('status off renders cloudOff glyph and tooltip', async ({ page }) => {

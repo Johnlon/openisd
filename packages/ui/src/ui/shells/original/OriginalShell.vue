@@ -42,7 +42,7 @@ const {
   handleCloudConnect, handleCloudSyncNow, handleCloudReconnect,
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
-  version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
+  toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
   openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
@@ -162,7 +162,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       <div class="app-brand" title="OpenISD">
         <img class="brand-icon" src="/icon.svg" alt="" aria-hidden="true">
         <span>OpenISD</span>
-        <span v-if="version" class="version-chip">({{ version }})</span>
       </div>
       <div class="cursor-readout">
         <span class="ro-hz">
@@ -984,7 +983,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .caret { font-size:10px; margin-left:2px; color:#555; }
 .cloud-sync-tb-btn { padding: 0; }
 .cloud-sync-tb-btn .cloud-sync-badge { width: 100%; height: 100%; }
-.chart-select { display:flex; align-items:center; gap:6px; flex:0 1 324px; width:324px; min-width:140px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+.chart-select { display:flex; align-items:center; gap:6px; flex:0 1 180px; width:180px; min-width:140px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
 
@@ -1117,7 +1116,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   background: #f0f0f0;
 }
 .cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; margin-left:auto; }
-.version-chip { font-size:12px; color:#555; line-height:1.1; font-weight:400; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
 .ro-hz-input {
   width: 82px;

@@ -1,66 +1,25 @@
-import {readFileSync} from 'node:fs';
-import {dirname, join} from 'node:path';
-import {fileURLToPath} from 'node:url';
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, focusedBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import {fillAndBlur} from '../fixtures/numField.js';
+import {enableCloudSync, stubGoogleApis} from './fixtures/cloudSyncStubs.js';
 
-// The build (scripts/version-info.mjs → packages/ui/public/build-info.json) is the on-disk source
-// of truth for the published version. In dev mode (vite serve), the app shows a dev version
-// (git sha + dirty state) instead, since build-info.json is rewritten on every build and does
-// not describe the running dev server code.
-const BUILD_INFO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'build-info.json');
-
-/** Widths a browser window realistically reaches; the toolbar must never overlap at any. */
 const WIDTHS = [1280, 1024, 900, 780];
 
-function isBuildInfo(v: unknown): v is { version: string } {
-  return typeof v === 'object' && v !== null && 'version' in v && typeof v.version === 'string';
-}
-
-function readBuildInfo(): { version: string } {
-  const parsed: unknown = JSON.parse(readFileSync(BUILD_INFO, 'utf8'));
-  if (!isBuildInfo(parsed)) throw new Error(`build-info.json has no string "version": ${JSON.stringify(parsed)}`);
-  return parsed;
-}
-
-// The label is the build stamp in UTC with a Z suffix (T113), the same on every device.
-function computeExpectedPublishedLabel(version: string): string {
-  const match = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/.exec(version);
-  if (!match) return version;
-  const d = new Date(Date.UTC(+match[1], +match[2] - 1, +match[3], +match[4], +match[5], +(match[6] ?? '0')));
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const mon = months[d.getUTCMonth()];
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  const hr = String(d.getUTCHours()).padStart(2, '0');
-  const min = String(d.getUTCMinutes()).padStart(2, '0');
-  return `${mon} ${day} ${hr}:${min}Z`;
-}
-
 test.describe('Original toolbar', () => {
-  test('toolbar shows the correct version for the running environment', async ({ page }) => {
-    const onDisk = readBuildInfo();
-    expect(onDisk.version).toMatch(/^v\d{8}T\d{4}Z$/);
-
+  test('the toolbar carries the brand, no version, and its groups sit in one row', async ({ page }) => {
     await page.goto('/');
     await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
 
     const brand = page.locator('.app-brand');
     await expect(brand).toContainText('OpenISD');
 
-    // In dev mode (vite serve), the version chip shows "dev <sha> + changes" format.
-    // In production, it shows the published version from build-info.json in browser local time.
-    const versionChip = brand.locator('.version-chip');
-    const expectedPublished = computeExpectedPublishedLabel(onDisk.version);
-    const escaped = expectedPublished.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    await expect(versionChip).toHaveText(new RegExp(`^(?:\\(dev [a-f0-9]{7,8}(?: \\+ changes)?\\)|\\(${escaped}\\))$`));
+    // The version lives in About, not the toolbar.
+    await expect(page.locator('.version-chip')).toHaveCount(0);
     // The brand icon renders either from the public /icon.svg or inline as a data-URI SVG
     // (the shell embeds the loudspeaker mark directly) — assert the icon exists and is SVG.
     await expect(brand.locator('img')).toHaveAttribute('src', /^data:image\/svg\+xml|\/icon\.svg$/);
 
-    // Layout contract: one row — window buttons and chart menu left, then the version, then
-    // the frequency selector right, none painting over another. A version stranded on its own
-    // row is a regression. (John 2026-09-29: the version need not be centred — the chart menu
-    // is wider than half the bar at 1280 px, so centring it overlapped the icons.)
+    // Layout contract: one row — window buttons and chart menu left, then the brand, then the
+    // frequency selector right, none painting over another.
     const barBox = await page.locator('.toolbar').boundingBox();
     expect(barBox!.height).toBeLessThan(60);
     const brandBox = await brand.boundingBox();
@@ -132,6 +91,27 @@ test.describe('Original toolbar', () => {
 
     await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(saved, 9);
     await expect(revertBtn).toHaveClass(/disabled/);
+  });
+
+  test('the toolbar never overflows at 1280px wide, with every chart open and cloud sync on', async ({ page }) => {
+    await enableCloudSync(page);
+    await stubGoogleApis(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    await openAProject(page);
+    // The widest chart name: every chart ticked, so the label is as long as it gets.
+    await page.locator('.chart-select').click();
+    const ticks = page.locator('.chart-select .chart-item input[type=checkbox]');
+    for (let i = 0, n = await ticks.count(); i < n; i++) {
+      await ticks.nth(i).check();
+    }
+    await page.locator('.original-root').click({ position: { x: 5, y: 300 } });
+
+    const bar = await page.locator('.toolbar').evaluate(e => ({ scroll: e.scrollWidth, client: e.clientWidth }));
+    expect(bar.scroll).toBe(bar.client);
+    const lastButton = await page.locator('.toolbar button').last().boundingBox();
+    expect(lastButton!.x + lastButton!.width).toBeLessThanOrEqual(1280);
+    expect(lastButton!.x).toBeGreaterThanOrEqual(0);
   });
 
   test.describe('window widths', () => {

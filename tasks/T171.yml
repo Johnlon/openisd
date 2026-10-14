@@ -1,0 +1,14 @@
+id: T171
+release_note: internal
+repo: openisd
+owner: sonnet-toolbar-fit
+status: done
+goal: The Original toolbar never overflows: version chip removed (About keeps it), chart drop-down narrowed, 1280px spec
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T171.yml
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/test/ui/original-toolbar.browser.spec.ts
+  - packages/ui/test/ui/cloudSync.original.browser.spec.ts
+  - packages/ui/test/ui/original-chart-view.browser.spec.ts

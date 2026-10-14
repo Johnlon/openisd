@@ -3,6 +3,7 @@ release_note: Options has one "Your data" tab. Storage shows how much each kind 
 repo: openisd
 owner: maryu
 status: done
+landed: d16c82bd552c1d1b6a8fb258e013023eaeb99ecc
 goal: Options "Your data" tab — Storage, Backups (one list, reason, keep 3, restore one project), Export / Import
 done_test: bash scripts/test.sh packages/persistence/test/storageBackup.test.ts packages/persistence/test/storageHistory.test.ts packages/persistence/test/storageUsage.test.ts packages/ui/test/hooks/StorageHistory-hooks.test.ts
 files:

@@ -277,10 +277,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function closeDropdown() { openDd.value = null; }
   function onDocClick() { closeDropdown(); }
 
-  // ---- Toolbar version — shared reactive source from appVersion port, formatted by design.
-  const { appVersion } = useApp();
-  const version = appVersion.label;
-
   // Fire the fixup fill the FIRST time a project is available — at mount when one is already
   // open, or when one arrives LATER on a project-less boot (an auto-restored save, a File →
   // Open, a .wdr import or the New Project wizard). A blank created/modified/creator gets
@@ -657,7 +653,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleCloudTap, handleCloudConnect, handleCloudSyncNow, handleCloudReconnect,
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
-    version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
+    toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
