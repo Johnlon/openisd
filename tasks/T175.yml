@@ -1,0 +1,11 @@
+id: T175
+release_note: internal
+repo: openisd
+owner: sonnet-trace-width
+status: done
+goal: The active project's chart trace is drawn 1.5x the normal trace, not 4x
+done_test: bash scripts/test.sh packages/design/test/chart/build-plot-data.test.ts
+files:
+  - tasks/T175.yml
+  - packages/design/chart/series.ts
+  - packages/design/test/chart/build-plot-data.test.ts

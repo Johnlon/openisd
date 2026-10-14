@@ -150,15 +150,15 @@ describe('buildPlotData — F3 and F10 on the transfer function chart', () => {
   });
 });
 
-describe('buildPlotData — the active trace is drawn 59% wider', () => {
-  it('a lone design\'s trace is 1.7 px x 1.59', () => {
+describe('buildPlotData — the active trace is drawn 1.5 times as wide', () => {
+  it('a lone design\'s trace is 1.7 px x 1.5', () => {
     const out = buildPlotData(engine, 'Zmag', 10, 2000, design('a', '#4fb0ff'), []).value!;
-    assert.ok(Math.abs(out.series[0].lineWidth! - 1.7 * 1.59) < 1e-9, `${out.series[0].lineWidth}`);
+    assert.ok(Math.abs(out.series[0].lineWidth! - 1.7 * 1.5) < 1e-9, `${out.series[0].lineWidth}`);
   });
 
-  it('beside overlays the focused trace is 2.6 px x 1.59 and the overlays keep the default', () => {
+  it('beside overlays the focused trace is the same 1.7 px x 1.5 and the overlays keep the default', () => {
     const out = buildPlotData(engine, 'Zmag', 10, 2000, design('a', '#4fb0ff'), [design('p1', '#ffb454')]).value!;
-    assert.ok(Math.abs(out.series[0].lineWidth! - 2.6 * 1.59) < 1e-9, `${out.series[0].lineWidth}`);
+    assert.ok(Math.abs(out.series[0].lineWidth! - 1.7 * 1.5) < 1e-9, `${out.series[0].lineWidth}`);
     assert.equal(out.series[1].lineWidth, undefined);
   });
 

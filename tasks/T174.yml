@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-dialog-polish
 status: done
+landed: aa7f555b29dc24bc85905306002259666a9a3842
 label: fixes
 goal: F25: no-project-shell spec expects Import first in the Open dialog; it is in the footer now. Also Options units no longer poke out of their group
 done_test: bash scripts/test.sh packages/design/test/fields/projectListView.test.ts
