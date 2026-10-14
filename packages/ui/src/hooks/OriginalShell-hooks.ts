@@ -45,6 +45,9 @@ import {createErrorSwitches} from './errorSwitches.js';
 import {storedProjectRows, type StoredProjectRow} from './storedProjectRows.js';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import {useCompareOverlays} from './compareOverlays.js';
+import {useCloudSyncUi} from './CloudSync-hooks.js';
+import type {ConflictCopy, SyncTap} from '@openisd/design/cloud';
+import {CLOUD_SYNC_MENU_LABEL, DriverId, ProjectId} from '@openisd/design/cloud';
 
 export type AirField = 'temperature' | 'humidity' | 'pressure';
 
@@ -612,7 +615,46 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     return project.value.winisdAbcIntraPortVelocityApplies;
   });
 
+  // The Original skin has no update banner, so the cloud strip never gives way to one.
+  const updateBannerShown = computed(() => false);
+  const {
+    available: cloudAvailable,
+    display: cloudDisplay,
+    connect: handleCloudConnect,
+    syncNow: handleCloudSyncNow,
+    reconnect: handleCloudReconnect,
+    disconnect: handleCloudDisconnect,
+    openConflict: handleCloudOpenConflictShared,
+    viewConflicts: handleViewConflicts,
+    hintTurnOn: handleHintTurnOn,
+    hintDismiss: handleHintDismiss,
+  } = useCloudSyncUi(updateBannerShown);
+
+  const cloudDialogOpen = ref(false);
+  function openCloudDialog(): void { cloudDialogOpen.value = true; }
+  function closeCloudDialog(): void { cloudDialogOpen.value = false; }
+  useEscToClose(() => cloudDialogOpen.value, closeCloudDialog);
+
+  function handleCloudTap(_tap: SyncTap): void {
+    openCloudDialog();
+  }
+
+  // Shell-specific conflict handling: after marking the conflict seen, open the project or driver browser.
+  function handleCloudOpenConflict(id: ConflictCopy['id']): void {
+    handleCloudOpenConflictShared(id);
+    // The shell decides what opening means:
+    if (id instanceof ProjectId) {
+      openStoredProject(id.text);
+    } else if (id instanceof DriverId) {
+      presentationState.browseOpen = true;
+    }
+  }
+
   return {
+    cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
+    handleCloudTap, handleCloudConnect, handleCloudSyncNow, handleCloudReconnect,
+    handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
+    handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, storedProjects, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
     saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,

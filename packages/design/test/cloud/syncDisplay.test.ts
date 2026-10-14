@@ -59,6 +59,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.conflictNotice).toBeNull();
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'muted',
         headline: 'Cloud sync is off',
@@ -95,6 +96,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.strip).toBeNull();
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'accent',
         headline: 'Connecting to Google Drive…',
@@ -125,6 +127,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.strip).toBeNull();
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'accent',
         headline: 'Syncing…',
@@ -157,6 +160,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.strip).toBeNull();
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'good',
         headline: 'Synced 13 Oct 2026, 23:32',
@@ -227,6 +231,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'accent',
         headline: '2 changes not synced',
@@ -261,6 +266,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'muted',
         headline: 'Offline. 3 changes not synced',
@@ -315,6 +321,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       });
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'warn',
         headline: 'Google needs you to connect again. 3 changes not synced',
@@ -349,6 +356,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'warn',
         headline: 'Update the app to sync 4 projects saved by a newer version',
@@ -382,6 +390,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'bad',
         headline: 'Nothing synced. No room in this browser to back up first. Export, then try again.',
@@ -412,6 +421,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.tap).toBe('openDialog');
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
+        closeLabel: 'Close',
         providerHeading: 'Google Drive',
         tone: 'bad',
         headline: 'Sync failed: Sign-in service unreachable. It will try again.',

@@ -38,8 +38,12 @@ export interface SyncDialogButton {
   readonly primary: boolean;
 }
 
+export const CLOUD_SYNC_MENU_LABEL = 'Cloud sync…';
+export const CLOUD_SYNC_CLOSE_LABEL = 'Close';
+
 export interface SyncDialogModel {
   readonly title: string;
+  readonly closeLabel: string;
   readonly providerHeading: string;
   readonly tone: SyncTone;
   readonly headline: string;
@@ -253,7 +257,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
     }
   }
 
-  const strip = status.kind === 'reconnect' && !inputs.updateBannerShown
+  const strip = inputs.configured && status.kind === 'reconnect' && !inputs.updateBannerShown
     ? {
         text: status.changes > 0
           ? `⚠ Google needs you to connect again. ${formatCountOf(status.changes, 'change')} not synced.`
@@ -262,7 +266,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       }
     : null;
 
-  const hint = inputs.launches >= 2 && status.kind === 'off' && !inputs.hintDismissed
+  const hint = inputs.configured && inputs.launches >= 2 && status.kind === 'off' && !inputs.hintDismissed
     ? {
         text: 'Sync your projects across devices?',
         yes: 'Turn on',
@@ -270,7 +274,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       }
     : null;
 
-  const conflictNotice = inputs.conflicts.length > inputs.conflictsSeen
+  const conflictNotice = inputs.configured && inputs.conflicts.length > inputs.conflictsSeen
     ? {
         text: `${formatCountOf(inputs.conflicts.length, 'item')} changed on two devices. Both kept.`,
         button: 'View',
@@ -279,6 +283,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
 
   const dialog: SyncDialogModel = {
     title: 'Cloud sync',
+    closeLabel: CLOUD_SYNC_CLOSE_LABEL,
     providerHeading: 'Google Drive',
     tone,
     headline: text,

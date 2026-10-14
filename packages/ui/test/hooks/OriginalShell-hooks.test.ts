@@ -4,6 +4,8 @@ import {createApp} from 'vue';
 import {APP_LOGIC} from '../../src/logic/app.js';
 import {FOCUSED_PROJECT} from '../../src/logic/focusedProjectContext.js';
 import {SplashModalKey} from '../../src/hooks/SplashModal-hooks.js';
+import {provideCloudSync} from '../../src/hooks/CloudSync-hooks.js';
+import {createCloudUiStore, createMemoryStorage} from '@openisd/persistence';
 import {testAppLogic} from './testAppLogic.js';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
@@ -241,6 +243,7 @@ describe('OriginalShell-hooks', () => {
         open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null),
         dismiss: () => undefined, show: () => undefined,
       });
+      provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
       return app.runWithContext(() => useOriginalShell());
     }
 

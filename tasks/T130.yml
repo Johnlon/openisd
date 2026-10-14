@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 3cb4afeb5ec59429560eeeae01ae77e723fad4c7
 label: fixes
 goal: F21 closed: the cloud boot browser spec sits in packages/ui/test/ui/ as the test-folder rule requires
 done_test: bash scripts/test.sh packages/design/test/architecture-test-files-name-their-object.test.ts

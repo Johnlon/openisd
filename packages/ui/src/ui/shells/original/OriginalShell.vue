@@ -31,11 +31,17 @@ import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModa
 import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
+import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
+import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {INSTALL_URL} from '../../siteLinks.js';
 
 const {
+  cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
+  handleCloudConnect, handleCloudSyncNow, handleCloudReconnect,
+  handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
+  handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   version, toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
   openDialogOpen, storedProjects, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
@@ -110,12 +116,26 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="tb-btn" title="Options" @click="optionsOpen = true">
           <ToolbarIcon name="options" />
         </div>
+        <div
+          v-if="cloudAvailable"
+          class="tb-btn cloud-sync-tb-btn"
+          :title="cloudDisplay.tooltip"
+          @click="openCloudDialog"
+        >
+          <CloudSyncBadge :display="cloudDisplay" @tap="openCloudDialog" />
+        </div>
         <div class="tb-btn has-menu" title="Info" style="position:relative" @click.stop="toggleDropdown('info-dropdown')">
           <ToolbarIcon name="info" />
           <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
+            <div
+              v-if="cloudAvailable"
+              class="menu-item"
+              :title="cloudDisplay.tooltip"
+              @click="openCloudDialog(); closeDropdown()"
+            >{{ CLOUD_SYNC_MENU_LABEL }}</div>
             <div class="menu-item" title="Where OpenISD differs from WinISD: the WinISD bugs it fixes, and the options." @click="winisdDifferences.show(); closeDropdown()">OpenISD and WinISD differences</div>
             <div class="menu-item" title="Diagnostic report and stored data health." @click="diagnostics.show(); closeDropdown()">Diagnostics</div>
             <div class="menu-item" title="Switch to a phone-friendly layout. Remembered on this device — use the same menu there to switch back." @click="switchToMobile(); closeDropdown()">Switch to Mobile view</div>
@@ -181,6 +201,23 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 @click="chartMax = !chartMax">{{ chartMax ? '⤡' : '⛶' }}</button>
 <div v-if="projectOpen" class="color-btn chart-color-btn" :style="{ background: WINISD_TRACE }" title="Click to cycle the current design's curve colour" @click="cycleColor">Color</div>
         </div>
+    </div>
+
+    <!-- Cloud sync strips / notices in flow directly under toolbar -->
+    <div v-if="cloudAvailable && cloudDisplay.strip" class="cloud-reconnect-strip">
+      <span class="cloud-strip-label">{{ cloudDisplay.strip.text }}</span>
+      <button type="button" class="cloud-strip-btn pri" @click="handleCloudReconnect">{{ cloudDisplay.strip.button }}</button>
+    </div>
+    <div v-else-if="cloudAvailable && cloudDisplay.conflictNotice" class="cloud-conflict-notice">
+      <span class="cloud-strip-label">{{ cloudDisplay.conflictNotice.text }}</span>
+      <button type="button" class="cloud-strip-btn pri" @click="handleViewConflicts">{{ cloudDisplay.conflictNotice.button }}</button>
+    </div>
+    <div v-else-if="cloudAvailable && cloudDisplay.hint" class="cloud-hint">
+      <span class="cloud-strip-label">{{ cloudDisplay.hint.text }}</span>
+      <div class="cloud-hint-actions">
+        <button type="button" class="cloud-strip-btn pri" @click="handleHintTurnOn">{{ cloudDisplay.hint.yes }}</button>
+        <button type="button" class="cloud-strip-btn" @click="handleHintDismiss">{{ cloudDisplay.hint.no }}</button>
+      </div>
     </div>
 
     <!-- ================= Main: 2×2 quadrants + splitters ================= -->
@@ -859,6 +896,28 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       </div>
     </div>
 
+    <div v-if="cloudAvailable && cloudDialogOpen" class="cloud-modal-backdrop" @click.self="closeCloudDialog">
+      <div class="cloud-modal" role="dialog" aria-labelledby="cloud-dialog-title" aria-modal="true">
+        <header class="cloud-modal-header">
+          <h2 id="cloud-dialog-title">{{ cloudDisplay.dialog.title }}</h2>
+          <button class="cloud-modal-x" type="button" :title="cloudDisplay.dialog.closeLabel" @click="closeCloudDialog">&times;</button>
+        </header>
+        <div class="cloud-modal-body">
+          <CloudSyncDialog
+            :model="cloudDisplay.dialog"
+            @connect="handleCloudConnect"
+            @sync-now="handleCloudSyncNow"
+            @reconnect="handleCloudReconnect"
+            @disconnect="handleCloudDisconnect"
+            @open-conflict="handleCloudOpenConflict"
+          />
+        </div>
+        <footer class="cloud-modal-footer">
+          <button class="cloud-modal-close-btn" type="button" @click="closeCloudDialog">{{ cloudDisplay.dialog.closeLabel }}</button>
+        </footer>
+      </div>
+    </div>
+
     <SaveToLibraryDialog v-if="prSaveOpen" title="Save passive radiator to library"
       note="The name the copy has in your library. The project's passive radiator keeps its own name."
       :fields="prSaveFields" :can-save="prSaveCanSave" save-label="Save" @save="confirmPRSave" @cancel="cancelPRSave" />
@@ -888,8 +947,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 
 .app-icon { width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #888, #333 70%); display:inline-block; }
-.app-brand { display:flex; align-items:center; gap:6px; flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap; font-weight:600; }
+.app-brand { display:flex; align-items:center; gap:6px; flex:0 0 auto; min-width:0; overflow:hidden; white-space:nowrap; font-weight:600; }
 .brand-icon { width:20px; height:20px; display:block; }
+
 
 /* ---------- Toolbar ---------- */
 .toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
@@ -903,9 +963,140 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .tb-sep { width:1px; flex:none; align-self:stretch; background:#ccc; margin:0 4px; }
 .tb-btn svg { display:block; }
 .caret { font-size:10px; margin-left:2px; color:#555; }
-.chart-select { display:flex; align-items:center; gap:6px; flex:none; width:324px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+.cloud-sync-tb-btn { padding: 0; }
+.cloud-sync-tb-btn .cloud-sync-badge { width: 100%; height: 100%; }
+.chart-select { display:flex; align-items:center; gap:6px; flex:0 1 324px; width:324px; min-width:140px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+
+/* ---------- Cloud strips & modal ---------- */
+.cloud-reconnect-strip,
+.cloud-conflict-notice,
+.cloud-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--line, #bbb);
+  flex: none;
+}
+.cloud-reconnect-strip {
+  background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f7f7f7));
+  border-bottom-color: var(--acc2, #b8790f);
+  color: color-mix(in srgb, var(--acc2, #b8790f) 60%, black);
+}
+.cloud-conflict-notice {
+  background: color-mix(in srgb, var(--acc, #1868d1) 15%, var(--panel, #f7f7f7));
+  border-bottom-color: var(--acc, #1868d1);
+  color: color-mix(in srgb, var(--acc, #1868d1) 60%, black);
+}
+.cloud-hint {
+  background: var(--panel2, #ececec);
+  border-bottom-color: var(--line, #bbb);
+  color: var(--fg, #1a1a1a);
+}
+.cloud-strip-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+.cloud-strip-btn {
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+.cloud-strip-btn:hover {
+  background: #f0f0f0;
+}
+.cloud-strip-btn.pri {
+  background: var(--acc, #1868d1);
+  color: #fff;
+  border-color: var(--acc, #1868d1);
+}
+.cloud-strip-btn.pri:hover {
+  opacity: 0.9;
+}
+.cloud-hint-actions {
+  display: flex;
+  gap: 6px;
+}
+.cloud-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.cloud-modal {
+  background: var(--panel, #fff);
+  color: var(--fg, #1a1a1a);
+  border: 1px solid var(--line, #bbb);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  width: min(520px, 92vw);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 18px;
+  font-size: 13px;
+}
+.cloud-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e5e5;
+}
+.cloud-modal-header h2 {
+  font-size: 15px;
+  margin: 0;
+  font-weight: 600;
+}
+.cloud-modal-x {
+  border: none;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--mut, #666);
+  padding: 2px 6px;
+}
+.cloud-modal-x:hover {
+  color: var(--fg, #111);
+}
+.cloud-modal-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+.cloud-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e5e5;
+}
+.cloud-modal-close-btn {
+  padding: 5px 14px;
+  font-size: 13px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  background: #fff;
+  cursor: pointer;
+}
+.cloud-modal-close-btn:hover {
+  background: #f0f0f0;
+}
 .cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; margin-left:auto; }
 .version-chip { font-size:12px; color:#555; line-height:1.1; font-weight:400; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }

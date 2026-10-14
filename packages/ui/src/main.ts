@@ -35,7 +35,8 @@ import {
     createRedirectGuard,
     createTokenStore,
     createImplicitSession,
-    createSyncLedger
+    createSyncLedger,
+    createCloudUiStore
 } from '@openisd/persistence';
 import {isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
@@ -262,8 +263,11 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     onUncaught: thrown => crashReports.capture(thrown),
   });
 
+  const cloudUi = createCloudUiStore(createLocalStorage());
+
   let cloudSync: CloudSync | null = null;
-  if (!store.readOnly) {
+  if (!store.readOnly && oauthConfig.clientId !== null) {
+    cloudUi.recordLaunch();
     const commitFocusedField = (): void => {
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
@@ -335,7 +339,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     .directive('expo-step', vExpoStep)
     .directive('limits', vLimits);
 
-  provideCloudSync(cloudSync, app);
+  provideCloudSync(app, cloudSync, cloudUi);
   provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer), featureUse});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,

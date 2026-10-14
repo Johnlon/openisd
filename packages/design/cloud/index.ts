@@ -22,6 +22,8 @@ export type {
 } from './syncDisplay.js';
 
 export {
+  CLOUD_SYNC_CLOSE_LABEL,
+  CLOUD_SYNC_MENU_LABEL,
   syncDisplayOf,
 } from './syncDisplay.js';
 

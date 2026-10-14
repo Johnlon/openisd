@@ -1,0 +1,24 @@
+id: T128
+release_note: Cloud sync can be turned on from the toolbar: a sync icon after Options opens the Cloud sync window.
+repo: openisd
+owner: maryu
+status: done
+goal: Original skin shows cloud sync: toolbar sync icon after Options opens the Cloud sync dialog, Info menu entry, reconnect strip, conflict notice, one-time hint (Drive sync plan P1-13a)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T128.yml
+  - packages/ui/src/ui/shells/original/**
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/src/ui/components/CloudSyncDialog.vue
+  - packages/ui/src/ui/components/CloudSyncBadge.vue
+  - packages/ui/src/ui/components/ToolbarIcon.vue
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/main.ts
+  - packages/design/cloud/**
+  - packages/design/test/cloud/**
+  - packages/ui/test/ui/cloudSync.original.browser.spec.ts
+  - packages/ui/test/ui/cloudSyncDialog.browser.spec.ts
+  - packages/ui/test/ui/redirectRoundTrip.browser.spec.ts
+  - packages/ui/test/ui/CloudSyncDialog.test.ts
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts

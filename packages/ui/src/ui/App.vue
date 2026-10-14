@@ -19,12 +19,11 @@ import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
-import {provideCloudSync} from '../hooks/CloudSync-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import CrashScreen from './components/CrashScreen.vue';
 
-const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appState, presentation: presentationState, recordedProjectId, cloudSync } = useApp();
+const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appState, presentation: presentationState, recordedProjectId } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch } = useTelemetryUi();
@@ -55,7 +54,6 @@ const activeSkin = computed(() =>
 // as the gate version did: only a descendant mounted inside the shell's `projectOpen` gate may
 // read it — that gate guarantees a project exists, so the throw can never fire there.
 provideFocusedProject(computed(() => requireFocusedProject()));
-provideCloudSync(cloudSync);
 
 // One splash for the whole app: it raises itself for a first visitor, and the toolbar's Info
 // menu reopens it. Provided here so the shell's menu and the modal share one instance. The
