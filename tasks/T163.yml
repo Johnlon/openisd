@@ -1,0 +1,11 @@
+id: T163
+release_note: internal
+repo: openisd
+owner: sonnet-save-all-dirty
+status: done
+goal: Mobile menu Save all is highlighted like Save when any project has unsaved changes
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T163.yml
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts

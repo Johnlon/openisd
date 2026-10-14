@@ -130,6 +130,28 @@ test.describe('MobileMenu', () => {
       await expect(mobileFieldRow(page, 'Volume').locator('input').first()).toHaveValue(before);
     });
 
+    // John, 2026-10-14: a project was marked unsaved but Save all was not highlighted. Save is
+    // highlighted while the focused project has unsaved changes, Save all while ANY open project
+    // has (the same two rules as the desktop toolbar).
+    test('Save and Save all are highlighted while there are unsaved changes', async ({ page }) => {
+      await openMobileMenu(page);
+      const save = page.locator('.mob-menu-item', { hasText: /^Save$/ });
+      const saveAll = page.locator('.mob-menu-item', { hasText: /^Save all$/ });
+      await expect(saveAll).toBeDisabled();
+      await expect(save).not.toHaveClass(/dirty/);
+      await expect(saveAll).not.toHaveClass(/dirty/);
+
+      await setFocusedBoxVolume(page, 0.012);
+      await expect(save).toHaveClass(/dirty/);
+      await expect(saveAll).toBeEnabled();
+      await expect(saveAll).toHaveClass(/dirty/);
+
+      // Focus moves to a second, unedited project; the first keeps its unsaved changes.
+      await duplicateFocusedProject(page, 'Second');
+      await expect(saveAll).toBeEnabled();
+      await expect(saveAll).toHaveClass(/dirty/);
+    });
+
     // John, 2026-10-05: "can the Open project action show the driver name, and volume and type?"
     test('each saved project shows its driver, box type and volume under its name', async ({ page }) => {
       await setFocusedBoxType(page, 'vented');

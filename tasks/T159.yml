@@ -3,6 +3,7 @@ release_note: Diagnostics and Copy diagnostics list the last 30 cloud sync event
 repo: openisd
 owner: maryu
 status: done
+landed: e0e41792148f83add29f6e20ab37d223bd4a7a6f
 goal: Diagnostics and Copy diagnostics list the last 30 cloud sync events of this page session, newest first
 done_test: bash scripts/test.sh packages/persistence/test/cloud/cloudSync.test.ts packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/storageBackup.test.ts packages/persistence/test/cloud/syncEngine.test.ts
 files:
