@@ -1,0 +1,10 @@
+id: T133
+release_note: Cloud sync to your own Google Drive, sign in from the toolbar (desktop) or the header icon (phone)
+repo: openisd
+owner: fable
+status: done
+goal: Snapshot builds carry the Google OAuth client id: build.yml passes the VITE_GOOGLE_CLIENT_ID repository variable to snap.sh
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T133.yml
+  - .github/workflows/build.yml

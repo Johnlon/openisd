@@ -3,6 +3,7 @@ release_note: Cloud sync runs a few seconds after you save a project, driver, pa
 repo: openisd
 owner: maryu
 status: done
+landed: 880b3897f792b87a1bf44503d194c17248058fb7
 goal: A saved project, driver, passive radiator, favourite or Options change starts a debounced cloud sync run
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
