@@ -1,0 +1,13 @@
+id: T172
+release_note: internal
+repo: openisd
+owner: sonnet-open-dialog
+status: done
+goal: Open project dialog: bin icon replaces Move to Bin and Bin words, no horizontal scroll, tidier layout
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T172.yml
+  - packages/ui/src/ui/components/ToolbarIcon.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/project-bin.browser.spec.ts

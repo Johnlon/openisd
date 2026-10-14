@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-toolbar-fit
 status: done
+landed: ffa81feaac1cc4a29d2891756a2a0efd82f4895a
 goal: The Original toolbar never overflows: version chip removed (About keeps it), chart drop-down narrowed, 1280px spec
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

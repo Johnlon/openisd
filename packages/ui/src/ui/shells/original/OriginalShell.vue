@@ -885,7 +885,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <button class="open-from-disk" @click="openFromDisk">Import project</button> <button class="export-projects" @click="exportProjectsArchive">Export all projects</button>
           <div class="open-project-list-head">
             <p class="store-label">{{ storeLabel }}</p>
-            <button class="bin-toggle" @click="binOpen = !binOpen">{{ binOpen ? 'Back to projects' : binLabel }}</button>
+            <button class="bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
           </div>
           <div v-if="!binOpen" class="open-project-list">
             <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
@@ -895,7 +895,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <small class="stored-project-modified">{{ projectEntry.modified }}</small>
                 <small class="stored-project-summary">{{ projectEntry.summary }}</small>
               </button>
-              <button class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)">Move to Bin</button>
+              <button class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" :aria-label="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)"><ToolbarIcon name="bin" /></button>
             </div>
           </div>
           <div v-else class="open-project-list bin-list">
@@ -1510,12 +1510,12 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .modal-titlebar .win-controls span { cursor:pointer; padding:1px 6px; }
 .modal-titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
 .modal-body { padding:16px 20px; max-height:65vh; overflow:auto; }
-.open-project-body { display:flex; flex-direction:column; gap:10px; }
+.open-project-body { display:flex; flex-direction:column; gap:10px; overflow-x:hidden; }
 .open-from-disk { align-self:stretch; text-align:left; padding:8px 10px; font-weight:600; }
-.open-project-list { display:flex; flex-direction:column; gap:4px; max-height:42vh; overflow-y:auto; border-top:1px solid #ccc; padding-top:8px; }
+.open-project-list { display:flex; flex-direction:column; gap:4px; max-height:42vh; overflow-y:auto; overflow-x:hidden; border-top:1px solid #ccc; padding-top:8px; }
 .stored-project-item { display:flex; align-items:center; gap:6px; }
 .stored-project-item .stored-project-row { flex:1; min-width:0; }
-.stored-project-bin { flex:none; }
+.stored-project-bin { flex:none; display:inline-flex; align-items:center; padding:4px 6px; }
 .open-project-list-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .bin-toggle { flex:none; white-space:nowrap; }
 .bin-row { display:flex; align-items:center; gap:6px; padding:6px; }
@@ -1526,7 +1526,8 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .stored-project-row { display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:2px; border:0; background:transparent; padding:8px 6px; text-align:left; cursor:pointer; }
 .stored-project-summary { grid-column:1 / -1; font-size:11px; }
 .stored-project-row:hover { background:#dbeafe; }
-.stored-project-row small { color:#666; white-space:nowrap; }
+.stored-project-row small { color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.stored-project-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .modal-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #ccc; padding:10px 20px; background:#eee; }
 .footer-buttons { display:flex; gap:8px; }
 .footer-buttons button { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:6px 14px; cursor:pointer; }

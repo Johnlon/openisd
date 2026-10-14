@@ -203,7 +203,7 @@ const diagnostics = injectDiagnosticsModal();
     <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">
       <p class="store-label">{{ storeLabel }}</p>
       <button type="button" class="mob-cta mob-cta-secondary mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
-      <button type="button" class="mob-cta mob-cta-secondary mob-bin-toggle" @click="binOpen = !binOpen">{{ binOpen ? 'Back to projects' : binLabel }}</button>
+      <button type="button" class="mob-cta mob-cta-secondary mob-bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
       <template v-if="!binOpen">
         <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
         <div v-for="p in storedProjects" :key="p.id" class="mob-stored-project-item">
@@ -212,7 +212,7 @@ const diagnostics = injectDiagnosticsModal();
             <span class="mob-stored-project-summary">{{ p.summary }}</span>
             <span class="mob-stored-project-modified">{{ p.modified }}</span>
           </button>
-          <button type="button" class="mob-stored-project-bin" :aria-label="`Move ${p.name} to the Bin`" @click="moveToBin(p)">Bin</button>
+          <button type="button" class="mob-stored-project-bin" :aria-label="`Move ${p.name} to the Bin`" :title="`Move ${p.name} to the Bin`" @click="moveToBin(p)"><ToolbarIcon name="bin" /></button>
         </div>
       </template>
       <template v-else>
@@ -451,7 +451,7 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-stored-project-item { display: flex; align-items: center; border-top: 1px solid var(--line); }
 .mob-stored-project-item:first-of-type { border-top: none; }
-.mob-stored-project-bin { all: unset; box-sizing: border-box; flex: none; padding: 10px 16px; font-size: 13px; color: var(--mut); cursor: pointer; }
+.mob-stored-project-bin { all: unset; box-sizing: border-box; flex: none; display: inline-flex; align-items: center; padding: 10px 16px; font-size: 13px; color: var(--mut); cursor: pointer; }
 .mob-bin-toggle { margin-top: 8px; }
 .mob-bin-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-top: 1px solid var(--line); }
 .mob-bin-row:first-of-type { border-top: none; }

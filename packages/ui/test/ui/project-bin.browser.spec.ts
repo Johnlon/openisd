@@ -65,3 +65,39 @@ test('mobile: Bin a project, see it in the Bin, then Empty Bin', async ({ page }
   await sheet.locator('.mob-dlg-ok').click();
   await expect(page.getByText('No project open')).toBeVisible();
 });
+
+test('desktop: the Bin buttons are icons with tooltips, and the Open project dialog has no horizontal scroll', async ({ page }) => {
+  await page.goto('/');
+  await openAProject(page);
+  await page.locator('.project-nav li', { hasText: 'Project' }).click();
+  const name = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
+  await name.fill('A very long project name that goes on and on and on and on and on and on and on and on and on');
+  await name.blur();
+  await page.locator('.tb-btn[title^="Save - "]').click();
+  await page.getByTitle('Open project', {exact: true}).click();
+  const dialog = page.locator('.open-project-dialog');
+
+  const bin = dialog.locator('.stored-project-bin');
+  await expect(bin).toHaveText('');
+  await expect(bin).toHaveAttribute('title', /^Move .* to the Bin$/);
+  await expect(dialog.locator('.bin-toggle')).toHaveText(/^\s*Bin \(0\)\s*$|^\s*Bin\s*$/);
+  for (const sel of ['.modal-body', '.open-project-list']) {
+    const fits = await dialog.locator(sel).evaluate(e => e.scrollWidth <= e.clientWidth);
+    expect(fits, `${sel} scrolls sideways`).toBe(true);
+  }
+});
+
+test('mobile at 360px: the Bin button is an icon and the Open project sheet has no horizontal scroll', async ({ page }) => {
+  await page.setViewportSize({width: 360, height: 740});
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+  await tapMobileMenuItem(page, /^Save$/);
+  await tapMobileMenuItem(page, 'Open project…');
+  const sheet = page.locator('.mob-open-project-sheet');
+
+  await expect(sheet.locator('.mob-stored-project-bin')).toHaveText('');
+  await expect(sheet.locator('.mob-stored-project-bin')).toHaveAttribute('title', /^Move .* to the Bin$/);
+  const fits = await sheet.evaluate(e => e.scrollWidth <= e.clientWidth);
+  expect(fits, 'sheet scrolls sideways').toBe(true);
+});

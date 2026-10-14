@@ -12,7 +12,7 @@ import type {SyncGlyph} from '@openisd/design/cloud';
  * addition), so the ribbon/tag motif is reused for it rather than invented from nothing.
  */
 defineProps<{
-  name: 'open' | 'new' | 'import' | 'save' | 'saveAll' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart' | 'revert' | SyncGlyph;
+  name: 'open' | 'new' | 'import' | 'save' | 'saveAll' | 'saveAs' | 'export' | 'drivers' | 'options' | 'info' | 'chart' | 'revert' | 'bin' | SyncGlyph;
 }>();
 </script>
 
@@ -52,6 +52,12 @@ defineProps<{
     <path d="M3 3 h15 l3 3 v17 H3 Z" fill="#5b7fb0" stroke="#3c5a86"/>
     <rect x="7" y="3" width="9" height="7" fill="#cdd8e6"/>
     <path d="M13 21 l7-7 3 3 -7 7 -3.6 .6 Z" fill="#ffd34d" stroke="#b8901f"/>
+  </svg>
+  <svg v-else-if="name === 'bin'" width="16" height="18" viewBox="0 0 22 26">
+    <path d="M4 7 h14 l-1.2 16 a2 2 0 0 1-2 1.8 H7.2 a2 2 0 0 1-2-1.8 Z" fill="#c3ccd6" stroke="#7a8794"/>
+    <rect x="2.5" y="4" width="17" height="3" rx="1" fill="#9aa7b5" stroke="#7a8794"/>
+    <path d="M8 4 v-1.5 a1 1 0 0 1 1-1 h4 a1 1 0 0 1 1 1 V4" fill="none" stroke="#7a8794"/>
+    <path d="M8.5 10 v10 M11 10 v10 M13.5 10 v10" stroke="#7a8794" stroke-linecap="round"/>
   </svg>
   <svg v-else-if="name === 'drivers'" width="22" height="19" viewBox="0 0 30 26">
     <circle cx="15" cy="13" r="11" fill="#c9c9c9" stroke="#8a8a8a"/>
