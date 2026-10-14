@@ -85,7 +85,7 @@ test.describe('Options dialog', () => {
         // General tab: Environment input boxes should be 150px wide
         const envInput = page.locator('.opt-env-grid .opt-num').first();
         const envInputWidth = await envInput.evaluate(el => window.getComputedStyle(el).width);
-        expect(envInputWidth).toBe('82px');
+        expect(envInputWidth).toBe('80px');
 
         // Verify no spinners (appearance: none / textfield)
         const appearance = await envInput.evaluate(el => window.getComputedStyle(el).webkitAppearance);

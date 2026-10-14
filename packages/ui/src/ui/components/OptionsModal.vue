@@ -443,7 +443,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
    those same class names here would leak the shell's positioning/sizing onto this modal. */
 .opt-overlay { position: fixed; inset: 0; background: rgba(4, 8, 14, 0.66); display: flex;
   align-items: center; justify-content: center; z-index: 200; }
- .opt-modal { width: min(470px, 92vw); max-height: 94vh; display: flex; flex-direction: column;
+ .opt-modal { width: min(520px, 92vw); max-height: 94vh; display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
   color: var(--fg); }
 .opt-h2 { margin: 0; font-size: 14px; padding: 11px 14px; border-bottom: 1px solid var(--line);
@@ -486,9 +486,9 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 
 /* Two equal columns; every row is label | input | unit with the same widths in both columns, so
    the inputs and units line up across the whole fieldset. */
-.opt-env-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+.opt-env-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
 .opt-env-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.opt-fld { display: grid; grid-template-columns: 104px 82px 1fr; align-items: center; column-gap: 4px;
+.opt-fld { display: grid; grid-template-columns: 100px 80px 1fr; align-items: center; column-gap: 4px;
   font-size: 12px; min-width: 0; }
 .opt-fld label { color: var(--mut); white-space: nowrap; }
 .opt-checkbox-row { grid-column: 1 / -1; }
@@ -496,7 +496,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 .opt-num,
 .opt-body :deep(.opt-num) { width: 150px; padding: 3px 5px; box-sizing: border-box; }
 .opt-env-grid .opt-num,
-.opt-env-grid :deep(.opt-num) { width: 82px; }
+.opt-env-grid :deep(.opt-num) { width: 80px; }
 .opt-greyed { color: var(--mut); }
 .opt-unit { font-size: 11px; color: var(--mut); white-space: nowrap; }
 .opt-fld :deep(.opt-unit) { justify-self: start; }

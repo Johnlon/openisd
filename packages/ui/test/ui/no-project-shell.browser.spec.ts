@@ -190,13 +190,13 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.projects-list')).toContainText('sample-project');
     });
 
-    test('Open shows saved browser projects with Import project first', async ({ page }) => {
+    test('Open shows saved browser projects, with Import project in the footer', async ({ page }) => {
       await page.goto('/');
 
       await page.getByTitle('Open project', {exact: true}).click();
       const dialog = page.locator('.open-project-dialog');
       await expect(dialog).toBeVisible();
-      await expect(dialog.locator('button').first()).toHaveText('Import project');
+      await expect(dialog.locator('.open-project-footer').getByRole('button', {name: 'Import project'})).toBeVisible();
       await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
     });
 

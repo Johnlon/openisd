@@ -1,0 +1,15 @@
+id: T174
+release_note: internal
+repo: openisd
+owner: sonnet-dialog-polish
+status: done
+label: fixes
+goal: F25: no-project-shell spec expects Import first in the Open dialog; it is in the footer now. Also Options units no longer poke out of their group
+done_test: bash scripts/test.sh packages/design/test/fields/projectListView.test.ts
+files:
+  - tasks/T174.yml
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/test/ui/options-fit.browser.spec.ts
+  - packages/ui/test/ui/no-project-shell.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - tasks/fixes/F25.yml

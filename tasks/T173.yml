@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-open-dialog2
 status: done
+landed: 789cd8117748635a8b48d1aac792ed1b8c40af78
 goal: Open project: sort by name and date, search box, cleaner consistent layout in both skins
 done_test: bash scripts/test.sh packages/design/test/fields/projectListView.test.ts
 files:
