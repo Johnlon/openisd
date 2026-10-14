@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: a030cd354557d38bbad4011e52116bf3b8cc1021
 goal: The Google sign-in returns to the app that started it: the OAuth redirect URI is the running app's own directory, not the site root
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

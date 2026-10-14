@@ -1,0 +1,10 @@
+id: T141
+release_note: https://openisd.app/test/ always serves the newest snapshot build
+repo: openisd
+owner: fable
+status: done
+goal: The site serves the newest snapshot at the fixed path /test/ so Google sign-in testing has one stable redirect URI
+done_test: bash -n scripts/hosting/assemble-site.sh
+files:
+  - tasks/T141.yml
+  - scripts/hosting/assemble-site.sh

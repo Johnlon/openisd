@@ -3,6 +3,9 @@
 #   /                     the release GitHub marks Latest
 #   /v/<stamp>/           every release
 #   /snap/<stamp>/        every kept snapshot build
+#   /test/                the newest snapshot again: one stable URL for testing (Google sign-in
+#                         needs a registered redirect URI, and a per-stamp path would need a new
+#                         one every build; John, 14 Oct 2026)
 #   /v/index.json         both trails; /v/index.html and /snap/index.html list them
 #   /dates.js             the index pages' date formatter bundle
 # Releases are the only source: no branch holds a built site. While no release is marked Latest
@@ -51,6 +54,15 @@ while IFS=$'\t' read -r kind tag stamp; do
     snap)    unzip_build "$tag" "$stamp" "$OUT/snap/$stamp" ;;
   esac
 done < <(jq -r '.[] | [.kind, .tag, .stamp] | @tsv' "$WORK/site/v/index.json")
+
+# /test/ is a copy of the newest snapshot (the stamps sort as text). Nothing to copy before the
+# first snapshot. A copy, not a redirect: the service worker's scope is the path it is served from.
+NEWEST_SNAP="$(jq -r '[.[] | select(.kind == "snap") | .stamp] | sort | last // empty' "$WORK/site/v/index.json")"
+if [ -n "$NEWEST_SNAP" ]; then
+  mkdir -p "$OUT/test"
+  cp -R "$OUT/snap/$NEWEST_SNAP/." "$OUT/test/"
+  echo "assemble-site: /test/ is snapshot $NEWEST_SNAP" >&2
+fi
 
 cp "$WORK/site/v/index.json" "$WORK/site/v/index.html" "$OUT/v/"
 cp "$WORK/site/snap/index.html" "$OUT/snap/"
