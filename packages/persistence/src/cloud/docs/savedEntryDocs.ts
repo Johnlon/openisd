@@ -2,10 +2,13 @@ import { newUuid } from '@openisd/design';
 import {
   type DeviceName,
   type DocId,
+  conflictCopyName,
+  deviceNameOfBody,
+  setDeviceModelInBody,
   wrapDoc,
   unwrapDoc,
 } from '@openisd/design/cloud';
-import type { LocalDoc, LocalDocs, LocalRead } from '../localDocs.js';
+import type { KeptCopy, LocalDoc, LocalDocs, LocalRead } from '../localDocs.js';
 import type { SavedEntries } from '../../repos/savedEntries.js';
 import { createLayoutMigrator, type LayoutRules, type StoreData } from '../../repos/layoutMigration.js';
 import { OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY } from '../../repos/storageKeys.js';
@@ -61,16 +64,14 @@ export function createSavedEntryDocs(deps: SavedEntryDocsDeps): LocalDocs {
     return unwrapDoc(storeKey, doc.id, migrated);
   }
 
-  function putConflictCopy(doc: LocalDoc, _from: DeviceName, _at_ms: number): { readonly id: DocId } | 'refused' {
+  function putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): KeptCopy | 'refused' {
     if (doc.id.kind !== kind) return 'refused';
-    const newId = newUuid();
-    const putRes = put({
-      id: { kind, uuid: newId },
-      body: doc.body,
-      layout: rules.layout,
-    });
-    if (putRes === 'refused') return 'refused';
-    return { id: { kind, uuid: newId } };
+    const item = deviceNameOfBody(doc.body) ?? (kind === 'driver' ? 'Driver' : 'Passive radiator');
+    const name = conflictCopyName(item, from, at_ms);
+    const body = setDeviceModelInBody(doc.body, name);
+    const id: DocId = { kind, uuid: newUuid() };
+    if (put({ id, body, layout: rules.layout }) === 'refused') return 'refused';
+    return { id, body, item, name };
   }
 
   return {

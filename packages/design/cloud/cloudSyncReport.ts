@@ -1,5 +1,6 @@
 import {formatClock, formatDateTime, formatTime} from '../fields/format.js';
 import type {CloudFault, CloudFaultRecord, CloudGrant} from './cloudTypes.js';
+import {type ConflictCopy, conflictKeptText} from './syncStatus.js';
 
 /** How a sync run ended, with its counts. A fault itself is in the report's `lastFault` and events. */
 export type CloudAttemptOutcome =
@@ -20,7 +21,9 @@ export type CloudSyncEvent =
   /** Drive held `count` files of a kind this build does not know; they were left alone. */
   | { readonly kind: 'skipped'; readonly at_ms: number; readonly count: number }
   /** A binned project came back to the list because another device edited it. */
-  | { readonly kind: 'restoredFromBin'; readonly at_ms: number; readonly name: string; readonly editedOn: string };
+  | { readonly kind: 'restoredFromBin'; readonly at_ms: number; readonly name: string; readonly editedOn: string }
+  /** An item changed on two devices: both versions kept, this device's under the copy's name. */
+  | { readonly kind: 'keptBoth'; readonly at_ms: number; readonly copy: ConflictCopy };
 
 /** How many events the log keeps; older ones drop off. */
 export const CLOUD_SYNC_EVENTS_KEPT = 30;
@@ -119,6 +122,7 @@ function eventLine(event: CloudSyncEvent): string {
       return `    ${at} error: ${fault.operation}, HTTP ${fault.status}, ${fault.reason}, reply: ${fault.reply.slice(0, REPLY_START_CHARS)}`;
     }
     case 'skipped': return `    ${at} skipped ${event.count} items of a newer kind`;
+    case 'keptBoth': return `    ${at} ${conflictKeptText(event.copy)}; yours is "${event.copy.name}"`;
     case 'restoredFromBin': return `    ${at} restored from Bin: edited on ${event.editedOn === '' ? 'another device' : event.editedOn} ("${event.name}")`;
   }
 }

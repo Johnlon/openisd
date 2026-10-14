@@ -7,6 +7,8 @@ export type RunOutcome =
       readonly pulled: number;
       readonly pushed: number;
       readonly conflicts: readonly ConflictCopy[];
+      /** The items this run kept twice. */
+      readonly keptBoth: readonly ConflictCopy[];
       readonly held: number;
       /** Local changes still not on Drive after the run. */
       readonly left: number;

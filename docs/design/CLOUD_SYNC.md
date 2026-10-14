@@ -59,7 +59,7 @@ The scheduler (`syncScheduler.ts`) serialises runs; at most one extra run queues
 
 ## Conflicts
 
-- **Edit vs edit** (both devices changed the same doc): both copies kept. Remote wins the original id; local body becomes a conflict copy with a new uuid and a visible name mark (e.g. `Sub 12 (conflict, Android phone, 13 Oct 2026, 21:05)`).
+- **Edit vs edit** (both devices changed the same doc): both copies kept. Remote wins the original id; local body becomes a conflict copy with a new uuid and a visible name mark, the same for a project, a driver and a passive radiator (a driver's or radiator's model carries it): `W5-1138SMF (conflict, 14 Oct 2026, Windows PC)`. The marked copy is what goes to Drive, so every device sees it marked. The status notice, its tooltip, the Cloud sync dialog and the Diagnostics event list name each item: `Driver "W5-1138SMF" kept both: yours and the copy from iPhone`.
 - **Edit vs delete**: edit wins (pushes as update, effectively undeleting).
 - **Delete vs delete**: ledger row dropped.
 - **Settings / favourites** (singleton docs): Lamport clock decides. Higher `seq` wins; tie → higher `writer` id wins. Wall clock never decides.

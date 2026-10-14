@@ -2,12 +2,12 @@ import { newUuid } from '@openisd/design';
 import {
   type DeviceName,
   type DocId,
-  conflictProjectName,
+  conflictCopyName,
   setProjectNameInBody,
   wrapDoc,
   unwrapDoc,
 } from '@openisd/design/cloud';
-import type { LocalDoc, LocalDocs, LocalRead } from '../localDocs.js';
+import type { KeptCopy, LocalDoc, LocalDocs, LocalRead } from '../localDocs.js';
 import type { ProjectRepo } from '../../repos/projectRepo.js';
 import { createLayoutMigrator, type LayoutRules, type StoreData } from '../../repos/layoutMigration.js';
 import { OPENISD_PROJECTS_KEY } from '../../repos/storageKeys.js';
@@ -62,15 +62,15 @@ export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
     return unwrapDoc(OPENISD_PROJECTS_KEY, doc.id, migrated);
   }
 
-  function putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): { readonly id: DocId } | 'refused' {
+  function putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): KeptCopy | 'refused' {
     if (doc.id.kind !== 'project') return 'refused';
-    const rawName = projectNameOfBody(doc.body) ?? 'Project';
-    const conflictMark = conflictProjectName(rawName, from, at_ms);
-    const newBody = setProjectNameInBody(doc.body, conflictMark);
+    const item = projectNameOfBody(doc.body) ?? 'Project';
+    const name = conflictCopyName(item, from, at_ms);
+    const body = setProjectNameInBody(doc.body, name);
     const newId = newUuid();
-    const putRes = repo.putStoredDoc(newId, newBody);
+    const putRes = repo.putStoredDoc(newId, body);
     if (putRes === 'refused') return 'refused';
-    return { id: { kind: 'project', uuid: newId } };
+    return { id: { kind: 'project', uuid: newId }, body, item, name };
   }
 
   return {

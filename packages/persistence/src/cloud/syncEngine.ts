@@ -15,12 +15,12 @@ import {
   bodyHashOf,
   type CloudError,
   cloudFaultOf,
-  conflictProjectName,
+  type ConflictCopy,
   decideDocSync,
   shouldPurgeTombstone,
 } from '@openisd/design/cloud';
 import type { CloudStore } from './cloudStore.js';
-import type { LocalDoc, LocalDocs } from './localDocs.js';
+import type { KeptCopy, LocalDoc, LocalDocs } from './localDocs.js';
 import type { LedgerRow, SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine, SyncProgress } from './syncRun.js';
 import type { RoomShortfall, StorageBackup } from '../repos/storageBackup.js';
@@ -51,6 +51,14 @@ function storedHashOf(bucket: LocalDocs, id: DocId): BodyHash | null {
   return doc === undefined ? null : bodyHashOf(doc.body);
 }
 
+/** The body a store lists for `id`, in its own form; null when it lists none. */
+function storedBodyOf(bucket: LocalDocs, id: DocId): string | null {
+  const read = bucket.list();
+  if (read.kind !== 'ok') return null;
+  const key = docIdKey(id);
+  return read.docs.find(d => docIdKey(d.id) === key)?.body ?? null;
+}
+
 function docIdKey(id: DocId): string {
   switch (id.kind) {
     case 'project':
@@ -78,35 +86,6 @@ function toConflictCopyId(id: DocId): ProjectId | DriverId | PrId | null {
     case 'favourites':
       return null;
   }
-}
-
-function extractDocName(doc: LocalDoc): string {
-  try {
-    const parsed: unknown = JSON.parse(doc.body);
-    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
-      if ('name' in parsed && typeof parsed.name === 'string') return parsed.name;
-      if ('project' in parsed) {
-        const pr = parsed.project;
-        if (typeof pr === 'object' && pr !== null && 'name' in pr && typeof pr.name === 'string') {
-          return pr.name;
-        }
-      }
-      if ('saved' in parsed) {
-        const s = parsed.saved;
-        if (typeof s === 'object' && s !== null && 'meta' in s) {
-          const m = s.meta;
-          if (typeof m === 'object' && m !== null && 'name' in m && typeof m.name === 'string') {
-            return m.name;
-          }
-        }
-      }
-      if ('model' in parsed && typeof parsed.model === 'string') return parsed.model;
-    }
-  } catch {
-    // ignore
-  }
-  if ('uuid' in doc.id) return doc.id.uuid;
-  return doc.id.kind;
 }
 
 interface PlannedLocalWrite {
@@ -188,6 +167,16 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   }
 
   async function run(): Promise<RunOutcome> {
+    /** Items kept twice by this run, for the run's outcome. */
+    const keptBoth: ConflictCopy[] = [];
+    function noteKept(copy: KeptCopy, otherDevice: string): void {
+      const id = toConflictCopyId(copy.id);
+      if (id === null) return;
+      const conflict: ConflictCopy = { id, name: copy.name, item: copy.item, otherDevice, from: deps.ledger.deviceId(), at_ms: deps.now() };
+      deps.ledger.addConflict(conflict);
+      keptBoth.push(conflict);
+    }
+
     deps.progress.started();
     let removedDuplicates = 0;
     let skippedNewer = 0;
@@ -579,23 +568,15 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         // Local body becomes a conflict copy
         const copyRes = c.bucket.putConflictCopy(c.localDoc, deps.deviceName, deps.now());
         if (copyRes !== 'refused') {
-          const conflictId = toConflictCopyId(copyRes.id);
-          if (conflictId !== null) {
-            const conflictName = conflictProjectName(extractDocName(c.localDoc), deps.deviceName, deps.now());
-            deps.ledger.addConflict({
-              id: conflictId,
-              name: conflictName,
-              from: deps.ledger.deviceId(),
-              at_ms: deps.now(),
-            });
-          }
-          const copyHash = bodyHashOf(c.localDoc.body);
+          noteKept(copyRes, c.remoteMeta.device);
+          const copyBody = storedBodyOf(c.bucket, copyRes.id) ?? copyRes.body;
+          const copyHash = bodyHashOf(copyBody);
           if (copyHash !== null) {
             plannedPushes.push({
               kind: 'pushCreate',
               docId: copyRes.id,
               bucket: c.bucket,
-              body: c.localDoc.body,
+              body: copyBody,
               hash: copyHash,
             });
           }
@@ -736,7 +717,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                 return copyRes;
               };
 
-              let copyRes: { readonly id: DocId } | 'refused';
+              let copyRes: KeptCopy | 'refused';
               if (!backupRan) {
                 const g = deps.backup.guard('sync', () => doConflict());
                 if (g.kind === 'ran') {
@@ -750,24 +731,17 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
               }
 
               if (copyRes !== 'refused') {
-                const conflictId = toConflictCopyId(copyRes.id);
-                if (conflictId !== null) {
-                  deps.ledger.addConflict({
-                    id: conflictId,
-                    name: conflictProjectName(extractDocName({ id: push.docId, body: push.body, layout: deps.layout }), deps.deviceName, deps.now()),
-                    from: deps.ledger.deviceId(),
-                    at_ms: deps.now(),
-                  });
-                }
+                noteKept(copyRes, res.head.device);
+                const copyBody = storedBodyOf(push.bucket, copyRes.id) ?? copyRes.body;
                 const copyMeta: WriteMeta = {
                   parentRevision: null,
                   layout: deps.layout,
                   seq: deps.ledger.nextSeq(),
                   writer: deps.ledger.deviceId().text,
                   device: deps.deviceName.text,
-                  hash: push.hash,
+                  hash: bodyHashOf(copyBody) ?? push.hash,
                 };
-                const createRes = await deps.cloud.create(copyRes.id, push.body, copyMeta);
+                const createRes = await deps.cloud.create(copyRes.id, copyBody, copyMeta);
                 if (createRes.kind === 'ok') {
                   pushedCount++;
                   deps.progress.pushed(pushedCount);
@@ -843,6 +817,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       pulled: pulledCount,
       pushed: pushedCount,
       conflicts: deps.ledger.conflicts(),
+      keptBoth,
       held: heldCount,
       left: countPendingLocal(),
       removedDuplicates,

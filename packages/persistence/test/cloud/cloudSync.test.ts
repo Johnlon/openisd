@@ -106,7 +106,7 @@ class FakeSyncEngine implements SyncEngine {
   pending = 0;
 
   async run(): Promise<RunOutcome> {
-    return { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 };
+    return { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 };
   }
 
   pendingLocal(): number {
@@ -121,6 +121,8 @@ function makeConflict(uuid: string, name: string): ConflictCopy {
   return {
     id,
     name,
+    item: 'Sub 12',
+    otherDevice: 'iPhone',
     from,
     at_ms: 1700000000000,
   };
@@ -163,6 +165,7 @@ describe('cloudSync', () => {
       pulled: 1,
       pushed: 0,
       conflicts: [],
+      keptBoth: [],
       held: 0,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -188,6 +191,7 @@ describe('cloudSync', () => {
       pulled: 0,
       pushed: 0,
       conflicts: [],
+      keptBoth: [],
       held: 3,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -205,6 +209,7 @@ describe('cloudSync', () => {
       pulled: 0,
       pushed: 0,
       conflicts: [],
+      keptBoth: [],
       held: 0,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -289,7 +294,7 @@ describe('cloudSync', () => {
     expect(sync.diagnostics().lastFault?.fault).toEqual(fault);
 
     // 7. the fault is kept until a run succeeds
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(sync.diagnostics().lastFault).toBeNull();
   });
 
@@ -308,6 +313,15 @@ describe('cloudSync', () => {
     ]);
     for (let i = 0; i < 20; i++) { sync.runStarted(); sync.onOutcome({ kind: 'notConnected' }); }
     expect(sync.diagnostics().events).toHaveLength(30);
+  });
+
+  it('each item a run kept twice is an event, naming the item', () => {
+    const sync = createCloudSync({
+      session: new FakeCloudSession(), scheduler: new FakeSyncScheduler(), ledger: new FakeSyncLedger(), engine: new FakeSyncEngine(), now: () => 5,
+    });
+    const copy = makeConflict('p-2', 'Sub 12 (conflict, 14 Oct 2026, Windows PC)');
+    sync.onOutcome({ kind: 'synced', pulled: 1, pushed: 1, conflicts: [copy], keptBoth: [copy], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    expect(sync.diagnostics().events).toContainEqual({ kind: 'keptBoth', at_ms: copy.at_ms, copy });
   });
 
   it('a quota stop is waiting, not offline, and pending and failed say when the next run is due', () => {
@@ -344,7 +358,7 @@ describe('cloudSync', () => {
     expect(changes).toBe(2);
 
     nowTime = 4000;
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced', pulled: 0, pushed: 37, left: 0, removedDuplicates: 0 } });
     expect(sync.status().kind).toBe('synced');
   });
@@ -357,7 +371,7 @@ describe('cloudSync', () => {
     const fault = { operation: 'about' as const, status: 403, reason: 'insufficientPermissions', reply: '{}' };
     sync.accountRefused(fault);
     expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
     await sync.disconnect();
     expect(sync.diagnostics().accountFault).toBeNull();
@@ -435,6 +449,7 @@ describe('cloudSync', () => {
       pulled: 1,
       pushed: 0,
       conflicts: [],
+      keptBoth: [],
       held: 0,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -526,11 +541,11 @@ describe('cloudSync', () => {
       calls++;
     });
 
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(calls).toBe(1);
 
     unwatch();
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(calls).toBe(1);
   });
 });

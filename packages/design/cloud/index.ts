@@ -4,6 +4,8 @@ export type {
 } from './syncStatus.js';
 
 export {
+  conflictKeptText,
+  conflictKindWord,
   DeviceId,
   DriverId,
   PrId,
@@ -61,7 +63,9 @@ export {
   DeviceName,
 } from './deviceName.js';
 export {
-  conflictProjectName,
+  conflictCopyName,
+  deviceNameOfBody,
+  setDeviceModelInBody,
   setProjectNameInBody,
 } from './conflictNames.js';
 export {

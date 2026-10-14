@@ -28,6 +28,8 @@ interface StoredRow {
 interface StoredConflict {
   readonly id: { readonly kind: 'project' | 'driver' | 'pr'; readonly text: string };
   readonly name: string;
+  readonly item: string;
+  readonly otherDevice: string;
   readonly from: string;
   readonly at_ms: number;
 }
@@ -83,9 +85,14 @@ function parseStoredConflict(val: unknown): StoredConflict | null {
   if (typeof fromVal !== 'string' || fromVal === '') return null;
   const atMsVal = field(val, 'at_ms');
   if (typeof atMsVal !== 'number' || !Number.isFinite(atMsVal)) return null;
+  // A conflict stored before the item and device were recorded names only the copy.
+  const itemVal = field(val, 'item');
+  const otherDeviceVal = field(val, 'otherDevice');
   return {
     id: { kind: kindVal, text: textVal },
     name: nameVal,
+    item: typeof itemVal === 'string' && itemVal !== '' ? itemVal : nameVal,
+    otherDevice: typeof otherDeviceVal === 'string' ? otherDeviceVal : '',
     from: fromVal,
     at_ms: atMsVal,
   };
@@ -331,7 +338,7 @@ export function createSyncLedger(deps: { readonly storage: KeyValueStorage; read
         const id = conflictIdFromStored(stored.id);
         const from = DeviceId.of(stored.from);
         if (id !== null && from !== null) {
-          result.push({ id, name: stored.name, from, at_ms: stored.at_ms });
+          result.push({ id, name: stored.name, item: stored.item, otherDevice: stored.otherDevice, from, at_ms: stored.at_ms });
         }
       }
       return result;
@@ -342,6 +349,8 @@ export function createSyncLedger(deps: { readonly storage: KeyValueStorage; read
       const stored: StoredConflict = {
         id: conflictIdToStored(c.id),
         name: c.name,
+        item: c.item,
+        otherDevice: c.otherDevice,
         from: c.from.text,
         at_ms: c.at_ms,
       };

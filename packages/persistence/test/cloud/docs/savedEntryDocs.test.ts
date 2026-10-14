@@ -142,7 +142,7 @@ describe('savedEntryDocs', () => {
       expect(hasBackup).toBe(true);
     });
 
-    it('putConflictCopy creates a new uuid with record unchanged', () => {
+    it('putConflictCopy keeps the copy under a new uuid, its model marked as the conflict copy', () => {
       const record = { brand: 'Peerless', model: 'XXLS' };
       const { bucket } = setupDriver({
         [OPENISD_MY_DRIVERS_KEY]: JSON.stringify({
@@ -174,7 +174,13 @@ describe('savedEntryDocs', () => {
         return id.kind === 'driver' && id.uuid === newUuid;
       });
       expect(copyDoc).toBeDefined();
-      expect(JSON.parse(copyDoc?.body ?? '{}')).toEqual(record);
+      const marked = 'XXLS (conflict, 13 Oct 2026, Android phone)';
+      expect(JSON.parse(copyDoc?.body ?? '{}')).toEqual({ ...record, model: marked });
+      expect(copyRes.item).toBe('XXLS');
+      expect(copyRes.name).toBe(marked);
+      expect(copyRes.body).toBe(copyDoc?.body);
+      const original = read.docs.find(d => d.id.kind === 'driver' && d.id.uuid === 'd-1');
+      expect(JSON.parse(original?.body ?? '{}')).toEqual(record);
     });
 
     it('migrates a layout-1 driver body through layout steps', () => {
@@ -202,6 +208,23 @@ describe('savedEntryDocs', () => {
       if (read.kind !== 'ok') return;
       expect(read.docs).toHaveLength(1);
       expect(read.docs[0].id).toEqual({ kind: 'pr', uuid: 'pr-1' });
+    });
+
+    it('putConflictCopy marks a passive radiator copy the same way', () => {
+      const record = { brand: { value: 'Dayton' }, model: { value: 'RSS390-PR' } };
+      const { bucket } = setupPr({
+        [OPENISD_MY_PASSIVE_RADIATORS_KEY]: JSON.stringify({ entries: [{ uuid: 'pr-1', record }] }),
+      });
+      const copyRes = bucket.putConflictCopy(
+        { id: { kind: 'pr', uuid: 'pr-1' }, body: JSON.stringify(record), layout: 2 },
+        DeviceName.ofBrowser(ANDROID_PHONE_UA, 5),
+        FIXED_NOW,
+      );
+      expect(copyRes).not.toBe('refused');
+      if (copyRes === 'refused') return;
+      expect(copyRes.item).toBe('RSS390-PR');
+      expect(copyRes.name).toBe('RSS390-PR (conflict, 13 Oct 2026, Android phone)');
+      expect(JSON.parse(copyRes.body)).toEqual({ ...record, model: { value: 'RSS390-PR (conflict, 13 Oct 2026, Android phone)' } });
     });
   });
 });

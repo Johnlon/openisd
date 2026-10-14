@@ -10,12 +10,15 @@ import {
 import {syncDisplayOf, type SyncDisplayInputs} from '../../cloud/syncDisplay.js';
 
 function sampleConflict(
-  name = 'Sub 12 (conflict, phone, 13 Oct 2026, 21:05)',
+  name = 'Sub 12 (conflict, 13 Oct 2026, Android phone)',
   id: ConflictCopy['id'] = ProjectId.of('proj-1')!,
+  item = 'Sub 12',
 ): ConflictCopy {
   return {
     id,
     name,
+    item,
+    otherDevice: 'iPhone',
     from: DeviceId.of('device-phone')!,
     at_ms: 1776107100000,
   };
@@ -187,11 +190,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
     });
 
     it('row 5: synced, conflicts N', () => {
-      const conflict1 = sampleConflict('Sub 12 (conflict, phone, 13 Oct 2026, 21:05)');
-      const conflict2 = {
-        ...sampleConflict('Dayton RS225 (conflict, tablet, 13 Oct 2026, 21:10)'),
-        id: ProjectId.of('proj-2')!,
-      };
+      const conflict1 = sampleConflict('Sub 12 (conflict, 13 Oct 2026, Android phone)');
+      const conflict2 = sampleConflict('RS225 (conflict, 13 Oct 2026, Android phone)', DriverId.of('drv-2')!, 'RS225');
       const display = syncDisplayOf({
         ...defaultInputs({
           kind: 'synced',
@@ -207,7 +207,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.badge).toBe(2);
       expect(display.shortText).toBe('2 conflicts');
       expect(display.text).toBe('Synced 13 Oct 2026, 23:32');
-      expect(display.tooltip).toBe('2 items changed on two devices. Both kept. Tap to see them.');
+      expect(display.tooltip).toBe('2 items changed on two devices. Both kept: Project "Sub 12", Driver "RS225". Tap to see them.');
       expect(display.tap).toBe('openDialog');
       expect(display.dialog.headline).toBe('Synced 13 Oct 2026, 23:32');
       expect(display.dialog.account).toBe('john@gmail.com');
@@ -217,8 +217,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         {action: 'disconnect', label: 'Disconnect', enabled: true, primary: false},
       ]);
       expect(display.dialog.conflicts).toEqual([
-        {id: conflict1.id, title: conflict1.name, sub: 'Both versions kept'},
-        {id: conflict2.id, title: conflict2.name, sub: 'Both versions kept'},
+        {id: conflict1.id, title: conflict1.name, sub: 'Project "Sub 12" kept both: yours and the copy from iPhone'},
+        {id: conflict2.id, title: conflict2.name, sub: 'Driver "RS225" kept both: yours and the copy from iPhone'},
       ]);
     });
 
@@ -556,8 +556,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
     });
 
     it('conflict notice only when conflicts.length > conflictsSeen', () => {
-      const conflict1 = sampleConflict('Sub 12');
-      const conflict2 = sampleConflict('Driver 1');
+      const conflict1 = sampleConflict('Sub 12 (conflict, 13 Oct 2026, Android phone)');
+      const conflict2 = sampleConflict('W5 (conflict, 13 Oct 2026, Android phone)', DriverId.of('drv-1')!, 'W5');
 
       // 0 conflicts
       expect(syncDisplayOf({
@@ -572,7 +572,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflicts: [conflict1, conflict2],
         conflictsSeen: 0,
       }).conflictNotice).toEqual({
-        text: '2 items changed on two devices. Both kept.',
+        text: '2 items changed on two devices. Both kept: Project "Sub 12", Driver "W5".',
         button: 'View',
       });
 
@@ -591,10 +591,10 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       }).conflictNotice).toBeNull();
     });
 
-    it('mixed conflict list uses "item" wording', () => {
-      const projConflict = sampleConflict('Project A', ProjectId.of('proj-1')!);
-      const driverConflict = sampleConflict('Driver B', DriverId.of('drv-1')!);
-      const prConflict = sampleConflict('PR C', PrId.of('pr-1')!);
+    it('a mixed conflict list names each item with its kind', () => {
+      const projConflict = sampleConflict('A (conflict)', ProjectId.of('proj-1')!, 'A');
+      const driverConflict = sampleConflict('B (conflict)', DriverId.of('drv-1')!, 'B');
+      const prConflict = sampleConflict('C (conflict)', PrId.of('pr-1')!, 'C');
       const display = syncDisplayOf({
         ...defaultInputs({
           kind: 'synced',
@@ -605,15 +605,15 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflicts: [projConflict, driverConflict, prConflict],
         conflictsSeen: 0,
       });
-      expect(display.tooltip).toBe('3 items changed on two devices. Both kept. Tap to see them.');
+      expect(display.tooltip).toBe('3 items changed on two devices. Both kept: Project "A", Driver "B", Passive radiator "C". Tap to see them.');
       expect(display.conflictNotice).toEqual({
-        text: '3 items changed on two devices. Both kept.',
+        text: '3 items changed on two devices. Both kept: Project "A", Driver "B", Passive radiator "C".',
         button: 'View',
       });
     });
 
-    it('single conflict uses singular "item"', () => {
-      const driverConflict = sampleConflict('Driver B', DriverId.of('drv-1')!);
+    it('a single conflict names the item, its kind and the other device', () => {
+      const driverConflict = sampleConflict('W5-1138SMF (conflict, 14 Oct 2026, Windows PC)', DriverId.of('drv-1')!, 'W5-1138SMF');
       const display = syncDisplayOf({
         ...defaultInputs({
           kind: 'synced',
@@ -624,9 +624,9 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflicts: [driverConflict],
         conflictsSeen: 0,
       });
-      expect(display.tooltip).toBe('1 item changed on two devices. Both kept. Tap to see them.');
+      expect(display.tooltip).toBe('Driver "W5-1138SMF" kept both: yours and the copy from iPhone. Tap to see them.');
       expect(display.conflictNotice).toEqual({
-        text: '1 item changed on two devices. Both kept.',
+        text: 'Driver "W5-1138SMF" kept both: yours and the copy from iPhone.',
         button: 'View',
       });
     });

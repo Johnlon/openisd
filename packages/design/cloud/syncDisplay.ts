@@ -1,5 +1,5 @@
 import {formatCountOf, formatDateTime, formatTime} from '../fields/format.js';
-import type {ConflictCopy, SyncStatus} from './syncStatus.js';
+import {type ConflictCopy, type SyncStatus, conflictKeptText, conflictKindWord} from './syncStatus.js';
 import {cloudFaultText} from './cloudTypes.js';
 
 export type SyncTone = 'muted' | 'accent' | 'good' | 'warn' | 'bad';
@@ -98,6 +98,14 @@ function buttonOf(action: SyncDialogAction, configured: boolean): SyncDialogButt
   }
 }
 
+/** The items kept twice, named: one in full, several as a list after the count. */
+function conflictsText(conflicts: readonly ConflictCopy[]): string {
+  const [only] = conflicts;
+  if (conflicts.length === 1 && only !== undefined) return `${conflictKeptText(only)}.`;
+  const names = conflicts.map(c => `${conflictKindWord(c.id)} "${c.item}"`).join(', ');
+  return `${formatCountOf(conflicts.length, 'item')} changed on two devices. Both kept: ${names}.`;
+}
+
 export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
   const {status} = inputs;
 
@@ -161,7 +169,9 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
         badge = conflictCount;
         shortText = formatCountOf(conflictCount, 'conflict');
         text = `Synced ${formatDateTime(date)}`;
-        tooltip = `${formatCountOf(conflictCount, 'item')} changed on two devices. Both kept. Tap to see them.`;
+        tooltip = inputs.conflicts.length > 0
+          ? `${conflictsText(inputs.conflicts)} Tap to see them.`
+          : `${formatCountOf(conflictCount, 'item')} changed on two devices. Both kept. Tap to see them.`;
       } else {
         glyph = 'cloudDone';
         tone = 'good';
@@ -289,7 +299,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
 
   const conflictNotice = inputs.configured && inputs.conflicts.length > inputs.conflictsSeen
     ? {
-        text: `${formatCountOf(inputs.conflicts.length, 'item')} changed on two devices. Both kept.`,
+        text: conflictsText(inputs.conflicts),
         button: 'View',
       }
     : null;
@@ -310,7 +320,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
     conflicts: inputs.conflicts.map(c => ({
       id: c.id,
       title: c.name,
-      sub: 'Both versions kept',
+      sub: conflictKeptText(c),
     })),
     disconnectConfirm: DISCONNECT_CONFIRM,
   };

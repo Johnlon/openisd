@@ -382,7 +382,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       cloud.simulateConcurrentUpdate(fileId, JSON.stringify({ name: 'Sub 12', volume: 60 }), {
         seq: 2,
         writer: 'device-concurrent',
-        device: '',
+        device: 'iPhone',
         hash: BodyHash.of('hash-concurrent')!,
       });
 
@@ -392,10 +392,12 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       expect(outcome.kind).toBe('synced');
       if (outcome.kind === 'synced') {
         expect(outcome.conflicts.length).toBeGreaterThan(0);
+        expect(outcome.keptBoth).toMatchObject([{ item: 'Sub 12', name: 'Sub 12 (conflict)', otherDevice: 'iPhone' }]);
       }
-      // Conflict copy was created locally and pushed as new doc:
+      // Conflict copy was created locally and pushed as new doc, under its marked name:
       expect(localProjects.conflictCalls).toHaveLength(1);
       expect(cloud.files.size).toBe(2);
+      expect([...cloud.files.values()].map(f => f.body)).toContain(JSON.stringify({ name: 'Sub 12 (conflict)', volume: 50 }));
     });
   });
 
@@ -566,7 +568,7 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
           layout: APP_LAYOUT,
           seq: 2,
           writer: 'device-B',
-          device: '',
+          device: 'iPhone',
           deleted: false,
           remoteHash: bodyHashOf(bodyB)!,
         },
@@ -579,8 +581,12 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       expect(outcome.kind).toBe('synced');
       if (outcome.kind === 'synced') {
         expect(outcome.conflicts.length).toBe(1);
+        expect(outcome.keptBoth).toMatchObject([{ item: 'Sub 12', name: 'Sub 12 (conflict)', otherDevice: 'iPhone' }]);
       }
       expect(localProjects.conflictCalls).toHaveLength(1);
+      // The copy goes to Drive under its marked name, so other devices see it marked too:
+      const driveBodies = [...cloud.files.values()].map(f => f.body);
+      expect(driveBodies).toContain(JSON.stringify({ name: 'Sub 12 (conflict)', volume: 50 }));
       // B's edit is now the local project-1:
       const p1 = localProjects.docs.find(d => d.id.kind === 'project' && d.id.uuid === 'proj-1');
       expect(p1?.body).toBe(bodyB);

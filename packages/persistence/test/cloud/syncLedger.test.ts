@@ -41,6 +41,8 @@ function makeConflictCopy(id: ProjectId | DriverId | PrId, name: string): Confli
   return {
     id,
     name,
+    item: 'Sub 12',
+    otherDevice: 'iPhone',
     from: DeviceId.of('test-device')!,
     at_ms: Date.now(),
   };

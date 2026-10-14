@@ -60,8 +60,27 @@ export type SyncStatus =
   | { readonly kind: 'failed'; readonly account: string; readonly fault: CloudFault; readonly retryAt_ms: number | null };
 
 export interface ConflictCopy {
+  /** The kept copy: this device's version, saved under a new id. */
   readonly id: ProjectId | DriverId | PrId;
+  /** The kept copy's name, with the conflict mark. */
   readonly name: string;
+  /** The item's own name, which the other device's version keeps. */
+  readonly item: string;
+  /** The device whose version kept the item's place; '' when Drive did not say. */
+  readonly otherDevice: string;
   readonly from: DeviceId;
   readonly at_ms: number;
+}
+
+/** "Driver", "Passive radiator" or "Project": the kind of item a conflict copy is. */
+export function conflictKindWord(id: ConflictCopy['id']): string {
+  if (id instanceof ProjectId) return 'Project';
+  if (id instanceof DriverId) return 'Driver';
+  return 'Passive radiator';
+}
+
+/** 'Driver "W5-1138SMF" kept both: yours and the copy from iPhone' */
+export function conflictKeptText(c: ConflictCopy): string {
+  const device = c.otherDevice === '' ? 'another device' : c.otherDevice;
+  return `${conflictKindWord(c.id)} "${c.item}" kept both: yours and the copy from ${device}`;
 }

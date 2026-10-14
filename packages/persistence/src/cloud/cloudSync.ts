@@ -76,6 +76,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     lastAttempt = { kind: 'ended', started_ms, ended_ms, outcome: attemptOutcome(outcome) };
     if (outcome.kind === 'failed') record({ kind: 'error', at_ms: ended_ms, fault: outcome.fault });
     if (outcome.kind === 'synced' && outcome.skippedNewer > 0) record({ kind: 'skipped', at_ms: ended_ms, count: outcome.skippedNewer });
+    if (outcome.kind === 'synced') for (const copy of outcome.keptBoth) record({ kind: 'keptBoth', at_ms: copy.at_ms, copy });
     record({ kind: 'ended', at_ms: ended_ms, outcome: lastAttempt.outcome });
     if (outcome.kind === 'synced') {
       lastSyncAt_ms = clock();

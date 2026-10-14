@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {cloudSyncReportLines, cloudSyncSummary, type CloudAttemptOutcome, type CloudSyncReport} from '../../cloud/cloudSyncReport.js';
-import {formatDateTime, formatTime} from '../../fields/format.js';
+import {formatClock, formatDateTime, formatTime} from '../../fields/format.js';
+import {DeviceId, DriverId} from '../../cloud/syncStatus.js';
 
 const AT_MS = Date.UTC(2026, 9, 14, 11, 0, 0);
 const AT = formatDateTime(new Date(AT_MS));
@@ -8,6 +9,18 @@ const END_MS = AT_MS + 90_000;
 const END = formatTime(new Date(END_MS));
 
 describe('cloudSyncReportLines', () => {
+  it('an item kept twice is named: its kind, its name, the other device and the copy', () => {
+    const id = DriverId.of('d-2');
+    const from = DeviceId.of('dev-1');
+    if (id === null || from === null) throw new Error('fixture ids');
+    const copy = {id, name: 'W5-1138SMF (conflict, 14 Oct 2026, Windows PC)', item: 'W5-1138SMF', otherDevice: 'iPhone', from, at_ms: AT_MS};
+    const lines = cloudSyncReportLines({
+      grant: {kind: 'none'}, lastAttempt: null, pendingChanges: 0, lastFault: null, accountFault: null,
+      events: [{kind: 'keptBoth', at_ms: AT_MS, copy}],
+    });
+    expect(lines).toContain(`    ${formatClock(new Date(AT_MS))} Driver "W5-1138SMF" kept both: yours and the copy from iPhone; yours is "W5-1138SMF (conflict, 14 Oct 2026, Windows PC)"`);
+  });
+
   it('says cloud sync is off when this window has none', () => {
     expect(cloudSyncReportLines(null)).toEqual(['Cloud sync: not available in this window']);
   });

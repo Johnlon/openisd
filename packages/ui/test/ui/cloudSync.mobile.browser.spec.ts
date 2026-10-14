@@ -236,7 +236,9 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
           cursor: '100',
           conflicts: [{
             id: { kind: 'project', text: 'conf-1' },
-            name: 'Sub 12 (conflict, phone, 13 Oct 2026, 21:05)',
+            name: 'Sub 12 (conflict, 13 Oct 2026, Android phone)',
+            item: 'Sub 12',
+            otherDevice: 'iPhone',
             from: 'phone',
             at_ms: Date.now(),
           }],
@@ -286,7 +288,7 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
 
       const conflictBanner = page.locator('.mob-conflict-banner');
       await expect(conflictBanner).toBeVisible();
-      await expect(conflictBanner).toContainText('1 item changed on two devices. Both kept.');
+      await expect(conflictBanner).toContainText('Project "Sub 12" kept both: yours and the copy from iPhone.');
 
       // Click "View"
       await conflictBanner.locator('.mob-update-reload').click();

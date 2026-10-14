@@ -4,6 +4,7 @@ import {
   type DocKind,
 } from '@openisd/design/cloud';
 import type {
+  KeptCopy,
   LocalDoc,
   LocalDocs,
   LocalRead,
@@ -69,7 +70,7 @@ export class FakeLocalDocs implements LocalDocs {
     return doc.body;
   }
 
-  putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): { readonly id: DocId } | 'refused' {
+  putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): KeptCopy | 'refused' {
     if (this.refuseConflict) {
       return 'refused';
     }
@@ -83,11 +84,15 @@ export class FakeLocalDocs implements LocalDocs {
     }
 
     let modifiedBody = doc.body;
+    let item: string = doc.id.kind;
+    let name = `${item} (conflict)`;
     try {
       const parsed: unknown = JSON.parse(doc.body);
       if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
         if ('name' in parsed && typeof parsed.name === 'string') {
-          modifiedBody = JSON.stringify({ ...parsed, name: `${parsed.name} (conflict)` });
+          item = parsed.name;
+          name = `${parsed.name} (conflict)`;
+          modifiedBody = JSON.stringify({ ...parsed, name });
         }
       }
     } catch {
@@ -100,7 +105,7 @@ export class FakeLocalDocs implements LocalDocs {
       layout: doc.layout,
     };
     this.docs.push(copyDoc);
-    return { id: conflictId };
+    return { id: conflictId, body: modifiedBody, item, name };
   }
 
   private idsEqual(a: DocId, b: DocId): boolean {

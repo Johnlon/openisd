@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-chart-dropdown-wide
 status: done
+landed: 4f1c73803071beca7045b4d0f56dc451c0540bb5
 goal: Desktop chart drop-down is 270 px wide where the window has room (1440 px and up), 180 px below
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

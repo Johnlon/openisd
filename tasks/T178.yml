@@ -1,0 +1,35 @@
+id: T178
+release_note: 'When cloud sync keeps two versions of a driver, passive radiator or project, the kept copy is named "<name> (conflict, <day>, <device>)" in My Drivers and the lists, and every message names the item and the other device.'
+repo: openisd
+owner: maryu
+status: done
+goal: Cloud sync conflict messages name the item; kept driver/PR copies get the conflict mark in their name
+done_test: bash scripts/test.sh packages/design/test/cloud/conflictNames.test.ts packages/design/test/cloud/syncDisplay.test.ts packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/cloud/docs/savedEntryDocs.test.ts packages/persistence/test/cloud/syncEngine.test.ts packages/persistence/test/cloud/cloudSync.test.ts
+files:
+  - tasks/T178.yml
+  - docs/design/CLOUD_SYNC.md
+  - packages/design/cloud/cloudSyncReport.ts
+  - packages/design/cloud/conflictNames.ts
+  - packages/design/cloud/index.ts
+  - packages/design/cloud/syncDisplay.ts
+  - packages/design/cloud/syncStatus.ts
+  - packages/design/test/cloud/cloudSyncReport.test.ts
+  - packages/design/test/cloud/conflictNames.test.ts
+  - packages/design/test/cloud/syncDisplay.test.ts
+  - packages/persistence/src/cloud/cloudSync.ts
+  - packages/persistence/src/cloud/docs/projectDocs.ts
+  - packages/persistence/src/cloud/docs/savedEntryDocs.ts
+  - packages/persistence/src/cloud/docs/singletonDocs.ts
+  - packages/persistence/src/cloud/localDocs.ts
+  - packages/persistence/src/cloud/syncEngine.ts
+  - packages/persistence/src/cloud/syncLedger.ts
+  - packages/persistence/src/cloud/syncRun.ts
+  - packages/persistence/test/cloud/cloudSync.test.ts
+  - packages/persistence/test/cloud/docs/projectDocs.test.ts
+  - packages/persistence/test/cloud/docs/savedEntryDocs.test.ts
+  - packages/persistence/test/cloud/fakeLocalDocs.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - packages/persistence/test/cloud/syncLedger.test.ts
+  - packages/persistence/test/cloud/syncScheduler.test.ts
+  - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
+  - packages/ui/test/ui/cloud-conflict-copy.browser.spec.ts

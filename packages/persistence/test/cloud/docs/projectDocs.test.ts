@@ -220,7 +220,7 @@ describe('projectDocs', () => {
     expect(copyDoc).toBeDefined();
     const parsed: unknown = JSON.parse(copyDoc?.body ?? '{}');
     expect(parsed).toMatchObject({
-      label: 'Sub 12 (conflict, Android phone, 13 Oct 2026, 21:05)',
+      label: 'Sub 12 (conflict, 13 Oct 2026, Android phone)',
     });
   });
 });
