@@ -2,6 +2,7 @@
 import type {ConflictCopy, SyncDialogAction, SyncDialogModel, SyncTone} from '@openisd/design/cloud';
 import {createConfirmPort} from '../../logic/confirmPort.js';
 import ConfirmDialog from './ConfirmDialog.vue';
+import {PRIVACY_URL} from '../siteLinks.js';
 
 const props = defineProps<{
   model: SyncDialogModel;
@@ -62,8 +63,9 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
     <div v-if="model.pendingLine" class="cloud-sync-pending">
       {{ model.pendingLine }}
     </div>
-    <div v-if="model.offExplainer" class="cloud-sync-explainer">
-      {{ model.offExplainer }}
+    <div v-if="model.privacy" class="cloud-sync-explainer">
+      <p v-for="line in model.privacy.lines" :key="line">{{ line }}</p>
+      <a :href="PRIVACY_URL" target="_blank" rel="noopener">{{ model.privacy.linkLabel }}</a>
     </div>
     <div v-if="model.notConfiguredLine" class="cloud-sync-not-configured">
       {{ model.notConfiguredLine }}
@@ -153,6 +155,14 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
   font-size: 13px;
   line-height: 1.5;
   margin: 6px 0 10px;
+}
+
+.cloud-sync-explainer p {
+  margin: 0 0 4px;
+}
+
+.cloud-sync-explainer a {
+  color: var(--acc);
 }
 
 .cloud-sync-not-configured {

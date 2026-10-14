@@ -1,0 +1,15 @@
+id: T137
+release_note: The Cloud sync dialog says what is copied, where and who can see it, with a Privacy link.
+repo: openisd
+owner: maryu
+status: done
+goal: The Cloud sync dialog says above Connect what is copied, where it goes and who can see it, with a Privacy link
+done_test: bash scripts/test.sh packages/design/test/cloud/syncDisplay.test.ts
+files:
+  - tasks/T137.yml
+  - packages/design/cloud/syncDisplay.ts
+  - packages/design/test/cloud/syncDisplay.test.ts
+  - packages/ui/src/ui/siteLinks.ts
+  - packages/ui/src/ui/components/CloudSyncDialog.vue
+  - packages/ui/test/ui/cloudSyncDialog.browser.spec.ts
+  - docs/design/CLOUD_SYNC.md

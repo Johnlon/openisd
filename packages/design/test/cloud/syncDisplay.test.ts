@@ -42,7 +42,14 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
     no: 'Keep connected',
   };
 
-  const offExplainer = 'Keeps your saved projects, drivers, passive radiators, favourites and Options in a hidden folder in your own Google Drive, so they follow you to your other devices. Nothing is stored anywhere else.';
+  const privacy = {
+    lines: [
+      'Copies your saved projects, drivers, passive radiators, favourites and Options.',
+      'Keeps them in a hidden folder in your own Google Drive that only OpenISD can open.',
+      'Nobody else sees them, and no OpenISD server does. Disconnect stops it.',
+    ],
+    linkLabel: 'Privacy',
+  };
 
   describe('6.1 display model rows', () => {
     it('row 1: off', () => {
@@ -65,7 +72,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Cloud sync is off',
         account: null,
         pendingLine: null,
-        offExplainer,
+        privacy,
         notConfiguredLine: null,
         buttons: [{action: 'connect', label: 'Connect Google Drive', enabled: true, primary: true}],
         conflictsHeading: 'Conflict copies',
@@ -81,7 +88,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         {action: 'connect', label: 'Connect Google Drive', enabled: false, primary: true},
       ]);
       expect(display.dialog.notConfiguredLine).toBe('Not set up yet.');
-      expect(display.dialog.offExplainer).toBe(offExplainer);
+      expect(display.dialog.privacy).toEqual(privacy);
     });
 
     it('row 2: connecting', () => {
@@ -102,7 +109,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Connecting to Google Drive…',
         account: null,
         pendingLine: null,
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [],
         conflictsHeading: 'Conflict copies',
@@ -133,7 +140,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Syncing…',
         account: 'john@gmail.com',
         pendingLine: null,
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [{action: 'disconnect', label: 'Disconnect', enabled: true, primary: false}],
         conflictsHeading: 'Conflict copies',
@@ -166,7 +173,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Synced 13 Oct 2026, 23:32',
         account: 'john@gmail.com',
         pendingLine: null,
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [
           {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
@@ -237,7 +244,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: '2 changes not synced',
         account: 'john@gmail.com',
         pendingLine: '2 changes not synced',
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [
           {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
@@ -272,7 +279,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Offline. 3 changes not synced',
         account: 'john@gmail.com',
         pendingLine: '3 changes not synced',
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [
           {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
@@ -327,7 +334,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Google needs you to connect again. 3 changes not synced',
         account: 'john@gmail.com',
         pendingLine: '3 changes not synced',
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [
           {action: 'reconnect', label: 'Reconnect', enabled: true, primary: true},
@@ -362,7 +369,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Update the app to sync 4 projects saved by a newer version',
         account: 'john@gmail.com',
         pendingLine: null,
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [
           {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},
@@ -396,7 +403,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Nothing synced. No room in this browser to back up first. Export, then try again.',
         account: 'john@gmail.com',
         pendingLine: null,
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [{action: 'disconnect', label: 'Disconnect', enabled: true, primary: false}],
         conflictsHeading: 'Conflict copies',
@@ -427,7 +434,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         headline: 'Sync failed: Sign-in service unreachable. It will try again.',
         account: 'john@gmail.com',
         pendingLine: null,
-        offExplainer: null,
+        privacy: null,
         notConfiguredLine: null,
         buttons: [
           {action: 'syncNow', label: 'Sync now', enabled: true, primary: true},

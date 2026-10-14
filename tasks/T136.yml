@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: b5f7d1fe99e56f1f4090495160355cee6f426246
 goal: The manual test plan names snapshot 20261014T0948Z and adds the Cloud sync first sign-in checks (T112, T128, T129, T131, T133, T134)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

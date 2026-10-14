@@ -49,7 +49,8 @@ export interface SyncDialogModel {
   readonly headline: string;
   readonly account: string | null;
   readonly pendingLine: string | null;
-  readonly offExplainer: string | null;
+  /** What is copied, where it goes and who can see it, with a link to the privacy page; shown while off. */
+  readonly privacy: { readonly lines: readonly string[]; readonly linkLabel: string } | null;
   readonly notConfiguredLine: string | null;
   readonly buttons: readonly SyncDialogButton[];
   readonly conflictsHeading: string;
@@ -74,7 +75,14 @@ const DISCONNECT_CONFIRM = {
   no: 'Keep connected',
 } as const;
 
-const OFF_EXPLAINER = 'Keeps your saved projects, drivers, passive radiators, favourites and Options in a hidden folder in your own Google Drive, so they follow you to your other devices. Nothing is stored anywhere else.';
+const PRIVACY = {
+  lines: [
+    'Copies your saved projects, drivers, passive radiators, favourites and Options.',
+    'Keeps them in a hidden folder in your own Google Drive that only OpenISD can open.',
+    'Nobody else sees them, and no OpenISD server does. Disconnect stops it.',
+  ],
+  linkLabel: 'Privacy',
+} as const;
 
 function buttonOf(action: SyncDialogAction, configured: boolean): SyncDialogButton {
   switch (action) {
@@ -289,7 +297,7 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
     headline: text,
     account,
     pendingLine,
-    offExplainer: status.kind === 'off' ? OFF_EXPLAINER : null,
+    privacy: status.kind === 'off' ? PRIVACY : null,
     notConfiguredLine: !inputs.configured ? 'Not set up yet.' : null,
     buttons,
     conflictsHeading: 'Conflict copies',

@@ -151,6 +151,9 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
     const modal = page.locator('.cloud-modal');
     await expect(modal.locator('.cloud-sync-headline')).toContainText('Cloud sync is off');
     await expect(modal.locator('button', { hasText: 'Connect Google Drive' })).toBeVisible();
+    await expect(modal.locator('.cloud-sync-explainer')).toContainText('hidden folder in your own Google Drive');
+    await expect(modal.locator('.cloud-sync-explainer a', { hasText: 'Privacy' })).toHaveAttribute('href', 'https://openisd.app/about/#privacy');
+    await expect(modal.locator('.cloud-sync-explainer a')).toHaveAttribute('target', '_blank');
     await modal.locator('.cloud-modal-close-btn').click();
 
     // Now set reconnect status

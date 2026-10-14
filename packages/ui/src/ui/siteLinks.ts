@@ -2,5 +2,6 @@
  *  these are absolute: they must also work from the Electron build, whose own base is './'. */
 export const SITE_URL = 'https://openisd.app/';
 export const ABOUT_URL = `${SITE_URL}about/`;
+export const PRIVACY_URL = `${ABOUT_URL}#privacy`;
 export const INSTALL_URL = `${SITE_URL}install/`;
 export const REPO_URL = 'https://github.com/Johnlon/openisd';
