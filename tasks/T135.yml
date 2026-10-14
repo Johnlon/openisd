@@ -3,6 +3,7 @@ release_note: The about page has a Privacy section (openisd.app/about/#privacy).
 repo: openisd
 owner: maryu
 status: done
+landed: 980d63945fa90474f96af756390e6e5e0386ae9b
 goal: The about page has a Privacy section at /about/#privacy that stands alone as the privacy policy
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

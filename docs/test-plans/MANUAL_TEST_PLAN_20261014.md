@@ -1,8 +1,8 @@
 # Manual test plan, next release (14 Oct 2026)
 
-Build under test: snapshot **20261014T0145Z** at https://openisd.app/snap/20261014T0145Z/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
+Build under test: snapshot **20261014T0948Z** at https://openisd.app/snap/20261014T0948Z/ (phone and desktop). The live release stays v20261013T1842Z until this passes.
 
-Before you start, on each device: open the snapshot URL, close the tab, open it again (the second open runs the new worker). About must show "Snapshot 14 Oct 2026, …" and the footer label "Oct 14 01:45Z". If it shows an older stamp, open it once more.
+Before you start, on each device: open the snapshot URL, close the tab, open it again (the second open runs the new worker). About must show "Snapshot 14 Oct 2026, …" and the footer label "Oct 14 09:48Z". If it shows an older stamp, open it once more.
 
 Report: one line per failure, "step N: what you saw". For anything odd, menu → Diagnostics → Copy diagnostics, paste it.
 
@@ -99,7 +99,7 @@ Dashboard: on the private links page. Top line says "You are viewing from visito
 
 | # | Where | Step | Expect |
 |---|---|---|---|
-| 10.1 | P, D | Read the version label (footer / About) | "Oct 14 01:45Z", the Z present, the time equal to the snapshot stamp, not your local time |
+| 10.1 | P, D | Read the version label (footer / About) | "Oct 14 09:48Z", the Z present, the time equal to the snapshot stamp, not your local time |
 
 ## 11. Chart legend and traces (T106, T114, T116)
 
@@ -135,6 +135,30 @@ Dashboard: on the private links page. Top line says "You are viewing from visito
 | 14.3 | P | Box, Signal, Enclosure tabs | The row sits between the content and the bottom tab bar |
 | 14.4 | P | Driver, Filters, Graph tabs | No legend row |
 
+## 15. Cloud sync, first sign-in (T112, T128, T129, T131, T133, T134)
+
+Only on openisd.app (Google refuses plain http except localhost). Your Google account must be a test user on the consent screen. Same account on both devices. Google shows an "unverified app" warning in Testing; continue through it.
+
+| # | Where | Step | Expect |
+|---|---|---|---|
+| 15.1 | D | Open the snapshot | Grey cloud icon in the toolbar after Options; menu has "Cloud sync…"; hover says "Sync your work across devices through your Google Drive. Tap to turn on." |
+| 15.2 | D | Click the icon | "Cloud sync" dialog: Google Drive section "Cloud sync is off", one explainer line, button **Connect Google Drive** |
+| 15.3 | D | Connect Google Drive, allow at Google | Back in OpenISD: "Connecting…", "Syncing…", then "Synced <time>", green icon; dialog shows the account, **Sync now**, **Disconnect** |
+| 15.4 | D | Save a project | Within ~3 s the icon shows "1 change not synced", then "Synced <new time>" |
+| 15.5 | P | Open the snapshot | Cloud icon in the header; long press shows the same tooltip |
+| 15.6 | P | Tap it, Connect Google Drive, same account | "Synced <time>"; the desktop's project is in the list, with My Drivers, favourites and Options |
+| 15.7 | P → D | Save a change on the phone; on the desktop switch back to the tab or press Sync now | The change appears |
+| 15.8 | P, D | Both "Synced"; phone to airplane mode | Phone icon shows "Offline" |
+| 15.9 | P, D | Edit and save the same project on both with different values; phone back online | Phone syncs; icon amber with badge 1; banner "1 item changed on two devices. Both kept." with **View** |
+| 15.10 | P | View, then Open | Dialog lists it under "Conflict copies" as "Both versions kept"; Open opens the copy; badge and banner go; list holds the original and "<name> (conflict, <device>, <date, time>)"; nothing lost |
+| 15.11 | D | Second launch on a desktop that never connected | "Sync your projects across devices?" with **Turn on** / **No thanks**; Turn on opens the dialog; No thanks hides it for good |
+| 15.12 | P, D | Disconnect | Asks "Disconnect Google Drive?"; work stays in this browser and in Drive |
+| 15.13 | P, D | Splash and About | Feature list includes "Cloud sync, if you want it" |
+
+Fail if: any error text; sign-in loops back to Google; saved work disappears; "Syncing…" for over a minute.
+
+Known, not blocking: the device in a conflict copy's name is a 32-character code (readable name coming).
+
 ## Not in this build
 
-Google Drive sync: groundwork only, nothing visible (sign-in and sync UI are the next pieces). Edit Driver tab and background colours: unchanged (no detail given yet). Developer label with commit time: dev builds only.
+Privacy section on /about and the dialog's privacy lines: coming. Edit Driver tab and background colours: unchanged (no detail given yet). Developer label with commit time: dev builds only.
