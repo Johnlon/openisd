@@ -93,26 +93,29 @@ test.describe('Original toolbar', () => {
     await expect(revertBtn).toHaveClass(/disabled/);
   });
 
-  test('the toolbar never overflows at 1280px wide, with every chart open and cloud sync on', async ({ page }) => {
-    await enableCloudSync(page);
-    await stubGoogleApis(page);
-    await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto('/');
-    await openAProject(page);
-    // The widest chart name: every chart ticked, so the label is as long as it gets.
-    await page.locator('.chart-select').click();
-    const ticks = page.locator('.chart-select .chart-item input[type=checkbox]');
-    for (let i = 0, n = await ticks.count(); i < n; i++) {
-      await ticks.nth(i).check();
-    }
-    await page.locator('.original-root').click({ position: { x: 5, y: 300 } });
+  for (const [width, menuWidth] of [[1280, 180], [1439, 180], [1440, 270], [1880, 270]] as const) {
+    test(`the toolbar never overflows at ${width}px wide, with every chart open and cloud sync on, and the chart menu is ${menuWidth}px`, async ({ page }) => {
+      await enableCloudSync(page);
+      await stubGoogleApis(page);
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/');
+      await openAProject(page);
+      // The widest chart name: every chart ticked, so the label is as long as it gets.
+      await page.locator('.chart-select').click();
+      const ticks = page.locator('.chart-select .chart-item input[type=checkbox]');
+      for (let i = 0, n = await ticks.count(); i < n; i++) {
+        await ticks.nth(i).check();
+      }
+      await page.locator('.original-root').click({ position: { x: 5, y: 300 } });
 
-    const bar = await page.locator('.toolbar').evaluate(e => ({ scroll: e.scrollWidth, client: e.clientWidth }));
-    expect(bar.scroll).toBe(bar.client);
-    const lastButton = await page.locator('.toolbar button').last().boundingBox();
-    expect(lastButton!.x + lastButton!.width).toBeLessThanOrEqual(1280);
-    expect(lastButton!.x).toBeGreaterThanOrEqual(0);
-  });
+      const bar = await page.locator('.toolbar').evaluate(e => ({ scroll: e.scrollWidth, client: e.clientWidth }));
+      expect(bar.scroll).toBe(bar.client);
+      const lastButton = await page.locator('.toolbar button').last().boundingBox();
+      expect(lastButton!.x + lastButton!.width).toBeLessThanOrEqual(width);
+      expect(lastButton!.x).toBeGreaterThanOrEqual(0);
+      expect((await page.locator('.chart-select').boundingBox())!.width).toBe(menuWidth);
+    });
+  }
 
   test.describe('window widths', () => {
     test.beforeEach(async ({ page }) => {

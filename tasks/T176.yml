@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-wrap-dots
 status: done
+landed: 11a1947de31821ee09bd65942a61c0fad1dd149a
 goal: The phase wrap segment is dotted at its trace's own width and colour, no fading
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

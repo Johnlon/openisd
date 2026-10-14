@@ -996,6 +996,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .cloud-sync-tb-btn { padding: 0; }
 .cloud-sync-tb-btn .cloud-sync-badge { width: 100%; height: 100%; }
 .chart-select { display:flex; align-items:center; gap:6px; flex:0 1 180px; width:180px; min-width:140px; box-sizing:border-box; border:1px solid #bbb; border-radius:3px; background:#fff; padding:4px 8px; cursor:pointer; position:relative; user-select:none; }
+/* 270 px where the window has room; 180 px below, so the toolbar fits at 1280 px with every chart open. */
+@media (min-width: 1440px) { .chart-select { flex-basis:270px; width:270px; } }
 .chart-select:hover { border-color:#7fb3ff; }
 .chart-select .chart-name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
 

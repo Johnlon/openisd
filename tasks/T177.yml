@@ -1,0 +1,12 @@
+id: T177
+release_note: internal
+repo: openisd
+owner: sonnet-chart-dropdown-wide
+status: done
+goal: Desktop chart drop-down is 270 px wide where the window has room (1440 px and up), 180 px below
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T177.yml
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-toolbar.browser.spec.ts
+  - packages/ui/test/ui/original-chart-view.browser.spec.ts
