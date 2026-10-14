@@ -3,6 +3,7 @@ release_note: Cloud sync shows the Google account's email after connecting; if G
 repo: openisd
 owner: maryu
 status: done
+landed: f4fa82b3672a7d663aca94980fc60441c6027c88
 goal: After connect the app asks Drive for the signed-in email and shows it as the account; a refusal is recorded in Diagnostics
 done_test: bash scripts/test.sh packages/persistence/test/cloud/accountNamer.test.ts packages/persistence/test/cloud/driveStore.test.ts packages/persistence/test/cloud/auth/implicitSession.test.ts
 files:

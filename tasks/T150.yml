@@ -1,0 +1,11 @@
+id: T150
+release_note: The first cloud sync uploads new items four at a time, so it finishes sooner.
+repo: openisd
+owner: maryu
+status: done
+goal: New-item uploads run 4 at a time; changed and deleted items stay one at a time
+done_test: bash scripts/test.sh packages/persistence/test/cloud/syncEngine.test.ts
+files:
+  - tasks/T150.yml
+  - packages/persistence/src/cloud/syncEngine.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts

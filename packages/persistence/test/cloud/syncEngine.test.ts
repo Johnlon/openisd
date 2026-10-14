@@ -91,6 +91,49 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
     });
   }
 
+  describe('Upload concurrency', () => {
+    function newProjects(n: number) {
+      return Array.from({ length: n }, (_, i) => ({
+        id: { kind: 'project', uuid: `new-${i}` } as const,
+        body: JSON.stringify({ name: `Box ${i}`, volume: i + 1 }),
+        layout: APP_LAYOUT,
+      }));
+    }
+
+    function trackCreates(failAt: number | null = null) {
+      const seen = { inFlight: 0, maxInFlight: 0, calls: 0 };
+      const create = cloud.create.bind(cloud);
+      cloud.create = async (id, body, meta) => {
+        const call = seen.calls++;
+        seen.inFlight++;
+        seen.maxInFlight = Math.max(seen.maxInFlight, seen.inFlight);
+        await new Promise(resolve => setTimeout(resolve, 1));
+        seen.inFlight--;
+        if (call === failAt) return { kind: 'offline' };
+        return create(id, body, meta);
+      };
+      return seen;
+    }
+
+    it('uploads new items four at a time', async () => {
+      localProjects.docs = newProjects(10);
+      const seen = trackCreates();
+      const outcome = await createEngine().run();
+      expect(outcome).toMatchObject({ kind: 'synced', pushed: 10 });
+      expect(seen.maxInFlight).toBe(4);
+      expect(progress.filter(p => p.startsWith('pushed'))).toHaveLength(10);
+    });
+
+    it('a failed upload stops new ones; those already sent still count', async () => {
+      localProjects.docs = newProjects(10);
+      const seen = trackCreates(1);
+      const outcome = await createEngine().run();
+      // Calls 0, 2, 3 and 4 were sent before call 1 failed; none starts after it.
+      expect(seen.calls).toBe(5);
+      expect(outcome).toMatchObject({ kind: 'stopped', reason: 'offline', pushedSoFar: 4 });
+    });
+  });
+
   describe('Progress', () => {
     it('reports the start of a run and each push as it lands', async () => {
       localProjects.docs = [

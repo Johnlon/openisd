@@ -37,6 +37,9 @@ export interface SyncEngineDeps {
   readonly progress: SyncProgress;
 }
 
+/** New items upload this many at a time; each is one request that names nothing another uses. */
+const CREATE_CONCURRENCY = 4;
+
 function docIdKey(id: DocId): string {
   switch (id.kind) {
     case 'project':
@@ -524,13 +527,17 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       }
     }
 
-    // 4. Push local changes
-    for (const push of plannedPushes) {
-      if (heldDocKeys.has(docIdKey(push.docId))) {
-        continue;
-      }
-
-      if (push.kind === 'pushCreate') {
+    // 4. Push local changes: new items CREATE_CONCURRENCY at a time, then changes and deletions
+    // one at a time (each reads the Drive head before it writes).
+    const creates = plannedPushes.filter(
+      (push): push is PlannedPush & { readonly kind: 'pushCreate' } =>
+        push.kind === 'pushCreate' && !heldDocKeys.has(docIdKey(push.docId)));
+    let nextCreate = 0;
+    let createFailure: CloudError | null = null;
+    async function createWorker(): Promise<void> {
+      while (createFailure === null && nextCreate < creates.length) {
+        const push = creates[nextCreate++];
+        if (push === undefined) return;
         const meta: WriteMeta = {
           parentRevision: null,
           layout: deps.layout,
@@ -540,7 +547,8 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         };
         const res = await deps.cloud.create(push.docId, push.body, meta);
         if (res.kind !== 'ok') {
-          return mapCloudError(res, pushedCount);
+          createFailure ??= res;
+          return;
         }
         deps.ledger.set({
           id: push.docId,
@@ -551,6 +559,20 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         });
         pushedCount++;
         deps.progress.pushed(pushedCount);
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(CREATE_CONCURRENCY, creates.length) }, createWorker));
+    if (createFailure !== null) {
+      return mapCloudError(createFailure, pushedCount);
+    }
+
+    for (const push of plannedPushes) {
+      if (heldDocKeys.has(docIdKey(push.docId))) {
+        continue;
+      }
+
+      if (push.kind === 'pushCreate') {
+        continue;
       } else if (push.kind === 'pushUpdate') {
         const meta: WriteMeta = {
           parentRevision: push.expectedRevision,
