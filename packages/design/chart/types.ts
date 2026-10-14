@@ -21,6 +21,9 @@ export interface Series {
   current?: boolean;
   /** Line width in px, set only on the focused project's own trace; absent, the canvas draws its default. */
   lineWidth?: number;
+  /** Phase traces only: index i of each segment i-1 → i that jumps across the ±180° cut, an
+   *  artefact the canvas draws dotted instead of as part of the line. */
+  wraps?: number[];
 }
 
 /** Where a trace first reaches `dropDb` below its passband: `f` in Hz, null when it never does. */

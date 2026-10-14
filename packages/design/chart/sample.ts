@@ -29,6 +29,17 @@ export function crossingFrequency(xs: readonly number[], ys: readonly number[], 
   return null;
 }
 
+/** The index i of each segment i-1 → i of a phase trace (degrees) that changes by more than 180°:
+ *  the jump across the ±180° cut, which joins two samples that are close in phase. Segments
+ *  touching a non-finite sample are never listed. */
+export function wrapSegments(ys: readonly number[]): number[] {
+  const out: number[] = [];
+  for (let i = 1; i < ys.length; i++) {
+    if (isFinite(ys[i - 1]) && isFinite(ys[i]) && Math.abs(ys[i] - ys[i - 1]) > 180) out.push(i);
+  }
+  return out;
+}
+
 export type SnapDirection = 'left' | 'right';
 export type SnapExtremum = 'max' | 'min';
 

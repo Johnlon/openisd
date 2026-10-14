@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: a2a04d02bf223240f0acf7e27d0d28b8d6142535
 goal: land.sh step 2b never marks a tasks/fixes/F*.yml done: an F's own opening commit is on main from the start, so the next landing closed every fix without a fix
 done_test: bash scripts/land/test/land-squash.test.sh
 files:

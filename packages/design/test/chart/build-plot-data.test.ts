@@ -168,3 +168,13 @@ describe('buildPlotData — the active trace is drawn 59% wider', () => {
     assert.equal(out.series[1].lineWidth, undefined);
   });
 });
+
+describe('buildPlotData — the phase cut-over segments', () => {
+  it('a degree chart marks the segments that jump across ±180°; a dB chart marks none', () => {
+    const wrapped: Design = { ...design('w', '#4fb0ff'), curves: { ...SW, phase: SW.phase.map((_, i) => (i % 2 ? 170 : -170)) } };
+    const phase = buildPlotData(engine, 'Phase', 10, 2000, wrapped, []).value!;
+    assert.deepEqual(phase.series[0].wraps, phase.series[0].ys.map((_, i) => i).filter(i => i > 0));
+    const spl = buildPlotData(engine, 'SPL', 10, 2000, design('a', '#4fb0ff'), []).value!;
+    assert.equal(spl.series[0].wraps, undefined);
+  });
+});

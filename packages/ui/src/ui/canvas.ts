@@ -104,12 +104,20 @@ export function drawOne(
       }
     } else {
       ctx.strokeStyle = s.color;
+      const wraps = new Set(s.wraps);
       ctx.beginPath(); let started = false;
       for (let i = 0; i < s.xs.length; i++) {
         const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
-        if (!started) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
+        if (!started || wraps.has(i)) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
       }
       ctx.stroke();
+      // The ±180° cut-over is an artefact of wrapping, not part of the response: dotted and faint.
+      if (wraps.size) {
+        ctx.save(); ctx.globalAlpha = 0.45; ctx.lineWidth = 1; ctx.setLineDash([1, 3]);
+        ctx.beginPath();
+        for (const i of wraps) { ctx.moveTo(X(s.xs[i - 1]), Y(s.ys[i - 1])); ctx.lineTo(X(s.xs[i]), Y(s.ys[i])); }
+        ctx.stroke(); ctx.restore();
+      }
     }
   }
   ctx.setLineDash([]);

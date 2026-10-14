@@ -1,0 +1,16 @@
+id: T115
+release_note: On phase charts the vertical jump across the 180 degree cut is drawn dotted and faint, not as part of the line.
+repo: openisd
+owner: bob
+status: done
+goal: On phase charts the vertical wrap-around segment is drawn dotted and faint, not as a solid line.
+done_test: bash scripts/test.sh packages/design/test/chart/sample.test.ts packages/design/test/chart/build-plot-data.test.ts
+files:
+  - tasks/T115.yml
+  - packages/design/chart/sample.ts
+  - packages/design/chart/index.ts
+  - packages/design/chart/types.ts
+  - packages/design/chart/series.ts
+  - packages/design/test/chart/sample.test.ts
+  - packages/design/test/chart/build-plot-data.test.ts
+  - packages/ui/src/ui/canvas.ts

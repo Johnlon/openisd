@@ -9,7 +9,7 @@ export interface ChartEngineAreas {
   /** Which charts each box type has (`chartsFor`): a design draws only on those. */
   readonly box: BoxEngine;
 }
-import {crossingFrequency} from './sample.js';
+import {crossingFrequency, wrapSegments} from './sample.js';
 import type {Design, PlotData, PlotParams, Rolloff, Series} from './types.js';
 import {FrequencyAxis, LevelAxis} from './axis.js';
 
@@ -494,6 +494,7 @@ export function buildPlotData(
     const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit };
     const prim: Series = { ...pd.series[0] };
+    if (pd.unit === '°') prim.wraps = wrapSegments(prim.ys);
     if (multi) {
       prim.color = d.color || DPAL[di % DPAL.length];
       // The legend names the project alone; the chart name is added only when the project draws several lines here.

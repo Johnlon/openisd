@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {crossingFrequency, interpolatedY, snapFrequency} from '../../chart/sample.js';
+import {crossingFrequency, interpolatedY, snapFrequency, wrapSegments} from '../../chart/sample.js';
 
 describe('snapFrequency — nearest peak or trough on one side of the cursor', () => {
   const xs = [10, 20, 50, 100, 200, 500];
@@ -71,5 +71,16 @@ describe('crossingFrequency — lowest frequency where the trace reaches a level
 
   it('non-finite samples are skipped', () => {
     expect(crossingFrequency([10, 20, 40], [NaN, -8, -2], -5)).toBeCloseTo(20 + 20 * (3 / 6), 10);
+  });
+});
+
+describe('wrapSegments — the segments of a phase trace that jump across the ±180° cut', () => {
+  it('lists the index i of each segment i-1 → i that changes by more than 180°', () => {
+    expect(wrapSegments([170, 175, -175, -170, 179, -179])).toEqual([2, 4, 5]);
+  });
+
+  it('is empty for a trace that never jumps, and ignores non-finite samples', () => {
+    expect(wrapSegments([-90, -45, 0, 45, 90])).toEqual([]);
+    expect(wrapSegments([170, NaN, -175])).toEqual([]);
   });
 });

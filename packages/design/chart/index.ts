@@ -4,4 +4,4 @@ export type {Design, PlotData, PlotParams, Rolloff, Series} from './types.js';
 export type {FrequencyBand, FrequencyDragMode, GridLine, LevelDragMode, LevelTick} from './axis.js';
 export {FrequencyAxis, LevelAxis} from './axis.js';
 export type {SnapDirection, SnapExtremum} from './sample.js';
-export {crossingFrequency, interpolatedY, snapFrequency} from './sample.js';
+export {crossingFrequency, interpolatedY, snapFrequency, wrapSegments} from './sample.js';
