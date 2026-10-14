@@ -3,6 +3,7 @@ release_note: Deleting a project now moves it to a Bin that syncs to your other 
 repo: openisd
 owner: maryu
 status: done
+landed: 73b29c5e148f476cb3037ed6c1fafc2bce68abb2
 goal: Delete moves a project to a Bin that syncs; Restore, Delete forever and Empty Bin in both skins
 done_test: bash scripts/test.sh packages/persistence/test/projectBin.test.ts packages/ui/test/logic/projectBinActions.test.ts packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts packages/design/test/cloud/driveJson.test.ts
 files:

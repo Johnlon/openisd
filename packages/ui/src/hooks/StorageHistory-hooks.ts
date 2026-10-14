@@ -6,7 +6,7 @@
  */
 import {ref, type Ref} from 'vue';
 import {formatByteSize, formatCountOf, formatDateTime, parseBasicUtc} from '@openisd/design/fields';
-import type {HistoryRow} from '@openisd/persistence';
+import type {HistoryRow, PreRepairCopy, PreRepairKind} from '@openisd/persistence';
 import {useApp} from '../logic/app.js';
 
 export interface StorageHistoryRowView {
@@ -24,6 +24,14 @@ export interface StorageHistoryRowView {
   readonly note: string;
 }
 
+/** A copy a repair kept of a record it rewrote, as the page lists it. */
+export interface PreRepairCopyView {
+  readonly kind: PreRepairKind;
+  /** What the copy holds, in plain words. */
+  readonly label: string;
+  readonly size: string;
+}
+
 export type RestoreOutcome =
   | { readonly kind: 'cancelled' }
   | { readonly kind: 'restored'; readonly keysRestored: number }
@@ -31,6 +39,8 @@ export type RestoreOutcome =
 
 export interface StorageHistoryAPI {
   readonly rows: Ref<readonly StorageHistoryRowView[]>;
+  readonly copies: Ref<readonly PreRepairCopyView[]>;
+  deleteCopy(copy: PreRepairCopyView): Promise<void>;
   backUpNow(): void;
   exportRow(key: string): void;
   restoreRow(key: string): Promise<RestoreOutcome>;
@@ -58,10 +68,27 @@ function viewOf(row: HistoryRow): StorageHistoryRowView {
   };
 }
 
+function copyLabel(kind: PreRepairKind): string {
+  switch (kind) {
+    case 'projects': return 'Saved projects';
+    case 'openSessions': return 'Open projects list';
+    case 'quarantineSession': return 'Open projects that would not load';
+    case 'state': return 'Last project (older store)';
+    case 'view': return 'Window layout';
+    case 'appSettings': return 'Options';
+  }
+}
+
+const copyViewOf = (copy: PreRepairCopy): PreRepairCopyView => ({kind: copy.kind, label: copyLabel(copy.kind), size: formatByteSize(copy.size)});
+
 export function useStorageHistory(): StorageHistoryAPI {
   const { storageHistory, designIO, confirmPort, logging } = useApp();
   const rows = ref<readonly StorageHistoryRowView[]>(storageHistory.rows().map(viewOf));
-  const refresh = (): void => { rows.value = storageHistory.rows().map(viewOf); };
+  const copies = ref<readonly PreRepairCopyView[]>(storageHistory.copies().map(copyViewOf));
+  const refresh = (): void => {
+    rows.value = storageHistory.rows().map(viewOf);
+    copies.value = storageHistory.copies().map(copyViewOf);
+  };
 
   function backUpNow(): void {
     const result = storageHistory.backUpNow();
@@ -103,5 +130,17 @@ export function useStorageHistory(): StorageHistoryAPI {
     refresh();
   }
 
-  return { rows, backUpNow, exportRow, restoreRow, deleteRow };
+  async function deleteCopy(copy: PreRepairCopyView): Promise<void> {
+    const confirmed = await confirmPort.port.ask({
+      title: 'Delete this copy?',
+      message: `The copy of "${copy.label}" kept before a repair is removed from this browser. Continue?`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+    });
+    if (!confirmed) return;
+    if (!storageHistory.removeCopy(copy.kind)) logging.flash('That copy is no longer there.');
+    refresh();
+  }
+
+  return { rows, copies, backUpNow, exportRow, restoreRow, deleteRow, deleteCopy };
 }

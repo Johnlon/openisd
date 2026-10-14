@@ -9,7 +9,7 @@ import {
 } from '@openisd/design/cloud';
 import type { KeyValueStorage } from '../../src/storage/keyValueStorage.js';
 import { createSyncLedger, type SyncLedger } from '../../src/cloud/syncLedger.js';
-import type { StorageBackup, Guarded, BackupResult, BackupInfo } from '../../src/repos/storageBackup.js';
+import type { StorageBackup, Guarded, BackupResult, PreRepairCopy, BackupInfo } from '../../src/repos/storageBackup.js';
 import { FakeCloudStore } from './fakeCloudStore.js';
 import { FakeLocalDocs } from './fakeLocalDocs.js';
 import { createSyncEngine } from '../../src/cloud/syncEngine.js';
@@ -39,6 +39,8 @@ class FakeBackup implements StorageBackup {
   list(): BackupInfo[] { return []; }
   read(): string | null { return null; }
   discard(): boolean { return false; }
+  preRepairCopies(): PreRepairCopy[] { return []; }
+  discardCopy(): boolean { return false; }
   write(): boolean { return true; }
 }
 

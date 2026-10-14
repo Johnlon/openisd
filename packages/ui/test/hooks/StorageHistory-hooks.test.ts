@@ -7,7 +7,7 @@ import {createConfirmPort} from '../../src/logic/confirmPort.js';
 import {createLogging} from '../../src/logging/flash.js';
 import {useStorageHistory, type StorageHistoryAPI} from '../../src/hooks/StorageHistory-hooks.js';
 import {
-  createMemoryStorage, OPENISD_BACKUP_PREFIX, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
+  createMemoryStorage, OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
   type HistoryFile, type ListableStorage,
 } from '@openisd/persistence';
 import {testAppLogic} from './testAppLogic.js';
@@ -90,5 +90,27 @@ describe('useStorageHistory', () => {
     await accepted.api.deleteRow(KEY);
     expect(accepted.api.rows.value).toHaveLength(0);
     expect(storage.get(KEY)).toBeNull();
+  });
+
+  it('lists the copies kept before a repair; Delete asks first, then removes one', async () => {
+    const storage = seeded();
+    storage.set(OPENISD_BACKUP_KEYS.projects, 'x'.repeat(40));
+    const {api} = await renderHook(true, storage);
+    expect(api.copies.value).toEqual([{kind: 'projects', label: 'Saved projects', size: '40 B'}]);
+    const [copy] = api.copies.value;
+    if (copy === undefined) throw new Error('no copy listed');
+    await api.deleteCopy(copy);
+    expect(storage.get(OPENISD_BACKUP_KEYS.projects)).toBeNull();
+    expect(api.copies.value).toEqual([]);
+  });
+
+  it('Delete of a copy does nothing when the user says no', async () => {
+    const storage = seeded();
+    storage.set(OPENISD_BACKUP_KEYS.state, 'y');
+    const {api} = await renderHook(false, storage);
+    const [copy] = api.copies.value;
+    if (copy === undefined) throw new Error('no copy listed');
+    await api.deleteCopy(copy);
+    expect(storage.get(OPENISD_BACKUP_KEYS.state)).toBe('y');
   });
 });

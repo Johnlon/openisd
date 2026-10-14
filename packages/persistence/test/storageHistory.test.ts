@@ -6,7 +6,7 @@ import {createStorageHistory} from '../src/repos/storageHistory.js';
 import {envelopeText} from '../src/repos/storageSnapshot.js';
 import {BuildStamp} from '../src/repos/buildStamp.js';
 import {
-  OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
+  OPENISD_BACKUP_KEYS, OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_PROJECTS_KEY, OPENISD_STORAGE_BUILD_KEY, OPENISD_STORAGE_LAYOUT_KEY,
 } from '../src/repos/storageKeys.js';
 import {createMemoryStorage, type ListableStorage} from '../src/storage/keyValueStorage.js';
 import {APP_RULES, FIXED_NOW_MS} from './fixtures/repoOn.js';
@@ -101,5 +101,20 @@ describe('storage history actions', () => {
     assert.equal(history.remove(OPENISD_PROJECTS_KEY), false);
     assert.notEqual(storage.get(OPENISD_PROJECTS_KEY), null);
     assert.equal(history.remove(KEY_OLD), false);
+  });
+
+  it('lists the copies repairs kept, with their sizes, and deletes one by its kind', () => {
+    const storage = createMemoryStorage({
+      [OPENISD_PROJECTS_KEY]: projects(1),
+      [OPENISD_BACKUP_KEYS.projects]: 'x'.repeat(40),
+      [OPENISD_QUARANTINE_SESSION_KEY]: 'y'.repeat(7),
+    });
+    const history = historyOver(storage);
+    assert.deepEqual(history.copies(), [{kind: 'projects', size: 40}, {kind: 'quarantineSession', size: 7}]);
+    assert.equal(history.removeCopy('projects'), true);
+    assert.equal(storage.get(OPENISD_BACKUP_KEYS.projects), null);
+    assert.notEqual(storage.get(OPENISD_PROJECTS_KEY), null);
+    assert.equal(history.removeCopy('projects'), false);
+    assert.deepEqual(history.copies(), [{kind: 'quarantineSession', size: 7}]);
   });
 });

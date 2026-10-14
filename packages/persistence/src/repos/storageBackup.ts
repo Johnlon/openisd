@@ -70,16 +70,34 @@ export interface StorageBackup {
   /** Delete the backup under `key`. False, and nothing deleted, when `key` is not a backup. A
    *  backup is not itself backed up: it is the copy. */
   discard(key: string): boolean;
+  /** The pre-repair copies held, in the order they would be dropped for room. */
+  preRepairCopies(): PreRepairCopy[];
+  /** Delete the pre-repair copy of `kind`. False when none is held. */
+  discardCopy(kind: PreRepairKind): boolean;
   /** Write a data key, dropping backups oldest first until it fits, the newest last. False when it
    *  does not fit even with every backup gone. Live data outranks its own backups: a save never
    *  fails for want of room a backup is using. */
   write(key: string, text: string): boolean;
 }
 
+/** Which record a pre-repair copy holds. */
+export type PreRepairKind = 'projects' | 'openSessions' | 'quarantineSession' | 'state' | 'view' | 'appSettings';
+
+/** One copy a repair kept, as the Backups page lists it. */
+export interface PreRepairCopy {
+  readonly kind: PreRepairKind;
+  /** Length of the copy, in characters. */
+  readonly size: number;
+}
+
 /** The copies a repair keeps of a record it rewrote, dropped in this order when a backup needs room. */
-const PRE_REPAIR_COPIES: readonly string[] = [
-  OPENISD_BACKUP_KEYS.projects, OPENISD_BACKUP_KEYS.openSessions, OPENISD_QUARANTINE_SESSION_KEY,
-  OPENISD_BACKUP_KEYS.state, OPENISD_BACKUP_KEYS.view, OPENISD_BACKUP_KEYS.appSettings,
+const PRE_REPAIR_COPIES: readonly {readonly kind: PreRepairKind; readonly key: string}[] = [
+  {kind: 'projects', key: OPENISD_BACKUP_KEYS.projects},
+  {kind: 'openSessions', key: OPENISD_BACKUP_KEYS.openSessions},
+  {kind: 'quarantineSession', key: OPENISD_QUARANTINE_SESSION_KEY},
+  {kind: 'state', key: OPENISD_BACKUP_KEYS.state},
+  {kind: 'view', key: OPENISD_BACKUP_KEYS.view},
+  {kind: 'appSettings', key: OPENISD_BACKUP_KEYS.appSettings},
 ];
 
 function byAge(a: BackupInfo, b: BackupInfo): number {
@@ -137,8 +155,8 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
   /** What goes when even `droppable` has nothing left: the pre-repair copies, then the newest
    *  backups, oldest first. Never `keep`, never live data. */
   function lastResort(keep: string): string | null {
-    const copy = PRE_REPAIR_COPIES.find(key => storage.get(key) !== null);
-    if (copy !== undefined) return copy;
+    const copy = PRE_REPAIR_COPIES.find(({key}) => storage.get(key) !== null);
+    if (copy !== undefined) return copy.key;
     const backups = list().filter(info => info.key !== keep);
     return backups.length === 0 ? null : backups[backups.length - 1].key;
   }
@@ -210,6 +228,18 @@ export function createStorageBackup(storage: ListableStorage, now: () => number)
     discard(key) {
       if (!key.startsWith(OPENISD_BACKUP_PREFIX) || storage.get(key) === null) return false;
       storage.remove(key);
+      return true;
+    },
+    preRepairCopies() {
+      return PRE_REPAIR_COPIES.flatMap(({kind, key}) => {
+        const text = storage.get(key);
+        return text === null ? [] : [{kind, size: text.length}];
+      });
+    },
+    discardCopy(kind) {
+      const copy = PRE_REPAIR_COPIES.find(c => c.kind === kind);
+      if (copy === undefined || storage.get(copy.key) === null) return false;
+      storage.remove(copy.key);
       return true;
     },
   };

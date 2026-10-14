@@ -160,3 +160,16 @@ test('Storage history: Restore asks first, backs the live store up, then reloads
   const backups = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('openisd_backup_')));
   expect(backups.length).toBeGreaterThanOrEqual(2);
 });
+
+test('Storage history lists a copy kept before a repair with its size; Delete removes it', async ({ page }) => {
+  await withSomethingSaved(page);
+  await page.evaluate(() => { localStorage.setItem('openisd_view_backup', 'x'.repeat(40)); });
+  await openStorageHistory(page);
+  const copy = page.locator('.sh-copy-row');
+  await expect(copy.locator('.sh-copy-label')).toHaveText(['Window layout']);
+  await expect(copy.locator('.sh-copy-size')).toHaveText('40 B');
+  await copy.locator('.sh-copy-delete').click();
+  await page.locator('.confirm-dialog-confirm').click();
+  await expect(copy).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('openisd_view_backup'))).toBeNull();
+});

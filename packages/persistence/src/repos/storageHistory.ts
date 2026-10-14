@@ -4,7 +4,7 @@
  *  the rows and calls these. */
 import type {BackupRepo, RestoreResult} from './backupRepo.js';
 import type {LayoutRules} from './layoutMigration.js';
-import type {BackupInfo, BackupResult, StorageBackup} from './storageBackup.js';
+import type {BackupInfo, BackupResult, PreRepairCopy, PreRepairKind, StorageBackup} from './storageBackup.js';
 import {OPENISD_PROJECTS_KEY} from './storageKeys.js';
 import {readEnvelope} from './storageSnapshot.js';
 
@@ -41,6 +41,10 @@ export interface StorageHistory {
   restore(key: string): RestoreResult;
   /** Delete the backup. False when `key` is not a backup held. */
   remove(key: string): boolean;
+  /** The copies repairs kept of records they rewrote. */
+  copies(): PreRepairCopy[];
+  /** Delete the copy of `kind`. False when none is held. */
+  removeCopy(kind: PreRepairKind): boolean;
 }
 
 function projectCountOf(data: Readonly<Record<string, string>>): number {
@@ -80,5 +84,7 @@ export function createStorageHistory(backup: StorageBackup, restoreRepo: BackupR
       return restoreRepo.importAll(text, {replaceEverything: true});
     },
     remove: key => backup.discard(key),
+    copies: () => backup.preRepairCopies(),
+    removeCopy: kind => backup.discardCopy(kind),
   };
 }

@@ -46,7 +46,7 @@ export { LAYOUT_STEPS } from './repos/layoutSteps.js';
 export { createStorageHistory, type HistoryFile, type HistoryRow, type StorageHistory } from './repos/storageHistory.js';
 export { createExportedFiles, type ExportedFiles, type OpenedFile } from './repos/exportedFile.js';
 export {
-  type BackupInfo, type BackupResult, type Guarded, type RoomShortfall, type StorageBackup, MAX_BACKUPS, NO_ROOM_TO_BACK_UP, createStorageBackup,
+  type BackupInfo, type BackupResult, type Guarded, type PreRepairCopy, type PreRepairKind, type RoomShortfall, type StorageBackup, MAX_BACKUPS, NO_ROOM_TO_BACK_UP, createStorageBackup,
 } from './repos/storageBackup.js';
 export { type LostKey, type LogEntry, type StorageLog, MAX_LOG_ENTRIES, createStorageLog } from './repos/storageLog.js';
 export {

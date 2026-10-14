@@ -3,7 +3,7 @@
 // rows, wording and every action come from `StorageHistory-hooks.ts`.
 import {useStorageHistory} from '../../hooks/StorageHistory-hooks.js';
 
-const { rows, backUpNow, exportRow, restoreRow, deleteRow } = useStorageHistory();
+const { rows, copies, backUpNow, exportRow, restoreRow, deleteRow, deleteCopy } = useStorageHistory();
 
 async function onRestore(key: string) {
   const outcome = await restoreRow(key);
@@ -44,6 +44,17 @@ async function onRestore(key: string) {
         </div>
       </li>
     </ul>
+    <template v-if="copies.length > 0">
+      <h4 class="sh-copies-head">Copies kept before a repair</h4>
+      <p class="opt-help">When a record would not read, it was repaired and the old one kept here. They are dropped first when a backup needs room.</p>
+      <ul class="sh-rows sh-copies">
+        <li v-for="copy in copies" :key="copy.kind" class="sh-copy-row">
+          <span class="sh-copy-label">{{ copy.label }}</span>
+          <span class="sh-copy-size">{{ copy.size }}</span>
+          <button class="opt-reset-btn sh-copy-delete" @click="deleteCopy(copy)">Delete</button>
+        </li>
+      </ul>
+    </template>
   </fieldset>
 </template>
 
@@ -54,5 +65,9 @@ async function onRestore(key: string) {
 .sh-facts div { display: flex; gap: 6px; }
 .sh-facts dt { color: var(--mut); }
 .sh-facts dd { margin: 0; }
+.sh-copies-head { margin: 14px 0 4px; font-size: inherit; }
+.sh-copy-row { display: flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; }
+.sh-copy-label { flex: 1; min-width: 0; }
+.sh-copy-size { color: var(--mut); }
 .sh-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 </style>

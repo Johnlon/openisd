@@ -1,0 +1,18 @@
+id: T167
+release_note: Options → Storage history now lists the copies kept before a repair, each with its size and a Delete button.
+repo: openisd
+owner: maryu
+status: done
+goal: Options Backups lists the pre-repair copies with size and a Delete button
+done_test: bash scripts/test.sh packages/persistence/test/storageHistory.test.ts packages/ui/test/hooks/StorageHistory-hooks.test.ts
+files:
+  - tasks/T167.yml
+  - packages/persistence/src/repos/storageBackup.ts
+  - packages/persistence/src/repos/storageHistory.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/test/storageHistory.test.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/ui/components/StorageHistory.vue
+  - packages/ui/test/hooks/StorageHistory-hooks.test.ts
+  - packages/ui/test/ui/storage-guard.browser.spec.ts
