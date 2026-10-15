@@ -165,7 +165,11 @@ function createServeDevVersion(command) {
 export default defineConfig(({ command, mode }) => ({
   root: UI_ROOT,
   base,
-  define: { 'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion(command)) },
+  define: {
+    'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion(command)),
+    // The app registers its own service worker (so a refusal is caught), in builds that ship one.
+    'import.meta.env.VITE_SERVICE_WORKER': JSON.stringify(ELECTRON || command === 'serve' || mode === 'test' ? 'off' : 'on'),
+  },
   server: {
     // Host names the dev server answers to besides localhost and IP addresses; Vite refuses any other.
     allowedHosts: ['lap'],
@@ -214,6 +218,7 @@ export default defineConfig(({ command, mode }) => ({
     // asset at registration on every spec's page and cache across a run.
     ...(ELECTRON || command === 'serve' || mode === 'test' ? [] : [VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false,
       base,
       manifest: {
         name: 'OpenISD',

@@ -69,7 +69,11 @@ import {BeaconTelemetry, NoTelemetry, type Telemetry} from './logic/telemetry/te
 import {chooseEndpoint} from './logic/telemetry/endpoint.js';
 import {CrashReports} from './logic/telemetry/crashReports.js';
 import {crashHash} from './logic/telemetry/crashHash.js';
-import {LaunchReporter, platformHintOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
+import {LaunchReporter, platformHintOf, platformOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
+import {InstallMarker} from './logic/telemetry/install.js';
+import {browserIdOf} from './logic/telemetry/browserId.js';
+import {SessionEnd} from './logic/telemetry/sessionEnd.js';
+import {registerServiceWorker} from './logic/telemetry/serviceWorker.js';
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
 import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
@@ -148,6 +152,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     mode: import.meta.env.MODE,
     testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
   });
+  const telemetryStorage = createLocalStorage();
   const telemetry: Telemetry = telemetryEndpoint === null
     ? new NoTelemetry()
     : new BeaconTelemetry({
@@ -157,7 +162,16 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
         online: () => navigator.onLine,
         now: () => Date.now(),
         sessionId: newUuid(),
+        browserId: browserIdOf(telemetryStorage, newUuid),
       });
+  const installMarker = new InstallMarker(telemetry, telemetryStorage);
+  // The service worker is registered here, not by an injected script, so a refusal is caught.
+  if (import.meta.env.VITE_SERVICE_WORKER === 'on' && 'serviceWorker' in navigator) {
+    const registerSw = () => void registerServiceWorker(
+      navigator.serviceWorker, `${import.meta.env.BASE_URL}sw.js`, import.meta.env.BASE_URL, telemetry,
+      platformOf(platformHintOf(navigator), navigator.userAgent));
+    if (document.readyState === 'complete') registerSw(); else window.addEventListener('load', registerSw);
+  }
 
   // STORAGE (port): the browser's key-value storage, opened by the load rules in main.ts: stamped with
   // this build's layout, kept in step with the storage log, and with ONE whole-store backup that every
@@ -292,6 +306,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     visibility: () => document.visibilityState,
     telemetry,
     onUncaught: thrown => crashReports.capture(thrown),
+    install: installMarker,
+    session: new SessionEnd(telemetry, featureUse, () => Date.now(), Date.now()),
   });
 
   const cloudUi = createCloudUiStore(createLocalStorage());
@@ -384,7 +400,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     .directive('limits', vLimits);
 
   provideCloudSync(app, cloudSync, cloudUi);
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer), featureUse});
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,

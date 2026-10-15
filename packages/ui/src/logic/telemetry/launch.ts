@@ -1,4 +1,5 @@
-import type {DisplayMode, LaunchEvent, Platform, Skin} from './events.js';
+import {screenWidthBandOf, type DisplayMode, type LaunchEvent, type Platform, type Skin} from './events.js';
+import type {InstallMarker} from './install.js';
 import type {Telemetry} from './telemetry.js';
 
 /** The browser facts a launch event is made from, read once. */
@@ -27,14 +28,14 @@ export function platformOf(hint: string | undefined, userAgent: string): Platfor
 
 /** The host of a referrer URL, '' when there is none or it does not parse. */
 export function referrerHost(referrer: string): string {
-  try { return referrer === '' ? '' : new URL(referrer).host; } catch { return ''; }
+  try { return referrer === '' ? '' : new URL(referrer).hostname; } catch { return ''; }
 }
 
 export function launchEventOf(env: LaunchEnvironment, skin: Skin): LaunchEvent {
   const mode: DisplayMode = env.standalone ? 'standalone' : 'browser';
   return {
     kind: 'launch', mode, platform: platformOf(env.platformHint, env.userAgent), skin,
-    w: env.screenW, h: env.screenH, lang: env.lang, ref: referrerHost(env.referrer),
+    w: env.screenW, h: env.screenH, screen: screenWidthBandOf(env.screenW), lang: env.lang, ref: referrerHost(env.referrer),
     keysLost: env.keysLost,
   };
 }
@@ -48,13 +49,17 @@ export class LaunchReporter {
     private readonly environment: () => LaunchEnvironment,
     /** Runs the work off the boot path (idle callback or timer). */
     private readonly defer: (work: () => void) => void,
+    /** Notes a launch from an installed app whose install was never seen. */
+    private readonly install: InstallMarker,
   ) {}
 
   report(skin: Skin): void {
     if (this.reported) return;
     this.reported = true;
     this.defer(() => {
-      this.telemetry.record(launchEventOf(this.environment(), skin));
+      const env = this.environment();
+      this.telemetry.record(launchEventOf(env, skin));
+      this.install.noteLaunch(env.standalone);
       this.telemetry.flush();
     });
   }

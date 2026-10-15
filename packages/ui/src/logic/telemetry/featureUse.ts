@@ -10,6 +10,11 @@ export class FeatureUse {
 
   constructor(private readonly telemetry: Telemetry) {}
 
+  /** How many different charts this page session has viewed. */
+  chartsViewed(): number {
+    return this.charts.size;
+  }
+
   chart(id: ChartId): void {
     if (this.charts.has(id)) return;
     this.charts.add(id);

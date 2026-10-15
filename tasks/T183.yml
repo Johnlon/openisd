@@ -1,0 +1,15 @@
+id: T183
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Telemetry sends the driver name, one lower-case skin value, the install event, an anonymous browser id, screen-width bucket, session end, sw_blocked and deduped crashes.
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts
+files:
+  - tasks/T183.yml
+  - packages/ui/about/AboutPage.vue
+  - packages/ui/src/logic/telemetry/
+  - packages/ui/src/main.ts
+  - packages/ui/src/vite-env.d.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - vite.config.js

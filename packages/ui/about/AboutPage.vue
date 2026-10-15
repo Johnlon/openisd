@@ -56,6 +56,10 @@ onMounted(async () => {
         and errors) to a stats collector. They carry no project data, no account and no raw address.
         An error report you choose to send also carries the note and contact you type.
       </p>
+      <p>
+        The app sends an anonymous random id with each usage event so we can count returning users.
+        It is not linked to you or your Google account.
+      </p>
       <p>Questions: <a :href="`${REPO_URL}/issues`">open an issue on GitHub</a>.</p>
     </section>
     <p class="about-cta about-cta-end">

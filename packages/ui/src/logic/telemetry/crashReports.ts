@@ -10,6 +10,8 @@ export interface PendingCrash {
 
 /** Records an uncaught error and, when the user chooses, their report of it. */
 export class CrashReports {
+  /** Messages already sent this page session: one report per message. */
+  private readonly sent = new Set<string>();
   readonly pending: ShallowRef<PendingCrash | null> = shallowRef(null);
 
   constructor(
@@ -21,8 +23,11 @@ export class CrashReports {
   /** Anything thrown and not caught: record it, send it now, offer the report box. */
   capture(thrown: unknown): void {
     const event = errorEventOf(thrown, this.box());
-    this.telemetry.record(event);
-    this.telemetry.flush();
+    if (!this.sent.has(event.message)) {
+      this.sent.add(event.message);
+      this.telemetry.record(event);
+      this.telemetry.flush();
+    }
     this.pending.value = {message: event.message, frames: event.frames};
   }
 

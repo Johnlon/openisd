@@ -4,7 +4,11 @@
  */
 import type {ChartId} from '@openisd/design/engine';
 
-export type Skin = 'original' | 'mobile';
+/** The one spelling of each skin on the wire: lower case. */
+export const SKINS = ['original', 'mobile'] as const;
+export type Skin = typeof SKINS[number];
+/** Screen width band: the smallest bound the width is under, or the top band. */
+export type ScreenWidthBand = '<600' | '<1024' | '<1440' | '<1920' | '>=1920';
 export type DisplayMode = 'standalone' | 'browser';
 export type Platform = 'Android' | 'iOS' | 'Windows' | 'macOS' | 'Linux' | 'other';
 export type ProjectSource = 'new' | 'wizard' | 'file' | 'stored' | 'driver';
@@ -18,12 +22,18 @@ export interface LaunchEvent {
   readonly skin: Skin;
   readonly w: number;
   readonly h: number;
+  readonly screen: ScreenWidthBand;
   readonly lang: string;
+  /** The referrer's host name only; '' when there is none. */
   readonly ref: string;
   /** Storage keys that were here at the last start and are gone now; none when nothing was lost. */
   readonly keysLost: readonly string[];
 }
 export interface InstallEvent { readonly kind: 'install' }
+/** The service worker would not register (an extension or in-app browser blocked it); the app carries on without one. */
+export interface SwBlockedEvent { readonly kind: 'sw_blocked'; readonly platform: Platform }
+/** The page is going away: how long it was open and how many different charts were viewed. */
+export interface SessionEndEvent { readonly kind: 'session_end'; readonly seconds: number; readonly charts: number }
 export interface ProjectOpenEvent { readonly kind: 'project_open'; readonly source: ProjectSource; readonly box: string }
 export interface ProjectSaveEvent { readonly kind: 'project_save'; readonly format: SaveFormat; readonly box: string }
 /** `name` is the catalogue's own name for a bundled driver; empty for a driver the user owns, whose name is theirs. */
@@ -36,7 +46,7 @@ export interface ErrorEvent { readonly kind: 'error'; readonly message: string; 
 export interface ReportEvent { readonly kind: 'report'; readonly hash: string; readonly note: string; readonly contact: string }
 
 export type TelemetryEvent =
-  | LaunchEvent | InstallEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent;
+  | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent;
 
 export type FieldValue = string | number | boolean;
 export type Fields = Record<string, FieldValue>;
@@ -47,16 +57,20 @@ export interface WireEvent {
   readonly ts: number;
   readonly version: string;
   readonly session: string;
+  /** Anonymous random id of this browser, minted on first launch; linked to no account or name. */
+  readonly browser_id: string;
   readonly fields: Fields;
 }
 
 export function fieldsOf(e: TelemetryEvent): Fields {
   switch (e.kind) {
     case 'launch': return {
-      mode: e.mode, platform: e.platform, skin: e.skin, w: e.w, h: e.h, lang: e.lang, ref: e.ref,
+      mode: e.mode, platform: e.platform, skin: e.skin, w: e.w, h: e.h, screen: e.screen, lang: e.lang, ref: e.ref,
       ...(e.keysLost.length === 0 ? {} : {keysLost: e.keysLost.join(',')}),
     };
     case 'install': return {};
+    case 'sw_blocked': return {platform: e.platform};
+    case 'session_end': return {seconds: e.seconds, charts: e.charts};
     case 'project_open': return {source: e.source, box: e.box};
     case 'project_save': return {format: e.format, box: e.box};
     case 'driver_pick': return {source: e.source, id: e.id, ...(e.name === '' ? {} : {name: e.name})};
@@ -87,4 +101,13 @@ export function errorEventOf(thrown: unknown, box: string): ErrorEvent {
   const message = thrown instanceof Error ? thrown.message : String(thrown);
   const stack = thrown instanceof Error ? thrown.stack : undefined;
   return {kind: 'error', message: message.slice(0, MAX_MESSAGE), frames: topFrames(stack), box};
+}
+
+/** The band a screen width falls in. */
+export function screenWidthBandOf(width: number): ScreenWidthBand {
+  if (width < 600) return '<600';
+  if (width < 1024) return '<1024';
+  if (width < 1440) return '<1440';
+  if (width < 1920) return '<1920';
+  return '>=1920';
 }

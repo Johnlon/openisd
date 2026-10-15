@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: sonnet
 status: done
+landed: c2ed0a1061457b4f9a0745b913106b10445a9dec
 goal: 'F29: the 5 specs red at 82d6a5c97d (mobile-advanced-tab, original-toolbar 1280 and 1439, what-if-panel 2) all pass when their 3 files are rerun alone (39 of 39); the red runs waited 26-28 s for the page: machine load. Nothing broke; close F29'
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
 files:
