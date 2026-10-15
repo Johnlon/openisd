@@ -72,3 +72,24 @@ export function caretSpin(text: string, caret: number, dir: SpinDirection, bound
   const caretOut = at < 0 ? signOut : after ? at + 1 : at;
   return {text: out, value, caret: caretOut, decimals};
 }
+
+/** The caret of a number nobody has put a caret in: just after the tenths digit, so a step is 0.1.
+ *  A number shown with no decimals steps at its last digit, because a step never adds decimals. */
+export function tenthsCaret(text: string): number {
+  const mark = text.search(/[.,]/);
+  return mark >= 0 && mark + 1 < text.length ? mark + 2 : text.length;
+}
+
+/** A held ▲▼ waits this long before it repeats. */
+export const CARET_HOLD_START_MS = 400;
+const CARET_HOLD_SLOW_PER_S = 3;
+const CARET_HOLD_FAST_PER_S = 12;
+const CARET_HOLD_RAMP_MS = 3000;
+
+/** Milliseconds from one repeated step to the next, `heldMs` after the press: 3 steps a second at
+ *  the start of the repeat, easing smoothly up to 12 a second over 3 seconds. The step stays at the
+ *  caret digit throughout. */
+export function caretRepeatDelayMs(heldMs: number): number {
+  const eased = Math.min(1, Math.max(0, (heldMs - CARET_HOLD_START_MS) / CARET_HOLD_RAMP_MS));
+  return 1000 / (CARET_HOLD_SLOW_PER_S + (CARET_HOLD_FAST_PER_S - CARET_HOLD_SLOW_PER_S) * eased);
+}

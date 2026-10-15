@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {caretSpin} from '../../fields/caretSpin.js';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, tenthsCaret} from '../../fields/caretSpin.js';
 
 const OPEN = {min: -Infinity, max: undefined};
 
@@ -100,5 +100,51 @@ describe('caretSpin: nothing to step', () => {
   });
   it('returns null just after a trailing point, with no digit beside the caret', () => {
     expect(caretSpin('19.', 3, 1, OPEN)).toBeNull();
+  });
+});
+
+describe('tenthsCaret — where a number with no remembered caret steps', () => {
+  it('sits just after the tenths digit, so a step is 0.1', () => {
+    expect(tenthsCaret('6.00')).toBe(3);
+    expect(tenthsCaret('12.345')).toBe(4);
+    expect(tenthsCaret('6,5')).toBe(3);
+    expect(caretSpin('6.00', tenthsCaret('6.00'), 1, {min: 0, max: undefined})?.text).toBe('6.10');
+  });
+  it('sits at the last digit when no decimals are shown, since a step never adds decimals', () => {
+    expect(tenthsCaret('600')).toBe(3);
+    expect(tenthsCaret('6.')).toBe(2);
+  });
+});
+
+describe('a remembered caret', () => {
+  it('on the units steps 1, and carries', () => {
+    expect(caretSpin('9.5', 1, 1, {min: 0, max: undefined})?.text).toBe('10.5');
+    expect(caretSpin('6.50', 1, 1, {min: 0, max: undefined})?.text).toBe('7.50');
+  });
+  it('lands on the same digit after the step, so a repeat steps the same digit', () => {
+    const first = caretSpin('6.00', 3, 1, {min: 0, max: undefined});
+    expect(first).not.toBeNull();
+    const second = caretSpin(first?.text ?? '', first?.caret ?? -1, 1, {min: 0, max: undefined});
+    expect(second?.text).toBe('6.20');
+  });
+});
+
+describe('caretRepeatDelayMs — the hold-to-repeat schedule', () => {
+  it('starts after 400 ms at about 3 steps a second', () => {
+    expect(CARET_HOLD_START_MS).toBe(400);
+    expect(caretRepeatDelayMs(400)).toBeCloseTo(1000 / 3, 6);
+    expect(caretRepeatDelayMs(0)).toBeCloseTo(1000 / 3, 6);
+  });
+  it('eases up to about 12 steps a second over roughly 3 seconds, and stays there', () => {
+    expect(caretRepeatDelayMs(400 + 3000)).toBeCloseTo(1000 / 12, 6);
+    expect(caretRepeatDelayMs(60000)).toBeCloseTo(1000 / 12, 6);
+  });
+  it('speeds up smoothly: every later step is no slower than the one before', () => {
+    let last = Infinity;
+    for (let held = 400; held <= 3600; held += 100) {
+      const delay = caretRepeatDelayMs(held);
+      expect(delay).toBeLessThanOrEqual(last);
+      last = delay;
+    }
   });
 });

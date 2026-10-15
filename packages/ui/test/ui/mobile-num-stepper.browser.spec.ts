@@ -3,10 +3,9 @@
  * space"; wants touch step buttons next to the value, Box/Enclosure/Signal/Advanced tabs — side
  * by side, 2026-10-02: "wide beside, not above" — value, then ▲▼, then the unit).
  *
- * The buttons step by the design rule (`spinValue`) from the value shown. A key press steps at the
- * caret (num-input-caret spec); with the caret at the far left of this value it steps the same
- * amount, so this spec proves EQUIVALENCE (a button click and an arrow-key press move the value by
- * the identical amount), not a step formula of its own.
+ * The buttons step the digit the caret last sat on (0.1 where it never had one); an arrow key steps
+ * the digit at the caret. With the caret on the same digit they step the same amount, so this spec
+ * proves EQUIVALENCE, not a step formula of its own (that is `caretSpin`, unit-tested).
  *
  * Run at phone width (412×900), not just the forced mobile skin — the touch-target assertion
  * needs the real narrow layout, not a wide window with the mobile skin switched on.
@@ -31,16 +30,19 @@ test('a step button click moves the value by the exact same amount as an ArrowUp
   const input = row.locator('input');
   const upBtn = row.locator('.num-stepper-btn').first(); // [▲, ▼] order — ▲ is first
 
-  const before = Number(await input.inputValue());
-  await upBtn.click();
-  const afterClick = Number(await input.inputValue());
-  const clickDelta = afterClick - before;
-  expect(clickDelta).toBeGreaterThan(0);
-
+  // The button steps the digit the caret last sat on, so put the caret on the tenths digit first.
   await input.focus();
+  await input.evaluate(el => { if (el instanceof HTMLInputElement) { const i = el.value.search(/[.,]/); el.setSelectionRange(i + 2, i + 2); } });
+  const before = Number(await input.inputValue());
   await input.press('ArrowUp');
   const afterArrow = Number(await input.inputValue());
-  const arrowDelta = afterArrow - afterClick;
+  const arrowDelta = afterArrow - before;
+  expect(arrowDelta).toBeGreaterThan(0);
+
+  await upBtn.click();
+  const afterClick = Number(await input.inputValue());
+  const clickDelta = afterClick - afterArrow;
+  expect(clickDelta).toBeGreaterThan(0);
 
   expect(arrowDelta).toBeCloseTo(clickDelta, 9);
 });

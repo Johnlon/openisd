@@ -85,7 +85,7 @@ export { restoredProjectName, storageUsedLine } from './backupText.js';
 export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
-export { caretSpin, type CaretSpin } from './caretSpin.js';
+export { caretSpin, tenthsCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin } from './caretSpin.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
 export { type AppVersion, type BuildKind, type BuildTrail, formatAppVersion, trailOfPathname, hostedListPathOf, hostedPathOf, stampOfVersion } from './appVersion.js';
 

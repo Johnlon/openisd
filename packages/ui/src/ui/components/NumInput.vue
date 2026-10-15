@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {caretSpin, decimalsSpinRule, formatFixed, HOLD_START_MS, holdStage, roundSpun, shownSpinRule, spinValue, type HoldStage, type NumberField, type SpinDirection, type SpinRule, type SpinSpeed} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, tenthsCaret, type NumberField, type SpinDirection} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -131,54 +131,58 @@ const showStepper = computed(() => props.stepper && !isReadonly.value);
 const inputEl = ref<HTMLInputElement | null>(null);
 let repeatTimer: ReturnType<typeof setTimeout> | undefined;
 
-// A ▲▼ button steps by the design rule (`spinValue`) from the value shown; it has no caret, because
-// pressing it takes the focus (below).
-function applyStep(dir: SpinDirection, speed: SpinSpeed): void {
-  const v = spinValue(display.value, dir, spinRule.value, {min: dispMin.value, max: dispMax.value}, speed);
-  if (isFinite(v)) commitSpun(v);
-}
-
-/** A key or wheel step: one unit of the digit at the caret; the usual step where there is no caret. */
-function stepAtCaret(dir: SpinDirection): void {
+// Where the caret last was in this box, kept after the box loses focus: a ▲▼ button steps that
+// digit (John, 2026-10-15). null until a caret has been set; a step then uses the tenths digit.
+let lastCaret: number | null = null;
+function rememberCaret(): void {
   const el = inputEl.value;
-  const caret = el === null ? null : el.selectionStart;
-  const spun = caret === null ? null : caretSpin(display.value, caret, dir, {min: dispMin.value, max: dispMax.value});
-  if (spun === null) { applyStep(dir, 'fine'); return; }
+  if (el === null || document.activeElement !== el || el.selectionStart === null) return;
+  lastCaret = el.selectionStart;
+}
+function onSelectionChange(): void { rememberCaret(); }
+onMounted(() => document.addEventListener('selectionchange', onSelectionChange));
+onBeforeUnmount(() => document.removeEventListener('selectionchange', onSelectionChange));
+
+/** One step of the digit at `caret` (the tenths digit when there is none). The box's own selection
+ *  is touched only while it has focus: setting one on an unfocused box raises the phone keyboard. */
+function stepFrom(caret: number | null, dir: SpinDirection): void {
+  const el = inputEl.value;
+  const at = caret ?? tenthsCaret(display.value);
+  const spun = caretSpin(display.value, at, dir, {min: dispMin.value, max: dispMax.value})
+    ?? caretSpin(display.value, tenthsCaret(display.value), dir, {min: dispMin.value, max: dispMax.value});
+  if (spun === null) return;
   const si = fromDisp(spun.value);
   display.value = spun.text;
-  if (el !== null) { el.value = spun.text; el.setSelectionRange(spun.caret, spun.caret); }
+  lastCaret = spun.caret;
+  if (el !== null) {
+    el.value = spun.text;
+    if (document.activeElement === el) el.setSelectionRange(spun.caret, spun.caret);
+  }
   if (valid(si)) emit('update:modelValue', si, typedPrecision(spun.text));
 }
 
+/** A key or wheel step on the focused box: the digit at its caret. */
+function stepAtCaret(dir: SpinDirection): void {
+  stepFrom(inputEl.value?.selectionStart ?? lastCaret, dir);
+}
+
 let heldSince = 0;
-let heldStage: HoldStage | undefined;
 function stopRepeat(): void {
   if (repeatTimer !== undefined) { clearTimeout(repeatTimer); repeatTimer = undefined; }
 }
-// Releasing a long hold lands the value on a round number (John, 2026-10-06).
-function releaseRepeat(): void {
-  const rounds = repeatTimer !== undefined && heldStage?.roundsOnRelease === true;
-  stopRepeat();
-  if (!rounds) return;
-  const v = roundSpun(numberOf(display.value), spinRule.value, {min: dispMin.value, max: dispMax.value});
-  if (isFinite(v)) commitSpun(v);
-}
-// Hold-to-repeat: one immediate fine step, then a pause before repeating (so a single tap never
-// double-fires), then the speed ladder of `holdStage` while held.
-// The tapped button takes focus (John, 2026-10-02): the press is `.prevent`ed so the browser
-// never focuses it, and the previously focused field kept focus. Focusing the field instead
-// (2026-10-01) popped the phone keyboard on every tap; the button holds focus without one.
+// A ▲▼ button takes focus and keeps it across taps and the hold-repeat (John, 2026-10-15): the
+// phone keyboard goes away and stays away, and nothing focuses or selects in the text box. The
+// press is `.prevent`ed so the browser's own focus handling does not fight the explicit focus.
+// Steps are at the remembered caret digit; the hold waits, then repeats at 3 a second easing up to 12.
 function startRepeat(dir: SpinDirection, e: PointerEvent): void {
   stopRepeat();
   if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
   heldSince = performance.now();
-  heldStage = holdStage(0);
-  applyStep(dir, heldStage.speed);
+  stepFrom(lastCaret, dir);
   repeatTimer = setTimeout(function tick() {
-    heldStage = holdStage(performance.now() - heldSince);
-    applyStep(dir, heldStage.speed);
-    repeatTimer = setTimeout(tick, heldStage.repeatMs);
-  }, HOLD_START_MS);
+    stepFrom(lastCaret, dir);
+    repeatTimer = setTimeout(tick, caretRepeatDelayMs(performance.now() - heldSince));
+  }, CARET_HOLD_START_MS);
 }
 onBeforeUnmount(stopRepeat);
 
@@ -262,15 +266,6 @@ function onInput(e: Event) {
   if (valid(typed)) emit('update:modelValue', typed, typedPrecision(t.value.replace(',', '.')));
 }
 
-/** Shows and stores a stepped value `v` (display units). */
-function commitSpun(v: number): void {
-  const si = fromDisp(v);
-  const s = fmt(si);
-  display.value = s;
-  if (inputEl.value !== null) inputEl.value.value = s;
-  if (valid(si)) emit('update:modelValue', si, typedPrecision(s));
-}
-
 function onBlur(e: Event) {
   focused.value = false;
   if (refusal.value !== '') {
@@ -318,11 +313,6 @@ const isSymptom = computed(() => hasDq.value && props.dqState === 'C');
 const dqTooltip = computed(() => dqReason({ dq: props.dq ?? [], dqState: props.dqState ?? 'N' }));
 const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 
-const spinRule = computed<SpinRule>(() => {
-  if (props.field) return props.field.spinRule(activeToken.value);
-  if (typeof props.precision === 'number') return decimalsSpinRule(props.precision);
-  return shownSpinRule(display.value);
-});
 /** A phone keyboard with a minus where the value can be negative, the decimal pad otherwise. */
 const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 'decimal');
 </script>
@@ -334,9 +324,9 @@ const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
-      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="releaseRepeat" @pointerleave="releaseRepeat" @pointercancel="releaseRepeat">▲</button>
+      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▲</button>
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Decrease"
-      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="releaseRepeat" @pointerleave="releaseRepeat" @pointercancel="releaseRepeat">▼</button>
+      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▼</button>
   </span>
 </template>
 
