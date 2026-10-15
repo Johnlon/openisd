@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: d66614020be5fd59753fd21366b286f9cfda705e
 goal: Telemetry sends the driver name, one lower-case skin value, the install event, an anonymous browser id, screen-width bucket, session end, sw_blocked and deduped crashes.
 done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts
 files:

@@ -7,7 +7,7 @@
 # Promote refuses unless snap-<stamp> exists and no F is open (tasks/fixes/*.yml, status: open).
 # It then adds tag v<stamp> on the same commit (the snap- tag stays), turns the pre-release into a
 # release marked Latest, and fast-forwards the read-only branch `release` to that commit.
-# Pushing the v tag (or editing the release) triggers .github/workflows/release.yml, which
+# Editing the release triggers .github/workflows/release.yml (the tag push does not), which
 # redeploys the site.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."

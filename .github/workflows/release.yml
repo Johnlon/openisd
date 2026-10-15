@@ -1,10 +1,11 @@
 name: release
 
-# A release was tagged, published, edited or marked Latest: rebuild and deploy the site, so the root
+# A release was published or edited (marked Latest): rebuild and deploy the site, so the root
 # follows the Latest release. scripts/release.sh makes the change; this only redeploys.
+# Not on the v-tag push: release.sh pushes the tag and edits the release a moment later, which ran
+# this twice, 2 s apart, and the two Pages deployments collided (15 Oct 2026). The release event is
+# the one that carries the Latest mark, and deploy.yml's `pages` group queues any further run.
 on:
-  push:
-    tags: ['v*']
   release:
     types: [published, edited]
 
