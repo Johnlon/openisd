@@ -1,0 +1,11 @@
+id: T187
+release_note: internal
+label: fixes
+repo: openisd
+owner: sonnet
+status: done
+goal: 'F28: closed by T186 (the bottom panel height spec no longer sets its own timeout); set the fix record to done so landings resume'
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
+files:
+  - tasks/T187.yml
+  - tasks/fixes/F28.yml
