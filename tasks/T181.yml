@@ -3,6 +3,7 @@ release_note: 'A project open in the workspace now shows what cloud sync brought
 repo: openisd
 owner: maryu
 status: done
+landed: d46cd4a40a9a3d5cfa8f1010960a03b05a8b180b
 goal: Bug: a sync pull that changes the open project refreshes the open session in place; unsaved local edits are kept and a conflict copy raised
 done_test: bash scripts/test.sh packages/ui/test/logic/pulledProjects.test.ts packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts packages/persistence/test/cloud/docs/projectDocs.test.ts
 files:

@@ -27,7 +27,11 @@ test.describe('Open sessions', () => {
       await copyFocused(other);
 
       await expect(page.locator('.project-row')).toHaveCount(2);
-      await expect.poll(() => rowNames(page)).toEqual(await rowNames(other));
+      // Both tabs are read on every poll: the other tab's names may still be settling too.
+      await expect.poll(async () => {
+        const [here, there] = [await rowNames(page), await rowNames(other)];
+        return here.length === 2 && JSON.stringify(here) === JSON.stringify(there);
+      }).toBe(true);
     });
 
     test('a project closed in one tab disappears from the other', async ({ page, context }) => {
