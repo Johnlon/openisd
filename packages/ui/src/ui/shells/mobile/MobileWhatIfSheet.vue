@@ -54,7 +54,7 @@ const { isOpen, rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
 }
 .mob-what-if-sheet {
   flex: none;
-  height: 45%;
+  height: auto;
   max-height: calc(100% - 120px);
   display: flex;
   flex-direction: column;
@@ -73,12 +73,16 @@ const { isOpen, rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   cursor: ns-resize;
 }
 .mob-what-if-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
-.mob-what-if-rows { flex: 1; min-height: 0; overflow-y: auto; }
+/* One field to a row, label left and box, ▲▼ and unit right, at the phone row metrics of the tuning
+   tabs (style.css `--mob-*`). The sheet is as tall as its rows need, so every field shows without
+   scrolling (John, 2026-10-15). */
+.mob-what-if-rows { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-bottom: 8px; }
 .mob-what-if-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
+  padding: var(--mob-row-pad-y) 12px;
+  min-height: var(--mob-row-min);
   border-top: 1px solid var(--line);
 }
 .mob-what-if-row:first-child { border-top: none; }
@@ -87,7 +91,7 @@ const { isOpen, rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
 .mob-what-if-value :deep(input) {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 32px;
+  min-height: var(--mob-input-h);
   padding: 2px 8px;
   border: 1px solid var(--line);
   border-radius: 6px;

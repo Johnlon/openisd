@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: sonnet
 status: done
+landed: 3db00724c608b8861aa289872b46b2626005d013
 goal: 'F32: the one spec red at e326fee2a4 (num-input, no spinner gains decimals, 1.8 min) passes when its file is rerun alone (7 of 7, 1.1 min): machine load. Close F32'
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
 files:
