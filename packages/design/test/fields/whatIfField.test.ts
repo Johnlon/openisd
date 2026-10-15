@@ -11,11 +11,13 @@ const COMMON = [WhatIfField.INPUT_POWER, WhatIfField.DRIVER_FS, WhatIfField.DRIV
 
 const EXPECTED: Readonly<Record<BoxType, readonly WhatIfField[]>> = {
   'sealed': [WhatIfField.BOX_VOLUME, ...COMMON],
-  'vented': [WhatIfField.BOX_VOLUME, WhatIfField.TUNING, WhatIfField.PORT_DIAMETER, ...COMMON],
+  'vented': [WhatIfField.BOX_VOLUME, WhatIfField.TUNING, WhatIfField.PORT_AREA, ...COMMON],
   'box-passive-radiator': [WhatIfField.BOX_VOLUME, WhatIfField.PR_ADDED_MASS, WhatIfField.PR_COUNT, ...COMMON],
-  'bandpass4': [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.FRONT_TUNING, WhatIfField.PORT_DIAMETER, ...COMMON],
-  'bandpass6': [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.REAR_TUNING, ...COMMON],
-  'abc': [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.REAR_TUNING, ...COMMON],
+  'bandpass4': [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.FRONT_TUNING, WhatIfField.PORT_AREA, ...COMMON],
+  'bandpass6': [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.REAR_TUNING,
+    WhatIfField.REAR_PORT_AREA, WhatIfField.FRONT_PORT_AREA, ...COMMON],
+  'abc': [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.REAR_TUNING,
+    WhatIfField.REAR_PORT_AREA, WhatIfField.FRONT_PORT_AREA, WhatIfField.INTRA_PORT_AREA, ...COMMON],
 };
 
 describe('WhatIfField', () => {
@@ -36,5 +38,10 @@ describe('WhatIfField', () => {
       const labels = WhatIfField.forBox(o.value).map(t => t.label);
       expect(new Set(labels).size).toBe(labels.length);
     }
+  });
+
+  it('names the port a port-area row opens, and no other row opens one', () => {
+    expect(WhatIfField.ALL.filter(f => f.portTitle !== null).map(f => f.portTitle)).toEqual(['Port', 'Rear port', 'Front port', 'Intra port']);
+    expect(WhatIfField.ALL.filter(f => f.portTitle !== null).every(f => f.label.endsWith('port area') || f.label === 'Port area')).toBe(true);
   });
 });

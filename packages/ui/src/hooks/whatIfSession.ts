@@ -8,20 +8,34 @@
  */
 import type {ComputedRef, Ref} from 'vue';
 import {computed, getCurrentScope, onScopeDispose} from 'vue';
-import type {OpenISDProject} from '@openisd/design';
+import type {OpenISDProject, Vent} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
 import {WhatIfField, type WhatIfSlot} from '@openisd/design/fields';
-import {VentMember} from '../logic/ventGroup.js';
+import {enterVentArea} from '../logic/ventGroup.js';
 
 export interface WhatIfSessionDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
 }
 
+/** The port a port slot names, or null when the box has no such port. */
+function ventOf(p: OpenISDProject, type: BoxType, slot: WhatIfSlot): Vent | null {
+  switch (slot) {
+    case 'ventArea': case 'frontVentArea': return p.box.ventGroupOf(type).vent;
+    case 'rearVentArea': return p.box.rearVentGroupOf(type)?.vent ?? null;
+    case 'intraVentArea': return p.box.ventPortsOf(type).find(port => port.name === 'Intra')?.vent ?? null;
+    case 'volume': case 'frontVolume': case 'ventTuning': case 'rearTuning': case 'prAddedMass': case 'prCount':
+    case 'driverFs': case 'driverQts': case 'driverVas': case 'driverCount': case 'inputPower':
+      return null;
+  }
+}
+
 /** One What-if? row: the field and its current value in SI, or null when it has none. */
 export interface WhatIfRow {
   readonly field: WhatIfField;
   readonly value: number | null;
+  /** The port a port-area row stands for, whose own fields its value opens; null for every other row. */
+  readonly vent: Vent | null;
 }
 
 export interface WhatIfSession {
@@ -43,7 +57,8 @@ function read(p: OpenISDProject, type: BoxType, slot: WhatIfSlot): number | null
     case 'frontVolume': return p.box.frontVolumeOf(type)?.value ?? null;
     case 'ventTuning': return p.box.ventGroupOf(type).tuning_goal_hz.value;
     case 'rearTuning': return p.box.rearTuningOf(type)?.value ?? null;
-    case 'ventDiameter': return p.box.ventGroupOf(type).vent.diameter_m.value;
+    case 'ventArea': case 'rearVentArea': case 'frontVentArea': case 'intraVentArea':
+      return ventOf(p, type, slot)?.area_m2.value ?? null;
     case 'prAddedMass': return p.box.passiveRadiator.addedMass_kg.value;
     case 'prCount': return p.box.passiveRadiator.count.value;
     case 'driverFs': return p.driver.specField('Fs_hz').value;
@@ -60,7 +75,11 @@ function write(p: OpenISDProject, type: BoxType, slot: WhatIfSlot, v: number): v
     case 'frontVolume': p.box.frontVolumeOf(type)?.set(v); return;
     case 'ventTuning': p.box.ventGroupOf(type).tuning_goal_hz.set(v); return;
     case 'rearTuning': p.box.rearTuningOf(type)?.set(v); return;
-    case 'ventDiameter': VentMember.DIAMETER.enter(p, v); return;
+    case 'ventArea': case 'rearVentArea': case 'frontVentArea': case 'intraVentArea': {
+      const vent = ventOf(p, type, slot);
+      if (vent !== null) enterVentArea(p, vent, v);
+      return;
+    }
     case 'prAddedMass': p.box.passiveRadiator.addedMass_kg.set(v); return;
     case 'prCount': p.box.passiveRadiator.count.set(Math.round(v)); return;
     case 'driverFs': p.driver.specField('Fs_hz').set(v); return;
@@ -76,7 +95,7 @@ export function createWhatIfSession({ project, projectChanged }: WhatIfSessionDe
     void projectChanged.value;
     const p = project.value;
     const type = p.box.boxType.value;
-    return WhatIfField.forBox(type).map(field => ({ field, value: read(p, type, field.slot) }));
+    return WhatIfField.forBox(type).map(field => ({ field, value: read(p, type, field.slot), vent: ventOf(p, type, field.slot) }));
   });
 
   function begin(): void { project.value.beginWhatIf(); }

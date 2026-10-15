@@ -2,12 +2,13 @@
 // The What-if? bottom sheet on the mobile Graph page: a pull-tab when closed, a resizable sheet of
 // What-if rows when open. Behaviour lives in MobileWhatIfSheet-hooks.ts.
 import NumInput from '../../components/NumInput.vue';
+import VentPortFields from '../../components/VentPortFields.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileWhatIfSheet } from '../../../hooks/MobileWhatIfSheet-hooks.js';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean] }>();
-const { isOpen, rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+const { isOpen, rows, portEditor, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileWhatIfSheet({ open: () => props.open, setOpen: v => emit('update:open', v) });
 </script>
@@ -26,10 +27,18 @@ const { isOpen, rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
         <span class="mob-what-if-value">
           <NumInput :field="row.field.field" :model-value="row.value" :precision="row.field.field.precision"
                     :aria-label="row.field.label" stepper
+                    @pointerdown="portValuePress($event, row)" @mousedown="portValuePress($event, row)" @click="portValuePress($event, row)"
                     @update:model-value="(v: number | null) => setValue(row.field, v)" />
         </span>
         <UnitToggle :field="row.field.field" unit-class="mob-what-if-unit" />
       </div>
+    </div>
+    <div v-if="portEditor !== null && portEditor.vent !== null" class="mob-what-if-port" role="dialog" :aria-label="portEditor.field.portTitle ?? 'Port'">
+      <div class="mob-what-if-port-head">
+        <span class="mob-what-if-port-title">{{ portEditor.field.portTitle }}</span>
+        <button type="button" class="mob-what-if-btn mob-what-if-close" @click="closePortEditor">Close</button>
+      </div>
+      <div class="mob-what-if-port-body"><VentPortFields :vent="portEditor.vent" /></div>
     </div>
     <div class="mob-what-if-foot">
       <button type="button" class="mob-what-if-btn" title="Back to the project's values" @click="reset">Reset</button>
@@ -62,7 +71,27 @@ const { isOpen, rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   background: var(--panel);
   border-top: 1px solid var(--line);
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
 }
+/* A port's own fields over the sheet, a sheet within the sheet; Close returns to the rows. */
+.mob-what-if-port {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+}
+.mob-what-if-port-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--line);
+}
+.mob-what-if-port-title { font-weight: 600; font-size: 15px; }
+.mob-what-if-port-body { flex: 1; min-height: 0; overflow-y: auto; }
 .mob-what-if-handle {
   flex: none;
   height: 22px;

@@ -37,9 +37,20 @@ interface DragStart {
   readonly max: number;
 }
 
+/** The part of a pointer, mouse or click event the port-value press reads. */
+export interface PressEvent {
+  readonly type: string;
+  preventDefault(): void;
+}
+
 export interface MobileWhatIfSheetAPI {
   readonly isOpen: ComputedRef<boolean>;
   readonly rows: ComputedRef<readonly WhatIfRow[]>;
+  /** The port-area row whose port's fields are open over the sheet, or null. */
+  readonly portEditor: Ref<WhatIfRow | null>;
+  /** A press on a port-area value opens that port's fields; the box is never focused, so the keyboard stays down. */
+  portValuePress(e: PressEvent, row: WhatIfRow): void;
+  closePortEditor(): void;
   readonly sheetEl: Ref<HTMLElement | null>;
   /** The sheet's inline height: its default (CSS) until dragged. */
   readonly sheetStyle: ComputedRef<string>;
@@ -76,7 +87,18 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
     session.begin();
     setOpen(true);
   }
+  const portEditor = ref<WhatIfRow | null>(null);
+  function closePortEditor(): void { portEditor.value = null; }
+  function portValuePress(e: PressEvent, row: WhatIfRow): void {
+    if (row.vent === null) return;
+    e.preventDefault();
+    if (e.type !== 'click') return;
+    session.begin();
+    portEditor.value = row;
+  }
+
   function close(): void {
+    portEditor.value = null;
     session.close();
     height.value = null;
     setOpen(false);
@@ -113,7 +135,7 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
   }
 
   return {
-    isOpen, rows: session.rows, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+    isOpen, rows: session.rows, portEditor, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };
 }

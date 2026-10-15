@@ -1,0 +1,20 @@
+id: T202
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: 'Mobile What-if: Port area (any shape) replaces Port diameter; tapping its value opens that port fields over the sheet; bandpass6 and ABC get port area rows per port (John, 15 Oct 2026)'
+done_test: bash scripts/test.sh packages/ui/test/hooks/whatIfSession.test.ts
+files:
+  - tasks/T202.yml
+  - packages/design/fields/whatIfField.ts
+  - packages/design/test/fields/whatIfField.test.ts
+  - packages/ui/src/hooks/whatIfSession.ts
+  - packages/ui/src/hooks/MobileWhatIfSheet-hooks.ts
+  - packages/ui/src/logic/ventGroup.ts
+  - packages/ui/src/ui/components/VentPortFields.vue
+  - packages/ui/src/ui/shells/mobile/MobileWhatIfSheet.vue
+  - packages/ui/test/hooks/whatIfSession.test.ts
+  - packages/ui/test/hooks/MobileWhatIfSheet-hooks.test.ts
+  - packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts
+  - packages/ui/test/ui/mobile-what-if-port.browser.spec.ts

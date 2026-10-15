@@ -79,4 +79,74 @@ describe('createWhatIfSession', () => {
     expect(project.box.vented.tuning_goal_hz.value).toBe(45);
     expect(project.box.vented.vent.length_m.value).not.toBe(before);
   });
+
+  describe('port area', () => {
+    function ventedProject() {
+      const project = sealedProject();
+      project.box.boxType.set('vented');
+      project.box.vented.volume_m3.set(0.05);
+      project.box.vented.vent.diameter_m.set(0.06);
+      project.box.vented.tuning_goal_hz.set(35);
+      return project;
+    }
+    const value = (rows: readonly {readonly field: WhatIfField; readonly value: number | null}[], f: WhatIfField) => rows.find(r => r.field === f)?.value;
+
+    it('shows one port\'s area, and a diameter entered on the Vents tab comes back as that area', () => {
+      const { s } = session(ventedProject());
+      expect(value(s.rows.value, WhatIfField.PORT_AREA)).toBeCloseTo(Math.PI * 0.03 ** 2, 12);
+    });
+
+    it('turns an area into the round port\'s diameter and back', () => {
+      const project = ventedProject();
+      const { s } = session(project);
+      s.set(WhatIfField.PORT_AREA, Math.PI * 0.04 ** 2);
+      expect(project.box.vented.vent.diameter_m.value).toBeCloseTo(0.08, 9);
+      s.set(WhatIfField.PORT_AREA, Math.PI * 0.03 ** 2);
+      expect(project.box.vented.vent.diameter_m.value).toBeCloseTo(0.06, 9);
+    });
+
+    it('turns an area into a slotted port\'s height at the stated width', () => {
+      const project = ventedProject();
+      project.box.vented.vent.shape.set('slotted');
+      project.box.vented.vent.width_m.set(0.1);
+      const { s } = session(project);
+      s.set(WhatIfField.PORT_AREA, 0.002);
+      expect(project.box.vented.vent.height_m.value).toBeCloseTo(0.02, 9);
+      expect(project.box.vented.vent.width_m.value).toBe(0.1);
+    });
+
+    it('keeps the target tuning and makes a new length for the new area', () => {
+      const project = ventedProject();
+      const vent = project.box.vented.vent;
+      const lengthBefore = vent.length_m.value;
+      const area = vent.area_m2.value;
+      expect(area).not.toBeNull();
+      const { s } = session(project);
+      s.set(WhatIfField.PORT_AREA, (area ?? 0) * 2);
+      expect(project.box.vented.tuning_goal_hz.value).toBe(35);
+      expect(vent.length_m.value).not.toBe(lengthBefore);
+      expect(vent.tuningIn_hz(0.05) ?? 0).toBeCloseTo(35, 3);
+    });
+
+    it('gives a port-area row its port, so the value can open that port\'s fields, and no other row one', () => {
+      const project = ventedProject();
+      const { s } = session(project);
+      for (const row of s.rows.value) {
+        expect(row.vent !== null, row.field.label).toBe(row.field === WhatIfField.PORT_AREA);
+      }
+      expect(s.rows.value.find(r => r.field === WhatIfField.PORT_AREA)?.vent?.area_m2.value).toBe(project.box.vented.vent.area_m2.value);
+    });
+
+    it('lists a rear and a front port on a 6th-order bandpass and an intra port on an ABC', () => {
+      for (const [type, labels] of [['bandpass6', ['Rear port area', 'Front port area']], ['abc', ['Rear port area', 'Front port area', 'Intra port area']]] as const) {
+        const project = sealedProject();
+        project.box.boxType.set(type);
+        const { s } = session(project);
+        for (const label of labels) {
+          const row = s.rows.value.find(r => r.field.label === label);
+          expect(row?.value, `${type} ${label}`).not.toBeNull();
+        }
+      }
+    });
+  });
 });

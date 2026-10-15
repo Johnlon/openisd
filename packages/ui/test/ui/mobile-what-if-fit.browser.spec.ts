@@ -20,8 +20,8 @@ const SIZES = [{width: 390, height: 844}, {width: 412, height: 915}];
 const BOXES = [
   {type: 'vented', tab: 'Vented', rows: 8, setup: selectRectangularTwoVents},
   {type: 'bandpass4', tab: '4th Order Bandpass', rows: 9, setup: selectRectangularTwoVents},
-  {type: 'bandpass6', tab: '6th Order Bandpass', rows: 8, setup: selectRectangularTwoVents},
-  {type: 'abc', tab: 'ABC', rows: 8, setup: selectRectangularTwoVents},
+  {type: 'bandpass6', tab: '6th Order Bandpass', rows: 10, setup: selectRectangularTwoVents},
+  {type: 'abc', tab: 'ABC', rows: 11, setup: selectRectangularTwoVents},
   {type: 'box-passive-radiator', tab: 'Passive Radiator', rows: 8, setup: selectTwoRadiators},
 ];
 

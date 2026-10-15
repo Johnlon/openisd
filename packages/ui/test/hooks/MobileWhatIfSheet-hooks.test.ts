@@ -85,4 +85,57 @@ describe('useMobileWhatIfSheet', () => {
     api.setValue(WhatIfField.BOX_VOLUME, null);
     expect(project.box.sealed.volume_m3.value).toBe(0.012);
   });
+
+  describe('the port overlay', () => {
+    function ventedSheet() {
+      const made = sheet();
+      made.project.box.boxType.set('vented');
+      made.project.box.vented.volume_m3.set(0.05);
+      made.project.box.vented.vent.diameter_m.set(0.06);
+      made.project.box.vented.tuning_goal_hz.set(35);
+      made.project.save();
+      return made;
+    }
+    function press(type: string) {
+      const event = {type, defaultPrevented: false, preventDefault() { event.defaultPrevented = true; }};
+      return event;
+    }
+
+    it('a click on a port-area value opens that port\'s fields, and Close puts them away', () => {
+      const { api } = ventedSheet();
+      api.openSheet();
+      const row = api.rows.value.find(r => r.field === WhatIfField.PORT_AREA);
+      expect(row).toBeDefined();
+      if (row === undefined) return;
+      const down = press('pointerdown');
+      api.portValuePress(down, row);
+      expect(down.defaultPrevented).toBe(true);
+      expect(api.portEditor.value).toBeNull();
+      api.portValuePress(press('click'), row);
+      expect(api.portEditor.value?.field.label).toBe(WhatIfField.PORT_AREA.label);
+      api.closePortEditor();
+      expect(api.portEditor.value).toBeNull();
+    });
+
+    it('a press on any other row opens nothing', () => {
+      const { api } = ventedSheet();
+      api.openSheet();
+      const row = api.rows.value.find(r => r.field === WhatIfField.TUNING);
+      if (row === undefined) throw new Error('no tuning row');
+      const click = press('click');
+      api.portValuePress(click, row);
+      expect(click.defaultPrevented).toBe(false);
+      expect(api.portEditor.value).toBeNull();
+    });
+
+    it('closing the sheet puts the overlay away too', () => {
+      const { api } = ventedSheet();
+      api.openSheet();
+      const row = api.rows.value.find(r => r.field === WhatIfField.PORT_AREA);
+      if (row === undefined) throw new Error('no port area row');
+      api.portValuePress(press('click'), row);
+      api.close();
+      expect(api.portEditor.value).toBeNull();
+    });
+  });
 });

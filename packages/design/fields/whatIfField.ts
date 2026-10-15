@@ -18,14 +18,16 @@ import {NumberField} from './field.js';
  * - `ventTuning` — the tuning goal of the ported chamber (vented, bandpass4 front); the port
  *   length follows it.
  * - `rearTuning` — the rear chamber's tuning goal (bandpass6, ABC).
- * - `ventDiameter` — the ported chamber's port diameter; the port length follows it.
+ * - `ventArea`, `rearVentArea`, `frontVentArea`, `intraVentArea` — one port's cross-sectional area,
+ *   whatever its shape (round or slotted); where the port has a tuning goal its length follows.
  * - `prAddedMass`, `prCount` — the passive radiator's added mass and number of radiators.
  * - `driverFs`, `driverQts`, `driverVas` — the driver's own spec, as a what-if.
  * - `driverCount` — the number of drivers.
  * - `inputPower` — the system input power.
  */
 export type WhatIfSlot =
-  | 'volume' | 'frontVolume' | 'ventTuning' | 'rearTuning' | 'ventDiameter'
+  | 'volume' | 'frontVolume' | 'ventTuning' | 'rearTuning'
+  | 'ventArea' | 'rearVentArea' | 'frontVentArea' | 'intraVentArea'
   | 'prAddedMass' | 'prCount' | 'driverFs' | 'driverQts' | 'driverVas' | 'driverCount' | 'inputPower';
 
 export class WhatIfField {
@@ -35,7 +37,12 @@ export class WhatIfField {
   static readonly TUNING = new WhatIfField('ventTuning', NumberField.BOX_FB_HZ, 'Tuning (Fb)');
   static readonly FRONT_TUNING = new WhatIfField('ventTuning', NumberField.BOX_FB_HZ, 'Front tuning');
   static readonly REAR_TUNING = new WhatIfField('rearTuning', NumberField.BOX_FRC_HZ, 'Rear tuning');
-  static readonly PORT_DIAMETER = new WhatIfField('ventDiameter', NumberField.VENT_D_CM, 'Port diameter');
+  /** One port's cross-sectional area, whatever its shape; its length follows the tuning. Tapping the
+   *  value opens that port's own fields (`portTitle`). */
+  static readonly PORT_AREA = new WhatIfField('ventArea', NumberField.VENT_CROSSAREA_M2, 'Port area', 'Port');
+  static readonly REAR_PORT_AREA = new WhatIfField('rearVentArea', NumberField.VENT_CROSSAREA_M2, 'Rear port area', 'Rear port');
+  static readonly FRONT_PORT_AREA = new WhatIfField('frontVentArea', NumberField.VENT_CROSSAREA_M2, 'Front port area', 'Front port');
+  static readonly INTRA_PORT_AREA = new WhatIfField('intraVentArea', NumberField.VENT_CROSSAREA_M2, 'Intra port area', 'Intra port');
   static readonly PR_ADDED_MASS = new WhatIfField('prAddedMass', NumberField.PR_MADD_G, 'PR added mass');
   static readonly PR_COUNT = new WhatIfField('prCount', NumberField.PR_NUM, 'Radiators');
   static readonly INPUT_POWER = new WhatIfField('inputPower', NumberField.SIGNAL_PIN_W, 'Input power');
@@ -55,6 +62,8 @@ export class WhatIfField {
     readonly field: NumberField,
     /** The row's short on-screen name. */
     readonly label: string,
+    /** The name of the port this row's value opens the fields of; null for every other row. */
+    readonly portTitle: string | null = null,
   ) {}
 
   /** The What-if? rows for a box of `type`, in the order shown: the box first, then the signal,
@@ -66,15 +75,18 @@ export class WhatIfField {
   static #boxRows(type: BoxType): readonly WhatIfField[] {
     switch (type) {
       case 'sealed': return [WhatIfField.BOX_VOLUME];
-      case 'vented': return [WhatIfField.BOX_VOLUME, WhatIfField.TUNING, WhatIfField.PORT_DIAMETER];
+      case 'vented': return [WhatIfField.BOX_VOLUME, WhatIfField.TUNING, WhatIfField.PORT_AREA];
       case 'box-passive-radiator': return [WhatIfField.BOX_VOLUME, WhatIfField.PR_ADDED_MASS, WhatIfField.PR_COUNT];
       case 'bandpass4':
-        return [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.FRONT_TUNING, WhatIfField.PORT_DIAMETER];
-      // The bandpass6 and ABC ports are not yet modelled, so only the volumes and the rear
-      // chamber's tuning goal (the Box tab's own editable Frc) are offered.
+        return [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.FRONT_TUNING, WhatIfField.PORT_AREA];
+      // The ports of a bandpass6 and an ABC carry no tuning of their own, so an area edit does not
+      // move a length.
       case 'bandpass6':
+        return [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.REAR_TUNING,
+          WhatIfField.REAR_PORT_AREA, WhatIfField.FRONT_PORT_AREA];
       case 'abc':
-        return [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.REAR_TUNING];
+        return [WhatIfField.REAR_VOLUME, WhatIfField.FRONT_VOLUME, WhatIfField.REAR_TUNING,
+          WhatIfField.REAR_PORT_AREA, WhatIfField.FRONT_PORT_AREA, WhatIfField.INTRA_PORT_AREA];
     }
   }
 

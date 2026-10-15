@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: b670e7f62d489d2b206042fd5910b79ba3e4252a
 goal: 'What-if fit spec covers every box type with a rectangular port and two vents (the 4th-order bandpass is the tallest, 9 rows); all fit at 390x844 and 412x915'
 done_test: bash scripts/test.sh packages/ui/test/hooks/MobileWhatIfSheet-hooks.test.ts
 files:
