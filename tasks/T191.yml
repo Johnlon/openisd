@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 2f847b28898325c40daae63f53ee245c7aee1ab1
 goal: 'The caret step is a pure design function (digit at the caret, carries, negatives, limits, caret kept on its digit) with unit tests; NumInput is switched to it in the next task'
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:

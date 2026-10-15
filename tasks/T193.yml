@@ -1,0 +1,11 @@
+id: T193
+release_note: internal
+label: fixes
+repo: openisd
+owner: sonnet
+status: done
+goal: 'F30: the one spec red at 2f847b2889 (driver-browser, single click opens the summary) passes when its file is rerun alone (42 of 42); the red run waited 27 s for the page: machine load. T191 added a design function and a doc note only. Close F30'
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
+files:
+  - tasks/T193.yml
+  - tasks/fixes/F30.yml
