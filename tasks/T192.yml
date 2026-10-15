@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 285bed5f298267c4ab579c541c42e6e5dce9f58d
 goal: NumInput is a text box with inputmode decimal and steps at the caret: ArrowUp/Down, wheel and its own up/down buttons; specs find number boxes by data-numinput
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:
