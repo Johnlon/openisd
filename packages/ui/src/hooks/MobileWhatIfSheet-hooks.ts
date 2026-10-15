@@ -14,6 +14,7 @@ import {useFeatureUse} from './telemetryContext.js';
 import type {ComputedRef, Ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createWhatIfSession, type WhatIfRow} from './whatIfSession.js';
+import {portFieldsView, type PortFieldsView} from './portFieldsView.js';
 import type {WhatIfField} from '@openisd/design/fields';
 
 /** The sheet's open state, owned by the chart view (its Auto Y box follows it). */
@@ -47,7 +48,10 @@ export interface MobileWhatIfSheetAPI {
   readonly isOpen: ComputedRef<boolean>;
   readonly rows: ComputedRef<readonly WhatIfRow[]>;
   /** The port-area row whose port's fields are open over the sheet, or null. */
+  /** The port-area row whose port's fields are open, or null. */
   readonly portEditor: Ref<WhatIfRow | null>;
+  /** The open port's fields, current after every edit; null when none is open. */
+  readonly portView: ComputedRef<PortFieldsView | null>;
   /** A press on a port-area value opens that port's fields; the box is never focused, so the keyboard stays down. */
   portValuePress(e: PressEvent, row: WhatIfRow): void;
   closePortEditor(): void;
@@ -88,6 +92,12 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
     setOpen(true);
   }
   const portEditor = ref<WhatIfRow | null>(null);
+  const portView = computed(() => {
+    const open = portEditor.value;
+    if (open === null) return null;
+    const vent = session.rows.value.find(r => r.field.label === open.field.label)?.vent ?? null;
+    return vent === null ? null : portFieldsView(vent);
+  });
   function closePortEditor(): void { portEditor.value = null; }
   function portValuePress(e: PressEvent, row: WhatIfRow): void {
     if (row.vent === null) return;
@@ -135,7 +145,7 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
   }
 
   return {
-    isOpen, rows: session.rows, portEditor, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+    isOpen, rows: session.rows, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };
 }

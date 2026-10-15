@@ -8,7 +8,7 @@ import { useMobileWhatIfSheet } from '../../../hooks/MobileWhatIfSheet-hooks.js'
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean] }>();
-const { isOpen, rows, portEditor, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+const { isOpen, rows, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileWhatIfSheet({ open: () => props.open, setOpen: v => emit('update:open', v) });
 </script>
@@ -33,12 +33,12 @@ const { isOpen, rows, portEditor, portValuePress, closePortEditor, sheetEl, shee
         <UnitToggle :field="row.field.field" unit-class="mob-what-if-unit" />
       </div>
     </div>
-    <div v-if="portEditor !== null && portEditor.vent !== null" class="mob-what-if-port" role="dialog" :aria-label="portEditor.field.portTitle ?? 'Port'">
+    <div v-if="portEditor !== null" class="mob-what-if-port" role="dialog" :aria-label="portEditor.field.portTitle ?? 'Port'">
       <div class="mob-what-if-port-head">
         <span class="mob-what-if-port-title">{{ portEditor.field.portTitle }}</span>
         <button type="button" class="mob-what-if-btn mob-what-if-close" @click="closePortEditor">Close</button>
       </div>
-      <div class="mob-what-if-port-body"><VentPortFields :vent="portEditor.vent" /></div>
+      <div class="mob-what-if-port-body"><VentPortFields v-if="portView !== null" :port="portView" /></div>
     </div>
     <div class="mob-what-if-foot">
       <button type="button" class="mob-what-if-btn" title="Back to the project's values" @click="reset">Reset</button>

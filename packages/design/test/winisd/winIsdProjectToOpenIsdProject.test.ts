@@ -137,7 +137,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr');
-      assert.equal(errors[0].message, 'sealed box: [Box] Vr is missing or not numeric');
+      assert.equal(errors[0].message, 'Closed box: [Box] Vr is missing or not numeric');
     });
 
     it('reports a clean error when a vented box is missing Vr/Fr', () => {
@@ -147,7 +147,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr/Fr');
-      assert.equal(errors[0].message, 'vented box: [Box] Vr and/or Fr is missing or not numeric');
+      assert.equal(errors[0].message, 'Vented box: [Box] Vr and/or Fr is missing or not numeric');
     });
 
     it('bandpass4 golden imports to a project whose chamber volumes/tuning match the file, [VentFront] Num carries the port count', () => {
@@ -183,7 +183,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr/Vf/Ff');
-      assert.equal(errors[0].message, 'bandpass4 box: [Box] Vr, Vf and/or Ff is missing or not numeric');
+      assert.equal(errors[0].message, '4th Order Bandpass box: [Box] Vr, Vf and/or Ff is missing or not numeric');
     });
 
     it('passive-radiator golden imports to a project whose radiator T/S values match the file', () => {
@@ -216,7 +216,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr/Fr');
-      assert.equal(errors[0].message, 'passive-radiator box: [Box] Vr and/or Fr is missing or not numeric');
+      assert.equal(errors[0].message, 'Passive Radiator box: [Box] Vr and/or Fr is missing or not numeric');
     });
 
     it('imports [Box] T/p/phi into the project\'s environment, entered', () => {
@@ -272,7 +272,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
   });
 
   describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', () => {
-    it('sealed box: [Box] Qlr/Qar and [SignalSource] Rg import into losses.Ql/Qa and Rs_ohm', () => {
+    it('Closed box: [Box] Qlr/Qar and [SignalSource] Rg import into losses.Ql/Qa and Rs_ohm', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
         + '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=55\n[SignalSource]\nRg=0.25\n';
       const engine = createEngine();
@@ -298,7 +298,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project.Rs_ohm.value, 0.1);
     });
 
-    it('bandpass4 box: rear/front losses, [VentFront] dia1/endcorrection and Rg import exactly', () => {
+    it('4th Order Bandpass box: rear/front losses, [VentFront] dia1/endcorrection and Rg import exactly', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
         + '[Box]\nBType=2\nVr=0.01\nVf=0.02\nFf=60\nQlr=6\nQar=66\nQiclfr=44\nQlf=9\nQaf=88\nQpf=77\n'
         + '[VentFront]\nShape=1\ndia1=0.06\nendcorrection=0.55\n[SignalSource]\nRg=0.33\n';

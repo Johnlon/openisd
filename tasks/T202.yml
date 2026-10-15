@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 336dc2168e6c6909222c3eda3266e42693e20aa6
 goal: 'Mobile What-if: Port area (any shape) replaces Port diameter; tapping its value opens that port fields over the sheet; bandpass6 and ABC get port area rows per port (John, 15 Oct 2026)'
 done_test: bash scripts/test.sh packages/ui/test/hooks/whatIfSession.test.ts
 files:

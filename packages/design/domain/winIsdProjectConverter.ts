@@ -367,7 +367,7 @@ export class WinIsdProjectConverter {
       case 0: {
         const Vr = wpr.number('Box', 'Vr');
         if (Vr == null) {
-          errors.push({level: 'error', field: 'Vr', message: 'sealed box: [Box] Vr is missing or not numeric'});
+          errors.push({level: 'error', field: 'Vr', message: 'Closed box: [Box] Vr is missing or not numeric'});
           return {value: null, errors};
         }
         project = builder.sealed().volume_m3(Vr).build();
@@ -383,7 +383,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Fr == null) {
           errors.push({
             level: 'error', field: 'Vr/Fr',
-            message: 'vented box: [Box] Vr and/or Fr is missing or not numeric',
+            message: 'Vented box: [Box] Vr and/or Fr is missing or not numeric',
           });
           return {value: null, errors};
         }
@@ -408,7 +408,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Vf == null || Ff == null) {
           errors.push({
             level: 'error', field: 'Vr/Vf/Ff',
-            message: 'bandpass4 box: [Box] Vr, Vf and/or Ff is missing or not numeric',
+            message: '4th Order Bandpass box: [Box] Vr, Vf and/or Ff is missing or not numeric',
           });
           return {value: null, errors};
         }
@@ -445,7 +445,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Fr == null) {
           errors.push({
             level: 'error', field: 'Vr/Fr',
-            message: 'passive-radiator box: [Box] Vr and/or Fr is missing or not numeric',
+            message: 'Passive Radiator box: [Box] Vr and/or Fr is missing or not numeric',
           });
           return {value: null, errors};
         }
@@ -497,7 +497,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Fr == null || Vf == null || Ff == null) {
           errors.push({
             level: 'error', field: 'Vr/Fr/Vf/Ff',
-            message: 'bandpass6 box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
+            message: '6th Order Bandpass box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
           });
           return {value: null, errors};
         }

@@ -622,7 +622,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       // the reason the chart is blank (S3/T4, QO145). Named here instead of in the domain: the
       // domain's null already IS the correct "not yet implemented" answer for those types: it is
       // this presentation-layer channel that was dropping it on the floor.
-      showNoCurves([{level: 'error', field: 'boxType', message: `Not yet implemented — ${boxType}`}]);
+      showNoCurves([{level: 'error', field: 'boxType', message: `Not yet implemented — ${BOX_TYPE_OPTIONS.find(o => o.value === boxType)?.label ?? boxType}`}]);
       return;
     }
     // The chart axis and the sweep read one range: the project's, or WinISD's 10 Hz–20 kHz Plot
