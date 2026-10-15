@@ -1,0 +1,50 @@
+id: F30
+owner: Johnlon
+status: open
+sha: 2f847b28898325c40daae63f53ee245c7aee1ab1
+goal: main is red at 2f847b2889; make the full suite pass again
+commits: |
+  2f847b2889 T191: 'The caret step is a pure design function (digit at the caret, carries,
+failing: |
+    ✘   58 packages/ui/test/ui/driver-browser.browser.spec.ts:184:5 › Driver browser › summary › a single click opens the summary and does NOT open the editor (27.7s)
+output: |
+    ✓  673 packages/ui/test/ui/what-if-panel.browser.spec.ts:311:5 › What-if? panel › on the complete driver project › box volume is on the panel, shows on the charts, and Close puts it back (1.4s)
+    ✓  674 packages/ui/test/ui/what-if-panel.browser.spec.ts:328:5 › What-if? panel › on the complete driver project › a box volume changed outside the open What-if? panel shows in the panel (1.1s)
+    ✓  675 packages/ui/test/ui/what-if-panel.browser.spec.ts:335:5 › What-if? panel › on the complete driver project › a driver spec changed outside the open What-if? panel shows in the panel (1.0s)
+    ✓  676 packages/ui/test/ui/what-if-panel.browser.spec.ts:342:5 › What-if? panel › on the complete driver project › a box volume typed on the Box tab shows in the open What-if? panel (1.3s)
+    ✓  677 packages/ui/test/ui/what-if-panel.browser.spec.ts:352:5 › What-if? panel › on the complete driver project › after editing in the What-if? panel, a later Box tab edit still shows in the panel (1.4s)
+  
+  
+    1) packages/ui/test/ui/driver-browser.browser.spec.ts:184:5 › Driver browser › summary › a single click opens the summary and does NOT open the editor 
+  
+      TimeoutError: locator.click: Timeout 20000ms exceeded.
+      Call log:
+        - waiting for locator('[title*="librar" i]').first()
+          - locator resolved to <div class="tb-btn" data-v-4ff24d95="" title="Manage Drivers — browse the library.">…</div>
+        - attempting click action
+          - waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - performing click action
+          - click action done
+          - waiting for scheduled navigations to finish
+  
+  
+        177 |
+        178 |     async function openSummary(page: Page): Promise<void> {
+      > 179 |       await page.locator('[title*="librar" i]').first().click();
+            |                                                         ^
+        180 |       await page.locator('.my-ditem b', { hasText: PICKED }).click();
+        181 |       await expect(page.locator(SUMMARY), 'the row click did not open the summary').toBeVisible();
+        182 |     }
+          at openSummary (/home/john/work/winisd/.postland/326924-2f847b2889/packages/ui/test/ui/driver-browser.browser.spec.ts:179:57)
+          at /home/john/work/winisd/.postland/326924-2f847b2889/packages/ui/test/ui/driver-browser.browser.spec.ts:185:13
+  
+      Error Context: test-results/ui-driver-browser.browser--a41f2-nd-does-NOT-open-the-editor/error-context.md
+  
+    1 failed
+      packages/ui/test/ui/driver-browser.browser.spec.ts:184:5 › Driver browser › summary › a single click opens the summary and does NOT open the editor 
+    676 passed (7.5m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 326924-2f847b2889 finished: FAILED (exit 1) after 9m07s
