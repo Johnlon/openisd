@@ -21,6 +21,8 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
 
       <section v-if="versions !== null" class="sp-versions">
         <h3>Versions</h3>
+        <p v-if="versions.running !== null" class="sp-heading" data-testid="running-heading">{{ versions.running.heading }}</p>
+        <p v-if="versions.running !== null" class="sp-stamp" data-testid="running-stamp">{{ versions.running.stamp }}</p>
         <p class="sp-running" data-testid="running-from">Running from {{ versions.runningFrom }}</p>
         <template v-if="versions.rows.length > 0">
         <p v-if="versions.staleNotice" class="sp-stale">{{ versions.staleNotice }}</p>
@@ -30,6 +32,7 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
         </p>
         <ul>
           <li v-for="row in versions.rows" :key="row.stamp" :class="{'sp-current': row.current}">
+            <strong v-if="row.version !== ''" class="sp-ver-num">{{ row.version }}</strong>
             <span class="sp-ver-date">{{ row.date }}</span>
             <span v-if="row.kind === 'snap'" class="sp-ver-tag">Snapshot</span>
             <span v-if="row.current" class="sp-ver-tag sp-ver-here">This build</span>
@@ -57,6 +60,9 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
 .sp-versions a { color: #4fb0ff; }
 .sp-ver-pages { display: flex; gap: 8px; margin: 0 0 8px; }
 .sp-ver-btn { display: inline-block; padding: 4px 10px; border: 1px solid #4fb0ff; border-radius: 4px; text-decoration: none; }
+.sp-heading { margin: 0; font-size: 17px; font-weight: 600; color: #e6edf3; }
+.sp-stamp { margin: 0 0 6px; font-size: 11px; color: #8a9bab; }
+.sp-ver-num { min-width: 64px; color: #e6edf3; }
 .sp-ver-date { min-width: 150px; color: #e6edf3; }
 .sp-ver-tag { font-size: 11px; color: #7f93a8; border: 1px solid #2b3a49; border-radius: 3px; padding: 0 5px; }
 .sp-ver-here { color: #4fb0ff; border-color: #4fb0ff; }

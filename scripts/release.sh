@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Promotes a tested snapshot build to a release. Builds nothing, downloads nothing: same bytes.
-#   bash scripts/release.sh <stamp>            e.g. 20260101T0102Z
+#   bash scripts/release.sh --public <n.n.n> <stamp>   e.g. --public 7.0.952 20260101T0102Z
 #   bash scripts/release.sh --latest <stamp>   mark an existing release Latest (rollback)
 #   bash scripts/release.sh --notes-file F <stamp>   promote with notes from F; without it the
 #                                                    snapshot's own notes are kept
+# --public is the release's public number (OpenISD 7.0.951, 7.0.952, ...): required to promote, and it
+# must be greater than the highest number already in a release title. It goes in the release title
+# "OpenISD <n.n.n>" and in RELEASES.md.
 # Promote refuses unless snap-<stamp> exists and no F is open (tasks/fixes/*.yml, status: open).
 # It then adds tag v<stamp> on the same commit (the snap- tag stays), turns the pre-release into a
 # release marked Latest, and fast-forwards the read-only branch `release` to that commit.
@@ -17,15 +20,17 @@ refuse() { echo "release: $*" >&2; exit 1; }
 
 LATEST_ONLY=0
 NOTES_FILE=''
+PUBLIC=''
 while [ $# -gt 0 ]; do
   case "$1" in
     --latest) LATEST_ONLY=1; shift ;;
     --notes-file) NOTES_FILE="${2:-}"; [ -f "$NOTES_FILE" ] || refuse "no notes file '$NOTES_FILE'"; shift 2 ;;
+    --public) PUBLIC="${2:-}"; shift 2 ;;
     *) break ;;
   esac
 done
 STAMP="${1:-}"
-[[ "$STAMP" =~ $STAMP_RE ]] || { echo "usage: release.sh [--latest] <stamp>   (stamp like 20260101T0102Z)" >&2; exit 2; }
+[[ "$STAMP" =~ $STAMP_RE ]] || { echo "usage: release.sh --public <n.n.n> [--notes-file F] <stamp> | release.sh --latest <stamp>   (stamp like 20260101T0102Z)" >&2; exit 2; }
 SNAP="snap-$STAMP"
 REL="v$STAMP"
 
@@ -37,6 +42,13 @@ if [ "$LATEST_ONLY" = 1 ]; then
   exit 0
 fi
 
+PUBLIC_RE='^[0-9]+\.[0-9]+\.[0-9]+$'
+[[ "$PUBLIC" =~ $PUBLIC_RE ]] || { echo "release: --public <n.n.n> is required (like 7.0.952)" >&2; exit 2; }
+# The highest number any release title carries; a new number must beat it.
+LAST_PUBLIC="$(gh release list --exclude-pre-releases --limit 200 --json name --jq '.[].name' | sed -n 's/^OpenISD \([0-9]*\.[0-9]*\.[0-9]*\)$/\1/p' | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)"
+if [ -n "$LAST_PUBLIC" ] && [ "$(printf '%s\n%s\n' "$LAST_PUBLIC" "$PUBLIC" | sort -t. -k1,1n -k2,2n -k3,3n | tail -1)" != "$PUBLIC" -o "$LAST_PUBLIC" = "$PUBLIC" ]; then
+  refuse "public number $PUBLIC is not greater than the last, $LAST_PUBLIC"
+fi
 [ -n "$(git ls-remote --tags origin "refs/tags/$SNAP")" ] || refuse "no snapshot $SNAP on the remote"
 [ -z "$(git ls-remote --tags origin "refs/tags/$REL")" ] || refuse "$REL already exists; use --latest $STAMP to make it Latest"
 
@@ -50,7 +62,7 @@ git tag "$REL" "$SHA"
 git push --quiet origin "refs/tags/$REL"
 NOTES_ARGS=()
 [ -z "$NOTES_FILE" ] || NOTES_ARGS=(--notes-file "$NOTES_FILE")
-gh release edit "$SNAP" --tag "$REL" --title "Release $STAMP" --prerelease=false --latest ${NOTES_ARGS[@]+"${NOTES_ARGS[@]}"}
+gh release edit "$SNAP" --tag "$REL" --title "OpenISD $PUBLIC" --prerelease=false --latest ${NOTES_ARGS[@]+"${NOTES_ARGS[@]}"}
 
 # The read-only `release` branch only ever moves forward. Promoting an older snapshot than the
 # one it already holds leaves it where it is.
@@ -65,9 +77,9 @@ fi
 DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"
 if [ -n "$NOTES_FILE" ]; then NOTE_TEXT="$(cat "$NOTES_FILE")"; else NOTE_TEXT="$(gh release view "$REL" --json body --jq .body)"; fi
 SUBJECT="$(printf '%s\n' "$NOTE_TEXT" | node scripts/hosting/releaseNotes.mjs headline | tr '|' '/')"
-ROW="| $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
+ROW="| $PUBLIC | $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
 if [ ! -f RELEASES.md ]; then
-  printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|\n' > RELEASES.md
+  printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
 fi
 awk -v row="$ROW" '{print} /^\|---/ && !done {print row; done=1}' RELEASES.md > RELEASES.md.new && mv RELEASES.md.new RELEASES.md
 echo "release: $REL is Latest at $SHA; RELEASES.md updated, commit it"

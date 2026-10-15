@@ -46,7 +46,7 @@ describe('toBasic / subjectOf', () => {
 describe('entryOf / entriesOf', () => {
   it('describes a release and a snapshot build', () => {
     assert.deepEqual(entryOf(R1, 'v20260101T0102Z'), {
-      stamp: '20260101T0102Z', kind: 'release', tag: 'v20260101T0102Z',
+      stamp: '20260101T0102Z', version: '', kind: 'release', tag: 'v20260101T0102Z',
       url: 'https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z',
       published: '20260101T010259Z', subject: 'Fix the thing', latest: true,
     });
@@ -82,6 +82,14 @@ describe('pageHtml', () => {
     const rel = pageHtml('release', entries);
     assert.equal(rel.match(/class="row"/g)?.length, 2);
     assert.ok(rel.includes('data-stamp="20260201T1000Z"') && !rel.includes('data-stamp="20260211T0900Z"'));
+  });
+
+  it('carries the public number from the release title, and shows it in the row', () => {
+    const numbered = release('v20260301T1200Z', {name: 'OpenISD 7.0.951'});
+    assert.equal(entryOf(numbered, '')?.version, '7.0.951');
+    assert.equal(entryOf(R1, '')?.version, '');
+    assert.equal(entryOf(release('v20260301T1201Z', {name: 'Release 20260301T1201Z'}), '')?.version, '');
+    assert.match(pageHtml('release', [entryOf(numbered, '')!]), /<span class="subject"><strong class="ver">7\.0\.951<\/strong> /);
   });
 
   it('puts the ISO stamp in the row, for the browser to turn into a date', () => {

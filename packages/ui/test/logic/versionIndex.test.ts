@@ -5,7 +5,7 @@ import {
 
 function entry(stamp: string, kind: 'release' | 'snap', over: Partial<BuildEntry> = {}): BuildEntry {
   return {
-    stamp, kind, tag: kind === 'release' ? `v${stamp}` : `snap-${stamp}`,
+    stamp, kind, version: '', tag: kind === 'release' ? `v${stamp}` : `snap-${stamp}`,
     url: `https://github.com/Johnlon/openisd/releases/tag/${stamp}`,
     published: `${stamp.slice(0, 13)}00Z`, subject: 'a change', latest: false, ...over,
   };
@@ -117,8 +117,30 @@ describe('describeVersions', () => {
   });
 
   it('shows nothing on a dev server, which has no version', () => {
-    expect(describeVersions('', null, RUNNING_FROM)).toEqual({rows: [], staleNotice: null, releasesPath: '/v/', snapshotsPath: null, runningFrom: RUNNING_FROM});
+    expect(describeVersions('', null, RUNNING_FROM)).toEqual({running: null, rows: [], staleNotice: null, releasesPath: '/v/', snapshotsPath: null, runningFrom: RUNNING_FROM});
     expect(describeVersions('', entries, RUNNING_FROM).staleNotice).toBeNull();
+  });
+});
+
+describe('the public version number', () => {
+  const R3 = entry('20260301T1200Z', 'release', {version: '7.0.951', latest: true});
+
+  it('is read from the list, and defaults to none for an older list that has no field', () => {
+    expect(parseVersionIndex([R3])).toEqual([R3]);
+    const {version: _ignored, ...old} = R3;
+    expect(parseVersionIndex([old])).toEqual([{...R3, version: ''}]);
+  });
+
+  it('leads About with the running build\'s number and day, and keeps the stamp for beneath', () => {
+    const view = describeVersions('v20260301T1200Z', [R1, R3], RUNNING_FROM);
+    expect(view.running?.version).toBe('7.0.951');
+    expect(view.running?.stamp).toBe('20260301T1200Z');
+    expect(view.running?.heading).toMatch(/^OpenISD 7\.0\.951 · \d{1,2} Mar 2026$/);
+    expect(view.rows.map(r => r.version)).toEqual(['7.0.951', '']);
+  });
+
+  it('leads with the day alone when the running build has no number', () => {
+    expect(describeVersions('v20260101T0102Z', [R1, R3], RUNNING_FROM).running?.heading).toMatch(/^OpenISD · \d{1,2} Jan 2026$/);
   });
 });
 

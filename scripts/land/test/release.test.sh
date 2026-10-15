@@ -30,7 +30,7 @@ case "$sub" in
     pre_only=0; jqx=''; fields=''
     while [ $# -gt 0 ]; do case "$1" in
       --exclude-pre-releases) pre_only=1 ;; --jq) jqx="$2"; shift ;; --json) fields="$2"; shift ;; --limit) shift ;; esac; shift; done
-    list="$(jq '[.[] | {tagName: .tag_name, isPrerelease: .prerelease, createdAt: .created_at}]' "$R")"
+    list="$(jq '[.[] | {tagName: .tag_name, name: .name, isPrerelease: .prerelease, createdAt: .created_at}]' "$R")"
     [ "$pre_only" = 0 ] || list="$(jq '[.[] | select(.isPrerelease | not)]' <<< "$list")"
     if [ -n "$jqx" ]; then jq -r "$jqx" <<< "$list"; else echo "$list"; fi ;;
   "release view")
@@ -148,18 +148,24 @@ n=$(jq '[.[] | select(.prerelease)] | length' "$GH_STATE/releases.json")
 remote_has snap-20260101T0310Z && remote_has snap-20260101T0102Z && ok "the newest tags survive" || fail "newest tag pruned"
 
 # ---- 4. release.sh refusals ------------------------------------------------------------------------
-bash scripts/release.sh banana > /dev/null 2>&1; [ $? = 2 ] && ok "bad stamp is a usage error" || fail "bad stamp exit"
-out=$(bash scripts/release.sh 20990101T0000Z 2>&1); r=$?
+bash scripts/release.sh --public 7.0.951 banana > /dev/null 2>&1; [ $? = 2 ] && ok "bad stamp is a usage error" || fail "bad stamp exit"
+out=$(bash scripts/release.sh --public 7.0.951 20990101T0000Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'no snapshot' <<< "$out" && ok "refuses a stamp with no snap- tag" || fail "no snap: $r $out"
 printf 'id: F2\nstatus: open\n' > tasks/fixes/F2.yml
-out=$(bash scripts/release.sh 20260101T0102Z 2>&1); r=$?
+out=$(bash scripts/release.sh --public 7.0.951 20260101T0102Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'F2.yml' <<< "$out" && ok "refuses while an F is open" || fail "open F: $r $out"
 ! remote_has v20260101T0102Z && ok "refusal created no tag" || fail "tag created despite refusal"
 rm tasks/fixes/F2.yml
 
+# the public number: required, three numbers
+out=$(bash scripts/release.sh 20260101T0102Z 2>&1); r=$?
+[ $r = 2 ] && grep -q -- '--public' <<< "$out" && ok "promoting without --public is refused" || fail "no --public: $r $out"
+out=$(bash scripts/release.sh --public 7.0 20260101T0102Z 2>&1); r=$?
+[ $r = 2 ] && ok "a public number that is not three numbers is refused" || fail "short --public: $r $out"
+
 # ---- 5. release.sh promotes ------------------------------------------------------------------------
 : > "$GH_STATE/calls.log"
-out=$(bash scripts/release.sh 20260101T0102Z 2>&1); r=$?
+out=$(bash scripts/release.sh --public 7.0.951 20260101T0102Z 2>&1); r=$?
 [ $r = 0 ] && ok "promote exits 0" || fail "promote exit $r: $out"
 [ "$(git ls-remote origin refs/tags/v20260101T0102Z | cut -f1)" = "$HEAD_SHA" ] && ok "v<stamp> tag on the same commit" || fail "v tag wrong"
 remote_has snap-20260101T0102Z && ok "snap- tag stays" || fail "snap tag removed"
@@ -167,9 +173,10 @@ rel="$(release_json v20260101T0102Z)"
 [ "$(jq -r .prerelease <<< "$rel")" = false ] && [ "$(jq -r .latest <<< "$rel")" = true ] && ok "release is no longer a pre-release, and is Latest" || fail "release state: $rel"
 [ -z "$(release_json snap-20260101T0102Z)" ] && ok "the snapshot release became the release" || fail "snapshot release remains"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$HEAD_SHA" ] && ok "branch release at the promoted commit" || fail "release branch"
-grep -q '^| 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
+[ "$(release_json v20260101T0102Z | jq -r .name)" = "OpenISD 7.0.951" ] && ok "the release is titled OpenISD <public number>" || fail "release title: $(release_json v20260101T0102Z)"
+grep -q '^| 7.0.951 | 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
 ! grep -qE 'release (download|create)|npm|vite' "$GH_STATE/calls.log" && ok "downloads nothing, builds nothing, creates nothing" || fail "unexpected calls: $(cat "$GH_STATE/calls.log")"
-out=$(bash scripts/release.sh 20260101T0102Z 2>&1); r=$?
+out=$(bash scripts/release.sh --public 7.0.952 20260101T0102Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'already exists' <<< "$out" && ok "promoting twice is refused" || fail "twice: $r $out"
 
 # ---- 6. the release branch only moves forward ------------------------------------------------------
@@ -178,14 +185,19 @@ NEW_SHA="$(git rev-parse HEAD)"
 export OPENISD_NOW=2026-01-02T00:00:00Z FAKE_GH_NOW=2026-01-02T00:00:00Z
 bash scripts/snap.sh > /dev/null 2>&1
 printf -- '## New\n\n- Hand-written note.\n' > "$S/notes.md"
-bash scripts/release.sh --notes-file "$S/notes.md" 20260102T0000Z > /dev/null 2>&1
+out=$(bash scripts/release.sh --public 7.0.951 --notes-file "$S/notes.md" 20260102T0000Z 2>&1); r=$?
+[ $r = 1 ] && grep -q 'not greater than the last, 7.0.951' <<< "$out" && ok "a public number equal to the last is refused" || fail "equal --public: $r $out"
+out=$(bash scripts/release.sh --public 7.0.950 --notes-file "$S/notes.md" 20260102T0000Z 2>&1); r=$?
+[ $r = 1 ] && grep -q 'not greater than the last' <<< "$out" && ok "a lower public number is refused" || fail "lower --public: $r $out"
+! remote_has v20260102T0000Z && ok "refused numbers created no tag" || fail "tag created despite refused number"
+bash scripts/release.sh --public 7.0.1000 --notes-file "$S/notes.md" 20260102T0000Z > /dev/null 2>&1
 [ "$(release_json v20260102T0000Z | jq -r .body)" = "$(cat "$S/notes.md")" ] && ok "--notes-file replaces the notes" || fail "--notes-file body"
 grep -q 'Hand-written note\.' RELEASES.md && ok "RELEASES.md row uses the given notes" || fail "RELEASES.md notes cell"
-out=$(bash scripts/release.sh --notes-file "$S/missing.md" 20260101T0310Z 2>&1); [ $? = 1 ] && ok "--notes-file with no such file is refused" || fail "missing notes file"
-[ "$(grep -n '^| 2026' RELEASES.md | head -1 | grep -c 20260102T0000Z)" = 1 ] && ok "RELEASES.md is newest first" || fail "RELEASES.md order"
+out=$(bash scripts/release.sh --public 7.0.1001 --notes-file "$S/missing.md" 20260101T0310Z 2>&1); [ $? = 1 ] && ok "--notes-file with no such file is refused" || fail "missing notes file"
+[ "$(grep -n '^| 7\.' RELEASES.md | head -1 | grep -c 20260102T0000Z)" = 1 ] && ok "RELEASES.md is newest first" || fail "RELEASES.md order"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$NEW_SHA" ] && ok "branch release fast-forwarded" || fail "release branch not advanced"
 [ "$(release_json v20260102T0000Z | jq -r .latest)" = true ] && [ "$(release_json v20260101T0102Z | jq -r .latest)" = false ] && ok "newest release is Latest" || fail "latest flags"
-bash scripts/release.sh 20260101T0310Z > /dev/null 2>&1
+bash scripts/release.sh --public 7.0.1001 20260101T0310Z > /dev/null 2>&1
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$NEW_SHA" ] && ok "promoting an older snapshot leaves the branch where it is" || fail "release branch moved back"
 
 # ---- 7. --latest rolls back --------------------------------------------------------------------------

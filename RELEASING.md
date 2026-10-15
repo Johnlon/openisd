@@ -21,9 +21,9 @@
 
 | Action | Command | Result |
 |---|---|---|
-| Promote | `bash scripts/release.sh <stamp>` | Adds tag `v<stamp>` on the same commit. The pre-release becomes a release marked Latest. Branch `release` moves forward. A row is added to RELEASES.md. Nothing is built or downloaded. |
+| Promote | `bash scripts/release.sh --public <n.n.n> <stamp>` | `--public` is the public number, `7.0.951` for the first release (WinISD's latest is 0.7.0.950); each later release adds 1 to the last part, the first two change only for a redesign. The script refuses a number not greater than the last. It becomes the release title "OpenISD 7.0.951" and the Version column of RELEASES.md; About and the footer show it. Adds tag `v<stamp>` on the same commit. The pre-release becomes a release marked Latest. Branch `release` moves forward. A row is added to RELEASES.md. Nothing is built or downloaded. |
 | Refused when | No `snap-<stamp>` tag, or an F in `tasks/fixes/` is open. | Nothing changes. |
-| Own notes | `bash scripts/release.sh --notes-file F <stamp>` | F replaces the notes. Without it the snapshot's notes are kept. |
+| Own notes | `bash scripts/release.sh --public <n.n.n> --notes-file F <stamp>` | F replaces the notes. Without it the snapshot's notes are kept. |
 | Roll back | `bash scripts/release.sh --latest <stamp>` | The older release becomes Latest. The site root follows. |
 
 ## What users see

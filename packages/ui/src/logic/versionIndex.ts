@@ -1,4 +1,4 @@
-import {type BuildKind, formatDateTime, hostedListPathOf, hostedPathOf, parseBasicUtc, stampOfVersion} from '@openisd/design/fields';
+import {type BuildKind, formatDateTime, formatDay, runningHeading, hostedListPathOf, hostedPathOf, parseBasicUtc, stampOfVersion} from '@openisd/design/fields';
 
 export type {BuildKind};
 
@@ -13,6 +13,8 @@ export interface BuildEntry {
   readonly stamp: string;
   readonly kind: BuildKind;
   readonly tag: string;
+  /** The public number from the release title, "7.0.951"; '' for a snapshot or an older release. */
+  readonly version: string;
   /** The build's GitHub release page. */
   readonly url: string;
   /** ISO 8601 basic UTC. */
@@ -24,6 +26,7 @@ export interface BuildEntry {
 /** One line of the About dialog's Versions list. */
 export interface VersionRow {
   readonly stamp: string;
+  readonly version: string;
   readonly kind: BuildKind;
   /** "1 Jan 2026, 01:02" — the build's date in the viewer's time zone. */
   readonly date: string;
@@ -33,7 +36,19 @@ export interface VersionRow {
   readonly githubUrl: string | null;
 }
 
+/** The build that is running, as About names it first: "OpenISD 7.0.951 · 15 Oct 2026". */
+export interface RunningBuild {
+  /** "7.0.951"; '' when the build has no public number (a snapshot, an older release, no list). */
+  readonly version: string;
+  /** "OpenISD 7.0.951 · 15 Oct 2026", the day in the viewer's time zone. */
+  readonly heading: string;
+  /** "20261015T1542Z", shown small beneath. */
+  readonly stamp: string;
+}
+
 export interface VersionsView {
+  /** The running build; null when the running build is unknown (the dev server). */
+  readonly running: RunningBuild | null;
   readonly rows: readonly VersionRow[];
   /** "latest release is 1 Jan 2026, 01:02" when this build is older than the Latest release. */
   readonly staleNotice: string | null;
@@ -52,11 +67,11 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function parseEntry(raw: unknown): BuildEntry | null {
   if (!isRecord(raw)) return null;
-  const {stamp, kind, tag, url, published, subject, latest} = raw;
+  const {stamp, kind, tag, url, published, subject, latest, version} = raw;
   if (typeof stamp !== 'string' || parseBasicUtc(stamp) === null) return null;
   if (kind !== 'release' && kind !== 'snap') return null;
   if (typeof tag !== 'string' || typeof url !== 'string' || typeof published !== 'string' || typeof subject !== 'string') return null;
-  return {stamp, kind, tag, url, published, subject, latest: latest === true};
+  return {stamp, kind, tag, version: typeof version === 'string' ? version : '', url, published, subject, latest: latest === true};
 }
 
 /** v/index.json into entries; rows that are not builds are dropped, anything else is null. */
@@ -87,6 +102,11 @@ function dateOf(stamp: string): string {
   return d === null ? stamp : formatDateTime(d);
 }
 
+function dayOf(stamp: string): string {
+  const d = parseBasicUtc(stamp);
+  return d === null ? stamp : formatDay(d);
+}
+
 /** What About shows: releases newest first, the running build marked, and a link to the releases
  *  page. Snapshot builds appear only when the running build is itself a snapshot build or the dev
  *  server: a release's users are never shown them. Just the running build when the list is
@@ -94,11 +114,13 @@ function dateOf(stamp: string): string {
 export function describeVersions(runningVersion: string, entries: readonly BuildEntry[] | null, runningFrom: string): VersionsView {
   const running = stampOfVersion(runningVersion);
   const releasesPath = hostedListPathOf('release');
+  const runningEntry = entries?.find(e => e.stamp === running);
+  const runningBuild: RunningBuild | null = running === '' ? null : {version: runningEntry?.version ?? '', heading: runningHeading(runningEntry?.version ?? '', dayOf(running)), stamp: running};
   if (entries === null) {
     const rows: VersionRow[] = running === ''
       ? []
-      : [{stamp: running, kind: 'release', date: dateOf(running), current: true, hostedPath: null, githubUrl: null}];
-    return {rows, staleNotice: null, releasesPath, snapshotsPath: null, runningFrom};
+      : [{stamp: running, version: '', kind: 'release', date: dateOf(running), current: true, hostedPath: null, githubUrl: null}];
+    return {running: runningBuild, rows, staleNotice: null, releasesPath, snapshotsPath: null, runningFrom};
   }
   const newestFirst = (a: BuildEntry, b: BuildEntry): number => (a.stamp < b.stamp ? 1 : a.stamp > b.stamp ? -1 : 0);
   const releases = entries.filter(e => e.kind === 'release').sort(newestFirst);
@@ -107,6 +129,7 @@ export function describeVersions(runningVersion: string, entries: readonly Build
   const snaps = showSnapshots ? entries.filter(e => e.kind === 'snap').sort(newestFirst) : [];
   const rows = [...releases, ...snaps].map((e): VersionRow => ({
     stamp: e.stamp,
+    version: e.version,
     kind: e.kind,
     date: dateOf(e.stamp),
     current: e.stamp === running,
@@ -116,6 +139,7 @@ export function describeVersions(runningVersion: string, entries: readonly Build
   const latest = entries.find(e => e.kind === 'release' && e.latest);
   const stale = running !== '' && latest !== undefined && running < latest.stamp;
   return {
+    running: runningBuild,
     rows,
     staleNotice: stale ? `latest release is ${dateOf(latest.stamp)}` : null,
     releasesPath,
