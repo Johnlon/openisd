@@ -1,0 +1,50 @@
+id: F32
+owner: Johnlon
+status: open
+sha: e326fee2a419c8e5d036f773e9d33dcce1788114
+goal: main is red at e326fee2a4; make the full suite pass again
+commits: |
+  e326fee2a4 T197: 'Shallower phone field rows: one set of row metrics for every mobile tab
+failing: |
+    ✘  395 packages/ui/test/ui/num-input.browser.spec.ts:115:3 › NumInput › no spinner gains decimal places while spinning (all fields, all box types) (1.8m)
+output: |
+    ✓  684 packages/ui/test/ui/what-if-panel.browser.spec.ts:166:5 › What-if? panel › on the sample project › the What-if? panel stays open across project tab changes (1.0s)
+    ✓  685 packages/ui/test/ui/what-if-panel.browser.spec.ts:179:5 › What-if? panel › on the sample project › What-if? keeps the Vb typed into it when the field loses focus (986ms)
+    ✓  686 packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › What-if? panel › on the sample project › switching focus to a different open project closes an open What-if? panel (1.3s)
+    ✓  687 packages/ui/test/ui/what-if-panel.browser.spec.ts:224:5 › What-if? panel › on the complete driver project › Mms and Bl are editable and override the calculation; clearing returns them to Calculated (1.4s)
+    ✓  688 packages/ui/test/ui/what-if-panel.browser.spec.ts:254:5 › What-if? panel › on the complete driver project › numeric fields are narrow and uniform, not stretched to fill the column (914ms)
+    ✓  689 packages/ui/test/ui/what-if-panel.browser.spec.ts:268:5 › What-if? panel › on the complete driver project › a blank Q autocalculates from the other two, with the editor E/C/N marks and red border (1.3s)
+    ✓  690 packages/ui/test/ui/what-if-panel.browser.spec.ts:311:5 › What-if? panel › on the complete driver project › box volume is on the panel, shows on the charts, and Close puts it back (1.1s)
+    ✓  692 packages/ui/test/ui/what-if-panel.browser.spec.ts:328:5 › What-if? panel › on the complete driver project › a box volume changed outside the open What-if? panel shows in the panel (924ms)
+    ✓  691 packages/ui/test/ui/what-if-panel.browser.spec.ts:335:5 › What-if? panel › on the complete driver project › a driver spec changed outside the open What-if? panel shows in the panel (944ms)
+    ✓  693 packages/ui/test/ui/what-if-panel.browser.spec.ts:342:5 › What-if? panel › on the complete driver project › a box volume typed on the Box tab shows in the open What-if? panel (1.1s)
+    ✓  694 packages/ui/test/ui/what-if-panel.browser.spec.ts:352:5 › What-if? panel › on the complete driver project › after editing in the What-if? panel, a later Box tab edit still shows in the panel (1.2s)
+  
+  
+    1) packages/ui/test/ui/num-input.browser.spec.ts:115:3 › NumInput › no spinner gains decimal places while spinning (all fields, all box types) 
+  
+      TimeoutError: locator.press: Timeout 20000ms exceeded.
+      Call log:
+        - waiting for locator('.original-root .tab-section.active input[data-numinput], .original-root .tab-section.active input[type="number"]').nth(5)
+          - locator resolved to <input type="text" id="og-pr-fp" value="43.93" data-numinput="" data-v-10c1a069="" autocomplete="off" inputmode="decimal" class="value-e dq-flag dq-root" title="Passive Radiator System Tuning (Fp)↵Helmholtz tuning frequency the passive radiator and enclosure volume achieve together."/>
+        - elementHandle.press("ArrowUp")
+  
+  
+        32 |     // A NumInput steps from the caret: the last digit shown, with the caret at the end.
+        33 |     await input.press('End');
+      > 34 |     for (let i = 0; i < 6; i++) await input.press('ArrowUp');
+           |                                             ^
+        35 |     const up = await input.inputValue();
+        36 |     for (let i = 0; i < 12; i++) await input.press('ArrowDown');
+        37 |     const down = await input.inputValue();
+          at assertSpinnerHoldsDp (/home/john/work/winisd/.postland/551557-e326fee2a4/packages/ui/test/ui/num-input.browser.spec.ts:34:45)
+          at sweepActiveTab (/home/john/work/winisd/.postland/551557-e326fee2a4/packages/ui/test/ui/num-input.browser.spec.ts:75:48)
+          at /home/john/work/winisd/.postland/551557-e326fee2a4/packages/ui/test/ui/num-input.browser.spec.ts:128:20
+  
+      Error Context: test-results/ui-num-input.browser-NumIn-7925a-g-all-fields-all-box-types-/error-context.md
+  
+    1 failed
+      packages/ui/test/ui/num-input.browser.spec.ts:115:3 › NumInput › no spinner gains decimal places while spinning (all fields, all box types) 
+    693 passed (8.5m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 551557-e326fee2a4 finished: FAILED (exit 1) after 10m21s
