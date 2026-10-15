@@ -1,0 +1,61 @@
+id: F27
+owner: Johnlon
+status: open
+sha: d46cd4a40a9a3d5cfa8f1010960a03b05a8b180b
+goal: main is red at d46cd4a40a; make the full suite pass again
+commits: |
+  d46cd4a40a T181: Bug: a sync pull that changes the open project refreshes the open sessio
+failing: |
+    ✘  140 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:117:3 › Driver Editor E/C/N Provenance Class Audit › Deriving a calculated field applies value-c (Calculated) (26.8s)
+    ✘  346 packages/ui/test/ui/new-project-wizard.browser.spec.ts:145:5 › New Project wizard › with a project open › the last step's green lead is Create, and it creates the project (26.8s)
+    ✘  347 packages/ui/test/ui/new-project-wizard.browser.spec.ts:165:5 › New Project wizard › with a project open › walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar (27.1s)
+    ✘  376 packages/ui/test/ui/num-input.browser.spec.ts:104:3 › NumInput › no spinner gains decimal places while spinning (all fields, all box types) (39.4s)
+    ✘  388 packages/ui/test/ui/open-sessions.browser.spec.ts:110:5 › Open sessions › tabs share one session › a Driver Editor left open in one tab still edits the project after the other tab edits it (28.3s)
+    ✘  387 packages/ui/test/ui/open-sessions.browser.spec.ts:79:5 › Open sessions › tabs share one session › a display unit chosen in one tab shows in the other (32.1s)
+    ✘  533 packages/ui/test/ui/original-pr-tab.browser.spec.ts:239:5 › Original Passive Radiator tab › fields › Save to library asks for a name, prefilled, and saves a copy under the typed name (26.3s)
+    ✘  532 packages/ui/test/ui/original-pr-tab.browser.spec.ts:202:5 › Original Passive Radiator tab › fields › a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve (26.8s)
+    ✘  535 packages/ui/test/ui/original-pr-tab.browser.spec.ts:312:3 › Original Passive Radiator tab data quality › an unreachable PR target flags the entered Fp as the cause and the derived outputs as symptoms (28.7s)
+    ✘  534 packages/ui/test/ui/original-pr-tab.browser.spec.ts:362:3 › Original Passive Radiator tab data quality › a reachable target shows no DQ anywhere (29.3s)
+    ✘  592 packages/ui/test/ui/original-vented-tab.browser.spec.ts:52:5 › Original Vented tab › vent shape and end correction › the vent shape offers slotted, and slotted inputs are reachable (44.6s)
+    ✘  593 packages/ui/test/ui/original-vented-tab.browser.spec.ts:68:5 › Original Vented tab › vent shape and end correction › emptied vent dimensions settle to the starting port instead of becoming 0 (43.9s)
+output: |
+  
+      Error Context: test-results/ui-original-vented-tab.bro-b20fc-lotted-inputs-are-reachable/error-context.md
+  
+    12) packages/ui/test/ui/original-vented-tab.browser.spec.ts:68:5 › Original Vented tab › vent shape and end correction › emptied vent dimensions settle to the starting port instead of becoming 0 
+  
+      TimeoutError: locator.waitFor: Timeout 20000ms exceeded.
+      Call log:
+        - waiting for locator('.original-root') to be visible
+  
+  
+         at fixtures.ts:213
+  
+        211 |     buffer: readFileSync(owprPath),
+        212 |   });
+      > 213 |   await page.locator('.original-root').waitFor({ state: 'visible' });
+            |                                        ^
+        214 | }
+        215 |
+        216 | /**
+          at openAProject (/home/john/work/winisd/.postland/4174998-d46cd4a40a/packages/ui/test/fixtures.ts:213:40)
+          at /home/john/work/winisd/.postland/4174998-d46cd4a40a/packages/ui/test/ui/original-vented-tab.browser.spec.ts:13:3
+  
+      Error Context: test-results/ui-original-vented-tab.bro-6e5ec--port-instead-of-becoming-0/error-context.md
+  
+    12 failed
+      packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:117:3 › Driver Editor E/C/N Provenance Class Audit › Deriving a calculated field applies value-c (Calculated) 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:145:5 › New Project wizard › with a project open › the last step's green lead is Create, and it creates the project 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:165:5 › New Project wizard › with a project open › walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar 
+      packages/ui/test/ui/num-input.browser.spec.ts:104:3 › NumInput › no spinner gains decimal places while spinning (all fields, all box types) 
+      packages/ui/test/ui/open-sessions.browser.spec.ts:79:5 › Open sessions › tabs share one session › a display unit chosen in one tab shows in the other 
+      packages/ui/test/ui/open-sessions.browser.spec.ts:110:5 › Open sessions › tabs share one session › a Driver Editor left open in one tab still edits the project after the other tab edits it 
+      packages/ui/test/ui/original-pr-tab.browser.spec.ts:202:5 › Original Passive Radiator tab › fields › a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve 
+      packages/ui/test/ui/original-pr-tab.browser.spec.ts:239:5 › Original Passive Radiator tab › fields › Save to library asks for a name, prefilled, and saves a copy under the typed name 
+      packages/ui/test/ui/original-pr-tab.browser.spec.ts:312:3 › Original Passive Radiator tab data quality › an unreachable PR target flags the entered Fp as the cause and the derived outputs as symptoms 
+      packages/ui/test/ui/original-pr-tab.browser.spec.ts:362:3 › Original Passive Radiator tab data quality › a reachable target shows no DQ anywhere 
+      packages/ui/test/ui/original-vented-tab.browser.spec.ts:52:5 › Original Vented tab › vent shape and end correction › the vent shape offers slotted, and slotted inputs are reachable 
+      packages/ui/test/ui/original-vented-tab.browser.spec.ts:68:5 › Original Vented tab › vent shape and end correction › emptied vent dimensions settle to the starting port instead of becoming 0 
+    656 passed (16.0m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 4174998-d46cd4a40a finished: FAILED (exit 1) after 18m33s
