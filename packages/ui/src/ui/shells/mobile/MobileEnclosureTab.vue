@@ -182,14 +182,14 @@ const {fieldWithUnit} = useUnitReadouts();
 
 <style scoped>
 .mob-panel {
-  margin: 12px;
+  margin: 6px 12px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
 }
 .mob-panel-head {
-  padding: 10px 12px;
+  padding: 5px 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--mut);
@@ -202,8 +202,8 @@ const {fieldWithUnit} = useUnitReadouts();
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 12px;
-  min-height: 48px;
+  padding: var(--mob-row-pad-y) 12px;
+  min-height: var(--mob-row-min);
   border-top: 1px solid var(--line);
 }
 .mob-panel > .mob-row:first-of-type,
@@ -212,7 +212,7 @@ const {fieldWithUnit} = useUnitReadouts();
 .mob-select {
   flex: 1;
   max-width: 60%;
-  min-height: 40px;
+  min-height: 36px;
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -243,8 +243,8 @@ const {fieldWithUnit} = useUnitReadouts();
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 10px 12px 10px 14px;
-  min-height: 48px;
+  padding: var(--mob-row-pad-y) 12px var(--mob-row-pad-y) 14px;
+  min-height: var(--mob-row-min);
   border-left: 3px solid transparent;
   border-top: 1px solid var(--line);
 }
@@ -253,8 +253,8 @@ const {fieldWithUnit} = useUnitReadouts();
    column takes the slack so the box, ⚠ and unit line up at the right edge. */
 .mob-field-calculated { border-left-color: var(--acc); }
 .mob-field-dq { border-left-color: var(--acc2); }
-.mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.mob-field-label { font-size: 13px; color: var(--mut); }
+.mob-field-main { display: flex; flex-direction: column; gap: 0; flex: 1; min-width: 0; }
+.mob-field-label { font-size: 13px; line-height: var(--mob-label-lh); color: var(--mut); }
 .mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
 .mob-field-value :deep(input) {
   border: none;
@@ -265,7 +265,7 @@ const {fieldWithUnit} = useUnitReadouts();
   padding: 0;
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 32px;
+  min-height: var(--mob-input-h);
 }
 /* An editable value looks like an input box; a read-only one stays flat text. */
 .mob-field-value :deep(input:not([readonly])) {

@@ -284,7 +284,7 @@ const diagnostics = injectDiagnosticsModal();
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
 }
 /* Every direct child here is a mounted tab's ROOT (`.mob-panel` blocks, `.mob-hint` paragraphs,
    …) — a flex ITEM with the column-flex default `flex-shrink: 1`. Any `.mob-panel` also sets

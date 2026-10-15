@@ -1,0 +1,19 @@
+id: T197
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: 'Shallower phone field rows: one set of row metrics for every mobile tab, so the vented, bandpass 4 and 6 and PR tuning tabs fit above the bottom bar without scrolling at 390x844 and 412x915 (John, 15 Oct 2026)'
+done_test: bash scripts/test.sh packages/design/test/fields/public-version.test.ts
+files:
+  - tasks/T197.yml
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileFiltersTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileSignalTab.vue
+  - packages/ui/test/ui/mobile-row-depth.browser.spec.ts
+  - packages/ui/test/ui/zz-shots.browser.spec.ts

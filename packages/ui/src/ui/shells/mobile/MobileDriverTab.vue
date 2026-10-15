@@ -42,14 +42,14 @@ const { project, brand, model, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARR
 
 <style scoped>
 .mob-panel {
-  margin: 12px;
+  margin: 6px 12px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
 }
 .mob-panel-head {
-  padding: 10px 12px;
+  padding: 5px 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--mut);
@@ -61,8 +61,8 @@ const { project, brand, model, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARR
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 12px;
-  min-height: 48px;
+  padding: var(--mob-row-pad-y) 12px;
+  min-height: var(--mob-row-min);
   border-top: 1px solid var(--line);
 }
 .mob-row:first-of-type { border-top: none; }
@@ -86,7 +86,7 @@ const { project, brand, model, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARR
 .mob-select {
   flex: 1;
   max-width: 60%;
-  min-height: 40px;
+  min-height: 36px;
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 4px;

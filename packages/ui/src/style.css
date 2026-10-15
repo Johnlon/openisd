@@ -1,4 +1,10 @@
 :root {
+  /* Phone field rows: one set of metrics for every mobile tab (John, 2026-10-15: shallower rows so a
+     tuning tab fits without scrolling). Rows stay at least 40px to tap. */
+  --mob-row-pad-y: 2px;
+  --mob-row-min: 40px;
+  --mob-input-h: 30px;
+  --mob-label-lh: 12px;
   /* WinISD-light palette. Applies to the global overlays App.vue mounts outside the shell
      (driver library, driver editor, flash); the shell re-declares the same tokens on
      `.original-root` for everything it draws itself. */
@@ -180,15 +186,15 @@ a { color:var(--acc) }
   /* value | ⚠ | unit, sized so the ▲▼ end and the unit start where the older .mob-field-row rows put
      them (value area ends 40px from the edge, unit 30px wide): the two kinds of row line up. */
   grid-template-columns: 1fr 10px 30px;
-  column-gap: 0; row-gap: 2px;
-  padding: 10px 12px 10px 14px; min-height: 48px;
+  column-gap: 0; row-gap: 0;
+  padding: var(--mob-row-pad-y) 12px var(--mob-row-pad-y) 14px; min-height: var(--mob-row-min);
   border-left: 3px solid transparent; border-top: 1px solid var(--line);
 }
-.mob-ui-field.ui-field > label { grid-column: 1 / -1; font-size: 13px; color: var(--mut); white-space: normal; }
+.mob-ui-field.ui-field > label { grid-column: 1 / -1; font-size: 13px; line-height: var(--mob-label-lh); color: var(--mut); white-space: normal; }
 .mob-ui-field.ui-field .ui-field-value { grid-column: 1; display: flex; gap: 6px; width: auto; min-width: 0; }
 .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; }
 .mob-ui-field.ui-field .ui-field-unit { grid-column: 3; width: 30px; font-size: 13px; }
 .mob-ui-field.ui-field .ui-field-value input {
-  flex: 1 1 auto; width: auto; min-width: 0; min-height: 32px;
+  flex: 1 1 auto; width: auto; min-width: 0; min-height: var(--mob-input-h);
   font-size: 18px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
 }

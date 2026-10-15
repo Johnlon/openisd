@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 7b167949cf76d506ea837ef40171cee8b53f9c57
 goal: 'Public version numbers: OpenISD 7.0.951 on the 15 Oct 2026 release; release.sh --public takes the full number and refuses one not greater than the last; the number is in the release title, RELEASES.md, the /v/ index, About and the footer'
 done_test: bash scripts/test.sh packages/design/test/fields/public-version.test.ts
 files:
