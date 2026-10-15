@@ -1,0 +1,13 @@
+id: T191
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: 'The caret step is a pure design function (digit at the caret, carries, negatives, limits, caret kept on its digit) with unit tests; NumInput is switched to it in the next task'
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T191.yml
+  - packages/design/fields/caretSpin.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/caret-spin.test.ts
+  - docs/research/ACCURACY_IMPROVEMENTS.md

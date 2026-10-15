@@ -66,6 +66,16 @@ The switch sits under "Enable WinISD-style", ticked by default.
 |---|---|---|---|
 | ABC box: intra-chamber port velocity chart is V/(jωMai + Zf): it leaves out the leak term Zf·jωMai/Ricl of the current through the port mass. Up to 1.35 dB and 4.6° near 110 Hz, under 0.1 dB elsewhere (W5-1138SMF, abc-w5-1); the two agree when the inter-chamber leak Q is very large (Qiclfr 1e6: 3.3e-6) | WinISD's chart (ticked, the default) | ordinary switch "Simplified ABC intra-port velocity", unticked = exact current V/[jωMai + Zf(1 + jωMai/Ricl)] | winisd_research/PROBE_FINDINGS.md abc velocity self-consistency; [note](../../bugs/archive/BUG_20261003_winisd-abc-intra-port-velocity-drops-ricl.md) |
 
+## OpenISD extras — behaviour WinISD does not have
+
+Not WinISD differences: nothing WinISD does is replaced.
+
+- **Spin at the caret** (John, 2026-10-15). In a number box, the arrow keys, the wheel and the ▲▼
+  buttons step one unit of the digit the caret is on (caret right of the units digit: 1, of the
+  tenths digit: 0.1), carry (19.9 to 20.0), keep the decimals shown and keep the caret on its digit.
+  With no caret in the box the step is the usual one. WinISD's spin step is unchecked; it is not
+  known to read the caret. `packages/design/fields/caretSpin.ts`.
+
 ## Not an improvement — WinISD matches the textbook
 
 | WinISD does                                                        | Note |
