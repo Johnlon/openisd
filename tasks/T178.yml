@@ -3,6 +3,7 @@ release_note: 'When cloud sync keeps two versions of a driver, passive radiator 
 repo: openisd
 owner: maryu
 status: done
+landed: 9c99b75de7fcd63ba9281864c038b537f0d0f644
 goal: Cloud sync conflict messages name the item; kept driver/PR copies get the conflict mark in their name
 done_test: bash scripts/test.sh packages/design/test/cloud/conflictNames.test.ts packages/design/test/cloud/syncDisplay.test.ts packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/cloud/docs/savedEntryDocs.test.ts packages/persistence/test/cloud/syncEngine.test.ts packages/persistence/test/cloud/cloudSync.test.ts
 files:

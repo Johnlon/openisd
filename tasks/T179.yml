@@ -1,0 +1,11 @@
+id: T179
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+label: fixes
+goal: 'F26: the post-land run at 9c99b75de7 was cut off by the machine sleeping, not a failing test (5400 s deadline, 61849 s counted across the sleep; every printed result green); close F26 so the next run retests'
+done_test: bash scripts/test.sh packages/design/test/cloud/conflictNames.test.ts
+files:
+  - tasks/T179.yml
+  - tasks/fixes/F26.yml
