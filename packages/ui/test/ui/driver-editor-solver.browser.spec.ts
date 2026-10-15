@@ -130,26 +130,25 @@ test.describe('Driver Editor — solver wiring', () => {
     await expect(page.locator('.de-body')).toBeHidden();
   });
 
-  test('UI rejects non-numeric literal text ("banana", "<script>") and clears field to state N (empty/Not Available) without crashing JS execution', async ({ page }) => {
+  test('UI refuses non-numeric literal text ("banana", "<script>"): shown red, never stored, Esc puts the value back', async ({ page }) => {
     const fsf = page.locator('.de-fld:has-text("Fs") input');
+    const before = await fsf.inputValue();
 
-    // 1. Dispatch non-numeric text 'banana' into input field. Numbers are `<input type="number">`,
-    // so the browser itself refuses the literal — it sanitises to '' rather than holding text —
-    // and the model is cleared to Not Available.
+    // 1. Type non-numeric text 'banana' into the input field. Numbers are text boxes, so the text
+    // stays as typed and is flagged; a refused entry is never stored (ruling "b").
     await fsf.evaluate((el: HTMLInputElement) => {
       el.value = 'banana';
       el.dispatchEvent(new Event('input', { bubbles: true }));
     });
-
-    // 2. Trigger blur event
-    await fsf.blur();
-
-    // 3. Input element cleanly clears to state N (Not Available, empty '') without crashing Vue.
-    //    (On the scraped W5 sample this same step lands on a re-derived number because alternate
-    //    relations exist — the clean COMPLETE fixture is what makes the N outcome deterministic.)
-    await expect(fsf).toHaveValue('');
-    await expect(fsf).toHaveClass(/value-n/);
+    await expect(fsf).toHaveClass(/inp-bad/);
+    await expect(fsf).toHaveValue('banana');
     await expect(page.locator('.de-body')).toBeVisible();
+
+    // 2. Esc puts the stored value back.
+    await fsf.focus();
+    await fsf.press('Escape');
+    await expect(fsf).toHaveValue(before);
+    await expect(fsf).not.toHaveClass(/inp-bad/);
   });
 
   test('UI flags unphysical negative parameters (Re = -8.0 Ohm, Fs = -35.0 Hz) with Data Quality (DQ) warning', async ({ page }) => {

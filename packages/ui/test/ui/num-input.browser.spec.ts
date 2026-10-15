@@ -17,7 +17,7 @@ function decimalsOf(s: string): number {
 // Class-level spinner invariant: a spinner step (Arrow Up/Down) must never GAIN decimal
 // places over what the field shows at rest. Each field has a fixed display precision; a
 // step that turns "6.00" into "8.94924452476786" is the bug. Asserted over every
-// input[type=number] so no field (or second spinner mechanism) can regress unnoticed.
+// number box (NumInput or raw input[type=number]) so no field (or second spinner mechanism) can regress unnoticed.
 // Returns 1 if the field was actually spun-and-checked, 0 if skipped (hidden / non-numeric).
 async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<number> {
   if (!(await input.isVisible()) || !(await input.isEditable())) return 0;
@@ -28,7 +28,18 @@ async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<numb
   if (!/^-?\d+(\.\d+)?$/.test(before)) return 0; // skip empty / non-numeric fields
   const dpBefore = decimalsOf(before);
   await input.focus();
-  // A number input whose current step attr has no ALLOWED value step (dynamic stepAttr — a power
+  if ((await input.getAttribute('data-numinput')) !== null) {
+    // A NumInput steps from the caret: the last digit shown, with the caret at the end.
+    await input.press('End');
+    for (let i = 0; i < 6; i++) await input.press('ArrowUp');
+    const up = await input.inputValue();
+    for (let i = 0; i < 12; i++) await input.press('ArrowDown');
+    const down = await input.inputValue();
+    expect(decimalsOf(up), `${label}: gained decimals spinning UP  "${before}" → "${up}"`).toBeLessThanOrEqual(dpBefore);
+    expect(decimalsOf(down), `${label}: gained decimals spinning DOWN "${before}" → "${down}"`).toBeLessThanOrEqual(dpBefore);
+    return 1;
+  }
+  // A raw number input whose current step attr has no ALLOWED value step (dynamic stepAttr — a power
   // of ten off the value's magnitude, clamped at the field precision → 'any' near zero, see
   // NumInput.vue) throws InvalidStateError from stepUp()/stepDown(). Such a field cannot gain
   // decimals by native stepping, so there is nothing to check: run the whole up/down sequence
@@ -59,7 +70,7 @@ async function assertSpinnerHoldsDp(input: Locator, label: string): Promise<numb
 
 // Sweep every visible numeric spinner on the currently-active project tab; returns the count checked.
 async function sweepActiveTab(page: Page, context: string): Promise<number> {
-  const inputs = await page.locator('.original-root .tab-section.active input[type="number"]').all();
+  const inputs = await page.locator('.original-root .tab-section.active input[data-numinput], .original-root .tab-section.active input[type="number"]').all();
   let n = 0;
   for (let i = 0; i < inputs.length; i++) n += await assertSpinnerHoldsDp(inputs[i], `${context} #${i}`);
   return n;
@@ -175,7 +186,7 @@ test.describe('NumInput', () => {
     await vb.click();
     await vb.press('Control+a');
 
-    // ONE keystroke. `<input type="number">` reports value === '' for a lone '-', which is the
+    // ONE keystroke. A lone '-' is not a number, which is the
     // exact moment the field became un-numeric — it must say so, and it must NOT be mistaken for
     // the field having been emptied (which would clear the model out from under the charts).
     await vb.pressSequentially('-');

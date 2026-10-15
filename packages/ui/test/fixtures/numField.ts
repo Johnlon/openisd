@@ -5,7 +5,7 @@ import type {Locator, Page} from '@playwright/test';
  * label, set its value, commit by blurring" idiom that used to be copy-pasted into every spec
  * (a per-spec `numInputByLabel` plus `fill(v); press('Tab')` blocks).
  *
- * A NumInput renders a plain `<input type="number">` with no id; the parent `.row` (NumInput's
+ * A NumInput renders a text box marked `data-numinput` (a few raw boxes are still `type="number"`) with no id; the parent `.row` (NumInput's
  * own) or `.field-row` wrapper contains the `<label>` and the input as siblings, so the stable
  * handle is "the number input inside the label's parent".
  */
@@ -14,7 +14,7 @@ export function numInputByLabel(page: Page, labelText: string, scope: Locator = 
   return scope.locator('label')
     .filter({ hasText: labelText })
     .locator('..')
-    .locator('input[type="number"]');
+    .locator('input[data-numinput], input[type="number"]');
 }
 
 /** Type into an already-resolved field and commit it by blurring (Tab) — the app's commit point. */

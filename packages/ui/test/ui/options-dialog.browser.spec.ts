@@ -176,7 +176,7 @@ test.describe('Options dialog', () => {
 
         await page.locator('.tb-btn[title="Options"]').click();
         await expect(page.locator('.opt-modal')).toBeVisible();
-        const envTemp = page.locator('.opt-modal .opt-fld', { hasText: 'Temperature' }).locator('input[type="number"]');
+        const envTemp = page.locator('.opt-modal .opt-fld', { hasText: 'Temperature' }).locator('input[data-numinput], input[type="number"]');
         await envTemp.fill('300');
         await envTemp.dispatchEvent('input');
         await envTemp.blur();

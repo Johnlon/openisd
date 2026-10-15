@@ -507,7 +507,8 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
   -webkit-appearance: none;
   margin: 0;
 }
-.opt-body :deep(input[type="number"]) {
+.opt-body :deep(input[type="number"]),
+.opt-body :deep(input[data-numinput]) {
   -webkit-appearance: none;
   -moz-appearance: textfield;
   appearance: none;

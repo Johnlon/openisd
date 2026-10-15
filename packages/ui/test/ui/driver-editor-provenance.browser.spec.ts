@@ -17,7 +17,7 @@ import {ALL_FIELDS} from '@openisd/design/fields';
 
 /** Every input on the open tab. */
 const editorInputs = (page: Page) =>
-  page.locator('.de-body input[type="text"], .de-body input[type="number"]');
+  page.locator('.de-body input[type="text"], .de-body input[data-numinput], .de-body input[type="number"]');
 
 /**
  * The inputs on the open tab that carry NO provenance class, one entry per offender so a
@@ -29,7 +29,7 @@ const editorInputs = (page: Page) =>
  * nothing left to branch on.
  */
 async function unclassified(page: Page): Promise<string[]> {
-  return page.locator('.de-body input[type="text"]:visible, .de-body input[type="number"]:visible')
+  return page.locator('.de-body input[type="text"]:visible, .de-body input[data-numinput]:visible, .de-body input[type="number"]:visible')
     .evaluateAll(els => els
       .filter(el => {
         const target = el.closest('.value-e, .value-c, .value-n') ?? el;

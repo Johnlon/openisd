@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {decimalsSpinRule, formatFixed, HOLD_START_MS, holdStage, roundSpun, shownSpinRule, spinStepAttr, spinValue, type HoldStage, type NumberField, type SpinDirection, type SpinRule, type SpinSpeed} from '@openisd/design/fields';
+import {caretSpin, decimalsSpinRule, formatFixed, HOLD_START_MS, holdStage, roundSpun, shownSpinRule, spinValue, type HoldStage, type NumberField, type SpinDirection, type SpinRule, type SpinSpeed} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -19,7 +19,6 @@ const props = withDefaults(defineProps<{
   /** The value's own half-width in SI — what it was typed to, or inherited from what it was
    *  calculated from. Shows more decimals than `precision` where it states them. */
   halfWidth?: number | null;
-  step?: string;
   min?: number;
   max?: number;
   field?: NumberField;
@@ -37,7 +36,6 @@ const props = withDefaults(defineProps<{
   modelValue: null,
   precision: undefined,
   halfWidth: null,
-  step: 'any',
   mandatory: false,
   blankRefused: false,
   allowOutOfRange: false,
@@ -65,7 +63,6 @@ function fmt(v: number | null | undefined): string {
 }
 
 const focused = ref(false);
-const typing = ref(false);
 const badEntry = ref(false);
 const entryValue = ref<number | null | undefined>(props.modelValue);
 const display = ref(fmt(props.modelValue));
@@ -87,7 +84,6 @@ watch(activeToken, (newToken, oldToken) => {
 
 function onFocus() {
   focused.value = true;
-  typing.value = false;   // a step done right after focusing must still reformat
   if (refusal.value !== '') return;   // a refused entry stays as typed until fixed or Esc
   badEntry.value = false;
   entryValue.value = props.modelValue;
@@ -95,7 +91,13 @@ function onFocus() {
   display.value = fmt(props.modelValue);
 }
 
-// Text-editing keys mean "typing" → echo raw. Arrow up/down are spinner steps → reformat.
+/** A number as typed: "," is a decimal mark too. */
+function numberOf(text: string): number {
+  return parseFloat(text.replace(',', '.'));
+}
+/** Text that is a number, or the start of one ("", "-", "1.", ".5"); anything else is a refused entry. */
+const NUMBER_SHAPE = /^-?\d*[.,]?\d*$/;
+
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && refusal.value !== '') {
     // Esc puts the stored value back over a refused entry — and only that: the press does not
@@ -107,12 +109,17 @@ function onKeydown(e: KeyboardEvent) {
     if (e.target instanceof HTMLInputElement) e.target.value = display.value;
     return;
   }
-  typing.value = e.key !== 'ArrowUp' && e.key !== 'ArrowDown';
+  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !isReadonly.value) {
+    e.preventDefault();
+    stepAtCaret(e.key === 'ArrowUp' ? 1 : -1);
+  }
 }
-function onWheel() { typing.value = false; }   // wheel over the field is a step → reformat
-// A mouse press (incl. on the native ▲▼ spinner buttons) is not typing → reformat on the
-// resulting step. If the press is to place the caret, the next keydown flips typing back on.
-function onPointerDown() { typing.value = false; }
+// The wheel steps a focused box, as the browser's own number box did; an unfocused one lets the page scroll.
+function onWheel(e: WheelEvent) {
+  if (!focused.value || isReadonly.value || e.deltaY === 0) return;
+  e.preventDefault();
+  stepAtCaret(e.deltaY < 0 ? 1 : -1);
+}
 
 // `readonly` is never a declared prop — it reaches the native input only through $attrs (see
 // the fragment-root note above) — so the stepper reads it the same way to stay in lockstep
@@ -124,21 +131,23 @@ const showStepper = computed(() => props.stepper && !isReadonly.value);
 const inputEl = ref<HTMLInputElement | null>(null);
 let repeatTimer: ReturnType<typeof setTimeout> | undefined;
 
-// A ▲▼ button drives the same path a real ArrowUp/ArrowDown keypress or the native spinner
-// does: the browser's own stepUp()/stepDown() supplies the direction, and `onInput` replaces the
-// browser's value with the design rule's (`spinValue`). The native `step` is never 'any', so
-// stepUp()/stepDown() never throw.
-// The press size for the step in flight: `onInput` reads it, so keyboard, wheel and native
-// spinner steps (which never set it) stay fine.
-let pressSpeed: SpinSpeed = 'fine';
+// A ▲▼ button steps by the design rule (`spinValue`) from the value shown; it has no caret, because
+// pressing it takes the focus (below).
 function applyStep(dir: SpinDirection, speed: SpinSpeed): void {
+  const v = spinValue(display.value, dir, spinRule.value, {min: dispMin.value, max: dispMax.value}, speed);
+  if (isFinite(v)) commitSpun(v);
+}
+
+/** A key or wheel step: one unit of the digit at the caret; the usual step where there is no caret. */
+function stepAtCaret(dir: SpinDirection): void {
   const el = inputEl.value;
-  if (el === null) return;
-  typing.value = false;   // a step always reformats, same as the keyboard/wheel paths
-  pressSpeed = speed;
-  if (dir > 0) el.stepUp(); else el.stepDown();
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-  pressSpeed = 'fine';
+  const caret = el === null ? null : el.selectionStart;
+  const spun = caret === null ? null : caretSpin(display.value, caret, dir, {min: dispMin.value, max: dispMax.value});
+  if (spun === null) { applyStep(dir, 'fine'); return; }
+  const si = fromDisp(spun.value);
+  display.value = spun.text;
+  if (el !== null) { el.value = spun.text; el.setSelectionRange(spun.caret, spun.caret); }
+  if (valid(si)) emit('update:modelValue', si, typedPrecision(spun.text));
 }
 
 let heldSince = 0;
@@ -151,7 +160,7 @@ function releaseRepeat(): void {
   const rounds = repeatTimer !== undefined && heldStage?.roundsOnRelease === true;
   stopRepeat();
   if (!rounds) return;
-  const v = roundSpun(parseFloat(display.value), spinRule.value, {min: dispMin.value, max: dispMax.value});
+  const v = roundSpun(numberOf(display.value), spinRule.value, {min: dispMin.value, max: dispMax.value});
   if (isFinite(v)) commitSpun(v);
 }
 // Hold-to-repeat: one immediate fine step, then a pause before repeating (so a single tap never
@@ -239,29 +248,18 @@ function typedPrecision(typed: string): number | undefined {
 function onInput(e: Event) {
   const t = inputFrom(e);
   if (t === null) return;
+  display.value = t.value;
   if (t.value === '') {
-    badEntry.value = t.validity.badInput;
-    display.value = '';
-    if (badEntry.value) return;
+    badEntry.value = false;
     emit('update:modelValue', null);
     return;
   }
-  badEntry.value = false;
-  // A text edit is an InputEvent with an inputType (typing, paste, drop); a spinner step is not.
-  const textEdit = typing.value || (e instanceof InputEvent && e.inputType !== '');
-  const native = parseFloat(t.value);
-  const prev = parseFloat(display.value);
-  // A spinner step: the browser's value gives only the direction; the rule gives the value.
-  const v = !textEdit && isFinite(native) && isFinite(prev) && native !== prev
-    ? spinValue(display.value, native > prev ? 1 : -1, spinRule.value, {min: dispMin.value, max: dispMax.value}, pressSpeed)
-    : native;
-  if (textEdit || !isFinite(v)) {
-    display.value = t.value;
-    const typed = fromDisp(v);
-    if (valid(typed)) emit('update:modelValue', typed, typedPrecision(t.value));
-    return;
-  }
-  commitSpun(v);
+  badEntry.value = !NUMBER_SHAPE.test(t.value);
+  const v = numberOf(t.value);
+  badEntry.value = badEntry.value || !isFinite(v);   // a lone "-" or "." is not a number yet, and says so
+  if (badEntry.value) return;
+  const typed = fromDisp(v);
+  if (valid(typed)) emit('update:modelValue', typed, typedPrecision(t.value.replace(',', '.')));
 }
 
 /** Shows and stores a stepped value `v` (display units). */
@@ -296,9 +294,9 @@ const refusal = computed<string>(() => {
   if (props.allowOutOfRange) return '';
   if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
   if (display.value === '' && props.blankRefused) return entryRefusal(bounds.value, { kind: 'not-a-number' });
-  if (display.value === '' || display.value === '-') return '';
+  if (display.value === '' || !isFinite(numberOf(display.value))) return '';
   if (display.value === fmt(props.modelValue)) return '';
-  return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(parseFloat(display.value)) });
+  return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(numberOf(display.value)) });
 });
 watch(refusal, text => emit('refusal', text));
 
@@ -325,13 +323,14 @@ const spinRule = computed<SpinRule>(() => {
   if (typeof props.precision === 'number') return decimalsSpinRule(props.precision);
   return shownSpinRule(display.value);
 });
-const stepAttr = computed<string>(() => props.step !== 'any' ? props.step : spinStepAttr(display.value, spinRule.value));
+/** A phone keyboard with a minus where the value can be negative, the decimal pad otherwise. */
+const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 'decimal');
 </script>
 
 <template>
-  <input ref="inputEl" v-bind="$attrs" type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
+  <input ref="inputEl" v-bind="$attrs" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
     :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
-    @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
+    @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @input="onInput" @blur="onBlur">
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"

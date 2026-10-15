@@ -16,7 +16,7 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-modal select option')).toHaveCount(9);
     const selectorWidth = await page.locator('.alignment-modal select').evaluate(element => element.getBoundingClientRect().width);
     expect(selectorWidth).toBeGreaterThan(300);
-    await expect(page.locator('.alignment-modal input[type="number"]')).toHaveValue(/^\d+\.\d{2}$/);
+    await expect(page.locator('.alignment-modal input[data-numinput], .alignment-modal input[type="number"]')).toHaveValue(/^\d+\.\d{2}$/);
     await expect(page.locator('.alignment-readout')).toContainText(/Either sealed or vented|Suitability unavailable/);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('.alignment-modal')).toBeHidden();
@@ -53,7 +53,7 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-modal select option')).toHaveCount(5);
     // Volume/tuning are read-only readouts here (no closestAlignment reverse lookup for vented,
     // unlike sealed's editable Volume field) — just check both are present.
-    await expect(page.locator('.alignment-modal input[type="number"]')).toHaveCount(2);
+    await expect(page.locator('.alignment-modal input[data-numinput], .alignment-modal input[type="number"]')).toHaveCount(2);
     await expect(page.locator('.alignment-readout')).toContainText(/Either sealed or vented|Suitability unavailable/);
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('.alignment-modal')).toBeHidden();

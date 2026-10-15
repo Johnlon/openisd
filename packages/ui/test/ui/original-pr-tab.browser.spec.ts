@@ -299,7 +299,7 @@ test.describe('Original Passive Radiator tab data quality', () => {
   }
 
   /** The Box tab's rear-chamber Volume input (the PR box stores it on `passiveRadiator.volume_m3`). */
-  const VOLUME_INPUT = '.box-fields-col .field:has(label:text("Volume")) input[type=number]';
+  const VOLUME_INPUT = '.box-fields-col .field:has(label:text("Volume")) input[data-numinput]';
 
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(([key, json]) => {

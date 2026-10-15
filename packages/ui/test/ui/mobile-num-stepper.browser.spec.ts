@@ -3,12 +3,10 @@
  * space"; wants touch step buttons next to the value, Box/Enclosure/Signal/Advanced tabs — side
  * by side, 2026-10-02: "wide beside, not above" — value, then ▲▼, then the unit).
  *
- * The buttons drive the native input's own `stepUp()`/`stepDown()` against the SAME `step`/
- * `min`/`max` the keyboard arrows already use (NumInput.vue's `stepAttr`), then dispatch the
- * same `input` event `onKeydown`'s ArrowUp/ArrowDown path produces — there is no second
- * rounding/step implementation to prove separately, so this spec proves EQUIVALENCE (a button
- * click and an arrow-key press move the value by the identical amount), not a step formula of
- * its own.
+ * The buttons step by the design rule (`spinValue`) from the value shown. A key press steps at the
+ * caret (num-input-caret spec); with the caret at the far left of this value it steps the same
+ * amount, so this spec proves EQUIVALENCE (a button click and an arrow-key press move the value by
+ * the identical amount), not a step formula of its own.
  *
  * Run at phone width (412×900), not just the forced mobile skin — the touch-target assertion
  * needs the real narrow layout, not a wide window with the mobile skin switched on.
