@@ -78,6 +78,21 @@ export class DriveEmulator {
     this.files.set(id, {id, name, revision: 1, appProperties: {...appProperties}, body, changedAt: this.changeCounter++});
   }
 
+  /** Another device saves a new version of the first file whose name starts with `prefix`: the
+   *  body `edit` returns, a new head revision whose parent is the old one, and the device's name. */
+  editAsDevice(prefix: string, edit: (body: string) => string, device: string): void {
+    const file = [...this.files.values()].find(f => f.name.startsWith(prefix));
+    if (file === undefined) throw new Error(`driveEmulator: no file named ${prefix}…`);
+    const seq = Number(file.appProperties['seq'] ?? '0') + 100;
+    file.appProperties = {
+      ...file.appProperties,
+      parentRevision: `rev-${file.revision}`, seq: String(seq), writer: `dev-${device}`, device, hash: `edited-on-${device}`,
+    };
+    file.body = edit(file.body);
+    file.revision++;
+    file.changedAt = this.changeCounter++;
+  }
+
   readonly fetch: typeof fetch = async (input, init) => {
     const url = urlOf(input);
     const method = init?.method ?? 'GET';

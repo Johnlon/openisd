@@ -48,6 +48,7 @@ import {
 } from '@openisd/persistence';
 import {DeviceName, cloudSyncReportLines, cloudSyncSummary, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
+import {followPulledProjects} from './logic/pulledProjects.js';
 import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
@@ -350,6 +351,13 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       random: randomBytes,
       now: Date.now,
       deviceName,
+      projectsPulled: pulled => void followPulledProjects({
+        appState,
+        projectRepo,
+        keptBoth: (copyId, name, item, otherDevice) => wiring.cloudSync.projectKeptBoth(copyId, name, item, otherDevice),
+        deviceName,
+        now: Date.now,
+      }, pulled),
     });
 
     saves.listen(() => wiring.scheduler.onSave());

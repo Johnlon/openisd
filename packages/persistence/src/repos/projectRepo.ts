@@ -73,6 +73,8 @@ export interface ProjectRepo {
   saveToNewFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult>;
   /** Save the committed project to browser storage. View state has its own repository/key. */
   saveToStorage(project: OpenISDProject): StorageSaveResult;
+  /** Save `project` to browser storage as the stored project `id` (a new id makes a new entry). */
+  saveToStorageAs(project: OpenISDProject, id: string): StorageSaveResult;
   /** Imports projects from an archive, merging by unique name. */
   importArchive(imported: readonly OpenISDProject[]): { added: number };
   /** Restore the committed project from browser storage, or return null when none exists. */
@@ -499,6 +501,31 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   migrateOpenSessions();
   migrateAutosaveState();
 
+  function saveToStorage(project: OpenISDProject): StorageSaveResult {
+    const entries = readStoredEntries();
+    const existing = entries.find(e => {
+      const name = projectNameOf(e.text);
+      return name !== null && name === project.name.value;
+    });
+    const id = storedIdentity.get(project) ?? existing?.id ?? project.uuid();
+    const now = Math.max(Date.now(), lastSavedAt + 1);
+    lastSavedAt = now;
+    const entry: StoredProjectEntry = { id, text: project.toStoredText(), modified: new Date(now).toISOString() };
+    
+    try {
+      writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
+      if (!backup.write(PROJECT_STORAGE_KEY, entry.text)) {
+        throw new Error('browser storage is full');
+      }
+    } catch (e) {
+      return { kind: 'failed', reason: String(e) };
+    }
+    
+    storedIdentity.set(project, id);
+    onSaved();
+    return { kind: 'saved' };
+  }
+
   return {
     storeAddress,
     storeLabel: `Projects saved in this browser at ${storeAddress}`,
@@ -546,31 +573,13 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         naming.suggestedName, naming.mime, naming.label, naming.ext);
     },
 
-    saveToStorage(project: OpenISDProject): StorageSaveResult {
-      const entries = readStoredEntries();
-      const existing = entries.find(e => {
-        const name = projectNameOf(e.text);
-        return name !== null && name === project.name.value;
-      });
-      const id = storedIdentity.get(project) ?? existing?.id ?? project.uuid();
-      const now = Math.max(Date.now(), lastSavedAt + 1);
-      lastSavedAt = now;
-      const entry: StoredProjectEntry = { id, text: project.toStoredText(), modified: new Date(now).toISOString() };
-      
-      try {
-        writeStoredEntries([entry, ...entries.filter(candidate => candidate.id !== id)]);
-        if (!backup.write(PROJECT_STORAGE_KEY, entry.text)) {
-          throw new Error('browser storage is full');
-        }
-      } catch (e) {
-        return { kind: 'failed', reason: String(e) };
-      }
-      
+    saveToStorage,
+
+    saveToStorageAs(project: OpenISDProject, id: string): StorageSaveResult {
       storedIdentity.set(project, id);
-      onSaved();
-      return { kind: 'saved' };
+      return saveToStorage(project);
     },
-    
+
     importArchive(imported: readonly OpenISDProject[]): { added: number } {
       const entries = readStoredEntries();
       const existingNames = entries.map(e => projectNameOf(e.text)).filter((n): n is string => n !== null);

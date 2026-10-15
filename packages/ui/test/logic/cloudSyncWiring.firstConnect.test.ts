@@ -3,7 +3,7 @@
  * connected reaches Drive, and a second device that connects later pulls it.
  */
 import {describe, expect, it, vi} from 'vitest';
-import {createCloudSyncWiring} from '../../src/logic/cloudSyncWiring.js';
+import {createCloudSyncWiring, type PulledProject} from '../../src/logic/cloudSyncWiring.js';
 import {
   createMemoryStorage,
   type LayoutRules,
@@ -52,6 +52,8 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
   const binMarks = createProjectBinMarks(storage, backup);
   const projectBin = createProjectBin({projects: projectRepo, marks: binMarks, backup, device: () => deviceName.text, now: () => NOW, onSaved: () => undefined});
 
+  const pulled: PulledProject[] = [];
+
   function connect() {
     storage.set(OPENISD_CLOUD_AUTH_KEY, JSON.stringify({kind: 'token', accessToken: 'tok', expiresAt_ms: NOW + 3_600_000, account: 'john@example.com'}));
     return createCloudSyncWiring({
@@ -73,6 +75,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
       random: () => new Uint8Array(16).fill(fill),
       now: () => NOW,
       deviceName,
+      projectsPulled: p => { pulled.push(...p); },
     });
   }
 
@@ -84,7 +87,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
     expect(saved).not.toHaveProperty('error');
   }
 
-  return {engine, storage, projectRepo, projectBin, connect, saveProject};
+  return {engine, storage, projectRepo, projectBin, connect, saveProject, pulled};
 }
 
 describe('cloud sync first connect', () => {
@@ -105,6 +108,31 @@ describe('cloud sync first connect', () => {
     expect(phoneRun.kind).toBe('synced');
     expect(phone.projectRepo.listStoredProjects().map(p => p.name)).toEqual(['Sub 12']);
     expect(phone.storage.get(OPENISD_MY_DRIVERS_KEY)).toContain('Peerless');
+  });
+
+  it('a pulled edit to a saved project is handed over when the run ends, naming the device it came from', async () => {
+    const drive = new DriveEmulator();
+    const desktop = deviceOn(drive, 1);
+    desktop.saveProject('Sub 12');
+    const desktopSync = desktop.connect();
+    await desktopSync.scheduler.syncNow();
+    const phoneUa = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1';
+    const phone = deviceOn(drive, 2, phoneUa);
+    const phoneSync = phone.connect();
+    await phoneSync.scheduler.syncNow();
+    expect(phone.pulled).toEqual([]);
+
+    const [saved] = phone.projectRepo.listStoredProjects();
+    const id = saved?.id ?? '';
+    const project = phone.projectRepo.loadStoredProject(id);
+    if (Array.isArray(project)) throw new Error('the pulled project does not load');
+    project.portVelocityLimit_m_per_s.set(25);
+    project.save();
+    expect(phone.projectRepo.saveToStorage(project).kind).toBe('saved');
+    await phoneSync.scheduler.syncNow();
+
+    await desktopSync.scheduler.syncNow();
+    expect(desktop.pulled).toEqual([{id, from: DeviceName.ofBrowser(phoneUa, 0).text}]);
   });
 
   it('Delete on one device removes the project from the other device after both sync', async () => {

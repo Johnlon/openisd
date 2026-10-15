@@ -77,6 +77,7 @@ function createWiringHarness() {
     random: () => new Uint8Array(16).fill(7),
     now: () => 0,
     deviceName: DeviceName.ofBrowser('', 0),
+    projectsPulled: () => undefined,
   });
 
   return {

@@ -27,7 +27,7 @@ const RULES: LayoutRules = { layout: 2, steps: LAYOUT_STEPS };
 function setup(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);
   const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
-  const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW, binned: () => false, restoredFromBin: () => undefined });
+  const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW, binned: () => false, restoredFromBin: () => undefined, replaced: () => undefined });
   return { storage, repo, bucket };
 }
 
@@ -132,7 +132,7 @@ describe('projectDocs', () => {
     };
     const storage = createQuotaStorage(JSON.stringify(seed).length + 20, seed);
     const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
-    const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW, binned: () => false, restoredFromBin: () => undefined });
+    const bucket = createProjectDocs({ repo, rules: RULES, now: () => FIXED_NOW, binned: () => false, restoredFromBin: () => undefined, replaced: () => undefined });
 
     const putRes = bucket.put({
       id: { kind: 'project', uuid: 'p-1' },

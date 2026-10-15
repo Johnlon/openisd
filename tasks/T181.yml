@@ -1,0 +1,24 @@
+id: T181
+release_note: 'A project open in the workspace now shows what cloud sync brought from another device without being reopened; unsaved edits are never overwritten, they are kept as a conflict copy.'
+repo: openisd
+owner: maryu
+status: done
+goal: Bug: a sync pull that changes the open project refreshes the open session in place; unsaved local edits are kept and a conflict copy raised
+done_test: bash scripts/test.sh packages/ui/test/logic/pulledProjects.test.ts packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts packages/persistence/test/cloud/docs/projectDocs.test.ts
+files:
+  - tasks/T181.yml
+  - packages/persistence/src/cloud/cloudSync.ts
+  - packages/persistence/src/cloud/docs/projectDocs.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/cloud/docs/projectDocs.test.ts
+  - packages/persistence/test/cloud/ledgerFollowsRewrite.test.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/fixtures/driveEmulator.ts
+  - packages/ui/test/logic/cloudSyncWiring.firstConnect.test.ts
+  - packages/ui/test/logic/cloudSyncWiring.test.ts
+  - packages/ui/src/logic/pulledProjects.ts
+  - packages/ui/test/logic/pulledProjects.test.ts
+  - packages/ui/test/ui/cloud-pull-open-project.browser.spec.ts
+  - bugs/BUG_20261015_synced-open-project-does-not-refresh.md

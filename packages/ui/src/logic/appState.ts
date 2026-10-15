@@ -184,6 +184,11 @@ export interface AppState {
   addProject(project: OpenISDProject): void;
   openProjectByIdentity(identity: OpenProjectIdentity): OpenISDProject | null;
   openProjectOnce(project: OpenISDProject, identity: OpenProjectIdentity): OpenISDProject;
+  /** Put `fresh` where `open` is, keeping its place, focus, identity, trace colour and visibility:
+   *  the open project now shows what was saved under its name elsewhere. */
+  replaceOpenProject(open: OpenISDProject, fresh: OpenISDProject): void;
+  /** Record that `project` is now the stored project `identity` names (it was saved as a copy). */
+  setOpenIdentity(project: OpenISDProject, identity: OpenProjectIdentity): void;
   restoreProjects(restored: OpenISDProject[], requestedFocus: number, traceHidden: ReadonlySet<OpenISDProject>): void;
   requireFocusedProject(): OpenISDProject;
   duplicateFocusedProject(newName: string): void;
@@ -395,6 +400,24 @@ export function createAppState(deps: AppStateDeps): AppState {
     addProject(project);
     recordOpen(identity.kind, project);
     return project;
+  }
+
+  function replaceOpenProject(open: OpenISDProject, fresh: OpenISDProject): void {
+    const index = projects.value.indexOf(open);
+    if (index < 0) return;
+    open.cancelWhatIf();
+    const identity = openIdentities.get(open);
+    if (identity !== undefined) openIdentities.set(fresh, identity);
+    const colour = open.traceColor.value;
+    if (fresh.traceColor.value === null && colour !== null) fresh.stampTraceColor(colour);
+    setTraceVisible(fresh, isTraceVisible(open));
+    const next = projects.value.slice();
+    next[index] = fresh;
+    projects.value = next;
+  }
+
+  function setOpenIdentity(project: OpenISDProject, identity: OpenProjectIdentity): void {
+    openIdentities.set(project, identity);
   }
 
   /** Replace the open-project registry with a refresh-restored session; `traceHidden` are the
@@ -893,7 +916,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     differenceCuesShown, setDifferenceCuesShown, ventedLimits, setVentedLimits, envDefaults, setEnvDefaults,
     engine, appContext,
     openProjects, focusedProject, focusProject, removeProject, addProject, openProjectByIdentity,
-    openProjectOnce, restoreProjects, requireFocusedProject, duplicateFocusedProject,
+    openProjectOnce, replaceOpenProject, setOpenIdentity, restoreProjects, requireFocusedProject, duplicateFocusedProject,
     driverName, projectDisplayName, projectHasUnsavedChanges, openDriverPicker, syncedP,
     curvesData: curves, maxData: max, paramIssues, allIssues, isModified, markProjectSaved,
     resetProjectToGround, newProject, boxTypeIsSimulatable, IMPLEMENTED_BOX_TYPES,

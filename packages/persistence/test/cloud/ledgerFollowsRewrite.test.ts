@@ -64,7 +64,7 @@ function syncedStore(texts: Readonly<Record<string, string>>): {storage: Listabl
 
 /** The projects this device would push: no ledger row, or a row whose hash is not the text's. */
 function pendingProjects(storage: ListableStorage, ledger: SyncLedger): number {
-  const docs = createProjectDocs({repo: projectRepoOn(createEngine(), noFiles, storage, 'http://localhost'), rules: APP_RULES, now: () => 0, binned: () => false, restoredFromBin: () => undefined});
+  const docs = createProjectDocs({repo: projectRepoOn(createEngine(), noFiles, storage, 'http://localhost'), rules: APP_RULES, now: () => 0, binned: () => false, restoredFromBin: () => undefined, replaced: () => undefined});
   const read = docs.list();
   if (read.kind !== 'ok') throw new Error('unreadable');
   return read.docs.filter(doc => ledger.row(doc.id)?.hash.toString() !== bodyHashOf(doc.body)?.toString()).length;

@@ -1,4 +1,4 @@
-import { CLOUD_SYNC_EVENTS_KEPT, type CloudAttempt, type CloudAttemptOutcome, type CloudFault, type CloudFaultRecord, type CloudSyncEvent, type CloudSyncReport, type ConflictCopy, type SyncStatus } from '@openisd/design/cloud';
+import { ProjectId, CLOUD_SYNC_EVENTS_KEPT, type CloudAttempt, type CloudAttemptOutcome, type CloudFault, type CloudFaultRecord, type CloudSyncEvent, type CloudSyncReport, type ConflictCopy, type SyncStatus } from '@openisd/design/cloud';
 import type { CloudSession } from './cloudStore.js';
 import type { SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine } from './syncRun.js';
@@ -22,6 +22,9 @@ export interface CloudSync {
   accountRefused(fault: CloudFault): void;
   /** A pulled edit took project `name` out of the Bin; `editedOn` names the device. */
   restoredFromBin(name: string, editedOn: string): void;
+  /** An open project held edits a pull would have replaced: they were saved as copy `copyId`,
+   *  named `name`; `item` is the project's own name and `otherDevice` the device the pull came from. */
+  projectKeptBoth(copyId: string, name: string, item: string, otherDevice: string): void;
   /** The grant, the last run, the pending count and the last fault (kept until a run succeeds). */
   diagnostics(): CloudSyncReport;
 }
@@ -266,6 +269,14 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     },
     restoredFromBin: (name, editedOn) => {
       record({ kind: 'restoredFromBin', at_ms: clock(), name, editedOn });
+      notify();
+    },
+    projectKeptBoth: (copyId, name, item, otherDevice) => {
+      const id = ProjectId.of(copyId);
+      if (id === null) return;
+      const copy: ConflictCopy = { id, name, item, otherDevice, from: deps.ledger.deviceId(), at_ms: clock() };
+      deps.ledger.addConflict(copy);
+      record({ kind: 'keptBoth', at_ms: copy.at_ms, copy });
       notify();
     },
     runStarted: () => {

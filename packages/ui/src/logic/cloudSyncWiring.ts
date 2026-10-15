@@ -108,6 +108,14 @@ export interface CloudSyncWiringDeps {
   readonly random: () => Uint8Array;
   readonly now: () => number;
   readonly deviceName: DeviceName;
+  /** Told after each run of the saved projects its pulls replaced, so open ones can follow. */
+  readonly projectsPulled: (pulled: readonly PulledProject[]) => void;
+}
+
+/** A saved project a pull replaced, and the device that saved what replaced it ('' when unknown). */
+export interface PulledProject {
+  readonly id: string;
+  readonly from: string;
 }
 
 export interface CloudSyncWiring {
@@ -148,12 +156,15 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
 
   // Built after the engine; the engine's progress and the project docs' events reach it through this.
   let cloudSync: CloudSync | null = null;
+  // Handed over when the run ends, not during it: following them writes to the store.
+  let pulled: PulledProject[] = [];
   const projectDocs = createProjectDocs({
     repo: deps.projectRepo,
     rules: deps.rules,
     now,
     binned: id => deps.projectBin.isBinned(id),
     restoredFromBin: (name, editedOn) => cloudSync?.restoredFromBin(name, editedOn),
+    replaced: (id, from) => { pulled = [...pulled.filter(p => p.id !== id), {id, from}]; },
   });
   const binMarkDocs = createBinMarkDocs({marks: deps.binMarks, rules: deps.rules});
 
@@ -223,6 +234,10 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     visible,
     onOutcome: (outcome: RunOutcome) => {
       cloudSync?.onOutcome(outcome);
+      if (pulled.length === 0) return;
+      const handed = pulled;
+      pulled = [];
+      deps.projectsPulled(handed);
     },
     debounce_ms: 3000,
     focusGap_ms: 30000,
