@@ -1,7 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {cloudSyncReportLines, cloudSyncSummary, type CloudAttemptOutcome, type CloudSyncReport} from '../../cloud/cloudSyncReport.js';
-import {formatClock, formatDateTime, formatTime} from '../../fields/format.js';
-import {DeviceId, DriverId} from '../../cloud/syncStatus.js';
+import {formatDateTime, formatTime} from '../../fields/format.js';
 
 const AT_MS = Date.UTC(2026, 9, 14, 11, 0, 0);
 const AT = formatDateTime(new Date(AT_MS));
@@ -9,16 +8,21 @@ const END_MS = AT_MS + 90_000;
 const END = formatTime(new Date(END_MS));
 
 describe('cloudSyncReportLines', () => {
-  it('an item kept twice is named: its kind, its name, the other device and the copy', () => {
-    const id = DriverId.of('d-2');
-    const from = DeviceId.of('dev-1');
-    if (id === null || from === null) throw new Error('fixture ids');
-    const copy = {id, name: 'W5-1138SMF (conflict, 14 Oct 2026, Windows PC)', item: 'W5-1138SMF', otherDevice: 'iPhone', from, at_ms: AT_MS};
+  it('names each item a run moved, in place of the counts; "run ended: synced" stays its own line', () => {
+    const at = (m: number) => new Date(2026, 9, 14, 14, 56, m).getTime();
     const lines = cloudSyncReportLines({
       grant: {kind: 'none'}, lastAttempt: null, pendingChanges: 0, lastFault: null, accountFault: null,
-      events: [{kind: 'keptBoth', at_ms: AT_MS, copy}],
+      events: [
+        {kind: 'ended', at_ms: at(3), outcome: {kind: 'synced', left: 0, removedDuplicates: 0}},
+        {kind: 'activity', at_ms: at(2), activity: {kind: 'keptBoth', at_ms: at(2), item: 'driver', name: 'W5-1138SMF', copyName: 'W5-1138SMF (conflict, 14 Oct 2026, Windows PC)', device: 'iPhone'}},
+        {kind: 'activity', at_ms: at(1), activity: {kind: 'moved', at_ms: at(1), direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: ''}},
+      ],
     });
-    expect(lines).toContain(`    ${formatClock(new Date(AT_MS))} Driver "W5-1138SMF" kept both: yours and the copy from iPhone; yours is "W5-1138SMF (conflict, 14 Oct 2026, Windows PC)"`);
+    expect(lines.slice(-3)).toEqual([
+      '    14:56:03 run ended: synced',
+      '    14:56:02 ⇅ Driver "W5-1138SMF" kept both: yours and the copy from iPhone; yours is "W5-1138SMF (conflict, 14 Oct 2026, Windows PC)"',
+      '    14:56:01 ↑ Project "Sub 12" sent',
+    ]);
   });
 
   it('says cloud sync is off when this window has none', () => {
@@ -123,9 +127,9 @@ describe('cloudSyncReportLines', () => {
       cloudSyncReportLines({
         grant: {kind: 'none'}, lastAttempt: {kind: 'ended', started_ms: AT_MS, ended_ms: END_MS, outcome}, pendingChanges: 0, lastFault: null, accountFault: null, events: [],
       })[2] ?? '';
-    expect(lineFor({kind: 'synced', pulled: 1, pushed: 2, left: 0, removedDuplicates: 0})).toBe(`  last attempt: started ${AT}, ended ${END}, synced, 1 pulled, 2 pushed`);
-    expect(lineFor({kind: 'synced', pulled: 0, pushed: 0, left: 2, removedDuplicates: 0})).toBe(`  last attempt: started ${AT}, ended ${END}, synced, 0 pulled, 0 pushed, 2 left`);
-    expect(lineFor({kind: 'synced', pulled: 0, pushed: 0, left: 0, removedDuplicates: 3})).toBe(`  last attempt: started ${AT}, ended ${END}, synced, 0 pulled, 0 pushed, removed 3 duplicate copies`);
+    expect(lineFor({kind: 'synced', left: 0, removedDuplicates: 0})).toBe(`  last attempt: started ${AT}, ended ${END}, synced`);
+    expect(lineFor({kind: 'synced', left: 2, removedDuplicates: 0})).toBe(`  last attempt: started ${AT}, ended ${END}, synced, 2 left`);
+    expect(lineFor({kind: 'synced', left: 0, removedDuplicates: 3})).toBe(`  last attempt: started ${AT}, ended ${END}, synced, removed 3 duplicate copies`);
     expect(lineFor({kind: 'stopped', reason: 'quota', pushedSoFar: 4})).toBe(`  last attempt: started ${AT}, ended ${END}, stopped: Drive quota, 4 pushed`);
     expect(lineFor({kind: 'notConnected'})).toBe(`  last attempt: started ${AT}, ended ${END}, not connected`);
     expect(lineFor({kind: 'refused', reason: 'noRoom', copyChars: 900, storeChars: 4000})).toBe(`  last attempt: started ${AT}, ended ${END}, refused: no room in this browser for the backup (copy 900 chars, store held 4000 chars)`);

@@ -450,6 +450,21 @@ describe('syncLedger', () => {
       expect(ledger2.nextSeq()).toBe(8);
     });
   });
+
+  describe('activity and names', () => {
+    it('the activity list and each doc\'s last name survive a reload; a ledger without them reads as empty', () => {
+      const before = createSyncLedger({ storage, random: () => new Uint8Array(16) });
+      expect(before.activity()).toEqual([]);
+      expect(before.nameOf(makeDocId('project', 'p-1'))).toBe('');
+      before.addActivity([{ kind: 'moved', at_ms: 1, direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: '' }]);
+      before.rememberNames([[makeDocId('project', 'p-1'), 'Sub 12'], [makeDocId('driver', 'd-1'), '']]);
+
+      const after = createSyncLedger({ storage, random: () => new Uint8Array(16) });
+      expect(after.activity()).toEqual([{ kind: 'moved', at_ms: 1, direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: '' }]);
+      expect(after.nameOf(makeDocId('project', 'p-1'))).toBe('Sub 12');
+      expect(after.nameOf(makeDocId('driver', 'd-1'))).toBe('');
+    });
+  });
 });
 describe('relistOnce', () => {
   it('drops the change cursor once, so the next run lists every Drive file; later calls keep it', async () => {

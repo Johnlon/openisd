@@ -4,6 +4,16 @@ export type {
 } from './syncStatus.js';
 
 export {
+  parseSyncActivity,
+  SYNC_ACTIVITY_KEPT,
+  type KeptKind,
+  type SyncActivity,
+  syncActivityLine,
+  syncActivityText,
+  withActivity,
+} from './syncActivity.js';
+export {
+  conflictKind,
   conflictKeptText,
   conflictKindWord,
   DeviceId,

@@ -16,6 +16,7 @@ import {
   type CloudError,
   cloudFaultOf,
   type ConflictCopy,
+  type SyncActivity,
   decideDocSync,
   shouldPurgeTombstone,
 } from '@openisd/design/cloud';
@@ -102,6 +103,8 @@ interface PlannedLocalRemove {
   readonly kind: 'removeLocal';
   readonly bucket: LocalDocs;
   readonly id: DocId;
+  /** The device that deleted it ('' when Drive did not say). */
+  readonly from: string;
 }
 
 interface PlannedConflict {
@@ -167,14 +170,36 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   }
 
   async function run(): Promise<RunOutcome> {
-    /** Items kept twice by this run, for the run's outcome. */
-    const keptBoth: ConflictCopy[] = [];
     function noteKept(copy: KeptCopy, otherDevice: string): void {
       const id = toConflictCopyId(copy.id);
       if (id === null) return;
-      const conflict: ConflictCopy = { id, name: copy.name, item: copy.item, otherDevice, from: deps.ledger.deviceId(), at_ms: deps.now() };
+      const at_ms = deps.now();
+      const conflict: ConflictCopy = { id, name: copy.name, item: copy.item, otherDevice, from: deps.ledger.deviceId(), at_ms };
       deps.ledger.addConflict(conflict);
-      keptBoth.push(conflict);
+      const item = copy.id.kind;
+      if (item === 'project' || item === 'driver' || item === 'pr') {
+        deps.progress.moved({ kind: 'keptBoth', at_ms, item, name: copy.item, copyName: copy.name, device: otherDevice });
+      }
+    }
+
+    /** Each local doc's name, by doc key, as this run found or wrote it. */
+    const localNames = new Map<string, string>();
+    /** A project's name, for its Bin mark: as this run knows it, else as last remembered. */
+    function projectName(uuid: string): string {
+      const id: DocId = { kind: 'project', uuid };
+      return localNames.get(docIdKey(id)) ?? deps.ledger.nameOf(id);
+    }
+    function nameOf(bucket: LocalDocs, doc: LocalDoc): string {
+      return doc.id.kind === 'projectBin' ? projectName(doc.id.uuid) : bucket.nameOf(doc);
+    }
+    /** The name of a doc that may be gone here: as this run found it, else as last remembered. */
+    function goneName(id: DocId): string {
+      if (id.kind === 'projectBin') return projectName(id.uuid);
+      return localNames.get(docIdKey(id)) ?? deps.ledger.nameOf(id);
+    }
+    function moved(direction: 'up' | 'down', change: 'saved' | 'deleted', id: DocId, name: string, device: string): void {
+      const activity: SyncActivity = { kind: 'moved', at_ms: deps.now(), direction, change, item: id.kind, name, device };
+      deps.progress.moved(activity);
     }
 
     deps.progress.started();
@@ -290,6 +315,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       if (read.kind === 'ok') {
         for (const doc of read.docs) {
           localDocs.set(docIdKey(doc.id), doc);
+          if (doc.id.kind !== 'projectBin') localNames.set(docIdKey(doc.id), bucket.nameOf(doc));
         }
       }
     }
@@ -460,6 +486,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
             kind: 'removeLocal',
             bucket,
             id,
+            from: remoteMeta?.device ?? '',
           });
           break;
 
@@ -543,15 +570,21 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     }
 
     function applyLocalWrites(): void {
+      // Named first, so a Bin mark pulled with its project is named by the project.
+      for (const w of plannedLocalWrites) {
+        if (w.doc.id.kind !== 'projectBin') localNames.set(docIdKey(w.doc.id), w.bucket.nameOf(w.doc));
+      }
       for (const w of plannedLocalWrites) {
         w.bucket.put(w.doc, w.from);
         deps.ledger.set({ ...w.row, hash: storedHashOf(w.bucket, w.doc.id) ?? w.row.hash });
         pulledCount++;
+        moved('down', 'saved', w.doc.id, nameOf(w.bucket, w.doc), w.from);
       }
       for (const r of plannedLocalRemoves) {
         r.bucket.remove(r.id);
         deps.ledger.drop(r.id);
         pulledCount++;
+        moved('down', 'deleted', r.id, goneName(r.id), r.from);
       }
       for (const c of plannedConflicts) {
         // Remote wins the original id
@@ -617,6 +650,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         });
         pushedCount++;
         deps.progress.pushed(pushedCount);
+        moved('up', 'saved', push.docId, nameOf(push.bucket, { id: push.docId, body: push.body, layout: deps.layout }), '');
       }
     }
     await Promise.all(Array.from({ length: Math.min(CREATE_CONCURRENCY, creates.length) }, createWorker));
@@ -669,7 +703,8 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
             if (push.docId.kind === 'settings' || push.docId.kind === 'favourites' || push.docId.kind === 'projectBin') {
               // One version wins: higher seq wins
               if (res.head.seq > meta.seq || (res.head.seq === meta.seq && res.head.writer > meta.writer)) {
-                push.bucket.put({ id: push.docId, body: headRead.value.body, layout: deps.layout }, res.head.device);
+                const pulledDoc: LocalDoc = { id: push.docId, body: headRead.value.body, layout: deps.layout };
+                push.bucket.put(pulledDoc, res.head.device);
                 deps.ledger.set({
                   id: push.docId,
                   fileId: res.head.fileId,
@@ -678,6 +713,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                   seq: res.head.seq,
                 });
                 pulledCount++;
+                moved('down', 'saved', push.docId, nameOf(push.bucket, pulledDoc), res.head.device);
               } else {
                 // Retry push with expected revision = head
                 const retryRes = await deps.cloud.update(push.fileId, res.head.revision, push.body, {
@@ -694,6 +730,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                   });
                   pushedCount++;
                   deps.progress.pushed(pushedCount);
+                  moved('up', 'saved', push.docId, nameOf(push.bucket, { id: push.docId, body: push.body, layout: deps.layout }), '');
                 }
               }
             } else {
@@ -745,6 +782,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
                 if (createRes.kind === 'ok') {
                   pushedCount++;
                   deps.progress.pushed(pushedCount);
+                  moved('up', 'saved', copyRes.id, copyRes.name, '');
                 }
               }
             }
@@ -761,6 +799,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           });
           pushedCount++;
           deps.progress.pushed(pushedCount);
+          moved('up', 'saved', push.docId, nameOf(push.bucket, { id: push.docId, body: push.body, layout: deps.layout }), '');
         }
       } else {
         const meta: WriteMeta = {
@@ -783,6 +822,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           deps.ledger.drop(push.docId);
           pushedCount++;
           deps.progress.pushed(pushedCount);
+          moved('up', 'deleted', push.docId, goneName(push.docId), '');
         }
       }
     }
@@ -798,7 +838,15 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       }
     }
 
-    // 6. Update cursor
+    // 6. Remember each doc's name, so a later deletion is named.
+    const named: (readonly [DocId, string])[] = [];
+    for (const id of [...[...localDocs.values()].map(d => d.id), ...plannedLocalWrites.map(w => w.doc.id)]) {
+      const name = localNames.get(docIdKey(id));
+      if (name !== undefined) named.push([id, name]);
+    }
+    deps.ledger.rememberNames(named);
+
+    // 7. Update cursor
     if (newCursor !== null) {
       deps.ledger.setCursor(newCursor);
     }
@@ -817,7 +865,6 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       pulled: pulledCount,
       pushed: pushedCount,
       conflicts: deps.ledger.conflicts(),
-      keptBoth,
       held: heldCount,
       left: countPendingLocal(),
       removedDuplicates,

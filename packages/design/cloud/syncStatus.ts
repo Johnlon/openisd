@@ -1,4 +1,5 @@
 import type {CloudFault} from './cloudTypes.js';
+import {type KeptKind, keptBothText, keptKindWord} from './syncActivity.js';
 export class DeviceId {
   private declare readonly brand: 'DeviceId';
   private constructor(readonly text: string) {}
@@ -72,15 +73,19 @@ export interface ConflictCopy {
   readonly at_ms: number;
 }
 
+/** The kind of item a conflict copy is. */
+export function conflictKind(id: ConflictCopy['id']): KeptKind {
+  if (id instanceof ProjectId) return 'project';
+  if (id instanceof DriverId) return 'driver';
+  return 'pr';
+}
+
 /** "Driver", "Passive radiator" or "Project": the kind of item a conflict copy is. */
 export function conflictKindWord(id: ConflictCopy['id']): string {
-  if (id instanceof ProjectId) return 'Project';
-  if (id instanceof DriverId) return 'Driver';
-  return 'Passive radiator';
+  return keptKindWord(conflictKind(id));
 }
 
 /** 'Driver "W5-1138SMF" kept both: yours and the copy from iPhone' */
 export function conflictKeptText(c: ConflictCopy): string {
-  const device = c.otherDevice === '' ? 'another device' : c.otherDevice;
-  return `${conflictKindWord(c.id)} "${c.item}" kept both: yours and the copy from ${device}`;
+  return keptBothText(conflictKind(c.id), c.item, c.otherDevice);
 }

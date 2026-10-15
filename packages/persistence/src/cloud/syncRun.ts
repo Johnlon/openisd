@@ -1,5 +1,5 @@
 import type {RoomShortfall} from '../repos/storageBackup.js';
-import type { CloudFault, ConflictCopy } from '@openisd/design/cloud';
+import type { CloudFault, ConflictCopy, SyncActivity } from '@openisd/design/cloud';
 
 export type RunOutcome =
   | {
@@ -7,8 +7,6 @@ export type RunOutcome =
       readonly pulled: number;
       readonly pushed: number;
       readonly conflicts: readonly ConflictCopy[];
-      /** The items this run kept twice. */
-      readonly keptBoth: readonly ConflictCopy[];
       readonly held: number;
       /** Local changes still not on Drive after the run. */
       readonly left: number;
@@ -52,4 +50,6 @@ export interface SyncEngine {
 export interface SyncProgress {
   started(): void;
   pushed(count: number): void;
+  /** An item went to or came from Drive, or was kept twice. */
+  moved(activity: SyncActivity): void;
 }

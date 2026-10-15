@@ -1,6 +1,7 @@
 import {formatCountOf, formatDateTime, formatTime} from '../fields/format.js';
 import {type ConflictCopy, type SyncStatus, conflictKeptText, conflictKindWord} from './syncStatus.js';
 import {cloudFaultText} from './cloudTypes.js';
+import {type SyncActivity, syncActivityLine} from './syncActivity.js';
 
 export type SyncTone = 'muted' | 'accent' | 'good' | 'warn' | 'bad';
 export type SyncGlyph = 'cloudOff' | 'cloudBusy' | 'cloudDone' | 'cloudSlash' | 'cloudAlert';
@@ -9,6 +10,8 @@ export type SyncTap = 'openDialog' | 'reconnect';
 export interface SyncDisplayInputs {
   readonly status: SyncStatus;
   readonly conflicts: readonly ConflictCopy[];
+  /** What sync moved lately, newest first. */
+  readonly activity: readonly SyncActivity[];
   readonly conflictsSeen: number;
   readonly hintDismissed: boolean;
   readonly launches: number;
@@ -61,6 +64,9 @@ export interface SyncDialogModel {
     readonly title: string;
     readonly sub: string;
   }[];
+  readonly activityHeading: string;
+  /** One line per item moved, newest first: '14:56  ↑ Project "Sub 12" sent'. Empty: no list. */
+  readonly activity: readonly string[];
   readonly disconnectConfirm: {
     readonly title: string;
     readonly body: string;
@@ -322,6 +328,8 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
       title: c.name,
       sub: conflictKeptText(c),
     })),
+    activityHeading: 'Recent activity',
+    activity: inputs.activity.map(syncActivityLine),
     disconnectConfirm: DISCONNECT_CONFIRM,
   };
 

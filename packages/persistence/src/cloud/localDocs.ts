@@ -19,6 +19,9 @@ export interface LocalDocs {
   remove(id: DocId): 'done' | 'refused';
   /** Returns the body in this app's layout, or null when no step reaches it. */
   migrate(doc: LocalDoc): string | null;
+  /** The name a person knows the item by: a project's or driver's name, '' when it has none
+   *  (Options, Favourites and Bin marks are named by what they are, or by their project). */
+  nameOf(doc: LocalDoc): string;
   /** The keep-both copy: a new uuid, a visible name mark. Never called when hashes are equal. */
   putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): KeptCopy | 'refused';
 }

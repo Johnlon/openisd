@@ -84,6 +84,7 @@ export function createProjectDocs(deps: ProjectDocsDeps): LocalDocs {
 
   return {
     kind: 'project',
+    nameOf: doc => projectNameOfBody(doc.body) ?? '',
     list,
     put,
     remove,

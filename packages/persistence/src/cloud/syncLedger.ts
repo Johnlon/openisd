@@ -12,6 +12,10 @@ import {
   PrId,
   ProjectId,
   RevisionId,
+  docFileName,
+  parseSyncActivity,
+  type SyncActivity,
+  withActivity,
 } from '@openisd/design/cloud';
 
 /** Where the ledger is stored; absent on a device that never synced. */
@@ -40,6 +44,11 @@ interface StoredLedger {
   readonly conflicts: readonly StoredConflict[];
   readonly deviceId: string;
   readonly maxSeq: number;
+  /** What sync moved lately, newest first, at most SYNC_ACTIVITY_KEPT. */
+  readonly activity: readonly SyncActivity[];
+  /** The name each synced doc was last known by, by its Drive file name: what a deletion is named by
+   *  once the doc itself is gone. */
+  readonly names: Readonly<Record<string, string>>;
 }
 
 function parseDocId(val: unknown): DocId | null {
@@ -133,12 +142,25 @@ function parseStoredLedger(obj: unknown): StoredLedger | null {
   const maxSeqVal = field(obj, 'maxSeq');
   if (typeof maxSeqVal !== 'number' || !Number.isFinite(maxSeqVal)) return null;
 
+  // A ledger written before the activity list and names has neither.
+  const activityVal = field(obj, 'activity');
+  const activity = Array.isArray(activityVal)
+    ? activityVal.map(parseSyncActivity).filter((a): a is SyncActivity => a !== null)
+    : [];
+  const namesVal = field(obj, 'names');
+  const names: Record<string, string> = {};
+  if (typeof namesVal === 'object' && namesVal !== null && !Array.isArray(namesVal)) {
+    for (const [key, value] of Object.entries(namesVal)) if (typeof value === 'string') names[key] = value;
+  }
+
   return {
     rows: parsedRows,
     cursor,
     conflicts: parsedConflicts,
     deviceId: deviceIdVal,
     maxSeq: maxSeqVal,
+    activity,
+    names,
   };
 }
 
@@ -149,6 +171,8 @@ function emptyLedger(): StoredLedger {
     conflicts: [],
     deviceId: '',
     maxSeq: 0,
+    activity: [],
+    names: {},
   };
 }
 
@@ -239,6 +263,14 @@ export interface SyncLedger {
   conflicts(): ConflictCopy[];
   addConflict(c: ConflictCopy): void;
   clearConflict(id: ConflictCopy['id']): void;
+  /** What sync moved lately, newest first. */
+  activity(): readonly SyncActivity[];
+  /** Keep `added` (oldest first) at the head of the activity list. */
+  addActivity(added: readonly SyncActivity[]): void;
+  /** The name doc `id` was last known by; '' when never known. */
+  nameOf(id: DocId): string;
+  /** Remember each doc's current name. */
+  rememberNames(named: readonly (readonly [DocId, string])[]): void;
   forgetAll(): void;
 }
 
@@ -376,6 +408,33 @@ export function createSyncLedger(deps: { readonly storage: KeyValueStorage; read
       if (newConflicts.length !== ledger.conflicts.length) {
         save({ ...ledger, conflicts: newConflicts });
       }
+    },
+
+    activity() {
+      return load().activity;
+    },
+
+    addActivity(added: readonly SyncActivity[]) {
+      if (added.length === 0) return;
+      const ledger = load();
+      save({ ...ledger, activity: withActivity(ledger.activity, added) });
+    },
+
+    nameOf(id: DocId) {
+      return load().names[docFileName(id)] ?? '';
+    },
+
+    rememberNames(named: readonly (readonly [DocId, string])[]) {
+      const ledger = load();
+      const names = { ...ledger.names };
+      let changed = false;
+      for (const [id, name] of named) {
+        const key = docFileName(id);
+        if (name === '' || names[key] === name) continue;
+        names[key] = name;
+        changed = true;
+      }
+      if (changed) save({ ...ledger, names });
     },
 
     forgetAll() {

@@ -60,6 +60,16 @@ The scheduler (`syncScheduler.ts`) serialises runs; at most one extra run queues
 ## Conflicts
 
 - **Edit vs edit** (both devices changed the same doc): both copies kept. Remote wins the original id; local body becomes a conflict copy with a new uuid and a visible name mark, the same for a project, a driver and a passive radiator (a driver's or radiator's model carries it): `W5-1138SMF (conflict, 14 Oct 2026, Windows PC)`. The marked copy is what goes to Drive, so every device sees it marked. The status notice, its tooltip, the Cloud sync dialog and the Diagnostics event list name each item: `Driver "W5-1138SMF" kept both: yours and the copy from iPhone`.
+
+**Activity list.** Every item a run sends, receives or keeps twice is one line, newest first, in the Cloud sync dialog ("Recent activity") and in the Diagnostics events. The last 30 entries are kept with the sync state, so they survive a reload:
+
+- `14:56  ↑ Project "Sub 12" sent`
+- `14:56  ↓ Driver "RS225" received`
+- `14:56  ↓ Project "Sub 12" moved to Bin on iPhone`
+- `14:56  ↓ Project "Sub 12" deleted on iPhone`
+- `14:56  ⇅ Driver "W5-1138SMF" kept both: yours and the copy from iPhone; yours is "W5-1138SMF (conflict, 14 Oct 2026, Windows PC)"`
+
+A Bin mark is named by its project. A deletion is named from the name the ledger last saw for that item. "run ended: synced" stays its own Diagnostics line, without counts. Text: `packages/design/cloud/syncActivity.ts`.
 - **Edit vs delete**: edit wins (pushes as update, effectively undeleting).
 - **Delete vs delete**: ledger row dropped.
 - **Settings / favourites** (singleton docs): Lamport clock decides. Higher `seq` wins; tie → higher `writer` id wins. Wall clock never decides.

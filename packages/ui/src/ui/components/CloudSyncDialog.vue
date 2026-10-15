@@ -81,6 +81,12 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
       >{{ btn.label }}</button>
     </div>
 
+    <div v-if="model.activity.length > 0" class="cloud-sync-activity-section">
+      <div class="cloud-sync-heading">{{ model.activityHeading }}</div>
+      <ol class="cloud-sync-activity">
+        <li v-for="(line, i) in model.activity" :key="i" class="cloud-sync-activity-line">{{ line }}</li>
+      </ol>
+    </div>
     <div v-if="model.conflicts.length > 0" class="cloud-sync-conflicts-section">
       <div class="cloud-sync-heading">{{ model.conflictsHeading }}</div>
       <div
@@ -198,6 +204,27 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
 .cloud-sync-buttons button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.cloud-sync-activity-section {
+  border-top: 1px solid var(--line, #ccd3db);
+  padding-top: 14px;
+  margin-top: 8px;
+}
+
+.cloud-sync-activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.cloud-sync-activity-line {
+  font-size: 12px;
+  padding: 2px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .cloud-sync-conflicts-section {

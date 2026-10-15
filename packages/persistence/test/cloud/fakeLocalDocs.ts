@@ -70,6 +70,16 @@ export class FakeLocalDocs implements LocalDocs {
     return doc.body;
   }
 
+  nameOf(doc: LocalDoc): string {
+    try {
+      const parsed: unknown = JSON.parse(doc.body);
+      if (typeof parsed === 'object' && parsed !== null && 'name' in parsed && typeof parsed.name === 'string') return parsed.name;
+    } catch {
+      // no name
+    }
+    return '';
+  }
+
   putConflictCopy(doc: LocalDoc, from: DeviceName, at_ms: number): KeptCopy | 'refused' {
     if (this.refuseConflict) {
       return 'refused';

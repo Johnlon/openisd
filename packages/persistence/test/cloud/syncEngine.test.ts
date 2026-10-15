@@ -5,6 +5,7 @@ import {
   type DocId,
   FileId,
   RevisionId,
+  type SyncActivity,
   bodyHashOf,
 } from '@openisd/design/cloud';
 import type { KeyValueStorage } from '../../src/storage/keyValueStorage.js';
@@ -86,11 +87,13 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
   });
 
   let progress: string[];
+  let moves: SyncActivity[];
 
   function createEngine(layout = APP_LAYOUT) {
     progress = [];
+    moves = [];
     return createSyncEngine({
-      progress: { started: () => progress.push('started'), pushed: (n) => progress.push(`pushed ${n}`) },
+      progress: { started: () => progress.push('started'), pushed: (n) => progress.push(`pushed ${n}`), moved: (a) => moves.push(a) },
       cloud,
       local: [localProjects, localDrivers, localSettings],
       ledger,
@@ -160,6 +163,32 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       const engine = createEngine();
       expect(await engine.run()).toMatchObject({ kind: 'synced' });
       expect(engine.pendingLocal()).toBe(0);
+    });
+  });
+
+  describe('Activity: one entry per item moved', () => {
+    it('a sent project, a received driver, then the project deleted here is named from what was remembered', async () => {
+      localProjects.docs = [{ id: project1Id, body: body1, layout: APP_LAYOUT }];
+      const driverId: DocId = { kind: 'driver', uuid: 'drv-1' };
+      const driverBody = JSON.stringify({ name: 'RS225' });
+      cloud.seedFile({
+        meta: {
+          id: driverId, fileId: FileId.of('file-d')!, revision: RevisionId.of('rev-d')!, parentRevision: null,
+          layout: APP_LAYOUT, seq: 4, writer: 'device-phone', device: 'iPhone', deleted: false, remoteHash: bodyHashOf(driverBody)!,
+        },
+        body: driverBody,
+      });
+      await createEngine().run();
+      expect(moves).toEqual([
+        { kind: 'moved', at_ms: nowMs, direction: 'down', change: 'saved', item: 'driver', name: 'RS225', device: 'iPhone' },
+        { kind: 'moved', at_ms: nowMs, direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: '' },
+      ]);
+
+      localProjects.docs = [];
+      await createEngine().run();
+      expect(moves).toEqual([
+        { kind: 'moved', at_ms: nowMs, direction: 'up', change: 'deleted', item: 'project', name: 'Sub 12', device: '' },
+      ]);
     });
   });
 
@@ -392,8 +421,8 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       expect(outcome.kind).toBe('synced');
       if (outcome.kind === 'synced') {
         expect(outcome.conflicts.length).toBeGreaterThan(0);
-        expect(outcome.keptBoth).toMatchObject([{ item: 'Sub 12', name: 'Sub 12 (conflict)', otherDevice: 'iPhone' }]);
       }
+      expect(moves).toContainEqual({ kind: 'keptBoth', at_ms: nowMs, item: 'project', name: 'Sub 12', copyName: 'Sub 12 (conflict)', device: 'iPhone' });
       // Conflict copy was created locally and pushed as new doc, under its marked name:
       expect(localProjects.conflictCalls).toHaveLength(1);
       expect(cloud.files.size).toBe(2);
@@ -581,8 +610,8 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       expect(outcome.kind).toBe('synced');
       if (outcome.kind === 'synced') {
         expect(outcome.conflicts.length).toBe(1);
-        expect(outcome.keptBoth).toMatchObject([{ item: 'Sub 12', name: 'Sub 12 (conflict)', otherDevice: 'iPhone' }]);
       }
+      expect(moves).toContainEqual({ kind: 'keptBoth', at_ms: nowMs, item: 'project', name: 'Sub 12', copyName: 'Sub 12 (conflict)', device: 'iPhone' });
       expect(localProjects.conflictCalls).toHaveLength(1);
       // The copy goes to Drive under its marked name, so other devices see it marked too:
       const driveBodies = [...cloud.files.values()].map(f => f.body);

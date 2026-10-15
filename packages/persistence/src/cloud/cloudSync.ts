@@ -1,4 +1,4 @@
-import { ProjectId, CLOUD_SYNC_EVENTS_KEPT, type CloudAttempt, type CloudAttemptOutcome, type CloudFault, type CloudFaultRecord, type CloudSyncEvent, type CloudSyncReport, type ConflictCopy, type SyncStatus } from '@openisd/design/cloud';
+import { type SyncActivity, ProjectId, CLOUD_SYNC_EVENTS_KEPT, type CloudAttempt, type CloudAttemptOutcome, type CloudFault, type CloudFaultRecord, type CloudSyncEvent, type CloudSyncReport, type ConflictCopy, type SyncStatus } from '@openisd/design/cloud';
 import type { CloudSession } from './cloudStore.js';
 import type { SyncLedger } from './syncLedger.js';
 import type { RunOutcome, SyncEngine } from './syncRun.js';
@@ -7,6 +7,8 @@ import type { SyncScheduler } from './syncScheduler.js';
 export interface CloudSync {
   status(): SyncStatus;
   conflicts(): ConflictCopy[];
+  /** What sync moved lately, newest first; kept with the sync state across a reload. */
+  activity(): readonly SyncActivity[];
   watch(onChange: () => void): () => void;
   connect(): void;
   reconnect(): void;
@@ -16,6 +18,8 @@ export interface CloudSync {
   onOutcome(outcome: RunOutcome): void;
   /** A run has started. */
   runStarted(): void;
+  /** The running run moved an item, or kept one twice. */
+  runMoved(activity: SyncActivity): void;
   /** The running run has pushed `count` items so far. */
   runPushed(count: number): void;
   /** Google refused to name the signed-in account. */
@@ -52,6 +56,11 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     events = [event, ...events].slice(0, CLOUD_SYNC_EVENTS_KEPT);
   }
 
+  function noteActivity(activity: SyncActivity): void {
+    deps.ledger.addActivity([activity]);
+    record({ kind: 'activity', at_ms: activity.at_ms, activity });
+  }
+
   function notify(): void {
     for (const listener of listeners) {
       listener();
@@ -60,7 +69,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
 
   function attemptOutcome(outcome: RunOutcome): CloudAttemptOutcome {
     switch (outcome.kind) {
-      case 'synced': return { kind: 'synced', pulled: outcome.pulled, pushed: outcome.pushed, left: outcome.left, removedDuplicates: outcome.removedDuplicates };
+      case 'synced': return { kind: 'synced', left: outcome.left, removedDuplicates: outcome.removedDuplicates };
       case 'stopped': return { kind: 'stopped', reason: outcome.reason, pushedSoFar: outcome.pushedSoFar };
       case 'notConnected': return { kind: 'notConnected' };
       case 'reconnect': return { kind: 'reconnect' };
@@ -79,7 +88,6 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
     lastAttempt = { kind: 'ended', started_ms, ended_ms, outcome: attemptOutcome(outcome) };
     if (outcome.kind === 'failed') record({ kind: 'error', at_ms: ended_ms, fault: outcome.fault });
     if (outcome.kind === 'synced' && outcome.skippedNewer > 0) record({ kind: 'skipped', at_ms: ended_ms, count: outcome.skippedNewer });
-    if (outcome.kind === 'synced') for (const copy of outcome.keptBoth) record({ kind: 'keptBoth', at_ms: copy.at_ms, copy });
     record({ kind: 'ended', at_ms: ended_ms, outcome: lastAttempt.outcome });
     if (outcome.kind === 'synced') {
       lastSyncAt_ms = clock();
@@ -276,7 +284,12 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
       if (id === null) return;
       const copy: ConflictCopy = { id, name, item, otherDevice, from: deps.ledger.deviceId(), at_ms: clock() };
       deps.ledger.addConflict(copy);
-      record({ kind: 'keptBoth', at_ms: copy.at_ms, copy });
+      noteActivity({ kind: 'keptBoth', at_ms: copy.at_ms, item: 'project', name: item, copyName: name, device: otherDevice });
+      notify();
+    },
+    activity: () => deps.ledger.activity(),
+    runMoved: (activity) => {
+      noteActivity(activity);
       notify();
     },
     runStarted: () => {

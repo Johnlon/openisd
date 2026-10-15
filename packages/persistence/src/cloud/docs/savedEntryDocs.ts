@@ -76,6 +76,7 @@ export function createSavedEntryDocs(deps: SavedEntryDocsDeps): LocalDocs {
 
   return {
     kind,
+    nameOf: doc => deviceNameOfBody(doc.body) ?? '',
     list,
     put,
     remove,

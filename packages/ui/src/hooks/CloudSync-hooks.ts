@@ -10,7 +10,7 @@ import {
   ref,
   shallowRef,
 } from 'vue';
-import type { SyncStatus, CloudUiState, ConflictCopy, SyncDisplay, SyncTap } from '@openisd/design/cloud';
+import type { SyncStatus, CloudUiState, ConflictCopy, SyncActivity, SyncDisplay, SyncTap } from '@openisd/design/cloud';
 import { syncDisplayOf } from '@openisd/design/cloud';
 import type { CloudSync, CloudUiStore } from '@openisd/persistence';
 
@@ -18,6 +18,7 @@ export interface CloudSyncAPI {
   readonly sync: CloudSync | null;
   readonly status: Readonly<Ref<SyncStatus>>;
   readonly conflicts: Readonly<Ref<readonly ConflictCopy[]>>;
+  readonly activity: Readonly<Ref<readonly SyncActivity[]>>;
   readonly ui: Readonly<Ref<CloudUiState>>;
   dismissHint(): void;
   setConflictsSeen(count: number): void;
@@ -29,12 +30,14 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
   const status = ref<SyncStatus>(sync ? sync.status() : { kind: 'off' });
   // shallowRef: a deep ref would unwrap the branded id classes into plain objects.
   const conflicts = shallowRef<readonly ConflictCopy[]>(sync ? sync.conflicts() : []);
+  const activity = shallowRef<readonly SyncActivity[]>(sync ? sync.activity() : []);
   const ui = ref<CloudUiState>(uiStore.read());
 
   if (sync) {
     const unwatch = sync.watch(() => {
       status.value = sync.status();
       conflicts.value = sync.conflicts();
+      activity.value = sync.activity();
     });
     if (getCurrentScope()) {
       onScopeDispose(unwatch);
@@ -54,6 +57,7 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
     sync,
     status: readonly(status),
     conflicts: computed(() => conflicts.value),
+    activity: computed(() => activity.value),
     ui: readonly(ui),
     dismissHint,
     setConflictsSeen,
@@ -103,6 +107,7 @@ export function useCloudSyncUi(
     return syncDisplayOf({
       status,
       conflicts,
+      activity: cloudSyncAPI.activity.value,
       conflictsSeen: ui.conflictsSeen,
       hintDismissed: ui.hintDismissed,
       launches: ui.launches,

@@ -3,6 +3,8 @@ import {
   type ConflictCopy,
   DeviceId,
   ProjectId,
+  type SyncActivity,
+  withActivity,
 } from '@openisd/design/cloud';
 import type { CloudSession } from '../../src/cloud/cloudStore.js';
 import { createCloudSync, type CloudSync } from '../../src/cloud/cloudSync.js';
@@ -96,6 +98,17 @@ class FakeSyncLedger implements SyncLedger {
   clearConflict(id: ConflictCopy['id']): void {
     this.storedConflicts = this.storedConflicts.filter((c) => c.id.text !== id.text);
   }
+  storedActivity: readonly SyncActivity[] = [];
+  activity(): readonly SyncActivity[] {
+    return this.storedActivity;
+  }
+  addActivity(added: readonly SyncActivity[]): void {
+    this.storedActivity = withActivity(this.storedActivity, added);
+  }
+  nameOf(): string {
+    return '';
+  }
+  rememberNames(): void {}
   forgetAll(): void {
     this.forgetAllCalls++;
     this.storedConflicts = [];
@@ -106,7 +119,7 @@ class FakeSyncEngine implements SyncEngine {
   pending = 0;
 
   async run(): Promise<RunOutcome> {
-    return { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 };
+    return { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 };
   }
 
   pendingLocal(): number {
@@ -165,7 +178,6 @@ describe('cloudSync', () => {
       pulled: 1,
       pushed: 0,
       conflicts: [],
-      keptBoth: [],
       held: 0,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -191,7 +203,6 @@ describe('cloudSync', () => {
       pulled: 0,
       pushed: 0,
       conflicts: [],
-      keptBoth: [],
       held: 3,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -209,7 +220,6 @@ describe('cloudSync', () => {
       pulled: 0,
       pushed: 0,
       conflicts: [],
-      keptBoth: [],
       held: 0,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -294,7 +304,7 @@ describe('cloudSync', () => {
     expect(sync.diagnostics().lastFault?.fault).toEqual(fault);
 
     // 7. the fault is kept until a run succeeds
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(sync.diagnostics().lastFault).toBeNull();
   });
 
@@ -315,13 +325,36 @@ describe('cloudSync', () => {
     expect(sync.diagnostics().events).toHaveLength(30);
   });
 
-  it('each item a run kept twice is an event, naming the item', () => {
+  it('each item a run moves is kept with the sync state, newest first, and is a Diagnostics event', () => {
+    const ledger = new FakeSyncLedger();
+    let notified = 0;
     const sync = createCloudSync({
-      session: new FakeCloudSession(), scheduler: new FakeSyncScheduler(), ledger: new FakeSyncLedger(), engine: new FakeSyncEngine(), now: () => 5,
+      session: new FakeCloudSession(), scheduler: new FakeSyncScheduler(), ledger, engine: new FakeSyncEngine(), now: () => 5,
     });
-    const copy = makeConflict('p-2', 'Sub 12 (conflict, 14 Oct 2026, Windows PC)');
-    sync.onOutcome({ kind: 'synced', pulled: 1, pushed: 1, conflicts: [copy], keptBoth: [copy], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
-    expect(sync.diagnostics().events).toContainEqual({ kind: 'keptBoth', at_ms: copy.at_ms, copy });
+    sync.watch(() => { notified++; });
+    const sent: SyncActivity = { kind: 'moved', at_ms: 1, direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: '' };
+    const received: SyncActivity = { kind: 'moved', at_ms: 2, direction: 'down', change: 'saved', item: 'driver', name: 'RS225', device: 'iPhone' };
+    sync.runMoved(sent);
+    sync.runMoved(received);
+    expect(sync.activity()).toEqual([received, sent]);
+    expect(ledger.storedActivity).toEqual([received, sent]);
+    expect(sync.diagnostics().events.slice(0, 2)).toEqual([
+      { kind: 'activity', at_ms: 2, activity: received },
+      { kind: 'activity', at_ms: 1, activity: sent },
+    ]);
+    expect(notified).toBe(2);
+  });
+
+  it('an open project whose edits were kept as a copy is a conflict and an activity entry', () => {
+    const ledger = new FakeSyncLedger();
+    const sync = createCloudSync({
+      session: new FakeCloudSession(), scheduler: new FakeSyncScheduler(), ledger, engine: new FakeSyncEngine(), now: () => 5,
+    });
+    sync.projectKeptBoth('p-2', 'Sub 12 (conflict, 15 Oct 2026, Windows desktop)', 'Sub 12', 'iPhone');
+    expect(sync.conflicts().map(c => c.name)).toEqual(['Sub 12 (conflict, 15 Oct 2026, Windows desktop)']);
+    expect(sync.activity()).toEqual([
+      { kind: 'keptBoth', at_ms: 5, item: 'project', name: 'Sub 12', copyName: 'Sub 12 (conflict, 15 Oct 2026, Windows desktop)', device: 'iPhone' },
+    ]);
   });
 
   it('a quota stop is waiting, not offline, and pending and failed say when the next run is due', () => {
@@ -358,8 +391,8 @@ describe('cloudSync', () => {
     expect(changes).toBe(2);
 
     nowTime = 4000;
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
-    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced', pulled: 0, pushed: 37, left: 0, removedDuplicates: 0 } });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 37, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    expect(sync.diagnostics().lastAttempt).toEqual({ kind: 'ended', started_ms: 1000, ended_ms: 4000, outcome: { kind: 'synced', left: 0, removedDuplicates: 0 } });
     expect(sync.status().kind).toBe('synced');
   });
 
@@ -371,7 +404,7 @@ describe('cloudSync', () => {
     const fault = { operation: 'about' as const, status: 403, reason: 'insufficientPermissions', reply: '{}' };
     sync.accountRefused(fault);
     expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(sync.diagnostics().accountFault).toEqual({ fault, at_ms: 7000 });
     await sync.disconnect();
     expect(sync.diagnostics().accountFault).toBeNull();
@@ -449,7 +482,6 @@ describe('cloudSync', () => {
       pulled: 1,
       pushed: 0,
       conflicts: [],
-      keptBoth: [],
       held: 0,
       left: 0, removedDuplicates: 0, skippedNewer: 0,
     });
@@ -541,11 +573,11 @@ describe('cloudSync', () => {
       calls++;
     });
 
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(calls).toBe(1);
 
     unwatch();
-    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], keptBoth: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
+    sync.onOutcome({ kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 });
     expect(calls).toBe(1);
   });
 });

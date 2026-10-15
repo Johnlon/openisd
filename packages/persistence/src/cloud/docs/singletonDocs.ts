@@ -57,6 +57,7 @@ export function createSingletonDocs(deps: SingletonDocsDeps): LocalDocs {
 
   return {
     kind,
+    nameOf: () => '',
     list,
     put,
     remove,

@@ -214,6 +214,7 @@ export function createCloudSyncWiring(deps: CloudSyncWiringDeps): CloudSyncWirin
     progress: {
       started: () => cloudSync?.runStarted(),
       pushed: (count) => cloudSync?.runPushed(count),
+      moved: (activity) => cloudSync?.runMoved(activity),
     },
   });
 

@@ -31,6 +31,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
   const defaultInputs = (status: SyncStatus, configured = true): SyncDisplayInputs => ({
     status,
     conflicts: [],
+    activity: [],
     conflictsSeen: 0,
     hintDismissed: false,
     launches: 1,
@@ -81,8 +82,26 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
+    });
+
+    it('lists what sync moved, newest first, one line each', () => {
+      const at = new Date(2026, 9, 14, 14, 56).getTime();
+      const display = syncDisplayOf({
+        ...defaultInputs({kind: 'synced', account: 'john@gmail.com', at_ms: sampleTime, conflicts: 0}),
+        activity: [
+          {kind: 'moved', at_ms: at, direction: 'down', change: 'saved', item: 'projectBin', name: 'Sub 12', device: 'iPhone'},
+          {kind: 'moved', at_ms: at, direction: 'up', change: 'saved', item: 'project', name: 'Sub 12', device: ''},
+        ],
+      });
+      expect(display.dialog.activityHeading).toBe('Recent activity');
+      expect(display.dialog.activity).toEqual([
+        '14:56  ↓ Project "Sub 12" moved to Bin on iPhone',
+        '14:56  ↑ Project "Sub 12" sent',
+      ]);
     });
 
     it('row 1: off when not configured', () => {
@@ -118,6 +137,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -149,6 +170,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -185,6 +208,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -254,6 +279,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -289,6 +316,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -344,6 +373,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -379,6 +410,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -410,6 +443,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });
@@ -473,6 +508,8 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
         conflictsHeading: 'Conflict copies',
         conflictOpenLabel: 'Open',
         conflicts: [],
+        activityHeading: 'Recent activity',
+        activity: [],
         disconnectConfirm,
       });
     });

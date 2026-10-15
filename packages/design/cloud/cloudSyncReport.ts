@@ -1,10 +1,10 @@
 import {formatClock, formatDateTime, formatTime} from '../fields/format.js';
 import type {CloudFault, CloudFaultRecord, CloudGrant} from './cloudTypes.js';
-import {type ConflictCopy, conflictKeptText} from './syncStatus.js';
+import {type SyncActivity, syncActivityText} from './syncActivity.js';
 
 /** How a sync run ended, with its counts. A fault itself is in the report's `lastFault` and events. */
 export type CloudAttemptOutcome =
-  | { readonly kind: 'synced'; readonly pulled: number; readonly pushed: number; readonly left: number; readonly removedDuplicates: number }
+  | { readonly kind: 'synced'; readonly left: number; readonly removedDuplicates: number }
   | { readonly kind: 'stopped'; readonly reason: 'offline' | 'quota'; readonly pushedSoFar: number }
   | { readonly kind: 'notConnected' }
   | { readonly kind: 'reconnect' }
@@ -22,8 +22,8 @@ export type CloudSyncEvent =
   | { readonly kind: 'skipped'; readonly at_ms: number; readonly count: number }
   /** A binned project came back to the list because another device edited it. */
   | { readonly kind: 'restoredFromBin'; readonly at_ms: number; readonly name: string; readonly editedOn: string }
-  /** An item changed on two devices: both versions kept, this device's under the copy's name. */
-  | { readonly kind: 'keptBoth'; readonly at_ms: number; readonly copy: ConflictCopy };
+  /** One item sync moved, or kept twice. */
+  | { readonly kind: 'activity'; readonly at_ms: number; readonly activity: SyncActivity };
 
 /** How many events the log keeps; older ones drop off. */
 export const CLOUD_SYNC_EVENTS_KEPT = 30;
@@ -75,7 +75,7 @@ function outcomeText(outcome: CloudAttemptOutcome): string {
     case 'synced': {
       const left = outcome.left === 0 ? '' : `, ${outcome.left} left`;
       const removed = outcome.removedDuplicates === 0 ? '' : `, removed ${outcome.removedDuplicates} duplicate copies`;
-      return `synced, ${outcome.pulled} pulled, ${outcome.pushed} pushed${left}${removed}`;
+      return `synced${left}${removed}`;
     }
     case 'stopped': return `stopped: ${outcome.reason === 'offline' ? 'offline' : 'Drive quota'}, ${outcome.pushedSoFar} pushed`;
     case 'notConnected': return 'not connected';
@@ -122,7 +122,7 @@ function eventLine(event: CloudSyncEvent): string {
       return `    ${at} error: ${fault.operation}, HTTP ${fault.status}, ${fault.reason}, reply: ${fault.reply.slice(0, REPLY_START_CHARS)}`;
     }
     case 'skipped': return `    ${at} skipped ${event.count} items of a newer kind`;
-    case 'keptBoth': return `    ${at} ${conflictKeptText(event.copy)}; yours is "${event.copy.name}"`;
+    case 'activity': return `    ${at} ${syncActivityText(event.activity)}`;
     case 'restoredFromBin': return `    ${at} restored from Bin: edited on ${event.editedOn === '' ? 'another device' : event.editedOn} ("${event.name}")`;
   }
 }

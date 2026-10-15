@@ -43,6 +43,7 @@ export function createBinMarkDocs(deps: BinMarkDocsDeps): LocalDocs {
 
   return {
     kind: 'projectBin',
+    nameOf: () => '',
     list,
     put,
     remove,

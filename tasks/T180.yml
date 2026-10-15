@@ -1,0 +1,38 @@
+id: T180
+release_note: 'The Cloud sync dialog lists what sync did, newest first: each project, driver or radiator sent, received, binned, deleted or kept twice, and from which device. The last 30 lines are kept across a reload, and Diagnostics names each item the same way.'
+repo: openisd
+owner: maryu
+status: done
+goal: Cloud sync dialog shows a short persisted activity list of items sent and received; Diagnostics events name items
+done_test: bash scripts/test.sh packages/design/test/cloud/syncActivity.test.ts packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/cloud/syncEngine.test.ts packages/persistence/test/cloud/cloudSync.test.ts
+files:
+  - docs/design/CLOUD_SYNC.md
+  - packages/design/cloud/cloudSyncReport.ts
+  - packages/design/cloud/index.ts
+  - packages/design/cloud/syncActivity.ts
+  - packages/design/cloud/syncDisplay.ts
+  - packages/design/cloud/syncStatus.ts
+  - packages/design/test/cloud/cloudSyncReport.test.ts
+  - packages/design/test/cloud/syncActivity.test.ts
+  - packages/design/test/cloud/syncDisplay.test.ts
+  - packages/persistence/src/cloud/cloudSync.ts
+  - packages/persistence/src/cloud/docs/binMarkDocs.ts
+  - packages/persistence/src/cloud/docs/projectDocs.ts
+  - packages/persistence/src/cloud/docs/savedEntryDocs.ts
+  - packages/persistence/src/cloud/docs/singletonDocs.ts
+  - packages/persistence/src/cloud/localDocs.ts
+  - packages/persistence/src/cloud/syncEngine.ts
+  - packages/persistence/src/cloud/syncLedger.ts
+  - packages/persistence/src/cloud/syncRun.ts
+  - packages/persistence/test/cloud/cloudSync.test.ts
+  - packages/persistence/test/cloud/fakeLocalDocs.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - packages/persistence/test/cloud/syncLedger.test.ts
+  - packages/persistence/test/cloud/syncScheduler.test.ts
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/src/logic/cloudSyncWiring.ts
+  - packages/ui/src/ui/components/CloudSyncDialog.vue
+  - packages/ui/test/ui/cloud-pull-open-project.browser.spec.ts
+  - packages/ui/test/ui/cloud-sync-activity.browser.spec.ts
+  - packages/ui/test/ui/fixtures/driveConnected.ts
+  - tasks/T180.yml

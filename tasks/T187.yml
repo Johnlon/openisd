@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: sonnet
 status: done
+landed: b0dcdaa58c4ae307d41b8be0d13492c1cccf8683
 goal: 'F28: closed by T186 (the bottom panel height spec no longer sets its own timeout); set the fix record to done so landings resume'
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
 files:
