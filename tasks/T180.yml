@@ -3,6 +3,7 @@ release_note: 'The Cloud sync dialog lists what sync did, newest first: each pro
 repo: openisd
 owner: maryu
 status: done
+landed: 539cab2441d613d1e56bc0b8131c29136a4a9f5d
 goal: Cloud sync dialog shows a short persisted activity list of items sent and received; Diagnostics events name items
 done_test: bash scripts/test.sh packages/design/test/cloud/syncActivity.test.ts packages/design/test/cloud/cloudSyncReport.test.ts packages/persistence/test/cloud/syncEngine.test.ts packages/persistence/test/cloud/cloudSync.test.ts
 files:
