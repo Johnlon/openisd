@@ -1,6 +1,6 @@
 id: F29
 owner: Johnlon
-status: open
+status: done
 sha: 82d6a5c97d7c5f7b38e0ebf79bf637705d5c760b
 goal: main is red at 82d6a5c97d; make the full suite pass again
 commits: |
