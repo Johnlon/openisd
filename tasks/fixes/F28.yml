@@ -1,0 +1,57 @@
+id: F28
+owner: Johnlon
+status: open
+sha: 516387e75f8fb852f097517eec6045719466f7ac
+goal: main is red at 516387e75f; make the full suite pass again
+commits: |
+  516387e75f T182: The Original skin's bottom tab panel is as tall as its current tab's con
+  701a2450cf T184: 'F27: the 12 specs red at d46cd4a40a all pass when their 6 files are rer
+  023528c907 F27: the full suite is red at d46cd4a40a
+  d46cd4a40a T181: Bug: a sync pull that changes the open project refreshes the open sessio
+failing: |
+       × no browser spec sets one 39ms
+   FAIL  |ui-architecture| test/architecture/no-whole-test-timeouts.test.ts > browser specs carry no time limit of their own > no browser spec sets one
+    ✘    4 packages/ui/test/ui/alignment-popup.browser.spec.ts:11:3 › Alignment popup › sealed Box tab opens and cancels the Alignment editor (31.7s)
+    ✘    5 packages/ui/test/ui/alignment-popup.browser.spec.ts:25:3 › Alignment popup › Cancel after changing the alignment leaves the sealed volume and Fsc/Qtc untouched (31.9s)
+    ✘    7 packages/ui/test/ui/alignment-popup.browser.spec.ts:62:3 › Alignment popup › choosing Butterworth 0.707 sizes the sealed box: Fs=37Hz, Qts=0.38, Vas=30L give Qtc=0.726 and fc=68.84Hz (lossless) (205ms)
+output: |
+      > 208 |   await page.locator('.original-root input[type=file]').setInputFiles({
+            |   ^
+        209 |     name,
+        210 |     mimeType: 'application/json',
+        211 |     buffer: readFileSync(owprPath),
+          at openAProject (/home/john/work/winisd/.postland/112927-516387e75f/packages/ui/test/fixtures.ts:208:3)
+          at /home/john/work/winisd/.postland/112927-516387e75f/packages/ui/test/ui/alignment-popup.browser.spec.ts:7:3
+  
+      Error Context: test-results/ui-alignment-popup.browser-22536-olume-and-Fsc-Qtc-untouched/error-context.md
+  
+    3) packages/ui/test/ui/alignment-popup.browser.spec.ts:62:3 › Alignment popup › choosing Butterworth 0.707 sizes the sealed box: Fs=37Hz, Qts=0.38, Vas=30L give Qtc=0.726 and fc=68.84Hz (lossless) 
+  
+      TimeoutError: browserType.launch: Timeout 180000ms exceeded.
+      Call log:
+        - <launching> /home/john/.cache/ms-playwright/chromium-1228/chrome-linux64/chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --headless --hide-scrollbars --mute-audio --blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4 --no-sandbox --disable-gpu --disable-software-rasterizer --disable-dev-shm-usage --no-sandbox --user-data-dir=/tmp/playwright_chromiumdev_profile-iMjQAT --remote-debugging-pipe --no-startup-window
+        - <launched> pid=126153
+  
+  
+         at fixtures.ts:71
+  
+        69 |   browser: [async ({ playwright, browserName, headless, channel, launchOptions }, use) => {
+        70 |     const launchAndProbe = async (): Promise<Browser> => {
+      > 71 |       const launched = await playwright[browserName].launch({ ...launchOptions, headless, channel, handleSIGINT: false });
+           |                                                      ^
+        72 |       const loadBlankPage = async (): Promise<void> => {
+        73 |         const context = await launched.newContext();
+        74 |         await (await context.newPage()).goto('about:blank');
+          at attempt (/home/john/work/winisd/.postland/112927-516387e75f/packages/ui/test/fixtures.ts:71:54)
+          at waitOutOutage (/home/john/work/winisd/.postland/112927-516387e75f/packages/ui/test/fixtures/chromeOutage.ts:45:28)
+          at Object.base.extend.browser.scope (/home/john/work/winisd/.postland/112927-516387e75f/packages/ui/test/fixtures.ts:89:27)
+  
+      Error Context: test-results/ui-alignment-popup.browser-65d6d-26-and-fc-68-84Hz-lossless-/error-context.md
+  
+    3 failed
+      packages/ui/test/ui/alignment-popup.browser.spec.ts:11:3 › Alignment popup › sealed Box tab opens and cancels the Alignment editor 
+      packages/ui/test/ui/alignment-popup.browser.spec.ts:25:3 › Alignment popup › Cancel after changing the alignment leaves the sealed volume and Fsc/Qtc untouched 
+      packages/ui/test/ui/alignment-popup.browser.spec.ts:62:3 › Alignment popup › choosing Butterworth 0.707 sizes the sealed box: Fs=37Hz, Qts=0.38, Vas=30L give Qtc=0.726 and fc=68.84Hz (lossless) 
+    666 passed (11.2m)
+  suite: unit exit 1, browser exit 1
+  post-land suite 112927-516387e75f finished: FAILED (exit 1) after 14m06s
