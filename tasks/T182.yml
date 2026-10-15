@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 516387e75f8fb852f097517eec6045719466f7ac
 goal: The Original skin's bottom tab panel is as tall as its current tab's content plus the tab bar, not a fixed 206 px or taller.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

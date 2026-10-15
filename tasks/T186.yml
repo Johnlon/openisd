@@ -1,0 +1,12 @@
+id: T186
+release_note: internal
+label: fixes
+repo: openisd
+owner: sonnet
+status: done
+goal: 'F28: no-whole-test-timeouts failed because the bottom panel height spec set its own timeout; the spec is now one test per box type on the shared timeout (T182 is the cause). The alignment popup specs in the same red run pass alone (machine load, average 13)'
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
+files:
+  - tasks/T186.yml
+  - tasks/fixes/F28.yml
+  - packages/ui/test/ui/original-bottom-panel-height.browser.spec.ts
