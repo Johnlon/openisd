@@ -147,15 +147,18 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.content-panel')).toBeVisible();
     });
 
-    test('the bottom section resizes by dragging the horizontal splitter', async ({ page }) => {
+    test('the bottom section cannot be dragged deeper, and a stored taller height is ignored', async ({ page }) => {
       const before = (await page.locator('.content-panel').boundingBox())!;
       const split = (await page.locator('.split-h').boundingBox())!;
       await page.mouse.move(split.x + split.width / 2, split.y + split.height / 2);
       await page.mouse.down();
       await page.mouse.move(split.x + split.width / 2, split.y + split.height / 2 - 60, { steps: 4 });
       await page.mouse.up();
-      const after = (await page.locator('.content-panel').boundingBox())!;
-      expect(after.height).toBeGreaterThan(before.height + 40);
+      expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
+
+      await page.evaluate(() => localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, originalBottomH: 300 } })));
+      await page.reload();
+      expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
     });
   });
 
@@ -213,8 +216,7 @@ test.describe('Original shell layout', () => {
         maxClip = Math.max(maxClip, m.railClip);
       }
       const distinct = [...new Set(Object.values(heights))];
-      // Sealed shows 6 nav tabs, every other box 7; an auto-sized row tracked that difference
-      // and the chart above visibly re-flowed ("wobble"). A fixed natural default kills it.
+      // One height for the tallest tab of any box type (John, 2026-10-15).
       expect(distinct, `panel height per box type: ${JSON.stringify(heights)}`).toHaveLength(1);
       expect(maxClip, 'the 7-tab rail must not be clipped by the fixed height').toBeLessThanOrEqual(1);
       // Natural height, not stretched to fill: the tallest content is ~181px + panel chrome.

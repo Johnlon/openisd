@@ -50,7 +50,7 @@ const {
   hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
   startNudge, stopNudge, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
-  mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
+  mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
   projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
   copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz,
@@ -299,7 +299,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       </div>
 
       <!-- horizontal splitter: drag to resize the bottom section; toggle collapses it -->
-      <div class="split-h" title="Drag to resize the bottom section" @pointerdown="onBottomSplitDown" @dblclick="bottomCollapsed = !bottomCollapsed">
+      <div class="split-h" @dblclick="bottomCollapsed = !bottomCollapsed">
         <button class="split-toggle" :title="bottomCollapsed ? 'Expand the bottom section (project tabs)' : 'Collapse the bottom section to give the graph more height'"
                 @pointerdown.stop @click="bottomCollapsed = !bottomCollapsed">{{ bottomCollapsed ? '˄' : '˅' }}</button>
       </div>
@@ -324,7 +324,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="content-tabs">
 
         <!-- ===== Box tab ===== -->
-        <section v-show="activeTab === 'box'" class="tab-section" :class="{ active: activeTab === 'box' }">
+        <section class="tab-section" :class="{ active: activeTab === 'box' }">
           <div class="box-tab-row">
           <div class="box-tab-main">
           <div class="field-row" style="flex-wrap: nowrap;">
@@ -411,7 +411,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </section>
 
         <!-- ===== Driver tab ===== -->
-        <section v-show="activeTab === 'driver'" class="tab-section" :class="{ active: activeTab === 'driver' }">
+        <section class="tab-section" :class="{ active: activeTab === 'driver' }">
           <div class="field-row driver-id-row">
             <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="project.driver.brand.value" readonly></div>
             <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
@@ -453,7 +453,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </section>
 
         <!-- ===== Enclosure / Vents tab ===== -->
-        <section v-show="activeTab === 'enclosure'" class="tab-section" :class="{ active: activeTab === 'enclosure' }">
+        <section v-if="showEnclosureTab" class="tab-section" :class="{ active: activeTab === 'enclosure' }">
           <!-- No Box Type selector here. It lives on the Box tab, which is the one place the
                box type is chosen; a second copy of it on this tab put the passive radiator's
                own [Select PR] [Edit] row underneath a control that is not about the PR. -->
@@ -642,12 +642,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </section>
 
         <!-- ===== Filters tab — OriginalFilters, wired to the project's filter chain ===== -->
-        <section v-show="activeTab === 'filters'" class="tab-section" :class="{ active: activeTab === 'filters' }">
+        <section class="tab-section" :class="{ active: activeTab === 'filters' }">
           <OriginalFilters :api="originalFilters" />
         </section>
 
         <!-- ===== Signal tab ===== -->
-        <section v-show="activeTab === 'signal'" class="tab-section" :class="{ active: activeTab === 'signal' }">
+        <section class="tab-section" :class="{ active: activeTab === 'signal' }">
           <div class="two-col">
             <div style="--label-w:60px;">
               <div class="section-header">Listening place</div>
@@ -665,7 +665,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </section>
 
         <!-- ===== Advanced tab ===== -->
-        <section v-show="activeTab === 'advanced'" class="tab-section" :class="{ active: activeTab === 'advanced' }">
+        <section class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
             <div class="adv-air-fields" style="--label-w:108px;">
               <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" :field="NumberField.ADV_TEMP_K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" /><UnitToggle :field="NumberField.ADV_TEMP_K" unit-class="unit unit-cyc" /></div></div>
@@ -740,7 +740,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </section>
 
         <!-- ===== Project tab ===== -->
-        <section v-show="activeTab === 'project'" class="tab-section project-tab" :class="{ active: activeTab === 'project' }">
+        <section class="tab-section project-tab" :class="{ active: activeTab === 'project' }">
           <div class="two-col">
             <div>
               <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="projectName"></div></div>
@@ -1183,8 +1183,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .dropdown-menu .menu-item.has-submenu:hover .submenu { display:block; }
 
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
-/* Track sizes come from the inline mainStyle (presentationState.ui.originalNavW/originalBottomH,
-   0px when a panel is collapsed); these template values are only the no-JS fallback. */
+/* Track sizes come from the inline mainStyle (presentationState.ui.originalNavW,
+   0px when a panel is collapsed; the bottom track is always `auto`: the tallest tab, never dragged); these template values are only the no-JS fallback. */
 .main { display:grid; grid-template-columns:175px 7px 1fr; grid-template-rows:1fr 7px auto;
   grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
   flex:1 1 auto; min-height:0; overflow:hidden; }
@@ -1194,7 +1194,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    near its START edge (top / left) — away from the middle where a resize drag
    naturally grabs (a centred toggle would swallow the drag). */
 .split-v { grid-area:vsplit; cursor:col-resize; background:#e6e6e6; border-left:1px solid #ccc; border-right:1px solid #ccc; position:relative; z-index:4; touch-action:none; }
-.split-h { grid-area:hsplit; cursor:row-resize; background:#e6e6e6; border-top:1px solid #ccc; border-bottom:1px solid #ccc; position:relative; z-index:4; touch-action:none; }
+.split-h { grid-area:hsplit; background:#e6e6e6; border-top:1px solid #ccc; border-bottom:1px solid #ccc; position:relative; z-index:4; touch-action:none; }
 .split-v:hover, .split-h:hover { background:#cfe0f5; }
 .split-toggle { position:absolute; display:grid; place-items:center; background:#f0f0f0; border:1px solid #aaa; color:#555; border-radius:4px; cursor:pointer; font-size:9px; line-height:1; padding:0; }
 .split-v .split-toggle { top:8px; left:50%; transform:translateX(-50%); width:15px; height:34px; }
@@ -1316,7 +1316,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .graph-empty-link:hover { color:#0b4f9e; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-height:0; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; max-height:60vh; min-height:194px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-start; gap:6px; align-self:stretch; }
 /* Revert sits at the rail's BOTTOM, under whichever tab is showing (John, 2026-09-25: "put it
@@ -1327,13 +1327,18 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .save-rail .revert-btn { margin-top:auto; background:#e0a800; border-color:#b88a00; color:#3a2600; font-weight:600; }
 .save-rail .revert-btn:hover:not(:disabled) { background:#f0b80c; }
 .save-rail .revert-btn:disabled { background:#e8e8e8; border-color:#ccc; color:#999; font-weight:normal; cursor:default; }
-.tab-section { display:none; --label-w: 150px; }
+/* Every tab stacks in ONE grid cell and only the active one is visible, so the panel is as deep as
+   the tallest tab shown and stays that deep while the tab is switched. `.content-panel` min-height is
+   the tallest tab of any box type (bandpass4, 194 px, measured by original-bottom-panel-height), so
+   the height never changes with box type either (John, 2026-10-15). */
+.content-tabs { display:grid; grid-template-columns:minmax(0,1fr); }
+.tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; --label-w: 150px; }
 /* Real WinISD is a Win32 window: child controls sit at fixed offsets and the client area
    CLIPS when the window shrinks — nothing reflows, nothing overlaps. The pane reproduces
    that by keeping every control at its natural width (the `flex:none` rules below) and
    letting the PANE scroll when the sum no longer fits. `overflow:auto` on both axes is
    what makes the clipped content still reachable, which a Win32 window cannot offer. */
-.tab-section.active { display:block; flex:1 1 auto; min-height:0; overflow-x:auto; overflow-y:auto; }
+.tab-section.active { visibility:visible; min-height:0; overflow-x:auto; overflow-y:auto; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:2px 8px; font-weight:600; line-height:1.25; margin-bottom:4px; }
 /* Columns keep their natural width and never shrink below their contents. A shrinking
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left

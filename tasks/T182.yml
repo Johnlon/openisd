@@ -1,0 +1,13 @@
+id: T182
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: The Original skin's bottom tab panel is as tall as its current tab's content plus the tab bar, not a fixed 206 px or taller.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T182.yml
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/test/ui/original-bottom-panel-height.browser.spec.ts
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts

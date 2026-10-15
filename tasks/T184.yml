@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: maryu
 status: done
+landed: 701a2450cf295f39a30c7e96979e401a68ac7a00
 goal: 'F27: the 12 specs red at d46cd4a40a all pass when their 6 files are rerun alone (74 of 75, then the one left passes twice; the red runs waited 27-44 s for the page to load: machine load). T181 is not the cause. open-sessions now reads both tabs on every poll'
 done_test: bash scripts/test.sh packages/ui/test/logic/pulledProjects.test.ts
 files:

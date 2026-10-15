@@ -491,13 +491,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Resizable / collapsible layout --------------------------------------------
   const mainEl = ref<HTMLElement | null>(null);
-  const DEFAULT_BOTTOM_H = 206;
   const navCollapsed = computed({ get: () => presentationState.ui.originalNavCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalNavCollapsed = v; } });
   const bottomCollapsed = computed({ get: () => presentationState.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalBottomCollapsed = v; } });
   const chartMax = computed({ get: () => presentationState.ui.originalChartMax ?? false, set: (v: boolean) => { presentationState.ui.originalChartMax = v; } });
   const mainStyle = computed(() => chartMax.value ? {} : {
     gridTemplateColumns: (navCollapsed.value ? '0px' : (presentationState.ui.originalNavW ?? 175) + 'px') + ' 7px 1fr',
-    gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : (presentationState.ui.originalBottomH ?? DEFAULT_BOTTOM_H) + 'px'),
+    gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : 'auto'),
   });
   function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
     const el = listeningElement(e);
@@ -513,10 +512,6 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function onNavSplitDown(e: PointerEvent): void {
     if (navCollapsed.value) return;
     startSplitDrag(e, (rect, ev) => { presentationState.ui.originalNavW = Math.min(520, Math.max(140, ev.clientX - rect.left)); });
-  }
-  function onBottomSplitDown(e: PointerEvent): void {
-    if (bottomCollapsed.value) return;
-    startSplitDrag(e, (rect, ev) => { presentationState.ui.originalBottomH = Math.min(400, Math.max(120, rect.bottom - ev.clientY)); });
   }
 
   // ---- Driver identity + placement ----------------------------------------------
@@ -662,7 +657,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
     startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,
     WINISD_TRACE, cycleColor, resetChartView, chartMax,
-    mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown, onBottomSplitDown,
+    mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
     projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
