@@ -1,0 +1,56 @@
+id: F33
+owner: Johnlon
+status: open
+sha: 336dc2168e6c6909222c3eda3266e42693e20aa6
+goal: main is red at 336dc2168e; make the full suite pass again
+commits: |
+  336dc2168e T202: 'Mobile What-if: Port area (any shape) replaces Port diameter; tapping i
+failing: |
+       × no component in the tree takes or emits a domain value 10190ms
+   FAIL  |ui-architecture| test/architecture/no-domain-value-through-component.test.ts > a component API carries no domain value (A9) > no component in the tree takes or emits a domain value
+    ✘   79 packages/ui/test/ui/driver-browser.browser.spec.ts:645:5 › Driver browser › selecting a driver › choosing a driver embeds it in the project and closes the picker (27.1s)
+    ✘   80 packages/ui/test/ui/driver-browser.browser.spec.ts:663:5 › Driver browser › selecting a driver › the embedded driver is a copy — editing it does not touch the saved driver (27.0s)
+    ✘  145 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:179:3 › Driver Editor provenance map and field boxes › every field the provenance map explains takes the inspected highlight (14.8m)
+    ✘  168 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:29:3 › Equation inspector popup › Toggling Inspect Provenance on and clicking Qts highlights feeding fields and pops up non-modal Equation Inspector (14.8m)
+    ✘  169 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:48:3 › Equation inspector popup › Inspecting a multi-formula field (Qes) displays multiple derivation paths and distinct color swatches (14.8m)
+output: |
+    ✓  178 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:52:1 › toggling the "Force flat response" checkbox writes through to the project (1.0s)
+    ✓  179 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:59:1 › the bug switches carry the warning class under a "Enable WinISD bugs" heading (1.1s)
+    ✓  180 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:73:1 › the "Enable WinISD-style" group has every WinISD option the desktop has, and each one writes through (1.5s)
+    ✓  181 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:85:1 › the compatibility panel has no preset or reset buttons, only switches and a help link per group (1.2s)
+    ✓  182 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:99:1 › scrolls to its last control instead of clipping it (1.3s)
+    ✓  183 packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts:16:3 › MobileAlignmentPopup › the sealed sheet picks an alignment and writes its volume on Accept (1.3s)
+    ✓  185 packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts:59:3 › MobileAlignmentPopup › Cancel discards the sheet's draft without touching the volume field (1.4s)
+    ✓  184 packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts:34:3 › MobileAlignmentPopup › the vented sheet picks an alignment and writes volume + tuning on Accept (1.4s)
+    ✓  187 packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts:23:1 › bandpass6: the Front chamber panel on the Box tab edits the front chamber tuning (1.1s)
+    ✓  186 packages/ui/test/ui/mobile-backups.browser.spec.ts:8:1 › Your data opens inside the full-screen Options dialog and fits a 360 px phone (1.2s)
+    ✓  188 packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts:34:1 › bandpass6: one vent panel per port, no pending note, a diameter edit reaches only that vent (1.5s)
+    ✓  189 packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts:48:1 › abc: Rear, Front and Intra vent panels; the Intra length is editable (1.5s)
+    ✓  190 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:15:3 › MobileBoxLossesPopup › edits Ql/Qa, and Qp only for a vented box (1.3s)
+    ✓  191 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:35:3 › MobileBoxLossesPopup › Reset puts Ql, Qa and Qp back to WinISD's defaults (1.2s)
+    ✓  192 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › bandpass4: each chamber panel's button opens only that chamber's set (1.5s)
+    ✓  193 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › bandpass4: Reset puts only the open chamber back; the Qicl is one value for both (2.1s)
+    ✓  194 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › bandpass6: each chamber panel's button opens only that chamber's set (1.5s)
+    ✓  195 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › bandpass6: Reset puts only the open chamber back; the Qicl is one value for both (1.7s)
+    ✓  196 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › abc: each chamber panel's button opens only that chamber's set (1.2s)
+    ✓  198 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:32:3 › MobileBoxTab › the Volume row lines up with the Target tuning row below it (1.4s)
+    ✓  197 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › abc: Reset puts only the open chamber back; the Qicl is one value for both (2.0s)
+    ✓  200 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:53:3 › MobileBoxTab › shows the box-type select, the enclosure diagram, and a volume field (1.5s)
+    ✓  199 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:43:3 › MobileBoxTab › emptying the box volume leaves it blank with a ⚠ that names the Alignment button (1.8s)
+    ✓  201 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:59:3 › MobileBoxTab › editing the volume writes the value through to the field (1.8s)
+    ✓  202 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:66:3 › MobileBoxTab › the Qtc row shows only for a sealed box (1.9s)
+    ✓  203 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:78:3 › MobileBoxTab › scrolls to its last button (Box losses) instead of clipping it (1.4s)
+    ✓  204 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:87:5 › MobileBoxTab › bandpass4: the Box tab has a Front chamber volume that steps (1.8s)
+    ✓  205 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:87:5 › MobileBoxTab › bandpass6: the Box tab has a Front chamber volume that steps (2.0s)
+    ✓  206 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:87:5 › MobileBoxTab › abc: the Box tab has a Front chamber volume that steps (2.3s)
+    ✓  207 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:144:5 › MobileBoxTab › switching box type › from sealed, switching to vented then passive radiator both work immediately (2.8s)
+    ✓  208 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:151:5 › MobileBoxTab › switching box type › from vented, switching to sealed then passive radiator both work immediately (2.5s)
+    ✓  209 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:158:5 › MobileBoxTab › switching box type › from passive radiator, switching to sealed then vented both work immediately (2.2s)
+    ✓  210 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:189:5 › MobileBoxTab › switching project › between a vented and a passive radiator project repaints the tabs and the Box tab (2.5s)
+    ✓  211 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:205:5 › MobileBoxTab › switching project › while the Box tab is showing repaints it and the tab bar (2.5s)
+    ✓  212 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:220:5 › MobileBoxTab › switching project › while the Passive Radiator tab is showing leaves a tab that fits the new box (2.4s)
+    ✓  214 packages/ui/test/ui/mobile-chart-auto-y.browser.spec.ts:10:1 › the mobile Graph page draws charts without an Auto Y switch while What-if? is closed (1.9s)
+    ✓  213 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:231:5 › MobileBoxTab › switching project › from a vented project to a sealed one on the Box tab repaints it (2.7s)
+  scripts/test-browser.sh: line 78: 719295 Killed                     npx playwright test "$@"
+  suite: unit exit 1, browser exit 137
+  post-land suite 714154-336dc2168e finished: FAILED (exit 1) after 1h20m14s
