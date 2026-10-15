@@ -1,0 +1,50 @@
+id: F26
+owner: Johnlon
+status: open
+sha: 9c99b75de7fcd63ba9281864c038b537f0d0f644
+goal: main is red at 9c99b75de7; make the full suite pass again
+commits: |
+  9c99b75de7 T178: Cloud sync conflict messages name the item; kept driver/PR copies get th
+failing: |
+
+output: |
+   ✓ |ui| test/logic/liveProject.test.ts (7 tests) 2ms
+   ✓ |ui| test/hooks/chartGrid.test.ts (9 tests) 3ms
+   ✓ |ui| test/logic/visibleViewport.test.ts (3 tests) 1ms
+   ✓ |ui| test/logic/featureUse.test.ts (3 tests) 2ms
+   ✓ |ui| test/scripts/vite-config.test.ts (11 tests) 3ms
+   ✓ |ui| test/logic/dateDisplay.test.ts (5 tests) 1ms
+   ✓ |ui| test/logic/entryRefusal.test.ts (6 tests) 2ms
+   ✓ |ui| test/logic/tabId.test.ts (2 tests) 1ms
+   ✓ |ui| test/logic/viewport.test.ts (4 tests) 2ms
+   ✓ |ui| test/logic/sweepIssueMessage.test.ts (3 tests) 1ms
+   ✓ |ui-architecture| test/architecture/architecture.test.ts (24 tests) 7927ms
+     ✓ layering — every arrow points downward (5)
+       ✓ a service never imports the application state or the logic layer 547ms
+       ✓ logic and the services hold no view components 346ms
+     ✓ inversion of control — collaborators are injected, never reached for (4)
+       ✓ a service exports no mutable module-level binding 3180ms
+     ✓ containment is total: appState -> OpenISDProject -> OpenISDDriver (3)
+       ✓ appState never hands an OpenISDDriver out — every exported function returns data 2384ms
+     ✓ export * ratchet — the gate can fail (non-vacuous demonstration) (1)
+       ✓ reports resolved names, detects baseline growth, and flags an unresolved target as a failure 334ms
+     ✓ export * is banned outright — QO86 ratchet (baseline now, zero eventually) (1)
+       ✓ no export * site outside the recorded baseline, and no baselined site has grown 316ms
+   ✓ |ui-architecture| test/architecture/no-persistence-vocabulary-drift.test.ts (6 tests) 7963ms
+     ✓ persistence vocabulary — CHECK 2: repos/ never touches a browser API directly (1)
+       ✓ no file under persistence/repos/ names window, document, or localStorage 618ms
+     ✓ persistence vocabulary — CHECK 3: *Storage lives only under storage/, *Repo only under repos/ (2)
+       ✓ no exported symbol matching /Storage$/ lives under persistence/repos/ 2424ms
+     ✓ persistence vocabulary — CHECK 5: "Library"/"Bucket" name no module or exported type (2)
+       ✓ no exported type/interface/class name contains "Library" or "Bucket" 4677ms
+   ✓ |ui-architecture| test/architecture/architecture-units-come-from-the-rotation.test.ts (3 tests) 7544ms
+     ✓ units come from the rotation (3)
+       ✓ no template or hook names a unit rotation by string; the field is the key 4191ms
+       ✓ no template or hook names a vent-group member by string; the VentMember is the key 1966ms
+       ✓ no template or hook types a unit beside a shown value 1380ms
+   ✓ |ui-architecture| test/architecture/architecture-templates-do-no-arithmetic.test.ts (1 test) 1435ms
+     ✓ templates do no arithmetic (1)
+       ✓ no .vue template calls .toFixed or a physics Math function 1429ms
+   ✓ |ui-architecture| test/architecture/no-raw-driver-type-literals.test.ts (2 tests) 73ms
+   ✓ |ui-architecture| test/architecture/no-native-confirm.test.ts (1 test) 100ms
+  post-land: TIMED OUT after 61849s at 9c99b75de7fcd63ba9281864c038b537f0d0f644
