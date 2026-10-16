@@ -1,6 +1,6 @@
 id: F47
 owner: Johnlon
-status: open
+status: done
 sha: 6f5e110c2ea93adaddd88e7f2c036265db66938d
 goal: main is red at 6f5e110c2e; make the full suite pass again
 commits: |
@@ -52,3 +52,9 @@ output: |
     828 passed (7.9m)
   suite: unit exit 1, browser exit 1
   post-land suite 3168251-6f5e110c2e finished: FAILED (exit 1) after 9m47s
+closed_note: |
+  T245 (6f5e110c) made two things red. The PairPartner type had Writable without Entered, which the
+  field type combination architecture test forbids; it now has Entered. The old Frc spec expected a
+  blank field after clearing; under the clear rule the vent length becomes the entry and Frc shows
+  the calculated 35.00, so the spec now expects the calculated value, not 0. bob ran the architecture
+  tests before landing this time.

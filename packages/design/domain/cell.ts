@@ -507,7 +507,7 @@ export function inputOf<T>(read: () => T | null): SolverInput<T> {
 }
 
 /** The other member of a solved pair, read lazily (the two members are built one after the other). */
-export type PairPartner = () => Readable<number | null> & Writable<number>;
+export type PairPartner = () => Readable<number | null> & Entered & Writable<number>;
 
 /** Builds one half of a solved pair (vent `tuning_goal_hz` ↔ `length_m`, PR `addedMass_kg` ↔
  *  `tuning_goal_hz`) — entering or explicitly clearing this member atomically clears the sibling

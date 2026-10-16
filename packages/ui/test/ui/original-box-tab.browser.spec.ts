@@ -147,13 +147,16 @@ test.describe('Original Box tab', () => {
     expect(after.vented).toBe(before.vented);
   });
 
-  // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied Frc clears; it is never stored as 0.
-  test('the 6th-order bandpass Frc field stays blank when emptied instead of becoming 0', async ({ page }) => {
+  // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied Frc is never stored as 0. Under the
+  // clear rule (docs/design/FIELD_CLEAR_RULE.md) the vent length becomes the entry and Frc is calculated.
+  test('the 6th-order bandpass Frc field, when emptied, shows the calculated tuning instead of 0', async ({ page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('bandpass6');
     const frc = page.locator('.ui-field', { hasText: 'Tuning freq (Frc)' }).locator('input');
+    const entered = await frc.inputValue();
     await fillAndBlur(frc, '');
-    await expect(frc).toHaveValue('');
+    await expect(frc).toHaveValue(entered);
+    await expect(frc).toHaveClass(/value-c/);
   });
 
   test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in a 20L box shows the WinISD-lossy Qtc and fc', async ({ page }) => {

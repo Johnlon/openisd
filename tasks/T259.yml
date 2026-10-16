@@ -1,0 +1,13 @@
+id: T259
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: F47: bandpass6 Frc clear shows the calculated value; field type combination violation
+done_test: bash scripts/test.sh packages/design/test/architecture-field-type-combinations.test.ts
+files:
+  - packages/design/domain/cell.ts
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - tasks/fixes/F47.yml
+  - tasks/T259.yml
+label: fixes

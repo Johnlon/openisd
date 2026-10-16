@@ -3,6 +3,7 @@ release_note: Deleting a tuning, vent length or similar linked value now keeps i
 repo: openisd
 owner: sonnet
 status: done
+landed: 6f5e110c2ea93adaddd88e7f2c036265db66938d
 goal: Clearing a linked pair member keeps the partner as E
 done_test: bash scripts/test.sh packages/design/test/domain/vent-pair-clear.test.ts
 files:
