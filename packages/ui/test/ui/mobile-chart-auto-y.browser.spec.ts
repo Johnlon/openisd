@@ -7,7 +7,7 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
-test('the mobile Graph page draws charts without an Auto Y switch while What-if? is closed', async ({ page }) => {
+test('the mobile Graph page draws charts without an Auto Y switch while Learn is closed', async ({ page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: a412598a8c0a3326f42c49c4b9894ae29f00c0c7
 goal: F40: re-take the mobile-menu baseline after T216 moved the open projects out of the menu
 done_test: bash scripts/land/test/visual.e2e.test.sh
 files:

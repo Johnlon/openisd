@@ -22,7 +22,7 @@ components from bypassing it is [ARCHITECTURE.md §7](../../ARCHITECTURE.md#7-pa
 |-----------|---------------------------------------------------------|--------------------------------------|---------------------|
 | `#saved`  | The project as of the last save, including the driver.  | `save()` replaces it.                | yes (autosaved)     |
 | `#edited` | Every change since the last save, or none.               | Any `.set()`/`.clear()`; `save()` promotes it into `#saved`. | yes (autosaved) |
-| `#whatif` | A What-if session (the What-if? panel and sheet). | Any `.set()`/`.clear()` while active; `beginWhatIf()`/`resetWhatIf()` clone it from the committed record; `cancelWhatIf()` discards it. | no |
+| `#whatif` | A What-if session (the Learn panel and sheet). | Any `.set()`/`.clear()` while active; `beginWhatIf()`/`resetWhatIf()` clone it from the committed record; `cancelWhatIf()` discards it. | no |
 
 Reads resolve to the highest layer that exists: `#whatif ?? #edited ?? #saved`. That is the
 whole mechanism — beginning and cancelling a what-if only changes which layer resolves.

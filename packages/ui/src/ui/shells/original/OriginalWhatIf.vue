@@ -188,10 +188,10 @@ useEscToClose(() => presentationState.editDriver, close);
 <template>
   <div class="what-if-panel">
     <div class="what-if-titlebar">
-      <span>What-if?</span>
-      <span class="close-btn" role="button" tabindex="0" title="Close. The project is not changed." @click="close" @keydown.enter="close">✕</span>
+      <span>Learn</span>
+      <span class="close-btn" role="button" tabindex="0" title="Close. The design is not changed." @click="close" @keydown.enter="close">✕</span>
     </div>
-    <p class="what-if-hint">Try values and watch the charts. The project is not changed.</p>
+    <p class="what-if-hint">Try values and watch the charts. The design is not changed.</p>
 
     <div class="what-if-grid">
       <div v-for="f in MAIN" :key="f.key" class="what-if-fld">
@@ -266,8 +266,8 @@ useEscToClose(() => presentationState.editDriver, close);
     </div>
 
     <div class="what-if-btns">
-      <button title="Back to the project's values" @click="reset">Reset</button>
-      <button class="footer-buttons-pri" title="Close. The project is not changed." @click="close">Close</button>
+      <button title="Back to the design's values" @click="reset">Reset</button>
+      <button class="footer-buttons-pri" title="Close. The design is not changed." @click="close">Close</button>
     </div>
     <ProvenanceLegend class="what-if-legend" />
   </div>

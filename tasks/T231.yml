@@ -1,0 +1,49 @@
+id: T231
+release_note: 'What-if? is now called Learn'
+repo: openisd
+owner: sonnet
+status: done
+goal: Tune sheet task 4: rename What-if to Learn in user-facing text
+done_test: bash scripts/test.sh packages/ui/test/architecture/what-if-never-changes-the-project.test.ts packages/ui/test/logic/projectRegistry.test.ts
+files:
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - tasks/T231.yml
+  - README.md
+  - docs/TASK_LIST_FORMAT.md
+  - docs/design/STATE_MODEL.md
+  - packages/ui/src/ui/components/SplashContent.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
+  - packages/ui/test/logic/projectRegistry.test.ts
+  - packages/ui/test/ui/consistency-dq.browser.spec.ts
+  - packages/ui/test/ui/mobile-chart-auto-y.browser.spec.ts
+  - packages/ui/test/ui/no-project-shell.browser.spec.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - packages/ui/test/ui/provenance-legend.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+visual:
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-signal
+  - desktop-tab-filters
+  - desktop-tab-advanced
+  - desktop-tab-project
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-box-box-passive-radiator
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-abc

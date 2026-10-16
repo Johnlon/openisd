@@ -128,11 +128,11 @@ test.describe('NumInput', () => {
         checked += await sweepActiveTab(page, `${boxType}/${name}`);
       }
     }
-    // The docked What-if? panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
+    // The docked Learn panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     await page.locator('.save-rail .what-if-btn').click();
     const whatIfInputs = await page.locator('.what-if-panel input[type="number"]').all();
-    for (let i = 0; i < whatIfInputs.length; i++) checked += await assertSpinnerHoldsDp(whatIfInputs[i], `What-if? #${i}`);
+    for (let i = 0; i < whatIfInputs.length; i++) checked += await assertSpinnerHoldsDp(whatIfInputs[i], `Learn #${i}`);
 
     // Guard against a selector that silently matches nothing (which would make the sweep a no-op
     // and pass vacuously). The Original skin has well over a dozen numeric spinners across types.
@@ -166,7 +166,7 @@ test.describe('NumInput', () => {
     await expect(rh).toHaveAttribute('title', /outside the sane range/);
     await rh.fill('250');
     await expect(rh).toHaveClass(/dq-flag/);           // ceiling too, not just the floor
-    // 3. What-if? panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor when
+    // 3. Learn panel (scaled registry bounds): Fs typed negative clamps to the 1 Hz floor when
     //    the entry is committed — not mid-typing, where a below-floor value may be half a number.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     await page.locator('.save-rail .what-if-btn').click();

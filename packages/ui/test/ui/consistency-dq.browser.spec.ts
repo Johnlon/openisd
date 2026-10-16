@@ -25,7 +25,7 @@ async function openWhatIf(page: Page) {
   await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'What-if' }).click();
+  await page.locator('.edit-btn', { hasText: 'Learn' }).click();
   await expect(page.locator('.what-if-panel')).toBeVisible();
 }
 
@@ -81,8 +81,8 @@ test('driver editor: an inconsistent group marks every one of its members, with 
   await expect(page.locator('.de-modal .de-footer').getByRole('button', { name: 'Export', exact: true })).toBeEnabled();
 });
 
-// ── The Original skin's docked What-If panel ──────────────────────────────────────────────
-test('What-if?: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
+// ── The Original skin's docked Learn panel ──────────────────────────────────────────────
+test('Learn: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
   await openWhatIf(page);
 
   await expect(page.locator('.what-if-panel .de-dq')).toHaveCount(0);
@@ -115,7 +115,7 @@ test('What-if?: the same mark appears on every member of the group as the driver
 });
 
 
-test('What-if?: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
+test('Learn: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
   await openWhatIf(page);
 
   const mms = whatIfField(page, 'Mms').locator('input');

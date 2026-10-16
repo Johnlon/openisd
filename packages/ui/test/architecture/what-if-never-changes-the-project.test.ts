@@ -28,7 +28,7 @@ describe('What-if? never changes the project', () => {
     for (const write of PROJECT_WRITES) expect(text).not.toMatch(write);
   });
 
-  it('closing the What-if? session ends the What-if layer in Learn mode', () => {
+  it('closing the Learn session ends the What-if layer in Learn mode', () => {
     const text = readFileSync(join(UI_SRC, 'hooks/sheetSession.ts'), 'utf8');
     expect(text).toMatch(/case 'whatIfLayer':\s*project\.value\.cancelWhatIf\(\);/);
   });
