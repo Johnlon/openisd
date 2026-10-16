@@ -38,6 +38,7 @@ setup_repo() {
     cp "$REPO/scripts/land.sh" scripts/
     cp -r "$REPO/scripts/land" scripts/
     cp "$REPO/scripts/paths.sh" scripts/
+    cp "$REPO/scripts/browser-runs.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/
     cat > gates/lint.sh <<'EOF'
 #!/usr/bin/env bash
 echo "lint_start" >> "$LANDING_LOG/seq"

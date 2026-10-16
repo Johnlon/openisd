@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Frees admission slots whose owner is dead, and removes post-land clean copies whose owner is dead
+# Frees admission slots whose owner is dead, stops browser runs whose owner is gone, and removes
+# post-land clean copies whose owner is dead
 # (a reboot on 12 Oct 2026 left six). Usage: bash scripts/housekeeping.sh (env ADMIT_DIR,
 # HOUSEKEEPING_LOG, HOUSEKEEPING_POST_LAND_DIR, HOUSEKEEPING_REPO). Format of the records:
 # scripts/admit/record.sh; a copy is $POST_LAND_DIR/<owner pid>-<sha> (scripts/land/post-land/run.sh).
@@ -36,6 +37,22 @@ if [ -n "$POST_LAND_DIR" ] && [ -d "$POST_LAND_DIR" ]; then
     say "housekeeping: removed post-land copy $copy (owner pid $owner is dead)"
   done
   git -C "$REPO" worktree prune 2> /dev/null || true
+fi
+
+# --- browser runs whose owner is gone -----------------------------------------------------------
+# A browser run is its own process group (test-browser.sh's setsid), so its owner stopping by group
+# misses it, and its own pid stays alive. Judge it by its recorded owner: scripts/browser-runs.sh.
+# shellcheck source=browser-runs.sh
+. "$ROOT/scripts/browser-runs.sh"
+if [ -d "$OPENISD_RESERVATION_DIR" ]; then
+  [ -r "$OPENISD_RESERVATION_DIR" ] && [ -x "$OPENISD_RESERVATION_DIR" ] || die "cannot read $OPENISD_RESERVATION_DIR"
+  for rec in "$OPENISD_RESERVATION_DIR"/*; do
+    [ -f "$rec" ] || continue
+    why=$(browser_run_owner_gone "$rec") || continue
+    port=$(browser_run_field "$rec" PORT)
+    browser_run_stop "$rec"
+    say "housekeeping: stopped browser run $(basename "$rec") on port ${port:-?} ($why)"
+  done
 fi
 
 # --- admission slots whose owner is dead --------------------------------------------------------

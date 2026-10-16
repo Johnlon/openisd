@@ -34,6 +34,7 @@ setup() {
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/land.sh" scripts/ 2>/dev/null
     cp "$REPO/scripts/paths.sh" scripts/
+    cp "$REPO/scripts/browser-runs.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/
     # suite: fails if FAIL exists; with ONCE it fails the first time only (a flake)
     cat > suite.sh <<'EOF'
 #!/usr/bin/env bash

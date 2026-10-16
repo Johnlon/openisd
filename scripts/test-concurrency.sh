@@ -20,6 +20,8 @@
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
 . "$(dirname "${BASH_SOURCE[0]}")/paths.sh"
+# shellcheck source=./browser-runs.sh
+. "$(dirname "${BASH_SOURCE[0]}")/browser-runs.sh"
 mkdir -p "$OPENISD_RESERVATION_DIR"
 OPENISD_PORT_POOL_START=4100
 OPENISD_PORT_POOL_SIZE=90   # 4100-4189; never reaches 4000 (John's preview) or the 4200+ ad-hoc range
@@ -95,9 +97,12 @@ reserve_test_slot() {
     echo "WARNING: all $OPENISD_PORT_POOL_SIZE test ports in use by other concurrent runs — reusing $my_port, expect a collision" >&2
   fi
 
+  # GROUP_START and OWNER: scripts/browser-runs.sh (what lets the housekeeper stop a run whose owner is gone).
   {
     echo "WORKERS=$my_workers"
     echo "PORT=$my_port"
+    echo "GROUP_START=$(admit_starttime $$)"
+    echo "OWNER=${OPENISD_BROWSER_OWNER:-}"
   } > "$OPENISD_RESERVATION_DIR/$$"
 
   exec 9>&-   # release the lock — critical section ends; the actual test run below overlaps freely

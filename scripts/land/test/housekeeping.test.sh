@@ -7,6 +7,8 @@ H="$REPO/scripts/housekeeping.sh"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/housekeeping-test.XXXXXX")"
 export ADMIT_DIR="$SCRATCH/admit"
 export HOUSEKEEPING_LOG="$SCRATCH/logs/housekeeping.log"
+# Never the real browser-run records: a scan here must not stop anyone's run.
+export OPENISD_RESERVATION_DIR="$SCRATCH/reservations" OPENISD_RESERVATION_LOCK="$SCRATCH/reservations.lock"
 PIDS=()
 fails=0
 cleanup() { for p in "${PIDS[@]}"; do kill -KILL "$p" 2> /dev/null; done; rm -rf "$SCRATCH"; }
@@ -81,6 +83,57 @@ ADMIT_DIR="$SCRATCH/nope" out=$(timeout 30 bash "$H" 2>&1); r=$?
 [ -d "$HOUSEKEEPING_POST_LAND_DIR/winisd_drivers" ] && ok "non-copy dir untouched" || fail "winisd_drivers removed"
 grep -q 'removed post-land copy .*999996-deadbeef01 (owner pid 999996 is dead)' "$HOUSEKEEPING_LOG" && ok "removal logged" || fail "removal not logged"
 git -C "$HOUSEKEEPING_REPO" worktree list | grep -q deadbeef01 && fail "worktree record kept" || ok "worktree record pruned"
+
+# 7. browser runs (scripts/browser-runs.sh): a run is its own process group holding the browser lock
+#    shared; it is stopped when its recorded owner is dead or its owner pid was reused, never otherwise.
+mkdir -p "$OPENISD_RESERVATION_DIR"
+LOCK="$SCRATCH/suite-run.lock"; : > "$LOCK"
+browser_run() { # browser_run <owner "pid start">: a run in its own group holding LOCK shared; pid in RPID
+  setsid bash -c 'exec 9> "$1"; flock -s 9; exec sleep 300' _ "$LOCK" &
+  RPID=$!; PIDS+=("$RPID")
+  sleep 0.5
+  printf 'WORKERS=1\nPORT=41%02d\nGROUP_START=%s\nOWNER=%s\n' "$((RPID % 90))" "$(starttime "$RPID")" "$1" \
+    > "$OPENISD_RESERVATION_DIR/$RPID"
+}
+sleep 300 & OWNER_DEAD=$!; PIDS+=("$OWNER_DEAD")
+browser_run "$OWNER_DEAD $(starttime "$OWNER_DEAD")"; ORPHAN=$RPID
+sleep 300 & OWNER_LIVE=$!; PIDS+=("$OWNER_LIVE")
+browser_run "$OWNER_LIVE $(starttime "$OWNER_LIVE")"; KEPT=$RPID
+browser_run "$OWNER_LIVE 1"; REUSED=$RPID
+browser_run ""; UNTAGGED=$RPID
+kill -KILL "$OWNER_DEAD"; wait "$OWNER_DEAD" 2> /dev/null
+[ "$(ps -o pgid= -p "$ORPHAN" | tr -d ' ')" = "$ORPHAN" ] && ok "a browser run leads its own group" || fail "test run is not a group leader"
+ADMIT_DIR="$SCRATCH/nope" out=$(timeout 60 bash "$H" 2>&1); r=$?
+[ $r = 0 ] && ok "browser scan exits 0" || fail "browser scan exit $r: $out"
+wait "$ORPHAN" 2> /dev/null; wait "$REUSED" 2> /dev/null
+[ ! -e "/proc/$ORPHAN" ] && ok "dead owner's run stopped" || fail "orphan run still alive"
+[ ! -e "$OPENISD_RESERVATION_DIR/$ORPHAN" ] && ok "dead owner's record removed" || fail "orphan record kept"
+grep -q "stopped browser run $ORPHAN on port .* (owner pid $OWNER_DEAD is dead)" "$HOUSEKEEPING_LOG" && ok "stop logged" || fail "stop not logged: $out"
+[ ! -e "/proc/$REUSED" ] && ok "reused owner's run stopped" || fail "reused-owner run alive"
+grep -q "stopped browser run $REUSED .*(owner pid $OWNER_LIVE was reused by another process)" "$HOUSEKEEPING_LOG" && ok "reuse logged" || fail "reuse not logged"
+[ -e "/proc/$KEPT" ] && [ -e "$OPENISD_RESERVATION_DIR/$KEPT" ] && ok "live owner's run kept" || fail "live owner's run touched"
+[ -e "/proc/$UNTAGGED" ] && [ -e "$OPENISD_RESERVATION_DIR/$UNTAGGED" ] && ok "run with no owner kept" || fail "untagged run touched"
+
+# 8. post-land's stop: every run owned by a pid is stopped, others are not; then the lock is free
+. "$REPO/scripts/browser-runs.sh"
+browser_runs_stop_owned_by "$OWNER_LIVE" > /dev/null
+wait "$KEPT" 2> /dev/null
+[ ! -e "/proc/$KEPT" ] && [ ! -e "$OPENISD_RESERVATION_DIR/$KEPT" ] && ok "owner's runs stopped on request" || fail "owned run kept"
+[ -e "/proc/$UNTAGGED" ] && ok "another owner's run kept" || fail "unowned run stopped"
+kill -KILL "$UNTAGGED"; wait "$UNTAGGED" 2> /dev/null
+timeout 5 flock -x "$LOCK" true && ok "browser lock free for the suite" || fail "browser lock still held"
+
+# 9. a record whose group leader pid now belongs to another process: removed, that process untouched
+sleep 300 & STRANGER=$!; PIDS+=("$STRANGER")
+printf 'WORKERS=1\nPORT=4188\nGROUP_START=1\nOWNER=999995 1\n' > "$OPENISD_RESERVATION_DIR/$STRANGER"
+ADMIT_DIR="$SCRATCH/nope" timeout 60 bash "$H" > /dev/null 2>&1
+[ -e "/proc/$STRANGER" ] && ok "reused group pid not signalled" || fail "stranger killed"
+[ ! -e "$OPENISD_RESERVATION_DIR/$STRANGER" ] && ok "its stale record removed" || fail "stale record kept"
+
+# 10. the slot record carries the owner and the group's start (scripts/test-concurrency.sh)
+rec=$(cd "$REPO" && OPENISD_BROWSER_OWNER="4242 77" bash -c '. scripts/test-concurrency.sh; reserve_test_slot 2> /dev/null; cat "$OPENISD_RESERVATION_DIR/$$"; release_test_slot')
+grep -qx 'OWNER=4242 77' <<< "$rec" && ok "slot records its owner" || fail "no OWNER line: $rec"
+grep -qE '^GROUP_START=[0-9]+$' <<< "$rec" && ok "slot records its group start" || fail "no GROUP_START: $rec"
 
 [ $fails = 0 ] && echo "ALL OK" || echo "$fails FAILED"
 exit $((fails > 0))

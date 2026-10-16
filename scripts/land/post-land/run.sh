@@ -51,7 +51,12 @@ OUT="$(mktemp "${TMPDIR:-/tmp}/post-land-out.XXXXXX")"
 BODY=""
 FIX=""
 
-# The suite runs as one background job in its own process group; stopping this run stops it all.
+# The suite runs as one background job in its own process group; stopping this run stops it all. A
+# browser run leaves that group (test-browser.sh's setsid), so it is stopped by its record, whose owner
+# is this run (scripts/browser-runs.sh).
+# shellcheck source=../../browser-runs.sh
+. "$ROOT/scripts/browser-runs.sh"
+export OPENISD_BROWSER_OWNER="$$ $(admit_starttime $$)"
 stop_suite() {
   [ -n "$BODY" ] || return 0
   local body="$BODY"
@@ -59,6 +64,7 @@ stop_suite() {
   kill -TERM -- "-$body" 2>/dev/null || true
   wait "$body" 2>/dev/null || true
   kill -KILL -- "-$body" 2>/dev/null || true
+  browser_runs_stop_owned_by "$$"
 }
 # Red: open a fixes task on top of the tested commit (or append to the open one), then exit 1.
 # Reads OUT, SHA, FIX and the last green; called when the suite ended non-zero and when a signal

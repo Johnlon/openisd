@@ -1,0 +1,17 @@
+id: T219
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: 'A browser run whose owner is gone is stopped: each run records its owner, the housekeeper stops a run whose owner is dead or whose owner pid was reused, and post-land stops the browser runs it owns with its suite (16 Oct: an orphan from a killed post-land run held the browser lock for 93 min)'
+done_test: bash scripts/land/test/housekeeping.test.sh
+files:
+  - tasks/T219.yml
+  - scripts/browser-runs.sh
+  - scripts/housekeeping.sh
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/housekeeping.test.sh
+  - scripts/land/test/post-land.e2e.test.sh
+  - scripts/land/test/runtime-paths-concurrent.e2e.test.sh
+  - scripts/test-browser.sh
+  - scripts/test-concurrency.sh

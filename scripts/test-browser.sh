@@ -23,6 +23,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # script, and a group-kill would either miss descendants or hit unrelated processes.
 if [ -z "${OPENISD_IN_OWN_GROUP:-}" ]; then
   export OPENISD_IN_OWN_GROUP=1
+  # The run this one belongs to, recorded before setsid takes it out of its caller's group: the
+  # housekeeper stops it when that owner is gone (scripts/browser-runs.sh). post-land/run.sh sets its own.
+  [ -n "${OPENISD_BROWSER_OWNER:-}" ] \
+    || export OPENISD_BROWSER_OWNER="$PPID $(awk '{print $22}' "/proc/$PPID/stat" 2> /dev/null)"
   exec setsid --fork --wait bash "$0" "$@"
 fi
 
