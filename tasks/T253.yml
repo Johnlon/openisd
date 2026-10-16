@@ -1,0 +1,10 @@
+id: T253
+release_note: ''
+repo: openisd
+owner: fable
+status: done
+goal: 'Rule: every test run has start and end times, and every suite timestamps each line'
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T253.yml
+  - .claude/rules/processes.md

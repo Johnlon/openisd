@@ -24,3 +24,10 @@ gates, the housekeeper), not any one agent.
 7. **Infrastructure changes are proven before they go live**: an end-to-end test in a scratch repo
    with real processes and two concurrent runs, wired in only when no landing or post-land run is active. Live gate
    scripts are never edited in place.
+8. **Every run is timed, line by line** (John, 16 Oct 2026: "every test output must have start and
+   end time and every test suit must have a logger install (or pipe) with per line timestamp").
+   - Every test run, suite, gate and post-land run writes a start line and an end line, each
+     with a UTC timestamp, its run id, and the end line with the duration and exit status.
+   - Every line of a suite's output is timestamped where it is written, by the runner's own
+     logger or by a pipe through one timestamping logger; never added afterwards.
+   - Metrics come from these logs plus git, read by one script. There is no second event store.

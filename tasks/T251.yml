@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: fce7d5af51692877ea7f7ca7127f407c55909ad6
 goal: Prototype: the full suite on GitHub Actions (10 browser shards + unit/typecheck), not gating anything
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
