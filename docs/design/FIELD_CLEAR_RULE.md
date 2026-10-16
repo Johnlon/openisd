@@ -53,15 +53,19 @@ Take the first step that applies:
 
 ## Checks
 
-| Clear | Step | Result |
-|---|---|---|
-| Driver Mms (E), others E | 1 | Mms C |
-| Vent tuning (E), length C | 2 | length E, tuning C |
-| PR added mass (E), tuning C | 2 | tuning E, mass C |
-| Drive power (E), voltage C | 2 | voltage E, power C |
-| Sealed Qtc (E), Vb and Fsc C | 2 | Vb E, Qtc C, Fsc C |
-| Sealed Fsc (E), Vb and Qtc C | 2 | Vb E, Fsc C, Qtc C |
-| Sealed Vb (E), Fsc and Qtc C | 2, declared partner | Qtc E, Vb C, Fsc C |
-| Port count (E) | 3 | 1, C |
-| Rg (E) | 3 | 0.1 ohm, C |
-| Filter frequency (E) | 4 | N, shown red (9 Oct ruling: filters stay empty) |
+Each row: the states before, the value cleared, the states after, and the step that applied.
+
+| Case | Before | Clear | After | Step |
+|---|---|---|---|---|
+| Driver | Fs E, Cms E, Mms E | Mms | Fs E, Cms E, **Mms C** | 1: Mms can be calculated from Fs and Cms |
+| Vent | tuning E, length C | tuning | **length E**, **tuning C** | 2: swap with length |
+| Passive radiator | added mass E, tuning C | added mass | **tuning E**, **added mass C** | 2: swap with tuning |
+| Drive | power E, voltage C | power | **voltage E**, **power C** | 2: swap with voltage |
+| Sealed | Qtc E, Vb C, Fsc C | Qtc | **Vb E**, **Qtc C**, Fsc C | 2: swap with Vb |
+| Sealed | Fsc E, Vb C, Qtc C | Fsc | **Vb E**, **Fsc C**, Qtc C | 2: swap with Vb |
+| Sealed | Vb E, Qtc C, Fsc C | Vb | **Qtc E**, **Vb C**, Fsc C | 2: Vb feeds two equations; its partner Qtc swaps |
+| Port count | count E | count | **count C, 1** | 3: default |
+| Rg | Rg E | Rg | **Rg C, 0.1 ohm** | 3: default |
+| Filter | frequency E | frequency | **frequency N**, shown red | 4: no source, no default |
+
+Bold marks what changed.
