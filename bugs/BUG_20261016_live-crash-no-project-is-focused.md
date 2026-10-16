@@ -13,3 +13,7 @@ Not yet found. A component reads the focused project in a computed while no proj
 
 ## Fix
 Find the component from the release's source map, reproduce with no project open, test first. Nothing reads the focused project while none is focused; the shell's no-project state renders instead.
+
+## John's ruling, 16 Oct 2026
+- Never a crash here. With no project open the app says, in plain words: "No project open. Create or open a project." with New project and Open project buttons, on both skins.
+- Every error is logged with enough context to diagnose it: which screen and dialog were open, how many projects were open, the focused project's box type (or none), the last few user actions by name, app version and device type. No project data and no values. The privacy text gets the matching sentence.
