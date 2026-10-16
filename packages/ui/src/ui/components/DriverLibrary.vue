@@ -114,27 +114,29 @@ onMounted(openedLibrary);
         </div>
 
         <div class="param-row">
+          <span class="pgroup">
           <span class="plabel" :class="{ active: fsMin || fsMax }">Fs</span>
           <input class="pnum" :class="{ active: fsMin }" type="number" v-model="fsMin" min="1" placeholder="min" title="Minimum Fs (Hz)">
           <span class="pmid">–</span>
           <input class="pnum" :class="{ active: fsMax }" type="number" v-model="fsMax" min="1" placeholder="max" title="Maximum Fs (Hz)">
           <span class="plabel" :class="{ active: fsMin || fsMax }">Hz</span>
+          </span>
 
-          <span class="psep"></span>
-
+          <span class="pgroup">
           <span class="plabel" :class="{ active: sdMin || sdMax }">Sd</span>
           <input class="pnum" :class="{ active: sdMin }" type="number" v-model="sdMin" min="0" placeholder="min" title="Minimum Sd (cm²)">
           <span class="pmid">–</span>
           <input class="pnum" :class="{ active: sdMax }" type="number" v-model="sdMax" min="0" placeholder="max" title="Maximum Sd (cm²)">
           <span class="plabel" :class="{ active: sdMin || sdMax }">cm²</span>
+          </span>
 
-          <span class="psep"></span>
-
+          <span class="pgroup">
           <span class="plabel" :class="{ active: selZ.length }">Z</span>
           <button v-for="z in ['4', '8', '16']" :key="z"
                   class="zchip" :class="{ active: selZ.includes(z) }"
                   :title="`Filter to nominal ${z}Ω impedance — stored as WinISD Znom (derived from Re when not entered; not fed back into the simulation)`"
                   @click="toggleZ(z)">{{ z }}Ω</button>
+          </span>
         </div>
 
         <!-- The slot the All Sources dropdown vacated. Two chips that compose: scope says
@@ -823,9 +825,14 @@ onMounted(openedLibrary);
   font-size: 11px;
   color: #888;
 }
-.psep {
-  width: 8px;
-  flex-shrink: 0;
+/* One filter (label, boxes, unit; or label and chips) never splits across lines: the row wraps
+   only between groups. */
+.pgroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 .driver-library .zchip {
   font-size: 10px;
