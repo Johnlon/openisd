@@ -1,0 +1,20 @@
+id: T209
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: 'Tune sheet task 1: WhatIfField becomes SheetField with short labels; SheetMode (Tune, Learn) lists each box type lines'
+done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
+files:
+  - tasks/T209.yml
+  - packages/design/fields/whatIfField.ts
+  - packages/design/fields/sheetField.ts
+  - packages/design/test/fields/whatIfField.test.ts
+  - packages/design/test/fields/sheetField.test.ts
+  - packages/design/fields/sheetMode.ts
+  - packages/design/test/fields/sheetMode.test.ts
+  - packages/design/fields/index.ts
+  - packages/ui/src/hooks/MobileWhatIfSheet-hooks.ts
+  - packages/ui/src/hooks/whatIfSession.ts
+  - packages/ui/test/hooks/MobileWhatIfSheet-hooks.test.ts
+  - packages/ui/test/hooks/whatIfSession.test.ts

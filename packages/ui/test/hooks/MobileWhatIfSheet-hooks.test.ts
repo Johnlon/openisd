@@ -7,7 +7,7 @@ import {describe, expect, it} from 'vitest';
 import {computed, effectScope, ref} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {WhatIfField} from '@openisd/design/fields';
+import {SheetField} from '@openisd/design/fields';
 import {useMobileWhatIfSheet} from '../../src/hooks/MobileWhatIfSheet-hooks.js';
 import {runHook} from './runHook.js';
 
@@ -36,7 +36,7 @@ describe('useMobileWhatIfSheet', () => {
   it('a value stepped on the sheet shows in the What-if but leaves the project unmodified', () => {
     const { project, api } = sheet();
     api.openSheet();
-    api.setValue(WhatIfField.BOX_VOLUME, 0.02);
+    api.setValue(SheetField.BOX_VOLUME, 0.02);
     expect(project.box.sealed.volume_m3.value).toBe(0.02);
     expect(project.isModified()).toBe(false);
   });
@@ -44,7 +44,7 @@ describe('useMobileWhatIfSheet', () => {
   it('Close ends the What-if: the project values are as before and not modified', () => {
     const { project, open, api } = sheet();
     api.openSheet();
-    api.setValue(WhatIfField.BOX_VOLUME, 0.02);
+    api.setValue(SheetField.BOX_VOLUME, 0.02);
     api.close();
     expect(open.value).toBe(false);
     expect(project.isWhatIfActive()).toBe(false);
@@ -62,7 +62,7 @@ describe('useMobileWhatIfSheet', () => {
       useMobileWhatIfSheet({ open: () => open.value, setOpen: v => { open.value = v; } })));
     if (api === undefined) throw new Error('the hook did not run');
     api.openSheet();
-    api.setValue(WhatIfField.BOX_VOLUME, 0.02);
+    api.setValue(SheetField.BOX_VOLUME, 0.02);
     scope.stop();
     expect(project.isWhatIfActive()).toBe(false);
     expect(project.box.sealed.volume_m3.value).toBe(0.012);
@@ -72,7 +72,7 @@ describe('useMobileWhatIfSheet', () => {
   it('Reset puts the project values back and keeps the sheet open', () => {
     const { project, open, api } = sheet();
     api.openSheet();
-    api.setValue(WhatIfField.BOX_VOLUME, 0.02);
+    api.setValue(SheetField.BOX_VOLUME, 0.02);
     api.reset();
     expect(open.value).toBe(true);
     expect(project.isWhatIfActive()).toBe(true);
@@ -82,7 +82,7 @@ describe('useMobileWhatIfSheet', () => {
   it('ignores an emptied field', () => {
     const { project, api } = sheet();
     api.openSheet();
-    api.setValue(WhatIfField.BOX_VOLUME, null);
+    api.setValue(SheetField.BOX_VOLUME, null);
     expect(project.box.sealed.volume_m3.value).toBe(0.012);
   });
 
@@ -104,7 +104,7 @@ describe('useMobileWhatIfSheet', () => {
     it('a click on a port-area value opens that port\'s fields, and Close puts them away', () => {
       const { api } = ventedSheet();
       api.openSheet();
-      const row = api.rows.value.find(r => r.field === WhatIfField.PORT_AREA);
+      const row = api.rows.value.find(r => r.field === SheetField.PORT_AREA);
       expect(row).toBeDefined();
       if (row === undefined) return;
       const down = press('pointerdown');
@@ -112,7 +112,7 @@ describe('useMobileWhatIfSheet', () => {
       expect(down.defaultPrevented).toBe(true);
       expect(api.portEditor.value).toBeNull();
       api.portValuePress(press('click'), row);
-      expect(api.portEditor.value?.field.label).toBe(WhatIfField.PORT_AREA.label);
+      expect(api.portEditor.value?.field.label).toBe(SheetField.PORT_AREA.label);
       api.closePortEditor();
       expect(api.portEditor.value).toBeNull();
     });
@@ -120,7 +120,7 @@ describe('useMobileWhatIfSheet', () => {
     it('a press on any other row opens nothing', () => {
       const { api } = ventedSheet();
       api.openSheet();
-      const row = api.rows.value.find(r => r.field === WhatIfField.TUNING);
+      const row = api.rows.value.find(r => r.field === SheetField.TUNING);
       if (row === undefined) throw new Error('no tuning row');
       const click = press('click');
       api.portValuePress(click, row);
@@ -131,7 +131,7 @@ describe('useMobileWhatIfSheet', () => {
     it('closing the sheet puts the overlay away too', () => {
       const { api } = ventedSheet();
       api.openSheet();
-      const row = api.rows.value.find(r => r.field === WhatIfField.PORT_AREA);
+      const row = api.rows.value.find(r => r.field === SheetField.PORT_AREA);
       if (row === undefined) throw new Error('no port area row');
       api.portValuePress(press('click'), row);
       api.close();

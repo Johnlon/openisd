@@ -120,5 +120,6 @@ export { parsePublicVersion, formatPublicVersion, titleOfPublicVersion, publicVe
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
 export { type AppVersion, type BuildKind, type BuildTrail, formatAppVersion, trailOfPathname, hostedListPathOf, hostedPathOf, stampOfVersion } from './appVersion.js';
 
-/** The What-if? sheet's rows per box type. */
-export { WhatIfField, type WhatIfSlot } from './whatIfField.js';
+/** The bottom sheet's rows per box type and sheet modes (Tune and Learn). */
+export { SheetField, type SheetSlot } from './sheetField.js';
+export { SheetMode, type SheetEdits } from './sheetMode.js';

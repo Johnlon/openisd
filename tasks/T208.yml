@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: b97e4c931851492415110e91f4f117f1ae43d2cf
 goal: 'Close BUG_20261011_wizard-step1-edit-clone-buttons: T040 already removed Edit and Clone driver from wizard step 1 behind a typed host; the spec passes on both skins; mark the bug FIXED'
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
 files:

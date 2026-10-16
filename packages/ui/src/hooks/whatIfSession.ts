@@ -1,6 +1,6 @@
 /**
  * The What-if? session, skin-neutral: the focused project's What-if layer (begin, reset, close)
- * and the rows the What-if? sheet edits on it (`WhatIfField.forBox`). Every write lands in the
+ * and the rows the What-if? sheet edits on it (`SheetField.forBox`). Every write lands in the
  * What-if layer and never in the project. Closing, or the panel going away, discards it; Reset
  * puts the project's values back (docs/design/STATE_MODEL.md rule 3). Each row writes through the
  * same path its home tab uses: the vent tuning and port diameter go through `VentMember`, so the
@@ -10,7 +10,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {computed, getCurrentScope, onScopeDispose} from 'vue';
 import type {OpenISDProject, Vent} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
-import {WhatIfField, type WhatIfSlot} from '@openisd/design/fields';
+import {SheetField, type SheetSlot} from '@openisd/design/fields';
 import {enterVentArea} from '../logic/ventGroup.js';
 
 export interface WhatIfSessionDeps {
@@ -19,7 +19,7 @@ export interface WhatIfSessionDeps {
 }
 
 /** The port a port slot names, or null when the box has no such port. */
-function ventOf(p: OpenISDProject, type: BoxType, slot: WhatIfSlot): Vent | null {
+function ventOf(p: OpenISDProject, type: BoxType, slot: SheetSlot): Vent | null {
   switch (slot) {
     case 'ventArea': case 'frontVentArea': return p.box.ventGroupOf(type).vent;
     case 'rearVentArea': return p.box.rearVentGroupOf(type)?.vent ?? null;
@@ -32,7 +32,7 @@ function ventOf(p: OpenISDProject, type: BoxType, slot: WhatIfSlot): Vent | null
 
 /** One What-if? row: the field and its current value in SI, or null when it has none. */
 export interface WhatIfRow {
-  readonly field: WhatIfField;
+  readonly field: SheetField;
   readonly value: number | null;
   /** The port a port-area row stands for, whose own fields its value opens; null for every other row. */
   readonly vent: Vent | null;
@@ -44,14 +44,14 @@ export interface WhatIfSession {
   /** Start the What-if layer; a no-op while one is active. */
   begin(): void;
   /** Write `v` (SI) to the row's slot, in the What-if layer. */
-  set(field: WhatIfField, v: number): void;
+  set(field: SheetField, v: number): void;
   /** Put the project's own values back and keep the What-if open. */
   reset(): void;
   /** End the What-if: its values are discarded, the project is as it was. */
   close(): void;
 }
 
-function read(p: OpenISDProject, type: BoxType, slot: WhatIfSlot): number | null {
+function read(p: OpenISDProject, type: BoxType, slot: SheetSlot): number | null {
   switch (slot) {
     case 'volume': return p.box.volumeOf(type).value;
     case 'frontVolume': return p.box.frontVolumeOf(type)?.value ?? null;
@@ -69,7 +69,7 @@ function read(p: OpenISDProject, type: BoxType, slot: WhatIfSlot): number | null
   }
 }
 
-function write(p: OpenISDProject, type: BoxType, slot: WhatIfSlot, v: number): void {
+function write(p: OpenISDProject, type: BoxType, slot: SheetSlot, v: number): void {
   switch (slot) {
     case 'volume': p.box.volumeOf(type).set(v); return;
     case 'frontVolume': p.box.frontVolumeOf(type)?.set(v); return;
@@ -95,12 +95,12 @@ export function createWhatIfSession({ project, projectChanged }: WhatIfSessionDe
     void projectChanged.value;
     const p = project.value;
     const type = p.box.boxType.value;
-    return WhatIfField.forBox(type).map(field => ({ field, value: read(p, type, field.slot), vent: ventOf(p, type, field.slot) }));
+    return SheetField.forBox(type).map(field => ({ field, value: read(p, type, field.slot), vent: ventOf(p, type, field.slot) }));
   });
 
   function begin(): void { project.value.beginWhatIf(); }
 
-  function set(field: WhatIfField, v: number): void {
+  function set(field: SheetField, v: number): void {
     const p = project.value;
     // A focus change or file open ends the What-if under an open sheet; a write must never
     // land in the project, so it starts a new one.

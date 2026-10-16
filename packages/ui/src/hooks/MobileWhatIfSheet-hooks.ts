@@ -15,7 +15,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createWhatIfSession, type WhatIfRow} from './whatIfSession.js';
 import {portFieldsView, type PortFieldsView} from './portFieldsView.js';
-import type {WhatIfField} from '@openisd/design/fields';
+import type {SheetField} from '@openisd/design/fields';
 
 /** The sheet's open state, owned by the chart view (its Auto Y box follows it). */
 export interface MobileWhatIfSheetDeps {
@@ -58,7 +58,7 @@ export interface MobileWhatIfSheetAPI {
   readonly sheetEl: Ref<HTMLElement | null>;
   /** The sheet's inline height: its default (CSS) until dragged. */
   readonly sheetStyle: ComputedRef<string>;
-  setValue(field: WhatIfField, v: number | null): void;
+  setValue(field: SheetField, v: number | null): void;
   openSheet(): void;
   /** Close the sheet and end the What-if. */
   close(): void;
@@ -82,7 +82,7 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
   const sheetStyle = computed(() => height.value === null ? '' : `height: ${height.value}px`);
 
   /** An emptied field is left alone: every What-if slot holds a value. */
-  function setValue(field: WhatIfField, v: number | null): void {
+  function setValue(field: SheetField, v: number | null): void {
     if (v !== null) session.set(field, v);
   }
 

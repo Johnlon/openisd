@@ -7,7 +7,7 @@ import {describe, expect, it} from 'vitest';
 import {computed, ref} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {WhatIfField} from '@openisd/design/fields';
+import {SheetField} from '@openisd/design/fields';
 import {createWhatIfSession} from '../../src/hooks/whatIfSession.js';
 
 function sealedProject() {
@@ -30,9 +30,9 @@ function session(project = sealedProject()) {
 describe('createWhatIfSession', () => {
   it('lists the box type\'s rows with their current values', () => {
     const { s } = session();
-    expect(s.rows.value.map(r => r.field)).toEqual(WhatIfField.forBox('sealed'));
-    expect(s.rows.value.find(r => r.field === WhatIfField.BOX_VOLUME)?.value).toBe(0.012);
-    expect(s.rows.value.find(r => r.field === WhatIfField.DRIVER_FS)?.value).toBe(40);
+    expect(s.rows.value.map(r => r.field)).toEqual(SheetField.forBox('sealed'));
+    expect(s.rows.value.find(r => r.field === SheetField.BOX_VOLUME)?.value).toBe(0.012);
+    expect(s.rows.value.find(r => r.field === SheetField.DRIVER_FS)?.value).toBe(40);
   });
 
   it('writes into a What-if, never the project, and Close discards it', () => {
@@ -40,7 +40,7 @@ describe('createWhatIfSession', () => {
     project.save();
     const { s } = session(project);
     const before = project.cloneSession();
-    s.set(WhatIfField.BOX_VOLUME, 0.02);
+    s.set(SheetField.BOX_VOLUME, 0.02);
     expect(project.isWhatIfActive()).toBe(true);
     expect(project.box.sealed.volume_m3.value).toBe(0.02);
     expect(project.isModified()).toBe(false);
@@ -54,7 +54,7 @@ describe('createWhatIfSession', () => {
   it('Reset puts the committed design back and keeps the what-if open', () => {
     const { project, s } = session();
     s.begin();
-    s.set(WhatIfField.DRIVER_VAS, 0.05);
+    s.set(SheetField.DRIVER_VAS, 0.05);
     s.reset();
     expect(project.isWhatIfActive()).toBe(true);
     expect(project.driver.specs.Vas_m3.value).toBe(0.03);
@@ -62,9 +62,9 @@ describe('createWhatIfSession', () => {
 
   it('refreshes a row\'s value when the project changes', () => {
     const { changed, s } = session();
-    s.set(WhatIfField.DRIVER_COUNT, 2);
+    s.set(SheetField.DRIVER_COUNT, 2);
     changed.value++;
-    expect(s.rows.value.find(r => r.field === WhatIfField.DRIVER_COUNT)?.value).toBe(2);
+    expect(s.rows.value.find(r => r.field === SheetField.DRIVER_COUNT)?.value).toBe(2);
   });
 
   it('moves the port length when the vented tuning is stepped', () => {
@@ -75,7 +75,7 @@ describe('createWhatIfSession', () => {
     project.box.vented.tuning_goal_hz.set(35);
     const before = project.box.vented.vent.length_m.value;
     const { s } = session(project);
-    s.set(WhatIfField.TUNING, 45);
+    s.set(SheetField.TUNING, 45);
     expect(project.box.vented.tuning_goal_hz.value).toBe(45);
     expect(project.box.vented.vent.length_m.value).not.toBe(before);
   });
@@ -89,19 +89,19 @@ describe('createWhatIfSession', () => {
       project.box.vented.tuning_goal_hz.set(35);
       return project;
     }
-    const value = (rows: readonly {readonly field: WhatIfField; readonly value: number | null}[], f: WhatIfField) => rows.find(r => r.field === f)?.value;
+    const value = (rows: readonly {readonly field: SheetField; readonly value: number | null}[], f: SheetField) => rows.find(r => r.field === f)?.value;
 
     it('shows one port\'s area, and a diameter entered on the Vents tab comes back as that area', () => {
       const { s } = session(ventedProject());
-      expect(value(s.rows.value, WhatIfField.PORT_AREA)).toBeCloseTo(Math.PI * 0.03 ** 2, 12);
+      expect(value(s.rows.value, SheetField.PORT_AREA)).toBeCloseTo(Math.PI * 0.03 ** 2, 12);
     });
 
     it('turns an area into the round port\'s diameter and back', () => {
       const project = ventedProject();
       const { s } = session(project);
-      s.set(WhatIfField.PORT_AREA, Math.PI * 0.04 ** 2);
+      s.set(SheetField.PORT_AREA, Math.PI * 0.04 ** 2);
       expect(project.box.vented.vent.diameter_m.value).toBeCloseTo(0.08, 9);
-      s.set(WhatIfField.PORT_AREA, Math.PI * 0.03 ** 2);
+      s.set(SheetField.PORT_AREA, Math.PI * 0.03 ** 2);
       expect(project.box.vented.vent.diameter_m.value).toBeCloseTo(0.06, 9);
     });
 
@@ -110,7 +110,7 @@ describe('createWhatIfSession', () => {
       project.box.vented.vent.shape.set('slotted');
       project.box.vented.vent.width_m.set(0.1);
       const { s } = session(project);
-      s.set(WhatIfField.PORT_AREA, 0.002);
+      s.set(SheetField.PORT_AREA, 0.002);
       expect(project.box.vented.vent.height_m.value).toBeCloseTo(0.02, 9);
       expect(project.box.vented.vent.width_m.value).toBe(0.1);
     });
@@ -122,7 +122,7 @@ describe('createWhatIfSession', () => {
       const area = vent.area_m2.value;
       expect(area).not.toBeNull();
       const { s } = session(project);
-      s.set(WhatIfField.PORT_AREA, (area ?? 0) * 2);
+      s.set(SheetField.PORT_AREA, (area ?? 0) * 2);
       expect(project.box.vented.tuning_goal_hz.value).toBe(35);
       expect(vent.length_m.value).not.toBe(lengthBefore);
       expect(vent.tuningIn_hz(0.05) ?? 0).toBeCloseTo(35, 3);
@@ -132,9 +132,9 @@ describe('createWhatIfSession', () => {
       const project = ventedProject();
       const { s } = session(project);
       for (const row of s.rows.value) {
-        expect(row.vent !== null, row.field.label).toBe(row.field === WhatIfField.PORT_AREA);
+        expect(row.vent !== null, row.field.label).toBe(row.field === SheetField.PORT_AREA);
       }
-      expect(s.rows.value.find(r => r.field === WhatIfField.PORT_AREA)?.vent?.area_m2.value).toBe(project.box.vented.vent.area_m2.value);
+      expect(s.rows.value.find(r => r.field === SheetField.PORT_AREA)?.vent?.area_m2.value).toBe(project.box.vented.vent.area_m2.value);
     });
 
     it('lists a rear and a front port on a 6th-order bandpass and an intra port on an ABC', () => {
