@@ -3,6 +3,7 @@ release_note: 'Tune sheet task 3: mobile sheet UI'
 repo: openisd
 owner: sonnet
 status: done
+landed: ed7ec804a294d47b25533bdc534ff1303dc4c68d
 goal: 'Tune sheet task 3: mobile sheet UI'
 done_test: bash scripts/test.sh packages/ui/test/hooks/MobileSheet-hooks.test.ts packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
 files:

@@ -43,6 +43,7 @@ setup() {
     mkdir -p scripts tasks/fixes gates
     cp "$REPO/scripts/land.sh" scripts/
     cp -r "$REPO/scripts/land" scripts/
+    cp -r "$REPO/scripts/visual" scripts/
     cp "$REPO/scripts/paths.sh" scripts/
     cat > gates/lint.sh <<'EOF'
 #!/usr/bin/env bash
@@ -198,6 +199,20 @@ edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
 before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "browser spec" "$SCRATCH/out.w1"; then
     ok "browser spec in done_test refused"; else fail "browser done_test (r=$r)"; fi
+
+# 6d. baselines (scripts/visual/): a task changes exactly the screens it lists under visual:, and a landing leaves a page
+export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/pages"
+SNAP=packages/ui/test/visual/visual.browser.spec.ts-snapshots
+setup; mkdir -p "$SCRATCH/w/w1/$SNAP"; printf one > "$SCRATCH/w/w1/$SNAP/mobile-a.png"
+git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "baseline"; git -C "$SCRATCH/w/w1" push -q origin main
+task w1 T1 "*"; printf two > "$SCRATCH/w/w1/$SNAP/mobile-a.png"; git -C "$SCRATCH/w/w1" commit -qam "change a screen"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "visual" "$SCRATCH/out.w1" && grep -q "mobile-a" "$SCRATCH/out.w1"; then
+    ok "a changed baseline the task does not list is refused, naming the screen"; else fail "unlisted baseline (r=$r): $(cat "$SCRATCH/out.w1")"; fi
+printf 'visual:\n  - mobile-a\n' >> "$SCRATCH/w/w1/tasks/T1.yml"; git -C "$SCRATCH/w/w1" commit -qam "list the screen"
+land w1 T1; r=$?
+if [ $r = 0 ] && grep -q "land: visual changes: http://example.test/pages/T1-" "$SCRATCH/out.w1" && ls "$VISUAL_PAGES_DIR"/T1-*/mobile-a.before.png > /dev/null 2>&1; then
+    ok "a listed baseline change lands and publishes its before/after page"; else fail "listed baseline (r=$r): $(cat "$SCRATCH/out.w1")"; fi
 
 # 7. a branch that changed a locked file or its own done_test is refused
 setup; task w1 T1 "*"; edit w1 spec.sh weakened; git -C "$SCRATCH/w/w1" commit -qam weaken

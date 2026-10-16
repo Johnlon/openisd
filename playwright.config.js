@@ -108,8 +108,10 @@ export default defineConfig({
   // limit (0): a spec that keeps making progress must never be cut off, and a stuck run is caught
   // by the idle watchdog in scripts/quiet-test.sh instead.
   timeout: 0,
+  // toHaveScreenshot (packages/ui/test/visual): committed baselines, no pixel tolerance.
   expect: {
     timeout: 20000,
+    toHaveScreenshot: { maxDiffPixels: 0, animations: 'disabled', caret: 'hide' },
   },
   // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-playwright.js.
   // The json reporter is what makes "is the suite faster?" answerable at all: `list` prints a

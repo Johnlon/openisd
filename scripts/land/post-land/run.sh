@@ -93,6 +93,9 @@ record_red() {
     # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
     # vitest echoes a test's console output as "stderr | <file> > <name>": not a failure (F11 listed six).
     failing="$(grep -Ev '^[[:space:]]*(stderr|stdout) \|' "$OUT" | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
+    # Screens whose picture differs from its baseline: named, with a before/after page (scripts/visual/).
+    visual=""
+    [ ! -f "$ROOT/scripts/visual/failures-page.sh" ] || visual="$(bash "$ROOT/scripts/visual/failures-page.sh" "$COPY" "$SHA" 2> /dev/null || true)"
     # One F per fault, not one per pushed commit: a red while an F is open is appended to that F.
     open="$(grep -l '^status: open' "$FIX"/tasks/fixes/F*.yml 2>/dev/null | head -n 1)"
     if [ -n "$open" ]; then
@@ -100,6 +103,7 @@ record_red() {
       {
         printf 'also_red:\n  - sha: %s\n    failing: |\n' "$SHA"
         printf '%s\n' "$failing" | sed 's/^/    /'
+        [ -z "$visual" ] || { printf '    visual: |\n'; printf '%s\n' "$visual" | sed 's/^/      /'; }
       } >> "$open"
       subject="F$n: still red at ${SHA:0:10}"
     else
@@ -113,6 +117,7 @@ record_red() {
         printf 'commits: |\n'
         git log --abbrev=10 --format='  %h %s' $range
         printf 'failing: |\n%s\n' "$failing"
+        [ -z "$visual" ] || { printf 'visual: |\n'; printf '%s\n' "$visual" | sed 's/^/  /'; }
         printf 'output: |\n'
         tail -n 40 "$OUT" | sed 's/^/  /'
       } > "$FIX/tasks/fixes/F$n.yml"

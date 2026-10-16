@@ -168,6 +168,10 @@ case "$done_test" in
   *.browser.spec.ts*) GATE_OUT=/dev/null; refuse done_test "names a browser spec ($done_test); browser specs run post-land, name a unit spec" ;;
 esac
 run_gate done_test /dev/null "$done_test"
+# Visual baselines: the task changes exactly the screens it lists under `visual:` (scripts/visual/).
+if [ -f scripts/visual/check-task.sh ]; then
+  run_gate visual /dev/null "bash scripts/visual/check-task.sh" "$TASK" origin/main HEAD
+fi
 for sha in $(git rev-list origin/main..HEAD); do
   git log -1 --format=%B "$sha" > "$WORK/message"
   run_gate attribution "$WORK/message" "$ATTRIBUTION_CMD"
@@ -194,9 +198,14 @@ if [ -n "$green_sha" ] && [ -n "$tested_sha" ] && [ "$tested_sha" != "$green_sha
 fi
 
 # 6. push
+before_push="$(git rev-parse origin/main)"
 git push -q origin HEAD:main > "$WORK/push.out" 2>&1 || { GATE_OUT="$WORK/push.out"; refuse push "origin rejected the push"; }
 pushed="$(git rev-parse HEAD)"
 echo "land: landed $ID at ${pushed:0:10}"
+# A landing that changed screens leaves a before/after page for John to approve.
+if [ -f scripts/visual/publish-changes.sh ]; then
+  bash scripts/visual/publish-changes.sh "$ID" "$before_push" "$pushed" 2>&1 | sed 's/^/land: /' || true
+fi
 
 # 7. the full run on the pushed commit, in its own session so this landing does not wait for it
 if [ -n "${FULL_SUITE_CMD:-}" ] && [ -f "$HERE/land/post-land/run.sh" ]; then
