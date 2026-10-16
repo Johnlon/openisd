@@ -21,6 +21,10 @@ overwrites the box volume, and one blanks both.
   (sealed Qtc; vented the alignment) and the volume (and vented tuning) are calculated from it.
   Typing the volume makes it entered and the target calculated. A cleared sealed volume is then
   calculated from Qtc. WinISD instead writes the volume as a plain value (wine probe, 16 Oct).
+- 16 Oct 2026, the app rule (John): "only one value in a group may be C; any C may be converted
+  to E (misrepresentation) by deleting any of the E; the deleted E becomes the sole C".
+  So: delete an entered value, it becomes the group's one C, and the C it replaces becomes E at
+  its current value. Showing that value as E though nobody typed it is accepted.
 - 16 Oct 2026, a "Was calculated" field state: logged as an idea in BACKLOG.md, not for
   execution (John). The fix here uses E and C only: the kept partner becomes E.
 
