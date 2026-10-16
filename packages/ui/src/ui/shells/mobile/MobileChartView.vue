@@ -9,7 +9,7 @@ import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, sheetMode } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen } = useMobileChartView();
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicke
         <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!sheetOpen" />
       </div>
     </div>
-    <MobileWhatIfSheet v-model:open="sheetOpen" :mode="sheetMode" />
+    <MobileWhatIfSheet v-model:open="sheetOpen" />
   </div>
 </template>
 

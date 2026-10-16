@@ -1,22 +1,20 @@
 <script setup lang="ts">
 // The What-if? bottom sheet on the mobile Graph page: a pull-tab when closed, a resizable sheet of
 // What-if rows when open. Behaviour lives in MobileWhatIfSheet-hooks.ts.
-import type { Ref } from 'vue';
-import { isRef, ref, toRef } from 'vue';
+import { ref } from 'vue';
 import NumInput from '../../components/NumInput.vue';
 import VentPortFields from '../../components/VentPortFields.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
 import { SheetMode } from '@openisd/design/fields';
 
-const props = defineProps<{ open: boolean; mode?: SheetMode | Ref<SheetMode> }>();
+const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean] }>();
-const modeRef: Ref<SheetMode> = isRef(props.mode)
-  ? props.mode
-  : (props.mode !== undefined ? toRef(props, 'mode') as Ref<SheetMode> : ref(SheetMode.TUNE));
+// Learn only until the Tune/Learn footer lands (Tune task 3); the chart view's `sheetMode` is wired then.
+const mode = ref(SheetMode.LEARN);
 const { isOpen, rows, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
-  useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: modeRef });
+  useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode });
 
 </script>
 

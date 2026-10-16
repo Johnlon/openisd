@@ -1,0 +1,14 @@
+id: T225
+label: fixes
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: 'F38: main red at 3433a3a0. The mobile What-if sheet keeps Learn mode until the Tune/Learn footer lands (T218 defaulted the chart view to Tune, so the fit and sheet specs saw the Tune row set), the sheet no longer carries a cast, and full-gate-stage copies browser-runs.sh (T219 added it to test-concurrency.sh). Close F38'
+done_test: bash scripts/test.sh packages/design/test/architecture-no-casts.test.ts packages/ui/test/scripts/full-gate-stage.test.ts
+files:
+  - tasks/T225.yml
+  - tasks/fixes/F38.yml
+  - packages/ui/src/ui/shells/mobile/MobileWhatIfSheet.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/test/scripts/full-gate-stage.test.ts

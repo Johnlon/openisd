@@ -49,9 +49,10 @@ describe('scripts/test-browser.sh', () => {
     const dir = tempDir();
     const events = join(dir, 'events');
     const bin = join(dir, 'bin');
-    mkdirSync(join(dir, 'scripts'), {recursive: true});
+    mkdirSync(join(dir, 'scripts', 'admit'), {recursive: true});
     mkdirSync(bin);
-    for (const name of ['test-browser.sh', 'test-concurrency.sh', 'kill-http.sh', 'paths.sh']) {
+    copyFileSync(join(ROOT, 'scripts', 'admit', 'record.sh'), join(dir, 'scripts', 'admit', 'record.sh'));
+    for (const name of ['test-browser.sh', 'test-concurrency.sh', 'browser-runs.sh', 'kill-http.sh', 'paths.sh']) {
       copyFileSync(join(ROOT, 'scripts', name), join(dir, 'scripts', name));
     }
     writeFileSync(join(bin, 'npx'), [
