@@ -55,3 +55,14 @@ output: |
     795 passed (6.8m)
   suite: unit exit 0, browser exit 1
   post-land suite 1568680-562a2eb995 finished: FAILED (exit 1) after 8m27s
+also_red:
+  - sha: 6d628863e0a1fe6bfd79672282ddffe1ca575fdd
+    failing: |
+        ✘    9 packages/ui/test/ui/backups-restore-project.browser.spec.ts:23:1 › desktop: Restore one project adds the project from a backup under a restored name (20.9s)
+        ✘  469 packages/ui/test/ui/options-dialog.browser.spec.ts:326:7 › Options dialog › with no project open › vented design limits › Options opens with no project and shows the factory band (20.4s)
+        ✘  691 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:29:3 › Projects across addresses › export then import into fresh storage restores every project (20.8s)
+        ✘  738 packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › Learn panel › on the sample project › switching focus to a different open project closes an open Learn panel (20.8s)
+              44 × locator resolved to 0 elements
+              44 × locator resolved to <div tabindex="-1" data-v-22ee87dc="" class="projects-list">…</div>
+              44 × locator resolved to 0 elements
+              44 × locator resolved to <div data-v-52c149bc="" data-v-f1429ef1="" class="what-if-panel">…</div>
