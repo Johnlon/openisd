@@ -25,7 +25,8 @@ Each box type's Box tab was laid out separately, and bandpass 4 and PR never got
 
 ## Fix
 - Every box type with a tuning target shows it, enterable, on the Box tab: vented, bandpass 4,
-  bandpass 6, ABC, PR. It is the same field as on the Vents / PR tab.
+  bandpass 6, ABC. It is the same field as on the Vents tab. PR: John, 16 Oct 2026, "not sure
+  about pr"; held until he rules.
 - Sealed: Vb, Fsc and Qtc are all enterable. One is entered, and the other two are calculated
   from it. This depends on the sealed picker ruling in
   BUG_20261016_clearing-a-linked-pair-member-is-inconsistent.md.
