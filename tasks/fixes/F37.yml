@@ -73,3 +73,7 @@ also_red:
   - sha: 60afa52569ceebbc0d74160209a76f203dee48ad
     failing: |
     
+also_red:
+  - sha: 6cba72255785dd0e06796f11c5b49d078f7b3b9e
+    failing: |
+    
