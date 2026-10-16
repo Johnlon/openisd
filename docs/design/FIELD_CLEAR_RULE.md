@@ -54,18 +54,17 @@ Take the first step that applies:
 ## Checks
 
 Each row: the states before, the value cleared, the states after, and the step that applied.
+Bold marks what changed.
 
 | Case | Before | Clear | After | Step |
 |---|---|---|---|---|
-| Driver | Fs E, Cms E, Mms E | Mms | Fs E, Cms E, **Mms C** | 1: Mms can be calculated from Fs and Cms |
-| Vent | tuning E, length C | tuning | **length E**, **tuning C** | 2: swap with length |
-| Passive radiator | added mass E, tuning C | added mass | **tuning E**, **added mass C** | 2: swap with tuning |
-| Drive | power E, voltage C | power | **voltage E**, **power C** | 2: swap with voltage |
-| Sealed | Qtc E, Vb C, Fsc C | Qtc | **Vb E**, **Qtc C**, Fsc C | 2: swap with Vb |
-| Sealed | Fsc E, Vb C, Qtc C | Fsc | **Vb E**, **Fsc C**, Qtc C | 2: swap with Vb |
-| Sealed | Vb E, Qtc C, Fsc C | Vb | **Qtc E**, **Vb C**, Fsc C | 2: Vb feeds two equations; its partner Qtc swaps |
+| Driver | Fs E<br>Cms E<br>Mms E | Mms | Fs E<br>Cms E<br>**Mms C** | 1: Mms can be calculated<br>from Fs and Cms |
+| Vent | tuning E<br>length C | tuning | **tuning C**<br>**length E** | 2: swap with length |
+| Passive radiator | added mass E<br>tuning C | added mass | **added mass C**<br>**tuning E** | 2: swap with tuning |
+| Drive | power E<br>voltage C | power | **power C**<br>**voltage E** | 2: swap with voltage |
+| Sealed | Qtc E<br>Vb C<br>Fsc C | Qtc | **Qtc C**<br>**Vb E**<br>Fsc C | 2: swap with Vb |
+| Sealed | Fsc E<br>Vb C<br>Qtc C | Fsc | **Fsc C**<br>**Vb E**<br>Qtc C | 2: swap with Vb |
+| Sealed | Vb E<br>Qtc C<br>Fsc C | Vb | **Vb C**<br>**Qtc E**<br>Fsc C | 2: Vb feeds two equations;<br>its partner Qtc swaps |
 | Port count | count E | count | **count C, 1** | 3: default |
 | Rg | Rg E | Rg | **Rg C, 0.1 ohm** | 3: default |
-| Filter | frequency E | frequency | **frequency N**, shown red | 4: no source, no default |
-
-Bold marks what changed.
+| Filter | frequency E | frequency | **frequency N**<br>shown red | 4: no source, no default |
