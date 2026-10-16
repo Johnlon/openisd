@@ -77,8 +77,8 @@ test('mobile: the pane has sort buttons, search when offered, and no horizontal 
   const pane = page.locator('.mob-projects-pane');
 
   await expect(pane.locator('.mob-project-name')).toHaveCount(10);
-  await pane.getByRole('button', {name: 'Name A–Z'}).click();
-  await expect(pane.getByRole('button', {name: 'Name A–Z'})).toHaveClass(/on/);
+  await pane.getByRole('button', {name: 'Name', exact: true}).click();
+  await expect(pane.getByRole('button', {name: 'Name', exact: true})).toHaveClass(/on/);
   await pane.getByLabel('Search projects').fill('nothing like it');
   await expect(pane.getByText('No project matches.')).toBeVisible();
   await expect(pane.locator('.mob-project-name')).toHaveCount(0);

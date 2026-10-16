@@ -209,6 +209,8 @@ type SortKeys = ProjectRow<unknown>['sortKeys'];
  *  from (same name), whatever the order. */
 export interface ProjectRowOrder {
   readonly label: string;
+  /** One short word, for the phone's row of sort tabs (five must fit at 360 px). */
+  readonly short: string;
   /** Negative when `a` comes before `b`. */
   readonly compare: (a: SortKeys, b: SortKeys) => number;
 }
@@ -217,11 +219,11 @@ const byText = (a: string, b: string): number => a.localeCompare(b, undefined, {
 const byName = (a: SortKeys, b: SortKeys): number => byText(a.stem, b.stem);
 
 export const PROJECT_ROW_ORDERS = {
-  NEWEST: {label: 'Last edited', compare: (a, b) => b.modifiedMs - a.modifiedMs || byName(a, b)},
-  OLDEST: {label: 'Oldest first', compare: (a, b) => a.modifiedMs - b.modifiedMs || byName(a, b)},
-  NAME: {label: 'Name A–Z', compare: byName},
-  DRIVER: {label: 'Driver', compare: (a, b) => byText(a.driver, b.driver) || byName(a, b)},
-  SIZE: {label: 'Largest first', compare: (a, b) => b.bytes - a.bytes || byName(a, b)},
+  NEWEST: {label: 'Last edited', short: 'Newest', compare: (a, b) => b.modifiedMs - a.modifiedMs || byName(a, b)},
+  OLDEST: {label: 'Oldest first', short: 'Oldest', compare: (a, b) => a.modifiedMs - b.modifiedMs || byName(a, b)},
+  NAME: {label: 'Name A–Z', short: 'Name', compare: byName},
+  DRIVER: {label: 'Driver', short: 'Driver', compare: (a, b) => byText(a.driver, b.driver) || byName(a, b)},
+  SIZE: {label: 'Largest first', short: 'Size', compare: (a, b) => b.bytes - a.bytes || byName(a, b)},
 } as const satisfies Record<string, ProjectRowOrder>;
 
 /** The orders in the order the sort menu lists them. */

@@ -106,9 +106,10 @@ function executeRowAction(action: ProjectRowAction): void {
             :key="o.label"
             type="button"
             :class="{on: projectOrder === o}"
+            :title="o.label"
             @click="projectOrder = o"
           >
-            {{ o.label }}
+            {{ o.short }}
           </button>
         </div>
       </div>
@@ -263,7 +264,7 @@ function executeRowAction(action: ProjectRowAction): void {
 }
 .mob-project-sort {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
@@ -271,9 +272,10 @@ function executeRowAction(action: ProjectRowAction): void {
 .mob-project-sort button {
   all: unset;
   box-sizing: border-box;
-  flex: 1 1 auto;
-  min-height: 40px;
-  padding: 0 6px;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 4px;
   display: flex;
   align-items: center;
   justify-content: center;

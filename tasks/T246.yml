@@ -3,6 +3,7 @@ release_note: 'About shows the running version and a Force refresh button; the l
 repo: openisd
 owner: maryu
 status: done
+landed: 6000965faffac4914ca8e386dff951495b6d529e
 goal: About shows only the running build (version number on a release, stamp) and Force refresh; the build list goes
 done_test: bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
 files:

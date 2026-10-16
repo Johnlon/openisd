@@ -1,0 +1,16 @@
+id: T239
+release_note: 'Phone Projects list: the five sort tabs fit on one row (Newest, Oldest, Name, Driver, Size).'
+repo: openisd
+owner: maryu
+status: blocked
+goal: Phone Projects list: the sort choices fit at 360 px without wrapping, touch targets ≥44 px
+done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
+files:
+  - tasks/T239.yml
+  - bugs/BUG_20261016_mobile-project-sort-tabs-cramped.md
+  - packages/design/fields/projectRows.ts
+  - packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue
+  - packages/ui/test/ui/mobile-projects-pane.browser.spec.ts
+  - packages/ui/test/ui/open-project-list.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+blocked_reason: rebase onto origin/main conflicts in: packages/ui/test/visual/SOURCES.sha256 

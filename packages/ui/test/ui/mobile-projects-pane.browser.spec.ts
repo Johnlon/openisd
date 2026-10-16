@@ -158,4 +158,30 @@ test.describe('MobileProjectsPane', () => {
     const bodyFits = await pane.locator('.mob-dlg-body').evaluate(el => el.scrollWidth <= el.clientWidth);
     expect(bodyFits, 'pane body has horizontal scroll').toBe(true);
   });
+
+  // bugs/BUG_20261016_mobile-project-sort-tabs-cramped.md: five short tabs on one row, none wrapping.
+  for (const width of [360, 390]) {
+    test(`the sort tabs fit on one row at ${width} px, each at least 44 px tall`, async ({page}) => {
+      await page.setViewportSize({width, height: 780});
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await openAMobileProject(page);
+      await tapMobileMenuItem(page, 'Projects');
+      const tabs = page.locator('.mob-projects-pane .mob-project-sort button');
+      await expect(tabs).toHaveText(['Newest', 'Oldest', 'Name', 'Driver', 'Size']);
+      const boxes = await tabs.evaluateAll(els => els.map(el => {
+        const r = el.getBoundingClientRect();
+        const line = parseFloat(getComputedStyle(el).lineHeight) || parseFloat(getComputedStyle(el).fontSize) * 1.3;
+        const text = document.createRange();
+        text.selectNodeContents(el);
+        return {top: r.top, height: r.height, overflows: el.scrollWidth > el.clientWidth, textLines: Math.round(text.getBoundingClientRect().height / line)};
+      }));
+      for (const b of boxes) {
+        expect(b.height).toBeGreaterThanOrEqual(44);
+        expect(b.overflows).toBe(false);
+        expect(b.textLines).toBe(1);
+        expect(b.top).toBe(boxes[0]?.top);
+      }
+    });
+  }
 });
