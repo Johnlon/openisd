@@ -3,10 +3,11 @@
 **Status:** OPEN
 
 ## Symptom
-John, 16 Oct 2026, New project wizard, steps 3–5, every box type:
+John, 16 Oct 2026, New project wizard on MOBILE (all of these reports are mobile), steps 3–5, every box type:
 - Sealed: volume is on step 4; that page has narrow input boxes and no step arrows.
 - Vented: step 4 fills the volume from an alignment; the user cannot type a volume, and there are no step arrows.
 - Passive radiator: volume on step 3, radiator on step 4; different number boxes from the other steps; no step arrows.
+- The step pages are too compressed vertically.
 - 4th/6th order bandpass and ABC: volumes on step 3; narrow boxes, no step arrows; each chamber's volume and tuning are far apart instead of side by side; flat, poor layout.
 
 ## Cause
@@ -14,7 +15,7 @@ There are two wizards, one per skin (OriginalNewProject.vue and MobileNewProject
 
 ## Fix
 - packages/design gets one wizard plan: for each box type, its steps and, per step, field groups (e.g. "Rear chamber: volume, tuning"; "Front chamber: volume, tuning"), exhaustive per box type.
-- Both skins render that plan with UIField rows only, step arrows on, the same widths as the Box tab.
+- Both skins render that plan with UIField rows only, step arrows on, the same widths as the Box tab. Mobile steps use the mobile Box tab's row height and spacing, not a squeezed layout.
 - Each chamber's volume and tuning sit together in one group.
 - An alignment pick fills the volume (and tuning) but the field stays editable; typing a value is always allowed.
 - Volume sits on the same step for every box type (the alignment/volume step).
