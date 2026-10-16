@@ -19,6 +19,12 @@ list is the smaller engineering and UI work items around what already ships.
 | The driver editor has mandatory-field marks but no step-by-step guided entry flow. | `DriverEditorModal.vue` |
 | Decisions the app makes silently (alignment seeding, auto-calculated fields) have no on-screen explanation beyond the EBP badge and DQ marks. | `OriginalNewProject.vue`, `OriginalShell.vue` |
 
+## Ideas — logged, not for execution
+
+| Idea | Files |
+|---|---|
+| A "Was calculated" (W) field state (John, 16 Oct 2026). In a set of linked fields, clearing the one entered (E) value turns a calculated (C) value into W: half way to E, held as the input, but never typed by the user. W shows in its own indicator colour. States: Entered, Was calculated, Calculated, NotAvailable. John: "this is too much work, so just log it as an idea not for execution". | `packages/design/domain/cell.ts`, `pairedField` |
+
 ## Charts and UI
 
 | Item | Files |
