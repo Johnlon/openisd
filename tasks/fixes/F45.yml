@@ -1,0 +1,74 @@
+id: F45
+owner: Johnlon
+status: open
+sha: 869c8578f41afaf03282d10b9c26b14d27bc9697
+goal: main is red at 869c8578f4; make the full suite pass again
+commits: |
+  869c8578f4 T244: F44: equation popup spec, driver modal now 950 wide
+  e7c7404485 F44: the full suite is red at 69de181294
+  41f71f5a06 Bug: clearing one field of a linked pair is handled differently in each pair; John: a cleared diameter goes to calculated
+  69de181294 T242: F43: the stepper change broke 8 specs
+  e32a300c1c F43: still red at 20d18cc1b6
+  96648ed303 Vent bug: length becomes E when the target tuning is cleared
+  f95d214a00 Vent bug: John's ruling, cleared tuning becomes the actual tuning, calculated
+  31d1c1427e Bug: ABC rear vent, cleared tuning blanks length; raw key in message; message covers a row
+  20d18cc1b6 F43: the full suite is red at d350857381
+  d350857381 T222: x
+failing: |
+    ✘  371 packages/ui/test/ui/my-drivers.browser.spec.ts:164:1 › Add new Driver saves the new driver into My Drivers and leaves the project alone (27.7s)
+    ✘  372 packages/ui/test/ui/my-drivers.browser.spec.ts:192:1 › Clone driver forks a saved driver into My Drivers as "Copy of …" (26.2s)
+    ✘  388 packages/ui/test/ui/new-project-wizard.browser.spec.ts:118:5 › New Project wizard › with a project open › Back returns to the previous step with its values kept (27.3s)
+    ✘  389 packages/ui/test/ui/new-project-wizard.browser.spec.ts:133:5 › New Project wizard › with a project open › Cancel closes the wizard without creating a project (27.0s)
+    ✘  390 packages/ui/test/ui/new-project-wizard.browser.spec.ts:145:5 › New Project wizard › with a project open › the last step's green lead is Create, and it creates the project (193ms)
+    ✘  391 packages/ui/test/ui/new-project-wizard.browser.spec.ts:165:5 › New Project wizard › with a project open › walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar (3ms)
+    ✘  392 packages/ui/test/ui/new-project-wizard.browser.spec.ts:171:5 › New Project wizard › with a project open › starts fresh — it discards the previous design (filters, params) (3ms)
+    ✘  393 packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created sealed project draws a chart (158ms)
+    ✘  394 packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created vented project draws a chart (6ms)
+    ✘  395 packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created box-passive-radiator project draws a chart (886ms)
+    ✘  396 packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created bandpass4 project draws a chart (3ms)
+    ✘  397 packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created bandpass6 project draws a chart (4ms)
+    ✘  398 packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created abc project draws a chart (3ms)
+    ✘  399 packages/ui/test/ui/new-project-wizard.browser.spec.ts:191:5 › New Project wizard › with a project open › wizard-created vented project has a vent diameter and a tuning; the PR project has a radiator (162ms)
+    ✘  416 packages/ui/test/ui/no-project-app-menu.browser.spec.ts:17:1 › mobile: with no project open, the menu reaches every app-level feature (28.1s)
+    ✘  417 packages/ui/test/ui/no-project-app-menu.browser.spec.ts:69:1 › desktop: with no project open, the toolbar reaches every app-level feature (27.8s)
+output: |
+      TimeoutError: locator.click: Timeout 20000ms exceeded.
+      Call log:
+        - waiting for locator('.tb-btn[title="Info"]')
+          - locator resolved to <div title="Info" data-v-01a24879="" class="tb-btn has-menu">…</div>
+        - attempting click action
+          - waiting for element to be visible, enabled and stable
+  
+  
+        75 |   await expect(page.locator('.graph-empty-h')).toBeVisible();
+        76 |   const info = (item: string) => async () => {
+      > 77 |     await page.locator('.tb-btn[title="Info"]').click();
+           |                                                 ^
+        78 |     await page.locator('.menu-item', {hasText: item}).click();
+        79 |   };
+        80 |
+          at /home/john/work/winisd/.postland/2131596-869c8578f4/packages/ui/test/ui/no-project-app-menu.browser.spec.ts:77:49
+          at /home/john/work/winisd/.postland/2131596-869c8578f4/packages/ui/test/ui/no-project-app-menu.browser.spec.ts:100:47
+  
+      Error Context: test-results/ui-no-project-app-menu.bro-1c695-hes-every-app-level-feature/error-context.md
+  
+    16 failed
+      packages/ui/test/ui/my-drivers.browser.spec.ts:164:1 › Add new Driver saves the new driver into My Drivers and leaves the project alone 
+      packages/ui/test/ui/my-drivers.browser.spec.ts:192:1 › Clone driver forks a saved driver into My Drivers as "Copy of …" 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:118:5 › New Project wizard › with a project open › Back returns to the previous step with its values kept 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:133:5 › New Project wizard › with a project open › Cancel closes the wizard without creating a project 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:145:5 › New Project wizard › with a project open › the last step's green lead is Create, and it creates the project 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:165:5 › New Project wizard › with a project open › walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:171:5 › New Project wizard › with a project open › starts fresh — it discards the previous design (filters, params) 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created sealed project draws a chart 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created vented project draws a chart 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created box-passive-radiator project draws a chart 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created bandpass4 project draws a chart 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created bandpass6 project draws a chart 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:185:7 › New Project wizard › with a project open › a wizard-created abc project draws a chart 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:191:5 › New Project wizard › with a project open › wizard-created vented project has a vent diameter and a tuning; the PR project has a radiator 
+      packages/ui/test/ui/no-project-app-menu.browser.spec.ts:17:1 › mobile: with no project open, the menu reaches every app-level feature 
+      packages/ui/test/ui/no-project-app-menu.browser.spec.ts:69:1 › desktop: with no project open, the toolbar reaches every app-level feature 
+    788 passed (41.4m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 2131596-869c8578f4 finished: FAILED (exit 1) after 43m46s
