@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 0d8ccc00634f333f58b64b6944af1c34fc12a0d1
 goal: 'A browser run whose owner is gone is stopped: each run records its owner, the housekeeper stops a run whose owner is dead or whose owner pid was reused, and post-land stops the browser runs it owns with its suite (16 Oct: an orphan from a killed post-land run held the browser lock for 93 min)'
 done_test: bash scripts/land/test/housekeeping.test.sh
 files:

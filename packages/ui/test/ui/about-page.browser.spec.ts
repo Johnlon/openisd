@@ -24,6 +24,16 @@ test('the privacy section stands alone at /about/#privacy', async ({page}) => {
   await expect(privacy.locator('a[href$="/issues"]')).toBeVisible();
 });
 
+test('the terms section stands alone at /about/#terms', async ({page}) => {
+  await page.goto('/about/#terms');
+  const terms = page.locator('section#terms');
+  await expect(terms).toBeInViewport();
+  await expect(terms.locator('h3')).toHaveText('Terms');
+  await expect(terms).toContainText("with no warranty");
+  await expect(terms).toContainText("maker's own datasheet");
+  await expect(terms.locator('a', {hasText: 'MIT licence'})).toHaveAttribute('href', /\/blob\/main\/LICENSE$/);
+});
+
 test('the install page names each browser and links back to the app', async ({page}) => {
   await page.goto('/install/');
   await expect(page.locator('h1')).toHaveText('Add OpenISD as an app');

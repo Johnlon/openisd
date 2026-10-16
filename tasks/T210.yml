@@ -1,0 +1,11 @@
+id: T210
+release_note: 'About page has Terms'
+repo: openisd
+owner: maryu
+status: done
+goal: About page has a Terms section at /about/#terms
+done_test: bash scripts/test.sh packages/design/test/fields/format.test.ts
+files:
+  - tasks/T210.yml
+  - packages/ui/about/AboutPage.vue
+  - packages/ui/test/ui/about-page.browser.spec.ts

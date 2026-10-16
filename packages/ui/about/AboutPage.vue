@@ -62,6 +62,12 @@ onMounted(async () => {
       </p>
       <p>Questions: <a :href="`${REPO_URL}/issues`">open an issue on GitHub</a>.</p>
     </section>
+    <section id="terms" class="about-terms">
+      <h3>Terms</h3>
+      <p>
+        OpenISD is free to use, as it is, with no warranty. Driver data in the library is collected from makers' and sellers' pages and may be wrong, out of date or mis-read. It is a design aid: check every driver value and any build against the maker's own datasheet before you cut wood. Your projects and drivers are yours and stay on your device or in your own Google Drive. The source is under the <a :href="`${REPO_URL}/blob/main/LICENSE`">MIT licence</a>. We may change or stop the service at any time.
+      </p>
+    </section>
     <p class="about-cta about-cta-end">
       <a class="about-open" :href="SITE_URL">Start designing</a>
     </p>
@@ -88,4 +94,8 @@ onMounted(async () => {
 .about-privacy h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .about-privacy p { margin: 0 0 8px; }
 .about-privacy a { color: #4fb0ff; }
+.about-terms { font-size: 13px; line-height: 1.55; color: #c7d3df; }
+.about-terms h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.about-terms p { margin: 0 0 8px; }
+.about-terms a { color: #4fb0ff; }
 </style>
