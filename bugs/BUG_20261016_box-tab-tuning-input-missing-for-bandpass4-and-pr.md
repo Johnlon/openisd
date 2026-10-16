@@ -13,6 +13,11 @@ shows Fh as a read-only value. Both can enter their tuning only on the Vents / P
 Sealed: John, 16 Oct 2026, "the bug is that f v q should be interdependent". Fsc, Vb and Qtc
 each fix the other two for a given driver, but only Vb can be entered; Fsc and Qtc are read-only.
 
+Sealed clear rule (John, 16 Oct 2026, "ok E"): Fsc and Qtc are each tied to Vb by their own
+equation. Deleting an entered Qtc or Fsc makes Vb E at its current value. Deleting an entered Vb
+makes Qtc E at its current value, Vb C from it, and Fsc C from Vb. Leaving Qtc C would leave the
+box with no input and all three N.
+
 ## Evidence (code read 16 Oct 2026)
 - Mobile: `packages/ui/src/ui/shells/mobile/MobileBoxTab.vue:50-55`: the tuning UIField shows
   for bandpass6/abc (rear and front) and vented; everything else gets a read-only Fsc or Fh row.
