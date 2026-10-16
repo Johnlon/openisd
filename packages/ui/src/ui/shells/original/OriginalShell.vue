@@ -35,6 +35,7 @@ import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
 import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
 import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
+import OriginalProjectList from './OriginalProjectList.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {INSTALL_URL} from '../../siteLinks.js';
@@ -45,7 +46,8 @@ const {
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  openDialogOpen, projectRows, shownProjects, projectsFooter, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile,
+  projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile,
+  projectListRef, duplicateProject, exportProject, cycleProjectColor, renameProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
@@ -53,8 +55,8 @@ const {
   startNudge, stopNudge, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectedOption,
   WINISD_TRACE, cycleColor, resetChartView, chartMax,
   mainEl, navCollapsed, bottomCollapsed, mainStyle, onNavSplitDown,
-  projectList, isTraceVisible, setTraceVisible, projectDisplayName, projectHasUnsavedChanges, selectProject, project, focused, projectOpen,
-  copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
+  setTraceVisible, projectDisplayName, project, projectOpen,
+  requestCloseProject, closeChallenge, saveThenClose, closeProject,
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
@@ -227,30 +229,39 @@ provideCellScope({ revision: projectChanged, written: () => {} });
     <div ref="mainEl" class="main" :class="{ 'chart-max': chartMax, 'nav-collapsed': navCollapsed, 'bottom-collapsed': bottomCollapsed }" :style="mainStyle">
       <!-- top-left quadrant -->
       <div class="quad-topleft">
-        <div class="quad-projects-wrap">
-          <div class="panel-title">Projects</div>
-          <div class="projects-list">
-            <div v-if="projectList.length === 0" class="project-empty-row" style="padding: 12px 10px; color: var(--mut, #888); font-style: italic; font-size: 12px; text-align: center;">
-              No projects open
-            </div>
-            <div v-else v-for="(p, i) in projectList" :key="i" class="project-row"
-                 :class="{ selected: p === focused, 'trace-hidden': !isTraceVisible(p), 'is-unsaved': projectHasUnsavedChanges(p) }"
-                 :title="'Project — ' + projectDisplayName(p) + (p === focused ? ' (Active)' : ' (Click to select)')"
-                 @click="selectProject(p)">
-              <input type="checkbox" :checked="isTraceVisible(p)"
-                     @click.stop
-                     @change.stop="setTraceVisible(p, inputChecked($event))"
-                     title="Show/hide this project's trace on the graph">
-              <span>{{ projectDisplayName(p) }}</span>
-            </div>
-          </div>
-          <div class="proj-actions">
-            <button class="link-btn" :disabled="!projectOpen" title="Copy this project — adds &quot;Copy of &lt;project&gt;&quot; to the list and overlays its curves on the graph for comparison" @click="copyCurrentProject">＋ Copy</button>
-            <button class="link-btn close-btn"
-                    title="Close the selected project. Unsaved work is not discarded silently — you are asked first."
-                    @click="requestCloseProject(focused)">✕ Close</button>
-          </div>
-        </div>
+        <OriginalProjectList
+          ref="projectListRef"
+          :projectRows="projectRows"
+          :shownProjects="shownProjects"
+          :projectsFooter="projectsFooter"
+          :searchOffered="searchOffered"
+          :projectQuery="projectQuery"
+          :projectOrder="projectOrder"
+          :projectOrders="projectOrders"
+          :binRows="binRows"
+          :binTotal="binTotal"
+          :binOpen="binOpen"
+          :binLabel="binLabel"
+          :storeLabel="storeLabel"
+          @update:projectQuery="val => projectQuery = val"
+          @update:projectOrder="val => projectOrder = val"
+          @update:binOpen="val => binOpen = val"
+          @choose="chooseProject"
+          @close="requestCloseProject"
+          @setTraceVisible="setTraceVisible"
+          @cycleColor="cycleProjectColor"
+          @duplicate="duplicateProject"
+          @export="exportProject"
+          @rename="renameProject"
+          @resolve="openCloudDialog"
+          @moveToBin="moveToBin"
+          @restoreFromBin="restoreFromBin"
+          @deleteForever="deleteForever"
+          @emptyBin="emptyBin"
+          @exportAll="exportProjectsArchive"
+          @newProject="presentationState.newProjectOpen = true"
+          @import="openFromDisk"
+        />
 
         <div class="quad-signalgen-wrap">
           <div class="panel-title">Signal Generator</div>
@@ -878,58 +889,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
 
-    <div v-if="openDialogOpen" class="overlay on open-project-dialog" @click.self="openDialogOpen = false">
-      <div class="modal narrow">
-        <div class="modal-titlebar">
-          <div class="tb-left"><span class="app-icon"></span><span>Open project</span></div>
-          <div class="win-controls"><span class="close-btn" @click="openDialogOpen = false">&#10005;</span></div>
-        </div>
-        <div class="modal-body open-project-body">
-          <template v-if="!binOpen">
-            <div class="open-project-tools">
-              <input class="open-project-search" type="search" v-model="projectQuery" placeholder="Search projects" aria-label="Search projects">
-              <div class="open-project-sort" role="group" aria-label="Sort projects">
-                <button v-for="o in projectOrders" :key="o.label" type="button" :class="{on: projectOrder === o}" @click="projectOrder = o">{{ o.label }}</button>
-              </div>
-            </div>
-            <div class="open-project-list">
-              <p v-if="projectRows.length === 0" class="hint">No saved project yet</p>
-              <p v-else-if="shownProjects.length === 0" class="hint">No project matches</p>
-              <div v-for="projectEntry in shownProjects" :key="projectEntry.key" class="stored-project-item" :class="{open: projectEntry.open.kind === 'open', active: projectEntry.open.kind === 'open' && projectEntry.open.active}">
-                <button class="stored-project-row" @click="chooseProject(projectEntry)">
-                  <span class="stored-project-name">{{ projectEntry.name }}<span v-for="t in projectEntry.tags" :key="t.kind" class="project-tag" :class="`project-tag-${t.kind}`">{{ t.text }}</span></span>
-                  <small class="stored-project-modified">{{ projectEntry.edited }}<template v-if="projectEntry.size"> · {{ projectEntry.size }}</template><span v-if="projectEntry.sync" class="project-sync-mark" :title="projectEntry.sync.text"> {{ projectEntry.sync.glyph }}</span></small>
-                  <small class="stored-project-summary">{{ projectEntry.summary }}</small>
-                </button>
-                <button v-if="projectEntry.menu.some(m => m.action === 'delete')" class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" :aria-label="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)"><ToolbarIcon name="bin" /></button>
-              </div>
-            </div>
-            <p v-if="projectRows.length > 0" class="hint open-project-footer">{{ projectsFooter }}</p>
-          </template>
-          <div v-else class="open-project-list bin-list">
-            <p v-if="binRows.length === 0" class="hint">The Bin is empty</p>
-            <div v-for="binned in binRows" :key="binned.id" class="bin-row">
-              <div class="bin-row-text">
-                <span class="bin-name">{{ binned.name }}</span>
-                <small class="bin-detail">{{ binned.binnedAt }} · {{ binned.device }} · {{ binned.size }}</small>
-              </div>
-              <button class="bin-restore" @click="restoreFromBin(binned)">Restore</button>
-              <button class="bin-delete-forever" @click="deleteForever(binned)">Delete forever</button>
-            </div>
-            <button v-if="binRows.length > 0" class="bin-empty" @click="emptyBin">Empty Bin ({{ binTotal }})</button>
-          </div>
-          <p class="store-label">{{ storeLabel }}</p>
-        </div>
-        <div class="modal-footer open-project-footer">
-          <div class="footer-buttons">
-            <button class="open-from-disk" @click="openFromDisk">Import project</button>
-            <button class="export-projects" @click="exportProjectsArchive">Export all projects</button>
-          </div>
-          <button class="bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
-        </div>
-      </div>
-    </div>
-
     <div v-if="cloudAvailable && cloudDialogOpen" class="cloud-modal-backdrop" @click.self="closeCloudDialog">
       <div class="cloud-modal" role="dialog" aria-labelledby="cloud-dialog-title" aria-modal="true">
         <header class="cloud-modal-header">
@@ -1242,21 +1201,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .panel-title { color:#7d9fc9; font-weight:600; margin-bottom:4px; font-size:14px; }
 .quad-projects-wrap { flex:1 1 auto; min-height:0; display:flex; flex-direction:column; }
 .quad-signalgen-wrap { flex:none; }
-.projects-list { flex:1 1 auto; min-height:60px; border:1px solid #bbb; background:#fff; overflow-y:auto; }
-.project-row { display:flex; align-items:center; gap:6px; padding:5px 6px; cursor:pointer; border-bottom:1px solid #eee; }
-.project-row:hover { background:#eef4ff; }
-.project-row.selected { background:#1868d1; color:#fff; }
-.project-row.is-unsaved { background: #fff3b3; border-left: 4px solid #f2994a; padding-left: 3px; }
-.project-row.is-unsaved:hover { background: #ffe680; }
-.project-row.is-unsaved.selected { background: #1868d1; border-left-color: #ffd07d; }
-.project-row input[type=checkbox] { accent-color:#1868d1; }
-.project-row span { flex:1; min-width:0; word-break:break-word; overflow-wrap:anywhere; }
-.project-row.is-unsaved span { font-style: italic; }
-.project-row.trace-hidden span { opacity:.45; text-decoration:line-through; }
 /* Action row under the list — stands in for WinISD's right-click project menu. */
 .close-actions { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
 .close-actions .btn { width:100%; }
-.proj-actions { display:flex; gap:16px; margin-top:6px; }
 .close-btn { color:#b02a2a; }
 .close-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
 .signal-gen-row { display:flex; align-items:center; gap:8px; }
@@ -1531,47 +1478,12 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .overlay.open { display:flex; }
 .modal { margin-top:8vh; background:#f7f7f7; border:1px solid #888; box-shadow:3px 6px 18px rgba(0,0,0,.35); width:620px; max-width:92vw; }
 .modal.narrow { width:460px; }
-.open-project-dialog .modal.narrow { width:520px; }
 .modal-titlebar { display:flex; align-items:center; justify-content:space-between; background:#e9e9e9; border-bottom:1px solid #bbb; padding:8px 12px; font-size:15px; }
 .modal-titlebar .tb-left { display:flex; align-items:center; gap:8px; }
 .modal-titlebar .win-controls { display:flex; gap:12px; color:#555; }
 .modal-titlebar .win-controls span { cursor:pointer; padding:1px 6px; }
 .modal-titlebar .win-controls .close-btn:hover { background:#e64545; color:#fff; }
 .modal-body { padding:16px 20px; max-height:65vh; overflow:auto; }
-.open-project-body { display:flex; flex-direction:column; gap:10px; overflow-x:hidden; }
-.open-project-list .hint { margin:0; padding:12px; color:#666; font-size:13px; }
-.open-project-tools { display:flex; flex-direction:column; gap:8px; }
-.open-project-search { box-sizing:border-box; width:100%; padding:6px 8px; font-size:13px; border:1px solid #bbb; border-radius:3px; background:#fff; }
-.open-project-sort { display:flex; border:1px solid #bbb; border-radius:3px; overflow:hidden; align-self:flex-start; }
-.open-project-sort button { border:0; border-right:1px solid #bbb; background:#f7f7f7; padding:4px 12px; font-size:12px; cursor:pointer; }
-.open-project-sort button:last-child { border-right:0; }
-.open-project-sort button.on { background:#dbeafe; font-weight:600; }
-.open-project-footer .footer-buttons { display:flex; gap:8px; }
-.open-project-body .store-label { margin:0; font-size:11px; color:#666; }
-.open-project-list { display:flex; flex-direction:column; gap:0; max-height:42vh; min-height:80px; overflow-y:auto; overflow-x:hidden; border:1px solid #ccc; background:#fff; }
-.stored-project-item + .stored-project-item { border-top:1px solid #e4e4e4; }
-.stored-project-item { display:flex; align-items:center; gap:6px; }
-.stored-project-item .stored-project-row { flex:1; min-width:0; }
-.stored-project-bin { flex:none; display:inline-flex; align-items:center; padding:4px 6px; margin-right:6px; border:0; background:transparent; }
-.stored-project-bin:hover { background:#dbeafe; }
-.bin-toggle { flex:none; white-space:nowrap; display:inline-flex; align-items:center; gap:4px; }
-.bin-row { display:flex; align-items:center; gap:6px; padding:6px; }
-.bin-row-text { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
-.bin-detail { color:#666; }
-.bin-row button { flex:none; }
-.bin-empty { align-self:flex-start; margin-top:6px; }
-.stored-project-row { display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:2px; border:0; background:transparent; padding:8px 6px; text-align:left; cursor:pointer; }
-.stored-project-summary { grid-column:1 / -1; font-size:11px; }
-.stored-project-row:hover { background:#dbeafe; }
-.stored-project-row small { color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
-.stored-project-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.stored-project-item.active .stored-project-name { font-weight:bold; }
-.stored-project-item.open .stored-project-name::before { content:'● '; color:var(--acc, #2a6fd6); }
-.project-tag { margin-left:6px; padding:0 5px; border-radius:3px; font-size:11px; background:#e8edf2; color:#4a5560; font-weight:normal; }
-.project-tag-conflict { background:#fdecc8; color:#7a4d00; }
-.project-tag-unreadable { background:#f9d6d6; color:#8a1f1f; }
-.project-sync-mark { white-space:nowrap; }
-.open-project-footer { margin:6px 0 0; }
 .modal-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #ccc; padding:10px 20px; background:#eee; }
 .footer-buttons { display:flex; gap:8px; }
 .footer-buttons button { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:6px 14px; cursor:pointer; }

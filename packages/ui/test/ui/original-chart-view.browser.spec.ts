@@ -307,6 +307,6 @@ test.describe('Original chart view with no project open', () => {
     await expect(emptyState.getByRole('button', { name: 'Import project' })).toBeVisible();
 
     await emptyState.getByRole('button', { name: 'Open project' }).click();
-    await expect(page.locator('.open-project-dialog')).toBeVisible();
+    await expect(page.locator('.projects-list')).toBeFocused();
   });
 });

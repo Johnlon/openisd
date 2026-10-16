@@ -82,6 +82,8 @@ export { lostDataSentence } from './lostData.js';
 export { deleteForeverMessage, emptyBinMessage, moveToBinMessage } from './projectBinText.js';
 export {
   conflictSuffix,
+  emptyBinLabel,
+  PROJECT_LIST_TEXT,
   PROJECT_ROW_ORDER_LIST,
   PROJECT_ROW_ORDERS,
   PROJECT_SEARCH_FROM_ROWS,

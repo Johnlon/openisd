@@ -33,7 +33,7 @@ test.describe('No-project shell', () => {
       // plainly that no project is open.
       await expect(page.locator('.graph-empty-h')).toHaveText('No project open. Create or open a project.');
       await expect(page.locator('.content-panel')).toContainText('No projects open');
-      await expect(page.locator('.projects-list')).toContainText('No projects open');
+      await expect(page.locator('.projects-list')).toContainText('No projects yet.');
     });
 
     test('the empty chart shows the app logo and name above the open-project buttons', async ({ page }) => {
@@ -190,14 +190,14 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.projects-list')).toContainText('sample-project');
     });
 
-    test('Open shows saved browser projects, with Import project in the footer', async ({ page }) => {
+    test('Projects panel shows saved browser projects, with Import project in empty state and header', async ({ page }) => {
       await page.goto('/');
 
       await page.getByTitle('Open project', {exact: true}).click();
-      const dialog = page.locator('.open-project-dialog');
-      await expect(dialog).toBeVisible();
-      await expect(dialog.locator('.open-project-footer').getByRole('button', {name: 'Import project'})).toBeVisible();
-      await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
+      const list = page.locator('.projects-list');
+      await expect(list).toBeVisible();
+      await expect(list.getByRole('button', {name: 'Import'})).toBeVisible();
+      await expect(list).toContainText('No projects yet.');
     });
 
     // bugs/archive/BUG_20260929_file-open-dialog-seeded-to-winisd.md — Import project opens the system
@@ -213,8 +213,7 @@ test.describe('No-project shell', () => {
       }, readFileSync(OWPR, 'utf8'));
       await page.goto('/');
 
-      await page.getByTitle('Open project', {exact: true}).click();
-      await page.locator('.open-project-dialog').getByRole('button', { name: 'Import project' }).click();
+      await page.locator('.quad-projects-wrap').getByRole('button', { name: 'Import' }).first().click();
 
       await expect(page.locator('.projects-list')).toContainText('picked-design');
       const options: unknown = JSON.parse(await page.locator('html').getAttribute('data-picker-options') ?? 'null');

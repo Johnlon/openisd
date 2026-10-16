@@ -3,7 +3,7 @@
  * (John, 2026-10-14: "open project needs sorting by name and date and a search box").
  */
 import type {Page} from '@playwright/test';
-import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
+import {duplicateFocusedProject, expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 async function renameAndSave(page: Page, name: string): Promise<void> {
@@ -18,23 +18,31 @@ test('desktop: sort by date and name, and search', async ({page}) => {
   await page.goto('/');
   await openAProject(page);
   await renameAndSave(page, 'Alpha sub');
-  await page.locator('.proj-actions button:has-text("Copy")').click();
+  await page.locator('.project-row.selected .row-menu-btn').click();
+  await page.locator('.row-menu-item:has-text("Duplicate")').click();
   await expect(page.locator('.project-row')).toHaveCount(2);
   await renameAndSave(page, 'Zebra sub');
-  await page.getByTitle('Open project', {exact: true}).click();
-  const dialog = page.locator('.open-project-dialog');
-  const names = dialog.locator('.stored-project-name');
 
+  const names = page.locator('.project-row .project-name');
   await expect(names).toHaveText(['Zebra sub', 'Alpha sub']);
-  await dialog.getByRole('button', {name: 'Oldest first'}).click();
+
+  await page.locator('.project-sort-select').selectOption('Oldest first');
   await expect(names).toHaveText(['Alpha sub', 'Zebra sub']);
-  await dialog.getByRole('button', {name: 'Name A–Z'}).click();
+  await page.locator('.project-sort-select').selectOption('Name A–Z');
   await expect(names).toHaveText(['Alpha sub', 'Zebra sub']);
 
-  await dialog.getByLabel('Search projects').fill('zebra');
+  // Search box is offered when there are more than 8 projects
+  for (let i = 1; i <= 7; i++) {
+    await duplicateFocusedProject(page, `Sub ${i}`);
+  }
+  await expect(page.locator('.project-row')).toHaveCount(9);
+  const searchInput = page.locator('.project-search-input');
+  await expect(searchInput).toBeVisible();
+
+  await searchInput.fill('zebra');
   await expect(names).toHaveText(['Zebra sub']);
-  await dialog.getByLabel('Search projects').fill('nothing like it');
-  await expect(dialog.getByText('No project matches')).toBeVisible();
+  await searchInput.fill('nothing like it');
+  await expect(page.getByText('No project matches')).toBeVisible();
 });
 
 import {readSampleProject} from '../fixtures/sampleProject.js';

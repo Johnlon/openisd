@@ -171,7 +171,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const project = useFocusedProject();
 
   const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort } = useApp();
-  const { saveProject, saveAllProjects, importFile } = designIO;
+  const { saveProject, saveAllProjects, saveProjectAs, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
@@ -305,7 +305,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }, { immediate: true });
 
   // ---- Document-level click: any click outside a menu closes the open dropdown ----
-  onMounted(() => document.addEventListener('click', onDocClick));
+  onMounted(() => {
+    document.addEventListener('click', onDocClick);
+    binView.refresh();
+  });
   onUnmounted(() => document.removeEventListener('click', onDocClick));
 
   // toolbar file input (Open…)
@@ -322,11 +325,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   });
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
+  const projectListRef = ref<{ focusSearchOrList(): void } | null>(null);
   function openClick() {
     recentActions.record('dialog:open-project');
-    binView.refresh();
+    navCollapsed.value = false;
     binOpen.value = false;
-    openDialogOpen.value = true;
+    binView.refresh();
+    projectListRef.value?.focusSearchOrList();
   }
   function openFromDisk() {
     recentActions.record('open-project');
@@ -352,6 +357,54 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     appState.focusProject(appState.openProjects().indexOf(handle.project));
     openDialogOpen.value = false;
   }
+  function duplicateProject(row: ProjectListRow): void {
+    chooseProject(row);
+    copyCurrentProject();
+  }
+  function exportProject(row: ProjectListRow): void {
+    chooseProject(row);
+    void saveProjectAs();
+  }
+  function cycleProjectColor(p: OpenISDProject): void {
+    cycleTraceColor(p);
+  }
+  function renameProject(row: ProjectListRow, newName: string): void {
+    const trimmed = newName.trim();
+    if (trimmed === '') return;
+    const handle = row.handle;
+    let proj: OpenISDProject | null = null;
+    if (handle.kind === 'saved') {
+      if (handle.open !== null) {
+        proj = handle.open;
+      } else {
+        const result = openStoredProjectFromStore(appState, projectRepo, handle.id);
+        if (result.kind === 'refused') {
+          alert('Could not open the saved project: ' + result.errors.join('; '));
+          return;
+        }
+        proj = appState.focusedProject();
+      }
+    } else {
+      proj = handle.project;
+    }
+    if (proj !== null) {
+      proj.name.set(trimmed);
+      const idx = appState.openProjects().indexOf(proj);
+      if (idx >= 0 && appState.focusedProject() !== proj) {
+        appState.focusProject(idx);
+      }
+    }
+  }
+  async function handleSaveProject(): Promise<boolean> {
+    const ok = await saveProject();
+    if (ok) binView.refresh();
+    return ok;
+  }
+  async function handleSaveAllProjects(): Promise<number> {
+    const n = await saveAllProjects();
+    if (n > 0) binView.refresh();
+    return n;
+  }
   function onFile(e: Event) {
     const input = inputFrom(e);
     if (input === null) return;
@@ -359,6 +412,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (f) {
       recentActions.record('open-project');
       importFile(f);
+      binView.refresh();
     }
     input.value = '';
   }
@@ -506,13 +560,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   function requestCloseProject(p: OpenISDProject | null) {
     if (!p) return;
-    if (isModified.value) { closeChallenge.value = p; return; }
+    if (projectHasUnsavedChanges(p)) { selectProject(p); closeChallenge.value = p; return; }
     closeProject(p);
   }
 
   async function saveThenClose(p: OpenISDProject) {
     closeChallenge.value = null;
-    const saved = await saveProject();
+    const saved = await handleSaveProject();
     if (saved === false) return;    // the user backed out of the file dialog — keep the project
     closeProject(p);
   }
@@ -698,8 +752,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile,
+    projectListRef, duplicateProject, exportProject, cycleProjectColor, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
-    saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
+    saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
     startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,

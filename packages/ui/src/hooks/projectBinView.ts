@@ -162,6 +162,8 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
     binTotal.value = binTotalSize(binned);
   }
 
+  refresh();
+
   return {
     projectRows,
     shownProjects: computed(() => viewProjectRows(projectRows.value, order.value, query.value)),

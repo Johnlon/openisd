@@ -9,11 +9,12 @@ test.describe('Open sessions', () => {
     // bugs/archive/BUG_20260926_tabs-overwrite-each-others-open-projects.md
 
     const rowNames = (page: Page) =>
-      page.locator('.project-row span').evaluateAll(els => els.map(e => e.textContent?.trim() ?? ''));
+      page.locator('.project-row .project-name').evaluateAll(els => els.map(e => e.textContent?.trim() ?? ''));
 
     async function copyFocused(page: Page): Promise<void> {
       const before = await page.locator('.project-row').count();
-      await page.locator('.proj-actions button:has-text("Copy")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Duplicate")').click();
       await expect(page.locator('.project-row')).toHaveCount(before + 1);
     }
 
@@ -42,7 +43,8 @@ test.describe('Open sessions', () => {
       await other.goto('/');
       await expect(other.locator('.project-row')).toHaveCount(2);
 
-      await page.locator('.proj-actions button:has-text("Close")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Close")').click();
       const discard = page.locator('.close-actions button:has-text("Close without saving")');
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (await discard.isVisible()) await discard.click();
@@ -239,11 +241,10 @@ test.describe('Open sessions', () => {
     // John 2026-10-05: "if I close the last project then I see the init screen, but if I refresh
     // then the last project comes back". Closing empties the open list; the saved copy stays.
     async function closeFocused(page: Page): Promise<void> {
-      const before = await page.locator('.project-row').count();
-      await page.locator('.proj-actions button:has-text("Close")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Close")').click();
       const discard = page.locator('.close-actions button:has-text("Close without saving")');
       if (await discard.isVisible()) await discard.click();
-      await expect(page.locator('.project-row')).toHaveCount(before - 1);
     }
 
     test('closing the last project stays closed after a reload, and Open project still lists it', async ({ page }) => {
@@ -257,15 +258,19 @@ test.describe('Open sessions', () => {
       const emptyState = page.locator('.graph-empty');
       await expect(emptyState.getByRole('button', { name: 'New project' })).toBeVisible();
       await expect(emptyState.getByRole('button', { name: 'Import project' })).toBeVisible();
-      await expect(page.locator('.project-row')).toHaveCount(0);
+      await expect(page.locator('.project-show-cbx')).toHaveCount(0);
+      const row = page.locator('.project-row');
+      await expect(row).toHaveCount(1);
+      await expect(row).toHaveClass(/is-closed/);
       await emptyState.getByRole('button', { name: 'Open project' }).click();
-      await expect(page.locator('.open-project-dialog .stored-project-row')).toHaveCount(1);
+      await expect(page.locator('.projects-list')).toBeFocused();
     });
 
     test('closing one of two projects leaves one open after a reload', async ({ page }) => {
       await page.goto('/');
       await openAProject(page);
-      await page.locator('.proj-actions button:has-text("Copy")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Duplicate")').click();
       await expect(page.locator('.project-row')).toHaveCount(2);
       await closeFocused(page);
 

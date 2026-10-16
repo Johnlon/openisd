@@ -113,6 +113,7 @@ export interface ProjectRow<H> {
   readonly key: string;
   /** The name without its conflict tag. */
   readonly name: string;
+  readonly title: string;
   readonly tags: readonly ProjectRowTag[];
   readonly summary: string;
   /** "5 Oct 2026, 23:32", or "Not saved yet". */
@@ -127,6 +128,27 @@ export interface ProjectRow<H> {
   /** For ordering and search. */
   readonly sortKeys: {readonly stem: string; readonly isCopy: boolean; readonly driver: string; readonly modifiedMs: number; readonly bytes: number; readonly text: string};
 }
+
+export const PROJECT_LIST_TEXT = {
+  TITLE: 'Projects',
+  EMPTY: 'No projects yet.',
+  NO_MATCH: 'No project matches',
+  NEW: 'New',
+  NEW_PROJECT: 'New project',
+  IMPORT: 'Import',
+  EXPORT_ALL: 'Export all',
+  SEARCH_PLACEHOLDER: 'Search…',
+  SEARCH_ARIA: 'Search projects',
+  SORT_ARIA: 'Sort projects',
+  MORE_OPTIONS: 'More options',
+  BIN_EMPTY: 'The Bin is empty',
+  BACK_TO_PROJECTS: 'Back to projects',
+  RESTORE: 'Restore',
+  DELETE_FOREVER: 'Delete forever',
+  UNSAVED_CHANGES: 'Unsaved changes',
+  TRACE_CHECKBOX_TITLE: "Show/hide this project's trace on the graph",
+  RENAME_ARIA: 'Rename project',
+} as const;
 
 function rowMenu(source: ProjectRowSource<unknown>, conflict: boolean): readonly ProjectRowAction[] {
   const saved = source.saved;
@@ -156,10 +178,12 @@ export function projectRow<H>(source: ProjectRowSource<H>): ProjectRow<H> {
   if (saved.kind === 'notSaved') tags.push({kind: 'notSaved', text: 'Not saved'});
   if (source.open.kind === 'open' && !source.open.shown) tags.push({kind: 'hidden', text: 'Hidden'});
   const sync = source.sync === 'off' ? null : {mark: source.sync, ...SYNC_SHOWN[source.sync]};
+  const active = source.open.kind === 'open' && source.open.active;
   return {
     handle: source.handle,
     key: source.key,
     name: stem,
+    title: `Project — ${stem}${active ? ' (Active)' : ''}`,
     tags,
     summary: source.summary,
     edited: saved.kind === 'saved' ? formatDateTime(new Date(saved.modifiedMs)) : 'Not saved yet',
@@ -236,3 +260,9 @@ export function projectRowsFooter(rows: readonly ProjectRow<unknown>[]): string 
   const count = `${rows.length} ${rows.length === 1 ? 'project' : 'projects'}`;
   return `${count} · ${formatByteSize(bytes)} · ${open} open`;
 }
+
+/** "Empty Bin (22 KB)". */
+export function emptyBinLabel(total: string): string {
+  return `Empty Bin (${total})`;
+}
+

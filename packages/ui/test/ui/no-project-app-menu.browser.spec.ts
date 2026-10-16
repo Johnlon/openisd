@@ -82,8 +82,9 @@ test('desktop: with no project open, the toolbar reaches every app-level feature
   await expect(page.locator('.np-step').first()).toBeVisible();
   await page.goto('/');
 
+  // T217: Open goes to the Projects list (no dialog); with no project it is empty and focused.
   await page.locator('.tb-btn[title="Open project"]').click();
-  await expect(page.locator('.open-project-dialog')).toBeVisible();
+  await expect(page.locator('.projects-list')).toBeFocused();
   await page.goto('/');
 
   await expect(page.locator('.graph-empty-link', {hasText: 'Import project'})).toBeEnabled();

@@ -3,7 +3,7 @@ import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
 import '../fixtures/generateSample.js';
 
 test.describe('Projects across addresses', () => {
-  test('the store address is shown in the open dialog, and projects can be exported', async ({ page }) => {
+  test('the store address is shown in the Bin view, and projects can be exported', async ({ page }) => {
     // Open a project to get the app running
     await page.goto("/");
     await openAProject(page, SAMPLE_PROJECT_OWPR);
@@ -11,17 +11,16 @@ test.describe('Projects across addresses', () => {
     // Create a second project so we have something to export
     await duplicateFocusedProject(page, 'Second Project');
 
-    // Open the open project dialog
-    await page.locator('.tb-btn[title^="Open project"]').click();
-    
-    // Check for the store address
+    // Check for the store address in the Bin view
+    await page.locator('.projects-panel-footer .bin-toggle').click();
     const storeLabel = page.locator('.store-label');
     await expect(storeLabel).toBeVisible();
     await expect(storeLabel).toContainText('Projects saved in this browser at http://localhost');
+    await page.getByRole('button', {name: 'Back to projects'}).click();
 
-    // Click Export all projects
+    // Click Export all
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.export-projects').click();
+    await page.locator('.export-all-btn').click();
     const download = await downloadPromise;
     
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
@@ -33,9 +32,8 @@ test.describe('Projects across addresses', () => {
     await duplicateFocusedProject(page, 'Exported Project 2');
     
     // Export
-    await page.locator('.tb-btn[title^="Open project"]').click();
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.export-projects').click();
+    await page.locator('.export-all-btn').click();
     const download = await downloadPromise;
     const path = await download.path();
     
@@ -44,15 +42,10 @@ test.describe('Projects across addresses', () => {
     await page.reload();
     
     // Import the file using the hidden input
-    await page.locator('.tb-btn[title^="Open project"]').click();
     await page.locator('.original-root input[type=file]').setInputFiles(path!);
     
-    // Close the dialog and re-open it so it refreshes the list
-    await page.locator('.open-project-dialog .close-btn').click();
-    await page.locator('.tb-btn[title^="Open project"]').click();
-    
-    // Verify projects are imported and the dialog shows them
-    const projectRows = page.locator('.stored-project-row');
+    // Verify projects are imported and the projects panel shows them
+    const projectRows = page.locator('.projects-list .project-row');
     await expect(projectRows).toHaveCount(2);
     const text = await projectRows.allTextContents();
     expect(text.join(' ')).toContain('sample-project');

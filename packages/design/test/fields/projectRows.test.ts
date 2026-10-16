@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   conflictSuffix,
+  emptyBinLabel,
   PROJECT_ROW_ORDERS,
   type ProjectRowOrder,
   type ProjectRowSource,
@@ -45,6 +46,7 @@ describe('projectRow', () => {
   it('shows a saved project with its date, size, summary and the tag apart from the name', () => {
     const row = projectRow(source('Sub 12 (conflict, 14 Oct 2026, iPhone)', {sync: 'conflict'}));
     expect(row.name).toBe('Sub 12');
+    expect(row.title).toBe('Project — Sub 12');
     expect(row.tags).toEqual([{kind: 'conflict', text: 'conflict, 14 Oct 2026, iPhone'}]);
     expect(row.edited).toBe('14 Oct 2026, 11:05');
     expect(row.size).toBe('21.5 KB');
@@ -53,9 +55,12 @@ describe('projectRow', () => {
   });
 
   it('an open project that is not active offers Make active, Close, Hide and Colour; a hidden one is tagged', () => {
-    expect(projectRow(source('A', {open: open()})).menu.map(m => m.action))
+    const inactive = projectRow(source('A', {open: open()}));
+    expect(inactive.title).toBe('Project — A');
+    expect(inactive.menu.map(m => m.action))
       .toEqual(['makeActive', 'close', 'hide', 'colour', 'rename', 'duplicate', 'export', 'delete']);
     const hidden = projectRow(source('A', {open: open({active: true, shown: false})}));
+    expect(hidden.title).toBe('Project — A (Active)');
     expect(hidden.menu.map(m => m.action)).toEqual(['close', 'show', 'colour', 'rename', 'duplicate', 'export', 'delete']);
     expect(hidden.tags).toEqual([{kind: 'hidden', text: 'Hidden'}]);
   });
@@ -113,5 +118,9 @@ describe('viewProjectRows', () => {
   it('totals the list: count, size and how many are open', () => {
     expect(projectRowsFooter(rows)).toBe('4 projects · 99.6 KB · 1 open');
     expect(projectRowsFooter(rows.slice(0, 1))).toBe('1 project · 29.3 KB · 0 open');
+  });
+
+  it('formats the empty bin button label', () => {
+    expect(emptyBinLabel('22 KB')).toBe('Empty Bin (22 KB)');
   });
 });

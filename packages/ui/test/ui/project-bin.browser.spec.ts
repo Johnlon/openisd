@@ -13,32 +13,34 @@ test('desktop: Move to Bin, Restore, then Delete forever', async ({ page }) => {
   await page.goto('/');
   await openAProject(page);
   await page.locator('.tb-btn[title^="Save - "]').click();
-  await page.getByTitle('Open project', {exact: true}).click();
-  const dialog = page.locator('.open-project-dialog');
 
-  await dialog.locator('.stored-project-bin').click();
+  await page.locator('.project-row.selected .row-menu-btn').click();
+  await page.locator('.row-menu-item:has-text("Move to Bin")').click();
   await expect(page.getByText(MOVE_TEXT)).toBeVisible();
   await page.locator('.confirm-dialog-confirm').click();
-  await expect(dialog.locator('.stored-project-row')).toHaveCount(0);
-  await expect(page.locator('.project-empty-row')).toHaveCount(1);
+  await expect(page.locator('.project-row')).toHaveCount(0);
+  await expect(page.locator('.projects-empty')).toBeVisible();
 
-  await dialog.getByRole('button', {name: 'Bin (1)'}).click();
-  await expect(dialog.locator('.bin-name')).toHaveText(['sample-project']);
-  await expect(dialog.locator('.bin-detail')).toHaveText(DETAIL);
-  await dialog.locator('.bin-restore').click();
-  await expect(dialog.locator('.bin-row')).toHaveCount(0);
-  await dialog.getByRole('button', {name: 'Back to projects'}).click();
-  await expect(dialog.locator('.stored-project-name')).toHaveText(['sample-project']);
+  const binToggle = page.locator('.projects-panel-footer .bin-toggle');
+  await expect(binToggle).toContainText('Bin (1)');
+  await binToggle.click();
+  await expect(page.locator('.bin-name')).toHaveText(['sample-project']);
+  await expect(page.locator('.bin-detail')).toHaveText(DETAIL);
+  await page.locator('.bin-restore').click();
+  await expect(page.locator('.bin-row')).toHaveCount(0);
+  await page.getByRole('button', {name: 'Back to projects'}).click();
+  await expect(page.locator('.project-name')).toHaveText(['sample-project']);
 
-  await dialog.locator('.stored-project-bin').click();
+  await page.locator('.project-row .row-menu-btn').click();
+  await page.locator('.row-menu-item:has-text("Move to Bin")').click();
   await page.locator('.confirm-dialog-confirm').click();
-  await dialog.getByRole('button', {name: 'Bin (1)'}).click();
-  await dialog.locator('.bin-delete-forever').click();
+  await binToggle.click();
+  await page.locator('.bin-delete-forever').click();
   await expect(page.getByText('Delete "sample-project" forever?', {exact: false})).toBeVisible();
   await page.locator('.confirm-dialog-confirm').click();
-  await expect(dialog.getByText('The Bin is empty')).toBeVisible();
-  await dialog.getByRole('button', {name: 'Back to projects'}).click();
-  await expect(dialog.getByText('No saved project yet')).toBeVisible();
+  await expect(page.getByText('The Bin is empty')).toBeVisible();
+  await page.getByRole('button', {name: 'Back to projects'}).click();
+  await expect(page.getByText('No projects yet.')).toBeVisible();
 });
 
 test('mobile: Bin a project, see it in the Bin, then Empty Bin', async ({ page }) => {
@@ -67,7 +69,7 @@ test('mobile: Bin a project, see it in the Bin, then Empty Bin', async ({ page }
   await expect(page.getByText('No project open')).toBeVisible();
 });
 
-test('desktop: the Bin buttons are icons with tooltips, and the Open project dialog has no horizontal scroll', async ({ page }) => {
+test('desktop: the Bin toggle is in the footer with an icon, and the projects list has no horizontal scroll', async ({ page }) => {
   await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: 'Project' }).click();
@@ -75,15 +77,13 @@ test('desktop: the Bin buttons are icons with tooltips, and the Open project dia
   await name.fill('A very long project name that goes on and on and on and on and on and on and on and on and on');
   await name.blur();
   await page.locator('.tb-btn[title^="Save - "]').click();
-  await page.getByTitle('Open project', {exact: true}).click();
-  const dialog = page.locator('.open-project-dialog');
 
-  const bin = dialog.locator('.stored-project-bin');
-  await expect(bin).toHaveText('');
-  await expect(bin).toHaveAttribute('title', /^Move .* to the Bin$/);
-  await expect(dialog.locator('.bin-toggle')).toHaveText(/^\s*Bin \(0\)\s*$|^\s*Bin\s*$/);
-  for (const sel of ['.modal-body', '.open-project-list']) {
-    const fits = await dialog.locator(sel).evaluate(e => e.scrollWidth <= e.clientWidth);
+  const bin = page.locator('.projects-panel-footer .bin-toggle');
+  await expect(bin).toContainText('Bin (0)');
+  await expect(bin.locator('svg')).toBeVisible();
+
+  for (const sel of ['.quad-projects-wrap', '.projects-list']) {
+    const fits = await page.locator(sel).evaluate(e => e.scrollWidth <= e.clientWidth);
     expect(fits, `${sel} scrolls sideways`).toBe(true);
   }
 });
