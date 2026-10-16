@@ -17,3 +17,4 @@ Find the component from the release's source map, reproduce with no project open
 ## John's ruling, 16 Oct 2026
 - Never a crash here. With no project open the app says, in plain words: "No project open. Create or open a project." with New project and Open project buttons, on both skins.
 - Every error is logged with enough context to diagnose it: which screen and dialog were open, how many projects were open, the focused project's box type (or none), the last few user actions by name, app version and device type. No project data and no values. The privacy text gets the matching sentence.
+- Mobile, John 16 Oct: with no project open, every app-level feature stays reachable from the menu: New project, Open project, Import, Options (Your data, Backups, Export/Import, cloud sync), My Drivers / driver manager, About, Diagnostics. Only project-level items (Save, the project tabs, charts, Tune/Learn) are hidden or disabled. Desktop the same.
