@@ -9,6 +9,7 @@ import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
 import { selectedOption } from '../logic/domEvents.js';
+import { useRecentActions } from './telemetryContext.js';
 
 /** The two engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
@@ -175,6 +176,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const prRepos: NewProjectPassiveRadiatorRepos = deps?.passiveRadiators
     ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
+  const recentActions = useRecentActions();
 
   const step = ref(1);
   const selectedDriver = shallowRef<OpenISDDriver | null>(initialDriver);
@@ -476,6 +478,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     p.wiring.set(wiring.value);
 
     newProjectDriver.value = null;
+    recentActions.record('new-project');
     return p;
   }
 

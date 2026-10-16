@@ -21,6 +21,7 @@ test('the privacy section stands alone at /about/#privacy', async ({page}) => {
   await expect(privacy.locator('h3')).toHaveText('Privacy');
   await expect(privacy).toContainText('hidden folder in your own Google Drive');
   await expect(privacy).toContainText('anonymous usage counts');
+  await expect(privacy).toContainText('which screen and dialog were open');
   await expect(privacy.locator('a[href$="/issues"]')).toBeVisible();
 });
 

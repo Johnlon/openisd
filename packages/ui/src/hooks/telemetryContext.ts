@@ -4,11 +4,15 @@ import type {LaunchReporter} from '../logic/telemetry/launch.js';
 import {FeatureUse} from '../logic/telemetry/featureUse.js';
 import {NoTelemetry} from '../logic/telemetry/telemetry.js';
 
+import type {RecentActions} from '../logic/telemetry/errorContext.js';
+import {RecentActions as FallbackRecentActions} from '../logic/telemetry/errorContext.js';
+
 /** What the presentation layer is given of telemetry. */
 export interface TelemetryUi {
   readonly crashReports: CrashReports;
   readonly launch: LaunchReporter;
   readonly featureUse: FeatureUse;
+  readonly actions: RecentActions;
 }
 
 const TELEMETRY_UI: InjectionKey<TelemetryUi> = Symbol('openisd.telemetry');
@@ -26,4 +30,9 @@ export function useTelemetryUi(): TelemetryUi {
 /** The page session's feature-use recorder; records nothing where no composition root provided one (unit tests of a hook). */
 export function useFeatureUse(): FeatureUse {
   return inject(TELEMETRY_UI, null)?.featureUse ?? new FeatureUse(new NoTelemetry());
+}
+
+/** The page session's recent-action recorder; records nothing where no composition root provided one. */
+export function useRecentActions(): RecentActions {
+  return inject(TELEMETRY_UI, null)?.actions ?? new FallbackRecentActions();
 }

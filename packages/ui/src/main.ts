@@ -70,6 +70,7 @@ import {startVersionIndex} from './logic/versionIndex.js';
 import {BeaconTelemetry, NoTelemetry, type Telemetry} from './logic/telemetry/telemetry.js';
 import {chooseEndpoint} from './logic/telemetry/endpoint.js';
 import {CrashReports} from './logic/telemetry/crashReports.js';
+import {createErrorContextReaders, ErrorContext, RecentActions} from './logic/telemetry/errorContext.js';
 import {crashHash} from './logic/telemetry/crashHash.js';
 import {LaunchReporter, platformHintOf, platformOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
 import {InstallMarker} from './logic/telemetry/install.js';
@@ -220,7 +221,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const driverFileStorage = createFileStorage();
 
   // --- application layer: the app's state and what it does next ---
-  const featureUse = new FeatureUse(telemetry);
+  const recentActions = new RecentActions();
+  const featureUse = new FeatureUse(telemetry, recentActions);
   const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
   // Stored projects written by earlier builds are indented and carry dq_calculated: rewritten once,
   // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
@@ -245,7 +247,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules, forgetCloudSyncRecord);
   const storageHistory = createStorageHistory(storageBackup, backup, layoutRules, projectRepo);
   const storageUsage = createStorageUsage(storage, projectBin);
-  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse });
+  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse, actions: recentActions });
 
   // sessionStorage wrapper for release watch (survives page reload, not browser restart)
   const releaseSessionStorage: SessionStorageLike = {
@@ -297,9 +299,20 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     versionIndex.view().then(view => view.running?.version ?? ''),
   );
 
+  const {readScreen, readDialog} = createErrorContextReaders(presentation);
+
+  const errorContext = new ErrorContext({
+    screen: readScreen,
+    dialog: readDialog,
+    projects: () => appState.openProjects().length,
+    box: () => appState.focusedProject()?.box.boxType.value ?? 'none',
+    actions: recentActions,
+    device: () => platformOf(platformHintOf(navigator), navigator.userAgent).toLowerCase(),
+  });
+
   const crashReports = new CrashReports(
     telemetry,
-    () => appState.focusedProject()?.box.boxType.value ?? '',
+    errorContext,
     (message, frames) => crashHash(appVersionText, message, frames),
   );
   const launchEnvironment = (): LaunchEnvironment => ({
@@ -414,7 +427,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     .directive('limits', vLimits);
 
   provideCloudSync(app, cloudSync, cloudUi);
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse});
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,

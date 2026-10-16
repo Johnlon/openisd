@@ -54,6 +54,9 @@ onMounted(async () => {
         The app does send anonymous usage counts (launches with device type and screen size, which
         charts and features are used, box types opened and saved, which catalogue drivers are picked,
         and errors) to a stats collector. They carry no project data, no account and no raw address.
+        An error also carries which screen and dialog were open, how many projects were open, the box
+        type, the names of your last few actions, the app version and the device type; never project
+        data or values.
         An error report you choose to send also carries the note and contact you type.
       </p>
       <p>

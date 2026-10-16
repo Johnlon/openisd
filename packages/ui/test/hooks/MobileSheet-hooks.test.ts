@@ -17,6 +17,7 @@ import {LaunchReporter, type LaunchEnvironment} from '../../src/logic/telemetry/
 import {createMemoryStorage} from '@openisd/persistence';
 import type {TelemetryEvent} from '../../src/logic/telemetry/events.js';
 import type {TelemetryUi} from '../../src/hooks/telemetryContext.js';
+import {ErrorContext, RecentActions} from '../../src/logic/telemetry/errorContext.js';
 import {runHook} from './runHook.js';
 
 const LAUNCH_ENV: LaunchEnvironment = {
@@ -97,10 +98,20 @@ describe('useMobileSheet', () => {
     const events: TelemetryEvent[] = [];
     const fakeTelemetry: Telemetry = { record: e => events.push(e), flush: () => {} };
     const featureUse = new FeatureUse(fakeTelemetry);
+    const actions = new RecentActions();
+    const errorContext = new ErrorContext({
+      screen: () => 'mobile/graph',
+      dialog: () => 'none',
+      projects: () => 1,
+      box: () => 'vented',
+      actions,
+      device: () => 'test',
+    });
     const telemetryUi: TelemetryUi = {
       featureUse,
-      crashReports: new CrashReports(fakeTelemetry, () => '', async () => ''),
+      crashReports: new CrashReports(fakeTelemetry, errorContext, async () => ''),
       launch: new LaunchReporter(fakeTelemetry, () => LAUNCH_ENV, work => work(), new InstallMarker(new NoTelemetry(), createMemoryStorage())),
+      actions,
     };
 
     const tune = sheet(ref(SheetMode.TUNE), telemetryUi);

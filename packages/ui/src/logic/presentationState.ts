@@ -80,6 +80,16 @@ export interface PresentationState {
    *  device that used to be narrow must not stay "mobile" after `viewStateRepo` replays an old
    *  session on a different, wider screen. */
   narrowViewport: boolean;
+  /** The Options modal is open. */
+  optionsOpen: boolean;
+  /** The Open Project dialog is open. */
+  openDialogOpen: boolean;
+  /** The full-screen Projects pane (mobile) is open. */
+  projectsPaneOpen: boolean;
+  /** The active mobile pane, or null when closed. */
+  mobilePane: string | null;
+  /** The active mobile destination. */
+  mobileDestination: string;
   ui: UiState;
   /** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
    *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
@@ -98,6 +108,11 @@ export function createPresentationState(): PresentationState {
     browseOpen: false,
     editDriver: false,
     editDriverInfo: false,
+    optionsOpen: false,
+    openDialogOpen: false,
+    projectsPaneOpen: false,
+    mobilePane: null,
+    mobileDestination: 'box',
     yRanges: {},
     sweepRange: {min: 10, max: 20000},
     narrowViewport: false,

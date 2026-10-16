@@ -26,7 +26,12 @@ import CrashScreen from './components/CrashScreen.vue';
 const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appState, presentation: presentationState, recordedProjectId } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
-const { launch } = useTelemetryUi();
+const { launch, actions: recentActions } = useTelemetryUi();
+
+watch(() => presentationState.newProjectOpen, open => { if (open) recentActions.record('dialog:new-project'); });
+watch(() => presentationState.editDriverInfo, open => { if (open) recentActions.record('dialog:driver-editor'); });
+watch(() => presentationState.editDriver, open => { if (open) recentActions.record('dialog:whatif'); });
+watch(() => presentationState.browseOpen, open => { if (open) recentActions.record('dialog:driver-browser'); });
 
 // The automatic half of the skin switch. Read `matchMedia` SYNCHRONOUSLY here — before this
 // component's first render — so a phone loads straight into the mobile shell with no

@@ -42,8 +42,39 @@ export type FeatureName =
   | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics';
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
-export interface ErrorEvent { readonly kind: 'error'; readonly message: string; readonly frames: string; readonly box: string }
-export interface ReportEvent { readonly kind: 'report'; readonly hash: string; readonly note: string; readonly contact: string }
+export interface AnonymousErrorContext {
+  readonly screen: string;
+  readonly dialog: string;
+  readonly projects: number;
+  readonly box: string;
+  readonly actions: string;
+  readonly device: string;
+}
+
+export interface ErrorEvent {
+  readonly kind: 'error';
+  readonly message: string;
+  readonly frames: string;
+  readonly box: string;
+  readonly screen: string;
+  readonly dialog: string;
+  readonly projects: number;
+  readonly actions: string;
+  readonly device: string;
+}
+export interface ReportEvent {
+  readonly kind: 'report';
+  readonly hash: string;
+  readonly message: string;
+  readonly note: string;
+  readonly contact: string;
+  readonly box: string;
+  readonly screen: string;
+  readonly dialog: string;
+  readonly projects: number;
+  readonly actions: string;
+  readonly device: string;
+}
 
 export type TelemetryEvent =
   | LaunchEvent | InstallEvent | SwBlockedEvent | SessionEndEvent | ProjectOpenEvent | ProjectSaveEvent | DriverPickEvent | ChartViewEvent | FeatureEvent | ErrorEvent | ReportEvent;
@@ -76,8 +107,28 @@ export function fieldsOf(e: TelemetryEvent): Fields {
     case 'driver_pick': return {source: e.source, id: e.id, ...(e.name === '' ? {} : {name: e.name})};
     case 'chart_view': return {chart: e.chart};
     case 'feature': return {name: e.name};
-    case 'error': return {message: e.message, frames: e.frames, box: e.box};
-    case 'report': return {hash: e.hash, note: e.note, contact: e.contact};
+    case 'error': return {
+      message: e.message,
+      frames: e.frames,
+      box: e.box,
+      screen: e.screen,
+      dialog: e.dialog,
+      projects: e.projects,
+      actions: e.actions,
+      device: e.device,
+    };
+    case 'report': return {
+      hash: e.hash,
+      message: e.message,
+      note: e.note,
+      contact: e.contact,
+      box: e.box,
+      screen: e.screen,
+      dialog: e.dialog,
+      projects: e.projects,
+      actions: e.actions,
+      device: e.device,
+    };
   }
 }
 
@@ -85,6 +136,12 @@ export const MAX_MESSAGE = 200;
 export const MAX_FRAMES = 600;
 export const MAX_NOTE = 1000;
 export const MAX_CONTACT = 200;
+export const MAX_SCREEN = 60;
+export const MAX_DIALOG = 40;
+export const MAX_BOX = 40;
+export const MAX_DEVICE = 40;
+export const MAX_ACTIONS = 10;
+export const MAX_ACTIONS_TEXT = 300;
 const TOP_FRAMES = 3;
 
 /** The first `TOP_FRAMES` stack frames, one per line, without the leading message line. */
@@ -96,11 +153,21 @@ export function topFrames(stack: string | undefined): string {
   return frames.slice(0, TOP_FRAMES).join('\n').slice(0, MAX_FRAMES);
 }
 
-/** An error event from anything that was thrown. */
-export function errorEventOf(thrown: unknown, box: string): ErrorEvent {
+/** An error event from anything that was thrown and its anonymous context. */
+export function errorEventOf(thrown: unknown, context: AnonymousErrorContext): ErrorEvent {
   const message = thrown instanceof Error ? thrown.message : String(thrown);
   const stack = thrown instanceof Error ? thrown.stack : undefined;
-  return {kind: 'error', message: message.slice(0, MAX_MESSAGE), frames: topFrames(stack), box};
+  return {
+    kind: 'error',
+    message: message.slice(0, MAX_MESSAGE),
+    frames: topFrames(stack),
+    box: context.box,
+    screen: context.screen,
+    dialog: context.dialog,
+    projects: context.projects,
+    actions: context.actions,
+    device: context.device,
+  };
 }
 
 /** The band a screen width falls in. */

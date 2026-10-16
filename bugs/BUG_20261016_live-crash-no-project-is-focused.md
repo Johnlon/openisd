@@ -40,3 +40,18 @@ stop. It did not reproduce on demand. ⚠ unverified which reader the live crash
 - Desktop already reached every app-level item with no project; Save and Export are disabled.
 - Test: packages/ui/test/ui/no-project-app-menu.browser.spec.ts, one test per skin, opens each
   app-level item with no project open.
+
+## Error context (T229)
+- Every `error` and `report` wire event carries anonymous runtime context:
+  - `screen`: skin and current tab or destination (`original/Vented`, `mobile/graph`).
+  - `dialog`: open dialog, modal or mobile pane (`options`, `driver-editor`, `whatif`, `new-project`, `none`).
+  - `projects`: open project count (`number`).
+  - `box`: focused project's box type, or `none`.
+  - `actions`: comma-joined list of the last 10 user action names from a closed `ActionName` union (oldest first).
+  - `device`: platform/device category (`android`, `ios`, `windows`, etc.).
+- Every `report` wire event also carries the crash `message` so reports can be grouped and identified in the collector.
+- No project data, no user values, no names, and no filenames are included.
+- `RecentActions` implements a 10-item ring buffer injected through `ErrorContext` in `main.ts` and provided to `CrashReports`.
+- Privacy text updated on `AboutPage.vue` to describe the anonymous diagnostic fields.
+- Verified by `packages/ui/test/logic/telemetry/errorContext.test.ts` and `packages/ui/test/logic/telemetry.test.ts`.
+

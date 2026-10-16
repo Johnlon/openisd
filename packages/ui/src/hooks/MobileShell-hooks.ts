@@ -7,7 +7,8 @@ import {type Ref, computed, nextTick, onMounted, onUnmounted, ref, watch} from '
 import type {OpenISDProject} from '@openisd/design';
 import {cycleTraceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
-import {useFeatureUse} from './telemetryContext.js';
+import {useFeatureUse, useRecentActions} from './telemetryContext.js';
+import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {visibleViewportHeightPx} from '../logic/visibleViewport.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
@@ -39,6 +40,22 @@ export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'fi
 
 /** The panes the hamburger menu opens as full-screen dialogs over the current destination. */
 export type MobilePane = 'project' | 'advanced' | 'drivers' | 'cloudSync';
+
+const DEST_ACTIONS: Record<MobileDestination, ActionName> = {
+  box: 'tab:box',
+  driver: 'tab:driver',
+  enclosure: 'tab:enclosure',
+  filters: 'tab:filters',
+  signal: 'tab:signal',
+  graph: 'tab:graph',
+};
+
+const PANE_ACTIONS: Record<MobilePane, ActionName> = {
+  project: 'pane:project',
+  advanced: 'pane:advanced',
+  drivers: 'pane:drivers',
+  cloudSync: 'pane:cloudSync',
+};
 
 export interface MobileShellApi {
   storeLabel: string;
@@ -150,6 +167,7 @@ export interface MobileShellApi {
 }
 
 export function useMobileShell(): MobileShellApi {
+  const recentActions = useRecentActions();
   const { appState, presentation: presentationState } = useApp();
   const { setTraceVisible, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
   const { setSkinOverride } = presentationState;
@@ -162,10 +180,18 @@ export function useMobileShell(): MobileShellApi {
   const pane = ref<MobilePane | null>(null);
   const featureUse = useFeatureUse();
   watch(destination, d => {
+    presentationState.mobileDestination = d;
+    recentActions.record(DEST_ACTIONS[d]);
     if (d === 'filters') featureUse.feature('filters');
     if (d === 'enclosure') featureUse.feature('vents');
   }, { immediate: true });
-  watch(pane, p => { if (p === 'drivers') featureUse.feature('driver_db'); });
+  watch(pane, p => {
+    presentationState.mobilePane = p;
+    if (p) {
+      recentActions.record(PANE_ACTIONS[p]);
+      if (p === 'drivers') featureUse.feature('driver_db');
+    }
+  });
   watch(() => presentationState.browseOpen, open => { if (open) featureUse.feature('driver_db'); });
   // The menu drawer's own identity line (John, 2026-10-02: "get my name in there somewhere") —
   // the same free-text app-level preference the Options dialog's "Username" field edits
@@ -184,20 +210,28 @@ export function useMobileShell(): MobileShellApi {
     const input = inputFrom(e);
     if (input === null) return;
     const f = input.files?.[0];
-    if (f) designIO.importFile(f);
+    if (f) {
+      recentActions.record('open-project');
+      designIO.importFile(f);
+    }
     input.value = '';
   }
   function openNewProject(): void {
+    recentActions.record('dialog:new-project');
     presentationState.newProjectOpen = true;
     closeMenu();
   }
   function openFromDisk(): void {
+    recentActions.record('open-project');
     void designIO.openFromDisk(() => fileInput.value?.click());
     closeMenu();
   }
 
   // Projects pane — previously-SAVED projects (browser storage) and open projects.
   const projectsPaneOpen = ref(false);
+  watch(projectsPaneOpen, open => {
+    presentationState.projectsPaneOpen = open;
+  }, { immediate: true });
   const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
     appState, projectRepo, projectBin, confirm: confirmPort.port,
@@ -207,6 +241,7 @@ export function useMobileShell(): MobileShellApi {
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
   function openProjectsPane(): void {
+    recentActions.record('dialog:projects');
     binView.refresh();
     binOpen.value = false;
     projectsPaneOpen.value = true;
@@ -225,6 +260,7 @@ export function useMobileShell(): MobileShellApi {
   }
   /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
   function chooseProject(row: ProjectListRow): void {
+    recentActions.record('open-project');
     const handle = row.handle;
     if (handle.kind === 'saved') {
       openStoredProject(handle.id);
@@ -326,6 +362,7 @@ export function useMobileShell(): MobileShellApi {
 
   const anyUnsaved = computed(() => openProjects().some(p => projectHasUnsavedChanges(p)));
 
+
   async function confirmDiscard(): Promise<boolean> {
     return confirmPort.port.ask({
       title: 'Discard changes?',
@@ -348,8 +385,16 @@ export function useMobileShell(): MobileShellApi {
     closeMenu();
   }
 
-  const optionsOpen = ref(false);
-  watch(optionsOpen, open => { if (open) featureUse.feature('options'); });
+  const optionsOpen = computed<boolean>({
+    get: () => presentationState.optionsOpen,
+    set: (v: boolean) => { presentationState.optionsOpen = v; },
+  });
+  watch(optionsOpen, open => {
+    if (open) {
+      recentActions.record('dialog:options');
+      featureUse.feature('options');
+    }
+  });
   function openOptions(): void { optionsOpen.value = true; closeMenu(); }
   function goToProject(): void { pane.value = 'project'; closeMenu(); }
   function goToAdvanced(): void { pane.value = 'advanced'; closeMenu(); }

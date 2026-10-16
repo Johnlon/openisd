@@ -54,6 +54,7 @@ import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
 import {displayNameOf} from './driverDisplay.js';
 import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../fileFormat.js';
+import type {RecentActions} from './telemetry/errorContext.js';
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
@@ -96,9 +97,23 @@ export interface DesignIO {
  * Access API does not persist handles across a page load.
  */
 function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
-export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort; appState: AppState; presentation: PresentationState; telemetry?: Telemetry; featureUse?: FeatureUse }): DesignIO {
+export function createApplicationIO(deps: {
+  engine: Engine;
+  logging: Logging;
+  fileStorage: FileStorage;
+  fileOpen: FileOpen;
+  projectRepo: ProjectRepo;
+  files: DesignFiles;
+  backup: BackupRepo;
+  confirmPort: ConfirmPort;
+  appState: AppState;
+  presentation: PresentationState;
+  telemetry?: Telemetry;
+  featureUse?: FeatureUse;
+  actions?: RecentActions;
+}): DesignIO {
   const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
-  const featureUse = deps.featureUse ?? new FeatureUse(telemetry);
+  const featureUse = deps.featureUse ?? new FeatureUse(telemetry, deps.actions);
   const recordSave = (format: SaveFormat, project: OpenISDProject | null): void =>
     telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? ''});
   const { currentViewSnapshot, driverName, focusedProject, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
@@ -169,6 +184,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
 
   /** Save — commit the edited project and refresh the browser-storage copy. */
   async function saveProject(): Promise<boolean> {
+    deps.actions?.record('save-project');
     endWhatIfBeforeIO();
     const project = requireFocusedProject();
     // Storage first: a refused write must leave the project showing its unsaved changes.
@@ -185,6 +201,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
 
   /** Save all — Save for every open project with unsaved edits, not only the focused one. */
   async function saveAllProjects(): Promise<number> {
+    deps.actions?.record('save-all-projects');
     endWhatIfBeforeIO();
     const dirty = openProjects().filter(p => p.isModified());
     let savedCount = 0;

@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {BeaconTelemetry, NoTelemetry} from '../../src/logic/telemetry/telemetry.js';
-import {errorEventOf, fieldsOf, type TelemetryEvent} from '../../src/logic/telemetry/events.js';
+import {errorEventOf, fieldsOf, type AnonymousErrorContext, type TelemetryEvent} from '../../src/logic/telemetry/events.js';
 import {screenWidthBandOf, SKINS} from '../../src/logic/telemetry/events.js';
 import {InstallMarker, INSTALL_SENT_KEY} from '../../src/logic/telemetry/install.js';
 import {browserIdOf, BROWSER_ID_KEY} from '../../src/logic/telemetry/browserId.js';
@@ -12,6 +12,12 @@ import {crashHash} from '../../src/logic/telemetry/crashHash.js';
 import {LaunchReporter, platformOf, referrerHost, type LaunchEnvironment} from '../../src/logic/telemetry/launch.js';
 import {chooseEndpoint, TELEMETRY_ENDPOINT} from '../../src/logic/telemetry/endpoint.js';
 import {CrashReports} from '../../src/logic/telemetry/crashReports.js';
+import {ErrorContext, RecentActions} from '../../src/logic/telemetry/errorContext.js';
+
+/** A context with nothing known but the box type. */
+function emptyErrorContext(box = 'none'): AnonymousErrorContext {
+  return {screen: 'none', dialog: 'none', projects: 0, box, actions: '', device: 'other'};
+}
 
 const ENV: LaunchEnvironment = {
   standalone: true, platformHint: undefined, userAgent: 'Mozilla/5.0 (Linux; Android 14)',
@@ -121,7 +127,7 @@ describe('error events', () => {
   it('truncates the message to 200 and keeps the top 3 frames', () => {
     const e = new Error('x'.repeat(500));
     e.stack = `Error: boom\n    at a (f.js:1:1)\n    at b (f.js:2:2)\n    at c (f.js:3:3)\n    at d (f.js:4:4)`;
-    const ev = errorEventOf(e, 'sealed');
+    const ev = errorEventOf(e, emptyErrorContext('sealed'));
     expect(ev.message).toHaveLength(200);
     expect(ev.frames).toBe('at a (f.js:1:1)\nat b (f.js:2:2)\nat c (f.js:3:3)');
     expect(ev.box).toBe('sealed');
@@ -130,8 +136,18 @@ describe('error events', () => {
   it('caps frames at 600 characters and handles non-errors', () => {
     const e = new Error('m');
     e.stack = `Error: m\n    at ${'a'.repeat(400)}\n    at ${'b'.repeat(400)}`;
-    expect(errorEventOf(e, '').frames.length).toBe(600);
-    expect(errorEventOf('plain', '')).toEqual({kind: 'error', message: 'plain', frames: '', box: ''});
+    expect(errorEventOf(e, emptyErrorContext('')).frames.length).toBe(600);
+    expect(errorEventOf('plain', emptyErrorContext(''))).toEqual({
+      kind: 'error',
+      message: 'plain',
+      frames: '',
+      box: '',
+      screen: 'none',
+      dialog: 'none',
+      projects: 0,
+      actions: '',
+      device: 'other',
+    });
   });
 });
 
@@ -145,16 +161,49 @@ describe('crashHash', () => {
 describe('CrashReports', () => {
   it('records the error, flushes, then sends a report with the user text', async () => {
     const r = rig();
-    const crashes = new CrashReports(r.telemetry, () => 'vented', async (m, f) => `hash:${m}:${f}`);
+    const actions = new RecentActions();
+    actions.record('tab:box');
+    const errorContext = new ErrorContext({
+      screen: () => 'original/enclosure',
+      dialog: () => 'none',
+      projects: () => 1,
+      box: () => 'vented',
+      actions,
+      device: () => 'android',
+    });
+    const crashes = new CrashReports(r.telemetry, errorContext, async (m, f) => `hash:${m}:${f}`);
     crashes.capture(new Error('boom'));
     expect(r.beacon).toHaveBeenCalledTimes(1);
     expect(crashes.pending.value?.message).toBe('boom');
     const frames = crashes.pending.value?.frames ?? '';
     crashes.submit('n'.repeat(2000), 'me@example.org');
     await vi.waitFor(() => expect(r.beacon).toHaveBeenCalledTimes(2));
+    expect((await r.bodies())[0]?.[0]).toMatchObject({
+      name: 'error',
+      fields: {
+        message: 'boom',
+        box: 'vented',
+        screen: 'original/enclosure',
+        dialog: 'none',
+        projects: 1,
+        actions: 'tab:box',
+        device: 'android',
+      },
+    });
     expect((await r.bodies())[1]?.[0]).toMatchObject({
       name: 'report',
-      fields: {note: 'n'.repeat(1000), contact: 'me@example.org', hash: `hash:boom:${frames}`},
+      fields: {
+        message: 'boom',
+        note: 'n'.repeat(1000),
+        contact: 'me@example.org',
+        hash: `hash:boom:${frames}`,
+        box: 'vented',
+        screen: 'original/enclosure',
+        dialog: 'none',
+        projects: 1,
+        actions: 'tab:box',
+        device: 'android',
+      },
     });
     expect(crashes.pending.value).toBeNull();
   });
@@ -265,7 +314,18 @@ describe('service worker registration', () => {
 describe('crash dedupe', () => {
   it('sends one error per message in a session, and still offers the report box', () => {
     const record = vi.fn<(event: TelemetryEvent) => void>();
-    const crashes = new CrashReports({record, flush: vi.fn()}, () => 'vented', () => Promise.resolve('h'));
+    const crashes = new CrashReports(
+      {record, flush: vi.fn()},
+      new ErrorContext({
+        screen: () => 'original/enclosure',
+        dialog: () => 'none',
+        projects: () => 1,
+        box: () => 'vented',
+        actions: new RecentActions(),
+        device: () => 'linux',
+      }),
+      () => Promise.resolve('h'),
+    );
     crashes.capture(new Error('boom'));
     crashes.capture(new Error('boom'));
     crashes.capture(new Error('other'));

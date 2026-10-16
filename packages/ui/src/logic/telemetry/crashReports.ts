@@ -1,11 +1,19 @@
 import {shallowRef, type ShallowRef} from 'vue';
-import {errorEventOf, MAX_CONTACT, MAX_NOTE} from './events.js';
+import {
+  errorEventOf,
+  MAX_CONTACT,
+  MAX_MESSAGE,
+  MAX_NOTE,
+  type AnonymousErrorContext,
+} from './events.js';
 import type {Telemetry} from './telemetry.js';
+import type {ErrorContext} from './errorContext.js';
 
 /** The newest uncaught error, waiting for the user to say what they were doing. */
 export interface PendingCrash {
   readonly message: string;
   readonly frames: string;
+  readonly context: AnonymousErrorContext;
 }
 
 /** Records an uncaught error and, when the user chooses, their report of it. */
@@ -16,19 +24,20 @@ export class CrashReports {
 
   constructor(
     private readonly telemetry: Telemetry,
-    private readonly box: () => string,
+    private readonly contextProvider: ErrorContext,
     private readonly hashOf: (message: string, frames: string) => Promise<string>,
   ) {}
 
   /** Anything thrown and not caught: record it, send it now, offer the report box. */
   capture(thrown: unknown): void {
-    const event = errorEventOf(thrown, this.box());
+    const context = this.contextProvider.snapshot();
+    const event = errorEventOf(thrown, context);
     if (!this.sent.has(event.message)) {
       this.sent.add(event.message);
       this.telemetry.record(event);
       this.telemetry.flush();
     }
-    this.pending.value = {message: event.message, frames: event.frames};
+    this.pending.value = {message: event.message, frames: event.frames, context};
   }
 
   /** Send the user's report. Not awaited by anyone; the box closes at once. */
@@ -37,7 +46,19 @@ export class CrashReports {
     this.pending.value = null;
     if (crash === null) return;
     void this.hashOf(crash.message, crash.frames).then(hash => {
-      this.telemetry.record({kind: 'report', hash, note: note.slice(0, MAX_NOTE), contact: contact.slice(0, MAX_CONTACT)});
+      this.telemetry.record({
+        kind: 'report',
+        hash,
+        message: crash.message.slice(0, MAX_MESSAGE),
+        note: note.slice(0, MAX_NOTE),
+        contact: contact.slice(0, MAX_CONTACT),
+        box: crash.context.box,
+        screen: crash.context.screen,
+        dialog: crash.context.dialog,
+        projects: crash.context.projects,
+        actions: crash.context.actions,
+        device: crash.context.device,
+      });
       this.telemetry.flush();
     });
   }

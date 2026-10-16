@@ -29,7 +29,8 @@ import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './char
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
-import {useFeatureUse} from './telemetryContext.js';
+import {useFeatureUse, useRecentActions} from './telemetryContext.js';
+import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
@@ -145,8 +146,19 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   };
 }
 
+const TAB_ACTIONS: Record<TabId, ActionName> = {
+  box: 'tab:box',
+  driver: 'tab:driver',
+  enclosure: 'tab:enclosure',
+  filters: 'tab:filters',
+  signal: 'tab:signal',
+  advanced: 'tab:advanced',
+  project: 'tab:project',
+};
+
 // ---- The shell's one hook -----------------------------------------------------
 export function useOriginalShell(options?: { sealedReadouts?: typeof createSealedReadouts }) {
+  const recentActions = useRecentActions();
   const { appState, presentation: presentationState } = useApp();
   const { definePassiveRadiator, isTraceVisible, setTraceVisible, allIssues, IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, copyProjectName, curvesData, driverName, duplicateFocusedProject, envDefaults, focusedProject, focusProject, isModified, markProjectSaved, maxData, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround, syncedP } = appState;
   const { setSkinOverride } = presentationState;
@@ -298,7 +310,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // toolbar file input (Open…)
   const fileInput = ref<HTMLInputElement | null>(null);
-  const openDialogOpen = ref(false);
+  const openDialogOpen = computed<boolean>({
+    get: () => presentationState.openDialogOpen,
+    set: (v: boolean) => { presentationState.openDialogOpen = v; },
+  });
   const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
     appState, projectRepo, projectBin, confirm: confirmPort.port,
@@ -308,11 +323,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
   function openClick() {
+    recentActions.record('dialog:open-project');
     binView.refresh();
     binOpen.value = false;
     openDialogOpen.value = true;
   }
   function openFromDisk() {
+    recentActions.record('open-project');
     openDialogOpen.value = false;
     void designIO.openFromDisk(() => fileInput.value?.click());
   }
@@ -326,6 +343,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
   /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
   function chooseProject(row: ProjectListRow): void {
+    recentActions.record('open-project');
     const handle = row.handle;
     if (handle.kind === 'saved') {
       openStoredProject(handle.id);
@@ -338,7 +356,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     const input = inputFrom(e);
     if (input === null) return;
     const f = input.files?.[0];
-    if (f) importFile(f);
+    if (f) {
+      recentActions.record('open-project');
+      importFile(f);
+    }
     input.value = '';
   }
 
@@ -455,6 +476,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     set: (v: TabId) => { presentationState.ui.originalProjectTab = v; },
   });
   watch(activeTab, tab => {
+    recentActions.record(TAB_ACTIONS[tab]);
     if (tab === 'filters') featureUse.feature('filters');
     if (tab === 'enclosure') featureUse.feature('vents');
   }, { immediate: true });
@@ -496,6 +518,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
 
   function closeProject(p: OpenISDProject) {
+    recentActions.record('close-project');
     closeChallenge.value = null;
     const idx = projectList.value.indexOf(p);
     if (idx >= 0) removeProject(idx);
@@ -575,13 +598,22 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const placement = ref<'standard' | 'iso'>('standard');
 
   // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
-  const optionsOpen = ref(false);
-  watch(optionsOpen, open => { if (open) featureUse.feature('options'); });
+  const optionsOpen = computed<boolean>({
+    get: () => presentationState.optionsOpen,
+    set: (v: boolean) => { presentationState.optionsOpen = v; },
+  });
+  watch(optionsOpen, open => {
+    if (open) {
+      recentActions.record('dialog:options');
+      featureUse.feature('options');
+    }
+  });
   watch(() => presentationState.browseOpen, open => { if (open) featureUse.feature('driver_db'); });
 
   // What-if? opens the project's What-if layer. The project's own values stay underneath it,
   // untouched; closing the panel discards the What-if.
   function startWhatIf() {
+    recentActions.record('dialog:whatif');
     featureUse.feature('whatif');
     project.value.beginWhatIf();
     presentationState.editDriver = true;
@@ -592,7 +624,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
-  function startEdit() { editProjectDriver(); }
+  function startEdit() {
+    recentActions.record('dialog:driver-editor');
+    editProjectDriver();
+  }
 
   // R1 refresh fidelity — RECORD an open What-if? panel / Driver Editor so a reload can restore it.
   // Restoring is the boot's own phase (`logic/boot.ts`), which runs it after the project and
