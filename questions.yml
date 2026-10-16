@@ -9941,7 +9941,9 @@ questions:
     Landed as T016.'
 - id: QO180
   title: An agent committed once with the commit hooks switched off
-  status: open
+  status: closed
+  answer: |-
+    John, 16 Oct 2026: delete branch t164. T164 was the start of the slim driver work. Ruling: a driver file saves the slim form the app itself uses, only what the user could see or edit, nothing the pipeline built it from. Recorded in REVIEW_20261014_SLIM_DRIVER.md.
   raised: '2026-10-14'
   body: |-
     Task T164 (export from the catalogue record) was abandoned after John said the original record's readings and notes are pointless. I had a half-built module in the T164 worktree and wanted it saved before removing the worktree.
