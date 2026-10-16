@@ -52,3 +52,10 @@ output: |
     792 passed (6.3m)
   suite: unit exit 0, browser exit 1
   post-land suite 945866-61c3b2f585 finished: FAILED (exit 1) after 8m48s
+also_red:
+  - sha: dd2584bf3c7067eb442c9299680ba127e213b2fe
+    failing: |
+        ✘  787 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile menu (837ms)
+    visual: |
+      visual screens: mobile-menu
+      visual page: http://lap:8000/winisd/visual-pages/red-dd2584bf3c/index.html
