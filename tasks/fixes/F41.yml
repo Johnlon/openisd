@@ -1,6 +1,6 @@
 id: F41
 owner: Johnlon
-status: open
+status: done
 sha: bd50b9d36f1390aa435b12b7d222d2d70b95448d
 goal: main is red at bd50b9d36f; make the full suite pass again
 commits: |
@@ -49,3 +49,7 @@ output: |
     792 passed (6.3m)
   suite: unit exit 0, browser exit 1
   post-land suite 1207645-bd50b9d36f finished: FAILED (exit 1) after 8m05s
+closed: |
+  Not reproducible (bob, 16 Oct 2026). The failure is page.goto 'Test ended' while cloudSyncStubs.ts route.fetch
+  was in flight in the post-land clean copy under load; no assertion failed. cloudSync.original.browser.spec.ts then
+  passed 7/7 on main, and 63/63 over three --repeat-each=3 runs. No code changed. A second occurrence reopens it.
