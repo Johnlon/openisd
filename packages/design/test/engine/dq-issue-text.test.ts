@@ -9,7 +9,7 @@ describe('DqIssue text', () => {
 
     it('target-unreachable states the ceiling', () => {
       const issue = engine.issues.targetUnreachable('length_m', 62.5);
-      assert.match(issue.text, /maximum this geometry can reach is 62.5 Hz/);
+      assert.match(issue.text, /The highest it can reach is 62.5 Hz/);
     });
 
     it('target-unreachable states natural tuning ceiling for PR addedMass_kg', () => {
@@ -79,10 +79,9 @@ describe('DqIssue text', () => {
   });
 
   describe('a target-unreachable issue\'s own sentence', () => {
-    it('names the target and the geometry\'s reachable ceiling', () => {
+    it('states the reachable ceiling in plain words, with no internal key', () => {
       const text = engine.issues.targetUnreachable('length_m', 42).text;
-      expect(text).toMatch(/length_m/);
-      expect(text).toMatch(/42 Hz/);
+      expect(text).toBe("This port can't reach that tuning. The highest it can reach is 42 Hz.");
     });
 
     it('prints a non-finite ceiling as the literal string, not a formatted number', () => {
@@ -96,7 +95,7 @@ describe('DqIssue text', () => {
       expect(engine.issues.inconsistentInputs<string>('Qts', ['Qts'], 'f', 1, 2, 1).text).toMatch(/disagree/);
       expect(engine.issues.nonPhysicalQuantity('Vb', -1).text).toMatch(/not a physical/i);
       expect(engine.issues.quantityOutOfBand('Fb', 1, 10, 20).text).toMatch(/plausible/);
-      expect(engine.issues.targetUnreachable('length_m', 42).text).toMatch(/length_m/);
+      expect(engine.issues.targetUnreachable('length_m', 42).text).toMatch(/42 Hz/);
     });
   });
 });

@@ -1,0 +1,29 @@
+id: T245
+release_note: Deleting a tuning, vent length or similar linked value now keeps its partner as your entry. The vent can't-reach message is in plain words.
+repo: openisd
+owner: sonnet
+status: done
+goal: Clearing a linked pair member keeps the partner as E
+done_test: bash scripts/test.sh packages/design/test/domain/vent-pair-clear.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts
+  - packages/ui/test/logic/sweepCache.test.ts
+  - packages/ui/test/logic/ventGroup.test.ts
+  - bugs/BUG_20261016_abc-rear-vent-cleared-tuning-blanks-length.md
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/ventWindow.ts
+  - packages/design/domain/cell.ts
+  - packages/design/engine/consistency.ts
+  - packages/design/test/domain/box-passive-radiator.test.ts
+  - packages/design/test/domain/cell.test.ts
+  - packages/design/test/domain/project-sweep-guards.test.ts
+  - packages/design/test/domain/project-sweep-plan.test.ts
+  - packages/design/test/domain/vent-dimension-clear.test.ts
+  - packages/design/test/domain/vent-pair-clear.test.ts
+  - packages/design/test/domain/vent-pair-states.test.ts
+  - packages/design/test/engine/classify-finite.test.ts
+  - packages/design/test/engine/dq-issue-text.test.ts
+  - packages/ui/test/ui/mobile-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - tasks/T245.yml

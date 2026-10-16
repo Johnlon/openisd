@@ -3,6 +3,7 @@ release_note: ''
 repo: openisd
 owner: fable
 status: done
+landed: 2ad11c79a6777806bf14dce4e86b260d5be0c4fa
 goal: 'Rule: a UI layout issue goes to John with before and after screenshots and one plain sentence'
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:

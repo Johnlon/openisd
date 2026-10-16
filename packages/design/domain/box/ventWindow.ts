@@ -65,17 +65,15 @@ export class VentWindow implements Vent {
         const diameterEntry = entryField(focus(lens, 'diameter_m'), 'diameter_m');
         const heightEntry = entryField(focus(lens, 'height_m'), 'height_m');
         const areaEntry = entryField(focus(lens, 'area_m2'), 'area_m2');
-        const settle = (siblingEmpty: () => boolean): { readonly siblingEmpty: () => boolean; readonly settle: () => void } | undefined =>
-            start === undefined ? undefined : { siblingEmpty, settle: () => start.geometry(this) };
         this.diameter_m = pairedField(
             (entry) => lens.set({ ...lens.value, diameter_m: entry, area_m2: undefined }),
             diameterEntry,
-            settle(() => this.area_m2.value === null),
+            () => this.area_m2,
         );
         this.height_m = pairedField(
             (entry) => lens.set({ ...lens.value, height_m: entry, area_m2: undefined }),
             heightEntry,
-            settle(() => this.area_m2.value === null),
+            () => this.area_m2,
         );
         this.area_m2 = pairedField(
             (entry) => {
@@ -83,7 +81,7 @@ export class VentWindow implements Vent {
                 else lens.set({ ...lens.value, area_m2: entry, height_m: undefined });
             },
             areaEntry,
-            settle(() => (lens.value.shape === 'round' ? this.diameter_m : this.height_m).value === null),
+            () => (lens.value.shape === 'round' ? this.diameter_m : this.height_m),
         );
 
         /** Never N: an empty slot reads `calcVentCount()` as C; `OpenISDProject#resolveVentCount`

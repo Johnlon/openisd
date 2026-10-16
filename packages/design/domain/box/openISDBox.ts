@@ -55,16 +55,14 @@ const STARTING = Object.freeze({
 } as const);
 
 /** A chamber's tuning target and its vent's length as the pair they are: entering one writes it
- *  and clears the other in `commit`'s single record write, so no resolve runs between. Used where
- *  retracting a member leaves the pair blank (`noStartingAlignment`); the vented box adds its own
- *  fallback instead. */
+ *  and clears the other in `commit`'s single record write, so no resolve runs between. Clearing the
+ *  entered member keeps the other at its value as E (John, 2026-10-16). */
 function ventTuningPair(
     commit: (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined) => void,
     tuningEntry: TuningField, lengthEntry: TuningField,
 ): {readonly tuning: TuningField; readonly length: TuningField} {
-    const settle = (): void => {};
-    const tuning: TuningField = pairedField((entry) => commit(entry, undefined), tuningEntry, { siblingEmpty: () => length.value === null, settle });
-    const length: TuningField = pairedField((entry) => commit(undefined, entry), lengthEntry, { siblingEmpty: () => tuning.value === null, settle });
+    const tuning: TuningField = pairedField((entry) => commit(entry, undefined), tuningEntry, () => length);
+    const length: TuningField = pairedField((entry) => commit(undefined, entry), lengthEntry, () => tuning);
     return {tuning, length};
 }
 
@@ -205,9 +203,8 @@ export class OpenISDBox implements Box {
                 vent: { ...cur.vent, length_m: length },
             });
         };
-        const settleVentedPair = (): void => this.resetVentedAlignment();
-        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, { siblingEmpty: () => ventedLengthField.value === null, settle: settleVentedPair });
-        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, { siblingEmpty: () => ventedTuningField.value === null, settle: settleVentedPair });
+        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, () => ventedLengthField);
+        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, () => ventedTuningField);
         // A cleared port dimension settles to the starting port (John, 2026-10-09).
         const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField, ventStart);
         this.vented = {
@@ -349,18 +346,17 @@ export class OpenISDBox implements Box {
         const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
-        // A cleared pair never stays blank: the added mass falls back to 0 (John, 2026-10-09), and
-        // the tuning is calculated from it.
-        const settlePr = (): void => prAddedMassField.set(0);
+        // A cleared member keeps the other as entered; with nothing to calculate from, both are N
+        // (John, 2026-10-16).
         const prTuningField: ReturnType<typeof pairedField> = pairedField(
             (entry) => pr.set({ ...pr.value, tuning_goal_hz: entry, addedMass_kg: undefined }),
             prTuningEntry,
-            { siblingEmpty: () => prAddedMassField.value === null, settle: settlePr },
+            () => prAddedMassField,
         );
         const prAddedMassField: ReturnType<typeof pairedField> = pairedField(
             (entry) => pr.set({ ...pr.value, addedMass_kg: entry, tuning_goal_hz: undefined }),
             prAddedMassEntry,
-            { siblingEmpty: () => prTuningField.value === null, settle: settlePr },
+            () => prTuningField,
         );
         this.passiveRadiator = {
             volume_m3: prVolume,

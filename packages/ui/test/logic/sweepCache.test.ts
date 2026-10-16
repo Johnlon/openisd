@@ -67,13 +67,16 @@ describe('SweepCache', () => {
     const { cache } = setup();
     const p = project();
     // A vented port with neither a stated tuning nor a stated length (project-sweep-guards.test.ts):
-    // clearing the tuning while Vas is blank leaves the pair blank. A cleared box volume settles since
-    // T211, so it no longer blocks a sweep.
+    // clearing the tuning keeps a length that has a value (John, 2026-10-16), so the volume is cleared
+    // first and the length has none; the pair is left blank.
     p.box.boxType.set('vented');
     const vas = p.driver.specs.Vas_m3.value;
+    const vb = p.box.vented.volume_m3.value;
     p.driver.specs.Vas_m3.clear();
+    p.box.vented.volume_m3.clear();
     p.box.vented.tuning_goal_hz.clear();
     if (vas !== null) p.driver.specs.Vas_m3.set(vas);
+    if (vb !== null) p.box.vented.volume_m3.set(vb);
     p.box.vented.vent.shape.set('round');
     p.box.vented.vent.diameter_m.set(0.1);
     expect(cache.sweep(p, GRID)).toBeNull();

@@ -63,13 +63,17 @@ test.describe('Original Vented tab', () => {
     });
 
     // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied box clears the value, never
-    // stores 0. A cleared port dimension settles to the starting port (John, 2026-10-09): the
-    // diameter to the 50 mm round default, the slot width to the driver's Dd.
-    test('emptied vent dimensions settle to the starting port instead of becoming 0', async ({ page }) => {
+    // stores 0. A cleared diameter keeps the cross area as entered and is calculated from it
+    // (John, 2026-10-16); the slot width goes back to the driver's Dd (John, 2026-10-09).
+    test('emptied vent dimensions keep the partner or settle instead of becoming 0', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
+      const area = page.locator('.field', { hasText: 'Cross area' }).locator('input');
+      const areaBefore = await area.inputValue();
       await fillAndBlur(diameter, '');
       await expect(diameter).toHaveValue(/^5(\.0+)?$/);
+      await expect(diameter).toHaveClass(/value-c/);
+      await expect(area).toHaveValue(areaBefore);
       await page.locator('.field', { hasText: 'Shape' }).locator('select').selectOption('slotted');
       const width = page.locator('.ui-field', { hasText: 'Slot width' }).locator('input');
       await fillAndBlur(width, '7');
@@ -114,33 +118,28 @@ test.describe('Original Vented tab', () => {
       expect(dq.dqCount).toBeGreaterThan(0);
     });
 
-    // Bug (John, live on his phone, 2026-10-01): clearing an entered Target Tuning Freq left BOTH
-    // it and Vent length stuck on the read-only "nothing entered" branch — the template only ever
-    // rendered an input for the 'E' state, so once a clear drove both to 'N' there was no element
-    // left to type into. "Unrecoverable" (his word) without reloading the project from disk.
-    //
-    // Fixed two ways: the template now allows typing into the 'N' state (a driver with no T/S specs
-    // still falls back to this — there is nothing to compute an alignment from). But where the
-    // driver DOES resolve, John's own follow-up ("clear ... should probably default to ... an
-    // alignment") is the better recovery: `clearVentField` now calls `Box.resetVentedAlignment()`,
-    // so the pair comes back ALIVE with a real design (QB3) instead of merely blank-but-typeable.
-    test('clearing Target Tuning Freq re-derives a QB3 design, not a dead blank', async ({ page }) => {
+    // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
+    // entered, and the tuning shows what that length gives, calculated. The box volume is never
+    // overwritten, and nothing goes blank (the 2026-10-01 blank-pair bug stays fixed).
+    test('clearing Target Tuning Freq keeps the vent length and the volume; the tuning is calculated', async ({ page }) => {
       const pageOps = new PageOps(page);
       await pageOps.setNum('#og-fb-target', '40');
       await expect(page.locator('#og-fb-target')).toHaveValue('40.00');
+      await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+      const length = page.locator('#og-vent-length');
+      const lengthBefore = await length.inputValue();
+      await page.locator('.project-nav li', { hasText: 'Box' }).click();
+      const volumeBefore = await page.locator('#og-box-volume').inputValue();
 
       await fillAndCommit(page.locator('#og-fb-target'), '');
-      // Still the live entered input (not the readonly `#og-fb-target-field > input` branch with no
-      // id) — AND non-empty: the default alignment re-derived a real tuning, not a dead blank.
-      await expect(page.locator('#og-fb-target')).toBeVisible();
-      const fb = Number(await page.locator('#og-fb-target').inputValue());
-      expect(fb).toBeGreaterThan(0);
-      expect(fb, 'a different design, not the stale 40 surviving the clear').not.toBeCloseTo(40, 1);
 
-      // Vent length is the pair's now-calculated side — a real length, not the blank ⚠ mark.
+      await expect(page.locator('#og-fb-target')).toHaveClass(/value-c/);
+      await expect(page.locator('#og-fb-target')).toHaveValue('40.00');
+      await expect(page.locator('#og-box-volume')).toHaveValue(volumeBefore);
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
-      await expect(page.locator('#og-vent-length')).not.toHaveValue('');
-      await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn')).toHaveCount(0);
+      await expect(length).toHaveClass(/value-e/);
+      await expect(length).toHaveValue(lengthBefore);
+      await expect(page.locator('.ui-field', { has: length }).locator('.ui-field-dq-btn')).toHaveCount(0);
     });
 
     // John, 2026-10-06: "vent length should be editable". Typing a length while the target tuning

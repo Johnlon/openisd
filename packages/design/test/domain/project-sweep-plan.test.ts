@@ -57,11 +57,12 @@ describe('OpenISDProject.sweepPlan', () => {
     s.Fs_hz.set(37); s.Qts.set(0.378); s.Qes.set(0.40); s.Qms.set(7.0); s.Vas_m3.set(0.03);
     s.Sd_m2.set(0.0133); s.Re_ohm.set(5.6); s.Le_H.set(0.7e-3); s.Xmax_m.set(0.005); s.Pe_W.set(60);
     // A vented port with neither a stated tuning nor a stated length (project-sweep-guards.test.ts):
-    // clearing the tuning while Vas is blank leaves the pair blank. A cleared box volume settles since
-    // T211, so it no longer blocks a sweep.
+    // clearing the tuning while Vas is blank leaves the pair blank, when the length has no value to
+    // keep (no volume). A cleared box volume settles since T211 unless the driver has no design.
     p.box.boxType.set('vented');
     const vas = p.driver.specs.Vas_m3.value;
     p.driver.specs.Vas_m3.clear();
+    p.box.vented.volume_m3.clear();
     p.box.vented.tuning_goal_hz.clear();
     if (vas !== null) p.driver.specs.Vas_m3.set(vas);
     p.box.vented.vent.shape.set('round');

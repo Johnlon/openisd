@@ -1,7 +1,7 @@
 /**
- * Clearing the entered side of the tuning / vent-length pair is the field's own behaviour
- * (John, 2026-10-01: a cleared pair must not stay blank — "unrecoverable" — so the vented box
- * falls back to the starting alignment a fresh box gets; a bandpass front chamber has none).
+ * Clearing the entered side of the tuning / vent-length pair is the field's own behaviour.
+ * The partner keeps its value as E and the cleared side is calculated from it (John, 2026-10-16).
+ * Where the partner holds no value both go to N: no starting alignment is written (John, 2026-10-16).
  * Clearing the calculated side changes nothing (John, 2026-10-06).
  */
 import {describe, it} from 'vitest';
@@ -22,32 +22,25 @@ function ventedProject() {
   return p;
 }
 
-function startingAlignment() {
-  const ref = ventedProject();
-  ref.box.resetVentedAlignment();
-  return {Vb: ref.box.vented.volume_m3.value, Fb: ref.box.vented.tuning_goal_hz.value};
-}
-
 describe('vent pair clear (domain cells)', () => {
-  it('clearing an entered tuning falls back to the starting alignment, entered', () => {
-    const want = startingAlignment();
+  it('clearing an entered tuning whose partner has no value leaves both N: no starting alignment, volume untouched', () => {
     const p = ventedProject();
     p.box.vented.tuning_goal_hz.set(77.777);
     p.box.vented.volume_m3.set(0.123456);
     p.box.vented.tuning_goal_hz.clear();
-    assert.equal(p.box.vented.tuning_goal_hz.value, want.Fb);
-    assert.equal(p.box.vented.volume_m3.value, want.Vb);
-    assert.equal(p.box.vented.tuning_goal_hz.entered, true);
-    assert.equal(p.box.vented.vent.length_m.calculated, true);
+    assert.equal(p.box.vented.tuning_goal_hz.value, null);
+    assert.equal(p.box.vented.vent.length_m.value, null);
+    assert.equal(p.box.vented.volume_m3.value, 0.123456);
   });
 
-  it('clearing an entered length falls back the same way', () => {
-    const want = startingAlignment();
+  it('clearing an entered length keeps the tuning at its value, entered; the length is calculated', () => {
     const p = ventedProject();
     p.box.vented.vent.length_m.set(0.222222);
+    const fb = p.box.vented.tuning_goal_hz.value;
     p.box.vented.vent.length_m.clear();
-    assert.equal(p.box.vented.tuning_goal_hz.value, want.Fb);
+    assert.equal(p.box.vented.tuning_goal_hz.value, fb);
     assert.equal(p.box.vented.tuning_goal_hz.entered, true);
+    assert.equal(p.box.vented.vent.length_m.calculated, true);
   });
 
   it('clearing the calculated side changes nothing', () => {
@@ -69,7 +62,6 @@ describe('vent pair clear (domain cells)', () => {
   it('a built vented project states its starting Fb to 0.01 Hz too', () => {
     const p = ventedProject();
     p.box.boxType.set('sealed');
-    p.box.vented.tuning_goal_hz.clear();
     p.box.boxType.set('vented');
     assert.equal(p.box.vented.tuning_goal_hz.precision, 0.005);
   });

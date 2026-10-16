@@ -36,32 +36,39 @@ test.describe('MobileVentedTab', () => {
     await expect(diameterInput).toHaveValue(/6/);
   });
 
-  // Bug (John, live on his phone, 2026-10-01): clearing an entered Target Tuning Freq left both
-  // it and Vent length stuck as read-only blanks — the template only ever rendered an input for
-  // the 'E' state, so once a clear drove both to 'N' there was no way back in without reloading
-  // the project. Mirrors the desktop repro in original-vented-tab.browser.spec.ts.
-  //
-  // John's own follow-up ("clear ... should probably default to ... an alignment") is the actual
-  // fix where the driver resolves: `clearVentField` now calls `Box.resetVentedAlignment()`, so
-  // the pair comes back alive with a real QB3 design rather than merely blank-but-typeable.
-  test('clearing Target Tuning Freq re-derives a QB3 design, not a dead blank', async ({ page }) => {
+  // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
+  // entered; the tuning shows what that length gives. The volume is never overwritten and nothing
+  // goes blank. Mirrors the desktop spec in original-vented-tab.browser.spec.ts.
+  test('clearing Target Tuning Freq keeps the vent length; the tuning is calculated', async ({ page }) => {
     const fbInput = mobileFieldRow(page, 'Target Tuning Freq').locator('input');
     await fbInput.fill('40');
     await fbInput.blur();
     await expect(fbInput).toHaveValue(/40/);
+    const lengthInput = mobileFieldRow(page, 'Vent length').locator('input');
+    const lengthBefore = await lengthInput.inputValue();
 
     await fbInput.fill('');
     await fbInput.blur();
-    // Still a live input, not a dead readonly span (the regression made this locator find
-    // nothing) — AND non-empty: the default alignment re-derived a real tuning, not a dead blank.
-    const fbAfterClear = mobileFieldRow(page, 'Target Tuning Freq').locator('input');
-    await expect(fbAfterClear).toBeVisible();
-    const fb = Number(await fbAfterClear.inputValue());
-    expect(fb).toBeGreaterThan(0);
-    expect(fb, 'a different design, not the stale 40 surviving the clear').not.toBeCloseTo(40, 1);
 
-    // Vent length is the pair's now-calculated side — a real length, not the blank impossible mark.
-    await expect(mobileFieldRow(page, 'Vent length').locator('input')).toHaveValue(/\d/);
+    await expect(fbInput).toBeVisible();
+    await expect(fbInput).toHaveValue(/^40(\.0+)?$/);
+    await expect(fbInput).toHaveClass(/value-c/);
+    await expect(lengthInput).toHaveValue(lengthBefore);
+    await expect(lengthInput).toHaveClass(/value-e/);
+  });
+
+  test('clearing Vent diameter keeps the cross area; the diameter is calculated', async ({ page }) => {
+    const diameter = mobileFieldRow(page, 'Vent diameter').locator('input');
+    const area = page.locator('.mob-field-row', { hasText: 'Cross area' }).locator('.mob-readonly');
+    const areaBefore = (await area.textContent()) ?? '';
+    const diameterBefore = await diameter.inputValue();
+
+    await diameter.fill('');
+    await diameter.blur();
+
+    await expect(diameter).toHaveValue(diameterBefore);
+    await expect(diameter).toHaveClass(/value-c/);
+    await expect(area).toHaveText(areaBefore);
   });
 
   // John, 2026-10-01: the port velocity limit sits on the vent section in both layouts.

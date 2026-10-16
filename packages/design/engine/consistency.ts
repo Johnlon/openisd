@@ -159,7 +159,7 @@ export function targetUnreachable(target: string, maxReachable_hz: number): Targ
   const isPR = target === 'addedMass_kg';
   const text = isPR
     ? `Target tuning frequency (Fh) cannot be higher than the natural box tuning of ${decimal(maxReachable_hz)} Hz (with 0 added mass). Adding mass can only lower the tuning frequency.`
-    : `${target} cannot reach this target - the maximum this geometry can reach is ${decimal(maxReachable_hz)} Hz.`;
+    : `This port can't reach that tuning. The highest it can reach is ${decimal(maxReachable_hz)} Hz.`;
   return {
     kind: 'target-unreachable', target, maxReachable_hz, text,
   };

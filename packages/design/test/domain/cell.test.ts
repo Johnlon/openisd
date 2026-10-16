@@ -402,11 +402,53 @@ describe('pairedField — a member of a mutually-exclusive entered pair (diamete
   it('setDq(list) forwards the marks to the underlying entry, read back live through dq', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const ownEntry = entryField(slot, 'x');
-    const field = pairedField(() => {}, ownEntry);
+    const field = pairedField(() => {}, ownEntry, () => entryField(fakeSlot<SpecEntryJson | undefined>(undefined), 'y'));
     field.set(5);
     const mark = issue('x');
     field.setDq([mark]);
     expect(field.dq).toEqual([mark]);
+  });
+});
+
+describe('pairedField.clear — a group has one calculated value (John, 2026-10-16)', () => {
+  interface PairRecord { a?: SpecEntryJson; b?: SpecEntryJson }
+  function pair() {
+    let record: PairRecord = {};
+    const slotOf = (key: 'a' | 'b') => ({
+      get value() { return record[key]; },
+      set(v: SpecEntryJson | undefined) { record = { ...record, [key]: v }; },
+    });
+    const a = pairedField((entry) => { record = { a: entry, b: undefined }; }, entryField(slotOf('a'), 'a'), () => b);
+    const b: ReturnType<typeof pairedField> = pairedField((entry) => { record = { a: undefined, b: entry }; }, entryField(slotOf('b'), 'b'), () => a);
+    return {a, b, record: () => record};
+  }
+
+  it('clearing the entered member makes the partner entered at its value, and this one calculated', () => {
+    const {a, b} = pair();
+    a.set(3);
+    b.setCalculated(7);
+    a.clear();
+    expect(b.entered).toBe(true);
+    expect(b.value).toBe(7);
+    expect(a.entered).toBe(false);
+  });
+
+  it('with nothing to calculate from, clearing leaves both N and writes no starting value', () => {
+    const {a, b, record} = pair();
+    a.set(3);
+    a.clear();
+    expect(a.value).toBe(null);
+    expect(b.value).toBe(null);
+    expect(record()).toEqual({a: undefined, b: undefined});
+  });
+
+  it('clearing the calculated member changes nothing', () => {
+    const {a, b} = pair();
+    a.set(3);
+    b.setCalculated(7);
+    b.clear();
+    expect(a.entered).toBe(true);
+    expect(a.value).toBe(3);
   });
 });
 
