@@ -34,19 +34,15 @@ test.describe('Box losses popup', () => {
     await expect(q('Port Qp')).toHaveValue(/^100(\.0+)?$/);
   });
 
-  // bugs/BUG_20261005_no-common-ui-field-component.md: a loss can never be blank. The emptied box
-  // is refused (kept as typed, red, with the ⚠); nothing is stored, and Esc restores the stored value.
-  test('an emptied Ql is refused with a ⚠, never stored as 0; Esc restores it', async ({ page }) => {
+  // T211 (John, 16 Oct 2026: "why would we want blank"): a loss can never be blank. Clearing Ql
+  // settles it to WinISD's default, 10, never to 0.
+  test('a cleared Ql settles to the WinISD default, never stored as 0', async ({ page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('.link-btn', { hasText: 'Advanced' }).first().click();
-    const row = page.locator('.overlay.open .ui-field', { hasText: 'Leakage Ql' });
-    const ql = row.locator('input');
+    const ql = page.locator('.overlay.open .ui-field', { hasText: 'Leakage Ql' }).locator('input');
     await fillAndBlur(ql, '7');
-    await ql.fill('');
-    await expect(ql).toHaveValue('');
-    await expect(row.locator('.ui-field-dq-btn')).toBeVisible();
-    await ql.press('Escape');
-    await expect(ql).toHaveValue(/^7(\.0+)?$/);
+    await fillAndBlur(ql, '');
+    await expect(ql).toHaveValue(/^10(\.0+)?$/);
   });
 
   // bugs/BUG_20261007_advanced-link-opens-every-chamber-losses.md: each chamber panel's Advanced->

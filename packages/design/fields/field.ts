@@ -125,6 +125,7 @@ interface NumberFieldSpec extends FieldSpec {
   readonly plausible?: FieldLimits;
   readonly floor?: ValueFloor;
   readonly spin?: FieldSpin;
+  readonly allowedEmpty?: boolean;
 }
 
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
@@ -149,6 +150,8 @@ export class NumberField extends Field {
   readonly floor: ValueFloor;
   /** How a spinner press moves the value. */
   readonly spin: FieldSpin;
+  /** Whether this field is allowed to stay empty when cleared (e.g. filter fields). */
+  readonly allowedEmpty: boolean;
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
@@ -159,6 +162,12 @@ export class NumberField extends Field {
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
     this.spin = spec.spin ?? PROPORTIONAL_SPIN;
+    this.allowedEmpty = spec.allowedEmpty ?? false;
+  }
+
+  /** Whether this field is empty while it is allowed to stay empty. */
+  emptyAndAllowed(value: number | null): boolean {
+    return this.allowedEmpty && value === null;
   }
 
   /** Authoritative unit resolution for this field. */
@@ -1153,6 +1162,7 @@ export class NumberField extends Field {
     limits: FILTER_FC_LIMITS,
     precision: 3,
     description: "Cutoff / Center Frequency\nCutoff or center frequency of the active filter.",
+    allowedEmpty: true,
   });
   static readonly FILTER_Q = new NumberField({
     value: "filter_Q",
@@ -1161,6 +1171,7 @@ export class NumberField extends Field {
     limits: FILTER_Q_LIMITS,
     precision: 3,
     description: "Filter Quality Factor (Q)\nHow sharp the filter's resonance peak or its damping is.",
+    allowedEmpty: true,
   });
   static readonly FILTER_GAIN_DB = new NumberField({
     value: "filter_Gain_dB",
@@ -1170,6 +1181,7 @@ export class NumberField extends Field {
     spin: {kind: 'proportionalFloored', finestExp: -1},
     precision: 3,
     description: "Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.",
+    allowedEmpty: true,
   });
   static readonly FILTER_ORDER = new NumberField({
     value: "filter_Order",
@@ -1179,6 +1191,7 @@ export class NumberField extends Field {
     spin: INTEGER_SPIN,
     precision: 3,
     description: "Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct. Up to 20.\nWinISD stops at order 10 (above that it hits a floating-point overflow error); a project with a higher order shows that error in WinISD.",
+    allowedEmpty: true,
   });
   static readonly FILTER_T_S = new NumberField({
     value: "filter_T_s",
@@ -1187,6 +1200,7 @@ export class NumberField extends Field {
     limits: FILTER_T_LIMITS,
     precision: 4,
     description: "Allpass Delay Time\nGroup-delay time constant of an allpass filter section.",
+    allowedEmpty: true,
   });
   static readonly FILTER_BW_OCT = new NumberField({
     value: "filter_BW_oct",
@@ -1195,6 +1209,7 @@ export class NumberField extends Field {
     limits: FILTER_BW_LIMITS,
     precision: 3,
     description: "DLP Raised-Cosine Bandwidth\nWidth of the raised-cosine transition band, in octaves.",
+    allowedEmpty: true,
   });
 
   static readonly ALL: readonly NumberField[] =

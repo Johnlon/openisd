@@ -10,6 +10,6 @@ const {f, api} = defineProps<{ f: StaticGainFilter; api: OriginalFiltersAPI }>()
 
 <template>
   <div class="filter-edit-body">
-    <label>Gain <input v-expo-step="NumberField.FILTER_GAIN_DB" type="number" v-limits="NumberField.FILTER_GAIN_DB.limits" :value="f.gain" @input="liveNum($event, v => api.editStaticGain(f, {gain: v}))" @change="api.editStaticGain(f, {gain: numFrom($event)})"> dB</label>
+    <label>Gain <input v-expo-step="NumberField.FILTER_GAIN_DB" type="number" v-limits="NumberField.FILTER_GAIN_DB.limits" :value="f.gain" :class="{'value-empty': NumberField.FILTER_GAIN_DB.emptyAndAllowed(f.gain)}" @input="liveNum($event, v => api.editStaticGain(f, {gain: v}))" @change="api.editStaticGain(f, {gain: numFrom($event)})"> dB</label>
   </div>
 </template>

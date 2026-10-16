@@ -88,6 +88,8 @@ input.value-n, .value-n input { color:var(--mut) }
    wins on specificity and silently swallows the warning. */
 input.de-input-mandatory { border-width:2px !important }
 input.de-input-empty { border-color:var(--bad) !important; box-shadow:0 0 0 1px color-mix(in srgb, var(--bad) 25%, transparent) !important }
+/* Empty field allowed to stay empty: marked red (T211). */
+input.value-empty { border-color: var(--bad) !important; background-color: color-mix(in srgb, var(--bad) 10%, transparent) !important; }
 /* Field-level DQ mark — a value that is recorded and wrong (not physical, or contradicting the
    other members of its consistency group). Styled ONCE, like the provenance marks above, so the
    driver editor and What-if? show one driver's data quality the same way. Amber: a

@@ -1,5 +1,5 @@
 import type {IssueEngine} from '../../engine/index.js';
-import { focus, nullableField } from '../cell.js';
+import { focus, settlingNullableField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import type { VentedLosses } from '../losses.js';
 import type { VentedChamber } from './ventedChamber.js';
@@ -19,8 +19,10 @@ export class VentedChamberWindow {
         /** The tuning target, paired with the chamber's vent length by the box that owns both. */
         tuning: VentedChamber['tuning_goal_hz'],
         volumeLabel: string, issues: IssueEngine,
+        /** What a cleared volume settles to — the chamber's starting volume (John, 2026-10-16). */
+        startVolume: () => number,
     ) {
-        this.volume_m3 = nullableField(lens, 'volume_m3', (v) => issues.requiredPositiveIssue(volumeLabel, v));
+        this.volume_m3 = settlingNullableField(lens, 'volume_m3', () => startVolume(), (v) => issues.requiredPositiveIssue(volumeLabel, v));
         this.tuning_goal_hz = tuning;
         this.losses = new VentedLossesWindow(focus(lens, 'losses'));
     }

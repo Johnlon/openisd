@@ -11,9 +11,9 @@ const {f, api} = defineProps<{ f: AllpassFilter; api: OriginalFiltersAPI }>();
 
 <template>
   <div class="filter-edit-body">
-    <label>Order <input type="number" step="1" v-limits="NumberField.FILTER_ORDER.limits" :value="f.order" @input="liveNum($event, v => api.editAllpass(f, {order: v}))" @change="api.editAllpass(f, {order: numFrom($event)})"></label>
+    <label>Order <input type="number" step="1" v-limits="NumberField.FILTER_ORDER.limits" :value="f.order" :class="{'value-empty': NumberField.FILTER_ORDER.emptyAndAllowed(f.order)}" @input="liveNum($event, v => api.editAllpass(f, {order: v}))" @change="api.editAllpass(f, {order: numFrom($event)})"></label>
     <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, f)" :deviation="WinisdFilterDeviation.ALLPASS_ORDER" />
-    <label>Q <input v-expo-step="NumberField.FILTER_Q" type="number" v-limits="NumberField.FILTER_Q.limits" :value="f.Q" @input="liveNum($event, v => api.editAllpass(f, {Q: v}))" @change="api.editAllpass(f, {Q: numFrom($event)})"></label>
-    <label>t <input v-expo-step="NumberField.FILTER_T_S" type="number" v-limits="NumberField.FILTER_T_S.limits" :value="f.t" @input="liveNum($event, v => api.editAllpass(f, {t: v}))" @change="api.editAllpass(f, {t: numFrom($event)})"> s</label>
+    <label>Q <input v-expo-step="NumberField.FILTER_Q" type="number" v-limits="NumberField.FILTER_Q.limits" :value="f.Q" :class="{'value-empty': NumberField.FILTER_Q.emptyAndAllowed(f.Q)}" @input="liveNum($event, v => api.editAllpass(f, {Q: v}))" @change="api.editAllpass(f, {Q: numFrom($event)})"></label>
+    <label>t <input v-expo-step="NumberField.FILTER_T_S" type="number" v-limits="NumberField.FILTER_T_S.limits" :value="f.t" :class="{'value-empty': NumberField.FILTER_T_S.emptyAndAllowed(f.t)}" @input="liveNum($event, v => api.editAllpass(f, {t: v}))" @change="api.editAllpass(f, {t: numFrom($event)})"> s</label>
   </div>
 </template>

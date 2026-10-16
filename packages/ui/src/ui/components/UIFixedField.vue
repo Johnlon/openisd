@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** A field row for a number that is always there (a box loss): an emptied box is refused, never
+/** A field row for a number that is always there: an emptied box is refused, never
  *  stored. Takes the number and reports a new one; see `UIFieldBody`. */
 import {computed} from 'vue';
 import UIFieldBody from './UIFieldBody.vue';

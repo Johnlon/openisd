@@ -10,8 +10,8 @@ const {f, api} = defineProps<{ f: RaisedCosineFilter; api: OriginalFiltersAPI }>
 
 <template>
   <div class="filter-edit-body">
-    <label>fc <input v-expo-step="NumberField.FILTER_FC_HZ" type="number" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fc" @input="liveNum($event, v => api.editRaisedCosine(f, {fc: v}))" @change="api.editRaisedCosine(f, {fc: numFrom($event)})"> Hz</label>
-    <label>Gain <input v-expo-step="NumberField.FILTER_GAIN_DB" type="number" v-limits="NumberField.FILTER_GAIN_DB.limits" :value="f.gain" @input="liveNum($event, v => api.editRaisedCosine(f, {gain: v}))" @change="api.editRaisedCosine(f, {gain: numFrom($event)})"> dB</label>
-    <label>BW <input v-expo-step="NumberField.FILTER_BW_OCT" type="number" v-limits="NumberField.FILTER_BW_OCT.limits" :value="f.bwOct" @input="liveNum($event, v => api.editRaisedCosine(f, {bwOct: v}))" @change="api.editRaisedCosine(f, {bwOct: numFrom($event)})"> oct</label>
+    <label>fc <input v-expo-step="NumberField.FILTER_FC_HZ" type="number" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fc" :class="{'value-empty': NumberField.FILTER_FC_HZ.emptyAndAllowed(f.fc)}" @input="liveNum($event, v => api.editRaisedCosine(f, {fc: v}))" @change="api.editRaisedCosine(f, {fc: numFrom($event)})"> Hz</label>
+    <label>Gain <input v-expo-step="NumberField.FILTER_GAIN_DB" type="number" v-limits="NumberField.FILTER_GAIN_DB.limits" :value="f.gain" :class="{'value-empty': NumberField.FILTER_GAIN_DB.emptyAndAllowed(f.gain)}" @input="liveNum($event, v => api.editRaisedCosine(f, {gain: v}))" @change="api.editRaisedCosine(f, {gain: numFrom($event)})"> dB</label>
+    <label>BW <input v-expo-step="NumberField.FILTER_BW_OCT" type="number" v-limits="NumberField.FILTER_BW_OCT.limits" :value="f.bwOct" :class="{'value-empty': NumberField.FILTER_BW_OCT.emptyAndAllowed(f.bwOct)}" @input="liveNum($event, v => api.editRaisedCosine(f, {bwOct: v}))" @change="api.editRaisedCosine(f, {bwOct: numFrom($event)})"> oct</label>
   </div>
 </template>

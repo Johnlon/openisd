@@ -112,7 +112,7 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
   Unscoped on purpose: each `filter-edit-body` now lives inside its own `./filters/*Editor.vue`
   component (a different SFC scope), not inside this file's template. Vue's scoped CSS only
   reaches elements written in the SFC that declares it, so a `scoped` rule here could never
-  match an editor's own `<label>`/`<input>`/`<select>` — these four rules are shared layout
+  match an editor's own `<label>`/`<input>`/`<select>` — these three rules are shared layout
   for every editor and are kept here, unscoped, rather than duplicated eight times.
 -->
 <style>

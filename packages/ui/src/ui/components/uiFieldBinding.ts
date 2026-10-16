@@ -4,13 +4,18 @@ import type {NumberField, WinisdDeviation} from '@openisd/design/fields';
 /** A number a person can enter, clear and state the precision of: an emptied box clears it. */
 export type ClearableUICell = Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
 
-/** A number that is always there (a box loss): no provenance, no flags, no `clear`. */
+/** A number that is always there and never blank: no provenance, no flags, no `clear`. */
 export type FixedUICell = SimpleField<number | null>;
 
-/** What a field row is bound to, told apart by `kind`: `UIField` builds the first, `UIFixedField` the second. */
+/** A number that is always there but may be cleared, which settles it to a default (a box loss, T211). */
+export type SettlingUICell = SimpleField<number | null> & Clearable;
+
+/** What a field row is bound to, told apart by `kind`: `UIField` builds the first, `UIFixedField` the
+ *  second, `UISettlingField` the third. */
 export type UIBinding =
   | {readonly kind: 'clearable'; readonly cell: ClearableUICell}
-  | {readonly kind: 'fixed'; readonly cell: FixedUICell};
+  | {readonly kind: 'fixed'; readonly cell: FixedUICell}
+  | {readonly kind: 'settling'; readonly cell: SettlingUICell};
 
 /** The props every field row takes, whatever it is bound to. */
 export interface UIFieldCommon {

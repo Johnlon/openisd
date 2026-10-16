@@ -7,7 +7,7 @@ import {selectedOption} from '../../../logic/domEvents.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
 import UIField from '../../components/UIField.vue';
-import UIFixedField from '../../components/UIFixedField.vue';
+import UISettlingField from '../../components/UISettlingField.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
@@ -159,10 +159,10 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
       </div>
       <template v-for="g in openLossGroups" :key="g.chamber">
         <div v-if="g.heading !== null" class="mob-panel-head">{{ g.heading }}</div>
-        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" stepper />
-        <UIFixedField class="mob-ui-field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" stepper />
-        <UIFixedField v-if="g.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" stepper />
-        <UIFixedField v-if="g.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" stepper />
+        <UISettlingField class="mob-ui-field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" stepper />
+        <UISettlingField class="mob-ui-field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" stepper />
+        <UISettlingField v-if="g.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" stepper />
+        <UISettlingField v-if="g.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" stepper />
       </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">

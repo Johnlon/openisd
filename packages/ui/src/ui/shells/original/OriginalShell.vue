@@ -13,6 +13,7 @@ import NumInput from '../../components/NumInput.vue';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
+import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import NumReadout from '../../components/NumReadout.vue';
@@ -789,10 +790,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="modal-body">
           <template v-for="g in openLossGroups" :key="g.chamber">
             <div v-if="g.heading !== null" class="section-header">{{ g.heading }}</div>
-            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" /></div>
-            <div class="field-row"><UIFixedField class="field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" /></div>
-            <div class="field-row" v-if="g.Qp !== null"><UIFixedField class="field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" /></div>
-            <div class="field-row" v-if="g.Qicl !== null"><UIFixedField class="field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" /></div>
+            <div class="field-row"><UISettlingField class="field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" /></div>
+            <div class="field-row"><UISettlingField class="field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" /></div>
+            <div class="field-row" v-if="g.Qp !== null"><UISettlingField class="field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" /></div>
+            <div class="field-row" v-if="g.Qicl !== null"><UISettlingField class="field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" /></div>
           </template>
           <p class="hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
         </div>

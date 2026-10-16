@@ -1,4 +1,4 @@
-import type { SimpleField } from '../cell.js';
+import type { Clearable, SimpleField } from '../cell.js';
 import type { Vent } from '../vent.js';
 import type { VentedChamber } from './ventedChamber.js';
 
@@ -24,5 +24,6 @@ export interface AbcBox {
         readonly front: Vent;
         readonly intra: Vent;
     };
-    readonly Qiclfr: SimpleField<number>;
+    /** The interchamber Qicl; a clear settles it to the WinISD default (John, 2026-10-16). */
+    readonly Qiclfr: SimpleField<number> & Clearable;
 }

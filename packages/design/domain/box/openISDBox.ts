@@ -1,6 +1,6 @@
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
-import { CalculatedFieldImpl, absentCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
+import { CalculatedFieldImpl, absentCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
@@ -112,9 +112,9 @@ function isStated(volume_m3: number | null): volume_m3 is number {
 /** The Box losses popup of a two-chamber box: one set per chamber, as WinISD gives each chamber
  *  panel its own Advanced-> losses. Both sets carry the box's one Qiclfr. */
 function chamberLossGroups(
-    rear: SealedLosses, rearQp: SimpleField<number> | null,
-    front: SealedLosses, frontQp: SimpleField<number>,
-    Qicl: SimpleField<number>,
+    rear: SealedLosses, rearQp: (SimpleField<number> & Clearable) | null,
+    front: SealedLosses, frontQp: SimpleField<number> & Clearable,
+    Qicl: SimpleField<number> & Clearable,
 ): readonly BoxLossGroup[] {
     return [
         {chamber: 'rear', heading: 'Rear chamber', Ql: rear.Ql, Qa: rear.Qa, Qp: rearQp, Qicl},
@@ -215,7 +215,7 @@ export class OpenISDBox implements Box {
             // has no `setDq` for a resolve to write through, and the band it is judged against is an
             // application setting the user can change under an already-open project. Reading it
             // now is what makes a Settings edit land without the record being rewritten.
-            volume_m3: nullableField(ventedChamber, 'volume_m3', (v) => {
+            volume_m3: settlingNullableField(ventedChamber, 'volume_m3', () => this.#ventedAlignmentVolume(), (v) => {
                 // Only the ACTIVE box type has a design to judge. Every other box's record sits
                 // at its schema default (a 0 m³ vented chamber under a sealed project), which is
                 // not an implausible design — it is no design. The resolve cascade draws the
@@ -251,7 +251,7 @@ export class OpenISDBox implements Box {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
                 // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
-                    volume_m3: nullableField(bp4Rear, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Rear chamber volume', v)),
+                    volume_m3: settlingNullableField(bp4Rear, 'volume_m3', () => startingChambersOf('bandpass4').rearVolume_m3, (v) => engine.issues.requiredPositiveIssue('Rear chamber volume', v)),
                     // LOSSLESS here, unlike the plain sealed box above, because that is what
                     // WinISD itself writes for a bandpass4 rear chamber. Two goldens written by
                     // the same winisd.exe 89 seconds apart with the identical driver, identical
@@ -278,13 +278,13 @@ export class OpenISDBox implements Box {
                 },
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
-                    volume_m3: nullableField(bp4Front, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Front chamber volume', v)),
+                    volume_m3: settlingNullableField(bp4Front, 'volume_m3', () => startingChambersOf('bandpass4').frontVolume_m3, (v) => engine.issues.requiredPositiveIssue('Front chamber volume', v)),
                     tuning_goal_hz: bp4FrontPair.tuning,
                     losses: new VentedLossesWindow(focus(bp4Front, 'losses')),
                 },
             },
             vents: {front: bp4FrontVent},
-            Qiclfr: focus(bp4, 'Qiclfr'),
+            Qiclfr: defaultedField(focus(bp4, 'Qiclfr'), WINISD_BOX_LOSSES.Qicl),
         };
 
         const bp6 = focus(lens, 'bandpass6');
@@ -302,14 +302,14 @@ export class OpenISDBox implements Box {
             entryField(focus(bp6FrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.bandpass6 = {
             chambers: {
-                rear: new VentedChamberWindow(bp6Rear, bp6RearPair.tuning, 'Rear chamber volume', engine.issues),
-                front: new VentedChamberWindow(bp6Front, bp6FrontPair.tuning, 'Front chamber volume', engine.issues),
+                rear: new VentedChamberWindow(bp6Rear, bp6RearPair.tuning, 'Rear chamber volume', engine.issues, () => startingChambersOf('bandpass6').rearVolume_m3),
+                front: new VentedChamberWindow(bp6Front, bp6FrontPair.tuning, 'Front chamber volume', engine.issues, () => startingChambersOf('bandpass6').frontVolume_m3),
             },
             vents: {
                 rear: new VentWindow(bp6RearVent, engine.vent, air, bp6RearPair.length, ventStart),
                 front: new VentWindow(bp6FrontVent, engine.vent, air, bp6FrontPair.length, ventStart),
             },
-            Qiclfr: focus(bp6, 'Qiclfr'),
+            Qiclfr: defaultedField(focus(bp6, 'Qiclfr'), WINISD_BOX_LOSSES.Qicl),
         };
 
         const abc = focus(lens, 'abc');
@@ -327,8 +327,8 @@ export class OpenISDBox implements Box {
             entryField(focus(abcFrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.abc = {
             chambers: {
-                rear: new VentedChamberWindow(abcRear, abcRearPair.tuning, 'Rear chamber volume', engine.issues),
-                front: new VentedChamberWindow(abcFront, abcFrontPair.tuning, 'Front chamber volume', engine.issues),
+                rear: new VentedChamberWindow(abcRear, abcRearPair.tuning, 'Rear chamber volume', engine.issues, () => startingChambersOf('abc').rearVolume_m3),
+                front: new VentedChamberWindow(abcFront, abcFrontPair.tuning, 'Front chamber volume', engine.issues, () => startingChambersOf('abc').frontVolume_m3),
             },
             // Three ports, flat siblings: rear's and front's own ports to outside air, plus the
             // connecting port between the chambers — owned by neither, which is why it sits here and
@@ -338,7 +338,7 @@ export class OpenISDBox implements Box {
                 front: new VentWindow(abcFrontVent, engine.vent, air, abcFrontPair.length, ventStart),
                 intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air, undefined, ventStart),
             },
-            Qiclfr: focus(abc, 'Qiclfr'),
+            Qiclfr: defaultedField(focus(abc, 'Qiclfr'), WINISD_BOX_LOSSES.Qicl),
         };
 
         const pr = focus(lens, 'passiveRadiator');
@@ -346,7 +346,7 @@ export class OpenISDBox implements Box {
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator);
         };
-        const prVolume = nullableField(pr, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v));
+        const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
         // A cleared pair never stays blank: the added mass falls back to 0 (John, 2026-10-09), and
@@ -611,6 +611,14 @@ export class OpenISDBox implements Box {
                 return;
             }
         }
+    }
+
+    /** The volume the vented box's current alignment gives — what a cleared vented volume
+     *  settles to (John, 2026-10-16), the same figure `resetVentedAlignment` writes. Null when
+     *  the driver has no design to give, where a clear leaves the box blank as before. */
+    #ventedAlignmentVolume(): number | null {
+        const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#rs(), this.vented.losses.Ql.value);
+        return design?.Vb ?? null;
     }
 
     /** See `Box.resetVentedAlignment` (box.ts) for why this exists separately from

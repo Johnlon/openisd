@@ -39,15 +39,17 @@ test.describe('MobileBoxTab', () => {
     expect(await edges('Volume')).toEqual(await edges('Target tuning'));
   });
 
-  // bugs/BUG_20261005_no-common-ui-field-component.md: "just show errors" + "yes press alignment".
-  test('emptying the box volume leaves it blank with a ⚠ that names the Alignment button', async ({ page }) => {
-    const row = mobileFieldRow(page, 'Volume').first();
-    await row.locator('input').fill('');
-    await row.locator('input').blur();
-    await expect(row.locator('input')).toHaveValue('');
-    await row.locator('.ui-field-dq-btn').click();
-    await expect(row.locator('.ui-field-note')).toContainText('Box volume is blank');
-    await expect(row.locator('.ui-field-note')).toContainText('Alignment');
+  // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
+  // the current alignment gives (10.69 L for the sample's driver; the project itself was saved at
+  // 10.70 L), never blank and never 0.
+  test('emptying the box volume settles it to the alignment volume', async ({ page }) => {
+    const input = mobileFieldRow(page, 'Volume').first().locator('input');
+    await input.fill('40');
+    await input.blur();
+    await expect(input).toHaveValue(/^40/);
+    await input.fill('');
+    await input.blur();
+    await expect(input).toHaveValue('10.69');
   });
 
   test('shows the box-type select, the enclosure diagram, and a volume field', async ({ page }) => {

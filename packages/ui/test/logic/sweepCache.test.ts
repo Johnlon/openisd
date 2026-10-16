@@ -66,8 +66,16 @@ describe('SweepCache', () => {
   it('a project the sweep cannot run gives null', () => {
     const { cache } = setup();
     const p = project();
-    p.box.boxType.set('bandpass6');
-    p.box.bandpass6.chambers.rear.volume_m3.clear();
+    // A vented port with neither a stated tuning nor a stated length (project-sweep-guards.test.ts):
+    // clearing the tuning while Vas is blank leaves the pair blank. A cleared box volume settles since
+    // T211, so it no longer blocks a sweep.
+    p.box.boxType.set('vented');
+    const vas = p.driver.specs.Vas_m3.value;
+    p.driver.specs.Vas_m3.clear();
+    p.box.vented.tuning_goal_hz.clear();
+    if (vas !== null) p.driver.specs.Vas_m3.set(vas);
+    p.box.vented.vent.shape.set('round');
+    p.box.vented.vent.diameter_m.set(0.1);
     expect(cache.sweep(p, GRID)).toBeNull();
   });
 });

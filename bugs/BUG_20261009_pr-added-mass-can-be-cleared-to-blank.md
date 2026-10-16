@@ -1,7 +1,6 @@
 # BUG_20261009_pr-added-mass-can-be-cleared-to-blank
 
-**Status:** OPEN. John, 2026-10-09: it was a mistake to allow the passive radiator's added mass to
-go blank; it should be 0. Other fields may need a sensible default when blanked.
+**Status:** FIXED (T211)
 
 There are two things, the added-mass box and the tuning-goal box on a passive radiator. They are a
 pair: entering one makes the other calculated (`packages/design/domain/box/openISDBox.ts:342-356`,
@@ -30,3 +29,17 @@ Field enum in packages/design) and for each name the sensible default a clear sh
 - Ql / Qa / Qp / Qicl: a clear goes back to the WinISD default. "Why would we want blank."
 - Port end correction: it is a drop-down; it cannot be blank. If any path lets it blank, that is the bug.
 - Filters: a cleared value stays empty, and an empty box that stays empty (filter frequency etc.) is marked red.
+
+## Fix
+- Box volumes:
+  - Vented volume: settles to the current alignment volume (`#ventedAlignmentVolume()` using `driver.ventedDesign`).
+  - Passive radiator volume: settles to starting shared volume `STARTING_SHARED_VOLUME_M3` (7 L).
+  - Bandpass 4 rear & front volumes: settle to `startingChambersOf('bandpass4')` (7 L rear, 10 L front).
+  - Bandpass 6 rear & front volumes: settle to `startingChambersOf('bandpass6')` (30 L rear, 20 L front).
+  - ABC rear & front volumes: settle to `startingChambersOf('abc')` (30 L rear, 20 L front).
+- Loss factors:
+  - Ql, Qa, Qp across sealed, vented, PR, bandpass4, bandpass6, ABC: settle to `WINISD_BOX_LOSSES.Ql` (10), `Qa` (100), `Qp` (100).
+  - Interchamber Qicl (`Qiclfr`) on bandpass4, bandpass6, ABC: settles to `WINISD_BOX_LOSSES.Qicl` (100).
+- Fields allowed to stay empty:
+  - Filter fields (fc, Q, gain, order, t, bw) have `allowedEmpty: true` and answer `emptyAndAllowed(value)`.
+  - Empty allowed fields receive `.value-empty` styling (red border and red background tint) across both Original and Mobile skins.

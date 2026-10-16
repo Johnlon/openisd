@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: d5c3259e01bd5f39889773b4d3229f91e09c0850
 goal: 'Visual baselines: a committed picture of every screen in both skins (53 screens), checked in the post-land run; a red names the screens and links a before/after page; land.sh refuses a task whose visual: list differs from its changed baselines and publishes a before/after page when baselines change'
 done_test: bash scripts/land/test/visual.e2e.test.sh
 files:

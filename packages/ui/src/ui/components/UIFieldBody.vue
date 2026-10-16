@@ -42,7 +42,8 @@ const view = computed(() => {
   void scope.revision.value;
   const binding = props.binding;
   switch (binding.kind) {
-    case 'fixed': {
+    case 'fixed':
+    case 'settling': {
       const hasDq = props.dq && props.dq.length > 0;
       return {
         value: binding.cell.value, precision: null, provenanceClass: CellClass.Entered, mandatory: false, reason: hasDq ? props.dq!.join('; ') : '',
@@ -85,6 +86,9 @@ function write(v: number | null, precision?: number): void {
       break;
     case 'clearable':
       if (v === null) binding.cell.clear(); else binding.cell.set(v, precision);
+      break;
+    case 'settling':
+      if (v === null) binding.cell.clear(); else binding.cell.set(v);
       break;
     default: { const unhandled: never = binding; return unhandled; }
   }

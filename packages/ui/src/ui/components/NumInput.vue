@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, tenthsCaret, type NumberField, type SpinDirection} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, tenthsCaret, NumberField, type SpinDirection} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -301,6 +301,7 @@ const classes = computed(() => {
     'inp-bad': refusal.value !== '',
     'de-input-mandatory': props.mandatory,
     'de-input-empty': props.mandatory && isEmp,
+    'value-empty': (props.field instanceof NumberField ? props.field.emptyAndAllowed(props.modelValue ?? null) : false),
     'dq-flag': hasDq.value,
     'dq-root': isRootCause.value,
     'dq-symptom': isSymptom.value,
