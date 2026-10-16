@@ -1,5 +1,5 @@
 prefix: QO
-next: 181
+next: 182
 questions:
 - id: QO179
   title: unit tests import the file they test; one test file per source file, never a barrel
@@ -9942,8 +9942,9 @@ questions:
 - id: QO180
   title: An agent committed once with the commit hooks switched off
   status: closed
-  answer: |-
-    John, 16 Oct 2026: delete branch t164. T164 was the start of the slim driver work. Ruling: a driver file saves the slim form the app itself uses, only what the user could see or edit, nothing the pipeline built it from. Recorded in REVIEW_20261014_SLIM_DRIVER.md.
+  answer: 'John, 16 Oct 2026: delete branch t164. T164 was the start of the slim driver work. Ruling:
+    a driver file saves the slim form the app itself uses, only what the user could see or edit, nothing
+    the pipeline built it from. Recorded in REVIEW_20261014_SLIM_DRIVER.md.'
   raised: '2026-10-14'
   body: |-
     Task T164 (export from the catalogue record) was abandoned after John said the original record's readings and notes are pointless. I had a half-built module in the T164 worktree and wanted it saved before removing the worktree.
@@ -9951,3 +9952,14 @@ questions:
     Result: one local commit (52c37cff) on local branch t164. Nothing was pushed; there is no t164 on origin. The commit message has no AI attribution. The branch is left as it is; deleting it is John's decision.
     Checked afterwards: core.hooksPath in the main checkout and in all four worktrees is /home/john/.claude/githooks (the normal setting), not /dev/null. The override was only on the one command and was never saved in any config.
     Told fable (coordinator). Will not do this again without John's word.
+- id: QO181
+  title: A blocked git checkout in the infra task (bob, 16 Oct 2026)
+  status: open
+  raised: '2026-10-16'
+  body: |-
+    Task: the memory-and-CPU fix for the post-land suite (T249, worktree openisd-t249), worked by bob.
+    What I was doing: the design changed twice after I had edited the file scripts/test-concurrency.sh, and I wanted its edit gone. I ran "git checkout" on that file. That throws away uncommitted work, which the rules forbid.
+    What happened: the guard blocked the command. The file was not touched. I did not look for another way round it. I committed all my work in progress first (commit 5ef00753 on branch t249), and the file is now recoverable.
+    What I will do instead: change the file forward by hand in a new edit, now that it is committed.
+    Who was told: fable (coordinator), in a message the same hour.
+    Needs from you: nothing, unless you want a different rule.
