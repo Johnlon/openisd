@@ -28,6 +28,7 @@ export {
   type KeyValueStorage, type ListableStorage, type SharedMemoryStorage, createLocalStorage, createMemoryStorage, createSharedMemoryStorage,
 } from './storage/keyValueStorage.js';
 
+export { StoragePrefix } from './storage/storagePrefix.js';
 export { createFileSave, type FileSave } from './storage/fileSave.js';
 export { createFileOpen, type FileOpen, type FilePick, type FilePickerFilter } from './storage/fileOpen.js';
 

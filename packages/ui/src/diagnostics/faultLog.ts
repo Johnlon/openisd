@@ -211,6 +211,7 @@ export interface FaultLog {
 export function createFaultLog(
   saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault, cloudSync: CloudSyncText,
   storage: StorageText, keptCopy: (key: string) => string | null,
+  storedSizes: () => string,
 ): FaultLog {
   function ladder(): readonly QuickFix[] {
     try { return repairLadder(records()); } catch { return []; }
@@ -263,10 +264,7 @@ export function createFaultLog(
     cloudSyncSummary: () => cloudSync.summary(),
     report: () => {
       const stored = (() => {
-        try {
-          return Object.keys(localStorage).filter(k => k.startsWith('openisd_'))
-            .map(k => `${k}: ${(localStorage.getItem(k) ?? '').length} bytes`).join('\n  ');
-        } catch { return '(localStorage unavailable)'; }
+        try { return storedSizes(); } catch { return '(localStorage unavailable)'; }
       })();
       return [
         `OpenISD diagnostics — ${new Date().toISOString()}`,

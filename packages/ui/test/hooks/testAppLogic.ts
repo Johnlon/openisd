@@ -46,7 +46,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const storage = createMemoryStorage();
   const faultLog = createFaultLog(() => undefined, () => ({
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
-  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {lines: () => [], summary: () => null}, {lines: () => []}, () => null);
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {lines: () => [], summary: () => null}, {lines: () => []}, () => null, () => '');
   const driverRepo = createBundledDriverRepo({
     fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });

@@ -20,7 +20,7 @@ import {
     createStorageHistory,
     createStorageUsage,
     preRepairCopyText,
-    createLocalStorage,
+    createLocalStorage, StoragePrefix,
     createMemoryStorage,
     LAYOUT_STEPS,
     STORAGE_LAYOUT,
@@ -90,6 +90,9 @@ import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import './style.css';
 
+/** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
+const localStore = createLocalStorage(StoragePrefix.forDeployment(location.pathname));
+
 const REDIRECT_PROJECT_KEY = 'openisd_redirect_project';
 
 /** The project open when the app left for Google sign-in; sessionStorage, so it lasts one tab visit. */
@@ -103,7 +106,7 @@ const randomBytes = (): Uint8Array => crypto.getRandomValues(new Uint8Array(16))
 
 /** Restore, reset and repair replace stored data wholesale: the sync record is then stale. */
 const forgetCloudSyncRecord = (): void => {
-  createSyncLedger({storage: createLocalStorage(), random: randomBytes}).forgetAll();
+  createSyncLedger({storage: localStore, random: randomBytes}).forgetAll();
 };
 
 const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -132,7 +135,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // A repair's backup is a file download: the user keeps it outside the browser.
   // Whether the browser keeps OpenISD's data: asked once, below, once the fault log is up.
   const browserStorage = createBrowserStoragePort('storage' in navigator ? navigator.storage : undefined);
-  const persistence = createPersistenceStatus(browserStorage, createLocalStorage());
+  const persistence = createPersistenceStatus(browserStorage, localStore);
   const faultLog = createFaultLog((fileName, text) => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -146,7 +149,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       summary: () => cloudSyncSummary(cloudSync === null ? null : cloudSync.diagnostics()),
     },
     {lines: () => [persistenceLine(persistence.outcome())]},
-    key => { const held = storage.get(key); return held === null ? null : preRepairCopyText(held); });
+    key => { const held = storage.get(key); return held === null ? null : preRepairCopyText(held); },
+    () => localStore.keys().filter(k => k.startsWith('openisd_'))
+      .map(k => `${k}: ${(localStore.get(k) ?? '').length} bytes`).join('\n  '));
   faultLog.install();
   void persistence.ask();
 
@@ -159,7 +164,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     mode: import.meta.env.MODE,
     testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
   });
-  const telemetryStorage = createLocalStorage();
+  const telemetryStorage = localStore;
   const telemetry: Telemetry = telemetryEndpoint === null
     ? new NoTelemetry()
     : new BeaconTelemetry({
@@ -319,7 +324,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     session: new SessionEnd(telemetry, featureUse, () => Date.now(), Date.now()),
   });
 
-  const cloudUi = createCloudUiStore(createLocalStorage());
+  const cloudUi = createCloudUiStore(localStore);
 
   let cloudSync: CloudSync | null = null;
   if (!store.readOnly && oauthConfig.clientId !== null) {
@@ -468,7 +473,7 @@ if (typeof window !== 'undefined' && isOAuthFragment(window.location.hash)) {
     get hash() { return window.location.hash; },
     replaceState(url: string) { window.history.replaceState(null, '', url); },
   };
-  const bootTokenStore = createTokenStore(createLocalStorage());
+  const bootTokenStore = createTokenStore(localStore);
   const bootSession = createImplicitSession({
     config: oauthConfig,
     store: bootTokenStore,
@@ -490,7 +495,7 @@ if (typeof window !== 'undefined' && isOAuthFragment(window.location.hash)) {
 const layoutRules = { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS };
 const exportedFiles = createExportedFiles(layoutRules);
 const baked: unknown = import.meta.env.VITE_BUILD_VERSION;
-const opening = createStoreOpening(createLocalStorage(), {
+const opening = createStoreOpening(localStore, {
   build: createBuildStamp(typeof baked === 'string' ? baked : ''),
   now: Date.now,
   rules: layoutRules,

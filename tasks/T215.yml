@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: sonnet
 status: done
+landed: a311f6e43bea4ee49b6406123ac91d7cd62ae331
 goal: 'F36: the watchdog killed post-land runs that were only waiting for the browser lock (a stream of browser runs starved the suite, 23 min idle, then a bogus red with no failing test). A suite waiting for the lock is not hung, a kill while waiting is no result, and a waiting suite is no longer overtaken by new browser runs. Close F36'
 done_test: bash -c 'bash scripts/land/test/post-land-signal.test.sh && bash scripts/land/test/suite-lock.test.sh'
 files:
