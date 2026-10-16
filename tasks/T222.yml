@@ -1,0 +1,69 @@
+id: T222
+release_note: 'Every desktop number field has step arrows and the stepped digit stays marked. Learn: a negative Fs is now refused and flagged like every other field, not clamped to 1 Hz.'
+repo: openisd
+owner: sonnet
+status: done
+goal: x
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T222.yml
+  - packages/design/fields/caretSpin.ts
+  - packages/design/test/fields/caret-spin.test.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/components/UIField.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/number-stepper.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step4
+  - mobile-tab-enclosure
+  - mobile-wizard-abc-step3
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step4

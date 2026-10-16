@@ -27,7 +27,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   required: false,
   inputId: undefined,
   max: undefined,
-  stepper: false,
+  stepper: true,
   readonly: false,
   deviation: undefined,
   dq: undefined,
@@ -130,7 +130,8 @@ function write(v: number | null, precision?: number): void {
 .ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: 90px; flex: none; grid-column: 2; }
 /* FIXED width, the same in every unit: the box never resizes when its unit is cycled. Wide
    enough for the longest value any field shows in any unit (a Vas in cu in, a Vd in cu ft). */
-.ui-field-value :deep(input) { width: 90px; box-sizing: border-box; }
+.ui-field-value :deep(.num-input-wrap) { flex: 1 1 auto; width: 0; min-width: 0; }
+.ui-field-value :deep(input) { width: 100% !important; min-width: 0; box-sizing: border-box; flex: 1 1 auto !important; }
 .ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }
 .ui-field-dev { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 5; }
 .ui-field-dq-btn {

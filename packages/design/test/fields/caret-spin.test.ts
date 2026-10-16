@@ -57,7 +57,75 @@ describe('caretSpin: carries and the caret', () => {
   });
   it('reports the value, the decimals the digit needs, and accepts a comma', () => {
     const r = caretSpin('1,25', 4, 1, OPEN);
-    expect(r).toEqual({text: '1.26', value: 1.26, caret: 4, decimals: 2});
+    expect(r).toEqual({text: '1.26', value: 1.26, caret: 4, decimals: 2, place: -2, mark: 3});
+  });
+});
+
+// John, 2026-10-16: "The mark follows place value (tenths stays tenths across 9.9 → 10.0), not
+// character index." The result carries the PLACE VALUE of the stepped digit (power of ten:
+// tenths = -1, tens = 1) and the mark position in the NEW text, recomputed from that place.
+describe('caretSpin: the stepped digit carries its place value', () => {
+  it('9.9 up a tenth keeps the tenths place through the carry to 10.0', () => {
+    const r = caretSpin('9.9', 3, 1, OPEN);
+    expect(r?.text).toBe('10.0');
+    expect(r?.place).toBe(-1);
+    expect(r?.mark).toBe(3);     // the 0 of ".0"
+    expect(r?.caret).toBe(4);    // just right of it
+  });
+  it('10.0 down a tenth keeps the tenths place through the borrow to 9.9', () => {
+    const r = caretSpin('10.0', 4, -1, OPEN);
+    expect(r?.text).toBe('9.9');
+    expect(r?.place).toBe(-1);
+    expect(r?.mark).toBe(2);
+    expect(r?.caret).toBe(3);
+  });
+  it('99 up a unit keeps the units place through the carry to 100', () => {
+    const r = caretSpin('99', 2, 1, OPEN);
+    expect(r?.text).toBe('100');
+    expect(r?.place).toBe(0);
+    expect(r?.mark).toBe(2);
+    expect(r?.caret).toBe(3);
+  });
+  it('0.99 up a hundredth carries to 1.00 at the hundredths place', () => {
+    const r = caretSpin('0.99', 4, 1, OPEN);
+    expect(r?.text).toBe('1.00');
+    expect(r?.place).toBe(-2);
+    expect(r?.mark).toBe(3);
+    expect(r?.caret).toBe(4);
+  });
+  it('0.95 up a hundredth steps 0.96, hundredths mark and all', () => {
+    const r = caretSpin('0.95', 4, 1, OPEN);
+    expect(r?.text).toBe('0.96');
+    expect(r?.place).toBe(-2);
+    expect(r?.mark).toBe(3);
+  });
+  it('a negative keeps its place and marks the digit in the signed text', () => {
+    const down = caretSpin('-9.9', 4, -1, OPEN);
+    expect(down?.text).toBe('-10.0');
+    expect(down?.place).toBe(-1);
+    expect(down?.mark).toBe(4);
+    expect(down?.caret).toBe(5);
+    const unit = caretSpin('-5', 2, -1, OPEN);
+    expect(unit?.text).toBe('-6');
+    expect(unit?.place).toBe(0);
+    expect(unit?.mark).toBe(1);
+  });
+  it('a field with no decimal point steps units and marks the units digit', () => {
+    const down = caretSpin('100', 3, -1, OPEN);
+    expect(down?.text).toBe('99');
+    expect(down?.place).toBe(0);
+    expect(down?.mark).toBe(1);
+    const tens = caretSpin('100', 2, 1, OPEN);
+    expect(tens?.text).toBe('110');
+    expect(tens?.place).toBe(1);
+    expect(tens?.mark).toBe(1);
+  });
+  it('marks the leading digit when the stepped place no longer exists (100 down to 0)', () => {
+    const r = caretSpin('100', 0, -1, OPEN);
+    expect(r?.text).toBe('0');
+    expect(r?.place).toBe(2);
+    expect(r?.mark).toBe(0);
+    expect(r?.caret).toBe(0);
   });
 });
 

@@ -875,8 +875,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <option v-for="option in ventedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </div></div>
-          <div class="field-row"><div class="field"><label>Volume</label><input type="number" readonly :value="ReadoutFormat.ALIGNMENT_VOLUME_L.text(ventedAlignmentVolume_L, '', unitTokens)"><span class="unit">{{ ReadoutFormat.ALIGNMENT_VOLUME_L.unitLabel(unitTokens) }}</span></div></div>
-          <div class="field-row"><div class="field"><label>Tuning freq (Fb)</label><input type="number" readonly :value="ReadoutFormat.TUNING_HZ.text(ventedAlignmentTuning_hz, '', unitTokens)"><span class="unit">{{ ReadoutFormat.TUNING_HZ.unitLabel(unitTokens) }}</span></div></div>
+          <div class="field-row"><div class="field"><label>Volume</label><input type="text" readonly :value="ReadoutFormat.ALIGNMENT_VOLUME_L.text(ventedAlignmentVolume_L, '', unitTokens)"><span class="unit">{{ ReadoutFormat.ALIGNMENT_VOLUME_L.unitLabel(unitTokens) }}</span></div></div>
+          <div class="field-row"><div class="field"><label>Tuning freq (Fb)</label><input type="text" readonly :value="ReadoutFormat.TUNING_HZ.text(ventedAlignmentTuning_hz, '', unitTokens)"><span class="unit">{{ ReadoutFormat.TUNING_HZ.unitLabel(unitTokens) }}</span></div></div>
           <div class="alignment-readout"><span class="alignment-icon" :class="ventedAlignmentSuitability ?? 'unknown'">●</span>
             <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ ventedAlignmentSuitabilityLabel }}</span>
           </div>

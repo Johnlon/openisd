@@ -3,7 +3,9 @@
 import UIFieldBody from './UIFieldBody.vue';
 import type {ClearableUICell, UIFieldCommon} from './uiFieldBinding.js';
 
-defineProps<UIFieldCommon & {cell: ClearableUICell}>();
+withDefaults(defineProps<UIFieldCommon & {cell: ClearableUICell}>(), {
+  stepper: true,
+});
 </script>
 
 <template>

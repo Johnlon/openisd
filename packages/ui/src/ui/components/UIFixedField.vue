@@ -5,7 +5,9 @@ import {computed} from 'vue';
 import UIFieldBody from './UIFieldBody.vue';
 import type {UIBinding, UIFieldCommon} from './uiFieldBinding.js';
 
-const props = defineProps<UIFieldCommon & {value: number | null}>();
+const props = withDefaults(defineProps<UIFieldCommon & {value: number | null}>(), {
+  stepper: true,
+});
 const emit = defineEmits<{'update:value': [v: number]}>();
 
 const binding = computed<UIBinding>(() => ({

@@ -116,17 +116,17 @@ onMounted(openedLibrary);
         <div class="param-row">
           <span class="pgroup">
           <span class="plabel" :class="{ active: fsMin || fsMax }">Fs</span>
-          <input class="pnum" :class="{ active: fsMin }" type="number" v-model="fsMin" min="1" placeholder="min" title="Minimum Fs (Hz)">
+          <input class="pnum" :class="{ active: fsMin }" type="text" v-model="fsMin" placeholder="min" title="Minimum Fs (Hz)">
           <span class="pmid">–</span>
-          <input class="pnum" :class="{ active: fsMax }" type="number" v-model="fsMax" min="1" placeholder="max" title="Maximum Fs (Hz)">
+          <input class="pnum" :class="{ active: fsMax }" type="text" v-model="fsMax" placeholder="max" title="Maximum Fs (Hz)">
           <span class="plabel" :class="{ active: fsMin || fsMax }">Hz</span>
           </span>
 
           <span class="pgroup">
           <span class="plabel" :class="{ active: sdMin || sdMax }">Sd</span>
-          <input class="pnum" :class="{ active: sdMin }" type="number" v-model="sdMin" min="0" placeholder="min" title="Minimum Sd (cm²)">
+          <input class="pnum" :class="{ active: sdMin }" type="text" v-model="sdMin" placeholder="min" title="Minimum Sd (cm²)">
           <span class="pmid">–</span>
-          <input class="pnum" :class="{ active: sdMax }" type="number" v-model="sdMax" min="0" placeholder="max" title="Maximum Sd (cm²)">
+          <input class="pnum" :class="{ active: sdMax }" type="text" v-model="sdMax" placeholder="max" title="Maximum Sd (cm²)">
           <span class="plabel" :class="{ active: sdMin || sdMax }">cm²</span>
           </span>
 

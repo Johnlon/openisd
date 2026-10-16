@@ -14,6 +14,13 @@ export interface CaretSpin {
   readonly value: number;
   /** Where the caret goes: on the same digit it was on. */
   readonly caret: number;
+  /** Where the MARK goes: the index in `text` of the stepped digit, recomputed from `place`
+   *  in the new text (never the old character index) — the one digit a selection or an
+   *  underline covers. The leading digit when `place` itself no longer exists after the step. */
+  readonly mark: number;
+  /** The place value of the stepped digit in `text`: its power of ten (tenths = -1, units = 0,
+   *  tens = 1). Typed, never a string — the mark follows this, not the caret's old offset. */
+  readonly place: number;
   /** The decimals the stepped digit needs at least; the text already has them. */
   readonly decimals: number;
 }
@@ -69,8 +76,9 @@ export function caretSpin(text: string, caret: number, dir: SpinDirection, bound
 
   const at = indexOfExponent(out, exp);
   const signOut = out.startsWith('-') ? 1 : 0;
+  const mark = at < 0 ? signOut : at;
   const caretOut = at < 0 ? signOut : after ? at + 1 : at;
-  return {text: out, value, caret: caretOut, decimals};
+  return {text: out, value, caret: caretOut, mark, place: exp, decimals};
 }
 
 /** The caret of a number nobody has put a caret in: just after the tenths digit, so a step is 0.1.

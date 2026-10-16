@@ -7,19 +7,23 @@
  */
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {useApp} from '../../../logic/app.js';
-import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import {cellClassOf} from '../../../logic/driverCells.js';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
-import {inputValue, listeningElement} from '../../../logic/domEvents.js';
+import {listeningElement} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import {useOriginalWhatIf} from '../../../hooks/OriginalWhatIf-hooks.js';
-const presentationState = useApp().presentation;
+const {appState, presentation: presentationState} = useApp();
+const {projectChanged} = appState;
 
-const project = useFocusedProject();
 const whatIf = useOriginalWhatIf();
+
+function specVal(key: NumKey): number | null {
+  void projectChanged.value;
+  return whatIf.specField(key).value;
+}
 
 // WinISD's own field names — the registry keys by these; the driver's spec section carries the
 // SI-suffixed name (`Fs_hz`, `Vas_m3`), so `SPEC` maps the twelve this panel edits to their
@@ -65,61 +69,19 @@ function unitLabel(f: PanelField): string {
   return f.def.unitLabel();
 }
 
-// While a field is focused, echo the RAW typed string (so mid-typing values like
-// "4" → "42" aren't reformatted out from under the caret); reformat on blur.
-const rawVals = reactive<Record<string, string>>({});
-const resetRevision = ref(0);
-// The CELL, not the entered bag: raw() holds entered fields only, so a Q the app solved from
-// the other two read as blank here. cell() carries the solved value with its C mark, which is
-// what makes the third Q fill itself in as the other two change.
-
-function disp(f: PanelField): string {
-  void project.value;
-  const v = whatIf.specField(f.key).value;
-  if (typeof v !== 'number' || !isFinite(v)) return '';
-  return f.def.format(v);
-}
-function fieldVal(f: PanelField): string {
-  void resetRevision.value;
-  return f.key in rawVals ? rawVals[f.key] : disp(f);
-}
-function onField(f: PanelField, e: Event) {
-  const raw = inputValue(e);
-  rawVals[f.key] = raw;
-  // Emptying a field RELEASES it back to Calculated — the override is withdrawn, not set to
-  // nothing. Without this a cleared field would keep its last entered value invisibly.
-  if (raw.trim() === '') {
-    clearField(f.key);
-  } else {
-    const res = f.def.parseEntry(raw);
-    if (res.kind === 'quantity') {
-      enterField(f.key, res.valueSI, res.halfWidthSI);
-    }
-  }
-}
-function onBlur(f: PanelField) { delete rawVals[f.key]; }
-
-// Registry bounds are SI-space; the input shows the display unit, so the v-limits clamp needs
-// the same conversion (e.g. Vas max 100 m³ → 100000 L).
-function scaledLimits(f: PanelField): { min?: number; max?: number } {
-  const lim = f.def.limits;
-  return {
-    min: lim.min != null ? f.def.toDisplay(lim.min) : undefined,
-    max: lim.max != null ? f.def.toDisplay(lim.max) : undefined,
-  };
-}
-
 // Any two of the Q trio solve the third, so all three are flagged together while fewer than
 // two are usable. The rule itself lives on the field's own `mandatoryAndUnsatisfied` — the
 // driver editor reads the same one, against its own draft model.
 /** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
 function fieldClasses(f: PanelField): Record<string, boolean> {
-  void project.value;
-  const mandatory = whatIf.specField(f.key).mandatoryAndUnsatisfied;
+  void projectChanged.value;
+  const cell = whatIf.specField(f.key);
+  const mandatory = cell.mandatoryAndUnsatisfied;
+  const isEmp = cell.value == null || cell.value <= 0;
   return {
-    [cellClassOf(whatIf.specField(f.key))]: true,
+    [cellClassOf(cell)]: true,
     'de-input-mandatory': mandatory,
-    'de-input-empty': mandatory && fieldVal(f) === '',
+    'de-input-empty': mandatory && isEmp,
   };
 }
 
@@ -179,8 +141,6 @@ function fmt(v: number | null, dp: number): string { return formatFixedOrDash(v,
 function close() { whatIf.close(); presentationState.editDriver = false; }
 async function reset(): Promise<void> {
   await whatIf.reset();
-  for (const key of Object.keys(rawVals)) delete rawVals[key];
-  resetRevision.value++;
 }
 useEscToClose(() => presentationState.editDriver, close);
 </script>
@@ -197,7 +157,7 @@ useEscToClose(() => presentationState.editDriver, close);
       <div v-for="f in MAIN" :key="f.key" class="what-if-fld">
         <label>{{ f.label }}</label>
         <div class="what-if-unit">
-          <input v-expo-step="f.def" type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
+          <NumInput :field="f.def" :model-value="specVal(f.key)" :precision="f.def.precision" :class="fieldClasses(f)" stepper hide-mark @update:model-value="(v, p) => v === null ? clearField(f.key) : enterField(f.key, v, p)" />
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -206,7 +166,7 @@ useEscToClose(() => presentationState.editDriver, close);
               </div>
             </Teleport>
           </div>
-          <span v-if="unitLabel(f)">{{ unitLabel(f) }}</span>
+          <span v-if="unitLabel(f)" class="what-if-unit-lbl">{{ unitLabel(f) }}</span>
         </div>
       </div>
     </div>
@@ -216,7 +176,7 @@ useEscToClose(() => presentationState.editDriver, close);
       <div class="what-if-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. Tried here only: the project's box volume is not changed. WinISD: Vb.">
         <label>Vb</label>
         <div class="what-if-unit">
-          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" :precision="4" />
+          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" :precision="4" stepper />
           <UnitToggle :field="NumberField.BOX_VB_L" />
         </div>
       </div>
@@ -227,7 +187,7 @@ useEscToClose(() => presentationState.editDriver, close);
       <div v-for="f in OPTIONAL" :key="f.key" class="what-if-fld">
         <label class="opt-lbl">{{ f.label }}</label>
         <div class="what-if-unit">
-          <input v-expo-step="f.def" type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
+          <NumInput :field="f.def" :model-value="specVal(f.key)" :precision="f.def.precision" :class="fieldClasses(f)" stepper hide-mark @update:model-value="(v, p) => v === null ? clearField(f.key) : enterField(f.key, v, p)" />
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -236,7 +196,7 @@ useEscToClose(() => presentationState.editDriver, close);
               </div>
             </Teleport>
           </div>
-          <span v-if="unitLabel(f)">{{ unitLabel(f) }}</span>
+          <span v-if="unitLabel(f)" class="what-if-unit-lbl">{{ unitLabel(f) }}</span>
         </div>
       </div>
     </div>
@@ -246,7 +206,7 @@ useEscToClose(() => presentationState.editDriver, close);
       <div v-for="f in DERIVED" :key="f.key" class="what-if-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`">
         <label>{{ f.label }}</label>
         <div class="what-if-unit">
-          <input v-expo-step="f.def" type="number" v-limits="scaledLimits(f)" :class="fieldClasses(f)" :value="fieldVal(f)" @input="onField(f, $event)" @blur="onBlur(f)">
+          <NumInput :field="f.def" :model-value="specVal(f.key)" :precision="f.def.precision" :class="fieldClasses(f)" stepper hide-mark @update:model-value="(v, p) => v === null ? clearField(f.key) : enterField(f.key, v, p)" />
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
             <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
             <Teleport to="body">
@@ -255,7 +215,7 @@ useEscToClose(() => presentationState.editDriver, close);
               </div>
             </Teleport>
           </div>
-          <span v-if="unitLabel(f)">{{ unitLabel(f) }}</span>
+          <span v-if="unitLabel(f)" class="what-if-unit-lbl">{{ unitLabel(f) }}</span>
         </div>
       </div>
       <!-- EBP is NOT a driver field: the ADT does not derive it and has no slot to override
@@ -296,9 +256,10 @@ useEscToClose(() => presentationState.editDriver, close);
    fields shows ("30.0000" at the registry's 4 dp) with room to spare; stretching to 100% of
    a 190px grid column made every field three times wider than the number in it, which is
    what WinISD's own narrow, natural-width fields (docs/winisd_screenshots/*.png) never do. */
-.what-if-unit :deep(input), .what-if-roval { width: 78px; padding: 3px 5px; border: 1px solid #999; border-radius: 3px; background: #fff; font: inherit; }
+.what-if-unit :deep(.num-input-wrap) { flex: 0 0 58px; width: 58px; }
+.what-if-unit :deep(input), .what-if-roval { width: 58px; padding: 3px 5px; border: 1px solid #999; border-radius: 3px; background: #fff; font: inherit; }
 .what-if-roval { text-align: right; color: var(--acc); font-style: italic; display: inline-block; }
-.what-if-unit span { font-size: 11px; color: #666; white-space: nowrap; }
+.what-if-unit .what-if-unit-lbl { font-size: 11px; color: #666; white-space: nowrap; }
 .what-if-ro label { opacity: .8; }
 .what-if-subsect { color: #7d9fc9; font-weight: 600; font-size: 12px; margin: 10px 0 2px; }
 .what-if-btns { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #ddd; margin-top: 10px; }

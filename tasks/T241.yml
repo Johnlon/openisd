@@ -4,6 +4,7 @@ release_note: The Projects panel lists projects straight after an import or a re
 repo: openisd
 owner: maryu
 status: done
+landed: 594ef259073a1eef33088efe3351d6cf026566a3
 goal: F42: four specs red after T217 (backups restore, Options no-project band, projects across addresses, Learn panel focus switch)
 done_test: bash scripts/test.sh packages/ui/test/logic/applicationIO.test.ts
 files:

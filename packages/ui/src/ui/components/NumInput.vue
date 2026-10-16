@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<{
   mandatory: false,
   blankRefused: false,
   allowOutOfRange: false,
-  stepper: false,
+  stepper: true,
   hideMark: false,
 });
 
@@ -84,11 +84,16 @@ watch(activeToken, (newToken, oldToken) => {
 
 function onFocus() {
   focused.value = true;
+  underlineIndex.value = null;
   if (refusal.value !== '') return;   // a refused entry stays as typed until fixed or Esc
   badEntry.value = false;
   entryValue.value = props.modelValue;
   // Switch to unformatted string so toPrecision doesn't fight the user's keystrokes
   display.value = fmt(props.modelValue);
+}
+
+function onBoxPointer() {
+  underlineIndex.value = null;
 }
 
 /** A number as typed: "," is a decimal mark too. */
@@ -99,19 +104,28 @@ function numberOf(text: string): number {
 const NUMBER_SHAPE = /^-?\d*[.,]?\d*$/;
 
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && refusal.value !== '') {
-    // Esc puts the stored value back over a refused entry — and only that: the press does not
-    // also reach a dialog's own Esc-to-close.
-    e.preventDefault();
-    e.stopPropagation();
-    badEntry.value = false;
-    display.value = fmt(props.modelValue);
-    if (e.target instanceof HTMLInputElement) e.target.value = display.value;
-    return;
+  if (e.key === 'Escape') {
+    underlineIndex.value = null;
+    const el = inputEl.value;
+    if (el && el.selectionStart !== null && el.selectionEnd !== null && el.selectionEnd > el.selectionStart) {
+      el.setSelectionRange(el.selectionStart, el.selectionStart);
+    }
+    if (refusal.value !== '') {
+      // Esc puts the stored value back over a refused entry — and only that: the press does not
+      // also reach a dialog's own Esc-to-close.
+      e.preventDefault();
+      e.stopPropagation();
+      badEntry.value = false;
+      display.value = fmt(props.modelValue);
+      if (e.target instanceof HTMLInputElement) e.target.value = display.value;
+      return;
+    }
   }
   if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !isReadonly.value) {
     e.preventDefault();
     stepAtCaret(e.key === 'ArrowUp' ? 1 : -1);
+  } else if (e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Control' && e.key !== 'Alt' && e.key !== 'Meta') {
+    underlineIndex.value = null;
   }
 }
 // The wheel steps a focused box, as the browser's own number box did; an unfocused one lets the page scroll.
@@ -129,6 +143,7 @@ const isReadonly = computed(() => attrs.readonly !== undefined && attrs.readonly
 const showStepper = computed(() => props.stepper && !isReadonly.value);
 
 const inputEl = ref<HTMLInputElement | null>(null);
+const underlineIndex = ref<number | null>(null);
 let repeatTimer: ReturnType<typeof setTimeout> | undefined;
 
 // Where the caret last was in this box, kept after the box loses focus: a ▲▼ button steps that
@@ -143,8 +158,22 @@ function onSelectionChange(): void { rememberCaret(); }
 onMounted(() => document.addEventListener('selectionchange', onSelectionChange));
 onBeforeUnmount(() => document.removeEventListener('selectionchange', onSelectionChange));
 
-/** One step of the digit at `caret` (the tenths digit when there is none). The box's own selection
- *  is touched only while it has focus: setting one on an unfocused box raises the phone keyboard. */
+function caretForStep(): number | null {
+  const el = inputEl.value;
+  if (el !== null && el.selectionStart !== null && el.selectionEnd !== null) {
+    if (el.selectionEnd === el.selectionStart + 1) {
+      return el.selectionEnd;
+    }
+    if (document.activeElement === el) {
+      return el.selectionStart;
+    }
+  }
+  return lastCaret;
+}
+
+/** One step of the digit at `caret` (the tenths digit when there is none). On desktop (the box is
+ *  focused), the stepped digit stays selected at its place value. On mobile (a ▲▼ button holds
+ *  focus), an underline mirror overlay is shown instead and the box is untouched. */
 function stepFrom(caret: number | null, dir: SpinDirection): void {
   const el = inputEl.value;
   const at = caret ?? tenthsCaret(display.value);
@@ -156,31 +185,48 @@ function stepFrom(caret: number | null, dir: SpinDirection): void {
   lastCaret = spun.caret;
   if (el !== null) {
     el.value = spun.text;
-    if (document.activeElement === el) el.setSelectionRange(spun.caret, spun.caret);
+    if (document.activeElement === el) {
+      underlineIndex.value = null;
+      el.setSelectionRange(spun.mark, spun.mark + 1);
+    } else {
+      underlineIndex.value = spun.mark;
+    }
   }
   if (valid(si)) emit('update:modelValue', si, typedPrecision(spun.text));
 }
 
 /** A key or wheel step on the focused box: the digit at its caret. */
 function stepAtCaret(dir: SpinDirection): void {
-  stepFrom(inputEl.value?.selectionStart ?? lastCaret, dir);
+  stepFrom(caretForStep(), dir);
 }
 
 let heldSince = 0;
 function stopRepeat(): void {
   if (repeatTimer !== undefined) { clearTimeout(repeatTimer); repeatTimer = undefined; }
 }
-// A ▲▼ button takes focus and keeps it across taps and the hold-repeat (John, 2026-10-15): the
-// phone keyboard goes away and stays away, and nothing focuses or selects in the text box. The
-// press is `.prevent`ed so the browser's own focus handling does not fight the explicit focus.
-// Steps are at the remembered caret digit; the hold waits, then repeats at 3 a second easing up to 12.
+
+function onStepperBlur(e: FocusEvent): void {
+  const next = e.relatedTarget;
+  if (next !== inputEl.value && !(next instanceof HTMLElement && next.classList.contains('num-stepper-btn'))) {
+    underlineIndex.value = null;
+  }
+}
+
+// On desktop, the box keeps focus across ▲▼ clicks and key/wheel steps and selects that digit.
+// On mobile, the button holds focus (keeping keyboard down) and draws an underline under that digit.
 function startRepeat(dir: SpinDirection, e: PointerEvent): void {
   stopRepeat();
-  if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
+  const fromCaret = caretForStep();
+  const isMobile = presentationState.ui.skinOverride === 'mobile' || e.pointerType === 'touch';
+  if (isMobile) {
+    if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
+  } else {
+    inputEl.value?.focus();
+  }
   heldSince = performance.now();
-  stepFrom(lastCaret, dir);
+  stepFrom(fromCaret, dir);
   repeatTimer = setTimeout(function tick() {
-    stepFrom(lastCaret, dir);
+    stepFrom(caretForStep(), dir);
     repeatTimer = setTimeout(tick, caretRepeatDelayMs(performance.now() - heldSince));
   }, CARET_HOLD_START_MS);
 }
@@ -319,15 +365,20 @@ const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 
 </script>
 
 <template>
-  <input ref="inputEl" v-bind="$attrs" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
-    :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
-    @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @input="onInput" @blur="onBlur">
+  <span class="num-input-wrap">
+    <input ref="inputEl" v-bind="$attrs" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
+      :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
+      @focus="onFocus" @pointerdown="onBoxPointer" @keydown="onKeydown" @wheel="onWheel" @input="onInput" @blur="onBlur">
+    <span v-if="underlineIndex !== null" class="num-mark-overlay" aria-hidden="true"><span class="num-mark-pre">{{ display.slice(0, underlineIndex) }}</span><span class="num-mark-underline">{{ display.slice(underlineIndex, underlineIndex + 1) }}</span><span class="num-mark-post">{{ display.slice(underlineIndex + 1) }}</span></span>
+  </span>
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
-      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▲</button>
+      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat"
+      @blur="onStepperBlur">▲</button>
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Decrease"
-      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat">▼</button>
+      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat"
+      @blur="onStepperBlur">▼</button>
   </span>
 </template>
 
@@ -366,7 +417,7 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   display: inline-flex;
   flex-direction: row;
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-left: 2px;
 }
 .num-stepper-btn {
   all: unset;
@@ -374,9 +425,9 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 32px;
-  font-size: 16px;
+  width: 14px;
+  height: 20px;
+  font-size: 9px;
   line-height: 1;
   color: var(--mut);
   background: var(--panel2, #f0f0f0);
@@ -389,4 +440,43 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
 .num-stepper-btn:first-child { border-radius: 4px 0 0 4px; }
 .num-stepper-btn:last-child { border-radius: 0 4px 4px 0; }
 .num-stepper-btn:active { background: var(--acc, #36c); color: #fff; }
+
+.num-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.num-input-wrap > input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+.num-mark-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  font: inherit;
+  letter-spacing: inherit;
+  white-space: pre;
+  overflow: hidden;
+  user-select: none;
+  box-sizing: border-box;
+  padding: 4px 6px;
+}
+.num-mark-pre,
+.num-mark-post {
+  color: transparent;
+  visibility: hidden;
+}
+.num-mark-underline {
+  color: transparent;
+  text-decoration: underline 2px solid var(--fg, currentColor);
+  text-underline-offset: 3px;
+  border-bottom: 2px solid var(--fg, currentColor);
+  line-height: 1;
+}
 </style>
