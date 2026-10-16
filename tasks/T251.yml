@@ -1,0 +1,10 @@
+id: T251
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Prototype: the full suite on GitHub Actions (10 browser shards + unit/typecheck), not gating anything
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T251.yml
+  - .github/workflows/suite.yml

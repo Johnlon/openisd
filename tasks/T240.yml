@@ -3,6 +3,7 @@ release_note: 'Phone field labels no longer touch the row border'
 repo: openisd
 owner: sonnet
 status: done
+landed: b01974aba838a5221455c21d509dac1ca10f2cb0
 goal: Mobile field labels clear of the row border, and the storage banner takes layout space
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:

@@ -1,0 +1,95 @@
+name: suite
+
+# Prototype (T251): the full suite of the laptop post-land run (scripts/land/post-land/suite.sh) on
+# GitHub's runners. It gates nothing yet. Same rules as post-land: no retries, a flake is a red.
+# The browser half runs in 10 Playwright shards of 3 workers; one job runs the unit tests and typecheck.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to test (default the head of main)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: suite-${{ inputs.sha || github.sha }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+env:
+  SHA: ${{ inputs.sha || github.sha }}
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: unit tests
+        run: node_modules/.bin/vitest run 2>&1 | tee unit.log; exit "${PIPESTATUS[0]}"
+      - name: typecheck
+        if: ${{ !cancelled() }}
+        run: npm run typecheck
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: unit-log
+          path: unit.log
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - name: install chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: install chromium system deps
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+      - name: browser tests
+        env:
+          OPENISD_TEST_WORKERS: '3'
+        run: npx playwright test --shard ${{ matrix.shard }}/10 --retries=0
+      - name: name the report by shard
+        if: ${{ !cancelled() }}
+        run: mv build/pw-report.json build/pw-report-${{ matrix.shard }}.json || true
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: report-${{ matrix.shard }}
+          path: build/pw-report-${{ matrix.shard }}.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ failure() }}
+        with:
+          name: failures-${{ matrix.shard }}
+          path: test-results/
