@@ -1,6 +1,6 @@
 # BUG_20261011_wizard-step1-edit-clone-buttons
 
-**Status:** OPEN
+**Status:** FIXED (T040 f3373630, typed host `DriverListMode` = manage | pick; spec `new-project-step1-driver-buttons.browser.spec.ts` covers both skins; closed T208)
 
 ## Symptom
 John, 11 Oct 2026: "the driver edit button on the step 1/5 does nothing, delete it"; "delete clone driver too". In the new-project wizard, step 1 (pick a driver), the driver summary shows Edit and Clone driver buttons. Edit does nothing there.

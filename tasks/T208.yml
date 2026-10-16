@@ -1,0 +1,10 @@
+id: T208
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: 'Close BUG_20261011_wizard-step1-edit-clone-buttons: T040 already removed Edit and Clone driver from wizard step 1 behind a typed host; the spec passes on both skins; mark the bug FIXED'
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
+files:
+  - tasks/T208.yml
+  - bugs/BUG_20261011_wizard-step1-edit-clone-buttons.md

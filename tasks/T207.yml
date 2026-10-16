@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 8349312d46aef500472e494ebca107c72e39e834
 goal: 'The /test/ build keeps its own browser store: StoragePrefix resolved once from the page path, applied by the storage port; root app keys unchanged'
 done_test: bash scripts/test.sh packages/persistence/test/storagePrefix.test.ts
 files:
