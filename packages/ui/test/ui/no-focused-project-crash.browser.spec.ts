@@ -22,7 +22,11 @@ test('mobile: closing the only open project leaves the empty screen, no crash', 
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-hamburger').click();
-  await page.locator('.mob-open-project-close').first().click();
+  await page.locator('.mob-menu-item', {hasText: 'Projects'}).click();
+  const pane = page.locator('.mob-projects-pane');
+  await pane.locator('.mob-project-menu-btn').first().click();
+  await page.locator('.mob-action-sheet .mob-action-close').click();
+  await pane.locator('.mob-dlg-close').click();
   await expect(page.locator('.mob-empty')).toBeVisible();
   await noCrash(page, browserLog.pageErrors);
 });

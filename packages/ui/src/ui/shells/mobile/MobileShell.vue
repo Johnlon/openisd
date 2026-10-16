@@ -17,6 +17,7 @@ import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import MobilePaneDialog from './MobilePaneDialog.vue';
+import MobileProjectsPane from './MobileProjectsPane.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
 import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
@@ -26,7 +27,6 @@ import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import {OpenableFiles} from '../../../fileFormat.js';
-import {inputChecked} from '../../../logic/domEvents.js';
 import {NO_PROJECT_OPEN} from '@openisd/design/fields';
 
 const {
@@ -34,9 +34,9 @@ const {
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, openDialogOpen, projectRows, shownProjects, projectsFooter, projectQuery, projectOrder, projectOrders, storeLabel, openProjectDialog, chooseProject,
+  username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
+  setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
-  openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
   openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud,
   disconnectCloud, openConflict,
@@ -64,7 +64,7 @@ const diagnostics = injectDiagnosticsModal();
         <img src="/icon.svg" alt="" aria-hidden="true">
         <span>OpenISD</span>
       </div>
-      <div v-if="projectTitle" class="mob-project-title" :title="projectTitle">{{ projectTitle }}</div>
+      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="openProjectsPane">{{ projectTitle }}</button>
       <CloudSyncBadge
         v-if="cloudEnabled"
         class="mob-header-sync"
@@ -84,7 +84,7 @@ const diagnostics = injectDiagnosticsModal();
       <p class="mob-empty-title">{{ NO_PROJECT_OPEN }}</p>
       <!-- Same three actions, words and icons as desktop's empty chart (OriginalShell.vue). -->
       <button type="button" class="mob-cta" @click="openNewProject"><ToolbarIcon name="new" /> <span>New project</span></button>
-      <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectDialog"><ToolbarIcon name="open" /> <span>Open project</span></button>
+      <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectsPane"><ToolbarIcon name="open" /> <span>Open project</span></button>
       <button type="button" class="mob-cta mob-cta-secondary" @click="fileInput?.click()"><ToolbarIcon name="import" /> <span>Import project</span></button>
       <button type="button" class="mob-link" @click="switchToDesktop">Switch to Desktop view</button>
     </div>
@@ -161,7 +161,7 @@ const diagnostics = injectDiagnosticsModal();
         <section class="mob-menu-section" aria-labelledby="mob-menu-head-project">
           <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
           <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
-          <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
+          <button type="button" class="mob-menu-item" @click="openProjectsPane">Projects</button>
           <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
           <!-- Project-level items: only with a project open (John, 16 Oct 2026). -->
           <template v-if="projectOpen">
@@ -174,20 +174,6 @@ const diagnostics = injectDiagnosticsModal();
             <div class="mob-menu-sep"></div>
             <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
             <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
-            <div class="mob-menu-sep"></div>
-            <div class="mob-menu-heading">Open projects</div>
-            <div v-for="(row, i) in openProjectRows" :key="i" class="mob-open-project" :class="{ focused: row.focused }">
-              <input type="checkbox" class="mob-open-project-show" :checked="row.traceVisible"
-                     :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
-                     @change="setOpenProjectTraceVisible(row, inputChecked($event))">
-              <button type="button" class="mob-open-project-colour" :style="{ background: row.colour }"
-                      :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
-                      @click="cycleOpenProjectColour(row)"></button>
-              <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
-                <span v-if="row.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
-              </button>
-              <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
-            </div>
           </template>
         </section>
         <section class="mob-menu-section" aria-labelledby="mob-menu-head-app">
@@ -209,45 +195,38 @@ const diagnostics = injectDiagnosticsModal();
       </div>
     </div>
 
-    <!-- Outside the project template: the empty state opens it too. -->
-    <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">
-      <template v-if="!binOpen">
-        <div class="mob-project-tools">
-          <input class="mob-project-search" type="search" v-model="projectQuery" placeholder="Search projects" aria-label="Search projects">
-          <div class="mob-project-sort" role="group" aria-label="Sort projects">
-            <button v-for="o in projectOrders" :key="o.label" type="button" :class="{on: projectOrder === o}" @click="projectOrder = o">{{ o.label }}</button>
-          </div>
-        </div>
-        <p v-if="projectRows.length === 0" class="mob-hint">No saved project yet.</p>
-        <p v-else-if="shownProjects.length === 0" class="mob-hint">No project matches.</p>
-        <div v-for="p in shownProjects" :key="p.key" class="mob-stored-project-item" :class="{open: p.open.kind === 'open', active: p.open.kind === 'open' && p.open.active}">
-          <button type="button" class="mob-stored-project-row" @click="chooseProject(p)">
-            <span class="mob-stored-project-name">{{ p.name }}<span v-for="t in p.tags" :key="t.kind" class="project-tag" :class="`project-tag-${t.kind}`">{{ t.text }}</span></span>
-            <span class="mob-stored-project-summary">{{ p.summary }}</span>
-            <span class="mob-stored-project-modified">{{ p.edited }}<template v-if="p.size"> · {{ p.size }}</template><span v-if="p.sync" class="project-sync-mark" :title="p.sync.text"> {{ p.sync.glyph }}</span></span>
-          </button>
-          <button v-if="p.menu.some(m => m.action === 'delete')" type="button" class="mob-stored-project-bin" :aria-label="`Move ${p.name} to the Bin`" :title="`Move ${p.name} to the Bin`" @click="moveToBin(p)"><ToolbarIcon name="bin" /></button>
-        </div>
-        <p v-if="projectRows.length > 0" class="mob-hint mob-projects-footer">{{ projectsFooter }}</p>
-      </template>
-      <template v-else>
-        <p v-if="binRows.length === 0" class="mob-hint">The Bin is empty.</p>
-        <div v-for="b in binRows" :key="b.id" class="mob-bin-row">
-          <span class="mob-stored-project-name">{{ b.name }}</span>
-          <span class="mob-stored-project-summary">{{ b.binnedAt }} · {{ b.device }} · {{ b.size }}</span>
-          <div class="mob-bin-actions">
-            <button type="button" class="mob-bin-restore" @click="restoreFromBin(b)">Restore</button>
-            <button type="button" class="mob-bin-delete-forever" @click="deleteForever(b)">Delete forever</button>
-          </div>
-        </div>
-        <button v-if="binRows.length > 0" type="button" class="mob-cta mob-cta-secondary mob-bin-empty" @click="emptyBin">Empty Bin ({{ binTotal }})</button>
-      </template>
-      <div class="mob-project-actions">
-        <button type="button" class="mob-project-action mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
-        <button type="button" class="mob-project-action mob-bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
-      </div>
-      <p class="store-label mob-store-label">{{ storeLabel }}</p>
-    </MobilePaneDialog>
+    <!-- Full-screen Projects pane: lists every project, saved or open. -->
+    <MobileProjectsPane
+      v-if="projectsPaneOpen"
+      v-model:query="projectQuery"
+      v-model:order="projectOrder"
+      v-model:binOpen="binOpen"
+      :project-rows="projectRows"
+      :shown-projects="shownProjects"
+      :projects-footer="projectsFooter"
+      :search-offered="searchOffered"
+      :project-orders="projectOrders"
+      :bin-rows="binRows"
+      :bin-total="binTotal"
+      :bin-label="binLabel"
+      :store-label="storeLabel"
+      :choose-project="chooseProject"
+      :set-project-trace-visible="setProjectTraceVisible"
+      :cycle-project-colour="cycleProjectColour"
+      :close-project-row="closeProjectRow"
+      :duplicate-project-row="duplicateProjectRow"
+      :export-project-row="exportProjectRow"
+      :rename-project-row="renameProjectRow"
+      :resolve-project-row="resolveProjectRow"
+      :move-to-bin="moveToBin"
+      :restore-from-bin="restoreFromBin"
+      :delete-forever="deleteForever"
+      :empty-bin="emptyBin"
+      :export-projects-archive="exportProjectsArchive"
+      :open-new-project="openNewProject"
+      :open-from-disk="openFromDisk"
+      @close="closeProjectsPane"
+    />
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
   </div>
@@ -336,8 +315,12 @@ const diagnostics = injectDiagnosticsModal();
 .mob-brand img { width: 24px; height: 24px; display: block; }
 /* The focused project's name: takes the rest of the bar, cut with an ellipsis when long. */
 .mob-project-title {
+  all: unset;
+  box-sizing: border-box;
   flex: 1; min-width: 0; margin-left: 12px; text-align: right;
   font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer;
+  color: inherit;
 }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-header-sync {
@@ -432,71 +415,6 @@ const diagnostics = injectDiagnosticsModal();
 .mob-menu-sep { height: 1px; background: var(--line); margin: 3px 0; }
 .mob-menu-section { border-top: 2px solid var(--line); padding: 2px 0; }
 .mob-menu-section-head { padding: 2px 18px 0; font-size: 13px; font-weight: 700; color: var(--acc); }
-.mob-menu-heading { padding: 2px 18px; font-size: 12px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.04em; }
-.mob-open-project { display: flex; align-items: center; }
-.mob-open-project-show { flex: none; margin: 0 0 0 18px; width: 18px; height: 18px; }
-.mob-open-project-colour { all: unset; box-sizing: border-box; flex: none; width: 18px; height: 18px; margin-left: 10px; border-radius: 4px; border: 1px solid var(--line); cursor: pointer; }
-.mob-open-project.focused { background: var(--panel2); }
-.mob-open-project-name {
-  all: unset;
-  box-sizing: border-box;
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 4px 6px 10px;
-  font-size: 14px;
-  color: var(--fg);
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.mob-open-project.focused .mob-open-project-name { font-weight: 600; }
-.mob-open-project-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--acc2); }
-.mob-open-project-close { all: unset; box-sizing: border-box; flex: none; padding: 6px 14px; font-size: 13px; color: var(--mut); cursor: pointer; }
-
-.mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
-.mob-stored-project-row {
-  all: unset;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-  padding: 10px 16px;
-  cursor: pointer;
-}
-.mob-stored-project-item { display: flex; align-items: center; border-top: 1px solid var(--line); }
-.mob-stored-project-item:first-of-type { border-top: none; }
-.mob-stored-project-bin { all: unset; box-sizing: border-box; flex: none; display: inline-flex; align-items: center; padding: 10px 16px; font-size: 13px; color: var(--mut); cursor: pointer; }
-.mob-project-tools { display: flex; flex-direction: column; gap: 8px; padding: 8px 16px; }
-.mob-project-search { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 12px; font: inherit; font-size: 15px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--fg); }
-.mob-project-sort { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
-.mob-project-sort button { all: unset; box-sizing: border-box; flex: 1; min-height: 40px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--mut); border-right: 1px solid var(--line); cursor: pointer; }
-.mob-project-sort button:last-child { border-right: 0; }
-.mob-project-sort button.on { background: var(--panel2); color: var(--fg); font-weight: 600; }
-.mob-project-actions { display: flex; justify-content: space-between; gap: 8px; margin: 8px 8px 0; border-top: 1px solid var(--line); padding-top: 4px; }
-.mob-project-action { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; font-size: 14px; color: var(--acc); cursor: pointer; }
-.mob-store-label { margin: 12px 16px; font-size: 11px; color: var(--mut); }
-.mob-bin-toggle { margin-top: 0; }
-.mob-bin-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-top: 1px solid var(--line); }
-.mob-bin-row:first-of-type { border-top: none; }
-.mob-bin-actions { display: flex; gap: 16px; margin-top: 4px; }
-.mob-bin-restore, .mob-bin-delete-forever { all: unset; box-sizing: border-box; padding: 6px 0; font-size: 13px; cursor: pointer; color: var(--acc); }
-.mob-bin-delete-forever { color: var(--bad); }
-.mob-stored-project-name { font-size: 15px; color: var(--fg); }
-.mob-stored-project-item.active .mob-stored-project-name { font-weight: 600; }
-.mob-stored-project-item.open .mob-stored-project-name::before { content: '● '; color: var(--acc); }
-.project-tag { margin-left: 6px; padding: 0 5px; border-radius: 3px; font-size: 12px; background: var(--panel2); color: var(--mut); font-weight: normal; }
-.project-tag-conflict { color: var(--acc2); }
-.project-tag-unreadable { color: var(--bad); }
-.project-sync-mark { white-space: nowrap; }
-.mob-projects-footer { margin-top: 8px; }
-.mob-stored-project-summary { font-size: 13px; color: var(--mut); }
-.mob-stored-project-modified { font-size: 12px; color: var(--mut); }
 
 .mob-empty {
   flex: 1;

@@ -37,21 +37,43 @@ test('desktop: sort by date and name, and search', async ({page}) => {
   await expect(dialog.getByText('No project matches')).toBeVisible();
 });
 
-test('mobile: the sheet has a search box and sort buttons', async ({page}) => {
+import {readSampleProject} from '../fixtures/sampleProject.js';
+
+async function seedStoredProjects(page: Page, count: number): Promise<void> {
+  const sampleOwpr = readSampleProject().toString('utf8');
+  await page.addInitScript(({cnt, owpr}) => {
+    const entries = [];
+    for (let i = 1; i <= cnt; i++) {
+      const id = `proj-${i}`;
+      const name = `Stored Proj ${String(i).padStart(2, '0')}`;
+      const parsed: unknown = JSON.parse(owpr);
+      if (typeof parsed !== 'object' || parsed === null) throw new Error('the sample project is not a JSON object');
+      const projObj = {...parsed, label: name, name};
+      entries.push({
+        id,
+        text: JSON.stringify(projObj),
+        modified: new Date(2026, 9, 14, 10, i).toISOString(),
+      });
+    }
+    localStorage.setItem('openisd_projects', JSON.stringify({entries}));
+  }, {cnt: count, owpr: sampleOwpr});
+}
+
+test('mobile: the pane has sort buttons, search when offered, and no horizontal scroll', async ({page}) => {
   await page.setViewportSize({width: 360, height: 740});
   await forceMobileSkin(page);
+  await seedStoredProjects(page, 9);
   await page.goto('/');
   await openAMobileProject(page);
-  await tapMobileMenuItem(page, /^Save$/);
-  await tapMobileMenuItem(page, 'Open project…');
-  const sheet = page.locator('.mob-open-project-sheet');
+  await tapMobileMenuItem(page, 'Projects');
+  const pane = page.locator('.mob-projects-pane');
 
-  await expect(sheet.locator('.mob-stored-project-name')).toHaveCount(1);
-  await sheet.getByRole('button', {name: 'Name A–Z'}).click();
-  await expect(sheet.getByRole('button', {name: 'Name A–Z'})).toHaveClass(/on/);
-  await sheet.getByLabel('Search projects').fill('nothing like it');
-  await expect(sheet.getByText('No project matches.')).toBeVisible();
-  await expect(sheet.locator('.mob-stored-project-name')).toHaveCount(0);
-  const fits = await sheet.evaluate(e => e.scrollWidth <= e.clientWidth);
-  expect(fits, 'sheet scrolls sideways').toBe(true);
+  await expect(pane.locator('.mob-project-name')).toHaveCount(10);
+  await pane.getByRole('button', {name: 'Name A–Z'}).click();
+  await expect(pane.getByRole('button', {name: 'Name A–Z'})).toHaveClass(/on/);
+  await pane.getByLabel('Search projects').fill('nothing like it');
+  await expect(pane.getByText('No project matches.')).toBeVisible();
+  await expect(pane.locator('.mob-project-name')).toHaveCount(0);
+  const fits = await pane.evaluate(e => e.scrollWidth <= e.clientWidth);
+  expect(fits, 'pane scrolls sideways').toBe(true);
 });

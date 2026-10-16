@@ -49,8 +49,8 @@ test('mobile: Restore one project adds the project from a backup under a restore
   expect(picker.x + picker.width).toBeLessThanOrEqual(shell.x + shell.width + 1);
   await page.locator('.opt-modal').getByRole('button', {name: /^(Close|OK)$/}).last().click();
 
-  await tapMobileMenuItem(page, 'Open project…');
-  const names = page.locator('.mob-open-project-sheet .mob-stored-project-name');
+  await tapMobileMenuItem(page, 'Projects');
+  const names = page.locator('.mob-projects-pane .mob-project-name');
   await expect(names).toHaveCount(2);
   await expect(names.filter({hasText: RESTORED})).toHaveCount(1);
 });

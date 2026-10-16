@@ -1,0 +1,23 @@
+id: T216
+release_note: Open and saved projects on mobile are now unified in a full-screen Projects pane with sorting, searching, and row actions.
+repo: openisd
+owner: maryu
+status: done
+goal: Projects 3: Mobile Projects pane
+done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
+files:
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/backups-restore-project.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-file-open.browser.spec.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/ui/mobile-project-list.browser.spec.ts
+  - packages/ui/test/ui/mobile-projects-pane.browser.spec.ts
+  - packages/ui/test/ui/mobile-shell.browser.spec.ts
+  - packages/ui/test/ui/no-focused-project-crash.browser.spec.ts
+  - packages/ui/test/ui/no-project-app-menu.browser.spec.ts
+  - packages/ui/test/ui/open-project-list.browser.spec.ts
+  - packages/ui/test/ui/project-bin.browser.spec.ts
+  - tasks/T216.yml

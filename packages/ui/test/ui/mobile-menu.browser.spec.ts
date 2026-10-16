@@ -65,10 +65,9 @@ test.describe('MobileMenu', () => {
       const items = (section: string) => page.locator('.mob-menu-section', { has: page.locator('.mob-menu-section-head', { hasText: section }) })
         .locator('.mob-menu-item').evaluateAll(nodes => nodes.map(n => (n.querySelector('.export-menu-trigger') ?? n).textContent?.trim()));
       expect(await items('Project')).toEqual([
-        'New project', 'Open project…', 'Open a file', 'Save', 'Save all', 'Save As / Export',
+        'New project', 'Projects', 'Open a file', 'Save', 'Save all', 'Save As / Export',
         'Revert unsaved changes', 'Project details', 'Advanced',
       ]);
-      await expect(sections.first().locator('.mob-open-project')).toHaveCount(1);
       expect(await items('App')).toEqual([
         'Manage Drivers', 'Options', 'OpenISD and WinISD differences', 'Diagnostics', 'About OpenISD', 'Switch to Desktop view',
       ]);
@@ -99,35 +98,34 @@ test.describe('MobileMenu', () => {
       await expect(page.locator('.mob-topbar')).toHaveCount(0);
       await page.locator('.mob-chart-menu').click();
       await expect(page.locator('.mob-menu')).toBeVisible();
-      await expect(page.locator('.mob-open-project')).toHaveCount(1);
     });
   });
 
-  // The menu's "Open project…" lists previously-SAVED projects (browser storage), distinct from
+  // The menu's "Projects" lists every project (saved or open), distinct from
   // "Open a file" (a disk import). John, 2026-10-02: "the file menu offer no way to save and reopen
   // projects".
-  test.describe('Open project…', () => {
+  test.describe('Projects', () => {
     // T204: the list holds every project, saved or open, so the open project shows before it is saved.
     test('before anything is saved it lists only the open project, marked not saved', async ({ page }) => {
-      await tapMobileMenuItem(page, 'Open project…');
-      const sheet = page.locator('.mob-open-project-sheet');
-      await expect(sheet).toBeVisible();
-      await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(1);
-      await expect(sheet.locator('.mob-stored-project-row')).toContainText('Not saved yet');
+      await tapMobileMenuItem(page, 'Projects');
+      const pane = page.locator('.mob-projects-pane');
+      await expect(pane).toBeVisible();
+      await expect(pane.locator('.mob-project-row')).toHaveCount(1);
+      await expect(pane.locator('.mob-project-row')).toContainText('Not saved yet');
     });
 
-    test('Save, then "Open project…" lists it and reopens it', async ({ page }) => {
+    test('Save, then "Projects" lists it and reopens it', async ({ page }) => {
       const before = await mobileFieldRow(page, 'Volume').locator('input').first().inputValue();
 
       await tapMobileMenuItem(page, /^Save$/);
 
-      await tapMobileMenuItem(page, 'Open project…');
-      const sheet = page.locator('.mob-open-project-sheet');
-      await expect(sheet).toBeVisible();
-      await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(1);
+      await tapMobileMenuItem(page, 'Projects');
+      const pane = page.locator('.mob-projects-pane');
+      await expect(pane).toBeVisible();
+      await expect(pane.locator('.mob-project-row')).toHaveCount(1);
 
-      await sheet.locator('.mob-stored-project-row').first().click();
-      await expect(sheet).toHaveCount(0);
+      await pane.locator('.mob-project-row').first().click();
+      await expect(pane).toHaveCount(0);
       // Reopening the same project lands back on the Box tab with the same value — a real
       // re-load, not a no-op that merely closed the sheet.
       await expect(mobileFieldRow(page, 'Volume').locator('input').first()).toHaveValue(before);
@@ -165,28 +163,28 @@ test.describe('MobileMenu', () => {
       await setFocusedBoxVolume(page, 0.02);
       await tapMobileMenuItem(page, /^Save$/);
 
-      await tapMobileMenuItem(page, 'Open project…');
-      const rows = page.locator('.mob-open-project-sheet .mob-stored-project-row');
+      await tapMobileMenuItem(page, 'Projects');
+      const rows = page.locator('.mob-projects-pane .mob-project-row');
       await expect(rows).toHaveCount(2);
-      await expect(rows.locator('.mob-stored-project-name')).toHaveText(['Second', 'sample-project']);
-      await expect(rows.locator('.mob-stored-project-summary')).toHaveText([
+      await expect(rows.locator('.mob-project-name')).toHaveText(['Second', 'sample-project']);
+      await expect(rows.locator('.mob-project-summary')).toHaveText([
         'Tang Band W5-1138SMF · Closed · 20.0 L',
         'Tang Band W5-1138SMF · Vented · 12.0 L',
       ]);
       // John, 2026-10-12: never US style; the one design formatter shows "5 Oct 2026, 23:32", whatever the browser locale.
-      for (const modified of await rows.locator('.mob-stored-project-modified').allTextContents()) {
+      for (const modified of await rows.locator('.mob-project-meta').allTextContents()) {
         // T204: the edited date, then the size.
-        expect(modified).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2} · [\d.]+ (B|KB)$/);
+        expect(modified.trim()).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2} · [\d.]+ (B|KB)/);
       }
     });
 
     // John, 2026-10-05: "the Open project popup doesn't cover the entire screen — it should".
     test('the sheet fills the whole screen', async ({ page }) => {
       await page.setViewportSize({ width: 412, height: 915 });
-      await tapMobileMenuItem(page, 'Open project…');
-      const box = await page.locator('.mob-open-project-sheet').boundingBox();
+      await tapMobileMenuItem(page, 'Projects');
+      const box = await page.locator('.mob-projects-pane').boundingBox();
       expect(box).toEqual({ x: 0, y: 0, width: 412, height: 915 });
-      await expect(page.locator('.mob-open-project-sheet .mob-dlg-footer').getByRole('button', { name: 'Close' })).toBeVisible();
+      await expect(page.locator('.mob-projects-pane .mob-dlg-footer').getByRole('button', { name: 'Close' })).toBeVisible();
     });
   });
 

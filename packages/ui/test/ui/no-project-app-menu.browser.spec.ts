@@ -23,7 +23,7 @@ test('mobile: with no project open, the menu reaches every app-level feature', a
 
   await page.locator('.mob-hamburger').click();
   const menu = page.locator('.mob-menu');
-  for (const item of ['New project', 'Open project…', 'Open a file', 'Manage Drivers', 'Options',
+  for (const item of ['New project', 'Projects', 'Open a file', 'Manage Drivers', 'Options',
     'OpenISD and WinISD differences', 'Diagnostics', 'About OpenISD', 'Switch to Desktop view']) {
     await expect(menu.locator('.mob-menu-item', {hasText: item})).toBeVisible();
   }
@@ -37,8 +37,8 @@ test('mobile: with no project open, the menu reaches every app-level feature', a
   await expect(page.locator('.mob-np-overlay')).toBeVisible();
   await page.goto('/');
 
-  await tapMobileMenuItem(page, 'Open project…');
-  await expect(page.locator('.mob-open-project-sheet')).toBeVisible();
+  await tapMobileMenuItem(page, 'Projects');
+  await expect(page.locator('.mob-projects-pane')).toBeVisible();
   await page.goto('/');
 
   await tapMobileMenuItem(page, 'Manage Drivers');

@@ -48,17 +48,20 @@ test('the empty state opens a project saved in the browser', async ({ page }) =>
   await page.goto('/');
   await openAMobileProject(page);
   await tapMobileMenuItem(page, /^Save$/);
-  await page.locator('.mob-hamburger').click();
-  await page.locator('.mob-open-project-close').first().click();
+  await tapMobileMenuItem(page, 'Projects');
+  const pane = page.locator('.mob-projects-pane');
+  await pane.locator('.mob-project-menu-btn').first().click();
+  await page.locator('.mob-action-sheet .mob-action-close').click();
+  await pane.locator('.mob-dlg-close').click();
 
   const empty = page.locator('.mob-empty');
   await expect(empty.locator('button')).toHaveText(['New project', 'Open project', 'Import project', 'Switch to Desktop view']);
   await empty.getByRole('button', { name: 'Open project' }).click();
-  const sheet = page.locator('.mob-open-project-sheet');
-  await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(1);
+  const projectsPane = page.locator('.mob-projects-pane');
+  await expect(projectsPane.locator('.mob-project-row')).toHaveCount(1);
 
-  await sheet.locator('.mob-stored-project-row').click();
-  await expect(sheet).toHaveCount(0);
+  await projectsPane.locator('.mob-project-info').first().click();
+  await expect(projectsPane).toHaveCount(0);
   await expect(empty).toHaveCount(0);
   await expect(page.locator('.mob-tabbar')).toBeVisible();
 });
@@ -69,8 +72,10 @@ test('closing the last project stays closed after a reload, and Open project sti
   await page.goto('/');
   await openAMobileProject(page);
   await tapMobileMenuItem(page, /^Save$/);
-  await page.locator('.mob-hamburger').click();
-  await page.locator('.mob-open-project-close').first().click();
+  await tapMobileMenuItem(page, 'Projects');
+  const pane = page.locator('.mob-projects-pane');
+  await pane.locator('.mob-project-menu-btn').first().click();
+  await page.locator('.mob-action-sheet .mob-action-close').click();
   await expect(page.locator('.mob-empty')).toBeVisible();
 
   await page.reload();
@@ -79,7 +84,7 @@ test('closing the last project stays closed after a reload, and Open project sti
   await expect(empty.locator('button')).toHaveText(['New project', 'Open project', 'Import project', 'Switch to Desktop view']);
   await expect(page.locator('.mob-tabbar')).toHaveCount(0);
   await empty.getByRole('button', { name: 'Open project' }).click();
-  await expect(page.locator('.mob-open-project-sheet .mob-stored-project-row')).toHaveCount(1);
+  await expect(page.locator('.mob-projects-pane .mob-project-row')).toHaveCount(1);
 });
 
 test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ page }) => {

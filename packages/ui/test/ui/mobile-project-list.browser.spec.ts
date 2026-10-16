@@ -1,9 +1,9 @@
 /**
- * The open-project rows at the bottom of the mobile hamburger menu: one row per open project, with
+ * The open-project rows in the Projects pane: one row per open project, with
  * a show-on-graphs checkbox, a focus tap and a colour swatch.
  */
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
-import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
 
 /** Count distinct opaque colours drawn on the chart: a second trace is a second colour. */
@@ -20,15 +20,6 @@ const inkColours = (page: Page) => page.evaluate(() => {
 const graphTab = (page: Page) => page.locator('.mob-tab', { hasText: 'Graph' });
 const boxTab = (page: Page) => page.locator('.mob-tab', { hasText: 'Box' });
 
-/** Close the menu by tapping the overlay to the right of the drawer. */
-async function closeMenu(page: Page): Promise<void> {
-  const overlay = page.locator('.mob-menu-overlay');
-  const box = await overlay.boundingBox();
-  if (!box) throw new Error('menu overlay not laid out');
-  await overlay.click({ position: { x: box.width - 5, y: box.height / 2 } });
-  await expect(page.locator('.mob-menu')).toHaveCount(0);
-}
-
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
@@ -36,38 +27,40 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('MobileProjectList', () => {
-  test('the menu lists the open project at the bottom, though it was never saved', async ({ page }) => {
-    await openMobileMenu(page);
-    const rows = page.locator('.mob-open-project');
+  test('the Projects pane lists the open project, though it was never saved', async ({ page }) => {
+    await tapMobileMenuItem(page, 'Projects');
+    const rows = page.locator('.mob-project-row');
     await expect(rows).toHaveCount(1);
-    await expect(rows.first()).toHaveClass(/focused/);
+    await expect(rows.first()).toHaveClass(/active/);
   });
 
   test('an open project has a show-on-graphs checkbox, ticked by default', async ({ page }) => {
-    await openMobileMenu(page);
-    await expect(page.locator('.mob-open-project-show').first()).toBeChecked();
-    await page.locator('.mob-open-project-show').first().uncheck();
-    await expect(page.locator('.mob-open-project-show').first()).not.toBeChecked();
+    await tapMobileMenuItem(page, 'Projects');
+    await expect(page.locator('.mob-project-show').first()).toBeChecked();
+    await page.locator('.mob-project-show').first().uncheck();
+    await expect(page.locator('.mob-project-show').first()).not.toBeChecked();
   });
 
   test('opening the same project twice leaves one row', async ({ page }) => {
     await openAMobileProject(page);
-    await openMobileMenu(page);
-    const rows = page.locator('.mob-open-project');
+    await tapMobileMenuItem(page, 'Projects');
+    const rows = page.locator('.mob-project-row');
     await expect(rows).toHaveCount(1);
-    await expect(rows.first()).toHaveClass(/focused/);
+    await expect(rows.first()).toHaveClass(/active/);
   });
 
   test('a second open project gets its own row, and a tap on it focuses it', async ({ page }) => {
     await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
-    await openMobileMenu(page);
-    const rows = page.locator('.mob-open-project');
+    await tapMobileMenuItem(page, 'Projects');
+    const rows = page.locator('.mob-project-row');
     await expect(rows).toHaveCount(2);
-    await expect(rows.nth(1)).toHaveClass(/focused/);
-    await rows.nth(0).locator('.mob-open-project-name').click();
-    await expect(page.locator('.mob-menu')).toHaveCount(0);
-    await openMobileMenu(page);
-    await expect(rows.nth(0)).toHaveClass(/focused/);
+    const secondRow = page.locator('.mob-project-row', { hasText: 'complete-driver-project' });
+    const firstRow = page.locator('.mob-project-row', { hasText: 'sample-project' });
+    await expect(secondRow).toHaveClass(/active/);
+    await firstRow.locator('.mob-project-info').click();
+    await expect(page.locator('.mob-projects-pane')).toHaveCount(0);
+    await tapMobileMenuItem(page, 'Projects');
+    await expect(firstRow).toHaveClass(/active/);
   });
 
   // bugs/BUG_20261005_project-selection-lost-on-reload.md
@@ -76,10 +69,10 @@ test.describe('MobileProjectList', () => {
     await graphTab(page).click();
     await expect.poll(() => inkColours(page)).toBeGreaterThan(0);
     const shown = await inkColours(page);
-    await boxTab(page).click(); // the Graph view has no menu button
-    await openMobileMenu(page);
-    await page.locator('.mob-open-project-show').first().uncheck();
-    await closeMenu(page);
+    await boxTab(page).click();
+    await tapMobileMenuItem(page, 'Projects');
+    await page.locator('.mob-project-row', { hasText: 'sample-project' }).locator('.mob-project-show').uncheck();
+    await page.locator('.mob-dlg-close').click();
     await graphTab(page).click();
     await expect.poll(() => inkColours(page)).toBeLessThan(shown);
     const hidden = await inkColours(page);
@@ -87,18 +80,18 @@ test.describe('MobileProjectList', () => {
     await page.reload();
 
     await boxTab(page).click();
-    await openMobileMenu(page);
-    await expect(page.locator('.mob-open-project-show')).toHaveCount(2);
-    await expect(page.locator('.mob-open-project-show').first()).not.toBeChecked();
-    await expect(page.locator('.mob-open-project-show').nth(1)).toBeChecked();
-    await closeMenu(page);
+    await tapMobileMenuItem(page, 'Projects');
+    await expect(page.locator('.mob-project-show')).toHaveCount(2);
+    await expect(page.locator('.mob-project-row', { hasText: 'sample-project' }).locator('.mob-project-show')).not.toBeChecked();
+    await expect(page.locator('.mob-project-row', { hasText: 'complete-driver-project' }).locator('.mob-project-show')).toBeChecked();
+    await page.locator('.mob-dlg-close').click();
     await graphTab(page).click();
     await expect.poll(async () => Math.abs(await inkColours(page) - hidden)).toBeLessThanOrEqual(2);
   });
 
   test('tapping a project\'s colour swatch changes its colour', async ({ page }) => {
-    await openMobileMenu(page);
-    const swatch = page.locator('.mob-open-project-colour').first();
+    await tapMobileMenuItem(page, 'Projects');
+    const swatch = page.locator('.mob-project-swatch').first();
     const before = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
     await swatch.click();
     await expect.poll(() => swatch.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe(before);

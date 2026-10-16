@@ -5,7 +5,7 @@
  */
 import {type Ref, computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
-import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
+import {cycleTraceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse} from './telemetryContext.js';
 import {inputFrom} from '../logic/domEvents.js';
@@ -100,11 +100,10 @@ export interface MobileShellApi {
   username: import('vue').ComputedRef<string | null>;
   /** The version of the running build, shown in the menu; '' on a dev server. */
   appVersion: import('vue').Ref<string>;
-  /** The "Open project" sheet — previously-SAVED projects (browser storage), distinct from
-   *  "Open a file" (`openFromDisk`, a disk import). Desktop's own `openDialogOpen`/
-   *  `storedProjects`/`openStoredProject` (OriginalShell-hooks.ts), mobile had no equivalent
-   *  (John, 2026-10-02: "the file menu offer no way to save and reopen projects"). */
-  openDialogOpen: import('vue').Ref<boolean>;
+  /** Full-screen Projects pane. */
+  projectsPaneOpen: import('vue').Ref<boolean>;
+  openProjectsPane: () => void;
+  closeProjectsPane: () => void;
   projectRows: import('vue').ComputedRef<ProjectListRow[]>;
   shownProjects: import('vue').ComputedRef<ProjectListRow[]>;
   /** "35 projects · 770 KB · 2 open". */
@@ -113,10 +112,18 @@ export interface MobileShellApi {
   projectQuery: import('vue').Ref<string>;
   projectOrder: import('vue').Ref<import('@openisd/design/fields').ProjectRowOrder>;
   projectOrders: readonly import('@openisd/design/fields').ProjectRowOrder[];
-  openProjectDialog: () => void;
   /** Opens a saved project, or makes an open one active. */
   chooseProject: (row: ProjectListRow) => void;
-  /** The Bin view inside the Open project sheet (projectBinView.ts). */
+  setProjectTraceVisible: (row: ProjectListRow, visible: boolean) => void;
+  cycleProjectColour: (row: ProjectListRow) => void;
+  closeProjectRow: (row: ProjectListRow) => Promise<void>;
+  duplicateProjectRow: (row: ProjectListRow) => void;
+  exportProjectRow: (row: ProjectListRow) => Promise<void>;
+  /** Makes the row's project active and opens the Project pane, whose Name field renames it. */
+  renameProjectRow: (row: ProjectListRow) => void;
+  /** A conflict copy: the Cloud sync pane, which lists the conflicts. */
+  resolveProjectRow: (row: ProjectListRow) => void;
+  /** The Bin view inside the Projects pane (projectBinView.ts). */
   binRows: import('vue').Ref<BinRow[]>;
   binTotal: import('vue').Ref<string>;
   binOpen: import('vue').Ref<boolean>;
@@ -125,12 +132,6 @@ export interface MobileShellApi {
   restoreFromBin: (row: BinRow) => void;
   deleteForever: (row: BinRow) => Promise<void>;
   emptyBin: () => Promise<void>;
-  /** Every open project, saved or not — the same registry as desktop's Projects panel. */
-  openProjectRows: import('vue').ComputedRef<OpenProjectRow[]>;
-  selectOpenProject: (row: OpenProjectRow) => void;
-  setOpenProjectTraceVisible: (row: OpenProjectRow, visible: boolean) => void;
-  cycleOpenProjectColour: (row: OpenProjectRow) => void;
-  closeOpenProject: (row: OpenProjectRow) => void;
   cloudEnabled: Readonly<Ref<boolean>>;
   cloudSyncDisplay: Readonly<Ref<SyncDisplay>>;
   handleSyncTap: (action: SyncTap) => void;
@@ -148,21 +149,9 @@ export interface MobileShellApi {
   openConflict: (id: ConflictCopy['id']) => void;
 }
 
-/** One open project in the menu's "Open projects" list. */
-export interface OpenProjectRow {
-  readonly project: OpenISDProject;
-  readonly name: string;
-  readonly unsaved: boolean;
-  readonly focused: boolean;
-  /** Whether this project's trace is drawn on the graphs. */
-  readonly traceVisible: boolean;
-  /** The colour this project's curves are drawn in. */
-  readonly colour: string;
-}
-
 export function useMobileShell(): MobileShellApi {
   const { appState, presentation: presentationState } = useApp();
-  const { isTraceVisible, setTraceVisible, traceVisibilityRevision, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
+  const { setTraceVisible, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
   const { setSkinOverride } = presentationState;
   const { designIO, projectRepo, projectBin, releases, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
@@ -207,10 +196,8 @@ export function useMobileShell(): MobileShellApi {
     closeMenu();
   }
 
-  // "Open project" — previously-SAVED projects (browser storage), not a disk import. Desktop's
-  // own openDialogOpen/storedProjects/openStoredProject (OriginalShell-hooks.ts); mobile had no
-  // equivalent (John, 2026-10-02: "the file menu offer no way to save and reopen projects").
-  const openDialogOpen = ref(false);
+  // Projects pane — previously-SAVED projects (browser storage) and open projects.
+  const projectsPaneOpen = ref(false);
   const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
     appState, projectRepo, projectBin, confirm: confirmPort.port,
@@ -219,11 +206,14 @@ export function useMobileShell(): MobileShellApi {
   });
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
-  function openProjectDialog(): void {
+  function openProjectsPane(): void {
     binView.refresh();
     binOpen.value = false;
-    openDialogOpen.value = true;
+    projectsPaneOpen.value = true;
     closeMenu();
+  }
+  function closeProjectsPane(): void {
+    projectsPaneOpen.value = false;
   }
   function openStoredProject(id: string): void {
     const result = openStoredProjectFromStore(appState, projectRepo, id);
@@ -231,7 +221,7 @@ export function useMobileShell(): MobileShellApi {
       alert('Could not open the saved project: ' + result.errors.join('; '));
       return;
     }
-    openDialogOpen.value = false;
+    projectsPaneOpen.value = false;
   }
   /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
   function chooseProject(row: ProjectListRow): void {
@@ -241,23 +231,81 @@ export function useMobileShell(): MobileShellApi {
       return;
     }
     appState.focusProject(appState.openProjects().indexOf(handle.project));
-    openDialogOpen.value = false;
+    projectsPaneOpen.value = false;
   }
 
-  // "Open projects" — the registry desktop's Projects panel lists (OriginalShell-hooks.ts), so a
-  // project that is open but never saved is reachable here too.
-  const openProjectRows = computed<OpenProjectRow[]>(() => {
-    const focused = focusedProject();
-    void traceVisibilityRevision.value;
-    return openProjects().map(project => ({
-      project,
-      name: projectDisplayName(project),
-      unsaved: projectHasUnsavedChanges(project),
-      focused: project === focused,
-      traceVisible: isTraceVisible(project),
-      colour: traceColor(project),
-    }));
-  });
+  function projectOfRow(row: ProjectListRow): OpenISDProject | null {
+    const handle = row.handle;
+    return handle.kind === 'notSaved' ? handle.project : handle.open;
+  }
+
+  function setProjectTraceVisible(row: ProjectListRow, visible: boolean): void {
+    const project = projectOfRow(row);
+    if (project !== null) setTraceVisible(project, visible);
+  }
+
+  function cycleProjectColour(row: ProjectListRow): void {
+    const project = projectOfRow(row);
+    if (project !== null) cycleTraceColor(project);
+  }
+
+  async function closeProjectRow(row: ProjectListRow): Promise<void> {
+    const project = projectOfRow(row);
+    if (project === null) return;
+    if (projectHasUnsavedChanges(project)) {
+      const name = projectDisplayName(project);
+      const confirmed = await confirmPort.port.ask({
+        title: 'Close project?',
+        message: `"${name}" has unsaved changes. Close it without saving?`,
+        confirmLabel: 'Close',
+        cancelLabel: 'Cancel',
+      });
+      if (!confirmed) return;
+    }
+    const index = openProjects().indexOf(project);
+    if (index >= 0) removeProject(index);
+  }
+
+  /** Makes the row's project the focused one, opening it first if it is only saved. False when it
+   *  could not be opened (the user was told). */
+  function focusRow(row: ProjectListRow): boolean {
+    const project = projectOfRow(row);
+    if (project !== null) {
+      const index = openProjects().indexOf(project);
+      if (index >= 0) focusProject(index);
+      return true;
+    }
+    if (row.handle.kind !== 'saved') return false;
+    const result = openStoredProjectFromStore(appState, projectRepo, row.handle.id);
+    if (result.kind === 'refused') {
+      alert('Could not open the saved project: ' + result.errors.join('; '));
+      return false;
+    }
+    return true;
+  }
+
+  function duplicateProjectRow(row: ProjectListRow): void {
+    if (!focusRow(row)) return;
+    const taken = openProjects().map(projectDisplayName);
+    appState.duplicateFocusedProject(appState.copyProjectName(taken));
+  }
+
+  function renameProjectRow(row: ProjectListRow): void {
+    if (!focusRow(row)) return;
+    projectsPaneOpen.value = false;
+    goToProject();
+  }
+
+  function resolveProjectRow(_row: ProjectListRow): void {
+    projectsPaneOpen.value = false;
+    openCloudSync();
+  }
+
+  async function exportProjectRow(row: ProjectListRow): Promise<void> {
+    if (!focusRow(row)) return;
+    await designIO.saveProjectAs();
+  }
+
   // New-version notice: checked on start, whenever the app comes back to the foreground, and every
   // few minutes while it stays open.
   const updateBannerVisible = computed(() => releases.newVersionAvailable.value);
@@ -276,31 +324,7 @@ export function useMobileShell(): MobileShellApi {
     clearInterval(updateTimer);
   });
 
-  const anyUnsaved = computed(() => openProjectRows.value.some(row => row.unsaved));
-  function selectOpenProject(row: OpenProjectRow): void {
-    const index = openProjects().indexOf(row.project);
-    if (index >= 0) focusProject(index);
-    closeMenu();
-  }
-  function setOpenProjectTraceVisible(row: OpenProjectRow, visible: boolean): void {
-    setTraceVisible(row.project, visible);
-  }
-  function cycleOpenProjectColour(row: OpenProjectRow): void { cycleTraceColor(row.project); }
-  async function closeOpenProject(row: OpenProjectRow): Promise<void> {
-    if (row.unsaved) {
-      const confirmed = await confirmPort.port.ask({
-        title: 'Close project?',
-        message: `"${row.name}" has unsaved changes. Close it without saving?`,
-        confirmLabel: 'Close',
-        cancelLabel: 'Cancel',
-      });
-      if (!confirmed) return;
-    }
-    const index = openProjects().indexOf(row.project);
-    if (index >= 0) removeProject(index);
-    // The last one closed: the empty screen is the next step, not the menu.
-    if (openProjects().length === 0) closeMenu();
-  }
+  const anyUnsaved = computed(() => openProjects().some(p => projectHasUnsavedChanges(p)));
 
   async function confirmDiscard(): Promise<boolean> {
     return confirmPort.port.ask({
@@ -472,9 +496,10 @@ export function useMobileShell(): MobileShellApi {
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
-    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, openProjectDialog, chooseProject,
+    projectsPaneOpen, openProjectsPane, closeProjectsPane,
+    projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
+    setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
-    openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,
     onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel, openCloudSync,
     reconnectCloud: cloudSyncUi.reconnect, openConflictNotice: cloudSyncUi.viewConflicts,

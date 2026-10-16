@@ -46,23 +46,24 @@ test('mobile: Bin a project, see it in the Bin, then Empty Bin', async ({ page }
   await page.goto('/');
   await openAMobileProject(page);
   await tapMobileMenuItem(page, /^Save$/);
-  await tapMobileMenuItem(page, 'Open project…');
-  const sheet = page.locator('.mob-open-project-sheet');
+  await tapMobileMenuItem(page, 'Projects');
+  const pane = page.locator('.mob-projects-pane');
 
-  await sheet.getByRole('button', {name: 'Move sample-project to the Bin'}).click();
+  await pane.locator('.mob-project-menu-btn').first().click();
+  await page.locator('.mob-action-sheet').getByRole('button', {name: 'Move to Bin'}).click();
   await expect(page.getByText(MOVE_TEXT)).toBeVisible();
   await page.locator('.confirm-dialog-confirm').click();
-  await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(0);
+  await expect(pane.locator('.mob-project-row')).toHaveCount(0);
 
-  await sheet.getByRole('button', {name: 'Bin (1)'}).click();
-  await expect(sheet.locator('.mob-bin-row .mob-stored-project-name')).toHaveText(['sample-project']);
-  await expect(sheet.locator('.mob-bin-row .mob-stored-project-summary')).toHaveText(DETAIL);
-  await sheet.locator('.mob-bin-empty').click();
+  await pane.getByRole('button', {name: 'Bin (1)'}).click();
+  await expect(pane.locator('.mob-bin-row .mob-stored-project-name')).toHaveText(['sample-project']);
+  await expect(pane.locator('.mob-bin-row .mob-stored-project-summary')).toHaveText(DETAIL);
+  await pane.locator('.mob-bin-empty').click();
   await expect(page.getByText('Delete 1 project in the Bin', {exact: false})).toBeVisible();
   await page.locator('.confirm-dialog-confirm').click();
-  await expect(sheet.getByText('The Bin is empty.')).toBeVisible();
+  await expect(pane.getByText('The Bin is empty.')).toBeVisible();
 
-  await sheet.locator('.mob-dlg-ok').click();
+  await pane.locator('.mob-dlg-close').click();
   await expect(page.getByText('No project open')).toBeVisible();
 });
 
@@ -93,11 +94,10 @@ test('mobile at 360px: the Bin button is an icon and the Open project sheet has 
   await page.goto('/');
   await openAMobileProject(page);
   await tapMobileMenuItem(page, /^Save$/);
-  await tapMobileMenuItem(page, 'Open project…');
-  const sheet = page.locator('.mob-open-project-sheet');
+  await tapMobileMenuItem(page, 'Projects');
+  const pane = page.locator('.mob-projects-pane');
 
-  await expect(sheet.locator('.mob-stored-project-bin')).toHaveText('');
-  await expect(sheet.locator('.mob-stored-project-bin')).toHaveAttribute('title', /^Move .* to the Bin$/);
-  const fits = await sheet.evaluate(e => e.scrollWidth <= e.clientWidth);
+  await expect(pane.locator('.mob-bin-toggle svg')).toBeVisible();
+  const fits = await pane.evaluate(e => e.scrollWidth <= e.clientWidth);
   expect(fits, 'sheet scrolls sideways').toBe(true);
 });

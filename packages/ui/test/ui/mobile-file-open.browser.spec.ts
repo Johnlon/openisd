@@ -35,21 +35,21 @@ test.describe('Mobile file-open dialog and diagnostics', () => {
     await page.getByRole('button', { name: 'Open project' }).click();
 
     // The open project sheet opens and shows the file list
-    const sheet = page.locator('.mob-open-project-sheet');
-    await expect(sheet).toBeVisible();
-    await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(1);
+    const pane = page.locator('.mob-projects-pane');
+    await expect(pane).toBeVisible();
+    await expect(pane.locator('.mob-project-row')).toHaveCount(1);
 
     // Diagnostics modal is NOT visible and page does not contain diagnostics dump
     await expect(page.locator('.dg')).toHaveCount(0);
     await expect(page.locator('body')).not.toContainText('OpenISD diagnostics');
 
     // Close the file-open sheet
-    await sheet.locator('.mob-dlg-close').click();
-    await expect(sheet).toHaveCount(0);
+    await pane.locator('.mob-dlg-close').click();
+    await expect(pane).toHaveCount(0);
 
     // Open a project to get access to the hamburger menu
     await page.getByRole('button', { name: 'Open project' }).click();
-    await sheet.locator('.mob-stored-project-row').click();
+    await pane.locator('.mob-project-row').click();
     await expect(page.locator('.mob-topbar')).toBeVisible();
 
     // Open the hamburger menu and verify explicit Diagnostics action

@@ -14,7 +14,7 @@
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {renameFocusedProject, setFocusedBoxType} from '../fixtures/focusedProjectSeam.js';
-import {forceMobileSkin, mobileFieldRow, openMobileMenu} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, mobileFieldRow, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);
@@ -184,8 +184,8 @@ test.describe('MobileBoxTab', () => {
     }
 
     async function switchTo(page: Page, name: string): Promise<void> {
-      await openMobileMenu(page);
-      await page.locator('.mob-open-project-name', { hasText: name }).click();
+      await tapMobileMenuItem(page, 'Projects');
+      await page.locator('.mob-project-name', { hasText: name }).click();
     }
 
     test('between a vented and a passive radiator project repaints the tabs and the Box tab', async ({ page }) => {
