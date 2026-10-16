@@ -1,10 +1,10 @@
 :root {
   /* Phone field rows: one set of metrics for every mobile tab (John, 2026-10-15: shallower rows so a
      tuning tab fits without scrolling). Rows stay at least 40px to tap. */
-  --mob-row-pad-y: 2px;
+  --mob-row-pad-y: 4px;
   --mob-row-min: 40px;
   --mob-input-h: 30px;
-  --mob-label-lh: 12px;
+  --mob-label-lh: 16px;
   /* WinISD-light palette. Applies to the global overlays App.vue mounts outside the shell
      (driver library, driver editor, flash); the shell re-declares the same tokens on
      `.original-root` for everything it draws itself. */

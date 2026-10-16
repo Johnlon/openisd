@@ -98,6 +98,9 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
   cursor: pointer;
 }
 .mob-sheet {
+  /* The sheet keeps its own dense rows; the tab rows' roomier label line is not its. */
+  --mob-row-pad-y: 2px;
+  --mob-label-lh: 12px;
   flex: none;
   height: auto;
   max-height: calc(100% - 120px);

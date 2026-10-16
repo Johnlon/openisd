@@ -1,0 +1,27 @@
+id: T240
+release_note: 'Phone field labels no longer touch the row border'
+repo: openisd
+owner: sonnet
+status: done
+goal: Mobile field labels clear of the row border, and the storage banner takes layout space
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T240.yml
+  - bugs/BUG_20261016_mobile-row-labels-touch-the-row-border.md
+  - bugs/BUG_20261016_storage-banner-covers-chart.md
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/test/ui/mobile-row-labels.browser.spec.ts
+  - packages/ui/test/ui/persistence-banner-layout.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+visual:
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-signal

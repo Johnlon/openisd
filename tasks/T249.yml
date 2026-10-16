@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 82b41fa3c7950b8fa48cae670fbba894ebb358e1
 goal: Heavy jobs state a measured memory cost and are admitted by a flock pool; the suite has its own reserve; vitest workers are fixed (F2, F21, F38, F39, F45)
 done_test: bash scripts/land/test/budget-conf.test.sh
 files:
