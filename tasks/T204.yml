@@ -3,6 +3,7 @@ release_note: 'The Open project list shows every project, saved or open: open on
 repo: openisd
 owner: maryu
 status: done
+landed: c878fbab55c5a284b23c6caaf268f64ba036614e
 goal: Project view 1: one design-side ProjectRow model merging saved and open projects (name, conflict tag, summary, edited date, size, sync mark, flags, sort, search, totals)
 done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts packages/persistence/test/cloud/cloudSync.test.ts
 files:

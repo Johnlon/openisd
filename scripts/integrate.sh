@@ -167,8 +167,8 @@ mapfile -t changed < <(git diff --name-only --diff-filter=ACMR origin/main HEAD)
 for required in ${LINT_REQUIRES:-}; do
   [ -e "$required" ] || { GATE_OUT=/dev/null; refuse lint "$required is missing in $WT"; }
 done
-gate lint /dev/null "$LINT_CMD" "${changed[@]}"
-gate typecheck /dev/null "$TYPECHECK_CMD"
+GATE_DEADLINE_S="${LINT_DEADLINE_S:-$GATE_DEADLINE_S}" gate lint /dev/null "$LINT_CMD" "${changed[@]}"
+GATE_DEADLINE_S="${TYPECHECK_DEADLINE_S:-$GATE_DEADLINE_S}" gate typecheck /dev/null "$TYPECHECK_CMD"
 [ -n "${UNIT_CMD:-}" ] || { GATE_OUT=/dev/null; refuse unit "UNIT_CMD is not set in land.conf"; }
 GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate unit /dev/null "$UNIT_CMD" "${changed[@]}"
 

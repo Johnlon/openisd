@@ -154,8 +154,8 @@ for required in ${LINT_REQUIRES:-}; do
   [ -e "$required" ] || { GATE_OUT=/dev/null; refuse lint "$required is missing in $ROOT, so lint would run with whatever tool the path finds. Create worktrees with _agent_files/bin/new-worktree.sh, which links it in."; }
 done
 mapfile -t changed < <(git diff --name-only --diff-filter=ACMR origin/main HEAD)
-run_gate lint /dev/null "$LINT_CMD" "${changed[@]}"
-run_gate typecheck /dev/null "$TYPECHECK_CMD"
+GATE_DEADLINE_S="${LINT_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate lint /dev/null "$LINT_CMD" "${changed[@]}"
+GATE_DEADLINE_S="${TYPECHECK_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate typecheck /dev/null "$TYPECHECK_CMD"
 # The unit half of every test the change can reach runs HERE, before the push (SDLC S1): a unit
 # failure found post-land costs every landing until it is fixed. Its own deadline: a unit run is
 # longer than lint.

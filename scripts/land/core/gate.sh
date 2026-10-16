@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # One gate of a landing, fail closed on its own deadline. Sourced by scripts/land.sh.
 #
-# A gate that exits non-zero, or is still running at GATE_DEADLINE_S, refuses the landing. The gate
+# A gate that exits non-zero, or is still running at GATE_DEADLINE_S (0 = no deadline), refuses the landing. The gate
 # runs under `timeout`, which gives it its own process group and kills the whole group at the
 # deadline (TERM, then KILL 2 s later), so a hung gate leaves no process behind. If land.sh itself
 # is stopped, gate_stop passes the stop to the running gate.

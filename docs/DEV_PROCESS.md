@@ -50,7 +50,7 @@ One landing at a time (flock `LAND_LOCK`). In order:
 2. Rebase onto origin/main. A conflict aborts the rebase, marks the task blocked, exits 3.
 3. Locked files unchanged; `done_test` and `locked` entries as on origin/main.
 4. No open `tasks/fixes/*.yml`, unless this task has `label: fixes`.
-5. Gates, each with its own deadline (`GATE_DEADLINE_S`): lint on the changed files, typecheck,
+5. Gates, each with its own deadline (`GATE_DEADLINE_S`; lint and typecheck have none, `LINT_DEADLINE_S`/`TYPECHECK_DEADLINE_S`=0): lint on the changed files, typecheck,
    `done_test`, attribution guard on each new commit message. A gate past its deadline is refused
    and killed.
 6. Push to main, then start the post-land run, detached.

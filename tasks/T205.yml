@@ -1,0 +1,14 @@
+id: T205
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: 'Lint and typecheck gates run without a deadline: both finish on their own and only run slow under load, and T203 lint was killed at 900 s three times at load 15 (John, 16 Oct 2026: no timeout on tools like that)'
+done_test: bash -c '. land.conf; [ "$LINT_DEADLINE_S" = 0 ] && [ "$TYPECHECK_DEADLINE_S" = 0 ] && grep -q LINT_DEADLINE_S scripts/land.sh scripts/integrate.sh && timeout 0 true'
+files:
+  - tasks/T205.yml
+  - land.conf
+  - scripts/land.sh
+  - scripts/integrate.sh
+  - scripts/land/core/gate.sh
+  - docs/DEV_PROCESS.md
