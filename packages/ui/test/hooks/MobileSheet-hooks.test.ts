@@ -4,7 +4,7 @@
  * back and keeps the sheet open. In Tune mode, writes land directly in the project.
  */
 import {describe, expect, it} from 'vitest';
-import {computed, effectScope, ref} from 'vue';
+import {computed, effectScope, ref, shallowRef} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
 import {SheetField, SheetMode} from '@openisd/design/fields';
@@ -25,19 +25,29 @@ const LAUNCH_ENV: LaunchEnvironment = {
 };
 
 function sheet(mode = ref(SheetMode.LEARN), telemetryUi?: TelemetryUi) {
-  const project = ProjectBuilder.empty(createEngine());
-  project.driver.specs.Fs_hz.set(40);
-  project.driver.specs.Qts.set(0.38);
-  project.driver.specs.Vas_m3.set(0.03);
-  project.box.sealed.volume_m3.set(0.012);
-  project.save();
+  const p = ProjectBuilder.empty(createEngine());
+  p.driver.specs.Fs_hz.set(40);
+  p.driver.specs.Qts.set(0.38);
+  p.driver.specs.Vas_m3.set(0.03);
+  p.box.sealed.volume_m3.set(0.012);
+  p.save();
+  const project = shallowRef(p);
   const open = ref(false);
-  const api = runHook(computed(() => project), () =>
+  const api = runHook(computed(() => project.value), () =>
     useMobileSheet({ open: () => open.value, setOpen: v => { open.value = v; }, mode }), undefined, telemetryUi);
-  return { project, open, mode, api };
+  return { project: p, projectRef: project, open, mode, api };
 }
 
 describe('useMobileSheet', () => {
+
+  it('exposes rowSlots for the focused project box type', () => {
+    const { projectRef, api } = sheet();
+    expect(api.rowSlots.value).toBe(SheetMode.rowSlots('sealed'));
+    const abc = ProjectBuilder.empty(createEngine());
+    abc.box.boxType.set('abc');
+    projectRef.value = abc;
+    expect(api.rowSlots.value).toBe(SheetMode.rowSlots('abc'));
+  });
 
   it('opening begins a What-if', () => {
     const { project, open, api } = sheet();

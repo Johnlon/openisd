@@ -1,0 +1,22 @@
+id: T223
+release_note: 'Tune sheet task 3: mobile sheet UI'
+repo: openisd
+owner: sonnet
+status: done
+goal: 'Tune sheet task 3: mobile sheet UI'
+done_test: bash scripts/test.sh packages/ui/test/hooks/MobileSheet-hooks.test.ts packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
+files:
+  - tasks/T223.yml
+  - packages/ui/src/hooks/sheetSession.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/test/hooks/MobileSheet-hooks.test.ts
+  - packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-port.browser.spec.ts
+  - packages/ui/src/ui/shells/mobile/MobileWhatIfSheet.vue
+  - packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts
+  - packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts
+  - packages/ui/test/ui/mobile-what-if-port.browser.spec.ts

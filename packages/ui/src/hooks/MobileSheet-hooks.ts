@@ -48,6 +48,7 @@ export interface MobileSheetAPI {
   readonly isOpen: ComputedRef<boolean>;
   readonly lines: ComputedRef<readonly (readonly SheetRow[])[]>;
   readonly rows: ComputedRef<readonly SheetRow[]>;
+  readonly rowSlots: ComputedRef<number>;
   readonly mode: Ref<SheetMode>;
   setMode(next: SheetMode): void;
   /** The port-area row whose port's fields are open, or null. */
@@ -158,7 +159,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
   }
 
   return {
-    isOpen, lines: session.lines, rows: session.rows, mode, setMode: session.setMode,
+    isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode, setMode: session.setMode,
     portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };

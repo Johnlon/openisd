@@ -17,7 +17,7 @@ const WHAT_IF_FILES: readonly string[] = [
   'hooks/OriginalWhatIf-hooks.ts',
   'hooks/MobileSheet-hooks.ts',
   'ui/shells/original/OriginalWhatIf.vue',
-  'ui/shells/mobile/MobileWhatIfSheet.vue',
+  'ui/shells/mobile/MobileSheet.vue',
 ];
 
 const PROJECT_WRITES: readonly RegExp[] = [/\.save\(\)/, /\.cancel\(\)/, /resetProjectToGround/];

@@ -4,12 +4,12 @@
 // GraphPanel's canvas sets touch-action:none (custom pointer gestures); in a stack it is relaxed
 // to pan-y, so a vertical swipe scrolls the list and a sideways drag still moves the cursor.
 import GraphPanel from '../../components/GraphPanel.vue';
-import MobileWhatIfSheet from './MobileWhatIfSheet.vue';
+import MobileSheet from './MobileSheet.vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, sheetMode } = useMobileChartView();
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicke
         <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!sheetOpen" />
       </div>
     </div>
-    <MobileWhatIfSheet v-model:open="sheetOpen" />
+    <MobileSheet v-model:open="sheetOpen" v-model:mode="sheetMode" />
   </div>
 </template>
 

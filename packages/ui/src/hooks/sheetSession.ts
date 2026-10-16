@@ -45,6 +45,8 @@ export interface SheetSession {
   readonly lines: ComputedRef<readonly (readonly SheetRow[])[]>;
   /** The flat rows for the focused project's box type and mode, with live values. */
   readonly rows: ComputedRef<readonly SheetRow[]>;
+  /** Row slots reserved for the focused project's box type so the sheet does not resize on mode switch. */
+  readonly rowSlots: ComputedRef<number>;
   /** Switch mode: leaving Learn cancels the What-if layer; entering Learn begins one. Tune -> Tune and Learn -> Learn do nothing. */
   setMode(next: SheetMode): void;
   /** Start the What-if layer (no-op in Tune). */
@@ -112,6 +114,10 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
   });
 
   const rows = computed<readonly SheetRow[]>(() => lines.value.flat());
+  const rowSlots = computed<number>(() => {
+    void projectChanged.value;
+    return SheetMode.rowSlots(project.value.box.boxType.value);
+  });
 
   function begin(): void {
     switch (mode.value.edits) {
@@ -176,5 +182,5 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
   // The panel or sheet going away (leaving the Graph page, a skin change) is a way out too.
   if (getCurrentScope() !== undefined) onScopeDispose(close);
 
-  return { lines, rows, setMode, begin, set, reset, close };
+  return { lines, rows, rowSlots, setMode, begin, set, reset, close };
 }
