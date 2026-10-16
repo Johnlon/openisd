@@ -38,7 +38,7 @@ Field enum in packages/design) and for each name the sensible default a clear sh
 - Ql: a clear goes to the default.
 - Driver, PR and port counts: a clear goes to 1, and that 1 is shown as C, "their calculated
   default value", not E.
-- Rg: asked by John, not ruled yet.
+- Rg: a clear goes to the calculated default 0.1 ohm, shown as C (John, 16 Oct 2026).
 
 ## Fix
 - Box volumes:
