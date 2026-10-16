@@ -7,7 +7,7 @@
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
 import PersistenceBanner from '../../components/PersistenceBanner.vue';
-import {CompatSwitchGroup, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
+import {CompatSwitchGroup, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
@@ -290,7 +290,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <img src="/icon.svg" alt="" aria-hidden="true">
               <span>OpenISD</span>
             </div>
-            <div class="graph-empty-h">Open or Create a project for charts</div>
+            <div class="graph-empty-h">{{ NO_PROJECT_OPEN }}</div>
             <div class="graph-empty-actions">
               <button class="graph-empty-link" @click="presentationState.newProjectOpen = true"><ToolbarIcon name="new" /> <span>New project</span></button>
               <button class="graph-empty-link" @click="openClick"><ToolbarIcon name="open" /> <span>Open project</span></button>

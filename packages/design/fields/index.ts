@@ -123,3 +123,4 @@ export { type AppVersion, type BuildKind, type BuildTrail, formatAppVersion, tra
 /** The bottom sheet's rows per box type and sheet modes (Tune and Learn). */
 export { SheetField, type SheetSlot } from './sheetField.js';
 export { SheetMode, type SheetEdits } from './sheetMode.js';
+export { NO_PROJECT_OPEN } from './noProject.js';

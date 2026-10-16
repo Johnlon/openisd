@@ -424,16 +424,14 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     cloudSync,
   });
 
-  // Visibility only, not a recovery mechanism (PROMPT_RELEASE_HARDENING plan): a
-  // `NoFocusedProjectError` means the top-level gate itself has a bug, or a caller bypassed it —
-  // masking that would hide it. `console.error` always; the flash toast is best-effort (Logging
-  // is already constructed above, so this never races app startup).
+  // Every uncaught error is logged with `console.error`. A `NoFocusedProjectError` stops there: the
+  // shell already shows "No project open". Anything else gets the flash and the crash screen.
   app.config.errorHandler = (err, instance, info) => {
     console.error('[app] uncaught error', err, info, instance);
-    const message = err instanceof NoFocusedProjectError
-      ? 'Something needed an open project, but none is open. Please report this.'
-      : `Unexpected error: ${err instanceof Error ? err.message : String(err)}`;
-    logging.flash(message);
+    // No project open is a state the shell shows, never a crash (John, 16 Oct 2026): the reader that
+    // asked is logged above, and the no-project screen stays.
+    if (err instanceof NoFocusedProjectError) return;
+    logging.flash(`Unexpected error: ${err instanceof Error ? err.message : String(err)}`);
     crashReports.capture(err);
   };
 

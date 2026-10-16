@@ -3,6 +3,7 @@ release_note: The Model box on the desktop Driver tab is three times wider.
 repo: openisd
 owner: sonnet
 status: done
+landed: 7c4596f2554c7fe61fa4e5da607980a82c7ad0eb
 goal: 'Desktop Driver tab: the Model box is 420 px, shrinking to 140 px on a narrow window so the row never overflows'
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
 files:

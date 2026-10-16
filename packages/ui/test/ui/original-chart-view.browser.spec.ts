@@ -301,7 +301,7 @@ test.describe('Original chart view with no project open', () => {
     await page.goto('/');
 
     const emptyState = page.locator('.graph-empty');
-    await expect(emptyState).toContainText('Open or Create a project for charts');
+    await expect(emptyState).toContainText('No project open. Create or open a project.');
     await expect(emptyState.getByRole('button', { name: 'New project' })).toBeVisible();
     await expect(emptyState.getByRole('button', { name: 'Open project' })).toBeVisible();
     await expect(emptyState.getByRole('button', { name: 'Import project' })).toBeVisible();

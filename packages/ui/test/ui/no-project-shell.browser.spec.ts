@@ -31,7 +31,7 @@ test.describe('No-project shell', () => {
 
       // The chart area points at the path to a chart, the tab pane and the project list say
       // plainly that no project is open.
-      await expect(page.locator('.graph-empty-h')).toHaveText('Open or Create a project for charts');
+      await expect(page.locator('.graph-empty-h')).toHaveText('No project open. Create or open a project.');
       await expect(page.locator('.content-panel')).toContainText('No projects open');
       await expect(page.locator('.projects-list')).toContainText('No projects open');
     });

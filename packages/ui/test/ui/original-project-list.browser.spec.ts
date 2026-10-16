@@ -231,7 +231,7 @@ test.describe('Original project list', () => {
     await expect(page.locator('.original-root')).toBeVisible();
     await expect(page.locator('.projects-list')).toContainText('No projects open');
     await expect(page.locator('.content-panel')).toContainText('No projects open');
-    await expect(page.locator('.graph-empty-h')).toHaveText('Open or Create a project for charts');
+    await expect(page.locator('.graph-empty-h')).toHaveText('No project open. Create or open a project.');
     await expect(page.locator('canvas')).toHaveCount(0);
 
     // The shell's New action remains reachable.

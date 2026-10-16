@@ -27,6 +27,7 @@ import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
+import {NO_PROJECT_OPEN} from '@openisd/design/fields';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
@@ -57,7 +58,7 @@ const diagnostics = injectDiagnosticsModal();
         <img src="/icon.svg" alt="" aria-hidden="true">
         <span>OpenISD</span>
       </div>
-      <p class="mob-empty-title">No project open</p>
+      <p class="mob-empty-title">{{ NO_PROJECT_OPEN }}</p>
       <!-- Same three actions, words and icons as desktop's empty chart (OriginalShell.vue). -->
       <button type="button" class="mob-cta" @click="openNewProject"><ToolbarIcon name="new" /> <span>New project</span></button>
       <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectDialog"><ToolbarIcon name="open" /> <span>Open project</span></button>
