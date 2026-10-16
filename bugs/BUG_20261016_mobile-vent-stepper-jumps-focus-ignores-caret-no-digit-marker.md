@@ -16,7 +16,7 @@ John, 16 Oct 2026, mobile, vent editor. Port diameter E, length C, Fb C, Fb 27.5
   button"), so repeated presses keep stepping.
 - The step changes the digit at the cursor: cursor after the 2 steps the units, so 27.60 gives
   28.60.
-- The digit that will change is marked while the field has focus (T222 ruling: "stepped digit
+- The digit that will change is marked while the field or its buttons have focus (T222 ruling: "stepped digit
   marked").
 
 ## Evidence
