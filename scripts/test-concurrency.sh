@@ -82,6 +82,8 @@ reserve_test_slot() {
     print w
   }')"
   [ "$my_workers" -gt "$cpu_cap" ] && my_workers="$cpu_cap"
+  # The post-land suite runs a fixed worker count (scripts/budget.conf), costed in its own pool.
+  [ -z "${OPENISD_FIXED_WORKERS:-}" ] || my_workers="$OPENISD_FIXED_WORKERS"
 
   my_port="$OPENISD_PORT_POOL_START"
   for ((i = 0; i < OPENISD_PORT_POOL_SIZE; i++)); do

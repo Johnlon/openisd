@@ -232,6 +232,12 @@ git worktree add -q --detach "$COPY" "$SHA" || { echo "post-land: cannot check o
 printf '%s %s %s\n' "$$" "$(starttime $$)" "$SHA" > "$HOLDER"
 rm -f "$SUPERSEDE"
 echo "post-land: running the full suite on ${SHA:0:10}"
+# Where the next red can be read: whether either slice was throttled (high) or hit its ceiling (max)
+# inside this run's window. The counters are cumulative since boot; the difference is the window.
+# shellcheck source=../../slice-events.sh
+. "$ROOT/scripts/slice-events.sh"
+high_before=$(slice_event_count heavy.slice high)
+echo "post-land: start $(slice_events_line heavy.slice)"
 printf '%s %s %s\n' "$$" "$(date +%s)" "$SHA" > "$RUNNING"
 set -m
 ( cd "$COPY" && export POST_LAND_SRC="$ROOT" && exec bash -c "$FULL_SUITE_CMD" ) > "$OUT" 2>&1 &
@@ -258,6 +264,10 @@ if [ "$timed_out" = 1 ]; then
   echo "post-land: TIMED OUT after $((SECONDS - started))s at $SHA" | tee -a "$OUT"
 fi
 rm -f "$RUNNING"
+echo "post-land: end $(slice_events_line heavy.slice)"
+if [ "$(slice_event_count heavy.slice high)" != "$high_before" ]; then
+  echo "post-land: suite throttled: sizing bug (heavy.slice went over MemoryHigh during this run; re-measure scripts/budget.conf)"
+fi
 trap 'exit 143' TERM
 printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}.tested.$$" "${POST_LAND_LOCK}.tested"
 

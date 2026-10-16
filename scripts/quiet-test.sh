@@ -16,6 +16,8 @@ if [ "$#" -eq 0 ]; then
 fi
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+# Memory admission: the job starts when its measured cost fits its pool (scripts/budget.conf), else it waits.
+BUDGET_SELF="${BASH_SOURCE[0]}" . scripts/budget-enter.sh "$@"
 # Targeted runs and gates take no heavy lane (T044): enter heavy.slice directly so ~/bin/npx
 # skips the lane queue. Only --slow runs (scripts/admit.sh) wait for a turn.
 case "$(cat /proc/self/cgroup 2>/dev/null)" in

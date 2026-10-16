@@ -18,6 +18,16 @@ fi
 if [ -z "${SUITE_LOCK_HELD:-}" ]; then
   exec env SUITE_LOCK_HELD=1 bash scripts/suite-lock.sh exclusive -- bash "$0" "$@"
 fi
+# The suite draws on its own reserve (scripts/budget.conf, pool "suite"): nothing else uses it, so an agent's
+# lint or unit run can never take the suite's memory, and the suite never waits for one.
+if [ -z "${BUDGET_SUITE_HELD:-}" ]; then
+  # shellcheck source=../../budget.conf
+  . scripts/budget.conf
+  exec env BUDGET_SUITE_HELD=1 bash scripts/budget.sh suite "$COST_SUITE_MB" -- bash "$0" "$@"
+fi
+# Fixed, not sized from free memory at run time: the same tests every run.
+. scripts/budget.conf
+export OPENISD_FIXED_WORKERS="$SUITE_WORKERS"
 src="${POST_LAND_SRC:?POST_LAND_SRC not set: start this through scripts/land/post-land/run.sh}"
 [ "$(stat -c %d "$src")" = "$(stat -c %d .)" ] \
   || { echo "suite: $PWD and $src are on different filesystems, so node_modules cannot be hardlinked; put POST_LAND_DIR beside the clones" >&2; exit 2; }

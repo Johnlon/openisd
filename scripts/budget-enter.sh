@@ -1,0 +1,11 @@
+# Sourced by a script that runs a heavy job, right after it has changed to the repo root:
+#   BUDGET_SELF="${BASH_SOURCE[0]}" . scripts/budget-enter.sh "$@"
+# Looks up the job's measured cost (scripts/budget-cost.sh) and re-runs the calling script inside
+# scripts/budget.sh, which starts it when the cost fits the pool and otherwise waits, announced.
+# BUDGET_HELD marks the re-run, so a script that calls another heavy script is admitted once.
+if [ -z "${BUDGET_HELD:-}" ]; then
+  read -r _budget_pool _budget_mb < <(bash scripts/budget-cost.sh "$BUDGET_SELF" "$@")
+  if [ "$_budget_pool" != none ]; then
+    exec env BUDGET_HELD=1 bash scripts/budget.sh "$_budget_pool" "$_budget_mb" -- bash "$BUDGET_SELF" "$@"
+  fi
+fi

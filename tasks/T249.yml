@@ -1,0 +1,34 @@
+id: T249
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Heavy jobs state a measured memory cost and are admitted by a flock pool; the suite has its own reserve; vitest workers are fixed (F2, F21, F38, F39, F45)
+done_test: bash scripts/land/test/budget-conf.test.sh
+files:
+  - tasks/T249.yml
+  - docs/design/SUITE_MEMORY.md
+  - scripts/budget-cost.sh
+  - scripts/budget-enter.sh
+  - scripts/budget-wait.py
+  - scripts/budget.conf
+  - scripts/budget.sh
+  - scripts/heavy.sh
+  - scripts/land/lint-changed.sh
+  - scripts/land/post-land/run.sh
+  - scripts/land/post-land/suite.sh
+  - scripts/land/test/budget-conf.test.sh
+  - scripts/land/test/budget.e2e.test.sh
+  - scripts/land/test/post-land.e2e.test.sh
+  - scripts/land/test/suite-admit.test.sh
+  - scripts/land/test/yield-and-slice.e2e.test.sh
+  - scripts/land/unit-changed.sh
+  - scripts/measure-peak.sh
+  - scripts/quiet-test.sh
+  - scripts/slice-events.sh
+  - scripts/systemd/heavy.slice
+  - scripts/systemd/install-slices.sh
+  - scripts/test-concurrency.sh
+  - scripts/test-reporters/spec-memory-playwright.mjs
+  - scripts/yield-to-suite.sh
+  - vitest.config.ts

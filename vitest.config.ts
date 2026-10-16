@@ -1,18 +1,13 @@
-import {cpus, loadavg} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {configDefaults, defineConfig} from 'vitest/config';
 
-// Worker cap for a run started outside the pre-commit hook (the hook passes --maxWorkers from
-// scripts/hooks-local/heavy-gate-concurrency.sh, which overrides this). Several agent sessions
-// share this box, so one run never takes more than half the cores, and less when the 1-minute
-// load already exceeds that half (John, 2026-09-29: load average was causing timeouts).
-function workerCap(): number {
-  const cores = cpus().length;
-  const half = Math.max(1, Math.floor(cores / 2));
-  const load = loadavg()[0];
-  if (load <= half) return half;
-  return Math.max(1, Math.floor(half * half / load));
-}
+// Worker count for a run started outside the pre-commit hook (the hook passes --maxWorkers from
+// scripts/hooks-local/heavy-gate-concurrency.sh, which overrides this). Fixed, and the same for every
+// project: it used to be sized from the 1-minute load average, so two projects evaluated a moment apart on
+// a busy box got different numbers and vitest refused to start ("Projects design and design-architecture
+// have different maxWorkers but same sequence.groupOrder": F2, F21, F38, F39). Memory is admitted by
+// scripts/budget.sh, costed at this count (scripts/budget.conf, VITEST_FULL_WORKERS).
+const WORKERS = 4;
 
 // Architecture tests are synchronous AST scans of the source tree: nothing in them awaits, so a
 // timeout can only fire because the machine is busy, and it then reports no offence at all. They
@@ -31,7 +26,7 @@ const UI_ARCHITECTURE = ['test/architecture/**/*.test.ts'];
 // engine suite silently isn't discovered. One project per workspace package.
 export default defineConfig({
   test: {
-    maxWorkers: workerCap(),
+    maxWorkers: WORKERS,
     // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-vitest.ts.
     // hanging-process names whatever keeps a finished run from exiting.
     reporters: ['default', 'hanging-process', './scripts/test-reporters/no-skips-vitest.ts'],
