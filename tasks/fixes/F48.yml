@@ -54,3 +54,10 @@ output: |
     828 passed (9.5m)
   suite: unit exit 0, browser exit 1
   post-land suite 3304878-7f0989b900 finished: FAILED (exit 1) after 12m04s
+also_red:
+  - sha: 5a8d8eb62e18cd125e904b1d38f0a4ac18e35246
+    failing: |
+        ✘  816 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-project (2.3s)
+    visual: |
+      visual screens: desktop-tab-project
+      visual page: http://lap:8000/winisd/visual-pages/red-5a8d8eb62e/index.html
