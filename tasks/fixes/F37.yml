@@ -65,3 +65,7 @@ output: |
     705 passed (11.4m)
   suite: unit exit 1, browser exit 1
   post-land suite 1323481-ea13f9d1d1 finished: FAILED (exit 1) after 36m30s
+also_red:
+  - sha: f765dba1abb2221e22c54348411365d36a95a738
+    failing: |
+    
