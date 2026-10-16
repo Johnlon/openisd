@@ -1,0 +1,54 @@
+id: F47
+owner: Johnlon
+status: open
+sha: 6f5e110c2ea93adaddd88e7f2c036265db66938d
+goal: main is red at 6f5e110c2e; make the full suite pass again
+commits: |
+  6f5e110c2e T245: Clearing a linked pair member keeps the partner as E
+  2ad11c79a6 T256: 'Rule: a UI layout issue goes to John with before and after screenshots
+failing: |
+       × finds no combination violation in shipped source 1511ms
+   FAIL  |design-architecture| test/architecture-field-type-combinations.test.ts > field type combinations — the capability atoms combine consistently wherever a field type is declared > finds no combination violation in shipped source
+    ✘  569 packages/ui/test/ui/original-box-tab.browser.spec.ts:151:3 › Original Box tab › the 6th-order bandpass Frc field stays blank when emptied instead of becoming 0 (20.9s)
+          44 × locator resolved to <input id="v-13" type="text" value="35.00" class="value-c" data-numinput="" data-v-1b432794="" autocomplete="off" inputmode="decimal" title="Rear Chamber Tuning Frequency (Frc)↵Target Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box."/>
+output: |
+    ✓  825 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-vented (889ms)
+    ✓  824 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-sealed (961ms)
+    ✓  826 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-box-passive-radiator (968ms)
+    ✓  827 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-bandpass4 (962ms)
+    ✓  828 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-bandpass6 (1.0s)
+    ✓  829 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-abc (1.0s)
+  
+  
+    1) packages/ui/test/ui/original-box-tab.browser.spec.ts:151:3 › Original Box tab › the 6th-order bandpass Frc field stays blank when emptied instead of becoming 0 
+  
+      Error: expect(locator).toHaveValue(expected) failed
+  
+      Locator:  locator('.ui-field').filter({ hasText: 'Tuning freq (Frc)' }).locator('input')
+      Expected: ""
+      Received: "35.00"
+      Timeout:  20000ms
+  
+      Call log:
+        - Expect "toHaveValue" with timeout 20000ms
+        - waiting for locator('.ui-field').filter({ hasText: 'Tuning freq (Frc)' }).locator('input')
+          44 × locator resolved to <input id="v-13" type="text" value="35.00" class="value-c" data-numinput="" data-v-1b432794="" autocomplete="off" inputmode="decimal" title="Rear Chamber Tuning Frequency (Frc)↵Target Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box."/>
+             - unexpected value "35.00"
+  
+  
+        154 |     const frc = page.locator('.ui-field', { hasText: 'Tuning freq (Frc)' }).locator('input');
+        155 |     await fillAndBlur(frc, '');
+      > 156 |     await expect(frc).toHaveValue('');
+            |                       ^
+        157 |   });
+        158 |
+        159 |   test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in a 20L box shows the WinISD-lossy Qtc and fc', async ({ page }) => {
+          at /home/john/work/winisd/.postland/3168251-6f5e110c2e/packages/ui/test/ui/original-box-tab.browser.spec.ts:156:23
+  
+      Error Context: test-results/ui-original-box-tab.browse-dcccc-ptied-instead-of-becoming-0/error-context.md
+  
+    1 failed
+      packages/ui/test/ui/original-box-tab.browser.spec.ts:151:3 › Original Box tab › the 6th-order bandpass Frc field stays blank when emptied instead of becoming 0 
+    828 passed (7.9m)
+  suite: unit exit 1, browser exit 1
+  post-land suite 3168251-6f5e110c2e finished: FAILED (exit 1) after 9m47s
