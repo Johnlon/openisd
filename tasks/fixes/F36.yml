@@ -14,3 +14,7 @@ output: |
   post-land suite 1231821-b04259b1be starting (run 1232464-1792120581-5235)
   suite-lock: waiting: browser runs are in progress; the suite starts when they end
   post-land: killed by signal at b04259b1be, not superseded
+also_red:
+  - sha: 1385c4d8172dc52df50d0e3dda3f6ce17d931368
+    failing: |
+    
