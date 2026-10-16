@@ -15,11 +15,12 @@
 # Runs coalesce: a run registers in ${POST_LAND_LOCK}.pending before it waits for the lock. When it gets its
 # turn and a NEWER run is already waiting (its record is flock'ed by a live process), it ends "superseded
 # by <sha>" with exit 0 without running the suite; the newest run tests the latest sha. A run that finds an
-# OLDER commit's suite running (${POST_LAND_LOCK}.holder: pid, start time, sha) kills it by pid; the killed
-# run ends "superseded by <sha>; killed", exit 0. A run whose sha is an ancestor of the last tested sha
-# (${POST_LAND_LOCK}.tested) ends "superseded by <sha> (already tested)", exit 0. A red lists every commit since the last green in its F.
+# OLDER commit's suite running WAITS for it: a running suite is never killed (John, 2026-10-16). When its turn
+# comes it waits until origin/main has had POST_LAND_QUIET_S (60 s) without a new commit; if main moved on it ends
+# "superseded by <tip>" (the run that landed the tip tests it), else it tests its own commit. A run whose sha is an ancestor of the last tested sha
+# (${POST_LAND_LOCK}.tested) ends "superseded by <sha> (already tested)", exit 0. A red lists every commit since the last green in its F, with the tested sha, the last green and the range.
 # A TERM with no newer run behind it (no ${POST_LAND_LOCK}.supersede, no live record in .pending) is a red
-# that says "post-land: killed by signal at <sha>, not superseded": the sha is recorded as tested and the F
+# that says "post-land: killed by signal at <sha>": the sha is recorded as tested and the F
 # is opened as for any red. The watchdog starts a run when main holds an untested commit and none is alive.
 # A run past POST_LAND_DEADLINE_S (default 5400) has its whole process group killed and is a red whose
 # output says "post-land: TIMED OUT after <n>s at <sha>". While a run is in flight
@@ -101,7 +102,7 @@ record_red() {
     if [ -n "$open" ]; then
       n="$(basename "$open" .yml)"; n="${n#F}"
       {
-        printf 'also_red:\n  - sha: %s\n    failing: |\n' "$SHA"
+        printf 'also_red:\n  - sha: %s\n    tested: %s\n    last_green: %s\n    range: %s\n    failing: |\n' "$SHA" "$SHA" "${green:-none}" "$range"
         printf '%s\n' "$failing" | sed 's/^/    /'
         [ -z "$visual" ] || { printf '    visual: |\n'; printf '%s\n' "$visual" | sed 's/^/      /'; }
       } >> "$open"
@@ -113,6 +114,7 @@ record_red() {
       owner="$(git log --reverse --format=%an $range | head -n 1)"
       {
         printf 'id: F%s\nowner: %s\nstatus: open\nsha: %s\n' "$n" "${owner:-post-land}" "$SHA"
+        printf 'tested: %s\nlast_green: %s\nrange: %s\n' "$SHA" "${green:-none}" "$range"
         printf 'goal: main is red at %s; make the full suite pass again\n' "${SHA:0:10}"
         printf 'commits: |\n'
         git log --abbrev=10 --format='  %h %s' $range
@@ -134,22 +136,9 @@ record_red() {
   exit 1
 }
 HOLDER="${POST_LAND_LOCK}.holder"
-SUPERSEDE="${POST_LAND_LOCK}.supersede"
-# A newer run killed this one (SDLC S2): the suite stops, nothing is recorded, exit 0 like any superseded run.
-# A TERM is a supersede only when a newer run is behind it: it wrote ${POST_LAND_LOCK}.supersede
-# before it killed this run, or its record in .pending is held by a live process. Any other TERM (the
-# kernel's OOM kill of the browser scope reaches the run as one, 16 Oct) is a red, reported as what
-# it was.
-newer_run_waiting() {
-  local rec rsha
-  for rec in "$PENDING"/*; do
-    [ -e "$rec" ] && [ "$rec" != "${MINE:-}" ] || continue
-    rsha="$(basename "$rec")"; rsha="${rsha#*-}"
-    [ "$rsha" != "$SHA" ] && git merge-base --is-ancestor "$SHA" "$rsha" 2>/dev/null || continue
-    ( flock -n 7 ) 7< "$rec" 2> /dev/null || return 0
-  done
-  return 1
-}
+# A TERM that reaches the suite is never another run's doing (nothing kills a running suite any more, John
+# 2026-10-16): it is the kernel's OOM kill of the browser scope (16 Oct), a person, or the machine. It is a
+# red, reported as what it was.
 # True while the suite is still waiting for the browser lock (scripts/suite-lock.sh records it): a run
 # ended then has tested nothing.
 suite_waiting_for_lock() {
@@ -157,20 +146,16 @@ suite_waiting_for_lock() {
   read -r pid start < "${SUITE_RUN_LOCK}.waiting" 2>/dev/null || return 1
   [ -n "${pid:-}" ] && [ "$(starttime "$pid")" = "${start:-}" ]
 }
-superseded() {
-  local newer waiting=1; newer="$(cat "$SUPERSEDE" 2>/dev/null)"
+killed() {
+  local waiting=1
   suite_waiting_for_lock && waiting=0
   stop_suite
-  if [ -n "$newer" ] || newer_run_waiting; then
-    echo "post-land: superseded by ${newer:-a newer run}; killed"
-    exit 0
-  fi
   if [ "$waiting" = 0 ]; then
     rm -f "${SUITE_RUN_LOCK}.waiting"
     echo "post-land: killed while waiting for the browser lock at ${SHA:0:10}; nothing was tested, no result"
     exit 0
   fi
-  echo "post-land: killed by signal at ${SHA:0:10}, not superseded" | tee -a "$OUT"
+  echo "post-land: killed by signal at ${SHA:0:10}" | tee -a "$OUT"
   rm -f "$RUNNING"
   printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}.tested.$$" "${POST_LAND_LOCK}.tested"
   record_red
@@ -196,22 +181,27 @@ mkdir -p "$PENDING"
 MINE="$PENDING/$(date +%s%N)-$SHA"
 exec 8> "$MINE"
 flock -n 8
-# A run already testing an OLDER commit is wasted work: this run kills it (by its recorded pid and
-# start time, never by name) and takes its turn. Four full runs once ran side by side for hours,
-# each on a commit the next had already replaced (11 Oct 2026, SDLC R3/S2).
+# A run already testing an older commit is never killed (John, 2026-10-16: 112 of 237 suite runs since 8 Oct
+# were killed part-way by a newer run, and the commit they were testing got no result). This run waits for
+# the lock behind it; when its turn comes the newest commit is the one tested.
 starttime() { awk '{print $22}' "/proc/$1/stat" 2>/dev/null; }
-hpid=""; hstart=""; hsha=""
-[ -f "$HOLDER" ] && { read -r hpid hstart hsha < "$HOLDER" || true; }
-if [ -n "$hpid" ] && [ "$hpid" != "$$" ] && [ "$(starttime "$hpid")" = "${hstart:-}" ] \
-   && [ "$hsha" != "$SHA" ] && git merge-base --is-ancestor "$hsha" "$SHA" 2>/dev/null; then
-  printf '%s\n' "${SHA:0:10}" > "$SUPERSEDE"
-  kill -TERM "$hpid" 2>/dev/null || true
-  echo "post-land: killed the run on ${hsha:0:10} (pid $hpid), superseded by ${SHA:0:10}"
-fi
 exec 9> "$POST_LAND_LOCK"
 flock -n 9 || { echo "post-land: waiting for another post-land run"; flock 9; }
-trap superseded TERM
+trap killed TERM
 
+# Quiet period (John, 2026-10-16): the suite starts only once origin/main has had no new commit for
+# POST_LAND_QUIET_S (default 60 s), so a burst of landings is tested once, on its last commit. The checks below
+# then run on what the wait saw: a newer run that registered meanwhile makes this one superseded.
+QUIET_S="${POST_LAND_QUIET_S:-60}"
+tip=""
+while :; do
+  git fetch -q origin main 2>/dev/null || break
+  tip="$(git rev-parse origin/main)"
+  age=$(( $(date +%s) - $(git log -1 --format=%ct "$tip") ))
+  [ "$age" -ge "$QUIET_S" ] && break
+  echo "post-land: main is $age s old at ${tip:0:10}; waiting $((QUIET_S - age)) s of quiet before testing"
+  sleep $((QUIET_S - age))
+done
 # A later commit has already been tested (${POST_LAND_LOCK}.tested): this run's result is stale.
 tested="$(cat "${POST_LAND_LOCK}.tested" 2>/dev/null)"
 if [ -n "$tested" ] && [ "$tested" != "$SHA" ] && git merge-base --is-ancestor "$SHA" "$tested" 2>/dev/null; then
@@ -230,7 +220,6 @@ done
 
 git worktree add -q --detach "$COPY" "$SHA" || { echo "post-land: cannot check out $SHA" >&2; exit 2; }
 printf '%s %s %s\n' "$$" "$(starttime $$)" "$SHA" > "$HOLDER"
-rm -f "$SUPERSEDE"
 echo "post-land: running the full suite on ${SHA:0:10}"
 # Where the next red can be read: whether either slice was throttled (high) or hit its ceiling (max)
 # inside this run's window. The counters are cumulative since boot; the difference is the window.

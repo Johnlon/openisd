@@ -74,16 +74,18 @@ A task lands as one commit, subject "<id>: <goal>", body the release note; land.
   runs its dependants", "browser spec in done_test is refused".
 - Brief-ready: yes. Owner: a Claude session (gate code is never delegated to a free model).
 
-### S2 — one scheduler, light commands never wait, newer run cancels older (R2, R3)
+### S2 — one scheduler, light commands never wait, post-land runs coalesce and never kill (R2, R3)
 
 - Live: gates and targeted runs enter `heavy.slice` with no lane (T044, 33ff0645, proof
   `heavy-no-lane.test.sh`); admission holder checked by pid and start time (T042, a02d6d78);
   every lock and queue under `$XDG_RUNTIME_DIR/openisd`, never `/tmp` (T035, a4f9b60a).
-- To build, effort S: post-land coalesce with a kill. When a newer sha starts, the older run's
-  process group is killed by recorded pgid and its grant freed. `admit` prints what it is waiting
-  behind every 30 s and logs the wait.
+- Changed 16 Oct 2026 (John): a running suite is never killed by a newer run (112 of 237 suite runs
+  since 8 Oct were, and their commit got no result). The newer run waits for the lock; when its turn
+  comes it waits for 60 s of quiet on origin/main (`POST_LAND_QUIET_S`), then tests the newest sha;
+  runs behind a newer waiting run are superseded. An F records `tested`, `last_green` and `range`.
+  `admit` prints what it is waiting behind every 30 s and logs the wait.
 - Where: `scripts/land/post-land/run.sh`, `scripts/admit.sh`, `scripts/land/test/post-land-coalesce.test.sh`.
-- Proof: scratch-repo e2e, two runs started 10 s apart, the first is dead within 30 s.
+- Proof: `post-land-queue.test.sh` and `post-land-coalesce.test.sh`, scratch-repo e2e with real processes: the running suite survives, the quiet period restarts on a push, one suite runs on the newest sha.
 
 ### S3 — a watchdog on a systemd timer, alerts typed into the agent's window (R3, R4) — live T047
 

@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: maryu
 status: done
+landed: 2082773a29cb591cf70a2825724d7caf4b0a195d
 goal: "F48: the visual screens and the sample projects use one fixed date, so the Project tab dates match the baseline on any day"
 done_test: bash scripts/test.sh packages/ui/test/scripts/sample-project-date.test.ts
 files:
