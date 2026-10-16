@@ -20,7 +20,7 @@ import {
     createStorageHistory,
     createStorageUsage,
     preRepairCopyText,
-    createLocalStorage, StoragePrefix,
+    createLocalStorage, createStoragePrefix,
     createMemoryStorage,
     LAYOUT_STEPS,
     STORAGE_LAYOUT,
@@ -91,7 +91,7 @@ import '@fontsource/inter/700.css';
 import './style.css';
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
-const localStore = createLocalStorage(StoragePrefix.forDeployment(location.pathname));
+const localStore = createLocalStorage(createStoragePrefix(location.pathname));
 
 const REDIRECT_PROJECT_KEY = 'openisd_redirect_project';
 

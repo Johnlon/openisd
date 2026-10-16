@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: ea13f9d1d1b9a258ead206dc8085a9e7f87b4743
 goal: 'Tune sheet task 1: WhatIfField becomes SheetField with short labels; SheetMode (Tune, Learn) lists each box type lines'
 done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
 files:

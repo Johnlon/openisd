@@ -1,0 +1,17 @@
+id: T220
+release_note: internal
+label: fixes
+repo: openisd
+owner: maryu
+status: done
+goal: 'F37 closed: the architecture factory rule failed on T207 storagePrefix.ts (now createStoragePrefix); two mobile-menu Open project tests predated T204 merged list (open project shows as Not saved yet; edited line ends with the size); the 4 my-drivers tests pass alone, 31 of 31 with mobile-menu; concurrent-landings e2e bug filed'
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture.test.ts packages/persistence/test/storagePrefix.test.ts
+files:
+  - bugs/BUG_20261016_concurrent-landings-e2e-fails-on-main.md
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/storage/storagePrefix.ts
+  - packages/persistence/test/storagePrefix.test.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - tasks/T220.yml
+  - tasks/fixes/F37.yml

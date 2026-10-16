@@ -107,10 +107,13 @@ test.describe('MobileMenu', () => {
   // "Open a file" (a disk import). John, 2026-10-02: "the file menu offer no way to save and reopen
   // projects".
   test.describe('Open project…', () => {
-    test('lists nothing yet before anything has been saved', async ({ page }) => {
+    // T204: the list holds every project, saved or open, so the open project shows before it is saved.
+    test('before anything is saved it lists only the open project, marked not saved', async ({ page }) => {
       await tapMobileMenuItem(page, 'Open project…');
-      await expect(page.locator('.mob-open-project-sheet')).toBeVisible();
-      await expect(page.locator('.mob-open-project-sheet')).toContainText('No saved project yet');
+      const sheet = page.locator('.mob-open-project-sheet');
+      await expect(sheet).toBeVisible();
+      await expect(sheet.locator('.mob-stored-project-row')).toHaveCount(1);
+      await expect(sheet.locator('.mob-stored-project-row')).toContainText('Not saved yet');
     });
 
     test('Save, then "Open project…" lists it and reopens it', async ({ page }) => {
@@ -172,7 +175,8 @@ test.describe('MobileMenu', () => {
       ]);
       // John, 2026-10-12: never US style; the one design formatter shows "5 Oct 2026, 23:32", whatever the browser locale.
       for (const modified of await rows.locator('.mob-stored-project-modified').allTextContents()) {
-        expect(modified).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/);
+        // T204: the edited date, then the size.
+        expect(modified).toMatch(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2} · [\d.]+ (B|KB)$/);
       }
     });
 
