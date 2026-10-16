@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 869c8578f41afaf03282d10b9c26b14d27bc9697
 goal: F44: equation popup spec, driver modal now 950 wide
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:

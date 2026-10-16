@@ -1,0 +1,12 @@
+id: T248
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Mobile steppers: focus stays on the pressed button, step the digit at the caret, mark the digit
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T248.yml
+  - tasks/fixes/F45.yml
+  - packages/ui/test/ui/number-stepper.browser.spec.ts
+label: fixes

@@ -1,6 +1,6 @@
 id: F45
 owner: Johnlon
-status: open
+status: done
 sha: 869c8578f41afaf03282d10b9c26b14d27bc9697
 goal: main is red at 869c8578f4; make the full suite pass again
 commits: |
@@ -72,3 +72,9 @@ output: |
     788 passed (41.4m)
   suite: unit exit 0, browser exit 1
   post-land suite 2131596-869c8578f4 finished: FAILED (exit 1) after 43m46s
+closed_note: |
+  Not a code defect. The 16 failures are 27 s page timeouts followed by 3 ms failures in the same
+  file (a browser that died), and the same specs pass 99/99 with --repeat-each=3 on main
+  (maryu) and 33/33 alone (bob). The post-land run (20:20-21:04) overlapped bob's non-browser
+  heavy work, which takes no suite lock: two full lints, a full design domain vitest run and
+  land gates. Browser runs did wait on the lock. Cause is CPU and memory pressure, not proven by a log.

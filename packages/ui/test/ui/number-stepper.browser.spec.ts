@@ -160,3 +160,71 @@ test.describe('Mobile skin', () => {
     await expect(overlay).toHaveCount(0);
   });
 });
+
+/**
+ * John, 2026-10-16 (bugs/BUG_20261016_mobile-vent-stepper-jumps-focus-ignores-caret-no-digit-marker.md):
+ * on the phone vent editor a ▲ press stepped the tenths whatever the caret, moved focus to the next
+ * box, and marked nothing. Focus stays on the pressed button, the step uses the caret the box had
+ * before the press (kept for further presses), and the stepped digit is marked.
+ */
+test.describe('Mobile vent editor: Target Tuning Freq (calculated) steps the digit at the caret', () => {
+  test.use({hasTouch: true});
+
+  test.beforeEach(async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await forceMobileSkin(page);
+    await page.goto('/');
+    await openAMobileProject(page);
+    await page.locator('.mob-tab', {hasText: 'Vented'}).click();
+    const length = mobileFieldRow(page, 'Vent length').locator('input');
+    await length.fill('30');
+    await length.blur();
+  });
+
+  test('the caret after the units digit: ▲ steps the units, focus stays on ▲, the units digit is marked, a repeat steps it again', async ({page}) => {
+    const row = mobileFieldRow(page, 'Target Tuning Freq');
+    const box = row.locator('input');
+    await expect(box).toHaveClass(/value-c/);
+    const before = Number(await box.inputValue());
+    await box.focus();
+    await box.evaluate(el => { if (el instanceof HTMLInputElement) el.setSelectionRange(2, 2); });
+    const up = row.locator('.num-stepper-btn').first();
+
+    await up.tap();
+
+    await expect(box).toHaveValue(new RegExp(`^${Math.trunc(before) + 1}\\.`));
+    expect(await up.evaluate(el => document.activeElement === el), 'focus is on the ▲ button').toBe(true);
+    await expect(row.locator('.num-mark-underline')).toHaveText(String((Math.trunc(before) + 1) % 10));
+    await up.tap();
+    await expect(box).toHaveValue(new RegExp(`^${Math.trunc(before) + 2}\\.`));
+    expect(await up.evaluate(el => document.activeElement === el)).toBe(true);
+  });
+
+  test('the caret after the decimal point: ▲ steps the tenths', async ({page}) => {
+    const row = mobileFieldRow(page, 'Target Tuning Freq');
+    const box = row.locator('input');
+    const before = await box.inputValue();
+    await box.focus();
+    await box.evaluate(el => { if (el instanceof HTMLInputElement) el.setSelectionRange(3, 3); });
+
+    await row.locator('.num-stepper-btn').first().click();
+
+    const tenths = (text: string): number => Number(text.split('.')[0] + text.split('.')[1].slice(0, 1));
+    expect(tenths(await box.inputValue())).toBe(tenths(before) + 1);
+  });
+
+  test('every stepped field on the Vented tab: ▲ changes the value and focus stays on the ▲ that was pressed', async ({page}) => {
+    const rows = page.locator('.mob-ui-field', {has: page.locator('.num-stepper-btn')});
+    const count = await rows.count();
+    expect(count, 'stepped rows on the Vented tab').toBeGreaterThan(2);
+    for (let i = 0; i < count; i++) {
+      const row = rows.nth(i);
+      const box = row.locator('input').first();
+      const up = row.locator('.num-stepper-btn').first();
+      const before = await box.inputValue();
+      await up.tap();
+      await expect(box, `row ${i}`).not.toHaveValue(before);
+      expect(await up.evaluate(el => document.activeElement === el), `row ${i}: focus on its ▲`).toBe(true);
+    }
+  });
+});
