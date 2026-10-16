@@ -28,7 +28,7 @@ The root app, the `/v/<stamp>/` releases and the `/snap/<stamp>/` snapshots keep
 `openisd_` keys as they always were; there is no migration.
 
 `StoragePrefix` (`packages/persistence/src/storage/storagePrefix.ts`) is resolved once at start-up
-from the page's path (`StoragePrefix.forDeployment(location.pathname)`) and handed to
+from the page's path (`createStoragePrefix(location.pathname)`) and handed to
 `createLocalStorage`. Everything above the storage port keeps using the plain key names above: the
 port adds the prefix on the way in, lists only its own keys, and watches only its own keys. The list
 of prefixed deployments is `PREFIXED_DEPLOYMENTS` in that file. `sessionStorage` is per tab and is

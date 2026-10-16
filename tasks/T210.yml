@@ -3,6 +3,7 @@ release_note: 'About page has Terms'
 repo: openisd
 owner: maryu
 status: done
+landed: fe0c1ac5da5251a5e4a1d4a35d6d535d2cc3e9a8
 goal: About page has a Terms section at /about/#terms
 done_test: bash scripts/test.sh packages/design/test/fields/format.test.ts
 files:

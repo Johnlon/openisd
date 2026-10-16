@@ -1,11 +1,12 @@
 import type {Ref} from 'vue';
 import {useApp} from '../logic/app.js';
-import {computed} from 'vue';
+import {computed, ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassOf} from '../logic/driverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
+import {SheetMode} from '@openisd/design/fields';
 import type {NumSpecField} from '../logic/appState.js';
-import {createWhatIfSession} from './whatIfSession.js';
+import {createSheetSession} from './sheetSession.js';
 
 export type NumKey = NumSpecField;
 export type { NumSpecField };
@@ -36,7 +37,8 @@ export interface OriginalWhatIfAPI {
 export function useOriginalWhatIf(): OriginalWhatIfAPI {
   const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
-  const session = createWhatIfSession({ project, projectChanged });
+  const session = createSheetSession({ project, projectChanged, mode: ref(SheetMode.LEARN) });
+
 
   function specField(key: NumSpecField):
       Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {

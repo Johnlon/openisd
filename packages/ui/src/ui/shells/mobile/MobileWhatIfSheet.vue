@@ -1,16 +1,23 @@
 <script setup lang="ts">
 // The What-if? bottom sheet on the mobile Graph page: a pull-tab when closed, a resizable sheet of
 // What-if rows when open. Behaviour lives in MobileWhatIfSheet-hooks.ts.
+import type { Ref } from 'vue';
+import { isRef, ref, toRef } from 'vue';
 import NumInput from '../../components/NumInput.vue';
 import VentPortFields from '../../components/VentPortFields.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
-import { useMobileWhatIfSheet } from '../../../hooks/MobileWhatIfSheet-hooks.js';
+import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
+import { SheetMode } from '@openisd/design/fields';
 
-const props = defineProps<{ open: boolean }>();
+const props = defineProps<{ open: boolean; mode?: SheetMode | Ref<SheetMode> }>();
 const emit = defineEmits<{ 'update:open': [open: boolean] }>();
+const modeRef: Ref<SheetMode> = isRef(props.mode)
+  ? props.mode
+  : (props.mode !== undefined ? toRef(props, 'mode') as Ref<SheetMode> : ref(SheetMode.TUNE));
 const { isOpen, rows, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
-  useMobileWhatIfSheet({ open: () => props.open, setOpen: v => emit('update:open', v) });
+  useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: modeRef });
+
 </script>
 
 <template>

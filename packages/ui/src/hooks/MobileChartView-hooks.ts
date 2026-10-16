@@ -14,6 +14,7 @@ import {CHARTS_HIGH_OPTIONS, MOBILE_CHARTS_HIGH} from './chartGrid.js';
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {selectedOption} from '../logic/domEvents.js';
 import type {ChartId} from '@openisd/design/engine';
+import {SheetMode} from '@openisd/design/fields';
 
 export function useMobileChartView() {
   const {appState, presentation: presentationState} = useApp();
@@ -43,12 +44,14 @@ export function useMobileChartView() {
   });
   const { el: stackEl, style: stackStyle } = useChartStack(computed(() => openCharts.value.length), chartsHigh, () => 1);
 
-  /** Whether the What-if? sheet is open. The chart's Auto Y box shows only then: without a
-   *  What-if there is nothing to rescale for (John, 2026-10-05). */
-  const whatIfOpen = ref(false);
+  /** Whether the bottom sheet is open. The chart's Auto Y box shows only then: without a
+   *  sheet there is nothing to rescale for (John, 2026-10-05). */
+  const sheetOpen = ref(false);
+  const sheetMode = ref(SheetMode.TUNE);
 
   const traceColour = computed(() => { void projectChanged.value; return traceColor(project.value); });
 
   return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, whatIfOpen };
+    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, sheetMode };
 }
+

@@ -39,7 +39,7 @@ export interface ProjectSaveEvent { readonly kind: 'project_save'; readonly form
 /** `name` is the catalogue's own name for a bundled driver; empty for a driver the user owns, whose name is theirs. */
 export interface DriverPickEvent { readonly kind: 'driver_pick'; readonly source: DriverSource; readonly id: string; readonly name: string }
 export type FeatureName =
-  | 'whatif' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics';
+  | 'whatif' | 'tune' | 'filters' | 'export' | 'import' | 'driver_db' | 'options' | 'vents' | 'save_file' | 'share_link' | 'diagnostics';
 export interface ChartViewEvent { readonly kind: 'chart_view'; readonly chart: ChartId }
 export interface FeatureEvent { readonly kind: 'feature'; readonly name: FeatureName }
 export interface ErrorEvent { readonly kind: 'error'; readonly message: string; readonly frames: string; readonly box: string }

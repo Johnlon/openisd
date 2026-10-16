@@ -9,7 +9,7 @@ import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, whatIfOpen } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, sheetMode } = useMobileChartView();
 </script>
 
 <template>
@@ -38,13 +38,14 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicke
     </ul>
     <div ref="stackEl" class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }" :style="stackStyle">
       <div v-for="id in openCharts" :key="id" class="mob-chart-cell">
-        <!-- Auto Y shows only while What-if? is open (John, 2026-10-05). -->
-        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!whatIfOpen" />
+        <!-- Auto Y shows only while the sheet is open (John, 2026-10-05). -->
+        <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!sheetOpen" />
       </div>
     </div>
-    <MobileWhatIfSheet v-model:open="whatIfOpen" />
+    <MobileWhatIfSheet v-model:open="sheetOpen" :mode="sheetMode" />
   </div>
 </template>
+
 
 <style scoped>
 .mob-chart-view {

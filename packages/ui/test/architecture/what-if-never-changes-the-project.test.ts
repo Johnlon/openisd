@@ -13,9 +13,9 @@ import {dirname, join} from 'node:path';
 const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
 
 const WHAT_IF_FILES: readonly string[] = [
-  'hooks/whatIfSession.ts',
+  'hooks/sheetSession.ts',
   'hooks/OriginalWhatIf-hooks.ts',
-  'hooks/MobileWhatIfSheet-hooks.ts',
+  'hooks/MobileSheet-hooks.ts',
   'ui/shells/original/OriginalWhatIf.vue',
   'ui/shells/mobile/MobileWhatIfSheet.vue',
 ];
@@ -28,8 +28,22 @@ describe('What-if? never changes the project', () => {
     for (const write of PROJECT_WRITES) expect(text).not.toMatch(write);
   });
 
-  it('closing the What-if? session ends the What-if layer', () => {
-    const text = readFileSync(join(UI_SRC, 'hooks/whatIfSession.ts'), 'utf8');
-    expect(text).toMatch(/function close\(\): void \{ project\.value\.cancelWhatIf\(\); \}/);
+  it('closing the What-if? session ends the What-if layer in Learn mode', () => {
+    const text = readFileSync(join(UI_SRC, 'hooks/sheetSession.ts'), 'utf8');
+    expect(text).toMatch(/case 'whatIfLayer':\s*project\.value\.cancelWhatIf\(\);/);
+  });
+
+  it('the Tune branch never calls beginWhatIf, and the Learn branch always does before a write', () => {
+    const text = readFileSync(join(UI_SRC, 'hooks/sheetSession.ts'), 'utf8');
+    const setMatch = text.match(/function set\(field: SheetField, v: number\): void \{([\s\S]*?)\n  \}/);
+    expect(setMatch).not.toBeNull();
+    const setBody = setMatch![1];
+    const projectBranch = setBody.match(/case 'project':([\s\S]*?)case 'whatIfLayer':/);
+    expect(projectBranch).not.toBeNull();
+    expect(projectBranch![1]).not.toMatch(/beginWhatIf/);
+    const whatIfBranch = setBody.match(/case 'whatIfLayer':([\s\S]*?)return;/);
+    expect(whatIfBranch).not.toBeNull();
+    expect(whatIfBranch![1]).toMatch(/beginWhatIf\(\)[\s\S]*write\(/);
   });
 });
+

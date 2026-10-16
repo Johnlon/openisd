@@ -1,26 +1,26 @@
 /**
- * `MobileWhatIfSheet.vue`'s hook — the What-if? bottom sheet on the mobile Graph page. Closed, it
- * is a pull-tab; tapped or dragged up, the sheet opens, a What-if begins, and the charts above
- * stay live. The drag handle sets the sheet's height; dragging it down far enough closes it. The
- * rows and the What-if come from the skin-neutral `createWhatIfSession`, shared with desktop.
+ * `MobileSheet.vue`'s hook — the bottom sheet on the mobile Graph page (Tune or Learn mode).
+ * Closed, it is a pull-tab; tapped or dragged up, the sheet opens, and the charts above stay live.
+ * In Learn mode, a What-if begins, which never changes the project. In Tune mode, edits write
+ * directly to the project.
  *
- * The What-if never changes the project. Every way out (Close, dragging the sheet down) ends it,
- * and the charts show the project's own values again. Reset puts the project's values back and
- * keeps the sheet open.
+ * The drag handle sets the sheet's height; dragging it down far enough closes it. The rows and
+ * the session come from the skin-neutral `createSheetSession`, shared with desktop.
  */
 import {computed, ref} from 'vue';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse} from './telemetryContext.js';
 import type {ComputedRef, Ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
-import {createWhatIfSession, type WhatIfRow} from './whatIfSession.js';
+import {createSheetSession, type SheetRow} from './sheetSession.js';
 import {portFieldsView, type PortFieldsView} from './portFieldsView.js';
-import type {SheetField} from '@openisd/design/fields';
+import type {SheetField, SheetMode} from '@openisd/design/fields';
 
-/** The sheet's open state, owned by the chart view (its Auto Y box follows it). */
-export interface MobileWhatIfSheetDeps {
+/** The sheet's open state, mode, owned by the chart view (its Auto Y box follows it). */
+export interface MobileSheetDeps {
   open: () => boolean;
   setOpen: (open: boolean) => void;
+  mode: Ref<SheetMode>;
 }
 
 /** The chart keeps at least this much height above the sheet. */
@@ -44,23 +44,25 @@ export interface PressEvent {
   preventDefault(): void;
 }
 
-export interface MobileWhatIfSheetAPI {
+export interface MobileSheetAPI {
   readonly isOpen: ComputedRef<boolean>;
-  readonly rows: ComputedRef<readonly WhatIfRow[]>;
-  /** The port-area row whose port's fields are open over the sheet, or null. */
+  readonly lines: ComputedRef<readonly (readonly SheetRow[])[]>;
+  readonly rows: ComputedRef<readonly SheetRow[]>;
+  readonly mode: Ref<SheetMode>;
+  setMode(next: SheetMode): void;
   /** The port-area row whose port's fields are open, or null. */
-  readonly portEditor: Ref<WhatIfRow | null>;
+  readonly portEditor: Ref<SheetRow | null>;
   /** The open port's fields, current after every edit; null when none is open. */
   readonly portView: ComputedRef<PortFieldsView | null>;
   /** A press on a port-area value opens that port's fields; the box is never focused, so the keyboard stays down. */
-  portValuePress(e: PressEvent, row: WhatIfRow): void;
+  portValuePress(e: PressEvent, row: SheetRow): void;
   closePortEditor(): void;
   readonly sheetEl: Ref<HTMLElement | null>;
   /** The sheet's inline height: its default (CSS) until dragged. */
   readonly sheetStyle: ComputedRef<string>;
   setValue(field: SheetField, v: number | null): void;
   openSheet(): void;
-  /** Close the sheet and end the What-if. */
+  /** Close the sheet and end the What-if (in Learn mode). */
   close(): void;
   reset(): void;
   onTabDown(e: PointerEvent): void;
@@ -70,10 +72,10 @@ export interface MobileWhatIfSheetAPI {
   onHandleUp(): void;
 }
 
-export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): MobileWhatIfSheetAPI {
+export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): MobileSheetAPI {
   const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
-  const session = createWhatIfSession({ project, projectChanged });
+  const session = createSheetSession({ project, projectChanged, mode });
   const featureUse = useFeatureUse();
 
   const isOpen = computed(() => open());
@@ -81,25 +83,35 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
   const height = ref<number | null>(null);
   const sheetStyle = computed(() => height.value === null ? '' : `height: ${height.value}px`);
 
-  /** An emptied field is left alone: every What-if slot holds a value. */
+  /** An emptied field is left alone: every sheet slot holds a value. */
   function setValue(field: SheetField, v: number | null): void {
     if (v !== null) session.set(field, v);
   }
 
   function openSheet(): void {
-    featureUse.feature('whatif');
+    switch (mode.value.edits) {
+      case 'project':
+        featureUse.feature('tune');
+        break;
+      case 'whatIfLayer':
+        featureUse.feature('whatif');
+        break;
+    }
     session.begin();
     setOpen(true);
   }
-  const portEditor = ref<WhatIfRow | null>(null);
+
+  const portEditor = ref<SheetRow | null>(null);
   const portView = computed(() => {
-    const open = portEditor.value;
-    if (open === null) return null;
-    const vent = session.rows.value.find(r => r.field.label === open.field.label)?.vent ?? null;
+    const openRow = portEditor.value;
+    if (openRow === null) return null;
+    const vent = session.rows.value.find(r => r.field.label === openRow.field.label)?.vent ?? null;
     return vent === null ? null : portFieldsView(vent);
   });
+
   function closePortEditor(): void { portEditor.value = null; }
-  function portValuePress(e: PressEvent, row: WhatIfRow): void {
+
+  function portValuePress(e: PressEvent, row: SheetRow): void {
     if (row.vent === null) return;
     e.preventDefault();
     if (e.type !== 'click') return;
@@ -113,6 +125,7 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
     height.value = null;
     setOpen(false);
   }
+
   function reset(): void { session.reset(); }
 
   // Pull-tab: a tap opens (click); an upward drag also sizes the sheet to where the finger went.
@@ -145,7 +158,8 @@ export function useMobileWhatIfSheet({ open, setOpen }: MobileWhatIfSheetDeps): 
   }
 
   return {
-    isOpen, rows: session.rows, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+    isOpen, lines: session.lines, rows: session.rows, mode, setMode: session.setMode,
+    portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };
 }

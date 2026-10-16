@@ -1,14 +1,14 @@
 /**
- * `createWhatIfSession` — the What-if? session shared by both skins: rows per box type, writes
- * that land in the What-if layer and never in the project, Reset back to the project's values,
- * Close discarding the layer.
+ * `createSheetSession` — the bottom sheet session shared by both skins: rows/lines per box type
+ * and mode, Tune writes to the project, Learn writes to the What-if layer, Reset back to the
+ * project's values, Close discarding the layer.
  */
 import {describe, expect, it} from 'vitest';
 import {computed, ref} from 'vue';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {SheetField} from '@openisd/design/fields';
-import {createWhatIfSession} from '../../src/hooks/whatIfSession.js';
+import {SheetField, SheetMode} from '@openisd/design/fields';
+import {createSheetSession} from '../../src/hooks/sheetSession.js';
 
 function sealedProject() {
   const project = ProjectBuilder.empty(createEngine());
@@ -21,19 +21,79 @@ function sealedProject() {
   return project;
 }
 
-function session(project = sealedProject()) {
+function session(project = sealedProject(), mode = ref(SheetMode.LEARN)) {
   const changed = ref(0);
-  const s = createWhatIfSession({ project: computed(() => project), projectChanged: changed });
-  return { project, changed, s };
+  const s = createSheetSession({ project: computed(() => project), projectChanged: changed, mode });
+  return { project, changed, mode, s };
 }
 
-describe('createWhatIfSession', () => {
+describe('createSheetSession', () => {
+  it('Tune set changes the project and opens no What-if layer', () => {
+    const project = sealedProject();
+    project.save();
+    const { s } = session(project, ref(SheetMode.TUNE));
+    s.set(SheetField.BOX_VOLUME, 0.02);
+    expect(project.isWhatIfActive()).toBe(false);
+    expect(project.isModified()).toBe(true);
+    expect(project.box.sealed.volume_m3.value).toBe(0.02);
+  });
+
+  it('Learn set leaves the project alone', () => {
+    const project = sealedProject();
+    project.save();
+    const { s } = session(project, ref(SheetMode.LEARN));
+    s.set(SheetField.BOX_VOLUME, 0.02);
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(project.isModified()).toBe(false);
+    expect(project.box.sealed.volume_m3.value).toBe(0.02);
+  });
+
+  it('Learn -> Tune discards the layer, and Tune -> Learn begins one', () => {
+    const project = sealedProject();
+    project.save();
+    const { s, mode } = session(project, ref(SheetMode.LEARN));
+    s.set(SheetField.BOX_VOLUME, 0.02);
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(project.box.sealed.volume_m3.value).toBe(0.02);
+
+    s.setMode(SheetMode.TUNE);
+    expect(mode.value).toStrictEqual(SheetMode.TUNE);
+    expect(project.isWhatIfActive()).toBe(false);
+    expect(project.box.sealed.volume_m3.value).toBe(0.012);
+
+    s.setMode(SheetMode.LEARN);
+    expect(mode.value).toStrictEqual(SheetMode.LEARN);
+    expect(project.isWhatIfActive()).toBe(true);
+
+  });
+
+  it('lines for each box type equals mode.lines(type) mapped to rows', () => {
+    for (const boxType of ['sealed', 'vented', 'abc'] as const) {
+      for (const sheetMode of [SheetMode.TUNE, SheetMode.LEARN]) {
+        const project = sealedProject();
+        project.box.boxType.set(boxType);
+        const { s } = session(project, ref(sheetMode));
+        const expectedLines = sheetMode.lines(boxType);
+        expect(s.lines.value.length).toBe(expectedLines.length);
+        for (let i = 0; i < expectedLines.length; i++) {
+          const expectedFields = expectedLines[i];
+          const actualLine = s.lines.value[i];
+          expect(actualLine.map(r => r.field)).toEqual(expectedFields);
+          for (const row of actualLine) {
+            expect(row.value).not.toBeUndefined();
+          }
+        }
+      }
+    }
+  });
+
   it('lists the box type\'s rows with their current values', () => {
     const { s } = session();
     expect(s.rows.value.map(r => r.field)).toEqual(SheetField.forBox('sealed'));
     expect(s.rows.value.find(r => r.field === SheetField.BOX_VOLUME)?.value).toBe(0.012);
     expect(s.rows.value.find(r => r.field === SheetField.DRIVER_FS)?.value).toBe(40);
   });
+
 
   it('writes into a What-if, never the project, and Close discards it', () => {
     const project = sealedProject();
