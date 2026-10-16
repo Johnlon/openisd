@@ -14,7 +14,7 @@ import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import {bootApplication} from '../logic/boot.js';
 import {startSessionSync} from '../logic/sessionSync.js';
-import {provideFocusedProject} from '../logic/focusedProjectContext.js';
+import {heldFocusedProject, provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
 import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
@@ -50,10 +50,10 @@ const activeSkin = computed(() =>
 // Info) stay reachable. The shell's own `projectOpen` gate keeps every project-bound panel out
 // of the DOM until a project exists.
 //
-// The focused project is provided NON-NULL `computed(() => requireFocusedProject())`, exactly
-// as the gate version did: only a descendant mounted inside the shell's `projectOpen` gate may
-// read it — that gate guarantees a project exists, so the throw can never fire there.
-provideFocusedProject(computed(() => requireFocusedProject()));
+// The focused project is provided non-null: only a descendant mounted inside the shell's
+// `projectOpen` gate reads it, and while that gate tears a panel down the panel keeps the project
+// it was showing (`heldFocusedProject`), so closing the last project never throws.
+provideFocusedProject(heldFocusedProject(focusedProject, requireFocusedProject));
 
 // One splash for the whole app: it raises itself for a first visitor, and the toolbar's Info
 // menu reopens it. Provided here so the shell's menu and the modal share one instance. The

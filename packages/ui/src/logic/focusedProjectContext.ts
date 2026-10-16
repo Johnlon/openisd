@@ -1,4 +1,4 @@
-import {type ComputedRef, inject, type InjectionKey, provide} from 'vue';
+import {computed, type ComputedRef, inject, type InjectionKey, provide} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 
 /**
@@ -26,4 +26,19 @@ export function useFocusedProject(): ComputedRef<OpenISDProject> {
   const project = inject(FOCUSED_PROJECT);
   if (!project) throw new Error('useFocusedProject(): no focused project provided — rendered outside the top-level gate');
   return project;
+}
+
+/** The project the gated panels show: the focused one, or, once none is focused, the last one that
+ *  was. Closing the last project removes the gated panels in the same update, but Vue runs their
+ *  cleanups and watchers first, and those read the project (16 Oct 2026: the live release crashed
+ *  "no project is focused" in such a read; on main, closing the only project with the Enclosure tab
+ *  open did the same through the Tune sheet's close). A panel keeps the project it was showing until
+ *  it is removed. `require` throws only when no project was ever focused, which the gate rules out. */
+export function heldFocusedProject<P>(focused: () => P | null, require: () => P): ComputedRef<P> {
+  let last: P | null = null;
+  return computed(() => {
+    const project = focused();
+    if (project !== null) last = project;
+    return last ?? require();
+  });
 }

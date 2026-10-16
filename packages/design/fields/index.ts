@@ -90,3 +90,4 @@ export { type AppVersion, type BuildKind, type BuildTrail, formatAppVersion, tra
 
 /** The What-if? sheet's rows per box type. */
 export { WhatIfField, type WhatIfSlot } from './whatIfField.js';
+export { NO_PROJECT_OPEN } from './noProject.js';

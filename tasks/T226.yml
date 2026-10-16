@@ -1,0 +1,22 @@
+id: T226
+release_note: 'Closing the last project no longer shows the crash screen. With no project open, both views say "No project open. Create or open a project."'
+repo: openisd
+owner: maryu
+status: done
+goal: Live crash: no project is focused
+done_test: bash scripts/test.sh packages/ui/test/logic/focusedProjectContext.test.ts
+files:
+  - bugs/BUG_20261016_live-crash-no-project-is-focused.md
+  - packages/design/fields/index.ts
+  - packages/design/fields/noProject.ts
+  - packages/ui/src/logic/focusedProjectContext.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/logic/focusedProjectContext.test.ts
+  - packages/ui/test/ui/no-focused-project-crash.browser.spec.ts
+  - packages/ui/test/ui/no-project-shell.browser.spec.ts
+  - packages/ui/test/ui/original-chart-view.browser.spec.ts
+  - packages/ui/test/ui/original-project-list.browser.spec.ts
+  - tasks/T226.yml
