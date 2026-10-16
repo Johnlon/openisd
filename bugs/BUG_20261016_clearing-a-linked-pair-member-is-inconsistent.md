@@ -15,6 +15,15 @@ overwrites the box volume, and one blanks both.
 - The rule: clearing the entered member of a pair keeps the partner at its current value as E.
   The cleared member becomes C, calculated from it.
 
+- 16 Oct 2026, general: "openisd default is that deleting a entered value transforms it to
+  calculated if a value is calculable". Precedent: driver T/S values (Mms etc.) already work so.
+- 16 Oct 2026, sealed alignment picker, OpenISD default: accepting a pick stores the target
+  (sealed Qtc; vented the alignment) and the volume (and vented tuning) are calculated from it.
+  Typing the volume makes it entered and the target calculated. A cleared sealed volume is then
+  calculated from Qtc. WinISD instead writes the volume as a plain value (wine probe, 16 Oct).
+- Open with John: a new field state for a value set by a tool such as the picker, to tell it
+  apart from a value the user typed.
+
 ## Evidence (code read 16 Oct 2026)
 | Pair | Clearing the entered member does | Fits the rule |
 |---|---|---|
