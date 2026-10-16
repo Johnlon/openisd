@@ -1,0 +1,11 @@
+id: T224
+release_note: The Model box on the desktop Driver tab is three times wider.
+repo: openisd
+owner: sonnet
+status: done
+goal: 'Desktop Driver tab: the Model box is 420 px, shrinking to 140 px on a narrow window so the row never overflows'
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
+files:
+  - tasks/T224.yml
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts

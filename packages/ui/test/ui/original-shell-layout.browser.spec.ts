@@ -105,6 +105,25 @@ test.describe('Original shell layout', () => {
       expect(Math.abs(railTop - tabsTop)).toBeLessThanOrEqual(4); // both start at the top of the panel
     });
 
+    test('the Driver tab Model box is three times its old width, and the row fits at 1280', async ({ page }) => {
+      await page.setViewportSize({ width: 1880, height: 900 });
+      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      const model = page.locator('.driver-model-input');
+      const wide = (await model.boundingBox())?.width ?? 0;
+      expect(wide).toBeGreaterThanOrEqual(420);
+      await page.setViewportSize({ width: 1280, height: 800 });
+      const { rowRight, panelRight, rowTop, buttonTop } = await page.evaluate(() => {
+        const row = document.querySelector('.tab-section.active .driver-id-row')?.getBoundingClientRect();
+        const panel = document.querySelector('.content-panel')?.getBoundingClientRect();
+        const button = document.querySelector('.tab-section.active .driver-id-row .edit-btn')?.getBoundingClientRect();
+        return { rowRight: row?.right ?? 0, panelRight: panel?.right ?? 0, rowTop: row?.top ?? 0, buttonTop: button?.top ?? 0 };
+      });
+      expect(rowRight).toBeLessThanOrEqual(panelRight);
+      expect(buttonTop - rowTop).toBeLessThan(40);
+      const narrow = (await model.boundingBox())?.width ?? 0;
+      expect(narrow).toBeGreaterThanOrEqual(140);
+    });
+
     test('Original skin buttons have readable dark text on their light fill', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       const btn = page.locator('.edit-btn', { hasText: 'Select Driver' });
