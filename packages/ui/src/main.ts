@@ -45,6 +45,8 @@ import {
     createSyncLedger,
     createCloudUiStore,
     createSaveSignal,
+    createBrowserStoragePort,
+    createPersistenceStatus,
 } from '@openisd/persistence';
 import {DeviceName, cloudSyncReportLines, cloudSyncSummary, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
@@ -81,7 +83,7 @@ import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
 import {trailOfPathname} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
-import {basicUtc, formatDateTime} from '@openisd/design/fields';
+import {basicUtc, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
@@ -128,6 +130,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // --- services: arguments in, data out, no app state ---
   // FIRST: a fault that fires while the rest of this file runs must still be caught.
   // A repair's backup is a file download: the user keeps it outside the browser.
+  // Whether the browser keeps OpenISD's data: asked once, below, once the fault log is up.
+  const browserStorage = createBrowserStoragePort('storage' in navigator ? navigator.storage : undefined);
+  const persistence = createPersistenceStatus(browserStorage, createLocalStorage());
   const faultLog = createFaultLog((fileName, text) => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -140,8 +145,10 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       lines: () => cloudSyncReportLines(cloudSync === null ? null : cloudSync.diagnostics()),
       summary: () => cloudSyncSummary(cloudSync === null ? null : cloudSync.diagnostics()),
     },
+    {lines: () => [persistenceLine(persistence.outcome())]},
     key => { const held = storage.get(key); return held === null ? null : preRepairCopyText(held); });
   faultLog.install();
+  void persistence.ask();
 
   // TELEMETRY: anonymous usage events, fire-and-forget. Built here and handed to what records them.
   // A dev server and the browser suite get `NoTelemetry` (the suite opts one spec in).
@@ -406,7 +413,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, releases, appVersion, versionIndex,
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, browserStorage, persistence, releases, appVersion, versionIndex,
     confirmPort, appState, presentation,
     recordedProjectId: recordedProjectIdStore.get,
     cloudSync,

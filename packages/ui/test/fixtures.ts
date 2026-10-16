@@ -106,6 +106,10 @@ export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }
       // silently undo what the test set up.
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled — the splash then shows, and that test will say so */ }
+      // The same for the startup warning a browser that will not keep the data raises; its own
+      // spec (`persistent-storage.browser.spec.ts`) clears this to see it.
+      try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
+      catch { /* storage disabled */ }
     });
 
     const log: BrowserLog = {

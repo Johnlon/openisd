@@ -2,6 +2,7 @@
 // The mobile shell — routes between the Design tabs and the full-screen Graph destination.
 // Holds NO logic: every ref/computed/write lives in `useMobileShell()`
 // (src/hooks/MobileShell-hooks.ts), mirroring OriginalShell.vue's own 1-to-1 hook rule.
+import PersistenceBanner from '../../components/PersistenceBanner.vue';
 import MobileTabBar from './MobileTabBar.vue';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import MobileBoxTab from './MobileBoxTab.vue';
@@ -50,6 +51,7 @@ const diagnostics = injectDiagnosticsModal();
   <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined }">
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
+    <PersistenceBanner />
     <div v-if="!projectOpen" class="mob-empty">
       <div class="mob-empty-brand">
         <img src="/icon.svg" alt="" aria-hidden="true">

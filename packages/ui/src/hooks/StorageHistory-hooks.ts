@@ -6,8 +6,8 @@
  * (`StorageHistory`); this only words them for the page, asks the user to confirm, and keeps the
  * list current. The page shows what it is handed.
  */
-import {ref, type Ref} from 'vue';
-import {formatByteSize, formatCountOf, formatDateTime, parseBasicUtc, restoredProjectName, storageUsedLine} from '@openisd/design/fields';
+import {getCurrentScope, onScopeDispose, ref, shallowRef, type Ref} from 'vue';
+import {formatByteSize, formatCountOf, formatDateTime, parseBasicUtc, persistenceWarning, restoredProjectName, siteStorageLine, storageFullWarning, storageUsedLine, type StorageEstimate} from '@openisd/design/fields';
 import {type BackupReason, type HistoryEntry, type HistoryRow, type PreRepairCopy, type PreRepairKind, type RefusedCopy,
   type HistoryFile, type StorageHistory} from '@openisd/persistence';
 import {useApp} from '../logic/app.js';
@@ -82,6 +82,12 @@ export interface UsageRowView {
 export interface StorageHistoryAPI {
   /** "Using 2.1 MB of about 5 MB in this browser." */
   readonly usedLine: Ref<string>;
+  /** "This site uses 1.2 MB of the 2.3 GB this browser allows."; null when the browser cannot say. */
+  readonly siteLine: Ref<string | null>;
+  /** "Storage is 86% full. Export or delete old projects."; null below 80%. */
+  readonly fullWarning: Ref<string | null>;
+  /** Shown while the browser may clear OpenISD's data; null when it keeps it. */
+  readonly persistWarning: Ref<string | null>;
   readonly usageRows: Ref<readonly UsageRowView[]>;
   /** False: Empty Bin is disabled. */
   readonly binHasProjects: Ref<boolean>;
@@ -199,8 +205,19 @@ function removeOf(history: Pick<StorageHistory, 'remove' | 'removeCopy' | 'remov
 }
 
 export function useStorageHistory(): StorageHistoryAPI {
-  const { storageHistory, storageUsage, projectBin, designIO, confirmPort, logging } = useApp();
+  const { storageHistory, storageUsage, projectBin, designIO, confirmPort, logging, browserStorage, persistence } = useApp();
   const usedLine = ref('');
+  const siteLine = ref<string | null>(null);
+  const fullWarning = ref<string | null>(null);
+  const persistWarning = ref<string | null>(persistenceWarning(persistence.outcome()));
+  const stopWatching = persistence.watch(() => { persistWarning.value = persistenceWarning(persistence.outcome()); });
+  if (getCurrentScope()) onScopeDispose(stopWatching);
+  const estimate = shallowRef<StorageEstimate | null>(null);
+  let localBytes = 0;
+  function showFullness(): void {
+    siteLine.value = siteStorageLine(estimate.value);
+    fullWarning.value = storageFullWarning(localBytes, estimate.value);
+  }
   const usageRows = ref<readonly UsageRowView[]>([]);
   const binHasProjects = ref(false);
   const rows = ref<readonly HistoryRowView[]>([]);
@@ -209,6 +226,9 @@ export function useStorageHistory(): StorageHistoryAPI {
   const refresh = (): void => {
     const usage = storageUsage.report();
     usedLine.value = storageUsedLine(usage.total);
+    localBytes = usage.total;
+    showFullness();
+    void browserStorage.estimate().then(read => { estimate.value = read; showFullness(); });
     usageRows.value = [
       {label: 'Projects', size: formatByteSize(usage.projects)},
       {label: 'My Drivers', size: formatByteSize(usage.myDrivers)},
@@ -308,7 +328,7 @@ export function useStorageHistory(): StorageHistoryAPI {
   }
 
   return {
-    usedLine, usageRows, binHasProjects, emptyBin, deleteAllBackups,
+    usedLine, siteLine, fullWarning, persistWarning, usageRows, binHasProjects, emptyBin, deleteAllBackups,
     rows, totalSize, picker,
     keepRule: 'A backup of everything in this browser is made before anything is restored, repaired or deleted. '
       + 'The newest 3 are kept, plus the last one made before an app update; older ones are removed. '

@@ -82,6 +82,17 @@ export { lostDataSentence } from './lostData.js';
 export { deleteForeverMessage, emptyBinMessage, moveToBinMessage } from './projectBinText.js';
 export {PROJECT_LIST_ORDERS, PROJECT_LIST_ORDER_LIST, viewProjects, type ProjectListItem, type ProjectListOrder} from './projectListView.js';
 export { restoredProjectName, storageUsedLine } from './backupText.js';
+export {
+  LOCAL_STORE_LIMIT_BYTES,
+  persistenceBanner,
+  persistenceLine,
+  persistenceWarning,
+  siteStorageLine,
+  STORAGE_FULL_FROM,
+  storageFullWarning,
+  type PersistOutcome,
+  type StorageEstimate,
+} from './browserStorage.js';
 export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';

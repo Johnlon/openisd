@@ -5,7 +5,7 @@
 import {useStorageHistory} from '../../hooks/StorageHistory-hooks.js';
 
 const {
-  usedLine, usageRows, binHasProjects, emptyBin, deleteAllBackups,
+  usedLine, siteLine, fullWarning, persistWarning, usageRows, binHasProjects, emptyBin, deleteAllBackups,
   rows, totalSize, keepRule, picker, backUpNow, exportRow, restoreRow, openPicker, closePicker, restoreProject, deleteRow,
 } = useStorageHistory();
 
@@ -21,7 +21,10 @@ async function onRestore(key: string) {
 <template>
   <fieldset class="opt-group su-page">
     <legend>Storage</legend>
+    <p v-if="persistWarning" class="su-warning su-persist-warning" role="alert">{{ persistWarning }}</p>
+    <p v-if="fullWarning" class="su-warning su-full-warning" role="alert">{{ fullWarning }}</p>
     <p class="opt-help su-used">{{ usedLine }}</p>
+    <p v-if="siteLine" class="opt-help su-site">{{ siteLine }}</p>
     <dl class="su-rows">
       <div v-for="u in usageRows" :key="u.label" class="su-row"><dt>{{ u.label }}</dt><dd>{{ u.size }}</dd></div>
     </dl>
@@ -99,4 +102,5 @@ async function onRestore(key: string) {
 .sh-picker-row { display: flex; align-items: center; gap: 8px; }
 .sh-picker-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .sh-picker-close { align-self: flex-start; }
+.su-warning { margin: 0 0 8px; padding: 6px 8px; border-radius: 4px; background: #fdecc8; color: #5a3a00; font-size: 12px; line-height: 1.4; }
 </style>

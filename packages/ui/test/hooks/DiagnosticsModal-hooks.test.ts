@@ -19,7 +19,7 @@ async function renderHook(
   }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {
     lines: () => cloudSyncReportLines(cloudSync()),
     summary: () => cloudSyncSummary(cloudSync()),
-  }, key => storage.get(key));
+  }, {lines: () => ['Persistent storage: refused']}, key => storage.get(key));
   let api!: DiagnosticsModalAPI;
   const Child = defineComponent({
     setup() {

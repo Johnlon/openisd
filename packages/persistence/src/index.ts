@@ -58,6 +58,14 @@ export {
 } from './repos/storeGate.js';
 
 export { type SaveResult, type FileStorage, createFileStorage } from './storage/fileStorage.js';
+export {
+  type BrowserStoragePort,
+  createBrowserStoragePort,
+  createPersistenceStatus,
+  PERSIST_BANNER_DISMISSED_KEY,
+  type PersistenceStatus,
+  type StorageManagerLike,
+} from './storage/browserStorage.js';
 
 export {
   type ViewSnapshot,

@@ -74,6 +74,11 @@ const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copy
         <pre class="dg-stack">{{ faultLog.cloudSyncLines().join('\n') }}</pre>
       </section>
 
+      <section class="dg-storage">
+        <h3>Browser storage</h3>
+        <pre class="dg-stack">{{ faultLog.storageLines().join('\n') }}</pre>
+      </section>
+
       <p v-if="outcome" class="dg-outcome">{{ outcome }}</p>
 
       <footer>

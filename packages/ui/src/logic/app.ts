@@ -17,7 +17,9 @@ import type {
     ProjectRepo,
     StorageHistory,
     StorageUsage,
-    ViewStateRepo
+    ViewStateRepo,
+    BrowserStoragePort,
+    PersistenceStatus
 } from '@openisd/persistence';
 import type {Logging} from '../logging/flash.js';
 import type {FaultLog} from '../diagnostics/faultLog.js';
@@ -66,6 +68,10 @@ export interface AppLogic {
   storageHistory: StorageHistory;
   /** What each kind of data takes in this browser: the Options "Your data" Storage group. */
   storageUsage: StorageUsage;
+  /** What the browser holds for this site and allows: the "Your data" Storage group. */
+  browserStorage: BrowserStoragePort;
+  /** Whether the browser keeps OpenISD's data. */
+  persistence: PersistenceStatus;
   faultLog: FaultLog;
   releases: ReleaseWatch;
   appVersion: AppVersionPort;

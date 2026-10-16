@@ -57,11 +57,12 @@ export function formatCount(n: number): string {
   return String(Math.trunc(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-/** "512 B", "12.3 KB", "1.2 MB" — a length in bytes, 1024 to the unit, one decimal above bytes. */
+/** "512 B", "12.3 KB", "1.2 MB", "2.3 GB" — a length in bytes, 1024 to the unit, one decimal above bytes. */
 export function formatByteSize(bytes: number): string {
   if (bytes < 1024) return `${Math.trunc(bytes)} B`;
   if (bytes < 1024 * 1024) return `${formatFixed(bytes / 1024, 1)} KB`;
-  return `${formatFixed(bytes / (1024 * 1024), 1)} MB`;
+  if (bytes < 1024 * 1024 * 1024) return `${formatFixed(bytes / (1024 * 1024), 1)} MB`;
+  return `${formatFixed(bytes / (1024 * 1024 * 1024), 1)} GB`;
 }
 
 /** "1 project", "3 projects", "0 projects" — a count and its noun, plural unless exactly one. */

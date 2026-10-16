@@ -1,0 +1,31 @@
+id: T206
+release_note: 'OpenISD asks the browser to keep its data. If the browser may clear it, a warning says so at startup (dismissable) and on Your data. Your data shows how much storage the site uses and warns from 80% full.'
+repo: openisd
+owner: maryu
+status: done
+goal: Ask the browser for persistent storage at startup; Your data shows storage used vs quota and warns at 80% and when persistence is refused
+done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts packages/persistence/test/browserStorage.test.ts packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+files:
+  - packages/design/fields/browserStorage.ts
+  - packages/design/fields/format.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/storage/browserStorage.ts
+  - packages/persistence/test/browserStorage.test.ts
+  - packages/ui/src/diagnostics/faultLog.ts
+  - packages/ui/src/hooks/PersistenceBanner-hooks.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/components/DiagnosticsModal.vue
+  - packages/ui/src/ui/components/PersistenceBanner.vue
+  - packages/ui/src/ui/components/StorageHistory.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/diagnostics/faultOrigin.test.ts
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - tasks/T206.yml
