@@ -21,8 +21,10 @@ overwrites the box volume, and one blanks both.
   (sealed Qtc; vented the alignment) and the volume (and vented tuning) are calculated from it.
   Typing the volume makes it entered and the target calculated. A cleared sealed volume is then
   calculated from Qtc. WinISD instead writes the volume as a plain value (wine probe, 16 Oct).
-- Open with John: a new field state for a value set by a tool such as the picker, to tell it
-  apart from a value the user typed.
+- 16 Oct 2026, field states (John): "Entered / Was calculated / Calculated / NotAvailable".
+  "Was calculated" is a new state: a value that acts as an input but was never typed by the
+  user, such as the partner kept at its calculated value when the entered member is cleared.
+  It shows apart from Entered. (Meaning as read by fable; awaiting John's confirmation.)
 
 ## Evidence (code read 16 Oct 2026)
 | Pair | Clearing the entered member does | Fits the rule |
