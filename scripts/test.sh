@@ -77,7 +77,7 @@ fi
 for arg in "$@"; do
   case "$arg" in
     *.browser.spec.ts)
-      exec bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh" "$@"
+      exec bash "$SCRIPT_DIR/suite-lock.sh" shared -- bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh" "$@"
       ;;
   esac
 done

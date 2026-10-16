@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# A post-land run that gets a TERM with no newer run behind it is a red that says so: its output reads
+# "post-land: killed by signal at <sha>, not superseded", an F task is pushed, no child survives, and
+# the sha is recorded as tested. A TERM with a newer run registered stays "superseded". Scratch repo,
+# real git, real processes. Not a locked spec.
+set -uo pipefail
+GITCFG="$(mktemp "${TMPDIR:-/tmp}/land-gitconfig.XXXXXX")"
+printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\tdefaultBranch = main\n' > "$GITCFG"
+export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/post-land-signal.XXXXXX")"
+RUNPID=""
+fails=0
+cleanup() { [ -n "$RUNPID" ] && kill -KILL -- "-$RUNPID" 2>/dev/null; rm -rf "$SCRATCH" "$GITCFG"; }
+trap cleanup EXIT
+ok()   { echo "ok   $1"; }
+fail() { echo "FAIL $1"; fails=$((fails + 1)); }
+
+cd "$SCRATCH" || exit 2
+git init -q --bare -b main origin.git
+git clone -q origin.git c 2>/dev/null; cd c || exit 2
+git config user.email t@t; git config user.name t
+mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
+cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/paths.sh" scripts/
+cat > suite.sh <<EOF2
+#!/usr/bin/env bash
+sleep 120 &
+echo \$! > "$SCRATCH/childpid"
+: > "$SCRATCH/started"
+wait
+EOF2
+cat > land.conf <<EOF2
+FULL_SUITE_CMD="bash suite.sh"
+POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_DIR="$SCRATCH/copies"
+POST_LAND_DEADLINE_S=300
+EOF2
+git add -A; git commit -qm base; git push -q origin main
+sha=$(git rev-parse HEAD)
+
+# 1. A bare TERM (the OOM case): red, truthful line, F task, child gone, recorded tested
+setsid bash scripts/land/post-land/run.sh "$sha" > "$SCRATCH/out" 2>&1 & RUNPID=$!
+for _ in $(seq 1 200); do [ -e "$SCRATCH/started" ] && break; sleep 0.1; done
+[ -e "$SCRATCH/started" ] || { fail "suite never started: $(cat "$SCRATCH/out")"; exit 1; }
+kill -TERM "$RUNPID"
+wait "$RUNPID" 2>/dev/null; rc=$?
+RUNPID=""
+child=$(cat "$SCRATCH/childpid" 2>/dev/null)
+fx=$(git -C "$SCRATCH/origin.git" show main:tasks/fixes/F1.yml 2>/dev/null)
+[ "$rc" = 1 ] && ok "run ends red (rc=$rc)" || fail "rc=$rc: $(cat "$SCRATCH/out")"
+grep -q "post-land: killed by signal at ${sha:0:10}, not superseded" "$SCRATCH/out" && ok "says it was killed by a signal" || fail "no signal line: $(cat "$SCRATCH/out")"
+if grep -q "post-land: superseded" "$SCRATCH/out"; then fail "called itself superseded"; else ok "does not call itself superseded"; fi
+printf '%s' "$fx" | grep -q 'killed by signal' && ok "F task names the signal" || fail "F task: $fx"
+{ [ -n "$child" ] && ! kill -0 "$child" 2>/dev/null; } && ok "no sleep left in the group" || fail "sleep $child still alive"
+[ ! -e "$SCRATCH/post.lock.running" ] && ok ".running removed" || fail ".running left behind"
+[ "$(cat "$SCRATCH/post.lock.tested" 2>/dev/null)" = "$sha" ] && ok "sha recorded as tested" || fail "tested not recorded"
+[ ! -e "$SCRATCH/post.lock.green" ] && ok "not recorded green" || fail "recorded green"
+
+# 2. A TERM with a newer run's supersede record: still superseded, no F pushed
+rm -f "$SCRATCH/started" "$SCRATCH/out" "$SCRATCH/post.lock.tested"
+setsid bash scripts/land/post-land/run.sh "$sha" > "$SCRATCH/out" 2>&1 & RUNPID=$!
+for _ in $(seq 1 200); do [ -e "$SCRATCH/started" ] && break; sleep 0.1; done
+printf '%s\n' "newer0123" > "$SCRATCH/post.lock.supersede"
+kill -TERM "$RUNPID"
+wait "$RUNPID" 2>/dev/null; rc=$?
+RUNPID=""
+[ "$rc" = 0 ] && grep -q "post-land: superseded by newer0123; killed" "$SCRATCH/out" && ok "a newer run's kill is still superseded" || fail "rc=$rc: $(cat "$SCRATCH/out")"
+git -C "$SCRATCH/origin.git" show main:tasks/fixes/F2.yml > /dev/null 2>&1 && fail "pushed an F for a superseded run" || ok "no F pushed for a superseded run"
+
+[ $fails = 0 ] && { echo "post-land-signal: all passed"; exit 0; }
+echo "post-land-signal: $fails failed"; exit 1

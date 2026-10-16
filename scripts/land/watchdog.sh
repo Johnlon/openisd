@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # SDLC S3: one watchdog tick. A systemd user timer runs it every 5 min (watchdog.timer). Idempotent;
 # two ticks never overlap (flock). Every action is logged to WATCHDOG_LOG with a UTC timestamp.
-# Checks, in order: (a) housekeeping, (b) hung post-land run, (c) open F, (d) unacknowledged zoo-run
+# Checks, in order: (a) housekeeping, (b) hung post-land run, (b2) main untested with no run alive, (c) open F, (d) unacknowledged zoo-run
 # result, (e) gate refused twice in an hour, (f) merged clean worktrees.
 # Processes are found by recorded pid and start time, never by command text.
 # Env overrides (tests use scratch dirs): WATCHDOG_REPO WORKSPACE WATCHDOG_LOG WATCHDOG_LEADER
 #   WATCHDOG_STATE WATCHDOG_HOLDER WATCHDOG_POST_LAND_LOG WATCHDOG_REFUSALS WATCHDOG_HOUSEKEEPING
 #   WATCHDOG_NOW (epoch) WATCHDOG_HUNG_MIN (20) WATCHDOG_HUNG_S WATCHDOG_F_AGE_S (1800)
-#   WATCHDOG_REALERT_S (1800) WATCHDOG_REFUSE_WINDOW_S (3600) WATCHDOG_GRACE_S (10)
+#   WATCHDOG_RUN_SH WATCHDOG_STALL_S (600) WATCHDOG_REALERT_S (1800) WATCHDOG_REFUSE_WINDOW_S (3600) WATCHDOG_GRACE_S (10)
 #   WATCHDOG_WT_MIN_AGE_S (3600) WATCHDOG_CPU_SLACK_TICKS (= one second of CPU).
 set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -131,6 +131,38 @@ check_hung() {
   alert "$LEADER" "post-land run for ${sha:0:10} was hung ${idle}s and is killed; rerun: bash scripts/land/post-land/run.sh ${sha:0:10}"
 }
 check_hung
+
+# --- (b2) main has a commit no post-land run has tested and none is alive: start one ---------------
+# A run can be gone without leaving a result (its own process killed, the machine restarted, 16 Oct:
+# an OOM kill took a run and nothing replaced it for hours). The commit must be older than STALL_S, so
+# a run that land.sh is only now starting is not raced. A run is alive when its holder is, when it
+# holds the post-land lock, or when a waiting run's record is held.
+check_untested_main() {
+  local lock holder plog run main tested ctime hpid hstart hsha rec
+  lock="${POST_LAND_LOCK:-$OPENISD_RUNTIME_DIR/post-land.lock}"
+  holder="${WATCHDOG_HOLDER:-$lock.holder}"
+  plog="${WATCHDOG_POST_LAND_LOG:-$( . "$ROOT/land.conf"; echo "${POST_LAND_DIR:-}" )/post-land.log}"
+  run="${WATCHDOG_RUN_SH:-$REPO/scripts/land/post-land/run.sh}"
+  timeout 60 git -C "$REPO" fetch -q origin main 2> /dev/null || { log "fetch of origin/main failed; no untested-main check this tick"; return 0; }
+  main=$(git -C "$REPO" rev-parse origin/main 2> /dev/null) || return 0
+  tested=$(cat "$lock.tested" 2> /dev/null)
+  [ "$tested" != "$main" ] || return 0
+  [ -z "$tested" ] || ! git -C "$REPO" merge-base --is-ancestor "$main" "$tested" 2> /dev/null || return 0
+  ctime=$(git -C "$REPO" log -1 --format=%ct "$main" 2> /dev/null || echo 0)
+  [ $(( $(now) - ctime )) -ge "${WATCHDOG_STALL_S:-600}" ] || return 0
+  if [ -s "$holder" ]; then
+    read -r hpid hstart hsha < "$holder"
+    [ -z "$(admit_starttime "${hpid:-0}")" ] || [ "$(admit_starttime "${hpid:-0}")" != "$hstart" ] || return 0
+  fi
+  ( flock -n 9 ) 9> "$lock" 2> /dev/null || return 0
+  for rec in "$lock.pending"/*; do
+    [ -e "$rec" ] || continue
+    ( flock -n 7 ) 7< "$rec" 2> /dev/null || return 0
+  done
+  log "main ${main:0:10} is untested (last tested ${tested:0:10}) and no post-land run is alive; starting one"
+  ( cd "$REPO" && setsid bash "$run" "$main" >> "$plog" 2>&1 < /dev/null & )
+}
+check_untested_main
 
 # --- (c) open F older than the limit ----------------------------------------------------------
 check_open_fs() {

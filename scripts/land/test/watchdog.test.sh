@@ -20,6 +20,8 @@ export WATCHDOG_HOLDER="$SCRATCH/rt/post.holder" WATCHDOG_POST_LAND_LOG="$SCRATC
 export WATCHDOG_REFUSALS="$SCRATCH/rt/land-refusals.log"
 export WATCHDOG_HUNG_S=100 WATCHDOG_GRACE_S=2 WATCHDOG_WT_MIN_AGE_S=0 WATCHDOG_LEADER=lots
 export WATCHDOG_REPO="$SCRATCH/repo"
+export POST_LAND_LOCK="$SCRATCH/rt/post.lock" WATCHDOG_RUN_SH="$SCRATCH/fake-run.sh" FAKE_RUN_LOG="$SCRATCH/run.log"
+printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE_RUN_LOG"\n' > "$SCRATCH/fake-run.sh"
 ASK="$WORKSPACE/zoo/ASK.md"; : > "$ASK"
 
 # fake tmux: list-windows prints $FAKE_WINDOWS, everything is logged
@@ -129,6 +131,29 @@ grep -q 'removed merged clean worktree' "$WATCHDOG_LOG" && ok "removal logged" |
 # 8. overlapping ticks: a held lock makes the second exit quietly
 ( exec 7> "$WATCHDOG_STATE/watchdog.lock"; flock -x 7; exec sleep 300 ) & PIDS+=("$!"); sleep 0.3
 out=$(tick); grep -q 'another tick is running' <<< "$out" && ok "overlap refused" || fail "overlap: $out"
+kill -KILL "${PIDS[-1]}" 2> /dev/null; wait "${PIDS[-1]}" 2> /dev/null
+
+# 9. main has an untested commit and no run is alive: a run is started (once old enough)
+main_sha=$(git -C "$WATCHDOG_REPO" rev-parse origin/main)
+rm -f "$FAKE_RUN_LOG" "$WATCHDOG_HOLDER" "$POST_LAND_LOCK.tested"
+tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a young untested main is left to land.sh's own run" || fail "started a run on a young commit"
+WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
+[ "$(cat "$FAKE_RUN_LOG" 2> /dev/null)" = "$main_sha" ] && ok "an old untested main with no run alive starts one on origin/main" || fail "run not started: $(cat "$FAKE_RUN_LOG" 2> /dev/null)"
+grep -q "main ${main_sha:0:10} is untested.*starting one" "$WATCHDOG_LOG" && ok "start logged" || fail "start not logged"
+rm -f "$FAKE_RUN_LOG"
+setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
+hold "$HP"
+WATCHDOG_STALL_S=0 WATCHDOG_HUNG_S=100000 tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a live holder means no second run" || fail "started over a live run"
+kill -KILL -- "-$HP" 2> /dev/null; wait "$HP" 2> /dev/null; rm -f "$WATCHDOG_HOLDER"
+( exec 9> "$POST_LAND_LOCK"; flock -x 9; exec sleep 300 ) & PIDS+=("$!"); sleep 0.3
+WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a held post-land lock means no second run" || fail "started over a held lock"
+kill -KILL "$!" 2> /dev/null
+printf '%s\n' "$main_sha" > "$POST_LAND_LOCK.tested"
+WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a tested main starts nothing" || fail "started a run on a tested main"
 
 [ $fails = 0 ] && echo "ALL OK" || echo "$fails FAILED"
 exit $((fails > 0))

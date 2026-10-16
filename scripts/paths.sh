@@ -13,6 +13,8 @@ chmod 0700 "$OPENISD_RUNTIME_DIR" 2>/dev/null || true
 # land.conf reads LAND_LOCK and POST_LAND_LOCK from here (see land.conf).
 LAND_LOCK="${LAND_LOCK:-$OPENISD_RUNTIME_DIR/land.lock}"
 POST_LAND_LOCK="${POST_LAND_LOCK:-$OPENISD_RUNTIME_DIR/post-land.lock}"
+# Held exclusive by the post-land full suite, shared by every agent browser spec run (scripts/suite-lock.sh).
+SUITE_RUN_LOCK="${SUITE_RUN_LOCK:-$OPENISD_RUNTIME_DIR/suite-run.lock}"
 
 # Heavy gate reservations (scripts/hooks-local/heavy-gate-concurrency.sh)
 OPENISD_HEAVY_GATE_DIR="${OPENISD_HEAVY_GATE_DIR:-$OPENISD_RUNTIME_DIR/heavy-gate-reservations}"

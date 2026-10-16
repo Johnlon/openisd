@@ -14,6 +14,9 @@ cp -r "$REPO/scripts/admit" "$REPO/scripts/lib" "$COPY/scripts/"
 cp "$REPO/scripts/paths.sh" "$COPY/scripts/"   # admit/record.sh sources ../paths.sh
 cp "$REPO/scripts/admit.sh" "$COPY/scripts/"
 cp "$REPO/scripts/land/post-land/suite.sh" "$COPY/scripts/land/post-land/"
+cp "$REPO/scripts/suite-lock.sh" "$COPY/scripts/"
+[ -f "$COPY/scripts/paths.sh" ] || cp "$REPO/scripts/paths.sh" "$COPY/scripts/"
+export SUITE_RUN_LOCK="$SCRATCH/suite-run.lock"
 # fake steps record what they saw while they ran
 # suite.sh runs node_modules/.bin/vitest (S9: no npx inside the funnel); the copy hardlinks node_modules from SRC.
 mkdir -p "$SRC/node_modules/.bin"

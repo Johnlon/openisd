@@ -18,6 +18,9 @@
 # OLDER commit's suite running (${POST_LAND_LOCK}.holder: pid, start time, sha) kills it by pid; the killed
 # run ends "superseded by <sha>; killed", exit 0. A run whose sha is an ancestor of the last tested sha
 # (${POST_LAND_LOCK}.tested) ends "superseded by <sha> (already tested)", exit 0. A red lists every commit since the last green in its F.
+# A TERM with no newer run behind it (no ${POST_LAND_LOCK}.supersede, no live record in .pending) is a red
+# that says "post-land: killed by signal at <sha>, not superseded": the sha is recorded as tested and the F
+# is opened as for any red. The watchdog starts a run when main holds an untested commit and none is alive.
 # A run past POST_LAND_DEADLINE_S (default 5400) has its whole process group killed and is a red whose
 # output says "post-land: TIMED OUT after <n>s at <sha>". While a run is in flight
 # ${POST_LAND_LOCK}.running holds "<pid> <start epoch> <sha>".
@@ -57,14 +60,96 @@ stop_suite() {
   wait "$body" 2>/dev/null || true
   kill -KILL -- "-$body" 2>/dev/null || true
 }
+# Red: open a fixes task on top of the tested commit (or append to the open one), then exit 1.
+# Reads OUT, SHA, FIX and the last green; called when the suite ended non-zero and when a signal
+# killed the run with no newer run behind it.
+record_red() {
+  # The push can lose a race with a landing, so recompute and retry.
+  FIX="$(mktemp -d "${TMPDIR:-/tmp}/post-land-fix.XXXXXX")"
+  for attempt in 1 2 3; do
+    git fetch -q origin main
+    # The fixes commit goes on top of the tested commit. When origin/main already holds it, that is
+    # origin/main. When origin/main is behind it (main is ahead of origin), it is the tested commit
+    # itself, and the push is a fast-forward carrying the tested history with it. When origin/main
+    # has moved on without it, nothing is pushed.
+    if git merge-base --is-ancestor "$SHA" origin/main; then base=origin/main
+    elif git merge-base --is-ancestor origin/main "$SHA"; then base="$SHA"
+    else
+      echo "post-land: RED at ${SHA:0:10} but origin/main has diverged from it (cannot fast-forward); nothing pushed" >&2
+      exit 1
+    fi
+    git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"
+    git worktree add -q --detach "$FIX" "$base" || exit 2
+    mkdir -p "$FIX/tasks/fixes"
+    green="$(cat "${POST_LAND_LOCK}.green" 2>/dev/null)"
+    if [ -n "$green" ] && git merge-base --is-ancestor "$green" "$SHA" 2>/dev/null; then range="$green..$SHA"; else range="-n 20 $SHA"; fi
+    # The failing spec names, in full: an F that keeps only the log tail lost them (F7-F9 cost a
+    # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
+    # vitest echoes a test's console output as "stderr | <file> > <name>": not a failure (F11 listed six).
+    failing="$(grep -Ev '^[[:space:]]*(stderr|stdout) \|' "$OUT" | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
+    # One F per fault, not one per pushed commit: a red while an F is open is appended to that F.
+    open="$(grep -l '^status: open' "$FIX"/tasks/fixes/F*.yml 2>/dev/null | head -n 1)"
+    if [ -n "$open" ]; then
+      n="$(basename "$open" .yml)"; n="${n#F}"
+      {
+        printf 'also_red:\n  - sha: %s\n    failing: |\n' "$SHA"
+        printf '%s\n' "$failing" | sed 's/^/    /'
+      } >> "$open"
+      subject="F$n: still red at ${SHA:0:10}"
+    else
+      last="$(ls "$FIX/tasks/fixes" 2>/dev/null | sed -n 's/^F\([0-9][0-9]*\)\.yml$/\1/p' | sort -n | tail -n 1)"
+      n=$(( ${last:-0} + 1 ))
+      # The owner is the author of the first commit since the last green: an F with no owner sat for 11 h.
+      owner="$(git log --reverse --format=%an $range | head -n 1)"
+      {
+        printf 'id: F%s\nowner: %s\nstatus: open\nsha: %s\n' "$n" "${owner:-post-land}" "$SHA"
+        printf 'goal: main is red at %s; make the full suite pass again\n' "${SHA:0:10}"
+        printf 'commits: |\n'
+        git log --abbrev=10 --format='  %h %s' $range
+        printf 'failing: |\n%s\n' "$failing"
+        printf 'output: |\n'
+        tail -n 40 "$OUT" | sed 's/^/  /'
+      } > "$FIX/tasks/fixes/F$n.yml"
+      subject="F$n: the full suite is red at ${SHA:0:10}"
+    fi
+    git -C "$FIX" add "tasks/fixes/F$n.yml"
+    git -C "$FIX" commit -q -m "$subject" || exit 2
+    if git -C "$FIX" push -q origin HEAD:main; then
+      echo "post-land: RED at ${SHA:0:10}; opened tasks/fixes/F$n.yml on main" >&2
+      exit 1
+    fi
+  done
+  echo "post-land: RED at ${SHA:0:10} but could not push the fixes task" >&2
+  exit 1
+}
 HOLDER="${POST_LAND_LOCK}.holder"
 SUPERSEDE="${POST_LAND_LOCK}.supersede"
 # A newer run killed this one (SDLC S2): the suite stops, nothing is recorded, exit 0 like any superseded run.
+# A TERM is a supersede only when a newer run is behind it: it wrote ${POST_LAND_LOCK}.supersede
+# before it killed this run, or its record in .pending is held by a live process. Any other TERM (the
+# kernel's OOM kill of the browser scope reaches the run as one, 16 Oct) is a red, reported as what
+# it was.
+newer_run_waiting() {
+  local rec rsha
+  for rec in "$PENDING"/*; do
+    [ -e "$rec" ] && [ "$rec" != "${MINE:-}" ] || continue
+    rsha="$(basename "$rec")"; rsha="${rsha#*-}"
+    [ "$rsha" != "$SHA" ] && git merge-base --is-ancestor "$SHA" "$rsha" 2>/dev/null || continue
+    ( flock -n 7 ) 7< "$rec" 2> /dev/null || return 0
+  done
+  return 1
+}
 superseded() {
   local newer; newer="$(cat "$SUPERSEDE" 2>/dev/null)"
   stop_suite
-  echo "post-land: superseded by ${newer:-a newer run}; killed"
-  exit 0
+  if [ -n "$newer" ] || newer_run_waiting; then
+    echo "post-land: superseded by ${newer:-a newer run}; killed"
+    exit 0
+  fi
+  echo "post-land: killed by signal at ${SHA:0:10}, not superseded" | tee -a "$OUT"
+  rm -f "$RUNNING"
+  printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}.tested.$$" "${POST_LAND_LOCK}.tested"
+  record_red
 }
 cleanup() {
   local status=$?
@@ -158,60 +243,4 @@ if [ "$rc" = 0 ]; then
   exit 0
 fi
 
-# Red: open a fixes task on top of the tested commit. The push can lose a race with a landing, so recompute and retry.
-FIX="$(mktemp -d "${TMPDIR:-/tmp}/post-land-fix.XXXXXX")"
-for attempt in 1 2 3; do
-  git fetch -q origin main
-  # The fixes commit goes on top of the tested commit. When origin/main already holds it, that is
-  # origin/main. When origin/main is behind it (main is ahead of origin), it is the tested commit
-  # itself, and the push is a fast-forward carrying the tested history with it. When origin/main
-  # has moved on without it, nothing is pushed.
-  if git merge-base --is-ancestor "$SHA" origin/main; then base=origin/main
-  elif git merge-base --is-ancestor origin/main "$SHA"; then base="$SHA"
-  else
-    echo "post-land: RED at ${SHA:0:10} but origin/main has diverged from it (cannot fast-forward); nothing pushed" >&2
-    exit 1
-  fi
-  git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"
-  git worktree add -q --detach "$FIX" "$base" || exit 2
-  mkdir -p "$FIX/tasks/fixes"
-  green="$(cat "${POST_LAND_LOCK}.green" 2>/dev/null)"
-  if [ -n "$green" ] && git merge-base --is-ancestor "$green" "$SHA" 2>/dev/null; then range="$green..$SHA"; else range="-n 20 $SHA"; fi
-  # The failing spec names, in full: an F that keeps only the log tail lost them (F7-F9 cost a
-  # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
-  # vitest echoes a test's console output as "stderr | <file> > <name>": not a failure (F11 listed six).
-  failing="$(grep -Ev '^[[:space:]]*(stderr|stdout) \|' "$OUT" | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
-  # One F per fault, not one per pushed commit: a red while an F is open is appended to that F.
-  open="$(grep -l '^status: open' "$FIX"/tasks/fixes/F*.yml 2>/dev/null | head -n 1)"
-  if [ -n "$open" ]; then
-    n="$(basename "$open" .yml)"; n="${n#F}"
-    {
-      printf 'also_red:\n  - sha: %s\n    failing: |\n' "$SHA"
-      printf '%s\n' "$failing" | sed 's/^/    /'
-    } >> "$open"
-    subject="F$n: still red at ${SHA:0:10}"
-  else
-    last="$(ls "$FIX/tasks/fixes" 2>/dev/null | sed -n 's/^F\([0-9][0-9]*\)\.yml$/\1/p' | sort -n | tail -n 1)"
-    n=$(( ${last:-0} + 1 ))
-    # The owner is the author of the first commit since the last green: an F with no owner sat for 11 h.
-    owner="$(git log --reverse --format=%an $range | head -n 1)"
-    {
-      printf 'id: F%s\nowner: %s\nstatus: open\nsha: %s\n' "$n" "${owner:-post-land}" "$SHA"
-      printf 'goal: main is red at %s; make the full suite pass again\n' "${SHA:0:10}"
-      printf 'commits: |\n'
-      git log --abbrev=10 --format='  %h %s' $range
-      printf 'failing: |\n%s\n' "$failing"
-      printf 'output: |\n'
-      tail -n 40 "$OUT" | sed 's/^/  /'
-    } > "$FIX/tasks/fixes/F$n.yml"
-    subject="F$n: the full suite is red at ${SHA:0:10}"
-  fi
-  git -C "$FIX" add "tasks/fixes/F$n.yml"
-  git -C "$FIX" commit -q -m "$subject" || exit 2
-  if git -C "$FIX" push -q origin HEAD:main; then
-    echo "post-land: RED at ${SHA:0:10}; opened tasks/fixes/F$n.yml on main" >&2
-    exit 1
-  fi
-done
-echo "post-land: RED at ${SHA:0:10} but could not push the fixes task" >&2
-exit 1
+record_red

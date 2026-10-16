@@ -11,6 +11,9 @@ fails=0; ok() { echo "ok   $1"; }; fail() { echo "FAIL $1"; fails=$((fails + 1))
 SRC="$SCRATCH/clone"; COPY="$SCRATCH/copies/c1"
 mkdir -p "$SRC/node_modules" "$COPY/scripts/land/post-land" "$SCRATCH/bin" "$SCRATCH/seen"
 cp "$REPO/scripts/land/post-land/suite.sh" "$COPY/scripts/land/post-land/"
+cp "$REPO/scripts/suite-lock.sh" "$COPY/scripts/"
+[ -f "$COPY/scripts/paths.sh" ] || cp "$REPO/scripts/paths.sh" "$COPY/scripts/"
+export SUITE_RUN_LOCK="$SCRATCH/suite-run.lock"
 export SEEN="$SCRATCH/seen" ADMIT_TOKEN=test-token PATH="$SCRATCH/bin:$PATH"
 # the unit half (fake npx) and the browser half each leave a marker, and fail when told to
 # suite.sh runs node_modules/.bin/vitest (S9: no npx inside the funnel); the copy hardlinks node_modules from SRC.

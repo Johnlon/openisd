@@ -13,6 +13,11 @@ cd "$(dirname "${BASH_SOURCE[0]}")/../../.." || exit 1
 if [ -z "${ADMIT_TOKEN:-}" ]; then
   exec bash scripts/admit.sh "post-land suite $(basename "$PWD")" -- bash "$0" "$@"
 fi
+# The suite runs alone: it takes the browser lock exclusive, so no agent browser spec run overlaps it
+# (scripts/suite-lock.sh). The re-run holds the lock through every process it starts.
+if [ -z "${SUITE_LOCK_HELD:-}" ]; then
+  exec env SUITE_LOCK_HELD=1 bash scripts/suite-lock.sh exclusive -- bash "$0" "$@"
+fi
 src="${POST_LAND_SRC:?POST_LAND_SRC not set: start this through scripts/land/post-land/run.sh}"
 [ "$(stat -c %d "$src")" = "$(stat -c %d .)" ] \
   || { echo "suite: $PWD and $src are on different filesystems, so node_modules cannot be hardlinked; put POST_LAND_DIR beside the clones" >&2; exit 2; }

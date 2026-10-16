@@ -3,6 +3,7 @@ release_note: 'OpenISD asks the browser to keep its data. If the browser may cle
 repo: openisd
 owner: maryu
 status: done
+landed: 3d4e247915ba7a93dd66f932c2c428eafa2825c9
 goal: Ask the browser for persistent storage at startup; Your data shows storage used vs quota and warns at 80% and when persistence is refused
 done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts packages/persistence/test/browserStorage.test.ts packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
 files:
