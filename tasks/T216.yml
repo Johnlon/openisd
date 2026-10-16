@@ -3,6 +3,7 @@ release_note: Open and saved projects on mobile are now unified in a full-screen
 repo: openisd
 owner: maryu
 status: done
+landed: 9f31fd05126c085aa7d5427034cf103e93924ebe
 goal: Projects 3: Mobile Projects pane
 done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
 files:

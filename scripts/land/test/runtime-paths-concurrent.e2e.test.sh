@@ -60,6 +60,8 @@ echo "attribution_start" >> "$LANDING_LOG/seq"
 ! grep -qi '^co-authored-by:.*claude'
 echo "attribution_end" >> "$LANDING_LOG/seq"
 EOF
+    # land.sh refuses a repo with no UNIT_CMD; this gate logs nothing, so the sequence checks stay as they were.
+    printf '#!/usr/bin/env bash\nexit 0\n' > gates/unit.sh
     chmod +x gates/*.sh
     if [ "$with_suite" = "true" ]; then
         suite_line='FULL_SUITE_CMD="bash suite.sh"'
@@ -69,6 +71,7 @@ EOF
     cat > land.conf <<EOF
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
+UNIT_CMD="bash gates/unit.sh"
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=5
 LAND_LOCK="$OPENISD_RUNTIME_DIR/land.lock"
@@ -145,7 +148,7 @@ wait $p2; r2=$?
 origin_log=$(git -C "$SCRATCH/w/origin.git" log --format=%s main)
 
 # Verify both succeeded
-if [ $r1 = 0 ] && [ $r2 = 0 ] && echo "$origin_log" | grep -qF "w1 change" && echo "$origin_log" | grep -qF "w2 change"; then
+if [ $r1 = 0 ] && [ $r2 = 0 ] && echo "$origin_log" | grep -qF "T1: " && echo "$origin_log" | grep -qF "T2: "; then
     ok "two concurrent land.sh runs both land"
 else
     fail "concurrent landings (r1=$r1 r2=$r2)"

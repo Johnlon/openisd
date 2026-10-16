@@ -1,6 +1,6 @@
 # BUG_20261016_concurrent-landings-e2e-fails-on-main
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 `bash scripts/land/test/runtime-paths-concurrent.e2e.test.sh` fails its first test on unchanged main:
@@ -18,7 +18,7 @@ It expects both to exit 0 and both commits on the scratch origin's main. Both ex
   the refusal text was not kept. ⚠ unverified which gate refuses.
 
 ## Cause
-Unknown. Found while landing T219 (maryu); not investigated.
+The scratch land.conf had no UNIT_CMD; land.sh refuses a repo without one ("UNIT_CMD is not set in land.conf"), so both landings exited 1.
 
 ## Fix
-Keep the scratch dir on failure, read the two land.sh refusals, and fix the gate or the test.
+T233: the scratch repo gets a silent unit gate and `UNIT_CMD`, and the test looks for the squashed subjects `T1: ` and `T2: ` (landings squash since T064) instead of the workers' own subjects. The test passes.
