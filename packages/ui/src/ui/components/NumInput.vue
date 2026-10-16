@@ -445,12 +445,11 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   position: relative;
   display: inline-flex;
   align-items: stretch;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
 }
 .num-input-wrap > input {
-  flex: 1 1 auto;
-  width: 100%;
+  flex: 0 1 auto;
   min-width: 0;
 }
 .num-mark-overlay {

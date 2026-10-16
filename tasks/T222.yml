@@ -3,6 +3,7 @@ release_note: 'Every desktop number field has step arrows and the stepped digit 
 repo: openisd
 owner: sonnet
 status: done
+landed: d350857381b5a704a4c01d156624086292914aaf
 goal: x
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:
