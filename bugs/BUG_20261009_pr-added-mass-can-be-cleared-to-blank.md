@@ -30,6 +30,16 @@ Field enum in packages/design) and for each name the sensible default a clear sh
 - Port end correction: it is a drop-down; it cannot be blank. If any path lets it blank, that is the bug.
 - Filters: a cleared value stays empty, and an empty box that stays empty (filter frequency etc.) is marked red.
 
+## John's rulings, 16 Oct 2026 evening (replace the above where they differ)
+- Linked groups follow the group rule in BUG_20261016_clearing-a-linked-pair-member-is-inconsistent.md
+  (a deleted E becomes the group's sole C, or N when it cannot be calculated).
+- Box volume: "box vol is sometimes in a group like qtc and f". Where it is in a group (sealed:
+  Vb, Fsc, Qtc), the group rule applies.
+- Ql: a clear goes to the default.
+- Driver, PR and port counts: a clear goes to 1, and that 1 is shown as C, "their calculated
+  default value", not E.
+- Rg: asked by John, not ruled yet.
+
 ## Fix
 - Box volumes:
   - Vented volume: settles to the current alignment volume (`#ventedAlignmentVolume()` using `driver.ventedDesign`).
