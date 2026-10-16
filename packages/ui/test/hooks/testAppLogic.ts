@@ -90,7 +90,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
       caches: {keys: () => Promise.resolve([]), delete: () => Promise.resolve(true)},
     }),
     appVersion: createAppVersionPort(false, '', null, 'release'),
-    versionIndex: new VersionIndex('', Promise.resolve(null), 'http://localhost/'),
+    versionIndex: new VersionIndex('', Promise.resolve(null)),
     confirmPort, appState, presentation,
     recordedProjectId: () => null,
     cloudSync: null,

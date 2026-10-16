@@ -97,5 +97,29 @@ for (const skin of SKINS) {
       await page.locator(skin.ready).waitFor({state: 'visible'});
       expect(await focusedProjectName(page)).toBe(name);
     });
+
+    // John, 16 Oct 2026: "I never asked for the about to show a list of releases, I asked for a force latest".
+    test('About on a release build shows its number and stamp and Force refresh, and no list of builds', async ({page}) => {
+      await skin.open(page);
+      await skin.openAbout(page);
+      const stamp = (await page.getByTestId('running-stamp').textContent())?.trim() ?? '';
+      expect(stamp).toMatch(/^\d{8}T\d{4}Z$/);
+      // The hosted list names this build as release 7.0.952, beside an older release and a snapshot.
+      await page.route('**/v/index.json', route => route.fulfill({json: [
+        {stamp, kind: 'release', tag: `v${stamp}`, version: '7.0.952', url: 'https://example.test/r', published: stamp, subject: 'x', latest: true},
+        {stamp: '20260101T0102Z', kind: 'release', tag: 'v20260101T0102Z', version: '7.0.900', url: 'https://example.test/o', published: '20260101T0102Z', subject: 'x', latest: false},
+        {stamp: '20260102T0102Z', kind: 'snap', tag: 'snap-20260102T0102Z', version: '', url: 'https://example.test/s', published: '20260102T0102Z', subject: 'x', latest: false},
+      ]}));
+      await page.reload();
+      await page.locator(skin.ready).waitFor({state: 'visible'});
+      await skin.openAbout(page);
+      const about = page.locator('.sp-versions');
+      await expect(page.getByTestId('running-heading')).toContainText('7.0.952');
+      await expect(page.getByTestId('running-stamp')).toHaveText(stamp);
+      await expect(page.getByTestId('force-refresh')).toBeVisible();
+      await expect(about.locator('li, a')).toHaveCount(0);
+      await expect(about).not.toContainText('7.0.900');
+      await expect(about).not.toContainText(/Snapshot|All releases/);
+    });
   });
 }

@@ -22,36 +22,14 @@ const {forceRefresh} = injectAppUpdateUi();
 
       <SplashContent :driver-count="driverCount" :passive-radiator-count="passiveRadiatorCount" />
 
-      <section class="sp-refresh">
-        <button type="button" class="sp-refresh-btn" data-testid="force-refresh" @click="forceRefresh">{{ APP_UPDATE_TEXT.forceRefresh }}</button>
-        <span v-if="versions !== null && versions.running !== null" class="sp-refresh-stamp" data-testid="force-refresh-stamp">{{ versions.running.stamp }}</span>
-        <p class="sp-refresh-note">{{ APP_UPDATE_TEXT.forceRefreshNote }}</p>
-      </section>
-
-      <section v-if="versions !== null" class="sp-versions">
-        <h3>Versions</h3>
-        <p v-if="versions.running !== null" class="sp-heading" data-testid="running-heading">{{ versions.running.heading }}</p>
-        <p v-if="versions.running !== null" class="sp-stamp" data-testid="running-stamp">{{ versions.running.stamp }}</p>
-        <p class="sp-running" data-testid="running-from">Running from {{ versions.runningFrom }}</p>
-        <template v-if="versions.rows.length > 0">
-        <p v-if="versions.staleNotice" class="sp-stale">{{ versions.staleNotice }}</p>
-        <p class="sp-ver-pages">
-          <a :href="versions.releasesPath" class="sp-ver-btn">All releases</a>
-          <a v-if="versions.snapshotsPath !== null" :href="versions.snapshotsPath" class="sp-ver-btn">Snapshot builds</a>
-        </p>
-        <ul>
-          <li v-for="row in versions.rows" :key="row.stamp" :class="{'sp-current': row.current}">
-            <strong v-if="row.version !== ''" class="sp-ver-num">{{ row.version }}</strong>
-            <span class="sp-ver-date">{{ row.date }}</span>
-            <span v-if="row.kind === 'snap'" class="sp-ver-tag">Snapshot</span>
-            <span v-if="row.current" class="sp-ver-tag sp-ver-here">This build</span>
-            <template v-if="row.hostedPath !== null">
-              <a :href="row.hostedPath">Open</a>
-              <a v-if="row.githubUrl !== null" :href="row.githubUrl" target="_blank" rel="noopener">GitHub</a>
-            </template>
-          </li>
-        </ul>
+      <section class="sp-versions">
+        <h3>Version</h3>
+        <template v-if="versions !== null && versions.running !== null">
+          <p class="sp-heading" data-testid="running-heading">{{ versions.running.heading }}</p>
+          <p class="sp-stamp" data-testid="running-stamp">{{ versions.running.stamp }}</p>
         </template>
+        <button type="button" class="sp-refresh-btn" data-testid="force-refresh" @click="forceRefresh">{{ APP_UPDATE_TEXT.forceRefresh }}</button>
+        <p class="sp-refresh-note">{{ APP_UPDATE_TEXT.forceRefreshNote }}</p>
       </section>
 
       <footer>
@@ -62,26 +40,13 @@ const {forceRefresh} = injectAppUpdateUi();
 </template>
 
 <style scoped>
-.sp-refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 18px 0 0; }
 .sp-refresh-btn { min-height: 32px; padding: 0 14px; border: 1px solid #4fb0ff; border-radius: 4px; background: none; color: #4fb0ff; font: inherit; cursor: pointer; }
 .sp-refresh-btn:hover { background: #1b2a3a; }
-.sp-refresh-stamp { font-size: 11px; color: #8a9bab; }
-.sp-refresh-note { flex-basis: 100%; margin: 0; font-size: 12px; color: #8a9bab; }
+.sp-refresh-note { margin: 6px 0 0; font-size: 12px; color: #8a9bab; }
 @media (max-width: 700px) { .sp-refresh-btn { min-height: 44px; } }
 .sp-versions h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
-.sp-versions ul { list-style: none; margin: 0; padding: 0; }
-.sp-versions li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 4px 6px; border-radius: 4px; }
-.sp-versions li.sp-current { background: #1b2a3a; }
-.sp-versions a { color: #4fb0ff; }
-.sp-ver-pages { display: flex; gap: 8px; margin: 0 0 8px; }
-.sp-ver-btn { display: inline-block; padding: 4px 10px; border: 1px solid #4fb0ff; border-radius: 4px; text-decoration: none; }
 .sp-heading { margin: 0; font-size: 17px; font-weight: 600; color: #e6edf3; }
 .sp-stamp { margin: 0 0 6px; font-size: 11px; color: #8a9bab; }
-.sp-ver-num { min-width: 64px; color: #e6edf3; }
-.sp-ver-date { min-width: 150px; color: #e6edf3; }
-.sp-ver-tag { font-size: 11px; color: #7f93a8; border: 1px solid #2b3a49; border-radius: 3px; padding: 0 5px; }
-.sp-ver-here { color: #4fb0ff; border-color: #4fb0ff; }
-.sp-stale { color: #e0b050; margin: 0 0 6px; }
 .sp-backdrop {
   position: fixed; inset: 0; z-index: 200;
   background: rgba(0, 0, 0, 0.55);

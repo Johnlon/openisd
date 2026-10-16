@@ -13,24 +13,13 @@ const MONTH_NAMES = [
 ] as const;
 
 /** A build is named by its stamp, "20260101T0102Z". The published version and the release tag
- *  carry one prefix letter in front of it; the hosted copies live in one folder per build kind. */
+ *  carry one prefix letter in front of it. */
 const VERSION_PREFIX = 'v';
 export type BuildKind = 'release' | 'snap';
-const HOSTED_DIR: Readonly<Record<BuildKind, string>> = { release: 'v', snap: 'snap' };
 
 /** "v20260101T0102Z" or "20260101T0102Z" → "20260101T0102Z". */
 export function stampOfVersion(version: string): string {
   return version.startsWith(VERSION_PREFIX) ? version.slice(VERSION_PREFIX.length) : version;
-}
-
-/** Where a build's copy is hosted, root-relative: "/v/<stamp>/" or "/snap/<stamp>/". */
-export function hostedPathOf(kind: BuildKind, stamp: string): string {
-  return `/${HOSTED_DIR[kind]}/${stamp}/`;
-}
-
-/** The hosted list page of one build kind, root-relative: "/v/" (releases) or "/snap/". */
-export function hostedListPathOf(kind: BuildKind): string {
-  return `/${HOSTED_DIR[kind]}/`;
 }
 
 /** Which trail of the site the app runs from: the root release, a /snap/<stamp>/ copy or the /test/ copy. */

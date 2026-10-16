@@ -86,7 +86,7 @@ describe('useSplashModal — catalogue counts', () => {
 });
 
 describe('useSplashModal — versions', () => {
-  const view = {running: null, rows: [], staleNotice: 'latest release is 1 Jan 2026, 01:02', releasesPath: '/v/', snapshotsPath: null, runningFrom: 'http://localhost/'};
+  const view = {running: {version: '7.0.951', heading: 'OpenISD 7.0.951 · 1 Jan 2026', stamp: '20260101T0102Z'}};
 
   it('asks for the hosted builds only once the splash is on screen', async () => {
     let asked = 0;

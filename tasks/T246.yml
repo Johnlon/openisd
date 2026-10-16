@@ -1,0 +1,19 @@
+id: T246
+release_note: 'About shows the running version and a Force refresh button; the list of builds is gone.'
+repo: openisd
+owner: maryu
+status: done
+goal: About shows only the running build (version number on a release, stamp) and Force refresh; the build list goes
+done_test: bash scripts/test.sh packages/ui/test/logic/versionIndex.test.ts
+files:
+  - tasks/T246.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/fields/appVersion.ts
+  - packages/design/fields/index.ts
+  - packages/ui/src/logic/versionIndex.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/components/SplashModal.vue
+  - packages/ui/test/hooks/SplashModal-hooks.test.ts
+  - packages/ui/test/logic/versionIndex.test.ts
+  - packages/ui/test/ui/app-update.browser.spec.ts
+  - packages/ui/test/hooks/testAppLogic.ts

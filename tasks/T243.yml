@@ -3,6 +3,7 @@ release_note: A new version now reaches an open app by itself, or is offered whe
 repo: openisd
 owner: maryu
 status: done
+landed: 2a9d82898bad934bd26cd0de6bd23c47e105823d
 goal: App update: a new build reaches open and resumed apps; Force refresh in About; dismissable update and reconnect prompts
 done_test: bash scripts/test.sh packages/ui/test/logic/appUpdate.test.ts
 visual: []
