@@ -10,8 +10,8 @@ On the Box tab (both skins), the tuning target can be entered for vented, bandpa
 not for bandpass 4 or passive radiator. Bandpass 4 shows a calculated rear resonance only, and PR
 shows Fh as a read-only value. Both can enter their tuning only on the Vents / PR tab.
 
-Sealed has no port, so it has no tuning target. But John, 16 Oct 2026: "looks like on closed all
-three fields need to be enterable": Vb, Fsc and Qtc each fix the other two for a given driver.
+Sealed: John, 16 Oct 2026, "the bug is that f v q should be interdependent". Fsc, Vb and Qtc
+each fix the other two for a given driver, but only Vb can be entered; Fsc and Qtc are read-only.
 
 ## Evidence (code read 16 Oct 2026)
 - Mobile: `packages/ui/src/ui/shells/mobile/MobileBoxTab.vue:50-55`: the tuning UIField shows
