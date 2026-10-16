@@ -5,5 +5,5 @@ packages/ui/index.html
 packages/ui/public
 packages/design/fields
 packages/design/chart
-packages/design/engine/issueText.ts
+packages/design/engine
 packages/design/domain/project/compatSwitch.ts

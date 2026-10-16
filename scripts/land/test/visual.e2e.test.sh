@@ -80,7 +80,9 @@ bash scripts/visual/check-sources.sh "$s0" "$s3" > out.txt 2>&1 && fail "a sourc
 mkdir -p packages/design/fields packages/design/engine; printf x > packages/design/fields/f.ts; printf y > packages/design/engine/calc.ts
 git add -A; git commit -qm "design" -q; s4=$(git rev-parse HEAD)
 git diff --name-only "$s3" "$s4" > /dev/null
-[ -n "$(visual_sources_changed "$s3" "$s4")" ] && [ "$(visual_sources_changed "$s3" "$s4")" = "packages/design/fields/f.ts" ] && ok "design label sources count, the calculation engine does not" || fail "source list wrong: $(visual_sources_changed "$s3" "$s4")"
+[ "$(visual_sources_changed "$s3" "$s4")" = "$(printf 'packages/design/engine/calc.ts\npackages/design/fields/f.ts')" ] && ok "design label and engine sources count" || fail "source list wrong: $(visual_sources_changed "$s3" "$s4")"
+mkdir -p packages/design/test; printf z > packages/design/test/t.ts; git add -A; git commit -qm "design test" -q; s5=$(git rev-parse HEAD)
+[ -z "$(visual_sources_changed "$s4" "$s5")" ] && ok "a design test file is not a source" || fail "a design test counted as a source"
 
 [ "$fails" = 0 ] && { echo "visual e2e: all passed"; exit 0; }
 echo "visual e2e: $fails failed"; exit 1
