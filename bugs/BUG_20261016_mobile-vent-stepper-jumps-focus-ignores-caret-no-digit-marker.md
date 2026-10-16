@@ -1,6 +1,6 @@
 # BUG_20261016_mobile-vent-stepper-jumps-focus-ignores-caret-no-digit-marker
 
-**Status:** OPEN
+**Status:** FIXED (T222), awaiting John on /test/
 
 ## Symptom
 John, 16 Oct 2026, mobile, vent editor. Port diameter E, length C, Fb C, Fb 27.50.
@@ -37,3 +37,11 @@ marker from T222 does not show on the mobile vent editor.
 Browser spec, mobile skin, vent editor, Fb 27.50 calculated: put the cursor after the 2, press up.
 Fb reads 28.50, the up button has focus, and the units digit is marked. Press up again: 29.50. Same with the cursor after the
 decimal point: 27.60. Then the same on the desktop skin.
+
+## Result (bob, 16 Oct 2026)
+John's phone ran the /test/ build from before T222 (main bd50b9d3). On main the steps, focus and digit mark work. Proved in
+`packages/ui/test/ui/number-stepper.browser.spec.ts`, touch tap, mobile Vented tab, Target Tuning Freq calculated:
+- "the caret after the units digit: ▲ steps the units, focus stays on ▲, the units digit is marked, a repeat steps it again"
+- "the caret after the decimal point: ▲ steps the tenths"
+- "every stepped field on the Vented tab: ▲ changes the value and focus stays on the ▲ that was pressed"
+Desktop skin: the existing Original skin specs in the same file.
