@@ -3,6 +3,7 @@ release_note: The driver filter row on a phone no longer splits a filter across 
 repo: openisd
 owner: sonnet
 status: done
+landed: 7b3392dff2863bb4b747011ece899511de8606d5
 goal: 'Driver filter row: Fs, Sd and Z each form one nowrap group, so the row wraps only between groups (mobile New project step 1)'
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
 files:

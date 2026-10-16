@@ -171,7 +171,16 @@ check_untested_main() {
     ( flock -n 7 ) 7< "$rec" 2> /dev/null || return 0
   done
   log "main ${main:0:10} is untested (last tested ${tested:0:10}) and no post-land run is alive; starting one"
-  ( cd "$REPO" && setsid bash "$run" "$main" >> "$plog" 2>&1 < /dev/null & )
+  # The tick is a systemd oneshot service: when it ends, systemd kills every process still in its
+  # cgroup, setsid or not (16 Oct 2026: three runs started here died at once and were recorded red).
+  # The run therefore starts as a transient service of the user manager, outside the tick's cgroup.
+  if command -v systemd-run > /dev/null 2>&1; then
+    systemd-run --user --quiet --collect --unit="openisd-postland-${main:0:10}-$(now)" \
+      --working-directory="$REPO" --property=StandardOutput="append:$plog" --property=StandardError="append:$plog" \
+      -- bash "$run" "$main" || log "systemd-run failed to start the post-land run on ${main:0:10}"
+  else
+    ( cd "$REPO" && setsid bash "$run" "$main" >> "$plog" 2>&1 < /dev/null & )
+  fi
 }
 check_untested_main
 

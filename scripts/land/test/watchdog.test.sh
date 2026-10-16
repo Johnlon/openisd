@@ -33,6 +33,16 @@ echo "$*" >> "$FAKE_TMUX_LOG"
 exit 0
 T
 chmod +x "$SCRATCH/bin/tmux"
+# fake systemd-run: logs its arguments, then runs the command after `--` (the real one starts it in the
+# user manager, outside the caller's cgroup)
+cat > "$SCRATCH/bin/systemd-run" <<'EOF2'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$FAKE_SYSTEMD_LOG"
+while [ "$1" != "--" ]; do shift; done; shift
+exec "$@"
+EOF2
+chmod +x "$SCRATCH/bin/systemd-run"
+export FAKE_SYSTEMD_LOG="$SCRATCH/systemd-run.log"
 export PATH="$SCRATCH/bin:$PATH" FAKE_TMUX_LOG="$SCRATCH/tmux.log" FAKE_WINDOWS="$SCRATCH/windows"
 : > "$FAKE_TMUX_LOG"; echo bob > "$FAKE_WINDOWS"
 
@@ -158,6 +168,7 @@ tick > /dev/null; sleep 0.5
 WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
 [ "$(cat "$FAKE_RUN_LOG" 2> /dev/null)" = "$main_sha" ] && ok "an old untested main with no run alive starts one on origin/main" || fail "run not started: $(cat "$FAKE_RUN_LOG" 2> /dev/null)"
 grep -q "main ${main_sha:0:10} is untested.*starting one" "$WATCHDOG_LOG" && ok "start logged" || fail "start not logged"
+grep -q -- "--user .*--collect .*-- bash .* $main_sha" "$FAKE_SYSTEMD_LOG" 2> /dev/null && ok "the run starts as a transient user service, outside the tick's cgroup" || fail "run not started through systemd-run: $(cat "$FAKE_SYSTEMD_LOG" 2> /dev/null)"
 rm -f "$FAKE_RUN_LOG"
 setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
 hold "$HP"
