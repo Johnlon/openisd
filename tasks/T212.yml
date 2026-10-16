@@ -1,0 +1,11 @@
+id: T212
+release_note: internal
+label: fixes
+repo: openisd
+owner: maryu
+status: done
+goal: 'F34: the 11 spec files red at 38da5b1b63 pass alone, 110 of 110 in 1.1 min at load 1-4 (the red run waited 26-33 s per page while agents ran specs at load 10-17 and the OOM killer fired); machine load, no code change'
+done_test: bash scripts/test.sh packages/design/test/fields/format.test.ts
+files:
+  - tasks/T212.yml
+  - tasks/fixes/F34.yml

@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: sonnet
 status: done
+landed: 752606df8d6d3e5fee15990f8966ece1217a22be
 goal: 'F33: the port-fields overlay took the domain port as a prop (A9 gate red, no-domain-value-through-component); it takes a view model now. Also: box types read ABC and the long names in the chart message and import errors; mobile picker/tab spec'
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-domain-value-through-component.test.ts
 files:
