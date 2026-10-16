@@ -13,7 +13,8 @@ import {visibleViewportHeightPx} from '../logic/visibleViewport.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
-import type {BinRow, StoredProjectRow} from './storedProjectRows.js';
+import type {BinRow} from './binRows.js';
+import type {ProjectListRow} from './projectBinView.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 import {createProjectBinView} from './projectBinView.js';
 import {
@@ -24,6 +25,8 @@ import {
   ProjectId,
 } from '@openisd/design/cloud';
 import {
+  projectCloudMarks,
+  useCloudSync,
   useCloudSyncUi,
 } from './CloudSync-hooks.js';
 
@@ -102,19 +105,23 @@ export interface MobileShellApi {
    *  `storedProjects`/`openStoredProject` (OriginalShell-hooks.ts), mobile had no equivalent
    *  (John, 2026-10-02: "the file menu offer no way to save and reopen projects"). */
   openDialogOpen: import('vue').Ref<boolean>;
-  storedProjects: import('vue').Ref<StoredProjectRow[]>;
-  shownProjects: import('vue').ComputedRef<StoredProjectRow[]>;
+  projectRows: import('vue').ComputedRef<ProjectListRow[]>;
+  shownProjects: import('vue').ComputedRef<ProjectListRow[]>;
+  /** "35 projects · 770 KB · 2 open". */
+  projectsFooter: import('vue').ComputedRef<string>;
+  searchOffered: import('vue').ComputedRef<boolean>;
   projectQuery: import('vue').Ref<string>;
-  projectOrder: import('vue').Ref<import('@openisd/design/fields').ProjectListOrder>;
-  projectOrders: readonly import('@openisd/design/fields').ProjectListOrder[];
+  projectOrder: import('vue').Ref<import('@openisd/design/fields').ProjectRowOrder>;
+  projectOrders: readonly import('@openisd/design/fields').ProjectRowOrder[];
   openProjectDialog: () => void;
-  openStoredProject: (id: string) => void;
+  /** Opens a saved project, or makes an open one active. */
+  chooseProject: (row: ProjectListRow) => void;
   /** The Bin view inside the Open project sheet (projectBinView.ts). */
   binRows: import('vue').Ref<BinRow[]>;
   binTotal: import('vue').Ref<string>;
   binOpen: import('vue').Ref<boolean>;
   binLabel: import('vue').ComputedRef<string>;
-  moveToBin: (row: StoredProjectRow) => Promise<void>;
+  moveToBin: (row: ProjectListRow) => Promise<void>;
   restoreFromBin: (row: BinRow) => void;
   deleteForever: (row: BinRow) => Promise<void>;
   emptyBin: () => Promise<void>;
@@ -204,11 +211,13 @@ export function useMobileShell(): MobileShellApi {
   // own openDialogOpen/storedProjects/openStoredProject (OriginalShell-hooks.ts); mobile had no
   // equivalent (John, 2026-10-02: "the file menu offer no way to save and reopen projects").
   const openDialogOpen = ref(false);
+  const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
     appState, projectRepo, projectBin, confirm: confirmPort.port,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
+    cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
-  const {storedProjects, shownProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
   function openProjectDialog(): void {
     binView.refresh();
@@ -222,6 +231,16 @@ export function useMobileShell(): MobileShellApi {
       alert('Could not open the saved project: ' + result.errors.join('; '));
       return;
     }
+    openDialogOpen.value = false;
+  }
+  /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
+  function chooseProject(row: ProjectListRow): void {
+    const handle = row.handle;
+    if (handle.kind === 'saved') {
+      openStoredProject(handle.id);
+      return;
+    }
+    appState.focusProject(appState.openProjects().indexOf(handle.project));
     openDialogOpen.value = false;
   }
 
@@ -451,7 +470,7 @@ export function useMobileShell(): MobileShellApi {
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
-    openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
+    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, openProjectDialog, chooseProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,

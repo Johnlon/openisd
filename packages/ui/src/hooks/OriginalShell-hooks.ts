@@ -17,7 +17,7 @@
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
-import {createProjectBinView} from './projectBinView.js';
+import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
 import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
@@ -45,7 +45,7 @@ import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
 import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
 import {useCompareOverlays} from './compareOverlays.js';
-import {useCloudSyncUi} from './CloudSync-hooks.js';
+import {projectCloudMarks, useCloudSync, useCloudSyncUi} from './CloudSync-hooks.js';
 import type {ConflictCopy} from '@openisd/design/cloud';
 import {CLOUD_SYNC_MENU_LABEL, DriverId, ProjectId} from '@openisd/design/cloud';
 
@@ -299,11 +299,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // toolbar file input (Open…)
   const fileInput = ref<HTMLInputElement | null>(null);
   const openDialogOpen = ref(false);
+  const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
     appState, projectRepo, projectBin, confirm: confirmPort.port,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
+    cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
-  const {storedProjects, shownProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
   function openClick() {
     binView.refresh();
@@ -320,6 +322,16 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       alert('Could not open the saved project: ' + result.errors.join('; '));
       return;
     }
+    openDialogOpen.value = false;
+  }
+  /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
+  function chooseProject(row: ProjectListRow): void {
+    const handle = row.handle;
+    if (handle.kind === 'saved') {
+      openStoredProject(handle.id);
+      return;
+    }
+    appState.focusProject(appState.openProjects().indexOf(handle.project));
     openDialogOpen.value = false;
   }
   function onFile(e: Event) {
@@ -650,7 +662,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
+    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,

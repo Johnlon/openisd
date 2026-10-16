@@ -1,0 +1,30 @@
+id: T204
+release_note: 'The Open project list shows every project, saved or open: open ones are marked and the active one is bold, with size, cloud sync mark, conflict and hidden tags, and a footer with the count, total size and how many are open. Sort by last edited, oldest, name, driver or size.'
+repo: openisd
+owner: maryu
+status: done
+goal: Project view 1: one design-side ProjectRow model merging saved and open projects (name, conflict tag, summary, edited date, size, sync mark, flags, sort, search, totals)
+done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts packages/persistence/test/cloud/cloudSync.test.ts
+files:
+  - packages/design/cloud/conflictNames.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/projectListView.ts
+  - packages/design/fields/projectRows.ts
+  - packages/design/test/fields/projectListView.test.ts
+  - packages/design/test/fields/projectRows.test.ts
+  - packages/persistence/src/cloud/cloudSync.ts
+  - packages/persistence/src/cloud/syncEngine.ts
+  - packages/persistence/src/cloud/syncRun.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/cloud/cloudSync.test.ts
+  - packages/persistence/test/cloud/syncScheduler.test.ts
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/hooks/binRows.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/ui/src/hooks/storedProjectRows.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - tasks/T204.yml

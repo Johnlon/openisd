@@ -33,7 +33,7 @@ const {
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel, openProjectDialog, openStoredProject,
+  username, appVersion, openDialogOpen, projectRows, shownProjects, projectsFooter, projectQuery, projectOrder, projectOrders, storeLabel, openProjectDialog, chooseProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
@@ -210,16 +210,17 @@ const diagnostics = injectDiagnosticsModal();
             <button v-for="o in projectOrders" :key="o.label" type="button" :class="{on: projectOrder === o}" @click="projectOrder = o">{{ o.label }}</button>
           </div>
         </div>
-        <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
+        <p v-if="projectRows.length === 0" class="mob-hint">No saved project yet.</p>
         <p v-else-if="shownProjects.length === 0" class="mob-hint">No project matches.</p>
-        <div v-for="p in shownProjects" :key="p.id" class="mob-stored-project-item">
-          <button type="button" class="mob-stored-project-row" @click="openStoredProject(p.id)">
-            <span class="mob-stored-project-name">{{ p.name }}</span>
+        <div v-for="p in shownProjects" :key="p.key" class="mob-stored-project-item" :class="{open: p.open.kind === 'open', active: p.open.kind === 'open' && p.open.active}">
+          <button type="button" class="mob-stored-project-row" @click="chooseProject(p)">
+            <span class="mob-stored-project-name">{{ p.name }}<span v-for="t in p.tags" :key="t.kind" class="project-tag" :class="`project-tag-${t.kind}`">{{ t.text }}</span></span>
             <span class="mob-stored-project-summary">{{ p.summary }}</span>
-            <span class="mob-stored-project-modified">{{ p.modified }}</span>
+            <span class="mob-stored-project-modified">{{ p.edited }}<template v-if="p.size"> · {{ p.size }}</template><span v-if="p.sync" class="project-sync-mark" :title="p.sync.text"> {{ p.sync.glyph }}</span></span>
           </button>
-          <button type="button" class="mob-stored-project-bin" :aria-label="`Move ${p.name} to the Bin`" :title="`Move ${p.name} to the Bin`" @click="moveToBin(p)"><ToolbarIcon name="bin" /></button>
+          <button v-if="p.menu.some(m => m.action === 'delete')" type="button" class="mob-stored-project-bin" :aria-label="`Move ${p.name} to the Bin`" :title="`Move ${p.name} to the Bin`" @click="moveToBin(p)"><ToolbarIcon name="bin" /></button>
         </div>
+        <p v-if="projectRows.length > 0" class="mob-hint mob-projects-footer">{{ projectsFooter }}</p>
       </template>
       <template v-else>
         <p v-if="binRows.length === 0" class="mob-hint">The Bin is empty.</p>
@@ -479,6 +480,13 @@ const diagnostics = injectDiagnosticsModal();
 .mob-bin-restore, .mob-bin-delete-forever { all: unset; box-sizing: border-box; padding: 6px 0; font-size: 13px; cursor: pointer; color: var(--acc); }
 .mob-bin-delete-forever { color: var(--bad); }
 .mob-stored-project-name { font-size: 15px; color: var(--fg); }
+.mob-stored-project-item.active .mob-stored-project-name { font-weight: 600; }
+.mob-stored-project-item.open .mob-stored-project-name::before { content: '● '; color: var(--acc); }
+.project-tag { margin-left: 6px; padding: 0 5px; border-radius: 3px; font-size: 12px; background: var(--panel2); color: var(--mut); font-weight: normal; }
+.project-tag-conflict { color: var(--acc2); }
+.project-tag-unreadable { color: var(--bad); }
+.project-sync-mark { white-space: nowrap; }
+.mob-projects-footer { margin-top: 8px; }
 .mob-stored-project-summary { font-size: 13px; color: var(--mut); }
 .mob-stored-project-modified { font-size: 12px; color: var(--mut); }
 

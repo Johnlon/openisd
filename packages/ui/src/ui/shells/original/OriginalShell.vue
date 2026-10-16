@@ -44,7 +44,7 @@ const {
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, openStoredProject, switchToMobile,
+  openDialogOpen, projectRows, shownProjects, projectsFooter, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
@@ -892,17 +892,18 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               </div>
             </div>
             <div class="open-project-list">
-              <p v-if="storedProjects.length === 0" class="hint">No saved project yet</p>
+              <p v-if="projectRows.length === 0" class="hint">No saved project yet</p>
               <p v-else-if="shownProjects.length === 0" class="hint">No project matches</p>
-              <div v-for="projectEntry in shownProjects" :key="projectEntry.id" class="stored-project-item">
-                <button class="stored-project-row" @click="openStoredProject(projectEntry.id)">
-                  <span class="stored-project-name">{{ projectEntry.name }}</span>
-                  <small class="stored-project-modified">{{ projectEntry.modified }}</small>
+              <div v-for="projectEntry in shownProjects" :key="projectEntry.key" class="stored-project-item" :class="{open: projectEntry.open.kind === 'open', active: projectEntry.open.kind === 'open' && projectEntry.open.active}">
+                <button class="stored-project-row" @click="chooseProject(projectEntry)">
+                  <span class="stored-project-name">{{ projectEntry.name }}<span v-for="t in projectEntry.tags" :key="t.kind" class="project-tag" :class="`project-tag-${t.kind}`">{{ t.text }}</span></span>
+                  <small class="stored-project-modified">{{ projectEntry.edited }}<template v-if="projectEntry.size"> · {{ projectEntry.size }}</template><span v-if="projectEntry.sync" class="project-sync-mark" :title="projectEntry.sync.text"> {{ projectEntry.sync.glyph }}</span></small>
                   <small class="stored-project-summary">{{ projectEntry.summary }}</small>
                 </button>
-                <button class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" :aria-label="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)"><ToolbarIcon name="bin" /></button>
+                <button v-if="projectEntry.menu.some(m => m.action === 'delete')" class="stored-project-bin" :title="`Move ${projectEntry.name} to the Bin`" :aria-label="`Move ${projectEntry.name} to the Bin`" @click="moveToBin(projectEntry)"><ToolbarIcon name="bin" /></button>
               </div>
             </div>
+            <p v-if="projectRows.length > 0" class="hint open-project-footer">{{ projectsFooter }}</p>
           </template>
           <div v-else class="open-project-list bin-list">
             <p v-if="binRows.length === 0" class="hint">The Bin is empty</p>
@@ -1559,6 +1560,13 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .stored-project-row:hover { background:#dbeafe; }
 .stored-project-row small { color:#666; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .stored-project-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.stored-project-item.active .stored-project-name { font-weight:bold; }
+.stored-project-item.open .stored-project-name::before { content:'● '; color:var(--acc, #2a6fd6); }
+.project-tag { margin-left:6px; padding:0 5px; border-radius:3px; font-size:11px; background:#e8edf2; color:#4a5560; font-weight:normal; }
+.project-tag-conflict { background:#fdecc8; color:#7a4d00; }
+.project-tag-unreadable { background:#f9d6d6; color:#8a1f1f; }
+.project-sync-mark { white-space:nowrap; }
+.open-project-footer { margin:6px 0 0; }
 .modal-footer { display:flex; align-items:center; justify-content:space-between; border-top:1px solid #ccc; padding:10px 20px; background:#eee; }
 .footer-buttons { display:flex; gap:8px; }
 .footer-buttons button { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:6px 14px; cursor:pointer; }

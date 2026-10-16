@@ -9,6 +9,8 @@ export interface CloudSync {
   conflicts(): ConflictCopy[];
   /** What sync moved lately, newest first; kept with the sync state across a reload. */
   activity(): readonly SyncActivity[];
+  /** The ids of the saved projects Drive does not have as they are now. */
+  projectsNotOnDrive(): ReadonlySet<string>;
   watch(onChange: () => void): () => void;
   connect(): void;
   reconnect(): void;
@@ -288,6 +290,7 @@ export function createCloudSync(deps: CloudSyncDeps): CloudSync {
       notify();
     },
     activity: () => deps.ledger.activity(),
+    projectsNotOnDrive: () => new Set(deps.engine.notOnDrive().flatMap(id => id.kind === 'project' ? [id.uuid] : [])),
     runMoved: (activity) => {
       noteActivity(activity);
       notify();

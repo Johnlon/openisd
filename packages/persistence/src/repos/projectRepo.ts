@@ -131,11 +131,18 @@ export interface ProjectRepairReport {
  *  would not read even after repair is `unreadable`: it has a name but no summary. */
 export type StoredProjectListing = ReadableStoredProject | UnreadableStoredProject;
 
+/** The size of a stored text in browser storage, in bytes. */
+function textBytes(text: string): number {
+  return new TextEncoder().encode(text).length;
+}
+
 export interface ReadableStoredProject {
   readonly kind: 'readable';
   readonly id: string;
   readonly name: string;
   readonly modified: string;
+  /** Its size in browser storage. */
+  readonly bytes: number;
   readonly summary: ProjectSummary;
 }
 
@@ -144,6 +151,7 @@ export interface UnreadableStoredProject {
   readonly id: string;
   readonly name: string;
   readonly modified: string;
+  readonly bytes: number;
 }
 
 /** One stored open-project entry that would not read. */
@@ -619,8 +627,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       return readStoredEntries().map((entry): StoredProjectListing => {
         const project = readRepairing(entry.text, null);
         return Array.isArray(project)
-          ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified }
-          : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, summary: ProjectSummary.of(project) };
+          ? { kind: 'unreadable', id: entry.id, name: 'Unreadable project', modified: entry.modified, bytes: textBytes(entry.text) }
+          : { kind: 'readable', id: entry.id, name: project.name.value, modified: entry.modified, bytes: textBytes(entry.text), summary: ProjectSummary.of(project) };
       }).sort((a, b) => b.modified.localeCompare(a.modified));
     },
     loadStoredProject(id: string): OpenISDProject | string[] {

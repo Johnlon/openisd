@@ -80,7 +80,26 @@ export { LOSSLESS_Q } from './losslessQ.js';
 export { basicUtc } from './basicTime.js';
 export { lostDataSentence } from './lostData.js';
 export { deleteForeverMessage, emptyBinMessage, moveToBinMessage } from './projectBinText.js';
-export {PROJECT_LIST_ORDERS, PROJECT_LIST_ORDER_LIST, viewProjects, type ProjectListItem, type ProjectListOrder} from './projectListView.js';
+export {
+  conflictSuffix,
+  PROJECT_ROW_ORDER_LIST,
+  PROJECT_ROW_ORDERS,
+  PROJECT_SEARCH_FROM_ROWS,
+  projectRow,
+  projectRowsFooter,
+  projectSyncMark,
+  splitConflictName,
+  viewProjectRows,
+  type ProjectOpenState,
+  type ProjectRow,
+  type ProjectRowAction,
+  type ProjectRowMenuItem,
+  type ProjectRowOrder,
+  type ProjectRowSource,
+  type ProjectRowTag,
+  type ProjectSaved,
+  type ProjectSyncMark,
+} from './projectRows.js';
 export { restoredProjectName, storageUsedLine } from './backupText.js';
 export {
   LOCAL_STORE_LIMIT_BYTES,

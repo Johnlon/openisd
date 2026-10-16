@@ -12,7 +12,7 @@ import {type BackupReason, type HistoryEntry, type HistoryRow, type PreRepairCop
   type HistoryFile, type StorageHistory} from '@openisd/persistence';
 import {useApp} from '../logic/app.js';
 import {emptyBin as emptyBinAfterAsking} from '../logic/projectBinActions.js';
-import {binTotalSize} from './storedProjectRows.js';
+import {binTotalSize} from './binRows.js';
 
 /** A whole-store backup, as its row shows it. */
 export interface BackupRowView {

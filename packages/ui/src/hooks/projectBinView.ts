@@ -1,21 +1,55 @@
-/** The Open project list and its Bin view, as both shells show them: the rows, and the Bin's actions. */
+/** The Projects list and its Bin view, as both shells show them: the rows, and the Bin's actions. */
 import {computed, ref, shallowRef, type ComputedRef, type Ref} from 'vue';
-import type {ProjectBin, ProjectRepo} from '@openisd/persistence';
+import type {ProjectBin, ProjectRepo, StoredProjectListing} from '@openisd/persistence';
+import {ProjectSummary, type OpenISDProject} from '@openisd/design';
 import type {AppState} from '../logic/appState.js';
 import type {ConfirmPort} from '../logic/confirmPort.js';
 import {deleteForever, emptyBin, moveToBin} from '../logic/projectBinActions.js';
-import {PROJECT_LIST_ORDER_LIST, viewProjects, type ProjectListOrder} from '@openisd/design/fields';
-import {binRows, binTotalSize, storedProjectRows, type BinRow, type StoredProjectRow} from './storedProjectRows.js';
+import {
+  PROJECT_ROW_ORDER_LIST,
+  PROJECT_SEARCH_FROM_ROWS,
+  projectRow,
+  projectRowsFooter,
+  projectSyncMark,
+  type ProjectOpenState,
+  type ProjectRow,
+  type ProjectRowOrder,
+  type ProjectRowSource,
+  viewProjectRows,
+} from '@openisd/design/fields';
+import {binRows, binTotalSize, type BinRow} from './binRows.js';
+
+/** What a Projects row stands for: a saved project (open or not), or an open one never saved. */
+export type ProjectHandle =
+  | {readonly kind: 'saved'; readonly id: string; readonly name: string; readonly open: OpenISDProject | null}
+  | {readonly kind: 'notSaved'; readonly project: OpenISDProject};
+
+export type ProjectListRow = ProjectRow<ProjectHandle>;
+
+/** What cloud sync says about the saved projects. */
+export interface ProjectCloudMarks {
+  readonly cloudOn: boolean;
+  /** A run is going. */
+  readonly running: boolean;
+  /** Saved projects Drive does not have as they are now. */
+  readonly notOnDrive: ReadonlySet<string>;
+  /** Saved projects that are kept conflict copies. */
+  readonly conflictCopies: ReadonlySet<string>;
+}
 
 export interface ProjectBinView {
-  /** The saved projects not in the Bin. */
-  readonly storedProjects: Ref<StoredProjectRow[]>;
-  /** `storedProjects` as the sort order and search box leave them. */
-  readonly shownProjects: ComputedRef<StoredProjectRow[]>;
+  /** Every saved project not in the Bin, and every open project never saved. */
+  readonly projectRows: ComputedRef<ProjectListRow[]>;
+  /** `projectRows` as the sort order and search box leave them. */
+  readonly shownProjects: ComputedRef<ProjectListRow[]>;
+  /** "35 projects · 770 KB · 2 open". */
+  readonly projectsFooter: ComputedRef<string>;
+  /** Whether the list is long enough to offer the search box. */
+  readonly searchOffered: ComputedRef<boolean>;
   /** What the search box holds. */
   readonly query: Ref<string>;
-  readonly order: Ref<ProjectListOrder>;
-  readonly orders: readonly ProjectListOrder[];
+  readonly order: Ref<ProjectRowOrder>;
+  readonly orders: readonly ProjectRowOrder[];
   readonly binRows: Ref<BinRow[]>;
   /** The Bin's total size. */
   readonly binTotal: Ref<string>;
@@ -25,15 +59,17 @@ export interface ProjectBinView {
   readonly binLabel: ComputedRef<string>;
   /** Reads both lists again from the store. */
   refresh(): void;
-  moveToBin(row: StoredProjectRow): Promise<void>;
+  moveToBin(row: ProjectListRow): Promise<void>;
   restoreFromBin(row: BinRow): void;
   deleteForever(row: BinRow): Promise<void>;
   emptyBin(): Promise<void>;
 }
 
 export interface ProjectBinViewDeps {
-  readonly appState: Pick<AppState, 'openProjects' | 'removeProject' | 'projectHasUnsavedChanges'>;
+  readonly appState: Pick<AppState, 'openProjects' | 'removeProject' | 'projectHasUnsavedChanges' | 'focusedProject' | 'isTraceVisible' | 'traceVisibilityRevision' | 'projectDisplayName'>;
   readonly projectRepo: ProjectRepo;
+  /** Read inside a computed, so the rows follow cloud sync. */
+  readonly cloudMarks: () => ProjectCloudMarks;
   readonly projectBin: ProjectBin;
   readonly confirm: ConfirmPort;
   readonly unitTokens: () => Readonly<Record<string, string>>;
@@ -45,34 +81,105 @@ const NO_ROOM = 'there is no room in browser storage for the backup taken first.
 
 export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
   const {projectBin} = deps;
-  const storedProjects = ref<StoredProjectRow[]>([]);
+  const listings = shallowRef<readonly StoredProjectListing[]>([]);
   const rows = ref<BinRow[]>([]);
   const binTotal = ref('');
   const binOpen = ref(false);
   const query = ref('');
-  const order = shallowRef<ProjectListOrder>(PROJECT_LIST_ORDER_LIST[0]);
+  const order = shallowRef<ProjectRowOrder>(PROJECT_ROW_ORDER_LIST[0]);
+  /** A row key for each open project never saved, stable while it stays open. */
+  const notSavedKeys = new WeakMap<OpenISDProject, string>();
+  let nextKey = 0;
+  function notSavedKey(project: OpenISDProject): string {
+    const known = notSavedKeys.get(project);
+    if (known !== undefined) return known;
+    const key = `open-${nextKey++}`;
+    notSavedKeys.set(project, key);
+    return key;
+  }
+
+  function openState(project: OpenISDProject | null): ProjectOpenState {
+    if (project === null) return {kind: 'closed'};
+    return {
+      kind: 'open',
+      active: deps.appState.focusedProject() === project,
+      shown: deps.appState.isTraceVisible(project),
+      unsaved: deps.appState.projectHasUnsavedChanges(project),
+      colour: project.traceColor.value,
+    };
+  }
+
+  const projectRows = computed<ProjectListRow[]>(() => {
+    void deps.appState.traceVisibilityRevision.value;
+    const units = deps.unitTokens();
+    const marks = deps.cloudMarks();
+    const open = deps.appState.openProjects();
+    const openById = new Map<string, OpenISDProject>();
+    for (const project of open) {
+      const id = deps.projectRepo.storedIdOf(project);
+      if (id !== null) openById.set(id, project);
+    }
+    const savedIds = new Set(listings.value.map(l => l.id));
+    const sources: ProjectRowSource<ProjectHandle>[] = listings.value.map(listing => {
+      const project = openById.get(listing.id) ?? null;
+      const summary = project !== null ? ProjectSummary.of(project) : listing.kind === 'readable' ? listing.summary : null;
+      return {
+        handle: {kind: 'saved', id: listing.id, name: listing.name, open: project},
+        key: `saved-${listing.id}`,
+        name: project !== null ? deps.appState.projectDisplayName(project) : listing.name,
+        driver: summary?.driver ?? '',
+        summary: summary?.line(units) ?? '',
+        saved: {kind: 'saved', modifiedMs: new Date(listing.modified).getTime(), bytes: listing.bytes, readable: listing.kind === 'readable'},
+        open: openState(project),
+        sync: projectSyncMark({
+          cloudOn: marks.cloudOn, running: marks.running,
+          notOnDrive: marks.notOnDrive.has(listing.id), conflictCopy: marks.conflictCopies.has(listing.id),
+        }),
+      };
+    });
+    for (const project of open) {
+      const id = deps.projectRepo.storedIdOf(project);
+      if (id !== null && savedIds.has(id)) continue;
+      const summary = ProjectSummary.of(project);
+      sources.push({
+        handle: {kind: 'notSaved', project},
+        key: notSavedKey(project),
+        name: deps.appState.projectDisplayName(project),
+        driver: summary.driver,
+        summary: summary.line(units),
+        saved: {kind: 'notSaved'},
+        open: openState(project),
+        sync: projectSyncMark({cloudOn: marks.cloudOn, running: marks.running, notOnDrive: true, conflictCopy: false}),
+      });
+    }
+    return sources.map(projectRow);
+  });
 
   function refresh(): void {
-    storedProjects.value = storedProjectRows(projectBin.activeProjects(), deps.unitTokens());
+    listings.value = projectBin.activeProjects();
     const binned = projectBin.binned();
     rows.value = binRows(binned);
     binTotal.value = binTotalSize(binned);
   }
 
   return {
-    storedProjects,
-    shownProjects: computed(() => viewProjects(storedProjects.value, order.value, query.value)),
+    projectRows,
+    shownProjects: computed(() => viewProjectRows(projectRows.value, order.value, query.value)),
+    projectsFooter: computed(() => projectRowsFooter(projectRows.value)),
+    searchOffered: computed(() => projectRows.value.length > PROJECT_SEARCH_FROM_ROWS),
     query,
     order,
-    orders: PROJECT_LIST_ORDER_LIST,
+    orders: PROJECT_ROW_ORDER_LIST,
     binRows: rows,
     binTotal,
     binOpen,
     binLabel: computed(() => `Bin (${rows.value.length})`),
     refresh,
     async moveToBin(row) {
-      const result = await moveToBin(deps.appState, deps.projectRepo, projectBin, deps.confirm, row.id, row.name);
-      if (result === 'refused') deps.alert(`Could not move "${row.name}" to the Bin: ${NO_ROOM}`);
+      const handle = row.handle;
+      if (handle.kind !== 'saved') return;
+      const result = await moveToBin(deps.appState, deps.projectRepo, projectBin, deps.confirm, handle.id, handle.name);
+      if (result === 'refused') deps.alert(`Could not move "${handle.name}" to the Bin: ${NO_ROOM}`);
       refresh();
     },
     restoreFromBin(row) {

@@ -1,10 +1,10 @@
-import { formatDay } from '../fields/format.js';
+import { conflictSuffix } from '../fields/projectRows.js';
 import type { DeviceName } from './deviceName.js';
 
 /** The name a kept conflict copy is saved under, for a project, driver or passive radiator:
  *  "Sub 12 (conflict, 14 Oct 2026, Android phone)". */
 export function conflictCopyName(name: string, from: DeviceName, at_ms: number): string {
-  return `${name} (conflict, ${formatDay(new Date(at_ms))}, ${from.text})`;
+  return `${name}${conflictSuffix(from.text, at_ms)}`;
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {

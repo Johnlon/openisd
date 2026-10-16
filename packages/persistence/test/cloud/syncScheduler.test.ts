@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { CloudSession } from '../../src/cloud/cloudStore.js';
 import type { RunOutcome, SyncEngine } from '../../src/cloud/syncRun.js';
+import type { DocId } from '@openisd/design/cloud';
 import type { AccountNamer } from '../../src/cloud/accountNamer.js';
 import {
   createSyncScheduler,
@@ -132,6 +133,13 @@ class FakeSyncEngine implements SyncEngine {
       },
     };
   }
+
+  notOnDrive(): readonly DocId[] {
+
+    return [];
+
+  }
+
 
   pendingLocal(): number {
     return this.pending;
