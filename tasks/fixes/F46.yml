@@ -53,3 +53,9 @@ output: |
     821 passed (8.3m)
   suite: unit exit 0, browser exit 1
   post-land suite 2799042-ccdf3ec470 finished: FAILED (exit 1) after 10m44s
+also_red:
+  - sha: 1c88c255725051350dfba9b35c22aa213951b799
+    failing: |
+        ✘  321 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 390×844 (736ms)
+        ✘  322 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › Passive Radiator: every row fits without scrolling at 390×844 (724ms)
+        ✘  325 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 412×915 (906ms)
