@@ -10,7 +10,8 @@ spec=packages/ui/test/visual/visual.browser.spec.ts
 if [ "$#" -eq 0 ]; then
   bash scripts/test.sh "$spec" --update-snapshots
 else
-  pattern="$(printf 'visual %s$|' "${@//-/ }" | sed 's/|$//')"
+  # An id is "<skin>-<screen>"; the test title is "visual <skin> <screen>", and a screen name may hold "-".
+  pattern="$(printf 'visual %s$|' "${@/-/ }" | sed 's/|$//')"
   bash scripts/test.sh "$spec" --update-snapshots -g "$pattern"
 fi
 git status --short -- packages/ui/test/visual | sed -n 's#^.. .*/\([^/]*\)\.png$#visual: changed \1#p'

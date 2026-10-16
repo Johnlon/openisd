@@ -3,6 +3,7 @@ release_note: 'Clearing a box volume or a loss Q puts back a sensible value; an 
 repo: openisd
 owner: maryu
 status: done
+landed: ff8d066792ee99c35bedbe309f94d54949063982
 goal: A cleared box volume settles to the alignment volume, a cleared Ql/Qa/Qp/Qicl to the WinISD default; boxes allowed to stay empty are marked red while empty
 done_test: bash scripts/test.sh packages/design/test/domain/box-clear-settles.test.ts
 files:
