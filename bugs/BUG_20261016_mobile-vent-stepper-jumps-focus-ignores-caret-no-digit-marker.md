@@ -12,7 +12,8 @@ John, 16 Oct 2026, mobile, vent editor. Port diameter E, length C, Fb C, Fb 27.5
 4. Nothing shows which digit the step will change.
 
 ## Expected
-- Focus stays in Fb.
+- Focus stays on the button that was pressed (John, 16 Oct: "focus should stay on the clicked
+  button"), so repeated presses keep stepping.
 - The step changes the digit at the cursor: cursor after the 2 steps the units, so 27.60 gives
   28.60.
 - The digit that will change is marked while the field has focus (T222 ruling: "stepped digit
@@ -27,11 +28,12 @@ is lost, the step falls back to a fixed digit, and focus moves on to the next fi
 marker from T222 does not show on the mobile vent editor.
 
 ## Fix
-- The up/down buttons do not take focus from the input, and read the cursor position.
+- Focus stays on the pressed button. The step uses the cursor position the input had before
+  the press, kept for further presses.
 - The step uses the digit at the cursor (`packages/design` caret-spin rule).
 - The mobile vent editor shows the digit marker.
 
 ## Verification
 Browser spec, mobile skin, vent editor, Fb 27.50 calculated: put the cursor after the 2, press up.
-Fb reads 28.50, Fb still has focus, and the units digit is marked. Same with the cursor after the
+Fb reads 28.50, the up button has focus, and the units digit is marked. Press up again: 29.50. Same with the cursor after the
 decimal point: 27.60. Then the same on the desktop skin.
