@@ -172,6 +172,10 @@ run_gate done_test /dev/null "$done_test"
 if [ -f scripts/visual/check-task.sh ]; then
   run_gate visual /dev/null "bash scripts/visual/check-task.sh" "$TASK" origin/main HEAD
 fi
+# Visual baselines: a task that changes UI sources has re-taken the baselines on exactly those sources.
+if [ -f scripts/visual/check-sources.sh ]; then
+  run_gate visual-sources /dev/null "bash scripts/visual/check-sources.sh" origin/main HEAD
+fi
 for sha in $(git rev-list origin/main..HEAD); do
   git log -1 --format=%B "$sha" > "$WORK/message"
   run_gate attribution "$WORK/message" "$ATTRIBUTION_CMD"

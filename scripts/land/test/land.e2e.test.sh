@@ -214,6 +214,17 @@ land w1 T1; r=$?
 if [ $r = 0 ] && grep -q "land: visual changes: http://example.test/pages/T1-" "$SCRATCH/out.w1" && ls "$VISUAL_PAGES_DIR"/T1-*/mobile-a.before.png > /dev/null 2>&1; then
     ok "a listed baseline change lands and publishes its before/after page"; else fail "listed baseline (r=$r): $(cat "$SCRATCH/out.w1")"; fi
 
+# 6e. a task that changes UI sources without re-taking the baselines on them is refused (scripts/visual/check-sources.sh)
+setup; task w1 T1 "*"; mkdir -p "$SCRATCH/w/w1/packages/ui/src"; echo '<template>a</template>' > "$SCRATCH/w/w1/packages/ui/src/A.vue"
+git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "change a source"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "visual-sources" "$SCRATCH/out.w1" && grep -q "A.vue" "$SCRATCH/out.w1"; then
+    ok "a UI source change without re-taken baselines is refused, naming the file"; else fail "source change (r=$r): $(cat "$SCRATCH/out.w1")"; fi
+(cd "$SCRATCH/w/w1" && . scripts/visual/lib.sh && visual_sources_hash > "$VISUAL_SOURCES_HASH_FILE" 2>/dev/null; mkdir -p "$(dirname "$VISUAL_SOURCES_HASH_FILE")"; visual_sources_hash > "$VISUAL_SOURCES_HASH_FILE")
+git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "re-take"
+land w1 T1; r=$?
+if [ $r = 0 ]; then ok "the same change lands once the hash matches"; else fail "re-taken source change (r=$r): $(cat "$SCRATCH/out.w1")"; fi
+
 # 7. a branch that changed a locked file or its own done_test is refused
 setup; task w1 T1 "*"; edit w1 spec.sh weakened; git -C "$SCRATCH/w/w1" commit -qam weaken
 before=$(origin_head); land w1 T1; r=$?

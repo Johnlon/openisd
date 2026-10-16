@@ -1,0 +1,15 @@
+id: T235
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Visual gate: a task that changes UI sources must have re-taken the baselines on those exact sources
+done_test: bash scripts/land/test/visual.e2e.test.sh
+files:
+  - tasks/T235.yml
+  - scripts/land.sh
+  - scripts/visual/*
+  - scripts/land/test/visual.e2e.test.sh
+  - scripts/land/test/land.e2e.test.sh
+  - docs/design/VISUAL_BASELINES.md
+  - packages/ui/test/visual/SOURCES.sha256

@@ -58,5 +58,29 @@ grep -q "^visual screens: mobile-a$" out.txt && grep -q "^visual page: http://ex
 rm -rf "$copy/test-results/visual-mobile-a"
 bash scripts/visual/failures-page.sh "$copy" abcdef0123456789 > out.txt 2>&1; [ ! -s out.txt ] && ok "a red run with no screenshot failure prints nothing" || fail "printed for no screenshot failure: $(cat out.txt)"
 
+# source hash: a task that changes UI sources must have re-taken the baselines on exactly them
+. scripts/visual/lib.sh
+git checkout -q -b src "$head" 2> /dev/null
+mkdir -p packages/ui/src; printf '<template>a</template>' > packages/ui/src/A.vue
+visual_sources_hash > "$VISUAL_SOURCES_HASH_FILE"
+git add -A && git commit -qm "sources and hash" && s0=$(git rev-parse HEAD)
+bash scripts/visual/check-sources.sh "$head" "$s0" > out.txt 2>&1 && ok "sources changed and hash re-taken on them passes" || fail "matching hash refused: $(cat out.txt)"
+bash scripts/visual/check-sources.sh "$s0" "$s0" > out.txt 2>&1 && ok "no source change passes without a hash" || fail "no source change refused: $(cat out.txt)"
+
+printf '<template>b</template>' > packages/ui/src/A.vue; git commit -qam "edit a source" && s1=$(git rev-parse HEAD)
+bash scripts/visual/check-sources.sh "$s0" "$s1" > out.txt 2>&1 \
+  && fail "a source edit with a stale hash passed" || { grep -q "packages/ui/src/A.vue" out.txt && grep -q "update.sh" out.txt && ok "a source edit with a stale hash is refused, naming the file and the fix" || fail "refusal text: $(cat out.txt)"; }
+
+visual_sources_hash > "$VISUAL_SOURCES_HASH_FILE"; git commit -qam "re-take" && s2=$(git rev-parse HEAD)
+bash scripts/visual/check-sources.sh "$s0" "$s2" > out.txt 2>&1 && ok "after re-taking on the edited sources it passes" || fail "re-taken refused: $(cat out.txt)"
+
+printf '<template>c</template>' > packages/ui/src/B.vue; git add -A; git commit -qm "another source, as a rebase onto a moved main would bring" && s3=$(git rev-parse HEAD)
+bash scripts/visual/check-sources.sh "$s0" "$s3" > out.txt 2>&1 && fail "a source added after the hash was recorded passed" || ok "a source that moved after the hash was recorded is refused"
+
+mkdir -p packages/design/fields packages/design/engine; printf x > packages/design/fields/f.ts; printf y > packages/design/engine/calc.ts
+git add -A; git commit -qm "design" -q; s4=$(git rev-parse HEAD)
+git diff --name-only "$s3" "$s4" > /dev/null
+[ -n "$(visual_sources_changed "$s3" "$s4")" ] && [ "$(visual_sources_changed "$s3" "$s4")" = "packages/design/fields/f.ts" ] && ok "design label sources count, the calculation engine does not" || fail "source list wrong: $(visual_sources_changed "$s3" "$s4")"
+
 [ "$fails" = 0 ] && { echo "visual e2e: all passed"; exit 0; }
 echo "visual e2e: $fails failed"; exit 1

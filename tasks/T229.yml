@@ -3,6 +3,7 @@ release_note: "Errors and crash reports include anonymous context (screen, dialo
 repo: openisd
 owner: maryu
 status: done
+landed: 76ceb0b2489f65cfc15ca143ab179ee383207bc8
 goal: Every error and crash report carries anonymous context: screen, dialog, open projects, box type, last actions, version, device
 done_test: bash scripts/test.sh packages/ui/test/logic/telemetry/errorContext.test.ts
 files:
