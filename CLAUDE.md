@@ -84,6 +84,21 @@ Three kinds of WinISD difference, handled differently:
 
 (John, 2026-09-26; switch titles and no reset 2026-10-05.)
 
+## Communication — UI issues come with before and after screenshots
+
+John, 2026-10-16: "any time you tell [me] a UI layout issue be prepared with before and after and
+be clear what the problem is"; "the before and after is because I need to understand the issue".
+
+- The pictures are how John understands the issue. Pick them so the problem is obvious at a
+  glance: the same screen, the same size, before and after side by side.
+- Before raising any UI layout issue with John, have the screenshots in hand: before (what he last
+  saw, or the last good build) and after (now), at the sizes involved. Name the build each one is
+  from. Send them so they open on his phone.
+- Lead with one plain sentence on what is visibly wrong on screen. Never pixels, spec names or
+  rulings first.
+- Failure this came from: F46 was raised as "rows 8 px taller, depth spec fails" with no
+  screenshots. John had not seen the change and did not recognise the problem.
+
 ## Communication — plain bug statements
 
 Report a bug or a split as one plain sentence: "There are two things, X and Y. X does A, Y does
