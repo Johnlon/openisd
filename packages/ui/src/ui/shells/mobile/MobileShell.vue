@@ -53,6 +53,29 @@ const diagnostics = injectDiagnosticsModal();
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <PersistenceBanner />
+    <!-- No top bar over the Graph destination — it's deliberately full-screen (see
+         MobileChartView.vue); the hamburger stays reachable from the other three tabs,
+         and with no project open. -->
+    <div v-if="!projectOpen || destination !== 'graph'" class="mob-topbar" :class="{ 'mob-shadow-below': canScrollUp }">
+      <button type="button" class="mob-hamburger" title="Menu" aria-label="Menu" @click.stop="toggleMenu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="mob-brand">
+        <img src="/icon.svg" alt="" aria-hidden="true">
+        <span>OpenISD</span>
+      </div>
+      <div v-if="projectTitle" class="mob-project-title" :title="projectTitle">{{ projectTitle }}</div>
+      <CloudSyncBadge
+        v-if="cloudEnabled"
+        class="mob-header-sync"
+        :display="cloudSyncDisplay"
+        @tap="handleSyncTap"
+        @pointerdown="onSyncPointerDown"
+        @pointerup="onSyncPointerUp"
+        @pointercancel="onSyncPointerCancel"
+      />
+    </div>
+
     <div v-if="!projectOpen" class="mob-empty">
       <div class="mob-empty-brand">
         <img src="/icon.svg" alt="" aria-hidden="true">
@@ -67,28 +90,6 @@ const diagnostics = injectDiagnosticsModal();
     </div>
 
     <template v-else>
-      <!-- No top bar over the Graph destination — it's deliberately full-screen (see
-           MobileChartView.vue); the hamburger stays reachable from the other three tabs. -->
-      <div v-if="destination !== 'graph'" class="mob-topbar" :class="{ 'mob-shadow-below': canScrollUp }">
-        <button type="button" class="mob-hamburger" title="Menu" aria-label="Menu" @click.stop="toggleMenu">
-          <span></span><span></span><span></span>
-        </button>
-        <div class="mob-brand">
-          <img src="/icon.svg" alt="" aria-hidden="true">
-          <span>OpenISD</span>
-        </div>
-        <div v-if="projectTitle" class="mob-project-title" :title="projectTitle">{{ projectTitle }}</div>
-        <CloudSyncBadge
-          v-if="cloudEnabled"
-          class="mob-header-sync"
-          :display="cloudSyncDisplay"
-          @tap="handleSyncTap"
-          @pointerdown="onSyncPointerDown"
-          @pointerup="onSyncPointerUp"
-          @pointercancel="onSyncPointerCancel"
-        />
-      </div>
-
       <main ref="contentEl" class="mob-content" @scroll="updateScrollEdges">
         <MobileChartView v-if="destination === 'graph'" @menu="toggleMenu" />
         <MobileBoxTab v-else-if="destination === 'box'" />
@@ -98,26 +99,11 @@ const diagnostics = injectDiagnosticsModal();
         <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
       </main>
       <ProvenanceLegend v-if="destination === 'box' || destination === 'signal' || destination === 'enclosure'" />
-      <MobilePaneDialog v-if="pane === 'drivers'" title="Manage drivers" @close="closePane">
-        <MobileManageDriversTab @chosen="destination = 'driver'; closePane()" />
-      </MobilePaneDialog>
-      <MobilePaneDialog v-else-if="pane === 'project'" title="Project" @close="closePane">
+      <MobilePaneDialog v-if="pane === 'project'" title="Project" @close="closePane">
         <MobileProjectTab />
       </MobilePaneDialog>
       <MobilePaneDialog v-else-if="pane === 'advanced'" title="Advanced" @close="closePane">
         <MobileAdvancedTab />
-      </MobilePaneDialog>
-      <MobilePaneDialog v-else-if="pane === 'cloudSync'" :title="cloudSyncDisplay.dialog.title" @close="closePane">
-        <div class="mob-cloud-dialog-body">
-          <CloudSyncDialog
-            :model="cloudSyncDisplay.dialog"
-            @connect="connectCloud"
-            @syncNow="syncNowCloud"
-            @reconnect="reconnectCloud"
-            @disconnect="disconnectCloud"
-            @openConflict="openConflict"
-          />
-        </div>
       </MobilePaneDialog>
       <div v-if="updateBannerVisible" class="mob-update-banner" role="status">
         <span>A new version of OpenISD is available.</span>
@@ -140,24 +126,45 @@ const diagnostics = injectDiagnosticsModal();
       <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel"
         :shadow-above="canScrollDown" />
 
-      <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
-        <div class="mob-menu" @click.stop>
-          <div class="mob-menu-brand">
-            <img src="/icon.svg" alt="" aria-hidden="true">
-            <div class="mob-menu-brand-text">
-              <span class="mob-menu-brand-line">
-                <span class="mob-menu-brand-name">OpenISD</span>
-                <span v-if="appVersion" class="mob-menu-version" data-testid="app-version">{{ appVersion }}</span>
-              </span>
-              <span v-if="username" class="mob-menu-username">{{ username }}</span>
-            </div>
+    </template>
+
+    <!-- App-level: reachable with no project open too (John, 16 Oct 2026). -->
+    <MobilePaneDialog v-if="pane === 'drivers'" title="Manage drivers" @close="closePane">
+      <MobileManageDriversTab @chosen="destination = 'driver'; closePane()" />
+    </MobilePaneDialog>
+    <MobilePaneDialog v-else-if="pane === 'cloudSync'" :title="cloudSyncDisplay.dialog.title" @close="closePane">
+      <div class="mob-cloud-dialog-body">
+        <CloudSyncDialog
+          :model="cloudSyncDisplay.dialog"
+          @connect="connectCloud"
+          @syncNow="syncNowCloud"
+          @reconnect="reconnectCloud"
+          @disconnect="disconnectCloud"
+          @openConflict="openConflict"
+        />
+      </div>
+    </MobilePaneDialog>
+
+    <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
+      <div class="mob-menu" @click.stop>
+        <div class="mob-menu-brand">
+          <img src="/icon.svg" alt="" aria-hidden="true">
+          <div class="mob-menu-brand-text">
+            <span class="mob-menu-brand-line">
+              <span class="mob-menu-brand-name">OpenISD</span>
+              <span v-if="appVersion" class="mob-menu-version" data-testid="app-version">{{ appVersion }}</span>
+            </span>
+            <span v-if="username" class="mob-menu-username">{{ username }}</span>
           </div>
-          <!-- Project: what changes or files the open projects. App: the app and its library. -->
-          <section class="mob-menu-section" aria-labelledby="mob-menu-head-project">
-            <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
-            <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
-            <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
-            <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
+        </div>
+        <!-- Project: what changes or files the open projects. App: the app and its library. -->
+        <section class="mob-menu-section" aria-labelledby="mob-menu-head-project">
+          <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
+          <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
+          <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
+          <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
+          <!-- Project-level items: only with a project open (John, 16 Oct 2026). -->
+          <template v-if="projectOpen">
             <div class="mob-menu-sep"></div>
             <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
             <button type="button" class="mob-menu-item" :class="{ dirty: anyUnsaved }" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
@@ -181,26 +188,26 @@ const diagnostics = injectDiagnosticsModal();
               </button>
               <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
             </div>
-          </section>
-          <section class="mob-menu-section" aria-labelledby="mob-menu-head-app">
-            <div id="mob-menu-head-app" class="mob-menu-section-head">App</div>
-            <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
-            <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
-            <button v-if="cloudEnabled" type="button" class="mob-menu-item mob-menu-cloud" @click="openCloudSync">
-              <span>{{ cloudSyncDisplay.dialog.title }}</span>
-              <span class="mob-menu-cloud-status">
-                <span>{{ cloudSyncDisplay.shortText }}</span>
-                <ToolbarIcon :name="cloudSyncDisplay.glyph" />
-              </span>
-            </button>
-            <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
-            <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
-            <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
-            <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
-          </section>
-        </div>
+          </template>
+        </section>
+        <section class="mob-menu-section" aria-labelledby="mob-menu-head-app">
+          <div id="mob-menu-head-app" class="mob-menu-section-head">App</div>
+          <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
+          <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
+          <button v-if="cloudEnabled" type="button" class="mob-menu-item mob-menu-cloud" @click="openCloudSync">
+            <span>{{ cloudSyncDisplay.dialog.title }}</span>
+            <span class="mob-menu-cloud-status">
+              <span>{{ cloudSyncDisplay.shortText }}</span>
+              <ToolbarIcon :name="cloudSyncDisplay.glyph" />
+            </span>
+          </button>
+          <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
+          <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
+          <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+          <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
+        </section>
       </div>
-    </template>
+    </div>
 
     <!-- Outside the project template: the empty state opens it too. -->
     <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">

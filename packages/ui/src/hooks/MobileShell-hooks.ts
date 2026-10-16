@@ -298,6 +298,8 @@ export function useMobileShell(): MobileShellApi {
     }
     const index = openProjects().indexOf(row.project);
     if (index >= 0) removeProject(index);
+    // The last one closed: the empty screen is the next step, not the menu.
+    if (openProjects().length === 0) closeMenu();
   }
 
   async function confirmDiscard(): Promise<boolean> {
