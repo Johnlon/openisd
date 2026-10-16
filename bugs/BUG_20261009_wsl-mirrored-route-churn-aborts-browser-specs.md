@@ -1,6 +1,6 @@
 # BUG_20261009_wsl-mirrored-route-churn-aborts-browser-specs
 
-**Status:** OPEN (fix is a Windows-side .wslconfig change, with John)
+**Status:** RESOLVED (John, 16 Oct 2026): the .wslconfig fix was applied; no ERR_NETWORK_CHANGED burst in any test log since 7 Oct.
 
 ## Symptom
 

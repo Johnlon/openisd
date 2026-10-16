@@ -24,3 +24,9 @@ Field enum in packages/design) and for each name the sensible default a clear sh
 - Rg: a clear goes back to 0.1 ohm.
 - NOT ruled yet, no change: PR and vented volumes, bandpass / ABC values, Ql / Qa / Qp / Qicl,
   port end correction, filters.
+
+## John's rulings on the rest (2026-10-16)
+- Box volumes (vented, PR, bandpass, ABC): a clear goes back to the alignment's volume.
+- Ql / Qa / Qp / Qicl: a clear goes back to the WinISD default. "Why would we want blank."
+- Port end correction: it is a drop-down; it cannot be blank. If any path lets it blank, that is the bug.
+- Filters: a cleared value stays empty, and an empty box that stays empty (filter frequency etc.) is marked red.

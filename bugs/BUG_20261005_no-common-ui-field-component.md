@@ -93,3 +93,7 @@ units, limits, red border, reporting a refusal); `UIField` owns the ⚠.
 - Browser spec on `UIField` in the editor: tap ⚠ shows the reason, the unit is untouched, the width is the
   same in every unit, and an empty box clears.
 - Every migrated view's existing specs pass.
+
+## Update 16 Oct 2026
+The component exists: `UIField` / `UIFieldBody` (landed T036, 11 Oct), used on the Box, Enclosure and Signal tabs, the port fields, and parts of the driver editor and Original shell. Still hand-built from NumInput + UnitToggle with their own ⚠: OriginalWhatIf, MobileWhatIfSheet, OptionsModal, OriginalNewProject, MobileNewProject, NewProjectPassiveRadiatorStep, MobileAdvancedTab, the rest of DriverEditorModal and OriginalShell, DriverLibrary, PRBrowser.
+John, 16 Oct 2026: finish it. Every number field goes onto UIField; no hand-built ⚠ remains; an architecture test pins it (no NumInput or UnitToggle outside UIFieldBody).

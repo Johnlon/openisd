@@ -1,6 +1,6 @@
 # BUG_20261013_project-driver-uuid-reminted-on-read
 
-**Status:** OPEN
+**Status:** RULED (John, 16 Oct 2026), fixed by the slim driver task: an embedded driver is a value object with no id of its own; the project is the entity. Bundled drivers and My Drivers are entities with ids. An embedded copy of a bundled driver carries that catalogue id as a cross-reference only. No instance id, minted or stored.
 
 ## Symptom
 Loading a stored project and saving it again never gives the same bytes, because the driver embedded in the project gets a new uuid on every read, so every load rewrites the store.

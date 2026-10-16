@@ -1,6 +1,6 @@
 # BUG_20261012_saved-drivers-gone-at-localhost-4000
 
-**Status:** OPEN - cause unknown, baseline recorded, detector planned (T058)
+**Status:** CLOSED (John, 16 Oct 2026): cause never found, not seen again; the T058 storage log and missing-key notice are in place. Reopen on recurrence.
 
 ## Symptom
 John, 12 Oct 2026: saved drivers he had at http://localhost:4000/ are gone. The store at that address holds no `openisd_my_drivers` key at all. He did not use Restore or Import.
