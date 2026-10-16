@@ -1,0 +1,12 @@
+id: T238
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: F41 fix: every test waits for its in-flight route handlers before it ends
+done_test: bash scripts/test.sh packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
+files:
+  - tasks/T238.yml
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
+  - tasks/fixes/F41.yml

@@ -50,6 +50,7 @@ output: |
   suite: unit exit 0, browser exit 1
   post-land suite 1207645-bd50b9d36f finished: FAILED (exit 1) after 8m05s
 closed: |
-  Not reproducible (bob, 16 Oct 2026). The failure is page.goto 'Test ended' while cloudSyncStubs.ts route.fetch
-  was in flight in the post-land clean copy under load; no assertion failed. cloudSync.original.browser.spec.ts then
-  passed 7/7 on main, and 63/63 over three --repeat-each=3 runs. No code changed. A second occurrence reopens it.
+  Fixed by T238 (bob, 16 Oct 2026). A route handler still inside route.fetch() when a test ends throws "Test ended"
+  into the result; cloudSyncStubs.ts, cloudSyncDialog and redirectRoundTrip all route.fetch the main script.
+  The shared browserLog fixture now calls page.unrouteAll({behavior: 'ignoreErrors'}) after the test body, for
+  every spec. A scratch spec reproduced the error with a handler fetching at test end and it is gone with the fix.

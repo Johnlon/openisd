@@ -141,6 +141,9 @@ export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }
     });
 
     await use(log);
+    // A route handler still inside route.fetch() when the test ends throws "Test ended" into the
+    // result (F41). Wait for in-flight handlers and drop the routes, for every spec.
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
 
     const dump = {
       consoleErrors: log.consoleErrors,
