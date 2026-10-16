@@ -25,6 +25,9 @@ overwrites the box volume, and one blanks both.
   to E (misrepresentation) by deleting any of the E; the deleted E becomes the sole C".
   So: delete an entered value, it becomes the group's one C, and the C it replaces becomes E at
   its current value. Showing that value as E though nobody typed it is accepted.
+- 16 Oct 2026, John: "the conversion to C is only if it is currently Calculatable otherwise it
+  becomes N". A deleted E that the rest of the group cannot calculate becomes N (NotAvailable),
+  and the other values keep their state.
 - 16 Oct 2026, a "Was calculated" field state: logged as an idea in BACKLOG.md, not for
   execution (John). The fix here uses E and C only: the kept partner becomes E.
 
