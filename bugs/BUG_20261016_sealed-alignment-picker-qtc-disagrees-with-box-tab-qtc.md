@@ -19,6 +19,17 @@ dialog) and accept. The Box tab then shows a different Qtc for that volume.
   lossless formula gives 2.912 L. So WinISD's picker is not lossless either, and its Box tab
   disagrees with its own picker. How WinISD's picker works out Vb is not established.
 
+## Kind (John, 16 Oct 2026: match WinISD "unless you found a WinISD bug or lack of conventional")
+- WinISD's picker volume contradicts WinISD's own Box tab: Qtc 0.800 picked, 0.787 shown. By the
+  CLAUDE.md test ("a value that contradicts WinISD's own other charts") that is a WinISD
+  calculation bug.
+- Lead, ⚠ unverified: 3.134 L is the lossless volume for a Qts of 0.501, not the driver's 0.49.
+  That fits a Qts corrected for Rg, with no box losses, while the Box tab counts Ql.
+- So: OpenISD by default gives the volume that shows the picked Qtc on the Box tab. A yellow
+  "Enable WinISD bugs" switch gives WinISD's picker volume. Record it as a WinISD bug
+  (`bugs/BUG_*_winisd-*.md`, ACCURACY_IMPROVEMENTS.md, WINISD_PARITY.md) once its formula is confirmed.
+- OpenISD's lossless picker today matches neither, so it is wrong either way.
+
 ## Cause
 The picker and the Box tab use different Qtc formulas: lossless and lossy.
 
