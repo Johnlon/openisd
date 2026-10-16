@@ -1,6 +1,6 @@
 id: F48
 owner: Johnlon
-status: open
+status: done
 sha: 7f0989b90061d23466ead3174ace4c7dd82d9566
 goal: main is red at 7f0989b900; make the full suite pass again
 commits: |
@@ -61,3 +61,10 @@ also_red:
     visual: |
       visual screens: desktop-tab-project
       visual page: http://lap:8000/winisd/visual-pages/red-5a8d8eb62e/index.html
+closed_note: |
+  The visual screens depended on the date. The Project tab's Created and Modified boxes showed the
+  day of the run: Modified from the page's clock, Created from the machine's clock when the sample
+  project was generated. The baseline was shot on 16 Oct, the runs were on 17 Oct. Both now use one
+  fixed date (FIXTURE_DATE, 16 Oct 2026 midday UTC): the generator dates the sample with it and the
+  visual screens run on it. No baseline was re-shot and no box is masked. All 53 visual screens pass
+  on 17 Oct. Bug: BUG_20261017_visual-screens-depend-on-the-date.

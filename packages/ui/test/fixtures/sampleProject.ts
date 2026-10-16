@@ -20,6 +20,11 @@ export const SAMPLE_PROJECT_OWPR = join(
 export const COMPLETE_DRIVER_PROJECT_OWPR = join(
   dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'build', 'test-fixtures', 'complete-driver-project.owpr');
 
+/** The date the browser suite runs at and the sample projects are dated: the Project tab shows
+ *  Created and Modified, so a wall-clock date made a screen shot one day fail the next (F48).
+ *  Midday UTC is the same date in every time zone from UTC-11 to UTC+11. */
+export const FIXTURE_DATE = new Date('2026-10-16T12:00:00Z');
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 /** What the generated files are made from: the generator itself and the project schema. A change

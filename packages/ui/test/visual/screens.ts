@@ -1,6 +1,7 @@
 import type {Page} from '@playwright/test';
 import {openAMobileProject, openAProject, setFocusedBoxType} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
+import {FIXTURE_DATE} from '../fixtures/sampleProject.js';
 
 /**
  * Every screen the visual baselines cover. A screen is a name, a skin and the steps that bring it up;
@@ -15,8 +16,9 @@ export class VisualSkin {
   static readonly ALL: readonly VisualSkin[] = Object.freeze([VisualSkin.MOBILE, VisualSkin.DESKTOP]);
   private constructor(readonly name: string, readonly viewport: {width: number; height: number}) {}
 
-  /** Opens the app in this skin, on its empty state. */
+  /** Opens the app in this skin, on its empty state, on FIXTURE_DATE (timers still run; only the date and time are fixed). */
   async start(page: Page): Promise<void> {
+    await page.clock.setFixedTime(FIXTURE_DATE);
     await page.setViewportSize(this.viewport);
     if (this === VisualSkin.MOBILE) await forceMobileSkin(page);
     else await page.addInitScript(() => {

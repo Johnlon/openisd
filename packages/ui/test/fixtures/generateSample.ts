@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
 import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
-import {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, FIXTURE_DATE, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
 // Only the fields this fixture generator mutates directly; `fromConformingRecord` re-validates
 // the whole record against the real schema, so this schema stays loose (`z.looseObject`) rather
@@ -38,6 +38,10 @@ const qtsLoaded = engine.driver.sourceLoadedQts(
 const c4 = engine.vented.alignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);
 const project = builder.vented().volume_m3(c4.Vb).tuning_goal_hz(c4.Fb).build();
 project.name.set("W5-1138SMF Fixture");
+// The fixture is dated FIXTURE_DATE, never the day it was generated (F48). YYYYMMDD, as .wpr stores it.
+const fixtureStamp = FIXTURE_DATE.toISOString().slice(0, 10).replaceAll('-', '');
+project.created.set(fixtureStamp);
+project.modified.set(fixtureStamp);
 project.box.vented.vent.diameter_m.set(0.05);
 project.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
 project.envTempK.set(293.15);
@@ -86,6 +90,8 @@ if (Array.isArray(completeDriver)) {
 const completeBuilder = new ProjectBuilder(completeDriver, engine);
 const completeProject = completeBuilder.vented().volume_m3(0.03).tuning_goal_hz(35).build();
 completeProject.name.set("Complete Fixture Project");
+completeProject.created.set(fixtureStamp);
+completeProject.modified.set(fixtureStamp);
 completeProject.box.vented.vent.diameter_m.set(0.05);
 completeProject.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
 completeProject.envTempK.set(293.15);

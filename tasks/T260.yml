@@ -1,0 +1,16 @@
+id: T260
+release_note: internal
+label: fixes
+repo: openisd
+owner: maryu
+status: done
+goal: "F48: the visual screens and the sample projects use one fixed date, so the Project tab dates match the baseline on any day"
+done_test: bash scripts/test.sh packages/ui/test/scripts/sample-project-date.test.ts
+files:
+  - tasks/T260.yml
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/test/fixtures/sampleProject.ts
+  - packages/ui/test/fixtures/generateSample.ts
+  - bugs/BUG_20261017_visual-screens-depend-on-the-date.md
+  - tasks/fixes/F48.yml
+  - packages/ui/test/scripts/sample-project-date.test.ts
