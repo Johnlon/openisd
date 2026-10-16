@@ -107,6 +107,17 @@ check_hung() {
   if [ -z "$cur" ] || [ "$cur" != "$start" ]; then
     rm -f "$STATE/hung.state"; log "post-land holder $pid is not running (stale holder file); left to the next run"; return 0
   fi
+  # The suite waiting for browser runs to end (scripts/suite-lock.sh) is idle on purpose: not hung until
+  # it has waited three thresholds, which a waiting suite that no new run can overtake never does.
+  local wpid wstart wsince
+  if read -r wpid wstart < "${SUITE_RUN_LOCK}.waiting" 2> /dev/null && [ -n "${wpid:-}" ] \
+     && [ "$(admit_starttime "$wpid")" = "${wstart:-}" ]; then
+    wsince=$(( $(now) - $(stat -c %Y "${SUITE_RUN_LOCK}.waiting" 2> /dev/null || now) ))
+    if [ "$wsince" -lt $((HUNG_S * 3)) ]; then
+      rm -f "$STATE/hung.state"
+      log "post-land run $pid ($sha) is waiting for browser runs to end (${wsince}s); not hung"; return 0
+    fi
+  fi
   size=$(stat -c %s "$plog" 2> /dev/null || echo 0); mtime=$(stat -c %Y "$plog" 2> /dev/null || echo 0)
   cpu=$(tree_cpu "$pid"); t=$(now)
   # state: pid start size mtime cpu since

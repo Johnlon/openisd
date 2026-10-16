@@ -133,6 +133,23 @@ grep -q 'removed merged clean worktree' "$WATCHDOG_LOG" && ok "removal logged" |
 out=$(tick); grep -q 'another tick is running' <<< "$out" && ok "overlap refused" || fail "overlap: $out"
 kill -KILL "${PIDS[-1]}" 2> /dev/null; wait "${PIDS[-1]}" 2> /dev/null
 
+# 8b. a run waiting for the browser lock is not hung; after three thresholds it is
+export SUITE_RUN_LOCK="$SCRATCH/rt/suite-run.lock"
+echo "line" > "$WATCHDOG_POST_LAND_LOG"
+setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
+hold "$HP"
+setsid sleep 300 & WP=$!; PIDS+=("$WP"); sleep 0.3
+printf '%s %s\n' "$WP" "$(starttime "$WP")" > "$SUITE_RUN_LOCK.waiting"
+touch -d @1000 "$SUITE_RUN_LOCK.waiting"
+WATCHDOG_NOW=1000 tick > /dev/null
+WATCHDOG_NOW=1250 tick > /dev/null
+dead "$HP" && fail "a run waiting for the browser lock was killed" || ok "a run waiting for the browser lock is left alone"
+grep -q 'waiting for browser runs to end' "$WATCHDOG_LOG" && ok "the wait is logged" || fail "wait not logged"
+WATCHDOG_NOW=1500 tick > /dev/null
+wait "$HP" 2> /dev/null
+dead "$HP" && ok "a wait past three thresholds is a hang" || fail "an endless wait was never killed"
+kill -KILL -- "-$WP" 2> /dev/null; rm -f "$SUITE_RUN_LOCK.waiting" "$WATCHDOG_HOLDER"
+
 # 9. main has an untested commit and no run is alive: a run is started (once old enough)
 main_sha=$(git -C "$WATCHDOG_REPO" rev-parse origin/main)
 rm -f "$FAKE_RUN_LOG" "$WATCHDOG_HOLDER" "$POST_LAND_LOCK.tested"

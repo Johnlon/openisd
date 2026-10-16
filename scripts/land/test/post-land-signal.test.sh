@@ -21,7 +21,7 @@ git init -q --bare -b main origin.git
 git clone -q origin.git c 2>/dev/null; cd c || exit 2
 git config user.email t@t; git config user.name t
 mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
-cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/paths.sh" scripts/
+cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/paths.sh" "$REPO/scripts/suite-lock.sh" scripts/
 cat > suite.sh <<EOF2
 #!/usr/bin/env bash
 sleep 120 &
@@ -66,6 +66,28 @@ wait "$RUNPID" 2>/dev/null; rc=$?
 RUNPID=""
 [ "$rc" = 0 ] && grep -q "post-land: superseded by newer0123; killed" "$SCRATCH/out" && ok "a newer run's kill is still superseded" || fail "rc=$rc: $(cat "$SCRATCH/out")"
 git -C "$SCRATCH/origin.git" show main:tasks/fixes/F2.yml > /dev/null 2>&1 && fail "pushed an F for a superseded run" || ok "no F pushed for a superseded run"
+
+# 3. A TERM while the suite is still waiting for the browser lock: no red, no F, nothing tested
+rm -f "$SCRATCH/started" "$SCRATCH/out" "$SCRATCH/post.lock.tested" "$SCRATCH/post.lock.supersede"
+export SUITE_RUN_LOCK="$SCRATCH/suite-run.lock"
+cat > suite.sh <<EOF2
+#!/usr/bin/env bash
+bash "$PWD/scripts/suite-lock.sh" exclusive -- bash -c ': > "$SCRATCH/started"; sleep 120'
+EOF2
+git add -A; git commit -qm suite2; git pull -q --rebase origin main 2>/dev/null; git push -q origin main; sha2=$(git rev-parse HEAD)
+( exec 9> "$SUITE_RUN_LOCK"; flock -s 9; exec sleep 120 ) & HOLD=$!
+sleep 0.5
+setsid bash scripts/land/post-land/run.sh "$sha2" > "$SCRATCH/out" 2>&1 & RUNPID=$!
+for _ in $(seq 1 100); do [ -s "$SUITE_RUN_LOCK.waiting" ] && break; sleep 0.1; done
+[ -s "$SUITE_RUN_LOCK.waiting" ] && ok "the waiting suite records that it waits" || fail "no waiting record: $(cat "$SCRATCH/out")"
+kill -TERM "$RUNPID"
+wait "$RUNPID" 2>/dev/null; rc=$?
+RUNPID=""
+kill -KILL "$HOLD" 2>/dev/null
+[ "$rc" = 0 ] && grep -q "killed while waiting for the browser lock at ${sha2:0:10}" "$SCRATCH/out" && ok "a kill while waiting is no result" || fail "rc=$rc: $(cat "$SCRATCH/out")"
+git -C "$SCRATCH/origin.git" show main:tasks/fixes/F2.yml > /dev/null 2>&1 && fail "pushed an F for a run killed while waiting" || ok "no F pushed for a run killed while waiting"
+[ ! -e "$SCRATCH/post.lock.tested" ] && ok "nothing recorded as tested" || fail "recorded tested"
+[ ! -e "$SUITE_RUN_LOCK.waiting" ] && ok "waiting record removed" || fail "waiting record left behind"
 
 [ $fails = 0 ] && { echo "post-land-signal: all passed"; exit 0; }
 echo "post-land-signal: $fails failed"; exit 1

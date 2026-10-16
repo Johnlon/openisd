@@ -139,11 +139,24 @@ newer_run_waiting() {
   done
   return 1
 }
+# True while the suite is still waiting for the browser lock (scripts/suite-lock.sh records it): a run
+# ended then has tested nothing.
+suite_waiting_for_lock() {
+  local pid start
+  read -r pid start < "${SUITE_RUN_LOCK}.waiting" 2>/dev/null || return 1
+  [ -n "${pid:-}" ] && [ "$(starttime "$pid")" = "${start:-}" ]
+}
 superseded() {
-  local newer; newer="$(cat "$SUPERSEDE" 2>/dev/null)"
+  local newer waiting=1; newer="$(cat "$SUPERSEDE" 2>/dev/null)"
+  suite_waiting_for_lock && waiting=0
   stop_suite
   if [ -n "$newer" ] || newer_run_waiting; then
     echo "post-land: superseded by ${newer:-a newer run}; killed"
+    exit 0
+  fi
+  if [ "$waiting" = 0 ]; then
+    rm -f "${SUITE_RUN_LOCK}.waiting"
+    echo "post-land: killed while waiting for the browser lock at ${SHA:0:10}; nothing was tested, no result"
     exit 0
   fi
   echo "post-land: killed by signal at ${SHA:0:10}, not superseded" | tee -a "$OUT"

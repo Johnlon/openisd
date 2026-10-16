@@ -42,6 +42,17 @@ grep -q "waiting: the post-land suite is running" "$SCRATCH/s3.out" && ok "the s
 started s3 && ok "the spec starts after the suite ends" || fail "the spec never started"
 : > "$SCRATCH/s3.release"
 
+# 3b. a suite that is waiting is not starved: a shared run that arrives while it waits queues behind it
+start s5 shared; start s6 shared; started s5 && started s6 || fail "shared runs did not start"
+start x3 exclusive; sleep 1
+start s7 shared; sleep 1
+[ ! -e "$SCRATCH/s7.started" ] && ok "a browser run arriving while the suite waits queues behind it" || fail "a new browser run overtook the waiting suite"
+: > "$SCRATCH/s5.release"; : > "$SCRATCH/s6.release"
+started x3 && [ ! -e "$SCRATCH/s7.started" ] && ok "the suite starts first when the earlier runs end" || fail "order wrong"
+: > "$SCRATCH/x3.release"
+started s7 && ok "the queued browser run starts after the suite" || fail "queued run never started"
+: > "$SCRATCH/s7.release"
+
 # 5. a killed suite frees the lock (the kernel releases it)
 start x2 exclusive; started x2
 start s4 shared; sleep 0.5
