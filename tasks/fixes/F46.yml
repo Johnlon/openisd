@@ -1,6 +1,6 @@
 id: F46
 owner: Johnlon
-status: open
+status: done
 sha: ccdf3ec4707154c809e025a9e9f46ce6f745102f
 goal: main is red at ccdf3ec470; make the full suite pass again
 commits: |
@@ -59,3 +59,9 @@ also_red:
         ✘  321 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 390×844 (736ms)
         ✘  322 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › Passive Radiator: every row fits without scrolling at 390×844 (724ms)
         ✘  325 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 412×915 (906ms)
+closed_note: |
+  Caused by T240 (b01974ab): phone rows 8 px taller each, so the 6th Order Bandpass and Passive
+  Radiator tabs no longer fit above the bottom bar. John ruled (16 Oct 2026): scrolling is fine on
+  those views; T240 stays. mobile-row-depth.browser.spec.ts no longer asserts "no scroll"; it keeps
+  the 40 px row minimum and now checks the tab bar stays pinned and the last row can be scrolled into
+  view, at 360x740, 390x844 and 412x915.
