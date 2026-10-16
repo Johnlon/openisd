@@ -1,0 +1,12 @@
+id: T244
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: F44: equation popup spec, driver modal now 950 wide
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T244.yml
+  - tasks/fixes/F44.yml
+  - packages/ui/test/ui/equation-inspector-popup.browser.spec.ts
+label: fixes
