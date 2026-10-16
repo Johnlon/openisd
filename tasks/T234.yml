@@ -1,0 +1,14 @@
+id: T234
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: F40: re-take the mobile-menu baseline after T216 moved the open projects out of the menu
+done_test: bash scripts/land/test/visual.e2e.test.sh
+files:
+  - tasks/T234.yml
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - tasks/fixes/F40.yml
+label: fixes
+visual:
+  - mobile-menu

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 61c3b2f585c2eeeb871c05813615f3d4bc42c891
 goal: Concurrent-landings e2e: give the scratch repo a UNIT_CMD
 done_test: bash scripts/land/test/runtime-paths-concurrent.e2e.test.sh
 files:
