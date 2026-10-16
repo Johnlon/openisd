@@ -8,10 +8,13 @@
  */
 import type {AppState} from './appState.js';
 import type {PresentationState} from './presentationState.js';
+import type {ScriptedUpdateHost} from './scriptedUpdateHost.js';
 
 export interface TestHooks {
   appState: AppState;
   presentationState: PresentationState;
+  /** The scripted service worker host: the suite's build has no worker. */
+  updateHost: ScriptedUpdateHost;
 }
 
 export const TEST_HOOKS_KEY = 'openisdTestHooks';

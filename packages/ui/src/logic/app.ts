@@ -24,7 +24,7 @@ import type {
 import type {Logging} from '../logging/flash.js';
 import type {FaultLog} from '../diagnostics/faultLog.js';
 import type {Engine} from '@openisd/design/engine';
-import type {ReleaseWatch} from './releaseWatch.js';
+import type {AppUpdate} from './appUpdate.js';
 import type {AppVersionPort} from './appVersion.js';
 import type {VersionIndex} from './versionIndex.js';
 import type {AppState} from './appState.js';
@@ -73,7 +73,8 @@ export interface AppLogic {
   /** Whether the browser keeps OpenISD's data. */
   persistence: PersistenceStatus;
   faultLog: FaultLog;
-  releases: ReleaseWatch;
+  /** Keeps the running build in step with the deployed one. */
+  appUpdate: AppUpdate;
   appVersion: AppVersionPort;
   /** Every hosted build, read once at start; About lists them. */
   versionIndex: VersionIndex;

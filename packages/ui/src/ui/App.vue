@@ -17,13 +17,14 @@ import {startSessionSync} from '../logic/sessionSync.js';
 import {heldFocusedProject, provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
+import {createAppUpdateUi, provideAppUpdateUi} from '../hooks/appUpdateUi.js';
 import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hooks.js';
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import CrashScreen from './components/CrashScreen.vue';
 
-const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appState, presentation: presentationState, recordedProjectId } = useApp();
+const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch, actions: recentActions } = useTelemetryUi();
@@ -68,6 +69,8 @@ provideSplashModal(presentationState, {
   driverCount: async () => (await bundledDrivers.index()).length,
   passiveRadiatorCount: async () => (await bundledPassiveRadiators.index()).length,
 }, versionIndex);
+// About's Force refresh asks the same unsaved-changes question the update prompt does.
+provideAppUpdateUi(createAppUpdateUi(appUpdate, () => openProjects().some(p => appState.projectHasUnsavedChanges(p)), confirmPort.port));
 
 // One help page "OpenISD and WinISD differences": the Help menus, the WinISD Compatibility group
 // headings and the ≠W cues all open this instance.

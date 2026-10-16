@@ -7,7 +7,7 @@
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
 import PersistenceBanner from '../../components/PersistenceBanner.vue';
-import {CompatSwitchGroup, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
+import {APP_UPDATE_TEXT, CompatSwitchGroup, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
@@ -42,7 +42,8 @@ import {INSTALL_URL} from '../../siteLinks.js';
 
 const {
   cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
-  handleCloudConnect, handleCloudSyncNow, handleCloudReconnect,
+  handleCloudConnect, handleCloudSyncNow, handleCloudReconnect, handleCloudDismissReconnect,
+  updateOffered, reloadForUpdate, dismissUpdate,
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
@@ -209,9 +210,19 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
     <PersistenceBanner />
     <!-- Cloud sync strips / notices in flow directly under toolbar -->
-    <div v-if="cloudAvailable && cloudDisplay.strip" class="cloud-reconnect-strip">
+    <div v-if="updateOffered" class="cloud-conflict-notice update-strip" role="status" data-testid="update-strip">
+      <span class="cloud-strip-label">{{ APP_UPDATE_TEXT.offer }}</span>
+      <span class="cloud-strip-actions">
+        <button type="button" class="cloud-strip-btn pri" data-testid="update-reload" @click="reloadForUpdate">{{ APP_UPDATE_TEXT.reload }}</button>
+        <button type="button" class="cloud-strip-btn" data-testid="update-later" @click="dismissUpdate">{{ APP_UPDATE_TEXT.later }}</button>
+      </span>
+    </div>
+    <div v-else-if="cloudAvailable && cloudDisplay.strip" class="cloud-reconnect-strip" data-testid="reconnect-strip">
       <span class="cloud-strip-label">{{ cloudDisplay.strip.text }}</span>
-      <button type="button" class="cloud-strip-btn pri" @click="handleCloudReconnect">{{ cloudDisplay.strip.button }}</button>
+      <span class="cloud-strip-actions">
+        <button type="button" class="cloud-strip-btn pri" @click="handleCloudReconnect">{{ cloudDisplay.strip.button }}</button>
+        <button type="button" class="cloud-strip-btn" data-testid="reconnect-later" @click="handleCloudDismissReconnect">{{ cloudDisplay.strip.dismiss }}</button>
+      </span>
     </div>
     <div v-else-if="cloudAvailable && cloudDisplay.conflictNotice" class="cloud-conflict-notice">
       <span class="cloud-strip-label">{{ cloudDisplay.conflictNotice.text }}</span>
@@ -992,6 +1003,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   border-bottom-color: var(--line, #bbb);
   color: var(--fg, #1a1a1a);
 }
+.cloud-strip-actions { display: flex; gap: 6px; }
 .cloud-strip-label {
   display: flex;
   align-items: center;

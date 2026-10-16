@@ -33,6 +33,7 @@ import {useFeatureUse, useRecentActions} from './telemetryContext.js';
 import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
+import {createAppUpdateUi} from './appUpdateUi.js';
 import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
@@ -170,7 +171,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // sourced from `appState.ts`'s own focus-aware `live` bridge.
   const project = useFocusedProject();
 
-  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort } = useApp();
+  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort, appUpdate } = useApp();
   const { saveProject, saveAllProjects, saveProjectAs, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
@@ -721,21 +722,23 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function closeCloudDialog(): void { cloudDialogOpen.value = false; }
   useEscToClose(() => cloudDialogOpen.value, closeCloudDialog);
 
-  // The Original skin has no update banner, so the cloud strip never gives way to one.
-  const updateBannerShown = computed(() => false);
+  // The update prompt (a newer build waits and edits are unsaved) takes the cloud strip's place.
+  const updateUi = createAppUpdateUi(appUpdate, () => anyUnsaved.value, confirmPort.port);
+  const { offered: updateOffered, reload: reloadForUpdate, dismiss: dismissUpdate } = updateUi;
   const {
     available: cloudAvailable,
     display: cloudDisplay,
     connect: handleCloudConnect,
     syncNow: handleCloudSyncNow,
     reconnect: handleCloudReconnect,
+    dismissReconnect: handleCloudDismissReconnect,
     disconnect: handleCloudDisconnect,
     openConflict: handleCloudOpenConflictShared,
     viewConflicts: handleViewConflicts,
     hintTurnOn: handleHintTurnOn,
     hintDismiss: handleHintDismiss,
     tap: handleCloudTap,
-  } = useCloudSyncUi(updateBannerShown, openCloudDialog);
+  } = useCloudSyncUi(updateOffered, openCloudDialog);
 
   // Shell-specific conflict handling: after marking the conflict seen, open the project or driver browser.
   function handleCloudOpenConflict(id: ConflictCopy['id']): void {
@@ -750,7 +753,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   return {
     cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
-    handleCloudTap, handleCloudConnect, handleCloudSyncNow, handleCloudReconnect,
+    handleCloudTap, handleCloudConnect, handleCloudSyncNow, handleCloudReconnect, handleCloudDismissReconnect,
+    updateOffered, reloadForUpdate, dismissUpdate,
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,

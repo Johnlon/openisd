@@ -17,7 +17,7 @@ const ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..', '..', '..');
 // Import buildVersion directly for unit testing its logic
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const {buildVersion, stripPwaFromSubpages} = (await import(join(ROOT, 'vite.config.js'))) as {
-  buildVersion: (command?: string) => string;
+  buildVersion: (command?: string, env?: Record<string, string>) => string;
   stripPwaFromSubpages: (html: string, path: string) => string;
 };
 
@@ -55,6 +55,16 @@ describe('buildVersion', () => {
     // This test assumes build-info.json exists with a version field
     const version = buildVersion('build');
     assert.ok(typeof version === 'string');
+  });
+
+  it('OPENISD_BUILD_VERSION names the build, except on the dev server', () => {
+    assert.equal(buildVersion('build', {OPENISD_BUILD_VERSION: 'v-e2e-b'}), 'v-e2e-b');
+    assert.equal(buildVersion('serve', {OPENISD_BUILD_VERSION: 'v-e2e-b'}), '');
+  });
+
+  it('the worker leaves /test/ to the hosted test build (T243)', () => {
+    const config = readFileSync(join(ROOT, 'vite.config.js'), 'utf8');
+    assert.match(config, /navigateFallbackDenylist: \[\/\\\/\(about\|install\|v\|snap\|test\)/);
   });
 
   it('returns empty string when build-info.json is missing or invalid', () => {

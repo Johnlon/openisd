@@ -29,9 +29,11 @@ const base = resolveBase();
 
 // The build's own version (scripts/version-info.mjs writes it before every build), baked into the
 // bundle so a running app can tell when a newer build is published. '' when the file is absent.
-// In dev mode ('serve') the check is off per ReleaseWatch, so return '' to avoid false mismatches.
-export function buildVersion(command) {
+// In dev mode ('serve') it is '', so a dev server shows no version. OPENISD_BUILD_VERSION names the
+// build outright: the app-update end-to-end test builds twice and tells the two builds apart by it.
+export function buildVersion(command, env = process.env) {
   if (command === 'serve') return '';
+  if (typeof env.OPENISD_BUILD_VERSION === 'string' && env.OPENISD_BUILD_VERSION !== '') return env.OPENISD_BUILD_VERSION;
   try {
     const info = JSON.parse(readFileSync(join(fileURLToPath(import.meta.url), '..', 'packages', 'ui', 'public', 'build-info.json'), 'utf8'));
     return typeof info.version === 'string' ? info.version : '';
@@ -244,11 +246,11 @@ export default defineConfig(({ command, mode }) => ({
         globPatterns: ['**/*.{js,css,html,svg,ico}'],
         globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
         // about/ and install/ are pages of their own: without this an installed app answers
-        // them with the app shell. They are precached, so they still open offline. v/ and snap/
-        // are the hosted copies: the root worker's scope covers them, and it must not answer a
+        // them with the app shell. They are precached, so they still open offline. v/, snap/
+        // and test/ are the hosted copies: the root worker's scope covers them, and it must not answer a
         // copy's address with the ROOT build's shell. Not anchored to the origin root, because a
         // copy's own worker sees /v/<stamp>/about/ too.
-        navigateFallbackDenylist: [/\/(about|install|v|snap)(\/|$)/],
+        navigateFallbackDenylist: [/\/(about|install|v|snap|test)(\/|$)/],
         // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
         // this file's variables would not exist.
         runtimeCaching: [{

@@ -1,5 +1,5 @@
-import {ReleaseWatch, type Logger} from './logic/releaseWatch.js';
-import {createBrowserReleasePort, type SessionStorageLike} from './logic/browserReleasePort.js';
+import {AppUpdate} from './logic/appUpdate.js';
+import {ScriptedUpdateHost} from './logic/scriptedUpdateHost.js';
 import {createLoadingOverlay, type LoadingOverlay} from './logic/loadingOverlay.js';
 import {createStoreGateSession} from './logic/storeGate.js';
 import StoreGate from './ui/components/StoreGate.vue';
@@ -178,14 +178,6 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
         browserId: browserIdOf(telemetryStorage, newUuid),
       });
   const installMarker = new InstallMarker(telemetry, telemetryStorage);
-  // The service worker is registered here, not by an injected script, so a refusal is caught.
-  if (import.meta.env.VITE_SERVICE_WORKER === 'on' && 'serviceWorker' in navigator) {
-    const registerSw = () => void registerServiceWorker(
-      navigator.serviceWorker, `${import.meta.env.BASE_URL}sw.js`, import.meta.env.BASE_URL, telemetry,
-      platformOf(platformHintOf(navigator), navigator.userAgent));
-    if (document.readyState === 'complete') registerSw(); else window.addEventListener('load', registerSw);
-  }
-
   // STORAGE (port): the browser's key-value storage, opened by the load rules in main.ts: stamped with
   // this build's layout, kept in step with the storage log, and with ONE whole-store backup that every
   // destructive write goes through first.
@@ -249,39 +241,32 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const storageUsage = createStorageUsage(storage, projectBin);
   const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse, actions: recentActions });
 
-  // sessionStorage wrapper for release watch (survives page reload, not browser restart)
-  const releaseSessionStorage: SessionStorageLike = {
-    getItem: (key: string) => {
-      try { return sessionStorage.getItem(key); } catch { return null; }
-    },
-    setItem: (key: string, value: string) => {
-      try { sessionStorage.setItem(key, value); } catch { /* ignore: private browsing, quota */ }
-    },
-  };
-
-  // Logger for release watch (avoids direct console in logic)
-  const releaseLogger: Logger = {
-    // eslint-disable-next-line no-console
-    log: (msg: string) => console.info(msg),
-  };
-
   // The running build's version is baked in at build time; a dev server has none, which turns the
   // check off. Narrowed, not cast: the env value is untyped.
   const bakedVersion: unknown = buildVersion;
   const isDev = import.meta.env.DEV;
+  // Keeps the running build in step with the deployed one. The browser suite's build has no service
+  // worker, so there a scripted host stands in (scriptedUpdateHost.ts).
+  const updateHost = new ScriptedUpdateHost(location.origin + import.meta.env.BASE_URL);
+  const testBuild = import.meta.env.MODE === 'test';
+  const appUpdate = new AppUpdate({
+    container: testBuild ? updateHost : navigator.serviceWorker,
+    visibility: {onVisible: listener => document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') listener(); })},
+    timer: {every: (ms, listener) => { setInterval(listener, ms); }},
+    anyUnsaved: () => appState.openProjects().some(p => appState.projectHasUnsavedChanges(p)),
+    reload: () => location.reload(),
+    caches: {keys: () => globalThis.caches.keys(), delete: name => globalThis.caches.delete(name)},
+  });
   // The browser suite's seam into the app; a no-op in every build but `--mode test` (testHooks.ts).
-  installTestHooks({appState, presentationState: presentation}, import.meta.env.MODE);
-  const releases = new ReleaseWatch(
-    typeof bakedVersion === 'string' ? bakedVersion : '',
-    createBrowserReleasePort({
-      baseUrl: import.meta.env.BASE_URL,
-      fetch,
-      serviceWorker: navigator.serviceWorker,
-      location,
-      sessionStorage: releaseSessionStorage,
-    }),
-    releaseLogger,
-  );
+  installTestHooks({appState, presentationState: presentation, updateHost}, import.meta.env.MODE);
+  if (testBuild) void appUpdate.attach(updateHost);
+  // The service worker is registered here, not by an injected script, so a refusal is caught.
+  if (import.meta.env.VITE_SERVICE_WORKER === 'on' && 'serviceWorker' in navigator) {
+    const registerSw = () => void registerServiceWorker(
+      navigator.serviceWorker, `${import.meta.env.BASE_URL}sw.js`, import.meta.env.BASE_URL, telemetry,
+      platformOf(platformHintOf(navigator), navigator.userAgent)).then(registration => registration === null ? undefined : appUpdate.attach(registration));
+    if (document.readyState === 'complete') registerSw(); else window.addEventListener('load', registerSw);
+  }
 
   // Hot update source: on dev server (where import.meta.hot exists), re-fetch version on vite:afterUpdate.
   const hotUpdateSource: HotUpdateSource = {
@@ -431,7 +416,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, browserStorage, persistence, releases, appVersion, versionIndex,
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, browserStorage, persistence, appUpdate, appVersion, versionIndex,
     confirmPort, appState, presentation,
     recordedProjectId: recordedProjectIdStore.get,
     cloudSync,

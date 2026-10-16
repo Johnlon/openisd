@@ -12,6 +12,7 @@ import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {inputFrom} from '../logic/domEvents.js';
 import {visibleViewportHeightPx} from '../logic/visibleViewport.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
+import {createAppUpdateUi} from './appUpdateUi.js';
 import type {TabId} from '../logic/tabId.js';
 import {createSelectedBox} from './boxFields.js';
 import type {BinRow} from './binRows.js';
@@ -78,12 +79,12 @@ export interface MobileShellApi {
   saveAllProjects: () => Promise<number>;
   /** Some open project, focused or not, has unsaved edits — Save all has work to do. */
   anyUnsaved: import('vue').ComputedRef<boolean>;
-  /** A newer build is published and the user has not dismissed the notice for it. */
+  /** A newer build waits and edits are unsaved, so the user is asked. */
   updateBannerVisible: import('vue').ComputedRef<boolean>;
-  /** Reload onto the newer build. */
+  /** Reload onto the newer build (asks first when edits are unsaved). */
   reloadForUpdate: () => Promise<void>;
-  /** Hide the notice until the next visit. */
-  dismissUpdateBanner: () => Promise<void>;
+  /** Not now: hide the notice until a newer build waits or the next launch. */
+  dismissUpdateBanner: () => void;
   revertProject: () => void;
   browseDrivers: () => void;
   optionsOpen: import('vue').Ref<boolean>;
@@ -157,6 +158,8 @@ export interface MobileShellApi {
   onSyncPointerCancel: () => void;
   openCloudSync: () => void;
   reconnectCloud: () => void;
+  /** Not now on the reconnect strip. */
+  dismissReconnect: () => void;
   openConflictNotice: () => void;
   turnOnHint: () => void;
   dismissHint: () => void;
@@ -171,7 +174,7 @@ export function useMobileShell(): MobileShellApi {
   const { appState, presentation: presentationState } = useApp();
   const { setTraceVisible, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
   const { setSkinOverride } = presentationState;
-  const { designIO, projectRepo, projectBin, releases, appVersion, confirmPort, logging } = useApp();
+  const { designIO, projectRepo, projectBin, appUpdate, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -342,26 +345,13 @@ export function useMobileShell(): MobileShellApi {
     await designIO.saveProjectAs();
   }
 
-  // New-version notice: checked on start, whenever the app comes back to the foreground, and every
-  // few minutes while it stays open.
-  const updateBannerVisible = computed(() => releases.newVersionAvailable.value);
-  const reloadForUpdate = (): Promise<void> => releases.reload();
-  const dismissUpdateBanner = (): Promise<void> => releases.dismiss();
-  const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
-  let updateTimer: ReturnType<typeof setInterval> | undefined;
-  function checkForUpdate(): void { if (document.visibilityState === 'visible') void releases.check(); }
-  onMounted(() => {
-    checkForUpdate();
-    document.addEventListener('visibilitychange', checkForUpdate);
-    updateTimer = setInterval(checkForUpdate, UPDATE_CHECK_INTERVAL_MS);
-  });
-  onUnmounted(() => {
-    document.removeEventListener('visibilitychange', checkForUpdate);
-    clearInterval(updateTimer);
-  });
-
   const anyUnsaved = computed(() => openProjects().some(p => projectHasUnsavedChanges(p)));
 
+
+  const updateUi = createAppUpdateUi(appUpdate, () => anyUnsaved.value, confirmPort.port);
+  const updateBannerVisible = updateUi.offered;
+  const reloadForUpdate = updateUi.reload;
+  const dismissUpdateBanner = updateUi.dismiss;
 
   async function confirmDiscard(): Promise<boolean> {
     return confirmPort.port.ask({
@@ -547,7 +537,7 @@ export function useMobileShell(): MobileShellApi {
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,
     onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel, openCloudSync,
-    reconnectCloud: cloudSyncUi.reconnect, openConflictNotice: cloudSyncUi.viewConflicts,
+    reconnectCloud: cloudSyncUi.reconnect, dismissReconnect: cloudSyncUi.dismissReconnect, openConflictNotice: cloudSyncUi.viewConflicts,
     turnOnHint: cloudSyncUi.hintTurnOn, dismissHint: cloudSyncUi.hintDismiss, connectCloud: cloudSyncUi.connect,
     syncNowCloud: cloudSyncUi.syncNow, disconnectCloud: cloudSyncUi.disconnect, openConflict,
   };

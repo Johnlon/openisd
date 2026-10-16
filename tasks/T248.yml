@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 48c4f466af4a34b50927176ba47c77cb1be85cde
 goal: Mobile steppers: focus stays on the pressed button, step the digit at the caret, mark the digit
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:

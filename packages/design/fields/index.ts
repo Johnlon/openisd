@@ -126,3 +126,4 @@ export { type AppVersion, type BuildKind, type BuildTrail, formatAppVersion, tra
 export { SheetField, type SheetSlot } from './sheetField.js';
 export { SheetMode, type SheetEdits } from './sheetMode.js';
 export { NO_PROJECT_OPEN } from './noProject.js';
+export { APP_UPDATE_TEXT, UNSAVED_RELOAD_CONFIRM } from './appUpdateText.js';

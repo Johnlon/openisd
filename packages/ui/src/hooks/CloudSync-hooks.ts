@@ -23,7 +23,10 @@ export interface CloudSyncAPI {
   /** The ids of the saved projects Drive does not have as they are now. */
   readonly projectsNotOnDrive: Readonly<Ref<ReadonlySet<string>>>;
   readonly ui: Readonly<Ref<CloudUiState>>;
+  /** The user chose Not now on the reconnect strip; true until the next launch. */
+  readonly reconnectDismissed: Readonly<Ref<boolean>>;
   dismissHint(): void;
+  dismissReconnect(): void;
   setConflictsSeen(count: number): void;
 }
 
@@ -36,6 +39,7 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
   const activity = shallowRef<readonly SyncActivity[]>(sync ? sync.activity() : []);
   const projectsNotOnDrive = shallowRef<ReadonlySet<string>>(sync ? sync.projectsNotOnDrive() : new Set());
   const ui = ref<CloudUiState>(uiStore.read());
+  const reconnectDismissed = ref(false);
 
   if (sync) {
     const unwatch = sync.watch(() => {
@@ -47,6 +51,10 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
     if (getCurrentScope()) {
       onScopeDispose(unwatch);
     }
+  }
+
+  function dismissReconnect(): void {
+    reconnectDismissed.value = true;
   }
 
   function dismissHint(): void {
@@ -65,7 +73,9 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
     activity: computed(() => activity.value),
     projectsNotOnDrive: computed(() => projectsNotOnDrive.value),
     ui: readonly(ui),
+    reconnectDismissed: readonly(reconnectDismissed),
     dismissHint,
+    dismissReconnect,
     setConflictsSeen,
   };
 }
@@ -90,6 +100,8 @@ export interface CloudSyncUiAPI {
   connect(): void;
   syncNow(): void;
   reconnect(): void;
+  /** Not now on the reconnect strip. */
+  dismissReconnect(): void;
   disconnect(): Promise<void>;
   openConflict(id: ConflictCopy['id']): void;
   viewConflicts(): void;
@@ -118,6 +130,7 @@ export function useCloudSyncUi(
       hintDismissed: ui.hintDismissed,
       launches: ui.launches,
       updateBannerShown: updateBannerShown.value,
+      reconnectDismissed: cloudSyncAPI.reconnectDismissed.value,
       configured: available.value,
     });
   });
@@ -170,6 +183,7 @@ export function useCloudSyncUi(
     connect,
     syncNow,
     reconnect,
+    dismissReconnect: cloudSyncAPI.dismissReconnect,
     disconnect,
     openConflict,
     viewConflicts,

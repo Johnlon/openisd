@@ -27,11 +27,11 @@ import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import {OpenableFiles} from '../../../fileFormat.js';
-import {NO_PROJECT_OPEN} from '@openisd/design/fields';
+import {APP_UPDATE_TEXT, NO_PROJECT_OPEN} from '@openisd/design/fields';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
-  menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
+  menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
@@ -105,14 +105,15 @@ const diagnostics = injectDiagnosticsModal();
       <MobilePaneDialog v-else-if="pane === 'advanced'" title="Advanced" @close="closePane">
         <MobileAdvancedTab />
       </MobilePaneDialog>
-      <div v-if="updateBannerVisible" class="mob-update-banner" role="status">
-        <span>A new version of OpenISD is available.</span>
-        <button type="button" class="mob-update-reload" @click="reloadForUpdate">Reload</button>
-        <button type="button" class="mob-update-later" aria-label="Dismiss" @click="dismissUpdateBanner">&#10005;</button>
+      <div v-if="updateBannerVisible" class="mob-update-banner" role="status" data-testid="update-strip">
+        <span>{{ APP_UPDATE_TEXT.offer }}</span>
+        <button type="button" class="mob-update-reload" data-testid="update-reload" @click="reloadForUpdate">{{ APP_UPDATE_TEXT.reload }}</button>
+        <button type="button" class="mob-update-later" data-testid="update-later" @click="dismissUpdateBanner">{{ APP_UPDATE_TEXT.later }}</button>
       </div>
-      <div v-else-if="cloudEnabled && cloudSyncDisplay.strip !== null" class="mob-update-banner mob-reconnect-banner" role="status">
+      <div v-else-if="cloudEnabled && cloudSyncDisplay.strip !== null" class="mob-update-banner mob-reconnect-banner" role="status" data-testid="reconnect-strip">
         <span>{{ cloudSyncDisplay.strip.text }}</span>
         <button type="button" class="mob-update-reload" @click="reconnectCloud">{{ cloudSyncDisplay.strip.button }}</button>
+        <button type="button" class="mob-update-later" data-testid="reconnect-later" @click="dismissReconnect">{{ cloudSyncDisplay.strip.dismiss }}</button>
       </div>
       <div v-else-if="cloudEnabled && cloudSyncDisplay.conflictNotice !== null" class="mob-update-banner mob-conflict-banner" role="status">
         <span>{{ cloudSyncDisplay.conflictNotice.text }}</span>
@@ -485,8 +486,8 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-update-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #e8f1fb; border-top: 1px solid #b8d4f8; color: #224466; font-size: 14px; }
 .mob-update-banner span { flex: 1; }
-.mob-update-reload { min-height: 40px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
-.mob-update-later { min-height: 40px; min-width: 40px; border: none; background: none; color: #224466; font-size: 16px; cursor: pointer; }
+.mob-update-reload { min-height: 44px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.mob-update-later { min-height: 44px; min-width: 44px; padding: 0 8px; border: none; background: none; color: #224466; font: inherit; cursor: pointer; }
 .mob-cloud-dialog-body { padding: 16px; }
 .mob-reconnect-banner {
   background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f9faf9));

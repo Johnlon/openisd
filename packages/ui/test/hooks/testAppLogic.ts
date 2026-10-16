@@ -28,7 +28,7 @@ import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {createConfirmPort, type ConfirmPort} from '../../src/logic/confirmPort.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppLogic} from '../../src/logic/app.js';
-import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
+import {AppUpdate} from '../../src/logic/appUpdate.js';
 import {createAppVersionPort} from '../../src/logic/appVersion.js';
 import {appSettingsRepoOn, backupOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn, exportedFilesOn, storageHistoryOn} from '../fixtures/repoOn.js';
 
@@ -81,14 +81,14 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
     driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage: createStorageUsage(storage, projectBin),
     browserStorage: createBrowserStoragePort(undefined), persistence: createPersistenceStatus(createBrowserStoragePort(undefined), storage),
-    releases: new ReleaseWatch('', {
-      latestVersion: () => Promise.resolve(null),
-      reloadOntoLatest: () => Promise.resolve(),
-      getRecordedReloadedVersion: () => null,
-      recordReloadedVersion: () => {},
-      getDismissedVersion: () => null,
-      recordDismissedVersion: () => {},
-    }, { log: () => {} }),
+    appUpdate: new AppUpdate({
+      container: {addEventListener: () => {}},
+      visibility: {onVisible: () => {}},
+      timer: {every: () => {}},
+      anyUnsaved: () => false,
+      reload: () => {},
+      caches: {keys: () => Promise.resolve([]), delete: () => Promise.resolve(true)},
+    }),
     appVersion: createAppVersionPort(false, '', null, 'release'),
     versionIndex: new VersionIndex('', Promise.resolve(null), 'http://localhost/'),
     confirmPort, appState, presentation,

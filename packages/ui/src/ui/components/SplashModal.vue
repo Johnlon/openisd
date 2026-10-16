@@ -4,9 +4,12 @@
  * the toolbar's Info menu. The words are `SplashContent`'s, shared with the public about page.
  */
 import {injectSplashModal} from '../../hooks/SplashModal-hooks.js';
+import {injectAppUpdateUi} from '../../hooks/appUpdateUi.js';
+import {APP_UPDATE_TEXT} from '@openisd/design/fields';
 import SplashContent from './SplashContent.vue';
 
 const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplashModal();
+const {forceRefresh} = injectAppUpdateUi();
 </script>
 
 <template>
@@ -18,6 +21,12 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
       <img class="sp-logo" src="/logo-wide.svg" alt="OpenISD — open loudspeaker enclosure simulator">
 
       <SplashContent :driver-count="driverCount" :passive-radiator-count="passiveRadiatorCount" />
+
+      <section class="sp-refresh">
+        <button type="button" class="sp-refresh-btn" data-testid="force-refresh" @click="forceRefresh">{{ APP_UPDATE_TEXT.forceRefresh }}</button>
+        <span v-if="versions !== null && versions.running !== null" class="sp-refresh-stamp" data-testid="force-refresh-stamp">{{ versions.running.stamp }}</span>
+        <p class="sp-refresh-note">{{ APP_UPDATE_TEXT.forceRefreshNote }}</p>
+      </section>
 
       <section v-if="versions !== null" class="sp-versions">
         <h3>Versions</h3>
@@ -53,6 +62,12 @@ const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplas
 </template>
 
 <style scoped>
+.sp-refresh { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 18px 0 0; }
+.sp-refresh-btn { min-height: 32px; padding: 0 14px; border: 1px solid #4fb0ff; border-radius: 4px; background: none; color: #4fb0ff; font: inherit; cursor: pointer; }
+.sp-refresh-btn:hover { background: #1b2a3a; }
+.sp-refresh-stamp { font-size: 11px; color: #8a9bab; }
+.sp-refresh-note { flex-basis: 100%; margin: 0; font-size: 12px; color: #8a9bab; }
+@media (max-width: 700px) { .sp-refresh-btn { min-height: 44px; } }
 .sp-versions h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .sp-versions ul { list-style: none; margin: 0; padding: 0; }
 .sp-versions li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 4px 6px; border-radius: 4px; }
