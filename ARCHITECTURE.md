@@ -147,6 +147,11 @@ Every value is a field built from small capability interfaces (`domain/cell.ts`)
   voice-coil count and wiring, the driver's `c`/`roo` and the drive voltage read their default as
   C until someone enters a value. `clear()` returns them to C.
 - **Absence is `null`**, spelled one way. There are no sentinel objects.
+- **Clearing an entered value follows one rule** (John, 16 Oct 2026):
+  [docs/design/FIELD_CLEAR_RULE.md](docs/design/FIELD_CLEAR_RULE.md). The cleared value becomes C
+  if the inputs give it. Otherwise it swaps with the C of an equation it feeds, which becomes E
+  at its current value. Otherwise it takes its calculated default, or becomes N. Each value has
+  one source, and the equations form a chain with no circle, solved once in order.
 
 ### Precision
 
