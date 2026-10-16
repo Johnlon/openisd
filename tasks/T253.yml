@@ -3,6 +3,7 @@ release_note: ''
 repo: openisd
 owner: fable
 status: done
+landed: a6a4f1ecf7395affc996d45a88a90ef098314be1
 goal: 'Rule: every test run has start and end times, and every suite timestamps each line'
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:

@@ -1,8 +1,9 @@
 name: suite
 
-# Prototype (T251): the full suite of the laptop post-land run (scripts/land/post-land/suite.sh) on
-# GitHub's runners. It gates nothing yet. Same rules as post-land: no retries, a flake is a red.
-# The browser half runs in 10 Playwright shards of 3 workers; one job runs the unit tests and typecheck.
+# Prototype (T251, T252): the full suite of the laptop post-land run (scripts/land/post-land/suite.sh)
+# on GitHub's runners. It gates nothing yet. Same rules as post-land: no retries, a flake is a red.
+# One job builds the suite's app; the browser shards download it and serve it (OPENISD_PREBUILT=1 in
+# playwright.config.js). One job runs the unit tests and typecheck.
 on:
   push:
     branches: [main]
@@ -12,18 +13,41 @@ on:
         description: Commit to test (default the head of main)
         required: false
         type: string
+      shards:
+        description: Browser shards
+        required: false
+        default: '10'
+        type: string
+      workers:
+        description: Playwright workers per shard
+        required: false
+        default: '4'
+        type: string
 
 permissions:
   contents: read
 
+# A run is never cancelled: each run is its own group.
 concurrency:
   group: suite-${{ inputs.sha || github.sha }}-${{ github.run_id }}
   cancel-in-progress: false
 
 env:
   SHA: ${{ inputs.sha || github.sha }}
+  SHARDS: ${{ inputs.shards || '10' }}
+  WORKERS: ${{ inputs.workers || '4' }}
+  # One port everywhere, so the build's folder name (build/test-dist-<port>) matches what the shards serve.
+  OPENISD_TEST_PORT: '4300'
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.list.outputs.shards }}
+    steps:
+      - id: list
+        run: echo "shards=$(seq -s, 1 "$SHARDS" | sed 's/^/[/;s/$/]/')" >> "$GITHUB_OUTPUT"
+
   unit:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -47,13 +71,9 @@ jobs:
           name: unit-log
           path: unit.log
 
-  browser:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,6 +83,37 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: build the suite's app
+        run: bash -c "$(node --input-type=module -e "import('./playwright.config.js').then(m => process.stdout.write(m.BUILD_TEST_APP))")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-app
+          path: |
+            build/test-dist-${{ env.OPENISD_TEST_PORT }}
+            build/test-bundle
+          retention-days: 1
+
+  browser:
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-app
+          path: build
       - id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
@@ -78,8 +129,9 @@ jobs:
         run: npx playwright install-deps chromium
       - name: browser tests
         env:
-          OPENISD_TEST_WORKERS: '3'
-        run: npx playwright test --shard ${{ matrix.shard }}/10 --retries=0
+          OPENISD_PREBUILT: '1'
+          OPENISD_TEST_WORKERS: ${{ env.WORKERS }}
+        run: npx playwright test --shard ${{ matrix.shard }}/${{ env.SHARDS }} --retries=0
       - name: name the report by shard
         if: ${{ !cancelled() }}
         run: mv build/pw-report.json build/pw-report-${{ matrix.shard }}.json || true
