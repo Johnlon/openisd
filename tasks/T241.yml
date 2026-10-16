@@ -1,0 +1,18 @@
+id: T241
+label: fixes
+release_note: The Projects panel lists projects straight after an import or a restore from Options.
+repo: openisd
+owner: maryu
+status: done
+goal: F42: four specs red after T217 (backups restore, Options no-project band, projects across addresses, Learn panel focus switch)
+done_test: bash scripts/test.sh packages/ui/test/logic/applicationIO.test.ts
+files:
+  - tasks/T241.yml
+  - tasks/fixes/F42.yml
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/backups-restore-project.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

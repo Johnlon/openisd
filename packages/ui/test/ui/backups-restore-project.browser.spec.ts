@@ -31,8 +31,8 @@ test('desktop: Restore one project adds the project from a backup under a restor
   await restoreOneFromNewBackup(page);
   await page.keyboard.press('Escape');
 
-  await page.getByTitle('Open project', {exact: true}).click();
-  const names = page.locator('.open-project-dialog .stored-project-name');
+  // T217: the Projects panel lists every saved project; the restored one joins it.
+  const names = page.locator('.projects-list .project-name');
   await expect(names).toHaveCount(2);
   await expect(names.filter({hasText: RESTORED})).toHaveCount(1);
 });

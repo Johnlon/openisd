@@ -326,8 +326,8 @@ test.describe('Options dialog', () => {
       test('Options opens with no project and shows the factory band', async ({ page }) => {
         await openOptions(page);
 
-        // No project was ever opened — the project tabs say so, the dialog edits regardless.
-        await expect(page.locator('.projects-list')).toContainText('No projects open');
+        // No project was ever opened — the Projects panel says so, the dialog edits regardless.
+        await expect(page.locator('.projects-list')).toContainText('No projects yet.');
         await expect(page.locator('.opt-modal')).toContainText('Vented design limits');
 
         // DEFAULT_VENTED_DESIGN_LIMITS in the units on screen: 1 L … 1000 L, 10 Hz … 150 Hz.

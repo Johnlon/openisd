@@ -212,7 +212,7 @@ export function useMobileShell(): MobileShellApi {
     const f = input.files?.[0];
     if (f) {
       recentActions.record('open-project');
-      designIO.importFile(f);
+      void designIO.importFile(f).then(() => binView.refresh());
     }
     input.value = '';
   }
@@ -223,7 +223,7 @@ export function useMobileShell(): MobileShellApi {
   }
   function openFromDisk(): void {
     recentActions.record('open-project');
-    void designIO.openFromDisk(() => fileInput.value?.click());
+    void designIO.openFromDisk(() => fileInput.value?.click()).then(() => binView.refresh());
     closeMenu();
   }
 

@@ -70,7 +70,8 @@ export interface DesignIO {
   exportWdr(): void;
   exportWpr(): void;
   exportOwdr(): void;
-  importFile(f: File): void;
+  /** Settles once the file is read and imported (or the failure shown); it never rejects. */
+  importFile(f: File): Promise<void>;
   /** File > Open: the system open dialog with one "OpenISD and WinISD files" filter; the picked
    *  file goes to `importFile`. Where the browser has no such dialog, calls `fallback` (the
    *  shell's own file input, whose `change` reaches `importFile`). */
@@ -293,10 +294,10 @@ export function createApplicationIO(deps: {
   }
 
   /** Load a driver/design from a picked File. */
-  function importFile(f: File): void {
+  function importFile(f: File): Promise<void> {
     featureUse.feature('import');
     const failed = (reason: string) => flash(`Could not import ${f.name}: ${reason}`);
-    void readDriverFileText(f).then(({ text }) => {
+    return readDriverFileText(f).then(({ text }) => {
       try {
         const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
 
@@ -373,7 +374,7 @@ export function createApplicationIO(deps: {
   async function openFromDisk(fallback: () => void): Promise<void> {
     const pick = await deps.fileOpen.pickFile(OpenableFiles.PICKER_FILTER);
     switch (pick.kind) {
-      case 'picked': importFile(pick.file); return;
+      case 'picked': await importFile(pick.file); return;
       case 'unsupported': fallback(); return;
       case 'cancelled': return;
     }

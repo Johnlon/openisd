@@ -3,6 +3,7 @@ release_note: The desktop view manages open and saved projects in a single top-l
 repo: openisd
 owner: maryu
 status: done
+landed: 562a2eb995f2ee0a4dcc0e0b9bf07153c5766ca7
 goal: Projects 2: Original Projects panel
 done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
 visual:

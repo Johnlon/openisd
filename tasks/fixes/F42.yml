@@ -1,6 +1,11 @@
 id: F42
 owner: Johnlon
-status: open
+status: done
+closed: |
+  T241 (maryu, 16 Oct 2026). Two specs found real faults from T217: the Projects panel read the store
+  before an import had written to it, and did not read it again after a restore from Options; both now
+  refresh once the write is done. Two specs followed T217's layout: the empty-panel text, and the row
+  sort order (newest first) in the Learn panel focus switch. All four pass.
 sha: 562a2eb995f2ee0a4dcc0e0b9bf07153c5766ca7
 goal: main is red at 562a2eb995; make the full suite pass again
 commits: |

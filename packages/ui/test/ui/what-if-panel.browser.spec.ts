@@ -207,7 +207,8 @@ test.describe('Learn panel', () => {
       await vb.pressSequentially('42');
       await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(0.042, 6);
 
-      await projectRows.nth(0).click();
+      // The rows sort newest first, so the other project is the one not selected.
+      await page.locator('.project-row:not(.selected)').click();
       await expect(whatIfPanel).toBeHidden();
 
       // The project left behind is as it was: its What-if ended with the panel.

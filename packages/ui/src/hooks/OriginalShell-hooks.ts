@@ -336,7 +336,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function openFromDisk() {
     recentActions.record('open-project');
     openDialogOpen.value = false;
-    void designIO.openFromDisk(() => fileInput.value?.click());
+    void designIO.openFromDisk(() => fileInput.value?.click()).then(() => binView.refresh());
   }
   function openStoredProject(id: string) {
     const result = openStoredProjectFromStore(appState, projectRepo, id);
@@ -411,8 +411,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     const f = input.files?.[0];
     if (f) {
       recentActions.record('open-project');
-      importFile(f);
-      binView.refresh();
+      // The import writes to the store after reading the file: list it once that is done (F42).
+      void importFile(f).then(() => binView.refresh());
     }
     input.value = '';
   }
@@ -660,6 +660,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (open) {
       recentActions.record('dialog:options');
       featureUse.feature('options');
+    } else {
+      // Your data can restore or delete saved projects: list the store again on close (F42).
+      binView.refresh();
     }
   });
   watch(() => presentationState.browseOpen, open => { if (open) featureUse.feature('driver_db'); });
