@@ -11,7 +11,7 @@ John, 16 Oct 2026, live app (7.0.952), mobile, ABC box, ABC tab, Rear vent (slot
 Screenshot: bugs/assets/BUG_20261016_abc-rear-vent-cleared-tuning.png
 
 ## Problems
-1. Clearing the tuning blanks the port length. Tuning and length are a pair: clearing one leaves the other entered (the PR added-mass rule, 9 Oct; box values settle, 16 Oct). A cleared tuning keeps the length as it was, and the tuning becomes calculated from it.
+1. Clearing the tuning blanks the port length. Ruling, John 16 Oct 2026: clearing the target tuning makes it show the actual tuning that the current port area and current length give, state C (calculated). The length keeps its current value and stays entered. Nothing goes blank.
 2. The message uses an internal key ("length_m"). User text comes from packages/design in plain English, e.g. "This port can't reach that tuning. The highest it can reach is 40.3 Hz."
 3. The message box covers another field's row. A message must take layout space or sit by its own field, never over another row.
 4. The same message shows twice. One place only.
