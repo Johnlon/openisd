@@ -87,8 +87,9 @@ resolution (never `--ours`/`--theirs`).
   sha (`ACTIONS_REPO`, up to `ACTIONS_FIND_S`), waits for it, and passes on its result. No run found,
   or GitHub unreadable, is a red, never a green. `scripts/land/post-land/suite.sh` is the laptop run,
   kept for going back (one line in `land.conf`);
-- green: records the sha as the last green and prints `post-land: green at <sha>`. A release is the
-  GitHub Pages deploy on every push to main (`deploy.yml` triggers on main);
+- green: records the sha as the last green and prints `post-land: green at <sha>`. It closes every open
+  F whose red commits are all in that sha's history (an infra F, with no sha, is left alone) and pushes
+  the close to main. A release is the GitHub Pages deploy on every push to main (`deploy.yml` triggers on main);
 - red: pushes `tasks/fixes/F<n>.yml` (`status: open`, the sha, the failing specs from the run's failed
   jobs, the failing screens' before/after page, the run link, and every commit since the last green)
   to main. `land.sh` then refuses every landing except one labelled `fixes`.

@@ -22,7 +22,7 @@ setup() {
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/
-    printf '#!/usr/bin/env bash\n[ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }\nexit 0\n' > suite.sh
+    printf '#!/usr/bin/env bash\n[ -f FAIL ] && { echo "browser (3): TEST START a/ok.browser.spec.ts > ok works"; echo "browser (3): TEST END a/ok.browser.spec.ts > ok works status=passed"; printf "browser (3):   \\342\\234\\230  4 a/bad.browser.spec.ts:9:5 \\342\\200\\272 bad breaks (2.5s)TEST END a/bad.browser.spec.ts > bad breaks status=failed\\n"; printf "unit (1): \\033[41m FAIL \\033[49m test/x.test.ts > x\\n"; echo "spec broken.spec.ts failed"; exit 1; }\nexit 0\n' > suite.sh
     printf 'FULL_SUITE_CMD="bash suite.sh"\nPOST_LAND_LOCK="%s/post.lock"\nPOST_LAND_DIR="%s/copies"\n' "$SCRATCH" "$SCRATCH" > land.conf
     git add -A; git commit -qm base; git push -q origin main
 }
@@ -71,6 +71,30 @@ f=$(git -C "$SCRATCH/w/origin.git" show "$(origin_main)" --name-only --format= |
 if grep -q 'spec broken.spec.ts failed' "$keep" 2> /dev/null \
    && git -C "$SCRATCH/w/origin.git" show "$(origin_main):$f" | grep -qx "full_output: $keep"; then
     ok "the whole output is kept and the F names it"; else fail "kept output: $keep / $f"; fi
+fl=$(git -C "$SCRATCH/w/origin.git" show "$(origin_main):$f" | sed -n '/^failing: |/,/^[a-z_]*:/p')
+if ! grep -q 'TEST \|ok.browser\|\x1b' <<< "$fl" && grep -q 'bad.browser.spec.ts:9:5 › bad breaks (2.5s)$' <<< "$fl" \
+   && grep -q 'FAIL  test/x.test.ts' <<< "$fl"; then
+    ok "the F lists only the failing specs, with no markers or colour codes"; else fail "failing list: $fl"; fi
+
+# 5. a later green closes the open F whose red commits it holds; an F with a red sha outside its history and
+#    an infra F (no sha) stay open
+setup; r1=$(local_commit red1 FAIL); git push -q origin main
+timeout 120 bash scripts/land/post-land/run.sh "$r1" > "$SCRATCH/out" 2>&1
+git pull -q --rebase origin main 2> /dev/null
+f=$(grep -lx 'status: open' tasks/fixes/F*.yml | head -1)
+printf 'id: F90\nstatus: open\nsha: %s\n' "$(git -C "$SCRATCH/w/origin.git" hash-object -t commit --stdin <<< 'tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
+author t <t@t> 0 +0000
+committer t <t@t> 0 +0000
+
+x' 2> /dev/null || echo 1111111111111111111111111111111111111111)" > tasks/fixes/F90.yml
+printf 'id: F91\nstatus: open\nlabel: infra\ngate: lint\n' > tasks/fixes/F91.yml
+git rm -q FAIL; git add tasks/fixes; git commit -qm green1; g=$(git rev-parse HEAD); git push -q origin main
+timeout 120 bash scripts/land/post-land/run.sh "$g" > "$SCRATCH/out" 2>&1; r=$?
+st() { git -C "$SCRATCH/w/origin.git" show "main:$1" | sed -n 's/^status: //p'; }
+if [ $r = 0 ] && [ -n "$f" ] && [ "$(st "$f")" = done ] && [ "$(st tasks/fixes/F90.yml)" = open ] && [ "$(st tasks/fixes/F91.yml)" = open ] \
+   && grep -q "closed $(basename "$f" .yml) on main" "$SCRATCH/out"; then
+    ok "a later green closes the F it fixes; others stay open"
+else fail "green close (r=$r f=$f: $(st "$f") F90 $(st tasks/fixes/F90.yml) F91 $(st tasks/fixes/F91.yml)): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-300)"; fi
 
 [ $fails = 0 ] && { echo "post-land-red-base: all passed"; exit 0; }
 echo "post-land-red-base: $fails failed"; exit 1

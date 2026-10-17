@@ -1,0 +1,14 @@
+id: T295
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Post-land closes an open F by itself when a later commit's run is green
+done_test: bash scripts/land/test/post-land-red-base.test.sh && bash scripts/land/test/post-land-actions.e2e.test.sh
+files:
+  - tasks/T295.yml
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/post-land-red-base.test.sh
+  - docs/DEV_PROCESS.md
+  - .claude/rules/verify.md
+  - bugs/BUG_20261017_post-land-never-closes-a-fixed-f.md

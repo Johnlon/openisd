@@ -113,7 +113,9 @@ record_red() {
     # The failing spec names, in full: an F that keeps only the log tail lost them (F7-F9 cost a
     # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
     # vitest echoes a test's console output as "stderr | <file> > <name>": not a failure (F11 listed six).
-    failing="$(sed -E 's/^[0-9T:.-]+Z [^ ]+ //' "$OUT" | grep -Ev '^[[:space:]]*(stderr|stdout) \|' | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
+    # Colour codes and the per-test "TEST START/TEST END" markers (T254's logger; Playwright's list
+    # reporter can run one onto the end of a ✘ line) are removed first: they named every spec (F52).
+    failing="$(sed -E 's/^[0-9T:.-]+Z [^ ]+ //; s/\x1b\[[0-9;]*m//g; s/TEST (START|END) .*$//' "$OUT" | grep -Ev '^[[:space:]]*(stderr|stdout) \|' | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
     # Screens whose picture differs from its baseline: named, with a before/after page (scripts/visual/).
     visual=""
     [ ! -f "$TOOLS/scripts/visual/failures-page.sh" ] || visual="$(bash "$TOOLS/scripts/visual/failures-page.sh" "$COPY" "$SHA" 2> /dev/null || true)"
@@ -157,6 +159,46 @@ record_red() {
   printf '%s\n' "$pushed" >&2
   echo "post-land: RED at ${SHA:0:10} but could not push the fixes task (full output: $KEEP)" >&2
   exit 1
+}
+# Green: close every open F whose red commits are all in the tested commit's history (17 Oct: an F
+# closed only by hand kept every landing blocked for hours after main was green). An F with no sha (an
+# infra F) is left alone. The close is pushed like a red's F, with the same race retry; a failed push
+# does not turn the green red.
+close_fixed() {
+  local attempt base f n s shas fixed closed pushed=""
+  FIX="$(mktemp -d "${TMPDIR:-/tmp}/post-land-fix.XXXXXX")"
+  for attempt in 1 2 3; do
+    git fetch -q origin main
+    if git merge-base --is-ancestor "$SHA" origin/main; then base=origin/main
+    elif git merge-base --is-ancestor origin/main "$SHA"; then base="$SHA"
+    else echo "post-land: green at ${SHA:0:10} but origin/main has diverged from it; no F closed"; return 0
+    fi
+    git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"
+    git worktree add -q --detach "$FIX" "$base" || return 0
+    closed=""
+    for f in "$FIX"/tasks/fixes/F*.yml; do
+      [ -f "$f" ] && grep -qx 'status: open' "$f" || continue
+      shas="$(sed -n -E 's/^(  - )?sha: *([0-9a-f]{7,40}) *$/\2/p' "$f")"
+      [ -n "$shas" ] || continue
+      fixed=1
+      for s in $shas; do git merge-base --is-ancestor "$s" "$SHA" 2>/dev/null || { fixed=0; break; }; done
+      [ "$fixed" = 1 ] || continue
+      n="$(basename "$f" .yml)"
+      sed -i 's/^status: open$/status: done/' "$f"
+      printf 'closed_note: |\n  Closed by post-land: the full suite is green at %s, which holds every red commit listed here.\n' "$SHA" >> "$f"
+      git -C "$FIX" add "tasks/fixes/$n.yml"
+      closed="$closed $n"
+    done
+    [ -n "$closed" ] || return 0
+    git -C "$FIX" commit -q -m "${closed# }: closed, the full suite is green at ${SHA:0:10}" || return 0
+    if pushed="$(git -C "$FIX" push -q origin HEAD:main 2>&1)"; then
+      echo "post-land: closed${closed} on main (green at ${SHA:0:10})"
+      return 0
+    fi
+    echo "post-land: push of the F close lost a race with another push (attempt $attempt of 3); retrying"
+  done
+  printf '%s\n' "$pushed"
+  echo "post-land: green at ${SHA:0:10} but could not push the close of${closed}"
 }
 HOLDER="${POST_LAND_LOCK}.holder"
 # A TERM that reaches the suite is never another run's doing (nothing kills a running suite any more, John
@@ -295,6 +337,7 @@ printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}
 if [ "$rc" = 0 ]; then
   printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.green.$$" && mv -f "${POST_LAND_LOCK}.green.$$" "${POST_LAND_LOCK}.green"
   echo "post-land: green at ${SHA:0:10}"
+  close_fixed
   exit 0
 fi
 
