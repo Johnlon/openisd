@@ -1,0 +1,14 @@
+id: T308
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: A unit test no longer kills the real test server on port 4100; kill-http.sh never kills another live run's server
+done_test: bash scripts/test.sh packages/ui/test/scripts/kill-http-live-run.test.ts packages/ui/test/scripts/full-gate-stage.test.ts packages/ui/test/architecture/tests-never-touch-the-machine.test.ts
+files:
+  - tasks/T308.yml
+  - scripts/kill-http.sh
+  - packages/ui/test/scripts/full-gate-stage.test.ts
+  - packages/ui/test/scripts/kill-http-live-run.test.ts
+  - bugs/BUG_20261017_unit-test-kills-live-test-server.md
+  - packages/ui/test/architecture/tests-never-touch-the-machine.test.ts

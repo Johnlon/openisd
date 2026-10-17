@@ -23,7 +23,25 @@ ports=("$@")
 # On WSL/Linux the dev server is a native Linux process; the Windows kill chain
 # (tskill/taskkill/ps -W) cannot see it. Use POSIX lsof + kill and exit early.
 if [ -z "${MSYSTEM:-}" ]; then
+  # A listener tagged with another browser run's owner (OPENISD_BROWSER_OWNER="<pid> <start>") whose owner
+  # is alive is that run's live test server: never killed. 17 Oct 2026: a unit test ran this script from a
+  # scratch copy, which saw port 4100 as free, and killed a live suite's server mid-run. Untagged
+  # listeners, this run's own, and those of dead owners are killed as before.
+  live_other_run() { # live_other_run <pid>: prints the owner when the pid serves another live run
+    local tag opid ostart now
+    tag=$(tr '\0' '\n' < "/proc/$1/environ" 2> /dev/null | sed -n 's/^OPENISD_BROWSER_OWNER=//p')
+    [ -n "$tag" ] && [ "$tag" != "${OPENISD_BROWSER_OWNER:-}" ] || return 1
+    read -r opid ostart <<< "$tag"
+    now=$(awk '{print $22}' "/proc/$opid/stat" 2> /dev/null) || return 1
+    [ -n "$now" ] && [ "$now" = "$ostart" ] && echo "$opid"
+  }
   for port in "${ports[@]}"; do
+    for pid in $(lsof -ti :"$port" 2>/dev/null || true); do
+      if owner=$(live_other_run "$pid"); then
+        echo "port $port: ERROR — PID $pid is the test server of another live run (owner pid $owner); not killed" >&2
+        exit 1
+      fi
+    done
     # Loop until the port is genuinely free, exactly as the Windows branch below does.
     # Killing once and assuming it worked is what let an orphan survive into the next
     # run: `lsof` reporting a PID is not proof the socket is released a moment later.
