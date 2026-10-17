@@ -25,9 +25,10 @@
 #      unit test the change reaches, within UNIT_DEADLINE_S), architecture (every architecture unit
 #      test, whatever changed), done_test (never a browser spec),
 #      attribution (each new commit's message on stdin), each within GATE_DEADLINE_S
-#   5c. candidate: the rebased commit is pushed to land/<task>, and CANDIDATE_CMD waits for the full suite
-#      on GitHub Actions there (within CANDIDATE_DEADLINE_S); only a green run lets main move. The branch
-#      is removed whatever the result.
+#   5c. candidate: the rebased commit is pushed to land/<task>, a pull request is opened from it to main (when
+#      land.conf sets PULL_REQUESTS; closed, saying why, if the landing is refused), and CANDIDATE_CMD waits
+#      for the full suite on GitHub Actions there (within CANDIDATE_DEADLINE_S); only a green run lets main
+#      move. The branch is removed, except a landed one with a pull request (housekeeping removes that).
 #   6. push to origin main, then start the post-land full run on the pushed commit, detached
 #      (scripts/land/post-land/run.sh; only when land.conf sets FULL_SUITE_CMD). The suite itself runs on
 #      GitHub Actions; post-land waits for it (scripts/land/post-land/actions.sh)
@@ -73,12 +74,23 @@ TASK="tasks/$ID.yml"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/land.XXXXXX")"
 GATE_OUT="$WORK/gate.out"
 CANDIDATE_BRANCH=""
+PR_NUMBER=""
+LANDED=""
+REFUSED=""
 cleanup() {
   local status=$?
   run_end "land-$ID" "$status" 2>/dev/null || true
   gate_stop
-  # The candidate branch is only the gate's input: removed whatever the result.
-  [ -z "$CANDIDATE_BRANCH" ] || git push -q origin --delete "$CANDIDATE_BRANCH" > /dev/null 2>&1 || true
+  # A pull request of a landing that did not land is closed, saying why (T331).
+  if [ -n "$PR_NUMBER" ] && [ -z "$LANDED" ]; then
+    ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" close "$PR_NUMBER" "Not landed: ${REFUSED:-land.sh stopped (exit $status)}." 2>&1 | sed 's/^/land: /' >&2
+  fi
+  # The candidate branch is only the gate's input: removed whatever the result. A landed one with a pull request
+  # stays until GitHub has seen main reach it (it then shows the pull request merged); housekeeping
+  # (tidy-branches.sh) removes it once it is on main.
+  if [ -n "$CANDIDATE_BRANCH" ] && { [ -z "$LANDED" ] || [ -z "$PR_NUMBER" ]; }; then
+    git push -q origin --delete "$CANDIDATE_BRANCH" > /dev/null 2>&1 || true
+  fi
   rm -rf "$WORK"
   exit "$status"
 }
@@ -300,6 +312,15 @@ fi
   git push -q -f origin "HEAD:refs/heads/$CANDIDATE_BRANCH" > "$GATE_OUT" 2>&1 \
     || refuse candidate "origin rejected the push of the candidate to $CANDIDATE_BRANCH"
   echo "land: candidate $(git rev-parse --short=10 HEAD) is on $CANDIDATE_BRANCH; waiting for GitHub Actions (about 4 min)"
+  # Every landing's GitHub record: a pull request from the candidate (T331; on when land.conf sets PULL_REQUESTS).
+  if [ -n "${PULL_REQUESTS:-}" ]; then
+    goal="$(task_field "$TASK" goal)"
+    printf '%s\n\nOpened by scripts/land.sh. Its checks are the candidate gate: when they pass, land.sh moves main to this commit by a fast-forward push, and GitHub shows this pull request merged. A refused landing closes it, saying why.\n' \
+      "${goal:-$ID}" > "$WORK/pr-body.md"
+    PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$ID${goal:+: $goal}" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
+      || { GATE_OUT="$WORK/pr.out"; PR_NUMBER=""; refuse pull-request "GitHub did not open the pull request for $CANDIDATE_BRANCH"; }
+    echo "land: pull request #$PR_NUMBER: https://github.com/${ACTIONS_REPO:-}/pull/$PR_NUMBER"
+  fi
   GATE_DEADLINE_S="${CANDIDATE_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate candidate /dev/null "$CANDIDATE_CMD"
   grep -m1 'actions: run ' "$GATE_OUT" | sed 's/^.*actions: /land: candidate green: /'
 }
@@ -308,6 +329,7 @@ fi
 before_push="$(git rev-parse origin/main)"
 git push -q origin HEAD:main > "$WORK/push.out" 2>&1 || { GATE_OUT="$WORK/push.out"; refuse push "origin rejected the push"; }
 pushed="$(git rev-parse HEAD)"
+LANDED=1
 echo "land: landed $ID at ${pushed:0:10}"
 # A landing that changed screens leaves a before/after page for John to approve.
 if [ -f scripts/visual/publish-changes.sh ]; then

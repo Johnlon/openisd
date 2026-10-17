@@ -51,6 +51,12 @@ WIP commit and the folder is rebased; edits already on main drop out. When it ca
 commits not on main), `land.sh` exits 4 and the landing agent fixes it at once: in the main folder, rebase onto
 the commit named, resolve, and land what is wanted from a worktree.
 
+Every landing is a GitHub pull request (T331, John 17 Oct 2026: "of course it should be pr"): `land.sh` opens one
+from `land/<task>` to main when it pushes the candidate (`scripts/land/pr.sh`; on when `land.conf` sets
+`PULL_REQUESTS=1`). Its checks are the candidate run. On green, `land.sh` still moves main by a fast-forward push
+of that commit, so main's sha is the one the run passed, and GitHub shows the pull request merged; a refused
+landing closes it with the reason.
+
 Landed and abandoned work is removed by `scripts/land/tidy-branches.sh`, run by the watchdog every tick (T334,
 John 17 Oct 2026): a worktree goes when it is clean, nothing runs inside it and its commits are on origin/main;
 task branches, local and on origin, and landed `land/<task>` branches go on the same terms; leftover `openisd-*`

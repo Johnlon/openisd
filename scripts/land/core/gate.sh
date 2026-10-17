@@ -15,6 +15,7 @@ GATE_TS_WRAP=(bash "$GATE_TS_LOG")
 
 # refuse <gate> <detail>: print what refused the landing and leave with exit 1.
 refuse() {
+  REFUSED="$1: $2"
   echo "land: REFUSED by gate $1: $2" >&2
   [ -s "$GATE_OUT" ] && tail -n 20 "$GATE_OUT" | sed 's/^/  | /' >&2
   exit 1

@@ -1,0 +1,14 @@
+id: T331
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Every landing is a GitHub pull request from land/<task>; main still moves only by land.sh's fast-forward push of the tested commit
+done_test: bash scripts/land/test/land-pull-request.e2e.test.sh
+files:
+  - tasks/T331.yml
+  - scripts/land/pr.sh
+  - scripts/land.sh
+  - scripts/land/core/gate.sh
+  - scripts/land/test/land-pull-request.e2e.test.sh
+  - docs/DEV_PROCESS.md
