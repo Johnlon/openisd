@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: da34d4f93bb7d1d710f7890d19a9940aa207f02d
 goal: Drop the second GitHub Actions run on main; post-land records the candidate's green
 done_test: bash scripts/land/test/post-land-actions.e2e.test.sh
 files:

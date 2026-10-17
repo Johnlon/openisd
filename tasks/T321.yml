@@ -1,12 +1,11 @@
 id: T321
 release_note: internal
 repo: openisd
-owner: fable
+owner: maryu
 status: done
-landed: 6dae9aab9190db59337e9bf05ff25af60b8c5c2a
-goal: Remove the committed conflict markers from tasks/T055.yml and raise two guard and worktree events as inbox items
-done_test: bash scripts/test.sh packages/design/test/architecture-no-casts.test.ts
+landed: 6484a3d5220138fb66dde9e1644679b67a21c802
+goal: inbox.py writes the ledger of the checkout it runs in, never the main checkout's from a worktree
+done_test: bash scripts/quiet-test.sh python3 -m pytest -q -p no:cacheprovider /home/john/.claude/bin/inbox_test.py
 files:
   - tasks/T321.yml
-  - tasks/T055.yml
-  - questions.yml
+  - bugs/BUG_20261017_inbox-writes-the-main-checkout-ledger.md

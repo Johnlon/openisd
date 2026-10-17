@@ -38,6 +38,11 @@ Open tasks may overlap; claimed tasks may not (checked at claim).
 | 3    | run `done_test` until it exits 0                | —                                               |
 | 4    | `bash scripts/land.sh T<nnn>`                   | exit 0 landed, 1 refused, 3 blocked             |
 
+Chain what follows step 0 with `&&` (`bash scripts/new-task.sh … && cd <worktree> && …`), or check its exit
+code. A refused `new-task.sh` or `_agent_files/bin/new-worktree.sh` makes no worktree, and a folder of that
+name that already exists is another session's: commands run there land in its task (17 Oct 2026). A task's
+id is its own: `land.sh` refuses a branch whose `tasks/<id>.yml` would replace another owner's on main.
+
 Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 
 ## `scripts/land.sh <id>` — the only path to main

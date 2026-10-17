@@ -13,6 +13,7 @@
 # Steps, in order, all under one flock (LAND_LOCK) so landings run one at a time:
 #   1. commit everything in the worktree (nothing is ever discarded)
 #   2. fetch, rebase onto origin/main
+#   2a. a tasks/<id>.yml on main under another owner refuses (task-id): the id is another task's
 #   2b. the branch is squashed into one commit "<id>: <goal>" (body: release note), status done and
 #      `landed` of earlier done tasks written into it; commits of other tasks refuse (mixed)
 #   3. the task's contract is intact: locked files match their hash, done_test and locked entries
@@ -149,6 +150,15 @@ if [ -n "$RETAKE_BASELINES" ]; then
     git commit -q -m "$ID: visual baselines re-taken on origin/main" > "$GATE_OUT" 2>&1 \
       || refuse visual-retake "the re-taken baselines could not be committed (a changed screen the task does not list in files:?)"
   fi
+fi
+
+# 2a. the id is this task's own. A tasks/<id>.yml already on main under another owner is another task's: this
+# landing would overwrite its record (17 Oct 2026: a second "T321" replaced a landed T321's file). Re-landing
+# one's own id is normal and goes on.
+main_owner="$(git show "origin/main:$TASK" 2> /dev/null | sed -n 's/^owner: *//p' | head -n 1)"
+if [ -n "$main_owner" ] && [ "$main_owner" != "$(task_field "$TASK" owner)" ]; then
+  GATE_OUT=/dev/null
+  refuse task-id "$TASK on main is $main_owner's task ($(git show "origin/main:$TASK" | sed -n 's/^goal: *//p' | head -n 1)); this branch would overwrite it. Claim a fresh id with scripts/new-task.sh and move the work there"
 fi
 
 # 2b. a task lands as one commit. Any other task whose "<id>:" commit is on main and that lacks

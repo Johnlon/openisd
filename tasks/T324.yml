@@ -1,0 +1,13 @@
+id: T324
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 6dae9aab9190db59337e9bf05ff25af60b8c5c2a
+goal: Remove the committed conflict markers from tasks/T055.yml and raise two guard and worktree events as inbox items
+done_test: bash scripts/test.sh packages/design/test/architecture-no-casts.test.ts
+files:
+  - tasks/T324.yml
+  - tasks/T055.yml
+  - questions.yml
+note: landed as a second "T321" at 6dae9aab (17 Oct 2026); recorded here under its own id by T323.

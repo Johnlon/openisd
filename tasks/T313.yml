@@ -14,3 +14,4 @@ files:
   - docs/DEV_PROCESS.md
   - docs/design/VISUAL_BASELINES.md
   - bugs/BUG_20261017_baseline-conflict-blocks-landing.md
+note: also carries fable's agent's F55 flake fix (packages/ui/test/ui/fixtures/cloudSyncStubs.ts: the stub proxies only main-*.js, not the stylesheet), made in this worktree and swept in by the landing; wanted (fable, 17 Oct 2026).
