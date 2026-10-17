@@ -44,7 +44,8 @@ export function drawOne(
   };
   if (COL.bg) { ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, W, H); }
 
-  const m = { l:44, r:10, t:18, b:20 };
+  const { layout } = plotData;
+  const m = { ...layout.margin };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const { freqAxis, levelAxis } = plotData;
   const hz = NumberField.PLOT_FMIN_HZ.unitLabel();
@@ -52,7 +53,7 @@ export function drawOne(
   const Y = (v: number) => m.t + (1 - levelAxis.fraction(v)) * ph;
 
   // frequency grid
-  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = '9px Inter'; ctx.lineWidth = 1;
+  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = `${layout.tickFontPx}px Inter`; ctx.lineWidth = 1;
   for (const line of freqAxis.gridLines()) {
     const x = X(line.f); ctx.globalAlpha = line.major ? 0.85 : 0.28;
     ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
@@ -78,7 +79,7 @@ export function drawOne(
 
     if (tick.labelled) {
       ctx.globalAlpha = isMajor ? 1.0 : 0.45;
-      ctx.fillText(levelAxis.tickLabel(tick.value), m.l - 5, y + 3);
+      ctx.fillText(levelAxis.tickLabel(tick.value), m.l - 5, y + layout.levelLabelBaselinePx);
     }
   }
   ctx.globalAlpha = 1;

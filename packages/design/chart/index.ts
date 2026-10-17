@@ -5,3 +5,4 @@ export type {FrequencyBand, FrequencyDragMode, GridLine, LevelDragMode, LevelTic
 export {FrequencyAxis, LevelAxis} from './axis.js';
 export type {SnapDirection, SnapExtremum} from './sample.js';
 export {crossingFrequency, interpolatedY, snapFrequency, wrapSegments} from './sample.js';
+export {ChartLayout} from './layout.js';

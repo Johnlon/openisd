@@ -1,3 +1,4 @@
+import {ChartLayout} from './layout.js';
 import type {BoxEngine, BoxType, ChartId, DriverError, EnvironmentEngine, MaxCurvesResult, SimulationEngine, SweepDriver, SweepResult} from '../engine/index.js';
 import {NumberField} from '../fields/index.js';
 
@@ -520,6 +521,7 @@ export function buildPlotData(
     freqAxis: new FrequencyAxis(fmin || 10, fmax || 1000),
     levelAxis: new LevelAxis(out.ymin, out.ymax, out.logy),
     rolloffs,
+    layout: ChartLayout.CHART,
   };
   return { value, errors: chartErrors };
 }

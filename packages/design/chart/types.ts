@@ -2,6 +2,7 @@
  * Chart data shapes — what a curve builder returns and what a chart panel draws: plot series,
  * plot bundles, the designs shown on a chart. Engine shapes (SweepResult, …) come from the engine.
  */
+import type {ChartLayout} from './layout.js';
 import type {BoxType, MaxCurvesResult, SweepDriver, SweepResult} from '../engine/index.js';
 import type {FrequencyAxis, LevelAxis} from './axis.js';
 
@@ -48,6 +49,8 @@ export interface PlotData {
   levelAxis: LevelAxis;
   /** The current trace's F3 and F10 on the transfer function chart; empty on every other chart. */
   rolloffs: readonly Rolloff[];
+  /** Where the plot, its title and its tick labels sit in the panel. */
+  layout: ChartLayout;
 }
 
 /**
