@@ -1,4 +1,4 @@
-import {appEnvDefaultsTempK, clearFocusedEnvironment, expect, openAProject, savedUsername, test} from '../fixtures.js';
+import {clearFocusedEnvironment, expect, openAProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 
@@ -99,9 +99,19 @@ test.describe('Options dialog', () => {
       });
     });
 
+    /** What the Options dialog holds: opened, read, and cancelled. */
+    async function shownOptions(page: Page): Promise<{ tempK: number; username: string }> {
+      await page.locator('.tb-btn[title="Options"]').click();
+      const tempK = Number(await page.locator('.opt-fld', { hasText: 'Temperature' }).locator('input').inputValue());
+      const username = await page.locator('.opt-input').inputValue();
+      await page.locator('.opt-footer button', { hasText: 'Cancel' }).click();
+      await expect(page.locator('.opt-modal')).toBeHidden();
+      return { tempK, username };
+    }
+
     test.describe('draft, OK, Cancel and reset', () => {
       test('Options dialog edits are draft-only and discard on Cancel, apply on OK, and reset on Defaults', async ({ page }) => {
-        const getStoreTemp = () => appEnvDefaultsTempK(page);
+        const getStoreTemp = async () => (await shownOptions(page)).tempK;
 
         // Initially it is default 293.15
         expect(await getStoreTemp()).toBe(293.15);
@@ -142,7 +152,7 @@ test.describe('Options dialog', () => {
       });
 
       test('Environment fieldset has its own reset button that resets envDefaults without touching other draft fields', async ({ page }) => {
-        const getStore = async () => ({ tempK: await appEnvDefaultsTempK(page), username: await savedUsername(page) });
+        const getStore = () => shownOptions(page);
 
         // 1. Open options, set a username and change Temperature away from defaults, apply with OK
         await page.locator('.tb-btn[title="Options"]').click();

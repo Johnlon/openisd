@@ -1,4 +1,4 @@
-import {expect, focusedPortVelocityLimit, focusedVentLengthDq, openAProject, setFocusedBoxType, setFocusedVentedDesign, test} from '../fixtures.js';
+import {expect, openAProject, setFocusedBoxType, setFocusedVentedDesign, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur, fillAndCommit, numInputByLabel, PageOps, setNumField} from '../fixtures/numField.js';
 
@@ -113,9 +113,8 @@ test.describe('Original Vented tab', () => {
       await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn')).toBeVisible();
       // The mark sits on the field the solve FAILED to produce — the vent's own length — not on
       // the target that was asked for.
-      const dq = await focusedVentLengthDq(page);
-      expect(dq.unreachable).toBe(true);   // the DQ aggregation is on, not just the visual
-      expect(dq.dqCount).toBeGreaterThan(0);
+      await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn'))
+        .toHaveAttribute('title', /This port can't reach that tuning/);
     });
 
     // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
@@ -259,7 +258,10 @@ test.describe('Original Vented tab', () => {
       const field = page.locator('#og-vent-velocity-limit');
       await expect(field).toHaveValue(/^17(\.0+)?$/);
       await fillAndBlur(field, '25');
-      await expect.poll(() => focusedPortVelocityLimit(page)).toBe(25);
+      // Leaving the tab and coming back shows the limit the project holds.
+      await page.locator('.project-nav li', { hasText: 'Box' }).click();
+      await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+      await expect(field).toHaveValue(/^25(\.0+)?$/);
     });
   });
 

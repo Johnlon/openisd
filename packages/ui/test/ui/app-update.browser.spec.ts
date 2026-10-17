@@ -9,7 +9,7 @@ import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {Page} from '@playwright/test';
-import {dirtyFocusedDesign, expect, focusedProjectName, openAMobileProject, openAProject, test} from '../fixtures.js';
+import {dirtyFocusedDesign, expect, openAMobileProject, openAProject, shownProjectName, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import {deliverWaitingBuild} from '../fixtures/updateHost.js';
 
@@ -96,7 +96,7 @@ for (const skin of SKINS) {
 
     test('About: Force refresh with its note, one press reloads and the projects stay', async ({page}) => {
       await skin.open(page);
-      const name = await focusedProjectName(page);
+      const name = await shownProjectName(page);
       await skin.openAbout(page);
       const button = page.getByTestId('force-refresh');
       await expect(button).toBeVisible();
@@ -109,7 +109,7 @@ for (const skin of SKINS) {
       await button.click();
       await reloaded;
       await page.locator(skin.ready).waitFor({state: 'visible'});
-      expect(await focusedProjectName(page)).toBe(name);
+      expect(await shownProjectName(page)).toBe(name);
     });
 
     // John, 16 Oct 2026: "I never asked for the about to show a list of releases, I asked for a force latest".

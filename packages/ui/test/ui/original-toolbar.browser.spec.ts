@@ -1,4 +1,4 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, focusedBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, shownBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import {fillAndBlur} from '../fixtures/numField.js';
 import {enableCloudSync, stubGoogleApis} from './fixtures/cloudSyncStubs.js';
 
@@ -70,7 +70,7 @@ test.describe('Original toolbar', () => {
   test('a reload keeps unsaved edits unsaved, and Revert still restores the saved value', async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
-    const saved = await focusedBoxVolume(page);
+    const saved = await shownBoxVolume(page);
     await setFocusedBoxVolume(page, 0.0333333);
     const revertBtn = page.locator('.tb-btn[title^="Revert"]');
     await expect(revertBtn).not.toHaveClass(/disabled/);
@@ -81,7 +81,7 @@ test.describe('Original toolbar', () => {
 
     await expect(page.locator('.unsaved-label')).toBeVisible();
     await expect(revertBtn).not.toHaveClass(/disabled/);
-    expect(await focusedBoxVolume(page)).toBeCloseTo(0.0333333, 9);
+    expect(await shownBoxVolume(page)).toBeCloseTo(33.33, 2);
     await revertBtn.click();
 
     // In-app dialog should appear, click Discard
@@ -89,7 +89,7 @@ test.describe('Original toolbar', () => {
     await page.locator('.confirm-dialog-confirm').click();
     await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
-    await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(saved, 9);
+    await expect.poll(() => shownBoxVolume(page)).toBeCloseTo(saved, 2);
     await expect(revertBtn).toHaveClass(/disabled/);
   });
 

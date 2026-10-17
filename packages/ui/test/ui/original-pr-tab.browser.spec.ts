@@ -1,6 +1,7 @@
 import type {Page} from '@playwright/test';
-import {curvesSplSum, expect, focusedPassiveRadiatorSpec, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import {chartPicture, expect, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import {fillAndCommit, numInputByLabel, PageOps} from '../fixtures/numField.js';
+import {shownPassiveRadiator} from '../fixtures/passiveRadiatorScreen.js';
 
 /**
  * The Original shell's Passive Radiator tab (the dynamic enclosure tab of a passive-radiator
@@ -131,9 +132,9 @@ test.describe('Original Passive Radiator tab', () => {
       await qms.fill('12.25');
       await qms.dispatchEvent('input');
 
-      const stored = await focusedPassiveRadiatorSpec(page);
-      expect(stored.vas_m3).toBeCloseTo(0.0075, 6);   // the field shows litres
-      expect(stored.qms).toBeCloseTo(12.25, 3);
+      const stored = await shownPassiveRadiator(page);
+      expect(stored.vas_L).toBeCloseTo(7.5, 2);
+      expect(stored.qms).toBeCloseTo(12.25, 2);
     });
 
     // John, 2026-10-05: every PR field is editable on the page, so the page has no Edit button.
@@ -153,13 +154,13 @@ test.describe('Original Passive Radiator tab', () => {
       await fillAndCommit(numInputByLabel(page, 'Xmax', pane).first(), '12');
       await page.locator('#og-pr-count').selectOption('2');
 
-      const stored = await focusedPassiveRadiatorSpec(page);
+      const stored = await shownPassiveRadiator(page);
       expect(stored.name).toBe('Bench PR 12');
-      expect(stored.vas_m3).toBeCloseTo(0.0075, 6);   // litres on screen
-      expect(stored.qms).toBeCloseTo(12.25, 3);
-      expect(stored.fs_hz).toBeCloseTo(21.5, 3);
-      expect(stored.sd_m2).toBeCloseTo(0.03, 6);      // cm² on screen
-      expect(stored.xmax_m).toBeCloseTo(0.012, 6);    // mm on screen
+      expect(stored.vas_L).toBeCloseTo(7.5, 2);
+      expect(stored.qms).toBeCloseTo(12.25, 2);
+      expect(stored.fs_hz).toBeCloseTo(21.5, 2);
+      expect(stored.sd_cm2).toBeCloseTo(300, 1);
+      expect(stored.xmax_mm).toBeCloseTo(12, 1);
       expect(stored.count).toBe(2);
     });
 
@@ -180,8 +181,8 @@ test.describe('Original Passive Radiator tab', () => {
         await expect(box).not.toHaveValue(/^0(\.0*)?$/);
       }
 
-      const stored = await focusedPassiveRadiatorSpec(page);
-      for (const v of [stored.vas_m3, stored.qms, stored.fs_hz, stored.sd_m2, stored.xmax_m]) expect(v).not.toBe(0);
+      const stored = await shownPassiveRadiator(page);
+      for (const v of [stored.vas_L, stored.qms, stored.fs_hz, stored.sd_cm2, stored.xmax_mm]) expect(v).not.toBe(0);
     });
 
     // John, 2026-10-06: "blanking vas on pr screen gives no dq". An emptied Vas is flagged, and
@@ -225,12 +226,12 @@ test.describe('Original Passive Radiator tab', () => {
       };
       const fhBefore = await readFh();
       const fprBefore = await page.locator('#og-pr-fs-mass').inputValue();
-      const splBefore = await curvesSplSum(page);
+      const splBefore = await chartPicture(page);
 
       await fillAndCommit(page.locator('#og-pr-vas'), '20');
 
       await expect(page.locator('#og-pr-fs-mass')).not.toHaveValue(fprBefore);
-      await expect.poll(() => curvesSplSum(page)).not.toBe(splBefore);
+      await expect.poll(() => chartPicture(page)).not.toBe(splBefore);
       expect(await readFh()).not.toBeCloseTo(fhBefore, 2);
     });
 

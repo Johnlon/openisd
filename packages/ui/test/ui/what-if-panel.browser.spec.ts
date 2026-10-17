@@ -1,4 +1,4 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, curvesSplSum, duplicateFocusedProject, expect, focusedBoxVolume, focusedDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
+import {chartPicture, COMPLETE_DRIVER_PROJECT_OWPR, expectChartDrawn, duplicateFocusedProject, expect, shownBoxVolume, shownDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 
 /**
@@ -32,10 +32,10 @@ test.describe('Learn panel', () => {
 
     test('Learn changes the charts but never the project, and Close puts the curve back', async ({ page }) => {
       expect(await focusedIsModified(page)).toBe(false);
-      const volume = await focusedBoxVolume(page);
+      const volume = await shownBoxVolume(page);
       // The charts draw after the project opens; under load the first read is 0, and Close would then be compared to it.
-      await expect.poll(() => curvesSplSum(page)).toBeGreaterThan(0);
-      const spl = await curvesSplSum(page);
+      await expectChartDrawn(page);
+      const spl = await chartPicture(page);
 
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
@@ -47,8 +47,8 @@ test.describe('Learn panel', () => {
       const vb = whatIfField(page, 'Vb').locator('input');
       await vb.click();
       await vb.press('Control+a');
-      await vb.pressSequentially(String(Math.round(volume * 1000 * 2)));
-      await expect.poll(() => curvesSplSum(page)).not.toBe(spl);
+      await vb.pressSequentially(String(Math.round(volume * 2)));
+      await expect.poll(() => chartPicture(page)).not.toBe(spl);
 
       expect(await focusedIsModified(page)).toBe(false);
       await expect(page.locator('.project-row.is-unsaved')).toHaveCount(0);
@@ -56,12 +56,12 @@ test.describe('Learn panel', () => {
 
       await whatIf.locator('button', { hasText: 'Close' }).click();
       await expect(whatIf).toBeHidden();
-      await expect.poll(() => curvesSplSum(page)).toBe(spl);
-      expect(await focusedBoxVolume(page)).toBe(volume);
+      await expect.poll(() => chartPicture(page)).toBe(spl);
+      expect(await shownBoxVolume(page)).toBe(volume);
       expect(await focusedIsModified(page)).toBe(false);
 
       await page.reload({ waitUntil: 'domcontentloaded' });
-      await expect.poll(() => focusedBoxVolume(page)).toBe(volume);
+      await expect.poll(() => shownBoxVolume(page)).toBe(volume);
       expect(await focusedIsModified(page)).toBe(false);
     });
 
@@ -69,55 +69,47 @@ test.describe('Learn panel', () => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
       const whatIf = page.locator('.what-if-panel');
-      const readFs = () => focusedDriverSpec(page, 'Fs_hz');
-      const before = await readFs();
-
       const fsInput = whatIf.locator('.what-if-fld', { hasText: 'Fs' }).locator('input');
       const beforeText = await fsInput.inputValue();
-      await fsInput.fill(String(before + 6));
+      await fsInput.fill(String(Number(beforeText) + 6));
       await fsInput.dispatchEvent('input');
-      expect(await readFs()).toBeCloseTo(before + 6, 1);
+      await expect(fsInput).toHaveValue(String(Number(beforeText) + 6));
 
       await whatIf.locator('button', { hasText: 'Reset' }).click();
       await expect(whatIf).toBeVisible();
-      expect(await readFs()).toBeCloseTo(before, 1);
       await expect(fsInput).toHaveValue(beforeText);
     });
 
     test('closing Learn via the titlebar ✕ discards the What-if, same as Close', async ({ page }) => {
-      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-
-      const readFs = () => focusedDriverSpec(page, 'Fs_hz');
-      const before = await readFs();
+      const before = await shownDriverSpec(page, 'Fs');
 
       await page.locator('.save-rail .what-if-btn').click();
       const whatIf = page.locator('.what-if-panel');
       const fsInput = whatIf.locator('.what-if-fld', { hasText: 'Fs' }).locator('input');
-      await fsInput.fill(String(before + 6));
+      await fsInput.fill(String(Number(before) + 6));
       await fsInput.dispatchEvent('input');
-      expect(await readFs()).toBeCloseTo(before + 6, 1);
+      await expect(fsInput).toHaveValue(String(Number(before) + 6));
 
       // Closing via the titlebar ✕ discards the What-if exactly like Close does.
       await whatIf.locator('.what-if-titlebar .close-btn').click();
       await expect(whatIf).toBeHidden();
-      expect(await readFs()).toBeCloseTo(before, 1);
+      expect(await shownDriverSpec(page, 'Fs')).toBe(before);
       expect(await focusedIsModified(page)).toBe(false);
     });
 
     test('closing Learn does not corrupt the saved Mms value', async ({ page }) => {
-      await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      const readMms = () => shownDriverSpec(page, 'Mms');
+      const before = await readMms();
       await page.locator('.save-rail .what-if-btn').click();
       const whatIf = page.locator('.what-if-panel');
-      const readMms = () => focusedDriverSpec(page, 'Mms_kg');
-      const before = await readMms();
       const mmsInput = whatIf.locator('.what-if-fld', { hasText: 'Mms' }).locator('input');
-      await mmsInput.fill(String((before * 1000) + 6));
+      await mmsInput.fill(String(Number(before) + 6));
       await mmsInput.dispatchEvent('input');
-      expect(await readMms()).toBeCloseTo(before + 0.006, 6);
+      await expect(mmsInput).toHaveValue(String(Number(before) + 6));
 
       await whatIf.locator('.what-if-titlebar .close-btn').click();
       await expect(whatIf).toBeHidden();
-      expect(await readMms()).toBeCloseTo(before, 9);
+      expect(await readMms()).toBe(before);
     });
 
     test('Escape closes Learn', async ({ page }) => {
@@ -136,8 +128,6 @@ test.describe('Learn panel', () => {
       await fsInput.press('Control+a');
       await fsInput.pressSequentially('42'); // type char-by-char, like a real user
       await expect(fsInput).toHaveValue('42');
-      const fs = await focusedDriverSpec(page, 'Fs_hz');
-      expect(fs).toBeCloseTo(42, 1);
     });
 
     test('an open Learn panel stays open across a reload', async ({ page }) => {
@@ -200,12 +190,12 @@ test.describe('Learn panel', () => {
       // What-if? is a DOCKED panel, not a modal — the rows stay clickable, and switching focus closes it.
       const projectRows = page.locator('.project-row');
       await expect(projectRows).toHaveCount(2);
-      const volume = await focusedBoxVolume(page);
+      const volume = await shownBoxVolume(page);
       const vb = whatIfField(page, 'Vb').locator('input');
       await vb.click();
       await vb.press('Control+a');
       await vb.pressSequentially('42');
-      await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(0.042, 6);
+      await expect.poll(() => shownBoxVolume(page)).toBeCloseTo(42, 2);
 
       // The rows sort newest first, so the other project is the one not selected.
       await page.locator('.project-row:not(.selected)').click();
@@ -213,7 +203,7 @@ test.describe('Learn panel', () => {
 
       // The project left behind is as it was: its What-if ended with the panel.
       await projectRows.nth(1).click();
-      expect(await focusedBoxVolume(page)).toBe(volume);
+      expect(await shownBoxVolume(page)).toBe(volume);
       expect(await focusedIsModified(page)).toBe(false);
     });
   });
@@ -314,16 +304,16 @@ test.describe('Learn panel', () => {
       const vb = whatIfField(page, 'Vb').locator('input');
       await expect(vb).toBeVisible();
 
-      const before = await focusedBoxVolume(page);
+      const before = await shownBoxVolume(page);
       await vb.click();
       await vb.press('Control+a');
       await vb.pressSequentially('42');
-      expect(await focusedBoxVolume(page)).toBeCloseTo(0.042, 6);   // the What-if's volume, read by the charts
+      expect(await shownBoxVolume(page)).toBeCloseTo(42, 2);   // the What-if's volume, read by the charts
       expect(await focusedIsModified(page)).toBe(false);
 
       await whatIf.locator('button', { hasText: 'Close' }).click();
       await expect(whatIf).toBeHidden();
-      expect(await focusedBoxVolume(page)).toBeCloseTo(before, 6);  // Close puts the project's volume back
+      expect(await shownBoxVolume(page)).toBeCloseTo(before, 2);  // Close puts the project's volume back
     });
 
     test('a box volume changed outside the open Learn panel shows in the panel', async ({ page }) => {

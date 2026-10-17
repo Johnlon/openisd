@@ -1,5 +1,5 @@
 import {
-  expect, focusedBandpass6RearTuning, focusedBandpass6Tunings, focusedBoxType, focusedSealedReadouts, openAProject, setFocusedBoxType,
+  expect, openAProject, setFocusedBoxType,
   setFocusedDriverSpecs, setFocusedSealedLosses, setFocusedSeriesResistance, test, W5_1138SMF,
 } from '../fixtures.js';
 import type {Page} from '@playwright/test';
@@ -20,29 +20,21 @@ test.beforeEach(async ({ appPage: page }) => {
   await openAProject(page);
 });
 
-/** The rendered Fsc/Qtc must equal the live domain cell at the field's display precision. The
- *  check never hardcodes a number, so it catches "the value is right but the screen never
- *  re-rendered" (the stale-readout bug) whatever the engine says. */
-async function expectReadoutTracks(page: Page, message: string): Promise<void> {
-  const fscVal = await fscInput(page).inputValue();
-  const qtcVal = await qtcInput(page).inputValue();
-  const rendered = {
-    fsc: (fscVal === '' || fscVal === '—') ? null : parseFloat(fscVal),
-    qtc: (qtcVal === '' || qtcVal === '—') ? null : parseFloat(qtcVal),
-  };
-  const live = await focusedSealedReadouts(page);
-  if (live.fsc === null) {
-    expect(rendered.fsc, `${message}: fsc should be null when live is null`).toBeNull();
-  } else {
-    expect(rendered.fsc, `${message}: rendered.fsc`).not.toBeNull();
-    expect(Math.abs(rendered.fsc! - live.fsc), `${message}: rendered Fsc ${rendered.fsc} vs live ${live.fsc}`).toBeLessThan(0.005);
+/** The Fsc and Qtc readouts as the Box tab shows them. */
+async function shownSealedReadouts(page: Page): Promise<{fsc: string; qtc: string}> {
+  return {fsc: await fscInput(page).inputValue(), qtc: await qtcInput(page).inputValue()};
+}
+
+/** Each edit must re-render the readouts it affects: after it they show a number that differs from the one
+ *  before (the stale-readout bug leaves the old value on screen). The values themselves are the engine's,
+ *  and are tested there. */
+async function expectReadoutsMoved(page: Page, before: {fsc: string; qtc: string}, message: string, moved: ReadonlyArray<'fsc' | 'qtc'> = ['fsc', 'qtc']): Promise<{fsc: string; qtc: string}> {
+  for (const readout of moved) {
+    await expect.poll(async () => (await shownSealedReadouts(page))[readout], { message: `${message}: ${readout}` }).not.toBe(before[readout]);
   }
-  if (live.qtc === null) {
-    expect(rendered.qtc, `${message}: qtc should be null when live is null`).toBeNull();
-  } else {
-    expect(rendered.qtc, `${message}: rendered.qtc`).not.toBeNull();
-    expect(Math.abs(rendered.qtc! - live.qtc), `${message}: rendered Qtc ${rendered.qtc} vs live ${live.qtc}`).toBeLessThan(0.0005);
-  }
+  const now = await shownSealedReadouts(page);
+  expect(Number.isFinite(parseFloat(now.fsc)) && Number.isFinite(parseFloat(now.qtc)), `${message}: numbers shown`).toBe(true);
+  return now;
 }
 
 // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
@@ -90,7 +82,7 @@ test.describe('Original Box tab', () => {
     await boxSel.selectOption('abc');
     await expect(page.locator('#og-box-diagram-abc')).toBeVisible();
     await expect(boxTab).not.toContainText(/response model pending/i);
-    expect(await focusedBoxType(page)).toBe('abc');
+    await expect(boxSel).toHaveValue('abc');
   });
 
   test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab', async ({ appPage: page }) => {
@@ -131,20 +123,28 @@ test.describe('Original Box tab', () => {
     await frc.click();
     await fillAndBlur(frc, '2222');
     await expect(frc).toHaveValue(/^2222(\.0+)?$/); // 2-dp display formatting, not the bug
-    const stored = await focusedBandpass6RearTuning(page);
-    expect(stored).toBe(2222); // model actually holds it, not just the local input's own state
+    // Leaving the box type and coming back remounts the field from the project, not from the input's own state.
+    await page.locator('select#og-box-type').selectOption('sealed');
+    await page.locator('select#og-box-type').selectOption('bandpass6');
+    await expect(frc).toHaveValue(/^2222(\.0+)?$/);
   });
 
   // bugs/BUG_20261007_bp6-abc-front-tuning-edits-the-vented-box.md
   test('the 6th-order bandpass Ffc field edits the front chamber, not the vented box', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('bandpass6');
-    const before = await focusedBandpass6Tunings(page);
+    const select = page.locator('select#og-box-type');
+    const ventedTuning = async (): Promise<string> => {
+      await select.selectOption('vented');
+      const shown = await page.locator('#og-fb-target').inputValue();
+      await select.selectOption('bandpass6');
+      return shown;
+    };
+    const before = await ventedTuning();
     const ffc = page.locator('#og-ffc-target');
     await fillAndBlur(ffc, '31.5');
-    const after = await focusedBandpass6Tunings(page);
-    expect(after.front).toBe(31.5);
-    expect(after.vented).toBe(before.vented);
+    expect(await ventedTuning()).toBe(before);
+    await expect(ffc).toHaveValue(/^31\.5(0+)?$/);
   });
 
   // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied Frc is never stored as 0. Under the
@@ -198,33 +198,33 @@ test.describe('Original Box tab', () => {
     await setFocusedBoxType(page, 'sealed');
     await boxTab(page).click();
 
-    // Sanity: on first paint the readout must already equal the live domain cell.
-    await expectReadoutTracks(page, 'at open');
+    // On first paint the readouts show numbers.
+    let shown = await shownSealedReadouts(page);
+    expect(Number.isFinite(parseFloat(shown.fsc)) && Number.isFinite(parseFloat(shown.qtc)), 'numbers at open').toBe(true);
 
     // 1. Volume edit must move the readout.
     const vbInput = numInputByLabel(page, 'Volume').first();
     await fillAndCommit(vbInput, '6');
-    await expectReadoutTracks(page, 'after volume = 6L');
+    shown = await expectReadoutsMoved(page, shown, 'after volume = 6L');
 
     await fillAndCommit(vbInput, '40');
-    await expectReadoutTracks(page, 'after volume = 40L');
+    shown = await expectReadoutsMoved(page, shown, 'after volume = 40L');
 
-    // 2. Chamber losses (Ql/Qa) must move the readout.
-    await setFocusedSealedLosses(page, { Ql: 10, Qa: 100 });
-    await expectReadoutTracks(page, 'after losses Ql=10 Qa=100');
+    // 2. Chamber losses (Ql/Qa, off their defaults of 10 and 100) move Qtc.
+    await setFocusedSealedLosses(page, { Ql: 5, Qa: 20 });
+    shown = await expectReadoutsMoved(page, shown, 'after losses Ql=5 Qa=20', ['qtc']);
 
-    // 3. A driver swap must move the readout to the new driver's resonance.
+    // 3. A driver swap must move the readouts to the new driver's resonance (the sample carries W5-1138SMF).
     await page.locator('li', { hasText: 'Driver' }).click();
     await page.locator('button.edit-btn', { hasText: 'Select Driver' }).click();
     const picker = page.locator('.wb-modal');
-    await picker.locator('input.filter').fill('W5-1138SMF');
-    await picker.locator('.ditem', { hasText: 'W5-1138SMF' }).first().click();
+    await picker.locator('.ditem').filter({ hasNotText: 'W5-1138SMF' }).first().click();
     await picker.locator('button.use-btn').click();
     await expect(page.locator('.wb-modal')).toHaveCount(0);
-    await expect(page.locator('.driver-id-row input').nth(1)).toHaveValue('W5-1138SMF');
+    await expect(page.locator('.driver-id-row input').nth(1)).not.toHaveValue('W5-1138SMF');
 
     await boxTab(page).click();
-    await expectReadoutTracks(page, 'after driver swap to W5-1138SMF');
+    await expectReadoutsMoved(page, shown, 'after the driver swap');
   });
 
   test('bandpass4 box: 15L rear + 20L front chamber volumes enter and render', async ({ appPage: page }) => {

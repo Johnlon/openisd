@@ -3,8 +3,9 @@
  * `packages/ui/test/hooks/OriginalShell-hooks.test.ts`'s `createPassiveRadiatorActions` suite and the
  * domain's own tests. These specs prove the UI is correctly WIRED to that shared logic.
  */
-import {expect, focusedPassiveRadiatorSpec, openAMobileProject, test} from '../fixtures.js';
+import {expect, openAMobileProject, test} from '../fixtures.js';
 import {fillAndCommit} from '../fixtures/numField.js';
+import {shownPassiveRadiator} from '../fixtures/passiveRadiatorScreen.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
@@ -43,13 +44,13 @@ test.describe('MobilePrTab', () => {
     await fillAndCommit(input('Xmax'), '12');
     await page.locator('#mob-pr-count').selectOption('2');
 
-    const stored = await focusedPassiveRadiatorSpec(page);
+    const stored = await shownPassiveRadiator(page);
     expect(stored.name).toBe('Bench PR 12');
-    expect(stored.vas_m3).toBeCloseTo(0.0075, 6);   // litres on screen
-    expect(stored.qms).toBeCloseTo(12.25, 3);
-    expect(stored.fs_hz).toBeCloseTo(21.5, 3);
-    expect(stored.sd_m2).toBeCloseTo(0.03, 6);      // cm² on screen
-    expect(stored.xmax_m).toBeCloseTo(0.012, 6);    // mm on screen
+    expect(stored.vas_L).toBeCloseTo(7.5, 2);
+    expect(stored.qms).toBeCloseTo(12.25, 2);
+    expect(stored.fs_hz).toBeCloseTo(21.5, 2);
+    expect(stored.sd_cm2).toBeCloseTo(300, 1);
+    expect(stored.xmax_mm).toBeCloseTo(12, 1);
     expect(stored.count).toBe(2);
   });
 

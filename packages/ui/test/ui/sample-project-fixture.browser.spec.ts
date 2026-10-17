@@ -1,5 +1,5 @@
 import {expect, test} from '../fixtures.js';
-import {focusedProjectOwpr} from '../fixtures.js';
+import {exportedProjectOwpr} from '../fixtures.js';
 import {readFileSync} from 'node:fs';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDDriver} from '@openisd/design';
@@ -118,7 +118,7 @@ test.describe('sample project fixture', () => {
 
     // Export the created project and compare its core structure to the fixture
     // Export the created project and compare its core structure to the fixture
-    const wizardJson = await focusedProjectOwpr(page);
+    const wizardJson = await exportedProjectOwpr(page);
 
     const sampleJson: unknown = JSON.parse(readFileSync(SAMPLE_PROJECT_OWPR, 'utf-8'));
   

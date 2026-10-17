@@ -1,5 +1,5 @@
 import type {Locator} from '@playwright/test';
-import {curvesSplSum, expect, focusedFilterCount, openAProject, test} from '../fixtures.js';
+import {chartPicture, expect, expectChartDrawn, openAProject, test} from '../fixtures.js';
 import {fillAndBlur} from '../fixtures/numField.js';
 
 /** The `.filter-edit-body` field whose `<label>` starts with `label` — the tab nests the
@@ -128,13 +128,13 @@ test('a held LP Cutoff spinner moves the swept SPL before release', async ({page
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  const splSum = () => curvesSplSum(page);
+  const splPicture = () => chartPicture(page);
 
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();
   await expect(panel.locator('.filter-summary')).toContainText('fc=50.00 Hz');
-  await expect.poll(splSum).not.toBe(0);
-  const before = await splSum();
+  await expectChartDrawn(page);
+  const before = await splPicture();
 
   for (let step = 0; step < 5; step++) {
     await editorField(panel, 'Cutoff').evaluate((el: HTMLInputElement) => {
@@ -143,7 +143,7 @@ test('a held LP Cutoff spinner moves the swept SPL before release', async ({page
     });
   }
   await expect(panel.locator('.filter-summary')).toContainText('fc=49.50 Hz');
-  await expect.poll(splSum).not.toBe(before);
+  await expect.poll(splPicture).not.toBe(before);
   expect(errors).toEqual([]);
 });
 
@@ -153,9 +153,9 @@ test('the quick-add bar offers every WinISD filter type plus the two shelves, an
   await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(10);
 
   await panel.locator('.action-btn', {hasText: '+ HP'}).click();
-  expect(await focusedFilterCount(page)).toBe(1);
+  await expect(panel.locator('.filter-del')).toHaveCount(1);
   await panel.locator('.filter-del').click();
-  expect(await focusedFilterCount(page)).toBe(0);
+  await expect(panel.locator('.filter-del')).toHaveCount(0);
 });
 
 // WinISD deviation cue: a small button next to a control whose result differs from WinISD because

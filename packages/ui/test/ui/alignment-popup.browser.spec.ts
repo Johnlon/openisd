@@ -1,4 +1,4 @@
-import {expect, focusedBoxVolume, focusedSealedReadouts, openAProject, setFocusedBoxType, setFocusedDriverSpecs, setFocusedSealedLosses, test} from '../fixtures.js';
+import {expect, openAProject, setFocusedBoxType, setFocusedDriverSpecs, setFocusedSealedLosses, shownBoxVolume, test} from '../fixtures.js';
 
 /** The Alignment editor opened from the Box tab (a modal shared by the sealed and vented boxes). */
 
@@ -26,8 +26,8 @@ test.describe('Alignment popup', () => {
     await setFocusedDriverSpecs(page, { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Qes: null });
     await setFocusedBoxType(page, 'sealed');
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
-    const volumeBefore = await focusedBoxVolume(page);
-    const readoutsBefore = await focusedSealedReadouts(page);
+    const volumeBefore = await shownBoxVolume(page);
+    const qtcBefore = await page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input').inputValue();
     const fscShown = await page.locator('#og-box-resonance').inputValue();
 
     await page.getByRole('button', { name: 'Alignment', exact: true }).click();
@@ -40,8 +40,8 @@ test.describe('Alignment popup', () => {
     await page.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(page.locator('.alignment-modal')).toBeHidden();
 
-    expect(await focusedBoxVolume(page)).toBe(volumeBefore);
-    expect(await focusedSealedReadouts(page)).toEqual(readoutsBefore);
+    expect(await shownBoxVolume(page)).toBe(volumeBefore);
+    await expect(page.locator('.box-layout .field', { hasText: 'Qtc' }).locator('input')).toHaveValue(qtcBefore);
     await expect(page.locator('#og-box-resonance')).toHaveValue(fscShown);
   });
 

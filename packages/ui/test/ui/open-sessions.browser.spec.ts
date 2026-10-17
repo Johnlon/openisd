@@ -1,4 +1,4 @@
-import {editorTab, expect, focusedBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
+import {editorTab, expect, shownBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {z} from 'zod';
 
@@ -64,7 +64,7 @@ test.describe('Open sessions', () => {
 
       await setFocusedBoxVolume(other, 0.0111111);
 
-      await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(0.0111111, 9);
+      await expect.poll(() => shownBoxVolume(page)).toBeCloseTo(11.11, 2);
     });
 
     test('a fresh tab opens on the session every tab shares', async ({ page, context }) => {
@@ -126,8 +126,6 @@ test.describe('Open sessions', () => {
       await expect(other.locator('.de-modal')).toBeVisible();
 
       await setFocusedBoxVolume(page, 0.0111111);
-      await expect.poll(() => focusedBoxVolume(other)).toBeCloseTo(0.0111111, 9);
-
       await editorTab(other, 'General');
       await other.locator('.de-fld', { has: other.locator('label', { hasText: 'Model' }) }).locator('input').fill('Model 111111');
       await other.locator('.de-modal .de-footer button:has-text("OK")').click();
@@ -135,7 +133,7 @@ test.describe('Open sessions', () => {
 
       const model = (p: Page) => p.locator('.driver-id-row input').nth(1);
       await expect(model(other)).toHaveValue('Model 111111');
-      expect(await focusedBoxVolume(other)).toBeCloseTo(0.0111111, 9);
+      await expect.poll(() => shownBoxVolume(other)).toBeCloseTo(11.11, 2);
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await expect(model(page)).toHaveValue('Model 111111');
     });

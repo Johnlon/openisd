@@ -1,4 +1,4 @@
-import {curvesSplLength, dirtyFocusedDesign, expect, focusedBoxVolume, focusedFilterCount, focusedPowerDrive_W, focusedProjectName, openAProject, test, W5_1138SMF} from '../fixtures.js';
+import {dirtyFocusedDesign, expect, openAProject, shownBoxVolume, shownDrivePower, shownFilterCount, shownProjectName, test, W5_1138SMF} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
@@ -173,12 +173,12 @@ test.describe('New Project wizard', () => {
       await create.click();
       await expect(page.locator('.overlay.open')).toHaveCount(0);
       await expect(rows).toHaveCount(before + 1);
-      expect(await focusedProjectName(page)).toBe('Lead creates');
+      expect(await shownProjectName(page)).toBe('Lead creates');
     });
 
     test('walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar', async ({ appPage: page }) => {
       await buildProject(page, 'sealed', 'My Sub Build');
-      expect(await focusedProjectName(page)).toBe('My Sub Build');
+      expect(await shownProjectName(page)).toBe('My Sub Build');
       await expect(page.locator('.projects-list .project-row.selected')).toContainText('My Sub Build');
     });
 
@@ -189,8 +189,8 @@ test.describe('New Project wizard', () => {
       await expect(page.locator('.overlay.open .np-warn')).toBeVisible();   // data-loss guard warns about unsaved changes
       await walkWizard(page, 'sealed', 'Skin project');
 
-      expect(await focusedFilterCount(page), 'fresh project — no inherited filters').toBe(0);
-      expect(await focusedPowerDrive_W(page), 'default 1 W reference — not the previous 250').toBe(1);
+      expect(await shownFilterCount(page), 'fresh project — no inherited filters').toBe(0);
+      expect(await shownDrivePower(page), 'default 1 W reference — not the previous 250').toBe(1);
     });
 
     // One test per box type: each wizard walk has its own time limit, so a slow machine never
@@ -198,7 +198,7 @@ test.describe('New Project wizard', () => {
     for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc']) {
       test(`a wizard-created ${box} project draws a chart`, async ({ appPage: page }) => {
         await buildProject(page, box);
-        await expect.poll(() => curvesSplLength(page)).toBeGreaterThan(0);
+        await expect(page.locator('.gpanel').first()).not.toHaveAttribute('data-y-range', '');   // a curve is drawn
       });
     }
 
@@ -266,7 +266,16 @@ test.describe('New Project wizard', () => {
       await modal.locator('input[type="text"]').fill('Cubic foot');
       await modal.locator('button', { hasText: 'Create' }).click();
 
-      await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(1 / 35.3147, 6);
+      // The Box tab keeps the cu ft the user chose and shows 1; in cm³ it is the 28 317 the entry means.
+      await expect.poll(() => shownBoxVolume(page)).toBeCloseTo(1, 2);
+      const boxUnit = page.locator('.tab-section.active .ui-field', { hasText: 'Volume' }).first().locator('.ui-field-unit');
+      await expect(boxUnit).toHaveText('cu ft');
+      await boxUnit.click();
+      await boxUnit.click();
+      await expect(boxUnit).toHaveText('cm³');
+      expect(await shownBoxVolume(page)).toBeCloseTo(28317, 0);
+      await boxUnit.click();
+      await expect(boxUnit).toHaveText('L');
     });
 
     // WinISD's wizard asks for the passive radiator after the box type.

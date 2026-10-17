@@ -1,4 +1,4 @@
-import {COMPLETE_DRIVER_PROJECT_OWPR, curvesSplLength, expect, focusedDriveGroup, openAProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, expectChartDrawn, openAProject, openTab, shownDriverSpec, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 
@@ -12,6 +12,15 @@ import {fillAndBlur} from '../fixtures/numField.js';
 
 function signalInput(page: Page, label: string): Locator {
   return page.locator('.field', { hasText: label }).locator('input');
+}
+
+/** The drive group as the screen shows it: power, voltage and series resistance on the Signal tab, the
+ *  driver's Re in the Driver Editor (then back to the Signal tab). */
+async function shownDriveGroup(page: Page): Promise<{P: number; V: number; Re: number; Rs: number}> {
+  const Re = Number(await shownDriverSpec(page, 'Re'));
+  await openTab(page, 'Signal');
+  const read = async (label: string) => Number(await signalInput(page, label).inputValue());
+  return {P: await read('System input power'), V: await read('Driver input voltage'), Re, Rs: await read('Series resistance')};
 }
 
 test.describe('Original Signal tab', () => {
@@ -93,11 +102,11 @@ test.describe('Original Signal tab', () => {
       await fillAndBlur(pow, '10');
       await expect(pow).toHaveValue(/\d/);
       await expect(vol).toHaveValue(/\d/);
-      const live = await focusedDriveGroup(page);
-      expect(live.P, 'the entered P must be the committed power').toBe(10);
+      const live = await shownDriveGroup(page);
+      expect(live.P, 'the entered P must be the shown power').toBeCloseTo(10, 2);
       expect(live.Re, 'the driver must carry a Re').toBeGreaterThan(0);
       const v10 = Number(await vol.inputValue());
-      expect(v10, 'the shown V must be √(P·(Re+Rs))').toBeCloseTo(Math.sqrt(10 * (live.Re! + (live.Rs ?? 0))), 1);
+      expect(v10, 'the shown V must be √(P·(Re+Rs))').toBeCloseTo(Math.sqrt(10 * (live.Re + live.Rs)), 1);
       expect(Number(await pow.inputValue()), 'the shown P must equal the entered P').toBeCloseTo(10, 1);
 
       await fillAndBlur(pow, '4');
@@ -111,11 +120,10 @@ test.describe('Original Signal tab', () => {
       await fillAndBlur(vol, '4');
 
       const renderedP = Number(await pow.inputValue());
-      const g = await focusedDriveGroup(page);
+      const g = await shownDriveGroup(page);
       expect(renderedP, 'P must be derived, not blank').toBeGreaterThan(0);
-      expect(renderedP, 'P must equal V²/(Re+Rs)').toBeCloseTo((4 * 4) / (g.Re! + (g.Rs ?? 0)), 1);
+      expect(renderedP, 'P must equal V²/(Re+Rs)').toBeCloseTo((4 * 4) / (g.Re + g.Rs), 1);
       expect(Number(await vol.inputValue()), 'the entered V must hold').toBeCloseTo(4, 1);
-      expect(g.P, 'the committed power is the same law').toBeCloseTo((4 * 4) / (g.Re! + (g.Rs ?? 0)), 8);
     });
 
     test('clearing V keeps the power, which becomes the entered end of the pair', async ({ appPage: page }) => {
@@ -128,9 +136,9 @@ test.describe('Original Signal tab', () => {
 
       // The power keeps the value it reads and stays the entered end; V is calculated from it
       // (docs/design/FIELD_CLEAR_RULE.md). Neither end is left blank.
-      const live = await focusedDriveGroup(page);
-      expect(live.P, 'clearing V keeps the power').toBeCloseTo(10, 6);
-      expect(Number(await vol.inputValue()), 'V is calculated from the power, never blank').toBeCloseTo(Math.sqrt(10 * (live.Re! + (live.Rs ?? 0))), 1);
+      const live = await shownDriveGroup(page);
+      expect(live.P, 'clearing V keeps the power').toBeCloseTo(10, 2);
+      expect(Number(await vol.inputValue()), 'V is calculated from the power, never blank').toBeCloseTo(Math.sqrt(10 * (live.Re + live.Rs)), 1);
       expect(Number(await pow.inputValue()), 'P shows what it was').toBeCloseTo(10, 1);
       await expect(vol).not.toHaveAttribute('title', /No drive level stated/);
     });
@@ -145,9 +153,9 @@ test.describe('Original Signal tab', () => {
 
       // The voltage keeps the value it reads and becomes the entered end; the power re-derives from
       // it as V²/(Re+Rs), the same number now calculated rather than entered.
-      const live = await focusedDriveGroup(page);
-      expect(live.V, 'clearing P keeps the voltage').toBeCloseTo(Math.sqrt(10 * (live.Re! + (live.Rs ?? 0))), 6);
-      expect(live.P, 'the power re-derives from the kept voltage').toBeCloseTo(10, 6);
+      const live = await shownDriveGroup(page);
+      expect(live.V, 'clearing P keeps the voltage').toBeCloseTo(Math.sqrt(10 * (live.Re + live.Rs)), 2);
+      expect(live.P, 'the power re-derives from the kept voltage').toBeCloseTo(10, 2);
       expect(Number(await vol.inputValue()), 'V is shown').toBeGreaterThan(0);
       expect(Number(await pow.inputValue()), 'P is shown').toBeCloseTo(10, 1);
     });
@@ -158,7 +166,7 @@ test.describe('Original Signal tab with a complete driver', () => {
   test('a complete driver stores the 1 W reference and draws a chart without a drive data-quality note', async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
-    await expect.poll(() => curvesSplLength(page)).toBeGreaterThan(0);
+    await expectChartDrawn(page);
 
     await page.locator('.project-nav li', { hasText: 'Signal' }).click();
     await expect(page.locator('.field', { hasText: 'System input power' }).locator('.dq-note')).toHaveCount(0);

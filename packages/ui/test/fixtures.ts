@@ -2,8 +2,9 @@ import {existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename, join} from 'node:path';
 import {type Browser, type BrowserContext, type Disposable, expect, type Locator, type Page, test as base} from '@playwright/test';
-import {NumberField} from '@openisd/design/fields';
 import {CHROME_OUTAGE_POLICY, CHROME_STABLE_MS, type OutageClock, waitOutOutage} from './fixtures/chromeOutage.js';
+import {createHash} from 'node:crypto';
+import {z} from 'zod';
 import {fillAndBlur} from './fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
@@ -470,76 +471,26 @@ export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
 
 export type EditorTab = 'General' | 'Parameters' | 'Advanced' | 'Dimensions';
 
-/** The focused project's main (box) volume, read through the app's own state module, which the
- *  dev server serves — the app ships no debug handle for this. */
-export async function focusedBoxVolume(page: Page): Promise<number> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    const v = box.volumeOf(box.boxType.value).value;
-    if (v === null) throw new Error('the focused project\'s box volume is blank');
-    return v;
-  }, 'appState');
+/** The Volume input on the Box tab, in either skin. */
+function boxVolumeInput(page: Page): Locator {
+  return page.locator('#og-box-volume, .mob-field-row:has(.mob-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Volume")) input').first();
 }
 
+/** The Box tab's Volume as the screen shows it, in the unit shown (litres until a user rotates it). */
+export async function shownBoxVolume(page: Page): Promise<number> {
+  await openBoxTab(page);
+  return Number(await boxVolumeInput(page).inputValue());
+}
 /** Write the focused project's main (box) volume, so its design differs from its saved one. */
 export async function setFocusedBoxVolume(page: Page, volume_m3: number): Promise<void> {
   await openBoxTab(page);
   const litres = String(Number((volume_m3 * 1000).toPrecision(12)));
-  await fillAndBlur(page.locator('#og-box-volume, .mob-field-row:has(.mob-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Volume")) input').first(), litres);
+  await fillAndBlur(boxVolumeInput(page), litres);
 }
 
-/** The drive group's committed state (power, voltage, driver Re, series Rs), read live from the
- *  focused project's domain object. */
-export interface DriveGroupState {
-  P: number | null;
-  V: number | null;
-  Re: number | null;
-  Rs: number | null;
-}
-
-export async function focusedDriveGroup(page: Page): Promise<DriveGroupState> {
-  return page.evaluate(async (path): Promise<DriveGroupState> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value, Rs: p.Rs_ohm.value };
-  }, 'appState');
-}
-
-/** Number of points in the latest computed SPL curve (0 until the first sweep lands). */
-export async function curvesSplLength(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'curvesData' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.curvesData.value?.spl?.length ?? 0;
-  }, 'appState');
-}
-
-/** The focused project's box type, as the domain holds it. */
-export async function focusedBoxType(page: Page): Promise<string> {
-  return page.evaluate(async (path): Promise<string> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().box.boxType.value;
-  }, 'appState');
+/** Waits until the first chart has drawn a curve: its panel then states a level range. */
+export async function expectChartDrawn(page: Page): Promise<void> {
+  await expect(page.locator('.gpanel').first()).not.toHaveAttribute('data-y-range', '');
 }
 
 /** Switch the focused project's box type through the domain, as a file load would. */
@@ -598,34 +549,6 @@ export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa
   await popup.locator('.ok-btn', { hasText: 'OK' }).click();
 }
 
-/** The focused sealed box's resonance Fsc and Qtc as the domain holds them. */
-export async function focusedSealedReadouts(page: Page): Promise<{fsc: number | null; qtc: number | null}> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const sealed = m.requireFocusedProject().box.sealed;
-    return {fsc: sealed.resonance_hz.value, qtc: sealed.q_tc.value};
-  }, 'appState');
-}
-
-/** The focused vented box's vent length target-unreachable flag and DQ issue count. */
-export async function focusedVentLengthDq(page: Page): Promise<{unreachable: boolean; dqCount: number}> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const dq = m.requireFocusedProject().box.vented.vent.length_m.dq;
-    return {unreachable: dq.some(issue => issue.kind === 'target-unreachable'), dqCount: dq.length};
-  }, 'appState');
-}
-
 /** Give the focused vented box a real vent (volume, tuning goal, port diameter) through the same
  *  domain seam the typing drives, so the solver produces a vent length. */
 export async function setFocusedVentedDesign(page: Page, design: {volume_m3: number; tuning_hz: number; diameter_m: number}): Promise<void> {
@@ -635,115 +558,16 @@ export async function setFocusedVentedDesign(page: Page, design: {volume_m3: num
   await fillAndBlur(page.locator('.field', { has: page.locator('label', { hasText: /^Vent diameter$/ }) }).locator('input').filter({ visible: true }).first(), String(Number((design.diameter_m * 100).toPrecision(12))));
 }
 
-/** The focused bandpass6 rear chamber's tuning goal (Hz). */
-export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const value = m.requireFocusedProject().box.bandpass6.chambers.rear.tuning_goal_hz.value;
-    if (value === null) throw new Error('tuning_goal_hz has no value');
-    return value;
-  }, 'appState');
+/** One Parameters-tab value of the focused project's driver as the Driver Editor shows it (display
+ *  unit and rounding); the editor is opened and cancelled. */
+export async function shownDriverSpec(page: Page, label: string): Promise<string> {
+  await openDriverEditor(page);
+  await editorTab(page, 'Parameters');
+  const value = await driverEditorField(page, label).locator('input').first().inputValue();
+  await page.locator('.de-footer button', { hasText: 'Cancel' }).click();
+  await page.locator('.de-body').waitFor({ state: 'hidden' });
+  return value;
 }
-
-/** The focused bandpass6 front chamber's tuning goal (Hz) and the vented box's tuning goal (Hz, null when blank). */
-export async function focusedBandpass6Tunings(page: Page): Promise<{front: number | null; vented: number | null}> {
-  return page.evaluate(async (path): Promise<{front: number | null; vented: number | null}> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    return {front: box.bandpass6.chambers.front.tuning_goal_hz.value, vented: box.vented.tuning_goal_hz.value};
-  }, 'appState');
-}
-
-/** The focused bandpass6 or ABC project's vent diameters and lengths (SI, null when blank), by port. */
-export interface FocusedPortVents {
-  rear: {diameter: number | null; length: number | null};
-  front: {diameter: number | null; length: number | null};
-  intra: {diameter: number | null; length: number | null} | null;
-}
-
-export async function focusedPortVents(page: Page): Promise<FocusedPortVents> {
-  return page.evaluate(async (path): Promise<FocusedPortVents> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    const abc = box.boxType.value === 'abc';
-    const vents = abc ? box.abc.vents : box.bandpass6.vents;
-    const read = (v: typeof vents.rear) => ({diameter: v.diameter_m.value, length: v.length_m.value});
-    return {rear: read(vents.rear), front: read(vents.front), intra: abc ? read(box.abc.vents.intra) : null};
-  }, 'appState');
-}
-
-/** The focused project's passive radiator: its name, count and spec cells (SI units). */
-export interface FocusedPassiveRadiatorSpec {
-  name: string;
-  count: number;
-  vas_m3: number | null;
-  qms: number | null;
-  fs_hz: number | null;
-  sd_m2: number | null;
-  xmax_m: number | null;
-}
-
-export async function focusedPassiveRadiatorSpec(page: Page): Promise<FocusedPassiveRadiatorSpec> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const pr = m.requireFocusedProject().box.passiveRadiator;
-    const spec = pr.radiator.spec;
-    return {
-      name: pr.radiator.model.value, count: pr.count.value,
-      vas_m3: spec.Vas_m3.value, qms: spec.Qms.value, fs_hz: spec.Fs_hz.value,
-      sd_m2: spec.Sd_m2.value, xmax_m: spec.Xmax_m.value,
-    };
-  }, 'appState');
-}
-
-/** The focused project's port air-velocity limit (m/s). */
-export async function focusedPortVelocityLimit(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().portVelocityLimit_m_per_s.value;
-  }, 'appState');
-}
-
-/** One driver spec value of the focused project's driver (SI units); fails when it has no value. */
-export async function focusedDriverSpec(page: Page, field: 'Fs_hz' | 'Mms_kg'): Promise<number> {
-  return page.evaluate(async ({path, f}): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const value = m.requireFocusedProject().driver.specs[f].value;
-    if (value === null) throw new Error(`driver.specs.${f} has no value`);
-    return value;
-  }, {path: 'appState', f: field});
-}
-
 /** Open a second, independent project as a copy of the focused one, and focus it — the domain
  *  call behind the project list's "＋ Copy". */
 export async function duplicateFocusedProject(page: Page, newName: string): Promise<void> {
@@ -768,111 +592,64 @@ export async function duplicateFocusedProject(page: Page, newName: string): Prom
   await name.press('Enter');
 }
 
-/** The Options environment temperature (K) as the application settings hold it. */
-export async function appEnvDefaultsTempK(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'envDefaults' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.envDefaults().tempK;
-  }, 'appState');
+/** The first chart's picture once the sweep has landed and the picture has stopped changing. */
+export async function settledChartPicture(page: Page): Promise<string> {
+  await expectChartDrawn(page);
+  let last = '';
+  await expect.poll(async () => {
+    const now = await chartPicture(page);
+    const unchanged = now === last;
+    last = now;
+    return unchanged;
+  }).toBe(true);
+  return last;
 }
 
-/** The user name saved by the Options dialog. */
-export async function savedUsername(page: Page): Promise<string | undefined> {
-  return page.evaluate(async (path): Promise<string | undefined> => {
-    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
-    function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    return m.ui.username;
-  }, 'presentationState');
+/** The first chart as drawn: a fingerprint of its picture, equal while the curve is the same. */
+export async function chartPicture(page: Page): Promise<string> {
+  const png = await page.locator('.gpanel canvas').first().screenshot();
+  return createHash('sha1').update(png).digest('hex');
 }
 
-/** The persisted display-unit token for the box volume field (`NumberField.BOX_VB_L`). */
-export async function boxVolumeUnitToken(page: Page): Promise<string | undefined> {
-  const rotation = await page.evaluate(async (path): Promise<Record<string, string>> => {
-    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
-    function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    return {...m.ui.unitTokens};
-  }, 'presentationState');
-  return NumberField.BOX_VB_L.unitTokenFor(rotation);
+/** Number of filters the Filters tab lists. */
+export async function shownFilterCount(page: Page): Promise<number> {
+  await openTab(page, 'Filters');
+  return page.locator('.content-panel .filter-del').count();
 }
 
-/** Sum of the latest computed SPL curve — changes whenever the swept response changes. */
-export async function curvesSplSum(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'curvesData' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return (m.curvesData.value?.spl ?? []).reduce((a, b) => a + b, 0);
-  }, 'appState');
+/** The System input power the Signal tab shows (W). */
+export async function shownDrivePower(page: Page): Promise<number> {
+  await openTab(page, 'Signal');
+  return Number(await page.locator('.field, .ui-field', { has: page.locator('label, .ui-field-label', { hasText: /^System input power$/ }) }).locator('input').first().inputValue());
 }
 
-/** Number of filters in the focused project's filter chain. */
-export async function focusedFilterCount(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().filters.value.length;
-  }, 'appState');
+/** The focused project's name as the Project tab (the phone: the Project details dialog) shows it. */
+export async function shownProjectName(page: Page): Promise<string> {
+  if (await page.locator('.mobile-root').count() === 0) {
+    await openTab(page, 'Project');
+    return page.locator('.tab-section.active .field', { has: page.locator('label', { hasText: /^Name/ }) }).locator('input').first().inputValue();
+  }
+  await closeMobileMenu(page);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();
+  const name = await page.locator('#mob-proj-name').inputValue();
+  await page.locator('.mob-dlg[aria-label="Project"] .mob-dlg-ok').click();
+  return name;
 }
 
-/** The focused project's drive power (W) — the one stored drive fact; voltage derives from it. */
-export async function focusedPowerDrive_W(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const value = m.requireFocusedProject().powerDrive_W.value;
-    if (value === null) throw new Error('powerDrive_W has no value');
-    return value;
-  }, 'appState');
-}
-
-/** Whether the focused project has unsaved changes — the flag behind every unsaved marker. */
+/** Whether the screen marks the focused project as having unsaved changes: the Unsaved changes label
+ *  on the desktop; on the phone the Save item of the menu, which lights up. The phone's Graph page has
+ *  no top bar, so it is read from the Box page and the user goes back to Graph. */
 export async function focusedIsModified(page: Page): Promise<boolean> {
-  return page.evaluate(async (path): Promise<boolean> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().isModified();
-  }, 'appState');
-}
-
-/** The focused project's name. */
-export async function focusedProjectName(page: Page): Promise<string> {
-  return page.evaluate(async (path): Promise<string> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().name.value;
-  }, 'appState');
+  if (await page.locator('.mobile-root').count() === 0) return (await page.locator('.unsaved-label').count()) > 0;
+  const hamburger = page.locator('.mob-hamburger');
+  const onGraph = !(await hamburger.isVisible());
+  if (onGraph) await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await hamburger.click();
+  const dirty = await page.locator('.mob-menu-item', { hasText: /^Save$/ }).evaluate(el => el.classList.contains('dirty'));
+  await closeMobileMenu(page);
+  if (onGraph) await page.locator('.mob-tab', { hasText: 'Graph' }).click();
+  return dirty;
 }
 
 /** Dirty the focused design: add a highpass filter and move the drive power off its 1 W reference. */
@@ -880,33 +657,20 @@ export async function dirtyFocusedDesign(page: Page): Promise<void> {
   await setFocusedBoxVolume(page, 0.0555);
 }
 
-/** The focused project serialised as `.owpr` JSON, saved first so the saved layer holds the design. */
-export async function focusedProjectOwpr(page: Page): Promise<unknown> {
-  return page.evaluate(async (path): Promise<unknown> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    // `saved` is the project baseline (empty) until the wizard's choices are committed.
-    p.save();
-    return JSON.parse(p.toOwprText());
-  }, 'appState');
-}
-
-/** The focused project's driver added cone mass (kg). */
-export async function focusedAddedMass_kg(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().driverAddedMass_kg.value;
-  }, 'appState');
+/** The focused project as an `.owpr` file: saved with the toolbar, then Export all, whose downloaded archive
+ *  holds each project's `.owpr` text; the archive's last project is read back. */
+export async function exportedProjectOwpr(page: Page): Promise<unknown> {
+  await page.locator('.tb-btn[title^="Save - "]').click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export all' }).click();
+  const path = await (await download).path();
+  const popup = page.getByRole('alertdialog');
+  await popup.getByRole('button', { name: 'OK' }).click();
+  const archive = z.object({ projects: z.array(z.object({ text: z.string() })) }).parse(JSON.parse(readFileSync(path, 'utf-8')));
+  const last = archive.projects.at(-1);
+  if (last === undefined) throw new Error('the exported archive holds no project');
+  const owpr: unknown = JSON.parse(last.text);
+  return owpr;
 }
 
 /** Renames the focused project from the phone's Project tab, as a user does. */

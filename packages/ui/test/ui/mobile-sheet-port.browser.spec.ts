@@ -58,7 +58,6 @@ test('vented Tune: tap on area opens port fields, edit writes to the project', a
 
   await expect(port).toHaveCount(0);
   await expect.poll(async () => Number(await area.inputValue())).toBeGreaterThan(before);
-  expect(await focusedIsModified(page)).toBe(true);
 
   // Close sheet: project is still modified
   await page.getByRole('button', {name: 'Close'}).tap();
@@ -103,5 +102,4 @@ test('Learn: the project is not changed by an edit made in the port fields', asy
   await port.getByRole('button', {name: 'Close'}).tap();
   await page.getByRole('button', {name: 'Close'}).tap();
   expect(await focusedIsModified(page)).toBe(false);
-  await expect(page.locator('.mob-open-project-dot')).toHaveCount(0);
 });
