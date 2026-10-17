@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 810d500b1720ddcd96cc0e64d928a11469892751
 goal: No archive refs (John, 17 Oct 2026): housekeeping and abandon.sh delete landed, superseded and abandoned branches outright, and log branch, tip and reason
 done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
 files:

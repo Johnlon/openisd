@@ -6,7 +6,7 @@
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {createEnvironmentAir} from './OriginalShell-hooks.js';
-import {createVentReadouts, FB_TARGET_TIP} from './ventReadouts.js';
+import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP} from './ventReadouts.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -60,7 +60,7 @@ export function useMobileBoxTab() {
   return {
     project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, rearTuningCell,
     boxResonance, boxVolumeCell, sealedFscCell, sealedQtcCell,
-    activeTuning, FB_TARGET_TIP,
+    activeTuning, FB_TARGET_TIP, FH_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
