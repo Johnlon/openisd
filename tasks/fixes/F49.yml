@@ -231,3 +231,19 @@ output: |
     1 error was not a part of any test, see above for details
   suite: unit exit 0, browser exit 1
   post-land suite 3819364-9a5062a2da finished: FAILED (exit 1) after 16m26s
+also_red:
+  - sha: 788a5c4ea371a5637d6e1ed79ca60e09b37ffeee
+    tested: 788a5c4ea371a5637d6e1ed79ca60e09b37ffeee
+    last_green: a78dcbb7b83285176f08d9dfbbe1559c613976c3
+    range: a78dcbb7b83285176f08d9dfbbe1559c613976c3..788a5c4ea371a5637d6e1ed79ca60e09b37ffeee
+    failing: |
+        ✘  814 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop wizard-bandpass4-step4 (26.1s)
+        ✘  813 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop wizard-bandpass4-step3 (26.5s)
+        ✘  820 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-driver (26.2s)
+        ✘  819 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-box (26.3s)
+        ✘  822 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-filters (39.2s)
+        ✘  821 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-signal (34.6s)
+        ✘  824 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-project (7ms)
+        ✘  823 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-advanced (9ms)
+        ✘  825 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-box (6ms)
+        ✘  826 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-driver (5ms)
