@@ -3,4 +3,6 @@ Description=OpenISD watchdog tick (SDLC S3)
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/bash /home/john/work/winisd/openisd/scripts/land/watchdog.sh
+# The installed copy of scripts/land/watchdog-boot.sh, never a file in the main checkout (T304): it runs
+# origin/main's watchdog.
+ExecStart=/usr/bin/bash %h/.local/libexec/openisd/watchdog-boot.sh
