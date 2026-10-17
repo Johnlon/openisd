@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 44d3dd8a7ad437f7f693f6a3509143ac2ad26958
 goal: >-
   The app tells the user how many projects are stored and how much storage they use, in every
   storage notice (John 17 Oct 2026, rulings 21, 23; additions via opi). (1) Save all flashes
