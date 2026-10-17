@@ -1,5 +1,5 @@
 prefix: QO
-next: 183
+next: 184
 questions:
 - id: QO179
   title: unit tests import the file they test; one test file per source file, never a barrel
@@ -9974,3 +9974,14 @@ questions:
     then removed the debug line with a normal edit and committed again, so nothing was lost. No other
     agent was involved and nothing was decided with anyone. Plain mistake: I should have committed before
     thinking about reverting.'
+- id: QO183
+  title: bob tried git checkout on questions.yml in the main checkout; the guard blocked it
+  status: open
+  raised: '2026-10-17'
+  body: 'Task: landing T250 (browser tests reuse the app between tests). The main checkout held an uncommitted
+    questions.yml change of mine (the earlier item about a blocked revert). That same item is now on origin/main
+    inside T250, so the checkout copy was redundant and stopped the checkout fast-forwarding. I ran git
+    checkout on that one file to drop my copy. The guard blocked it because the change was uncommitted
+    in this checkout. I did not look for another way round and stopped. I told fable (coordinator) and
+    asked how they want it cleared. Nothing was lost; the file still holds my uncommitted line. Needs
+    from you: nothing, unless you want a different way to clear the main checkout.'

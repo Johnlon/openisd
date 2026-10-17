@@ -4,6 +4,7 @@ repo: openisd
 owner: fable
 reviewer: bob
 status: done
+landed: b3d73da67c45c5cbc9939f317e7da24ae7a384dd
 goal: Browser tests load the app once per worker and reset it between tests, instead of a fresh page per test
 done_test: bash scripts/test.sh packages/ui/test/logic/appState-issues.test.ts
 files:
