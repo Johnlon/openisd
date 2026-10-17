@@ -1,4 +1,4 @@
-import {chartPicture, COMPLETE_DRIVER_PROJECT_OWPR, expectChartDrawn, duplicateFocusedProject, expect, shownBoxVolume, shownDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
+import {chartPicture, settledChartPicture, COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, shownBoxVolume, shownDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 
 /**
@@ -33,9 +33,10 @@ test.describe('Learn panel', () => {
     test('Learn changes the charts but never the project, and Close puts the curve back', async ({ page }) => {
       expect(await focusedIsModified(page)).toBe(false);
       const volume = await shownBoxVolume(page);
-      // The charts draw after the project opens; under load the first read is 0, and Close would then be compared to it.
-      await expectChartDrawn(page);
-      const spl = await chartPicture(page);
+      // The charts draw after the project opens and redraw as the font loads; Close is compared to the settled picture.
+      // The "Project imported" message floats over the chart for a few seconds and is part of its picture.
+      await expect(page.getByText(/Project imported/)).toBeHidden();
+      const spl = await settledChartPicture(page);
 
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();

@@ -1,0 +1,11 @@
+id: T335
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Close on the What-if panel puts the chart back every time
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T335.yml
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - bugs/BUG_20261017_what-if-close-curve-not-restored.md
