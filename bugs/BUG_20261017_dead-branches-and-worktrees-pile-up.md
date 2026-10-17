@@ -14,6 +14,8 @@ worktree and branch stayed for ever.
     the one its abandon decision names); a stale claim does not keep it;
   - a task branch, local or on origin, goes on the same terms, and so does a landed `land/<task>` branch;
   - a leftover folder with only generated folders goes.
+  - T344: a worktree without a task name (a run's or scratch copy, e.g. a 12 Oct `.slowrun` copy) goes on the
+    same terms once its HEAD is 6 h old; no run lives that long, so a live run's copy is never taken.
   The main folder and the synced copies are never touched. Every removal is logged.
 - `scripts/abandon.sh T<n> --by <who> "<why>"` lands
   `status: abandoned` with who, when, why and the branch's tip, then deletes the worktree and branch. Nothing is
