@@ -14,7 +14,7 @@
  */
 
 import {FLAT_MAX_BOOST_DB, P0} from '../constants.js';
-import type {EnvironmentIssue} from '../air.js';
+import type {AirIssue} from '../environment/airSolver.js';
 import type {Complex} from '../types.js';
 import {cAbs, cArg, cDiv, cMul, cScale, cx} from '../complex.js';
 import type {CircuitQuantities} from '../circuit.js';
@@ -47,7 +47,7 @@ import type {SignalIssue} from '../signal/SignalEngine.js';
  *  instead). Never a sweep-own quantity: `sweep()` computes nothing a caller enters, so it has
  *  no target of its own to report an issue about. */
 export type SweepIssue =
-  | DriverIssue | EnvironmentIssue | BoxParamsIssue
+  | DriverIssue | AirIssue | BoxParamsIssue
   | VentIssue | PrIssue | SignalIssue;
 
 /** The unified sweep result: the curves (or null if nothing could be derived), and why. */

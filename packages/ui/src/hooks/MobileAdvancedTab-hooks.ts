@@ -13,14 +13,14 @@ import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createErrorSwitches} from './errorSwitches.js';
 
 export function useMobileAdvancedTab() {
-  const {envDefaults, projectChanged} = useApp().appState;
+  const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
 
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults });
+  } = createEnvironmentAir({ project, projectChanged });
 
 
   const errorSwitches = createErrorSwitches({project, projectChanged});

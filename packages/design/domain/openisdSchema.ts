@@ -745,11 +745,11 @@ const openISDBoxJsonSchema = z.strictObject({
 export type OpenISDBoxJson = z.infer<typeof openISDBoxJsonSchema>;
 
 /**
- * The air the design sits in. Entry-shaped like every spec quantity: 'E' where the user stated
- * the condition, 'C' where the project's resolve stored the app's Options → Environment value,
- * absent only in a record no resolve has reached. The reference constants themselves stay in
- * `@openisd/engine` (`air.ts`'s `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) — a second copy here would
- * drift from them silently.
+ * The air the design sits in: five entries, temperature, humidity, pressure, c and ρ, each 'E'
+ * where the user stated it and 'C' where the air solver worked it out (from the other entered
+ * ones, else from the app's Options value). A value the record lacks loads empty and the solver
+ * fills it. The reference constants themselves stay in `@openisd/engine` (`air.ts`'s
+ * `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) — a second copy here would drift from them silently.
  */
 /** Projects saved before 2026-10-05 carry `useWinisdAirModel`, the switch for the removed
  *  CIPM-2007 air model. WinISD's air model is now the only one, so the value is dropped. */
@@ -758,15 +758,43 @@ function dropLegacyUseWinisdAirModel(value: unknown): unknown {
     const {useWinisdAirModel: _dropped, ...rest} = value;
     return rest;
 }
-const openISDEnvironmentJsonSchema = z.preprocess(dropLegacyUseWinisdAirModel, z.strictObject({
-    temperature_K: specEntryJsonSchema.optional(),
-    humidity_pct: specEntryJsonSchema.optional(),
-    pressure_Pa: specEntryJsonSchema.optional(),
-}));
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** A record saved before c and ρ were stored (it has neither key) holds its temperature, humidity
+ *  and pressure as 'C' entries: every resolve then wrote the app's Options value there. They are
+ *  the file's own values, so they load as 'E'. A record that has c or ρ is the current layout,
+ *  where a 'C' temperature, humidity or pressure really was calculated, and is left alone. */
+function oldAirLoadsAsEntered(value: unknown): unknown {
+    if (!isRecord(value) || 'c_m_per_s' in value || 'roo_kg_per_m3' in value) return value;
+    const entered = (entry: unknown): unknown => {
+        if (!isRecord(entry) || entry.state !== 'C') return entry;
+        const {state: _state, dq_calculated: _dq, ...rest} = entry;
+        return {state: 'E', ...rest};
+    };
+    return {
+        ...value,
+        temperature_K: entered(value.temperature_K),
+        humidity_pct: entered(value.humidity_pct),
+        pressure_Pa: entered(value.pressure_Pa),
+    };
+}
+
+const openISDEnvironmentJsonSchema = z.preprocess(
+    value => oldAirLoadsAsEntered(dropLegacyUseWinisdAirModel(value)),
+    z.strictObject({
+        temperature_K: specEntryJsonSchema.optional(),
+        humidity_pct: specEntryJsonSchema.optional(),
+        pressure_Pa: specEntryJsonSchema.optional(),
+        c_m_per_s: specEntryJsonSchema.optional(),
+        roo_kg_per_m3: specEntryJsonSchema.optional(),
+    }));
 export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema>;
 
-/** The three air conditions a project states, each an entry like any spec quantity. */
-export type EnvironmentCondition = 'temperature_K' | 'humidity_pct' | 'pressure_Pa';
+/** The keys of a project's air entries, one per air quantity. */
+export type AirKey = 'temperature_K' | 'humidity_pct' | 'pressure_Pa' | 'c_m_per_s' | 'roo_kg_per_m3';
 
 const signalEntryJsonSchema = z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]);
 export type SignalEntryJson = z.infer<typeof signalEntryJsonSchema>;

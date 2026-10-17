@@ -170,9 +170,9 @@ export interface AppState {
   ventedLimits(): VentedDesignLimits;
   /** Change the band, then recall every open project so its marks match the new one. */
   setVentedLimits(limits: VentedDesignLimits): void;
-  /** The environment a project reads for any of temperature/humidity/pressure it has not entered. */
+  /** The app's air constants (Options → General → Environment): copied into a new project as entered, and used for any air value a project cannot calculate. */
   envDefaults(): EnvDefaults;
-  /** Change the environment, then recall every open project so its calculated air repaints. */
+  /** Change the environment, then recall every open project so the air values it calculated from the app's constants repaint. An entered value never moves. */
   setEnvDefaults(defaults: EnvDefaults): void;
   readonly engine: Engine;
   /** The domain's ambient facts, with `platformUser` reading the app's Username setting. */
@@ -294,14 +294,14 @@ export function createAppState(deps: AppStateDeps): AppState {
   }
 
 
-  /** The environment a project reads for any of temperature/humidity/pressure it has not entered
-   *  (Options → General → Environment). */
+  /** The app's air constants (Options → General → Environment). */
   function envDefaults(): EnvDefaults {
     return appSettings.envDefaults();
   }
 
-  /** Change the environment, then recall EVERY open project so its calculated air repaints —
-   *  the same recall as `setVentedLimits`, for the same reason. */
+  /** Change the environment, then recall EVERY open project so the air it calculated from the
+   *  app's constants repaints — the same recall as `setVentedLimits`, for the same reason. A value
+   *  a project holds as entered never moves. */
   function setEnvDefaults(defaults: EnvDefaults): void {
     appSettings.setEnvDefaults(defaults);
     for (const project of projects.value) project.appSettingsChanged();

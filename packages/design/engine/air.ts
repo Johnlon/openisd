@@ -72,6 +72,38 @@ export interface Air {
   rho(): number;
 }
 
+/**
+ * The app's own air: the Options constants a project COPIES in, as E, when one of its air fields is
+ * filled (a new project, an old file with no air, a cleared field the solver cannot give). Handed
+ * to a project once, at construction, by the composition root. Read only at the moment of a fill:
+ * it is never a live link, and no solver sees it.
+ */
+export interface AppAir {
+  /** Speed of sound at the app's constants, m/s. */
+  c(): number;
+  /** Density at the app's constants, kg/m³. */
+  rho(): number;
+  /** The app's temperature, K. */
+  temperature(): number;
+  /** The app's relative humidity, percent. */
+  humidity(): number;
+  /** The app's pressure, Pa. */
+  pressure(): number;
+}
+
+/** The app's air over its three Options constants: c and ρ are the air model's answer for them.
+ *  Read at call time, so a changed Options value is seen by the next fill. */
+export function appAirOf(constants: () => AirEnvironment): AppAir {
+  const values = (): AirValues => winisdAir(constants().tempK, constants().humidityPct, constants().pressurePa);
+  return {
+    c: () => values().c,
+    rho: () => values().rho,
+    temperature: () => constants().tempK,
+    humidity: () => constants().humidityPct,
+    pressure: () => constants().pressurePa,
+  };
+}
+
 /** The names the working sets and the vent and radiator solves give to c and ρ. */
 export type AirWorkingName = 'c_m_per_s' | 'roo_kg_per_m3';
 /** Both air names, in the order an issue lists them. */

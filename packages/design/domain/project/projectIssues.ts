@@ -1,4 +1,4 @@
-import type { DqIssue, DriverIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, SignalIssue, VentIssue } from '../../engine/index.js';
+import type { AirIssue, DqIssue, DriverIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, SignalIssue, VentIssue } from '../../engine/index.js';
 
 /** `OpenISDProject#resolve()`'s cached result — the current layer's own issues, by channel.
  *  `driver` is this step (S2-7d1); vent/PR/sealed/environment join it in S2-7d2. */
@@ -18,4 +18,7 @@ export interface ProjectIssues {
      *  judged. Appended to `vent`'s own mark on `tuning_goal_hz`, never over it: the two say
      *  different things (this geometry does not solve / nobody would build this). */
     readonly ventTuningExtra: DqIssue | null;
+    /** The air solver's issues: a conflict between the five air quantities, a quantity it could
+     *  not give, an entered temperature outside the air model. Each names the fields it concerns. */
+    readonly air: readonly AirIssue[];
 }

@@ -232,16 +232,17 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project.envHumidityPct.value, 50); // phi is a fraction in the file: 0.5 -> 50%
     });
 
-    it('a file with no [Box] T/p/phi leaves the project\'s environment calculated, at the app default', () => {
+    it('a file with no [Box] T/p/phi leaves the project\'s environment as a new project has it: the app\'s values, entered', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=0\nVr=0.02\n';
       const engine = createEngine();
       const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
       assert.equal(errors.length, 0, JSON.stringify(errors));
       if (!project) throw new Error('expected a project');
-      assert.equal(project.envTempK.calculated, true);
+      assert.equal(project.envTempK.entered, true);
+      assert.equal(project.envTempK.value, engine.environment.appAir.temperature());
     });
 
-    it('a [Box] T/p/phi equal to the app default stays calculated; a differing one is entered', () => {
+    it('a [Box] T/p/phi is entered whether or not it equals the app default', () => {
       const engine = createEngine();
       const {tempK, pressurePa, humidityPct} = engine.environment.defaults();
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
@@ -249,8 +250,8 @@ describe('winIsdProjectToOpenIsdProject', () => {
       const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
       assert.equal(errors.length, 0, JSON.stringify(errors));
       if (!project) throw new Error('expected a project');
-      assert.equal(project.envTempK.calculated, true);
-      assert.equal(project.envHumidityPct.calculated, true);
+      assert.equal(project.envTempK.entered, true);
+      assert.equal(project.envHumidityPct.entered, true);
       assert.equal(project.envPressurePa.entered, true);
       assert.equal(project.envPressurePa.value, pressurePa + 100);
     });

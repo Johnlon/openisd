@@ -1,8 +1,8 @@
 import type {
-    Air, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
+    Air, AirState, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
     SimulationEngine, SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
 } from '../../engine/index.js';
-import { FixedAir } from '../../engine/index.js';
+import { FixedAir, airIfAvailable } from '../../engine/index.js';
 import type { Filter, EnclosureParams } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell } from '../cell.js';
 import type { Calculated, Readable, SimpleField } from '../cell.js';
@@ -49,8 +49,10 @@ export interface ProjectSweepSource {
     readonly alfaVC_per_K: SimpleField<number>;
     readonly sweepN: SimpleField<number | null>;
     readonly driveVoltage_V: number;
-    readonly air: Air;
-    /** What is wrong with the conditions `air` was solved from; a sweep does not run while any is. */
+    /** The project's air, or why it has none: a sweep does not run without it. */
+    readonly air: AirState;
+    /** What is wrong with the conditions the air runs in (an entered temperature the air model
+     *  does not support); a sweep does not run while any is. */
     readonly airIssues: readonly EnvironmentIssue[];
     readonly engine: Engine;
     readonly ventIssues: readonly VentIssue[];
@@ -336,26 +338,28 @@ export type SweepPlan =
 /** The driver as the sweep reads it: WinISD's own circuit values when "Use WinISD driver
  *  calculations" is on, the entered ones otherwise. The entered BL still reaches the engine as
  *  `winisdBL_Tm`, which WinISD's inductance model reads too. */
-function sweepDriverOf(source: ProjectSweepSource): SweepDriver {
-    const entered = source.driver.specs.sweepDriver(source.air);
+function sweepDriverOf(source: ProjectSweepSource, air: Air): SweepDriver {
+    const entered = source.driver.specs.sweepDriver(air);
     if (!source.winisdDriverModel.value) return entered;
-    return {...entered, values: source.engine.driver.winisdCircuitValues(entered.values, source.air)};
+    return {...entered, values: source.engine.driver.winisdCircuitValues(entered.values, air)};
 }
 
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {
     const box = engineBoxTypeOf(source);
     if (!box) return {kind: 'blocked', issues: []};
+    if (source.air.kind === 'notAvailable') return {kind: 'blocked', issues: source.air.issues};
     if (source.airIssues.length) return {kind: 'blocked', issues: source.airIssues};
+    const air = source.air.air;
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};
     // A blank box volume: the engine's own "Box volume (Vb) must be greater than zero" names it.
     const Vb = boxVolume_m3Of(source, box);
     if (Vb === null) return {kind: 'blocked', issues: boxParamsIssuesOf(source)};
     return {kind: 'ready', job: {
-        driver: sweepDriverOf(source),
+        driver: sweepDriverOf(source, air),
         Le_H: source.driver.specs.Le_H.value ?? undefined,
         box,
-        air: {c: source.air.c(), rho: source.air.rho()},
+        air: {c: air.c(), rho: air.rho()},
         sweep: sweepParamsOf(source, P, source.driveVoltage_V, box, Vb),
         maxCurves: sweepParamsOf(source, P, 2.83, box, Vb),
     }};
@@ -417,7 +421,9 @@ export function ventMaxReachableFbOf(source: ProjectSweepSource): Readable<numbe
             return absentCell<number>('ventMaxReachableFb');
         }
         const count = source.box.vented.vent.count.value;
-        const v = source.engine.vent.tuningFromLength(Vb, 0, Sp, count, source.air, source.box.vented.vent.endCorrection_m.value);
+        const air = airIfAvailable(source.air);
+        if (air === null) return absentCell<number>('ventMaxReachableFb');
+        const v = source.engine.vent.tuningFromLength(Vb, 0, Sp, count, air, source.box.vented.vent.endCorrection_m.value);
         return calculatedCell<number | null>('ventMaxReachableFb', v);
     });
 }

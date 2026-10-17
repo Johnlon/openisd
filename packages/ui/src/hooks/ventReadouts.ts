@@ -8,6 +8,7 @@ import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
 import {NumberField} from '@openisd/design/fields';
 import type {OpenISDProject} from '@openisd/design';
+import {airIfAvailable} from '@openisd/design/engine';
 import type {BoxType, VentEngine} from '@openisd/design/engine';
 
 /** A presentation fact with no domain counterpart: these three box types draw two chambers. */
@@ -54,8 +55,9 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
   const portPipeResonance_hz = computed<number | null>(() => {
     void project.value;
     const L = activeVent.value.length_m.value;
-    if (L == null) return null;
-    return vent.firstResonance_hz(L, project.value.air);
+    const air = airIfAvailable(project.value.air);
+    if (L == null || air === null) return null;
+    return vent.firstResonance_hz(L, air);
   });
   /** The vent's own dq — a `target-unreachable` mark means the entered tuning has no positive
    *  port length in this volume/area; the solver already wrote `length_m` null. */
@@ -80,10 +82,11 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     void project.value;
     return project.value.box.ventPortsOf(selectedBox.value).map(port => {
       const L = port.vent.length_m.value;
+      const air = airIfAvailable(project.value.air);
       const issue = port.vent.length_m.dq.find(i => i.kind === 'target-unreachable') ?? null;
       return {
         ...port,
-        portPipeResonance_hz: L == null ? null : vent.firstResonance_hz(L, project.value.air),
+        portPipeResonance_hz: L == null || air === null ? null : vent.firstResonance_hz(L, air),
         unreachable: issue !== null,
         unreachableMsg: issue === null ? '' : issue.text,
       };

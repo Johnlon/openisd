@@ -13,12 +13,16 @@
  * widths of its inputs carried through), and the stated values disagree only when the gap exceeds
  * the target's own width plus how far every other input's width moves the prediction.
  *
- * A quantity the entered values do not determine is `null` with an issue naming the relation's
- * fields, never a wild number: no root inside the field's limits, a c so coarse that every value
- * in the range matches it, or nothing yet solvable.
+ * A quantity no calculation path gives takes the app's value (`AppAir`), as a calculated one: T,
+ * RH and p first, then c and ρ, each followed by a fresh pass of the relations. So a blank value
+ * follows the app's Options until it is typed, and a typed c with T cleared gives T from c, not
+ * the app's T. A value no path gives and the app cannot give either (its own value outside the
+ * limits) is `null` with an issue naming the relation's fields, never a wild number: no root
+ * inside the field's limits, a c so coarse that every value in the range matches it.
  */
 import {NumberField} from '../../fields/field.js';
 import {GAMMA, soundSpeedAt, temperatureIssues} from '../air.js';
+import type {AppAir} from '../air.js';
 import {inconsistentInputs, missingDependencies} from '../consistency.js';
 import type {CalculationIssue} from '../consistency.js';
 
@@ -50,6 +54,9 @@ export interface AirSolvedValues {
 
 export interface AirSolution {
   readonly values: AirSolvedValues;
+  /** The half-width of each value (the typed precision of an entered one, the carried-through
+   *  width of a solved one, 0 for the app's value); `null` where there is no value. */
+  readonly widths: AirSolvedValues;
   readonly issues: readonly AirIssue[];
 }
 
@@ -244,7 +251,18 @@ function unavailable(target: AirQuantityName, relation: AirRelation, why: string
   }]);
 }
 
-export function solveAir(inputs: AirInputs): AirSolution {
+/** The app's value of one air quantity. */
+function appValue(appAir: AppAir, name: AirQuantityName): number {
+  switch (name) {
+    case 'tempK': return appAir.temperature();
+    case 'humidityPct': return appAir.humidity();
+    case 'pressurePa': return appAir.pressure();
+    case 'c': return appAir.c();
+    case 'rho': return appAir.rho();
+  }
+}
+
+export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   const known = new Map<AirQuantityName, number>();
   const widths = new Map<AirQuantityName, number>();
   for (const name of QUANTITIES) {
@@ -260,43 +278,56 @@ export function solveAir(inputs: AirInputs): AirSolution {
     widths.set(name, width);
   };
 
-  for (let progressed = true; progressed;) {
-    progressed = false;
-    for (const rel of RELATIONS) {
-      const step = rel.solveOpen(known, widths, gaveUp);
-      if (step === null) continue;
-      const {target, outcome} = step;
-      used.add(rel);
-      if (outcome.kind === 'failed' || !withinLimits(target, outcome.value)) {
-        gaveUp.add(target);
-        issues.push(unavailable(target, rel, outcome.kind === 'failed' ? outcome.why : 'the answer is outside its limits', known));
-      } else {
-        const others = rel.fields.filter(f => f !== target);
-        record(target, outcome.value, propagatedWidth(others, known, widths, k => {
-          const o = step.again(k);
-          return o.kind === 'solved' ? o.value : null;
-        }, outcome.value));
-        progressed = true;
+  const propagate = (): void => {
+    for (let progressed = true; progressed;) {
+      progressed = false;
+      for (const rel of RELATIONS) {
+        const step = rel.solveOpen(known, widths, gaveUp);
+        if (step === null) continue;
+        const {target, outcome} = step;
+        used.add(rel);
+        if (outcome.kind === 'failed' || !withinLimits(target, outcome.value)) {
+          gaveUp.add(target);
+          issues.push(unavailable(target, rel, outcome.kind === 'failed' ? outcome.why : 'the answer is outside its limits', known));
+        } else {
+          const others = rel.fields.filter(f => f !== target);
+          record(target, outcome.value, propagatedWidth(others, known, widths, k => {
+            const o = step.again(k);
+            return o.kind === 'solved' ? o.value : null;
+          }, outcome.value));
+          progressed = true;
+        }
+        break;
       }
-      break;
     }
-  }
 
-  if (!known.has('pressurePa') && !known.has('c') && known.has('tempK') && known.has('humidityPct') && known.has('rho')
-      && !gaveUp.has('pressurePa')) {
-    const both = solveCoupled(known);
-    used.add(DENSITY);
-    used.add(SOUND);
-    if (both === null || !withinLimits('pressurePa', both.p) || !withinLimits('c', both.c)) {
-      gaveUp.add('pressurePa');
-      gaveUp.add('c');
-      issues.push(unavailable('pressurePa', SOUND, 'no pressure in range fits this density', known));
-      issues.push(unavailable('c', DENSITY, 'no pressure in range fits this density', known));
-    } else {
-      const ins: readonly AirQuantityName[] = ['tempK', 'humidityPct', 'rho'];
-      record('pressurePa', both.p, propagatedWidth(ins, known, widths, k => solveCoupled(k)?.p ?? null, both.p));
-      record('c', both.c, propagatedWidth(ins, known, widths, k => solveCoupled(k)?.c ?? null, both.c));
+    if (!known.has('pressurePa') && !known.has('c') && known.has('tempK') && known.has('humidityPct') && known.has('rho')
+        && !gaveUp.has('pressurePa')) {
+      const both = solveCoupled(known);
+      used.add(DENSITY);
+      used.add(SOUND);
+      if (both === null || !withinLimits('pressurePa', both.p) || !withinLimits('c', both.c)) {
+        gaveUp.add('pressurePa');
+        gaveUp.add('c');
+        issues.push(unavailable('pressurePa', SOUND, 'no pressure in range fits this density', known));
+        issues.push(unavailable('c', DENSITY, 'no pressure in range fits this density', known));
+      } else {
+        const ins: readonly AirQuantityName[] = ['tempK', 'humidityPct', 'rho'];
+        record('pressurePa', both.p, propagatedWidth(ins, known, widths, k => solveCoupled(k)?.p ?? null, both.p));
+        record('c', both.c, propagatedWidth(ins, known, widths, k => solveCoupled(k)?.c ?? null, both.c));
+      }
     }
+
+  };
+  propagate();
+
+  // No path gave these: the app's value stands in, then the relations run again from it.
+  for (const name of QUANTITIES) {
+    if (known.has(name)) continue;
+    const value = appValue(appAir, name);
+    if (!withinLimits(name, value)) continue;
+    record(name, value, 0);
+    propagate();
   }
 
   for (const name of QUANTITIES) {
@@ -334,7 +365,11 @@ export function solveAir(inputs: AirInputs): AirSolution {
   const tempK = known.get('tempK');
   if (tempK !== undefined) issues.push(...temperatureIssues(tempK));
 
+  const widthOf = (name: AirQuantityName): number | null => known.has(name) ? widths.get(name) ?? 0 : null;
   return {
+    widths: {
+      tempK: widthOf('tempK'), humidityPct: widthOf('humidityPct'), pressurePa: widthOf('pressurePa'), c: widthOf('c'), rho: widthOf('rho'),
+    },
     values: {
       tempK: known.get('tempK') ?? null, humidityPct: known.get('humidityPct') ?? null,
       pressurePa: known.get('pressurePa') ?? null, c: known.get('c') ?? null, rho: known.get('rho') ?? null,

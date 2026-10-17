@@ -163,9 +163,13 @@ export abstract class BoxProjectBuilder {
                 loading: 'standard',
             },
             box: this.emptyBox(),
-            // The three conditions state nothing; the project's first resolve stamps the app's
-            // Options → Environment value into each as a 'C' entry.
-            environment: {},
+            // A new project copies the app's temperature, humidity and pressure in as entered; c and
+            // ρ are left to the air solver. The copy is a snapshot: no link to the Options after it.
+            environment: {
+                temperature_K: enteredEntry(this.engine.environment.appAir.temperature()),
+                humidity_pct: enteredEntry(this.engine.environment.appAir.humidity()),
+                pressure_Pa: enteredEntry(this.engine.environment.appAir.pressure()),
+            },
             signal: {},
             meta: {
                 name: '',

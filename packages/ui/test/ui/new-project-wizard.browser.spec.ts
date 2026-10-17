@@ -141,6 +141,25 @@ test.describe('New Project wizard', () => {
       await expect(modal.locator('.selected-driver-banner')).toContainText('Wizard Test RS225');
     });
 
+    test('changing the Options air leaves an open project\'s temperature alone; a project made after it gets the new value', async ({ appPage: page }) => {
+      const advancedTemperature = () => page.locator('.tab-section.active .field', { hasText: 'Temperature' }).locator('input');
+      await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
+      await expect(advancedTemperature()).toHaveValue('293.15');
+
+      await page.locator('.tb-btn[title="Options"]').click();
+      const optionsTemperature = page.locator('.opt-modal .opt-fld', { hasText: 'Temperature' }).locator('input[data-numinput], input[type="number"]');
+      await optionsTemperature.fill('300');
+      await optionsTemperature.dispatchEvent('input');
+      await optionsTemperature.blur();
+      await page.locator('.opt-modal .opt-ok').click();
+
+      await expect(advancedTemperature()).toHaveValue('293.15');
+
+      await buildProject(page, 'sealed', 'Air copy');
+      await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
+      await expect(advancedTemperature()).toHaveValue('300.00');
+    });
+
     test('Cancel closes the wizard without creating a project', async ({ appPage: page }) => {
       const rows = page.locator('.projects-list .project-row');
       const before = await rows.count();

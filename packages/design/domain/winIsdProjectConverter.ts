@@ -26,7 +26,6 @@ import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
 import {ProjectBuilder} from './openisdTransforms.js';
-import type {EnvironmentField} from './project/environmentFields.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
 
@@ -269,6 +268,9 @@ export class WinIsdProjectConverter {
     }
 
     const nowStamp = dateStamp(new Date());
+    const tempK = project.envTempK.value;
+    const pressurePa = project.envPressurePa.value;
+    const humidityPct = project.envHumidityPct.value;
 
     const values: WprValues = {
       ProjectInfo: {
@@ -279,9 +281,10 @@ export class WinIsdProjectConverter {
       },
       Box: {
         ...boxValues,
-        T: project.envTempK.value,
-        p: project.envPressurePa.value,
-        phi: project.envHumidityPct.value / 100,
+        // The current air; a quantity with no value is left to the template's own.
+        ...(tempK === null ? {} : {T: tempK}),
+        ...(pressurePa === null ? {} : {p: pressurePa}),
+        ...(humidityPct === null ? {} : {phi: humidityPct / 100}),
         // The coil's temperature coefficient and its modelled rise. Left out, the template writes
         // WinISD's own defaults over whatever the design states (BUG_20260817 F3).
         alfaVC: project.alfaVC_per_K.value,
@@ -568,14 +571,10 @@ export class WinIsdProjectConverter {
     const T = wpr.number('Box', 'T');
     const p = wpr.number('Box', 'p');
     const phi = wpr.number('Box', 'phi');
-    // A file value equal to the project's current default (the app's Options → Environment C) was
-    // most likely never typed; leave it unset so it stays C rather than becoming an E.
-    const enterUnlessDefault = (field: EnvironmentField, value: number): void => {
-      if (!(field.calculated && Math.abs(field.value - value) < 1e-9)) field.set(value);
-    };
-    if (T != null) enterUnlessDefault(project.envTempK, T);
-    if (p != null) enterUnlessDefault(project.envPressurePa, p);
-    if (phi != null) enterUnlessDefault(project.envHumidityPct, phi * 100); // phi is a FRACTION in the file
+    // The file's own T, p and phi are what the project's air is entered as. phi is a FRACTION in the file.
+    if (T != null) project.envTempK.set(T);
+    if (p != null) project.envPressurePa.set(p);
+    if (phi != null) project.envHumidityPct.set(phi * 100);
 
     const Rg = wpr.number('SignalSource', 'Rg');
     if (Rg != null) project.Rs_ohm.set(Rg);

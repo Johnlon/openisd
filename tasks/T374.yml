@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: c06f28f0d3d9ba9a3e81e1d30b8fd0d04a3e1b25
 goal: Solvers that write calculated values (driver, vent, passive radiator) take an AirState that is available or not available, and a value that needs air stays not available with an issue naming c and rho when it is not; no behaviour change
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

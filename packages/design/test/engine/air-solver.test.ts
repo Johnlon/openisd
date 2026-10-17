@@ -144,19 +144,36 @@ describe('air solver — conflicts', () => {
 });
 
 describe('air solver — missing and unreachable', () => {
-  it('T and RH open with only p, c entered: both missing, issue names the sound relation', () => {
-    const r = engine.environment.solveAir(inputs({pressurePa: entered(P), c: entered(AIR.c)}));
-    assert.equal(r.values.tempK, null);
-    assert.equal(r.values.humidityPct, null);
-    const missing = r.issues.filter(i => i.kind === 'missing-dependencies');
-    assert.ok(missing.some(i => i.target === 'tempK' && i.fields.includes('humidityPct')));
-    assert.ok(missing.some(i => i.target === 'humidityPct' && i.fields.includes('tempK')));
+  it('T and RH open with only p, c entered: no path gives T so it takes the app value, and RH is solved from it', () => {
+    const appT = engine.environment.appAir.temperature();
+    const c = engine.environment.solve({tempK: appT, humidityPct: 70, pressurePa: P}).values.c;
+    const r = engine.environment.solveAir(inputs({pressurePa: entered(P), c: entered(c, 0.0005)}));
+    assert.equal(r.values.tempK, appT);
+    assert.ok(relative(r.values.humidityPct, 70) < 1e-3);
+    assert.deepEqual(r.issues.filter(i => i.kind === 'missing-dependencies'), []);
   });
 
-  it('T from a c no temperature in range gives: not available, with an issue on tempK', () => {
+  it('nothing entered: every quantity takes the app value, c and ρ from the app three', () => {
+    const r = engine.environment.solveAir(inputs({}));
+    const app = engine.environment.appAir;
+    assert.equal(r.values.tempK, app.temperature());
+    assert.equal(r.values.humidityPct, app.humidity());
+    assert.equal(r.values.pressurePa, app.pressure());
+    assert.equal(r.values.c, app.c());
+    assert.equal(r.values.rho, app.rho());
+    assert.deepEqual(r.issues, []);
+  });
+
+  it('a typed c with T open gives T from c, not the app T', () => {
+    const r = engine.environment.solveAir(inputs({humidityPct: entered(RH), pressurePa: entered(P), c: entered(AIR.c, 0.005)}));
+    assert.ok(relative(r.values.tempK, T) < 1e-3);
+    assert.notEqual(r.values.tempK, engine.environment.appAir.temperature());
+  });
+
+  it('T from a c no temperature in range gives: the issue stays on tempK, and T takes the app value', () => {
     const r = engine.environment.solveAir(inputs({
       humidityPct: entered(RH), pressurePa: entered(P), c: entered(999, 0.005)}));
-    assert.equal(r.values.tempK, null);
+    assert.equal(r.values.tempK, engine.environment.appAir.temperature());
     assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'tempK'));
   });
 
@@ -168,29 +185,29 @@ describe('air solver — missing and unreachable', () => {
 });
 
 describe('air solver — ill-conditioned back-solves are not available, never a wild number', () => {
-  it('RH from a c that implies RH above 100: not available', () => {
+  it('RH from a c that implies RH above 100: the issue stays on humidityPct, and RH takes the app value', () => {
     const c100 = engine.environment.solve({tempK: T, humidityPct: 100, pressurePa: P}).values.c;
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T), pressurePa: entered(P), c: entered(c100 + 0.5, 0.0005)}));
-    assert.equal(r.values.humidityPct, null);
+    assert.equal(r.values.humidityPct, engine.environment.appAir.humidity());
     assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'humidityPct'));
   });
 
-  it('RH from a c that implies RH below 0: not available', () => {
+  it('RH from a c that implies RH below 0: the issue stays on humidityPct, and RH takes the app value', () => {
     const c0 = engine.environment.solve({tempK: T, humidityPct: 0, pressurePa: P}).values.c;
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T), pressurePa: entered(P), c: entered(c0 - 0.5, 0.0005)}));
-    assert.equal(r.values.humidityPct, null);
+    assert.equal(r.values.humidityPct, engine.environment.appAir.humidity());
     assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'humidityPct'));
   });
 
-  it('RH from a c typed so coarsely that every humidity matches it: not available', () => {
+  it('RH from a c typed so coarsely that every humidity matches it: the issue stays on humidityPct, and RH takes the app value', () => {
     const c0 = engine.environment.solve({tempK: T, humidityPct: 0, pressurePa: P}).values.c;
     const c100 = engine.environment.solve({tempK: T, humidityPct: 100, pressurePa: P}).values.c;
     const mid = (c0 + c100) / 2;
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T), pressurePa: entered(P), c: entered(Math.round(mid), 5)}));
-    assert.equal(r.values.humidityPct, null);
+    assert.equal(r.values.humidityPct, engine.environment.appAir.humidity());
     assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'humidityPct'));
   });
 

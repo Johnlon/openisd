@@ -44,7 +44,7 @@ import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
-import type {ChartId, EnvDefaults} from '@openisd/design/engine';
+import type {ChartId} from '@openisd/design/engine';
 import {useCompareOverlays} from './compareOverlays.js';
 import {projectCloudMarks, useCloudSync, useCloudSyncUi} from './CloudSync-hooks.js';
 import type {ConflictCopy} from '@openisd/design/cloud';
@@ -88,19 +88,18 @@ export function fillBlankMeta(p: OpenISDProject, username: string | null, today:
 }
 
 // ---- Advanced tab: environment ------------------------------------------------
-// The app default flows through whenever the project has no value of its own. The FIELD then
-// presents as a CALCULATED value (blue, `calculated`) — never as green "entered" and never as
-// blank; typing a value turns it green "entered", and deleting it drops the stored value back
-// to that calculated default. The `*Stored` flags drive the two presentations.
+// A value the project has no way to calculate from the others takes the app's value, and the
+// FIELD then presents as a CALCULATED value (blue, `calculated`) — never as green "entered" and
+// never as blank; typing a value turns it green "entered", and deleting it just empties it, for
+// the air solver to fill again. The `*Stored` flags drive the two presentations.
 export interface EnvironmentAirDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
-  envDefaults: () => EnvDefaults;
 }
 
 type EnvField = Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
 
-export function createEnvironmentAir({ project, projectChanged: changed, envDefaults }: EnvironmentAirDeps) {
+export function createEnvironmentAir({ project, projectChanged: changed }: EnvironmentAirDeps) {
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
@@ -123,18 +122,16 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advTemp = entryOf(temp);
   const advHumidity = entryOf(humidity);
   const advPressure = entryOf(pressure);
+  /** Empties all five air fields: the air solver fills each from the app's levels again. */
   function resetAirToAppDefaults(): void {
-    const defaults = envDefaults();
-    temp().set(defaults.tempK);
-    humidity().set(defaults.humidityPct);
-    pressure().set(defaults.pressurePa);
+    project.value.clearAir();
   }
   /** The air the sweep is actually running in — one call, both readouts. */
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    const {air} = project.value;
-    return {c: air.c(), rho: air.rho()};
+    const {envC_m_per_s, envRoo_kg_per_m3} = project.value;
+    return {c: envC_m_per_s.value, rho: envRoo_kg_per_m3.value};
   });
   return {
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
@@ -158,7 +155,7 @@ const TAB_ACTIONS: Record<TabId, ActionName> = {
 export function useOriginalShell(options?: { sealedReadouts?: typeof createSealedReadouts }) {
   const recentActions = useRecentActions();
   const { appState, presentation: presentationState } = useApp();
-  const { definePassiveRadiator, isTraceVisible, setTraceVisible, allIssues, IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, copyProjectName, curvesData, driverName, duplicateFocusedProject, envDefaults, focusedProject, focusProject, isModified, markProjectSaved, maxData, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround, syncedP } = appState;
+  const { definePassiveRadiator, isTraceVisible, setTraceVisible, allIssues, IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, copyProjectName, curvesData, driverName, duplicateFocusedProject, focusedProject, focusProject, isModified, markProjectSaved, maxData, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround, syncedP } = appState;
   const { setSkinOverride } = presentationState;
   const sealedReadouts = options?.sealedReadouts ?? createSealedReadouts;
 
@@ -641,7 +638,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults });
+  } = createEnvironmentAir({ project, projectChanged });
 
   // ---- Enclosure tab: vent (port) readouts ---------------------------------------
   // Delegated to the unit-tested `createVentReadouts` above.

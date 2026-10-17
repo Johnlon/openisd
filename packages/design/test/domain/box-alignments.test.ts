@@ -355,7 +355,7 @@ describe('OpenISDBox alignments', () => {
       // matches the engine's own resolve for that environment exactly.
       const lengthAtRef = p.box.vented.vent.length_m.value;
       p.envTempK.set(303.15);
-      const warm = engine.environment.solve({ tempK: 303.15, humidityPct: p.envHumidityPct.value, pressurePa: p.envPressurePa.value }).values;
+      const warm = engine.environment.solve({ tempK: 303.15, humidityPct: p.envHumidityPct.value ?? NaN, pressurePa: p.envPressurePa.value ?? NaN }).values;
       const lengthWarm = p.box.vented.vent.length_m.value;
 
       expect(lengthAtRef).not.toBeCloseTo(lengthWarm!, 12);

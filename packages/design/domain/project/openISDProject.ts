@@ -1,9 +1,11 @@
-import {type Engine, FixedAir, availableAir} from '../../engine/index.js';
-import type { Air, AirEnvironment, AirState, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
+import type { AirState, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
+import type { EnvironmentIssue } from '../../engine/index.js';
+import { airStateOf } from './projectAir.js';
 import { DEFAULT_SOURCE_RESISTANCE_OHM } from '../../fields/defaults.js';
 import { newUuid } from '../newUuid.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
@@ -18,7 +20,8 @@ import { errorSwitchStatesOf } from './errorSwitches.js';
 import type { ErrorSwitchStates } from './errorSwitches.js';
 import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
-import { ProjectEnvironment, envFieldsOver } from './projectEnvironment.js';
+import { airFieldsOver } from './projectAir.js';
+import type { AirField, AirFields } from './projectAir.js';
 import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf, withoutDriverId } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
@@ -83,7 +86,7 @@ export class OpenISDProject {
     readonly #appContext: AppContext;
 
     /** The current layer's cached issues — see the class doc comment's "ONE EXCEPTION". */
-    #issues: ProjectIssues = { driver: [], signal: [], vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null };
+    #issues: ProjectIssues = { driver: [], signal: [], vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null, air: [] };
 
     private constructor(saved: OpenISDProjectJson, uuid: string, engine: Engine, appContext: AppContext) {
         this.#saved = saved;
@@ -105,26 +108,16 @@ export class OpenISDProject {
         );
     }
 
-    /** The project's own resolved `{rho, c}` — the ONE air every calculation uses: box, vent, PR,
-     *  resolve, sweep, "Two-BL driver" taking Cms from Vas. The embedded
-     *  driver's own `c_m_per_s`/`roo_kg_per_m3` are never a source for this — see the field
-     *  comment on `OpenIsdDriverSpec`'s constructor. */
-    #air(root: SimpleField<OpenISDProjectJson>): Air {
-        return new FixedAir(this.#engine.environment.solve(this.#airOver(root)).values);
+    /** The five air fields of `root`, over its environment record. Their marks are read live from
+     *  the last resolve. */
+    #airFieldsOver(root: SimpleField<OpenISDProjectJson>) {
+        return airFieldsOver(focus(root, 'environment'), () => this.#issues.air);
     }
 
-    /** `root`'s air as a solver that writes values takes it. Always available for now: the three
-     *  conditions are never absent. */
+    /** `root`'s air, as the solvers that write values take it: available when its c and ρ both
+     *  hold a value. */
     #airState(root: SimpleField<OpenISDProjectJson>): AirState {
-        return availableAir(this.#air(root));
-    }
-
-    /** The three air conditions `root` reads as — each E or C, never absent. */
-    #airOver(root: SimpleField<OpenISDProjectJson>): AirEnvironment {
-        const env = envFieldsOver(focus(root, 'environment'), this.#engine.environment);
-        return {
-            tempK: env.tempK.value, humidityPct: env.humidityPct.value, pressurePa: env.pressurePa.value,
-        };
+        return airStateOf(this.#airFieldsOver(root), this.#issues.air);
     }
 
     /** The embedded driver — built fresh from the current record on every access, never held: the
@@ -576,8 +569,7 @@ export class OpenISDProject {
             engine: this.#engine,
             driverOver: (root) => this.#driverOver(root),
             boxOver: (root) => this.#boxOver(root),
-            air: (root) => this.#airState(root),
-            envFieldsOver: (environment) => envFieldsOver(environment, this.#engine.environment),
+            airFieldsOver: (root) => this.#airFieldsOver(root),
             powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
             driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,
             readoutRsOhmOver: (root) => this.#signalOver(root).readoutRs_ohm,
@@ -703,43 +695,50 @@ export class OpenISDProject {
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
 
-    /** The project's own air: what every calculation of this project runs in, and what a caller hands
-     *  an engine API that takes an `Air`. */
-    get air(): Air {
-        return this.#air(this.#root());
+    /** The project's own air, or why it has none: what every calculation of this project runs in.
+     *  Available when its c and ρ both hold a value. */
+    get air(): AirState {
+        return this.#airState(this.#root());
     }
 
-    /** This project's air temperature, WinISD Advanced "Temperature". E when typed, else C: the
-     *  app's Options → Environment value (`Engine.envDefaults()`), which the resolve also stores. */
-    get envTempK(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).tempK;
+    /** The five air fields over the notifying environment slot. */
+    #airFields(): AirFields {
+        return airFieldsOver(this.#slot('environment'), () => this.#issues.air);
     }
 
-    /** @deprecated Use `project.envTempK.set(tempK)` instead. */
-    setEnvTempK(tempK: number): void {
-        this.envTempK.set(tempK);
+    /** This project's air temperature, WinISD Advanced "Temperature". E when typed, else C: from
+     *  a typed c or ρ, else the app's Options value. Clearing it just empties it. */
+    get envTempK(): AirField {
+        return this.#airFields().tempK;
     }
 
     /** This project's relative humidity, WinISD Advanced "Humidity". Stored the same way as
      *  `envTempK`. */
-    get envHumidityPct(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).humidityPct;
-    }
-
-    /** @deprecated Use `project.envHumidityPct.set(humidityPct)` instead. */
-    setEnvHumidityPct(humidityPct: number): void {
-        this.envHumidityPct.set(humidityPct);
+    get envHumidityPct(): AirField {
+        return this.#airFields().humidityPct;
     }
 
     /** This project's atmospheric pressure, WinISD Advanced "Pressure". Stored the same way as
      *  `envTempK`. */
-    get envPressurePa(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
-        return new ProjectEnvironment(this.#slot('environment'), this.#engine.environment).pressurePa;
+    get envPressurePa(): AirField {
+        return this.#airFields().pressurePa;
     }
 
-    /** @deprecated Use `project.envPressurePa.set(pressurePa)` instead. */
-    setEnvPressurePa(pressurePa: number): void {
-        this.envPressurePa.set(pressurePa);
+    /** This project's speed of sound. C from the other air quantities unless typed. */
+    get envC_m_per_s(): AirField {
+        return this.#airFields().c;
+    }
+
+    /** This project's air density. C from the other air quantities unless typed. */
+    get envRoo_kg_per_m3(): AirField {
+        return this.#airFields().rho;
+    }
+
+    /** Empties all five air fields; the air solver then fills each one again, from what is left
+     *  typed or else from the app's Options values. The Advanced tab's reset button. */
+    clearAir(): void {
+        const fields = this.#airFields();
+        for (const field of [fields.tempK, fields.humidityPct, fields.pressurePa, fields.c, fields.rho]) field.clear();
     }
 
     // ── SIMULATION — the engine's sweep, run on THIS project's driver and box ──────────────────
@@ -750,6 +749,12 @@ export class OpenISDProject {
     // asking for a sweep supplies only what it actually decides: the grid to sweep over. Passing
     // any of the rest back in would let a caller override a fact the project already states about
     // itself, which is the thing John's 2026-09-06 ruling rules out.
+
+    /** What is wrong with the temperature the air runs at: outside the range the air model supports. */
+    #airRangeIssues(root: SimpleField<OpenISDProjectJson>): readonly EnvironmentIssue[] {
+        const tempK = this.#airFieldsOver(root).tempK.value;
+        return tempK === null ? [] : this.#engine.environment.temperatureIssues(tempK);
+    }
 
     /** Everything `projectSweep.ts`'s free functions need to read off this project — built fresh
      *  on every sweep/maxCurves/boxParamsIssues/ventAchievedFb/ventMaxReachableFb call, same
@@ -783,8 +788,8 @@ export class OpenISDProject {
             alfaVC_per_K: this.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.#signalOver(root).sweepVoltage_V,
-            air: this.#air(root),
-            airIssues: this.#engine.environment.solve(this.#airOver(root)).issues,
+            air: this.#airState(root),
+            airIssues: this.#airRangeIssues(root),
             engine: this.#engine,
             ventIssues: this.#issues.vent,
             prIssues: this.#issues.pr,

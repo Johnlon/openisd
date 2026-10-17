@@ -1,14 +1,15 @@
 import type { Engine } from '../../engine/index.js';
-import type { AirState, DqIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, VentIssue } from '../../engine/index.js';
+import type { DqIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, VentIssue } from '../../engine/index.js';
 import { focus, inputOf } from '../cell.js';
 import type { DefaultingFieldImpl, DualWriteFieldImpl, SimpleField } from '../cell.js';
 import { calcVentCount, enteredEntry } from '../specEntry.js';
-import type { OpenISDEnvironmentJson, OpenISDProjectJson } from '../openisdSchema.js';
+import type { OpenISDProjectJson } from '../openisdSchema.js';
 import type { Vent } from '../vent.js';
 import { isPortCount } from '../box/isPortCount.js';
 import type { OpenISDBox } from '../box/openISDBox.js';
 import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
-import type { EnvironmentFields } from './environmentFields.js';
+import { resolveAir } from './projectAir.js';
+import type { AirFields } from './projectAir.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { sealedVolumeAsSolverField } from './sealedVolumeAsSolverField.js';
 
@@ -17,7 +18,7 @@ import { sealedVolumeAsSolverField } from './sealedVolumeAsSolverField.js';
 const DEFAULT_DRIVE_POWER_W = 1;
 
 /** Everything `resolveProject` needs from the project that it does not itself compute — every
- *  collaborator PASSED IN, never constructed here. `driverOver`/`boxOver`/`air`/`envFieldsOver`
+ *  collaborator PASSED IN, never constructed here. `driverOver`/`boxOver`/`airFieldsOver`
  *  are the project's own private window-builders (S2-7d2: shared between a live getter and this
  *  direct-root resolve, so they stay project-owned); `powerDriveOver`/`driveVoltageOver` are its
  *  signal field-builders, the same way — `Engine.solveSignal` needs their full `SolverField`
@@ -27,8 +28,7 @@ export interface ProjectResolveContext {
     readonly engine: Engine;
     readonly driverOver: (root: SimpleField<OpenISDProjectJson>) => OpenISDDriverEmbedded;
     readonly boxOver: (root: SimpleField<OpenISDProjectJson>) => OpenISDBox;
-    readonly air: (root: SimpleField<OpenISDProjectJson>) => AirState;
-    readonly envFieldsOver: (environment: SimpleField<OpenISDEnvironmentJson>) => EnvironmentFields;
+    readonly airFieldsOver: (root: SimpleField<OpenISDProjectJson>) => AirFields;
     readonly powerDriveOver: (root: SimpleField<OpenISDProjectJson>) => DualWriteFieldImpl<number>;
     readonly driveVoltageOver: (root: SimpleField<OpenISDProjectJson>) => DefaultingFieldImpl<number>;
     /** The series resistance the power/voltage relation counts (Rg, or 0 with WinISD's Re-only readout). */
@@ -50,11 +50,11 @@ export interface ProjectResolveContext {
  * flow, same reads, same writes: only the collaborators that were `this.#x` are now `ctx.x`.
  */
 export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
-    const { directRoot, engine, driverOver, boxOver, air: airOf, envFieldsOver, powerDriveOver, driveVoltageOver, readoutRsOhmOver } = ctx;
+    const { directRoot, engine, driverOver, boxOver, airFieldsOver, powerDriveOver, driveVoltageOver, readoutRsOhmOver } = ctx;
 
-    // Before the driver: its own air falls back to these three conditions, so they must state
-    // the app's default by the time `driver.resolve()` reads them.
-    resolveEnvironmentField(focus(directRoot, 'environment'), envFieldsOver);
+    // Before the driver: the five air quantities are worked out first, from the entered ones and
+    // else from the app's values, so the driver, the box and the sweep run in a settled air.
+    const {issues: airIssues, state: air} = resolveAir(airFieldsOver(directRoot), engine.environment);
     const driver = driverOver(directRoot);
     const driverIssues = driver.resolve();
 
@@ -69,10 +69,6 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         Rs_ohm: inputOf(() => readoutRsOhmOver(directRoot)),
         nDrivers: inputOf(() => directRoot.value.driverEmbedding.nDrivers),
     });
-
-    // The project's own air — the driver's OWN c_m_per_s/roo_kg_per_m3 are display-only and feed
-    // nothing (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
-    const air: AirState = airOf(directRoot);
 
     const box = boxOver(directRoot);
     // GEOMETRY IS IN, ACOUSTICS IS OUT (John, 2026-08-26): every port's area ↔ dims relation
@@ -171,7 +167,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         });
     }
 
-    return { driver: driverIssues, signal, vent, rearVent, pr, radiator, sealed, ventTuningExtra };
+    return { driver: driverIssues, signal, vent, rearVent, pr, radiator, sealed, ventTuningExtra, air: airIssues };
 }
 
 /** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read
@@ -197,22 +193,6 @@ function settleSignal(signal: SimpleField<OpenISDProjectJson['signal']>, Re_ohm:
     }
     if (power_W?.state !== 'E' && voltage_V?.state !== 'E') {
         signal.set({...signal.value, power_W: enteredEntry(DEFAULT_DRIVE_POWER_W)});
-    }
-}
-
-/** Stores the app's Options → Environment value as a 'C' entry for every condition the project
- *  does not state itself: clear, then store what the empty slot reads. Re-stamped on every
- *  resolve, so changing Options reaches an unstated project (`appSettingsChanged`); an entered
- *  condition is never touched. */
-function resolveEnvironmentField(
-    environment: SimpleField<OpenISDEnvironmentJson>,
-    envFieldsOver: ProjectResolveContext['envFieldsOver'],
-): void {
-    const env = envFieldsOver(environment);
-    for (const condition of [env.tempK, env.humidityPct, env.pressurePa]) {
-        if (condition.entered) continue;
-        condition.clear();
-        condition.setCalculated(condition.value);
     }
 }
 

@@ -67,7 +67,6 @@ describe('OriginalShell-hooks', () => {
   });
 
   describe('createEnvironmentAir', () => {
-    const STUB_DEFAULTS = {tempK: 293.15, humidityPct: 45, pressurePa: 101325};
 
     function harness(project: OpenISDProject) {
       const projectRef = shallowRef(project);
@@ -79,15 +78,17 @@ describe('OriginalShell-hooks', () => {
         ...createEnvironmentAir({
           project: computed(() => projectRef.value),
           projectChanged,
-          envDefaults: () => STUB_DEFAULTS,
         }),
       };
     }
 
-    it('is not stored and reads the calculated default until a value is entered', () => {
+    it('is stored (the app level copied in as entered) on a new project, and reads calculated once cleared', () => {
       const {project} = createCompleteProject();
       const {tick, envTempStored, advTemp, envTempDq} = harness(project);
 
+      expect(envTempStored.value).toBe(true);
+      project.envTempK.clear();
+      tick();
       expect(envTempStored.value).toBe(false);
       expect(advTemp.value).not.toBeNull();
       expect(envTempDq.value.dq).toEqual([]);
@@ -103,6 +104,11 @@ describe('OriginalShell-hooks', () => {
       const {project} = createCompleteProject();
       const {tick, envHumidityStored, advHumidity, envPressureStored, advPressure} = harness(project);
 
+      expect(envHumidityStored.value).toBe(true);
+      expect(envPressureStored.value).toBe(true);
+      project.envHumidityPct.clear();
+      project.envPressurePa.clear();
+      tick();
       expect(envHumidityStored.value).toBe(false);
       expect(envPressureStored.value).toBe(false);
 
@@ -160,16 +166,25 @@ describe('OriginalShell-hooks', () => {
       expect(advPressure.value).toBe(appDefaults.pressure);
     });
 
-    it('resetAirToAppDefaults enters all three fields from the injected envDefaults()', () => {
+    it('resetAirToAppDefaults empties all five fields; the solver fills them from the app levels as calculated', () => {
       const {project} = createCompleteProject();
-      const {resetAirToAppDefaults, advTemp, advHumidity, advPressure, envTempStored} = harness(project);
+      const {resetAirToAppDefaults, tick, advTemp, advHumidity, advPressure, advAir, envTempStored} = harness(project);
+      advTemp.value = 250;
+      advHumidity.value = 90;
+      advPressure.value = 90000;
+      project.envC_m_per_s.set(330);
+      tick();
+      expect(envTempStored.value).toBe(true);
 
       resetAirToAppDefaults();
+      tick();
 
-      expect(advTemp.value).toBe(STUB_DEFAULTS.tempK);
-      expect(advHumidity.value).toBe(STUB_DEFAULTS.humidityPct);
-      expect(advPressure.value).toBe(STUB_DEFAULTS.pressurePa);
-      expect(envTempStored.value).toBe(true);
+      expect(advTemp.value).toBe(293.15);
+      expect(envTempStored.value).toBe(false);
+      expect(project.envC_m_per_s.entered).toBe(false);
+      expect(project.envHumidityPct.calculated).toBe(true);
+      expect(project.envPressurePa.calculated).toBe(true);
+      expect(advAir.value.c).not.toBe(330);
     });
 
     it('advAir recomputes when the entered air fields change', () => {
