@@ -284,7 +284,7 @@ YML
 check_refusals
 
 # --- (f) landed and abandoned branches, worktrees and leftover folders (tidy-branches.sh, T334) ---------
-# An abandoned task's worktree that still holds uncommitted work is an agent alert until it is committed.
+# A "held: <text>" line from tidy-branches.sh is an agent alert.
 check_worktrees() {
   local out held
   out="$(bash "$ROOT/scripts/land/tidy-branches.sh" "$REPO" 2>&1)" || log "tidy-branches failed: $(tail -2 <<< "$out" | tr '\n' ' ')"

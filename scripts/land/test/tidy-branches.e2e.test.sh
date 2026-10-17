@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# T334, processes.md rule 7: scripts/land/tidy-branches.sh and scripts/abandon.sh end to end in a scratch workspace
+# T334, processes.md rule 7: scripts/land/tidy-branches.sh and scripts/abandon.sh (T355: lands nothing) end to end in a scratch workspace
 # with real git, real worktrees beside the main folder, a real origin, and the real land.sh and new-task.sh.
 set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/tidy-gitconfig.XXXXXX")"
@@ -95,43 +95,39 @@ tidy
 [ -f "$M-t21/notes.txt" ] && grep -q "kept $M-t21: not a worktree, but holds notes.txt" "$TIDY_LOG" && ok "a leftover folder with a file of its own is kept" || fail "t21 removed"
 [ -e "$M-t22/.git" ] && ok "a folder with git data is kept" || fail "t22 removed"
 
-# 3. abandon.sh: records the decision on main, deletes worktree and branch, local and on origin, archives nothing
+# 3. abandon.sh: lands nothing on main, deletes worktree (uncommitted work too) and branch (later commits too),
+#    local and on origin, archives nothing, and logs who, why, the tip and the goal
 setup
 printf 'id: T130\nowner: maryu\nstatus: open\ngoal: phone tab rows\ndone_test: true\nfiles:\n  - tasks/T130.yml\n' > "$M/tasks/T130.yml"
 gm add -A; gm commit -qm "T130 task"; gm push -q origin main
 wt 130 ahead; tip=$(git -C "$M-t130" rev-parse HEAD); git -C "$M-t130" push -q origin t130
+echo wip > "$M-t130/unsaved.txt"; echo more > "$M-t130/w130.txt"
+git -C "$M-t130" commit -qam "after the tip"; echo wip2 > "$M-t130/unsaved2.txt"
+tip=$(git -C "$M-t130" rev-parse HEAD)
+before=$(git -C "$SCRATCH/origin.git" rev-parse main)
 ( cd "$M" && bash scripts/abandon.sh T130 --by John "John stopped the phone tab rows" ) > "$SCRATCH/ab.out" 2>&1; r=$?
-rec=$(git -C "$SCRATCH/origin.git" show main:tasks/T130.yml 2> /dev/null)
-if [ $r = 0 ] && grep -qx 'status: abandoned' <<< "$rec" && grep -qx 'abandoned_by: John' <<< "$rec" \
-   && grep -qx "abandoned_tip: $tip" <<< "$rec" && grep -qx 'abandoned_why: John stopped the phone tab rows' <<< "$rec"; then
-  ok "the decision lands in tasks/T130.yml: status, who, why, the abandoned tip"
-else fail "decision (r=$r): $(tail -4 "$SCRATCH/ab.out") RECORD: $rec"; fi
+[ $r = 0 ] && ok "abandon exits 0" || fail "abandon exit $r: $(tail -4 "$SCRATCH/ab.out")"
+[ "$(git -C "$SCRATCH/origin.git" rev-parse main)" = "$before" ] && [ -z "$(git -C "$SCRATCH/origin.git" show main:tasks/T130.yml | grep abandoned)" ] \
+  && ok "origin/main is unchanged: no commit lands, the task file is not edited" || fail "main moved"
 [ -z "$(gm for-each-ref refs/archive)" ] && [ -z "$(git -C "$SCRATCH/origin.git" for-each-ref refs/archive)" ] \
   && ok "nothing is archived, here or on origin" || fail "archive refs made"
-grep -q "deleted branch t130 (${tip:0:10}): abandoned" "$TIDY_LOG" && ok "the log names the deleted branch, its tip and why" || fail "log: $(grep t130 "$TIDY_LOG")"
-[ ! -d "$M-t130" ] && ! has_branch t130 && ! has_remote t130 && ok "its worktree and branch are removed, local and on origin" || fail "t130 kept: $(tail -3 "$SCRATCH/ab.out")"
-[ -z "$(gm worktree list | grep -v "^$M ")" ] && [ -z "$(gm for-each-ref 'refs/heads/t[0-9]*')" ] \
-  && ok "the recording task's own worktree and branch are removed too" || fail "leftovers: $(gm worktree list; gm branch)"
+[ ! -d "$M-t130" ] && ! has_branch t130 && ! has_remote t130 && ok "worktree with uncommitted work and branch with later commits are deleted, local and on origin" || fail "t130 kept: $(tail -3 "$SCRATCH/ab.out")"
+l=$(grep "abandoned T130" "$TIDY_LOG")
+if grep -q "by John" <<< "$l" && grep -q "John stopped the phone tab rows" <<< "$l" && grep -q "tip ${tip:0:10}" <<< "$l" \
+   && grep -q "goal: phone tab rows" <<< "$l" && grep -q "uncommitted work discarded" <<< "$l"; then ok "the log line names who, why, tip, goal and the discarded work"
+else fail "log: $l"; fi
+[ -z "$(gm worktree list | grep -v "^$M ")" ] && [ -z "$(gm for-each-ref 'refs/heads/t[0-9]*')" ] && ok "no other worktree or task branch is made or left" || fail "leftovers: $(gm worktree list; gm branch)"
+tidy; r=$?
+[ $r = 0 ] && ! grep -q "held:" "$SCRATCH/out" && ! has_branch t130 && ! has_remote t130 && ok "housekeeping afterwards neither complains nor resurrects it" || fail "tidy after abandon (r=$r): $(cat "$SCRATCH/out")"
 
-# 4. abandon.sh on a worktree with uncommitted work: recorded, the worktree kept and said so (exit 4); the
-#    watchdog-run tidy says "held" until the work is committed, then removes it
-setup
-printf 'id: T140\nowner: maryu\nstatus: open\ngoal: g\ndone_test: true\nfiles:\n  - tasks/T140.yml\n' > "$M/tasks/T140.yml"
-gm add -A; gm commit -qm "T140 task"; gm push -q origin main
-wt 140 ahead; echo wip > "$M-t140/unsaved.txt"
-( cd "$M" && bash scripts/abandon.sh T140 --by John "no longer wanted" ) > "$SCRATCH/ab.out" 2>&1; r=$?
-[ $r = 4 ] && [ -f "$M-t140/unsaved.txt" ] && grep -q "uncommitted work" "$SCRATCH/ab.out" && ok "uncommitted work keeps the worktree; abandon says so (exit 4)" || fail "dirty abandon (r=$r): $(tail -3 "$SCRATCH/ab.out")"
-tidy; grep -q "^held: abandoned task T140's worktree" "$SCRATCH/out" && ok "housekeeping reports it as held" || fail "no held line: $(cat "$SCRATCH/out")"
-git -C "$M-t140" add -A; git -C "$M-t140" commit -qm "late work"; tidy
-[ -d "$M-t140" ] && has_branch t140 && ok "work committed after the decision is not lost: worktree and branch kept" || fail "late work removed"
-
-# 4b. abandon.sh on a task whose task file never reached main: read from its branch, recorded on main
+# 4b. abandon.sh on a task whose task file never reached main: read from its branch
 setup
 wt 145; printf 'id: T145\nowner: maryu\nstatus: open\ngoal: g\ndone_test: true\nfiles:\n  - tasks/T145.yml\n' > "$M-t145/tasks/T145.yml"
 git -C "$M-t145" add -A; git -C "$M-t145" commit -qm "T145: task file"
+before=$(git -C "$SCRATCH/origin.git" rev-parse main)
 ( cd "$M" && bash scripts/abandon.sh T145 --by fable "never started" ) > "$SCRATCH/ab.out" 2>&1; r=$?
-[ $r = 0 ] && git -C "$SCRATCH/origin.git" show main:tasks/T145.yml | grep -qx 'status: abandoned' && [ ! -d "$M-t145" ] && ! has_branch t145 \
-  && ok "a task that never reached main is abandoned from its branch's task file" || fail "branch-only abandon (r=$r): $(tail -3 "$SCRATCH/ab.out")"
+[ $r = 0 ] && [ "$(git -C "$SCRATCH/origin.git" rev-parse main)" = "$before" ] && [ ! -d "$M-t145" ] && ! has_branch t145 && grep -q "abandoned T145 by fable" "$TIDY_LOG" \
+  && ok "a task that never reached main is abandoned from its branch's task file, main untouched" || fail "branch-only abandon (r=$r): $(tail -3 "$SCRATCH/ab.out")"
 
 # 5. abandon.sh refuses a task that is done, or not on main, and asks for --by
 setup

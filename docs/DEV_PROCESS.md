@@ -61,9 +61,9 @@ Landed and abandoned work is removed by `scripts/land/tidy-branches.sh`, run by 
 John 17 Oct 2026): a worktree goes when it is clean, nothing runs inside it and its commits are on origin/main;
 task branches, local and on origin, and landed `land/<task>` branches go on the same terms; leftover `openisd-*`
 folders holding only generated folders go. A decision to drop a task is `bash scripts/abandon.sh T<n> --by
-<who> "<why>"`: it lands `status: abandoned` with who, when, why and the branch's last commit, and deletes
-the worktree and branch. Nothing is archived (John, 17 Oct 2026): a deleted branch's record is its log line in
-`build/test-logs/tidy-branches.log` (branch, tip, reason).
+<who> "<why>"`: it lands nothing on main (John, 17 Oct 2026: "don't commit abandoned") and deletes the worktree, even with
+uncommitted work, and the branch, local and on origin, even with later commits; the decision is the authority.
+Nothing is archived: the record is one line in `build/test-logs/tidy-branches.log` (who, why, tip, task goal).
 
 Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 
