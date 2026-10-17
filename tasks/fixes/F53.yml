@@ -68,3 +68,61 @@ also_red:
       browser (10):   ✘  70 packages/ui/test/ui/original-signal-tab.browser.spec.ts:121:5 › Original Signal tab › power and voltage pair › clearing V returns the pair to the 1 W reference — neither end is left blank (856ms)
       browser (2):   ✘  23 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit (22.4s)
       browser (2):         43 × locator resolved to <span role="note" data-v-2d74d8ab="" class="ui-field-note">Conflicts with other values: equivalent volume (V…</span>
+also_red:
+  - sha: 4a655eebe496e0a482ed3a5a9e6b63a4dc7a58dc
+    tested: 4a655eebe496e0a482ed3a5a9e6b63a4dc7a58dc
+    last_green: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6
+    range: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6..4a655eebe496e0a482ed3a5a9e6b63a4dc7a58dc
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-4a655eebe4.log
+    failing: |
+      unit (1):      × declares no module-scoped mutable state anywhere in its shipped source 6188ms
+      unit (1): stderr | test/cloud/docs/projectDocs.test.ts > projectDocs > lists unreadable when store text is corrupt JSON
+      unit (1): stderr | test/cloud/docs/projectDocs.test.ts > projectDocs > lists unreadable when store shape is invalid
+      unit (1): stderr | test/hooks/DiagnosticsModal-hooks.test.ts > useDiagnosticsModal > opens modal when a fault occurs
+      unit (1):  FAIL   design-architecture  test/architecture-no-globals.test.ts > packages/design has no global variables > declares no module-scoped mutable state anywhere in its shipped source
+      unit (2):      × the door exports createEngine, and no loose calculation functions 15ms
+      unit (2): stderr | test/projectRepo.test.ts > projectRepo > loadOpenProjects — one refused entry > still reports an unusable record as a whole — there is nothing to restore from it
+      unit (2): stderr | test/projectRepo.test.ts > projectRepo > keepRefusedEntries > keeps each refused entry whole, once however often it is kept, and reports none lost
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > initializes at step 1 and requires a driver selection before advancing
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > step 1 previews the chosen driver as Fs / Qts / Vas display strings, empty when nothing is chosen
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > initializes with pre-loaded driver if provided
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > navigates through all 5 steps when box type is sealed
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > skips step 4 when box type is bandpass4 (no alignment step built yet)
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > gives vented a step 4 (alignment), same slot sealed uses
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > offers WinISD's five vented alignments and opens on C4/SC4
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > designs the vented box as WinISD does: source-loaded Qts at the project's Rg, box Ql, chosen alignment
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > the wizard preview's Ql is the SCHEMA's new-project Ql, not a hook-local copy
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > the preview uses the same Rg and Ql the created project carries
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > computes EBP and suitability readout correctly
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > calculates sealed volume on step 4 when selecting Qtc alignment
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > a passive-radiator project keeps the starting volume — the sealed alignment volume never leaks into it
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > rounds the derived sealed volume to the 2dp litres the volume field shows, instead of showing the raw calculation
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > picking a driver on step 1 moves the wizard on to step 2 — "Use" advances, it does not just arm Next
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > preserves state when navigating Back and Next
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject > creates a project with all configured parameters on completion
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — bandpass6 and ABC take both chambers and both tunings > bandpass6: is dual, and the project carries the entered volumes and tunings
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — bandpass6 and ABC take both chambers and both tunings > abc: is dual, and the project carries the entered volumes and tunings
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — bandpass6 and ABC take both chambers and both tunings > bandpass4 is dual and has no tuning inputs in its project
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — dual-chamber starting values come from the design package > bandpass6: starts at 30 L / 20 L, 35 Hz / 25 Hz and builds what box.boxType.set gives
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — dual-chamber starting values come from the design package > abc: starts at 30 L / 20 L, 35 Hz / 25 Hz and builds what box.boxType.set gives
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — dual-chamber starting values come from the design package > bandpass4 starts at 7 L / 10 L; switching to bandpass6 resets the volumes to 30 L / 20 L
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — dual-chamber starting values come from the design package > an edit survives a re-set of the same type
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — vented plausibility readout > says nothing when the designed box is inside the band
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — vented plausibility readout > warns about the volume when the designed box is outside the band
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — vented plausibility readout > warns about the tuning when the designed tuning is outside the band
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — vented plausibility readout > leaves the designed numbers exactly as WinISD designs them — the mark is not a clamp
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — vented plausibility readout > says nothing for a sealed design — there is no vented box to judge
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — vented plausibility readout > re-judges when the alignment changes — each alignment designs its own box
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — passive-radiator step > a passive-radiator box gets step 4, the radiator, and Next waits until one is chosen
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — passive-radiator step > a saved radiator chosen at step 4 is the one the project is built with
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — passive-radiator step > a bundled radiator is loaded through the catalogue
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — passive-radiator step > a radiator defined at step 4 carries the five parameters typed into it
+      unit (2): stderr | test/hooks/OriginalNewProject-hooks.test.ts > useOgNewProject — passive-radiator step > typing a name or a parameter at step 4 defines the radiator with no pick first
+      unit (2): stderr | test/hooks/OriginalShell-hooks.test.ts > OriginalShell-hooks > frequency nudge buttons (startNudge) > nudging up from a pinned frequency multiplies it by 1.02 and locks the cursor there
+      unit (2): stderr | test/hooks/OriginalShell-hooks.test.ts > OriginalShell-hooks > frequency nudge buttons (startNudge) > nudging down divides by 1.02
+      unit (2): stderr | test/hooks/OriginalShell-hooks.test.ts > OriginalShell-hooks > frequency nudge buttons (startNudge) > nudging up with nothing pinned starts from the geometric mean of the axis
+      unit (2): stderr | test/diagnostics/faultOrigin.test.ts > fault origin > a StoredDataFault logged through console.error names its store too
+      unit (2):  FAIL   design-architecture  test/architecture-engine-boundary.test.ts > the engine is reachable only through its door > the door exports createEngine, and no loose calculation functions
+      browser (2):   ✘  23 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit (22.0s)
+      browser (2):         43 × locator resolved to <span role="note" data-v-2d74d8ab="" class="ui-field-note">Conflicts with other values: equivalent volume (V…</span>
+      browser (10):   ✘  70 packages/ui/test/ui/original-signal-tab.browser.spec.ts:121:5 › Original Signal tab › power and voltage pair › clearing V returns the pair to the 1 W reference — neither end is left blank (413ms)
