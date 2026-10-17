@@ -8,10 +8,11 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 /** An explicit air for the tests: WinISD's reference conditions, stated here, not defaulted by a calc. */
-const air = engine.environment.solve({tempK: 293.15, humidityPct: 30, pressurePa: 101325}).values;
+const air = REFERENCE_AIR;
 
 /** Free-air resonance with no added mass — the zero-Madd case of `prFsWithMass`. */
 const prFs = (prMmd: number, prCms: number) => engine.pr.fsWithMass(prMmd, 0, prCms);

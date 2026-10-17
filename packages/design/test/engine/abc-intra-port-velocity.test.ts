@@ -16,16 +16,18 @@ import {createEngine} from '../../engine/Engine.js';
 import type {SweepParams, SweepResult} from '../../engine/types.js';
 import {solveConsistencyGroup, sweepDriver} from './testSolver.js';
 import type {TestSolverQuantities} from './testSolver.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 const LE_H = 0.5e-3;
-const {rho: RHO, c: C} = engine.environment.solve({}).values!;
+const {rho: RHO, c: C} = REFERENCE_AIR_VALUES;
 
 const SP = 0.004, SP_INTRA = 0.002, LEFF_INTRA = 0.12;
 const BASE: SweepParams = {
   Vb: 0.02, Vf: 0.015, eg: 2.83, fmin: 20, fmax: 20000, N: 200,
   Fr: 42, Ff: 60, Sp: SP, Spr: SP, SpIntra: SP_INTRA, LeffIntra: LEFF_INTRA,
   Qlr: 7, Qar: 30, Qpr: 100, Qiclfr: 20, Qlf: 9, Qaf: 40, Qpf: 15,
+  air: REFERENCE_AIR,
 };
 
 function sweepWith(flag: boolean | undefined, extra: Partial<SweepParams> = {}): SweepResult {

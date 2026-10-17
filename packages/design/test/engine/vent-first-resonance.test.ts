@@ -11,13 +11,14 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 const engine = createEngine();
-const air = engine.environment.solve({}).values;
+const air = REFERENCE_AIR;
 
 describe('VentEngine.firstResonance_hz', () => {
   it('is c/(2·L) for the physical length, not the end-corrected length', () => {
     const L = 0.15; // 15 cm
-    const expected = air.c / (2 * L);
+    const expected = REFERENCE_AIR_VALUES.c / (2 * L);
     const actual = engine.vent.firstResonance_hz(L, air);
     assert.equal(actual, expected);
   });

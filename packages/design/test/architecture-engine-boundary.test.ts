@@ -167,13 +167,14 @@ describe('the engine is reachable only through its door', () => {
     // Value exports are the engine factory, the named air constants that
     // define the engine's supported reference/validation range, and the factory value of each
     // application setting `createEngine(settings)` is given (the Settings tab shows the user what
-    // their setting starts at). Loose calculation functions still do not escape.
+    // their setting starts at), and `FixedAir`, the `Air` a caller holding plain c and ρ hands an
+    // engine API. Loose calculation functions still do not escape.
     const valueExports = [...door.matchAll(/^export \{([^}]*)\}/gm)]
       .flatMap(m => m[1]!.split(',').map(s => s.trim()))
       .filter(Boolean);
     expect(valueExports.sort()).toEqual([
       'DEFAULT_ENV_DEFAULTS', 'DEFAULT_P_REF_PA', 'DEFAULT_RH_REF_PCT', 'DEFAULT_T_REF_K',
-      'DEFAULT_VENTED_DESIGN_LIMITS',
+      'DEFAULT_VENTED_DESIGN_LIMITS', 'FixedAir',
       'MAX_SUPPORTED_TEMP_K', 'MIN_SUPPORTED_TEMP_K', 'createEngine', 'createSimulationEngine',
     ]);
   });

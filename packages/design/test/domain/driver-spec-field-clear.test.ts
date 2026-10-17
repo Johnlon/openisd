@@ -4,6 +4,7 @@ import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {createEngine} from '@openisd/design/engine';
 import type {Calculated, Entered, Readable} from '../../domain/cell.js';
 import type {CellState} from '../../winisd/cellState.js';
+import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 /** The field reads `value` and carries the `.wdr` provenance `state`. */
 function assertReads<T>(field: Readable<T | null> & Entered & Calculated, value: T | null, state: CellState, message?: string): void {
@@ -105,7 +106,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
     it('c_m_per_s: get=calculated air-model default, set=allowed, get=the air again, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
-        const referenceC = createEngine().environment.solve({}).values.c;
+        const referenceC = REFERENCE_AIR_VALUES.c;
 
         assertReads(section.c_m_per_s, referenceC, 'calculated',
             'c_m_per_s must start at the live reference-air speed of sound on a fresh section, not absent');
@@ -123,7 +124,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
 
     it('roo_kg_per_m3: get=calculated air-model default, set=allowed, get=the air again, clear=allowed, get=calculated default again', () => {
         const section = freshSection();
-        const referenceRho = createEngine().environment.solve({}).values.rho;
+        const referenceRho = REFERENCE_AIR_VALUES.rho;
 
         assertReads(section.roo_kg_per_m3, referenceRho, 'calculated',
             'roo_kg_per_m3 must start at the live reference-air density on a fresh section, not absent');

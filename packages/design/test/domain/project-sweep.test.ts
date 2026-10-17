@@ -3,6 +3,7 @@ import {type Engine, createEngine} from '@openisd/design/engine';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec, radiatorFromSpec} from '../fixtures/recordBuilders.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 /**
  * THE DOMAIN CALLING THE ENGINE — every group, driven through the published surface only.
@@ -51,7 +52,7 @@ describe('OpenISDProject sweep', () => {
       {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.value, Qa: project.box.sealed.losses.Qa.value,
-        Rs: project.Rs_ohm.value,
+        Rs: project.Rs_ohm.value, air: REFERENCE_AIR,
       },
     ).values!;
     expect(mine!.spl).toEqual(theirs.spl);

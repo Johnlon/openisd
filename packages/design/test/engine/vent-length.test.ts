@@ -1,6 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES, airOfConditions} from '../fixtures/referenceAir.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 
@@ -11,15 +12,15 @@ const END_CORRECTION = 0.732;
 
 // No environment reaches these test's own reimplementation of the formula under test, so ρ/c
 // are computed live at the reference environment — matching production (no stored constant).
-const refRho = (): number => engine.environment.solve({}).values.rho;
+const refRho = (): number => REFERENCE_AIR_VALUES.rho;
 
-const refC = (): number => engine.environment.solve({}).values.c;
+const refC = (): number => REFERENCE_AIR_VALUES.c;
 
 // The reference air pair, passed explicitly to every ventLength/tuningFromLength/prTuning/
 // prMassForFp call below — these tests are about the Helmholtz/PR formulas, not air-sensitivity
 // (see the air sensitivity block below for that), so every one of them runs at the same reference
 // condition `refRho()`/`refC()` above already assume.
-const AIR = engine.environment.solve({}).values;
+const AIR = REFERENCE_AIR;
 
 // 1e-9: floating-point result that should be analytically exact.
 const EXACT = 1e-9;
@@ -31,9 +32,7 @@ const FREQ_TOLERANCE_HZ = 0.01;
 // Two genuinely different air conditions — reference (20 °C) vs. a hot, humid one — so any
 // function reading `air` must give a DIFFERENT answer for the two, and the reference case must
 // match what the function gave before it took `air` explicitly (regression safety).
-const REFERENCE_AIR = engine.environment.solve({}).values;
-
-const HOT_AIR = engine.environment.solve({ tempK: 313.15, humidityPct: 90, pressurePa: 95000 }).values;
+const HOT_AIR = airOfConditions({ tempK: 313.15, humidityPct: 90, pressurePa: 95000 });
 
 describe('vent length and tuning', () => {
   describe('Port / vent length calculation (ventLength)', () => {

@@ -1,4 +1,4 @@
-import {type Engine} from '../../engine/index.js';
+import {type Engine, FixedAir} from '../../engine/index.js';
 import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
@@ -119,14 +119,14 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
-        const air = (): Air => engine.environment.solve(airProvider()).values;
+        const air = (): Air => new FixedAir(engine.environment.solve(airProvider()).values);
         this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, air, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
      *  into the record as a `'C'` entry, cache the issues, and return them. */
     resolve(): readonly DriverIssue[] {
-        return this.specs.resolve(this.engine.environment.solve(this.airProvider()).values);
+        return this.specs.resolve(new FixedAir(this.engine.environment.solve(this.airProvider()).values));
     }
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────

@@ -9,9 +9,11 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {FixedAir} from '../../engine/index.js';
 const engine = createEngine();
-const WINISD_AIR = {rho: 1.2009521771468228, c: 343.68412096215235};
-const prCms = 0.0048 / (WINISD_AIR.rho * WINISD_AIR.c ** 2 * 0.0095 ** 2);
+const WINISD_AIR_VALUES = {rho: 1.2009521771468228, c: 343.68412096215235};
+const WINISD_AIR = new FixedAir(WINISD_AIR_VALUES);
+const prCms = 0.0048 / (WINISD_AIR_VALUES.rho * WINISD_AIR_VALUES.c ** 2 * 0.0095 ** 2);
 const prMmd = 1 / ((2 * Math.PI * 30) ** 2 * prCms);
 const BOX = {Vb: 0.01, prMmd, prMadd: 0.01, prSd: 0.0095, prCms, prNum: 2};
 const WINISD_FB_DISPLAYED_HZ = 39.45;

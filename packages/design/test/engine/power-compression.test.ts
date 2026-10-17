@@ -9,6 +9,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams, SweepResult} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.5e-3;
@@ -29,7 +30,7 @@ function drv() {
 describe('power compression through sweep()', () => {
   it('a temp rise lifts the impedance floor and lowers SPL; ΔT=0 is byte-identical', () => {
     const d = drv();
-    const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 500, N: 400 };
+    const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 500, N: 400, air: REFERENCE_AIR };
     const cold = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', P).values!;
     const hot  = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', { ...P, vcTempRise: 100, alfaVC: 0.0039 }).values!;
     assert.ok(Math.min(...hot.zmag) > Math.min(...cold.zmag), 'impedance floor rises with hot Re');

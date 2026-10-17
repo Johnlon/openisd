@@ -6,7 +6,6 @@
  */
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
@@ -16,15 +15,14 @@ const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
 const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
 
 export function useMobileEnclosureTab() {
-  const {boxTypeIsSimulatable, definePassiveRadiator, envDefaults, focusedProject, projectChanged} = useApp().appState;
+  const {boxTypeIsSimulatable, definePassiveRadiator, focusedProject, projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const { engine, myPassiveRadiators, bundledPassiveRadiators } = useApp();
 
   const { selectedBox } = createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
-  const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
   const {
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
-  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
+  } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
   const { prResonanceMassDq, prFsMass_hz, prNaturalFh } =
     createSealedReadouts({ project, selectedBox, projectChanged });
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,

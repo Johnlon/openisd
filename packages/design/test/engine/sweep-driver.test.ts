@@ -5,6 +5,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import type {SweepDriver} from '../../engine/solverTypes.js';
 import type {SweepParams} from '../../engine/types.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
@@ -14,7 +15,7 @@ const engine = createEngine();
 const DRV = solveConsistencyGroup({
   Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
   Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.70e-3, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8});
-const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200 };
+const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, air: REFERENCE_AIR };
 
 describe('SweepDriver crosses a structured-clone boundary unchanged', () => {
   const driver: SweepDriver = sweepDriver(DRV);

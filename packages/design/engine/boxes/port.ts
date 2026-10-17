@@ -5,7 +5,6 @@
  * both names unchanged, so an existing import of `portImpedance`/`portLoss` from `circuit.js`
  * still resolves).
  */
-import {solveEnvironment} from '../air.js';
 import {cAdd, cDiv, cMul, cScale, cTanh, cx} from '../complex.js';
 import type {Complex, SweepParams} from '../types.js';
 
@@ -39,7 +38,7 @@ export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): nu
  */
 export function portImpedance(w: number, P: SweepParams): Complex {
   const Sp = P.Sp!, Leff = P.Leff!;
-  const { rho, c } = solveEnvironment(P).values;
+  const rho = P.air.rho(), c = P.air.c();
 
   const Map = rho * Leff / Sp, Rap = portLoss(w, Map, P);
   if (!P.tlPortModel) return cAdd(cx(Rap, 0), cx(0, w * Map));

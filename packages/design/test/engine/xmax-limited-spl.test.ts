@@ -3,6 +3,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.70e-3;
@@ -37,11 +38,11 @@ const LEFF = 0.30 + 0.732 * 0.05;                // 300 mm cut length + one-flan
 // about, rather than being left absent (BUG_20260927_vented-box-losses-not-winisd-form.md).
 const VB = 0.030;
 
-const {c: refC} = engine.environment.solve({}).values;
+const {c: refC} = REFERENCE_AIR_VALUES;
 
 const FB = refC * Math.sqrt(SP / (LEFF * VB)) / (2 * Math.PI);
 
-const VENTED: SweepParams = { Vb: VB, eg: 2.83, Sp: SP, Leff: LEFF, Fb: FB, fmin: 10, fmax: 2000, N: 400 };
+const VENTED: SweepParams = { Vb: VB, eg: 2.83, Sp: SP, Leff: LEFF, Fb: FB, fmin: 10, fmax: 2000, N: 400, air: REFERENCE_AIR };
 
 describe('Xmax-limited SPL', () => {
   describe('Xmax-limited SPL (WinISD Advanced: SPL graph is Xmax limited)', () => {

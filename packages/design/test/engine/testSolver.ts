@@ -9,7 +9,10 @@ import type {
   VentSolverParams,
 } from '@openisd/design/engine';
 import {createEngine} from '@openisd/design/engine';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {halfUlp} from '../../domain/precision.js';
+
+const engine = createEngine();
 
 // S2-10: the bag types every solve used to take/return are gone from the public engine surface
 // (`solverQuantities.ts` deleted) — every real solve now takes `SolverField` HANDLES. These bag
@@ -65,8 +68,6 @@ export interface TestSealedAlignmentQuantities {
   Qa?: number;
 }
 
-const engine = createEngine();
-const REFERENCE_AIR = (): Air => engine.environment.solve({}).values;
 
 /** A test seam for the engine's `SolverField` handle contracts (T10): the value is "entered"
  *  when seeded, and records whatever the solve writes (`calculated` with its precision, or
@@ -188,7 +189,7 @@ function bagFromDriverHandles(p: DriverSolverParams): TestSolverQuantities {
  *  derives it — a SUPERSET bag back, the same contract the deleted `solveConsistencyGroup()`
  *  had. `air` defaults to the reference condition, matching every existing fixture that predates
  *  air being a parameter at all. */
-export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERENCE_AIR()): TestSolverQuantities {
+export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERENCE_AIR): TestSolverQuantities {
   const handles = driverHandlesFrom(d);
   engine.driver.solve(handles, air);
   return bagFromDriverHandles(handles);
@@ -197,7 +198,7 @@ export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERE
 /** `d`'s own disagreements/gaps — the same issues `Engine.solveDriver()` returns, since that is
  *  the ONE place this check now runs (co-located with the solve it validates, S2-10). `d` is
  *  entered-only, matching the deleted `checkConsistency()`'s own contract. */
-export function checkConsistency(d: TestSolverQuantities, air: Air = REFERENCE_AIR()) {
+export function checkConsistency(d: TestSolverQuantities, air: Air = REFERENCE_AIR) {
   return engine.driver.solve(driverHandlesFrom(d), air);
 }
 
@@ -228,13 +229,13 @@ function bagFromPrHandles(p: PrSolverParams): TestPrQuantities {
 /** `air` defaults to the reference condition — every EXISTING test fixture using this helper
  *  predates air being a parameter at all, so preserving that default here (test-only) keeps
  *  every one of them unchanged; a test specifically proving air-sensitivity passes its own. */
-export function solvePrConsistencyGroup(d: TestPrQuantities, air: Air = REFERENCE_AIR()): TestPrQuantities {
+export function solvePrConsistencyGroup(d: TestPrQuantities, air: Air = REFERENCE_AIR): TestPrQuantities {
   const handles = prHandlesFrom(d);
   engine.pr.solve(handles, air);
   return bagFromPrHandles(handles);
 }
 
-export function checkPrConsistency(d: TestPrQuantities, air: Air = REFERENCE_AIR()) {
+export function checkPrConsistency(d: TestPrQuantities, air: Air = REFERENCE_AIR) {
   return engine.pr.solve(prHandlesFrom(d), air);
 }
 
@@ -257,13 +258,13 @@ function bagFromVentHandles(v: VentSolverParams): TestVentQuantities {
   };
 }
 
-export function solveVentConsistencyGroup(d: TestVentQuantities, air: Air = REFERENCE_AIR()): TestVentQuantities {
+export function solveVentConsistencyGroup(d: TestVentQuantities, air: Air = REFERENCE_AIR): TestVentQuantities {
   const handles = ventHandlesFrom(d);
   engine.vent.solve(handles, air);
   return bagFromVentHandles(handles);
 }
 
-export function checkVentConsistency(d: TestVentQuantities, air: Air = REFERENCE_AIR()) {
+export function checkVentConsistency(d: TestVentQuantities, air: Air = REFERENCE_AIR) {
   return engine.vent.solve(ventHandlesFrom(d), air);
 }
 

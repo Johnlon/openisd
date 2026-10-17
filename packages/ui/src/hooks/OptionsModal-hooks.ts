@@ -12,7 +12,7 @@
  * repo stores m³ and hertz. This hook is that boundary.
  */
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
-import type {Air, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
+import type {AirValues, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
 import {NumberField} from '@openisd/design/fields';
 import {FACTORY_ENV_DEFAULTS, FACTORY_VENTED_LIMITS} from '../logic/appState.js';
 import {useApp} from '../logic/app.js';
@@ -88,7 +88,7 @@ export interface OptionsModalAPI {
   /** Whether the edited environment is the factory one — what greys out its reset. */
   readonly envIsFactory: ComputedRef<boolean>;
   /** Sound velocity and air density of the edited environment, physical model. */
-  readonly defaultAir: ComputedRef<Air>;
+  readonly defaultAir: ComputedRef<AirValues>;
   /** Put the factory band in the draft. Writes nothing. */
   resetLimits(): void;
   /** Put the factory environment in the draft. Writes nothing. */
@@ -212,7 +212,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
       && e.pressurePa === FACTORY_ENV_DEFAULTS.pressurePa;
   });
 
-  const defaultAir = computed<Air>(() => settings.environment.solve(editedEnv.value).values);
+  const defaultAir = computed<AirValues>(() => settings.environment.solve(editedEnv.value).values);
 
   function resetLimits(): void {
     minVolume_m3.value = FACTORY_VENTED_LIMITS.minVb_m3;

@@ -3,13 +3,14 @@ import type {DriverIssue} from '../../engine/driver/DriverEngine.js';
 import type {DriverSolverParams, SolverField} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
 import {checkConsistency, fakeSolverField} from './testSolver.js';
+import {REFERENCE_AIR, airOfConditions} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 
-// Deliberately NOT the reference condition (`engine.environment.solve({}).values`): `solveConsistencyGroup`'s own
+// Deliberately NOT the reference condition (`REFERENCE_AIR`): `solveConsistencyGroup`'s own
 // internal driverC/driverRho fallback already defaults to reference air on its own, so a test
 // using reference air here would pass even if `solveDriver` never threaded `air` through at all.
-const AIR = engine.environment.solve({ tempK: 350 }).values;
+const AIR = airOfConditions({ tempK: 350, humidityPct: 30, pressurePa: 101325 });
 
 function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'series' | 'parallel'> {
   let current = value;
@@ -133,13 +134,13 @@ describe('Engine.checkConsistency', () => {
     // Fs/Vas/Qes are Visaton GF 200's datasheet figures; they imply η₀ ≈ 0.0048.
     it('a stated η₀ that Fs/Vas/Qes contradict is reported against no', () => {
       const p = driverParams({ no: 0.02, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
-      const issues = engine.driver.solve(p, engine.environment.solve({}).values);
+      const issues = engine.driver.solve(p, REFERENCE_AIR);
       expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toMatchObject([{ target: 'no' }]);
     });
 
     it('a stated η₀ that Fs/Vas/Qes imply to its printed precision is not reported', () => {
       const p = driverParams({ no: 0.0048, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
-      const issues = engine.driver.solve(p, engine.environment.solve({}).values);
+      const issues = engine.driver.solve(p, REFERENCE_AIR);
       expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toEqual([]);
     });
 

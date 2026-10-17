@@ -1,11 +1,12 @@
 import {describe, expect, it} from 'vitest';
 import type {SolverField} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {checkVentConsistency, fakeSolverField, solveVentConsistencyGroup} from './testSolver.js';
 
 const engine = createEngine();
 
-const AIR = engine.environment.solve({}).values;
+const AIR = REFERENCE_AIR;
 
 describe('vent consistency', () => {
   describe('checkVentConsistency (a test-only bag wrapper over Engine.solveVent) — missing-dependencies', () => {

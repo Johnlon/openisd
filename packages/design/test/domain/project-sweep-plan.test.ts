@@ -7,6 +7,7 @@ import {describe, expect, it} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {runMaxCurvesJob, runSweepJob} from '../../domain/project/projectSweep.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
 const GRID: FrequencyGrid = { fmin: 10, fmax: 1000, N: 100 };
@@ -37,8 +38,8 @@ describe('OpenISDProject.sweepPlan', () => {
     const job = structuredClone(plan.job);
     // A separate engine, as a worker builds its own.
     const other = createEngine();
-    expect(other.simulation.sweep(job.driver, job.Le_H, job.box, job.sweep)).toEqual(project.sweep(GRID));
-    expect(other.simulation.maxCurves(job.driver, job.Le_H, job.box, job.maxCurves)).toEqual(project.maxCurves(GRID));
+    expect(runSweepJob(other.simulation, job)).toEqual(project.sweep(GRID));
+    expect(runMaxCurvesJob(other.simulation, job)).toEqual(project.maxCurves(GRID));
   });
 
   it('max curves run at the 2.83 V reference, the sweep at the project drive', () => {

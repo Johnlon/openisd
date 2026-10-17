@@ -3,6 +3,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
@@ -40,7 +41,7 @@ describe('rolloffFreq', () => {
    * Specification: docs/spec/SPEC_ENGINE.md §3.2
    */
   describe('rolloffFreq — Encapsulated Engine Physics Calculations', () => {
-    const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 100 };
+    const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 100, air: REFERENCE_AIR };
 
     /**
      * Spec Link: docs/spec/SPEC_ENGINE.md §3.2 "Cutoff Frequency Readouts (F3, F6, F10)"

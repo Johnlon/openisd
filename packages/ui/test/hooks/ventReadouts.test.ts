@@ -15,7 +15,6 @@ function readoutsFor(type: 'bandpass6' | 'abc') {
     project: computed(() => projectRef.value),
     projectChanged,
     selectedBox: ref<BoxType>(type),
-    air: computed(() => engine.environment.solve({}).values),
     vent: engine.vent,
   });
   return {project, readouts, projectChanged};

@@ -3,6 +3,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 
@@ -33,13 +34,13 @@ describe('absent Le', () => {
       // validation lives in the method that does the work, so the sweep's own Result says both
       // whether a curve came out and what stopped it if none did.
       const { values, issues } = engine.simulation.sweep(
-        derive(rawNoLe), undefined, 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 });
+        derive(rawNoLe), undefined, 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8, air: REFERENCE_AIR });
       assert.ok(values, 'driver with no Le should still sweep');
       assert.equal(issues.length, 0);
     });
 
     it('sweep produces a finite impedance curve when Le is absent', () => {
-      const sw = engine.simulation.sweep(derive(rawNoLe), undefined, 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 }).values!;
+      const sw = engine.simulation.sweep(derive(rawNoLe), undefined, 'sealed', { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8, air: REFERENCE_AIR }).values!;
       for (let i = 0; i < sw.fs.length; i++) {
         assert.ok(Number.isFinite(sw.zmag[i]), `zmag[${i}] must be finite at ${sw.fs[i]} Hz, got ${sw.zmag[i]}`);
         assert.ok(Number.isFinite(sw.zph[i]),  `zph[${i}] must be finite at ${sw.fs[i]} Hz, got ${sw.zph[i]}`);
@@ -47,7 +48,7 @@ describe('absent Le', () => {
     });
 
     it('absent Le is exactly equivalent to Le = 0 (it is a missing inductor, not a missing driver)', () => {
-      const P: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8 };
+      const P: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 20, fmax: 200, N: 8, air: REFERENCE_AIR };
       const noLe   = engine.simulation.sweep(derive(rawNoLe), undefined, 'sealed', P).values!;
       const zeroLe = engine.simulation.sweep(derive(RAW), 0, 'sealed', P).values!;
       for (let i = 0; i < noLe.fs.length; i++)
