@@ -1,0 +1,14 @@
+id: T302
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Back door removal 1: browser reset acts only through the UI; no hook-based reset
+done_test: bash scripts/test.sh packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
+files:
+  - tasks/T302.yml
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/mobileSkin.ts
+  - packages/ui/test/ui/mobile-shell.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - bugs/BUG_20261017_no-way-back-to-automatic-skin-and-stepper-follows-saved-choice.md

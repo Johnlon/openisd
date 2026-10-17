@@ -2,7 +2,6 @@ import {existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename, join} from 'node:path';
 import {type Browser, type BrowserContext, type Disposable, expect, type Locator, type Page, test as base} from '@playwright/test';
-import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {NumberField} from '@openisd/design/fields';
 import {CHROME_OUTAGE_POLICY, CHROME_STABLE_MS, type OutageClock, waitOutOutage} from './fixtures/chromeOutage.js';
 import {fillAndBlur} from './fixtures/numField.js';
@@ -120,84 +119,94 @@ export async function resetApp(page: Page, additions: TestAdditions): Promise<vo
   await page.unrouteAll({ behavior: 'ignoreErrors' });
   await page.setViewportSize({ width: 1280, height: 720 });
 
-  await page.evaluate(({ ventedLimits, envDefaults }) => {
-    function isTestHooks(m: unknown): m is TestHooks {
-      return typeof m === 'object' && m !== null && 'appState' in m && 'presentationState' in m;
-    }
-    const doc = globalThis.document;
-    const Html = globalThis.HTMLElement;
-    const Dialog = globalThis.HTMLDialogElement;
-    if (doc.activeElement instanceof Html) doc.activeElement.blur();
-
-    try {
-      localStorage.clear();
-      sessionStorage.clear();
-      localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } }));
-      localStorage.setItem('openisd_persist_warning_dismissed', '1');
-    } catch {}
-
-    const hooks: unknown = Reflect.get(globalThis, 'openisdTestHooks');
-    if (isTestHooks(hooks)) {
-      const { appState, presentationState } = hooks;
-      appState.restoreProjects([], 0, new Set());
-      appState.setDifferenceCuesShown(true);
-      appState.setVentedLimits(ventedLimits);
-      appState.setEnvDefaults(envDefaults);
-
-      presentationState.optionsOpen = false;
-      presentationState.browseOpen = false;
-      presentationState.newProjectOpen = false;
-      presentationState.editDriver = false;
-      presentationState.editDriverInfo = false;
-      presentationState.openDialogOpen = false;
-      presentationState.projectsPaneOpen = false;
-      presentationState.mobilePane = null;
-      presentationState.mobileDestination = 'box';
-      presentationState.yRanges = {};
-      presentationState.sweepRange = { min: 10, max: 20000 };
-      presentationState.resetUnitTokens();
-      presentationState.setSkinOverride(null);
-      presentationState.ui = { splashSeen: true, unitTokens: {} };
-    }
-
-    for (const d of Array.from(doc.querySelectorAll('dialog[open]'))) {
-      if (d instanceof Dialog) d.close();
-    }
-    // A click on empty page closes any dropdown a test left open, as it does for a user.
-    doc.body.click();
-    const binBack = doc.querySelector('.bin-footer .bin-toggle');
-    if (binBack instanceof Html) binBack.click();
-    const mobBinBack = doc.querySelector('.mob-bin-toggle');
-    if (mobBinBack instanceof Html && mobBinBack.textContent?.includes('Back')) mobBinBack.click();
-    const closeSelectors = [
-      '.overlay.on .x', '.overlay.open .x',
-      '.overlay.on .close-btn', '.overlay.open .close-btn',
-      '.overlay.on [title*="Close" i]', '.overlay.open [title*="Close" i]',
-      '.wd-x', '.wd-footer button',
-      '.confirm-dialog-cancel', '.confirm-dialog-dismiss',
-      '.mob-sheet-close', '.mob-menu-close',
-    ].join(', ');
-    for (const closeBtn of Array.from(doc.querySelectorAll(closeSelectors))) {
-      if (closeBtn instanceof Html) closeBtn.click();
-    }
-  }, { ventedLimits: DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: DEFAULT_ENV_DEFAULTS });
-
-  if (page.url().includes('#') || page.url().includes('?')) {
-    await page.evaluate(() => {
-      globalThis.location.hash = '';
-      globalThis.history.replaceState(null, '', '/');
-    });
-  }
-
-  const overlaySelector = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, dialog[open]';
-  for (let i = 0; i < 3; i++) {
-    const hasOverlay = await page.evaluate(sel => Boolean(globalThis.document.querySelector(sel)), overlaySelector);
-    if (!hasOverlay) break;
-    await page.keyboard.press('Escape').catch(() => {});
-  }
+  await dismissOverlays(page);
+  await closeAllProjects(page);
+  await restoreOptions(page);
+  await clearHash(page);
 }
 
-type TestHooks = import('../src/logic/testHooks.js').TestHooks;
+const OVERLAY_SELECTOR = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, dialog[open]';
+
+/** Closes whatever a test left open the way a user would: the dialog's own close controls, then Escape. */
+async function dismissOverlays(page: Page): Promise<void> {
+  let lastClickError = '';
+  for (let i = 0; i < 4; i++) {
+    if (await page.locator(OVERLAY_SELECTOR).count() === 0) return;
+    // The non-modal Equation Inspector card floats over the dialogs; the user closes it first.
+    const card = page.locator('.eq-x').filter({ visible: true }).first();
+    if (await card.count() > 0) { await card.click({ timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 600); }); continue; }
+    // An open drop-down is closed by clicking outside it, as a user does.
+    const scrim = page.locator('.fmt-scrim').filter({ visible: true }).first();
+    if (await scrim.count() > 0) { await scrim.click({ position: { x: 1, y: 1 }, timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 600); }); continue; }
+    const close = page.locator('.overlay.on .x, .overlay.open .x, .overlay.on .close-btn, .overlay.open .close-btn, .opt-x, .wd-x, .confirm-dialog-cancel, .confirm-dialog-dismiss, .mob-sheet-close, .mob-menu-close').filter({ visible: true }).first();
+    if (await close.count() > 0) await close.click({ timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 1800); });
+    else await page.keyboard.press('Escape');
+  }
+  const left = await page.locator(OVERLAY_SELECTOR).evaluateAll(els => els.map(el => `${el.className}: ${(el.textContent ?? '').replace(/\s+/g, ' ').slice(0, 120)}`));
+  if (left.length > 0) throw new Error(`resetApp: overlays still open: ${left.join(' | ')} (last close click: ${lastClickError})`);
+}
+
+/** Clears the project list through each row's own menu (Close for an open project, unsaved changes
+ *  discarded; Move to Bin for a saved one), then deletes what is in the Bin forever. */
+async function closeAllProjects(page: Page): Promise<void> {
+  const rows = page.locator('.original-root .project-row');
+  for (let guard = 0; guard < 80; guard++) {
+    const count = await rows.count();
+    let acted = false;
+    for (let i = 0; i < count && !acted; i++) {
+      await rows.nth(i).locator('.row-menu-btn').click();
+      const close = page.locator('.row-menu-item.menu-action-close');
+      const remove = page.locator('.row-menu-item.menu-action-delete');
+      if (await close.count() > 0) {
+        await close.first().click();
+        const discard = page.locator('.close-actions button', { hasText: 'Close without saving' });
+        if (await discard.isVisible()) await discard.click();
+      } else if (await remove.count() > 0) {
+        await remove.first().click();
+        await page.locator('.confirm-dialog-confirm').click();
+      } else { await page.keyboard.press('Escape'); continue; }
+      acted = true;
+    }
+    if (!acted) break;
+  }
+  await emptyBin(page);
+}
+
+async function emptyBin(page: Page): Promise<void> {
+  const toggle = page.locator('.projects-panel-footer .bin-toggle');
+  if (await toggle.count() === 0 || /Bin \(0\)/.test(await toggle.innerText())) return;
+  const back = page.getByRole('button', { name: 'Back to projects' });
+  if (!await back.isVisible()) await toggle.click();
+  const binRows = page.locator('.bin-row');
+  for (let guard = 0; guard < 80 && await binRows.count() > 0; guard++) {
+    await page.locator('.bin-delete-forever').first().click();
+    await page.locator('.confirm-dialog-confirm').click();
+  }
+  await page.getByRole('button', { name: 'Back to projects' }).click();
+}
+
+/** Puts Options back to the app's defaults through the Options dialog's own controls. */
+async function restoreOptions(page: Page): Promise<void> {
+  await page.locator('.tb-btn[title^="Options"]').click();
+  const modal = page.locator('.options-modal, .opt-modal');
+  await modal.waitFor({ state: 'visible' });
+  for (const id of ['env-reset', 'settings-reset']) {
+    const reset = modal.getByTestId(id);
+    if (await reset.isEnabled()) await reset.click();
+  }
+  await modal.getByTestId('difference-cues').getByRole('checkbox').check();
+  await modal.getByRole('button', { name: /Reset to Metric/ }).click();
+  await modal.getByTestId('settings-apply').click();
+  await modal.waitFor({ state: 'hidden' });
+}
+
+async function clearHash(page: Page): Promise<void> {
+  if (!page.url().includes('#') && !page.url().includes('?')) return;
+  await page.evaluate(() => {
+    globalThis.location.hash = '';
+    globalThis.history.replaceState(null, '', '/');
+  });
+}
 
 export const test = base.extend<
   { browserLog: BrowserLog; page: Page; appPage: Page },
@@ -249,7 +258,7 @@ export const test = base.extend<
       catch { /* storage disabled */ }
     });
     await page.goto('/');
-    await page.waitForFunction(() => 'openisdTestHooks' in globalThis);
+    await page.locator('.original-root, .mobile-root').first().waitFor({ state: 'visible' });
 
     // Avoid full page reloads when tests call page.goto('/') on the already-loaded worker app page.
     const rawGoto = page.goto.bind(page);
@@ -417,6 +426,8 @@ export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT
     buffer: readFileSync(owprPath),
   });
   await page.locator('.original-root').waitFor({ state: 'visible' });
+  // The window keeps the tab the last project was left on; a user starts a project on the Box tab.
+  await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
 }
 
 /**

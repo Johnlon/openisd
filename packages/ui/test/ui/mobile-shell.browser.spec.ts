@@ -12,7 +12,7 @@ import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ appPage: page }) => {
-  await forceMobileSkin(page);
+  await forceMobileSkin(page, 'window');
 });
 
 test('a cold start with no project shows the empty state with New/Open actions', async ({ appPage: page }) => {
