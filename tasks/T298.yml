@@ -1,0 +1,12 @@
+id: T298
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: An F's failing list drops GitHub's caret-notation colour codes
+done_test: bash scripts/land/test/post-land-red-base.test.sh
+files:
+  - tasks/T298.yml
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/post-land-red-base.test.sh
+  - bugs/BUG_20261017_f-failing-list-keeps-caret-colour-codes.md

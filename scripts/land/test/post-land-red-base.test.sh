@@ -22,7 +22,7 @@ setup() {
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/
-    printf '#!/usr/bin/env bash\n[ -f FAIL ] && { echo "browser (3): TEST START a/ok.browser.spec.ts > ok works"; echo "browser (3): TEST END a/ok.browser.spec.ts > ok works status=passed"; printf "browser (3):   \\342\\234\\230  4 a/bad.browser.spec.ts:9:5 \\342\\200\\272 bad breaks (2.5s)TEST END a/bad.browser.spec.ts > bad breaks status=failed\\n"; printf "unit (1): \\033[41m FAIL \\033[49m test/x.test.ts > x\\n"; echo "spec broken.spec.ts failed"; exit 1; }\nexit 0\n' > suite.sh
+    printf '#!/usr/bin/env bash\n[ -f FAIL ] && { echo "browser (3): TEST START a/ok.browser.spec.ts > ok works"; echo "browser (3): TEST END a/ok.browser.spec.ts > ok works status=passed"; printf "browser (3):   \\342\\234\\230  4 a/bad.browser.spec.ts:9:5 \\342\\200\\272 bad breaks (2.5s)TEST END a/bad.browser.spec.ts > bad breaks status=failed\\n"; printf "unit (1): \\033[41m FAIL \\033[49m test/x.test.ts > x\\n"; echo "unit (2): ^[[41m^[[1m FAIL ^[[22m^[[49m test/y.test.ts > y"; echo "spec broken.spec.ts failed"; exit 1; }\nexit 0\n' > suite.sh
     printf 'FULL_SUITE_CMD="bash suite.sh"\nPOST_LAND_LOCK="%s/post.lock"\nPOST_LAND_DIR="%s/copies"\n' "$SCRATCH" "$SCRATCH" > land.conf
     git add -A; git commit -qm base; git push -q origin main
 }
@@ -73,7 +73,7 @@ if grep -q 'spec broken.spec.ts failed' "$keep" 2> /dev/null \
     ok "the whole output is kept and the F names it"; else fail "kept output: $keep / $f"; fi
 fl=$(git -C "$SCRATCH/w/origin.git" show "$(origin_main):$f" | sed -n '/^failing: |/,/^[a-z_]*:/p')
 if ! grep -q 'TEST \|ok.browser\|\x1b' <<< "$fl" && grep -q 'bad.browser.spec.ts:9:5 › bad breaks (2.5s)$' <<< "$fl" \
-   && grep -q 'FAIL  test/x.test.ts' <<< "$fl"; then
+   && grep -q 'FAIL  test/x.test.ts' <<< "$fl" && grep -q 'unit (2):  FAIL  test/y.test.ts > y' <<< "$fl" && ! grep -qF '^[' <<< "$fl"; then
     ok "the F lists only the failing specs, with no markers or colour codes"; else fail "failing list: $fl"; fi
 
 # 5. a later green closes the open F whose red commits it holds; an F with a red sha outside its history and

@@ -113,9 +113,9 @@ record_red() {
     # The failing spec names, in full: an F that keeps only the log tail lost them (F7-F9 cost a
     # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
     # vitest echoes a test's console output as "stderr | <file> > <name>": not a failure (F11 listed six).
-    # Colour codes and the per-test "TEST START/TEST END" markers (T254's logger; Playwright's list
+    # Colour codes (as ESC bytes, and as GitHub's failed-job log prints them, "^[[41m", F53) and the per-test "TEST START/TEST END" markers (T254's logger; Playwright's list
     # reporter can run one onto the end of a ✘ line) are removed first: they named every spec (F52).
-    failing="$(sed -E 's/^[0-9T:.-]+Z [^ ]+ //; s/\x1b\[[0-9;]*m//g; s/TEST (START|END) .*$//' "$OUT" | grep -Ev '^[[:space:]]*(stderr|stdout) \|' | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
+    failing="$(sed -E 's/^[0-9T:.-]+Z [^ ]+ //; s/\x1b\[[0-9;]*m//g; s/\^\[\[[0-9;]*m//g; s/TEST (START|END) .*$//' "$OUT" | grep -Ev '^[[:space:]]*(stderr|stdout) \|' | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
     # Screens whose picture differs from its baseline: named, with a before/after page (scripts/visual/).
     visual=""
     [ ! -f "$TOOLS/scripts/visual/failures-page.sh" ] || visual="$(bash "$TOOLS/scripts/visual/failures-page.sh" "$COPY" "$SHA" 2> /dev/null || true)"

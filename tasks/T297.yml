@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: a2f6455d671b8571d7d7c611ffea086680c316d4
 goal: Housekeeping stops processes tagged with a dead browser owner, record or not
 done_test: bash scripts/land/test/housekeeping.test.sh
 files:
