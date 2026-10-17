@@ -1,6 +1,6 @@
 id: F50
 owner: Johnlon
-status: open
+status: done
 sha: 96acf25250a2c5a973c301b67af16ebd9ba7dc08
 goal: main is red at 96acf25250; make the full suite pass again
 commits: |
@@ -232,3 +232,10 @@ output: |
     1 error was not a part of any test, see above for details
   suite: unit exit 0, browser exit 1
   post-land suite 4041284-96acf25250 finished: FAILED (exit 1) after 1h04m27s
+closed_note: |
+  A laptop-only red, the same fault as F49: the laptop's test server died mid-run and the specs then
+  failed in about 150 ms each; heavy.slice went over MemoryHigh during the run. GitHub Actions ran the
+  full suite green on 96acf25250 (run on push) and on every later main commit; the Actions-backed
+  post-land run is green at 2947ff6a12. This was the last laptop full run: since T266, post-land and the
+  watchdog's runs wait for the Actions run instead (land.conf FULL_SUITE_CMD). The server death stays
+  open in BUG_20261017_laptop-suite-server-dies-mid-run (owner maryu), now being reproduced.
