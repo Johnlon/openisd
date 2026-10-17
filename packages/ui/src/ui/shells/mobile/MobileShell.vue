@@ -3,6 +3,7 @@
 // Holds NO logic: every ref/computed/write lives in `useMobileShell()`
 // (src/hooks/MobileShell-hooks.ts), mirroring OriginalShell.vue's own 1-to-1 hook rule.
 import PersistenceBanner from '../../components/PersistenceBanner.vue';
+import MobileSaveButton from './MobileSaveButton.vue';
 import MobileTabBar from './MobileTabBar.vue';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import MobileBoxTab from './MobileBoxTab.vue';
@@ -75,6 +76,7 @@ const diagnostics = injectDiagnosticsModal();
         @pointerup="onSyncPointerUp"
         @pointercancel="onSyncPointerCancel"
       />
+      <MobileSaveButton v-if="projectOpen" />
     </div>
 
     <div v-if="!projectOpen" class="mob-empty">

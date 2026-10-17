@@ -4,6 +4,7 @@
 // GraphPanel's canvas sets touch-action:none (custom pointer gestures); in a stack it is relaxed
 // to pan-y, so a vertical swipe scrolls the list and a sideways drag still moves the cursor.
 import GraphPanel from '../../components/GraphPanel.vue';
+import MobileSaveButton from './MobileSaveButton.vue';
 import MobileSheet from './MobileSheet.vue';
 import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
@@ -28,6 +29,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicke
           <option v-for="o in CHARTS_HIGH_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} / screen</option>
         </select>
       </label>
+      <MobileSaveButton />
     </div>
     <div v-if="pickerOpen" class="mob-chart-backdrop" @click="closePicker"></div>
     <ul v-if="pickerOpen" class="mob-chart-list">

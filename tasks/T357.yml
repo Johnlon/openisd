@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 7a20dc71d5c3cccd3fc3634da0e21a6c423f22a4
 goal: UIField step F+D: port velocity limit and air environment fields on the field rows, with allow-out-of-range
 done_test: bash scripts/test.sh packages/ui/test/architecture/project-cell-fields-use-uifield.test.ts
 files:

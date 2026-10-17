@@ -268,3 +268,18 @@ export function emptyBinLabel(total: string): string {
   return `Empty Bin (${total})`;
 }
 
+
+/** The phone Save button: lit while the open project has unsaved changes. */
+export interface SaveButtonState {
+  readonly lit: boolean;
+  readonly title: string;
+}
+
+export function saveButtonState(unsaved: boolean): SaveButtonState {
+  return unsaved ? {lit: true, title: 'Save changes'} : {lit: false, title: 'Saved'};
+}
+
+/** What the user is told after a tap on Save. */
+export function savedMessage(projectName: string): string {
+  return `Saved ${projectName}`;
+}
