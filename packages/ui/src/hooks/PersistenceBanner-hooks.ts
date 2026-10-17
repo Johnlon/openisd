@@ -3,6 +3,7 @@
 import {getCurrentScope, onScopeDispose, ref, type Ref} from 'vue';
 import {persistenceBanner} from '@openisd/design/fields';
 import {useApp} from '../logic/app.js';
+import {storedUseOf} from '../logic/storedUse.js';
 
 export interface PersistenceBannerAPI {
   /** The warning to show; null when none. */
@@ -11,8 +12,9 @@ export interface PersistenceBannerAPI {
 }
 
 export function usePersistenceBanner(): PersistenceBannerAPI {
-  const {persistence} = useApp();
-  const read = (): string | null => persistenceBanner(persistence.outcome(), persistence.bannerDismissed());
+  const {persistence, projectRepo, storageUsage} = useApp();
+  const read = (): string | null =>
+    persistenceBanner(persistence.outcome(), persistence.bannerDismissed(), storedUseOf(projectRepo, storageUsage));
   const text = ref(read());
   const stop = persistence.watch(() => { text.value = read(); });
   if (getCurrentScope()) onScopeDispose(stop);

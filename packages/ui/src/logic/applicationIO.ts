@@ -1,7 +1,9 @@
 
 import type { Engine } from '@openisd/design/engine';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
+import { savedNotice } from '@openisd/design/fields';
 import { createExportNotice } from './exportNotice.js';
+import { storedUseOf } from './storedUse.js';
 import {
   type DesignFiles,
   driverToWdrBytes,
@@ -45,7 +47,8 @@ import {
   type ProjectRepo,
   type HistoryFile,
   type RestoreOptions,
-  type RestoreResult
+  type RestoreResult,
+  type StorageUsage
 } from '@openisd/persistence';
 import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
 import type {SaveFormat} from './telemetry/events.js';
@@ -109,6 +112,7 @@ export function createApplicationIO(deps: {
   projectRepo: ProjectRepo;
   files: DesignFiles;
   backup: BackupRepo;
+  storageUsage: StorageUsage;
   confirmPort: ConfirmPort;
   appState: AppState;
   presentation: PresentationState;
@@ -234,7 +238,7 @@ export function createApplicationIO(deps: {
       savedCount++;
       recordSave('stored', project);
     }
-    flash(savedCount === 0 ? 'Nothing to save' : `Saved projects: ${savedCount}`);
+    flash(savedNotice(savedCount, storedUseOf(deps.projectRepo, deps.storageUsage)));
     return savedCount;
   }
 

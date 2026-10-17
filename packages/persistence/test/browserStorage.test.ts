@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {createBrowserStoragePort, createPersistenceStatus, type BrowserStoragePort} from '../src/storage/browserStorage.js';
+import {createBrowserStoragePort, createPersistenceStatus, createUsageNoticeTab, type BrowserStoragePort} from '../src/storage/browserStorage.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 
 describe('createBrowserStoragePort', () => {
@@ -56,5 +56,17 @@ describe('createPersistenceStatus', () => {
     expect(status.bannerDismissed()).toBe(false);
     status.dismissBanner();
     expect(createPersistenceStatus(fakePort('refused'), storage).bannerDismissed()).toBe(true);
+  });
+});
+
+describe('createUsageNoticeTab', () => {
+  it('is due once per tab: not again once shown, even in a new start of the same tab', () => {
+    const tabStorage = createMemoryStorage({});
+    const tab = createUsageNoticeTab(tabStorage);
+    expect(tab.due()).toBe(true);
+    tab.shown();
+    expect(tab.due()).toBe(false);
+    expect(createUsageNoticeTab(tabStorage).due()).toBe(false);
+    expect(createUsageNoticeTab(createMemoryStorage({})).due()).toBe(true);
   });
 });

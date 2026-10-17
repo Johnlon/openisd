@@ -1,0 +1,45 @@
+id: T379
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: >-
+  The app tells the user how many projects are stored and how much storage they use, in every
+  storage notice (John 17 Oct 2026, rulings 21, 23; additions via opi). (1) Save all flashes
+  "Saved 2 projects. 12 projects, 1.4 MB of 5 MB used." ("Nothing to save" unchanged); at or above
+  STORAGE_FULL_FROM the storage-full warning replaces the usage line. (2) At startup, once per
+  browser tab and only when at least one project is stored, the flash says "12 projects, 1.4 MB of
+  5 MB used." One new sessionStorage key, openisd_usage_notice_shown (John-approved via opi),
+  read through createSessionStorage and createUsageNoticeTab in packages/persistence. (3) The
+  persist warning (banner and Your data) and the storage-full warning (Your data, Save flash) carry
+  the same line: "Nothing is wrong now (12 projects, 1.4 MB of 5 MB used): ...", "Storage is 86%
+  full (40 projects, 4.3 MB of 5 MB used). Export or delete old projects." All text in
+  packages/design/fields/browserStorage.ts (storageUseLine, startupNotice, savedNotice,
+  persistenceWarning, storageFullWarning over a StoredUse); the UI reads StoredUse with
+  storedUseOf and flashes. Both skins use the existing flash (desktop popup, phone flash-strip).
+done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts packages/persistence/test/browserStorage.test.ts packages/persistence/test/storagePrefix.test.ts packages/ui/test/logic/startupUsageNotice.test.ts
+files:
+  - packages/design/fields/browserStorage.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/storage/browserStorage.ts
+  - packages/persistence/src/storage/keyValueStorage.ts
+  - packages/persistence/test/browserStorage.test.ts
+  - packages/persistence/test/storagePrefix.test.ts
+  - packages/ui/src/hooks/PersistenceBanner-hooks.ts
+  - packages/ui/src/hooks/StorageHistory-hooks.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/startupUsageNotice.ts
+  - packages/ui/src/logic/storedUse.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/repoOn.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/applicationIO.test.ts
+  - packages/ui/test/logic/project-open-once.test.ts
+  - packages/ui/test/logic/startupUsageNotice.test.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - packages/ui/test/ui/storage-notice.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T379.yml

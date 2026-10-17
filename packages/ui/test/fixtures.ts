@@ -260,6 +260,10 @@ export const test = base.extend<
       catch { /* storage disabled */ }
       try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
       catch { /* storage disabled */ }
+      // The suite starts each tab with the startup storage notice already shown, as it does the
+      // persist warning dismissed; storage-notice.browser.spec.ts opens a fresh tab to see it.
+      try { if (sessionStorage.getItem('openisd_usage_notice_shown') === null) sessionStorage.setItem('openisd_usage_notice_shown', '1'); }
+      catch { /* storage disabled */ }
     });
     await page.goto('/');
     await page.locator('.original-root, .mobile-root').first().waitFor({ state: 'visible' });
@@ -282,6 +286,10 @@ export const test = base.extend<
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled */ }
       try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
+      catch { /* storage disabled */ }
+      // The suite starts each tab with the startup storage notice already shown, as it does the
+      // persist warning dismissed; storage-notice.browser.spec.ts opens a fresh tab to see it.
+      try { if (sessionStorage.getItem('openisd_usage_notice_shown') === null) sessionStorage.setItem('openisd_usage_notice_shown', '1'); }
       catch { /* storage disabled */ }
     });
     const detach = browserLog._attach?.(page);

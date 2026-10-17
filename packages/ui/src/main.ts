@@ -47,6 +47,8 @@ import {
     createSaveSignal,
     createBrowserStoragePort,
     createPersistenceStatus,
+    createSessionStorage,
+    createUsageNoticeTab,
 } from '@openisd/persistence';
 import {DeviceName, cloudSyncReportLines, cloudSyncSummary, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
@@ -54,6 +56,8 @@ import {followPulledProjects} from './logic/pulledProjects.js';
 import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
+import {flashStartupUse} from './logic/startupUsageNotice.js';
+import {storedUseOf} from './logic/storedUse.js';
 import {createFaultLog} from './diagnostics/faultLog.js';
 import {createDriverSelection} from './logic/driverSelection.js';
 import {createDriverBrowsingState} from './logic/driverBrowsingState.js';
@@ -93,7 +97,10 @@ import '@fontsource/inter/700.css';
 import './style.css';
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
-const localStore = createLocalStorage(createStoragePrefix(location.pathname));
+const storagePrefix = createStoragePrefix(location.pathname);
+const localStore = createLocalStorage(storagePrefix);
+/** This tab's own storage, under the same prefix: what is remembered once per tab. */
+const tabStore = createSessionStorage(storagePrefix);
 
 const REDIRECT_PROJECT_KEY = 'openisd_redirect_project';
 
@@ -240,7 +247,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules, forgetCloudSyncRecord);
   const storageHistory = createStorageHistory(storageBackup, backup, layoutRules, projectRepo);
   const storageUsage = createStorageUsage(storage, projectBin);
-  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse, actions: recentActions });
+  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, storageUsage, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse, actions: recentActions });
 
   // The running build's version is baked in at build time; a dev server has none, which turns the
   // check off. Narrowed, not cast: the env value is untyped.
@@ -437,6 +444,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   for (const [name, value] of DesktopSizes.cssVars()) document.documentElement.style.setProperty(name, value);
   app.mount('#app');
   overlay?.onAppMounted();
+  flashStartupUse(storedUseOf(projectRepo, storageUsage), createUsageNoticeTab(tabStore), logging.flash);
   if (store.readOnly) logging.flash('Showing a backup read-only. Nothing you change is saved.');
   // A key that was here at the last start and is gone now: say so, and wait for a click.
   void announceLostKeys(store.lostKeys, {

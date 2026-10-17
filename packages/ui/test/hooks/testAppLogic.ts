@@ -74,12 +74,13 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   });
   const viewStateRepo = viewStateRepoOn(storage);
   const backup = backupRepoOn(storage);
-  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: fakeConfirmPort, appState, presentation });
+  const storageUsage = createStorageUsage(storage, projectBin);
+  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, storageUsage, confirmPort: fakeConfirmPort, appState, presentation });
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage: createStorageUsage(storage, projectBin),
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage,
     browserStorage: createBrowserStoragePort(undefined), persistence: createPersistenceStatus(createBrowserStoragePort(undefined), storage),
     appUpdate: new AppUpdate({
       container: {addEventListener: () => {}},

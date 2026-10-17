@@ -25,7 +25,7 @@ export { FAVORITES_KEY, type PrefsRepo, createPrefsRepo } from './repos/prefsRep
 export { APP_SETTINGS_KEY, type AppSettingsRepo, createAppSettingsRepo } from './repos/appSettingsRepo.js';
 
 export {
-  type KeyValueStorage, type ListableStorage, type SharedMemoryStorage, createLocalStorage, createMemoryStorage, createSharedMemoryStorage,
+  type KeyValueStorage, type ListableStorage, type SharedMemoryStorage, createLocalStorage, createMemoryStorage, createSessionStorage, createSharedMemoryStorage,
 } from './storage/keyValueStorage.js';
 
 export { StoragePrefix, createStoragePrefix } from './storage/storagePrefix.js';
@@ -63,9 +63,12 @@ export {
   type BrowserStoragePort,
   createBrowserStoragePort,
   createPersistenceStatus,
+  createUsageNoticeTab,
   PERSIST_BANNER_DISMISSED_KEY,
   type PersistenceStatus,
   type StorageManagerLike,
+  USAGE_NOTICE_SHOWN_KEY,
+  type UsageNoticeTab,
 } from './storage/browserStorage.js';
 
 export {

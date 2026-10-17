@@ -11,6 +11,7 @@ import {formatByteSize, formatCountOf, formatDateTime, parseBasicUtc, persistenc
 import {type BackupReason, type HistoryEntry, type HistoryRow, type PreRepairCopy, type PreRepairKind, type RefusedCopy,
   type HistoryFile, type StorageHistory} from '@openisd/persistence';
 import {useApp} from '../logic/app.js';
+import {storedUseOf} from '../logic/storedUse.js';
 import {emptyBin as emptyBinAfterAsking} from '../logic/projectBinActions.js';
 import {binTotalSize} from './binRows.js';
 
@@ -205,18 +206,18 @@ function removeOf(history: Pick<StorageHistory, 'remove' | 'removeCopy' | 'remov
 }
 
 export function useStorageHistory(): StorageHistoryAPI {
-  const { storageHistory, storageUsage, projectBin, designIO, confirmPort, logging, browserStorage, persistence } = useApp();
+  const { storageHistory, storageUsage, projectBin, designIO, confirmPort, logging, browserStorage, persistence, projectRepo } = useApp();
   const usedLine = ref('');
   const siteLine = ref<string | null>(null);
   const fullWarning = ref<string | null>(null);
-  const persistWarning = ref<string | null>(persistenceWarning(persistence.outcome()));
-  const stopWatching = persistence.watch(() => { persistWarning.value = persistenceWarning(persistence.outcome()); });
+  let use = storedUseOf(projectRepo, storageUsage);
+  const persistWarning = ref<string | null>(persistenceWarning(persistence.outcome(), use));
+  const stopWatching = persistence.watch(() => { persistWarning.value = persistenceWarning(persistence.outcome(), use); });
   if (getCurrentScope()) onScopeDispose(stopWatching);
   const estimate = shallowRef<StorageEstimate | null>(null);
-  let localBytes = 0;
   function showFullness(): void {
     siteLine.value = siteStorageLine(estimate.value);
-    fullWarning.value = storageFullWarning(localBytes, estimate.value);
+    fullWarning.value = storageFullWarning(use, estimate.value);
   }
   const usageRows = ref<readonly UsageRowView[]>([]);
   const binHasProjects = ref(false);
@@ -226,7 +227,8 @@ export function useStorageHistory(): StorageHistoryAPI {
   const refresh = (): void => {
     const usage = storageUsage.report();
     usedLine.value = storageUsedLine(usage.total);
-    localBytes = usage.total;
+    use = storedUseOf(projectRepo, storageUsage);
+    persistWarning.value = persistenceWarning(persistence.outcome(), use);
     showFullness();
     void browserStorage.estimate().then(read => { estimate.value = read; showFullness(); });
     usageRows.value = [

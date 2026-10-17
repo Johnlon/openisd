@@ -81,3 +81,19 @@ export function createPersistenceStatus(port: BrowserStoragePort, storage: KeyVa
     },
   };
 }
+
+/** Where this tab remembers it showed the startup storage notice: session storage, so once per tab. */
+export const USAGE_NOTICE_SHOWN_KEY = 'openisd_usage_notice_shown';
+
+/** Whether this tab still has to show the startup storage notice. */
+export interface UsageNoticeTab {
+  due(): boolean;
+  shown(): void;
+}
+
+export function createUsageNoticeTab(tabStorage: KeyValueStorage): UsageNoticeTab {
+  return {
+    due: () => tabStorage.get(USAGE_NOTICE_SHOWN_KEY) !== '1',
+    shown() { tabStorage.set(USAGE_NOTICE_SHOWN_KEY, '1'); },
+  };
+}

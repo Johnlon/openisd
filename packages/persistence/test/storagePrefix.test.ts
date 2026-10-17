@@ -1,16 +1,16 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {StoragePrefix, createLocalStorage, createStoragePrefix} from '../src/index.js';
+import {StoragePrefix, createLocalStorage, createSessionStorage, createStoragePrefix} from '../src/index.js';
 
-/** A `localStorage` whose own enumerable properties are the held keys, as the browser's is, so two
- *  deployments can share one origin's storage. Returns the held entries. */
-function fakeLocalStorage(): () => string[] {
+/** A `localStorage` (or `sessionStorage`) whose own enumerable properties are the held keys, as the
+ *  browser's is, so two deployments can share one origin's storage. Returns the held entries. */
+function fakeLocalStorage(area: 'localStorage' | 'sessionStorage' = 'localStorage'): () => string[] {
   const fake: Record<string, string> = {};
   const method = (name: string, fn: (key: string, value: string) => unknown) =>
     Object.defineProperty(fake, name, {value: fn, enumerable: false});
   method('getItem', key => Object.hasOwn(fake, key) ? fake[key] : null);
   method('setItem', (key, value) => { fake[key] = value; });
   method('removeItem', key => { delete fake[key]; });
-  vi.stubGlobal('localStorage', fake);
+  vi.stubGlobal(area, fake);
   return () => Object.keys(fake);
 }
 
@@ -72,5 +72,19 @@ describe('createLocalStorage under a prefix', () => {
     test.remove('openisd_view');
     expect(root.get('openisd_view')).toBe('a');
     expect(test.get('openisd_view')).toBeNull();
+  });
+});
+
+describe('createSessionStorage', () => {
+  afterEach(() => { vi.unstubAllGlobals(); });
+
+  it('keeps its keys in this tab\'s session storage, under the prefix, not in local storage', () => {
+    const local = fakeLocalStorage();
+    const session = fakeLocalStorage('sessionStorage');
+    const tab = createSessionStorage(createStoragePrefix('/test/'));
+    tab.set('openisd_usage_notice_shown', '1');
+    expect(tab.get('openisd_usage_notice_shown')).toBe('1');
+    expect(session()).toEqual(['test/openisd_usage_notice_shown']);
+    expect(local()).toEqual([]);
   });
 });

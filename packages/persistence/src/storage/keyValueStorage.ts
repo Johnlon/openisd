@@ -32,13 +32,24 @@ export interface ListableStorage extends KeyValueStorage {
  * a preference that does not persist, not a crash.
  */
 export function createLocalStorage(prefix: StoragePrefix): ListableStorage {
+  return createWebStorage(() => localStorage, prefix);
+}
+
+/** This tab's own storage, under `prefix`: it lasts while the tab is open, and no other tab sees
+ *  it. Guarded as `createLocalStorage` is. */
+export function createSessionStorage(prefix: StoragePrefix): ListableStorage {
+  return createWebStorage(() => sessionStorage, prefix);
+}
+
+/** `area` is read inside every guard: merely touching a disabled browser store throws. */
+function createWebStorage(area: () => Storage, prefix: StoragePrefix): ListableStorage {
   return {
     keys() {
-      try { return Object.keys(localStorage).flatMap(stored => prefix.own(stored) ?? []); } catch { return []; }
+      try { return Object.keys(area()).flatMap(stored => prefix.own(stored) ?? []); } catch { return []; }
     },
-    get(key) { try { return localStorage.getItem(prefix.stored(key)); } catch { return null; } },
-    set(key, value) { try { localStorage.setItem(prefix.stored(key), value); } catch { /* disabled or full */ } },
-    remove(key) { try { localStorage.removeItem(prefix.stored(key)); } catch { /* disabled */ } },
+    get(key) { try { return area().getItem(prefix.stored(key)); } catch { return null; } },
+    set(key, value) { try { area().setItem(prefix.stored(key), value); } catch { /* disabled or full */ } },
+    remove(key) { try { area().removeItem(prefix.stored(key)); } catch { /* disabled */ } },
     watch(key, onChange) {
       // The browser raises `storage` in every OTHER tab of the origin, and only when the value
       // actually changed. A null key is a whole-storage clear.

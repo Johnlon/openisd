@@ -114,9 +114,13 @@ export {
   persistenceBanner,
   persistenceLine,
   persistenceWarning,
+  savedNotice,
+  startupNotice,
   siteStorageLine,
   STORAGE_FULL_FROM,
   storageFullWarning,
+  storageUseLine,
+  type StoredUse,
   type PersistOutcome,
   type StorageEstimate,
 } from './browserStorage.js';
