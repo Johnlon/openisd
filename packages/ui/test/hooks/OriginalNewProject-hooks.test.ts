@@ -132,25 +132,26 @@ describe('useOgNewProject', () => {
     expect(wizard.step.value).toBe(WizardStep.DRIVER);
   });
 
-  it('skips step 4 when box type is bandpass4 (no alignment step built yet)', () => {
+  it('gives bandpass4 a step 4 (its chambers), the same slot every box type uses', () => {
     const engine = createEngine();
     const driver = createTestDriver(engine);
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
-    // Go to step 3
     wizard.next();
     wizard.next();
     expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
 
     wizard.boxType.value = 'bandpass4';
-    expect(wizard.totalSteps.value).toBe(4);
+    expect(wizard.totalSteps.value).toBe(5);
 
-    // Step 3 -> 5 (skipping step 4)
+    wizard.next();
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
+    expect(wizard.stepLabel.value).toBe('Chambers');
     wizard.next();
     expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
-    expect(wizard.currentStepNumber.value).toBe(4);
+    expect(wizard.currentStepNumber.value).toBe(5);
 
-    // Back from 5 -> 3
+    wizard.back();
     wizard.back();
     expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
   });
@@ -684,5 +685,42 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.passiveRadiatorView.value?.name).toBe('Typed direct');
     expect(wizard.passiveRadiatorView.value?.Sd_m2).toBeCloseTo(0.05, 9);
     expect(wizard.canNext.value).toBe(true);
+  });
+});
+
+describe('useOgNewProject — vented volume and tuning stay typeable', () => {
+  function ventedWizard() {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: createTestDriver(engine) });
+    wizard.boxType.value = 'vented';
+    return wizard;
+  }
+
+  it('shows the alignment\'s volume and tuning until one is typed', () => {
+    const wizard = ventedWizard();
+    const designed = wizard.ventedVolume_m3.value;
+    expect(designed).toBeGreaterThan(0);
+    wizard.setVentedVolume_m3(0.05);
+    expect(wizard.ventedVolume_m3.value).toBe(0.05);
+    wizard.setVentedTuning_hz(33);
+    expect(wizard.ventedTuning_hz.value).toBe(33);
+  });
+
+  it('picking another alignment replaces what was typed', () => {
+    const wizard = ventedWizard();
+    wizard.setVentedVolume_m3(0.05);
+    wizard.setVentedTuning_hz(33);
+    wizard.selectVentedAlignment(wizard.VENTED_ALIGNMENT_OPTIONS[1].value);
+    expect(wizard.ventedVolume_m3.value).not.toBe(0.05);
+    expect(wizard.ventedTuning_hz.value).not.toBe(33);
+  });
+
+  it('the project is built with the typed volume and tuning', () => {
+    const wizard = ventedWizard();
+    wizard.setVentedVolume_m3(0.05);
+    wizard.setVentedTuning_hz(33);
+    const project = wizard.createProject();
+    expect(project?.box.vented.volume_m3.value).toBeCloseTo(0.05, 9);
+    expect(project?.box.vented.tuning_goal_hz.value).toBeCloseTo(33, 9);
   });
 });

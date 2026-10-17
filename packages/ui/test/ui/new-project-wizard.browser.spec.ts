@@ -84,13 +84,10 @@ async function walkWizard(page: Page, boxType: string, name: string, driverText 
   await footerNext(page).click();                               // step 2 (num/placement) -> step 3: box type
   await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption(boxType);
   await modal.locator('button', { hasText: 'Next' }).click();
-  if (boxType === 'sealed' || boxType === 'vented') {
-    await modal.locator('button', { hasText: 'Next' }).click(); // step 4: alignment
-  }
   if (boxType === 'box-passive-radiator') {
     await choosePassiveRadiator(page);                          // step 4: the radiator, as WinISD's wizard asks
-    await modal.locator('button', { hasText: 'Next' }).click();
   }
+  await modal.locator('button', { hasText: 'Next' }).click();   // step 4 -> 5: the alignment, the radiator or the chambers
   await modal.locator('input[type="text"]').fill(name);         // step 5: name
   await modal.locator('button', { hasText: 'Create' }).click();
   await expect(page.locator('.original-root')).toBeVisible();

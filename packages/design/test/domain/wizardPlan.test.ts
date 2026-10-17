@@ -9,9 +9,9 @@ describe('WizardPlan: the steps of the New project wizard, per box type', () => 
     ['sealed', ['driver', 'count', 'box-type', 'box-details', 'project-info']],
     ['vented', ['driver', 'count', 'box-type', 'box-details', 'project-info']],
     ['box-passive-radiator', ['driver', 'count', 'box-type', 'box-details', 'project-info']],
-    ['bandpass4', ['driver', 'count', 'box-type', 'project-info']],
-    ['bandpass6', ['driver', 'count', 'box-type', 'project-info']],
-    ['abc', ['driver', 'count', 'box-type', 'project-info']],
+    ['bandpass4', ['driver', 'count', 'box-type', 'box-details', 'project-info']],
+    ['bandpass6', ['driver', 'count', 'box-type', 'box-details', 'project-info']],
+    ['abc', ['driver', 'count', 'box-type', 'box-details', 'project-info']],
   ] as const)('%s visits %j in order', (type, ids) => {
     expect(WizardPlan.of(type).steps.map(step => step.value)).toEqual(ids);
   });
@@ -22,19 +22,13 @@ describe('WizardPlan: the steps of the New project wizard, per box type', () => 
     expect(plan.numberOf(WizardStep.DRIVER)).toBe(1);
     expect(plan.numberOf(WizardStep.BOX_DETAILS)).toBe(4);
     expect(plan.numberOf(WizardStep.PROJECT_INFO)).toBe(5);
-    const bandpass = WizardPlan.of('bandpass4');
-    expect(bandpass.total).toBe(4);
-    expect(bandpass.numberOf(WizardStep.PROJECT_INFO)).toBe(4);
-  });
-
-  it('a step the plan skips has no number', () => {
-    expect(WizardPlan.of('abc').numberOf(WizardStep.BOX_DETAILS)).toBeNull();
+    for (const type of ALL_BOX_TYPES) expect(WizardPlan.of(type).total).toBe(5);
   });
 
   it('next and back walk the plan and stop at its ends', () => {
     const plan = WizardPlan.of('bandpass6');
-    expect(plan.next(WizardStep.BOX_TYPE)).toBe(WizardStep.PROJECT_INFO);
-    expect(plan.back(WizardStep.PROJECT_INFO)).toBe(WizardStep.BOX_TYPE);
+    expect(plan.next(WizardStep.BOX_TYPE)).toBe(WizardStep.BOX_DETAILS);
+    expect(plan.back(WizardStep.PROJECT_INFO)).toBe(WizardStep.BOX_DETAILS);
     expect(plan.back(WizardStep.DRIVER)).toBeNull();
     expect(plan.next(WizardStep.PROJECT_INFO)).toBeNull();
   });
@@ -43,6 +37,9 @@ describe('WizardPlan: the steps of the New project wizard, per box type', () => 
     expect(WizardPlan.of('sealed').labelOf(WizardStep.BOX_DETAILS)).toBe('Sealed Alignment');
     expect(WizardPlan.of('vented').labelOf(WizardStep.BOX_DETAILS)).toBe('Vented Alignment');
     expect(WizardPlan.of('box-passive-radiator').labelOf(WizardStep.BOX_DETAILS)).toBe('Passive Radiator');
+    for (const type of ['bandpass4', 'bandpass6', 'abc'] as const) {
+      expect(WizardPlan.of(type).labelOf(WizardStep.BOX_DETAILS)).toBe('Chambers');
+    }
   });
 
   it('the other steps keep one label for every box type', () => {

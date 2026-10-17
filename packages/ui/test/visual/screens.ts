@@ -76,7 +76,8 @@ function screens(): readonly Screen[] {
   for (const skin of VisualSkin.ALL) {
     all.push(screen(skin, 'empty', async () => undefined));
     for (const type of BOX_TYPES) {
-      const lastStep = type === 'sealed' || type === 'vented' ? 5 : 4;
+      // Step 5 of a passive-radiator project needs a radiator chosen first, which this walk does not do.
+      const lastStep = type === 'box-passive-radiator' ? 4 : 5;
       for (let step = 1; step <= lastStep; step++) {
         if (step <= 2 && type !== 'sealed') continue;
         all.push(screen(skin, `wizard-${type}-step${step}`, page => wizardAt(page, skin, type, step)));

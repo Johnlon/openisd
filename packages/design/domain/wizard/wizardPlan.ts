@@ -5,7 +5,7 @@ export class WizardStep {
   static readonly DRIVER = new WizardStep('driver', () => 'Select driver for project');
   static readonly COUNT = new WizardStep('count', () => 'Number of drivers and placement');
   static readonly BOX_TYPE = new WizardStep('box-type', () => 'Type of design');
-  /** The page after the box type: the sealed or vented alignment, or the passive radiator. */
+  /** The page after the box type, for every box type: the volume and tuning, with the alignment where there is one, or the radiator. */
   static readonly BOX_DETAILS = new WizardStep('box-details', boxDetailsLabel);
   static readonly PROJECT_INFO = new WizardStep('project-info', () => 'Project Information');
 
@@ -13,21 +13,7 @@ export class WizardStep {
   private constructor(readonly value: string, readonly labelFor: (type: BoxType) => string) {}
 }
 
-/** Whether the box type has a page of its own between the box type and the project information. */
-function hasBoxDetailsStep(type: BoxType): boolean {
-  switch (type) {
-    case 'sealed':
-    case 'vented':
-    case 'box-passive-radiator':
-      return true;
-    case 'bandpass4':
-    case 'bandpass6':
-    case 'abc':
-      return false;
-  }
-}
-
-/** The title of the box details page, by box type; the page is only visited where `hasBoxDetailsStep`. */
+/** The title of the box details page, by box type. */
 function boxDetailsLabel(type: BoxType): string {
   switch (type) {
     case 'sealed':
@@ -39,7 +25,7 @@ function boxDetailsLabel(type: BoxType): string {
     case 'bandpass4':
     case 'bandpass6':
     case 'abc':
-      return 'Box';
+      return 'Chambers';
   }
 }
 
@@ -53,7 +39,7 @@ export class WizardPlan {
       WizardStep.DRIVER,
       WizardStep.COUNT,
       WizardStep.BOX_TYPE,
-      ...(hasBoxDetailsStep(type) ? [WizardStep.BOX_DETAILS] : []),
+      WizardStep.BOX_DETAILS,
       WizardStep.PROJECT_INFO,
     ];
     this.total = this.steps.length;

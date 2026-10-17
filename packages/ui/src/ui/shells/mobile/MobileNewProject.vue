@@ -2,16 +2,15 @@
 // Mobile New Project wizard — same steps, same state as the desktop wizard (WinISD order:
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
-import { onBeforeUnmount } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import { NumberField, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
-import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
-import NumInput from '../../components/NumInput.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
+import {provideCellScope} from '../../components/cellScope.js';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
@@ -20,7 +19,8 @@ const emit = defineEmits<{ close: [] }>();
 
 const { driverBrowsing } = useApp();
 const wizard = useOgNewProject();
-const { readoutWithUnit } = useUnitReadouts();
+// The wizard's fields are drafts held in props, which Vue sees change: the scope never ticks.
+provideCellScope({ revision: ref(0), written: () => {} });
 
 const {
   totalSteps,
@@ -45,7 +45,7 @@ const {
   IMPLEMENTED_BOX_TYPES,
   volume_m3,
   frontVolume_m3,
-  isDual, hasTunings, rearTuning_hz, frontTuning_hz,
+  hasTunings, rearTuning_hz, frontTuning_hz,
   isSealed,
   isVented,
   sealedVolume_m3,
@@ -63,7 +63,7 @@ const {
   VENTED_ALIGNMENT_OPTIONS,
   selectedVentedAlignment,
   selectVentedAlignment,
-  ventedVolume_L,
+  ventedVolume_m3, setVentedVolume_m3, setVentedTuning_hz,
   ventedTuning_hz,
   ventedVolumeWarning,
   ventedTuningWarning,
@@ -168,20 +168,6 @@ function handleCreate() {
         <div class="box-diagram-container">
           <BoxTypeDiagram :box-type="boxType" />
         </div>
-
-        <div v-if="!isSealed && !isVented" class="volume-fields">
-          <template v-if="!isDual">
-            <div class="field"><label>Starting volume</label><div class="field-inline"><NumInput id="np-starting-volume" :model-value="volume_m3" @update:model-value="(v: number | null) => { if (v !== null) volume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div></div>
-          </template>
-          <template v-else>
-            <div class="field"><label>Rear chamber volume</label><div class="field-inline"><NumInput id="np-rear-volume" :model-value="volume_m3" @update:model-value="(v: number | null) => { if (v !== null) volume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div></div>
-            <div class="field"><label>Front chamber volume</label><div class="field-inline"><NumInput id="np-front-volume" :model-value="frontVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) frontVolume_m3 = v; }" :field="NumberField.BOX_VF_L" :precision="NumberField.BOX_VF_L.precision" /><UnitToggle :field="NumberField.BOX_VF_L" unit-class="unit" /></div></div>
-            <template v-if="hasTunings">
-            <div class="field"><label>Rear chamber tuning</label><div class="field-inline"><NumInput id="np-rear-tuning" :model-value="rearTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) rearTuning_hz = v; }" :field="NumberField.BOX_FRC_HZ" :precision="NumberField.BOX_FRC_HZ.precision" /><UnitToggle :field="NumberField.BOX_FRC_HZ" unit-class="unit" /></div></div>
-            <div class="field"><label>Front chamber tuning</label><div class="field-inline"><NumInput id="np-front-tuning" :model-value="frontTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) frontTuning_hz = v; }" :field="NumberField.BOX_FFC_HZ" :precision="NumberField.BOX_FFC_HZ.precision" /><UnitToggle :field="NumberField.BOX_FFC_HZ" unit-class="unit" /></div></div>
-            </template>
-          </template>
-        </div>
       </div>
 
       <!-- Step 4: Sealed Alignment -->
@@ -192,9 +178,7 @@ function handleCreate() {
           </select>
           <WinisdDeviationCue v-if="sealedPickerDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
         </div>
-        <div class="field"><label>Box volume</label>
-          <div class="field-inline"><NumInput id="np-sealed-volume" :model-value="sealedVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) setSealedVolume_m3(v); }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div>
-        </div>
+        <UIFixedField class="mob-ui-field" input-id="np-sealed-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="sealedVolume_m3" @update:value="setSealedVolume_m3" />
         <div class="readout-box">
           <div class="readout-item"><span>Calculated Qtc:</span> <strong>{{ ReadoutFormat.QTC.text(qtc, '--') }}</strong></div>
           <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
@@ -209,11 +193,11 @@ function handleCreate() {
             <option v-for="o in VENTED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
           </select>
         </div>
+        <UIFixedField class="mob-ui-field" input-id="np-vented-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="ventedVolume_m3" @update:value="setVentedVolume_m3" />
+        <div v-if="ventedVolumeWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
+        <UIFixedField class="mob-ui-field" input-id="np-vented-tuning" label="Tuning frequency" :field="NumberField.BOX_FB_HZ" :value="ventedTuning_hz" @update:value="setVentedTuning_hz" />
+        <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
         <div class="readout-box">
-          <div class="readout-item"><span>Box volume:</span> <strong>{{ readoutWithUnit(ReadoutFormat.PROJECT_VOLUME_L, ventedVolume_L, '--') }}</strong></div>
-          <div v-if="ventedVolumeWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
-          <div class="readout-item"><span>Tuning frequency:</span> <strong>{{ readoutWithUnit(ReadoutFormat.TUNING_HZ, ventedTuning_hz, '--') }}</strong></div>
-          <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
           <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
           <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
         </div>
@@ -221,9 +205,20 @@ function handleCreate() {
 
       <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
       <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
+        <UIFixedField class="mob-ui-field" input-id="np-starting-volume" label="Starting volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
         <NewProjectPassiveRadiatorStep :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
           @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
+      </div>
+
+      <!-- Step 4: Chambers (4th and 6th order bandpass, ABC): each chamber's volume and tuning together -->
+      <div v-else-if="isBoxDetailsStep" class="step-content">
+        <h4 class="np-chamber-head">Rear chamber</h4>
+        <UIFixedField class="mob-ui-field" input-id="np-rear-volume" label="Volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
+        <UIFixedField v-if="hasTunings" class="mob-ui-field" input-id="np-rear-tuning" label="Tuning" :field="NumberField.BOX_FRC_HZ" :value="rearTuning_hz" @update:value="v => rearTuning_hz = v" />
+        <h4 class="np-chamber-head">Front chamber</h4>
+        <UIFixedField class="mob-ui-field" input-id="np-front-volume" label="Volume" :field="NumberField.BOX_VF_L" :value="frontVolume_m3" @update:value="v => frontVolume_m3 = v" />
+        <UIFixedField class="mob-ui-field" input-id="np-front-tuning" label="Tuning" :field="NumberField.BOX_FFC_HZ" :value="frontTuning_hz" @update:value="v => frontTuning_hz = v" />
       </div>
 
       <!-- Step 5: Project Information -->
@@ -250,6 +245,7 @@ function handleCreate() {
 </template>
 
 <style scoped>
+.np-chamber-head { margin: 12px 0 4px; font-size: 15px; font-weight: 600; color: #59635F; }
 .mob-np-overlay {
   position: fixed; inset: 0; z-index: 100;
   background: var(--m-bg, #EEF1F0);

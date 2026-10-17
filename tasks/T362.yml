@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 0ac9eec37489311988d0b27cdc777d5c53511f14
 goal: W1: the New project wizard steps come from one design plan per box type (WizardPlan); the hook and both skins use it
 done_test: bash scripts/test.sh packages/design/test/domain/wizardPlan.test.ts
 files:

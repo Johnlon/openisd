@@ -121,10 +121,16 @@ export interface OriginalNewProjectAPI {
   readonly VENTED_ALIGNMENT_OPTIONS: readonly SelectorOption<VentedAlignment>[];
   readonly selectedVentedAlignment: Ref<VentedAlignment>;
   selectVentedAlignment(alignment: VentedAlignment): void;
-  /** The alignment's vented box volume, litres — read-only, from the driver and alignment. */
+  /** The vented box volume on show, SI: the alignment's, until one is typed. */
+  readonly ventedVolume_m3: ComputedRef<number>;
+  /** The same volume in litres. */
   readonly ventedVolume_L: ComputedRef<number>;
-  /** The alignment's tuning frequency, Hz — read-only, from the driver and alignment. */
+  /** The tuning frequency on show, Hz: the alignment's, until one is typed. */
   readonly ventedTuning_hz: ComputedRef<number>;
+  /** Types a vented volume, SI; it replaces the alignment's until another alignment is picked. */
+  setVentedVolume_m3(v: number): void;
+  /** Types a vented tuning, Hz; it replaces the alignment's until another alignment is picked. */
+  setVentedTuning_hz(v: number): void;
   /** Why `ventedVolume_L` is implausible, or null when it is not. The value itself is WinISD's
    *  own answer and is never changed — extrapolated designs are marked, not clamped. */
   readonly ventedVolumeWarning: ComputedRef<string | null>;
@@ -308,6 +314,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   function selectDriver(driver: OpenISDDriver): void {
     selectedDriver.value = driver;
+    ventedVolumeTyped_m3.value = null;
+    ventedTuningTyped_hz.value = null;
     recomputeSealedVolume(driver, targetQtc.value);
     // "Use" in the step-1 driver picker is the step's whole job — done, move on.
     if (step.value === WizardStep.DRIVER) next();
@@ -323,8 +331,22 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     sealedVolumeFromTarget.value = false;
   }
 
+  /** A volume or tuning typed over the alignment's; null while the alignment's own is on show. */
+  const ventedVolumeTyped_m3 = ref<number | null>(null);
+  const ventedTuningTyped_hz = ref<number | null>(null);
+
   function selectVentedAlignment(alignment: VentedAlignment): void {
     selectedVentedAlignment.value = alignment;
+    ventedVolumeTyped_m3.value = null;
+    ventedTuningTyped_hz.value = null;
+  }
+
+  function setVentedVolume_m3(v: number): void {
+    ventedVolumeTyped_m3.value = v;
+  }
+
+  function setVentedTuning_hz(v: number): void {
+    ventedTuningTyped_hz.value = v;
   }
 
   /** WinISD designs the vented box for the driver AS DRIVEN — Qts with the project's series
@@ -335,25 +357,24 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     return driver.ventedDesign(selectedVentedAlignment.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_VENTED_QL);
   });
 
-  const ventedVolume_L = computed(() => (ventedAlignmentResult.value?.Vb != null ? NumberField.BOX_VB_L.toDisplay(ventedAlignmentResult.value.Vb) : 0));
-  const ventedTuning_hz = computed(() => ventedAlignmentResult.value?.Fb ?? 0);
+  const ventedVolume_m3 = computed(() => ventedVolumeTyped_m3.value ?? ventedAlignmentResult.value?.Vb ?? 0);
+  const ventedVolume_L = computed(() => NumberField.BOX_VB_L.toDisplay(ventedVolume_m3.value));
+  const ventedTuning_hz = computed(() => ventedTuningTyped_hz.value ?? ventedAlignmentResult.value?.Fb ?? 0);
 
   // The designed value stays exactly as WinISD designs it; these say when it is implausible.
   // Only meaningful for a vented box — a sealed design has no vented box to judge, and reading
   // the vented preview for one would judge a number the user is not being shown.
   const ventedVolumeWarning = computed<string | null>(() => {
     if (!isVented.value) return null;
-    const design = ventedAlignmentResult.value;
-    if (!design) return null;
-    const issue = eng.vented.volumeIssue(design.Vb);
+    if (!ventedAlignmentResult.value) return null;
+    const issue = eng.vented.volumeIssue(ventedVolume_m3.value);
     return issue === null ? null : issue.text;
   });
 
   const ventedTuningWarning = computed<string | null>(() => {
     if (!isVented.value) return null;
-    const design = ventedAlignmentResult.value;
-    if (!design) return null;
-    const issue = eng.vented.tuningIssue(design.Fb);
+    if (!ventedAlignmentResult.value) return null;
+    const issue = eng.vented.tuningIssue(ventedTuning_hz.value);
     return issue === null ? null : issue.text;
   });
 
@@ -439,12 +460,14 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     const p = createProjectInStore(selectedDriver.value, (b) => {
       switch (boxType.value) {
         case 'sealed': return sealedVolumeFromTarget.value ? b.sealed().qtc(targetQtc.value) : b.sealed().volume_m3(sealedVolume_m3.value);
-        case 'vented': return b.vented().alignment(selectedVentedAlignment.value);
+        case 'vented': return ventedVolumeTyped_m3.value === null && ventedTuningTyped_hz.value === null
+          ? b.vented().alignment(selectedVentedAlignment.value)
+          : b.vented().volume_m3(ventedVolume_m3.value).tuning_goal_hz(ventedTuning_hz.value);
         case 'box-passive-radiator': {
           const pr = b.passiveRadiator().volume_m3(volume_m3.value);
           return passiveRadiator.value === null ? pr : pr.radiator(passiveRadiator.value);
         }
-        case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value);
+        case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).frontTuning_hz(frontTuning_hz.value);
         case 'bandpass6': return b.bandpass6().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
         case 'abc': return b.abc().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
       }
@@ -513,8 +536,11 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     VENTED_ALIGNMENT_OPTIONS,
     selectedVentedAlignment,
     selectVentedAlignment,
+    ventedVolume_m3,
     ventedVolume_L,
     ventedTuning_hz,
+    setVentedVolume_m3,
+    setVentedTuning_hz,
     ventedVolumeWarning,
     ventedTuningWarning,
 
