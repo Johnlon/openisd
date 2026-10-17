@@ -3,6 +3,7 @@ release_note: Number fields no longer accept letters, typed or pasted; a paste k
 repo: openisd
 owner: maryu
 status: done
+landed: ca6788cc667c7a1b521dd885908ce6da0fc7afc5
 goal: Number fields refuse letters, by typing or paste (BUG_20261016_number-fields-accept-letters)
 done_test: bash scripts/test.sh packages/design/test/fields/numberText.test.ts
 files:

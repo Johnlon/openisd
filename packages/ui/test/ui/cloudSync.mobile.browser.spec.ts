@@ -47,7 +47,9 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
   test.beforeAll(async () => {
     mkdirSync(SCREENSHOT_DIR, { recursive: true });
     cloudPort = await getFreePort();
-    cloudBaseUrl = `http://localhost:${cloudPort}`;
+    // 127.0.0.1, not localhost: in an Ubuntu 26.04 container vite resolves localhost to ::1 and listens
+    // there only, while Node's fetch resolves it to 127.0.0.1 and is refused (GitHub Actions suite, T258).
+    cloudBaseUrl = `http://127.0.0.1:${cloudPort}`;
 
     execSync(
       `node_modules/.bin/vite build --mode test --outDir ${CLOUD_DIST} --emptyOutDir`,
@@ -65,6 +67,8 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
       'node_modules/.bin/vite',
       [
         'preview',
+        '--host',
+        '127.0.0.1',
         '--outDir',
         CLOUD_DIST,
         '--port',
@@ -81,7 +85,12 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
       },
     );
 
-    await waitForServer(cloudBaseUrl);
+    const previewLog: string[] = [];
+    previewProcess.stdout?.on('data', (chunk: Buffer) => previewLog.push(chunk.toString()));
+    previewProcess.stderr?.on('data', (chunk: Buffer) => previewLog.push(chunk.toString()));
+    await waitForServer(cloudBaseUrl).catch((e: unknown) => {
+      throw new Error(`${e instanceof Error ? e.message : String(e)}\npreview server said:\n${previewLog.join('')}`);
+    });
   });
 
   test.afterAll(async () => {

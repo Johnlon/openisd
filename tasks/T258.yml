@@ -1,0 +1,19 @@
+id: T258
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Actions suite: laptop's distro and fonts, cloudSync spec binds 127.0.0.1, shards balanced by time
+done_test: bash scripts/test.sh packages/ui/test/scripts/shard-specs.test.ts
+files:
+  - tasks/T258.yml
+  - .github/workflows/suite.yml
+  - scripts/shardSpecs.mjs
+  - scripts/ci/shard-specs.mjs
+  - scripts/ci/spec-durations.json
+  - scripts/ci/sample-fixture-race.sh
+  - packages/ui/test/scripts/shard-specs.test.ts
+  - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
+  - packages/ui/test/ui/app-update.browser.spec.ts
+  - packages/ui/test/fixtures/generateSample.ts
+  - bugs/BUG_20261016_sample-fixture-partial-read.md

@@ -5,10 +5,24 @@
  *  - unsaved edits: "New version available" with Reload / Not now, in both skins;
  *  - About: Force refresh with the running build beside it and the note; one press reloads, projects stay.
  */
+import {readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import type {Page} from '@playwright/test';
 import {dirtyFocusedDesign, expect, focusedProjectName, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import {deliverWaitingBuild} from '../fixtures/updateHost.js';
+
+const BUILD_INFO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'build-info.json');
+
+/** The suite build's stamp, as scripts/version-info.mjs wrote it before the build ("v20261016T2241Z" → "20261016T2241Z"). */
+function runningStamp(): string {
+  const parsed: unknown = JSON.parse(readFileSync(BUILD_INFO, 'utf8'));
+  if (typeof parsed !== 'object' || parsed === null || !('version' in parsed) || typeof parsed.version !== 'string') {
+    throw new Error(`build-info.json has no string "version": ${JSON.stringify(parsed)}`);
+  }
+  return parsed.version.replace(/^v/, '');
+}
 
 interface Skin {
   readonly name: string;
@@ -100,18 +114,14 @@ for (const skin of SKINS) {
 
     // John, 16 Oct 2026: "I never asked for the about to show a list of releases, I asked for a force latest".
     test('About on a release build shows its number and stamp and Force refresh, and no list of builds', async ({page}) => {
-      await skin.open(page);
-      await skin.openAbout(page);
-      const stamp = (await page.getByTestId('running-stamp').textContent())?.trim() ?? '';
-      expect(stamp).toMatch(/^\d{8}T\d{4}Z$/);
+      const stamp = runningStamp();
       // The hosted list names this build as release 7.0.952, beside an older release and a snapshot.
       await page.route('**/v/index.json', route => route.fulfill({json: [
         {stamp, kind: 'release', tag: `v${stamp}`, version: '7.0.952', url: 'https://example.test/r', published: stamp, subject: 'x', latest: true},
         {stamp: '20260101T0102Z', kind: 'release', tag: 'v20260101T0102Z', version: '7.0.900', url: 'https://example.test/o', published: '20260101T0102Z', subject: 'x', latest: false},
         {stamp: '20260102T0102Z', kind: 'snap', tag: 'snap-20260102T0102Z', version: '', url: 'https://example.test/s', published: '20260102T0102Z', subject: 'x', latest: false},
       ]}));
-      await page.reload();
-      await page.locator(skin.ready).waitFor({state: 'visible'});
+      await skin.open(page);
       await skin.openAbout(page);
       const about = page.locator('.sp-versions');
       await expect(page.getByTestId('running-heading')).toContainText('7.0.952');

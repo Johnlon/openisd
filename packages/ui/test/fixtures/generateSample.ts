@@ -1,4 +1,4 @@
-import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
@@ -14,6 +14,16 @@ const driverRecordSchema = z.looseObject({
   model: z.looseObject({value: z.string()}),
   specs: z.looseObject({woofer: z.unknown().optional()}),
 });
+
+/** Writes `text` to `path` whole or not at all. Every browser worker of a fresh checkout generates
+ *  these files at once, and a plain write empties the file first: a worker reading it then got
+ *  partial JSON ("Could not read sample-project.owpr: not valid JSON", GitHub Actions suite, T258).
+ *  A rename within one folder is atomic, so a reader sees the old file or the new one. */
+function writeWhole(path: string, text: string): void {
+  const partial = `${path}.${process.pid}.partial`;
+  writeFileSync(partial, text);
+  renameSync(partial, path);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,7 +61,7 @@ project.envHumidityPct.set(50);
 project.save();
 const owprText = project.toOwprText();
 mkdirSync(dirname(SAMPLE_PROJECT_OWPR), { recursive: true });
-writeFileSync(SAMPLE_PROJECT_OWPR, owprText);
+writeWhole(SAMPLE_PROJECT_OWPR, owprText);
 console.log(`Generated ${SAMPLE_PROJECT_OWPR}`);
 
 // Generate complete driver project with zero consistency issues
@@ -100,5 +110,5 @@ completeProject.envHumidityPct.set(50);
 
 completeProject.save();
 const completeOwprText = completeProject.toOwprText();
-writeFileSync(COMPLETE_DRIVER_PROJECT_OWPR, completeOwprText);
+writeWhole(COMPLETE_DRIVER_PROJECT_OWPR, completeOwprText);
 console.log(`Generated ${COMPLETE_DRIVER_PROJECT_OWPR}`);
