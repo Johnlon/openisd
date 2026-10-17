@@ -17,7 +17,7 @@ const presentationState = useApp().presentation;
 const props = defineProps<{
   /** The field this toggle rotates the display unit of. */
   field: NumberField;
-  /** CSS class for the unit span (e.g. 'unit unit-cyc' or 'u'). */
+  /** CSS class for the unit span (e.g. 'ui-field-unit' or 'u'). */
   unitClass?: string;
 }>();
 
@@ -34,10 +34,17 @@ function cycle() {
 </script>
 
 <template>
-  <span v-if="hasChoice" :class="unitClass ?? 'u'" role="button" tabindex="0"
+  <span v-if="hasChoice" :class="[unitClass ?? 'u', 'unit-toggle']" role="button" tabindex="0"
     :title="`Click to change units (${label})`"
     @click="cycle"
     @keydown.enter.prevent="cycle"
     @keydown.space.prevent="cycle">{{ label }}</span>
   <span v-else :class="unitClass ?? 'u'">{{ label }}</span>
 </template>
+
+<style scoped>
+/* The cue that a unit label has a tooltip and can be clicked to change units. Owned here so every
+   caller, on every skin, shows it whatever class it passes (T373). A plain label has none. */
+.unit-toggle { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.unit-toggle:hover { color: #1868d1; }
+</style>

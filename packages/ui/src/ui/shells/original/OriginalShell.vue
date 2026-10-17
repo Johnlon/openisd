@@ -866,7 +866,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </select>
             <WinisdDeviationCue v-if="sealedAlignmentDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
           </div></div>
-          <div class="field-row"><div class="field"><label>Volume</label><NumInput id="og-sealed-alignment-volume" :model-value="sealedAlignmentVolume_m3" @update:model-value="(v: number | null) => { sealedAlignmentVolume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit unit-cyc" /></div></div>
+          <div class="field-row"><div class="field"><label>Volume</label><NumInput id="og-sealed-alignment-volume" :model-value="sealedAlignmentVolume_m3" @update:model-value="(v: number | null) => { sealedAlignmentVolume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div></div>
           <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentSuitability ?? 'unknown'">●</span>
             <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ sealedAlignmentSuitabilityLabel }}</span>
           </div>
@@ -1474,9 +1474,6 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 /* filters tab fills the panel */
 .tab-section.active :deep(.fpanel), .tab-section.active :deep(.filters) { min-height:0; }
 
-/* unit-cycling label */
-.unit-cyc { cursor:pointer; text-decoration:underline dotted; text-underline-offset:2px; }
-.unit-cyc:hover { color:#1868d1; }
 
 /* ---------- parstate legend + save bar ---------- */
 /* OpenISD-only actions (not a WinISD feature) — kept deliberately small and muted
