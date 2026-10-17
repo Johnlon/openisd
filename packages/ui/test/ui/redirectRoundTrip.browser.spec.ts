@@ -1,8 +1,11 @@
 import {expect, openAProject, test} from '../fixtures.js';
+import {emulateDriveServer} from './fixtures/driveConnected.js';
 
 test.describe('Redirect round trip', () => {
   test('redirect round trip preserves unsaved edit and strips OAuth fragment', async ({ page }) => {
     let googleIntercepted = false;
+    // After the redirect the app is signed in and syncs; Google's Drive server is emulated, never the real one.
+    await emulateDriveServer(page);
 
     await page.route('**/accounts.google.com/**', async route => {
       googleIntercepted = true;

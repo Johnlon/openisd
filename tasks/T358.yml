@@ -1,0 +1,12 @@
+id: T358
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: redirectRoundTrip browser spec never logs a 401: the stray Drive request that fails it on CI is found and fixed at its source
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T358.yml
+  - packages/ui/test/ui/redirectRoundTrip.browser.spec.ts
+  - packages/ui/test/ui/fixtures/driveConnected.ts
+  - bugs/BUG_20261017_redirect-round-trip-401.md
