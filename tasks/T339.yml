@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: fec17957a033396db09fbd792ba6639dcf3f1deb
 goal: Record that T166 is abandoned: no live owner; superseded (QO185)
 done_test: grep -qx 'status: abandoned' tasks/T166.yml
 files:

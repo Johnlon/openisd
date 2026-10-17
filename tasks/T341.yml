@@ -1,0 +1,10 @@
+id: T341
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Record that T185 is abandoned: no live owner; superseded (QO185)
+done_test: grep -qx 'status: abandoned' tasks/T185.yml
+files:
+  - tasks/T341.yml
+  - tasks/T185.yml
