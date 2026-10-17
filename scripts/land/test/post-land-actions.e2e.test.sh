@@ -132,5 +132,17 @@ post "$s" a; r=$?
 if [ $r = 0 ] && [ "$(green)" = "$s" ] && grep -q -- "--repo moved/repo" "$FAKE_GH/calls" && [ -z "$(ls -d "${TMPDIR:-/tmp}"/post-land-tools.* 2>/dev/null | xargs -r -n1 sh -c 'grep -l "moved/repo" "$0/land.conf" 2>/dev/null')" ]; then
     ok "a lagging main checkout: origin/main's scripts and settings, snapshot removed"; else fail "lagging checkout (r=$r) $(tail -3 "$SCRATCH/out.a")"; fi
 
+# 10. main has no run of its own (T322): a commit that changes only task files takes the result of its nearest
+#     ancestor that changes code; a code commit with no run is still red, never a green
+setup; s=$(commit_push eleven); echo success > "$FAKE_GH/$s.conclusion"
+mkdir -p tasks; echo "id: F9" > tasks/fixes/F9.yml; echo "q: 1" > questions.yml; git add -A; git commit -qm "F9: closed"; git push -q origin main
+b=$(git rev-parse HEAD); post "$b" a; r=$?
+if [ $r = 0 ] && [ "$(green)" = "$b" ] && [ "$(grep -c -- "--commit $s" "$FAKE_GH/calls")" -ge 1 ] \
+   && ! grep -q -- "--commit $b" "$FAKE_GH/calls"; then
+    ok "a task-files-only commit takes its code ancestor's run"; else fail "bookkeeping (r=$r) $(tail -4 "$SCRATCH/out.a")"; fi
+c=$(commit_push twelve); post "$c" b; r=$?
+if [ $r != 0 ] && [ "$(green)" = "$b" ] && grep -q -- "--commit $c" "$FAKE_GH/calls"; then
+    ok "a code commit with no run is red"; else fail "code without a run (r=$r green=$(green)) $(tail -4 "$SCRATCH/out.b")"; fi
+
 [ $fails = 0 ] && { echo "post-land-actions.e2e: all passed"; exit 0; }
 echo "post-land-actions.e2e: $fails failed"; exit 1

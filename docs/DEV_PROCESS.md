@@ -91,11 +91,14 @@ resolution (never `--ours`/`--theirs`).
 
 - checks the sha out as a clean copy outside every clone and runs `FULL_SUITE_CMD` there once; no
   rerun, so a flaky spec is a red;
-- the full suite runs on GitHub Actions (John, 17 Oct 2026): every push to main starts
-  `.github/workflows/suite.yml` (unit tests in two halves, typecheck, the browser specs in 10 shards,
-  about 4 min). `FULL_SUITE_CMD` is `scripts/land/post-land/actions.sh`, which finds that run for the
-  sha (`ACTIONS_REPO`, up to `ACTIONS_FIND_S`), waits for it, and passes on its result. No run found,
-  or GitHub unreadable, is a red, never a green. `scripts/land/post-land/suite.sh` is the laptop run,
+- the full suite runs on GitHub Actions (John, 17 Oct 2026): each landing's candidate push to `land/<task>`
+  starts `.github/workflows/suite.yml` (unit tests in two halves, typecheck, the browser specs in 10 shards,
+  about 4 min), and main gets that same commit, so a push to main starts no second run (T322).
+  `FULL_SUITE_CMD` is `scripts/land/post-land/actions.sh`, which finds the run for the sha
+  (`ACTIONS_REPO`, up to `ACTIONS_FIND_S`), waits for it if it is still going, and passes on its result. A
+  commit that changes only task files (`tasks/`, `questions.yml`, such as an F opened or closed) takes the
+  result of its nearest ancestor that changes anything else. No run found, or GitHub unreadable, is a red,
+  never a green. `scripts/land/post-land/suite.sh` is the laptop run,
   kept for going back (one line in `land.conf`);
 - green: records the sha as the last green and prints `post-land: green at <sha>`. It closes every open
   F whose red commits are all in that sha's history (an infra F, with no sha, is left alone) and pushes

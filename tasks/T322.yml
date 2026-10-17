@@ -1,0 +1,16 @@
+id: T322
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Drop the second GitHub Actions run on main; post-land records the candidate's green
+done_test: bash scripts/land/test/post-land-actions.e2e.test.sh
+files:
+  - tasks/T322.yml
+  - .github/workflows/suite.yml
+  - land.conf
+  - scripts/land/post-land/actions.sh
+  - scripts/land/test/post-land-actions.e2e.test.sh
+  - docs/DEV_PROCESS.md
+  - .claude/rules/verify.md
+  - bugs/BUG_20261017_second-actions-run-on-main.md

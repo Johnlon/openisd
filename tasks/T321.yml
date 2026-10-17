@@ -2,7 +2,8 @@ id: T321
 release_note: internal
 repo: openisd
 owner: fable
-status: open
+status: done
+landed: 6dae9aab9190db59337e9bf05ff25af60b8c5c2a
 goal: Remove the committed conflict markers from tasks/T055.yml and raise two guard and worktree events as inbox items
 done_test: bash scripts/test.sh packages/design/test/architecture-no-casts.test.ts
 files:

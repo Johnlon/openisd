@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # The full suite of the post-land run on GitHub Actions (FULL_SUITE_CMD in land.conf, John 17 Oct 2026:
 # "Switch to Actions"). run.sh starts it in the clean copy of the landed sha; this script waits for the
-# Actions run that the push to main started (.github/workflows/suite.yml) and reports it:
+# Actions run on that commit (.github/workflows/suite.yml: the candidate run on land/<task>) and reports it:
 #   green: exit 0;
 #   red:   prints the failed jobs' logs (vitest's " FAIL " and Playwright's "✘" lines, which run.sh lists in
 #          the F) and puts the failing screens' pictures in test-results/ (run.sh's visual page reads them);
@@ -19,6 +19,17 @@ workflow="${ACTIONS_WORKFLOW:-suite.yml}"
 find_s="${ACTIONS_FIND_S:-600}"
 poll_s="${ACTIONS_POLL_S:-10}"
 sha="$(git rev-parse HEAD)" || exit 2
+# Main has no Actions trigger of its own (T322): every code change reaches main as the commit a candidate run on
+# land/<task> passed, and that run is the one found below. A commit that changes only task bookkeeping
+# (tasks/, questions.yml; the post-land F commits, a task file fixed by hand) has no run; the suite reads none
+# of those files, so its result is the run of its nearest ancestor that changes anything else.
+bookkeeping_only() { [ -z "$(git diff --name-only "$1^" "$1" -- . ':!tasks/**' ':!questions.yml')" ]; }
+tested="$sha"
+while git rev-parse -q --verify "$tested^" > /dev/null && bookkeeping_only "$tested"; do tested="$(git rev-parse "$tested^")"; done
+if [ "$tested" != "$sha" ]; then
+  echo "actions: ${sha:0:10} changes only task files; its suite result is the run on ${tested:0:10}"
+  sha="$tested"
+fi
 
 # The owner is run.sh (this script is exec'ed by its suite job). Every wait checks it is still the same
 # live process, by pid and start time (processes.md rule 5).
