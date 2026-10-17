@@ -129,19 +129,21 @@ function write(v: number | null, precision?: number): void {
 
 <style scoped>
 .ui-field {
+  /* The box, its gap and the ▲▼ pair. */
+  --ui-value-w: calc(90px + 2px + 2 * var(--ctl-stepper-w, 14px));
   display: grid;
-  grid-template-columns: var(--label-w, 150px) 120px 34px 16px 16px;
+  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) 34px 16px 16px;
   column-gap: 4px;
   align-items: baseline;
   position: relative; flex: none;
 }
-.ui-field-readout { grid-template-columns: var(--label-w, 150px) 90px 34px 16px 16px; }
+.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) 90px 34px 16px 16px; }
 .ui-field-readout .ui-field-value { width: 90px; }
 .ui-field > label { grid-column: 1; white-space: nowrap; }
-.ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: 120px; flex: none; grid-column: 2; }
+.ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: var(--ui-value-w); flex: none; grid-column: 2; }
 /* FIXED width, the same in every unit: the box never resizes when its unit is cycled. Wide
    enough for the longest value any field shows in any unit (a Vas in cu in, a Vd in cu ft). */
-.ui-field-value :deep(input) { width: 90px; box-sizing: border-box; }
+.ui-field-value :deep(input) { width: 90px; height: var(--ctl-h); box-sizing: border-box; }
 .ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }
 .ui-field-dev { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 5; }
 .ui-field-dq-btn {
