@@ -7,6 +7,7 @@ import {DriverFileFormat, sniff} from '../fileFormat.js';
 import {DriverScope} from '../driverScope.js';
 import type {Logging} from '../logging/flash.js';
 import {flashIfNoRoom} from './backupRefusal.js';
+import type {ExportNotice} from './exportNotice.js';
 import type {ConfirmPort} from './confirmPort.js';
 import type {
     BrokenEntry,
@@ -173,6 +174,8 @@ export interface DriverBrowsingStateDeps {
   files: DesignFiles;
   /** Asks the user to confirm a destructive action. The injected confirm port. */
   confirmReset: ConfirmPort;
+  /** Says what an export did. */
+  exportNotice: ExportNotice;
   appState: AppState;
   presentation: PresentationState;
 }
@@ -326,25 +329,29 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   function exportMyDriversRaw(): void {
     const raw = myDriverRepo.exportRaw();
     if (raw == null) return;
+    const fileName = 'my-drivers-export.json';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
-    a.download = 'my-drivers-export.json';
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     exportedThisSession.value = true;
+    deps.exportNotice.exported({kind: 'myDrivers'}, fileName);
   }
 
   function exportBrokenEntry(entry: BrokenEntry): void {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([entry.raw], { type: 'application/json' }));
-    a.download = `my-driver-${entry.key}.json`;
+    const fileName = `my-driver-${entry.key}.json`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     exportedThisSession.value = true;
+    deps.exportNotice.exported({kind: 'brokenDriver'}, fileName);
   }
 
   function deleteAllMyDrivers(): void {

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import type {ConfirmDialogState} from '../../logic/confirmPort.js';
 import type {StoreGateSession} from '../../logic/storeGate.js';
+import ConfirmDialog from './ConfirmDialog.vue';
 
-const props = defineProps<{ session: StoreGateSession }>();
+const props = defineProps<{ session: StoreGateSession; confirmState: ConfirmDialogState }>();
 </script>
 
 <template>
@@ -20,6 +22,7 @@ const props = defineProps<{ session: StoreGateSession }>();
         <button type="button" class="pri" @click="props.session.exportEverything()">Export everything</button>
       </div>
     </div>
+    <ConfirmDialog :state="props.confirmState" />
   </div>
 </template>
 

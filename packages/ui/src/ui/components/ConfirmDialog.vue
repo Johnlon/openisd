@@ -70,7 +70,7 @@ watch(() => props.state.current.value, (current) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 200;
+  z-index: 10002; /* above the store gate (10001), which shows this dialog too */
 }
 .confirm-modal {
   width: min(420px, 92vw);

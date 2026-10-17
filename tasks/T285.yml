@@ -3,6 +3,7 @@ release_note: On a short phone the Tune and Learn sheet no longer squeezes the c
 repo: openisd
 owner: fable
 status: done
+landed: 55a57881a9e084826544c257847e57fa4ca6fec6
 label: fixes
 goal: Closes F51's mobile-sheet-fit part. The sheet gives way before the chart does (chart keeps 120 px, rows scroll inside the sheet); both specs pass at all six phone sizes.
 done_test: bash scripts/test.sh packages/ui/test/fixtures/phoneSizes.test.ts

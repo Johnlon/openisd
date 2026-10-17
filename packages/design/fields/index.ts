@@ -82,6 +82,7 @@ export { LOSSLESS_Q } from './losslessQ.js';
 export { basicUtc } from './basicTime.js';
 export { lostDataSentence } from './lostData.js';
 export { deleteForeverMessage, emptyBinMessage, moveToBinMessage } from './projectBinText.js';
+export {exportedNotice, type ExportedFile, type ExportedNotice} from './exportedNotice.js';
 export {
   conflictSuffix,
   emptyBinLabel,
@@ -91,7 +92,6 @@ export {
   PROJECT_SEARCH_FROM_ROWS,
   projectRow,
   projectRowsFooter,
-  projectsExportedText,
   projectSyncMark,
   splitConflictName,
   viewProjectRows,

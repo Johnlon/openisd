@@ -6,6 +6,7 @@
  *  This module decides what the screen says; the component only shows it. */
 import {shallowRef, type ShallowRef} from 'vue';
 import {basicUtc, parseBasicUtc} from '@openisd/design/fields';
+import type {ExportNotice} from './exportNotice.js';
 import {STORAGE_LAYOUT, type BackupInfo, type OpenStore, type StoreOpening} from '@openisd/persistence';
 
 export interface GateBackupRow {
@@ -26,6 +27,7 @@ type BlockedOpening = Exclude<StoreOpening, {kind: 'ready'}>;
 export interface StoreGateDeps {
   readonly formatTime: (at: Date) => string;
   readonly download: (fileName: string, text: string) => void;
+  readonly exportNotice: ExportNotice;
   readonly now: () => number;
   /** A store is open: start the app on it. */
   readonly onReady: (open: OpenStore) => void;
@@ -90,7 +92,9 @@ export function createStoreGateSession(first: BlockedOpening, deps: StoreGateDep
       follow(current.readOnly(key), 'That backup could not be opened. ');
     },
     exportEverything() {
-      deps.download(`openisd-everything-${basicUtc(deps.now())}.json`, current.exportRaw());
+      const fileName = `openisd-everything-${basicUtc(deps.now())}.json`;
+      deps.download(fileName, current.exportRaw());
+      deps.exportNotice.exported({kind: 'everything'}, fileName);
     },
   };
 }

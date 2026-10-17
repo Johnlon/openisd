@@ -1,0 +1,33 @@
+id: T290
+release_note: Exporting your saved drivers, a damaged driver, everything, or the storage log now shows a popup saying what was exported and the file name.
+label: fixes
+repo: openisd
+owner: fable
+status: done
+goal: Closes F51's projects-across-addresses failure (the quota-error export spec broke on the T268 popup). The four exports that finished with nothing on screen show the same OK popup as Export all; one design text builder, one place that shows it
+done_test: bash scripts/test.sh packages/design/test/fields/exportedNotice.test.ts
+files:
+  - tasks/T290.yml
+  - bugs/BUG_20261017_export-all-is-silent.md
+  - packages/design/fields/exportedNotice.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/projectRows.ts
+  - packages/design/test/fields/exportedNotice.test.ts
+  - packages/design/test/fields/projectRows.test.ts
+  - packages/ui/src/logic/exportNotice.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/logic/storeGate.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/components/ConfirmDialog.vue
+  - packages/ui/src/ui/components/StoreGate.vue
+  - packages/ui/test/fixtures/exportPopup.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/driverBrowsingState-import.test.ts
+  - packages/ui/test/logic/storeGate.test.ts
+  - packages/ui/test/ui/export-my-drivers-popup.browser.spec.ts
+  - packages/ui/test/ui/export-broken-driver-popup.browser.spec.ts
+  - packages/ui/test/ui/export-everything-popup.browser.spec.ts
+  - packages/ui/test/ui/export-storage-log-popup.browser.spec.ts
+  - packages/ui/test/ui/projects-across-addresses.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

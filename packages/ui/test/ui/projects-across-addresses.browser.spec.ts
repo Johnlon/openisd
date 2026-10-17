@@ -79,9 +79,12 @@ test.describe('Projects across addresses', () => {
     await expect(page.locator('.confirm-modal')).toContainText('Browser storage is full');
     const downloadPromise = page.waitForEvent('download');
     await page.locator('.confirm-dialog-confirm').click(); // Export
-    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
+    // The export then says what it did (T268), and OK closes that popup.
+    await expect(page.locator('.confirm-modal')).toContainText('Exported 1 project to openisd-projects-');
+    await page.locator('.confirm-dialog-confirm').click();
+    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
   });
 });

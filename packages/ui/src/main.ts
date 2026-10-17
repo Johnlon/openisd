@@ -61,6 +61,7 @@ import {createApplicationIO} from './logic/applicationIO.js';
 import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {createConfirmPort} from './logic/confirmPort.js';
+import {createExportNotice} from './logic/exportNotice.js';
 import {provideApp} from './logic/app.js';
 import {createAppState, NoFocusedProjectError} from './logic/appState.js';
 import {createPresentationState} from './logic/presentationState.js';
@@ -232,7 +233,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: confirmPort.port, appState, presentation,
+    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
 
@@ -440,7 +441,11 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   void announceLostKeys(store.lostKeys, {
     confirm: confirmPort.port,
     formatTime: formatDateTime,
-    exportLog: () => createFileSave().download(`openisd-storage-log-${basicUtc(Date.now())}.json`, store.log.exportText(), 'application/json'),
+    exportLog: () => {
+      const fileName = `openisd-storage-log-${basicUtc(Date.now())}.json`;
+      createFileSave().download(fileName, store.log.exportText(), 'application/json');
+      createExportNotice(confirmPort.port).exported({kind: 'storageLog'}, fileName);
+    },
   });
 }
 
@@ -513,13 +518,15 @@ const recordedProjectIdStore: RecordedProjectIdStore = {
 if (opening.kind === 'ready') {
   startApp(opening, loadingOverlay, recordedProjectIdStore);
 } else {
+  const gateConfirm = createConfirmPort();
   const session = createStoreGateSession(opening, {
     formatTime: formatDateTime,
     download: (fileName, text) => createFileSave().download(fileName, text, 'application/json'),
     now: Date.now,
+    exportNotice: createExportNotice(gateConfirm.port),
     onReady: (open) => { gate.unmount(); startApp(open, loadingOverlay, recordedProjectIdStore); },
   });
-  const gate = createApp(StoreGate, {session});
+  const gate = createApp(StoreGate, {session, confirmState: gateConfirm.state});
   gate.mount('#app');
   loadingOverlay?.onAppMounted();
 }

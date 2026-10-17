@@ -1,6 +1,6 @@
 /** The Projects list: every saved project and every open one, as one list. Both skins show these
  *  rows; every text, mark, menu item, order, filter and total comes from here. */
-import {formatByteSize, formatCountOf, formatDateTime, formatDay} from './format.js';
+import {formatByteSize, formatDateTime, formatDay} from './format.js';
 
 /** What a kept conflict copy's name ends in: ' (conflict, 14 Oct 2026, iPhone)'. */
 export function conflictSuffix(device: string, at_ms: number): string {
@@ -148,14 +148,8 @@ export const PROJECT_LIST_TEXT = {
   UNSAVED_CHANGES: 'Unsaved changes',
   TRACE_CHECKBOX_TITLE: "Show/hide this project's trace on the graph",
   RENAME_ARIA: 'Rename project',
-  EXPORTED_TITLE: 'Projects exported',
-  EXPORTED_OK: 'OK',
 } as const;
 
-/** The popup sentence after Export all: "Exported 12 projects to openisd-projects-2026-10-17.json." */
-export function projectsExportedText(count: number, fileName: string): string {
-  return `Exported ${formatCountOf(count, 'project')} to ${fileName}.`;
-}
 
 function rowMenu(source: ProjectRowSource<unknown>, conflict: boolean): readonly ProjectRowAction[] {
   const saved = source.saved;

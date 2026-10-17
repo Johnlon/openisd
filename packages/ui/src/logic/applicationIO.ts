@@ -1,7 +1,7 @@
 
 import type { Engine } from '@openisd/design/engine';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
-import { PROJECT_LIST_TEXT, projectsExportedText } from '@openisd/design/fields';
+import { createExportNotice } from './exportNotice.js';
 import {
   type DesignFiles,
   driverToWdrBytes,
@@ -127,6 +127,7 @@ export function createApplicationIO(deps: {
     presentationState.editDriver = false;
   }
   const flash = (msg: string) => deps.logging.flash(msg);
+  const exportNotice = createExportNotice(deps.confirmPort);
   const { download } = createFileSave();
 
   // Renaming the project retargets the file. Browsers cannot rename a file on disk, so the
@@ -167,11 +168,7 @@ export function createApplicationIO(deps: {
     
     download(fileName, buildProjectsArchive(all), 'application/json');
     recordSave('archive', null);
-    void deps.confirmPort.ask({
-      title: PROJECT_LIST_TEXT.EXPORTED_TITLE,
-      message: projectsExportedText(all.length, fileName),
-      confirmLabel: PROJECT_LIST_TEXT.EXPORTED_OK,
-    });
+    exportNotice.exported({kind: 'projects', count: all.length}, fileName);
   }
 
   async function handleSaveFailure(): Promise<void> {
