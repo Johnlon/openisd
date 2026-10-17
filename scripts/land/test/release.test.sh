@@ -101,7 +101,7 @@ remote_has() { [ -n "$(git ls-remote --tags origin "refs/tags/$1")" ]; }
 release_json() { jq -c --arg t "$1" '.[] | select(.tag_name == $t)' "$GH_STATE/releases.json"; }
 
 # ---- 1. snap.sh builds, tags, publishes ------------------------------------------------------------
-export OPENISD_NOW=2026-01-01T01:02:59Z FAKE_GH_NOW=2026-01-01T01:02:59Z SNAP_NOW_EPOCH="$(date -u -d 2026-01-01T01:02:59Z +%s)"
+export OPENISD_NOW=2026-01-01T01:02:59Z FAKE_GH_NOW=2026-01-01T01:02:59Z
 out=$(bash scripts/snap.sh 2>&1); r=$?
 [ $r = 0 ] && ok "snap.sh exits 0" || fail "snap.sh exit $r: $out"
 remote_has snap-20260101T0102Z && ok "tag snap-<stamp> pushed (minute stamp, seconds dropped)" || fail "snap tag missing"
@@ -118,17 +118,13 @@ zip="$GH_STATE/assets/snap-20260101T0102Z/openisd-20260101T0102Z.zip"
 unzip -p "$zip" build-env.txt 2> /dev/null | grep -q '^refs/tags/snap-20260101T0102Z 1$' && ok "built with the tag's ref and the relative base switch" || fail "build env: $(unzip -p "$zip" build-env.txt 2>&1)"
 grep -q '^built=true$' "$GITHUB_OUTPUT" && ok "built=true for the workflow" || fail "no built=true"
 
-# ---- 2. refusals and the two-hour rule -------------------------------------------------------------
+# ---- 2. refusals, and a build on every push -------------------------------------------------------
 out=$(bash scripts/snap.sh 2>&1); r=$?
 [ $r != 0 ] && grep -q 'already exists' <<< "$out" && ok "same minute twice refused" || fail "same-minute: $r $out"
 : > "$GITHUB_OUTPUT"
-export OPENISD_NOW=2026-01-01T02:30:00Z SNAP_NOW_EPOCH="$(date -u -d 2026-01-01T02:30:00Z +%s)"
-out=$(bash scripts/snap.sh --if-due 2>&1); r=$?
-[ $r = 0 ] && grep -q 'not due' <<< "$out" && grep -q '^built=false$' "$GITHUB_OUTPUT" && ok "--if-due inside two hours builds nothing" || fail "if-due early: $r $out"
-[ "$(jq 'length' "$GH_STATE/releases.json")" = 1 ] && ok "no second snapshot" || fail "second snapshot made"
-export OPENISD_NOW=2026-01-01T03:10:00Z SNAP_NOW_EPOCH="$(date -u -d 2026-01-01T03:10:00Z +%s)" FAKE_GH_NOW=2026-01-01T03:10:00Z
-out=$(bash scripts/snap.sh --if-due 2>&1); r=$?
-[ $r = 0 ] && remote_has snap-20260101T0310Z && ok "--if-due after two hours builds" || fail "if-due late: $r $out"
+export OPENISD_NOW=2026-01-01T03:10:00Z FAKE_GH_NOW=2026-01-01T03:10:00Z
+out=$(bash scripts/snap.sh 2>&1); r=$?
+[ $r = 0 ] && remote_has snap-20260101T0310Z && grep -q '^built=true$' "$GITHUB_OUTPUT" && ok "every push builds: no wait since the last snapshot" || fail "push build: $r $out"
 echo dirty >> more.txt
 out=$(bash scripts/snap.sh 2>&1); r=$?
 [ $r != 0 ] && grep -q 'uncommitted' <<< "$out" && ok "dirty tree refused" || fail "dirty: $r $out"

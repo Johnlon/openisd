@@ -1,0 +1,13 @@
+id: T264
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: "Every push to main builds a snapshot and deploys it to /test/ at once; the two-hour limit is gone (John, 17 Oct 2026: everything goes to test asap)"
+done_test: bash scripts/land/test/release.test.sh
+files:
+  - tasks/T264.yml
+  - scripts/snap.sh
+  - .github/workflows/build.yml
+  - RELEASING.md
+  - scripts/land/test/release.test.sh

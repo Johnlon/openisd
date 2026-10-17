@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: b3fac4ca4073d253a1de6fbb7dd8cd5737c5f25f
 goal: "General rules, always loaded: no workarounds, no backdoor in UI testing, no reload in tests, every app button shows a visible result (John, 16-17 Oct 2026)"
 done_test: bash scripts/test.sh packages/ui/test/scripts/full-gate-stage.test.ts
 files:

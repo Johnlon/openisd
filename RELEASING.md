@@ -10,7 +10,7 @@
 
 | Step | What happens |
 |---|---|
-| Trigger | A push to main, at most one build per two hours. Or `bash scripts/snap.sh` on demand (workflow_dispatch). |
+| Trigger | Every push to main, at once. Or `bash scripts/snap.sh` on demand (workflow_dispatch). |
 | Build | `scripts/snap.sh` builds HEAD with relative paths and zips it as `openisd-<stamp>.zip`. |
 | Publish | Tag `snap-<stamp>`, GitHub pre-release "Snapshot <stamp>", notes since the last release. |
 | Notes | Plain sentences from each task file's `release_note:` (a sentence, or `internal`), plus resolved bugs. No ids, no hashes. Internal work is only counted. |

@@ -1,41 +1,21 @@
 #!/usr/bin/env bash
 # Builds a snapshot of the current HEAD (main, in CI) and publishes it as a GitHub pre-release.
-#   bash scripts/snap.sh            build one now (the workflow_dispatch path)
-#   bash scripts/snap.sh --if-due   build one only when the newest snapshot is over two hours old
-#                                   (the push-to-main path)
+#   bash scripts/snap.sh   build one now: every push to main, and on demand (workflow_dispatch)
 # Stamp = scripts/version-info.mjs at minute resolution. Builds with the relative base './', zips
 # dist as openisd-<stamp>.zip, tags HEAD snap-<stamp>, creates the pre-release "Snapshot <stamp>"
 # with notes since the last release, then prunes to the newest 10. Writes built=true|false to
 # $GITHUB_OUTPUT so the workflow deploys only after a build.
 # Test seams: SNAP_BUILD_CMD (default scripts/build-release.sh), SNAP_DIST (default
-# packages/ui/dist), SNAP_NOW_EPOCH (clock for the two-hour check), OPENISD_NOW (clock for the stamp).
+# packages/ui/dist), OPENISD_NOW (clock for the stamp).
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-MIN_GAP_S=7200
 BUILD_CMD="${SNAP_BUILD_CMD:-bash scripts/build-release.sh}"
 DIST="${SNAP_DIST:-packages/ui/dist}"
 built() { if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "built=$1" >> "$GITHUB_OUTPUT"; fi; }
 refuse() { echo "snap: $*" >&2; built false; exit 1; }
 
-IF_DUE=0
-case "${1:-}" in
-  "") ;;
-  --if-due) IF_DUE=1 ;;
-  *) echo "usage: snap.sh [--if-due]" >&2; exit 2 ;;
-esac
-
-if [ "$IF_DUE" = 1 ]; then
-  newest="$(gh release list --limit 100 --json isPrerelease,createdAt --jq '[.[] | select(.isPrerelease)] | sort_by(.createdAt) | last | .createdAt // empty')"
-  if [ -n "$newest" ]; then
-    age=$(( ${SNAP_NOW_EPOCH:-$(date -u +%s)} - $(date -u -d "$newest" +%s) ))
-    if [ "$age" -lt "$MIN_GAP_S" ]; then
-      echo "snap: newest snapshot is ${age}s old (< ${MIN_GAP_S}s); not due"
-      built false
-      exit 0
-    fi
-  fi
-fi
+[ $# = 0 ] || { echo "usage: snap.sh" >&2; exit 2; }
 
 git diff --quiet HEAD -- || refuse "tracked files have uncommitted changes; a snapshot is a commit"
 STAMP="$(GITHUB_REF= node scripts/version-info.mjs --stamp)"
