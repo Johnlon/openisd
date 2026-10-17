@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: f8578c40a067aa5b3b02908697d6c6c94718aa1b
 goal: Every New project wizard row, select or number, shares one label column and one control width and height from packages/design; the PR step uses UIFixedField; one browser spec on 6 box types on desktop and Pixel 9 proves the edges and heights match
 done_test: bash scripts/test.sh packages/design/test/fields/desktopSizes.test.ts
 files:

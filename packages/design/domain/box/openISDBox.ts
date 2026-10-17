@@ -140,6 +140,8 @@ export class OpenISDBox implements Box {
      *  same reason `OpenISDProject.sourceLoadedQts` treats `Rs` as one: the record hear has no
      *  home for it (it lives on the project's driverEmbedding, which the box does not own). */
     readonly #rs: () => number;
+    /** The project's own resolved air, injected: the starting radiator's Vas is worked out in it. */
+    readonly #air: () => Air;
 
     private constructor(
         lens: SimpleField<OpenISDBoxJson>,
@@ -153,6 +155,7 @@ export class OpenISDBox implements Box {
         this.#driver = driver;
         this.#engine = engine;
         this.#rs = rs;
+        this.#air = air;
         const boxType = focus(lens, 'boxType');
         this.boxType = simpleField(() => boxType.value, (type) => {
             boxType.set(type);
@@ -651,7 +654,7 @@ export class OpenISDBox implements Box {
                     spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
                 }
                 if (spec.Vas_m3.value === null && startSd !== null) {
-                    spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, startSd));
+                    spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, startSd, this.#air()));
                 }
                 return;
             }

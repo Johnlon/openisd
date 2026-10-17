@@ -7,7 +7,6 @@
 import type {Air} from '../air.js';
 import type {ConsistencyCheck, RouteGroup, RouteQuantity} from '../driver/routes/index.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
-import {solveEnvironment} from '../air.js';
 import type {PrParams} from '../types.js';
 import type {PrSolverParams} from '../solverTypes.js';
 import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
@@ -47,9 +46,9 @@ export interface PrEngine {
    *  `Map = N/((2π·fp)²·Cpar)`, `Mmp = Map·prSd²`. */
   massForFp(p: PrParams, fp: number, air: Air): number;
   /** Compliance-equivalent volume, cubic metres: `Vas = Cms·Sd²·ρ·c²`. */
-  vas(prCms: number, prSd: number): number;
+  vas(prCms: number, prSd: number, air: Air): number;
   /** Compliance from Vas (cubic metres) and Sd — the inverse of `vas`. 0 when Sd ≤ 0. */
-  cmsFromVas(prVas_m3: number, prSd: number): number;
+  cmsFromVas(prVas_m3: number, prSd: number, air: Air): number;
   /** Free-air resonance loaded with added cone mass: `1/(2π·√((Mmd+Madd)·Cms))` — the
    *  radiator alone, no box. 0 when the total mass or compliance is non-positive. */
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number;
@@ -103,14 +102,12 @@ export class PrEngineImpl implements PrEngine {
     return Map * p.prSd * p.prSd;
   }
 
-  vas(prCms: number, prSd: number): number {
-    const {rho, c} = solveEnvironment({}).values;
+  vas(prCms: number, prSd: number, {rho, c}: Air): number {
     return prCms * prSd * prSd * rho * c * c;
   }
 
-  cmsFromVas(prVas_m3: number, prSd: number): number {
+  cmsFromVas(prVas_m3: number, prSd: number, {rho, c}: Air): number {
     if (!(prSd > 0)) return 0;
-    const {rho, c} = solveEnvironment({}).values;
     return prVas_m3 / (prSd * prSd * rho * c * c);
   }
 
