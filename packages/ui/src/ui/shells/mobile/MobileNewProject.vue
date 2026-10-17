@@ -9,6 +9,7 @@ import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
@@ -131,29 +132,29 @@ function handleCreate() {
 
       <!-- Step 2: Driver count & placement -->
       <div v-else-if="isCountStep" class="step-content">
-        <div class="field"><label>Num. of drivers</label>
+        <UIPickField class="mob-ui-field" label="Num. of drivers" input-id="np-ndrivers">
           <select id="np-ndrivers" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }">
             <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} driver(s)</option>
           </select>
-        </div>
+        </UIPickField>
         <div class="radio-group">
           <label><input type="radio" name="mob-placement" value="standard" v-model="placement"> Standard</label>
           <label><input type="radio" name="mob-placement" value="iso" v-model="placement" disabled> Iso-Barik <em>(not modelled)</em></label>
         </div>
-        <div class="field"><label>Voice coil connection</label>
+        <UIPickField class="mob-ui-field" label="Voice coil connection" input-id="np-wiring">
           <select id="np-wiring" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }">
             <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
           </select>
-        </div>
+        </UIPickField>
       </div>
 
       <!-- Step 3: Box type + EBP -->
       <div v-else-if="isBoxTypeStep" class="step-content">
-        <div class="field"><label>Box type</label>
+        <UIPickField class="mob-ui-field" label="Box type" input-id="np-box-type">
           <select id="np-box-type" :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }">
             <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
           </select>
-        </div>
+        </UIPickField>
 
         <div class="ebp-readout-card">
           <div class="ebp-row">
@@ -172,12 +173,12 @@ function handleCreate() {
 
       <!-- Step 4: Sealed Alignment -->
       <div v-else-if="isBoxDetailsStep && isSealed" class="step-content">
-        <div class="field"><label>Alignment</label>
+        <UIPickField class="mob-ui-field" label="Alignment" input-id="np-alignment">
           <select id="np-alignment" :value="targetQtc" @change="e => { const q = selectedOption(e, SEALED_ALIGNMENT_OPTIONS); if (q !== null) selectSealedAlignment(q); }">
             <option v-for="o in SEALED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
           </select>
-          <WinisdDeviationCue v-if="sealedPickerDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
-        </div>
+          <template v-if="sealedPickerDeviationShown" #cue><WinisdDeviationCue :deviation="WinisdDeviation.SEALED_PICKER" /></template>
+        </UIPickField>
         <UIFixedField class="mob-ui-field" input-id="np-sealed-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="sealedVolume_m3" @update:value="setSealedVolume_m3" />
         <div class="readout-box">
           <div class="readout-item"><span>Calculated Qtc:</span> <strong>{{ ReadoutFormat.QTC.text(qtc, '--') }}</strong></div>
@@ -188,11 +189,11 @@ function handleCreate() {
 
       <!-- Step 4: Vented Alignment -->
       <div v-else-if="isBoxDetailsStep && isVented" class="step-content">
-        <div class="field"><label>Alignment</label>
+        <UIPickField class="mob-ui-field" label="Alignment" input-id="np-vented-alignment">
           <select id="np-vented-alignment" :value="selectedVentedAlignment" @change="e => { const a = selectedOption(e, VENTED_ALIGNMENT_OPTIONS); if (a !== null) selectVentedAlignment(a); }">
             <option v-for="o in VENTED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
           </select>
-        </div>
+        </UIPickField>
         <UIFixedField class="mob-ui-field" input-id="np-vented-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="ventedVolume_m3" @update:value="setVentedVolume_m3" />
         <div v-if="ventedVolumeWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
         <UIFixedField class="mob-ui-field" input-id="np-vented-tuning" label="Tuning frequency" :field="NumberField.BOX_FB_HZ" :value="ventedTuning_hz" @update:value="setVentedTuning_hz" />
@@ -206,7 +207,7 @@ function handleCreate() {
       <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
       <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
         <UIFixedField class="mob-ui-field" input-id="np-starting-volume" label="Starting volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
-        <NewProjectPassiveRadiatorStep :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
+        <NewProjectPassiveRadiatorStep field-class="mob-ui-field" :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
           @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
       </div>

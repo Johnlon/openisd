@@ -109,7 +109,7 @@ test.describe('sample project fixture', () => {
     await modal.locator('.dlist .ditem', { hasText: 'Tang Band W5-1138SMF' }).first().click();  // step 1: driver (embedded library)
     await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // Next chooses the driver: step 2 (num/placement)
     await modal.locator('button', { hasText: 'Next' }).click();   // step 3: box type
-    await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('vented');           // step 3: box type
+    await modal.getByLabel('Box type').selectOption('vented');           // step 3: box type
     await modal.locator('button', { hasText: 'Next' }).click();
     await modal.locator('button', { hasText: 'Next' }).click();   // step 4: vented alignment (docs/research/VENTED_ALIGNMENT_FORMULAS.md)
     await modal.locator('input[type="text"]').fill('W5-1138SMF Fixture');  // step 5: name

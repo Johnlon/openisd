@@ -10,6 +10,7 @@ import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js
 import { useEscToClose } from '../../../logic/useEscToClose.js';
 import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
+import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
@@ -137,33 +138,33 @@ function handleCreate() {
         <!-- Step 2: Driver count & placement -->
         <div v-else-if="isCountStep" class="step-content">
           <div class="field-row">
-            <div class="field"><label>Num. of drivers</label>
-              <select id="np-ndrivers" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }" style="width:180px">
+            <UIPickField label="Num. of drivers" input-id="np-ndrivers">
+              <select id="np-ndrivers" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }">
                 <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} driver(s)</option>
               </select>
-            </div>
+            </UIPickField>
           </div>
           <div class="radio-group field-row">
             <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
             <label><input type="radio" name="placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
           </div>
           <div class="field-row">
-            <div class="field"><label>Voice coil connection</label>
-              <select id="np-wiring" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }" style="width:180px">
+            <UIPickField label="Voice coil connection" input-id="np-wiring">
+              <select id="np-wiring" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }">
                 <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
-            </div>
+            </UIPickField>
           </div>
         </div>
 
         <!-- Step 3: Type of design (Box Type + EBP) -->
         <div v-else-if="isBoxTypeStep" class="step-content">
           <div class="field-row">
-            <div class="field"><label>Box type</label>
-              <select id="np-box-type" :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }" style="width:240px">
+            <UIPickField label="Box type" input-id="np-box-type">
+              <select id="np-box-type" :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }">
                 <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
               </select>
-            </div>
+            </UIPickField>
           </div>
 
           <div class="ebp-readout-card">
@@ -186,15 +187,15 @@ function handleCreate() {
         <!-- Step 4: Sealed Alignment (only when Closed/sealed) -->
         <div v-else-if="isBoxDetailsStep && isSealed" class="step-content">
           <div class="field-row">
-            <div class="field"><label>Alignment</label>
-              <select id="np-alignment" :value="targetQtc" @change="e => { const q = selectedOption(e, SEALED_ALIGNMENT_OPTIONS); if (q !== null) selectSealedAlignment(q); }" style="width:260px">
+            <UIPickField label="Alignment" input-id="np-alignment">
+              <select id="np-alignment" :value="targetQtc" @change="e => { const q = selectedOption(e, SEALED_ALIGNMENT_OPTIONS); if (q !== null) selectSealedAlignment(q); }">
                 <option v-for="o in SEALED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
-              <WinisdDeviationCue v-if="sealedPickerDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
-            </div>
+              <template v-if="sealedPickerDeviationShown" #cue><WinisdDeviationCue :deviation="WinisdDeviation.SEALED_PICKER" /></template>
+            </UIPickField>
           </div>
 
-          <UIFixedField class="field" input-id="np-sealed-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="sealedVolume_m3" @update:value="setSealedVolume_m3" />
+          <UIFixedField input-id="np-sealed-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="sealedVolume_m3" @update:value="setSealedVolume_m3" />
 
           <div class="readout-box">
             <div class="readout-item"><span>Calculated Qtc:</span> <strong>{{ ReadoutFormat.QTC.text(qtc, '--') }}</strong></div>
@@ -206,18 +207,18 @@ function handleCreate() {
         <!-- Step 4: Vented Alignment (only when box type is Vented; WinISD's five — docs/research/VENTED_ALIGNMENT_FORMULAS.md) -->
         <div v-else-if="isBoxDetailsStep && isVented" class="step-content">
           <div class="field-row">
-            <div class="field"><label>Alignment</label>
-              <select id="np-vented-alignment" :value="selectedVentedAlignment" @change="e => { const a = selectedOption(e, VENTED_ALIGNMENT_OPTIONS); if (a !== null) selectVentedAlignment(a); }" style="width:260px">
+            <UIPickField label="Alignment" input-id="np-vented-alignment">
+              <select id="np-vented-alignment" :value="selectedVentedAlignment" @change="e => { const a = selectedOption(e, VENTED_ALIGNMENT_OPTIONS); if (a !== null) selectVentedAlignment(a); }">
                 <option v-for="o in VENTED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
-            </div>
+            </UIPickField>
           </div>
 
           <!-- The alignment fills the volume and tuning; both stay typeable. The warnings say when a
                value is implausible. Band: Settings → Vented design limits. -->
-          <UIFixedField class="field" input-id="np-vented-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="ventedVolume_m3" @update:value="setVentedVolume_m3" />
+          <UIFixedField input-id="np-vented-volume" label="Box volume" :field="NumberField.BOX_VB_L" :value="ventedVolume_m3" @update:value="setVentedVolume_m3" />
           <div v-if="ventedVolumeWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-volume-warning">{{ ventedVolumeWarning }}</div>
-          <UIFixedField class="field" input-id="np-vented-tuning" label="Tuning frequency" :field="NumberField.BOX_FB_HZ" :value="ventedTuning_hz" @update:value="setVentedTuning_hz" />
+          <UIFixedField input-id="np-vented-tuning" label="Tuning frequency" :field="NumberField.BOX_FB_HZ" :value="ventedTuning_hz" @update:value="setVentedTuning_hz" />
           <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
 
           <div class="readout-box">
@@ -228,7 +229,7 @@ function handleCreate() {
 
         <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
         <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
-          <UIFixedField class="field" input-id="np-starting-volume" label="Starting volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
+          <UIFixedField input-id="np-starting-volume" label="Starting volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
           <NewProjectPassiveRadiatorStep :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
             @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
@@ -238,22 +239,22 @@ function handleCreate() {
         <div v-else-if="isBoxDetailsStep" class="step-content np-chambers">
           <div class="np-chamber">
             <h4>Rear chamber</h4>
-            <UIFixedField class="field" input-id="np-rear-volume" label="Volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
-            <UIFixedField v-if="hasTunings" class="field" input-id="np-rear-tuning" label="Tuning" :field="NumberField.BOX_FRC_HZ" :value="rearTuning_hz" @update:value="v => rearTuning_hz = v" />
+            <UIFixedField input-id="np-rear-volume" label="Volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
+            <UIFixedField v-if="hasTunings" input-id="np-rear-tuning" label="Tuning" :field="NumberField.BOX_FRC_HZ" :value="rearTuning_hz" @update:value="v => rearTuning_hz = v" />
           </div>
           <div class="np-chamber">
             <h4>Front chamber</h4>
-            <UIFixedField class="field" input-id="np-front-volume" label="Volume" :field="NumberField.BOX_VF_L" :value="frontVolume_m3" @update:value="v => frontVolume_m3 = v" />
-            <UIFixedField class="field" input-id="np-front-tuning" label="Tuning" :field="NumberField.BOX_FFC_HZ" :value="frontTuning_hz" @update:value="v => frontTuning_hz = v" />
+            <UIFixedField input-id="np-front-volume" label="Volume" :field="NumberField.BOX_VF_L" :value="frontVolume_m3" @update:value="v => frontVolume_m3 = v" />
+            <UIFixedField input-id="np-front-tuning" label="Tuning" :field="NumberField.BOX_FFC_HZ" :value="frontTuning_hz" @update:value="v => frontTuning_hz = v" />
           </div>
         </div>
 
         <!-- Step 5: Project Information -->
         <div v-else-if="isProjectInfoStep" class="step-content">
           <div class="field-row">
-            <div class="field"><label>Project name</label>
-              <input type="text" style="width:280px" placeholder="e.g. Living-room sub" v-model="projName" @keydown.enter="handleCreate">
-            </div>
+            <UIPickField label="Project name" input-id="np-project-name">
+              <input id="np-project-name" type="text" placeholder="e.g. Living-room sub" v-model="projName" @keydown.enter="handleCreate">
+            </UIPickField>
           </div>
           <div class="field-row" style="margin-top:10px; align-items:flex-start;">
             <div class="field" style="align-items:flex-start;"><label style="margin-top:4px;">Description</label>
@@ -298,6 +299,7 @@ function handleCreate() {
 /* The library sets its own height here: the overlay gives it a 535px window, the wizard has no window to fill. */
 .np-library { height: 420px; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.step-content :deep(.ui-field) { margin-bottom: 10px; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }
