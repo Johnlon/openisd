@@ -1,0 +1,11 @@
+id: T345
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: cloud-save-trigger spec uses the Drive emulator, so the boot sync never faults on a fake reply
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T345.yml
+  - packages/ui/test/ui/cloud-save-trigger.browser.spec.ts
+  - bugs/BUG_20261017_cloud-save-trigger-stub-fault.md

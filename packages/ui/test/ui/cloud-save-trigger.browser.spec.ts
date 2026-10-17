@@ -1,25 +1,19 @@
-import {expect, openAProject, test} from '../fixtures.js';
-import {enableCloudSync, stubGoogleApis} from './fixtures/cloudSyncStubs.js';
+import {dirtyFocusedDesign, expect, openAProject, test} from '../fixtures.js';
+import {connectedToDrive} from './fixtures/driveConnected.js';
+import {stubGoogleApis} from './fixtures/cloudSyncStubs.js';
 
 test.describe('Cloud save trigger', () => {
   test('connected, save a project → within ~5 s a Drive files request is made', async ({ page }) => {
-    await enableCloudSync(page);
-    await stubGoogleApis(page);
-
-    await page.addInitScript(() => {
-      localStorage.setItem('openisd_cloud_auth', JSON.stringify({
-        kind: 'token',
-        accessToken: 'ya29.stubbed_test_token',
-        expiresAt_ms: Date.now() + 3600000,
-        account: 'john@gmail.com',
-      }));
-    });
+    await connectedToDrive(page);
 
     await page.goto('/');
     await openAProject(page);
 
     // Wait for initial boot sync to complete
     await expect(page.locator('.cloud-sync-badge .icon-cloudDone')).toBeVisible();
+
+    // A save of an unchanged project has nothing to upload: the user changes the design first.
+    await dirtyFocusedDesign(page);
 
     // Set up expectation for subsequent files request triggered by user save
     const saveDrivePromise = page.waitForRequest(
