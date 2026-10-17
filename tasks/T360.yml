@@ -1,0 +1,14 @@
+id: T360
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Visual baseline for the phone Advanced tab (new picture, no existing one changes)
+done_test: bash scripts/test.sh packages/ui/test/architecture/visual-covers-phone-advanced-tab.test.ts
+files:
+  - tasks/T360.yml
+  - packages/ui/test/architecture/visual-covers-phone-advanced-tab.test.ts
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+visual:
+  - mobile-tab-advanced

@@ -100,6 +100,11 @@ function screens(): readonly Screen[] {
     await setFocusedBoxType(page, 'vented');
     await page.locator('.mob-tab').nth(3).click();
   }));
+  all.push(screen(VisualSkin.MOBILE, 'tab-advanced', async page => {
+    await VisualSkin.MOBILE.openProject(page);
+    await openMobileMenu(page);
+    await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
+  }));
   all.push(screen(VisualSkin.MOBILE, 'menu', async page => {
     await VisualSkin.MOBILE.openProject(page);
     await openMobileMenu(page);

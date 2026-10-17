@@ -3,6 +3,7 @@ release_note: The sealed alignment picker has a WinISD bug switch, Sealed picker
 repo: openisd
 owner: sonnet
 status: done
+landed: 57ed4558c9f2a71d3e6e7538c9dfc9d3647a3da2
 goal: Yellow bug switch 'Sealed picker volume' (off by default): ticked, the sealed alignment picker gives WinISD's volume (fixed Rg 0.1, Qa 100, Ql ignored); ≠W cue by the picker while off (John, 17 Oct 2026)
 done_test: bash scripts/test.sh packages/design/test/domain/winisd-sealed-picker.test.ts
 files:
