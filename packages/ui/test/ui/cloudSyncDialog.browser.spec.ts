@@ -141,7 +141,7 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
     await expect(modal).toHaveCount(0);
   });
 
-  test('dialog renders correct buttons and headline for status off and reconnect', async ({ page }) => {
+  test('dialog renders correct buttons and headline for status off', async ({ page }) => {
     await enableCloudSync(page);
     await stubGoogleApis(page);
     await page.goto('/');
@@ -155,16 +155,22 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
     await expect(modal.locator('.cloud-sync-explainer a', { hasText: 'Privacy' })).toHaveAttribute('href', 'https://openisd.app/about/#privacy');
     await expect(modal.locator('.cloud-sync-explainer a')).toHaveAttribute('target', '_blank');
     await modal.locator('.cloud-modal-close-btn').click();
+  });
 
-    // Now set reconnect status
-    await page.evaluate(() => {
+  test('dialog renders correct buttons and headline for status reconnect', async ({ page }) => {
+    await enableCloudSync(page);
+    await stubGoogleApis(page);
+    await page.addInitScript(() => {
       localStorage.setItem('openisd_cloud_auth', JSON.stringify({
         kind: 'reconnect',
         account: 'john@gmail.com',
       }));
     });
-    await page.reload();
+    await page.goto('/');
+    await openAProject(page);
+
     await page.locator('.cloud-sync-badge').click();
+    const modal = page.locator('.cloud-modal');
     await expect(modal.locator('.cloud-sync-headline')).toContainText('Google needs you to connect again');
     await expect(modal.locator('button', { hasText: 'Reconnect' })).toBeVisible();
     await expect(modal.locator('button', { hasText: 'Disconnect' })).toBeVisible();

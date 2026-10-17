@@ -35,32 +35,39 @@ test('mobile: with no project open, the menu reaches every app-level feature', a
 
   await tapMobileMenuItem(page, 'New project');
   await expect(page.locator('.mob-np-overlay')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.mob-np-overlay')).toBeHidden();
 
   await tapMobileMenuItem(page, 'Projects');
   await expect(page.locator('.mob-projects-pane')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.mob-projects-pane')).toBeHidden();
 
   await tapMobileMenuItem(page, 'Manage Drivers');
   await expect(page.locator('.mob-pane-dialog, [role=dialog]').filter({hasText: 'Manage drivers'}).first()).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.mob-pane-dialog, [role=dialog]').filter({hasText: 'Manage drivers'}).first()).toBeHidden();
 
   await tapMobileMenuItem(page, 'Options');
   await expect(page.locator('.opt-modal')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.opt-modal')).toBeHidden();
 
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-cloud').click();
   await expect(page.locator('.mob-cloud-dialog-body')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.mob-cloud-dialog-body')).toBeHidden();
 
   await tapMobileMenuItem(page, 'OpenISD and WinISD differences');
   await expect(page.locator('.wd-modal')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.wd-modal')).toBeHidden();
 
   await tapMobileMenuItem(page, 'Diagnostics');
   await expect(page.locator('.dg')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.dg')).toBeHidden();
 
   await tapMobileMenuItem(page, 'About OpenISD');
   await expect(page.locator('.sp')).toBeVisible();
@@ -80,29 +87,33 @@ test('desktop: with no project open, the toolbar reaches every app-level feature
 
   await page.locator('.tb-btn[title^="New project"]').click();
   await expect(page.locator('.np-step').first()).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.np-step')).toHaveCount(0);
 
   // T217: Open goes to the Projects list (no dialog); with no project it is empty and focused.
   await page.locator('.tb-btn[title="Open project"]').click();
   await expect(page.locator('.projects-list')).toBeFocused();
-  await page.goto('/');
 
   await expect(page.locator('.graph-empty-link', {hasText: 'Import project'})).toBeEnabled();
   await opensAndCloses(page, () => page.locator('.tb-btn[title^="Manage Drivers"]').click(), page.locator('.wb-modal'));
   await page.locator('.tb-btn[title="Options"]').click();
   await expect(page.locator('.opt-modal')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.opt-modal')).toBeHidden();
 
   await page.locator('.cloud-sync-badge').click();
   await expect(page.locator('.cloud-modal')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.cloud-modal')).toBeHidden();
 
   await info('OpenISD and WinISD differences')();
   await expect(page.locator('.wd-modal')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.wd-modal')).toBeHidden();
   await info('Diagnostics')();
   await expect(page.locator('.dg')).toBeVisible();
-  await page.goto('/');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('.dg')).toBeHidden();
   await info('About OpenISD')();
   await expect(page.locator('.sp')).toBeVisible();
 

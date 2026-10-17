@@ -107,16 +107,13 @@ test.describe('Driver browser', () => {
     });
 
     test('the delete button removes a saved driver that carries no name', async ({ page }) => {
-      await page.goto('/');
-      await openAProject(page);
-      await page.evaluate(([key, json]) => {
+      await page.addInitScript(([key, json]) => {
         localStorage.setItem(key, json);
       }, [MY_DRIVERS_KEY, myDriversJson([
         { brand: 'Dayton Audio', model: 'Epique Series E150HE-44', specs: { Fs_hz: 41, Qts: 0.35, Qes: 0.38, Qms: 4.5, Vas_m3: 0.028, Sd_m2: 0.0132, Re_ohm: 5.4, Le_H: 0.5e-3, Xmax_m: 0.0055, Pe_W: 70, Znom_ohm: 8 } },
         { brand: 'Dayton Audio', model: 'RS180-8', specs: { Fs_hz: 37, Qts: 0.38, Qes: 0.42, Qms: 4.0, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.5e-3, Xmax_m: 0.005, Pe_W: 60, Znom_ohm: 8 } },
       ])] as const);
       await page.goto('/');
-
       await openAProject(page);
       await page.locator('[title*="librar" i]').first().click();
       const row = page.locator('.my-ditem', { hasText: 'Dayton Audio Epique Series E150HE-44' });
@@ -152,9 +149,7 @@ test.describe('Driver browser', () => {
     const SUMMARY = '.preview';
 
     test.beforeEach(async ({ page }) => {
-      await page.goto('/');
-      await openAProject(page);
-      await page.evaluate(([key, json]) => {
+      await page.addInitScript(([key, json]) => {
         localStorage.setItem(key, json);
       }, [MY_DRIVERS_KEY, myDriversJson([{
         brand: 'Summary', model: 'Fixture',
@@ -572,9 +567,7 @@ test.describe('Driver browser', () => {
     const PICKER = '.modal:not(.de-modal)';   // the library dialog
 
     test.beforeEach(async ({ page }) => {
-      await page.goto('/');
-      await openAProject(page);
-      await page.evaluate(([key, json]) => {
+      await page.addInitScript(([key, json]) => {
         localStorage.setItem(key, json);
       }, [MY_DRIVERS_KEY, myDriversJson([{
         brand: 'Spec', model: 'Fixture', uuid: 'spec-fixture-uuid',

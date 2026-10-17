@@ -1,0 +1,55 @@
+id: T282
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: "No browser spec reloads or re-opens the app as a reset or a refresh; only specs about reload, persistence, startup or a service-worker update do (John, 17 Oct 2026, general.md rule 3)"
+done_test: bash scripts/test.sh packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+notes: |
+  page.reload() calls in packages/ui/test (38). KEEP = the test is about reload, persistence across a reload, startup or a service-worker update.
+  KEEP (34):
+  - app-update:113 force refresh reloads the page (about update)
+  - cloud-sync-activity:26 activity list kept across a reload
+  - cloudSync.original:172,182 hint shows on launch 2, never again (about launch count)
+  - driver-browser:853 star survives a reload
+  - mobile-project-list:80, original-project-list:204 hidden project stays hidden after reload
+  - mobile-sheet:116 tuned value persists
+  - mobile-shell:81, open-sessions:256,277 closing projects stays closed after reload
+  - open-sessions:229 damaged stored record is repaired at startup
+  - options-dialog:250,265,289 Options values survive a reload
+  - original-advanced-tab:189 humidity persists
+  - original-chart-view:83,293 open charts / colour saved in the project
+  - original-shell-layout:179 stored taller height ignored at startup
+  - original-toolbar:80 unsaved edits survive reload
+  - persistent-storage:46,62 warning at startup, dismissal remembered
+  - pr-browser:57 star survives reload
+  - skin-selection:45,59 skin choice survives reload
+  - splash:49,59 dismissal survives reload
+  - storage-guard:28,39,48,65,81,116 start-up checks of seeded storage
+  - what-if-panel:63,149 values / open panel persist
+  REMOVED (4 reloads):
+  - cloudSync.original:148 reload only to pick up a seeded launch count; now seeded before the one load
+  - cloudSyncDialog:166 reload to pick up reconnect status; split into its own test seeded before its one load
+  - options-dialog:185 reload as a refresh; the Advanced pane shows the new default live (passes, no app bug)
+  - projects-across-addresses:42 reload after localStorage.clear as a reset; now a fresh browser context, first load
+  Mid-test page.goto() used as a reset (REMOVED):
+  - no-project-app-menu mobile and desktop tests: goto to close each dialog; now Escape and check it is gone
+  - driver-browser:109,154,574: goto, open project, seed storage, goto again; now seed before the one load
+  Other multi-goto specs are KEEP: open-sessions and share-link open a second tab or open a link cold (their first load); skin-selection 600 vs 601 px is startup detection; app-update/others hits were separate tests.
+  packages/ui/test/fixtures.ts and fixtures/focusedProjectSeam.ts have no reload or goto: nothing to leave.
+  Storage seeded before load (addInitScript), for bob's back-door removal. Each replaces a seed the old test already did with page.evaluate; nothing new is seeded:
+  - cloudSync.original: 'the hint's Turn on opens the Cloud sync dialog' seeds openisd_cloud_ui (launches 1)
+  - cloudSyncDialog: 'status reconnect' test seeds openisd_cloud_auth
+  - driver-browser: 'delete button removes a saved driver that carries no name', the Summary describe beforeEach, and the Spec Fixture describe beforeEach seed MY_DRIVERS_KEY
+  - projects-across-addresses: the fresh context seeds openisd_view splashSeen (the fixture's own seed, which a new context does not get)
+files:
+  - tasks/T282.yml
+  - bugs/BUG_20261017_diagnostics-ignores-escape.md
+  - packages/ui/src/ui/components/DiagnosticsModal.vue
+  - packages/ui/test/ui/cloudSync.original.browser.spec.ts
+  - packages/ui/test/ui/cloudSyncDialog.browser.spec.ts
+  - packages/ui/test/ui/driver-browser.browser.spec.ts
+  - packages/ui/test/ui/no-project-app-menu.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/projects-across-addresses.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

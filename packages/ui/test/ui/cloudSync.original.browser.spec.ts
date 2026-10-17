@@ -141,11 +141,10 @@ test.describe('Original shell cloud sync — configured build (Plan P1-13a)', ()
   test('the hint\'s Turn on opens the Cloud sync dialog', async ({ page }) => {
     await enableCloudSync(page);
     await stubGoogleApis(page);
-    await page.goto('/');
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       localStorage.setItem('openisd_cloud_ui', JSON.stringify({launches: 1, hintDismissed: false, conflictsSeen: 0}));
     });
-    await page.reload();
+    await page.goto('/');
     await page.locator('.cloud-hint button', { hasText: 'Turn on' }).click();
     await expect(page.getByRole('dialog', { name: 'Cloud sync' })).toBeVisible();
     await expect(page.locator('.cloud-hint')).toHaveCount(0);

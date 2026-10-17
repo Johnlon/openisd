@@ -26,7 +26,7 @@ test.describe('Projects across addresses', () => {
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
   });
   
-  test('export then import into fresh storage restores every project', async ({ page }) => {
+  test('export then import into fresh storage restores every project', async ({ page, browser }, testInfo) => {
     await page.goto("/");
     await openAProject(page, SAMPLE_PROJECT_OWPR);
     await duplicateFocusedProject(page, 'Exported Project 2');
@@ -37,19 +37,24 @@ test.describe('Projects across addresses', () => {
     const download = await downloadPromise;
     const path = await download.path();
     
-    // Clear storage to simulate fresh storage
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
+    // Fresh storage is a browser context that has never seen the app: its first load.
+    const freshContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    const fresh = await freshContext.newPage();
+    await fresh.addInitScript(() => {
+      localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } }));
+    });
+    await fresh.goto('/');
     
     // Import the file using the hidden input
-    await page.locator('.original-root input[type=file]').setInputFiles(path!);
+    await fresh.locator('.original-root input[type=file]').setInputFiles(path!);
     
     // Verify projects are imported and the projects panel shows them
-    const projectRows = page.locator('.projects-list .project-row');
+    const projectRows = fresh.locator('.projects-list .project-row');
     await expect(projectRows).toHaveCount(2);
     const text = await projectRows.allTextContents();
     expect(text.join(' ')).toContain('sample-project');
     expect(text.join(' ')).toContain('Exported Project 2');
+    await freshContext.close();
   });
 
   test('a forced setItem quota error on save shows the message and the export offer', async ({ page }) => {

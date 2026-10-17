@@ -11,7 +11,9 @@
  * needed to fix the cause.
  */
 import {injectDiagnosticsModal} from '../../hooks/DiagnosticsModal-hooks.js';
+import {useEscToClose} from '../../logic/useEscToClose.js';
 const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copyReport} = injectDiagnosticsModal();
+useEscToClose(() => open.value, () => { open.value = false; });
 </script>
 
 <template>

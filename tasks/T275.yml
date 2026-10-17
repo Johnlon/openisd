@@ -3,6 +3,7 @@ release_note: Clearing a field gives the value the clear rule says, in every pai
 repo: openisd
 owner: fable
 status: done
+landed: d9127210cacb1ba203f379733d533bbf5d3ea1b6
 goal: Finish the cleared-field work: drive voltage, sealed volume and PR tuning follow FIELD_CLEAR_RULE; ABC vent message shows once without covering a row; phone PR panel shows Mms and Cms; user messages carry no field keys
 done_test: bash scripts/test.sh packages/design/test/domain/field-clear-rule.test.ts
 files:
