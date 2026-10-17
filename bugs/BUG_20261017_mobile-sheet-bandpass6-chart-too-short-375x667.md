@@ -1,6 +1,6 @@
 # BUG_20261017_mobile-sheet-bandpass6-chart-too-short-375x667
 
-**Status:** OPEN (found by T274, wider phone sizes)
+**Status:** FIXED (T285): the sheet shrinks before the chart does, the chart keeps 120 px and the rows scroll inside the sheet.
 
 ## Symptom
 On a 375x667 phone (iPhone SE) the 6th order bandpass Tune sheet leaves the chart 59 px tall; it must be at least 120 px.

@@ -101,9 +101,9 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
   /* The sheet keeps its own dense rows; the tab rows' roomier label line is not its. */
   --mob-row-pad-y: 2px;
   --mob-label-lh: 12px;
-  flex: none;
+  /* Shrinks before the chart does (the chart keeps 120 px); its rows then scroll inside it. */
+  flex: 0 1 auto;
   height: auto;
-  max-height: calc(100% - 120px);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -143,8 +143,10 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
 .mob-sheet-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
 
 .mob-sheet-rows {
-  flex: 1 1 auto;
-  min-height: calc(var(--mob-row-slots, 0) * var(--mob-row-min) + 8px);
+  /* Both modes reserve the same row slots, so the sheet never resizes on a mode switch; when the
+     screen is too short the rows give way and scroll. */
+  flex: 1 1 calc(var(--mob-row-slots, 0) * var(--mob-row-min) + 8px);
+  min-height: 0;
   overflow-y: auto;
   padding-bottom: 8px;
 }

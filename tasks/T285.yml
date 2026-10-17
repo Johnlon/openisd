@@ -1,0 +1,18 @@
+id: T285
+release_note: On a short phone the Tune and Learn sheet no longer squeezes the chart; the rows scroll inside the sheet.
+repo: openisd
+owner: fable
+status: done
+label: fixes
+goal: Closes F51's mobile-sheet-fit part. The sheet gives way before the chart does (chart keeps 120 px, rows scroll inside the sheet); both specs pass at all six phone sizes.
+done_test: bash scripts/test.sh packages/ui/test/fixtures/phoneSizes.test.ts
+files:
+  - tasks/T285.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts
+  - bugs/BUG_20261017_mobile-sheet-abc-chart-too-short-360x740.md
+  - bugs/BUG_20261017_mobile-sheet-abc-chart-too-short-375x667.md
+  - bugs/BUG_20261017_mobile-sheet-bandpass4-chart-too-short-375x667.md
+  - bugs/BUG_20261017_mobile-sheet-bandpass6-chart-too-short-375x667.md

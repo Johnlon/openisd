@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: maryu
 status: done
+landed: ef0538de436ede1450b130d66b0a3beae8da24e1
 goal: post-land runs origin/main's scripts and settings and the tested commit's suite command, never the main checkout's files
 done_test: bash scripts/land/test/post-land-actions.e2e.test.sh && bash scripts/land/test/post-land.e2e.test.sh
 files:

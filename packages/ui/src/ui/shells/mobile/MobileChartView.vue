@@ -143,7 +143,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicke
   text-align: left;
 }
 /* One-column grid; the rows come from stackStyle (chartGrid.ts). Overflow snaps to whole charts. */
-.mob-chart-stack { flex: 1; min-height: 0; display: grid; overflow-y: auto; scroll-snap-type: y mandatory; }
+.mob-chart-stack { flex: 1; min-height: 120px; display: grid; overflow-y: auto; scroll-snap-type: y mandatory; }
 .mob-chart-cell { display: flex; flex-direction: column; min-height: 0; scroll-snap-align: start; }
 .mob-chart-cell + .mob-chart-cell { border-top: 1px solid var(--line); }
 /* GraphPanel's own .gpanel defaults to a 160px min-height (style.css) sized for a small tile;
