@@ -41,6 +41,7 @@
 import {NumberField} from '../fields/field.js';
 import {missingDependencies} from './consistency.js';
 import type {CalculationIssue} from './consistency.js';
+import type {AirIssue} from './environment/airSolver.js';
 
 /** Ratio of specific heats for air — DPC `air.htm`: "For dry air gamma = 1.40 is a good estimate". */
 export const GAMMA = 1.4;
@@ -69,6 +70,33 @@ export interface Air {
   c(): number;
   /** Density, kg/m³. */
   rho(): number;
+}
+
+/** The names the working sets and the vent and radiator solves give to c and ρ. */
+export type AirWorkingName = 'c_m_per_s' | 'roo_kg_per_m3';
+/** Both air names, in the order an issue lists them. */
+export const AIR_WORKING_NAMES: readonly AirWorkingName[] = Object.freeze<AirWorkingName[]>(['c_m_per_s', 'roo_kg_per_m3']);
+
+/**
+ * The air a solver that WRITES calculated values is given: either c and ρ are there, or they are
+ * not available and `issues` say why. A solver given `notAvailable` still runs every route that
+ * needs no air, and leaves each air-dependent value it was not given not available.
+ */
+export type AirState =
+  | {readonly kind: 'available'; readonly air: Air}
+  | {readonly kind: 'notAvailable'; readonly issues: readonly AirIssue[]};
+
+/** The air of an `AirState` that has one, else null. */
+export function airIfAvailable(state: AirState): Air | null {
+  switch (state.kind) {
+    case 'available': return state.air;
+    case 'notAvailable': return null;
+  }
+}
+
+/** The `AirState` of an air that is there. */
+export function availableAir(air: Air): AirState {
+  return {kind: 'available', air};
 }
 
 /** c and ρ as plain numbers: what the air solver produces and what a stored c or ρ field holds. */

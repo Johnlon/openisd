@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 3f819dd8d46aef83dc919693afc12aa31c869236
 goal: Every clickable unit label shows the dotted underline again, on both skins, drawn by the unit label control itself
 done_test: bash scripts/test.sh packages/ui/test/architecture/unit-label-underline-owned-by-unittoggle.test.ts
 files:

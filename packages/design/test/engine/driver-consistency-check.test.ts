@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import type {DriverIssue} from '../../engine/driver/DriverEngine.js';
 import type {DriverSolverParams, SolverField} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
+import {availableAir} from '../../engine/index.js';
 import {checkConsistency, fakeSolverField} from './testSolver.js';
 import {REFERENCE_AIR, airOfConditions} from '../fixtures/referenceAir.js';
 
@@ -126,7 +127,7 @@ describe('Engine.checkConsistency', () => {
   // precision — not an auto-derived one — decides the outcome.
   describe('Engine.checkConsistency — precision-derived tolerance, not a fixed allowance', () => {
     function inconsistentInputIssues(p: DriverSolverParams): readonly DriverIssue[] {
-      return engine.driver.solve(p, AIR).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
+      return engine.driver.solve(p, availableAir(AIR)).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
     }
 
     // η₀ = 4π²·Fs³·Vas/(c³·Qes), the scraper's deleted `no` consistency rule
@@ -134,13 +135,13 @@ describe('Engine.checkConsistency', () => {
     // Fs/Vas/Qes are Visaton GF 200's datasheet figures; they imply η₀ ≈ 0.0048.
     it('a stated η₀ that Fs/Vas/Qes contradict is reported against no', () => {
       const p = driverParams({ no: 0.02, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
-      const issues = engine.driver.solve(p, REFERENCE_AIR);
+      const issues = engine.driver.solve(p, availableAir(REFERENCE_AIR));
       expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toMatchObject([{ target: 'no' }]);
     });
 
     it('a stated η₀ that Fs/Vas/Qes imply to its printed precision is not reported', () => {
       const p = driverParams({ no: 0.0048, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
-      const issues = engine.driver.solve(p, REFERENCE_AIR);
+      const issues = engine.driver.solve(p, availableAir(REFERENCE_AIR));
       expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toEqual([]);
     });
 

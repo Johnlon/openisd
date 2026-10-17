@@ -29,8 +29,8 @@ export const ADVANCED_ROUTES: readonly DriverRoute[] = Object.freeze([
     return base == null ? null : base + 10 * Math.log10(v.Pe_W) - 3;
   }, v => v.Pe_W > 0),
   new SolveRoute('Gloss', ['Fs_hz', 'Xmax_m'], v => G_STANDARD / ((TAU * v.Fs_hz) ** 2 * v.Xmax_m), v => v.Fs_hz > 0 && v.Xmax_m > 0),
-  new SolveRoute('SPLmaxLF_dB', ['Vd_m3'], (v, air) => {
-    const p20 = air.rho() * (TAU * 20) ** 2 * v.Vd_m3 / (TAU * Math.SQRT2);
+  new SolveRoute('SPLmaxLF_dB', ['Vd_m3', 'roo_kg_per_m3'], v => {
+    const p20 = v.roo_kg_per_m3 * (TAU * 20) ** 2 * v.Vd_m3 / (TAU * Math.SQRT2);
     return 20 * Math.log10(p20 / P0);
   }, v => v.Vd_m3 > 0),
   new SolveRoute('Mcost_kg_per_s', ['Rme_kg_per_s', 'Xmax_m'], v => {

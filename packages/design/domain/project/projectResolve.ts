@@ -1,5 +1,5 @@
 import type { Engine } from '../../engine/index.js';
-import type { Air, DqIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, VentIssue } from '../../engine/index.js';
+import type { AirState, DqIssue, PrIssue, PrSpecIssue, SealedAlignmentIssue, VentIssue } from '../../engine/index.js';
 import { focus, inputOf } from '../cell.js';
 import type { DefaultingFieldImpl, DualWriteFieldImpl, SimpleField } from '../cell.js';
 import { calcVentCount, enteredEntry } from '../specEntry.js';
@@ -27,7 +27,7 @@ export interface ProjectResolveContext {
     readonly engine: Engine;
     readonly driverOver: (root: SimpleField<OpenISDProjectJson>) => OpenISDDriverEmbedded;
     readonly boxOver: (root: SimpleField<OpenISDProjectJson>) => OpenISDBox;
-    readonly air: (root: SimpleField<OpenISDProjectJson>) => Air;
+    readonly air: (root: SimpleField<OpenISDProjectJson>) => AirState;
     readonly envFieldsOver: (environment: SimpleField<OpenISDEnvironmentJson>) => EnvironmentFields;
     readonly powerDriveOver: (root: SimpleField<OpenISDProjectJson>) => DualWriteFieldImpl<number>;
     readonly driveVoltageOver: (root: SimpleField<OpenISDProjectJson>) => DefaultingFieldImpl<number>;
@@ -72,7 +72,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
 
     // The project's own air — the driver's OWN c_m_per_s/roo_kg_per_m3 are display-only and feed
     // nothing (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md).
-    const air: Air = airOf(directRoot);
+    const air: AirState = airOf(directRoot);
 
     const box = boxOver(directRoot);
     // GEOMETRY IS IN, ACOUSTICS IS OUT (John, 2026-08-26): every port's area ↔ dims relation

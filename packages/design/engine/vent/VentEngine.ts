@@ -4,13 +4,13 @@
  * whichever of tuning/length the project has not entered. Helmholtz throughout:
  * https://en.wikipedia.org/wiki/Helmholtz_resonance#Resonant_frequency
  */
-import type {Air} from '../air.js';
-import {END_CORRECTION} from '../air.js';
+import type {Air, AirState, AirWorkingName} from '../air.js';
+import {AIR_WORKING_NAMES, END_CORRECTION, airIfAvailable} from '../air.js';
 import type {VentSolverParams} from '../solverTypes.js';
 import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
-export type VentQuantityName = keyof VentSolverParams;
+export type VentQuantityName = keyof VentSolverParams | AirWorkingName;
 export type VentIssue = CalculationIssue<VentQuantityName> | TargetUnreachableIssue;
 
 /** `air` on every method is the PROJECT's own resolved `{ rho, c }` — never a
@@ -47,8 +47,9 @@ export interface VentEngine {
   /** The vent handle solve (T10/T11): derive whichever of `tuning_goal_hz`/`length_m` is not
    *  entered, write it onto its `SolverField` via `setCalculated`, and return the issues the
    *  stated values carry. An entered value is never overwritten; an underivable member becomes
-   *  `not-available`. */
-  solve(params: VentSolverParams, air: Air): VentIssue[];
+   *  `not-available`. With `air` not available, a value that needs it stays `not-available` and
+   *  its issue names `c_m_per_s` and `roo_kg_per_m3`; an entered value is kept. */
+  solve(params: VentSolverParams, air: AirState): VentIssue[];
   /** The vent tube's own first (organ-pipe) resonance — the open-open duct fundamental
    *  `c/(2·L)`. Uses the PHYSICAL length, NOT the end-corrected `Leff` (`effectiveLength`), to
    *  match WinISD's own "1st port resonance" readout exactly. `null` for a non-positive length —
@@ -57,7 +58,7 @@ export interface VentEngine {
 }
 
 /** The vent geometry every route below needs, beside `tuning_goal_hz`/`length_m` themselves. */
-const VENT_GEOMETRY: readonly VentQuantityName[] = Object.freeze(['Vb_m3', 'area_m2']);
+const VENT_GEOMETRY: readonly (keyof VentSolverParams)[] = Object.freeze(['Vb_m3', 'area_m2']);
 
 export class VentEngineImpl implements VentEngine {
   lengthForTuning(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
@@ -85,7 +86,9 @@ export class VentEngineImpl implements VentEngine {
     return length_m > 0 ? air.c() / (2 * length_m) : null;
   }
 
-  solve(params: VentSolverParams, air: Air): VentIssue[] {
+  solve(params: VentSolverParams, state: AirState): VentIssue[] {
+    const air = airIfAvailable(state);
+    const missingAir = air === null ? AIR_WORKING_NAMES : [];
     const tuning = params.tuning_goal_hz.value;
     const length = params.length_m.value;
     const Vb = params.Vb_m3.value;
@@ -104,7 +107,7 @@ export class VentEngineImpl implements VentEngine {
     const missingGeometry = VENT_GEOMETRY.filter(f => { const v = params[f].value; return !(typeof v === 'number' && v > 0); });
 
     if (tuning != null && !params.length_m.entered) {
-      if (geometryComplete && tuning > 0) {
+      if (geometryComplete && tuning > 0 && air !== null) {
         const L = this.lengthForTuning(Vb, tuning, area, count, air, endCorrection);
         if (L >= 0) {
           params.length_m.setCalculated(L);
@@ -115,21 +118,20 @@ export class VentEngineImpl implements VentEngine {
         }
       } else {
         params.length_m.setNotAvailable();
-        // geometryComplete is false here, and every way it can be false — Vb or area null/≤0 —
-        // is also a way VENT_GEOMETRY's own >0 filter counts that same field, so missingGeometry
-        // is never empty in this branch.
+        // Either the geometry is incomplete, and every way it can be — Vb or area null/≤0 — is also
+        // a way VENT_GEOMETRY's own >0 filter counts that same field, or the air is not available.
         issues.push(missingDependencies('length_m',
           [{ formula: 'length_m from tuning_goal_hz + Vb_m3 + area_m2 (Helmholtz)',
-            required: ['tuning_goal_hz', ...VENT_GEOMETRY], missing: missingGeometry }]));
+            required: ['tuning_goal_hz', ...VENT_GEOMETRY, ...missingAir], missing: [...missingGeometry, ...missingAir] }]));
       }
     } else if (length != null && !params.tuning_goal_hz.entered) {
-      if (geometryComplete) {
+      if (geometryComplete && air !== null) {
         params.tuning_goal_hz.setCalculated(this.tuningFromLength(Vb, length, area, count, air, endCorrection));
       } else {
         params.tuning_goal_hz.setNotAvailable();
         issues.push(missingDependencies('tuning_goal_hz',
           [{ formula: 'tuning_goal_hz from length_m + Vb_m3 + area_m2 (Helmholtz)',
-            required: ['length_m', ...VENT_GEOMETRY], missing: missingGeometry }]));
+            required: ['length_m', ...VENT_GEOMETRY, ...missingAir], missing: [...missingGeometry, ...missingAir] }]));
       }
     }
 

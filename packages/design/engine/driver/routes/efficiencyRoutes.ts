@@ -19,20 +19,20 @@ import {VAS_FROM_COMPLIANCE} from './relations.js';
  */
 export const NO_ROUTES: readonly DriverRoute[] = Object.freeze([
   // rel 14
-  new SolveRoute('no', ['Fs_hz', 'Vas_m3', 'Qes'], (v, air) => referenceEfficiency(v.Fs_hz, v.Vas_m3, v.Qes, air.c())),
+  new SolveRoute('no', ['Fs_hz', 'Vas_m3', 'Qes', 'c_m_per_s'], v => referenceEfficiency(v.Fs_hz, v.Vas_m3, v.Qes, v.c_m_per_s)),
   // rel 15
-  new SolveRoute('no', ['BL_Tm', 'Sd_m2', 'Mms_kg', 'Re_ohm'],
-    (v, air) => motorEfficiency(air.rho(), air.c(), v.BL_Tm, v.Sd_m2, v.Mms_kg, v.Re_ohm),
+  new SolveRoute('no', ['BL_Tm', 'Sd_m2', 'Mms_kg', 'Re_ohm', 'roo_kg_per_m3', 'c_m_per_s'],
+    v => motorEfficiency(v.roo_kg_per_m3, v.c_m_per_s, v.BL_Tm, v.Sd_m2, v.Mms_kg, v.Re_ohm),
     v => v.Mms_kg > 0 && v.Re_ohm > 0 && v.Sd_m2 > 0),
   // rel 18
-  new SolveRoute('no', ['SPL_dB'], (v, air) => efficiencyFromSpl(v.SPL_dB, air.rho(), air.c())),
+  new SolveRoute('no', ['SPL_dB', 'roo_kg_per_m3', 'c_m_per_s'], v => efficiencyFromSpl(v.SPL_dB, v.roo_kg_per_m3, v.c_m_per_s)),
   // rel 18
-  new SolveRoute('no', ['SPLref_dB'], (v, air) => efficiencyFromSpl(v.SPLref_dB, air.rho(), air.c())),
+  new SolveRoute('no', ['SPLref_dB', 'roo_kg_per_m3', 'c_m_per_s'], v => efficiencyFromSpl(v.SPLref_dB, v.roo_kg_per_m3, v.c_m_per_s)),
 ]);
 
 /** Vas from Cms and Sd: the one Vas route the passive radiator shares with the driver. */
-export const VAS_FROM_CMS_SD_ROUTE = Object.freeze(new SolveRoute('Vas_m3', ['Cms_m_per_N', 'Sd_m2'],
-  (v, air) => air.rho() * air.c() * air.c() * v.Sd_m2 * v.Sd_m2 * v.Cms_m_per_N).inRelation(VAS_FROM_COMPLIANCE));
+export const VAS_FROM_CMS_SD_ROUTE = Object.freeze(new SolveRoute('Vas_m3', ['Cms_m_per_N', 'Sd_m2', 'roo_kg_per_m3', 'c_m_per_s'],
+  v => v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Sd_m2 * v.Sd_m2 * v.Cms_m_per_N).inRelation(VAS_FROM_COMPLIANCE));
 
 /**
  * Block 4c: Vas. rel 14 (efficiency) first, rel 10 (compliance) LAST: a cleared Vas refills
@@ -41,8 +41,8 @@ export const VAS_FROM_CMS_SD_ROUTE = Object.freeze(new SolveRoute('Vas_m3', ['Cm
  */
 export const VAS_ROUTES: readonly DriverRoute[] = Object.freeze([
   // rel 14
-  new SolveRoute('Vas_m3', ['no', 'Qes', 'Fs_hz'],
-    (v, air) => v.no * v.Qes / (efficiencyConstant(air.c()) * (v.Fs_hz ** 3)),
+  new SolveRoute('Vas_m3', ['no', 'Qes', 'Fs_hz', 'c_m_per_s'],
+    v => v.no * v.Qes / (efficiencyConstant(v.c_m_per_s) * (v.Fs_hz ** 3)),
     v => v.Fs_hz > 0),
   // rel 10
   VAS_FROM_CMS_SD_ROUTE,
@@ -50,15 +50,15 @@ export const VAS_ROUTES: readonly DriverRoute[] = Object.freeze([
 
 /** Block 10: Qes from `no`. The `no` and Vas rel-14 routes live in blocks 4b and 4c, ahead of the compliance group. */
 export const QES_FROM_NO_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('Qes', ['no', 'Fs_hz', 'Vas_m3'],
-    (v, air) => efficiencyConstant(air.c()) * (v.Fs_hz ** 3) * v.Vas_m3 / v.no,
+  new SolveRoute('Qes', ['no', 'Fs_hz', 'Vas_m3', 'c_m_per_s'],
+    v => efficiencyConstant(v.c_m_per_s) * (v.Fs_hz ** 3) * v.Vas_m3 / v.no,
     v => v.no > 0),
 ]);
 
 /** Block 11: SPLref and SPL from `no`. The no-from-SPL routes (rel 18) run with the `no` routes in block 4b. */
 export const SPL_FROM_NO_ROUTES: readonly DriverRoute[] = Object.freeze([
-  new SolveRoute('SPLref_dB', ['no'], (v, air) => splFromEfficiency(v.no, air.rho(), air.c()), v => v.no > 0),
-  new SolveRoute('SPL_dB', ['no'], (v, air) => splFromEfficiency(v.no, air.rho(), air.c()), v => v.no > 0),
+  new SolveRoute('SPLref_dB', ['no', 'roo_kg_per_m3', 'c_m_per_s'], v => splFromEfficiency(v.no, v.roo_kg_per_m3, v.c_m_per_s), v => v.no > 0),
+  new SolveRoute('SPL_dB', ['no', 'roo_kg_per_m3', 'c_m_per_s'], v => splFromEfficiency(v.no, v.roo_kg_per_m3, v.c_m_per_s), v => v.no > 0),
 ]);
 
 /**
