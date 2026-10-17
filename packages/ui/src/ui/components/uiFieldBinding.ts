@@ -1,5 +1,5 @@
 import type {Clearable, Entered, Precise, ProvenanceLetter, Readable, SimpleField, Writable} from '@openisd/design';
-import type {NumberField, WinisdDeviation} from '@openisd/design/fields';
+import type {NumberField, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 
 /** A number a person can enter, clear and state the precision of: an emptied box clears it. */
 export type ClearableUICell = Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
@@ -32,6 +32,8 @@ export interface UIFieldCommon {
   stepper?: boolean;
   /** A calculated value: shown in the greyed readout look, never editable. */
   readonly?: boolean;
+  /** A readonly value shown to this readout's decimals, not the field's. */
+  format?: ReadoutFormat;
   /** A readonly value drawn as plain text, not as a greyed box (the phone). */
   plain?: boolean;
   /** WinISD deviation cue to show next to the field. */

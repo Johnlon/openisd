@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 254cbea17ad63dc2b46ec5c05ee34c57e74e63d9
 goal: Engine air interface: every engine API that uses air takes an Air with c() and rho() from its caller; SweepParams carries an Air, not temperature, humidity and pressure
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

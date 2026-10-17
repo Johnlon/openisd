@@ -109,7 +109,7 @@ function write(v: number | null, precision?: number): void {
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
     <span class="ui-field-value">
       <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">
-        <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses, {'mob-readonly': plain}]" :value="view.value" :field="field" :as-input="!plain" />
+        <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses, {'mob-readonly': plain}]" :value="view.value" :field="field" :format="format" :as-input="!plain" />
         <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
           :half-width="view.precision" :mandatory="view.mandatory" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :blank-refused="binding.kind === 'fixed'" hide-mark
           @update:model-value="write" @refusal="text => refusal = text" />
