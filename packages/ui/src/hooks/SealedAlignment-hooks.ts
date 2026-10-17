@@ -1,5 +1,5 @@
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
-import type {OpenISDProject} from '@openisd/design';
+import type {OpenISDProject, SealedBoxLosses} from '@openisd/design';
 import type {DriverEngine, EbpSuitability, SealedAlignmentOption, SealedEngine} from '@openisd/design/engine';
 
 export interface SealedAlignmentEditorAPI {
@@ -31,12 +31,15 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
   readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
   readonly ebpSuitabilityLabel: ComputedRef<string>;
 
+  /** The target the draft volume was worked out from, while the draft is still that volume. */
+  #picked: {qtc: number; volume_m3: number} | null = null;
+
   readonly #driverValues: ComputedRef<{Qts: number | null; Vas_m3: number | null; Fs_hz: number | null; Qes: number | null}>;
 
   constructor(
     private readonly project: ComputedRef<OpenISDProject>,
     changed: Ref<number>,
-    private readonly sealed: SealedEngine,
+    sealed: SealedEngine,
     driver: DriverEngine,
   ) {
     this.#driverValues = computed(() => {
@@ -45,12 +48,13 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
       return {Qts: ts.Qts.value, Vas_m3: ts.Vas_m3.value, Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value};
     });
     this.options = computed(() => sealed.alignmentOptions());
+    // The Qtc the draft volume gives on the Box tab: the same lossy figure, under the project's own source
+    // resistance and box losses.
     this.qtc = computed(() => {
-      const {Qts, Vas_m3} = this.#driverValues.value;
+      void changed.value;
+      const p = project.value;
       const volume = this.volume_m3.value;
-      return volume == null || Qts == null || Vas_m3 == null
-        ? null
-        : sealed.qtcFromVolume(Qts, Vas_m3, volume);
+      return volume == null ? null : p.driver.sealedQtc(volume, p.Rs_ohm.value, this.#losses());
     });
     this.selectedOption = computed(() => this.qtc.value == null ? null : sealed.closestAlignment(this.qtc.value));
     this.ebp = computed(() => {
@@ -68,25 +72,40 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
     });
   }
 
+  /** The project's box losses for the closed box. */
+  #losses(): SealedBoxLosses {
+    const losses = this.project.value.box.sealed.losses;
+    return {Ql: losses.Ql.value, Qa: losses.Qa.value};
+  }
+
   openEditor(): void {
+    this.#picked = null;
     this.volume_m3.value = this.project.value.box.sealed.volume_m3.value;
     this.open.value = true;
   }
 
   selectQtc(targetQtc: number): void {
-    const {Qts, Vas_m3} = this.#driverValues.value;
-    this.volume_m3.value = Qts == null || Vas_m3 == null
-      ? null
-      : this.sealed.volumeForQtc(Qts, Vas_m3, targetQtc);
+    const p = this.project.value;
+    const volume = p.driver.sealedVolumeForQtc(targetQtc, p.Rs_ohm.value, this.#losses());
+    this.volume_m3.value = volume;
+    this.#picked = volume === null ? null : {qtc: targetQtc, volume_m3: volume};
   }
 
+  /** A picked target is kept as the box's entered Qtc, with the volume calculated from it; a volume typed
+   *  after the pick is kept as the entered volume instead (John, 16 Oct 2026). */
   accept(): void {
     const v = this.volume_m3.value;
-    if (v != null && v > 0) this.project.value.box.sealed.volume_m3.set(v);
+    const sealed = this.project.value.box.sealed;
+    if (v != null && v > 0) {
+      if (this.#picked !== null && this.#picked.volume_m3 === v) sealed.q_tc.set(this.#picked.qtc);
+      else sealed.volume_m3.set(v);
+    }
+    this.#picked = null;
     this.open.value = false;
   }
 
   cancel(): void {
+    this.#picked = null;
     this.open.value = false;
     this.volume_m3.value = null;
   }

@@ -1,6 +1,6 @@
 # BUG_20261016_sealed-alignment-picker-qtc-disagrees-with-box-tab-qtc
 
-**Status:** OPEN
+**Status:** FIXED (T329; WinISD's own picker formula is split into BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md)
 
 ## Symptom
 Pick Qtc 0.707 in the sealed alignment picker (New Project wizard or the Box tab alignment
@@ -41,3 +41,13 @@ the picked Qtc on its own Box tab. Find its formula first (debugger, not exe pat
 ## Verification
 Unit test: for a driver with Fs, Qts, Vas and Ql set, pick Qtc 0.707, accept, and read
 `box.sealed.q_tc`: it is 0.707 to display precision.
+
+## Fix (T329, 17 Oct 2026)
+- Accepting a pick keeps the picked Qtc as the box's entered Qtc; the volume is calculated from it (John, 16 Oct 2026).
+  A volume typed after the pick is kept as the entered volume instead. Both pickers: the Box tab dialog and the New
+  Project wizard (`SealedProjectBuilder.qtc`).
+- One formula for both: `OpenISDDriver.sealedVolumeForQtc(target, Rs, losses)` and `sealedQtc(volume, Rs, losses)` use
+  the lossy model the Box tab reads (`SealedEngine.volumeForLossyQtc`), under the project's source resistance and box
+  losses. A new closed box's starting volume is designed the same way, so it opens at Qtc 0.707 on the Box tab.
+- Verification: `driver-design-queries`, `box-starting-values`, `SealedAlignment-hooks` and `OriginalNewProject-hooks` unit
+  tests; the `alignment-popup` browser spec (pick 0.707, the Box tab shows 0.707 as entered).

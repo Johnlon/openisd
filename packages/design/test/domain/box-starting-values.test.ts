@@ -26,7 +26,10 @@ describe('box starting values on a type switch', () => {
   it('sealed: the flat (Qtc 0.707) volume', () => {
     const p = new ProjectBuilder(driver(), createEngine()).vented().volume_m3(0.03).tuning_goal_hz(35).build();
     p.box.boxType.set('sealed');
-    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707));
+    const losses = {Ql: p.box.sealed.losses.Ql.value, Qa: p.box.sealed.losses.Qa.value};
+    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707, DEFAULT_SOURCE_RESISTANCE_OHM, losses));
+    // The Box tab then shows the flat Qtc the volume was designed for.
+    expect(p.box.sealed.q_tc.value).toBeCloseTo(0.707, 3);
   });
 
   it('vented: the QB3 design for the source-loaded Qts, a 50 mm vent', () => {

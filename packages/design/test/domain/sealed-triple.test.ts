@@ -98,3 +98,19 @@ describe('sealed Vb, Fsc and Qtc', () => {
     expect([letter(s.volume_m3), letter(s.resonance_hz), letter(s.q_tc)]).toEqual(['N', 'E', 'N']);
   });
 });
+
+describe('a sealed box built from a target Qtc', () => {
+  it('has Qtc E at the target, and the volume and Fsc calculated from it', () => {
+    const engine = createEngine();
+    const s = new ProjectBuilder(driverFromSpec(engine, SPEC), engine).sealed().qtc(0.8).build().box.sealed;
+    expect([letter(s.volume_m3), letter(s.resonance_hz), letter(s.q_tc)]).toEqual(['C', 'C', 'E']);
+    expect(s.q_tc.value).toBe(0.8);
+    expect(s.volume_m3.value).toBeGreaterThan(0);
+  });
+
+  it('a stated volume wins over a target Qtc', () => {
+    const engine = createEngine();
+    const s = new ProjectBuilder(driverFromSpec(engine, SPEC), engine).sealed().volume_m3(0.03).qtc(0.8).build().box.sealed;
+    expect([letter(s.volume_m3), letter(s.q_tc)]).toEqual(['E', 'C']);
+  });
+});

@@ -616,7 +616,8 @@ export class OpenISDBox implements Box {
         switch (this.boxType.value) {
             case 'sealed': {
                 if (isStated(this.sealed.volume_m3.value)) return;
-                const Vb = this.#driver.sealedVolumeForQtc(STARTING.sealedQtc);
+                const losses = this.sealed.losses;
+                const Vb = this.#driver.sealedVolumeForQtc(STARTING.sealedQtc, this.#rs(), {Ql: losses.Ql.value, Qa: losses.Qa.value});
                 if (Vb !== null && Vb > 0) this.sealed.volume_m3.set(Vb);
                 return;
             }
@@ -733,16 +734,17 @@ export class OpenISDBox implements Box {
         const entered = qtc.entered && qtc.value !== null ? {kind: 'Qtc', value: qtc.value} as const
             : fsc.entered && fsc.value !== null ? {kind: 'Fsc', value: fsc.value} as const : null;
         if (entered === null) return null;
+        if (entered.kind === 'Qtc') {
+            return this.#driver.sealedVolumeForQtc(entered.value, this.#rs(), {Ql: losses.Ql.value, Qa: losses.Qa.value});
+        }
         const ts = this.#driver.specs;
         const Fs = ts.Fs_hz.value;
         const Vas = ts.Vas_m3.value;
         const Qts = this.#driver.sourceLoadedQts(this.#rs());
         if (Fs === null || Vas === null || Qts === null) return null;
-        // The same lossy model the Box tab reads Fsc and Qtc from, so the volume gives back the value typed.
+        // The same lossy model the Box tab reads Fsc from, so the volume gives back the value typed.
         const feed = {Fs, Vas, Qts, Ql: losses.Ql.value, Qa: losses.Qa.value};
-        return entered.kind === 'Qtc'
-            ? this.#engine.sealed.volumeForLossyQtc(feed, entered.value)
-            : this.#engine.sealed.volumeForResonance(feed, entered.value);
+        return this.#engine.sealed.volumeForResonance(feed, entered.value);
     }
 
     /**

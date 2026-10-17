@@ -42,4 +42,35 @@ describe('SealedAlignmentEditor', () => {
 
     expect(project.box.sealed.volume_m3.value).toBeCloseTo(0.012, 9);
   });
+
+  it('accepting a picked Qtc keeps it as the box\'s entered Qtc: the Box tab then shows it, with the volume calculated', () => {
+    const {engine, project} = completeProject();
+    const projectRef = shallowRef(project);
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
+
+    editor.openEditor();
+    editor.selectQtc(0.707);
+    expect(editor.qtc.value).toBeCloseTo(0.707, 6);
+    editor.accept();
+
+    expect(project.box.sealed.q_tc.entered).toBe(true);
+    expect(project.box.sealed.q_tc.value).toBe(0.707);
+    expect(project.box.sealed.volume_m3.entered).toBe(false);
+    expect(project.box.sealed.volume_m3.value).toBeCloseTo(editor.volume_m3.value ?? NaN, 9);
+  });
+
+  it('a volume typed after the pick is kept as the entered volume instead', () => {
+    const {engine, project} = completeProject();
+    const projectRef = shallowRef(project);
+    const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
+
+    editor.openEditor();
+    editor.selectQtc(0.707);
+    editor.volume_m3.value = 0.02;
+    editor.accept();
+
+    expect(project.box.sealed.volume_m3.entered).toBe(true);
+    expect(project.box.sealed.volume_m3.value).toBe(0.02);
+    expect(project.box.sealed.q_tc.entered).toBe(false);
+  });
 });
