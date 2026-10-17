@@ -96,42 +96,43 @@ provideCellScope({ revision: projectChanged, written: () => {} });
     <!-- ================= Toolbar ================= -->
     <div class="toolbar">
       <div class="tb-icons">
-        <div class="tb-btn" title="Open project" @click="openClick">
+        <button type="button" class="tb-btn" aria-label="Open project" title="Open project" @click="openClick">
           <ToolbarIcon name="open" />
-        </div>
-        <div class="tb-btn" title="New project — choose box type + starting volume, then a driver." @click="presentationState.newProjectOpen = true">
+        </button>
+        <button type="button" class="tb-btn" aria-label="New project" title="New project — choose box type + starting volume, then a driver." @click="presentationState.newProjectOpen = true">
           <ToolbarIcon name="new" />
-        </div>
-        <div class="tb-btn" :class="{ dirty: isModified, disabled: !projectOpen }" title="Save - saves the file to browser storage. Use Export to save as file" @click="saveProject">
+        </button>
+        <button type="button" class="tb-btn" :class="{ dirty: isModified, disabled: !projectOpen }" :disabled="!projectOpen" aria-label="Save" title="Save - saves the file to browser storage. Use Export to save as file" @click="saveProject">
           <ToolbarIcon name="save" />
-        </div>
-        <div class="tb-btn" :class="{ dirty: anyUnsaved, disabled: !anyUnsaved }" :title="anyUnsaved ? 'Save all — saves every open project with unsaved changes to browser storage.' : 'Save all — no open project has unsaved changes.'" @click="anyUnsaved && saveAllProjects()">
+        </button>
+        <button type="button" class="tb-btn" :class="{ dirty: anyUnsaved, disabled: !anyUnsaved }" :disabled="!anyUnsaved" aria-label="Save all" :title="anyUnsaved ? 'Save all — saves every open project with unsaved changes to browser storage.' : 'Save all — no open project has unsaved changes.'" @click="saveAllProjects">
           <ToolbarIcon name="saveAll" />
-        </div>
-        <div class="tb-btn" :class="{ disabled: !isModified }" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="isModified && resetProjectToGround(confirmDiscard)">
+        </button>
+        <button type="button" class="tb-btn" :class="{ disabled: !isModified }" :disabled="!isModified" aria-label="Revert" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">
           <ToolbarIcon name="revert" />
-        </div>
+        </button>
         <ExportMenu class="tb-btn" :disabled="!projectOpen" title="Save As / Export — OpenISD project, WinISD project, driver file, or a share link.">
           <ToolbarIcon name="saveAs" />
         </ExportMenu>
         <div class="tb-sep"></div>
-        <div class="tb-btn" title="Manage Drivers — browse the library." @click="presentationState.browseOpen = true">
+        <button type="button" class="tb-btn" aria-label="Manage Drivers" title="Manage Drivers — browse the library." @click="presentationState.browseOpen = true">
           <ToolbarIcon name="drivers" />
-        </div>
-        <div class="tb-btn" title="Options" @click="optionsOpen = true">
+        </button>
+        <button type="button" class="tb-btn" aria-label="Options" title="Options" @click="optionsOpen = true">
           <ToolbarIcon name="options" />
-        </div>
+        </button>
         <div
           v-if="cloudAvailable"
           class="tb-btn cloud-sync-tb-btn"
           :title="cloudDisplay.tooltip"
-          @click="openCloudDialog"
         >
           <CloudSyncBadge :display="cloudDisplay" @tap="openCloudDialog" />
         </div>
-        <div class="tb-btn has-menu" title="Info" style="position:relative" @click.stop="toggleDropdown('info-dropdown')">
-          <ToolbarIcon name="info" />
-          <span class="caret" style="position:absolute;bottom:2px;right:2px;">&#9662;</span>
+        <div class="tb-menu">
+          <button type="button" class="tb-btn has-menu" aria-label="Info" aria-haspopup="menu" :aria-expanded="openDd === 'info-dropdown'" title="Info" @click.stop="toggleDropdown('info-dropdown')">
+            <ToolbarIcon name="info" />
+            <span class="caret">&#9662;</span>
+          </button>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
@@ -962,7 +963,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* ---------- Toolbar ---------- */
 .toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
 .tb-icons { display:flex; align-items:center; gap:6px; flex:none; }
-.tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
+.tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; padding:0; font:inherit; color:inherit; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
+.tb-menu { position:relative; flex:none; }
+.tb-btn .caret { position:absolute; bottom:2px; right:2px; }
 .tb-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 .tb-btn.disabled { opacity:.4; cursor:default; pointer-events:none; }
 .tb-btn.disabled:hover { background:#f7f7f7; border-color:#bbb; }
