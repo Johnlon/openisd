@@ -1,6 +1,6 @@
 # BUG_20261017_browser-specs-use-a-test-back-door-into-app-state
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 John, 17 Oct 2026: "no backdoor in UI testing". On the live state objects: "evil". The browser specs read and change the app's live `appState` and `presentationState`, which a user cannot do.
@@ -17,4 +17,5 @@ There are two things, the app and the browser specs. The app publishes `appState
 Plan to fable first (touches many specs), then one task per fixture group. Anything the UI cannot do is an app finding.
 
 ## Verification
+T305 (setters), T310 (readers) and T314 (hook narrowed to the update host) landed; `packages/ui/test/architecture/no-back-door-into-app-state.test.ts` fails if the hook publishes app state or a spec reads it.
 `git grep -n "openisdTestHooks\|TEST_HOOKS_KEY" packages/ui` lists only the update host.

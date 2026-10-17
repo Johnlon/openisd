@@ -258,8 +258,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     reload: () => location.reload(),
     caches: {keys: () => globalThis.caches.keys(), delete: name => globalThis.caches.delete(name)},
   });
-  // The browser suite's seam into the app; a no-op in every build but `--mode test` (testHooks.ts).
-  installTestHooks({appState, presentationState: presentation, updateHost}, import.meta.env.MODE);
+  // The scripted update host, for the browser suite; a no-op in every build but `--mode test` (testHooks.ts).
+  installTestHooks({updateHost}, import.meta.env.MODE);
   if (testBuild) void appUpdate.attach(updateHost);
   // The service worker is registered here, not by an injected script, so a refusal is caught.
   if (import.meta.env.VITE_SERVICE_WORKER === 'on' && 'serviceWorker' in navigator) {

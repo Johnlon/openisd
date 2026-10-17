@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 2a826662b49acfe278f75f5fbfb2764ec2099932
 goal: Back door removal 3: browser specs read the screen, not the app hook
 done_test: bash scripts/test.sh packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
 files:

@@ -1,5 +1,5 @@
 prefix: QO
-next: 186
+next: 187
 questions:
 - id: QO179
   title: unit tests import the file they test; one test file per source file, never a barrel
@@ -10014,4 +10014,10 @@ questions:
     instead: check the script succeeded before touching a folder, and pick branch names that are free.
     Who was told: fable (coordinator). Needs from you: nothing, unless you want the T313 task note
     to name the change.'
-
+- id: QO186
+  title: An agent tried a hard reset on a fresh task worktree and the guard blocked it
+  status: open
+  raised: '2026-10-17'
+  body: |-
+    Task: back-door removal 4 (T314), which needs to start from the branch of the unlanded task T310. The task tool had made a new worktree on the main branch holding only the new task file. To move it onto T310's branch, the worker agent (bob) ran a hard reset. The guard that blocks data-loss commands refused it. Nothing was lost: the worktree held only the committed task file. The agent ran the same command once more to read the refusal text, then stopped and told the coordinator (fable). Decision: the coordinator had the agent make a second worktree on a new branch from T310 and copy the task-file commit across, then remove the first worktree. No reset was run.
+    Why it happened: the task tool always bases a new worktree on main, so a task that must build on an unlanded branch has no safe starting command. Needs from John: nothing, unless he wants the tool to accept a base branch.
