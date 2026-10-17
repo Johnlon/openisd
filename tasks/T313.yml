@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 1d35ddda1f5527b70215d5cbaf15b5f675972de1
 goal: land.sh resolves a conflict on generated visual baselines by taking main's side and re-taking them
 done_test: bash scripts/land/test/land-visual-conflict.e2e.test.sh
 files:
