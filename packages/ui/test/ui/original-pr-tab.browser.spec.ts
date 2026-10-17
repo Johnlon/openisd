@@ -194,7 +194,7 @@ test.describe('Original Passive Radiator tab', () => {
       await fillAndCommit(vas, '');
       await expect(vas).toHaveClass(/dq-flag/);
       await field.locator('.ui-field-dq-btn').click();
-      await expect(field.locator('.ui-field-note')).toHaveText(/cannot be calculated yet.*needs Vas_m3/);
+      await expect(field.locator('.ui-field-note')).toHaveText(/cannot be calculated yet.*needs equivalent volume \(Vas\)/);
     });
 
     // John, 2026-10-05: "PR Vas is disconnected" — a project made by the New Project wizard with

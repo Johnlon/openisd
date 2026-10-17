@@ -1,6 +1,6 @@
 # BUG_20261016_clearing-a-linked-pair-member-is-inconsistent
 
-**Status:** OPEN
+**Status:** FIXED (T245 for the vent, PR, bandpass, ABC and port pairs; T275 for drive voltage and sealed volume)
 
 ## Symptom
 Some fields come in linked pairs: entering one makes the other calculated. Clearing the entered
@@ -31,22 +31,19 @@ overwrites the box volume, and one blanks both.
 - 16 Oct 2026, a "Was calculated" field state: logged as an idea in BACKLOG.md, not for
   execution (John). The fix here uses E and C only: the kept partner becomes E.
 
-## Evidence (code read 16 Oct 2026)
-| Pair | Clearing the entered member does | Fits the rule |
+## State after T275 (17 Oct 2026, one design test per row: `packages/design/test/domain/field-clear-rule.test.ts`, `vent-pair-states.test.ts`)
+| Pair | Clearing the entered member does | Follows the rule |
 |---|---|---|
-| Drive power ↔ voltage, clear power | voltage becomes E at its current value (`packages/design/domain/project/projectSignal.ts:70-74`) | yes |
-| Sealed Qtc ↔ volume, clear Qtc | Qtc becomes C from the volume | yes |
-| PR tuning ↔ added mass, clear tuning | added mass becomes 0 E (`packages/design/domain/box/openISDBox.ts:354`) | no |
-| Vented tuning ↔ length, clear either | box volume and tuning overwritten with the starting alignment (`openISDBox.ts:208`, `resetVentedAlignment` `openISDBox.ts:625-631`) | no |
-| Bandpass / ABC tuning ↔ length, clear either | both blank (`openISDBox.ts:65`, settle does nothing) | no; see BUG_20261016_abc-rear-vent-cleared-tuning-blanks-length.md |
-| Port diameter / height ↔ area, clear diameter or height | goes back to the 50 mm (or driver-sized slot) starting port (`packages/design/domain/box/ventWindow.ts:68-86`) | no (John, 16 Oct) |
-| Port area, clear area | port goes back to the starting port, area C from it | no |
-
-Not ruled yet under this rule (they follow the 9 Oct "settle to a default" ruling):
-- Clear added mass: becomes 0 E.
-- Clear drive voltage: power becomes 1 W E, voltage C.
-- Clear sealed volume: goes blank; the 16 Oct "box volumes go back to the alignment volume"
-  ruling listed vented, PR, bandpass and ABC, not sealed.
+| Drive power, voltage | clear power: voltage becomes E at its value, power C | yes |
+| Drive voltage, power | clear voltage: power becomes E at its value, voltage C (was: power reset to 1 W; fixed T275) | yes |
+| Sealed Qtc, volume | clear Qtc: Qtc C, volume E at its value | yes |
+| Sealed volume, Qtc | clear volume: Qtc becomes E at its value, volume C from it (was: blank; fixed T275) | yes |
+| PR tuning, added mass | clear tuning: added mass E at its value, tuning C; with no mass stated, mass is entered as 0 and tuning is calculated (was: blank; fixed T275) | yes |
+| PR added mass, tuning | clear added mass: tuning E at its value, mass C | yes |
+| Vented, bandpass and ABC tuning, length | the other member keeps its value as E; the cleared one is C | yes |
+| Port diameter, height, area | the other member keeps its value as E; the cleared one is C | yes |
+| Driver Mms, Cms, Fs | clear Mms: C from Fs and Cms | yes |
+| Counts, Rg | 1 and 0.1 ohm | yes |
 
 ## Cause
 `pairedField` (`packages/design/domain/cell.ts:534-557`) clears both members, then runs a

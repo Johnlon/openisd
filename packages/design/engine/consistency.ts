@@ -1,4 +1,4 @@
-import {decimal, pct} from './issueText.js';
+import {decimal, pct, plainNames} from './issueText.js';
 import type {MaxCurvesResult, SweepResult} from './types.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
 
@@ -128,7 +128,7 @@ export function missingDependencies<Q extends string>(
     target,
     routes,
     fields: [target, ...routes.flatMap(r => [...r.required, ...r.missing])],
-    text: `${target} cannot be calculated yet - state ${blocked}.`,
+    text: plainNames(`${target} cannot be calculated yet - state ${blocked}.`),
   };
 }
 
@@ -139,8 +139,8 @@ export function inconsistentInputs<Q extends string>(
 ): CalculationIssue<Q> {
   return {
     kind: 'inconsistent-inputs', target, fields, formula, expected, actual, relative,
-    text: `${fields.join(', ')} disagree by ${pct(relative)}: ${formula}. Every field in the `
-      + 'group is marked - correct one of them, or clear one to let it be calculated.',
+    text: plainNames(`${fields.join(', ')} disagree by ${pct(relative)}: ${formula}. Every field in the `
+      + 'group is marked - correct one of them, or clear one to let it be calculated.'),
   };
 }
 
@@ -150,7 +150,7 @@ export function outOfRange(
 ): OutOfRangeIssue {
   return {
     kind: 'out-of-range', field, value, limit, side,
-    text: `${field} ${decimal(value)} is ${side} the physical limit ${decimal(limit)}.`,
+    text: plainNames(`${field} ${decimal(value)} is ${side} the physical limit ${decimal(limit)}.`),
   };
 }
 

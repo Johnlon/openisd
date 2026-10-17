@@ -141,12 +141,11 @@ function write(v: number | null, precision?: number): void {
   grid-column: 3; width: 34px; box-sizing: border-box;
   color: var(--mut); white-space: nowrap; text-align: left;
 }
-/* Under the whole field row, not under the ⚠, so on a phone it never runs off the left edge. */
+/* Under the field's own row, in the layout: it takes its own space and never covers the row below. */
 .ui-field-note {
-  position: absolute; z-index: 20; top: 100%; left: 0; right: 0; margin-top: 2px;
+  grid-column: 1 / -1; margin-top: 2px;
   white-space: normal; overflow-wrap: anywhere;
   padding: 4px 6px; border: 1px solid var(--bad); border-radius: 4px;
   background: var(--panel); color: var(--fg); font-size: 11px; line-height: 1.3;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
 }
 </style>

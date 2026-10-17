@@ -660,7 +660,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.area_m2.value" /><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="unit" /><div style="width:16px"></div></div>
                   <div class="field"><label>1st port resonance</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" /><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="unit unit-cyc" /><div style="width:16px"></div></div>
                 </div>
-                <p v-if="port.unreachable" class="hint" style="color:#a11;">{{ port.unreachableMsg }}</p>
               </div>
             </div>
           </div>

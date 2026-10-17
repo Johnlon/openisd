@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6
 goal: Post-land closes an open F by itself when a later commit's run is green
 done_test: bash scripts/land/test/post-land-red-base.test.sh && bash scripts/land/test/post-land-actions.e2e.test.sh
 files:

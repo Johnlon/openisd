@@ -52,13 +52,13 @@ describe('radiator figure conflicts reach the fields', () => {
     const {Qms: _q, ...noQms} = four;
     const spec = prProject(createEngine(), noQms).box.passiveRadiator.radiator.spec;
     expect(spec.Qms.mandatoryAndUnsatisfied).toBe(true);
-    expect(spec.Qms.dq.map(i => i.text).join()).toMatch(/Rms_kg_per_s cannot be calculated yet.*needs Qms/);
+    expect(spec.Qms.dq.map(i => i.text).join()).toMatch(/mechanical resistance \(Rms\) cannot be calculated yet.*needs Qms/);
   });
 
   it('a blank Vas is flagged as what Cms still needs', () => {
     const {Vas_m3: _v, ...noVas} = four;
     const spec = prProject(createEngine(), noVas).box.passiveRadiator.radiator.spec;
     expect(spec.Vas_m3.mandatoryAndUnsatisfied).toBe(true);
-    expect(spec.Vas_m3.dq.map(i => i.text).join()).toMatch(/Cms_m_per_N cannot be calculated yet.*needs Vas_m3/);
+    expect(spec.Vas_m3.dq.map(i => i.text).join()).toMatch(/compliance \(Cms\) cannot be calculated yet.*needs equivalent volume \(Vas\)/);
   });
 });

@@ -113,6 +113,8 @@ const {fieldWithUnit} = useUnitReadouts();
     <UIField class="mob-ui-field" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
 
     <div class="mob-panel-head mob-panel-head-sub">User options</div>
@@ -175,7 +177,6 @@ const {fieldWithUnit} = useUnitReadouts();
         </div>
         <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="mob-unit" />
       </div>
-      <p v-if="port.unreachable" class="mob-hint mob-hint-warn">{{ port.unreachableMsg }}</p>
     </div>
   </template>
 </template>

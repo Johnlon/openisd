@@ -542,11 +542,16 @@ export function pairedField(
    *  2026-10-16). Where the partner holds no value there is nothing to calculate from: both go to
    *  N, with no starting value written. */
   partner: PairPartner,
+  /** What the partner is entered as when it holds no value, so this member is calculated from it
+   *  rather than blank: a passive radiator's added mass is 0 when none is stated. Absent: both go
+   *  to N. */
+  partnerDefault: number | null = null,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
   class PairedField extends DualWriteFieldImpl<number> {
     override clear(): void {
       const other = partner();
       if (other.value !== null && this.entered) other.set(other.value);
+      else if (other.value === null && this.entered && partnerDefault !== null) other.set(partnerDefault);
       else if (this.entered || other.value === null) commitPair(undefined);
       else ownEntry.clear();
     }

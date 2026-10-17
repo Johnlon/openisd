@@ -1,6 +1,6 @@
 import {type Engine} from '../../engine/index.js';
 import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
-import { CalculatedFieldImpl, absentCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
+import { CalculatedFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
@@ -172,7 +172,35 @@ export class OpenISDBox implements Box {
         };
 
         const sealedLens = focus(lens, 'sealed');
-        const sealedVolume = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v, 'alignment'));
+        const sealedVolumeStored = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v, 'alignment'));
+        const sealedQtc = entryField(focus(sealedLens, 'Qtc'), 'q_tc', () => groupDq(issues().sealed));
+        // The volume is stated (E), or calculated (C) from an entered Qtc when none is stated. Clearing a
+        // stated volume swaps it with Qtc: Qtc keeps its current value as E, the volume is calculated
+        // from it (docs/design/FIELD_CLEAR_RULE.md, John 16 Oct 2026).
+        const sealedVolume = new DualWriteFieldImpl<number>(
+            () => {
+                const stated = sealedVolumeStored.value;
+                if (stated === null) {
+                    const qtc = sealedQtc.entered ? sealedQtc.value : null;
+                    const calc = qtc === null ? null : this.#driver.sealedVolumeForQtc(qtc);
+                    if (calc !== null) return calculatedCell<number | null>('volume_m3', calc);
+                }
+                const issue = engine.issues.requiredPositiveIssue('Box volume', stated, 'alignment');
+                return stated === null
+                    ? absentCell<number>('volume_m3', issue ? [issue] : undefined)
+                    : enteredCell<number | null>('volume_m3', stated, issue ? [issue] : undefined, sealedVolumeStored.precision);
+            },
+            {
+                entered: (v: number) => sealedVolumeStored.set(v),
+                clear: () => {
+                    const qtc = sealedQtc.value;
+                    if (sealedVolumeStored.value !== null && qtc !== null) sealedQtc.set(qtc);
+                    sealedVolumeStored.clear();
+                },
+                calculated: () => undefined,
+                dq: () => undefined,
+            },
+        );
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
         this.sealed = {
             volume_m3: sealedVolume,
@@ -182,7 +210,7 @@ export class OpenISDBox implements Box {
                     ? absentCell<number>('resonance_hz')
                     : calculatedCell<number | null>('resonance_hz', v);
             }),
-            q_tc: entryField(focus(sealedLens, 'Qtc'), 'q_tc', () => groupDq(issues().sealed)),
+            q_tc: sealedQtc,
             losses: sealedLosses,
         };
 
@@ -352,6 +380,8 @@ export class OpenISDBox implements Box {
             (entry) => pr.set({ ...pr.value, tuning_goal_hz: entry, addedMass_kg: undefined }),
             prTuningEntry,
             () => prAddedMassField,
+            // No added mass stated is none added: the tuning is then the natural one, calculated.
+            0,
         );
         const prAddedMassField: ReturnType<typeof pairedField> = pairedField(
             (entry) => pr.set({ ...pr.value, addedMass_kg: entry, tuning_goal_hz: undefined }),

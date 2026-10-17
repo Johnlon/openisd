@@ -59,15 +59,15 @@ describe('OpenISDProject signal', () => {
       if (dq?.kind === 'missing-dependencies') expect(dq.routes[0].missing).toContain('Re_ohm');
     });
 
-    it('scenario 4 — pre: Re 8, P 2 E, V 4 C | trigger: clear V | post: P 1 E, V 2.83 C', () => {
+    it('scenario 4 — pre: Re 8, P 2 E, V 4 C | trigger: clear V | post: P 2 E, V 4 C (the power keeps its value)', () => {
       const engine = createEngine();
       const p = projectOf(engine, withRe(engine));
       p.powerDrive_W.set(2);
       expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(16.2), 12);
       p.driveVoltage_V.clear();
-      expect(p.powerDrive_W.value).toBe(1);
+      expect(p.powerDrive_W.value).toBe(2);
       expect(p.powerDrive_W.entered).toBe(true);
-      expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(8.1), 12);
+      expect(p.driveVoltage_V.value).toBeCloseTo(Math.sqrt(16.2), 12);
       expect(p.driveVoltage_V.calculated).toBe(true);
     });
 

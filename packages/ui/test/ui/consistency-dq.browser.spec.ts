@@ -67,9 +67,9 @@ test('driver editor: an inconsistent group marks every one of its members, with 
 
   // The tooltip names the group and how far out it is; "inconsistent" alone is not actionable.
   const note = await editorField(page, 'Fs').locator('.ui-field-dq-btn').getAttribute('title');
-  expect(note).toContain('Fs_hz');
-  expect(note).toContain('Mms_kg');
-  expect(note).toContain('Cms_m_per_N');
+  expect(note).toContain('resonance (Fs)');
+  expect(note).toContain('moving mass (Mms)');
+  expect(note).toContain('compliance (Cms)');
   expect(note).toMatch(/disagree by \d/);
   expect(note).toContain('Fs = 1/(2π·√(Mms·Cms))');
 
@@ -192,11 +192,11 @@ test('chart failure lists the missing circuit values returned by the sweep', asy
 
   const chartMessage = page.locator('.gmsg');
   await expect(chartMessage).toBeVisible();
-  await expect(chartMessage).toContainText('Sd_m2');
-  await expect(chartMessage).toContainText('Re_terminal_ohm');
-  await expect(chartMessage).toContainText('BL_terminal_Tm');
-  await expect(chartMessage).toContainText('Cms_m_per_N');
-  await expect(chartMessage).toContainText('Mms_kg');
-  await expect(chartMessage).toContainText('Rms_kg_per_s');
+  await expect(chartMessage).toContainText('cone area (Sd)');
+  await expect(chartMessage).toContainText('coil resistance at the terminals (Re)');
+  await expect(chartMessage).toContainText('force factor at the terminals (BL)');
+  await expect(chartMessage).toContainText('compliance (Cms)');
+  await expect(chartMessage).toContainText('moving mass (Mms)');
+  await expect(chartMessage).toContainText('mechanical resistance (Rms)');
   await expect(chartMessage).not.toContainText('Simulation produced no usable values');
 });

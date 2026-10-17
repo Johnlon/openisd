@@ -20,7 +20,7 @@ describe('sweepIssueMessage — SweepIssue projected to a DriverError for the ex
     const error = sweepIssueMessage(issue);
     assert.equal(error.level, 'error');
     assert.equal(error.field, 'Sd_m2');
-    assert.match(error.message, /Sd_m2/);
+    assert.match(error.message, /cone area \(Sd\)/);
   });
 
   it('an inconsistent-inputs issue names every field in the group and the disagreement', () => {

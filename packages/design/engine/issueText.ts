@@ -37,3 +37,40 @@ export function subject(quantity: VentedDesignQuantity): string {
 /** Every plausibility sentence ends in the same fact, because it is the fact that decides what a
  *  reader does next: the number is not a bug, it is WinISD's own answer, kept deliberately. */
 export const PARITY = 'WinISD gives the same answer, and OpenISD keeps it rather than quietly changing it.';
+
+/** What each internal quantity key is called in a sentence a person reads (John, 17 Oct 2026:
+ *  "internal names like Mms_kg, Fs_hz and Cms_m_per_N leak into user messages everywhere"). */
+const PLAIN_NAMES: Readonly<Record<string, string>> = {
+  Mms_kg: 'moving mass (Mms)',
+  Cms_m_per_N: 'compliance (Cms)',
+  Rms_kg_per_s: 'mechanical resistance (Rms)',
+  Rme_kg_per_s: 'electrical damping (Rme)',
+  Fs_hz: 'resonance (Fs)',
+  Vas_m3: 'equivalent volume (Vas)',
+  Sd_m2: 'cone area (Sd)',
+  Re_ohm: 'coil resistance (Re)',
+  Re_terminal_ohm: 'coil resistance at the terminals (Re)',
+  BL_terminal_Tm: 'force factor at the terminals (BL)',
+  BL_Tm: 'force factor (BL)',
+  Xmax_m: 'peak excursion (Xmax)',
+  Vb_m3: 'box volume (Vb)',
+  volume_m3: 'box volume',
+  length_m: 'vent length',
+  area_m2: 'vent area',
+  tuning_goal_hz: 'tuning',
+  addedMass_kg: 'added mass',
+  prMmd_kg: 'radiator moving mass',
+  prSd_m2: 'radiator cone area',
+  prCms_m_per_N: 'radiator compliance',
+  voltage_V: 'drive voltage',
+  power_W: 'drive power',
+  tempK: 'temperature',
+};
+
+/** `Mms_kg` to `Mms` when no plain name is listed: drops the unit suffix. */
+const UNIT_SUFFIX = /_(?:kg_per_s|m_per_N|N_per_sqrtW|per_K|ohm|kg|hz|m3|m2|Tm|W|V|H|K|Pa|m)$/;
+
+/** A sentence with every internal key (`Mms_kg`, `Fs_hz`) replaced by its plain name. */
+export function plainNames(text: string): string {
+  return text.replace(/\b[A-Za-z]+(?:_[A-Za-z0-9]+)+\b/g, key => PLAIN_NAMES[key] ?? key.replace(UNIT_SUFFIX, ''));
+}
