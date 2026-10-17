@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
 import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 /**
  * `solve()` (engine/circuit.ts) branches not reached by the rest of the engine suite. Reached
@@ -15,7 +16,7 @@ describe('circuit — acoustic circuit branches', () => {
     Fs_hz: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas_m3: 0.0300,
     Sd_m2: 0.0133, Re_ohm: 5.6, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8,
   }));
-  const P_SEALED: SweepParams = {Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 20};
+  const P_SEALED: SweepParams = {Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 20, air: REFERENCE_AIR};
 
   it('circuitModel "gyrator" folds Le into the acoustic circuit — differs from the WinISD split when Le > 0', () => {
     const winisd = engine.simulation.sweep(DRV, LE_H, 'sealed', P_SEALED).values!;
@@ -48,7 +49,7 @@ describe('circuit — acoustic circuit branches', () => {
     const w5 = sweepDriver(solveConsistencyGroup({
       Fs_hz: 45, Qes: 0.57, Qms: 3.56, Vas_m3: 0.00485, Sd_m2: 0.0094, Re_ohm: 3.4, BL_Tm: 7.17,
     }));
-    const P: SweepParams = {Vb: 0.00448, eg: 2.83, Rs: 0.1, N: 1};
+    const P: SweepParams = {Vb: 0.00448, eg: 2.83, Rs: 0.1, N: 1, air: REFERENCE_AIR};
     const winisdTraced: ReadonlyArray<readonly [number, number]> =
       [[1000, -1.212], [2000, -4.152], [5000, -10.617], [10000, -16.373], [20000, -22.314]];
     for (const [f, traced] of winisdTraced) {
@@ -66,7 +67,7 @@ describe('circuit — acoustic circuit branches', () => {
     const PR_BOX = {Vb: P_SEALED.Vb, prSd: 0.0133, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prNum: 1};
     const P_PR: SweepParams = {
       ...P_SEALED, ...PR_BOX, prNum: 1,
-      Fr: engine.pr.tuning(PR_BOX, engine.environment.solve({}).values),
+      Fr: engine.pr.tuning(PR_BOX, REFERENCE_AIR),
     };
     const sw = engine.simulation.sweep(DRV, LE_H, 'box-passive-radiator', P_PR).values!;
     assert.ok(sw.spl.every(Number.isFinite), 'a passive radiator with no mechanical resistance specified must still produce a finite sweep');
@@ -77,9 +78,8 @@ describe('circuit — acoustic circuit branches', () => {
     // not-winisd-form.md) — computed here, not left absent, or it poisons Ral/Raa with NaN and
     // both sweeps below fall to the same -200 dB silence sentinel, masking the very difference
     // this test checks for.
-    const {rho, c} = engine.environment.solve({}).values;
-    const Fr = engine.pr.tuning({Vb: 0.030, prMmd: 0.030, prMadd: 0, prSd: 0.0133, prCms: 0.0008, prNum: 1}, {rho, c});
-    const single: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0, Fr};
+    const Fr = engine.pr.tuning({Vb: 0.030, prMmd: 0.030, prMadd: 0, prSd: 0.0133, prCms: 0.0008, prNum: 1}, REFERENCE_AIR);
+    const single: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0, Fr, air: REFERENCE_AIR};
     const pair: SweepParams = {...single, prNum: 2};
     const swSingle = engine.simulation.sweep(DRV, LE_H, 'box-passive-radiator', single).values!;
     const swPair = engine.simulation.sweep(DRV, LE_H, 'box-passive-radiator', pair).values!;

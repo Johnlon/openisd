@@ -21,7 +21,8 @@ export {
   DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
 } from './air.js';
-export type { Air, AirEnvironment, AirConstantProvider, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
+export type { Air, AirValues, AirEnvironment, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
+export { FixedAir } from './air.js';
 export type { CalculationIssue, SolveRoute, DqIssue, TargetUnreachableIssue, OutOfRangeIssue } from './consistency.js';
 // APPLICATION SETTINGS reach a calculation through the collaborator `createEngine(settings)`
 // takes, never a module constant read behind the caller's back. The factory band crosses as a

@@ -25,6 +25,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {createEngine} from '@openisd/design/engine';
 import {SCENARIOS} from './scenarios.js';
+import {REFERENCE_AIR} from '../../design/test/fixtures/referenceAir.js';
 
 const here    = dirname(fileURLToPath(import.meta.url));
 const write   = process.argv.includes('--write');
@@ -50,7 +51,7 @@ for (const S of SCENARIOS) {
     const L   = S.box.ventL / 100;        // cm → m (physical length)
     const Sp  = Math.PI * (S.box.ventD / 200) ** 2;  // cm bore diameter → m² area
     const engine = createEngine();
-    const fb  = engine.vent.tuningFromLength(Vb, L, Sp, 1, engine.environment.solve({}).values);
+    const fb  = engine.vent.tuningFromLength(Vb, L, Sp, 1, REFERENCE_AIR);
     S.computed = {
       // StatBar.vue: fb.toFixed(1)
       Fb: fb.toFixed(1),
@@ -70,7 +71,7 @@ for (const S of SCENARIOS) {
       prRms:  pr.Rms,                   // kg/s   (direct)
       prNum:  1,
     };
-    const fp = createEngine().pr.tuning(P, createEngine().environment.solve({}).values);
+    const fp = createEngine().pr.tuning(P, REFERENCE_AIR);
     S.computed = {
       // StatBar.vue: fp.toFixed(1)
       Fp: fp.toFixed(1),

@@ -21,6 +21,8 @@ import {readdirSync, readFileSync, statSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, extname, join} from 'node:path';
 import {createEngine} from '../../engine/Engine.js';
+import type {Air} from '../../engine/air.js';
+import {FixedAir} from '../../engine/air.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 
@@ -46,11 +48,11 @@ function wdrNumbers(text: string): Record<string, number> {
 const W = wdrNumbers(readFileSync(ORACLE, 'utf8'));
 
 /** The oracle's own air, as the engine's methods take it. */
-const oracleAir = () => ({ rho: W.roo!, c: W.c! });
+const oracleAir = (): Air => new FixedAir({ rho: W.roo!, c: W.c! });
 
 /** K, the additive constant of `SPL = K + 10·log₁₀(η₀)`: at η₀ = 1 the log term is 0, so the
  *  engine's own SPL conversion reports K itself. */
-const kDb = (air: { rho: number; c: number }) => engine.driver.splFromEfficiency(1, air);
+const kDb = (air: Air) => engine.driver.splFromEfficiency(1, air);
 
 describe('reference efficiency η₀ — WinISD oracle', () => {
   it('the oracle carries every value the formulas need (guards against a silent fixture change)', () => {
@@ -111,7 +113,7 @@ describe('SPL from η₀ — the constant is DERIVED, never a literal', () => {
 
   it('K MOVES with the air — a 20 °C → 30 °C change shifts it by ~0.07 dB (ρ and c vary)', () => {
     // Dry air at 1 atm: c = 331.3·√(1+T/273.15), ρ = 1.2041·(293.15/T_K).
-    const air = (tC: number) => ({ c: 331.3 * Math.sqrt(1 + tC / 273.15), rho: 1.2041 * (293.15 / (tC + 273.15)) });
+    const air = (tC: number) => new FixedAir({ c: 331.3 * Math.sqrt(1 + tC / 273.15), rho: 1.2041 * (293.15 / (tC + 273.15)) });
     const d = kDb(air(30)) - kDb(air(20));
     assert.ok(Math.abs(d) > 0.05 && Math.abs(d) < 0.1, `20→30 °C must move K by ~0.07 dB, got ${d}`);
   });

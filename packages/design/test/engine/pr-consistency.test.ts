@@ -1,13 +1,17 @@
 import {describe, expect, it} from 'vitest';
 import type {SolverField} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
+import {FixedAir} from '../../engine/index.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {checkPrConsistency, fakeSolverField, solvePrConsistencyGroup} from './testSolver.js';
 
 const engine = createEngine();
 
-const AIR = engine.environment.solve({}).values;
+const AIR = REFERENCE_AIR;
 
-const air = {rho: 1.2, c: 343};
+const airValues = {rho: 1.2, c: 343};
+
+const air = new FixedAir(airValues);
 
 const none = {Fs_hz: null, Qms: null, Vas_m3: null, Sd_m2: null, Mms_kg: null, Cms_m_per_N: null, Rms_kg_per_s: null};
 
@@ -149,7 +153,7 @@ describe('passive radiator consistency', () => {
   describe('PrEngine.solveSpec — a radiator\'s seven figures through the driver consistency relations', () => {
     it('derives Cms from Vas and Sd, Mms from Fs and Cms, Rms from Qms, Fs and Mms', () => {
       const s = engine.pr.solveSpec({...none, Fs_hz: 30, Qms: 3.3, Vas_m3: 0.0048, Sd_m2: 0.0095}, air);
-      const cms = 0.0048 / (air.rho * air.c * air.c * 0.0095 * 0.0095);
+      const cms = 0.0048 / (airValues.rho * airValues.c * airValues.c * 0.0095 * 0.0095);
       const mms = 1 / ((2 * Math.PI * 30) ** 2 * cms);
       expect(s.Cms_m_per_N).toBeCloseTo(cms, 15);
       expect(s.Mms_kg! / mms).toBeCloseTo(1, 12);
@@ -171,8 +175,8 @@ describe('passive radiator consistency', () => {
     });
 
     it('reads the air it is given', () => {
-      const thin = engine.pr.solveSpec({...none, Vas_m3: 0.0048, Sd_m2: 0.0095}, {rho: 1.0, c: 343});
-      const dense = engine.pr.solveSpec({...none, Vas_m3: 0.0048, Sd_m2: 0.0095}, {rho: 1.2, c: 343});
+      const thin = engine.pr.solveSpec({...none, Vas_m3: 0.0048, Sd_m2: 0.0095}, new FixedAir({rho: 1.0, c: 343}));
+      const dense = engine.pr.solveSpec({...none, Vas_m3: 0.0048, Sd_m2: 0.0095}, new FixedAir({rho: 1.2, c: 343}));
       expect(thin.Cms_m_per_N! / dense.Cms_m_per_N!).toBeCloseTo(1.2, 12);
     });
   });

@@ -3,6 +3,7 @@
  * curves, from a `SweepJob` (plain data, structured-cloned across the Worker boundary).
  */
 import type {MaxCurvesSolveResult, SimulationEngine, SweepSolveResult} from '@openisd/design/engine';
+import {runMaxCurvesJob, runSweepJob} from '@openisd/design';
 import type {SweepJob} from '@openisd/design';
 
 export interface SweepRequest {
@@ -22,11 +23,10 @@ export class SweepComputer {
   constructor(private readonly simulation: SimulationEngine) {}
 
   run(req: SweepRequest): SweepReply {
-    const {driver, Le_H, box, sweep, maxCurves} = req.job;
     return {
       id: req.id,
-      sweep: this.simulation.sweep(driver, Le_H, box, sweep),
-      max: req.withMax ? this.simulation.maxCurves(driver, Le_H, box, maxCurves) : null,
+      sweep: runSweepJob(this.simulation, req.job),
+      max: req.withMax ? runMaxCurvesJob(this.simulation, req.job) : null,
     };
   }
 }

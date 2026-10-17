@@ -8,7 +8,7 @@ import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
 import {NumberField} from '@openisd/design/fields';
 import type {OpenISDProject} from '@openisd/design';
-import type {BoxType, EnvironmentEngine, VentEngine} from '@openisd/design/engine';
+import type {BoxType, VentEngine} from '@openisd/design/engine';
 
 /** A presentation fact with no domain counterpart: these three box types draw two chambers. */
 import {DUAL_CHAMBER} from './boxFields.js';
@@ -17,7 +17,6 @@ export interface VentReadoutsDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
   selectedBox: Ref<BoxType>;
-  air: ComputedRef<ReturnType<EnvironmentEngine['solve']>['values']>;
   vent: VentEngine;
 }
 
@@ -37,7 +36,7 @@ export const FH_TARGET_TIP = 'Fh (Helmholtz Frequency):\n'
   + 'Formula: Fh = Fs_pr · √(1 + Vas_pr / Vb)';
 
 
-export function createVentReadouts({ project, projectChanged: changed, selectedBox, air, vent }: VentReadoutsDeps) {
+export function createVentReadouts({ project, projectChanged: changed, selectedBox, vent }: VentReadoutsDeps) {
   const activeVent = computed(() => {
     void changed.value;
     void project.value;
@@ -51,12 +50,12 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     return project.value.box.ventGroupOf(selectedBox.value).tuning_goal_hz;
   });
   // The formula itself lives on VentEngine (UI is display-only) — this just feeds it the
-  // currently-active vent's length and the resolved air.
+  // currently-active vent's length and the project's air.
   const portPipeResonance_hz = computed<number | null>(() => {
     void project.value;
     const L = activeVent.value.length_m.value;
     if (L == null) return null;
-    return vent.firstResonance_hz(L, air.value);
+    return vent.firstResonance_hz(L, project.value.air);
   });
   /** The vent's own dq — a `target-unreachable` mark means the entered tuning has no positive
    *  port length in this volume/area; the solver already wrote `length_m` null. */
@@ -84,7 +83,7 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
       const issue = port.vent.length_m.dq.find(i => i.kind === 'target-unreachable') ?? null;
       return {
         ...port,
-        portPipeResonance_hz: L == null ? null : vent.firstResonance_hz(L, air.value),
+        portPipeResonance_hz: L == null ? null : vent.firstResonance_hz(L, project.value.air),
         unreachable: issue !== null,
         unreachableMsg: issue === null ? '' : issue.text,
       };

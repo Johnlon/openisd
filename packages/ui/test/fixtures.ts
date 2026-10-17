@@ -605,10 +605,14 @@ export async function settledChartPicture(page: Page): Promise<string> {
   return last;
 }
 
+/** The first chart as drawn, as a PNG. */
+export async function chartPng(page: Page): Promise<Buffer> {
+  return page.locator('.gpanel canvas').first().screenshot();
+}
+
 /** The first chart as drawn: a fingerprint of its picture, equal while the curve is the same. */
 export async function chartPicture(page: Page): Promise<string> {
-  const png = await page.locator('.gpanel canvas').first().screenshot();
-  return createHash('sha1').update(png).digest('hex');
+  return createHash('sha1').update(await chartPng(page)).digest('hex');
 }
 
 /** Number of filters the Filters tab lists. */

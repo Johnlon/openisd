@@ -5,7 +5,6 @@
  */
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP} from './ventReadouts.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
@@ -13,7 +12,7 @@ import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
 
 export function useMobileBoxTab() {
-  const {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} = useApp().appState;
+  const {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, focusedProject, projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const { engine } = useApp();
   const isSimulatable = boxTypeIsSimulatable;
@@ -21,8 +20,7 @@ export function useMobileBoxTab() {
   const { selectedBox, pending, isDual, boxLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
   const { boxResonance } = createSealedReadouts({ project, selectedBox, projectChanged });
-  const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
-  const { activeTuning } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
+  const { activeTuning } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
   const { boxVolumeCell, sealedFscCell, sealedQtcCell } = createBoxVolume({ project, selectedBox, projectChanged });
   const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.

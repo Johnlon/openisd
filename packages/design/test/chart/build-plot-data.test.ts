@@ -11,6 +11,7 @@ const engine = createEngine();
 import type {SweepDriver, SweepParams} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
 import {buildPlotData, type Design, type PlotParams} from '@openisd/design/chart';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
@@ -27,7 +28,7 @@ function solvedDriver(): SweepDriver {
 }
 const DRV = solvedDriver();
 const LE_H = 0.70e-3;
-const SP: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [] };
+const SP: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [], air: REFERENCE_AIR };
 const PP: PlotParams = { fmin: SP.fmin ?? 10, fmax: SP.fmax ?? 2000 };
 const SW = engine.simulation.sweep(DRV, LE_H, 'sealed', SP).values!;
 const MX = engine.simulation.maxCurves(DRV, LE_H, 'sealed', SP).values!;

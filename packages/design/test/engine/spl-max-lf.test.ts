@@ -5,10 +5,9 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {createEngine} from '../../engine/Engine.js';
 import type {Air} from '../../engine/air.js';
-/** The engine's one door: every calculation below is a method on this object. */
-const engine = createEngine();
+import {FixedAir} from '../../engine/air.js';
+import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 // TYPED, not `Record<string, number>` with a cast on each end. The cast this replaces made every
 // name in this file invisible to the compiler: stale keys went in, matched nothing, and every
@@ -71,15 +70,15 @@ describe('SPLmaxLF', () => {
       // (John, 2026-10-05), so the probes' air is handed in as the project's.
       const base = { Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, Vd_m3: 0.0001474, Mms_kg: 0.00194848430081419, Qes: 0.19251724527664, Re_ohm: 14.1525718647402 };
       const c = 343.684120962153;
-      const light = solve(base, { c, rho: 0.9 });
-      const heavy = solve(base, { c, rho: 1.5 });
+      const light = solve(base, new FixedAir({ c, rho: 0.9 }));
+      const heavy = solve(base, new FixedAir({ c, rho: 1.5 }));
       assert.ok(rel(derived(light.SPLmaxLF_dB, 'SPLmaxLF_dB'), 81.4286971830493) < 1e-12, `ρ₀=0.9 → ${light.SPLmaxLF_dB}`);
       assert.ok(rel(derived(heavy.SPLmaxLF_dB, 'SPLmaxLF_dB'), 85.8656721753764) < 1e-12, `ρ₀=1.5 → ${heavy.SPLmaxLF_dB}`);
     });
 
     it('falls back to the live reference-environment density when the record carries none', () => {
       const noAir = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022 });
-      const withRho = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, roo_kg_per_m3: engine.environment.solve({}).values.rho });
+      const withRho = solve({ Fs_hz: 40, Xmax_m: 0.0067, Sd_m2: 0.022, roo_kg_per_m3: REFERENCE_AIR_VALUES.rho });
       assert.equal(noAir.SPLmaxLF_dB, withRho.SPLmaxLF_dB);
     });
 

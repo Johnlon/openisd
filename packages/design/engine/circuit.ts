@@ -27,7 +27,6 @@
  */
 
 
-import {solveEnvironment} from './air.js';
 import {hotRe} from './solvers/driverQuantities.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
@@ -93,7 +92,7 @@ export function hfAsymptotePressure_Pa(drv: CircuitQuantities, P: SweepParams, r
   const BlPush = series ? drv.BL_entered_Tm * n : drv.BL_entered_Tm;
   const pg = P.eg * BlPush / (drv.Sd_m2 * n * Rac);
   const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;
-  const {rho} = solveEnvironment(P).values;
+  const rho = P.air.rho();
   return rho * pg / (2 * Math.PI * r_m * Mas);
 }
 
@@ -108,7 +107,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const eg     = P.eg;
   const Sdt    = drv.Sd_m2 * n;
 
-  const { rho, c } = solveEnvironment(P).values;
+  const rho = P.air.rho(), c = P.air.c();
 
   // Voice coil impedance:
   //   ZcoilAC: resistive only (Re+Rs, Le excluded)

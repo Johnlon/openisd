@@ -8,6 +8,7 @@ import {createEngine} from '@openisd/design/engine';
 import type {ChartId, SweepDriver, SweepParams} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
 import {seriesFor, type PlotParams} from '@openisd/design/chart';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 const RAW: Record<string, number> = {
@@ -22,7 +23,7 @@ function solvedDriver(): SweepDriver {
   return specs.sweepDriver();
 }
 const DRV = solvedDriver();
-const SP: SweepParams = {Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: []};
+const SP: SweepParams = {Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 200, filters: [], air: REFERENCE_AIR};
 const SW = engine.simulation.sweep(DRV, RAW.Le, 'sealed', SP).values!;
 const P: PlotParams = {fmin: 10, fmax: 2000, prXmax: 0.008, portVelocityLimit_m_per_s: 17};
 const REDLINE = '#ff6b6b';

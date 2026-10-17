@@ -4,6 +4,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import type {Filter, SweepParams} from '../../engine/types.js';
 import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 
@@ -28,7 +29,7 @@ const DRV = solveConsistencyGroup({
   Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.70e-3, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8});
 const LE_H = 0.70e-3;
 const STEEP: Filter[] = [{ type: 'lowpass', family: 'butterworth', order: 10, fc: 50, Q: Math.SQRT1_2, enabled: true }];
-const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 20000, N: 400, filters: STEEP };
+const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 20000, N: 400, air: REFERENCE_AIR, filters: STEEP };
 const sweep = (P: SweepParams) => engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', P).values!;
 
 describe('levels below −190 dB in a real sweep', () => {

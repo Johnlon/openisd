@@ -3,6 +3,7 @@ import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
@@ -12,9 +13,9 @@ const engine = createEngine();
 
 // No environment reaches these test's own reimplementation of the formula under test, so ρ/c
 // are computed live at the reference environment — matching production (no stored constant).
-const refRho = (): number => engine.environment.solve({}).values.rho;
+const refRho = (): number => REFERENCE_AIR_VALUES.rho;
 
-const refC = (): number => engine.environment.solve({}).values.c;
+const refC = (): number => REFERENCE_AIR_VALUES.c;
 
 // ---------------------------------------------------------------------------
 // Reference test driver — a synthetic 6.5" mid-woofer, 8 Ω nominal.
@@ -57,7 +58,7 @@ describe('vented box simulation', () => {
     const Leff   = Map * Sp_m2 / refRho();  // effective duct length (including end correction)
     const d = solveConsistencyGroup(REF_DRIVER);
     const { fs, spl, zmag } = engine.simulation.sweep(sweepDriver(d), LE_H, 'vented', {
-      Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, Fb: Fb_Hz, eg: 2.83, fmin: 10, fmax: 1000, N: 300,
+      Vb: Vb_m3, Ql: 7, Sp: Sp_m2, Leff, Fb: Fb_Hz, eg: 2.83, fmin: 10, fmax: 1000, N: 300, air: REFERENCE_AIR,
     }).values!;
 
     it('rolls off at approximately 24 dB/octave below tuning — the 4th-order Butterworth slope', () => {

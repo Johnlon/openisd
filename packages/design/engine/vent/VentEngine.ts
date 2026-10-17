@@ -61,18 +61,18 @@ const VENT_GEOMETRY: readonly VentQuantityName[] = Object.freeze(['Vb_m3', 'area
 
 export class VentEngineImpl implements VentEngine {
   lengthForTuning(Vb: number, fb: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
-    const Cab = Vb / (air.rho * air.c * air.c);
+    const Cab = Vb / (air.rho() * air.c() * air.c());
     const wb  = 2 * Math.PI * fb;
     const Map = 1 / (wb * wb * Cab);
     const d   = 2 * Math.sqrt(Sp / Math.PI);
-    return Map * count * Sp / air.rho - endCorrection * d;
+    return Map * count * Sp / air.rho() - endCorrection * d;
   }
 
   tuningFromLength(Vb: number, L: number, Sp: number, count: number, air: Air, endCorrection: number = END_CORRECTION): number {
     const d    = 2 * Math.sqrt(Sp / Math.PI);
     const Leff = L + endCorrection * d;
-    const Cab  = Vb / (air.rho * air.c * air.c);
-    const Map  = air.rho * Leff / (count * Sp);
+    const Cab  = Vb / (air.rho() * air.c() * air.c());
+    const Map  = air.rho() * Leff / (count * Sp);
     return 1 / (2 * Math.PI * Math.sqrt(Map * Cab));
   }
 
@@ -82,7 +82,7 @@ export class VentEngineImpl implements VentEngine {
   }
 
   firstResonance_hz(length_m: number, air: Air): number | null {
-    return length_m > 0 ? air.c / (2 * length_m) : null;
+    return length_m > 0 ? air.c() / (2 * length_m) : null;
   }
 
   solve(params: VentSolverParams, air: Air): VentIssue[] {

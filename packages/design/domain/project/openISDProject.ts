@@ -1,4 +1,4 @@
-import {type Engine} from '../../engine/index.js';
+import {type Engine, FixedAir} from '../../engine/index.js';
 import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
@@ -110,7 +110,7 @@ export class OpenISDProject {
      *  driver's own `c_m_per_s`/`roo_kg_per_m3` are never a source for this — see the field
      *  comment on `OpenIsdDriverSpec`'s constructor. */
     #air(root: SimpleField<OpenISDProjectJson>): Air {
-        return this.#engine.environment.solve(this.#airOver(root)).values;
+        return new FixedAir(this.#engine.environment.solve(this.#airOver(root)).values);
     }
 
     /** The three air conditions `root` reads as — each E or C, never absent. */
@@ -697,6 +697,12 @@ export class OpenISDProject {
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
 
+    /** The project's own air: what every calculation of this project runs in, and what a caller hands
+     *  an engine API that takes an `Air`. */
+    get air(): Air {
+        return this.#air(this.#root());
+    }
+
     /** This project's air temperature, WinISD Advanced "Temperature". E when typed, else C: the
      *  app's Options → Environment value (`Engine.envDefaults()`), which the resolve also stores. */
     get envTempK(): Readable<number> & Entered & Calculated & Writable<number> & Clearable & Calculatable<number> {
@@ -771,8 +777,8 @@ export class OpenISDProject {
             alfaVC_per_K: this.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.#signalOver(root).sweepVoltage_V,
-            airEnvironment: this.#airOver(root),
             air: this.#air(root),
+            airIssues: this.#engine.environment.solve(this.#airOver(root)).issues,
             engine: this.#engine,
             ventIssues: this.#issues.vent,
             prIssues: this.#issues.pr,

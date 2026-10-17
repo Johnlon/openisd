@@ -7,6 +7,7 @@
 import {describe, expect, it} from 'vitest';
 import {DEFAULT_VENTED_DESIGN_LIMITS} from '../../engine/appSettings.js';
 import {createEngine} from '../../engine/Engine.js';
+import {FixedAir} from '../../engine/index.js';
 import type {Engine} from '../../engine/Engine.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
@@ -37,13 +38,14 @@ describe('a driver file\'s own c and roo feed no calculation', () => {
 
   it('the solver over plain values ignores stated c and roo too', () => {
     const engine = createEngine();
-    const air = engine.environment.solve(engine.environment.defaults()).values;
+    const values = engine.environment.solve(engine.environment.defaults()).values;
+    const air = new FixedAir(values);
     const withAir = engine.driver.solveValues({...TS, ...STRANGE_AIR}, air);
     const without = engine.driver.solveValues(TS, air);
     expect(withAir.Cms_m_per_N).toBe(without.Cms_m_per_N);
     expect(withAir.no).toBe(without.no);
-    expect(withAir.c_m_per_s).toBe(air.c);
-    expect(withAir.roo_kg_per_m3).toBe(air.rho);
+    expect(withAir.c_m_per_s).toBe(values.c);
+    expect(withAir.roo_kg_per_m3).toBe(values.rho);
   });
 
   it('a driver with no project uses the app\'s environment defaults', () => {

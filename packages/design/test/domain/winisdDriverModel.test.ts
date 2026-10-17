@@ -15,6 +15,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {type Engine, createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
+import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
   // The probe driver. Fs/Cms imply Mms = 0.04346 kg, not the 0.060 entered; Fs/Qms/Mms imply
@@ -103,7 +104,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     // sweep. Driver B states the Cms that Vas implies at the project's own air, reached here by
     // asking the engine for it rather than by writing a number this test would have to maintain.
     const engine = createEngine();
-    const air = engine.environment.solve({}).values;
+    const air = REFERENCE_AIR_VALUES;
     const Vas_m3 = SHARED.Vas_m3 * 1.2;
     const cmsFromVas = Vas_m3 / (air.rho * air.c * air.c * SHARED.Sd_m2 * SHARED.Sd_m2);
 

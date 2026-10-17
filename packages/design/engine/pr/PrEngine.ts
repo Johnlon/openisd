@@ -87,7 +87,7 @@ export class PrEngineImpl implements PrEngine {
   ) {}
 
   tuning(p: PrParams, air: Air): number {
-    const Cab  = p.Vb / (air.rho * air.c * air.c);
+    const Cab  = p.Vb / (air.rho() * air.c() * air.c());
     const Map  = (p.prMmd + p.prMadd) / (p.prSd * p.prSd);
     const Cap  = p.prNum * p.prCms * p.prSd * p.prSd;
     const Cpar = (Cab * Cap) / (Cab + Cap);
@@ -95,20 +95,20 @@ export class PrEngineImpl implements PrEngine {
   }
 
   massForFp(p: PrParams, fp: number, air: Air): number {
-    const Cab  = p.Vb / (air.rho * air.c * air.c);
+    const Cab  = p.Vb / (air.rho() * air.c() * air.c());
     const Cap  = p.prNum * p.prCms * p.prSd * p.prSd;
     const Cpar = (Cab * Cap) / (Cab + Cap);
     const Map  = p.prNum / ((2 * Math.PI * fp) ** 2 * Cpar);
     return Map * p.prSd * p.prSd;
   }
 
-  vas(prCms: number, prSd: number, {rho, c}: Air): number {
-    return prCms * prSd * prSd * rho * c * c;
+  vas(prCms: number, prSd: number, air: Air): number {
+    return prCms * prSd * prSd * air.rho() * air.c() * air.c();
   }
 
-  cmsFromVas(prVas_m3: number, prSd: number, {rho, c}: Air): number {
+  cmsFromVas(prVas_m3: number, prSd: number, air: Air): number {
     if (!(prSd > 0)) return 0;
-    return prVas_m3 / (prSd * prSd * rho * c * c);
+    return prVas_m3 / (prSd * prSd * air.rho() * air.c() * air.c());
   }
 
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number {
@@ -175,7 +175,7 @@ export class PrEngineImpl implements PrEngine {
       Fs_hz: orUndefined(stated.Fs_hz), Qms: orUndefined(stated.Qms), Vas_m3: orUndefined(stated.Vas_m3),
       Sd_m2: orUndefined(stated.Sd_m2), Mms_kg: orUndefined(stated.Mms_kg),
       Cms_m_per_N: orUndefined(stated.Cms_m_per_N), Rms_kg_per_s: orUndefined(stated.Rms_kg_per_s),
-      c_m_per_s: air.c, roo_kg_per_m3: air.rho,
+      c_m_per_s: air.c(), roo_kg_per_m3: air.rho(),
     };
   }
 

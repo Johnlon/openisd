@@ -4,6 +4,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 
@@ -13,7 +14,7 @@ const RAW_COMPLETE = {
   Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005, Pe: 60, Znom: 8,
 };
 
-const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 50 };
+const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR };
 
 const validDriver = () => sweepDriver(solveConsistencyGroup({
   Fs_hz: RAW_COMPLETE.Fs, Qts: RAW_COMPLETE.Qts, Qes: RAW_COMPLETE.Qes, Qms: RAW_COMPLETE.Qms,

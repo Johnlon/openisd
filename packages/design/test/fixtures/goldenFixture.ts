@@ -8,6 +8,8 @@
  */
 import {readFileSync} from 'node:fs';
 import type {BoxType, SweepParams} from '../../engine/types.js';
+import type {AirEnvironment} from '../../engine/index.js';
+import {airOfConditions} from './referenceAir.js';
 
 /** The fixed driver every golden fixture states, in RECORD names (matches WinISD/`.wdr` field
  *  names, not the engine's own `_hz`/`_ohm`-suffixed ones — sweep-golden-master.test.ts/gen-golden.ts convert).
@@ -20,10 +22,19 @@ export interface GoldenDriverRaw {
   Dd?: number; BL?: number; Mms?: number; Cms?: number; Rms?: number;
 }
 
+/** The sweep parameters as the JSON states them: the three air conditions in place of an `Air`. */
+export type GoldenSweepParams = Omit<SweepParams, 'air'> & AirEnvironment;
+
 export interface GoldenDesign {
   driverRaw: GoldenDriverRaw;
   box: BoxType;
-  P: SweepParams;
+  P: GoldenSweepParams;
+}
+
+/** The engine's `SweepParams` for a fixture's stated parameters: its conditions become its air. */
+export function sweepParamsOf(P: GoldenSweepParams): SweepParams {
+  const {tempK, humidityPct, pressurePa, ...rest} = P;
+  return {...rest, air: airOfConditions({tempK, humidityPct, pressurePa})};
 }
 
 /** Only the `SweepResult` fields sweep-golden-master.test.ts actually compares. */
@@ -70,11 +81,13 @@ function isBoxType(v: unknown): v is BoxType {
   return typeof v === 'string' && BOX_TYPES.some(b => b === v);
 }
 
-/** `SweepParams` has one required pair, `Vb`/`eg`; every other member is optional, so a record
- *  stating those two is a valid `SweepParams` regardless of which optional members it carries —
- *  checking more would duplicate the type instead of trusting it. */
-function isSweepParams(v: unknown): v is SweepParams {
-  return isRecord(v) && typeof v['Vb'] === 'number' && typeof v['eg'] === 'number';
+/** A record stating `Vb`/`eg` and the three air conditions is a valid `GoldenSweepParams`
+ *  regardless of which optional members it carries — checking more would duplicate the type
+ *  instead of trusting it. */
+function isSweepParams(v: unknown): v is GoldenSweepParams {
+  return isRecord(v) && typeof v['Vb'] === 'number' && typeof v['eg'] === 'number'
+    && typeof v['tempK'] === 'number' && typeof v['humidityPct'] === 'number'
+    && typeof v['pressurePa'] === 'number';
 }
 
 function isGoldenDesign(v: unknown): v is GoldenDesign {

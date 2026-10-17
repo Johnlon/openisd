@@ -1,4 +1,4 @@
-import {chartPicture, settledChartPicture, COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, shownBoxVolume, shownDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
+import {chartPicture, chartPng, settledChartPicture, COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, shownBoxVolume, shownDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 
 /**
@@ -37,6 +37,7 @@ test.describe('What-if panel', () => {
       // The "Project imported" message floats over the chart for a few seconds and is part of its picture.
       await expect(page.getByText(/Project imported/)).toBeHidden();
       const spl = await settledChartPicture(page);
+      const before = await chartPng(page);
 
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
@@ -57,7 +58,11 @@ test.describe('What-if panel', () => {
 
       await whatIf.locator('button', { hasText: 'Close' }).click();
       await expect(whatIf).toBeHidden();
-      await expect.poll(() => chartPicture(page)).toBe(spl);
+      // Both pictures go with the report, so a failure shows what differs (bug what-if-close-curve-not-restored).
+      await test.info().attach('chart before What-if', { body: before, contentType: 'image/png' });
+      await expect.poll(() => chartPicture(page)).toBe(spl).finally(async () => {
+        await test.info().attach('chart after Close', { body: await chartPng(page), contentType: 'image/png' });
+      });
       expect(await shownBoxVolume(page)).toBe(volume);
       expect(await focusedIsModified(page)).toBe(false);
 

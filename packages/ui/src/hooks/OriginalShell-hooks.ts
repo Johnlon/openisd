@@ -44,7 +44,7 @@ import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
-import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
+import type {ChartId, EnvDefaults} from '@openisd/design/engine';
 import {useCompareOverlays} from './compareOverlays.js';
 import {projectCloudMarks, useCloudSync, useCloudSyncUi} from './CloudSync-hooks.js';
 import type {ConflictCopy} from '@openisd/design/cloud';
@@ -96,12 +96,11 @@ export interface EnvironmentAirDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
   envDefaults: () => EnvDefaults;
-  environment: EnvironmentEngine;
 }
 
 type EnvField = Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
 
-export function createEnvironmentAir({ project, projectChanged: changed, envDefaults, environment }: EnvironmentAirDeps) {
+export function createEnvironmentAir({ project, projectChanged: changed, envDefaults }: EnvironmentAirDeps) {
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
@@ -134,9 +133,8 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    return environment.solve({
-      tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
-    }).values;
+    const {air} = project.value;
+    return {c: air.c(), rho: air.rho()};
   });
   return {
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
@@ -258,9 +256,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       cancelLabel: 'Keep',
     });
   }
-  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, so the call sits
-  // just after `createEnvironmentAir` below, but the destructured names read the same everywhere
-  // this file used to declare them inline.
+  // Delegated to the unit-tested `createVentReadouts` above; the call sits with the Enclosure tab
+  // hooks below.
 
   // ---- Chart selector ------------------------------------------------------------
   // Clicking a menu label shows that chart alone and closes the menu; its checkbox opens or
@@ -644,13 +641,13 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
+  } = createEnvironmentAir({ project, projectChanged, envDefaults });
 
   // ---- Enclosure tab: vent (port) readouts ---------------------------------------
-  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, hence placed here.
+  // Delegated to the unit-tested `createVentReadouts` above.
   const {
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg,
-  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
+  } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
 
   const placement = ref<'standard' | 'iso'>('standard');
 
