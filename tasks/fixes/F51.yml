@@ -232,3 +232,10 @@ output: |
     1 error was not a part of any test, see above for details
   suite: unit exit 0, browser exit 1
   post-land suite 220283-f1a44803d3 finished: FAILED (exit 1) after 14m06s
+also_red:
+  - sha: 80e0699e5102400c67bb971b6a350349e33820b5
+    tested: 80e0699e5102400c67bb971b6a350349e33820b5
+    last_green: 2947ff6a12a013d238409ed24c7e3c6a2e88b131
+    range: 2947ff6a12a013d238409ed24c7e3c6a2e88b131..80e0699e5102400c67bb971b6a350349e33820b5
+    failing: |
+    
