@@ -16,7 +16,6 @@ import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
-import NumReadout from '../../components/NumReadout.vue';
 import GraphPanel from '../../components/GraphPanel.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
@@ -383,7 +382,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <template v-else-if="selectedBox === 'box-passive-radiator'">
                   <UIField class="field" input-id="og-box-resonance" :title="prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') + '\n\n' + FH_TARGET_TIP : FH_TARGET_TIP" :field="NumberField.BOX_FH_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" />
                 </template>
-                <div v-else class="field"><label>Fh</label><NumReadout as-input id="og-box-resonance" class="calculated greyed" :field="NumberField.BOX_RESONANCE_HZ" :value="boxResonance" /><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-class="unit unit-cyc" /><div style="width:16px"></div></div>
+                <UIFixedField v-else class="field" input-id="og-box-resonance" :field="NumberField.BOX_FH_HZ" :value="boxResonance" readonly />
               </div>
               <div v-if="selectedBox === 'sealed'" class="field-row">
                 <UIField class="field" input-id="og-box-qtc" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" />
@@ -398,11 +397,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="field-row"><UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" /></div>
                 <div class="field-row">
                   <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" />
-                  <div v-else class="field">
-                    <label>{{ selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq' }}</label>
-                    <NumReadout as-input class="calculated greyed" :field="NumberField.BOX_REARRESONANCE_HZ" :value="rearResonance" />
-                    <UnitToggle :field="NumberField.BOX_REARRESONANCE_HZ" unit-class="unit unit-cyc" /><div style="width:16px"></div>
-                  </div>
+                  <UIFixedField v-else class="field" :field="NumberField.BOX_REARRESONANCE_HZ" :label="selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq'" :value="rearResonance" readonly />
                 </div>
                 <div v-if="selectedBox === 'bandpass4'" class="field-row">
                   <div class="field"><label>Qtc</label><input class="calculated greyed" :value="ReadoutFormat.QTC.text(rearQtc, '')" readonly></div>
@@ -561,10 +556,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField id="og-vent-fb-target-field" class="field" input-id="og-vent-fb-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" />
                 </div>
                 <div class="field-row">
-                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.area_m2.value" /><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="unit" /><div style="width:16px"></div></div>
+                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.area_m2.value" readonly />
                 </div>
                 <div class="field-row">
-                  <div class="field"><label>1st port resonance</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" /><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="unit unit-cyc" /><div style="width:16px"></div></div>
+                  <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" readonly />
                 </div>
                 <div class="field-row">
                   <UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" />
@@ -615,11 +610,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 </div>
                 <div class="field-row" style="margin-bottom:3px; gap:8px;">
                   <UIField class="field" style="--label-w:145px; grid-template-columns: 145px 90px 34px 0px 0px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
-                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:145px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq">
-                    <template #value="{id}">
-                      <NumReadout as-input :id="id" class="calculated greyed" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" />
-                    </template>
-                  </UIFixedField>
+                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:145px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
                 </div>
               </div>
             </div>
@@ -665,8 +656,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   </div>
                 </div>
                 <div class="vent-port-row">
-                  <div class="field" :title="VENT_GEOMETRY_TIP"><label>Cross area</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.area_m2.value" /><UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="unit" /><div style="width:16px"></div></div>
-                  <div class="field"><label>1st port resonance</label><NumReadout as-input class="calculated greyed" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" /><UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="unit unit-cyc" /><div style="width:16px"></div></div>
+                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.area_m2.value" readonly />
+                  <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" readonly />
                 </div>
               </div>
             </div>
@@ -1376,8 +1367,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    rather than push the buttons off the row. */
 .field.driver-model { flex:0 1 auto; min-width:0; }
 .field input.driver-model-input { width:420px; min-width:140px; flex:0 1 420px; }
-.field input.greyed { background:#e9e9e9; color:#777; }
-.field input.calculated { color:#1868d1; border-color:#1868d1; }
+/* A calculated readout row is as tall as the entered rows beside it (the old hand-built row was 1 px taller). */
+.field.ui-field-readout { padding-bottom:1px; }
+.field :deep(input.greyed) { background:#e9e9e9; color:#777; }
+.field :deep(input.calculated) { color:#1868d1; border-color:#1868d1; }
 .adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:16px; align-items:start; }
 .adv-air-fields .field { gap:2px; }
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
@@ -1395,7 +1388,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
-.field input.calculated.impossible { color:#a11; border-color:#a11; }
+.field :deep(input.calculated.impossible) { color:#a11; border-color:#a11; }
 .field.entered :deep(input), .field.entered input { color:#1b7d1b; border-color:#1b7d1b; }
 /* DQ — the generic "flagged field" rule: redline every field whose cell carries a data-quality
    flag. The entered one (the cause) gets the attention ring; the calculated ones (the symptom)

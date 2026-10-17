@@ -12,10 +12,9 @@ import {cellClassOf} from '../../logic/driverCells.js';
 import {commitMyDriver} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
-import UnitToggle from './UnitToggle.vue';
 import UIField from './UIField.vue';
+import UIFixedField from './UIFixedField.vue';
 import {provideCellScope} from './cellScope.js';
-import NumReadout from './NumReadout.vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
@@ -714,14 +713,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <div class="de-group">
             <div class="de-hdr">Environment parameters</div>
             <div class="de-cols">
-              <div class="de-fld value-c" data-field-key="c_m_per_s" :title="NumberField.C_M_PER_S.description">
-                <label>{{ NumberField.C_M_PER_S.label }}</label>
-                <NumReadout as-input :field="NumberField.C_M_PER_S" :value="cellVal('c_m_per_s')" /><UnitToggle :field="NumberField.C_M_PER_S" unit-class="u" />
-              </div>
-              <div class="de-fld value-c" data-field-key="roo_kg_per_m3" :title="NumberField.ROO_KG_PER_M3.description">
-                <label>{{ NumberField.ROO_KG_PER_M3.label }}</label>
-                <NumReadout as-input :field="NumberField.ROO_KG_PER_M3" :value="cellVal('roo_kg_per_m3')" /><UnitToggle :field="NumberField.ROO_KG_PER_M3" unit-class="u" />
-              </div>
+              <UIFixedField class="de-fld value-c" data-field-key="c_m_per_s" :title="NumberField.C_M_PER_S.description" :field="NumberField.C_M_PER_S" :value="cellVal('c_m_per_s')" readonly />
+              <UIFixedField class="de-fld value-c" data-field-key="roo_kg_per_m3" :title="NumberField.ROO_KG_PER_M3.description" :field="NumberField.ROO_KG_PER_M3" :value="cellVal('roo_kg_per_m3')" readonly />
             </div>
           </div>
         </div>

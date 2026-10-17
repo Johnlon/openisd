@@ -7,6 +7,7 @@ import {selectedOption} from '../../../logic/domEvents.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
 import UIField from '../../components/UIField.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
@@ -24,7 +25,7 @@ const {
   ventedAlignmentSuitabilityLabel,
   lossesOpen, openLossGroups, resetBoxLosses,
 } = useMobileBoxTab();
-const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
+const { readoutWithUnit } = useUnitReadouts();
 </script>
 
 <template>
@@ -51,12 +52,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
     <UIField v-else-if="selectedBox === 'vented'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" stepper />
     <UIField v-else-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :cell="sealedFscCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
     <UIField v-else-if="selectedBox === 'box-passive-radiator'" class="mob-ui-field" :title="FH_TARGET_TIP" :field="NumberField.BOX_FH_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
-    <div v-else class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Fsc</span>
-        <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.BOX_RESONANCE_HZ, boxResonance, '—') }}</span>
-      </div>
-    </div>
+    <UIFixedField v-else class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :value="boxResonance" readonly plain />
     <UIField v-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
     <div v-if="selectedBox === 'sealed'" class="mob-row">
       <button class="mob-btn" @click="sealedAlignmentEditor.openEditor">Choose alignment</button>

@@ -59,7 +59,7 @@ test.describe('MobileVentedTab', () => {
 
   test('clearing Vent diameter keeps the cross area; the diameter is calculated', async ({ appPage: page }) => {
     const diameter = mobileFieldRow(page, 'Vent diameter').locator('input');
-    const area = page.locator('.mob-field-row', { hasText: 'Cross area' }).locator('.mob-readonly');
+    const area = page.locator('.ui-field', { hasText: 'Cross area' }).locator('.mob-readonly');
     const areaBefore = (await area.textContent()) ?? '';
     const diameterBefore = await diameter.inputValue();
 

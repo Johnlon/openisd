@@ -16,6 +16,7 @@
  */
 import {computed, ref, useId} from 'vue';
 import NumInput from './NumInput.vue';
+import NumReadout from './NumReadout.vue';
 import UnitToggle from './UnitToggle.vue';
 import WinisdDeviationCue from './WinisdDeviationCue.vue';
 import {useCellScope} from './cellScope.js';
@@ -29,6 +30,8 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   max: undefined,
   stepper: true,
   readonly: false,
+  plain: false,
+  label: undefined,
   deviation: undefined,
   dq: undefined,
 });
@@ -97,12 +100,13 @@ function write(v: number | null, precision?: number): void {
 </script>
 
 <template>
-  <div class="ui-field">
-    <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ field.label }}</label>
+  <div :class="['ui-field', {'ui-field-readout': readonly}]">
+    <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
     <span class="ui-field-value">
       <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">
-        <NumInput :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-          :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :readonly="readonly" :blank-refused="binding.kind === 'fixed'" hide-mark
+        <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses, {'mob-readonly': plain}]" :value="view.value" :field="field" :as-input="!plain" />
+        <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
+          :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :blank-refused="binding.kind === 'fixed'" hide-mark
           @update:model-value="write" @refusal="text => refusal = text" />
       </slot>
     </span>
@@ -126,6 +130,8 @@ function write(v: number | null, precision?: number): void {
   align-items: baseline;
   position: relative; flex: none;
 }
+.ui-field-readout { grid-template-columns: var(--label-w, 150px) 90px 34px 16px 16px; }
+.ui-field-readout .ui-field-value { width: 90px; }
 .ui-field > label { grid-column: 1; white-space: nowrap; }
 .ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: 120px; flex: none; grid-column: 2; }
 /* FIXED width, the same in every unit: the box never resizes when its unit is cycled. Wide

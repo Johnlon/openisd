@@ -9,12 +9,11 @@ import {NumberField, TextField, WinisdDeviation} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
 import UIField from '../../components/UIField.vue';
 import NumInput from '../../components/NumInput.vue';
-import NumReadout from '../../components/NumReadout.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
 import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js';
-import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 
 const {
   project, selectedBox,
@@ -25,7 +24,6 @@ const {
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
 } = useMobileEnclosureTab();
-const {fieldWithUnit} = useUnitReadouts();
 </script>
 
 <template>
@@ -63,20 +61,8 @@ const {fieldWithUnit} = useUnitReadouts();
     <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="activeVent.length_m" stepper />
     <UIField class="mob-ui-field" :title="FB_TARGET_TIP" :field="tuningField" :cell="activeTuning" stepper />
 
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Cross area</span>
-        <span class="mob-field-value mob-readonly"><NumReadout :value="activeVent.area_m2.value" :field="NumberField.VENT_CROSSAREA_M2" :precision="NumberField.VENT_CROSSAREA_M2.precision" /></span>
-      </div>
-      <UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main">
-        <span class="mob-field-label">1st port resonance</span>
-        <span class="mob-field-value mob-readonly"><NumReadout :value="portPipeResonance_hz" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :precision="NumberField.VENT_1STPORTRESONANCE_HZ.precision" /></span>
-      </div>
-      <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="mob-unit" />
-    </div>
+    <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.area_m2.value" readonly plain />
+    <UIFixedField class="mob-ui-field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" readonly plain />
     <div class="mob-field-row mob-field-entered">
       <div class="mob-field-main">
         <span class="mob-field-label">Port velocity limit</span>
@@ -125,11 +111,7 @@ const {fieldWithUnit} = useUnitReadouts();
     </div>
     <UIField class="mob-ui-field" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" stepper />
-    <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
-      <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>
-        <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.PR_FSMASS_HZ, prFsMass_hz, '—') }}</span>
-      </div>
-    </div>
+    <UIFixedField class="mob-ui-field" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly plain />
   </div>
 
   <template v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'">
@@ -163,20 +145,8 @@ const {fieldWithUnit} = useUnitReadouts();
       </template>
       <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" stepper />
       <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" stepper />
-      <div class="mob-field-row mob-field-calculated">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Cross area</span>
-          <span class="mob-field-value mob-readonly"><NumReadout :value="port.vent.area_m2.value" :field="NumberField.VENT_CROSSAREA_M2" :precision="NumberField.VENT_CROSSAREA_M2.precision" /></span>
-        </div>
-        <UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="mob-unit" />
-      </div>
-      <div class="mob-field-row mob-field-calculated">
-        <div class="mob-field-main">
-          <span class="mob-field-label">1st port resonance</span>
-          <span class="mob-field-value mob-readonly"><NumReadout :value="port.portPipeResonance_hz" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :precision="NumberField.VENT_1STPORTRESONANCE_HZ.precision" /></span>
-        </div>
-        <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="mob-unit" />
-      </div>
+      <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.area_m2.value" readonly plain />
+      <UIFixedField class="mob-ui-field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" readonly plain />
     </div>
   </template>
 </template>

@@ -49,7 +49,7 @@ test.describe('Unit toggle', () => {
     await page.locator('.project-nav li').nth(2).click();               // dynamic enclosure/Vents tab
     const field = page.locator('.tab-section.active .field', { hasText: '1st port resonance' });
     const val = field.locator('input');
-    const label = field.locator('.unit-cyc');
+    const label = field.locator('.ui-field-unit');
 
     await expect(label).toHaveText('Hz');
     const hz = parseFloat(await val.inputValue());
