@@ -8,6 +8,8 @@
 # must be greater than the highest number already in a release title. It goes in the release title
 # "OpenISD <n.n.n>" and in RELEASES.md.
 # Promote refuses unless snap-<stamp> exists and no F is open (tasks/fixes/*.yml, status: open).
+# It runs the UI gallery (scripts/ui-gallery/capture.mjs), snapshot after and current Latest before;
+# a failed capture refuses.
 # It then adds tag v<stamp> on the same commit (the snap- tag stays), turns the pre-release into a
 # release marked Latest, and fast-forwards the read-only branch `release` to that commit.
 # Editing the release triggers .github/workflows/release.yml (the tag push does not), which
@@ -57,6 +59,13 @@ open_fixes="$(grep -lE '^status:[[:space:]]*open[[:space:]]*$' tasks/fixes/*.yml
 
 git fetch --quiet origin "refs/tags/$SNAP:refs/tags/$SNAP"
 SHA="$(git rev-parse "refs/tags/$SNAP^{commit}")"
+
+# Every release has a UI gallery run: this snapshot against the current Latest, kept under
+# ../ui-gallery/ as the release's before/after record. A failed capture stops the release.
+LATEST_TAG="$(gh release view --json tagName --jq .tagName 2> /dev/null || true)"
+BEFORE=none
+[ -z "$LATEST_TAG" ] || BEFORE="https://openisd.app/v/${LATEST_TAG#v}/"
+node scripts/ui-gallery/capture.mjs --after "https://openisd.app/snap/$STAMP/" --before "$BEFORE" || refuse "UI gallery capture failed"
 
 git tag "$REL" "$SHA"
 git push --quiet origin "refs/tags/$REL"

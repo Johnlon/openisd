@@ -1,0 +1,12 @@
+id: T381
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Every release has a UI gallery run: release.sh runs node scripts/ui-gallery/capture.mjs for the release build and keeps the run under ../ui-gallery/ as that release's before/after record (John 17 Oct 2026, rulings 9, 10, 22). Needs T380 on main first (rebase onto origin/main). A failed capture fails the release loudly; it never skips.
+done_test: bash scripts/quiet-test.sh npm run lint -- scripts/ui-gallery
+files:
+  - scripts/release.sh
+  - scripts/ui-gallery/capture.mjs
+  - scripts/ui-gallery/README.md
+  - tasks/T381.yml

@@ -6,6 +6,8 @@ Run (app already up, e.g. `bash scripts/preview-4000.sh`):
 
     node scripts/ui-gallery/capture.mjs
 
+`scripts/release.sh` runs it for every release: the snapshot (`https://openisd.app/snap/<stamp>/`) after, the current Latest before; a failed capture stops the release.
+
 Options:
 
 | Flag | Default | Meaning |
