@@ -3,6 +3,7 @@ release_note: 'On the phone, Tune and What-if are two separate sheets, each open
 repo: openisd
 owner: sonnet
 status: done
+landed: 1ac64ed9cb8e5aebf65d604e72c8ea33414dc258
 goal: Phone Graph tab has two separate sheets, Tune and What-if, each from its own pull-tab, with their own fields; no mode toggle.
 done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
 files:
