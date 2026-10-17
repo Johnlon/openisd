@@ -75,7 +75,7 @@ const {
   activeVent, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-  prResonanceMassDq, prFsMass_hz, fmt,
+  prResonanceMassDq, prFsMass_hz,
   advTemp, advHumidity, advPressure, advAir,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   resetAirToAppDefaults,
@@ -694,8 +694,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
               <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range /></div>
               <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
-              <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly><span class="unit">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.unitLabel() }}</span></div></div>
-              <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho)" readonly><span class="unit">{{ NumberField.ADV_AIRDENSITY_KG_PER_M3.unitLabel() }}</span></div></div>
+              <div class="field-row"><UIFixedField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advAir.c" readonly /></div>
+              <div class="field-row"><UIFixedField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAir.rho" readonly /></div>
               <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
             </div>
             <div class="checkbox-col">

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: a044a148124ab032ea394db3be49cac8303666a4
 goal: Visual baseline for the phone Advanced tab (new picture, no existing one changes)
 done_test: bash scripts/test.sh packages/ui/test/architecture/visual-covers-phone-advanced-tab.test.ts
 files:

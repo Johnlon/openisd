@@ -7,6 +7,7 @@
 import {CompatSwitchGroup, NumberField, ToggleField} from '@openisd/design/fields';
 import {inputChecked} from '../../../logic/domEvents.js';
 import UISettlingField from '../../components/UISettlingField.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
@@ -29,16 +30,8 @@ const {
     <UISettlingField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
     <UISettlingField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range />
     <UISettlingField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main"><span class="mob-field-label">Sound velocity</span>
-        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.fixed(advAir.c) }} {{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.unitLabel() }}</span>
-      </div>
-    </div>
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main"><span class="mob-field-label">Air density</span>
-        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho) }} {{ NumberField.ADV_AIRDENSITY_KG_PER_M3.unitLabel() }}</span>
-      </div>
-    </div>
+    <UIFixedField class="mob-ui-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advAir.c" readonly plain />
+    <UIFixedField class="mob-ui-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAir.rho" readonly plain />
     <div class="mob-row">
       <button class="mob-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
     </div>
