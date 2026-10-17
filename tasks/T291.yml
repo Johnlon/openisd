@@ -4,6 +4,7 @@ repo: openisd
 owner: maryu
 label: fixes
 status: done
+landed: 6f24d0e85599b70ffcea2d9ee765521ab625e036
 goal: The watchdog runs origin/main's scripts from a snapshot and reads Fs from origin/main, never the main checkout's files
 done_test: bash scripts/land/test/watchdog.test.sh && bash scripts/land/test/post-land-actions.e2e.test.sh
 files:

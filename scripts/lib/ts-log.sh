@@ -147,16 +147,31 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
       "$@" > "$tmp/fifo" 2>&1 &
       cmd=$!
       set +m
+      # The 1 s grace timer is a child of this wrapper that the wrapper waits on and reaps, so no
+      # timer process outlives the wrapper (processes.md rule 2).
+      esc=
       stop_group() {
         kill -TERM -- "-$cmd" 2>/dev/null
-        ( sleep 1; kill -KILL -- "-$cmd" 2>/dev/null ) > /dev/null 2>&1 &
+        if [ -z "$esc" ]; then sleep 1 & esc=$!; fi
       }
       trap stop_group TERM INT HUP
       rc=0
       while :; do
-        wait "$cmd"; rc=$?
+        if [ -z "$esc" ]; then
+          wait "$cmd"; rc=$?
+        else
+          gone=""
+          wait -n -p gone "$cmd" "$esc"; st=$?
+          if [ "$gone" = "$cmd" ]; then
+            rc=$st
+          elif [ "$gone" = "$esc" ]; then
+            kill -KILL -- "-$cmd" 2>/dev/null
+            wait "$cmd"; rc=$?
+          fi
+        fi
         kill -0 "$cmd" 2>/dev/null || break
       done
+      if [ -n "$esc" ]; then kill "$esc" 2>/dev/null; wait "$esc" 2>/dev/null; fi
       trap - TERM INT HUP
       kill -KILL -- "-$cmd" 2>/dev/null
       wait "$fmt" 2>/dev/null
