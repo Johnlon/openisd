@@ -260,12 +260,13 @@ onMounted(() => {
   ro = new ResizeObserver(() => requestAnimationFrame(redraw));
   ro.observe(canvasEl.value!);
   document.addEventListener('click', onDocClick);
-  // Canvas text is rasterized at draw time — if Inter loads after the first
-  // paint, that paint used a fallback font. Redraw once the real font is in.
-  document.fonts.ready.then(redraw);
+  // Canvas text is rasterized at draw time — a draw made before its font is in used a fallback
+  // font. Redraw whenever a font finishes loading: a draw itself can start a font's download.
+  document.fonts.addEventListener('loadingdone', redraw);
 });
 onUnmounted(() => {
   ro?.disconnect();
+  document.fonts.removeEventListener('loadingdone', redraw);
   document.removeEventListener('click', onDocClick);
 });
 
