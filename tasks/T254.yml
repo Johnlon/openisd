@@ -3,6 +3,7 @@ release_note: ''
 repo: openisd
 owner: fable
 status: done
+landed: 5ec22ae54d482c77901474a38ff410b3f1691df7
 goal: 'Every test run and suite logs start/end times and a timestamp on every line; metrics script reads logs into metrics page'
 done_test: bash scripts/test.sh scripts/land/test/ts-log.test.sh
 files:

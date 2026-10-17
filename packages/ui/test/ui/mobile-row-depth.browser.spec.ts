@@ -4,10 +4,10 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 /**
  * Phone field rows stay shallow and tappable (John, 2026-10-15), and the bottom tab bar stays
  * pinned while a tuning tab scrolls (John, 2026-10-16: "scrolling is fine on those views"). Every
- * row of a tuning tab is at least 40 px to tap, at three phone sizes; the tab bar sits on screen
+ * row of a tuning tab is at least 40 px to tap, at every phone size; the tab bar sits on screen
  * before and after the content is scrolled to its end, and the last row can be scrolled into view.
  */
-const SIZES = [{width: 360, height: 740}, {width: 390, height: 844}, {width: 412, height: 915}];
+import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 const TUNING_TABS = [
   {type: 'vented', tab: 'Vented'},
   {type: 'bandpass4', tab: '4th Order Bandpass'},
@@ -16,7 +16,7 @@ const TUNING_TABS = [
 ];
 const MIN_TAP_PX = 40;
 
-for (const size of SIZES) {
+for (const size of PHONE_SIZES) {
   for (const {type, tab} of TUNING_TABS) {
     test(`${tab}: rows are tappable and the tab bar stays pinned at ${size.width}×${size.height}`, async ({page}) => {
       await page.setViewportSize(size);

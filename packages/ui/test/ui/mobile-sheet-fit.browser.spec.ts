@@ -15,7 +15,7 @@ async function selectRectangularTwoVents(page: Page): Promise<void> {
 async function selectTwoRadiators(page: Page): Promise<void> {
   await page.locator('#mob-pr-count').selectOption('2');
 }
-const SIZES = [{width: 390, height: 844}, {width: 412, height: 915}];
+import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 
 const BOXES = [
   {type: 'sealed', tab: 'Box', tuneLines: 2, learnRows: 6, setup: async () => {}},
@@ -26,7 +26,7 @@ const BOXES = [
   {type: 'abc', tab: 'ABC', tuneLines: 5, learnRows: 11, setup: selectRectangularTwoVents},
 ];
 
-for (const size of SIZES) for (const {type, tab, tuneLines, learnRows, setup} of BOXES) {
+for (const size of PHONE_SIZES) for (const {type, tab, tuneLines, learnRows, setup} of BOXES) {
   test(`${type} sheet: fits without scrolling or overflow in Tune and Learn at ${size.width}×${size.height}`, async ({page}) => {
     await page.setViewportSize(size);
     await forceMobileSkin(page);

@@ -1,0 +1,17 @@
+id: T274
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: One typed list of six phone sizes (360x740 to 430x932) used by the multi-size phone layout specs
+done_test: bash scripts/test.sh packages/ui/test/fixtures/phoneSizes.test.ts
+files:
+  - tasks/T274.yml
+  - packages/ui/test/fixtures/phoneSizes.ts
+  - packages/ui/test/fixtures/phoneSizes.test.ts
+  - packages/ui/test/ui/mobile-row-depth.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts
+  - bugs/BUG_20261017_mobile-sheet-abc-chart-too-short-360x740.md
+  - bugs/BUG_20261017_mobile-sheet-bandpass4-chart-too-short-375x667.md
+  - bugs/BUG_20261017_mobile-sheet-bandpass6-chart-too-short-375x667.md
+  - bugs/BUG_20261017_mobile-sheet-abc-chart-too-short-375x667.md
