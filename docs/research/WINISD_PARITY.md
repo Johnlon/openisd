@@ -327,7 +327,7 @@ Vas, Fs, Qms, Sd, Xmax, Num. of PRs, Added mass, Fs-with-added-mass. OpenISD's P
 | **Temperature, Relative humidity, Air pressure** → derived Sound velocity + Air density | ⚠️ temperature drives c/ρ; humidity and pressure are collected but never reach the engine |
 | Simulate voice coil inductance                                                          | ✅ same checkbox, same default (off) — the WinISD/gyrator circuit-model switch; on-models differ by ~0.6 dB at 5–20 kHz |
 | **Force flat response**                                                                 | ✅                                                                                        |
-| **Use "transmission line" model for port**                                              | ✅                                                                                        |
+| **Use "transmission line" model for port**                                              | ✅ WinISD maths; WinISD drops the end correction so ticking it retunes the box (~+1.1 Hz), see [TL_PORT_MODEL.md](TL_PORT_MODEL.md?html) |
 | **Rg is at driver side** (source-resistance placement)                                  | ✅                                                                                        |
 | **SPL graph is Xmax limited**                                                           | ✅ (plus a separate Max-SPL chart)                                                        |
 
