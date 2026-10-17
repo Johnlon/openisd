@@ -9,6 +9,7 @@
 #      saying what to fix. Commits of its own left on top of main after a clean rebase: exits 1 saying what to
 #      land. The agent fixes it: land.sh runs this after its push and refuses to call the landing finished
 #      until it is fixed (John, 17 Oct 2026: the agent is responsible). The watchdog's run only logs it.
+#      Exception: handover-only commits the workspace repo already holds are dropped first (drop-superseded-handover.sh).
 #   4. package-lock.json changed: npm ci runs in the copy. Vite reloads the preview by itself.
 # Only a passed commit is ever pulled: the last green that post-land recorded (${POST_LAND_LOCK}.green), never
 # the tip of main. Every action is logged with a UTC timestamp; runs never overlap (flock in the git dir).
@@ -82,6 +83,7 @@ sync() {
     return 1
   fi
 
+  [ "$copy" = "$main" ] && bash "$HERE/drop-superseded-handover.sh" "$copy" "$target"   # handover-only commits the workspace repo already holds
   ahead="$(g rev-list --count "$target..HEAD")"
   [ "$(g rev-parse HEAD)" = "$head" ] || log "$name: moved ${head:0:10} -> $(g rev-parse --short=10 HEAD)"
   if [ "$ahead" != 0 ]; then

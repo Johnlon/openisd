@@ -1,0 +1,12 @@
+id: T369
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: When the main folder's only own commits add HANDOVER files the workspace repo already holds, sync-main-folder drops them (patch saved, drop logged), so the main folder follows main again
+done_test: bash scripts/land/test/drop-superseded-handover.test.sh
+files:
+  - tasks/T369.yml
+  - scripts/land/drop-superseded-handover.sh
+  - scripts/land/sync-main-folder.sh
+  - scripts/land/test/drop-superseded-handover.test.sh
