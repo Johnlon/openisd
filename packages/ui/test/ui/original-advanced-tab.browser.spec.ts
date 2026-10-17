@@ -120,10 +120,10 @@ test.describe('Original Advanced tab', () => {
       await expect(temp).toHaveValue(/293\.15/);
       await expect(hum).toHaveValue(/50/);
       await expect(pres).toHaveValue(/101325/);
-      await expect(temp).not.toHaveClass(/calculated/);
-      await expect(hum).not.toHaveClass(/calculated/);
-      await expect(pres).not.toHaveClass(/calculated/);
-      await expect(temp.evaluate((el: Element) => el.closest('.field')?.className)).resolves.toMatch(/entered/);
+      await expect(temp).not.toHaveClass(/value-c/);
+      await expect(hum).not.toHaveClass(/value-c/);
+      await expect(pres).not.toHaveClass(/value-c/);
+      await expect(temp.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-stored/);
 
       // Type values — they stick and turn green "entered".
       await fillAndCommit(temp, '301');
@@ -132,7 +132,7 @@ test.describe('Original Advanced tab', () => {
       await expect(temp).toHaveValue(/301/);
       await expect(hum).toHaveValue(/45/);
       await expect(pres).toHaveValue(/99000/);
-      await expect(temp).not.toHaveClass(/calculated/);
+      await expect(temp).not.toHaveClass(/value-c/);
 
       // DELETE each — the stored value must drop, the app default must flow through, and the
       // field must present as CALCULATED again.
@@ -143,12 +143,12 @@ test.describe('Original Advanced tab', () => {
       await expect(temp).toHaveValue(/293\.15/);
       await expect(hum).toHaveValue(/30/);
       await expect(pres).toHaveValue(/101325/);
-      await expect(temp).toHaveClass(/calculated/);
-      await expect(hum).toHaveClass(/calculated/);
-      await expect(pres).toHaveClass(/calculated/);
-      await expect(temp.evaluate((el: Element) => el.closest('.field')?.className)).resolves.not.toMatch(/entered/);
-      await expect(hum.evaluate((el: Element) => el.closest('.field')?.className)).resolves.not.toMatch(/entered/);
-      await expect(pres.evaluate((el: Element) => el.closest('.field')?.className)).resolves.not.toMatch(/entered/);
+      await expect(temp).toHaveClass(/value-c/);
+      await expect(hum).toHaveClass(/value-c/);
+      await expect(pres).toHaveClass(/value-c/);
+      await expect(temp.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-defaulted/);
+      await expect(hum.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-defaulted/);
+      await expect(pres.evaluate((el: Element) => el.closest('.ui-field')?.className)).resolves.toMatch(/ui-field-defaulted/);
     });
 
     test('a project\'s stored humidity survives a reload — not reset to the Options default on mount', async ({ appPage: page }) => {
@@ -228,7 +228,7 @@ test.describe('Original Advanced tab', () => {
       // Out-of-range entry is data, not an error to clamp: 153 % stays readable and raises the DQ flag.
       await fillAndBlur(hum, '153');
       await expect(hum).toHaveValue(/153/);
-      await expect(page.locator('.adv-air-fields .field', { hasText: 'Relative humidity' })).toHaveClass(/dq-flag/);
+      await expect(hum).toHaveClass(/dq-flag/);
     });
 
     test('moves density with pressure while sound velocity stays flat', async ({ appPage: page }) => {

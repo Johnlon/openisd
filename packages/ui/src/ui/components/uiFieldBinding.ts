@@ -1,4 +1,4 @@
-import type {Clearable, Entered, Precise, Readable, SimpleField, Writable} from '@openisd/design';
+import type {Clearable, Entered, Precise, ProvenanceLetter, Readable, SimpleField, Writable} from '@openisd/design';
 import type {NumberField, WinisdDeviation} from '@openisd/design/fields';
 
 /** A number a person can enter, clear and state the precision of: an emptied box clears it. */
@@ -38,4 +38,10 @@ export interface UIFieldCommon {
   deviation?: WinisdDeviation;
   /** Custom DQ flags to display for fixed fields or readouts. */
   dq?: readonly string[];
+  /** Whether the flagged value was entered ('E', the cause) or calculated ('C', a symptom), for `dq`. */
+  dqState?: ProvenanceLetter;
+  /** Accepts any finite number: the data-quality flag, not the box, says it is out of range. */
+  allowOutOfRange?: boolean;
+  /** A value that is a default, not entered (true: blue); false: entered (green). Unset: no provenance. */
+  defaulted?: boolean;
 }

@@ -8,9 +8,7 @@
 import {NumberField, TextField, WinisdDeviation} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
 import UIField from '../../components/UIField.vue';
-import NumInput from '../../components/NumInput.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
 import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js';
@@ -63,17 +61,7 @@ const {
 
     <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.area_m2.value" readonly plain />
     <UIFixedField class="mob-ui-field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" readonly plain />
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Port velocity limit</span>
-        <span class="mob-field-value" :title="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.description">
-          <NumInput id="mob-vent-velocity-limit" :model-value="project.portVelocityLimit_m_per_s.value"
-                    @update:model-value="(v: number | null) => { if (v != null) project.portVelocityLimit_m_per_s.set(v); }"
-                    :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :precision="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-class="mob-unit" />
-    </div>
+    <UIFixedField class="mob-ui-field" input-id="mob-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :defaulted="false" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" />
     <p v-if="fbUnreachable" class="mob-hint mob-hint-warn">{{ fbUnreachableMsg }}</p>
   </div>
 

@@ -86,7 +86,7 @@ test.describe('Unit toggle', () => {
     await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
     const tempField = page.locator('.tab-section.active .field', { hasText: 'Temperature' });
     const temp = tempField.locator('input');
-    const unit = tempField.locator('.unit-cyc');
+    const unit = tempField.locator('.ui-field-unit');
     const sv = page.locator('.tab-section.active .field', { hasText: 'Sound velocity' }).locator('input');
 
     await expect(unit).toHaveText('K');

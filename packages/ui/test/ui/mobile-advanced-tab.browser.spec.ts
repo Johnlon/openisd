@@ -8,10 +8,10 @@
  * Project: a settings-style destination, not a primary content tab.
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
-import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 
 function fieldRow(page: import('@playwright/test').Page, label: string) {
-  return page.locator('.mob-field-row', { has: page.locator('.mob-field-label', { hasText: label }) });
+  return mobileFieldRow(page, label);
 }
 
 test.beforeEach(async ({ page }) => {

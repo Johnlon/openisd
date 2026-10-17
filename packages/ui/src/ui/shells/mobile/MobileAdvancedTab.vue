@@ -6,8 +6,7 @@
 // is reused unchanged — already presentation-only with its own hook.
 import {CompatSwitchGroup, NumberField, ToggleField} from '@openisd/design/fields';
 import {inputChecked} from '../../../logic/domEvents.js';
-import NumInput from '../../components/NumInput.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
+import UISettlingField from '../../components/UISettlingField.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
@@ -27,24 +26,9 @@ const {
 <template>
   <div class="mob-panel">
     <div class="mob-panel-head">Environment</div>
-    <div class="mob-field-row" :class="[envTempStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')">
-      <div class="mob-field-main"><span class="mob-field-label">Temperature</span>
-        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.ADV_TEMP_K" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row" :class="[envHumidityStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')">
-      <div class="mob-field-main"><span class="mob-field-label">Relative humidity</span>
-        <span class="mob-field-value"><NumInput v-model="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" stepper /></span>
-      </div>
-      <span class="mob-unit">{{ NumberField.ADV_HUMIDITY_PCT.unitLabel() }}</span>
-    </div>
-    <div class="mob-field-row" :class="[envPressureStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')">
-      <div class="mob-field-main"><span class="mob-field-label">Air pressure</span>
-        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-class="mob-unit" />
-    </div>
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
     <div class="mob-field-row mob-field-calculated">
       <div class="mob-field-main"><span class="mob-field-label">Sound velocity</span>
         <span class="mob-field-value mob-readonly">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.fixed(advAir.c) }} {{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.unitLabel() }}</span>

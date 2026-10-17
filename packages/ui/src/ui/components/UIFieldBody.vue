@@ -34,6 +34,9 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   label: undefined,
   deviation: undefined,
   dq: undefined,
+  dqState: undefined,
+  allowOutOfRange: false,
+  defaulted: undefined,
 });
 
 const scope = useCellScope();
@@ -47,10 +50,12 @@ const view = computed(() => {
   switch (binding.kind) {
     case 'fixed':
     case 'settling': {
-      const hasDq = props.dq && props.dq.length > 0;
+      const dq = props.dq ?? [];
+      const hasDq = dq.length > 0;
       return {
-        value: binding.cell.value, precision: null, provenanceClass: CellClass.Entered, mandatory: false, reason: hasDq ? props.dq!.join('; ') : '',
-        dqClasses: {'dq-flag': hasDq || false, 'dq-root': false, 'dq-symptom': false},
+        value: binding.cell.value, precision: null, provenanceClass: props.defaulted === true ? CellClass.Calculated : CellClass.Entered, mandatory: false,
+        reason: hasDq ? dqReason({dq, dqState: props.dqState ?? 'N'}) : '',
+        dqClasses: {'dq-flag': hasDq, 'dq-root': hasDq && props.dqState === 'E', 'dq-symptom': hasDq && props.dqState === 'C'},
       };
     }
     case 'clearable': {
@@ -100,13 +105,13 @@ function write(v: number | null, precision?: number): void {
 </script>
 
 <template>
-  <div :class="['ui-field', {'ui-field-readout': readonly}]">
+  <div :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false}]">
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
     <span class="ui-field-value">
       <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">
         <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses, {'mob-readonly': plain}]" :value="view.value" :field="field" :as-input="!plain" />
         <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-          :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :blank-refused="binding.kind === 'fixed'" hide-mark
+          :half-width="view.precision" :mandatory="view.mandatory" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :blank-refused="binding.kind === 'fixed'" hide-mark
           @update:model-value="write" @refusal="text => refusal = text" />
       </slot>
     </span>

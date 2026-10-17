@@ -1,0 +1,29 @@
+id: T357
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: UIField step F+D: port velocity limit and air environment fields on the field rows, with allow-out-of-range
+done_test: bash scripts/test.sh packages/ui/test/architecture/project-cell-fields-use-uifield.test.ts
+files:
+  - tasks/T357.yml
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/UIField.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/architecture/project-cell-fields-use-uifield.test.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/unit-toggle.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+visual:
+  - desktop-tab-advanced
+  - mobile-tab-enclosure

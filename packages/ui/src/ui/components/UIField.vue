@@ -5,6 +5,7 @@ import type {ClearableUICell, UIFieldCommon} from './uiFieldBinding.js';
 
 withDefaults(defineProps<UIFieldCommon & {cell: ClearableUICell}>(), {
   stepper: true,
+  defaulted: undefined,
 });
 </script>
 

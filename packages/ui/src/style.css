@@ -205,7 +205,8 @@ a { color:var(--acc) }
   flex: 1 1 auto; width: auto; min-width: 0; min-height: var(--mob-input-h);
   font-size: 18px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff;
 }
-.mob-ui-field.ui-field.ui-field-readout { border-left-color: var(--acc); }
+.mob-ui-field.ui-field.ui-field-readout, .mob-ui-field.ui-field.ui-field-defaulted { border-left-color: var(--acc); }
+.mob-ui-field.ui-field.ui-field-stored { border-left-color: var(--good); }
 .mob-ui-field.ui-field .ui-field-value > .mob-readonly { font-size: 18px; font-variant-numeric: tabular-nums; color: var(--acc); }
 .mob-ui-field.ui-field .num-stepper-btn,
 .mob-what-if-rows .num-stepper-btn {

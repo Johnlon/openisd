@@ -183,7 +183,7 @@ test.describe('NumInput', () => {
     const rh = page.locator('.tab-section.active .field', { hasText: 'Relative humidity' }).locator('input');
     await rh.fill('-20');
     await expect(rh).toHaveClass(/dq-flag/);           // flagged, not clamped
-    await expect(rh).toHaveAttribute('title', /outside the sane range/);
+    await expect(page.locator('.tab-section.active .ui-field', { hasText: 'Relative humidity' }).locator('.ui-field-dq-btn')).toHaveAttribute('title', /outside the sane range/);
     await rh.fill('250');
     await expect(rh).toHaveClass(/dq-flag/);           // ceiling too, not just the floor
     // 3. What-if panel (NumInput since T222): Fs typed negative is refused and red-flagged, as in every field.

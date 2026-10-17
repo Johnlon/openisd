@@ -691,9 +691,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <section class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
             <div class="adv-air-fields" style="--label-w:108px;">
-              <div class="field-row"><div :class="['field', 'adv-air-field', envTempStored ? 'entered' : '', { 'dq-flag': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')"><label>Temperature</label><NumInput v-model="advTemp" :class="{ calculated: !envTempStored }" :field="NumberField.ADV_TEMP_K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" /><UnitToggle :field="NumberField.ADV_TEMP_K" unit-class="unit unit-cyc" /></div></div>
-              <div class="field-row"><div :class="['field', 'adv-air-field', envHumidityStored ? 'entered' : '', { 'dq-flag': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')"><label>Relative humidity</label><NumInput v-model="advHumidity" :class="{ calculated: !envHumidityStored }" :field="NumberField.ADV_HUMIDITY_PCT" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" /><span class="unit">{{ NumberField.ADV_HUMIDITY_PCT.unitLabel() }}</span></div></div>
-              <div class="field-row"><div :class="['field', 'adv-air-field', envPressureStored ? 'entered' : '', { 'dq-flag': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')"><label>Air pressure</label><NumInput v-model="advPressure" :class="{ calculated: !envPressureStored }" :field="NumberField.ADV_PRESSURE_KPA" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" /><UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-class="unit unit-cyc" /></div></div>
+              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
+              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range /></div>
+              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
               <div class="field-row"><div class="field"><label>Sound velocity</label><input class="calculated greyed" :value="fmt(advAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly><span class="unit">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.unitLabel() }}</span></div></div>
               <div class="field-row"><div class="field"><label>Air density</label><input class="calculated greyed" :value="NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho)" readonly><span class="unit">{{ NumberField.ADV_AIRDENSITY_KG_PER_M3.unitLabel() }}</span></div></div>
               <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
@@ -1376,6 +1376,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
 .adv-air-fields .field .unit { min-width:auto; }
+.adv-air-fields .field.ui-field { grid-template-columns:108px max-content max-content auto; column-gap:2px; }
+.adv-air-fields .field.ui-field :deep(.ui-field-unit), .adv-air-fields .field.ui-field :deep(.ui-field-dq) { width:auto; }
+.adv-air-fields .field.ui-field :deep(.ui-field-value) { width:auto; }
+.adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
 .adv-air-fields .field-row { margin-bottom: 4px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
 .adv-air-fields .field-row:nth-child(4),
@@ -1389,7 +1393,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
 .field :deep(input.calculated.impossible) { color:#a11; border-color:#a11; }
-.field.entered :deep(input), .field.entered input { color:#1b7d1b; border-color:#1b7d1b; }
+.field.entered :deep(input), .field.entered input, .field.ui-field-stored :deep(input) { color:#1b7d1b; border-color:#1b7d1b; }
+.field.ui-field-defaulted :deep(input) { color:#1868d1; border-color:#1868d1; }
 /* DQ — the generic "flagged field" rule: redline every field whose cell carries a data-quality
    flag. The entered one (the cause) gets the attention ring; the calculated ones (the symptom)
    are redlined too but stay calmer. Overrides the entered/calculated green/blue borders. */
