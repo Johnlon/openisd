@@ -1,0 +1,23 @@
+id: T352
+release_note: 'On the phone, the Tune sheet has a Reset button that puts every Tune value back to what it was when the sheet opened.'
+repo: openisd
+owner: sonnet
+status: abandoned
+abandoned_by: fable
+abandoned_on: 2026-10-17
+abandoned_why: John, 17 Oct 2026: no Reset on Tune (no need to undo changes); Close keeps the edits
+abandoned_tip: 278154ac7145ff9a7156b5fd5cb5d4d8829210e4
+goal: Phone Tune sheet has a Reset button, like What-if: it puts every Tune field back to the value it had when the sheet was opened, and says so (John, 17 Oct 2026).
+done_test: bash scripts/test.sh packages/design/test/domain/project-tune-snapshot.test.ts
+files:
+  - tasks/T352.yml
+  - packages/design/domain/index.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/tuneSnapshot.ts
+  - packages/design/fields/sheetMode.ts
+  - packages/design/test/domain/project-tune-snapshot.test.ts
+  - packages/design/test/fields/sheetMode.test.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/hooks/sheetSession.ts
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts

@@ -1,0 +1,10 @@
+id: T353
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Record that T352 is abandoned: John, 17 Oct 2026: no Reset on Tune (no need to undo changes); Close keeps the edits
+done_test: grep -qx 'status: abandoned' tasks/T352.yml
+files:
+  - tasks/T353.yml
+  - tasks/T352.yml

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 760a3bd9f0ecf5a6084f0f3435421ae3c3afe155
 goal: The visual pictures never hold the fading Project imported message, and chart text uses a named font stack; visual desktop-tab-box stops flaking
 done_test: bash scripts/test.sh packages/design/test/chart/chart-layout.test.ts
 files:
