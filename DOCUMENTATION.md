@@ -16,7 +16,8 @@
 | [RELEASES.md](RELEASES.md)                                         | Every release: stamp, date, commit, links, notes                                 |
 | [RELEASING.md](RELEASING.md)                                       | How a snapshot build, a release and a rollback happen                            |
 
-`questions.yml` is the decision ledger.
+The decision ledger is the one inbox, `/home/john/work/winisd/questions.yml` (openisd's items are the QO ones),
+outside every repo (John, 17 Oct 2026). `inbox.py` reads and writes it.
 
 ## Specifications
 
