@@ -1,0 +1,14 @@
+id: T343
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: No archive refs (John, 17 Oct 2026): housekeeping and abandon.sh delete landed, superseded and abandoned branches outright, and log branch, tip and reason
+done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
+files:
+  - tasks/T343.yml
+  - scripts/land/tidy-branches.sh
+  - scripts/abandon.sh
+  - scripts/land/test/tidy-branches.e2e.test.sh
+  - docs/DEV_PROCESS.md
+  - bugs/BUG_20261017_dead-branches-and-worktrees-pile-up.md

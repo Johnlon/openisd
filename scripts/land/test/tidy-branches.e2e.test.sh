@@ -95,7 +95,7 @@ tidy
 [ -f "$M-t21/notes.txt" ] && grep -q "kept $M-t21: not a worktree, but holds notes.txt" "$TIDY_LOG" && ok "a leftover folder with a file of its own is kept" || fail "t21 removed"
 [ -e "$M-t22/.git" ] && ok "a folder with git data is kept" || fail "t22 removed"
 
-# 3. abandon.sh: records the decision on main, keeps the commits, removes worktree and branch, local and on origin
+# 3. abandon.sh: records the decision on main, deletes worktree and branch, local and on origin, archives nothing
 setup
 printf 'id: T130\nowner: maryu\nstatus: open\ngoal: phone tab rows\ndone_test: true\nfiles:\n  - tasks/T130.yml\n' > "$M/tasks/T130.yml"
 gm add -A; gm commit -qm "T130 task"; gm push -q origin main
@@ -103,11 +103,12 @@ wt 130 ahead; tip=$(git -C "$M-t130" rev-parse HEAD); git -C "$M-t130" push -q o
 ( cd "$M" && bash scripts/abandon.sh T130 --by John "John stopped the phone tab rows" ) > "$SCRATCH/ab.out" 2>&1; r=$?
 rec=$(git -C "$SCRATCH/origin.git" show main:tasks/T130.yml 2> /dev/null)
 if [ $r = 0 ] && grep -qx 'status: abandoned' <<< "$rec" && grep -qx 'abandoned_by: John' <<< "$rec" \
-   && grep -qx "archived: $tip" <<< "$rec" && grep -qx 'abandoned_why: John stopped the phone tab rows' <<< "$rec"; then
-  ok "the decision lands in tasks/T130.yml: status, who, why, the archived commit"
+   && grep -qx "abandoned_tip: $tip" <<< "$rec" && grep -qx 'abandoned_why: John stopped the phone tab rows' <<< "$rec"; then
+  ok "the decision lands in tasks/T130.yml: status, who, why, the abandoned tip"
 else fail "decision (r=$r): $(tail -4 "$SCRATCH/ab.out") RECORD: $rec"; fi
-[ "$(gm rev-parse -q --verify refs/archive/T130)" = "$tip" ] && [ "$(git -C "$SCRATCH/origin.git" rev-parse -q --verify refs/archive/T130)" = "$tip" ] \
-  && ok "the commits are kept as refs/archive/T130, here and on origin" || fail "archive ref missing"
+[ -z "$(gm for-each-ref refs/archive)" ] && [ -z "$(git -C "$SCRATCH/origin.git" for-each-ref refs/archive)" ] \
+  && ok "nothing is archived, here or on origin" || fail "archive refs made"
+grep -q "deleted branch t130 (${tip:0:10}): abandoned" "$TIDY_LOG" && ok "the log names the deleted branch, its tip and why" || fail "log: $(grep t130 "$TIDY_LOG")"
 [ ! -d "$M-t130" ] && ! has_branch t130 && ! has_remote t130 && ok "its worktree and branch are removed, local and on origin" || fail "t130 kept: $(tail -3 "$SCRATCH/ab.out")"
 [ -z "$(gm worktree list | grep -v "^$M ")" ] && [ -z "$(gm for-each-ref 'refs/heads/t[0-9]*')" ] \
   && ok "the recording task's own worktree and branch are removed too" || fail "leftovers: $(gm worktree list; gm branch)"
@@ -122,7 +123,7 @@ wt 140 ahead; echo wip > "$M-t140/unsaved.txt"
 [ $r = 4 ] && [ -f "$M-t140/unsaved.txt" ] && grep -q "uncommitted work" "$SCRATCH/ab.out" && ok "uncommitted work keeps the worktree; abandon says so (exit 4)" || fail "dirty abandon (r=$r): $(tail -3 "$SCRATCH/ab.out")"
 tidy; grep -q "^held: abandoned task T140's worktree" "$SCRATCH/out" && ok "housekeeping reports it as held" || fail "no held line: $(cat "$SCRATCH/out")"
 git -C "$M-t140" add -A; git -C "$M-t140" commit -qm "late work"; tidy
-[ -d "$M-t140" ] && has_branch t140 && ok "work committed after the archive is not lost: worktree and branch kept" || fail "late work removed"
+[ -d "$M-t140" ] && has_branch t140 && ok "work committed after the decision is not lost: worktree and branch kept" || fail "late work removed"
 
 # 4b. abandon.sh on a task whose task file never reached main: read from its branch, recorded on main
 setup

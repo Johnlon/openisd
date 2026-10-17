@@ -5,11 +5,11 @@
 #   - a worktree beside the main folder (<workspace>/<repo>-*) goes when it is clean (no modified or untracked
 #     file), no running program has its folder inside it, and its HEAD is on origin/main (by commit or by
 #     content, as for branches below), or its task is
-#     abandoned and HEAD is in the task's archived commits. A claim (.task) left in it is logged as stale.
+#     abandoned and HEAD is the commit its abandon decision names. A claim (.task) left in it is logged as stale.
 #     The main folder and the synced copies (git config openisd.mainFolder / openisd.syncedCopy) are never touched;
 #   - a task branch (t<n>), local or on origin, goes when it is checked out nowhere and every commit on it is on
 #     origin/main, or its content is (merging it changes nothing but its own task file, once main says the task
-#     is done: land.sh squashes), or it is in its abandoned task's archive (refs/archive/T<n>). A land/<task> candidate branch on origin
+#     is done: land.sh squashes), or its tip is the commit its task's abandon decision names. A land/<task> candidate branch on origin
 #     goes when it is on origin/main;
 #   - a folder <workspace>/<repo>-* that is not a worktree and has no git data goes when it holds only generated
 #     folders (node_modules, build, test-results, playwright-report, dist, .vite).
@@ -18,7 +18,9 @@
 #
 #   bash scripts/land/tidy-branches.sh [--only T<n>] [<any checkout of the repo>]
 #
-# An abandoned task is one whose tasks/T<n>.yml on origin/main says `status: abandoned` and `archived: <sha>`
+# Nothing is archived (John, 17 Oct 2026: no archive refs): a deleted branch's only record is its log line, with its
+# tip sha and the reason. An abandoned task is one whose tasks/T<n>.yml on origin/main says `status: abandoned` and
+# `abandoned_tip: <sha>`
 # (written by scripts/abandon.sh). Env: TIDY_LOG (default <main>/build/test-logs/tidy-branches.log), WORKSPACE
 # (default the main folder's parent). Exit 0, or 1 when git could not be read.
 set -uo pipefail
@@ -40,13 +42,13 @@ flock -n 8 || { echo "tidy-branches: another run is tidying"; exit 0; }
 timeout 120 git -C "$main" fetch -q --prune origin || { log "cannot fetch origin; nothing removed"; exit 1; }
 g rev-parse -q --verify origin/main > /dev/null || { log "no origin/main; nothing removed"; exit 1; }
 
-# archived <branch>: the archived sha of the abandoned task this task branch (t<n>) belongs to, or nothing.
-archived() {
+# abandoned_tip <branch>: the tip the abandon decision of this task branch's (t<n>) task names, or nothing.
+abandoned_tip() {
   local id f
   case "$1" in t[0-9]*) id="T${1#t}" ;; *) return 0 ;; esac
   f="$(g show "origin/main:tasks/$id.yml" 2> /dev/null)" || return 0
   grep -qx 'status: abandoned' <<< "$f" || return 0
-  sed -n 's/^archived: *//p' <<< "$f" | head -n 1
+  sed -n 's/^abandoned_tip: *//p' <<< "$f" | head -n 1
 }
 # in_content <commit> <branch>: merging the commit into origin/main changes nothing. land.sh squashes, so a landed
 # task's branch shas are never on main; this finds it by content. The task's own tasks/T<n>.yml may differ (or
@@ -62,14 +64,14 @@ in_content() {
   [ -z "$(grep -vxF "tasks/$id.yml" <<< "$conflicts")" ] || return 1
   g diff --quiet "$main_tree" "$tree" -- . ":(exclude)tasks/$id.yml"
 }
-# safe <commit> <branch>: every commit is on origin/main, its content is, or it is in the abandoned task's archive.
+# safe <commit> <branch>: every commit is on origin/main, its content is, or it is the tip its task's abandon decision
+# names (work committed after the decision is never deleted).
 safe() {
   local arch
   g merge-base --is-ancestor "$1" origin/main 2> /dev/null && return 0
   in_content "$1" "$2" && return 0
-  arch="$(archived "$2")"
-  [ -n "$arch" ] && [ "$(g rev-parse -q --verify "refs/archive/T${2#t}")" = "$(g rev-parse -q --verify "$arch")" ] \
-    && g merge-base --is-ancestor "$1" "$arch" 2> /dev/null
+  arch="$(abandoned_tip "$2")"
+  [ -n "$arch" ] && [ "$(g rev-parse -q --verify "$1^{commit}")" = "$(g rev-parse -q --verify "$arch^{commit}")" ]
 }
 wanted() { [ -z "$only" ] || [ "$1" = "t${only#T}" ]; }
 in_use() { # in_use <dir>: a running program's current folder is inside it
@@ -94,14 +96,14 @@ tidy_worktree() { # tidy_worktree <path> <branch or empty>
   safe "$head" "$br" || return 0
   if [ -n "$(git -C "$wt" status --porcelain --untracked-files=all 2> /dev/null)" ]; then
     log "kept $wt: uncommitted work"
-    [ -n "$(archived "$br")" ] && echo "held: abandoned task ${br/t/T}'s worktree $wt has uncommitted work; commit it, then it is removed"
+    [ -n "$(abandoned_tip "$br")" ] && echo "held: abandoned task ${br/t/T}'s worktree $wt has uncommitted work; commit it, then it is removed"
     return 0
   fi
   in_use "$wt" && { log "kept $wt: a running program is inside it"; return 0; }
   claim="$(cat "$wt/.task" 2> /dev/null)"
   if g worktree remove "$wt" 2> /dev/null; then
     unset 'wt_paths[$wt]'
-    log "removed worktree $wt${br:+ (branch $br)}: $( [ -n "$(archived "$br")" ] && echo abandoned || echo landed ), clean, unused${claim:+; its claim on $claim was stale}"
+    log "removed worktree $wt${br:+ (branch $br)} at ${head:0:10}: $( [ -n "$(abandoned_tip "$br")" ] && echo abandoned || echo landed ), clean, unused${claim:+; its claim on $claim was stale}"
   else
     log "kept $wt: git worktree remove refused"
   fi
@@ -122,13 +124,15 @@ while read -r br; do
   wanted "$br" || continue
   grep -qxF -- "$br" <<< "$checked_out" && continue
   safe "refs/heads/$br" "$br" || continue
-  g branch -q -D "$br" && log "deleted branch $br: $( [ -n "$(archived "$br")" ] && echo "abandoned, kept as refs/archive/T${br#t}" || echo "on origin/main" )"
+  tip="$(g rev-parse --short=10 "refs/heads/$br")"
+  g branch -q -D "$br" && log "deleted branch $br ($tip): $( [ -n "$(abandoned_tip "$br")" ] && echo "abandoned (tasks/T${br#t}.yml)" || echo "on origin/main" )"
 done < <(g for-each-ref --format='%(refname:short)' 'refs/heads/t[0-9]*')
 while read -r rb; do
   br="${rb#origin/}"
   case "$br" in t[0-9]*) wanted "$br" || continue ;; land/*) [ -z "$only" ] || continue ;; *) continue ;; esac
   safe "refs/remotes/$rb" "$br" || continue
-  g push -q origin --delete "$br" 2> /dev/null && log "deleted origin branch $br: $( [ -n "$(archived "$br")" ] && echo abandoned || echo "on origin/main" )" \
+  tip="$(g rev-parse --short=10 "refs/remotes/$rb")"
+  g push -q origin --delete "$br" 2> /dev/null && log "deleted origin branch $br ($tip): $( [ -n "$(abandoned_tip "$br")" ] && echo abandoned || echo "on origin/main" )" \
     || log "kept origin branch $br: the push refused"
 done < <(g for-each-ref --format='%(refname:short)' 'refs/remotes/origin/t[0-9]*' 'refs/remotes/origin/land/*')
 

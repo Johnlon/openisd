@@ -4,11 +4,11 @@
 #
 #   bash scripts/abandon.sh T<n> --by <who decided> "<why>"
 #
-#   1. The task branch's last commit is kept as refs/archive/T<n>, here and on origin: nothing committed is lost.
-#   2. A task of its own (scripts/new-task.sh) writes into tasks/T<n>.yml: status abandoned, abandoned_by,
-#      abandoned_on, abandoned_why, archived (that commit), and lands it with land.sh. The decision is on record.
-#   3. scripts/land/tidy-branches.sh --only T<n> removes the task's worktree and branch, local and on origin. A
-#      worktree with uncommitted work is kept, and said so; the watchdog removes it once that work is committed.
+#   1. A task of its own (scripts/new-task.sh) writes into tasks/T<n>.yml: status abandoned, abandoned_by,
+#      abandoned_on, abandoned_why, abandoned_tip (the branch's last commit), and lands it with land.sh.
+#   2. scripts/land/tidy-branches.sh --only T<n> deletes the task's worktree and branch, local and on origin, with
+#      a log line naming the tip. Nothing is archived (John, 17 Oct 2026). A worktree with uncommitted work is kept,
+#      and said so; a branch with commits after abandoned_tip is kept.
 # Exit 0 done; 1 refused (unknown task, already done or abandoned, landing refused); 4 recorded but something kept.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -30,21 +30,16 @@ task="$(g show "origin/main:tasks/$ID.yml" 2> /dev/null || g show "refs/heads/$b
 status="$(sed -n 's/^status: *//p' <<< "$task" | head -n 1)"
 case "$status" in done|abandoned) echo "abandon: $ID is already $status" >&2; exit 1 ;; esac
 
-# 1. keep the commits
+# the branch's last commit, which the decision names
 tip="$(g rev-parse -q --verify "refs/heads/$branch" || g rev-parse -q --verify "refs/remotes/origin/$branch")"
-if [ -n "$tip" ]; then
-  g update-ref "refs/archive/$ID" "$tip" && g push -q origin "refs/archive/$ID:refs/archive/$ID" \
-    || { echo "abandon: could not keep $tip as refs/archive/$ID" >&2; exit 1; }
-  echo "abandon: $branch's commits kept as refs/archive/$ID (${tip:0:10})"
-fi
 
-# 2. record and land the decision
+# 1. record and land the decision
 out="$(cd "$main" && bash scripts/new-task.sh "$BY" "Record that $ID is abandoned: $WHY")" || { echo "abandon: new-task.sh failed" >&2; exit 1; }
 rec="$(cut -d' ' -f1 <<< "$out")"; wt="$(cut -d' ' -f2- <<< "$out")"
 f="$wt/tasks/$ID.yml"
 printf '%s\n' "$task" > "$f"
-sed -i '/^status:/d; /^abandoned_by:/d; /^abandoned_on:/d; /^abandoned_why:/d; /^archived:/d' "$f"
-sed -i "/^owner:/a status: abandoned\nabandoned_by: $BY\nabandoned_on: $(date -u +%Y-%m-%d)\nabandoned_why: $WHY\narchived: ${tip:-none}" "$f"
+sed -i '/^status:/d; /^abandoned_by:/d; /^abandoned_on:/d; /^abandoned_why:/d; /^abandoned_tip:/d; /^archived:/d' "$f"
+sed -i "/^owner:/a status: abandoned\nabandoned_by: $BY\nabandoned_on: $(date -u +%Y-%m-%d)\nabandoned_why: $WHY\nabandoned_tip: ${tip:-none}" "$f"
 sed -i "s|^  - tasks/$rec.yml\$|&\n  - tasks/$ID.yml|" "$wt/tasks/$rec.yml"
 sed -i "s|^done_test: .*|done_test: grep -qx 'status: abandoned' tasks/$ID.yml|" "$wt/tasks/$rec.yml"
 git -C "$wt" add "tasks/$ID.yml" "tasks/$rec.yml" && git -C "$wt" commit -q -m "$rec: $ID is abandoned ($BY): $WHY" \
@@ -53,7 +48,7 @@ git -C "$wt" add "tasks/$ID.yml" "tasks/$rec.yml" && git -C "$wt" commit -q -m "
 # land.sh exit 4: landed, but the main folder is held; the decision is on main all the same.
 [ "$landed" = 0 ] || [ "$landed" = 4 ] || { echo "abandon: landing $rec refused; the decision is not on main (see above)" >&2; exit 1; }
 
-# 3. remove the abandoned task's worktree and branch, then the recording task's own
+# 2. remove the abandoned task's worktree and branch, then the recording task's own
 held="$(bash "$HERE/land/tidy-branches.sh" --only "$ID" "$main" | sed -n 's/^held: //p')"
 bash "$HERE/land/tidy-branches.sh" --only "$rec" "$main" > /dev/null
 if [ -n "$held" ]; then echo "abandon: $ID recorded, but kept: $held" >&2; exit 4; fi
