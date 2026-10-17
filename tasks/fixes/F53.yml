@@ -1,6 +1,6 @@
 id: F53
 owner: Johnlon
-status: open
+status: done
 sha: d9127210cacb1ba203f379733d533bbf5d3ea1b6
 tested: d9127210cacb1ba203f379733d533bbf5d3ea1b6
 last_green: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6
@@ -126,3 +126,5 @@ also_red:
       browser (2):   ✘  23 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit (22.0s)
       browser (2):         43 × locator resolved to <span role="note" data-v-2d74d8ab="" class="ui-field-note">Conflicts with other values: equivalent volume (V…</span>
       browser (10):   ✘  70 packages/ui/test/ui/original-signal-tab.browser.spec.ts:121:5 › Original Signal tab › power and voltage pair › clearing V returns the pair to the 1 W reference — neither end is left blank (413ms)
+closed_note: |
+  Closed by post-land: the full suite is green at 6b70e04448652ce142c61c802d2010f00784f0d5, which holds every red commit listed here.
