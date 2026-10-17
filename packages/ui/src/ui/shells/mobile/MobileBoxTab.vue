@@ -4,6 +4,7 @@
 // calls the SAME field-wiring factories src/hooks/boxFields.ts exports.
 import {NumberField, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
+import {useEscToClose} from '../../../logic/useEscToClose.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
 import UIField from '../../components/UIField.vue';
@@ -27,6 +28,9 @@ const {
   lossesOpen, openLossGroups, resetBoxLosses,
 } = useMobileBoxTab();
 const { readoutWithUnit } = useUnitReadouts();
+useEscToClose(() => sealedAlignmentOpen.value, () => sealedAlignmentEditor.cancel());
+useEscToClose(() => ventedAlignmentOpen.value, () => ventedAlignmentEditor.cancel());
+useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; });
 </script>
 
 <template>

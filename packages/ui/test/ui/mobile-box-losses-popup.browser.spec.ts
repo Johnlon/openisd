@@ -32,6 +32,13 @@ test.describe('MobileBoxLossesPopup', () => {
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
   });
 
+  test('Escape closes the sheet', async ({ appPage: page }) => {
+    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+    await expect(page.locator('.mob-align-sheet')).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+  });
+
   test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ appPage: page }) => {
     await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
     const q = (label: string) => page.locator('.mob-ui-field', { hasText: label }).locator('input');

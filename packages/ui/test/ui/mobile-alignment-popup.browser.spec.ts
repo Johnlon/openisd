@@ -70,4 +70,18 @@ test.describe('MobileAlignmentPopup', () => {
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
     await expect(volumeField).toHaveValue(/15/);
   });
+
+  test('Escape closes the sheet like Cancel', async ({ appPage: page }) => {
+    await page.locator('#mob-box-type').selectOption('sealed');
+    const volumeField = mobileFieldRow(page, 'Volume').locator('input').first();
+    await volumeField.fill('15');
+    await volumeField.blur();
+
+    await page.locator('.mob-btn', { hasText: 'Choose alignment' }).click();
+    await page.locator('.mob-align-sheet .mob-field-value input').fill('99');
+    await page.keyboard.press('Escape');
+
+    await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+    await expect(volumeField).toHaveValue(/15/);
+  });
 });

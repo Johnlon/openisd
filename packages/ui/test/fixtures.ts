@@ -132,16 +132,19 @@ const OVERLAY_SELECTOR = '.overlay.on, .overlay.open, .wd-overlay, .confirm-over
 async function dismissOverlays(page: Page): Promise<void> {
   let lastClickError = '';
   for (let i = 0; i < 4; i++) {
-    if (await page.locator(OVERLAY_SELECTOR).count() === 0) return;
+    const open = await page.locator(OVERLAY_SELECTOR).count();
+    if (open === 0) return;
     // The non-modal Equation Inspector card floats over the dialogs; the user closes it first.
     const card = page.locator('.eq-x').filter({ visible: true }).first();
     if (await card.count() > 0) { await card.click({ timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 600); }); continue; }
     // An open drop-down is closed by clicking outside it, as a user does.
     const scrim = page.locator('.fmt-scrim').filter({ visible: true }).first();
     if (await scrim.count() > 0) { await scrim.click({ position: { x: 1, y: 1 }, timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 600); }); continue; }
-    const close = page.locator('.overlay.on .x, .overlay.open .x, .overlay.on .close-btn, .overlay.open .close-btn, .opt-x, .wd-x, .confirm-dialog-cancel, .confirm-dialog-dismiss, .mob-sheet-close, .mob-menu-close').filter({ visible: true }).first();
+    const close = page.locator('.overlay.on .x, .overlay.open .x, .overlay.on .close-btn, .overlay.open .close-btn, .opt-x, .wd-x, .confirm-dialog-cancel, .confirm-dialog-dismiss, .mob-sheet-close, .mob-menu-close, .mob-x').filter({ visible: true }).first();
     if (await close.count() > 0) await close.click({ timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 1800); });
     else await page.keyboard.press('Escape');
+    // The next try starts once this one has closed something; the check after the loop names what stayed open.
+    await expect.poll(() => page.locator(OVERLAY_SELECTOR).count(), { timeout: 2000 }).toBeLessThan(open).catch(() => {});
   }
   const left = await page.locator(OVERLAY_SELECTOR).evaluateAll(els => els.map(el => `${el.className}: ${(el.textContent ?? '').replace(/\s+/g, ' ').slice(0, 120)}`));
   if (left.length > 0) throw new Error(`resetApp: overlays still open: ${left.join(' | ')} (last close click: ${lastClickError})`);
