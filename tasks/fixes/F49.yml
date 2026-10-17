@@ -1,6 +1,6 @@
 id: F49
 owner: Johnlon
-status: open
+status: done
 sha: 9a5062a2da42c5e7887fed240db62561ed36e94b
 tested: 9a5062a2da42c5e7887fed240db62561ed36e94b
 last_green: a78dcbb7b83285176f08d9dfbbe1559c613976c3
@@ -247,3 +247,10 @@ also_red:
         ✘  823 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-advanced (9ms)
         ✘  825 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-box (6ms)
         ✘  826 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-driver (5ms)
+closed_note: |
+  A laptop-only red. GitHub Actions ran the full suite green on both shas: 9a5062a2da (run 38991195452)
+  and 788a5c4ea3 (run 38992333880), and on every main commit since a78dcbb7. On the laptop, 9a5062a2da's
+  test server died mid-run (driver-editor specs failing in about 200 ms, 529 not run), and 788a5c4ea3's
+  run was killed by a signal while it waited for the browser lock. Both laptop faults are open bugs owned
+  by maryu: BUG_20261017_laptop-suite-server-dies-mid-run and BUG_20261017_post-land-killed-by-worktree-removal.
+  Closed by T266, which makes the GitHub Actions run the gate (John, 17 Oct 2026).

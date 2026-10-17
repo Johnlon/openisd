@@ -79,13 +79,19 @@ resolution (never `--ours`/`--theirs`).
 
 `scripts/land/post-land/run.sh <sha>`, one at a time (flock `POST_LAND_LOCK`):
 
-- checks the sha out as a clean copy outside every clone, runs the full suite once (unit and
-  browser), removes the copy; no rerun, so a flaky spec is a red;
+- checks the sha out as a clean copy outside every clone and runs `FULL_SUITE_CMD` there once; no
+  rerun, so a flaky spec is a red;
+- the full suite runs on GitHub Actions (John, 17 Oct 2026): every push to main starts
+  `.github/workflows/suite.yml` (unit tests in two halves, typecheck, the browser specs in 10 shards,
+  about 4 min). `FULL_SUITE_CMD` is `scripts/land/post-land/actions.sh`, which finds that run for the
+  sha (`ACTIONS_REPO`, up to `ACTIONS_FIND_S`), waits for it, and passes on its result. No run found,
+  or GitHub unreadable, is a red, never a green. `scripts/land/post-land/suite.sh` is the laptop run,
+  kept for going back (one line in `land.conf`);
 - green: records the sha as the last green and prints `post-land: green at <sha>`. A release is the
-  GitHub Pages deploy on every push to main (`deploy.yml` triggers on main); post-land is the local
-  full run;
-- red: pushes `tasks/fixes/F<n>.yml` (`status: open`, the sha, the failing output, and every commit
-  since the last green) to main. `land.sh` then refuses every landing except one labelled `fixes`.
+  GitHub Pages deploy on every push to main (`deploy.yml` triggers on main);
+- red: pushes `tasks/fixes/F<n>.yml` (`status: open`, the sha, the failing specs from the run's failed
+  jobs, the failing screens' before/after page, the run link, and every commit since the last green)
+  to main. `land.sh` then refuses every landing except one labelled `fixes`.
 
 ## Hooks
 

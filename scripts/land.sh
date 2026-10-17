@@ -22,7 +22,8 @@
 #      unit test the change reaches, within UNIT_DEADLINE_S), done_test (never a browser spec),
 #      attribution (each new commit's message on stdin), each within GATE_DEADLINE_S
 #   6. push to origin main, then start the post-land full run on the pushed commit, detached
-#      (scripts/land/post-land/run.sh; only when land.conf sets FULL_SUITE_CMD)
+#      (scripts/land/post-land/run.sh; only when land.conf sets FULL_SUITE_CMD). The suite itself runs on
+#      GitHub Actions; post-land waits for it (scripts/land/post-land/actions.sh)
 #
 # land.conf (next to this file, else at the repo root) sets LINT_CMD, optionally LINT_REQUIRES (paths
 # that must exist before lint runs), TYPECHECK_CMD, ATTRIBUTION_CMD, GATE_DEADLINE_S, LAND_LOCK.
