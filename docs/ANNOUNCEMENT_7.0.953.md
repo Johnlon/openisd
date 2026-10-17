@@ -23,8 +23,8 @@ with finger-sized rows and buttons and a Reset in Tune. A Save button lights up 
 when there are unsaved changes. The bottom bar stays put when the browser hides its address bar,
 in Firefox and DuckDuckGo too. Dragging a chart axis stretches the chart, not the page.
 
-**More boxes.** 6th-order bandpass and ABC enclosures, with rear and front chambers and tunings,
-from the New Project wizard through every chart, saved and reloaded exactly.
+**All WinISD boxes supported.** Sealed, vented, 4th-order and 6th-order bandpass, ABC and
+passive radiator, from the New Project wizard through every chart, saved and reloaded exactly.
 
 **Charts.** The transfer function readout shows F3 and F10, and the popup jumps the cursor to
 either. The active project draws thicker. The legend names each project. The 180 degree phase
