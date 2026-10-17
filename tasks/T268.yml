@@ -1,0 +1,18 @@
+id: T268
+release_note: Export all projects now shows a popup saying how many projects were exported and to which file.
+repo: openisd
+owner: fable
+status: done
+goal: Export all (both skins) ends with an OK popup saying what was exported; general rule 4, every button shows a visible result
+done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
+files:
+  - tasks/T268.yml
+  - bugs/BUG_20261017_export-all-is-silent.md
+  - packages/design/fields/projectRows.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/projectRows.test.ts
+  - packages/ui/src/logic/confirmPort.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/ui/components/ConfirmDialog.vue
+  - packages/ui/test/ui/export-all-popup.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

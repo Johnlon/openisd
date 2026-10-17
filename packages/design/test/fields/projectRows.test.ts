@@ -7,6 +7,7 @@ import {
   type ProjectRowSource,
   projectRow,
   projectRowsFooter,
+  projectsExportedText,
   projectSyncMark,
   splitConflictName,
   viewProjectRows,
@@ -122,5 +123,12 @@ describe('viewProjectRows', () => {
 
   it('formats the empty bin button label', () => {
     expect(emptyBinLabel('22 KB')).toBe('Empty Bin (22 KB)');
+  });
+});
+
+describe('projectsExportedText', () => {
+  it('says how many projects went to which file', () => {
+    expect(projectsExportedText(12, 'openisd-projects-2026-10-17.json')).toBe('Exported 12 projects to openisd-projects-2026-10-17.json.');
+    expect(projectsExportedText(1, 'a.json')).toBe('Exported 1 project to a.json.');
   });
 });

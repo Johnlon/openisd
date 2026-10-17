@@ -91,6 +91,7 @@ export {
   PROJECT_SEARCH_FROM_ROWS,
   projectRow,
   projectRowsFooter,
+  projectsExportedText,
   projectSyncMark,
   splitConflictName,
   viewProjectRows,

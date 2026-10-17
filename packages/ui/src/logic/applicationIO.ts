@@ -1,6 +1,7 @@
 
 import type { Engine } from '@openisd/design/engine';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
+import { PROJECT_LIST_TEXT, projectsExportedText } from '@openisd/design/fields';
 import {
   type DesignFiles,
   driverToWdrBytes,
@@ -166,7 +167,11 @@ export function createApplicationIO(deps: {
     
     download(fileName, buildProjectsArchive(all), 'application/json');
     recordSave('archive', null);
-    flash(`Projects exported as ${fileName}`);
+    void deps.confirmPort.ask({
+      title: PROJECT_LIST_TEXT.EXPORTED_TITLE,
+      message: projectsExportedText(all.length, fileName),
+      confirmLabel: PROJECT_LIST_TEXT.EXPORTED_OK,
+    });
   }
 
   async function handleSaveFailure(): Promise<void> {

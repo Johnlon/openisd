@@ -45,6 +45,7 @@ watch(() => props.state.current.value, (current) => {
       <p>{{ currentRequest.message }}</p>
       <div class="confirm-footer">
         <button
+          v-if="currentRequest.cancelLabel !== undefined"
           class="confirm-dialog-cancel"
           @click="props.state.answer(false)"
         >
