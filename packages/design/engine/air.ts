@@ -112,8 +112,7 @@ export type EnvironmentIssue = CalculationIssue<EnvironmentQuantityName>;
  * separately from `Air`, not bundled with it, so a caller that only wants `{ rho, c }` is not
  * forced to also destructure an issues array that is empty in the overwhelming common case.
  */
-function environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
-  const { tempK } = env;
+export function temperatureIssues(tempK: number): readonly EnvironmentIssue[] {
   if (tempK >= MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K) return [];
   return [missingDependencies('tempK', [{
     formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
@@ -131,7 +130,7 @@ export interface EnvironmentSolveResult {
  *  calling `airFor` and `environmentIssues`, which could be handed different arguments and so
  *  describe two different environments. */
 export function solveEnvironment(env: AirEnvironment): EnvironmentSolveResult {
-  return { values: airFor(env), issues: environmentIssues(env) };
+  return { values: airFor(env), issues: temperatureIssues(env.tempK) };
 }
 
 /** Molar mass of dry air, kg/mol — DPC `air.htm`: "ML = 28.965 is the molar mass for dry air". */
@@ -171,6 +170,11 @@ function winisdAir(tempK: number, humidityPct: number, pressurePa: number): AirV
   const molarMass = M_DRY_DPC + xv * (M_WATER_DPC - M_DRY_DPC);
   const c = Math.sqrt(GAMMA * R_MOLAR_DPC * tempK / molarMass);
   return { rho: GAMMA * pressurePa / (c * c), c };
+}
+
+/** The speed of sound, m/s, at three stated conditions: relation R1 of the air solver. */
+export function soundSpeedAt(tempK: number, humidityPct: number, pressurePa: number): number {
+  return winisdAir(tempK, humidityPct, pressurePa).c;
 }
 
 /** The air for an environment: c and ρ from its three conditions, all stated. */

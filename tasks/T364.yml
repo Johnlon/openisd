@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 618ee13fd4b7ae8c05afef400a7618eec1e9ff06
 goal: UIFixedField readonly takes a typed ReadoutFormat: the vented alignment dialog Volume and Tuning on the phone and the desktop, and the desktop rear-chamber Qtc, move onto it (the phone has no rear-chamber Qtc readout)
 done_test: bash scripts/test.sh packages/design/test/fields/readout-format.test.ts
 files:
