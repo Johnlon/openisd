@@ -72,3 +72,11 @@ export async function fillAndBlur(input: Locator, value: string): Promise<void> 
   await input.fill(value);
   await input.blur();
 }
+/** Paste `text` into a field at its caret or selection, as a real paste event (no clipboard permission needed). */
+export async function pasteInto(input: Locator, text: string): Promise<void> {
+  await input.evaluate((el, pasted) => {
+    const data = new DataTransfer();
+    data.setData('text', pasted);
+    el.dispatchEvent(new ClipboardEvent('paste', {clipboardData: data, bubbles: true, cancelable: true}));
+  }, text);
+}

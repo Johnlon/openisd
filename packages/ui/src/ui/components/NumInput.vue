@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, tenthsCaret, NumberField, type SpinDirection} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, tenthsCaret, NumberField, type NumberEdit, type SpinDirection} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -100,8 +100,40 @@ function onBoxPointer() {
 function numberOf(text: string): number {
   return parseFloat(text.replace(',', '.'));
 }
-/** Text that is a number, or the start of one ("", "-", "1.", ".5"); anything else is a refused entry. */
-const NUMBER_SHAPE = /^-?\d*[.,]?\d*$/;
+
+/** The box's text and selection, for the design rule. */
+function boxOf(el: HTMLInputElement) {
+  const start = el.selectionStart ?? el.value.length;
+  return {text: el.value, selectionStart: start, selectionEnd: el.selectionEnd ?? start};
+}
+
+/** Put an allowed edit in the box, as an input event so the usual handling follows. */
+function applyEdit(el: HTMLInputElement, edit: NumberEdit) {
+  if (edit.kind === 'refuse') return;
+  el.value = edit.text;
+  el.setSelectionRange(edit.caret, edit.caret);
+  el.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+/** Letters never go in: the design rule judges the text the edit would leave. */
+function onBeforeInput(e: InputEvent) {
+  const el = inputEl.value;
+  if (!el || isReadonly.value) return;
+  if (e.inputType === 'insertText' || e.inputType === 'insertReplacementText') {
+    if (e.data !== null && typedEdit(boxOf(el), e.data).kind === 'refuse') e.preventDefault();
+  } else if (e.inputType === 'insertFromDrop' && e.dataTransfer) {
+    e.preventDefault();
+    applyEdit(el, pastedEdit(boxOf(el), e.dataTransfer.getData('text')));
+  }
+}
+
+/** A paste becomes the number in the pasted text, or nothing. */
+function onPaste(e: ClipboardEvent) {
+  const el = inputEl.value;
+  if (!el || isReadonly.value || !e.clipboardData) return;
+  e.preventDefault();
+  applyEdit(el, pastedEdit(boxOf(el), e.clipboardData.getData('text')));
+}
 
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
@@ -304,7 +336,7 @@ function onInput(e: Event) {
     emit('update:modelValue', null);
     return;
   }
-  badEntry.value = !NUMBER_SHAPE.test(t.value);
+  badEntry.value = !NUMBER_TEXT.test(t.value);
   const v = numberOf(t.value);
   badEntry.value = badEntry.value || !isFinite(v);   // a lone "-" or "." is not a number yet, and says so
   if (badEntry.value) return;
@@ -368,7 +400,7 @@ const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 
   <span class="num-input-wrap">
     <input ref="inputEl" v-bind="$attrs" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
       :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
-      @focus="onFocus" @pointerdown="onBoxPointer" @keydown="onKeydown" @wheel="onWheel" @input="onInput" @blur="onBlur">
+      @focus="onFocus" @pointerdown="onBoxPointer" @keydown="onKeydown" @beforeinput="onBeforeInput" @paste="onPaste" @wheel="onWheel" @input="onInput" @blur="onBlur">
     <span v-if="underlineIndex !== null" class="num-mark-overlay" aria-hidden="true"><span class="num-mark-pre">{{ display.slice(0, underlineIndex) }}</span><span class="num-mark-underline">{{ display.slice(underlineIndex, underlineIndex + 1) }}</span><span class="num-mark-post">{{ display.slice(underlineIndex + 1) }}</span></span>
   </span>
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>

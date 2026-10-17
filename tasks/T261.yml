@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 1486e7ea265ad5218b8a90000e214f08a33d9f6c
 goal: Post-land never kills a running suite; the next run tests the newest sha after a 60 s quiet period; an F records tested sha, last green and the commit range
 done_test: bash scripts/land/test/post-land-queue.test.sh
 files:

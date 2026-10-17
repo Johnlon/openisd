@@ -1,6 +1,6 @@
 # BUG_20261016_number-fields-accept-letters
 
-**Status:** OPEN
+**Status:** FIXED (T255)
 
 ## Symptom
 Letters can be typed or pasted into a number field. John, 16 Oct 2026: "I can type letters into
@@ -34,3 +34,9 @@ The field checks text after it is in the box. Nothing stops the text from going 
 - A browser spec per skin: type "a" into a number field and nothing appears; paste "12.5 Hz" and
   12.5 appears; paste "abc" and the field keeps its value; with the cursor at the end of "12", paste "abc" and
   the field still shows 12.
+
+## Fix as built (T255)
+- Rule: `packages/design/fields/numberText.ts` (`typedEdit`, `pastedEdit`, `isNumberText`); pure, unit-tested.
+- `NumInput.vue` calls it from `beforeinput` (typing, drop) and `paste`; selection and caret respected. UIField and both skins use NumInput.
+- Specs: `original-number-field-letters` and `mobile-number-field-letters` browser specs.
+- Raw `type="number"` filter editors are untouched (the browser limits those).

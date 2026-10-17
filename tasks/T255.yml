@@ -1,0 +1,18 @@
+id: T255
+release_note: Number fields no longer accept letters, typed or pasted; a paste keeps just the number in it.
+repo: openisd
+owner: maryu
+status: done
+goal: Number fields refuse letters, by typing or paste (BUG_20261016_number-fields-accept-letters)
+done_test: bash scripts/test.sh packages/design/test/fields/numberText.test.ts
+files:
+  - tasks/T255.yml
+  - bugs/BUG_20261016_number-fields-accept-letters.md
+  - packages/design/fields/numberText.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/numberText.test.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/fixtures/numField.ts
+  - packages/ui/test/ui/original-number-field-letters.browser.spec.ts
+  - packages/ui/test/ui/mobile-number-field-letters.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
