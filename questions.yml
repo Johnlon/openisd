@@ -1,5 +1,5 @@
 prefix: QO
-next: 184
+next: 186
 questions:
 - id: QO179
   title: unit tests import the file they test; one test file per source file, never a barrel
@@ -9985,3 +9985,33 @@ questions:
     in this checkout. I did not look for another way round and stopped. I told fable (coordinator) and
     asked how they want it cleared. Nothing was lost; the file still holds my uncommitted line. Needs
     from you: nothing, unless you want a different way to clear the main checkout.'
+- id: QO184
+  title: fable tried git checkout --ours on a rebase conflict; the guard blocked it
+  status: open
+  raised: '2026-10-17'
+  body: 'Task: landing T271 (Projects pages). Other landings kept changing the file that holds the hash
+    of the screen sources, so every rebase of my branch conflicted on that one file. I ran git checkout
+    --ours on it to pick a side. The guard blocked it. I did not look for another way round, but my
+    command line also ran git add and git rebase --continue after it, so the rebase went on and the
+    file was committed with the conflict marker lines still in it. I fixed it by regenerating the hash
+    file with the repo script that writes it, then landing. Nothing was lost. The same trap left
+    committed conflict marker lines in tasks/T055.yml on main from an earlier landing by someone else;
+    T321 cleans them. What I will do instead: on a rebase conflict in that file, write the file from
+    the script, check for marker lines before git add, and never chain add and continue after a command
+    that can be blocked. Who was told: fable (coordinator). Needs from you: nothing, unless you want
+    a different way to resolve that file.'
+- id: QO185
+  title: fable edited a file in another agent's worktree by mistake
+  status: open
+  raised: '2026-10-17'
+  body: 'Task: fixing a flaky Cloud sync browser test. I ran the repo script that makes a worktree for a
+    new branch called t313. The branch name was already taken, so the script failed, but my next command
+    ran anyway, in the existing worktree for t313, which belongs to another agent. It changed one test
+    helper file there (a small, correct fix for the flaky test). I noticed, saved the change as a patch
+    file, and did not undo it, because undoing needs a commit first and that worktree is not mine. The
+    other agent then landed T313 with the change inside it, so it is on main under their task. Nothing
+    was lost and the change is wanted, but the task note for T313 does not mention it. What I will do
+    instead: check the script succeeded before touching a folder, and pick branch names that are free.
+    Who was told: fable (coordinator). Needs from you: nothing, unless you want the T313 task note
+    to name the change.'
+
