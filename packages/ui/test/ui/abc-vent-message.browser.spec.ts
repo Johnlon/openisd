@@ -72,7 +72,7 @@ test.describe('Mobile skin', () => {
     await page.locator('.mob-tab', {hasText: 'ABC'}).click();
     const rear = page.locator('.mob-panel', {has: page.locator('.mob-panel-head', {hasText: 'Rear vent'})});
     const length = rear.locator('.ui-field', {hasText: 'Vent length'});
-    const resonance = rear.locator('.mob-field-row', {hasText: '1st port resonance'});
+    const resonance = rear.locator('.ui-field', {hasText: '1st port resonance'});
     const note = await openMessage(page, length);
     await saveShot(page, 'phone');
     await expect(note).toHaveCount(1);

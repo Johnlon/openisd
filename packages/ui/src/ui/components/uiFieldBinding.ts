@@ -20,6 +20,8 @@ export type UIBinding =
 /** The props every field row takes, whatever it is bound to. */
 export interface UIFieldCommon {
   field: NumberField;
+  /** Replaces the registry label where a screen names the field differently. */
+  label?: string;
   /** Always drawn as mandatory. Otherwise mandatory only while the cell is needed and empty. */
   required?: boolean;
   /** The input's id, for a view or test that addresses the box directly. */
@@ -28,8 +30,10 @@ export interface UIFieldCommon {
   max?: number;
   /** ▲▼ buttons beside the box (the phone layout). */
   stepper?: boolean;
-  /** Shown but not editable, e.g. a value another field is deriving. */
+  /** A calculated value: shown in the greyed readout look, never editable. */
   readonly?: boolean;
+  /** A readonly value drawn as plain text, not as a greyed box (the phone). */
+  plain?: boolean;
   /** WinISD deviation cue to show next to the field. */
   deviation?: WinisdDeviation;
   /** Custom DQ flags to display for fixed fields or readouts. */

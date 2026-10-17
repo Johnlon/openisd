@@ -1,0 +1,60 @@
+id: T351
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: UIField step A: readonly UIFixedField readouts draw units like every row (no dotted Hz, phone units 2 px lower)
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-numreadout-outside-uifield.test.ts
+files:
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/ui/original-bottom-panel-height.browser.spec.ts
+  - bugs/BUG_20261017_visual-library-size-text-varies.md
+  - tasks/T351.yml
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/architecture/no-numreadout-outside-uifield.test.ts
+  - packages/ui/test/ui/abc-vent-message.browser.spec.ts
+  - packages/ui/test/ui/mobile-vented-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+visual:
+  - desktop-box-bandpass6
+  - desktop-box-vented
+  - desktop-tab-box
+  - desktop-box-bandpass4
+  - mobile-tab-enclosure
