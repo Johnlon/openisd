@@ -14,7 +14,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createSheetSession, type SheetRow} from './sheetSession.js';
 import {portFieldsView, type PortFieldsView} from './portFieldsView.js';
-import type {SheetField, SheetMode} from '@openisd/design/fields';
+import {SheetSizes, type SheetField, type SheetMode} from '@openisd/design/fields';
 
 /** The sheet's open state (owned by the chart view; its Auto Y box follows it) and its fixed mode. */
 export interface MobileSheetDeps {
@@ -30,7 +30,7 @@ const CLOSE_BELOW_PX = 90;
 /** An upward drag on the pull-tab longer than this sets the opened sheet's height. */
 const TAB_DRAG_PX = 12;
 /** The pull-tab's own height, added back when an upward drag sizes the sheet. */
-const TAB_PX = 28;
+const TAB_PX = SheetSizes.TAB_PX;
 
 interface DragStart {
   readonly y: number;
@@ -57,6 +57,8 @@ export interface MobileSheetAPI {
   /** A press on a port-area value opens that port's fields; the box is never focused, so the keyboard stays down. */
   portValuePress(e: PressEvent, row: SheetRow): void;
   closePortEditor(): void;
+  /** The sizes the sheet's controls and rows take, as CSS variables (from design). */
+  readonly sizeStyle: string;
   readonly sheetEl: Ref<HTMLElement | null>;
   /** The sheet's inline height: its default (CSS) until dragged. */
   readonly sheetStyle: ComputedRef<string>;
@@ -159,6 +161,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
 
   return {
     isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode,
+    sizeStyle: `--sheet-touch: ${SheetSizes.TOUCH_MIN_PX}px; --sheet-row: ${SheetSizes.ROW_MIN_PX}px; --sheet-tab: ${SheetSizes.TAB_PX}px`,
     portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };

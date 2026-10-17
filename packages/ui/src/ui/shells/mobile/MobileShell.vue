@@ -32,7 +32,7 @@ import {APP_UPDATE_TEXT, NO_PROJECT_OPEN} from '@openisd/design/fields';
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
-  menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
+  menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
   username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
@@ -107,7 +107,10 @@ const diagnostics = injectDiagnosticsModal();
       <MobilePaneDialog v-else-if="pane === 'advanced'" title="Advanced" @close="closePane">
         <MobileAdvancedTab />
       </MobilePaneDialog>
-      <div v-if="updateBannerVisible" class="mob-update-banner" role="status" data-testid="update-strip">
+      <div v-if="flashMessage" class="mob-update-banner mob-flash-banner" role="status" data-testid="flash-strip">
+        <span>{{ flashMessage }}</span>
+      </div>
+      <div v-else-if="updateBannerVisible" class="mob-update-banner" role="status" data-testid="update-strip">
         <span>{{ APP_UPDATE_TEXT.offer }}</span>
         <button type="button" class="mob-update-reload" data-testid="update-reload" @click="reloadForUpdate">{{ APP_UPDATE_TEXT.reload }}</button>
         <button type="button" class="mob-update-later" data-testid="update-later" @click="dismissUpdateBanner">{{ APP_UPDATE_TEXT.later }}</button>

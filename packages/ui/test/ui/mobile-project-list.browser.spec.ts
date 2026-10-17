@@ -66,6 +66,8 @@ test.describe('MobileProjectList', () => {
   // bugs/BUG_20261005_project-selection-lost-on-reload.md
   test('a hidden project is still hidden after a reload, and the chart still leaves its trace out', async ({ page }) => {
     await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+    // The import message takes a strip above the tab bar, which resizes the chart; count after it is gone.
+    await expect(page.getByTestId('flash-strip')).toHaveCount(0);
     await graphTab(page).click();
     await expect.poll(() => inkColours(page)).toBeGreaterThan(0);
     const shown = await inkColours(page);

@@ -147,7 +147,7 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
       await new Promise(r => setTimeout(r, 600));
       await syncBadge.dispatchEvent('pointerup');
 
-      const flash = page.locator('.flash');
+      const flash = page.getByTestId('flash-strip');
       await expect(flash).toBeVisible();
       await expect(flash).toContainText('Google Drive');
 

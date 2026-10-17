@@ -1,0 +1,36 @@
+id: T346
+release_note: 'On the phone, the Tune and What-if sheets have finger-sized buttons and rows, and messages no longer cover a control.'
+repo: openisd
+owner: sonnet
+status: done
+goal: Phone Tune and What-if sheets: every control at least 44 px and rows at least 48 px, sizes from design; messages never cover a control on the phone.
+done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
+files:
+  - tasks/T346.yml
+  - bugs/BUG_20261017_phone-message-covers-controls.md
+  - bugs/BUG_20261017_phone-sheet-controls-too-small.md
+  - packages/design/fields/index.ts
+  - packages/design/fields/sheetSizes.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/mobile-sheet-touch.browser.spec.ts
+  - packages/ui/test/ui/mobile-project-list.browser.spec.ts
+  - packages/ui/test/ui/file-import-export-message.browser.spec.ts
+  - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+visual:
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-graph
+  - mobile-tab-signal

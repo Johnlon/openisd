@@ -11,15 +11,15 @@ import type { SheetMode } from '@openisd/design/fields';
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean] }>();
 
-const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+const { isOpen, lines, rowSlots, mode, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: props.mode });
 </script>
 
 <template>
-  <button v-if="!isOpen && !hidden" type="button" class="mob-sheet-tab" :aria-label="'Open ' + mode.label"
+  <button v-if="!isOpen && !hidden" type="button" class="mob-sheet-tab" :style="sizeStyle" :aria-label="'Open ' + mode.label"
           @pointerdown="onTabDown" @pointerup="onTabUp" @click="openSheet">{{ mode.label }} ▲</button>
-  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet" :style="sheetStyle" :aria-label="mode.label">
+  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
     <div class="mob-sheet-handle" role="separator" aria-label="Drag to resize"
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
       <span class="mob-sheet-grip"></span>
@@ -58,7 +58,7 @@ const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, clo
 .mob-sheet-tab {
   flex: 1;
   min-width: 0;
-  height: 28px;
+  height: var(--sheet-tab);
   border: none;
   border-top: 1px solid var(--line);
   background: var(--panel2, #f0f0f0);
@@ -72,7 +72,9 @@ const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, clo
 .mob-sheet {
   /* The sheet keeps its own dense rows; the tab rows' roomier label line is not its. */
   --mob-row-pad-y: 2px;
-  --mob-label-lh: 12px;
+  --mob-label-lh: 14px;
+  --mob-row-min: var(--sheet-row);
+  --mob-input-h: var(--sheet-touch);
   /* Shrinks before the chart does (the chart keeps 120 px); its rows then scroll inside it. */
   flex: 1 1 0;
   min-width: 0;
@@ -116,9 +118,8 @@ const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, clo
 .mob-sheet-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
 
 .mob-sheet-rows {
-  /* Both modes reserve the same row slots, so the sheet never resizes on a mode switch; when the
-     screen is too short the rows give way and scroll. */
-  flex: 1 1 calc(var(--mob-row-slots, 0) * var(--mob-row-min) + 8px);
+  /* The rows take their own height; when the screen is too short they give way and scroll. */
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding-bottom: 8px;
@@ -144,12 +145,19 @@ const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, clo
 .mob-sheet-cell { flex: 1; }
 .mob-sheet-label {
   flex: none;
-  width: 96px;
+  width: 80px;
   font-size: 13px;
   line-height: var(--mob-label-lh, 13px);
   color: var(--mut);
 }
 
+.mob-sheet-value :deep(.num-stepper) { margin-left: 4px; }
+.mob-sheet-value :deep(.num-stepper-btn) {
+  width: var(--sheet-touch) !important;
+  min-width: var(--sheet-touch);
+  height: var(--sheet-touch) !important;
+  font-size: 16px !important;
+}
 .mob-sheet-value {
   flex: 1;
   min-width: 0;
@@ -172,7 +180,11 @@ const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, clo
 .mob-sheet-value :deep(input:focus) { border-color: var(--acc); outline: none; }
 .mob-sheet-cell :deep(.mob-sheet-unit) {
   flex: none;
-  min-width: 26px;
+  min-width: var(--sheet-touch);
+  min-height: var(--sheet-touch);
+  justify-content: center;
+  display: inline-flex;
+  align-items: center;
   font-size: 13px;
   color: var(--mut);
   white-space: nowrap;
@@ -192,7 +204,8 @@ const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, clo
   align-items: center;
 }
 .mob-sheet-btn {
-  min-height: 40px;
+  min-height: var(--sheet-touch);
+  min-width: var(--sheet-touch);
   padding: 0 16px;
   border: 1px solid var(--line);
   border-radius: 4px;

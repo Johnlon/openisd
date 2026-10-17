@@ -147,7 +147,8 @@ onUnmounted(() => {
     <OriginalWhatIf v-if="presentationState.editDriver && projectOpen" />
     <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
     <DriverBrowser />
-    <Flash />
+    <!-- The phone shows messages in its own strip above the tab bar (MobileShell). -->
+    <Flash v-if="activeSkin !== 'mobile'" />
     <!-- Offers to send a report after an uncaught error. -->
     <CrashScreen />
     <!-- Raises itself on the first uncaught error, rejection or console.error. -->

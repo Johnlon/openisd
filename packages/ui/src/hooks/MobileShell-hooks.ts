@@ -83,6 +83,8 @@ export interface MobileShellApi {
   anyUnsaved: import('vue').ComputedRef<boolean>;
   /** A newer build waits and edits are unsaved, so the user is asked. */
   updateBannerVisible: import('vue').ComputedRef<boolean>;
+  /** The app's one-line message (flash); the phone shows it in a strip above the tab bar, never over a control. */
+  flashMessage: import('vue').Ref<string>;
   /** Reload onto the newer build (asks first when edits are unsaved). */
   reloadForUpdate: () => Promise<void>;
   /** Not now: hide the notice until a newer build waits or the next launch. */
@@ -556,7 +558,7 @@ export function useMobileShell(): MobileShellApi {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
+    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
     projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
