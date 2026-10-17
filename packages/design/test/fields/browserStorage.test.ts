@@ -8,7 +8,7 @@ import {
   storageFullWarning,
 } from '../../fields/browserStorage.js';
 
-const WARNING = 'This browser may delete OpenISD\'s data when disk space runs low. Use Chrome, or turn on Google Drive sync and export your projects.';
+const WARNING = 'Nothing is wrong now: this browser could clear OpenISD\'s data only if your disk gets nearly full. OpenISD warns you when its storage is 80% full (usage is in Options, Your data); to be safe, use Chrome, turn on Google Drive sync, or export your projects.';
 
 describe('persistent storage', () => {
   it('names what the browser answered, for Diagnostics', () => {

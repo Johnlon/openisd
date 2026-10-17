@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 3b5bafe6172444317efd5cc0cf1cd7d7f1aad3a5
 goal: The project holds five air fields (temperature, humidity, pressure, c, rho), each entered or calculated through the air solver; a new or old project copies the app air in as entered, an emptied air value is refilled from the app air as entered, and the project air never follows Options afterwards
 done_test: bash scripts/test.sh packages/design/test/domain/project-air-migration.test.ts
 files:

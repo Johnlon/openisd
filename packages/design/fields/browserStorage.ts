@@ -23,7 +23,9 @@ export function persistenceLine(outcome: PersistOutcome | null): string {
   return `Persistent storage: ${outcome ?? 'asking'}`;
 }
 
-const PERSIST_WARNING = 'This browser may delete OpenISD\'s data when disk space runs low. Use Chrome, or turn on Google Drive sync and export your projects.';
+const PERSIST_WARNING = 'Nothing is wrong now: this browser could clear OpenISD\'s data only if your disk gets nearly full. '
+  + `OpenISD warns you when its storage is ${Math.round(STORAGE_FULL_FROM * 100)}% full (usage is in Options, Your data); `
+  + 'to be safe, use Chrome, turn on Google Drive sync, or export your projects.';
 
 /** The warning when the browser may clear OpenISD's data; null when it keeps it, or has not answered. */
 export function persistenceWarning(outcome: PersistOutcome | null): string | null {
