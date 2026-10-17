@@ -1,0 +1,18 @@
+id: T362
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: W1: the New project wizard steps come from one design plan per box type (WizardPlan); the hook and both skins use it
+done_test: bash scripts/test.sh packages/design/test/domain/wizardPlan.test.ts
+files:
+  - tasks/T362.yml
+  - packages/design/domain/index.ts
+  - packages/design/domain/wizard/wizardPlan.ts
+  - packages/design/test/domain/wizardPlan.test.ts
+  - packages/ui/src/hooks/NewProjectFooter-hooks.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/test/visual/SOURCES.sha256

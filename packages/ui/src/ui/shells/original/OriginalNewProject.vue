@@ -24,8 +24,8 @@ const wizard = useOgNewProject();
 const { readoutWithUnit } = useUnitReadouts();
 
 const {
-  step,
   totalSteps,
+  isDriverStep, isCountStep, isBoxTypeStep, isBoxDetailsStep, isProjectInfoStep,
   currentStepNumber,
   stepLabel,
   hadUnsaved,
@@ -130,12 +130,12 @@ function handleCreate() {
         </div>
 
         <!-- Step 1: the driver library itself (Q1). A row summarises; the footer's Next chooses it. -->
-        <div v-if="step === 1" class="step-content">
+        <div v-if="isDriverStep" class="step-content">
           <DriverLibrary class="np-library" show-name host="pick" />
         </div>
 
         <!-- Step 2: Driver count & placement -->
-        <div v-else-if="step === 2" class="step-content">
+        <div v-else-if="isCountStep" class="step-content">
           <div class="field-row">
             <div class="field"><label>Num. of drivers</label>
               <select id="np-ndrivers" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }" style="width:180px">
@@ -157,7 +157,7 @@ function handleCreate() {
         </div>
 
         <!-- Step 3: Type of design (Box Type + EBP) -->
-        <div v-else-if="step === 3" class="step-content">
+        <div v-else-if="isBoxTypeStep" class="step-content">
           <div class="field-row">
             <div class="field"><label>Box type</label>
               <select id="np-box-type" :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }" style="width:240px">
@@ -199,7 +199,7 @@ function handleCreate() {
         </div>
 
         <!-- Step 4: Sealed Alignment (only when Closed/sealed) -->
-        <div v-else-if="step === 4 && isSealed" class="step-content">
+        <div v-else-if="isBoxDetailsStep && isSealed" class="step-content">
           <div class="field-row">
             <div class="field"><label>Alignment</label>
               <select id="np-alignment" :value="targetQtc" @change="e => { const q = selectedOption(e, SEALED_ALIGNMENT_OPTIONS); if (q !== null) selectSealedAlignment(q); }" style="width:260px">
@@ -223,7 +223,7 @@ function handleCreate() {
         </div>
 
         <!-- Step 4: Vented Alignment (only when box type is Vented; WinISD's five — docs/research/VENTED_ALIGNMENT_FORMULAS.md) -->
-        <div v-else-if="step === 4 && isVented" class="step-content">
+        <div v-else-if="isBoxDetailsStep && isVented" class="step-content">
           <div class="field-row">
             <div class="field"><label>Alignment</label>
               <select id="np-vented-alignment" :value="selectedVentedAlignment" @change="e => { const a = selectedOption(e, VENTED_ALIGNMENT_OPTIONS); if (a !== null) selectVentedAlignment(a); }" style="width:260px">
@@ -245,14 +245,14 @@ function handleCreate() {
         </div>
 
         <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
-        <div v-else-if="step === 4 && isPassiveRadiator" class="step-content">
+        <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
           <NewProjectPassiveRadiatorStep :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
             @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
         </div>
 
         <!-- Step 5: Project Information -->
-        <div v-else-if="step === 5" class="step-content">
+        <div v-else-if="isProjectInfoStep" class="step-content">
           <div class="field-row">
             <div class="field"><label>Project name</label>
               <input type="text" style="width:280px" placeholder="e.g. Living-room sub" v-model="projName" @keydown.enter="handleCreate">

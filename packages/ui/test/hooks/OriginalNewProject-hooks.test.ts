@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
-import { OpenISDDriver, ProjectBuilder } from '@openisd/design';
+import { OpenISDDriver, ProjectBuilder, WizardStep } from '@openisd/design';
 import { DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM } from '@openisd/design/fields';
 import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
@@ -65,7 +65,7 @@ describe('useOgNewProject', () => {
     const engine = createEngine();
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
 
-    expect(wizard.step.value).toBe(1);
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
     expect(wizard.canBack.value).toBe(false);
     expect(wizard.canNext.value).toBe(false);
 
@@ -100,36 +100,36 @@ describe('useOgNewProject', () => {
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
 
     // Step 1 -> 2
-    expect(wizard.step.value).toBe(1);
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
     wizard.next();
-    expect(wizard.step.value).toBe(2);
+    expect(wizard.step.value).toBe(WizardStep.COUNT);
 
     // Step 2 -> 3
     wizard.next();
-    expect(wizard.step.value).toBe(3);
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
     expect(wizard.boxType.value).toBe('sealed');
 
     // Step 3 -> 4 (Sealed Alignment)
     wizard.next();
-    expect(wizard.step.value).toBe(4);
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
     expect(wizard.currentStepNumber.value).toBe(4);
     expect(wizard.totalSteps.value).toBe(5);
 
     // Step 4 -> 5 (Project Info)
     wizard.next();
-    expect(wizard.step.value).toBe(5);
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
     expect(wizard.currentStepNumber.value).toBe(5);
     expect(wizard.totalSteps.value).toBe(5);
 
     // Navigating back 5 -> 4 -> 3 -> 2 -> 1
     wizard.back();
-    expect(wizard.step.value).toBe(4);
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
     wizard.back();
-    expect(wizard.step.value).toBe(3);
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
     wizard.back();
-    expect(wizard.step.value).toBe(2);
+    expect(wizard.step.value).toBe(WizardStep.COUNT);
     wizard.back();
-    expect(wizard.step.value).toBe(1);
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
   });
 
   it('skips step 4 when box type is bandpass4 (no alignment step built yet)', () => {
@@ -140,19 +140,19 @@ describe('useOgNewProject', () => {
     // Go to step 3
     wizard.next();
     wizard.next();
-    expect(wizard.step.value).toBe(3);
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
 
     wizard.boxType.value = 'bandpass4';
     expect(wizard.totalSteps.value).toBe(4);
 
     // Step 3 -> 5 (skipping step 4)
     wizard.next();
-    expect(wizard.step.value).toBe(5);
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
     expect(wizard.currentStepNumber.value).toBe(4);
 
     // Back from 5 -> 3
     wizard.back();
-    expect(wizard.step.value).toBe(3);
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
   });
 
   it('gives vented a step 4 (alignment), same slot sealed uses', () => {
@@ -162,26 +162,26 @@ describe('useOgNewProject', () => {
 
     wizard.next();
     wizard.next();
-    expect(wizard.step.value).toBe(3);
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
 
     wizard.boxType.value = 'vented';
     expect(wizard.totalSteps.value).toBe(5);
 
     // Step 3 -> 4 (Vented Alignment)
     wizard.next();
-    expect(wizard.step.value).toBe(4);
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
     expect(wizard.currentStepNumber.value).toBe(4);
 
     // Step 4 -> 5 (Project Info)
     wizard.next();
-    expect(wizard.step.value).toBe(5);
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
     expect(wizard.currentStepNumber.value).toBe(5);
 
     // Back 5 -> 4 -> 3
     wizard.back();
-    expect(wizard.step.value).toBe(4);
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
     wizard.back();
-    expect(wizard.step.value).toBe(3);
+    expect(wizard.step.value).toBe(WizardStep.BOX_TYPE);
   });
 
   it('offers WinISD\'s five vented alignments and opens on C4/SC4', () => {
@@ -352,10 +352,10 @@ describe('useOgNewProject', () => {
     const engine = createEngine();
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
 
-    expect(wizard.step.value).toBe(1);
+    expect(wizard.step.value).toBe(WizardStep.DRIVER);
     wizard.selectDriver(createTestDriver(engine));
 
-    expect(wizard.step.value).toBe(2);
+    expect(wizard.step.value).toBe(WizardStep.COUNT);
   });
 
   it('preserves state when navigating Back and Next', () => {
@@ -606,7 +606,7 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.totalSteps.value).toBe(5);
 
     wizard.next();
-    expect(wizard.step.value).toBe(4);
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
     expect(wizard.stepLabel.value).toBe('Passive Radiator');
     expect(wizard.canNext.value).toBe(false);
 
@@ -615,9 +615,9 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.passiveRadiatorBrowseOpen.value).toBe(false);
     expect(wizard.canNext.value).toBe(true);
     wizard.next();
-    expect(wizard.step.value).toBe(5);
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
     wizard.back();
-    expect(wizard.step.value).toBe(4);
+    expect(wizard.step.value).toBe(WizardStep.BOX_DETAILS);
   });
 
   it('a saved radiator chosen at step 4 is the one the project is built with', () => {

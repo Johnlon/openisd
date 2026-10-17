@@ -5,6 +5,7 @@
  * chooses that driver (which moves the wizard to step 2), so the preview needs no Use/Cancel pair.
  */
 import {computed, type ComputedRef} from 'vue';
+import {WizardStep} from '@openisd/design';
 import type {DriverBrowsingState} from '../logic/driverBrowsingState.js';
 import type {OriginalNewProjectAPI} from './OriginalNewProject-hooks.js';
 
@@ -22,13 +23,13 @@ export function createNewProjectFooter(
   driverBrowsing: Pick<DriverBrowsingState, 'previewDriver' | 'chooseDriver'>,
 ): NewProjectFooter {
   const canGoNext = computed(() =>
-    wizard.step.value === 1 ? driverBrowsing.previewDriver.value !== null || wizard.canNext.value : wizard.canNext.value);
+    wizard.step.value === WizardStep.DRIVER ? driverBrowsing.previewDriver.value !== null || wizard.canNext.value : wizard.canNext.value);
 
   const leadIsCreate = computed(() => wizard.currentStepNumber.value === wizard.totalSteps.value);
 
   async function goNext(): Promise<void> {
     const reading = driverBrowsing.previewDriver.value;
-    if (wizard.step.value === 1 && reading !== null) {
+    if (wizard.step.value === WizardStep.DRIVER && reading !== null) {
       await driverBrowsing.chooseDriver(reading);   // hands the driver to the wizard, which moves on
       return;
     }

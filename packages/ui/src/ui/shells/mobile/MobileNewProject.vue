@@ -23,8 +23,8 @@ const wizard = useOgNewProject();
 const { readoutWithUnit } = useUnitReadouts();
 
 const {
-  step,
   totalSteps,
+  isDriverStep, isCountStep, isBoxTypeStep, isBoxDetailsStep, isProjectInfoStep,
   currentStepNumber,
   stepLabel,
   hadUnsaved,
@@ -125,12 +125,12 @@ function handleCreate() {
       </div>
 
       <!-- Step 1: driver library -->
-      <div v-if="step === 1" class="step-content mob-np-library-wrap">
+      <div v-if="isDriverStep" class="step-content mob-np-library-wrap">
         <DriverLibrary class="mob-np-library" show-name host="pick" />
       </div>
 
       <!-- Step 2: Driver count & placement -->
-      <div v-else-if="step === 2" class="step-content">
+      <div v-else-if="isCountStep" class="step-content">
         <div class="field"><label>Num. of drivers</label>
           <select id="np-ndrivers" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }">
             <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} driver(s)</option>
@@ -148,7 +148,7 @@ function handleCreate() {
       </div>
 
       <!-- Step 3: Box type + EBP -->
-      <div v-else-if="step === 3" class="step-content">
+      <div v-else-if="isBoxTypeStep" class="step-content">
         <div class="field"><label>Box type</label>
           <select id="np-box-type" :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }">
             <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
@@ -185,7 +185,7 @@ function handleCreate() {
       </div>
 
       <!-- Step 4: Sealed Alignment -->
-      <div v-else-if="step === 4 && isSealed" class="step-content">
+      <div v-else-if="isBoxDetailsStep && isSealed" class="step-content">
         <div class="field"><label>Alignment</label>
           <select id="np-alignment" :value="targetQtc" @change="e => { const q = selectedOption(e, SEALED_ALIGNMENT_OPTIONS); if (q !== null) selectSealedAlignment(q); }">
             <option v-for="o in SEALED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
@@ -203,7 +203,7 @@ function handleCreate() {
       </div>
 
       <!-- Step 4: Vented Alignment -->
-      <div v-else-if="step === 4 && isVented" class="step-content">
+      <div v-else-if="isBoxDetailsStep && isVented" class="step-content">
         <div class="field"><label>Alignment</label>
           <select id="np-vented-alignment" :value="selectedVentedAlignment" @change="e => { const a = selectedOption(e, VENTED_ALIGNMENT_OPTIONS); if (a !== null) selectVentedAlignment(a); }">
             <option v-for="o in VENTED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
@@ -220,14 +220,14 @@ function handleCreate() {
       </div>
 
       <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
-      <div v-else-if="step === 4 && isPassiveRadiator" class="step-content">
+      <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
         <NewProjectPassiveRadiatorStep :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
           @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
       </div>
 
       <!-- Step 5: Project Information -->
-      <div v-else-if="step === 5" class="step-content">
+      <div v-else-if="isProjectInfoStep" class="step-content">
         <div class="field field-stack"><label>Project name</label>
           <input type="text" placeholder="e.g. Living-room sub" v-model="projName" @keydown.enter="handleCreate">
         </div>

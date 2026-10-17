@@ -1,7 +1,7 @@
 import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watch } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
-import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, startingChambersOf, takesChamberTunings } from '@openisd/design';
+import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
@@ -54,11 +54,16 @@ export interface OriginalNewProjectDeps {
 
 export interface OriginalNewProjectAPI {
   // Navigation & Step state
-  readonly step: Ref<number>;
+  readonly step: Ref<WizardStep>;
   readonly totalSteps: ComputedRef<number>;
   readonly currentStepNumber: ComputedRef<number>;
   readonly stepLabel: ComputedRef<string>;
-  readonly STEP_LABELS: readonly string[];
+  /** Which page the wizard is on; the skins draw one page at a time. */
+  readonly isDriverStep: ComputedRef<boolean>;
+  readonly isCountStep: ComputedRef<boolean>;
+  readonly isBoxTypeStep: ComputedRef<boolean>;
+  readonly isBoxDetailsStep: ComputedRef<boolean>;
+  readonly isProjectInfoStep: ComputedRef<boolean>;
   readonly hadUnsaved: ComputedRef<boolean>;
 
   // Step 1: Driver Selection
@@ -167,14 +172,6 @@ export const NEW_PROJECT_VENTED_QL = DEFAULT_NEW_PROJECT_VENTED_QL;
 /** The losses a new closed box starts with, the ones the preview's Qtc and volume are worked out under. */
 const NEW_PROJECT_SEALED_LOSSES = {Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA};
 
-const STEP_LABELS = Object.freeze([
-  'Select driver for project',
-  'Number of drivers and placement',
-  'Type of design',
-  'Sealed Alignment',
-  'Project Information',
-]);
-
 export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
   const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, focusedProject, isModified, newProjectBoxTypeOptions, newProjectDriver } = deps?.appState ?? useApp().appState;
   const eng: OriginalNewProjectEngineAreas = deps?.areas ?? useApp().engine;
@@ -183,7 +180,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
   const recentActions = useRecentActions();
 
-  const step = ref(1);
+  const step = shallowRef<WizardStep>(WizardStep.DRIVER);
   const selectedDriver = shallowRef<OpenISDDriver | null>(initialDriver);
 
   const nDrivers = ref(1);
@@ -227,22 +224,15 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const isSealed = computed(() => boxType.value === 'sealed');
   const isVented = computed(() => boxType.value === 'vented');
   const isPassiveRadiator = computed(() => boxType.value === 'box-passive-radiator');
-  // Step 4 is the sealed or vented alignment, or the passive radiator; every other box type skips
-  // straight from box-type (3) to project info (5) — no sourced alignment formula for them yet
-  const hasStep4 = computed(() => isSealed.value || isVented.value || isPassiveRadiator.value);
-  const totalSteps = computed(() => (hasStep4.value ? 5 : 4));
-
-  const currentStepNumber = computed(() => {
-    if (step.value <= 3) return step.value;
-    if (step.value === 4) return 4;
-    return hasStep4.value ? 5 : 4;
-  });
-
-  const stepLabel = computed(() => {
-    if (step.value === 4 && isVented.value) return 'Vented Alignment';
-    if (step.value === 4 && isPassiveRadiator.value) return 'Passive Radiator';
-    return STEP_LABELS[step.value - 1];
-  });
+  const plan = computed(() => WizardPlan.of(boxType.value));
+  const totalSteps = computed(() => plan.value.total);
+  const currentStepNumber = computed(() => plan.value.numberOf(step.value) ?? plan.value.total);
+  const stepLabel = computed(() => plan.value.labelOf(step.value));
+  const isDriverStep = computed(() => step.value === WizardStep.DRIVER);
+  const isCountStep = computed(() => step.value === WizardStep.COUNT);
+  const isBoxTypeStep = computed(() => step.value === WizardStep.BOX_TYPE);
+  const isBoxDetailsStep = computed(() => step.value === WizardStep.BOX_DETAILS);
+  const isProjectInfoStep = computed(() => step.value === WizardStep.PROJECT_INFO);
 
   const selectedDriverName = computed<string>(() => {
     if (!selectedDriver.value) return 'No driver selected';
@@ -320,7 +310,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     selectedDriver.value = driver;
     recomputeSealedVolume(driver, targetQtc.value);
     // "Use" in the step-1 driver picker is the step's whole job — done, move on.
-    if (step.value === 1) next();
+    if (step.value === WizardStep.DRIVER) next();
   }
 
   function selectSealedAlignment(target: number): void {
@@ -420,54 +410,24 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   };
 
   const canNext = computed(() => {
-    if (step.value === 1) return selectedDriver.value !== null;
-    if (step.value === 4 && isPassiveRadiator.value) return passiveRadiatorView.value !== null;
-    if (step.value >= 2 && step.value <= 4) return true;
-    return false;
+    if (step.value === WizardStep.DRIVER) return selectedDriver.value !== null;
+    if (step.value === WizardStep.BOX_DETAILS && isPassiveRadiator.value) return passiveRadiatorView.value !== null;
+    return plan.value.next(step.value) !== null;
   });
 
-  const canBack = computed(() => step.value > 1);
+  const canBack = computed(() => plan.value.back(step.value) !== null);
 
-  const canCreate = computed(() => step.value === 5 && projName.value.trim() !== '');
+  const canCreate = computed(() => step.value === WizardStep.PROJECT_INFO && projName.value.trim() !== '');
 
   function next(): void {
     if (!canNext.value) return;
-    if (step.value === 1) {
-      step.value = 2;
-      return;
-    }
-    if (step.value === 2) {
-      step.value = 3;
-      return;
-    }
-    if (step.value === 3) {
-      step.value = hasStep4.value ? 4 : 5;
-      return;
-    }
-    if (step.value === 4) {
-      step.value = 5;
-      return;
-    }
+    const to = plan.value.next(step.value);
+    if (to !== null) step.value = to;
   }
 
   function back(): void {
-    if (!canBack.value) return;
-    if (step.value === 5) {
-      step.value = hasStep4.value ? 4 : 3;
-      return;
-    }
-    if (step.value === 4) {
-      step.value = 3;
-      return;
-    }
-    if (step.value === 3) {
-      step.value = 2;
-      return;
-    }
-    if (step.value === 2) {
-      step.value = 1;
-      return;
-    }
+    const to = plan.value.back(step.value);
+    if (to !== null) step.value = to;
   }
 
   function createProject(): OpenISDProject | null {
@@ -511,7 +471,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     totalSteps,
     currentStepNumber,
     stepLabel,
-    STEP_LABELS,
+    isDriverStep, isCountStep, isBoxTypeStep, isBoxDetailsStep, isProjectInfoStep,
     hadUnsaved,
 
     selectedDriver,

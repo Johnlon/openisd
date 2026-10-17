@@ -30,6 +30,7 @@ export type { VentedBox } from './box/ventedBox.js';
 export type { Bandpass4Box } from './box/bandpass4Box.js';
 export type { Bandpass6Box } from './box/bandpass6Box.js';
 export { startingChambersOf, takesChamberTunings } from './box/startingChambers.js';
+export { WizardPlan, WizardStep } from './wizard/wizardPlan.js';
 export type { StartingChambers } from './box/startingChambers.js';
 export type { AbcBox } from './box/abcBox.js';
 export type { PassiveRadiatorBox } from './box/passiveRadiatorBox.js';
