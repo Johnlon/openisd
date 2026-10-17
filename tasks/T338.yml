@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 14073a8e31bf72250cb4618e310a485b0f7af54c
 goal: PR Fp on the Box tab; Mms and Cms on the desktop PR tab
 done_test: bash scripts/test.sh packages/design/test/domain/error-switches.test.ts
 files:
