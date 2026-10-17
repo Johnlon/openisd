@@ -3,7 +3,10 @@ import type {Page} from '@playwright/test';
 export async function enableCloudSync(page: Page): Promise<void> {
   await page.route('**/*main*', async route => {
     const url = route.request().url();
-    if (!url.endsWith('.js') && !url.endsWith('.ts') && !url.includes('/assets/main-')) {
+    // Only the script that holds the client id is rewritten. The stylesheet main-<hash>.css matched
+    // the old test and was fetched through the test runner for nothing: its fetch is what the
+    // post-land run saw reset (F55).
+    if (!url.endsWith('.js') && !url.endsWith('.ts') && !/\/assets\/main-[^/]*\.js(\?|$)/.test(url)) {
       await route.continue();
       return;
     }

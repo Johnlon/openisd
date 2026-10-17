@@ -1,0 +1,15 @@
+id: T313
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: land.sh resolves a conflict on generated visual baselines by taking main's side and re-taking them
+done_test: bash scripts/land/test/land-visual-conflict.e2e.test.sh
+files:
+  - tasks/T313.yml
+  - scripts/land.sh
+  - land.conf
+  - scripts/land/test/land-visual-conflict.e2e.test.sh
+  - docs/DEV_PROCESS.md
+  - docs/design/VISUAL_BASELINES.md
+  - bugs/BUG_20261017_baseline-conflict-blocks-landing.md

@@ -3,6 +3,7 @@ release_note: Chart titles no longer sit on the top axis label.
 repo: openisd
 owner: maryu
 status: done
+landed: 373122332f51b1410762f3f227b13ecb4594ba22
 goal: The chart title no longer overlaps the top Y tick label, on every chart, both skins, all phone sizes
 done_test: bash scripts/test.sh packages/design/test/chart/chart-layout.test.ts
 files:

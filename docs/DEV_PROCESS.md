@@ -47,7 +47,10 @@ A task lands as one commit, subject "<id>: <goal>", body the release note; land.
 One landing at a time (flock `LAND_LOCK`). In order:
 
 1. Commit everything in the worktree.
-2. Rebase onto origin/main. A conflict aborts the rebase, marks the task blocked, exits 3.
+2. Rebase onto origin/main. A conflict aborts the rebase, marks the task blocked, exits 3. The one exception
+   is a conflict only on generated visual files (baseline pictures, `SOURCES.sha256`): land.sh takes main's
+   side, re-takes the baselines on the rebased sources (`VISUAL_RETAKE_CMD`), commits them, and the visual
+   gates check the result (T313).
 3. Locked files unchanged; `done_test` and `locked` entries as on origin/main.
 4. No open `tasks/fixes/*.yml`, unless this task has `label: fixes`.
 5. Gates, each with its own deadline (`GATE_DEADLINE_S`; lint and typecheck have none, `LINT_DEADLINE_S`/`TYPECHECK_DEADLINE_S`=0): lint on the changed files, typecheck,
