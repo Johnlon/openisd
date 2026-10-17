@@ -25,5 +25,5 @@ Output: `<root>/<UTC stamp>_<build id>/` with `before/`, `after/`, `index.html`,
 - `--rebuild <run dir>` rewrites a finished run's `index.html` from its `run.json`, no capture.
 - The storage banner is its own screen (`welcome-banner`); it is dismissed with its close control before every later screen. A build with no banner shows "not in before" there.
 - Start the dev server and let it finish its first load before running; a cold Vite answers 504 "Outdated Optimize Dep" and the app stays on its splash.
-- Screens are listed in `screens.mjs`; each acts only through clicks and keys. Desktop toolbar icons have no accessible name and are clicked by position (`TOOLBAR` in `screens.mjs`).
+- Screens are listed in `screens.mjs`; each acts only through clicks and keys, reaching each control by something every build has: desktop toolbar icons by their tooltip ("Info", "Options", "Manage Drivers — …"), the phone Projects item by either name it has had ("Projects", "Open project…"), the storage banner by its alert role, not its wording.
 - Build id is read from the phone menu header; fallback is the git short sha.
