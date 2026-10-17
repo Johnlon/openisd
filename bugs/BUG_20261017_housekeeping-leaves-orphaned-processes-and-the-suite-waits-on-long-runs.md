@@ -1,6 +1,6 @@
 # BUG_20261017_housekeeping-leaves-orphaned-processes-and-the-suite-waits-on-long-runs
 
-**Status:** OPEN
+**Status:** FIXED (T297, orphans); the browser-lock wait report and the busy-loop test cleanup are split out below
 
 ## Symptom
 17 Oct 2026, 04:20. The post-land suite on 96acf25250 started at 03:33 and had run no test after 46 minutes. fable's guess was the orphaned vite servers or dead budget claims. Neither is the cause.
@@ -26,3 +26,35 @@ No admission slot is the cause: `admit.sh` already holds its slot (pid 4041672).
 
 ## Verification
 Scratch-repo e2e: kill a run's owner, run housekeeping, no process of that run survives and its port is free.
+
+## Cause (maryu, T297)
+Housekeeping judged only by record files: admission slots, browser-run records and post-land copies. It
+never looked at the processes themselves. The vite previews' browser-run records were gone, and so were
+their post-land run and clean copy, so nothing named them. The previews were in their own process group,
+reparented to init, so the run's own group kill missed them too. Each one still carried
+`OPENISD_BROWSER_OWNER="<pid> <start>"`, naming its dead owner.
+
+## Fix (T297)
+- `scripts/housekeeping.sh` has a new tick step. It reads `OPENISD_BROWSER_OWNER` from `/proc/<pid>/environ`
+  for every process it can read. A process whose owner pid is gone, or was reused (another start time), is
+  stopped: TERM, then KILL after 5 s.
+- The process is stopped with its group when the group leader carries the same tag; otherwise only the
+  process itself. The scan's own group is never touched.
+- A pid that was reused between the scan and the kill is skipped.
+- If `admit_starttime` fails to load, the scan stops loudly, since then every owner would look dead.
+- `OPENISD_RUN_ID` is not used to judge a process: a post-land run started by land.sh carries land.sh's
+  run id and outlives it.
+- Dry list on the live machine before landing: exactly the 4103 (pgid 2766014) and 4104 (pgid 3154114)
+  previews. 4102 and the three busy loops had already gone.
+- Proof (rule 7), `scripts/land/test/housekeeping.test.sh` case 9 on real processes, with a scratch tag
+  name so no real process is seen:
+  - the owner is killed and its clean copy deleted: the tagged group is stopped and the stop is logged;
+  - a tagged child under an untagged leader: only the child is stopped;
+  - a live owner's tagged process is left alone.
+
+## Not in T297
+- The busy loops (`while :; do :; done`) came from T254's admit tests and carry no tag. That test's
+  cleanup is with the agent fixing ts-log-kill (fable).
+- "A suite waiting for the browser lock names the holder every 5 minutes, and a holder over 30 minutes is
+  alerted": no longer needed while the suite runs on GitHub Actions (T266), because the laptop post-land
+  run takes no browser lock. It returns only with the laptop rollback.

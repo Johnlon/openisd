@@ -9,9 +9,13 @@ export ADMIT_DIR="$SCRATCH/admit"
 export HOUSEKEEPING_LOG="$SCRATCH/logs/housekeeping.log"
 # Never the real browser-run records: a scan here must not stop anyone's run.
 export OPENISD_RESERVATION_DIR="$SCRATCH/reservations" OPENISD_RESERVATION_LOCK="$SCRATCH/reservations.lock"
+# Never real processes either: the tag scan reads only this test's own tag name.
+export HOUSEKEEPING_TAG="HK_TEST_OWNER_$$"
 PIDS=()
 fails=0
-cleanup() { for p in "${PIDS[@]}"; do kill -KILL "$p" 2> /dev/null; done; rm -rf "$SCRATCH"; }
+GROUPS_MADE=()
+cleanup() { for p in "${PIDS[@]}"; do kill -KILL "$p" 2> /dev/null; done
+  for g in "${GROUPS_MADE[@]}"; do kill -KILL -- "-$g" 2> /dev/null; done; rm -rf "$SCRATCH"; }
 trap cleanup EXIT
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
@@ -134,6 +138,30 @@ ADMIT_DIR="$SCRATCH/nope" timeout 60 bash "$H" > /dev/null 2>&1
 rec=$(cd "$REPO" && OPENISD_BROWSER_OWNER="4242 77" bash -c '. scripts/test-concurrency.sh; reserve_test_slot 2> /dev/null; cat "$OPENISD_RESERVATION_DIR/$$"; release_test_slot')
 grep -qx 'OWNER=4242 77' <<< "$rec" && ok "slot records its owner" || fail "no OWNER line: $rec"
 grep -qE '^GROUP_START=[0-9]+$' <<< "$rec" && ok "slot records its group start" || fail "no GROUP_START: $rec"
+
+# 9. rule 7 end to end: a run's tagged processes outlive their owner, record and clean copy (17 Oct:
+#    vite previews on 4102-4104, reparented to init, cwd a deleted .postland copy). One tick stops them;
+#    a live owner's process, and an untagged group leader, are left alone.
+copy="$SCRATCH/postland-copy"; mkdir -p "$copy"
+bash -c 'sleep 300 & wait' & OWNER=$!; PIDS+=("$OWNER"); sleep 0.3
+tag="$OWNER $(starttime "$OWNER")"
+# the "vite" group: a tagged leader and a tagged child, in their own group, cwd the copy (pids via files)
+( cd "$copy" && exec env "$HOUSEKEEPING_TAG=$tag" setsid bash -c 'echo $$ > "$0/vg"; sleep 300 & echo $! > "$0/vkid"; wait' "$SCRATCH" ) &
+# a tagged process whose group leader is untagged
+( exec setsid bash -c 'echo $$ > "$0/lead"; env "$1=$2" sleep 300 & echo $! > "$0/lkid"; sleep 300' "$SCRATCH" "$HOUSEKEEPING_TAG" "$tag" ) &
+sleep 0.5
+VG=$(cat "$SCRATCH/vg"); VKID=$(cat "$SCRATCH/vkid"); LEAD=$(cat "$SCRATCH/lead"); LKID=$(cat "$SCRATCH/lkid")
+PIDS+=("$VG" "$VKID" "$LEAD" "$LKID"); GROUPS_MADE+=("$VG" "$LEAD")
+# a live owner's tagged process
+env "$HOUSEKEEPING_TAG=$$ $(starttime $$)" sleep 300 & LIVE=$!; PIDS+=("$LIVE")
+kill -KILL "$OWNER"; wait "$OWNER" 2> /dev/null; rm -rf "$copy"; sleep 0.3
+[ -n "$VG" ] && [ -n "$VKID" ] && [ -n "$LEAD" ] && [ -n "$LKID" ] && ok "e2e setup: tagged group, tagged child under an untagged leader" || fail "e2e setup: VG=$VG VKID=$VKID LEAD=$LEAD LKID=$LKID"
+out=$(timeout 30 bash "$H" 2>&1); sleep 0.3
+alive() { [ -e "/proc/$1" ] && [ "$(cut -d' ' -f3 "/proc/$1/stat" 2> /dev/null)" != Z ]; }
+! alive "$VG" && ! alive "$VKID" && ok "dead owner: the tagged group is stopped" || fail "tagged group lives: $out"
+grep -q "stopped process group $VG tagged with dead browser owner pid $OWNER" <<< "$out" && ok "the stop is logged with the owner" || fail "no log line: $out"
+! alive "$LKID" && alive "$LEAD" && ok "a tagged process under an untagged leader: only it is stopped" || fail "untagged leader case: LEAD $(alive "$LEAD" && echo up) LKID $(alive "$LKID" && echo up)"
+alive "$LIVE" && ok "a live owner's tagged process is left alone" || fail "live owner's process stopped"
 
 [ $fails = 0 ] && echo "ALL OK" || echo "$fails FAILED"
 exit $((fails > 0))
