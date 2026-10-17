@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 7b24b9ed1aeea0272e5679767ecd2794230f6e5b
 goal: Sealed alignment picker: the picked Qtc is the entered value, the lossy inverse gives the volume (T329 redone on current main)
 done_test: bash scripts/test.sh packages/ui/test/hooks/SealedAlignment-hooks.test.ts packages/design/test/domain/driver-design-queries.test.ts
 files:

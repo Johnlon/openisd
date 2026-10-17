@@ -53,7 +53,7 @@ export function drawOne(
   const Y = (v: number) => m.t + (1 - levelAxis.fraction(v)) * ph;
 
   // frequency grid
-  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = `${layout.tickFontPx}px Inter`; ctx.lineWidth = 1;
+  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = layout.font(layout.tickFontPx); ctx.lineWidth = 1;
   for (const line of freqAxis.gridLines()) {
     const x = X(line.f); ctx.globalAlpha = line.major ? 0.85 : 0.28;
     ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
@@ -126,7 +126,7 @@ export function drawOne(
   // legend — only when there are multiple named series
   const namedSeries = plotData.series.filter(s => s.name);
   if (namedSeries.length > 1) {
-    ctx.font = '9px Inter'; ctx.textAlign = 'left';
+    ctx.font = layout.font(layout.tickFontPx); ctx.textAlign = 'left';
     const lh = 13, lx = m.l + 6;
     let ly = m.t + 6;
     for (const s of namedSeries) {
@@ -134,7 +134,7 @@ export function drawOne(
       if (s.dash) ctx.setLineDash([4, 3]); else ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(lx, ly + 3); ctx.lineTo(lx + 14, ly + 3); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.font = s.current ? 'bold 9px Inter' : '9px Inter';
+      ctx.font = layout.font(layout.tickFontPx, s.current);
       ctx.fillStyle = s.color; ctx.fillText(s.name, lx + 17, ly + 6);
       ly += lh;
     }

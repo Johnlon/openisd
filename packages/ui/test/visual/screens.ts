@@ -1,5 +1,5 @@
 import type {Page} from '@playwright/test';
-import {openAMobileProject, openAProject, setFocusedBoxType} from '../fixtures.js';
+import {expect, openAMobileProject, openAProject, setFocusedBoxType} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
 import {FIXTURE_DATE} from '../fixtures/sampleProject.js';
 
@@ -31,6 +31,9 @@ export class VisualSkin {
   async openProject(page: Page): Promise<void> {
     if (this === VisualSkin.MOBILE) await openAMobileProject(page);
     else await openAProject(page);
+    // The "Project imported" message floats over the screen for a few seconds, fading as it goes: a picture
+    // taken while it shows holds it at whatever opacity the load gave it. The picture is of the screen.
+    await expect(page.getByText(/Project imported/)).toBeHidden();
   }
 }
 

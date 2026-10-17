@@ -11,3 +11,10 @@ describe('ChartLayout', () => {
     expect(new ChartLayout({ l: 0, r: 0, t: 30, b: 0 }, 0, 9, 3, 0).levelLabelTopPx).toBe(23);
   });
 });
+
+describe('ChartLayout chart text font', () => {
+  it('names a generic family, so a missing Inter never falls to the browser default face', () => {
+    expect(ChartLayout.CHART.font(9)).toBe('9px "Inter", system-ui, sans-serif');
+    expect(ChartLayout.CHART.font(9, true)).toBe('bold 9px "Inter", system-ui, sans-serif');
+  });
+});

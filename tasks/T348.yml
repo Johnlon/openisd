@@ -1,0 +1,34 @@
+id: T348
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The visual pictures never hold the fading Project imported message, and chart text uses a named font stack; visual desktop-tab-box stops flaking
+done_test: bash scripts/test.sh packages/design/test/chart/chart-layout.test.ts
+files:
+  - tasks/T348.yml
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/chart/layout.ts
+  - packages/design/test/chart/chart-layout.test.ts
+  - packages/ui/src/ui/canvas.ts
+  - bugs/BUG_20261017_chart-text-font-no-fallback.md
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-graph
+  - mobile-tab-signal
