@@ -88,6 +88,11 @@ stop_suite() {
 record_red() {
   # The push can lose a race with a landing, so recompute and retry.
   FIX="$(mktemp -d "${TMPDIR:-/tmp}/post-land-fix.XXXXXX")"
+  # The whole output is kept: the F carries only the failing lines and the last 40, and the suite's
+  # temporary output file is removed when the run ends.
+  KEEP="${POST_LAND_KEEP_DIR:-$ROOT/build/test-logs}/post-land-red-${SHA:0:10}.log"
+  mkdir -p "$(dirname "$KEEP")" && cp "$OUT" "$KEEP" || KEEP="(not kept: cannot write $KEEP)"
+  local pushed=""
   for attempt in 1 2 3; do
     git fetch -q origin main
     # The fixes commit goes on top of the tested commit. When origin/main already holds it, that is
@@ -117,7 +122,7 @@ record_red() {
     if [ -n "$open" ]; then
       n="$(basename "$open" .yml)"; n="${n#F}"
       {
-        printf 'also_red:\n  - sha: %s\n    tested: %s\n    last_green: %s\n    range: %s\n    failing: |\n' "$SHA" "$SHA" "${green:-none}" "$range"
+        printf 'also_red:\n  - sha: %s\n    tested: %s\n    last_green: %s\n    range: %s\n    full_output: %s\n    failing: |\n' "$SHA" "$SHA" "${green:-none}" "$range" "$KEEP"
         printf '%s\n' "$failing" | sed 's/^/    /'
         [ -z "$visual" ] || { printf '    visual: |\n'; printf '%s\n' "$visual" | sed 's/^/      /'; }
       } >> "$open"
@@ -129,7 +134,7 @@ record_red() {
       owner="$(git log --reverse --format=%an $range | head -n 1)"
       {
         printf 'id: F%s\nowner: %s\nstatus: open\nsha: %s\n' "$n" "${owner:-post-land}" "$SHA"
-        printf 'tested: %s\nlast_green: %s\nrange: %s\n' "$SHA" "${green:-none}" "$range"
+        printf 'tested: %s\nlast_green: %s\nrange: %s\nfull_output: %s\n' "$SHA" "${green:-none}" "$range" "$KEEP"
         printf 'goal: main is red at %s; make the full suite pass again\n' "${SHA:0:10}"
         printf 'commits: |\n'
         git log --abbrev=10 --format='  %h %s' $range
@@ -142,12 +147,15 @@ record_red() {
     fi
     git -C "$FIX" add "tasks/fixes/F$n.yml"
     git -C "$FIX" commit -q -m "$subject" || exit 2
-    if git -C "$FIX" push -q origin HEAD:main; then
-      echo "post-land: RED at ${SHA:0:10}; opened tasks/fixes/F$n.yml on main" >&2
+    # A landing can push between the fetch and this push; the next attempt starts again from the fetch.
+    if pushed="$(git -C "$FIX" push -q origin HEAD:main 2>&1)"; then
+      echo "post-land: RED at ${SHA:0:10}; opened tasks/fixes/F$n.yml on main (full output: $KEEP)" >&2
       exit 1
     fi
+    echo "post-land: push of the fixes task lost a race with another push (attempt $attempt of 3); retrying" >&2
   done
-  echo "post-land: RED at ${SHA:0:10} but could not push the fixes task" >&2
+  printf '%s\n' "$pushed" >&2
+  echo "post-land: RED at ${SHA:0:10} but could not push the fixes task (full output: $KEEP)" >&2
   exit 1
 }
 HOLDER="${POST_LAND_LOCK}.holder"

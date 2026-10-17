@@ -11,6 +11,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/post-land-redbase.XXXXXX")"
 fails=0
 trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
+export POST_LAND_KEEP_DIR="$SCRATCH/keep"
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
@@ -54,6 +55,22 @@ before=$(origin_main)
 timeout 120 bash scripts/land/post-land/run.sh "$s" > "$SCRATCH/out" 2>&1; r=$?
 if [ $r != 0 ] && [ "$(origin_main)" = "$before" ] && grep -qi "diverged\|not a fast-forward\|cannot" "$SCRATCH/out"; then
     ok "diverged origin: nothing pushed, the cause is named"; else fail "diverged (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-200)"; fi
+
+# 4. the first push loses a race (origin refuses it once): one plain retry line, no git noise, the F lands
+#    on the second attempt; the red run's whole output is kept and the F names the file
+setup; s=$(local_commit five FAIL); git push -q origin main
+printf '#!/bin/sh\n[ -e "%s/raced" ] && exit 0\ntouch "%s/raced"; echo "cannot lock ref" >&2; exit 1\n' "$SCRATCH" "$SCRATCH" > "$SCRATCH/w/origin.git/hooks/pre-receive"
+chmod +x "$SCRATCH/w/origin.git/hooks/pre-receive"; rm -f "$SCRATCH/raced"
+timeout 120 bash scripts/land/post-land/run.sh "$s" > "$SCRATCH/out" 2>&1; r=$?
+keep="$POST_LAND_KEEP_DIR/post-land-red-${s:0:10}.log"
+if [ $r = 1 ] && [ "$(git -C "$SCRATCH/w/origin.git" rev-parse "$(origin_main)^")" = "$s" ] \
+   && grep -q 'lost a race with another push (attempt 1 of 3); retrying' "$SCRATCH/out" \
+   && ! grep -qE 'rejected|cannot lock|outside repository|^hint:' "$SCRATCH/out"; then
+    ok "a lost first push: one retry line, no git noise, the F lands"; else fail "race (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-300)"; fi
+f=$(git -C "$SCRATCH/w/origin.git" show "$(origin_main)" --name-only --format= | grep 'tasks/fixes/F')
+if grep -q 'spec broken.spec.ts failed' "$keep" 2> /dev/null \
+   && git -C "$SCRATCH/w/origin.git" show "$(origin_main):$f" | grep -qx "full_output: $keep"; then
+    ok "the whole output is kept and the F names it"; else fail "kept output: $keep / $f"; fi
 
 [ $fails = 0 ] && { echo "post-land-red-base: all passed"; exit 0; }
 echo "post-land-red-base: $fails failed"; exit 1

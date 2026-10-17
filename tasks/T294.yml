@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 2a6970ad1d87f44d143e0a3c15647ad7d8c00c73
 goal: Inbox item QO183: a blocked revert in the main checkout
 done_test: bash scripts/test.sh packages/ui/test/logic/appState-issues.test.ts
 files:
