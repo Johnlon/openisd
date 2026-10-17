@@ -28,11 +28,11 @@ test('the desktop project screen has the legend as one thin row at its bottom', 
   expect(bottom.y).toBeGreaterThanOrEqual(main.y + main.height - 1);
 });
 
-test('the Learn panel has the legend as one thin row at its bottom', async ({page}) => {
+test('the What-if panel has the legend as one thin row at its bottom', async ({page}) => {
   await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', {hasText: 'Driver'}).click();
-  await page.locator('.edit-btn', {hasText: 'Learn'}).click();
+  await page.locator('.edit-btn', {hasText: 'What-if'}).click();
   await expect(page.locator('.what-if-panel')).toBeVisible();
   await expectOneThinRow(page.locator('.what-if-panel > .prov-legend'));
 });

@@ -78,7 +78,7 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.content-panel')).toContainText('Description');
     });
 
-    test('Learn is below the right-edge legend, not in the Driver row', async ({ appPage: page }) => {
+    test('What-if is below the right-edge legend, not in the Driver row', async ({ appPage: page }) => {
       const legend = page.locator('.value-legend');
       const whatIf = page.locator('.save-rail .what-if-btn');
 

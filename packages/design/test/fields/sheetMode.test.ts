@@ -1,130 +1,61 @@
 /**
- * `SheetMode` — Tune and Learn modes for the bottom sheet.
- *
- * Tune lines per box type follow PLAN_20261015_TUNE_SHEET.md §2 (compact paired layout).
- * Learn lines keep the educational one-field-per-row layout.
- * `rowSlots` reserves the larger line count so the sheet does not resize on mode switch.
+ * `SheetMode` — the Tune sheet and the What-if sheet: separate sheets with their own fields.
+ * Tune: the box figures, power and drivers. What-if: those plus the driver's Fs, Qts and Vas.
  */
 import {describe, expect, it} from 'vitest';
-import type {BoxType} from '../../engine/types.js';
 import {BOX_TYPE_OPTIONS} from '../../fields/options.js';
 import {SheetField} from '../../fields/sheetField.js';
 import {SheetMode} from '../../fields/sheetMode.js';
 
-const TUNE_EXPECTED: Readonly<Record<BoxType, readonly (readonly SheetField[])[]>> = {
-  'sealed': [
-    [SheetField.BOX_VOLUME],
-    [SheetField.INPUT_POWER, SheetField.DRIVER_COUNT],
-  ],
-  'vented': [
-    [SheetField.BOX_VOLUME],
-    [SheetField.TUNING, SheetField.PORT_AREA],
-    [SheetField.INPUT_POWER, SheetField.DRIVER_COUNT],
-  ],
-  'box-passive-radiator': [
-    [SheetField.BOX_VOLUME],
-    [SheetField.PR_ADDED_MASS, SheetField.PR_COUNT],
-    [SheetField.INPUT_POWER, SheetField.DRIVER_COUNT],
-  ],
-  'bandpass4': [
-    [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME],
-    [SheetField.FRONT_TUNING, SheetField.PORT_AREA],
-    [SheetField.INPUT_POWER, SheetField.DRIVER_COUNT],
-  ],
-  'bandpass6': [
-    [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME],
-    [SheetField.REAR_TUNING],
-    [SheetField.REAR_PORT_AREA, SheetField.FRONT_PORT_AREA],
-    [SheetField.INPUT_POWER, SheetField.DRIVER_COUNT],
-  ],
-  'abc': [
-    [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME],
-    [SheetField.REAR_TUNING],
-    [SheetField.REAR_PORT_AREA, SheetField.FRONT_PORT_AREA],
-    [SheetField.INTRA_PORT_AREA],
-    [SheetField.INPUT_POWER, SheetField.DRIVER_COUNT],
-  ],
-};
-
 describe('SheetMode', () => {
-  it('exposes TUNE, LEARN and ALL', () => {
-    expect(SheetMode.ALL).toEqual([SheetMode.TUNE, SheetMode.LEARN]);
+  it('exposes TUNE, WHAT_IF and ALL', () => {
+    expect(SheetMode.ALL).toEqual([SheetMode.TUNE, SheetMode.WHAT_IF]);
     expect(SheetMode.TUNE.label).toBe('Tune');
     expect(SheetMode.TUNE.edits).toBe('project');
-    expect(SheetMode.LEARN.label).toBe('Learn');
-    expect(SheetMode.LEARN.edits).toBe('whatIfLayer');
+    expect(SheetMode.WHAT_IF.label).toBe('What-if');
+    expect(SheetMode.WHAT_IF.edits).toBe('whatIfLayer');
   });
 
-  describe('Tune lines', () => {
-    it.each(BOX_TYPE_OPTIONS.map(o => o.value))('matches the §2 table for a %s box', (type) => {
-      expect(SheetMode.TUNE.lines(type)).toEqual(TUNE_EXPECTED[type]);
+  describe('Tune fields', () => {
+    it.each(BOX_TYPE_OPTIONS.map(o => o.value))('are the %s box figures, power and drivers, one per line', (type) => {
+      const expected = SheetField.forBox(type).filter(f => !SheetField.DRIVER_SPEC.includes(f));
+      expect(SheetMode.TUNE.lines(type)).toEqual(expected.map(f => [f]));
     });
 
-    it('never has more than 2 fields on a line', () => {
+    it('never contain the driver Fs, Qts or Vas', () => {
       for (const o of BOX_TYPE_OPTIONS) {
         for (const line of SheetMode.TUNE.lines(o.value)) {
-          expect(line.length).toBeGreaterThanOrEqual(1);
-          expect(line.length).toBeLessThanOrEqual(2);
-        }
-      }
-    });
-
-    it('never contains DRIVER_FS, DRIVER_QTS or DRIVER_VAS', () => {
-      const excluded = new Set([SheetField.DRIVER_FS, SheetField.DRIVER_QTS, SheetField.DRIVER_VAS]);
-      for (const o of BOX_TYPE_OPTIONS) {
-        for (const line of SheetMode.TUNE.lines(o.value)) {
-          for (const field of line) {
-            expect(excluded.has(field)).toBe(false);
-          }
+          for (const field of line) expect(SheetField.DRIVER_SPEC.includes(field)).toBe(false);
         }
       }
     });
   });
 
-  describe('Learn lines', () => {
-    it('has exactly one field per line, matching SheetField.forBox', () => {
+  describe('What-if fields', () => {
+    it('are every box figure plus Fs, Qts and Vas, one per line', () => {
       for (const o of BOX_TYPE_OPTIONS) {
-        const lines = SheetMode.LEARN.lines(o.value);
+        const lines = SheetMode.WHAT_IF.lines(o.value);
         expect(lines.every(line => line.length === 1)).toBe(true);
         expect(lines.map(line => line[0])).toEqual(SheetField.forBox(o.value));
+        for (const f of SheetField.DRIVER_SPEC) expect(lines.flat()).toContain(f);
       }
     });
   });
 
-  describe('rowSlots', () => {
-    it('equals the Learn line count for every box type', () => {
-      for (const o of BOX_TYPE_OPTIONS) {
-        expect(SheetMode.rowSlots(o.value)).toBe(SheetMode.LEARN.lines(o.value).length);
-      }
-    });
-  });
-
-  describe('shortLabel', () => {
-    it('gives every SheetField a non-empty shortLabel', () => {
+  describe('labelOf', () => {
+    it('gives Tune real short names, never a bare letter, and What-if the full names', () => {
       for (const f of SheetField.ALL) {
-        expect(typeof f.shortLabel).toBe('string');
-        expect(f.shortLabel.length).toBeGreaterThan(0);
+        expect(SheetMode.TUNE.labelOf(f)).toBe(f.tuneLabel);
+        expect(SheetMode.WHAT_IF.labelOf(f)).toBe(f.label);
       }
-    });
-
-    it('assigns the documented shortLabel to each member', () => {
-      expect(SheetField.BOX_VOLUME.shortLabel).toBe('V');
-      expect(SheetField.REAR_VOLUME.shortLabel).toBe('Vr');
-      expect(SheetField.FRONT_VOLUME.shortLabel).toBe('Vf');
-      expect(SheetField.TUNING.shortLabel).toBe('Fb');
-      expect(SheetField.FRONT_TUNING.shortLabel).toBe('Ff');
-      expect(SheetField.REAR_TUNING.shortLabel).toBe('Fr');
-      expect(SheetField.PORT_AREA.shortLabel).toBe('Pp');
-      expect(SheetField.REAR_PORT_AREA.shortLabel).toBe('Pr');
-      expect(SheetField.FRONT_PORT_AREA.shortLabel).toBe('Pf');
-      expect(SheetField.INTRA_PORT_AREA.shortLabel).toBe('Pi');
-      expect(SheetField.PR_ADDED_MASS.shortLabel).toBe('Madd');
-      expect(SheetField.PR_COUNT.shortLabel).toBe('Npr');
-      expect(SheetField.INPUT_POWER.shortLabel).toBe('P');
-      expect(SheetField.DRIVER_FS.shortLabel).toBe('Fs');
-      expect(SheetField.DRIVER_QTS.shortLabel).toBe('Qts');
-      expect(SheetField.DRIVER_VAS.shortLabel).toBe('Vas');
-      expect(SheetField.DRIVER_COUNT.shortLabel).toBe('N');
+      for (const o of BOX_TYPE_OPTIONS) {
+        for (const f of SheetMode.TUNE.lines(o.value).flat()) expect(f.tuneLabel.length).toBeGreaterThanOrEqual(5);
+      }
+      expect(SheetField.BOX_VOLUME.tuneLabel).toBe('Box volume');
+      expect(SheetField.PR_ADDED_MASS.tuneLabel).toBe('Added mass');
+      expect(SheetField.PR_COUNT.tuneLabel).toBe('Radiators');
+      expect(SheetField.INPUT_POWER.tuneLabel).toBe('Power');
+      expect(SheetField.DRIVER_COUNT.tuneLabel).toBe('Drivers');
     });
   });
 });

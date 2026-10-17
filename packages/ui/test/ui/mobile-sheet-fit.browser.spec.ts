@@ -3,10 +3,10 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
 
 /**
- * The mobile bottom sheet (Tune and Learn modes): rows fit without scrolling, horizontal layout
- * fits without overflow, and sheet height is identical in Tune and Learn so the chart never moves
- * on a mode switch. On a screen too short for the rows, the chart keeps 120 px and the rows scroll
- * inside the sheet (never shrunk away, never clipped).
+ * The two mobile bottom sheets, Tune and What-if, on every phone size: each keeps one fixed height
+ * while open (an edit never resizes it), the chart keeps 120 px, nothing overflows sideways, and
+ * on a screen too short for the rows they scroll inside the sheet (never shrunk away, never
+ * clipped: every row can be scrolled fully into view and Close stays on screen).
  */
 const MIN_CHART_PX = 120;
 /** How far the rows may overflow their box: not at all, unless the chart is held at its 120 px floor. */
@@ -28,62 +28,58 @@ async function selectTwoRadiators(page: Page): Promise<void> {
 import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 
 const BOXES = [
-  {type: 'sealed', tab: 'Box', tuneLines: 2, learnRows: 6, setup: async () => {}},
-  {type: 'vented', tab: 'Vented', tuneLines: 3, learnRows: 8, setup: selectRectangularTwoVents},
-  {type: 'box-passive-radiator', tab: 'Passive Radiator', tuneLines: 3, learnRows: 8, setup: selectTwoRadiators},
-  {type: 'bandpass4', tab: '4th Order Bandpass', tuneLines: 3, learnRows: 9, setup: selectRectangularTwoVents},
-  {type: 'bandpass6', tab: '6th Order Bandpass', tuneLines: 4, learnRows: 10, setup: selectRectangularTwoVents},
-  {type: 'abc', tab: 'ABC', tuneLines: 5, learnRows: 11, setup: selectRectangularTwoVents},
+  {type: 'vented', tab: 'Vented', tuneRows: 5, whatIfRows: 8, setup: selectRectangularTwoVents},
+  {type: 'box-passive-radiator', tab: 'Passive Radiator', tuneRows: 5, whatIfRows: 8, setup: selectTwoRadiators},
+  {type: 'abc', tab: 'ABC', tuneRows: 8, whatIfRows: 11, setup: selectRectangularTwoVents},
+];
+const SHEETS = [
+  {name: 'Tune', rows: (b: typeof BOXES[number]) => b.tuneRows},
+  {name: 'What-if', rows: (b: typeof BOXES[number]) => b.whatIfRows},
 ];
 
-for (const size of PHONE_SIZES) for (const {type, tab, tuneLines, learnRows, setup} of BOXES) {
-  test(`${type} sheet: fits without scrolling or overflow in Tune and Learn at ${size.width}×${size.height}`, async ({page}) => {
+for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetKind of SHEETS) {
+  test(`${box.type} ${sheetKind.name} sheet: fixed height, chart kept, nothing clipped at ${size.width}×${size.height}`, async ({page}) => {
     await page.setViewportSize(size);
     await forceMobileSkin(page);
     await page.goto('/');
     await openAMobileProject(page);
     await page.locator('.mob-tab', {hasText: 'Box'}).click();
-    await page.locator('#mob-box-type').selectOption(type);
-    await page.locator('.mob-tab', {hasText: tab}).first().click();
-    await setup(page);
+    await page.locator('#mob-box-type').selectOption(box.type);
+    await page.locator('.mob-tab', {hasText: box.tab}).first().click();
+    await box.setup(page);
     await page.locator('.mob-tab', {hasText: 'Graph'}).click();
-    await page.getByRole('button', {name: 'Open Tune'}).click();
+    await page.getByRole('button', {name: `Open ${sheetKind.name}`}).click();
 
     const sheet = page.locator('.mob-sheet');
     await expect(sheet).toBeVisible();
     const rows = page.locator('.mob-sheet-rows');
-    await expect(rows).toBeVisible();
+    await expect(page.locator('.mob-sheet-cell')).toHaveCount(sheetKind.rows(box));
 
-    // Tune mode: no vertical scroll, no horizontal overflow
-    const tuneScroll = await rows.evaluate(el => ({scroll: el.scrollHeight, client: el.clientHeight}));
-    expect(tuneScroll.scroll - tuneScroll.client, `Tune rows vertically scroll by ${tuneScroll.scroll - tuneScroll.client}px`).toBeLessThanOrEqual(await allowedRowsOverflow(page));
-
-    const tuneHScroll = await rows.evaluate(el => ({scroll: el.scrollWidth, client: el.clientWidth}));
-    expect(tuneHScroll.scroll, `Tune rows horizontally overflow by ${tuneHScroll.scroll - tuneHScroll.client}px`).toBeLessThanOrEqual(tuneHScroll.client);
-
-    const tuneLinesOverflow = await page.locator('.mob-sheet-line').evaluateAll(els => els.map(e => e.scrollWidth <= e.clientWidth));
-    expect(tuneLinesOverflow.every(Boolean)).toBe(true);
-
-    await expect(page.locator('.mob-sheet-line')).toHaveCount(tuneLines);
-
-    const tuneHeight = await sheet.evaluate(el => el.getBoundingClientRect().height);
+    const vertical = await rows.evaluate(el => ({scroll: el.scrollHeight, client: el.clientHeight}));
+    expect(vertical.scroll - vertical.client, `rows scroll by ${vertical.scroll - vertical.client}px`).toBeLessThanOrEqual(await allowedRowsOverflow(page));
+    const horizontal = await rows.evaluate(el => ({scroll: el.scrollWidth, client: el.clientWidth}));
+    expect(horizontal.scroll, `rows overflow sideways by ${horizontal.scroll - horizontal.client}px`).toBeLessThanOrEqual(horizontal.client);
+    const linesFit = await page.locator('.mob-sheet-line').evaluateAll(els => els.map(e => e.scrollWidth <= e.clientWidth));
+    expect(linesFit.every(Boolean)).toBe(true);
     expect(await chartHeight(page)).toBeGreaterThanOrEqual(MIN_CHART_PX);
 
-    // Switch to Learn mode
-    await page.locator('.mob-sheet-modes').getByRole('button', {name: 'Learn'}).click();
-    await expect(page.locator('.mob-sheet-learn')).toBeVisible();
+    // Close stays on the screen.
+    const closeRect = await sheet.getByRole('button', {name: 'Close'}).evaluate(el => el.getBoundingClientRect());
+    expect(closeRect.bottom).toBeLessThanOrEqual(size.height);
+    expect(closeRect.right).toBeLessThanOrEqual(size.width);
 
-    const learnScroll = await rows.evaluate(el => ({scroll: el.scrollHeight, client: el.clientHeight}));
-    expect(learnScroll.scroll - learnScroll.client, `Learn rows vertically scroll by ${learnScroll.scroll - learnScroll.client}px`).toBeLessThanOrEqual(await allowedRowsOverflow(page));
+    // Every row can be scrolled fully into the rows box.
+    const last = page.locator('.mob-sheet-cell').last();
+    await last.scrollIntoViewIfNeeded();
+    const lastBottom = await last.evaluate(el => el.getBoundingClientRect().bottom);
+    const rowsBottom = await rows.evaluate(el => el.getBoundingClientRect().bottom);
+    expect(lastBottom).toBeLessThanOrEqual(rowsBottom + 1);
+    await page.locator('.mob-sheet-cell').first().scrollIntoViewIfNeeded();
 
-    const learnHScroll = await rows.evaluate(el => ({scroll: el.scrollWidth, client: el.clientWidth}));
-    expect(learnHScroll.scroll, `Learn rows horizontally overflow by ${learnHScroll.scroll - learnHScroll.client}px`).toBeLessThanOrEqual(learnHScroll.client);
-
-    await expect(page.locator('.mob-sheet-cell')).toHaveCount(learnRows);
-
-    const learnHeight = await sheet.evaluate(el => el.getBoundingClientRect().height);
-    expect(Math.round(learnHeight)).toBe(Math.round(tuneHeight));
-
+    // An edit never resizes the sheet.
+    const before = await sheet.evaluate(el => el.getBoundingClientRect().height);
+    await page.locator('.mob-sheet-cell').first().getByTitle('Increase').click();
+    expect(await sheet.evaluate(el => el.getBoundingClientRect().height)).toBe(before);
     expect(await chartHeight(page)).toBeGreaterThanOrEqual(MIN_CHART_PX);
   });
 }

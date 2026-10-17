@@ -1,5 +1,5 @@
 /**
- * `useMobileSheet` — opening begins the What-if in Learn mode; every way out (Close, and dragging the
+ * `useMobileSheet` — opening begins the What-if in What-if mode; every way out (Close, and dragging the
  * sheet down, which the browser spec covers) ends it, so the project is as it was and not modified. Reset puts the project's values
  * back and keeps the sheet open. In Tune mode, writes land directly in the project.
  */
@@ -25,7 +25,7 @@ const LAUNCH_ENV: LaunchEnvironment = {
   screenW: 390, screenH: 844, lang: 'en-GB', referrer: '', keysLost: [],
 };
 
-function sheet(mode = ref(SheetMode.LEARN), telemetryUi?: TelemetryUi) {
+function sheet(mode: SheetMode = SheetMode.WHAT_IF, telemetryUi?: TelemetryUi) {
   const p = ProjectBuilder.empty(createEngine());
   p.driver.specs.Fs_hz.set(40);
   p.driver.specs.Qts.set(0.38);
@@ -43,11 +43,11 @@ describe('useMobileSheet', () => {
 
   it('exposes rowSlots for the focused project box type', () => {
     const { projectRef, api } = sheet();
-    expect(api.rowSlots.value).toBe(SheetMode.rowSlots('sealed'));
+    expect(api.rowSlots.value).toBe(SheetMode.WHAT_IF.lines('sealed').length);
     const abc = ProjectBuilder.empty(createEngine());
     abc.box.boxType.set('abc');
     projectRef.value = abc;
-    expect(api.rowSlots.value).toBe(SheetMode.rowSlots('abc'));
+    expect(api.rowSlots.value).toBe(SheetMode.WHAT_IF.lines('abc').length);
   });
 
   it('opening begins a What-if', () => {
@@ -84,7 +84,7 @@ describe('useMobileSheet', () => {
     const open = ref(false);
     const scope = effectScope();
     const api = scope.run(() => runHook(computed(() => project), () =>
-      useMobileSheet({ open: () => open.value, setOpen: v => { open.value = v; }, mode: ref(SheetMode.LEARN) })));
+      useMobileSheet({ open: () => open.value, setOpen: v => { open.value = v; }, mode: SheetMode.WHAT_IF })));
     if (api === undefined) throw new Error('the hook did not run');
     api.openSheet();
     api.setValue(SheetField.BOX_VOLUME, 0.02);
@@ -94,7 +94,7 @@ describe('useMobileSheet', () => {
     expect(project.isModified()).toBe(false);
   });
 
-  it('opening in Tune records tune, in Learn whatif', () => {
+  it('opening in Tune records tune, in What-if whatif', () => {
     const events: TelemetryEvent[] = [];
     const fakeTelemetry: Telemetry = { record: e => events.push(e), flush: () => {} };
     const featureUse = new FeatureUse(fakeTelemetry);
@@ -114,12 +114,12 @@ describe('useMobileSheet', () => {
       actions,
     };
 
-    const tune = sheet(ref(SheetMode.TUNE), telemetryUi);
+    const tune = sheet(SheetMode.TUNE, telemetryUi);
     tune.api.openSheet();
     expect(events).toContainEqual({ kind: 'feature', name: 'tune' });
 
     events.length = 0;
-    const learn = sheet(ref(SheetMode.LEARN), telemetryUi);
+    const learn = sheet(SheetMode.WHAT_IF, telemetryUi);
     learn.api.openSheet();
     expect(events).toContainEqual({ kind: 'feature', name: 'whatif' });
   });
@@ -142,7 +142,7 @@ describe('useMobileSheet', () => {
   });
 
   describe('the port overlay', () => {
-    function ventedSheet(mode = ref(SheetMode.LEARN)) {
+    function ventedSheet(mode: SheetMode = SheetMode.WHAT_IF) {
       const made = sheet(mode);
       made.project.box.boxType.set('vented');
       made.project.box.vented.volume_m3.set(0.05);
@@ -172,16 +172,16 @@ describe('useMobileSheet', () => {
       expect(api.portEditor.value).toBeNull();
     });
 
-    it('a press on a port-area value in Tune does not begin a What-if layer; in Learn it does', () => {
-      const learn = ventedSheet(ref(SheetMode.LEARN));
+    it('a press on a port-area value in Tune does not begin a What-if layer; in What-if it does', () => {
+      const learn = ventedSheet(SheetMode.WHAT_IF);
       learn.api.openSheet();
-      const rowLearn = learn.api.rows.value.find(r => r.field === SheetField.PORT_AREA);
-      if (!rowLearn) throw new Error('no port area row');
-      learn.api.portValuePress(press('click'), rowLearn);
+      const rowWhatIf = learn.api.rows.value.find(r => r.field === SheetField.PORT_AREA);
+      if (!rowWhatIf) throw new Error('no port area row');
+      learn.api.portValuePress(press('click'), rowWhatIf);
       expect(learn.project.isWhatIfActive()).toBe(true);
       expect(learn.api.portEditor.value?.field.label).toBe(SheetField.PORT_AREA.label);
 
-      const tune = ventedSheet(ref(SheetMode.TUNE));
+      const tune = ventedSheet(SheetMode.TUNE);
       tune.api.openSheet();
       const rowTune = tune.api.rows.value.find(r => r.field === SheetField.PORT_AREA);
       if (!rowTune) throw new Error('no port area row');

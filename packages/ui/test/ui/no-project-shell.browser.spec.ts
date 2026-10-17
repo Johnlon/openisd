@@ -252,7 +252,7 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.original-root')).toBeVisible();
     }
 
-    test('a stored open Learn panel does not reopen when no project is open', async ({page}) => {
+    test('a stored open What-if panel does not reopen when no project is open', async ({page}) => {
       await bootWith(page, 'originalWhatIfOpen');
       await expect(page.locator('.what-if-panel')).toHaveCount(0);
     });

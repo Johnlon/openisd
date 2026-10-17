@@ -1,10 +1,11 @@
 /**
- * The mobile bottom sheet (Tune and Learn modes):
+ * The mobile Graph page's two bottom sheets, Tune and What-if (John, 17 Oct 2026: they are
+ * entirely different; one edits the project, the other is for experiments), each opened from its
+ * own pull-tab, with no toggle between them:
  * - Tune writes live to the project; edits survive Close and reload.
- * - Learn edits the What-if layer; charts update live but the project is never modified.
- * - Close in Learn discards the What-if; switching Learn -> Tune also discards.
- * - Dragging down closes the sheet; leaving Graph page ends Learn.
- * - Strings match plan §5.
+ * - What-if edits a temporary layer; charts update live but the project is never modified.
+ * - Close in What-if discards it; dragging down closes the sheet; leaving Graph ends it.
+ * - The two sheets have their own fields.
  */
 import {chartPicture, expect, focusedIsModified, openAMobileProject, shownBoxVolume, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
@@ -31,51 +32,42 @@ async function dragToBottom(page: Page, handle: Locator) {
   await page.mouse.up();
 }
 
-test('strings and controls match plan §5 in Tune and Learn modes', async ({ page }) => {
+test('Tune and What-if each have their own pull-tab, side by side, and no mode toggle', async ({ page }) => {
   await openGraph(page);
-  const tab = page.getByRole('button', { name: 'Open Tune' });
-  await expect(tab).toBeVisible();
-  await expect(tab).toHaveText('Tune ▲');
-  await tab.click();
+  const tune = page.getByRole('button', { name: 'Open Tune' });
+  const whatIf = page.getByRole('button', { name: 'Open What-if' });
+  await expect(tune).toHaveText('Tune ▲');
+  await expect(whatIf).toHaveText('What-if ▲');
+  const tuneRect = await tune.evaluate(el => el.getBoundingClientRect());
+  const whatIfRect = await whatIf.evaluate(el => el.getBoundingClientRect());
+  expect(Math.abs(tuneRect.top - whatIfRect.top)).toBeLessThan(1);
+  expect(whatIfRect.left).toBeGreaterThan(tuneRect.right - 1);
+  await expect(page.getByText(new RegExp('Lea' + 'rn'))).toHaveCount(0);
 
+  // Tune: its own sheet, no Reset, no mode toggle, no driver Fs row.
+  await tune.click();
   const sheet = page.locator('.mob-sheet');
-  await expect(sheet).toBeVisible();
   await expect(sheet).toHaveAttribute('aria-label', 'Tune');
-
-  const handle = sheet.getByRole('separator', { name: 'Drag to resize' });
-  await expect(handle).toBeVisible();
-
-  const group = sheet.getByRole('group', { name: 'Sheet mode' });
-  await expect(group).toBeVisible();
-  const tuneBtn = group.getByRole('button', { name: 'Tune' });
-  const learnBtn = group.getByRole('button', { name: 'Learn' });
-
-  await expect(tuneBtn).toHaveAttribute('aria-pressed', 'true');
-  await expect(tuneBtn).toHaveAttribute('title', 'Change the design');
-  await expect(learnBtn).toHaveAttribute('aria-pressed', 'false');
-  await expect(learnBtn).toHaveAttribute('title', 'Try values. The design is not changed.');
-
+  await expect(sheet.getByRole('separator', { name: 'Drag to resize' })).toBeVisible();
+  await expect(sheet.getByRole('group')).toHaveCount(0);
   await expect(sheet.getByRole('button', { name: 'Reset' })).toHaveCount(0);
-  const closeBtn = sheet.getByRole('button', { name: 'Close' });
-  await expect(closeBtn).toHaveAttribute('title', 'Close');
-
-  // Switch to Learn mode
-  await learnBtn.click();
-  await expect(sheet).toHaveAttribute('aria-label', 'Learn');
-  await expect(tuneBtn).toHaveAttribute('aria-pressed', 'false');
-  await expect(learnBtn).toHaveAttribute('aria-pressed', 'true');
-
-  const resetBtn = sheet.getByRole('button', { name: 'Reset' });
-  await expect(resetBtn).toBeVisible();
-  await expect(resetBtn).toHaveAttribute('title', "Back to the design's values");
-  await expect(closeBtn).toHaveAttribute('title', 'Close. The design is not changed.');
-
-  // Close sheet: closed pull-tab now says Learn ▲
-  await closeBtn.click();
+  await expect(sheet.getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close');
+  await expect(sheet.locator('.mob-sheet-label', { hasText: /^Fs$/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Open What-if' })).toHaveCount(0);
+  await sheet.getByRole('button', { name: 'Close' }).click();
   await expect(sheet).toHaveCount(0);
-  const learnTab = page.getByRole('button', { name: 'Open Learn' });
-  await expect(learnTab).toBeVisible();
-  await expect(learnTab).toHaveText('Learn ▲');
+  await expect(tune).toBeVisible();
+  await expect(whatIf).toBeVisible();
+
+  // What-if: its own sheet, with Reset and the driver's Fs.
+  await whatIf.click();
+  await expect(sheet).toHaveAttribute('aria-label', 'What-if');
+  await expect(sheet.getByRole('button', { name: 'Reset' })).toHaveAttribute('title', "Back to the design's values");
+  await expect(sheet.getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close. The design is not changed.');
+  await expect(sheet.locator('.mob-sheet-label', { hasText: /^Fs$/ })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Open Tune' })).toHaveCount(0);
+  await sheet.getByRole('button', { name: 'Close' }).click();
+  await expect(sheet).toHaveCount(0);
 });
 
 /** The sheet cell's number as shown. */
@@ -97,8 +89,7 @@ test('Tune: stepping a field modifies the project; edit survives Close and reloa
   // Auto Y shows while sheet is open
   await expect(panel.getByRole('checkbox', { name: 'Auto Y' })).toHaveCount(1);
 
-  // In Tune, volume label is 'V' (short label for Box volume)
-  const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'V' }) });
+  const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);
   await cell.getByTitle('Increase').click();
 
@@ -121,21 +112,17 @@ test('Tune: stepping a field modifies the project; edit survives Close and reloa
   expect(await shownBoxVolume(page)).toBe(tunedVolume);
 });
 
-test('Learn: stepping a field changes charts but not the project; Close puts curve back', async ({ page }) => {
+test('What-if: stepping a field changes charts but not the project; Close puts curve back', async ({ page }) => {
   await openGraph(page);
   expect(await focusedIsModified(page)).toBe(false);
 
   const closedPicture = await chartPicture(page);
 
-  await page.getByRole('button', { name: 'Open Tune' }).click();
+  await page.getByRole('button', { name: 'Open What-if' }).click();
   const sheet = page.locator('.mob-sheet');
   await expect(sheet).toBeVisible();
   const initialPicture = await chartPicture(page);
 
-  // Switch to Learn mode
-  await sheet.locator('.mob-sheet-modes').getByRole('button', { name: 'Learn' }).click();
-
-  // In Learn, volume label is full 'Box volume'
   const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);
   await cell.getByTitle('Increase').click();
@@ -143,7 +130,7 @@ test('Learn: stepping a field changes charts but not the project; Close puts cur
   await expect.poll(() => shown(cell)).toBeGreaterThan(initialVolume);
   await expect.poll(() => chartPicture(page)).not.toBe(initialPicture);
 
-  // Close sheet in Learn mode: values revert
+  // Close sheet in What-if mode: values revert
   await sheet.getByRole('button', { name: 'Close' }).click();
   await expect(sheet).toHaveCount(0);
   await expect.poll(() => chartPicture(page)).toBe(closedPicture);
@@ -151,37 +138,36 @@ test('Learn: stepping a field changes charts but not the project; Close puts cur
   expect(await focusedIsModified(page)).toBe(false);
 });
 
-test('switching Learn to Tune discards the What-if changes', async ({ page }) => {
+test('a What-if experiment never shows in Tune', async ({ page }) => {
   await openGraph(page);
-
-  await page.getByRole('button', { name: 'Open Tune' }).click();
   const sheet = page.locator('.mob-sheet');
+  // The picture with a sheet open (it shows the Auto Y box), as the Tune baseline.
+  await page.getByRole('button', { name: 'Open Tune' }).click();
   await expect(sheet).toBeVisible();
   const initialPicture = await chartPicture(page);
+  await sheet.getByRole('button', { name: 'Close' }).click();
 
-  // Switch to Learn
-  await sheet.locator('.mob-sheet-modes').getByRole('button', { name: 'Learn' }).click();
-  const learnCell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
-  const initialVolume = await shown(learnCell);
-  await learnCell.getByTitle('Increase').click();
-  await expect.poll(() => shown(learnCell)).toBeGreaterThan(initialVolume);
+  await page.getByRole('button', { name: 'Open What-if' }).click();
+  const whatIfCell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
+  const initialVolume = await shown(whatIfCell);
+  await whatIfCell.getByTitle('Increase').click();
+  await expect.poll(() => shown(whatIfCell)).toBeGreaterThan(initialVolume);
+  await sheet.getByRole('button', { name: 'Close' }).click();
 
-  // Switch back to Tune: What-if is discarded
-  await sheet.locator('.mob-sheet-modes').getByRole('button', { name: 'Tune' }).click();
-  const tuneCell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'V' }) });
+  await page.getByRole('button', { name: 'Open Tune' }).click();
+  const tuneCell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
   await expect.poll(() => shown(tuneCell)).toBe(initialVolume);
   await expect.poll(() => chartPicture(page)).toBe(initialPicture);
   expect(await focusedIsModified(page)).toBe(false);
 });
 
-test('dragging the mobile sheet down closes it and ends Learn What-if', async ({ page }) => {
+test('dragging the mobile sheet down closes it and ends What-if What-if', async ({ page }) => {
   await openGraph(page);
   const initialPicture = await chartPicture(page);
 
-  await page.getByRole('button', { name: 'Open Tune' }).click();
+  await page.getByRole('button', { name: 'Open What-if' }).click();
   const sheet = page.locator('.mob-sheet');
   await expect(sheet).toBeVisible();
-  await sheet.locator('.mob-sheet-modes').getByRole('button', { name: 'Learn' }).click();
 
   const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);
@@ -195,13 +181,12 @@ test('dragging the mobile sheet down closes it and ends Learn What-if', async ({
   expect(await focusedIsModified(page)).toBe(false);
 });
 
-test('leaving the Graph page with Learn sheet open ends the What-if', async ({ page }) => {
+test('leaving the Graph page with What-if sheet open ends the What-if', async ({ page }) => {
   await openGraph(page);
 
-  await page.getByRole('button', { name: 'Open Tune' }).click();
+  await page.getByRole('button', { name: 'Open What-if' }).click();
   const sheet = page.locator('.mob-sheet');
   await expect(sheet).toBeVisible();
-  await sheet.locator('.mob-sheet-modes').getByRole('button', { name: 'Learn' }).click();
 
   const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);

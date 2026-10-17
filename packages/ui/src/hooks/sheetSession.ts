@@ -1,11 +1,11 @@
 /**
- * The bottom sheet session, skin-neutral: the focused project's mode (Tune or Learn), its
- * What-if layer when in Learn mode, and the lines/rows the sheet edits.
+ * One bottom sheet's session, skin-neutral: the focused project, the sheet's fixed mode (Tune or
+ * What-if), its What-if layer when it is the What-if sheet, and the lines/rows the sheet edits.
  *
- * - In Tune mode (`edits === 'project'`), writes land directly in the project (no What-if layer).
- * - In Learn mode (`edits === 'whatIfLayer'`), writes land in the temporary What-if layer.
+ * - The Tune sheet (`edits === 'project'`) writes land directly in the project (no What-if layer).
+ * - The What-if sheet (`edits === 'whatIfLayer'`) writes land in the temporary What-if layer.
  *
- * Leaving Learn discards the What-if layer; entering Learn begins one.
+ * Each sheet has its own session and its mode never changes.
  */
 import type {ComputedRef, Ref} from 'vue';
 import {computed, getCurrentScope, onScopeDispose} from 'vue';
@@ -17,7 +17,7 @@ import {enterVentArea} from '../logic/ventGroup.js';
 export interface SheetSessionDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
-  mode: Ref<SheetMode>;
+  mode: SheetMode;
 }
 
 /** The port a port slot names, or null when the box has no such port. */
@@ -45,17 +45,15 @@ export interface SheetSession {
   readonly lines: ComputedRef<readonly (readonly SheetRow[])[]>;
   /** The flat rows for the focused project's box type and mode, with live values. */
   readonly rows: ComputedRef<readonly SheetRow[]>;
-  /** Row slots reserved for the focused project's box type so the sheet does not resize on mode switch. */
+  /** How many rows the sheet shows for the focused project's box type. */
   readonly rowSlots: ComputedRef<number>;
-  /** Switch mode: leaving Learn cancels the What-if layer; entering Learn begins one. Tune -> Tune and Learn -> Learn do nothing. */
-  setMode(next: SheetMode): void;
   /** Start the What-if layer (no-op in Tune). */
   begin(): void;
-  /** Write `v` (SI) to the row's slot. Tune writes to the project; Learn writes to the What-if layer. */
+  /** Write `v` (SI) to the row's slot. Tune writes to the project; What-if writes to the What-if layer. */
   set(field: SheetField, v: number): void;
   /** Put the project's own values back and keep the What-if open (no-op in Tune). */
   reset(): void;
-  /** End the session: in Learn, discards What-if values; in Tune, just closes. */
+  /** End the session: in What-if, discards its values; in Tune, just closes. */
   close(): void;
 }
 
@@ -103,7 +101,7 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
     void projectChanged.value;
     const p = project.value;
     const type = p.box.boxType.value;
-    const m = mode.value;
+    const m = mode;
     return m.lines(type).map(line =>
       line.map(field => ({
         field,
@@ -114,13 +112,10 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
   });
 
   const rows = computed<readonly SheetRow[]>(() => lines.value.flat());
-  const rowSlots = computed<number>(() => {
-    void projectChanged.value;
-    return SheetMode.rowSlots(project.value.box.boxType.value);
-  });
+  const rowSlots = computed<number>(() => lines.value.length);
 
   function begin(): void {
-    switch (mode.value.edits) {
+    switch (mode.edits) {
       case 'project':
         return;
       case 'whatIfLayer':
@@ -131,7 +126,7 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
 
   function set(field: SheetField, v: number): void {
     const p = project.value;
-    switch (mode.value.edits) {
+    switch (mode.edits) {
       case 'project':
         write(p, p.box.boxType.value, field.slot, v);
         return;
@@ -140,27 +135,10 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
         write(p, p.box.boxType.value, field.slot, v);
         return;
     }
-
-
   }
-
-  function setMode(next: SheetMode): void {
-    const current = mode.value;
-    if (current.edits === next.edits) return;
-    switch (current.edits) {
-      case 'whatIfLayer':
-        project.value.cancelWhatIf();
-        break;
-      case 'project':
-        project.value.beginWhatIf();
-        break;
-    }
-    mode.value = next;
-  }
-
 
   function reset(): void {
-    switch (mode.value.edits) {
+    switch (mode.edits) {
       case 'project':
         return;
       case 'whatIfLayer':
@@ -170,7 +148,7 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
   }
 
   function close(): void {
-    switch (mode.value.edits) {
+    switch (mode.edits) {
       case 'project':
         return;
       case 'whatIfLayer':
@@ -182,5 +160,5 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
   // The panel or sheet going away (leaving the Graph page, a skin change) is a way out too.
   if (getCurrentScope() !== undefined) onScopeDispose(close);
 
-  return { lines, rows, rowSlots, setMode, begin, set, reset, close };
+  return { lines, rows, rowSlots, begin, set, reset, close };
 }

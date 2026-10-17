@@ -31,25 +31,28 @@ export type SheetSlot =
   | 'prAddedMass' | 'prCount' | 'driverFs' | 'driverQts' | 'driverVas' | 'driverCount' | 'inputPower';
 
 export class SheetField {
-  static readonly BOX_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Box volume', 'V');
-  static readonly REAR_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Rear volume', 'Vr');
-  static readonly FRONT_VOLUME = new SheetField('frontVolume', NumberField.BOX_VF_L, 'Front volume', 'Vf');
-  static readonly TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Tuning (Fb)', 'Fb');
-  static readonly FRONT_TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Front tuning', 'Ff');
-  static readonly REAR_TUNING = new SheetField('rearTuning', NumberField.BOX_FRC_HZ, 'Rear tuning', 'Fr');
+  static readonly BOX_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Box volume', 'Box volume');
+  static readonly REAR_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Rear volume', 'Rear volume');
+  static readonly FRONT_VOLUME = new SheetField('frontVolume', NumberField.BOX_VF_L, 'Front volume', 'Front volume');
+  static readonly TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Tuning (Fb)', 'Tuning');
+  static readonly FRONT_TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Front tuning', 'Front tuning');
+  static readonly REAR_TUNING = new SheetField('rearTuning', NumberField.BOX_FRC_HZ, 'Rear tuning', 'Rear tuning');
   /** One port's cross-sectional area, whatever its shape; its length follows the tuning. Tapping the
    *  value opens that port's own fields (`portTitle`). */
-  static readonly PORT_AREA = new SheetField('ventArea', NumberField.VENT_CROSSAREA_M2, 'Port area', 'Pp', 'Port');
-  static readonly REAR_PORT_AREA = new SheetField('rearVentArea', NumberField.VENT_CROSSAREA_M2, 'Rear port area', 'Pr', 'Rear port');
-  static readonly FRONT_PORT_AREA = new SheetField('frontVentArea', NumberField.VENT_CROSSAREA_M2, 'Front port area', 'Pf', 'Front port');
-  static readonly INTRA_PORT_AREA = new SheetField('intraVentArea', NumberField.VENT_CROSSAREA_M2, 'Intra port area', 'Pi', 'Intra port');
-  static readonly PR_ADDED_MASS = new SheetField('prAddedMass', NumberField.PR_MADD_G, 'PR added mass', 'Madd');
-  static readonly PR_COUNT = new SheetField('prCount', NumberField.PR_NUM, 'Radiators', 'Npr');
-  static readonly INPUT_POWER = new SheetField('inputPower', NumberField.SIGNAL_PIN_W, 'Input power', 'P');
+  static readonly PORT_AREA = new SheetField('ventArea', NumberField.VENT_CROSSAREA_M2, 'Port area', 'Port area', 'Port');
+  static readonly REAR_PORT_AREA = new SheetField('rearVentArea', NumberField.VENT_CROSSAREA_M2, 'Rear port area', 'Rear port area', 'Rear port');
+  static readonly FRONT_PORT_AREA = new SheetField('frontVentArea', NumberField.VENT_CROSSAREA_M2, 'Front port area', 'Front port area', 'Front port');
+  static readonly INTRA_PORT_AREA = new SheetField('intraVentArea', NumberField.VENT_CROSSAREA_M2, 'Intra port area', 'Intra port area', 'Intra port');
+  static readonly PR_ADDED_MASS = new SheetField('prAddedMass', NumberField.PR_MADD_G, 'PR added mass', 'Added mass');
+  static readonly PR_COUNT = new SheetField('prCount', NumberField.PR_NUM, 'Radiators', 'Radiators');
+  static readonly INPUT_POWER = new SheetField('inputPower', NumberField.SIGNAL_PIN_W, 'Input power', 'Power');
   static readonly DRIVER_FS = new SheetField('driverFs', NumberField.FS_HZ, 'Fs', 'Fs');
   static readonly DRIVER_QTS = new SheetField('driverQts', NumberField.QTS, 'Qts', 'Qts');
   static readonly DRIVER_VAS = new SheetField('driverVas', NumberField.VAS_M3, 'Vas', 'Vas');
-  static readonly DRIVER_COUNT = new SheetField('driverCount', NumberField.DRIVER_NDRIVERS, 'Drivers', 'N');
+  static readonly DRIVER_COUNT = new SheetField('driverCount', NumberField.DRIVER_NDRIVERS, 'Drivers', 'Drivers');
+
+  /** The driver's own spec rows: What-if offers them, Tune does not. */
+  static readonly DRIVER_SPEC: readonly SheetField[] = Object.freeze([SheetField.DRIVER_FS, SheetField.DRIVER_QTS, SheetField.DRIVER_VAS]);
 
   /** Every member, built by reflection so none can be left out. Declared last. */
   static readonly ALL: readonly SheetField[] = Object.freeze(
@@ -60,10 +63,10 @@ export class SheetField {
     readonly slot: SheetSlot,
     /** The registry field that formats, bounds and steps the value. */
     readonly field: NumberField,
-    /** The row's full on-screen name (shown in Learn mode). */
+    /** The row's full on-screen name (shown in the What-if sheet). */
     readonly label: string,
-    /** The row's compact label (shown in Tune mode). */
-    readonly shortLabel: string,
+    /** The row's short real name (shown in the Tune sheet); its unit is shown beside the value. */
+    readonly tuneLabel: string,
     /** The name of the port this row's value opens the fields of; null for every other row. */
     readonly portTitle: string | null = null,
   ) {}

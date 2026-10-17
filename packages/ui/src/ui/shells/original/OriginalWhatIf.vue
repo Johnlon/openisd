@@ -148,7 +148,7 @@ useEscToClose(() => presentationState.editDriver, close);
 <template>
   <div class="what-if-panel">
     <div class="what-if-titlebar">
-      <span>Learn</span>
+      <span>What-if</span>
       <span class="close-btn" role="button" tabindex="0" title="Close. The design is not changed." @click="close" @keydown.enter="close">✕</span>
     </div>
     <p class="what-if-hint">Try values and watch the charts. The design is not changed.</p>

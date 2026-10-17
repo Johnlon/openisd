@@ -1,6 +1,6 @@
 import type {Ref} from 'vue';
 import {useApp} from '../logic/app.js';
-import {computed, ref} from 'vue';
+import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassOf} from '../logic/driverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
@@ -37,7 +37,7 @@ export interface OriginalWhatIfAPI {
 export function useOriginalWhatIf(): OriginalWhatIfAPI {
   const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
-  const session = createSheetSession({ project, projectChanged, mode: ref(SheetMode.LEARN) });
+  const session = createSheetSession({ project, projectChanged, mode: SheetMode.WHAT_IF });
 
 
   function specField(key: NumSpecField):

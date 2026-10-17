@@ -1,8 +1,8 @@
 /**
- * `MobileSheet.vue`'s hook — the bottom sheet on the mobile Graph page (Tune or Learn mode).
- * Closed, it is a pull-tab; tapped or dragged up, the sheet opens, and the charts above stay live.
- * In Learn mode, a What-if begins, which never changes the project. In Tune mode, edits write
- * directly to the project.
+ * `MobileSheet.vue`'s hook — one of the two bottom sheets on the mobile Graph page (Tune or
+ * What-if; each has its own pull-tab and its own fields). Closed, it is a pull-tab; tapped or
+ * dragged up, the sheet opens, and the charts above stay live. The What-if sheet begins a What-if,
+ * which never changes the project. The Tune sheet writes directly to the project.
  *
  * The drag handle sets the sheet's height; dragging it down far enough closes it. The rows and
  * the session come from the skin-neutral `createSheetSession`, shared with desktop.
@@ -16,11 +16,11 @@ import {createSheetSession, type SheetRow} from './sheetSession.js';
 import {portFieldsView, type PortFieldsView} from './portFieldsView.js';
 import type {SheetField, SheetMode} from '@openisd/design/fields';
 
-/** The sheet's open state, mode, owned by the chart view (its Auto Y box follows it). */
+/** The sheet's open state (owned by the chart view; its Auto Y box follows it) and its fixed mode. */
 export interface MobileSheetDeps {
   open: () => boolean;
   setOpen: (open: boolean) => void;
-  mode: Ref<SheetMode>;
+  mode: SheetMode;
 }
 
 /** The chart keeps at least this much height above the sheet. */
@@ -49,8 +49,7 @@ export interface MobileSheetAPI {
   readonly lines: ComputedRef<readonly (readonly SheetRow[])[]>;
   readonly rows: ComputedRef<readonly SheetRow[]>;
   readonly rowSlots: ComputedRef<number>;
-  readonly mode: Ref<SheetMode>;
-  setMode(next: SheetMode): void;
+  readonly mode: SheetMode;
   /** The port-area row whose port's fields are open, or null. */
   readonly portEditor: Ref<SheetRow | null>;
   /** The open port's fields, current after every edit; null when none is open. */
@@ -63,7 +62,7 @@ export interface MobileSheetAPI {
   readonly sheetStyle: ComputedRef<string>;
   setValue(field: SheetField, v: number | null): void;
   openSheet(): void;
-  /** Close the sheet and end the What-if (in Learn mode). */
+  /** Close the sheet and end the What-if (the What-if sheet). */
   close(): void;
   reset(): void;
   onTabDown(e: PointerEvent): void;
@@ -90,7 +89,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
   }
 
   function openSheet(): void {
-    switch (mode.value.edits) {
+    switch (mode.edits) {
       case 'project':
         featureUse.feature('tune');
         break;
@@ -144,7 +143,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
   function onHandleDown(e: PointerEvent): void {
     const el = sheetEl.value;
     if (el === null) return;
-    const room = el.parentElement?.clientHeight ?? el.offsetHeight;
+    const room = el.offsetParent?.clientHeight ?? el.offsetHeight;
     drag = { y: e.clientY, height: el.offsetHeight, max: Math.max(room - MIN_CHART_PX, CLOSE_BELOW_PX) };
     if (e.target instanceof Element) e.target.setPointerCapture(e.pointerId);
   }
@@ -159,7 +158,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
   }
 
   return {
-    isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode, setMode: session.setMode,
+    isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode,
     portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };

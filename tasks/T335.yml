@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 0c2691ca24b3d644538784a380ac5a8768632ee4
 goal: Close on the What-if panel puts the chart back every time
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

@@ -48,7 +48,7 @@ Every curve redraws as you type. There is no Calculate button.
 - **Data-quality marks:**
   - each value shows whether it was entered or calculated;
   - when a driver's own figures contradict each other, the app says which ones.
-- **Learn.** Adjust a driver's parameters and the box, and watch the curves respond.
+- **What-if.** Adjust a driver's parameters and the box, and watch the curves respond.
   Nothing is saved; cancel and the design is exactly as it was.
 - **Driver library.** 1,603 drivers and 79 passive radiators come bundled, with source links,
   alongside your own saved drivers.
@@ -59,7 +59,7 @@ Every curve redraws as you type. There is no Calculate button.
   - share a design as a link;
   - open projects are saved automatically in the browser.
 
-![Learn panel open over the charts](docs/images/app/whatif.png)
+![What-if panel open over the charts](docs/images/app/whatif.png)
 
 ![Driver database with type, Fs, Sd and impedance filters](docs/images/app/driver-library.png)
 

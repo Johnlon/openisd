@@ -9,12 +9,12 @@ import type {Page} from '@playwright/test';
  * another project.
  */
 
-/** Open the docked Learn panel on a project opened from `owpr`. */
+/** Open the docked What-if panel on a project opened from `owpr`. */
 async function openWhatIf(page: Page, owpr?: string) {
   await page.goto('/');
   await openAProject(page, owpr);
   await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-  await page.locator('.edit-btn', { hasText: 'Learn' }).click();
+  await page.locator('.edit-btn', { hasText: 'What-if' }).click();
   const whatIf = page.locator('.what-if-panel');
   await expect(whatIf).toBeVisible();
   return whatIf;
@@ -23,14 +23,14 @@ async function openWhatIf(page: Page, owpr?: string) {
 const whatIfField = (page: Page, label: string) =>
   page.locator('.what-if-panel .what-if-fld').filter({ has: page.locator('label', { hasText: new RegExp(`^${label}$`) }) });
 
-test.describe('Learn panel', () => {
+test.describe('What-if panel', () => {
   test.describe('on the sample project', () => {
     test.beforeEach(async ({ page }) => {
       await page.goto('/');
       await openAProject(page);
     });
 
-    test('Learn changes the charts but never the project, and Close puts the curve back', async ({ page }) => {
+    test('What-if changes the charts but never the project, and Close puts the curve back', async ({ page }) => {
       expect(await focusedIsModified(page)).toBe(false);
       const volume = await shownBoxVolume(page);
       // The charts draw after the project opens and redraw as the font loads; Close is compared to the settled picture.
@@ -66,7 +66,7 @@ test.describe('Learn panel', () => {
       expect(await focusedIsModified(page)).toBe(false);
     });
 
-    test('Learn Reset puts the project values back and stays open', async ({ page }) => {
+    test('What-if Reset puts the project values back and stays open', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
       const whatIf = page.locator('.what-if-panel');
@@ -81,7 +81,7 @@ test.describe('Learn panel', () => {
       await expect(fsInput).toHaveValue(beforeText);
     });
 
-    test('closing Learn via the titlebar ✕ discards the What-if, same as Close', async ({ page }) => {
+    test('closing What-if via the titlebar ✕ discards the What-if, same as Close', async ({ page }) => {
       const before = await shownDriverSpec(page, 'Fs');
 
       await page.locator('.save-rail .what-if-btn').click();
@@ -98,7 +98,7 @@ test.describe('Learn panel', () => {
       expect(await focusedIsModified(page)).toBe(false);
     });
 
-    test('closing Learn does not corrupt the saved Mms value', async ({ page }) => {
+    test('closing What-if does not corrupt the saved Mms value', async ({ page }) => {
       const readMms = () => shownDriverSpec(page, 'Mms');
       const before = await readMms();
       await page.locator('.save-rail .what-if-btn').click();
@@ -113,7 +113,7 @@ test.describe('Learn panel', () => {
       expect(await readMms()).toBe(before);
     });
 
-    test('Escape closes Learn', async ({ page }) => {
+    test('Escape closes What-if', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
       await expect(page.locator('.what-if-panel')).toBeVisible();
@@ -121,7 +121,7 @@ test.describe('Learn panel', () => {
       await expect(page.locator('.what-if-panel')).toBeHidden();
     });
 
-    test('the Learn fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
+    test('the What-if fields accept multi-character typing (no reformat-while-typing clobber)', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
       const fsInput = page.locator('.what-if-panel .what-if-fld', { hasText: 'Fs' }).locator('input');
@@ -131,7 +131,7 @@ test.describe('Learn panel', () => {
       await expect(fsInput).toHaveValue('42');
     });
 
-    test('an open Learn panel stays open across a reload', async ({ page }) => {
+    test('an open What-if panel stays open across a reload', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await page.locator('.save-rail .what-if-btn').click();
 
@@ -139,12 +139,12 @@ test.describe('Learn panel', () => {
         undefined); // the open-panel flag is persisted
       await page.reload({ waitUntil: 'domcontentloaded' });
 
-      await expect(page.locator('.what-if-panel')).toBeVisible();          // Learn reopened
+      await expect(page.locator('.what-if-panel')).toBeVisible();          // What-if reopened
     });
 
-    test('the Learn panel stays open when the box type changes underneath it', async ({ page }) => {
+    test('the What-if panel stays open when the box type changes underneath it', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-      await page.locator('button.edit-btn', { hasText: 'Learn' }).click();
+      await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
       await expect(page.locator('.what-if-panel')).toBeVisible();
 
       await setFocusedBoxType(page, 'vented');
@@ -154,9 +154,9 @@ test.describe('Learn panel', () => {
       await expect(page.locator('.what-if-panel')).toBeVisible();
     });
 
-    test('the Learn panel stays open across project tab changes', async ({ page }) => {
+    test('the What-if panel stays open across project tab changes', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-      await page.locator('button.edit-btn', { hasText: 'Learn' }).click();
+      await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
       await expect(page.locator('.what-if-panel')).toBeVisible();
 
       // The panel is not a child of any one tab section.
@@ -167,9 +167,9 @@ test.describe('Learn panel', () => {
       await expect(page.locator('.what-if-panel')).toBeVisible();
     });
 
-    test('Learn keeps the Vb typed into it when the field loses focus', async ({ page }) => {
+    test('What-if keeps the Vb typed into it when the field loses focus', async ({ page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
-      await page.locator('button.edit-btn', { hasText: 'Learn' }).click();
+      await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
       await expect(page.locator('.what-if-panel')).toBeVisible();
 
       const vb = page.locator('.what-if-panel .what-if-fld', { hasText: 'Vb' }).locator('input');
@@ -180,11 +180,11 @@ test.describe('Learn panel', () => {
       await expect(vb).toHaveValue(/^33(\.0+)?$/);
     });
 
-    test('switching focus to a different open project closes an open Learn panel', async ({ page }) => {
+    test('switching focus to a different open project closes an open What-if panel', async ({ page }) => {
       await duplicateFocusedProject(page, 'Copy');
 
       await page.locator('li', { hasText: 'Driver' }).click();
-      await page.locator('button.edit-btn', { hasText: 'Learn' }).click();
+      await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
       const whatIfPanel = page.locator('.what-if-panel');
       await expect(whatIfPanel).toBeVisible();
 
@@ -317,14 +317,14 @@ test.describe('Learn panel', () => {
       expect(await shownBoxVolume(page)).toBeCloseTo(before, 2);  // Close puts the project's volume back
     });
 
-    test('a box volume changed outside the open Learn panel shows in the panel', async ({ page }) => {
+    test('a box volume changed outside the open What-if panel shows in the panel', async ({ page }) => {
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
       const vb = whatIfField(page, 'Vb').locator('input');
       await setFocusedBoxVolume(page, 0.0777);
       await expect(vb).toHaveValue(/77\.7/);
     });
 
-    test('a driver spec changed outside the open Learn panel shows in the panel', async ({ page }) => {
+    test('a driver spec changed outside the open What-if panel shows in the panel', async ({ page }) => {
       await page.setViewportSize({ width: 1900, height: 1100 });
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
       const fs = whatIfField(page, 'Fs').locator('input');
@@ -332,7 +332,7 @@ test.describe('Learn panel', () => {
       await expect(fs).toHaveValue(/61\.5/);
     });
 
-    test('a box volume typed on the Box tab shows in the open Learn panel', async ({ page }) => {
+    test('a box volume typed on the Box tab shows in the open What-if panel', async ({ page }) => {
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
       await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
       const boxVol = page.locator('.field', { has: page.locator('label', { hasText: /^Volume$/ }) }).locator('input').first();
@@ -342,7 +342,7 @@ test.describe('Learn panel', () => {
       await expect(whatIfField(page, 'Vb').locator('input')).toHaveValue(/55/);
     });
 
-    test('after editing in the Learn panel, a later Box tab edit still shows in the panel', async ({ page }) => {
+    test('after editing in the What-if panel, a later Box tab edit still shows in the panel', async ({ page }) => {
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
       const whatIfVb = whatIfField(page, 'Vb').locator('input');
       await whatIfVb.click();

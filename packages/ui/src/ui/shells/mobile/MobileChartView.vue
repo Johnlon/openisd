@@ -9,7 +9,7 @@ import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, sheetMode } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, TUNE, WHAT_IF } = useMobileChartView();
 </script>
 
 <template>
@@ -42,7 +42,11 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicke
         <GraphPanel :chart-id="id" :bare="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!sheetOpen" />
       </div>
     </div>
-    <MobileSheet v-model:open="sheetOpen" v-model:mode="sheetMode" />
+    <!-- Two separate sheets, each from its own pull-tab, side by side when both are closed. -->
+    <div class="mob-sheet-dock">
+      <MobileSheet v-model:open="tuneOpen" :mode="TUNE" :hidden="whatIfOpen" />
+      <MobileSheet v-model:open="whatIfOpen" :mode="WHAT_IF" :hidden="tuneOpen" />
+    </div>
   </div>
 </template>
 
@@ -58,6 +62,7 @@ const { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicke
   min-height: 0;
   position: relative;
 }
+.mob-sheet-dock { flex: 0 1 auto; display: flex; min-height: 0; }
 .mob-chart-head {
   display: flex;
   position: relative;

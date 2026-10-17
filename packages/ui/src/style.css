@@ -216,7 +216,7 @@ a { color:var(--acc) }
   margin-left: 6px !important;
 }
 /* Steppers are on by default (desktop). On the phone they stay only where a row is laid out for a
-   touch-sized pair: the UIField rows and the Tune/Learn sheet. Everywhere else (wizard, dialogs,
+   touch-sized pair: the UIField rows and the Tune and What-if sheets. Everywhere else (wizard, dialogs,
    Advanced) they stay hidden until those screens are laid out for them. */
 .mobile-root .num-stepper { display: none !important; }
 .mobile-root .mob-ui-field .num-stepper,

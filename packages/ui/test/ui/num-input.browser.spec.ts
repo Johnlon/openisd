@@ -147,11 +147,11 @@ test.describe('NumInput', () => {
         checked += await sweepActiveTab(page, `${boxType}/${name}`);
       }
     }
-    // The docked Learn panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
+    // The docked What-if panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     await page.locator('.save-rail .what-if-btn').click();
     const whatIfInputs = await page.locator('.what-if-panel input[data-numinput]').all();
-    for (let i = 0; i < whatIfInputs.length; i++) checked += await assertSpinnerHoldsDp(whatIfInputs[i], `Learn #${i}`);
+    for (let i = 0; i < whatIfInputs.length; i++) checked += await assertSpinnerHoldsDp(whatIfInputs[i], `What-if #${i}`);
 
     // Guard against a selector that silently matches nothing (which would make the sweep a no-op
     // and pass vacuously). The Original skin has well over a dozen numeric spinners across types.
@@ -186,7 +186,7 @@ test.describe('NumInput', () => {
     await expect(rh).toHaveAttribute('title', /outside the sane range/);
     await rh.fill('250');
     await expect(rh).toHaveClass(/dq-flag/);           // ceiling too, not just the floor
-    // 3. Learn panel (NumInput since T222): Fs typed negative is refused and red-flagged, as in every field.
+    // 3. What-if panel (NumInput since T222): Fs typed negative is refused and red-flagged, as in every field.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     await page.locator('.save-rail .what-if-btn').click();
     const fs = page.locator('.what-if-panel .what-if-fld', { hasText: 'Fs' }).first().locator('input');

@@ -1,40 +1,25 @@
 <script setup lang="ts">
-// The bottom sheet on the mobile Graph page: a pull-tab when closed, a resizable sheet of
-// tuning/learn rows when open. Behaviour lives in MobileSheet-hooks.ts.
-import { computed, ref, watch } from 'vue';
+// One bottom sheet on the mobile Graph page, Tune or What-if (each its own sheet, with its own
+// fields): a pull-tab when closed, a resizable sheet of rows when open. Behaviour lives in
+// MobileSheet-hooks.ts.
 import NumInput from '../../components/NumInput.vue';
 import VentPortFields from '../../components/VentPortFields.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
-import { SheetMode } from '@openisd/design/fields';
+import type { SheetMode } from '@openisd/design/fields';
 
-const props = defineProps<{ open: boolean; mode?: SheetMode }>();
-const emit = defineEmits<{
-  'update:open': [open: boolean];
-  'update:mode': [mode: SheetMode];
-}>();
+const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean }>();
+const emit = defineEmits<{ 'update:open': [open: boolean] }>();
 
-const localMode = ref<SheetMode>(props.mode ?? SheetMode.TUNE);
-watch(() => props.mode, (newMode) => {
-  if (newMode) localMode.value = newMode;
-});
-const modeRef = computed<SheetMode>({
-  get: () => props.mode ?? localMode.value,
-  set: (next: SheetMode) => {
-    localMode.value = next;
-    emit('update:mode', next);
-  },
-});
-
-const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+const { isOpen, lines, rowSlots, mode, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
-  useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: modeRef });
+  useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: props.mode });
 </script>
 
 <template>
-  <button v-if="!isOpen" type="button" class="mob-sheet-tab" :aria-label="'Open ' + mode.label"
+  <button v-if="!isOpen && !hidden" type="button" class="mob-sheet-tab" :aria-label="'Open ' + mode.label"
           @pointerdown="onTabDown" @pointerup="onTabUp" @click="openSheet">{{ mode.label }} ▲</button>
-  <section v-else ref="sheetEl" class="mob-sheet" :class="mode.edits === 'project' ? 'mob-sheet-tune' : 'mob-sheet-learn'" :style="sheetStyle" :aria-label="mode.label">
+  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet" :style="sheetStyle" :aria-label="mode.label">
     <div class="mob-sheet-handle" role="separator" aria-label="Drag to resize"
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
       <span class="mob-sheet-grip"></span>
@@ -42,12 +27,10 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
     <div class="mob-sheet-rows" :style="{ '--mob-row-slots': rowSlots }">
       <div v-for="(line, lineIdx) in lines" :key="lineIdx" class="mob-sheet-line">
         <div v-for="cell in line" :key="cell.field.label" class="mob-sheet-cell mob-sheet-row">
-          <span class="mob-sheet-label" :title="cell.field.label">
-            {{ mode.edits === 'project' ? cell.field.shortLabel : cell.field.label }}
-          </span>
+          <span class="mob-sheet-label">{{ mode.labelOf(cell.field) }}</span>
           <span class="mob-sheet-value">
             <NumInput :field="cell.field.field" :model-value="cell.value" :precision="cell.field.field.precision"
-                      :aria-label="cell.field.label" stepper
+                      :aria-label="mode.labelOf(cell.field)" stepper
                       @pointerdown="portValuePress($event, cell)" @mousedown="portValuePress($event, cell)" @click="portValuePress($event, cell)"
                       @update:model-value="(v: number | null) => setValue(cell.field, v)" />
           </span>
@@ -63,18 +46,6 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
       <div class="mob-sheet-port-body"><VentPortFields v-if="portView !== null" :port="portView" /></div>
     </div>
     <div class="mob-sheet-foot">
-      <div class="mob-sheet-modes" role="group" aria-label="Sheet mode">
-        <button type="button" class="mob-sheet-mode-btn"
-                :class="{ active: mode.edits === 'project' }"
-                :aria-pressed="mode.edits === 'project'"
-                title="Change the design"
-                @click="setMode(SheetMode.TUNE)">Tune</button>
-        <button type="button" class="mob-sheet-mode-btn"
-                :class="{ active: mode.edits === 'whatIfLayer' }"
-                :aria-pressed="mode.edits === 'whatIfLayer'"
-                title="Try values. The design is not changed."
-                @click="setMode(SheetMode.LEARN)">Learn</button>
-      </div>
       <div class="mob-sheet-actions">
         <button v-if="mode.edits === 'whatIfLayer'" type="button" class="mob-sheet-btn" title="Back to the design's values" @click="reset">Reset</button>
         <button type="button" class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. The design is not changed.' : 'Close'" @click="close">Close</button>
@@ -85,7 +56,8 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
 
 <style scoped>
 .mob-sheet-tab {
-  flex: none;
+  flex: 1;
+  min-width: 0;
   height: 28px;
   border: none;
   border-top: 1px solid var(--line);
@@ -102,7 +74,8 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
   --mob-row-pad-y: 2px;
   --mob-label-lh: 12px;
   /* Shrinks before the chart does (the chart keeps 120 px); its rows then scroll inside it. */
-  flex: 0 1 auto;
+  flex: 1 1 0;
+  min-width: 0;
   height: auto;
   display: flex;
   flex-direction: column;
@@ -168,38 +141,13 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
   min-width: 0;
 }
 
-/* Learn mode: 1 cell per line, full width with wide label */
-.mob-sheet-learn .mob-sheet-cell {
-  flex: 1;
-}
-.mob-sheet-learn .mob-sheet-label {
+.mob-sheet-cell { flex: 1; }
+.mob-sheet-label {
   flex: none;
-  width: 92px;
+  width: 96px;
   font-size: 13px;
   line-height: var(--mob-label-lh, 13px);
   color: var(--mut);
-}
-
-/* Tune mode: up to 2 cells per line, column aligned */
-.mob-sheet-tune .mob-sheet-cell {
-  flex: 0 0 calc((100% - 8px) / 2);
-  max-width: calc((100% - 8px) / 2);
-  box-sizing: border-box;
-}
-.mob-sheet-tune .mob-sheet-label {
-  flex: none;
-  width: 32px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--mut);
-  white-space: nowrap;
-}
-.mob-sheet-tune .mob-sheet-value :deep(.num-stepper) {
-  margin-left: 2px;
-}
-.mob-sheet-tune .mob-sheet-value :deep(.num-stepper-btn) {
-  width: 20px;
-  font-size: 12px;
 }
 
 .mob-sheet-value {
@@ -234,35 +182,9 @@ const { isOpen, lines, rowSlots, mode, setMode, portEditor, portView, portValueP
   flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 8px 12px;
   border-top: 1px solid var(--line);
-}
-.mob-sheet-modes {
-  display: inline-flex;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.mob-sheet-mode-btn {
-  border: none;
-  border-radius: 0;
-  background: var(--panel2, #f0f0f0);
-  color: var(--fg);
-  padding: 0 14px;
-  min-height: 36px;
-  font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-}
-.mob-sheet-mode-btn + .mob-sheet-mode-btn {
-  border-left: 1px solid var(--line);
-}
-.mob-sheet-mode-btn.active,
-.mob-sheet-mode-btn[aria-pressed="true"] {
-  background: var(--acc, #36c);
-  color: #fff;
 }
 .mob-sheet-actions {
   display: flex;

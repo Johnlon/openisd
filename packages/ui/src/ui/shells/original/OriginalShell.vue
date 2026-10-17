@@ -791,7 +791,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <span><i class="legend-swatch legend-calculated"></i>App level / calculated</span>
             <span><i class="legend-swatch legend-normal"></i>Normal</span>
           </div>
-          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try other values and watch the charts. The design is not changed." @click="startWhatIf">&#9835; Learn</button>
+          <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try other values and watch the charts. The design is not changed." @click="startWhatIf">&#9835; What-if</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
         </template>

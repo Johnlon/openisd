@@ -28,12 +28,12 @@ describe('What-if? never changes the project', () => {
     for (const write of PROJECT_WRITES) expect(text).not.toMatch(write);
   });
 
-  it('closing the Learn session ends the What-if layer in Learn mode', () => {
+  it('closing the What-if sheet ends the What-if layer', () => {
     const text = readFileSync(join(UI_SRC, 'hooks/sheetSession.ts'), 'utf8');
     expect(text).toMatch(/case 'whatIfLayer':\s*project\.value\.cancelWhatIf\(\);/);
   });
 
-  it('the Tune branch never calls beginWhatIf, and the Learn branch always does before a write', () => {
+  it('the Tune branch never calls beginWhatIf, and the What-if branch always does before a write', () => {
     const text = readFileSync(join(UI_SRC, 'hooks/sheetSession.ts'), 'utf8');
     const setMatch = text.match(/function set\(field: SheetField, v: number\): void \{([\s\S]*?)\n  \}/);
     expect(setMatch).not.toBeNull();
