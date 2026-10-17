@@ -25,6 +25,8 @@ in Firefox and DuckDuckGo too. Dragging a chart axis stretches the chart, not th
 
 **All WinISD boxes supported.** Sealed, vented, 4th-order and 6th-order bandpass, ABC and
 passive radiator, from the New Project wizard through every chart, saved and reloaded exactly.
+WinISD's "transmission line model for port" option is there too, and matches WinISD on vented,
+4th-order, 6th-order and ABC boxes.
 
 **Charts.** The transfer function readout shows F3 and F10, and the popup jumps the cursor to
 either. The active project draws thicker. The legend names each project. The 180 degree phase
