@@ -22,12 +22,14 @@ fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
 export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"
 export ADMIT_DIR="$SCRATCH/admit"
-export WATCHDOG_STATE="$SCRATCH/rt/watchdog" WATCHDOG_LOG="$SCRATCH/logs/watchdog.log"
+export WATCHDOG_STATE="$SCRATCH/rt/watchdog" WATCHDOG_LOG="$SCRATCH/logs/watchdog.log" HOUSEKEEPING_LOG="$SCRATCH/logs/housekeeping.log"
 export WORKSPACE="$SCRATCH/ws"; mkdir -p "$WORKSPACE/zoo/state/jobs"
 export WATCHDOG_HOLDER="$SCRATCH/rt/post.holder" WATCHDOG_POST_LAND_LOG="$SCRATCH/post-land.log"
 export WATCHDOG_REFUSALS="$SCRATCH/rt/land-refusals.log"
 export WATCHDOG_HUNG_S=100 WATCHDOG_GRACE_S=2 WATCHDOG_WT_MIN_AGE_S=0 WATCHDOG_LEADER=lots
 export WATCHDOG_REPO="$SCRATCH/repo"
+# The tree under test, not a snapshot of the scratch repo's origin/main (case 8 tests the snapshot).
+export WATCHDOG_TOOLS="$REPO_SRC"
 export POST_LAND_LOCK="$SCRATCH/rt/post.lock" WATCHDOG_RUN_SH="$SCRATCH/fake-run.sh" FAKE_RUN_LOG="$SCRATCH/run.log"
 printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE_RUN_LOG"\n' > "$SCRATCH/fake-run.sh"
 ASK="$WORKSPACE/zoo/ASK.md"; : > "$ASK"
@@ -107,12 +109,17 @@ git clone -q "$SCRATCH/origin.git" "$WATCHDOG_REPO" 2> /dev/null
 ( cd "$WATCHDOG_REPO" && git config user.email t@t && git config user.name t && git symbolic-ref HEAD refs/heads/main \
   && mkdir -p tasks/fixes && printf 'id: F0\nstatus: closed\n' > tasks/fixes/F0.yml && git add . \
   && git commit -qm base && git push -q origin main ) || fail "scratch repo setup"
-mk_f() { printf 'id: %s\nowner: %s\nstatus: open\ngoal: x\n' "$1" "$2" > "$WATCHDOG_REPO/tasks/fixes/$1.yml"; }
-mk_f F1 bob; mk_f F2 bob; mk_f F3 ""
-touch -d '2 hours ago' "$WATCHDOG_REPO/tasks/fixes/F1.yml" "$WATCHDOG_REPO/tasks/fixes/F3.yml"
+# Fs as origin/main has them; an F's age is the time of the last commit that touched it.
+mk_f() { printf 'id: %s\nowner: %s\nstatus: open\ngoal: x\n' "$1" "$2" > "$WATCHDOG_REPO/tasks/fixes/$1.yml"
+  ( cd "$WATCHDOG_REPO" && git add "tasks/fixes/$1.yml" && GIT_COMMITTER_DATE="$3" git commit -qm "$1" && git push -q origin main ); }
+mk_f F1 bob "$(date -d '2 hours ago' +%s) +0000"; mk_f F3 "" "$(date -d '2 hours ago' +%s) +0000"; mk_f F2 bob "$(date +%s) +0000"
+# An F only in the main checkout (not on origin/main) is not an open F
+printf 'id: F9\nowner: bob\nstatus: open\ngoal: x\n' > "$WATCHDOG_REPO/tasks/fixes/F9.yml"; touch -d '2 hours ago' "$WATCHDOG_REPO/tasks/fixes/F9.yml"
 out=$(tick)
 grep -q 'send-keys -t agents:bob WATCHDOG: F1: open' "$FAKE_TMUX_LOG" && ok "old F alerts its owner's window" || fail "no alert for F1: $(cat "$FAKE_TMUX_LOG")"
 grep -q 'F2' "$FAKE_TMUX_LOG" "$ASK" && fail "fresh F2 alerted" || ok "fresh F gets no alert"
+grep -q 'F9' "$FAKE_TMUX_LOG" "$ASK" && fail "an F only in the main checkout alerted" || ok "Fs are read from origin/main, not the main checkout"
+rm -f "$WATCHDOG_REPO/tasks/fixes/F9.yml"
 grep -q 'no window lots: WATCHDOG: F3' "$ASK" && ok "ownerless F goes to the leader, no window -> ASK.md" || fail "F3 not in ASK.md"
 n=$(grep -c 'F1: open' "$FAKE_TMUX_LOG"); tick > /dev/null
 [ "$(grep -c 'F1: open' "$FAKE_TMUX_LOG")" = "$n" ] && ok "no repeat inside the re-alert window" || fail "F1 alerted twice"
@@ -129,7 +136,8 @@ grep -q 'dave' <(grep watchdog "$ASK") && fail "acked result alerted" || ok "ack
 now=$(date +%s)
 printf '%s lint T1\n%s lint T2\n%s unit T3\n' "$((now - 600))" "$((now - 60))" "$now" > "$WATCHDOG_REFUSALS"
 tick > /dev/null; tick > /dev/null
-infra=$(grep -l 'label: infra' "$WATCHDOG_REPO"/tasks/fixes/*.yml 2> /dev/null)
+infra=$(grep -l 'label: infra' "$WATCHDOG_STATE"/infra/*.yml 2> /dev/null)
+[ -z "$(cd "$WATCHDOG_REPO" && git status --porcelain tasks/fixes)" ] && ok "infra F not written into the main checkout" || fail "infra F in the main checkout"
 [ "$(echo "$infra" | grep -c .)" = 1 ] && ok "one infra F written" || fail "infra Fs: $infra"
 grep -q '^gate: lint' $infra 2> /dev/null && grep -q '^status: open' $infra && grep -q '^owner: lots' $infra && ok "infra F names gate, open, owner leader" || fail "infra F content"
 [ "$(basename "$infra")" = F4.yml ] && ok "next F number" || fail "F number: $infra"
@@ -190,6 +198,20 @@ kill -KILL "$!" 2> /dev/null
 printf '%s\n' "$main_sha" > "$POST_LAND_LOCK.tested"
 WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
 [ ! -e "$FAKE_RUN_LOG" ] && ok "a tested main starts nothing" || fail "started a run on a tested main"
+
+# 8. no WATCHDOG_TOOLS: the tick runs origin/main's scripts from a snapshot, not the main checkout's
+#    (here the main checkout's copies are broken and uncommitted), and removes the snapshot
+SNAP_REPO="$SCRATCH/snap"; git init -q --bare "$SCRATCH/snap-origin.git"
+git clone -q "$SCRATCH/snap-origin.git" "$SNAP_REPO" 2> /dev/null
+( cd "$SNAP_REPO" && git config user.email t@t && git config user.name t && git symbolic-ref HEAD refs/heads/main \
+  && cp -r "$REPO_SRC/scripts" "$REPO_SRC/land.conf" "$REPO_SRC/.gitattributes" . && mkdir -p tasks/fixes && printf 'id: F0\nstatus: closed\n' > tasks/fixes/F0.yml \
+  && git add . && git commit -qm base && git push -q origin main ) || fail "snapshot repo setup"
+echo 'exit 7' > "$SNAP_REPO/scripts/land/watchdog.sh.broken"; echo 'echo BROKEN; exit 7' > "$SNAP_REPO/scripts/admit/record.sh"
+before=$(ls -d "${TMPDIR:-/tmp}"/watchdog-tools.* 2> /dev/null | wc -l)
+( unset WATCHDOG_TOOLS; WATCHDOG_REPO="$SNAP_REPO" WATCHDOG_STALL_S=999999 timeout 60 bash "$SNAP_REPO/scripts/land/watchdog.sh" > "$SCRATCH/snap.out" 2>&1 ); r=$?
+after=$(ls -d "${TMPDIR:-/tmp}"/watchdog-tools.* 2> /dev/null | wc -l)
+[ $r = 0 ] && ! grep -q BROKEN "$SCRATCH/snap.out" && grep -q 'tick done' "$WATCHDOG_LOG" && ok "a broken main checkout: the tick runs origin/main's scripts" || fail "snapshot tick (r=$r): $(tail -3 "$SCRATCH/snap.out")"
+[ "$after" = "$before" ] && ok "the snapshot is removed after the tick" || fail "snapshot left behind ($before -> $after)"
 
 [ $fails = 0 ] && echo "ALL OK" || echo "$fails FAILED"
 exit $((fails > 0))

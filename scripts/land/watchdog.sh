@@ -10,17 +10,32 @@
 #   WATCHDOG_RUN_SH WATCHDOG_STALL_S (600) WATCHDOG_REALERT_S (1800) WATCHDOG_REFUSE_WINDOW_S (3600) WATCHDOG_GRACE_S (10)
 #   WATCHDOG_WT_MIN_AGE_S (3600) WATCHDOG_CPU_SLACK_TICKS (= one second of CPU).
 set -uo pipefail
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
+# The scripts and settings are origin/main's own, never the main checkout's files: that checkout can lag
+# main (17 Oct: 12 commits behind, held by another session's uncommitted files). Each tick runs from a
+# snapshot of origin/main's scripts/ and land.conf (WATCHDOG_TOOLS), removed when the tick ends; REPO is
+# used only for git and for the logs under build/. A test points WATCHDOG_TOOLS at the tree under test.
+if [ -z "${WATCHDOG_TOOLS:-}" ]; then
+  timeout 60 git -C "$REPO" fetch -q origin main 2> /dev/null || echo "watchdog: cannot fetch origin/main; using the local origin/main" >&2
+  tools="$(mktemp -d "${TMPDIR:-/tmp}/watchdog-tools.XXXXXX")" || exit 2
+  if ! git -C "$REPO" archive origin/main scripts land.conf | tar -x -C "$tools"; then
+    rm -rf "$tools"; echo "watchdog: cannot read origin/main's scripts" >&2; exit 2
+  fi
+  WATCHDOG_TOOLS="$tools" bash "$tools/scripts/land/watchdog.sh" "$@"; rc=$?
+  rm -rf "$tools"
+  exit "$rc"
+fi
+ROOT="$WATCHDOG_TOOLS"
 # shellcheck source=../admit/record.sh
 . "$ROOT/scripts/admit/record.sh"
 . "$ROOT/scripts/lib/ts-log.sh"
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 run_start "watchdog"
 
-REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
 WORKSPACE="${WORKSPACE:-/home/john/work/winisd}"
 LEADER="${WATCHDOG_LEADER:-lots}"
-LOG="${WATCHDOG_LOG:-$ROOT/build/test-logs/watchdog.log}"
+LOG="${WATCHDOG_LOG:-$REPO/build/test-logs/watchdog.log}"
+export HOUSEKEEPING_LOG="${HOUSEKEEPING_LOG:-$REPO/build/test-logs/housekeeping.log}"
 STATE="${WATCHDOG_STATE:-$OPENISD_RUNTIME_DIR/watchdog}"
 ASK="$WORKSPACE/zoo/ASK.md"
 JOBS="$WORKSPACE/zoo/state/jobs"
@@ -42,6 +57,9 @@ log() {
   printf '%s watchdog: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" >> "$LOG" || die "cannot write log $LOG"
 }
 field() { sed -n "s/^$2: *//p" "$1" 2> /dev/null | head -1; }  # field <yml> <key>
+# The fixes tasks as origin/main has them, one path per line (never the main checkout's copies).
+main_fixes() { git -C "$REPO" ls-tree --name-only origin/main tasks/fixes/ 2> /dev/null | grep -E '/F[0-9]+\.yml$'; }
+main_field() { git -C "$REPO" show "origin/main:$1" 2> /dev/null | sed -n "s/^$2: *//p" | head -1; }  # main_field <path> <key>
 
 mkdir -p "$(dirname "$LOG")" "$STATE/alerts" || die "cannot create $STATE or the log dir"
 exec 7> "$STATE/watchdog.lock" || die "cannot open $STATE/watchdog.lock"
@@ -159,7 +177,10 @@ check_untested_main() {
   lock="${POST_LAND_LOCK:-$OPENISD_RUNTIME_DIR/post-land.lock}"
   holder="${WATCHDOG_HOLDER:-$lock.holder}"
   plog="${WATCHDOG_POST_LAND_LOG:-$( . "$ROOT/land.conf"; echo "${POST_LAND_DIR:-}" )/post-land.log}"
-  run="${WATCHDOG_RUN_SH:-$REPO/scripts/land/post-land/run.sh}"
+  # The snapshot is removed when this tick ends, which can be before the started run reads its first
+  # line: the run starts from a copy in STATE, and re-starts itself from its own origin/main snapshot.
+  run="${WATCHDOG_RUN_SH:-$STATE/post-land-run.sh}"
+  [ -n "${WATCHDOG_RUN_SH:-}" ] || cp "$ROOT/scripts/land/post-land/run.sh" "$run" || { log "cannot copy run.sh to $run"; return 0; }
   timeout 60 git -C "$REPO" fetch -q origin main 2> /dev/null || { log "fetch of origin/main failed; no untested-main check this tick"; return 0; }
   main=$(git -C "$REPO" rev-parse origin/main 2> /dev/null) || return 0
   tested=$(cat "$lock.tested" 2> /dev/null)
@@ -193,12 +214,12 @@ check_untested_main
 # --- (c) open F older than the limit ----------------------------------------------------------
 check_open_fs() {
   local f id owner age t; t=$(now)
-  for f in "$REPO"/tasks/fixes/F*.yml; do
-    [ -f "$f" ] || continue
-    [ "$(field "$f" status)" = open ] || continue
-    age=$((t - $(stat -c %Y "$f")))
+  # Age: since the last commit that touched the F on origin/main.
+  for f in $(main_fixes); do
+    [ "$(main_field "$f" status)" = open ] || continue
+    age=$((t - $(git -C "$REPO" log -1 --format=%ct origin/main -- "$f" 2> /dev/null || echo "$t")))
     [ "$age" -ge "$F_AGE_S" ] || continue
-    id=$(field "$f" id); owner=$(field "$f" owner)
+    id=$(main_field "$f" id); owner=$(main_field "$f" owner)
     case "$owner" in ''|Johnlon) owner="$LEADER" ;; esac
     due "F-$id" || continue
     alert "$owner" "$id: open $((age / 60)) min; take it or say who has it, then close it with its fix"
@@ -221,19 +242,27 @@ check_results
 
 # --- (e) gate refused twice in an hour -> an infra F --------------------------------------------
 # $REFUSALS lines: "<epoch> <gate> [<task>]", appended by scripts/land/record-refusal.sh.
+# The F is written to $STATE/infra, never into the main checkout (a file there keeps it from following
+# main); the alert names the file to land from a task worktree. One per gate: none is written while an
+# open infra F for the gate is on origin/main or waiting in $STATE/infra.
 check_refusals() {
-  local t gate n num f
+  local t gate n num f c
   [ -s "$REFUSALS" ] || return 0
   t=$(now)
+  mkdir -p "$STATE/infra"
   while read -r gate n; do
     [ "$n" -ge 2 ] || continue
-    f=$(grep -lx 'label: infra' "$REPO"/tasks/fixes/F*.yml 2> /dev/null | while read -r c; do
-          [ "$(field "$c" status)" = open ] && [ "$(field "$c" gate)" = "$gate" ] && echo "$c"
-        done | head -1)
+    f=""
+    for c in $(main_fixes); do
+      [ "$(main_field "$c" label)" = infra ] && [ "$(main_field "$c" status)" = open ] && [ "$(main_field "$c" gate)" = "$gate" ] && { f="$c"; break; }
+    done
+    for c in "$STATE"/infra/F*.yml; do
+      [ -f "$c" ] && [ "$(field "$c" gate)" = "$gate" ] && { f="$c"; break; }
+    done
     [ -z "$f" ] || continue
-    num=$(ls "$REPO"/tasks/fixes/ 2> /dev/null | sed -n 's/^F\([0-9]*\)\.yml$/\1/p' | sort -n | tail -1)
+    num=$( { main_fixes | sed -n 's#^.*/F\([0-9]*\)\.yml$#\1#p'; ls "$STATE/infra" 2> /dev/null | sed -n 's/^F\([0-9]*\)\.yml$/\1/p'; } | sort -n | tail -1)
     num=$(( ${num:-0} + 1 ))
-    f="$REPO/tasks/fixes/F$num.yml"
+    f="$STATE/infra/F$num.yml"
     cat > "$f" << YML
 id: F$num
 owner: $LEADER
@@ -250,7 +279,7 @@ output: |
 YML
     log "gate $gate refused $n times in $((REFUSE_WINDOW_S / 60)) min; wrote $f (land it from a worktree)"
     echo "$t" > "$STATE/alerts/F-F$num"
-    alert "$LEADER" "F$num (infra): gate $gate refused twice in an hour; the file is in $REPO/tasks/fixes, land it"
+    alert "$LEADER" "F$num (infra): gate $gate refused twice in an hour; land $f as tasks/fixes/F$num.yml from a task worktree"
   done < <(awk -v now="$(now)" -v w="$REFUSE_WINDOW_S" '$1 >= now - w { c[$2]++ } END { for (g in c) print g, c[g] }' "$REFUSALS")
 }
 check_refusals

@@ -1,6 +1,6 @@
 id: F51
 owner: Johnlon
-status: open
+status: done
 sha: f1a44803d3737c10a26e25abc78da873ee06aa14
 tested: f1a44803d3737c10a26e25abc78da873ee06aa14
 last_green: 2947ff6a12a013d238409ed24c7e3c6a2e88b131
@@ -626,3 +626,8 @@ also_red:
       browser (6):   ✓  79 packages/ui/test/ui/original-shell-layout.browser.spec.ts:304:5 › Original shell layout › short window › bottom panels at a short window height never get scrollbars and contents do not overflow (4.0s)TEST END packages/ui/test/ui/original-shell-layout.browser.spec.ts >  > ui/original-shell-layout.browser.spec.ts > Original shell layout > short window > bottom panels at a short window height never get scrollbars and contents do not overflow status=passed duration_ms=3973
       browser (6):   ✘  82 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:55:3 › Projects across addresses › a forced setItem quota error on save shows the message and the export offer (21.1s)TEST END packages/ui/test/ui/projects-across-addresses.browser.spec.ts >  > ui/projects-across-addresses.browser.spec.ts > Projects across addresses > a forced setItem quota error on save shows the message and the export offer status=failed duration_ms=21130
       browser (6):         44 × locator resolved to 1 element
+closed_note: |
+  GitHub Actions ran the full suite green on 1cab899cf0 (T290 on top of T285), and post-land recorded that
+  green. T285 fixed mobile-sheet-fit at 360x740 and 375x667, and T290 fixed the projects-across-addresses
+  quota-error export. The f1a44803d3 part was laptop-only (the test server died under heavy.slice's old 5G
+  MemoryHigh; BUG_20261017_laptop-suite-server-dies-mid-run). Closed by maryu in T291.

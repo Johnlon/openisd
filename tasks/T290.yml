@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: fable
 status: done
+landed: 1cab899cf066be39b6f9e71f896019243e9fed77
 goal: Closes F51's projects-across-addresses failure (the quota-error export spec broke on the T268 popup). The four exports that finished with nothing on screen show the same OK popup as Export all; one design text builder, one place that shows it
 done_test: bash scripts/test.sh packages/design/test/fields/exportedNotice.test.ts
 files:
