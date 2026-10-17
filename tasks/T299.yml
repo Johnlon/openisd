@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 1d02b6d56cb4c5b24b16677182416a935990b968
 goal: land.sh runs every architecture unit test on every landing, whatever changed
 done_test: bash scripts/land/test/land.e2e.test.sh
 files:

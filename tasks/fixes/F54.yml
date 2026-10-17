@@ -1,6 +1,6 @@
 id: F54
 owner: Johnlon
-status: open
+status: done
 sha: 1d02b6d56cb4c5b24b16677182416a935990b968
 tested: 1d02b6d56cb4c5b24b16677182416a935990b968
 last_green: aa0de3e3adeb3351c8fa6a2c8a1cab4566aee3a6
@@ -61,3 +61,9 @@ also_red:
     full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-a6f449aeeb.log
     failing: |
       browser (9):   ✘  23 packages/ui/test/ui/mobile-menu.browser.spec.ts:61:5 › MobileMenu › layout › items sit in a Project section and an App section, each under its own heading (1.6s)
+closed_note: |
+  T303 added "Automatic view" to the mobile menu's App section while a layout choice is saved. The
+  mobile-menu spec sets up with a saved choice, so its expected App list now names the entry (last),
+  and a new test checks the entry goes once chosen. All 843 UI browser tests pass locally. (12 what-if-panel
+  tests in that run hit a dev-server refusal, ERR_CONNECTION_REFUSED; the file passes alone, 19/19.)
+  Closed by bob in T307.

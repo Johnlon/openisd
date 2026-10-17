@@ -70,10 +70,22 @@ test.describe('MobileMenu', () => {
       ]);
       expect(await items('App')).toEqual([
         'Manage Drivers', 'Options', 'OpenISD and WinISD differences', 'Diagnostics', 'About OpenISD', 'Switch to Desktop view',
+        'Automatic view',
       ]);
       // A visible divider sits between the two sections.
       const divider = await sections.nth(1).evaluate(el => getComputedStyle(el).borderTopWidth);
       expect(divider).not.toBe('0px');
+    });
+
+    // A saved layout choice (this spec's setup) adds "Automatic view" to the App section; choosing it
+    // clears the choice and the entry goes, the window being phone-sized keeps the mobile skin.
+    test('"Automatic view" is in the App section while a layout choice is saved, and gone once chosen', async ({ page }) => {
+      await tapMobileMenuItem(page, 'Automatic view');
+      await expect(page.locator('.mobile-root')).toBeVisible();
+      await openMobileMenu(page);
+      const app = page.locator('.mob-menu-section', { has: page.locator('.mob-menu-section-head', { hasText: 'App' }) });
+      await expect(app.locator('.mob-menu-item', { hasText: 'Switch to Desktop view' })).toBeVisible();
+      await expect(app.locator('.mob-menu-item', { hasText: 'Automatic view' })).toHaveCount(0);
     });
 
     test('Save, Save all and Save As sit together; Revert follows in its own section', async ({ page }) => {
