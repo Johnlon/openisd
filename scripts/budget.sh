@@ -27,6 +27,8 @@ fi
 dir="${BUDGET_DIR:-$OPENISD_RUNTIME_DIR/budget}/$pool"
 mkdir -p "$dir"
 
+. "$HERE/lib/ts-log.sh"
+run_start "budget-wait-$pool"
 exec {gate}> "$dir/gate"
 announced=0
 held=()
@@ -53,5 +55,6 @@ while :; do
   python3 -I "$HERE/budget-wait.py" "${busy[@]}"
 done
 exec {gate}>&-
+run_end "budget-wait-$pool" 0
 [ "$announced" = 0 ] || echo "budget: the $pool pool has $mb MB free now; starting" >&2
 exec "$@"

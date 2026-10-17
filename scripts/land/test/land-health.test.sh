@@ -19,7 +19,7 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
-    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     printf '#!/usr/bin/env bash\nexit 0\n' > gates/ok.sh; chmod +x gates/ok.sh
     cat > land.conf <<CONF
 LINT_CMD="bash gates/ok.sh"

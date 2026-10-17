@@ -8,6 +8,7 @@ printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/land-subject.XXXXXX")"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
 fails=0
 trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
 ok()   { echo "ok   $1"; }
@@ -19,7 +20,7 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
-    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     printf '#!/usr/bin/env bash\nexit 0\n' > gates/ok.sh; chmod +x gates/ok.sh
     cat > land.conf <<EOF
 LINT_CMD="bash gates/ok.sh"

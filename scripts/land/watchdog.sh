@@ -13,6 +13,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # shellcheck source=../admit/record.sh
 . "$ROOT/scripts/admit/record.sh"
+. "$ROOT/scripts/lib/ts-log.sh"
+export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
+run_start "watchdog"
 
 REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
 WORKSPACE="${WORKSPACE:-/home/john/work/winisd}"
@@ -109,7 +112,7 @@ check_hung() {
   fi
   # The suite waiting for browser runs to end (scripts/suite-lock.sh) is idle on purpose: not hung until
   # it has waited three thresholds, which a waiting suite that no new run can overtake never does.
-  local wpid wstart wsince
+  local wpid wstart wsince idle why="no log growth and under 1 s of CPU"
   if read -r wpid wstart < "${SUITE_RUN_LOCK}.waiting" 2> /dev/null && [ -n "${wpid:-}" ] \
      && [ "$(admit_starttime "$wpid")" = "${wstart:-}" ]; then
     wsince=$(( $(now) - $(stat -c %Y "${SUITE_RUN_LOCK}.waiting" 2> /dev/null || now) ))
@@ -117,22 +120,25 @@ check_hung() {
       rm -f "$STATE/hung.state"
       log "post-land run $pid ($sha) is waiting for browser runs to end (${wsince}s); not hung"; return 0
     fi
+    idle=$wsince; why="waiting for browser runs to end, past three thresholds,"  # the wait is the idle time
   fi
-  size=$(stat -c %s "$plog" 2> /dev/null || echo 0); mtime=$(stat -c %Y "$plog" 2> /dev/null || echo 0)
-  cpu=$(tree_cpu "$pid"); t=$(now)
-  # state: pid start size mtime cpu since
-  prev=$(cat "$STATE/hung.state" 2> /dev/null || true)
-  set -- $prev
-  if [ "${1:-}" != "$pid" ] || [ "${2:-}" != "$start" ] || [ "${3:-}" != "$size" ] || [ "${4:-}" != "$mtime" ] \
-     || [ $((cpu - ${5:-0})) -ge "$CPU_SLACK" ]; then
-    echo "$pid $start $size $mtime $cpu $t" > "$STATE/hung.state"
-    log "post-land run $pid ($sha) is alive and moving (log $size bytes, cpu $cpu ticks)"; return 0
+  if [ -z "${idle:-}" ]; then
+    size=$(stat -c %s "$plog" 2> /dev/null || echo 0); mtime=$(stat -c %Y "$plog" 2> /dev/null || echo 0)
+    cpu=$(tree_cpu "$pid"); t=$(now)
+    # state: pid start size mtime cpu since
+    prev=$(cat "$STATE/hung.state" 2> /dev/null || true)
+    set -- $prev
+    if [ "${1:-}" != "$pid" ] || [ "${2:-}" != "$start" ] || [ "${3:-}" != "$size" ] || [ "${4:-}" != "$mtime" ] \
+       || [ $((cpu - ${5:-0})) -ge "$CPU_SLACK" ]; then
+      echo "$pid $start $size $mtime $cpu $t" > "$STATE/hung.state"
+      log "post-land run $pid ($sha) is alive and moving (log $size bytes, cpu $cpu ticks)"; return 0
+    fi
+    idle=$((t - ${6:-$t}))
+    if [ "$idle" -lt "$HUNG_S" ]; then
+      log "post-land run $pid ($sha) quiet for ${idle}s of ${HUNG_S}s"; return 0
+    fi
   fi
-  local idle=$((t - ${6:-$t}))
-  if [ "$idle" -lt "$HUNG_S" ]; then
-    log "post-land run $pid ($sha) quiet for ${idle}s of ${HUNG_S}s"; return 0
-  fi
-  log "post-land run $pid ($sha) hung: no log growth and under 1 s of CPU in ${idle}s; killing group $pid"
+  log "post-land run $pid ($sha) hung: $why in ${idle}s; killing group $pid"
   kill -TERM -- "-$pid" 2> /dev/null
   local i=0                                   # bounded: leaves as soon as the leader is gone
   while [ "$i" -lt "$GRACE_S" ] && [ -n "$(admit_starttime "$pid")" ]; do sleep 1; i=$((i + 1)); done
@@ -281,3 +287,4 @@ check_worktrees() {
 }
 check_worktrees
 log "tick done"
+run_end "watchdog" 0

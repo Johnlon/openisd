@@ -29,7 +29,7 @@ export default defineConfig({
     maxWorkers: WORKERS,
     // A SKIP IS A FAIL — see scripts/test-reporters/no-skips-vitest.ts.
     // hanging-process names whatever keeps a finished run from exiting.
-    reporters: ['default', 'hanging-process', './scripts/test-reporters/no-skips-vitest.ts'],
+    reporters: ['default', 'hanging-process', './scripts/test-reporters/no-skips-vitest.ts', './scripts/test-reporters/timing-vitest.ts'],
     // Files share a worker (isolate: false below), so a stub or mock one file leaves behind would
     // reach the next. Every test ends with the globals and mocks it found.
     unstubGlobals: true,

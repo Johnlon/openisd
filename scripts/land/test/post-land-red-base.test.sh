@@ -20,7 +20,7 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
-    cp -r "$REPO/scripts/land" scripts/
+    cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/
     printf '#!/usr/bin/env bash\n[ -f FAIL ] && { echo "spec broken.spec.ts failed"; exit 1; }\nexit 0\n' > suite.sh
     printf 'FULL_SUITE_CMD="bash suite.sh"\nPOST_LAND_LOCK="%s/post.lock"\nPOST_LAND_DIR="%s/copies"\n' "$SCRATCH" "$SCRATCH" > land.conf
     git add -A; git commit -qm base; git push -q origin main

@@ -21,4 +21,9 @@ for f in "$@"; do
   esac
 done
 [ "${#files[@]}" -gt 0 ] || { echo "lint: no lintable file changed"; exit 0; }
-exec node_modules/.bin/eslint --max-warnings 0 --no-warn-ignored "${files[@]}"
+. scripts/lib/ts-log.sh
+run_start "lint-changed"
+rc=0
+node_modules/.bin/eslint --max-warnings 0 --no-warn-ignored "${files[@]}" || rc=$?
+run_end "lint-changed" "$rc"
+exit "$rc"

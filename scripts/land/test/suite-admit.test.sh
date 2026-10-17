@@ -4,6 +4,7 @@
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/suite-admit.XXXXXX")"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
 trap 'rm -rf "$SCRATCH"' EXIT
 fails=0; ok() { echo "ok   $1"; }; fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 

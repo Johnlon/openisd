@@ -6,6 +6,7 @@
 if [ -z "${BUDGET_HELD:-}" ]; then
   read -r _budget_pool _budget_mb < <(bash scripts/budget-cost.sh "$BUDGET_SELF" "$@")
   if [ "$_budget_pool" != none ]; then
+    bash scripts/lib/ts-log.sh run_start "budget-enter-$_budget_pool" 2>/dev/null || true
     exec env BUDGET_HELD=1 bash scripts/budget.sh "$_budget_pool" "$_budget_mb" -- bash "$BUDGET_SELF" "$@"
   fi
 fi

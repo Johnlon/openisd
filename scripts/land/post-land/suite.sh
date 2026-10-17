@@ -25,6 +25,9 @@ if [ -z "${BUDGET_SUITE_HELD:-}" ]; then
   . scripts/budget.conf
   exec env BUDGET_SUITE_HELD=1 bash scripts/budget.sh suite "$COST_SUITE_MB" -- bash "$0" "$@"
 fi
+. scripts/lib/ts-log.sh
+run_start "post-land-suite"
+trap 'run_end "post-land-suite" "$?"' EXIT  # every exit, early ones included, writes the end line
 # Fixed, not sized from free memory at run time: the same tests every run.
 . scripts/budget.conf
 export OPENISD_FIXED_WORKERS="$SUITE_WORKERS"
@@ -36,7 +39,12 @@ for dir in $(cd "$src" && ls -d node_modules packages/*/node_modules 2> /dev/nul
 done
 # Both halves always run: a red unit half must not hide the browser half. Red when either failed.
 unit=0; browser=0
+run_start "post-land-unit"
 node_modules/.bin/vitest run || unit=$?
+run_end "post-land-unit" "$unit"
+run_start "post-land-browser"
 bash scripts/test-browser.sh || browser=$?
+run_end "post-land-browser" "$browser"
 echo "suite: unit exit $unit, browser exit $browser"
-[ "$unit" = 0 ] && [ "$browser" = 0 ]
+rc=0; [ "$unit" = 0 ] && [ "$browser" = 0 ] || rc=1
+exit "$rc"

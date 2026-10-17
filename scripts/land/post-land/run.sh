@@ -42,9 +42,13 @@ cd "$ROOT" || exit 2
 # shellcheck source=/dev/null
 . "$ROOT/scripts/paths.sh"
 . ./land.conf
+. "$ROOT/scripts/lib/ts-log.sh"
+TS_WRAP=(bash "$ROOT/scripts/lib/ts-log.sh")
+export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 DEADLINE_S="${POST_LAND_DEADLINE_S:-5400}"
 RUNNING="${POST_LAND_LOCK}.running"
 SHA="$(git rev-parse --verify "$SHA_ARG^{commit}")" || exit 2
+run_start "post-land-${SHA:0:10}"
 
 mkdir -p "$POST_LAND_DIR"
 COPY="$POST_LAND_DIR/$$-${SHA:0:10}"
@@ -93,7 +97,7 @@ record_red() {
     # The failing spec names, in full: an F that keeps only the log tail lost them (F7-F9 cost a
     # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
     # vitest echoes a test's console output as "stderr | <file> > <name>": not a failure (F11 listed six).
-    failing="$(grep -Ev '^[[:space:]]*(stderr|stdout) \|' "$OUT" | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
+    failing="$(sed -E 's/^[0-9T:.-]+Z [^ ]+ //' "$OUT" | grep -Ev '^[[:space:]]*(stderr|stdout) \|' | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
     # Screens whose picture differs from its baseline: named, with a before/after page (scripts/visual/).
     visual=""
     [ ! -f "$ROOT/scripts/visual/failures-page.sh" ] || visual="$(bash "$ROOT/scripts/visual/failures-page.sh" "$COPY" "$SHA" 2> /dev/null || true)"
@@ -162,6 +166,7 @@ killed() {
 }
 cleanup() {
   local status=$?
+  run_end "post-land-${SHA:0:10}" "$status" 2>/dev/null || true
   stop_suite
   [ "$(cut -d' ' -f1 "$HOLDER" 2>/dev/null)" = "$$" ] && rm -f "$HOLDER"
   [ "$(cut -d' ' -f1 "$RUNNING" 2>/dev/null)" = "$$" ] && rm -f "$RUNNING"
@@ -229,7 +234,8 @@ high_before=$(slice_event_count heavy.slice high)
 echo "post-land: start $(slice_events_line heavy.slice)"
 printf '%s %s %s\n' "$$" "$(date +%s)" "$SHA" > "$RUNNING"
 set -m
-( cd "$COPY" && export POST_LAND_SRC="$ROOT" && exec bash -c "$FULL_SUITE_CMD" ) > "$OUT" 2>&1 &
+# ts-log.sh timestamps every line and exits with the suite's own status; it leads the group.
+( cd "$COPY" && export POST_LAND_SRC="$ROOT" && exec "${TS_WRAP[@]}" bash -c "$FULL_SUITE_CMD" ) > "$OUT" 2>&1 &
 BODY=$!
 set +m
 # Poll rather than wait: past the deadline the suite's whole process group (its pgid is its pid under

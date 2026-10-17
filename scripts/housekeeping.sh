@@ -8,6 +8,9 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=admit/record.sh
 . "$ROOT/scripts/admit/record.sh"
+. "$ROOT/scripts/lib/ts-log.sh"
+export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
+run_start "housekeeping"
 DIR="$(admit_dir)"
 LOG="${HOUSEKEEPING_LOG:-$ROOT/build/test-logs/housekeeping.log}"
 
@@ -85,3 +88,4 @@ for rec in "$DIR"/q/*.rec; do
   fi
 done
 say "housekeeping: $freed slot(s) freed, $live live"
+run_end "housekeeping" 0

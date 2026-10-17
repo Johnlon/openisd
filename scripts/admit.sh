@@ -7,6 +7,7 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/admit/record.sh"
 source "$HERE/lib/progress.sh"
+source "$HERE/lib/ts-log.sh"
 
 die() { echo "admit: $*" >&2; exit 1; }
 
@@ -115,7 +116,9 @@ wait_for_turn() {
 }
 
 take_ticket
+run_start "admit-wait-$label"
 wait_for_turn
+run_end "admit-wait-$label" 0
 
 export ADMIT_TOKEN="$rec"
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
@@ -127,5 +130,6 @@ child=$!
 wait "$child"
 status=$?
 child=""
+run_end "admit-job-$label" "$status"
 progress_end_line "$label" "$status" $((SECONDS - began)) >&2
 exit "$status"

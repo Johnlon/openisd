@@ -127,7 +127,7 @@ export default defineConfig({
   // be analysed (and a dead run post-mortemed) without waiting for a summary that only exists
   // at the end. Cheap enough to leave on for every run; scripts/run-ui-telemetry.sh relies on
   // it being here rather than passing --reporter, which would drop the no-skips gate below.
-  reporter: [['list'], ['json', { outputFile: 'build/pw-report.json' }], ['./scripts/telemetry-reporter.mjs'], ['./scripts/test-reporters/no-skips-playwright.js']],
+  reporter: [['list'], ['json', { outputFile: 'build/pw-report.json' }], ['./scripts/telemetry-reporter.mjs'], ['./scripts/test-reporters/no-skips-playwright.js'], ['./scripts/test-reporters/timing-playwright.mjs']],
   // A stray `test.only` must not silently narrow the suite either.
   forbidOnly: true,
   // Baselines use the bundled Inter font (see canvas.ts), which renders identically on

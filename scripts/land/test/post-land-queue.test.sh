@@ -21,7 +21,7 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
-    cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/paths.sh" "$REPO/scripts/browser-runs.sh" "$REPO/scripts/slice-events.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/
+    cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/; cp "$REPO/scripts/paths.sh" "$REPO/scripts/browser-runs.sh" "$REPO/scripts/slice-events.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/
     cat > suite.sh <<'SUITE'
 #!/usr/bin/env bash
 echo "$(git rev-parse HEAD) $(date +%s)" >> "$SUITE_LOG/ran"

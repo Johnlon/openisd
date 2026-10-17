@@ -8,6 +8,10 @@
 
 GATE_PID=""
 GATE_OUT=""
+# Timestamps (processes.md rule 8): every gate's output goes through the one logger.
+GATE_TS_LOG="$(dirname "${BASH_SOURCE[0]}")/../../lib/ts-log.sh"
+. "$GATE_TS_LOG"
+GATE_TS_WRAP=(bash "$GATE_TS_LOG")
 
 # refuse <gate> <detail>: print what refused the landing and leave with exit 1.
 refuse() {
@@ -19,13 +23,15 @@ refuse() {
 # run_gate <name> <stdin-file> <command> [args…]: the command string gets the args as "$@".
 run_gate() {
   local name="$1" input="$2" cmd="$3" rc
+  run_start "gate-$name"
   shift 3
   : > "$GATE_OUT"
-  timeout -k 2 "$GATE_DEADLINE_S" bash -c "$cmd \"\$@\"" gate "$@" < "$input" > "$GATE_OUT" 2>&1 &
+  timeout -k 2 "$GATE_DEADLINE_S" "${GATE_TS_WRAP[@]}" bash -c "$cmd \"\$@\"" gate "$@" < "$input" > "$GATE_OUT" 2>&1 &
   GATE_PID=$!
   wait "$GATE_PID"
   rc=$?
   GATE_PID=""
+  run_end "gate-$name" "$rc"
   case "$rc" in
     0) return 0 ;;
     124|137) refuse "$name" "no result within its ${GATE_DEADLINE_S} s deadline; killed" ;;

@@ -79,6 +79,9 @@ for arg in "$@"; do
     *.browser.spec.ts)
       exec bash "$SCRIPT_DIR/suite-lock.sh" shared -- bash "$SCRIPT_DIR/quiet-test.sh" bash "$SCRIPT_DIR/test-browser.sh" "$@"
       ;;
+    *.test.sh)
+      exec bash "$SCRIPT_DIR/quiet-test.sh" bash "$@"
+      ;;
   esac
 done
 

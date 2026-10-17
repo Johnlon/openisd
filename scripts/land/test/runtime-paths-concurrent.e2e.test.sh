@@ -37,7 +37,7 @@ setup_repo() {
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
     cp "$REPO/scripts/land.sh" scripts/
-    cp -r "$REPO/scripts/land" scripts/
+    cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     cp "$REPO/scripts/paths.sh" scripts/
     cp "$REPO/scripts/browser-runs.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/
     cat > gates/lint.sh <<'EOF'

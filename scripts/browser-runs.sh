@@ -40,7 +40,8 @@ browser_run_owner_gone() { # browser_run_owner_gone <record>
 # Stops the run's process group (TERM, then KILL after 5 s) and removes its record. The group is
 # signalled only while its leader is the process the record names (same start time): a group whose
 # leader has gone and whose pid was reused is never touched.
-browser_run_stop() { # browser_run_stop <record>
+browser_run_stop() {
+  bash "$(dirname "${BASH_SOURCE[0]}")/lib/ts-log.sh" run_start "browser-run-stop-$1" 2>/dev/null || true # browser_run_stop <record>
   local group start
   group=$(basename "$1")
   start=$(browser_run_field "$1" GROUP_START)
@@ -50,6 +51,7 @@ browser_run_stop() { # browser_run_stop <record>
     kill -KILL -- "-$group" 2> /dev/null || true
   fi
   rm -f -- "$1"
+  bash "$(dirname "${BASH_SOURCE[0]}")/lib/ts-log.sh" run_end "browser-run-stop-$1" 0 2>/dev/null || true
 }
 
 # Stops every browser run whose OWNER is the given process. post-land/run.sh calls it with its own pid

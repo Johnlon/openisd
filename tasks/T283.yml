@@ -4,6 +4,7 @@ label: fixes
 repo: openisd
 owner: maryu
 status: done
+landed: f1a44803d3737c10a26e25abc78da873ee06aa14
 goal: "F50 closed on the Actions greens: a laptop-only red, the same server death as F49 (bug stays open, next task)"
 done_test: bash scripts/land/test/post-land-actions.e2e.test.sh
 files:

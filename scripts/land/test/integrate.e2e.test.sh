@@ -24,7 +24,7 @@ setup() {
     git clone -q origin.git seed 2>/dev/null; cd seed || exit 2
     mkdir -p scripts tasks/fixes gates tests packages/persistence/src
     cp "$REPO/scripts/integrate.sh" "$REPO/scripts/paths.sh" scripts/
-    cp -r "$REPO/scripts/land" scripts/
+    cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     for g in lint typecheck unit; do printf '#!/usr/bin/env bash\nexit 0\n' > "gates/$g.sh"; done
     cat > gates/attribution.sh <<'STUB'
 #!/usr/bin/env bash

@@ -31,6 +31,8 @@ if [ -z "${OPENISD_IN_OWN_GROUP:-}" ]; then
 fi
 
 # shellcheck source=./test-concurrency.sh
+source "$SCRIPT_DIR/lib/ts-log.sh"
+export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 source "$SCRIPT_DIR/test-concurrency.sh"
 reserve_test_slot || exit 1   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
                      # is a locked critical section rather than each run reading memory alone.
@@ -79,8 +81,10 @@ if ! printf '%s' "$LIST_OUT" | grep -qE '^Total: [1-9][0-9]* test'; then
 fi
 
 set +e
+run_start "browser-test"
 npx playwright test "$@"
 STATUS=$?
 set -e
+run_end "browser-test" "$STATUS"
 
 exit $STATUS

@@ -19,7 +19,7 @@ git init -q --bare -b main origin.git
 git clone -q origin.git c 2>/dev/null; cd c || exit 2
 git config user.email t@t; git config user.name t
 mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
-cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/paths.sh" scripts/
+cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/; cp "$REPO/scripts/paths.sh" scripts/
 cat > suite.sh <<EOF2
 #!/usr/bin/env bash
 sleep 60 &

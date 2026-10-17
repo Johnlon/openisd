@@ -1,14 +1,22 @@
 #!/usr/bin/env bash
 # Acceptance test for scripts/land/watchdog.sh. Scratch runtime dir, scratch repo with a bare origin,
 # fake tmux on PATH that logs its arguments. Time is driven with WATCHDOG_NOW where a check needs
-# minutes to pass. Every process started here is killed by pid in the EXIT trap.
+# minutes to pass. Every process started here is killed by session, group and pid on every exit but KILL.
 set -uo pipefail
 REPO_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 W="$REPO_SRC/scripts/land/watchdog.sh"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/watchdog-test.XXXXXX")"
 PIDS=(); fails=0
-cleanup() { for p in "${PIDS[@]}"; do kill -KILL -- "-$p" 2> /dev/null; kill -KILL "$p" 2> /dev/null; done; rm -rf "$SCRATCH"; }
+# Each started process is a session leader (setsid) or a plain child: kill its session, its group and
+# itself. The session also holds the job-control groups a `set -m` child makes, which a group kill misses.
+cleanup() {
+  for p in "${PIDS[@]}"; do pkill -KILL -s "$p" 2> /dev/null; kill -KILL -- "-$p" 2> /dev/null; kill -KILL "$p" 2> /dev/null; done
+  rm -rf "$SCRATCH"
+}
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
@@ -59,7 +67,7 @@ WATCHDOG_NOW=1000 tick > /dev/null
 WATCHDOG_NOW=1050 tick > /dev/null
 dead "$HP" && fail "killed before the threshold" || ok "not killed at 50 s of 100 s"
 WATCHDOG_NOW=1200 tick > /dev/null
-wait "$HP" 2> /dev/null
+dead "$HP" && wait "$HP" 2> /dev/null  # reap only a dead pid: a missed kill fails, never hangs
 dead "$HP" && ok "hung run killed" || fail "hung run still alive"
 [ ! -e "$WATCHDOG_HOLDER" ] && ok "holder removed" || fail "holder kept"
 grep -q 'hung: no log growth' "$WATCHDOG_LOG" && ok "kill logged" || fail "kill not logged"
@@ -156,7 +164,7 @@ WATCHDOG_NOW=1250 tick > /dev/null
 dead "$HP" && fail "a run waiting for the browser lock was killed" || ok "a run waiting for the browser lock is left alone"
 grep -q 'waiting for browser runs to end' "$WATCHDOG_LOG" && ok "the wait is logged" || fail "wait not logged"
 WATCHDOG_NOW=1500 tick > /dev/null
-wait "$HP" 2> /dev/null
+dead "$HP" && wait "$HP" 2> /dev/null  # the tick kills before it returns; reap only a dead pid, so a missed kill fails, never hangs
 dead "$HP" && ok "a wait past three thresholds is a hang" || fail "an endless wait was never killed"
 kill -KILL -- "-$WP" 2> /dev/null; rm -f "$SUITE_RUN_LOCK.waiting" "$WATCHDOG_HOLDER"
 

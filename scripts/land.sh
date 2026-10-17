@@ -47,6 +47,7 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 . "$CORE/task.sh"
 # shellcheck source=./land/core/gate.sh
 . "$CORE/gate.sh"
+export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 
 # --self-check: every locked sha256 in tasks/*.yml matches its file (T000's done_test); nothing lands.
 if [ "${1:-}" = "--self-check" ]; then
@@ -55,6 +56,7 @@ if [ "${1:-}" = "--self-check" ]; then
 fi
 
 ID="${1:?usage: land.sh <task-id> | land.sh --self-check}"
+run_start "land-$ID"
 TASK="tasks/$ID.yml"
 [ -f "$TASK" ] || { echo "land: no task file $TASK" >&2; exit 2; }
 
@@ -62,6 +64,7 @@ WORK="$(mktemp -d "${TMPDIR:-/tmp}/land.XXXXXX")"
 GATE_OUT="$WORK/gate.out"
 cleanup() {
   local status=$?
+  run_end "land-$ID" "$status" 2>/dev/null || true
   gate_stop
   rm -rf "$WORK"
   exit "$status"
@@ -143,6 +146,18 @@ if git cat-file -e "origin/main:$TASK" 2>/dev/null; then
   [ "$(task_contract "$WORK/task.origin")" = "$(task_contract "$TASK")" ] \
     || refuse done_test "$TASK changed its done_test or locked entries since origin/main"
 fi
+# A file this branch changed that another task locks needs that task's hash updated in the same
+# landing: T235, T249 and T261 changed files locked by T001 and T003, only the landing task's own
+# locks were checked, and --self-check went red on main.
+changed="$(git diff --name-only origin/main HEAD)"
+for other in tasks/*.yml; do
+  [ "$other" = "$TASK" ] && continue
+  while read -r path hash; do
+    [ -n "$path" ] && [ "$hash" != pending ] && grep -qxF "$path" <<< "$changed" || continue
+    actual="$(git show "HEAD:$path" 2>/dev/null | sha256sum | cut -d' ' -f1)"
+    [ "$actual" = "$hash" ] || refuse locked "$path changed (locked by $other); update its sha256 there in this landing"
+  done < <(task_locked "$other")
+done
 
 # 4. no open fixes task
 if [ "$(task_field "$TASK" label)" != "fixes" ]; then
