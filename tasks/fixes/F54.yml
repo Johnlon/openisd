@@ -53,3 +53,11 @@ output: |
   2026-10-17T05:38:52.691Z 1376720-1792215180-16452 browser (9):   83 passed (1.0m)
   2026-10-17T05:38:52.691Z 1376720-1792215180-16452 browser (9): ##[error]Process completed with exit code 1.
   2026-10-17T05:38:54.665Z 1376720-1792215180-16452 actions: red at 1d02b6d56c: https://github.com/Johnlon/openisd/actions/runs/39006791283
+also_red:
+  - sha: a6f449aeebd62ee053792afde67f59e237ad02fc
+    tested: a6f449aeebd62ee053792afde67f59e237ad02fc
+    last_green: aa0de3e3adeb3351c8fa6a2c8a1cab4566aee3a6
+    range: aa0de3e3adeb3351c8fa6a2c8a1cab4566aee3a6..a6f449aeebd62ee053792afde67f59e237ad02fc
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-a6f449aeeb.log
+    failing: |
+      browser (9):   ✘  23 packages/ui/test/ui/mobile-menu.browser.spec.ts:61:5 › MobileMenu › layout › items sit in a Project section and an App section, each under its own heading (1.6s)
