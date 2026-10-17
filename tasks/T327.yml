@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 4b8e3ee73a7549e48957f6408e137a46e9c89697
 goal: Sealed box: Fsc, Qtc and Vb all enterable with the clear rule; Box tab tuning input for bandpass 4
 done_test: bash scripts/test.sh packages/design/test/domain/sealed-triple.test.ts
 files:

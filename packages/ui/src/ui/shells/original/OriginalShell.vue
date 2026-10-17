@@ -378,12 +378,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField id="og-fb-target-field" class="field" input-id="og-fb-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" />
                 </template>
                 <template v-else-if="selectedBox === 'sealed'">
-                  <UIField class="field" input-id="og-box-resonance" :field="NumberField.BOX_FSC_HZ" :cell="sealedFscCell" />
+                  <UIField class="field" input-id="og-box-resonance" :field="NumberField.BOX_FSC_HZ" :cell="sealedFscCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" />
                 </template>
                 <div v-else :class="['field', { 'dq-flag': selectedBox === 'box-passive-radiator' && prSystemTuningDq.dq.length > 0 }]" :title="selectedBox === 'box-passive-radiator' ? (prSystemTuningDq.dq.length > 0 ? prSystemTuningDq.dq.join('; ') + '\n\n' + FH_TARGET_TIP : FH_TARGET_TIP) : ''"><label>Fh</label><NumReadout as-input id="og-box-resonance" class="calculated greyed" :field="NumberField.BOX_RESONANCE_HZ" :value="boxResonance" /><UnitToggle :field="NumberField.BOX_RESONANCE_HZ" unit-class="unit unit-cyc" /><div style="width:16px"></div></div>
               </div>
               <div v-if="selectedBox === 'sealed'" class="field-row">
-                <UIField class="field" input-id="og-box-qtc" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" />
+                <UIField class="field" input-id="og-box-qtc" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" />
               </div>
               <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               <button class="link-btn" @click="lossesOpen = 'whole'">Advanced-&gt;</button>
@@ -427,7 +427,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                  with notes was picked, shifting the chart above. -->
             <div class="box-notes-col">
               <p class="hint"><b>Rear chamber</b> is the chamber behind the driver, <b>front chamber</b> the one in front of it. Closed, vented and passive radiator boxes have a rear chamber only.</p>
-              <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Solved from the box volume Vb.</p>
+              <p v-if="selectedBox === 'sealed'" class="hint"><b>Sealed (Fsc):</b> System resonance frequency where the speaker impedance peaks and below which the response rolls off at 12 dB/octave. Volume, Fsc and Qtc fix each other: type any one and the other two follow.</p>
               <p v-if="selectedBox === 'vented'" class="hint"><b>Vented (Fb):</b> Helmholtz resonance of the box volume and port. At Fb, port output is maximized and driver cone excursion is minimized.</p>
               <p v-if="selectedBox === 'box-passive-radiator'" class="hint"><b>Passive radiator (Fh):</b> Helmholtz tuning frequency of the passive radiator and Vb. Lowered by adding mass (Madd) to the radiator cone.</p>
               <p v-if="selectedBox === 'bandpass4'" class="hint"><b>Bandpass 4th order:</b> Uses sealed rear chamber resonance (Frc) for low-end control, and front chamber port tuning (Fb) to bandpass-filter the output.</p>

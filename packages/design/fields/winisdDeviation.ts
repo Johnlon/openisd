@@ -16,6 +16,8 @@ export interface IgnoredInputFix {
   readonly kind: 'ignoredInput';
   /** The charts and readouts the ignored input shows in. */
   readonly seenIn: string;
+  /** What to do to see WinISD's result, in plain words. */
+  readonly remedy: string;
 }
 
 export type WinisdDeviationFix = ErrorSwitchFix | IgnoredInputFix;
@@ -146,6 +148,15 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly CLOSED_BOX_TYPING = new WinisdDeviation({
+    title: 'WinISD lets you type only the volume of a closed box',
+    winisd: 'On a closed box, WinISD lets you type only the volume. Fsc is greyed out and Qtc is a plain readout, both worked out from the volume.',
+    openisd: 'OpenISD lets you type Fsc or Qtc as well. What you type is kept as typed, and the volume and the other value are worked out from it.',
+    size: 'No chart differs: the same box gives the same curves. Only what you can type differs.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Fsc and Qtc fields on the Box tab of a closed box.', remedy: 'WinISD has no way to type these, so OpenISD has no switch to copy it. Type the volume to work the way WinISD does.'},
+    charts: [],
+  });
+
   /** The project-wide members, by reflection; declared last. */
   static readonly ALL: readonly WinisdDeviation[] =
     Object.freeze(Object.values(WinisdDeviation).filter((v): v is WinisdDeviation => v instanceof WinisdDeviation));
@@ -165,7 +176,7 @@ function seenInOf(fix: WinisdDeviationFix): string {
 function remedyOf(fix: WinisdDeviationFix): string {
   switch (fix.kind) {
     case 'errorSwitch': return `Tick "${fix.switchField.label}" under Enable WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
-    case 'ignoredInput': return 'WinISD ignores this input, so OpenISD has no switch to copy it. Set the value WinISD draws to see WinISD\'s result.';
+    case 'ignoredInput': return fix.remedy;
   }
 }
 
@@ -188,7 +199,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     winisd: 'WinISD draws an allpass filter of order 3 or more exactly as order 2: one 2nd-order section with ω0 = 2/t and a delay of t/Q.',
     openisd: 'OpenISD uses the order you set. Above order 2 it draws a Bessel allpass of that order with a delay of t. The delay stays flat to a higher frequency as the order rises. Q is not used there. Orders 1 and 2 are the same as in WinISD.',
     size: 't 3 ms, Q 0.6, order 4: WinISD delays 5.0 ms (as order 2), OpenISD 3.0 ms.',
-    fix: {kind: 'ignoredInput', seenIn: 'allpass filters of order 3 or more in the EQ/Filter chain. The EQ/Filter phase and group delay charts change, and so do the phase and group delay of every chart the filter feeds. The magnitude is flat either way.'},
+    fix: {kind: 'ignoredInput', seenIn: 'allpass filters of order 3 or more in the EQ/Filter chain. The EQ/Filter phase and group delay charts change, and so do the phase and group delay of every chart the filter feeds. The magnitude is flat either way.', remedy: 'WinISD ignores this input, so OpenISD has no switch to copy it. Set the value WinISD draws to see WinISD\'s result.'},
     charts: [],
     concerns: f => f.type === 'allpass',
   });
@@ -198,7 +209,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     winisd: 'WinISD always draws a 4th-order Linkwitz-Riley filter, whatever the Order box says. A typed 2 or 6 reopens as 4.',
     openisd: 'OpenISD uses the order you set. A Linkwitz-Riley filter of even order n is two Butterworth filters of order n/2 in a row.',
     size: 'Low-pass, one octave above fc: LR2 −7.0 dB, LR4 (WinISD) −24.6 dB. Phase at fc: −90° against −180°.',
-    fix: {kind: 'ignoredInput', seenIn: 'Linkwitz-Riley low-pass and high-pass filters whose order is not 4. The three EQ/Filter charts change, and so does every chart the filter feeds (SPL, Cone excursion, port velocities).'},
+    fix: {kind: 'ignoredInput', seenIn: 'Linkwitz-Riley low-pass and high-pass filters whose order is not 4. The three EQ/Filter charts change, and so does every chart the filter feeds (SPL, Cone excursion, port velocities).', remedy: 'WinISD ignores this input, so OpenISD has no switch to copy it. Set the value WinISD draws to see WinISD\'s result.'},
     charts: [],
     concerns: f => (f.type === 'lowpass' || f.type === 'highpass') && f.family === 'linkwitzRiley',
   });

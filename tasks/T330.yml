@@ -1,0 +1,20 @@
+id: T330
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Difference icon by the closed box's Fsc and Qtc: WinISD lets you type only Volume
+done_test: bash scripts/test.sh packages/design/test/domain/error-switches.test.ts
+files:
+  - tasks/T330.yml
+  - docs/research/WINISD_PARITY.md
+  - packages/design/fields/winisdDeviation.ts
+  - packages/design/test/domain/error-switches.test.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/closed-box-typing-cue.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+visual:
+  - desktop-box-sealed
