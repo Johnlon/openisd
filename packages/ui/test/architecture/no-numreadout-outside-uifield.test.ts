@@ -16,8 +16,6 @@ const HAND_BUILT_READOUT = /<NumReadout|calculated greyed|mob-field-value mob-re
  *  fails, so a converted site must be taken off this list and a new one cannot be added. */
 const NOT_YET_MOVED: ReadonlyMap<string, number> = new Map([
   [join('ui', 'components', 'OptionsModal.vue'), 3],
-  [join('ui', 'shells', 'mobile', 'MobileBoxTab.vue'), 2],
-  [join('ui', 'shells', 'original', 'OriginalShell.vue'), 1],
 ]);
 
 function vueFilesUnder(dir: string): string[] {

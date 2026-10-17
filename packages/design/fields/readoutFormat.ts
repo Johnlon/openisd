@@ -31,6 +31,11 @@ export class ReadoutFormat {
     return formatFixed(v * unit.relFactor, decimalsIn(unit, this.decimals));
   }
 
+  /** `text` for a value held in SI. */
+  textSI(si: number | null | undefined, absent: string, tokens: Readonly<Record<string, string>> = {}): string {
+    return this.text(si === null || si === undefined ? si : this.unitField.toDisplay(si), absent, tokens);
+  }
+
   /** `text` followed by the unit label; just `absent` when `v` is missing. */
   textWithUnit(v: number | null | undefined, absent: string, tokens: Readonly<Record<string, string>>): string {
     const shown = this.text(v, absent, tokens);

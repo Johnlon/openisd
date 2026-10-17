@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 337b288a4b8770fa95f82e4ff50088fc9cde7901
 goal: The chart redraws its text when a font finishes loading, so its labels never stay in the fallback font
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

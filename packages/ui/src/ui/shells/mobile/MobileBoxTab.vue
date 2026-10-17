@@ -23,7 +23,7 @@ const {
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
-  ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+  ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
   lossesOpen, openLossGroups, resetBoxLosses,
 } = useMobileBoxTab();
@@ -127,18 +127,8 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
           <option v-for="o in ventedAlignmentOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
         </select>
       </div>
-      <div class="mob-field-row mob-field-calculated">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Volume</span>
-          <span class="mob-field-value mob-readonly">{{ readoutWithUnit(ReadoutFormat.ALIGNMENT_VOLUME_L, ventedAlignmentVolume_L, '—') }}</span>
-        </div>
-      </div>
-      <div class="mob-field-row mob-field-calculated">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Tuning freq (Fb)</span>
-          <span class="mob-field-value mob-readonly">{{ readoutWithUnit(ReadoutFormat.TUNING_HZ, ventedAlignmentTuning_hz, '—') }}</span>
-        </div>
-      </div>
+      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly plain />
+      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly plain />
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="ventedAlignmentSuitability ?? 'unknown'"></span>
         <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, ventedAlignmentEbp, '—') }} — {{ ventedAlignmentSuitabilityLabel }}</span>

@@ -65,7 +65,7 @@ const {
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
-  ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+  ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
   ventedAlignmentSuitabilityLabel,
   activeTuning, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
   boxResonance, rearQtc, prSystemTuningDq,
@@ -400,7 +400,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIFixedField v-else class="field" :field="NumberField.BOX_REARRESONANCE_HZ" :label="selectedBox === 'bandpass4' ? 'Frc' : 'Tuning freq'" :value="rearResonance" readonly />
                 </div>
                 <div v-if="selectedBox === 'bandpass4'" class="field-row">
-                  <div class="field"><label>Qtc</label><input class="calculated greyed" :value="ReadoutFormat.QTC.text(rearQtc, '')" readonly></div>
+                  <UIFixedField class="field" :field="NumberField.QTS" label="Qtc" :value="rearQtc" :format="ReadoutFormat.QTC" readonly />
                 </div>
                 <button class="link-btn" @click="lossesOpen = 'rear'">Advanced-&gt;</button>
               </div>
@@ -890,8 +890,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <option v-for="option in ventedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
           </div></div>
-          <div class="field-row"><div class="field"><label>Volume</label><input type="text" readonly :value="ReadoutFormat.ALIGNMENT_VOLUME_L.text(ventedAlignmentVolume_L, '', unitTokens)"><span class="unit">{{ ReadoutFormat.ALIGNMENT_VOLUME_L.unitLabel(unitTokens) }}</span></div></div>
-          <div class="field-row"><div class="field"><label>Tuning freq (Fb)</label><input type="text" readonly :value="ReadoutFormat.TUNING_HZ.text(ventedAlignmentTuning_hz, '', unitTokens)"><span class="unit">{{ ReadoutFormat.TUNING_HZ.unitLabel(unitTokens) }}</span></div></div>
+          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly /></div>
+          <div class="field-row"><UIFixedField class="field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly /></div>
           <div class="alignment-readout"><span class="alignment-icon" :class="ventedAlignmentSuitability ?? 'unknown'">●</span>
             <span>EBP {{ ReadoutFormat.EBP.text(ventedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ ventedAlignmentSuitabilityLabel }}</span>
           </div>

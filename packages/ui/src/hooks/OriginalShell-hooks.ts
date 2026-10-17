@@ -234,7 +234,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const ventedAlignmentOpen = ventedAlignmentEditor.open;
   const ventedAlignmentOptions = ventedAlignmentEditor.options;
   const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
-  const ventedAlignmentVolume_L = ventedAlignmentEditor.volume_L;
+  const ventedAlignmentVolume_m3 = ventedAlignmentEditor.volume_m3;
   const ventedAlignmentTuning_hz = ventedAlignmentEditor.tuning_hz;
   const ventedAlignmentEbp = ventedAlignmentEditor.ebp;
   const ventedAlignmentSuitability = ventedAlignmentEditor.ebpSuitability;
@@ -776,7 +776,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
      ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
-     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+     ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
      ventedAlignmentSuitabilityLabel,
     FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
     boxResonance, rearQtc, prSystemTuningDq,
