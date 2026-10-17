@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: aa0de3e3adeb3351c8fa6a2c8a1cab4566aee3a6
 goal: An F's failing list drops GitHub's caret-notation colour codes
 done_test: bash scripts/land/test/post-land-red-base.test.sh
 files:

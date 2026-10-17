@@ -30,7 +30,7 @@ import {OpenableFiles} from '../../../fileFormat.js';
 import {APP_UPDATE_TEXT, NO_PROJECT_OPEN} from '@openisd/design/fields';
 
 const {
-  projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
+  projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
@@ -87,6 +87,7 @@ const diagnostics = injectDiagnosticsModal();
       <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectsPane"><ToolbarIcon name="open" /> <span>Open project</span></button>
       <button type="button" class="mob-cta mob-cta-secondary" @click="fileInput?.click()"><ToolbarIcon name="import" /> <span>Import project</span></button>
       <button type="button" class="mob-link" @click="switchToDesktop">Switch to Desktop view</button>
+      <button v-if="!skinIsAutomatic" type="button" class="mob-link" @click="useAutomaticSkin">Automatic view</button>
     </div>
 
     <template v-else>
@@ -192,6 +193,7 @@ const diagnostics = injectDiagnosticsModal();
           <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
+          <button v-if="!skinIsAutomatic" type="button" class="mob-menu-item" @click="useAutomaticSkin">Automatic view</button>
         </section>
       </div>
     </div>

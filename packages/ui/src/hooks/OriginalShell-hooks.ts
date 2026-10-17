@@ -177,6 +177,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
   // `App.vue`'s `activeSkin` (`presentationState.narrowViewport`), which this override beats.
   function switchToMobile(): void { setSkinOverride('mobile'); }
+  // Back to choosing the skin from the window width, as at first start.
+  function useAutomaticSkin(): void { setSkinOverride(null); }
+  const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);
   const { projectRepo, projectBin } = useApp();
   const { editProjectDriver } = selection;
 
@@ -765,7 +768,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile,
+    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
     projectListRef, duplicateProject, exportProject, cycleProjectColor, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,

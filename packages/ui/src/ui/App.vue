@@ -47,8 +47,7 @@ presentationState.narrowViewport = viewportWatch.narrow.value;
 watch(viewportWatch.narrow, v => { presentationState.narrowViewport = v; });
 
 /** Which shell to render: the manual override wins when set; otherwise follow the viewport. */
-const activeSkin = computed(() =>
-  presentationState.ui.skinOverride ?? (presentationState.narrowViewport ? 'mobile' : 'original'));
+const activeSkin = computed(() => presentationState.shownSkin());
 
 // App.vue is the shell-agnostic root: it owns app lifecycle (persist / hash) and the global
 // overlays. The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus

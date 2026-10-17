@@ -249,7 +249,7 @@ function onStepperBlur(e: FocusEvent): void {
 function startRepeat(dir: SpinDirection, e: PointerEvent): void {
   stopRepeat();
   const fromCaret = caretForStep();
-  const isMobile = presentationState.ui.skinOverride === 'mobile' || e.pointerType === 'touch';
+  const isMobile = presentationState.shownSkin() === 'mobile' || e.pointerType === 'touch';
   if (isMobile) {
     if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
   } else {

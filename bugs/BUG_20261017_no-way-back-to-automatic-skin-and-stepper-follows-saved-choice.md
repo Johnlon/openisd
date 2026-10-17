@@ -1,6 +1,6 @@
 # BUG: no way back to the automatic skin; number steppers follow the saved choice, not the skin shown
 
-Status: OPEN
+Status: RESOLVED
 Found: 2026-10-17, back-door removal 1 (bob)
 
 ## Symptom
@@ -14,3 +14,10 @@ Found: 2026-10-17, back-door removal 1 (bob)
 ## Fix wanted
 - A "Follow window size" entry beside the two switch entries, or Options setting, that clears the saved choice.
 - Decide with John whether ▲▼ should follow the skin shown.
+
+## Fix
+- `presentationState.shownSkin()` is the one answer to "which skin is on screen"; `App.vue` and `NumInput.vue` both read it, so the ▲▼ steppers act as on a phone whenever the mobile skin is shown.
+- Both Info menus (desktop and mobile) get "Automatic view", shown once a choice is saved; it clears the choice so the skin follows the window width again.
+
+## Verification
+- `presentationState-skin.test.ts` (shownSkin), `skin-selection.browser.spec.ts` (Automatic view, both directions, survives reload), `stepper-follows-shown-skin.browser.spec.ts` (phone-sized window with no saved choice: ▲ focuses the button; wide window: the box keeps focus).

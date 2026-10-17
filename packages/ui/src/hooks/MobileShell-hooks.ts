@@ -68,6 +68,8 @@ export interface MobileShellApi {
   openImportedFile: (e: Event) => void;
   openNewProject: () => void;
   switchToDesktop: () => void;
+  useAutomaticSkin: () => void;
+  skinIsAutomatic: import('vue').ComputedRef<boolean>;
   menuOpen: import('vue').Ref<boolean>;
   toggleMenu: () => void;
   closeMenu: () => void;
@@ -402,6 +404,9 @@ export function useMobileShell(): MobileShellApi {
   // `activeSkin` (`presentationState.narrowViewport`), which this override beats. Symmetric with
   // `OriginalShell-hooks.ts`'s `switchToMobile`.
   function switchToDesktop(): void { setSkinOverride('original'); closeMenu(); }
+  // Back to choosing the skin from the window width, as at first start.
+  function useAutomaticSkin(): void { setSkinOverride(null); closeMenu(); }
+  const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);
 
   // CSS `100vh`/`100dvh` is not enough on its own: real browsers vary in whether/when they
   // shrink it for their own chrome (a mobile address bar, a download shelf, any other bar a
@@ -526,7 +531,7 @@ export function useMobileShell(): MobileShellApi {
   }
 
   return {
-    projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
+    projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,

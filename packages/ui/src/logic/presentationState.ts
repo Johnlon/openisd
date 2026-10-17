@@ -99,6 +99,8 @@ export interface PresentationState {
    *  storing a literal `null`, so a cleared override round-trips through `viewStateRepo` as
    *  "absent" — the same state a visitor who never touched the toggle is in. */
   setSkinOverride(skin: 'original' | 'mobile' | null): void;
+  /** The skin on screen: the manual override when set, otherwise the one the window width picks. */
+  shownSkin(): 'original' | 'mobile';
 }
 
 /** A fresh presentation state. Built once per app by the composition root, once per test. */
@@ -125,6 +127,9 @@ export function createPresentationState(): PresentationState {
     setSkinOverride(skin: 'original' | 'mobile' | null): void {
       if (skin === null) delete s.ui.skinOverride;
       else s.ui.skinOverride = skin;
+    },
+    shownSkin(): 'original' | 'mobile' {
+      return s.ui.skinOverride ?? (s.narrowViewport ? 'mobile' : 'original');
     },
   });
   return s;

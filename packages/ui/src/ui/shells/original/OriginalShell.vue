@@ -47,7 +47,7 @@ const {
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile,
+  projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
   projectListRef, duplicateProject, exportProject, cycleProjectColor, renameProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
@@ -145,6 +145,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="menu-item" title="Where OpenISD differs from WinISD: the WinISD bugs it fixes, and the options." @click="winisdDifferences.show(); closeDropdown()">OpenISD and WinISD differences</div>
             <div class="menu-item" title="Diagnostic report and stored data health." @click="diagnostics.show(); closeDropdown()">Diagnostics</div>
             <div class="menu-item" title="Switch to a phone-friendly layout. Remembered on this device — use the same menu there to switch back." @click="switchToMobile(); closeDropdown()">Switch to Mobile view</div>
+            <div v-if="!skinIsAutomatic" class="menu-item" title="Choose the layout from the window size again, as when you first opened OpenISD." @click="useAutomaticSkin(); closeDropdown()">Automatic view</div>
           </div>
         </div>
         <div class="tb-sep"></div>
