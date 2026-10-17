@@ -1,5 +1,5 @@
-import {type Engine, FixedAir} from '../../engine/index.js';
-import type { Air, AirEnvironment, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import {type Engine, FixedAir, availableAir} from '../../engine/index.js';
+import type { Air, AirEnvironment, AirState, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
@@ -100,7 +100,7 @@ export class OpenISDProject {
         return OpenISDDriverEmbedded.wrap(
             focus(focus(root, 'driverEmbedding'), 'device'),
             this.#engine,
-            () => this.#airOver(root),
+            () => this.#airState(root),
             () => this.#issues.driver,
         );
     }
@@ -111,6 +111,12 @@ export class OpenISDProject {
      *  comment on `OpenIsdDriverSpec`'s constructor. */
     #air(root: SimpleField<OpenISDProjectJson>): Air {
         return new FixedAir(this.#engine.environment.solve(this.#airOver(root)).values);
+    }
+
+    /** `root`'s air as a solver that writes values takes it. Always available for now: the three
+     *  conditions are never absent. */
+    #airState(root: SimpleField<OpenISDProjectJson>): AirState {
+        return availableAir(this.#air(root));
     }
 
     /** The three air conditions `root` reads as — each E or C, never absent. */
@@ -139,7 +145,7 @@ export class OpenISDProject {
             () => root.value.driverEmbedding.Rs_ohm,
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
-            () => this.#air(root),
+            () => this.#airState(root),
         );
     }
 
@@ -570,7 +576,7 @@ export class OpenISDProject {
             engine: this.#engine,
             driverOver: (root) => this.#driverOver(root),
             boxOver: (root) => this.#boxOver(root),
-            air: (root) => this.#air(root),
+            air: (root) => this.#airState(root),
             envFieldsOver: (environment) => envFieldsOver(environment, this.#engine.environment),
             powerDriveOver: (root) => this.#signalOver(root).powerDrive_W,
             driveVoltageOver: (root) => this.#signalOver(root).driveVoltage_V,

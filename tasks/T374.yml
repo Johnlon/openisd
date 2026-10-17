@@ -1,0 +1,37 @@
+id: T374
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Solvers that write calculated values (driver, vent, passive radiator) take an AirState that is available or not available, and a value that needs air stays not available with an issue naming c and rho when it is not; no behaviour change
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T374.yml
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/ventWindow.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/engine/air.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/driver/routes/RouteGroup.ts
+  - packages/design/engine/driver/routes/SolveRoute.ts
+  - packages/design/engine/driver/routes/advancedRoutes.ts
+  - packages/design/engine/driver/routes/efficiencyRoutes.ts
+  - packages/design/engine/driver/routes/smallSignalRoutes.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/engine/vent/VentEngine.ts
+  - packages/design/test/architecture-engine-boundary.test.ts
+  - packages/design/test/domain/driver-air-is-the-projects.test.ts
+  - packages/design/test/engine/air-state.test.ts
+  - packages/design/test/engine/driver-consistency-check.test.ts
+  - packages/design/test/engine/driver-solve.test.ts
+  - packages/design/test/engine/pr-consistency.test.ts
+  - packages/design/test/engine/testSolver.ts
+  - packages/design/test/engine/vent-consistency.test.ts
+  - packages/design/test/fixtures/driverSolverRun.ts
+  - packages/ui/test/visual/SOURCES.sha256

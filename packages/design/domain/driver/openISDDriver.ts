@@ -1,5 +1,5 @@
-import {type Engine, FixedAir} from '../../engine/index.js';
-import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import {type Engine, FixedAir, availableAir} from '../../engine/index.js';
+import type { AirState, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -102,7 +102,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  2026-10-05). An embedded driver's is the project's live environment
      *  (`OpenISDDriverEmbedded.wrap()`); a standalone driver's is the app's environment defaults.
      *  `resolve()` reads it fresh on every call. */
-    protected readonly airProvider: () => AirEnvironment;
+    protected readonly airProvider: () => AirState;
 
     /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a driver reports
      *  derived figures, and every one of them comes from here and nowhere else. */
@@ -111,7 +111,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     protected constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirEnvironment,
+        airProvider: () => AirState,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
     ) {
@@ -119,14 +119,13 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
-        const air = (): Air => new FixedAir(engine.environment.solve(airProvider()).values);
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, air, durableIssues);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
      *  into the record as a `'C'` entry, cache the issues, and return them. */
     resolve(): readonly DriverIssue[] {
-        return this.specs.resolve(new FixedAir(this.engine.environment.solve(this.airProvider()).values));
+        return this.specs.resolve(this.airProvider());
     }
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
@@ -461,7 +460,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingField(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, engine, () => engine.environment.defaults());
+        driver = new OpenISDDriverStandalone(record, engine, () => availableAir(new FixedAir(engine.environment.solve(engine.environment.defaults()).values)));
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read

@@ -7,7 +7,7 @@
 import {describe, expect, it} from 'vitest';
 import {DEFAULT_VENTED_DESIGN_LIMITS} from '../../engine/appSettings.js';
 import {createEngine} from '../../engine/Engine.js';
-import {FixedAir} from '../../engine/index.js';
+import {FixedAir, availableAir} from '../../engine/index.js';
 import type {Engine} from '../../engine/Engine.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
@@ -40,8 +40,8 @@ describe('a driver file\'s own c and roo feed no calculation', () => {
     const engine = createEngine();
     const values = engine.environment.solve(engine.environment.defaults()).values;
     const air = new FixedAir(values);
-    const withAir = engine.driver.solveValues({...TS, ...STRANGE_AIR}, air);
-    const without = engine.driver.solveValues(TS, air);
+    const withAir = engine.driver.solveValues({...TS, ...STRANGE_AIR}, availableAir(air));
+    const without = engine.driver.solveValues(TS, availableAir(air));
     expect(withAir.Cms_m_per_N).toBe(without.Cms_m_per_N);
     expect(withAir.no).toBe(without.no);
     expect(withAir.c_m_per_s).toBe(values.c);

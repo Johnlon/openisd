@@ -29,8 +29,8 @@ export const FS_ROUTES: readonly DriverRoute[] = Object.freeze([
   // rel 11
   FS_FROM_MASS_CMS_ROUTE,
   // rel 14
-  new SolveRoute('Fs_hz', ['no', 'Qes', 'Vas_m3'],
-    (v, air) => Math.pow((v.no * v.Qes) / (efficiencyConstant(air.c()) * v.Vas_m3), 1 / 3),
+  new SolveRoute('Fs_hz', ['no', 'Qes', 'Vas_m3', 'c_m_per_s'],
+    v => Math.pow((v.no * v.Qes) / (efficiencyConstant(v.c_m_per_s) * v.Vas_m3), 1 / 3),
     v => v.Vas_m3 > 0 && v.no > 0),
   // rel 2
   new SolveRoute('Fs_hz', ['Qes', 'BL_Tm', 'Mms_kg', 'Re_ohm'],
@@ -52,8 +52,8 @@ export const MMS_FROM_FS_CMS_ROUTES: readonly DriverRoute[] = Object.freeze([
 ]);
 
 /** Cms from Vas and Sd, in the working set's air. */
-export const CMS_FROM_VAS_SD_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N', ['Vas_m3', 'Sd_m2'],
-  (v, air) => v.Vas_m3 / (air.rho() * air.c() * air.c() * v.Sd_m2 * v.Sd_m2),
+export const CMS_FROM_VAS_SD_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N', ['Vas_m3', 'Sd_m2', 'roo_kg_per_m3', 'c_m_per_s'],
+  v => v.Vas_m3 / (v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Sd_m2 * v.Sd_m2),
   v => v.Sd_m2 > 0).inRelation(VAS_FROM_COMPLIANCE));
 
 /**
@@ -66,8 +66,8 @@ export const CMS_FROM_VAS_SD_ROUTE = Object.freeze(new SolveRoute('Cms_m_per_N',
 export const CMS_SD_ROUTES: readonly DriverRoute[] = Object.freeze([
   CMS_FROM_VAS_SD_ROUTE,
   new SolveRoute('Cms_m_per_N', ['Fs_hz', 'Mms_kg'], v => 1 / ((TAU * v.Fs_hz) ** 2 * v.Mms_kg)).inRelation(FS_FROM_MASS_AND_COMPLIANCE),
-  new SolveRoute('Sd_m2', ['Vas_m3', 'Cms_m_per_N'],
-    (v, air) => Math.sqrt(v.Vas_m3 / (air.rho() * air.c() * air.c() * v.Cms_m_per_N)),
+  new SolveRoute('Sd_m2', ['Vas_m3', 'Cms_m_per_N', 'roo_kg_per_m3', 'c_m_per_s'],
+    v => Math.sqrt(v.Vas_m3 / (v.roo_kg_per_m3 * v.c_m_per_s * v.c_m_per_s * v.Cms_m_per_N)),
     v => v.Cms_m_per_N > 0).inRelation(VAS_FROM_COMPLIANCE),
 ]);
 

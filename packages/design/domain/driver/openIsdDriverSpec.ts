@@ -1,4 +1,4 @@
-import type {Air, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
+import type {Air, AirState, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {
@@ -186,7 +186,7 @@ export class OpenIsdDriverSpec {
         driver: DriverEngine,
         issues: IssueEngine,
         /** The driver's air: what a not-entered `c_m_per_s`/`roo_kg_per_m3` reads as. */
-        air: () => Air,
+        air: () => AirState,
         /** Where a field's dq is read from when THIS spec object cannot be relied on to still
          *  exist between the resolve that produced it and the read that wants it — the project's
          *  embedded driver, rebuilt fresh on every access, which discards `entryField`'s own
@@ -348,7 +348,7 @@ export class OpenIsdDriverSpec {
      *  fresh at read time and left unstored (supersedes the earlier QO127 "stated-only, nothing
      *  writes back" framing). Runs the engine over this window's own 44 handles, caches the
      *  issues, and returns them; `air` is the driver's own resolved `{ rho, c }`. */
-    resolve(air: Air): readonly DriverIssue[] {
+    resolve(air: AirState): readonly DriverIssue[] {
         // The wiring's WinISD default, written into the record as a 'C' entry before the solve
         // reads it — the same route `c_m_per_s` takes, so a saved driver states its wiring
         // rather than leaving every reader to reapply the app's default (John, 2026-09-24).

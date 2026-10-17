@@ -4,7 +4,8 @@
  * that reaches a target tuning, and the handle solve that fills in whichever of
  * tuning/added-mass the project has not entered.
  */
-import type {Air} from '../air.js';
+import type {Air, AirState, AirWorkingName} from '../air.js';
+import {AIR_WORKING_NAMES, airIfAvailable} from '../air.js';
 import type {ConsistencyCheck, RouteGroup, RouteQuantity} from '../driver/routes/index.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import type {PrParams} from '../types.js';
@@ -12,7 +13,7 @@ import type {PrSolverParams} from '../solverTypes.js';
 import {inconsistentInputs, missingDependencies, targetUnreachable} from '../consistency.js';
 import type {CalculationIssue, TargetUnreachableIssue} from '../consistency.js';
 
-export type PrQuantityName = keyof PrSolverParams;
+export type PrQuantityName = keyof PrSolverParams | AirWorkingName;
 export type PrIssue = CalculationIssue<PrQuantityName> | TargetUnreachableIssue;
 
 /** A radiator's stated figures: the WinISD set (Fs, Qms, Vas, Sd) and the mechanical set
@@ -62,23 +63,25 @@ export interface PrEngine {
   /** The radiator's seven stated figures run through the driver's consistency relations, in
    *  the project's `air`: every figure derivable from the stated ones comes back with them, a
    *  stated one unchanged, an underivable one null. Pass only what was entered. */
-  solveSpec(stated: PrSpecValues, air: Air): PrSpecValues;
+  solveSpec(stated: PrSpecValues, air: AirState): PrSpecValues;
   /** Where the stated figures contradict each other: the driver's consistency relations among
    *  Fs, Qms, Vas, Sd, Mms, Cms and Rms, in the project's `air`, each figure judged against its
    *  own `precision`. Pass only what was entered. Every issue names every field in its relation.
    *  Also the first of Cms, Mms, Rms the simulation needs and the stated figures cannot give, as
    *  a `missing-dependencies` issue naming what to state. */
-  checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: Air): PrSpecIssue[];
+  checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: AirState): PrSpecIssue[];
   /** The PR handle solve (T10/T11): derive whichever of `tuning_goal_hz`/`addedMass_kg` is not
    *  entered plus `resonanceWithAddedMass_hz`/`systemTuning_hz`, write each onto its
    *  `SolverField` via `setCalculated`, and return the issues the stated values carry. An
-   *  entered value is never overwritten; an underivable member becomes `not-available`. */
-  solve(params: PrSolverParams, air: Air): PrIssue[];
+   *  entered value is never overwritten; an underivable member becomes `not-available`. With `air`
+   *  not available, a value that needs it stays `not-available` and its issue names `c_m_per_s`
+   *  and `roo_kg_per_m3`. */
+  solve(params: PrSolverParams, air: AirState): PrIssue[];
 }
 
 /** The PR geometry every solve route needs, beside `tuning_goal_hz`/`addedMass_kg` themselves —
  *  named once so both routes report the identical missing set. */
-const PR_GEOMETRY: readonly PrQuantityName[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
+const PR_GEOMETRY: readonly (keyof PrSolverParams)[] = Object.freeze(['Vb_m3', 'prMmd_kg', 'prSd_m2', 'prCms_m_per_N']);
 
 export class PrEngineImpl implements PrEngine {
   constructor(
@@ -128,22 +131,22 @@ export class PrEngineImpl implements PrEngine {
     return prQmsValue > 0 ? Math.sqrt(prMmd / prCms) / prQmsValue : 0;
   }
 
-  solveSpec(stated: PrSpecValues, air: Air): PrSpecValues {
-    const solved = this.routes.run(this.workingSet(stated, air), air);
+  solveSpec(stated: PrSpecValues, air: AirState): PrSpecValues {
+    const solved = this.routes.run(this.workingSet(stated), air);
     return {
       Fs_hz: solved.Fs_hz ?? null, Qms: solved.Qms ?? null, Vas_m3: solved.Vas_m3 ?? null, Sd_m2: solved.Sd_m2 ?? null,
       Mms_kg: solved.Mms_kg ?? null, Cms_m_per_N: solved.Cms_m_per_N ?? null, Rms_kg_per_s: solved.Rms_kg_per_s ?? null,
     };
   }
 
-  checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: Air): PrSpecIssue[] {
+  checkSpec(stated: PrSpecValues, precision: PrSpecPrecision, air: AirState): PrSpecIssue[] {
     const widths: Partial<Record<RouteQuantity, number>> = {
       Fs_hz: precision.Fs_hz, Qms: precision.Qms, Vas_m3: precision.Vas_m3, Sd_m2: precision.Sd_m2,
       Mms_kg: precision.Mms_kg, Cms_m_per_N: precision.Cms_m_per_N, Rms_kg_per_s: precision.Rms_kg_per_s,
     };
     const conflicts = this.consistency.check(
-      this.workingSet(stated, air), working => this.routes.run(working, air), field => widths[field] ?? 0);
-    const missing = this.firstMissing(this.solveSpec(stated, air));
+      this.workingSet(stated), working => this.routes.run(working, air), field => widths[field] ?? 0);
+    const missing = this.firstMissing(this.solveSpec(stated, air), air.kind === 'available' ? [] : AIR_WORKING_NAMES);
     return missing === null ? conflicts : [...conflicts, missing];
   }
 
@@ -151,11 +154,11 @@ export class PrEngineImpl implements PrEngine {
    *  that the stated ones cannot give, as the route that would give it and what that route still
    *  lacks. Only the first: a missing Cms is why Mms and Rms are missing too, and one ⚠ naming
    *  the root is what the user can act on. Null when all three are known. */
-  private firstMissing(solved: PrSpecValues): PrSpecIssue | null {
+  private firstMissing(solved: PrSpecValues, missingAir: readonly AirWorkingName[]): PrSpecIssue | null {
     const lacking = (fields: readonly (keyof PrSpecValues)[]): (keyof PrSpecValues)[] => fields.filter(f => solved[f] === null);
     if (solved.Cms_m_per_N === null) {
       return missingDependencies<RouteQuantity>('Cms_m_per_N',
-        [{formula: 'Cms = Vas/(ρ·c²·Sd²)', required: ['Vas_m3', 'Sd_m2'], missing: lacking(['Vas_m3', 'Sd_m2'])}]);
+        [{formula: 'Cms = Vas/(ρ·c²·Sd²)', required: ['Vas_m3', 'Sd_m2', ...missingAir], missing: [...lacking(['Vas_m3', 'Sd_m2']), ...missingAir]}]);
     }
     if (solved.Mms_kg === null) {
       return missingDependencies<RouteQuantity>('Mms_kg',
@@ -168,18 +171,19 @@ export class PrEngineImpl implements PrEngine {
     return null;
   }
 
-  /** The stated figures and the project's air as the routes read them. */
-  private workingSet(stated: PrSpecValues, air: Air): DriverWorkingSet {
+  /** The stated figures as the routes read them; `routes.run` adds the air. */
+  private workingSet(stated: PrSpecValues): DriverWorkingSet {
     const orUndefined = (x: number | null): number | undefined => x ?? undefined;
     return {
       Fs_hz: orUndefined(stated.Fs_hz), Qms: orUndefined(stated.Qms), Vas_m3: orUndefined(stated.Vas_m3),
       Sd_m2: orUndefined(stated.Sd_m2), Mms_kg: orUndefined(stated.Mms_kg),
       Cms_m_per_N: orUndefined(stated.Cms_m_per_N), Rms_kg_per_s: orUndefined(stated.Rms_kg_per_s),
-      c_m_per_s: air.c(), roo_kg_per_m3: air.rho(),
     };
   }
 
-  solve(params: PrSolverParams, air: Air): PrIssue[] {
+  solve(params: PrSolverParams, state: AirState): PrIssue[] {
+    const air = airIfAvailable(state);
+    const missingAir = air === null ? AIR_WORKING_NAMES : [];
     const addedMass = params.addedMass_kg.value;
     const tuning = params.tuning_goal_hz.value;
     const Vb = params.Vb_m3.value;
@@ -199,19 +203,19 @@ export class PrEngineImpl implements PrEngine {
     const missingGeometry = PR_GEOMETRY.filter(f => { const v = params[f].value; return !(typeof v === 'number' && v > 0); });
 
     if (addedMass != null && !params.tuning_goal_hz.entered) {
-      if (geometryComplete) {
+      if (geometryComplete && air !== null) {
         params.tuning_goal_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: addedMass, prSd, prCms, prNum }, air));
       } else {
         params.tuning_goal_hz.setNotAvailable();
-        // geometryComplete is false here, and every way it can be false — Vb null/≤0, or prMmd/
-        // prSd/prCms null — is also a way PR_GEOMETRY's own >0 filter counts that same field, so
-        // missingGeometry is never empty in this branch.
+        // Either the geometry is incomplete, and every way it can be — Vb null/≤0, or prMmd/prSd/
+        // prCms null — is also a way PR_GEOMETRY's own >0 filter counts that same field, or the
+        // air is not available.
         issues.push(missingDependencies('tuning_goal_hz',
           [{ formula: 'tuning_goal_hz from addedMass_kg + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
-            required: ['addedMass_kg', ...PR_GEOMETRY], missing: missingGeometry }]));
+            required: ['addedMass_kg', ...PR_GEOMETRY, ...missingAir], missing: [...missingGeometry, ...missingAir] }]));
       }
     } else if (tuning != null && !params.addedMass_kg.entered) {
-      if (geometryComplete && tuning > 0) {
+      if (geometryComplete && tuning > 0 && air !== null) {
         const totalMass = this.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, tuning, air);
         const addedMassResult = totalMass - prMmd;
         if (addedMassResult >= 0) {
@@ -225,7 +229,7 @@ export class PrEngineImpl implements PrEngine {
         params.addedMass_kg.setNotAvailable();
         issues.push(missingDependencies('addedMass_kg',
           [{ formula: 'addedMass_kg from tuning_goal_hz + Vb_m3 + prMmd_kg + prSd_m2 + prCms_m_per_N',
-            required: ['tuning_goal_hz', ...PR_GEOMETRY], missing: missingGeometry }]));
+            required: ['tuning_goal_hz', ...PR_GEOMETRY, ...missingAir], missing: [...missingGeometry, ...missingAir] }]));
       }
     }
 
@@ -235,7 +239,7 @@ export class PrEngineImpl implements PrEngine {
     } else {
       params.resonanceWithAddedMass_hz.setNotAvailable();
     }
-    if (resolvedMass != null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null) {
+    if (air !== null && resolvedMass != null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null) {
       params.systemTuning_hz.setCalculated(this.tuning({ Vb, prMmd, prMadd: resolvedMass, prSd, prCms, prNum }, air));
     } else {
       params.systemTuning_hz.setNotAvailable();

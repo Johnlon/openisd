@@ -1,6 +1,7 @@
 import type {DriverWorkingSet} from '../../solvers/driverQuantities.js';
-import type {Air} from '../../air.js';
-import type {DriverRoute} from './SolveRoute.js';
+import {AIR_WORKING_NAMES} from '../../air.js';
+import type {AirState, AirWorkingName} from '../../air.js';
+import type {DriverRoute, RouteQuantity} from './SolveRoute.js';
 
 const MAX_PASSES = 10;
 
@@ -15,14 +16,16 @@ export class RouteGroup {
 
   /** `stated` plus everything the routes derive, in `air`. The result is a superset of the input,
    *  except `c_m_per_s`/`roo_kg_per_m3`: those are `air`'s, whatever `stated` says (John,
-   *  2026-10-05: a driver record's own c and roo feed no calculation). */
-  run(stated: DriverWorkingSet, air: Air): DriverWorkingSet {
-    const working: DriverWorkingSet = {...stated, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()};
+   *  2026-10-05: a driver record's own c and roo feed no calculation). When `air` is not
+   *  available they are absent, so every route that reads them does not run, and every route that
+   *  does not still does. */
+  run(stated: DriverWorkingSet, air: AirState): DriverWorkingSet {
+    const working: DriverWorkingSet = {...stated, ...airQuantities(air)};
     let changed = true;
     for (let pass = 0; changed && pass < MAX_PASSES; pass++) {
       changed = false;
       for (const route of this.routes) {
-        const value = route.value(working, air);
+        const value = route.value(working);
         if (value === null) continue;
         if (route.keepsNonPositive || (isFinite(value) && value > 0)) {
           working[route.target] = value;
@@ -31,5 +34,38 @@ export class RouteGroup {
       }
     }
     return working;
+  }
+
+  /** Each target `solved` still lacks that some route could derive but for c and rho alone: the
+   *  route's inputs, and which of them are the air. A route short of anything else is not here. */
+  blockedOnAir(solved: DriverWorkingSet): readonly AirBlockedRoute[] {
+    const blocked: AirBlockedRoute[] = [];
+    for (const route of this.routes) {
+      if (solved[route.target] != null) continue;
+      const missing = route.inputs.filter(input => solved[input] == null);
+      if (missing.length > 0 && missing.every(isAirName)) {
+        blocked.push({target: route.target, inputs: route.inputs, missing});
+      }
+    }
+    return blocked;
+  }
+}
+
+/** A route that would derive `target` if c and rho were there. */
+export interface AirBlockedRoute {
+  readonly target: RouteQuantity;
+  readonly inputs: readonly RouteQuantity[];
+  readonly missing: readonly AirWorkingName[];
+}
+
+function isAirName(name: RouteQuantity): name is AirWorkingName {
+  return AIR_WORKING_NAMES.some(air => air === name);
+}
+
+/** c and rho as the routes read them: the air's own, or absent. */
+function airQuantities(air: AirState): Pick<DriverWorkingSet, AirWorkingName> {
+  switch (air.kind) {
+    case 'available': return {c_m_per_s: air.air.c(), roo_kg_per_m3: air.air.rho()};
+    case 'notAvailable': return {c_m_per_s: undefined, roo_kg_per_m3: undefined};
   }
 }
