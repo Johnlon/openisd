@@ -275,6 +275,9 @@ export const test = base.extend<
     try {
       await use(page);
     } finally {
+      // Straight after the test body, while the page is still open (F41): a route handler still inside
+      // route.fetch() when the page closes throws "Test ended" into the result.
+      await page.unrouteAll({ behavior: 'ignoreErrors' });
       detach?.();
     }
   },
@@ -339,9 +342,6 @@ export const test = base.extend<
     };
 
     await use(log);
-    if (pageRef.page) {
-      await pageRef.page.unrouteAll({ behavior: 'ignoreErrors' });
-    }
     pageRef.detach?.();
 
     const dump = {

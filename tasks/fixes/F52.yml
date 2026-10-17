@@ -1,6 +1,6 @@
 id: F52
 owner: Johnlon
-status: open
+status: done
 sha: b3d73da67c45c5cbc9939f317e7da24ae7a384dd
 tested: b3d73da67c45c5cbc9939f317e7da24ae7a384dd
 last_green: 6f24d0e85599b70ffcea2d9ee765521ab625e036
@@ -458,3 +458,10 @@ also_red:
       browser (3): TEST START packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts >  > ui/mobile-sheet-fit.browser.spec.ts > box-passive-radiator sheet: fits without scrolling or overflow in Tune and Learn at 411×923
       browser (3): TEST START packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts >  > ui/mobile-sheet-fit.browser.spec.ts > bandpass4 sheet: fits without scrolling or overflow in Tune and Learn at 411×923
       browser (3):   ✘   93 packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts:40:3 › sealed sheet: fits without scrolling or overflow in Tune and Learn at 411×923 (991ms)TEST END packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts >  > ui/mobile-sheet-fit.browser.spec.ts > sealed sheet: fits without scrolling or overflow in Tune and Learn at 411×923 status=failed duration_ms=991
+closed_note: |
+  T250 moved the route clean-up into the browserLog fixture, whose teardown runs after Playwright has closed
+  the page, so every spec on the plain page fixture threw "Target page, context or browser has been closed"
+  (601 times in run 39003305915) and the F41 architecture test failed. T296 puts page.unrouteAll back in the
+  page fixture straight after the test body, and the architecture test now also fails on any unrouteAll in
+  the browserLog teardown (checked by putting the old code back). All 52 failing spec files pass locally
+  (554 tests), the mobile-sheet-fit reds of the second sha included. Closed by bob in T296.
