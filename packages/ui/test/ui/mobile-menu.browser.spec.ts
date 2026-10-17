@@ -274,6 +274,8 @@ test.describe('MobileMenu', () => {
       const lib = page.locator('.driver-library');
       await expect(lib).toBeVisible();
       const before = { dlg: await dlg.boundingBox(), lib: await lib.boundingBox() };
+      // Favourites cannot be switched on with none starred (John, 17 Oct 2026): star one first.
+      await page.locator('.dlist .ditem').first().locator('.fav-btn').click();
       await page.locator('.fav-filter').click();
       await expect(page.locator('.fav-filter.active')).toBeVisible();
       expect(await dlg.boundingBox()).toEqual(before.dlg);

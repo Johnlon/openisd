@@ -31,10 +31,10 @@ const {
   allDrivers, statusMsg, statusErr,
   filterQ, typeHelpOpen, typeStates,
   fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
-  toggleType, toggleZ, clearParamFilters,
+  toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, clearAllFilters,
   filteredDrivers, displayedDrivers, listTruncated, listedCount,
   filteredMyDrivers, displayNameOf, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
-  favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly,
+  favoritesAvailable, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly,
   driverScope, cycleDriverScope,
   previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, loadFromDisk, cloneDriver,
   openedLibrary,
@@ -152,15 +152,24 @@ onMounted(openedLibrary);
                   class="scope-seg" :class="{ active: s === driverScope }">{{ s.label }}</span>
           </button>
 
-          <button class="fav-filter" :class="{ active: favoritesOnly }"
-                  :title="favoritesOnly
-                    ? 'Showing favourites only — click to show every driver again'
-                    : 'Show only the drivers you have starred'"
+          <button class="fav-filter" :class="{ active: favoritesOnly }" :disabled="!favoritesAvailable"
+                  :title="!favoritesAvailable
+                    ? 'No favourites yet. Star a driver (☆) to add one.'
+                    : favoritesOnly
+                      ? 'Showing favourites only — click to show every driver again'
+                      : 'Show only the drivers you have starred'"
                   @click="toggleFavoritesOnly()">★ Favorites</button>
         </div>
 
         <div class="statusrow">
           <span class="status" :class="{ err: statusErr }">{{ statusMsg || `${listedCount} drivers` }}</span>
+        </div>
+        <!-- The filters are kept between openings, so the list says which are on (John, 17 Oct 2026). -->
+        <div v-if="filtersOn" class="filters-on">
+          <span class="filters-on-label">Filters on:</span>
+          <span v-for="f in activeFilters" :key="f" class="filters-on-pill">{{ f }}</span>
+          <button class="filters-clear" title="Clear every filter, including search and Favorites"
+                  @click="clearAllFilters()">Clear filters</button>
         </div>
 
         <div class="dlist">
@@ -232,8 +241,12 @@ onMounted(openedLibrary);
                is empty by design, and an empty pool must not read as an empty list. What is
                still loading is likewise the pool itself, not the absence of a search term —
                a type chip that matches nothing said "Loading…" forever. -->
-          <div v-if="!listedCount && !statusMsg" class="status loading">
-            {{ allDrivers.length ? 'No matching drivers.' : 'Loading…' }}
+          <div v-if="!listedCount && !statusMsg" class="status loading empty-list">
+            <template v-if="allDrivers.length">
+              <span class="no-match">No drivers match</span>
+              <button v-if="filtersOn" class="filters-clear" @click="clearAllFilters()">Clear filters</button>
+            </template>
+            <template v-else>Loading…</template>
           </div>
         </div>
 
@@ -576,8 +589,47 @@ onMounted(openedLibrary);
   cursor: pointer;
   white-space: nowrap;
 }
-.driver-library .fav-filter:hover {
+.driver-library .fav-filter:hover:not(:disabled) {
   background: #e8e8e8;
+}
+.driver-library .fav-filter:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.driver-library .filters-on {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #555;
+}
+.driver-library .filters-on-pill {
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: #e6f0fb;
+  border: 1px solid #9fc3ea;
+  color: #1d4f86;
+  white-space: nowrap;
+}
+.driver-library .filters-clear {
+  font-size: 11px;
+  padding: 2px 9px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+.driver-library .empty-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 10px;
+}
+.driver-library .no-match {
+  font-size: 13px;
+  color: #333;
 }
 .driver-library .fav-filter.active {
   background: #f0a500;

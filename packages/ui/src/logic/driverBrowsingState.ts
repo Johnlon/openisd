@@ -19,6 +19,7 @@ import type {
 } from '@openisd/persistence';
 import {
     displayNameOf,
+    activeFilterLabels,
     driverHasDqIssues,
     matchesCriteria,
     type PreviewSpec,
@@ -119,7 +120,14 @@ export interface DriverBrowsingState {
   toggleType(id: string): void;
   toggleZ(z: string): void;
   clearParamFilters(): void;
+  /** Every filter that is on, in words — empty when none is. */
+  activeFilters: ComputedRef<readonly string[]>;
+  filtersOn: ComputedRef<boolean>;
+  /** Clears every filter: search, types, Fs, Sd, Z, scope (back to All) and Favorites. */
+  clearAllFilters(): void;
   favorites: Ref<string[]>;
+  /** False with no favourites: Favorites would only empty the list, so it cannot be switched on. */
+  favoritesAvailable: ComputedRef<boolean>;
   favoritesOnly: Ref<boolean>;
   /** Favourites key on the record uuid — `row.uuid` for a bundled row, `driverId(d)` for a
    *  domain object. */
@@ -258,9 +266,14 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       : [...favorites.value, key];
     favorites.value = next;
     prefs.setFavorites(next);
+    // Un-starring the last favourite switches Favorites off: left on, it would hold an empty list behind a
+    // disabled button.
+    if (next.length === 0) favoritesOnly.value = false;
   }
 
+  const favoritesAvailable = computed<boolean>(() => favorites.value.length > 0);
   function toggleFavoritesOnly(): void {
+    if (!favoritesOnly.value && !favoritesAvailable.value) return;
     favoritesOnly.value = !favoritesOnly.value;
     displayLimit.value = DISPLAY_LIMIT;
   }
@@ -275,6 +288,13 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     typeStates.value = {}; fsMin.value = ''; fsMax.value = '';
     sdMin.value = ''; sdMax.value = ''; selZ.value = [];
     displayLimit.value = DISPLAY_LIMIT;
+  }
+
+  function clearAllFilters(): void {
+    clearParamFilters();
+    filterQ.value = '';
+    favoritesOnly.value = false;
+    driverScopeValue.value = DriverScope.All.value;
   }
 
   /** The filter bar as one question, over a driver. */
@@ -317,6 +337,9 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
    * lie the moment either section is the only one on screen.
    */
   const listedCount = computed<number>(() => filteredDrivers.value.length + filteredMyDrivers.value.length);
+
+  const activeFilters = computed<readonly string[]>(() => activeFilterLabels(criteria(), driverScope.value));
+  const filtersOn = computed<boolean>(() => activeFilters.value.length > 0);
 
   function reloadMyDrivers(): void {
     const read = myDriverRepo.read();
@@ -543,10 +566,10 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     allDrivers, statusMsg, statusErr, initialized,
     filterQ, typeHelpOpen, typeStates,
     fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
-    toggleType, toggleZ, clearParamFilters,
+    toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, clearAllFilters,
     // favourites — `clearParamFilters` deliberately leaves favoritesOnly alone: that button
     // says "clear all type and parameter filters", and Favorites is neither.
-    favorites, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly, driverId,
+    favorites, favoritesAvailable, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly, driverId,
     // scope — orthogonal to favourites and to the type/param filters.
     driverScope, cycleDriverScope,
     // list

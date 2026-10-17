@@ -70,6 +70,50 @@ test.describe('Driver browser', () => {
     });
   });
 
+  test.describe('filters on', () => {
+    // John, 17 Oct 2026: "empty wizard driver list with no hint"; "the list is empty but the favourite button
+    // is selected visible". The filters are kept between openings, so the list says which are on.
+
+    test.beforeEach(async ({ page }) => {
+      await page.goto('/');
+      await openAProject(page);
+      await page.locator('[title*="librar" i]').first().click();
+      await expect(page.locator('.dlist')).toBeVisible();
+    });
+
+    test('with no favourites, the Favorites button is disabled', async ({ page }) => {
+      await expect(page.locator('.fav-filter')).toBeDisabled();
+      await page.locator('.dlist .ditem').first().locator('.fav-btn').click();
+      await expect(page.locator('.fav-filter')).toBeEnabled();
+    });
+
+    test('filters that match nothing say "No drivers match", and Clear filters brings the list back', async ({ page }) => {
+      const rows = page.locator('.dlist .ditem');
+      const before = await rows.count();
+      await page.locator('.type-chip', { hasText: 'Tweet' }).click();
+      await page.locator('.filter').fill('W5-1138');
+      await expect(rows).toHaveCount(0);
+      await expect(page.locator('.dlist')).toContainText('No drivers match');
+      await expect(page.locator('.filters-on-pill')).toHaveText(['"W5-1138"', 'Tweet']);
+
+      await page.locator('.dlist .filters-clear').click();
+      await expect(rows).toHaveCount(before);
+      await expect(page.locator('.filters-on')).toHaveCount(0);
+      await expect(page.locator('.filter')).toHaveValue('');
+      await expect(page.locator('.type-chip.include')).toHaveCount(0);
+    });
+
+    test('a filter kept from the last opening is shown when the list opens again', async ({ page }) => {
+      await page.locator('.type-chip', { hasText: 'Woofer' }).click();
+      await page.keyboard.press('Escape');
+      await expect(page.locator('.dlist')).toHaveCount(0);
+      await page.locator('[title*="librar" i]').first().click();
+      await expect(page.locator('.filters-on-pill')).toHaveText(['Woofer']);
+      await page.locator('.filters-on .filters-clear').click();
+      await expect(page.locator('.filters-on')).toHaveCount(0);
+    });
+  });
+
   test.describe('search', () => {
     // A saved driver need not carry a `name` — one saved from a record whose brand and model are
     // known has those instead. Its row must still read as something and still be findable, so the

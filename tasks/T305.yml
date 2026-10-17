@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: a212a4fbde3074a2bbd2756cb67e6d4f3e40cf7a
 goal: Back door removal 2: browser specs set values through the UI, not the app hook
 done_test: bash scripts/test.sh packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
 files:
