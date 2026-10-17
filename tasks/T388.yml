@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 790bc07706717ec29b83441b67b65ce0a1a92a57
 goal: The 7.0.953 announcement says OpenISD supports WinISD's transmission-line port model option and matches WinISD on vented, BP4, BP6 and ABC (T386 finding); nothing about the end correction, which waits on John's ruling.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

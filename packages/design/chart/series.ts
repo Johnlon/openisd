@@ -141,7 +141,35 @@ interface CurveCtx {
    *  does without one. */
   mx: MaxCurvesResult | undefined;
   bare: boolean;
+  lines: ReferenceLineColors;
   pick: (arr: number[]) => { xs: number[]; ys: number[] };
+}
+
+/** The colours of the 0 dB and −3 dB reference lines: Options, Plot Window, "0 dB line" and
+ *  "-3dB line". */
+export interface ReferenceLineColors {
+  readonly zeroDb: string;
+  readonly minus3Db: string;
+}
+
+/** WinISD's own defaults (Options, Plot Window, docs/images/winisd/options-plot-window.png):
+ *  0 dB black, −3 dB grey. */
+export const DEFAULT_REFERENCE_LINE_COLORS: ReferenceLineColors = {zeroDb: '#000000', minus3Db: '#808080'};
+
+/** The colours the user chose in Options; a colour not chosen keeps its default. */
+export function referenceLineColors(chosen: {readonly zeroDb?: string; readonly minus3Db?: string} | undefined): ReferenceLineColors {
+  return {
+    zeroDb: chosen?.zeroDb ?? DEFAULT_REFERENCE_LINE_COLORS.zeroDb,
+    minus3Db: chosen?.minus3Db ?? DEFAULT_REFERENCE_LINE_COLORS.minus3Db,
+  };
+}
+
+/** The 0 dB and −3 dB lines of a 0 dB-normalized chart: TFMag, PRTFMag and the port gains. */
+function referenceLines(sw: SweepResult, lines: ReferenceLineColors): Series[] {
+  return [
+    { xs: sw.fs, ys: sw.fs.map(() => 0), color: lines.zeroDb, name: '0 dB', dash: true },
+    { xs: sw.fs, ys: sw.fs.map(() => -3), color: lines.minus3Db, name: '−3 dB', dash: true },
+  ];
 }
 
 /** A builder's output. `logy` defaults to false; `unit` always comes from the tab's meta. */
@@ -168,11 +196,9 @@ function portVelocityBuild({ meta, sw, pick, P }: CurveCtx, vel: number[]): Curv
  *  0 dB / -3 dB passband-asymptote convention as TFMag, only the underlying array (`sw.rearPortGain`
  *  vs `sw.frontPortGain`, packages/design/engine/simulation/SimulationEngine.ts) and its legend name differ. Unlike
  *  PRTFMag, both ARE run through the filter chain. */
-function portGainBuild(engine: ChartEngineAreas, rel: number[] | null, name: string, meta: TabMeta, sw: SweepResult): CurveBuild {
+function portGainBuild(engine: ChartEngineAreas, rel: number[] | null, name: string, meta: TabMeta, sw: SweepResult, lines: ReferenceLineColors): CurveBuild {
   const ys = rel ?? engine.simulation.silentCurve(sw.fs.length);
-  const series: Series[] = [{ xs: sw.fs, ys, color: meta.color, name }];
-  series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
-  series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
+  const series: Series[] = [{ xs: sw.fs, ys, color: meta.color, name }, ...referenceLines(sw, lines)];
   const relReal = engine.simulation.realLevels(ys);
   const loRel = relReal.length ? Math.min(...relReal) : -45;
   const ymax = 5;
@@ -209,13 +235,11 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     return { series, ymin, ymax };
   },
 
-  TFMag: ({ engine, meta, sw }) => {
+  TFMag: ({ engine, meta, sw, lines }) => {
     // The engine calculates sw.tfMag normalized so 0 dB = high-frequency passband asymptote.
     // The 0 dB / -3 dB reference lines are the chart's defining feature, so they're always drawn.
     const rel = sw.tfMag;
-    const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function' }];
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
+    const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function' }, ...referenceLines(sw, lines)];
     const relReal = engine.simulation.realLevels(rel);
     const loRel = relReal.length ? Math.min(...relReal) : -45;
     const ymax = 5;
@@ -226,11 +250,9 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // `null` for a design whose box has no radiator (a compare overlay, say, while the focused
   // design is a passive-radiator box); that design then draws silence, exactly as a design
   // with no max curves draws nothing on MaxSPL.
-  PRTFMag: ({ engine, meta, sw }) => {
+  PRTFMag: ({ engine, meta, sw, lines }) => {
     const rel = sw.prTfMag ?? engine.simulation.silentCurve(sw.fs.length);
-    const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function (PR)' }];
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => -3), color: '#ffb454', name: '−3 dB', dash: true });
+    const series: Series[] = [{ xs: sw.fs, ys: rel, color: meta.color, name: 'Transfer function (PR)' }, ...referenceLines(sw, lines)];
     const relReal = engine.simulation.realLevels(rel);
     const loRel = relReal.length ? Math.min(...relReal) : -45;
     const ymax = 5;
@@ -273,8 +295,8 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // `chartsFor` gates the menu; a compare overlay of a different box type draws the -200 dB
   // silence fallback here, same as PRTFMag. Unlike PRTFMag, both ARE run through the filter
   // chain (packages/design/engine/simulation/SimulationEngine.ts rearPortGain/frontPortGain — one shared computation).
-  RearPortGain: ({ engine, meta, sw }) => portGainBuild(engine, sw.rearPortGain, 'Rear port gain', meta, sw),
-  FrontPortGain: ({ engine, meta, sw }) => portGainBuild(engine, sw.frontPortGain, 'Front port gain', meta, sw),
+  RearPortGain: ({ engine, meta, sw, lines }) => portGainBuild(engine, sw.rearPortGain, 'Rear port gain', meta, sw, lines),
+  FrontPortGain: ({ engine, meta, sw, lines }) => portGainBuild(engine, sw.frontPortGain, 'Front port gain', meta, sw, lines),
 
   // Applicable to vented/bandpass4/bandpass6/abc (rear) or bandpass4/bandpass6/abc (front) —
   // design's `chartsFor` gates the menu; a compare overlay of a different box type draws `pv`'s
@@ -359,12 +381,12 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
   // help, "Filter/equalizer behavioral simulator": "Filter system is logically located at
   // electrical side. 0 dB gain at filter chain means that voltage at driver terminal is
   // equal that is specified at 'signal'-tab."
-  FltMag: ({ engine, meta, sw, pick }) => {
+  FltMag: ({ engine, meta, sw, pick, lines }) => {
     const series: Series[] = [{ ...pick(sw.fltMag), color: meta.color, name: 'Filter chain' }];
     // Unity gain is this chart's DEFINING datum (it is what the help pins 0 dB to), not an
     // optional annotation, so it is drawn in the bare mode too — same reasoning as
     // TFMag's 0 dB line.
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: '#8a99ab', name: '0 dB', dash: true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: lines.zeroDb, name: '0 dB', dash: true });
     const real = engine.simulation.realLevels(sw.fltMag);
     const hi = real.length ? Math.max(...real, 0) : 0;
     const lo = real.length ? Math.min(...real, 0) : 0;
@@ -405,10 +427,11 @@ export function seriesFor(engine: ChartEngineAreas,
                           P: PlotParams,
                           sw: SweepResult,
                           mx: MaxCurvesResult | undefined,
-                          bare = false): SeriesBundle {
+                          bare = false,
+                          lines: ReferenceLineColors = DEFAULT_REFERENCE_LINE_COLORS): SeriesBundle {
   const meta = TAB_META[chartId];
   const built = CURVE_BUILDERS[chartId]({
-    engine, meta, drv, box, P, sw, mx, bare,
+    engine, meta, drv, box, P, sw, mx, bare, lines,
     pick: (arr: number[]) => ({ xs: sw.fs, ys: arr }),
   });
   return { series: built.series, ymin: built.ymin, ymax: built.ymax, logy: built.logy ?? false, unit: meta.unit };
@@ -462,7 +485,7 @@ export function buildPlotData(
   currentDesign: Design,
   compare: Design[],
   errors: DriverError[] = [],
-  opts: { bare?: boolean; primaryColor?: string } = {},
+  opts: { bare?: boolean; primaryColor?: string; referenceLines?: ReferenceLineColors } = {},
 ): { value: PlotData | null; errors: DriverError[] } {
   const chartErrors = errorsForChart(chartId, errors);
   if (!currentDesign.driver || !currentDesign.curves || !currentDesign.maxCurves)
@@ -492,7 +515,7 @@ export function buildPlotData(
   if (designs.length === 0) return { value: null, errors: chartErrors };
   for (const [di, d] of designs.entries()) {
     const isCurrent = d === currentDesign;
-    const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare);
+    const pd = seriesFor(engine, chartId, d.driver!, d.box, d.P, d.curves!, d.maxCurves, opts.bare, opts.referenceLines);
     if (!out) out = { series: [], ymin: pd.ymin, ymax: pd.ymax, logy: pd.logy, unit: pd.unit };
     const prim: Series = { ...pd.series[0] };
     if (pd.unit === '°') prim.wraps = wrapSegments(prim.ys);

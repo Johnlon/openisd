@@ -3,7 +3,7 @@ import {useApp} from '../logic/app.js';
 import {computed, ref, watch} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
-  buildPlotData, type ChartEngineAreas, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
+  buildPlotData, type ChartEngineAreas, referenceLineColors, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
 } from '@openisd/design/chart';
 import type {ChartId, DriverError} from '@openisd/design/engine';
@@ -86,7 +86,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
       currentDesign.value,
       overlayDesigns.value,
       allIssues.value,
-      { bare: props.bare, primaryColor: props.primaryColor }
+      { bare: props.bare, primaryColor: props.primaryColor, referenceLines: referenceLineColors(presentationState.ui.chartColors) }
     )
   );
 

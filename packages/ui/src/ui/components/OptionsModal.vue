@@ -32,11 +32,9 @@
 //                              so this customizes the Pe-limited tint, not literally "Xmax").
 //               Cursor lines→ --chart-cross + --chart-band-line (the crosshair/level cursor and
 //                              the drag-selection band edges).
-//             "0 dB line" / "-3dB line" are shown disabled: WinISD draws them on its separate
-//             0 dB-normalized "Transfer function magnitude" chart (docs/winisd_screenshots/info/
-//             view_3_ported.md), which OpenISD does not have — OpenISD's 'SPL' tab plots
-//             absolute dB SPL, not a normalized transfer function, so there is no chart these
-//             two colors could correctly apply to yet. Tracked in BACKLOG.md, not fabricated.
+//             "0 dB line" / "-3dB line" colour the 0 dB and -3 dB lines of every chart that
+//             draws them (transfer function, PR transfer function, port gains; 0 dB also on the
+//             filter chain). The chart builder reads them (packages/design/chart/series.ts).
 //   Limits  — WinISD's per-chart-type Start/End/Unit table. "Frequency range" binds directly to
 //             the existing global sweep fmin/fmax (already a real, always-populated field —
 //             this is just another entry point onto it, matching WinISD's own single global
@@ -102,6 +100,7 @@ const {
   minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
   setFreqRange,
   canApply, apply: applyAppSettings,
+  referenceLineDefaults,
 } = useOptionsModal();
 
 type Tab = 'General' | 'Plot Window' | 'Your data';
@@ -177,8 +176,8 @@ function colorValue(key: ColorKey): string {
 }
 function defaultColor(key: ColorKey): string {
   switch (key) {
-    case 'zeroDb': return '#000000';
-    case 'minus3Db': return '#808080';
+    case 'zeroDb': return referenceLineDefaults.zeroDb;
+    case 'minus3Db': return referenceLineDefaults.minus3Db;
     case 'background': return '#ffffff';
     case 'otherLines': return '#3a7bd5';
     case 'labels': return '#000000';
@@ -372,12 +371,12 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
             <legend>Colors</legend>
             <div class="opt-color-grid">
               <div class="opt-color-col">
-                <div class="opt-color-row" title="WinISD's normalized transfer-function zero line; OpenISD has no separate normalized transfer-function chart yet.">
+                <div class="opt-color-row" title="Colour of the 0 dB line on the transfer function, port gain and filter charts.">
                   <label>0 dB line</label>
                   <input type="color" :value="colorValue('zeroDb')" @input="setColor('zeroDb', $event)" />
                   <button class="opt-clear-btn" title="Reset to black" @click="clearColor('zeroDb')">↺</button>
                 </div>
-                <div class="opt-color-row" title="WinISD's normalized transfer-function -3 dB line; OpenISD has no separate normalized transfer-function chart yet.">
+                <div class="opt-color-row" title="Colour of the -3 dB line on the transfer function and port gain charts.">
                   <label>-3dB line</label>
                   <input type="color" :value="colorValue('minus3Db')" @input="setColor('minus3Db', $event)" />
                   <button class="opt-clear-btn" title="Reset to grey" @click="clearColor('minus3Db')">↺</button>

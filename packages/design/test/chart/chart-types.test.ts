@@ -23,7 +23,7 @@ import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
-import {parseChartId, type PlotParams, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
+import {parseChartId, type PlotParams, referenceLineColors, type ReferenceLineColors, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
 import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 const RAW: Record<string, number> = {
@@ -104,11 +104,11 @@ assert.ok(MX_BP4, 'reference bandpass4 max curves produced nothing');
 
 const PR_IDS = new Set<ChartId>(['PRTFMag', 'PRTFPhase', 'PRExcursion']);
 const BP4_IDS = new Set<ChartId>(['FrontPortGain']);
-const build = (id: ChartId) => PR_IDS.has(id)
-  ? seriesFor(engine, id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR)
+const build = (id: ChartId, lines?: ReferenceLineColors) => PR_IDS.has(id)
+  ? seriesFor(engine, id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR, false, lines)
   : BP4_IDS.has(id)
-  ? seriesFor(engine, id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4)
-  : seriesFor(engine, id, DRV, 'vented', PP, SW, MX);
+  ? seriesFor(engine, id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4, false, lines)
+  : seriesFor(engine, id, DRV, 'vented', PP, SW, MX, false, lines);
 
 const ALL_IDS = TABS.map(t => t.id);
 
@@ -290,5 +290,35 @@ describe('port velocity charts draw the design\'s own velocity limit', () => {
 
   it('a design with no limit draws no limit line', () => {
     assert.equal(limitLine(seriesFor(engine, 'RearPort', DRV, 'vented', PP, SW, MX)), undefined);
+  });
+});
+
+// BUG_20261018_options-0db-3db-colour-pickers-do-nothing: the Options "0 dB line" and "-3dB line"
+// colours reach every chart that draws those lines.
+describe('the 0 dB and −3 dB lines take the Options colours', () => {
+  const colourOf = (id: ChartId, name: string, lines?: ReferenceLineColors) =>
+    build(id, lines).series.find(s => s.name === name)?.color;
+
+  for (const id of ['TFMag', 'PRTFMag', 'RearPortGain', 'FrontPortGain'] as const) {
+    it(`${id} draws them in the chosen colours`, () => {
+      const lines = {zeroDb: '#123456', minus3Db: '#abcdef'};
+      assert.equal(colourOf(id, '0 dB', lines), '#123456');
+      assert.equal(colourOf(id, '−3 dB', lines), '#abcdef');
+    });
+
+    it(`${id} draws them in WinISD's defaults, black and grey, when none is chosen`, () => {
+      assert.equal(colourOf(id, '0 dB'), '#000000');
+      assert.equal(colourOf(id, '−3 dB'), '#808080');
+    });
+  }
+
+  it('FltMag draws its 0 dB line in the chosen colour, and black by default', () => {
+    assert.equal(colourOf('FltMag', '0 dB', {zeroDb: '#123456', minus3Db: '#abcdef'}), '#123456');
+    assert.equal(colourOf('FltMag', '0 dB'), '#000000');
+  });
+
+  it('a colour not chosen keeps its default', () => {
+    assert.deepEqual(referenceLineColors(undefined), {zeroDb: '#000000', minus3Db: '#808080'});
+    assert.deepEqual(referenceLineColors({minus3Db: '#ff0000'}), {zeroDb: '#000000', minus3Db: '#ff0000'});
   });
 });

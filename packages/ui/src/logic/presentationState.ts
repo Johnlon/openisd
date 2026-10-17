@@ -27,6 +27,8 @@ const TRACE_PALETTE = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#
 /** A user-chosen colour override for one chart element; absent key = default colour
  *  (`OptionsModal.vue`'s "Plot Window" tab). */
 export interface ChartColors {
+  zeroDb?: string;
+  minus3Db?: string;
   background?: string;
   otherLines?: string;
   labels?: string;
