@@ -1,0 +1,58 @@
+id: F53
+owner: Johnlon
+status: open
+sha: d9127210cacb1ba203f379733d533bbf5d3ea1b6
+tested: d9127210cacb1ba203f379733d533bbf5d3ea1b6
+last_green: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6
+range: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6..d9127210cacb1ba203f379733d533bbf5d3ea1b6
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-d9127210ca.log
+goal: main is red at d9127210ca; make the full suite pass again
+commits: |
+  d9127210ca T275: Finish the cleared-field work: drive voltage, sealed volume and PR tunin
+failing: |
+  unit (1): ^[[41m^[[1m FAIL ^[[22m^[[49m ^[[30m^[[46m design-architecture ^[[49m^[[39m test/architecture-no-globals.test.ts^[[2m > ^[[22mpackages/design has no global variables^[[2m > ^[[22mdeclares no module-scoped mutable state anywhere in its shipped source
+  unit (2): ^[[41m^[[1m FAIL ^[[22m^[[49m ^[[30m^[[46m design-architecture ^[[49m^[[39m test/architecture-engine-boundary.test.ts^[[2m > ^[[22mthe engine is reachable only through its door^[[2m > ^[[22mthe door exports createEngine, and no loose calculation functions
+  browser (10):   ✘  70 packages/ui/test/ui/original-signal-tab.browser.spec.ts:121:5 › Original Signal tab › power and voltage pair › clearing V returns the pair to the 1 W reference — neither end is left blank (568ms)
+  browser (2):   ✘  23 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit (21.9s)
+  browser (2):         43 × locator resolved to <span role="note" data-v-2d74d8ab="" class="ui-field-note">Conflicts with other values: equivalent volume (V…</span>
+output: |
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): TEST START packages/ui/test/ui/original-advanced-tab.browser.spec.ts >  > ui/original-advanced-tab.browser.spec.ts > Original Advanced tab > WinISD bugs group > the Bessel high-pass switch is editable only while a Bessel high-pass filter exists
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):   ✓  88 packages/ui/test/ui/original-advanced-tab.browser.spec.ts:597:5 › Original Advanced tab › WinISD bugs group › the PR Npr switch is editable on a passive radiator box with 2 or more radiators only (1.1s)TEST END packages/ui/test/ui/original-advanced-tab.browser.spec.ts >  > ui/original-advanced-tab.browser.spec.ts > Original Advanced tab > WinISD bugs group > the PR Npr switch is editable on a passive radiator box with 2 or more radiators only status=passed duration_ms=1132
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):   ✓  89 packages/ui/test/ui/original-advanced-tab.browser.spec.ts:578:5 › Original Advanced tab › WinISD bugs group › the Bessel high-pass switch is editable only while a Bessel high-pass filter exists (345ms)TEST END packages/ui/test/ui/original-advanced-tab.browser.spec.ts >  > ui/original-advanced-tab.browser.spec.ts > Original Advanced tab > WinISD bugs group > the Bessel high-pass switch is editable only while a Bessel high-pass filter exists status=passed duration_ms=345
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):   1) packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     Error: expect(locator).toContainText(expected) failed
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     Locator: locator('.de-fld[data-field-key="Vas_m3"]').locator('.ui-field-note')
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     Expected substring: "Vas_m3"
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     Received string:    "Conflicts with other values: equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 99.4%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated."
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     Timeout: 20000ms
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     Call log:
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):       - Expect "toContainText" with timeout 20000ms
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):       - waiting for locator('.de-fld[data-field-key="Vas_m3"]').locator('.ui-field-note')
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):         43 × locator resolved to <span role="note" data-v-2d74d8ab="" class="ui-field-note">Conflicts with other values: equivalent volume (V…</span>
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):            - unexpected value "Conflicts with other values: equivalent volume (Vas), compliance (Cms), cone area (Sd), roo_kg_per, c_m_per_s disagree by 99.4%: Vas = ρ·c²·Sd²·Cms. Every field in the group is marked - correct one of them, or clear one to let it be calculated."
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):       136 |     await vasField.locator('.ui-field-dq-btn').tap();
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):       137 |     await expect(unit).toHaveText(unitBefore!);
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     > 138 |     await expect(vasField.locator('.ui-field-note')).toContainText('Vas_m3');
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):           |                                                      ^
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):       139 |
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):       140 |     const width = async () => (await vasField.locator('input').boundingBox())!.width;
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):       141 |     const first = await width();
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):         at /__w/openisd/openisd/packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:138:54
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):     Error Context: test-results/ui-mobile-driver-editor.br-6ce72-eps-one-width-in-every-unit/error-context.md
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2): 
+  2026-10-17T05:01:46.490Z 938685-1792212873-21041 browser (2):   1 failed
+  2026-10-17T05:01:46.491Z 938685-1792212873-21041 browser (2):     packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit 
+  2026-10-17T05:01:46.491Z 938685-1792212873-21041 browser (2):   88 passed (52.6s)
+  2026-10-17T05:01:46.491Z 938685-1792212873-21041 browser (2): ##[error]Process completed with exit code 1.
+  2026-10-17T05:01:48.832Z 938685-1792212873-21041 actions: red at d9127210ca: https://github.com/Johnlon/openisd/actions/runs/39004502004
