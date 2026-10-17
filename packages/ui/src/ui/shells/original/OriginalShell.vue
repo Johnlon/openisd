@@ -81,7 +81,7 @@ const {
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
   resetAirToAppDefaults,
   powerLocked, rsOhm,
-  projectName, projectCreator, projectCreated, projectModified, projectDescription,
+  projectName, projectCreator, projectCreated, projectModified, projectDateCommits, projectDescription,
   lossesOpen, openLossGroups, resetBoxLosses,
   onFile, fileInput,
 } = useOriginalShell();
@@ -770,8 +770,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div>
               <div class="field-row"><div class="field"><label>Name</label><input type="text" style="width:200px" v-model="projectName"></div></div>
               <div class="field-row"><div class="field"><label>Creator</label><input type="text" style="width:200px" v-model="projectCreator"></div></div>
-              <div class="field-row"><div class="field"><label>Created</label><input type="text" style="width:120px" v-model="projectCreated"></div></div>
-              <div class="field-row"><div class="field"><label>Modified</label><input type="text" style="width:120px" v-model="projectModified"></div></div>
+              <div class="field-row"><div class="field"><label>Created</label><input :key="projectDateCommits" type="text" style="width:120px" v-model.lazy="projectCreated"></div></div>
+              <div class="field-row"><div class="field"><label>Modified</label><input :key="projectDateCommits" type="text" style="width:120px" v-model.lazy="projectModified"></div></div>
             </div>
             <div class="description-col">
               <label>Description</label>

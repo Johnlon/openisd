@@ -116,7 +116,7 @@ export {
   type PersistOutcome,
   type StorageEstimate,
 } from './browserStorage.js';
-export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
+export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
 export { caretSpin, tenthsCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin } from './caretSpin.js';

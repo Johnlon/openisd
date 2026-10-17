@@ -38,6 +38,36 @@ export function formatDateTime(d: Date): string {
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${formatTime(d)}`;
 }
 
+const STAMP = /^(\d{4})(\d{2})(\d{2})$/;
+const ISO_DAY = /^(\d{4})-(\d{1,2})-(\d{1,2})$/;
+const DAY_MONTH_YEAR = /^(\d{1,2}) ([A-Za-z]{3}) (\d{4})$/;
+
+/** The calendar day `year`/`month`/`day` names, or null when there is no such day (31 Feb). */
+function realDay(year: number, month: number, day: number): Date | null {
+  const d = new Date(year, month - 1, day);
+  return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day ? d : null;
+}
+
+/** "16 Oct 2026" for a project's Created/Modified stamp "20261016" (WinISD's `YYYYMMDD`, which holds
+ *  no time). A stamp that is not a real day is shown as stored. */
+export function formatDateStamp(stamp: string): string {
+  const m = STAMP.exec(stamp);
+  const d = m ? realDay(Number(m[1]), Number(m[2]), Number(m[3])) : null;
+  return d ? formatDay(d) : stamp;
+}
+
+/** The `YYYYMMDD` stamp a typed date names: "16 Oct 2026" (any letter case), "2026-10-16" or
+ *  "20261016". `previous` when the text names no real day, so a half-typed date changes nothing. */
+export function dateStampFrom(text: string, previous: string): string {
+  const t = text.trim();
+  const dmy = DAY_MONTH_YEAR.exec(t);
+  const iso = STAMP.exec(t) ?? ISO_DAY.exec(t);
+  const month = dmy ? MONTHS.findIndex(name => name.toLowerCase() === dmy[2].toLowerCase()) + 1 : 0;
+  const d = dmy ? realDay(Number(dmy[3]), month, Number(dmy[1]))
+    : iso ? realDay(Number(iso[1]), Number(iso[2]), Number(iso[3])) : null;
+  return d ? `${d.getFullYear()}${pad2(d.getMonth() + 1)}${pad2(d.getDate())}` : previous;
+}
+
 const BASIC_UTC = /^v?(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?Z$/;
 
 /** The instant an ISO 8601 basic UTC stamp names — "20260101T0102Z", "20260101T010203Z", a leading

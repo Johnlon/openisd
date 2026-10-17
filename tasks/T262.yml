@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: a78dcbb7b83285176f08d9dfbbe1559c613976c3
 goal: A port per run from a flock pool; kill-http.sh never kills a process the run did not start
 done_test: bash scripts/land/test/port-pool.test.sh
 files:

@@ -7,7 +7,7 @@ import {useMobileProjectTab} from '../../../hooks/MobileProjectTab-hooks.js';
 
 const project = useFocusedProject();
 const { projectChanged } = useApp().appState;
-const { name, creator, created, modified, description } = useMobileProjectTab({ project, changed: projectChanged });
+const { name, creator, created, modified, description, dateCommits } = useMobileProjectTab({ project, changed: projectChanged });
 </script>
 
 <template>
@@ -23,11 +23,11 @@ const { name, creator, created, modified, description } = useMobileProjectTab({ 
       </div>
       <div class="mob-field">
         <label for="mob-proj-created">Created</label>
-        <input id="mob-proj-created" type="text" v-model="created">
+        <input id="mob-proj-created" :key="dateCommits" type="text" v-model.lazy="created">
       </div>
       <div class="mob-field">
         <label for="mob-proj-modified">Modified</label>
-        <input id="mob-proj-modified" type="text" v-model="modified">
+        <input id="mob-proj-modified" :key="dateCommits" type="text" v-model.lazy="modified">
       </div>
       <div class="mob-field mob-field-stack">
         <label for="mob-proj-description">Description</label>

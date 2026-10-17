@@ -21,7 +21,6 @@ import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
 import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
-import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, FrequencyAxis, interpolatedY, TAB_META} from '@openisd/design/chart';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
@@ -34,12 +33,12 @@ import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
-import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
+import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
 import type {DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
@@ -616,12 +615,20 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       set: write,
     });
   }
+  // Counts the date boxes' commits. The boxes are keyed on it, so each commit redraws them in the shown
+  // form, even one that stores the same day ("2026-10-16" typed over 16 Oct 2026 changes no value, so
+  // nothing else would redraw the box).
+  const dateCommits = ref(0);
+  function dateField(field: () => SimpleField<string>) {
+    return computed<string>({
+      get: () => { void projectChanged.value; return formatDateStamp(field().value); },
+      set: v => { field().set(dateStampFrom(v, field().value)); dateCommits.value++; },
+    });
+  }
   const projectName = metaField(() => project.value.name.value, (v) => project.value.name.set(v));
   const projectCreator = metaField(() => project.value.creator.value, (v) => project.value.creator.set(v));
-  const projectCreated = metaField(
-    () => formatDateStamp(project.value.created.value), (v) => project.value.created.set(parseDateStamp(v)));
-  const projectModified = metaField(
-    () => formatDateStamp(project.value.modified.value), (v) => project.value.modified.set(parseDateStamp(v)));
+  const projectCreated = dateField(() => project.value.created);
+  const projectModified = dateField(() => project.value.modified);
   const projectDescription = metaField(() => project.value.description.value, (v) => project.value.description.set(v));
 
   // ---- Signal Generator (real audio-out tone) ------------------------------------
@@ -793,7 +800,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
     powerLocked, rsOhm,
-    projectName, projectCreator, projectCreated, projectModified, projectDescription,
+    projectName, projectCreator, projectCreated, projectModified, projectDateCommits: dateCommits, projectDescription,
     lossesOpen, openLossGroups, resetBoxLosses,
     onFile, fileInput,
   };

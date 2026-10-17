@@ -1,6 +1,6 @@
-import {computed, type ComputedRef, type Ref, type WritableComputedRef} from 'vue';
-import type {OpenISDProject} from '@openisd/design';
-import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
+import {computed, ref, type ComputedRef, type Ref, type WritableComputedRef} from 'vue';
+import type {OpenISDProject, SimpleField} from '@openisd/design';
+import {dateStampFrom, formatDateStamp} from '@openisd/design/fields';
 
 export interface MobileProjectTabDeps {
   readonly project: ComputedRef<OpenISDProject>;
@@ -13,6 +13,7 @@ export interface MobileProjectTabAPI {
   readonly created: WritableComputedRef<string>;
   readonly modified: WritableComputedRef<string>;
   readonly description: WritableComputedRef<string>;
+  readonly dateCommits: Ref<number>;
 }
 
 /**
@@ -26,15 +27,25 @@ export class MobileProjectTab implements MobileProjectTabAPI {
   readonly created: WritableComputedRef<string>;
   readonly modified: WritableComputedRef<string>;
   readonly description: WritableComputedRef<string>;
+  /** Counts the date boxes' commits. The boxes are keyed on it, so each commit redraws them in the shown
+   *  form, even one that stores the same day ("2026-10-16" typed over 16 Oct 2026 changes no value). */
+  readonly dateCommits = ref(0);
 
   constructor(private readonly project: ComputedRef<OpenISDProject>, private readonly changed: Ref<number>) {
     this.name = this.metaField(() => this.project.value.name.value, v => this.project.value.name.set(v));
     this.creator = this.metaField(() => this.project.value.creator.value, v => this.project.value.creator.set(v));
-    this.created = this.metaField(
-      () => formatDateStamp(this.project.value.created.value), v => this.project.value.created.set(parseDateStamp(v)));
-    this.modified = this.metaField(
-      () => formatDateStamp(this.project.value.modified.value), v => this.project.value.modified.set(parseDateStamp(v)));
+    this.created = this.dateField(() => this.project.value.created);
+    this.modified = this.dateField(() => this.project.value.modified);
     this.description = this.metaField(() => this.project.value.description.value, v => this.project.value.description.set(v));
+  }
+
+
+
+  private dateField(field: () => SimpleField<string>): WritableComputedRef<string> {
+    return computed<string>({
+      get: () => { void this.changed.value; return formatDateStamp(field().value); },
+      set: v => { field().set(dateStampFrom(v, field().value)); this.dateCommits.value++; },
+    });
   }
 
   private metaField(read: () => string, write: (v: string) => void): WritableComputedRef<string> {
