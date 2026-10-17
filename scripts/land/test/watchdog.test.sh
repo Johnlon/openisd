@@ -26,7 +26,7 @@ export WATCHDOG_STATE="$SCRATCH/rt/watchdog" WATCHDOG_LOG="$SCRATCH/logs/watchdo
 export WORKSPACE="$SCRATCH/ws"; mkdir -p "$WORKSPACE/zoo/state/jobs"
 export WATCHDOG_HOLDER="$SCRATCH/rt/post.holder" WATCHDOG_POST_LAND_LOG="$SCRATCH/post-land.log"
 export WATCHDOG_REFUSALS="$SCRATCH/rt/land-refusals.log"
-export WATCHDOG_HUNG_S=100 WATCHDOG_GRACE_S=2 WATCHDOG_WT_MIN_AGE_S=0 WATCHDOG_LEADER=lots
+export WATCHDOG_HUNG_S=100 WATCHDOG_GRACE_S=2 WATCHDOG_LEADER=lots
 export WATCHDOG_REPO="$SCRATCH/repo"
 # The tree under test, not a snapshot of the scratch repo's origin/main (case 8 tests the snapshot).
 export WATCHDOG_TOOLS="$REPO_SRC"
@@ -34,7 +34,7 @@ export POST_LAND_LOCK="$SCRATCH/rt/post.lock" WATCHDOG_RUN_SH="$SCRATCH/fake-run
 printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE_RUN_LOG"\n' > "$SCRATCH/fake-run.sh"
 ASK="$WORKSPACE/zoo/ASK.md"; : > "$ASK"
 # Alerts are files the gate hook shows to agents (T333); tmux is never used, so the fake below must stay unused.
-export WATCHDOG_ALERTS="$SCRATCH/rt/agent-alerts" SYNC_LOG="$SCRATCH/logs/sync-main-folder.log"
+export WATCHDOG_ALERTS="$SCRATCH/rt/agent-alerts" SYNC_LOG="$SCRATCH/logs/sync-main-folder.log" TIDY_LOG="$SCRATCH/logs/tidy.log"
 al() { cat "$WATCHDOG_ALERTS/$1.alert" 2> /dev/null; }
 
 # fake tmux: list-windows prints $FAKE_WINDOWS, everything is logged
@@ -146,17 +146,19 @@ infra=$(grep -l 'label: infra' "$WATCHDOG_STATE"/infra/*.yml 2> /dev/null)
 grep -q '^gate: lint' $infra 2> /dev/null && grep -q '^status: open' $infra && grep -q '^owner: lots' $infra && ok "infra F names gate, open, owner leader" || fail "infra F content"
 [ "$(basename "$infra")" = F4.yml ] && ok "next F number" || fail "F number: $infra"
 
-# 7. worktrees: merged clean removed; dirty and unmerged kept
-( cd "$WATCHDOG_REPO" && git worktree add -q "$SCRATCH/wt-clean" -b clean && git worktree add -q "$SCRATCH/wt-dirty" -b dirty \
-  && git worktree add -q "$SCRATCH/wt-ahead" -b ahead ) || fail "worktree setup"
-echo x > "$SCRATCH/wt-dirty/untracked.txt"
-( cd "$SCRATCH/wt-ahead" && git config user.email t@t && git config user.name t && echo y > y && git add y && git commit -qm ahead )
+# 7. worktrees beside the repo (tidy-branches.sh; its own e2e covers the cases): landed clean removed with its
+#    branch; dirty and unlanded kept
+W7="$WORKSPACE/repo"
+( cd "$WATCHDOG_REPO" && git worktree add -q "$W7-t1" -b t1 && git worktree add -q "$W7-t2" -b t2 \
+  && git worktree add -q "$W7-t3" -b t3 ) || fail "worktree setup"
+echo x > "$W7-t2/untracked.txt"
+( cd "$W7-t3" && git config user.email t@t && git config user.name t && echo y > y && git add y && git commit -qm ahead )
 tick > /dev/null
-[ ! -d "$SCRATCH/wt-clean" ] && ok "merged clean worktree removed" || fail "clean worktree kept"
-git -C "$WATCHDOG_REPO" rev-parse --verify -q refs/heads/clean > /dev/null && fail "branch clean kept" || ok "its branch deleted"
-[ -d "$SCRATCH/wt-dirty" ] && ok "dirty worktree kept" || fail "dirty worktree removed"
-[ -d "$SCRATCH/wt-ahead" ] && ok "unmerged worktree kept" || fail "unmerged worktree removed"
-grep -q 'removed merged clean worktree' "$WATCHDOG_LOG" && ok "removal logged" || fail "removal not logged"
+[ ! -d "$W7-t1" ] && ok "landed clean worktree removed" || fail "clean worktree kept: $(tail -3 "$SCRATCH/logs/tidy.log" 2>&1)"
+git -C "$WATCHDOG_REPO" rev-parse --verify -q refs/heads/t1 > /dev/null && fail "branch t1 kept" || ok "its branch deleted"
+[ -d "$W7-t2" ] && ok "dirty worktree kept" || fail "dirty worktree removed"
+[ -d "$W7-t3" ] && ok "unlanded worktree kept" || fail "unlanded worktree removed"
+grep -q "removed worktree $W7-t1" "$SCRATCH/logs/tidy.log" && ok "removal logged" || fail "removal not logged"
 
 # 8. overlapping ticks: a held lock makes the second exit quietly
 ( exec 7> "$WATCHDOG_STATE/watchdog.lock"; flock -x 7; exec sleep 300 ) & PIDS+=("$!"); sleep 0.3

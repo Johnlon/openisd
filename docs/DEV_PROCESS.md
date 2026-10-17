@@ -51,6 +51,13 @@ WIP commit and the folder is rebased; edits already on main drop out. When it ca
 commits not on main), `land.sh` exits 4 and the landing agent fixes it at once: in the main folder, rebase onto
 the commit named, resolve, and land what is wanted from a worktree.
 
+Landed and abandoned work is removed by `scripts/land/tidy-branches.sh`, run by the watchdog every tick (T334,
+John 17 Oct 2026): a worktree goes when it is clean, nothing runs inside it and its commits are on origin/main;
+task branches, local and on origin, and landed `land/<task>` branches go on the same terms; leftover `openisd-*`
+folders holding only generated folders go. A decision to drop a task is `bash scripts/abandon.sh T<n> --by
+<who> "<why>"`: it keeps the commits as `refs/archive/T<n>`, lands `status: abandoned` with who, when and why,
+and removes the worktree and branch.
+
 Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 
 ## `scripts/land.sh <id>` — the only path to main

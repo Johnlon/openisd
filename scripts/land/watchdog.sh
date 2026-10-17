@@ -3,13 +3,14 @@
 # two ticks never overlap (flock). Every action is logged to WATCHDOG_LOG with a UTC timestamp.
 # Checks, in order: (a) housekeeping, (b) hung post-land run, (b2) main untested with no run alive, (b3) the
 # main folder at the last passed commit (sync-main-folder.sh), (c) open F, (d) unacknowledged zoo-run
-# result, (e) gate refused twice in an hour, (f) merged clean worktrees.
+# result, (e) gate refused twice in an hour, (f) landed and abandoned branches, worktrees and leftover
+# folders removed (scripts/land/tidy-branches.sh).
 # Processes are found by recorded pid and start time, never by command text.
 # Env overrides (tests use scratch dirs): WATCHDOG_REPO WORKSPACE WATCHDOG_LOG WATCHDOG_LEADER
 #   WATCHDOG_STATE WATCHDOG_HOLDER WATCHDOG_POST_LAND_LOG WATCHDOG_REFUSALS WATCHDOG_HOUSEKEEPING
 #   WATCHDOG_NOW (epoch) WATCHDOG_HUNG_MIN (20) WATCHDOG_HUNG_S WATCHDOG_F_AGE_S (1800)
 #   WATCHDOG_RUN_SH WATCHDOG_STALL_S (600) WATCHDOG_REFUSE_WINDOW_S (3600) WATCHDOG_GRACE_S (10)
-#   WATCHDOG_WT_MIN_AGE_S (3600) WATCHDOG_CPU_SLACK_TICKS (= one second of CPU).
+#   WATCHDOG_CPU_SLACK_TICKS (= one second of CPU).
 set -uo pipefail
 REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
 # The scripts and settings are origin/main's own, never the main checkout's files: that checkout can lag
@@ -45,7 +46,6 @@ HUNG_S="${WATCHDOG_HUNG_S:-$(( ${WATCHDOG_HUNG_MIN:-20} * 60 ))}"
 F_AGE_S="${WATCHDOG_F_AGE_S:-1800}"
 REFUSE_WINDOW_S="${WATCHDOG_REFUSE_WINDOW_S:-3600}"
 GRACE_S="${WATCHDOG_GRACE_S:-10}"
-WT_MIN_AGE_S="${WATCHDOG_WT_MIN_AGE_S:-3600}"
 HZ=$(getconf CLK_TCK 2> /dev/null || echo 100)
 CPU_SLACK="${WATCHDOG_CPU_SLACK_TICKS:-$HZ}"
 REFUSALS="${WATCHDOG_REFUSALS:-$OPENISD_RUNTIME_DIR/land-refusals.log}"
@@ -283,35 +283,14 @@ YML
 }
 check_refusals
 
-# --- (f) merged clean worktrees ---------------------------------------------------------------
+# --- (f) landed and abandoned branches, worktrees and leftover folders (tidy-branches.sh, T334) ---------
+# An abandoned task's worktree that still holds uncommitted work is an agent alert until it is committed.
 check_worktrees() {
-  local wt="" branch="" first=1 line t gdir age
-  t=$(now)
-  prune_one() {
-    [ -n "$wt" ] && [ -n "$branch" ] || return 0
-    case "$wt" in *.postland*) return 0 ;; esac
-    case "$branch" in main|master) return 0 ;; esac
-    git -C "$REPO" merge-base --is-ancestor "refs/heads/$branch" origin/main 2> /dev/null || return 0
-    [ -z "$(git -C "$wt" status --porcelain 2> /dev/null)" ] || return 0
-    gdir=$(git -C "$wt" rev-parse --absolute-git-dir 2> /dev/null) || return 0
-    age=$((t - $(stat -c %Y "$gdir/HEAD" 2> /dev/null || echo "$t")))
-    [ "$age" -ge "$WT_MIN_AGE_S" ] || return 0
-    if git -C "$REPO" worktree remove "$wt" 2> /dev/null; then
-      log "removed merged clean worktree $wt (branch $branch)"
-      git -C "$REPO" branch -d "$branch" > /dev/null 2>&1 && log "deleted merged branch $branch" \
-        || log "branch $branch kept (git branch -d refused)"
-    else
-      log "worktree $wt not removed (git worktree remove refused)"
-    fi
-  }
-  while IFS= read -r line; do
-    case "$line" in
-      "worktree "*) prune_one; wt="${line#worktree }"; branch=""
-                    if [ "$first" = 1 ]; then first=0; wt=""; fi ;;
-      "branch refs/heads/"*) branch="${line#branch refs/heads/}" ;;
-      "") prune_one; wt=""; branch="" ;;
-    esac
-  done < <(git -C "$REPO" worktree list --porcelain 2> /dev/null; echo)
+  local out held
+  out="$(bash "$ROOT/scripts/land/tidy-branches.sh" "$REPO" 2>&1)" || log "tidy-branches failed: $(tail -2 <<< "$out" | tr '\n' ' ')"
+  while IFS= read -r held; do
+    [ -n "$held" ] && alert "held-$(md5sum <<< "$held" | cut -c1-8)" "$LEADER" "$held"
+  done < <(sed -n 's/^held: //p' <<< "$out")
 }
 check_worktrees
 log "tick done"
