@@ -56,3 +56,15 @@ output: |
   2026-10-17T05:01:46.491Z 938685-1792212873-21041 browser (2):   88 passed (52.6s)
   2026-10-17T05:01:46.491Z 938685-1792212873-21041 browser (2): ##[error]Process completed with exit code 1.
   2026-10-17T05:01:48.832Z 938685-1792212873-21041 actions: red at d9127210ca: https://github.com/Johnlon/openisd/actions/runs/39004502004
+also_red:
+  - sha: c58778625b9bd792a07e3ada272f768e48309a22
+    tested: c58778625b9bd792a07e3ada272f768e48309a22
+    last_green: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6
+    range: 6ee1fa4a277e63fb24ce0a37e02a54dba36288e6..c58778625b9bd792a07e3ada272f768e48309a22
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-c58778625b.log
+    failing: |
+      unit (1): ^[[41m^[[1m FAIL ^[[22m^[[49m ^[[30m^[[46m design-architecture ^[[49m^[[39m test/architecture-no-globals.test.ts^[[2m > ^[[22mpackages/design has no global variables^[[2m > ^[[22mdeclares no module-scoped mutable state anywhere in its shipped source
+      unit (2): ^[[41m^[[1m FAIL ^[[22m^[[49m ^[[30m^[[46m design-architecture ^[[49m^[[39m test/architecture-engine-boundary.test.ts^[[2m > ^[[22mthe engine is reachable only through its door^[[2m > ^[[22mthe door exports createEngine, and no loose calculation functions
+      browser (10):   ✘  70 packages/ui/test/ui/original-signal-tab.browser.spec.ts:121:5 › Original Signal tab › power and voltage pair › clearing V returns the pair to the 1 W reference — neither end is left blank (856ms)
+      browser (2):   ✘  23 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit (22.4s)
+      browser (2):         43 × locator resolved to <span role="note" data-v-2d74d8ab="" class="ui-field-note">Conflicts with other values: equivalent volume (V…</span>
