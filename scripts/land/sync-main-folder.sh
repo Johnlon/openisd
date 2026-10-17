@@ -50,7 +50,7 @@ git -C "$main" merge-base --is-ancestor "$target" origin/main 2> /dev/null \
 
 # sync <copy>: commit its stray edits, then rebase it onto the last passed commit.
 sync() {
-  local copy="$1" name gd head lock_before ahead
+  local copy="$1" name gd head lock_before ahead rebase_out
   [ "$copy" = "$main" ] && name="main folder" || name="$(basename "$copy")"
   [ -d "$copy" ] || { log "$name: $copy is listed but missing; skipped"; return 0; }
   g() { git -C "$copy" "$@"; }
@@ -69,7 +69,12 @@ sync() {
 
   if [ "$copy" != "$main" ] && [ -z "$(g symbolic-ref -q HEAD)" ] && [ "$(g rev-list --count "$target..HEAD")" = 0 ]; then
     g checkout -q --detach "$target" || { log "$name: could not move to ${target:0:10}"; return 1; }
-  elif ! g rebase -q "$target" > /dev/null 2>&1; then
+  elif ! rebase_out="$(g rebase -q "$target" 2>&1)"; then
+    if [ ! -e "$gd/rebase-merge" ] && [ ! -e "$gd/rebase-apply" ]; then
+      log "$name: git refused to rebase onto ${target:0:10} (no conflict): $(head -3 <<< "$rebase_out" | tr '\n' ' ')"
+      echo "sync-main-folder: to fix, in $copy: see why git refused, then rerun" >&2
+      return 1
+    fi
     local conflicts; conflicts="$(g diff --name-only --diff-filter=U | tr '\n' ' ')"
     g rebase --abort
     log "$name: CONFLICT rebasing onto ${target:0:10} in $conflicts; cancelled, left at ${head:0:10} for someone to fix"

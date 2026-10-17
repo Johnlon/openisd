@@ -102,5 +102,17 @@ bash "$SYNC" --passed "$s" "$SCRATCH/w/main" > /dev/null 2>&1; r=$?
 if [ $r = 0 ] && [ "$(head_of main)" = "$s" ]; then ok "--passed pulls the commit land.sh just pushed"
 else fail "--passed (r=$r)"; fi
 
+# 8. git refuses the rebase for a reason that is not a conflict (here a tracked file changes again right after the
+#    WIP commit, made by a post-commit hook): reported as a refusal, never as a CONFLICT, no rebase left in progress
+setup; land a.txt b; echo stray > main/stray.txt
+printf '#!/bin/sh\necho again >> questions.yml\n' > "$(git -C main rev-parse --absolute-git-dir)/hooks/post-commit"
+chmod +x "$(git -C main rev-parse --absolute-git-dir)/hooks/post-commit"
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+gd=$(git -C main rev-parse --absolute-git-dir)
+if [ $r = 1 ] && grep -q "git refused to rebase onto .* (no conflict)" "$SCRATCH/out" && ! grep -q CONFLICT "$SCRATCH/out" \
+   && [ ! -e "$gd/rebase-merge" ] && [ ! -e "$gd/rebase-apply" ]; then
+  ok "a rebase git refuses without a conflict is reported as that, not as a conflict"
+else fail "refused rebase (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+
 [ $fails = 0 ] && { echo "sync-main-folder.e2e: all passed"; exit 0; }
 echo "sync-main-folder.e2e: $fails failed"; exit 1

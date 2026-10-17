@@ -33,6 +33,9 @@ export WATCHDOG_TOOLS="$REPO_SRC"
 export POST_LAND_LOCK="$SCRATCH/rt/post.lock" WATCHDOG_RUN_SH="$SCRATCH/fake-run.sh" FAKE_RUN_LOG="$SCRATCH/run.log"
 printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE_RUN_LOG"\n' > "$SCRATCH/fake-run.sh"
 ASK="$WORKSPACE/zoo/ASK.md"; : > "$ASK"
+# Alerts are files the gate hook shows to agents (T333); tmux is never used, so the fake below must stay unused.
+export WATCHDOG_ALERTS="$SCRATCH/rt/agent-alerts" SYNC_LOG="$SCRATCH/logs/sync-main-folder.log"
+al() { cat "$WATCHDOG_ALERTS/$1.alert" 2> /dev/null; }
 
 # fake tmux: list-windows prints $FAKE_WINDOWS, everything is logged
 mkdir -p "$SCRATCH/bin"
@@ -74,7 +77,7 @@ dead "$HP" && ok "hung run killed" || fail "hung run still alive"
 [ ! -e "$WATCHDOG_HOLDER" ] && ok "holder removed" || fail "holder kept"
 grep -q 'hung: no log growth' "$WATCHDOG_LOG" && ok "kill logged" || fail "kill not logged"
 grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+Z watchdog: ' "$WATCHDOG_LOG" && ok "UTC timestamps" || fail "log format"
-grep -q 'send-keys -t agents:lots' "$FAKE_TMUX_LOG" || grep -q 'post-land run for deadbeef01' "$ASK" && ok "leader told" || fail "leader not told"
+grep -q '^for lots: post-land run for deadbeef01' "$WATCHDOG_ALERTS"/hung-deadbeef01.alert 2> /dev/null && ok "leader told (agent alert)" || fail "leader not told: $(ls "$WATCHDOG_ALERTS" 2>&1)"
 
 # 2. live run with a growing log is left alone, even past the threshold
 setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
@@ -116,21 +119,22 @@ mk_f F1 bob "$(date -d '2 hours ago' +%s) +0000"; mk_f F3 "" "$(date -d '2 hours
 # An F only in the main checkout (not on origin/main) is not an open F
 printf 'id: F9\nowner: bob\nstatus: open\ngoal: x\n' > "$WATCHDOG_REPO/tasks/fixes/F9.yml"; touch -d '2 hours ago' "$WATCHDOG_REPO/tasks/fixes/F9.yml"
 out=$(tick)
-grep -q 'send-keys -t agents:bob WATCHDOG: F1: open' "$FAKE_TMUX_LOG" && ok "old F alerts its owner's window" || fail "no alert for F1: $(cat "$FAKE_TMUX_LOG")"
-grep -q 'F2' "$FAKE_TMUX_LOG" "$ASK" && fail "fresh F2 alerted" || ok "fresh F gets no alert"
-grep -q 'F9' "$FAKE_TMUX_LOG" "$ASK" && fail "an F only in the main checkout alerted" || ok "Fs are read from origin/main, not the main checkout"
+al F-F1 | grep -q '^for bob: F1: open' && ok "old F alerts its owner" || fail "no alert for F1: $(ls "$WATCHDOG_ALERTS" 2>&1)"
+[ -z "$(al F-F2)" ] && ok "fresh F gets no alert" || fail "fresh F2 alerted"
+[ -z "$(al F-F9)" ] && ok "Fs are read from origin/main, not the main checkout" || fail "an F only in the main checkout alerted"
 rm -f "$WATCHDOG_REPO/tasks/fixes/F9.yml"
-grep -q 'no window lots: WATCHDOG: F3' "$ASK" && ok "ownerless F goes to the leader, no window -> ASK.md" || fail "F3 not in ASK.md"
-n=$(grep -c 'F1: open' "$FAKE_TMUX_LOG"); tick > /dev/null
-[ "$(grep -c 'F1: open' "$FAKE_TMUX_LOG")" = "$n" ] && ok "no repeat inside the re-alert window" || fail "F1 alerted twice"
+al F-F3 | grep -q '^for lots: F3' && ok "ownerless F goes to the leader" || fail "F3 not alerted to the leader"
+touch -d '1 hour ago' "$WATCHDOG_ALERTS/F-F1.alert"; n=$(grep -c 'alert F-F1 ' "$WATCHDOG_LOG"); tick > /dev/null
+[ "$(stat -c %Y "$WATCHDOG_ALERTS/F-F1.alert")" -gt "$(date -d '10 min ago' +%s)" ] && [ "$(grep -c 'alert F-F1 ' "$WATCHDOG_LOG")" = "$n" ] \
+  && ok "an open F's alert is re-written every tick, and logged only when its text changes" || fail "F1 alert not refreshed, or logged again"
 
 # 5. unacknowledged zoo-run result
 printf '2026-10-11 11:34:14 | j1: result for carol NOT DELIVERED (no send path); text in /x; after relaying run: zoo-run.sh ack j1\n' >> "$ASK"
 printf '2026-10-11 11:35:14 | j2: result for dave NOT DELIVERED (no send path); text in /y; after relaying run: zoo-run.sh ack j2\n' >> "$ASK"
 printf 'job=j2\ndelivered=yes\n' > "$WORKSPACE/zoo/state/jobs/j2.env"
 tick > /dev/null
-grep -q 'no window carol: WATCHDOG: zoo result j1 is unread' "$ASK" && ok "unacked result alerts its owner" || fail "no alert for j1"
-grep -q 'dave' <(grep watchdog "$ASK") && fail "acked result alerted" || ok "acked result is quiet"
+al result-j1 | grep -q '^for carol: zoo result j1 is unread' && ok "unacked result alerts its owner" || fail "no alert for j1"
+[ -z "$(al result-j2)" ] && ok "acked result is quiet" || fail "acked result alerted"
 
 # 6. gate refused twice in an hour -> one infra F
 now=$(date +%s)
@@ -212,6 +216,18 @@ before=$(ls -d "${TMPDIR:-/tmp}"/watchdog-tools.* 2> /dev/null | wc -l)
 after=$(ls -d "${TMPDIR:-/tmp}"/watchdog-tools.* 2> /dev/null | wc -l)
 [ $r = 0 ] && ! grep -q BROKEN "$SCRATCH/snap.out" && grep -q 'tick done' "$WATCHDOG_LOG" && ok "a broken main checkout: the tick runs origin/main's scripts" || fail "snapshot tick (r=$r): $(tail -3 "$SCRATCH/snap.out")"
 [ "$after" = "$before" ] && ok "the snapshot is removed after the tick" || fail "snapshot left behind ($before -> $after)"
+
+# 9. the main folder held (a stray edit not on main) is an agent alert for the leader, every tick until fixed
+git -C "$WATCHDOG_REPO" rev-parse origin/main > "$POST_LAND_LOCK.green"
+echo stray > "$WATCHDOG_REPO/stray-not-on-main.txt"
+tick > /dev/null
+al main-folder | grep -q '^for lots: the main folder cannot update to main: .*of its own' && ok "a held main folder alerts the leader" \
+  || fail "no main-folder alert: $(al main-folder) $(grep 'main folder' "$WATCHDOG_LOG" | tail -2)"
+[ -z "$(git -C "$WATCHDOG_REPO" status --porcelain)" ] && git -C "$WATCHDOG_REPO" show HEAD:stray-not-on-main.txt > /dev/null 2>&1 \
+  && ok "the stray edit is committed there, nothing lost" || fail "stray edit not committed"
+
+[ ! -s "$FAKE_TMUX_LOG" ] && ok "tmux is never used" || fail "tmux was called: $(head -3 "$FAKE_TMUX_LOG")"
+! grep -q 'watchdog' "$ASK" && ok "nothing is written to ASK.md" || fail "ASK.md written: $(grep watchdog "$ASK" | head -2)"
 
 [ $fails = 0 ] && echo "ALL OK" || echo "$fails FAILED"
 exit $((fails > 0))

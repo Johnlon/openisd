@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 4becff7f5fac77efd6eca9937dbe0b778caf02d1
 goal: The main folder and the preview copy stay at the last passed commit by themselves; a held folder stops the landing agent
 done_test: bash scripts/land/test/sync-main-folder.e2e.test.sh
 files:

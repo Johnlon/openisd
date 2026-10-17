@@ -8,7 +8,7 @@
 # Env overrides (tests use scratch dirs): WATCHDOG_REPO WORKSPACE WATCHDOG_LOG WATCHDOG_LEADER
 #   WATCHDOG_STATE WATCHDOG_HOLDER WATCHDOG_POST_LAND_LOG WATCHDOG_REFUSALS WATCHDOG_HOUSEKEEPING
 #   WATCHDOG_NOW (epoch) WATCHDOG_HUNG_MIN (20) WATCHDOG_HUNG_S WATCHDOG_F_AGE_S (1800)
-#   WATCHDOG_RUN_SH WATCHDOG_STALL_S (600) WATCHDOG_REALERT_S (1800) WATCHDOG_REFUSE_WINDOW_S (3600) WATCHDOG_GRACE_S (10)
+#   WATCHDOG_RUN_SH WATCHDOG_STALL_S (600) WATCHDOG_REFUSE_WINDOW_S (3600) WATCHDOG_GRACE_S (10)
 #   WATCHDOG_WT_MIN_AGE_S (3600) WATCHDOG_CPU_SLACK_TICKS (= one second of CPU).
 set -uo pipefail
 REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
@@ -35,6 +35,7 @@ run_start "watchdog"
 
 WORKSPACE="${WORKSPACE:-/home/john/work/winisd}"
 LEADER="${WATCHDOG_LEADER:-lots}"
+ALERTS="${WATCHDOG_ALERTS:-$OPENISD_RUNTIME_DIR/agent-alerts}"
 LOG="${WATCHDOG_LOG:-$REPO/build/test-logs/watchdog.log}"
 export HOUSEKEEPING_LOG="${HOUSEKEEPING_LOG:-$REPO/build/test-logs/housekeeping.log}"
 STATE="${WATCHDOG_STATE:-$OPENISD_RUNTIME_DIR/watchdog}"
@@ -42,7 +43,6 @@ ASK="$WORKSPACE/zoo/ASK.md"
 JOBS="$WORKSPACE/zoo/state/jobs"
 HUNG_S="${WATCHDOG_HUNG_S:-$(( ${WATCHDOG_HUNG_MIN:-20} * 60 ))}"
 F_AGE_S="${WATCHDOG_F_AGE_S:-1800}"
-REALERT_S="${WATCHDOG_REALERT_S:-1800}"
 REFUSE_WINDOW_S="${WATCHDOG_REFUSE_WINDOW_S:-3600}"
 GRACE_S="${WATCHDOG_GRACE_S:-10}"
 WT_MIN_AGE_S="${WATCHDOG_WT_MIN_AGE_S:-3600}"
@@ -67,28 +67,16 @@ exec 7> "$STATE/watchdog.lock" || die "cannot open $STATE/watchdog.lock"
 flock -n 7 || { echo "watchdog: another tick is running"; exit 0; }
 
 # --- alerts -------------------------------------------------------------------------------
-has_window() { # has_window <name>: the tmux session agents has a window of that name
-  tmux list-windows -t agents -F '#{window_name}' 2> /dev/null | grep -qxF -- "$1"
-}
-alert() { # alert <owner> <text>: type it into the owner's window; else ASK.md and tell the leader
-  local who="$1" text="WATCHDOG: $2"
-  if has_window "$who"; then
-    tmux send-keys -t "agents:$who" "$text" Enter && log "alert typed into agents:$who: $text" \
-      || log "alert FAILED (tmux send-keys) for $who: $text"
-    return
-  fi
-  mkdir -p "$(dirname "$ASK")" && printf '%s | watchdog: no window %s: %s\n' "$(date '+%F %T')" "$who" "$text" >> "$ASK" \
-    && log "alert for $who written to $ASK (no window): $text"
-  if [ "$who" != "$LEADER" ] && has_window "$LEADER"; then
-    tmux send-keys -t "agents:$LEADER" "$text (no window for $who)" Enter \
-      && log "alert typed into agents:$LEADER (no window for $who): $text"
-  fi
-}
-due() { # due <key>: true when the last alert for <key> was >= REALERT_S ago; records now when true
-  local f="$STATE/alerts/$1" last t; t=$(now)
-  last=$(cat "$f" 2> /dev/null || echo 0)
-  [ $((t - last)) -ge "$REALERT_S" ] || return 1
-  echo "$t" > "$f"
+# The agent inbox (T333). An alert is a file ALERTS/<key>.alert holding "for <owner>: <text>". The Claude Code gate
+# hook (_agent_files/bin/agent_alerts.py, run by run_gates.py before every tool call) shows each live alert to
+# every agent session, at most every 5 min, until it is over. A problem that still holds is re-written every tick;
+# an alert not re-written for 10 min is over. No tmux, no ASK.md, no inbox (John, 17 Oct 2026: "our scripts cannot
+# rely on tmux at all"; "only stuff we control or which is part of Claude can be used").
+alert() { # alert <key> <owner> <text>
+  local f="$ALERTS/$1.alert" line="for $2: $3"
+  mkdir -p "$ALERTS" || { log "alert FAILED (cannot create $ALERTS) for $2: $3"; return; }
+  [ "$(cat "$f" 2> /dev/null)" = "$line" ] || log "alert $1 for $2: $3"
+  printf '%s\n' "$line" > "$f.tmp" && mv -f "$f.tmp" "$f" || log "alert FAILED (cannot write $f) for $2: $3"
 }
 
 # --- (a) housekeeping: grants of dead owners ------------------------------------------------
@@ -164,7 +152,7 @@ check_hung() {
   kill -KILL -- "-$pid" 2> /dev/null
   rm -f "$holder" "$STATE/hung.state"
   log "post-land run $pid killed (TERM, KILL after ${i}s), holder removed"
-  alert "$LEADER" "post-land run for ${sha:0:10} was hung ${idle}s and is killed; rerun: bash scripts/land/post-land/run.sh ${sha:0:10}"
+  alert "hung-${sha:0:10}" "$LEADER" "post-land run for ${sha:0:10} was hung ${idle}s and is killed; rerun: bash scripts/land/post-land/run.sh ${sha:0:10}"
 }
 check_hung
 
@@ -213,12 +201,14 @@ check_untested_main() {
 check_untested_main
 
 # --- (b3) the main folder and the preview copy at the last passed commit (T328) ---------------------------------
-# A copy held (its own commits conflict with main, or are not on main) is logged here. The landing agent is
-# stopped on it by land.sh (exit 4). No tmux, no ASK.md, no inbox (John, 17 Oct 2026: scripts never rely on tmux).
+# A copy held (its own commits conflict with main, or are not on main) is an agent alert every tick until it is
+# fixed (John, 17 Oct 2026: "if the land fails then no one acts"). land.sh also stops the landing agent on it.
 check_main_folder() {
-  local out
-  out="$(bash "$ROOT/scripts/land/sync-main-folder.sh" "$REPO" 2>&1)" \
-    || log "main folder held: $(grep -E 'CONFLICT|of its own|to fix|in progress|cannot|FAILED' <<< "$out" | sed 's/^.*sync-main-folder: //' | tr '\n' ' ')"
+  local out why
+  out="$(bash "$ROOT/scripts/land/sync-main-folder.sh" "$REPO" 2>&1)" && return 0
+  why="$(grep -E 'CONFLICT|of its own|to fix|in progress|cannot|FAILED' <<< "$out" | sed 's/^.*sync-main-folder: //' | tr '\n' ' ')"
+  log "main folder held: $why"
+  alert main-folder "$LEADER" "the main folder cannot update to main: $why"
 }
 check_main_folder
 
@@ -232,8 +222,7 @@ check_open_fs() {
     [ "$age" -ge "$F_AGE_S" ] || continue
     id=$(main_field "$f" id); owner=$(main_field "$f" owner)
     case "$owner" in ''|Johnlon) owner="$LEADER" ;; esac
-    due "F-$id" || continue
-    alert "$owner" "$id: open $((age / 60)) min; take it or say who has it, then close it with its fix"
+    alert "F-$id" "$owner" "$id: open $((age / 60)) min; take it or say who has it, then close it with its fix"
   done
 }
 check_open_fs
@@ -245,8 +234,7 @@ check_results() {
   while read -r id name; do
     [ -n "$id" ] || continue
     grep -qx 'delivered=yes' "$JOBS/$id.env" 2> /dev/null && continue
-    due "result-$id" || continue
-    alert "$name" "zoo result $id is unread; read its summary under zoo/results, then run: zoo-run.sh ack $id"
+    alert "result-$id" "$name" "zoo result $id is unread; read its summary under zoo/results, then run: zoo-run.sh ack $id"
   done < <(sed -n 's/^.*result for \([^ ]*\) NOT DELIVERED.*zoo-run\.sh ack \([^ ]*\)[[:space:]]*$/\2 \1/p' "$ASK" | sort -u)
 }
 check_results
@@ -290,7 +278,7 @@ output: |
 YML
     log "gate $gate refused $n times in $((REFUSE_WINDOW_S / 60)) min; wrote $f (land it from a worktree)"
     echo "$t" > "$STATE/alerts/F-F$num"
-    alert "$LEADER" "F$num (infra): gate $gate refused twice in an hour; land $f as tasks/fixes/F$num.yml from a task worktree"
+    alert "infra-F$num" "$LEADER" "F$num (infra): gate $gate refused twice in an hour; land $f as tasks/fixes/F$num.yml from a task worktree"
   done < <(awk -v now="$(now)" -v w="$REFUSE_WINDOW_S" '$1 >= now - w { c[$2]++ } END { for (g in c) print g, c[g] }' "$REFUSALS")
 }
 check_refusals
