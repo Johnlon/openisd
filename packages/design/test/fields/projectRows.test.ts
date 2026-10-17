@@ -7,6 +7,8 @@ import {
   type ProjectRowSource,
   projectRow,
   projectRowsFooter,
+  saveButtonState,
+  savedMessage,
   projectSyncMark,
   splitConflictName,
   viewProjectRows,
@@ -119,5 +121,21 @@ describe('viewProjectRows', () => {
 
   it('formats the empty bin button label', () => {
     expect(emptyBinLabel('22 KB')).toBe('Empty Bin (22 KB)');
+  });
+});
+
+describe('the phone Save button', () => {
+  it('is lit when the project has unsaved changes and quiet when it is saved', () => {
+    expect(saveButtonState(true).lit).toBe(true);
+    expect(saveButtonState(false).lit).toBe(false);
+  });
+
+  it('says what a tap does, by state', () => {
+    expect(saveButtonState(true).title).toBe('Save changes');
+    expect(saveButtonState(false).title).toBe('Saved');
+  });
+
+  it('confirms a save with the project name', () => {
+    expect(savedMessage('Sub 12')).toBe('Saved Sub 12');
   });
 });
