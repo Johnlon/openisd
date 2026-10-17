@@ -196,6 +196,7 @@ export abstract class BoxProjectBuilder {
 
 class SealedProjectBuilder extends BoxProjectBuilder {
     #volume: number | null = null;
+    #qtc: number | null = null;
 
     constructor(driver: OpenISDDriver, engine: Engine, appContext: AppContext) {
         super(driver, engine, appContext);
@@ -206,12 +207,24 @@ class SealedProjectBuilder extends BoxProjectBuilder {
         return this;
     }
 
+    /** The system Q the box is designed for, entered: the volume is then calculated from it. A stated
+     *  volume wins. */
+    qtc(v: number): this {
+        this.#qtc = v;
+        return this;
+    }
+
     protected boxRecord(): OpenISDBoxJson {
         const box = this.emptyBox();
+        const fromQtc = this.#volume === null && this.#qtc !== null;
         return {
             ...box,
             boxType: 'sealed',
-            sealed: {...box.sealed, volume_m3: this.#volume ?? 0},
+            sealed: {
+                ...box.sealed,
+                volume_m3: fromQtc ? null : this.#volume ?? 0,
+                ...(fromQtc && this.#qtc !== null ? {Qtc: enteredEntry(this.#qtc)} : {}),
+            },
         };
     }
 }

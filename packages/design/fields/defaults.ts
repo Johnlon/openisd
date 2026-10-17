@@ -14,3 +14,6 @@ export const DEFAULT_SOURCE_RESISTANCE_OHM = 0.1;
  *  The New Project wizard's vented preview reads this same value, so its design can never
  *  disagree with the project the wizard creates. */
 export const DEFAULT_NEW_PROJECT_VENTED_QL = 10;
+
+/** Box absorption `Qa` a new box is born with: 100, WinISD's own default beside `Ql` 10. */
+export const DEFAULT_NEW_PROJECT_QA = 100;

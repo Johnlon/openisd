@@ -59,7 +59,7 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-modal')).toBeHidden();
   });
 
-  test('choosing Butterworth 0.707 sizes the sealed box: Fs=37Hz, Qts=0.38, Vas=30L give Qtc=0.726 and fc=68.84Hz (Ql and Qa at their top value)', async ({ appPage: page }) => {
+  test('choosing Butterworth 0.707 sizes the sealed box: Fs=37Hz, Qts=0.38, Vas=30L give the Box tab the picked Qtc=0.707 and fc=67.2Hz (Ql and Qa at their top value)', async ({ appPage: page }) => {
     // Qts + Vas → sealedFromQtc() → Vb → Qtc;  Fs + Vb → fc. Qes is cleared so the Q trio re-solves
     // from the typed Qts against the catalogue driver's Qms; left as it came, Qes/Qms would still
     // describe the OTHER driver and the loaded Qts the Qtc readout uses would have nothing to do
@@ -84,9 +84,13 @@ test.describe('Alignment popup', () => {
     await expect(fscInput).not.toHaveValue('');
     const qtc = parseFloat(await qtcInput.inputValue());
     const fsc = parseFloat(await fscInput.inputValue());
-    // Qtc is against the SOURCE-LOADED Qts: the Signal tab's default Rg=0.1 Ω over Re=3.4 Ω lifts
-    // Qes 0.4254 → 0.4379, so a real amplifier's Butterworth box reads slightly over 0.707.
-    expect(qtc).toBeCloseTo(0.726, 2);
-    expect(fsc).toBeCloseTo(68.84, 1);
+    // The picked Qtc is the box's entered Qtc, so the Box tab shows exactly it (BUG_20261016_sealed-alignment-
+    // picker-qtc-disagrees-with-box-tab-qtc). The volume is worked out against the SOURCE-LOADED Qts (the
+    // default Rg 0.1 Ω over Re 3.4 Ω lifts Qes 0.4254 → 0.4379, Qts_loaded 0.390): Fsc = 37 Hz · 0.707 / 0.390
+    // = 67.0 Hz, and the residual losses at Ql = Qa = 1000 add a tenth of a hertz.
+    expect(qtc).toBeCloseTo(0.707, 3);
+    await expect(qtcInput).toHaveClass(/value-e/);
+    expect(fsc).toBeGreaterThan(67.0);
+    expect(fsc).toBeLessThan(67.3);
   });
 });

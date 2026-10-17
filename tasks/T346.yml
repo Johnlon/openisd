@@ -3,6 +3,7 @@ release_note: 'On the phone, the Tune and What-if sheets have finger-sized butto
 repo: openisd
 owner: sonnet
 status: done
+landed: 0a1ce47129864a217a73063e72dd9b8c554cd9c8
 goal: Phone Tune and What-if sheets: every control at least 44 px and rows at least 48 px, sizes from design; messages never cover a control on the phone.
 done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
 files:

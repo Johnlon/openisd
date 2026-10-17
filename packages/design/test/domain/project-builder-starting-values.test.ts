@@ -20,7 +20,8 @@ function driver(): OpenISDDriver {
 describe('ProjectBuilder starting values', () => {
   it('sealed() without a volume builds the flat volume', () => {
     const p = new ProjectBuilder(driver(), createEngine()).sealed().build();
-    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707));
+    const losses = {Ql: p.box.sealed.losses.Ql.value, Qa: p.box.sealed.losses.Qa.value};
+    expect(p.box.sealed.volume_m3.value).toBe(p.driver.sealedVolumeForQtc(0.707, DEFAULT_SOURCE_RESISTANCE_OHM, losses));
     expect(p.isModified()).toBe(false);
   });
 

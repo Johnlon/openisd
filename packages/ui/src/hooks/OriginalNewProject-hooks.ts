@@ -4,7 +4,7 @@ import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watc
 import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, startingChambersOf, takesChamberTunings } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
-import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
@@ -162,6 +162,9 @@ export interface OriginalNewProjectAPI {
  *  Re-exported so the test can pin the sharing without a second import path. */
 export const NEW_PROJECT_VENTED_QL = DEFAULT_NEW_PROJECT_VENTED_QL;
 
+/** The losses a new closed box starts with, the ones the preview's Qtc and volume are worked out under. */
+const NEW_PROJECT_SEALED_LOSSES = {Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA};
+
 const STEP_LABELS = Object.freeze([
   'Select driver for project',
   'Number of drivers and placement',
@@ -205,6 +208,9 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   }, { flush: 'sync' });
   const targetQtc = ref(0.707);
   const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
+  /** The sealed volume on show was worked out from the target Qtc, not typed: the project then keeps the
+   *  target as its entered value and calculates the volume from it. */
+  const sealedVolumeFromTarget = ref(false);
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
 
   const projName = ref('');
@@ -283,7 +289,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const qtc = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return driver.sealedQtc(sealedVolume_m3.value);
+    return driver.sealedQtc(sealedVolume_m3.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
   });
 
   const selectedSealedAlignment = computed(() => {
@@ -293,9 +299,12 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   /** Re-derive the sealed volume from the current driver and target Qtc; a driver without
    *  Qts/Vas leaves the previous volume standing. */
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
-    const calculated_m3 = driver.sealedVolumeForQtc(target);
+    const calculated_m3 = driver.sealedVolumeForQtc(target, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
     // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
-    if (calculated_m3 != null) sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
+    if (calculated_m3 != null) {
+      sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
+      sealedVolumeFromTarget.value = true;
+    }
   }
 
   function selectDriver(driver: OpenISDDriver): void {
@@ -312,6 +321,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   function setSealedVolume_m3(v: number): void {
     sealedVolume_m3.value = v;
+    sealedVolumeFromTarget.value = false;
   }
 
   function selectVentedAlignment(alignment: VentedAlignment): void {
@@ -459,7 +469,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     // disagree.
     const p = createProjectInStore(selectedDriver.value, (b) => {
       switch (boxType.value) {
-        case 'sealed': return b.sealed().volume_m3(sealedVolume_m3.value);
+        case 'sealed': return sealedVolumeFromTarget.value ? b.sealed().qtc(targetQtc.value) : b.sealed().volume_m3(sealedVolume_m3.value);
         case 'vented': return b.vented().alignment(selectedVentedAlignment.value);
         case 'box-passive-radiator': {
           const pr = b.passiveRadiator().volume_m3(volume_m3.value);

@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -199,18 +199,24 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return ebp !== null ? this.engine.driver.ebpSuitability(ebp) : null;
     }
 
-    /** The Qtc a sealed box of `volume_m3` gives this driver. Null without Qts/Vas or for a
-     *  non-positive volume. */
-    sealedQtc(volume_m3: number): number | null {
-        const Qts = this.specs.Qts.value, Vas_m3 = this.specs.Vas_m3.value;
-        return Qts !== null && Vas_m3 !== null && volume_m3 > 0
-            ? this.engine.sealed.qtcFromVolume(Qts, Vas_m3, volume_m3) : null;
+    /** The Qtc a sealed box of `volume_m3` gives this driver as driven through `Rs_ohm` with box losses
+     *  `losses`: the lossy figure the Box tab shows. Null without Fs/Qts/Vas or for a non-positive volume. */
+    sealedQtc(volume_m3: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(Rs_ohm, losses);
+        return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Qtc;
     }
 
-    /** The sealed volume that gives this driver `targetQtc`. Null without Qts/Vas. */
-    sealedVolumeForQtc(targetQtc: number): number | null {
-        const Qts = this.specs.Qts.value, Vas_m3 = this.specs.Vas_m3.value;
-        return Qts !== null && Vas_m3 !== null ? this.engine.sealed.volumeForQtc(Qts, Vas_m3, targetQtc) : null;
+    /** The sealed volume that gives this driver `targetQtc` on the Box tab, as driven through `Rs_ohm`
+     *  with box losses `losses`. Null without Fs/Qts/Vas, or when no volume reaches it. */
+    sealedVolumeForQtc(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(Rs_ohm, losses);
+        return feed === null ? null : this.engine.sealed.volumeForLossyQtc(feed, targetQtc);
+    }
+
+    /** What the sealed-box engine takes of this driver, or null while Fs, Vas or Qts is unresolved. */
+    #sealedFeed(Rs_ohm: number, losses: SealedBoxLosses): Omit<SealedParams, 'Vb'> | null {
+        const Fs = this.specs.Fs_hz.value, Vas = this.specs.Vas_m3.value, Qts = this.sourceLoadedQts(Rs_ohm);
+        return Fs === null || Vas === null || Qts === null ? null : {Fs, Vas, Qts, Ql: losses.Ql, Qa: losses.Qa};
     }
 
     /** The vented box `alignment` designs for this driver as driven through `Rs_ohm` with box
@@ -392,6 +398,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 export interface DqReason {
     readonly subject: string;
     readonly text: string;
+}
+
+/** The box losses a sealed box is judged under: leakage `Ql` and absorption `Qa`. */
+export interface SealedBoxLosses {
+    readonly Ql: number;
+    readonly Qa: number;
 }
 
 export class OpenISDDriverStandalone extends OpenISDDriver {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {DEFAULT_ENV_DEFAULTS, type Engine, createEngine, type VentedDesignLimits} from '@openisd/design/engine';
 import { OpenISDDriver, ProjectBuilder } from '@openisd/design';
+import { DEFAULT_NEW_PROJECT_QA, DEFAULT_SOURCE_RESISTANCE_OHM } from '@openisd/design/fields';
 import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewProject } from '../../src/hooks/OriginalNewProject-hooks.js';
 import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { type BundledPassiveRadiatorRepo, createMemoryStorage } from '@openisd/persistence';
@@ -314,7 +315,37 @@ describe('useOgNewProject', () => {
 
     wizard.selectSealedAlignment(0.6);
 
-    expect(wizard.sealedVolume_m3.value).toBeCloseTo(0.02009, 9);
+    // The volume that shows Qtc 0.6 on the Box tab (lossy, default Rg and box losses), to 2dp litres.
+    const raw = driver.sealedVolumeForQtc(0.6, DEFAULT_SOURCE_RESISTANCE_OHM, {Ql: NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA})!;
+    expect(wizard.sealedVolume_m3.value).toBeCloseTo(Math.round(raw * 1e5) / 1e5, 9);
+    expect(wizard.sealedVolume_m3.value).not.toBe(raw);
+  });
+
+  it('a picked Qtc becomes the new project\'s entered Qtc, with the volume calculated from it', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+    wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
+    wizard.projName.value = 'Picked';
+    wizard.selectSealedAlignment(0.8);
+
+    const sealed = wizard.createProject()?.box.sealed;
+    expect(sealed?.q_tc.entered).toBe(true);
+    expect(sealed?.q_tc.value).toBe(0.8);
+    expect(sealed?.volume_m3.entered).toBe(false);
+  });
+
+  it('a volume typed after the pick is the project\'s entered volume, with Qtc calculated', () => {
+    const engine = createEngine();
+    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
+    wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
+    wizard.projName.value = 'Typed';
+    wizard.selectSealedAlignment(0.8);
+    wizard.setSealedVolume_m3(0.025);
+
+    const sealed = wizard.createProject()?.box.sealed;
+    expect(sealed?.volume_m3.entered).toBe(true);
+    expect(sealed?.volume_m3.value).toBe(0.025);
+    expect(sealed?.q_tc.entered).toBe(false);
   });
 
   it('picking a driver on step 1 moves the wizard on to step 2 — "Use" advances, it does not just arm Next', () => {
