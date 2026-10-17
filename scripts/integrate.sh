@@ -26,6 +26,9 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT"
+# shellcheck source=/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/lib/main-folder.sh"
+refuse_in_main_folder integrate
 if [ -d "$HERE/core" ]; then CORE="$HERE/core"; else CORE="$HERE/land/core"; fi
 if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.conf"; fi
 [ -f "$CONF" ] || { echo "integrate: no land.conf next to integrate.sh or in $ROOT" >&2; exit 2; }

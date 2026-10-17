@@ -12,6 +12,9 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ID="${1:?usage: claim.sh <task-id>}"
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
+# shellcheck source=/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/../../lib/main-folder.sh"
+refuse_in_main_folder claim
 # shellcheck source=../core/task.sh
 . "$HERE/../core/task.sh"
 

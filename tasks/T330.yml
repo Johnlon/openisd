@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 6f4d6e641c948f726e2d8a9cdf2728692ccba9cc
 goal: Difference icon by the closed box's Fsc and Qtc: WinISD lets you type only Volume
 done_test: bash scripts/test.sh packages/design/test/domain/error-switches.test.ts
 files:

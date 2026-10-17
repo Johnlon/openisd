@@ -36,12 +36,20 @@ Open tasks may overlap; claimed tasks may not (checked at claim).
 | 1    | `bash scripts/land/task-gates/claim.sh T<nnn>`  | status claimed; `.task` written                 |
 | 2    | edit only the listed files                      | pre-commit refuses anything else                |
 | 3    | run `done_test` until it exits 0                | —                                               |
-| 4    | `bash scripts/land.sh T<nnn>`                   | exit 0 landed, 1 refused, 3 blocked             |
+| 4    | `bash scripts/land.sh T<nnn>`                   | exit 0 landed, 1 refused, 3 blocked, 4 landed but the main folder is held |
 
 Chain what follows step 0 with `&&` (`bash scripts/new-task.sh … && cd <worktree> && …`), or check its exit
 code. A refused `new-task.sh` or `_agent_files/bin/new-worktree.sh` makes no worktree, and a folder of that
 name that already exists is another session's: commands run there land in its task (17 Oct 2026). A task's
 id is its own: `land.sh` refuses a branch whose `tasks/<id>.yml` would replace another owner's on main.
+
+The main folder (`openisd`, the main checkout) and the lap:4000 preview copy are kept at the last commit whose
+GitHub run passed by `scripts/land/sync-main-folder.sh`, run by `land.sh` after every landing and by the
+watchdog every tick (T328, John 17 Oct 2026). Nobody works or writes there: `land.sh`, `claim.sh`,
+`integrate.sh`, `sync-driver-snapshot.sh` and `inbox.py` refuse to. Stray edits found there are committed as a
+WIP commit and the folder is rebased; edits already on main drop out. When it cannot update (a conflict, or
+commits not on main), `land.sh` exits 4 and the landing agent fixes it at once: in the main folder, rebase onto
+the commit named, resolve, and land what is wanted from a worktree.
 
 Cannot proceed: set `status: blocked` with one plain sentence, and stop.
 

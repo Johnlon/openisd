@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SDLC S3: one watchdog tick. A systemd user timer runs it every 5 min (watchdog.timer). Idempotent;
 # two ticks never overlap (flock). Every action is logged to WATCHDOG_LOG with a UTC timestamp.
-# Checks, in order: (a) housekeeping, (b) hung post-land run, (b2) main untested with no run alive, (c) open F, (d) unacknowledged zoo-run
+# Checks, in order: (a) housekeeping, (b) hung post-land run, (b2) main untested with no run alive, (b3) the
+# main folder at the last passed commit (sync-main-folder.sh), (c) open F, (d) unacknowledged zoo-run
 # result, (e) gate refused twice in an hour, (f) merged clean worktrees.
 # Processes are found by recorded pid and start time, never by command text.
 # Env overrides (tests use scratch dirs): WATCHDOG_REPO WORKSPACE WATCHDOG_LOG WATCHDOG_LEADER
@@ -210,6 +211,16 @@ check_untested_main() {
   fi
 }
 check_untested_main
+
+# --- (b3) the main folder and the preview copy at the last passed commit (T328) ---------------------------------
+# A copy held (its own commits conflict with main, or are not on main) is logged here. The landing agent is
+# stopped on it by land.sh (exit 4). No tmux, no ASK.md, no inbox (John, 17 Oct 2026: scripts never rely on tmux).
+check_main_folder() {
+  local out
+  out="$(bash "$ROOT/scripts/land/sync-main-folder.sh" "$REPO" 2>&1)" \
+    || log "main folder held: $(grep -E 'CONFLICT|of its own|to fix|in progress|cannot|FAILED' <<< "$out" | sed 's/^.*sync-main-folder: //' | tr '\n' ' ')"
+}
+check_main_folder
 
 # --- (c) open F older than the limit ----------------------------------------------------------
 check_open_fs() {

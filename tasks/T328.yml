@@ -1,0 +1,23 @@
+id: T328
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: The main folder and the preview copy stay at the last passed commit by themselves; a held folder stops the landing agent
+done_test: bash scripts/land/test/sync-main-folder.e2e.test.sh
+files:
+  - tasks/T328.yml
+  - scripts/land/sync-main-folder.sh
+  - scripts/land/test/sync-main-folder.e2e.test.sh
+  - scripts/lib/main-folder.sh
+  - scripts/lib/mirrored.sh
+  - scripts/land.sh
+  - scripts/land/watchdog.sh
+  - scripts/land/task-gates/claim.sh
+  - scripts/integrate.sh
+  - scripts/sync-driver-snapshot.sh
+  - scripts/land/test/lint-requires.test.sh
+  - scripts/land/test/sync-driver-snapshot.test.sh
+  - land.conf
+  - docs/DEV_PROCESS.md
+  - bugs/BUG_20261017_main-folder-stuck-behind-main.md

@@ -7,6 +7,8 @@
 #   exit 0  landed: origin/main is this branch rebased onto origin/main, pushed
 #   exit 1  refused by a gate; main untouched; the message names the gate
 #   exit 2  cannot start (no task file, no land.conf, no fetch)
+#   exit 4  landed, but the main folder could not update to it (scripts/land/sync-main-folder.sh says why):
+#           the landing agent fixes that before anything else
 #   exit 3  blocked: the rebase conflicts; it is aborted, tasks/<id>.yml says status: blocked and why,
 #           and the worktree is committed and clean
 #
@@ -37,6 +39,9 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT" || exit 2
+# shellcheck source=/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/lib/main-folder.sh"
+refuse_in_main_folder land
 # This file is vendored byte for byte into winisd_tools (tools/land/land.sh), so it finds its parts
 # by where it sits: the core next to it (tools/land/core) or under land/ (scripts/land/core), and
 # land.conf next to it (tools/land/land.conf) or at the repo root.
@@ -313,4 +318,16 @@ fi
 if [ -n "${FULL_SUITE_CMD:-}" ] && [ -f "$HERE/land/post-land/run.sh" ]; then
   mkdir -p "$POST_LAND_DIR"
   setsid bash "$HERE/land/post-land/run.sh" "$pushed" >> "$POST_LAND_DIR/post-land.log" 2>&1 9>&- < /dev/null &
+fi
+
+# 8. the main folder and the preview copy move to the landed commit (T328). When one cannot (its own commits
+# conflict with main, or are not on main), the landing agent is told here and fixes it (John, 17 Oct 2026).
+# On when land.conf sets SYNC_MAIN_FOLDER (the scratch repos of the land tests leave it off).
+if [ -n "${SYNC_MAIN_FOLDER:-}" ]; then
+  bash "$HERE/land/sync-main-folder.sh" --passed "$pushed" "$ROOT" > "$WORK/sync.out" 2>&1 9>&-; synced=$?
+  sed 's/^/land: /' "$WORK/sync.out"
+  if [ "$synced" != 0 ]; then
+    echo "land: LANDED, but the main folder did not update (above). Fix it now, before anything else." >&2
+    exit 4
+  fi
 fi
