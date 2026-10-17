@@ -63,7 +63,7 @@ test('mobile: Bin a project, see it in the Bin, then Empty Bin', async ({ page }
   await pane.locator('.mob-bin-empty').click();
   await expect(page.getByText('Delete 1 project in the Bin', {exact: false})).toBeVisible();
   await page.locator('.confirm-dialog-confirm').click();
-  await expect(pane.getByText('The Bin is empty.')).toBeVisible();
+  await expect(pane.getByText('The Bin is empty')).toBeVisible();
 
   await pane.locator('.mob-dlg-close').click();
   await expect(page.getByText('No project open')).toBeVisible();

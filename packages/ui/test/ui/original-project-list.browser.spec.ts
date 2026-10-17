@@ -80,7 +80,7 @@ test.describe('Original project list', () => {
     await expect(cbx).toBeChecked();
 
     await page.locator('.project-row.selected .row-menu-btn').click();
-    await page.locator('.row-menu-item:has-text("Hide trace")').click();
+    await page.locator('.row-menu-item:has-text("Hide on charts")').click();
 
     await expect(cbx).not.toBeChecked();
     await expect(page.locator('.project-row.selected')).toHaveClass(/trace-hidden/);
@@ -98,8 +98,9 @@ test.describe('Original project list', () => {
     // Since the project has unsaved changes, it prompts with the unsaved changes challenge
     await expect(page.locator('.close-actions')).toBeVisible();
     await page.locator('.close-actions button:has-text("Close without saving")').click();
-    await expect(page.locator('.project-row')).toHaveCount(0);
-    await expect(page.locator('.projects-empty')).toBeVisible();
+    // Closing does not delete: the stored project stays in the list, closed.
+    await expect(page.locator('.project-row')).toHaveCount(1);
+    await expect(page.locator('.project-row')).toHaveClass(/is-closed/);
   });
 
   test('⋯ → Move to Bin moves it to the Bin', async ({ appPage: page }) => {
@@ -246,7 +247,9 @@ test.describe('Original project list', () => {
     await page.locator('.project-row.selected .row-menu-btn').click();
     await page.locator('.row-menu-item:has-text("Close")').click();
     await page.locator('.close-actions button:has-text("Close without saving")').click();
-    await expect(page.locator('.project-row')).toHaveCount(1);
+    // The closed project stays in the list as a stored, closed row.
+    await expect(page.locator('.project-row')).toHaveCount(2);
+    await expect(page.locator('.project-row.is-closed')).toHaveCount(1);
   });
 
   test('the last project can be closed too — the app lands on an empty workspace', async ({ appPage: page }) => {
@@ -259,8 +262,9 @@ test.describe('Original project list', () => {
     await expect(page.locator('.close-actions')).toBeVisible();
     await page.locator('.close-actions button:has-text("Close without saving")').click();
 
-    await expect(page.locator('.project-row')).toHaveCount(0);
-    await expect(page.locator('.projects-empty')).toBeVisible();
+    await expect(page.locator('.project-row')).toHaveCount(1);
+    await expect(page.locator('.project-row')).toHaveClass(/is-closed/);
+    await expect(page.locator('.graph-empty-h')).toBeVisible();
   });
 
   test('the projects checkbox hides that project\'s trace without removing the project', async ({ appPage: page }) => {
@@ -313,7 +317,7 @@ test.describe('Original project list', () => {
     await page.locator('.row-menu-item:has-text("Close")').click();
 
     await expect(page.locator('.original-root')).toBeVisible();
-    await expect(page.locator('.projects-empty')).toContainText('No projects yet.');
+    await expect(page.locator('.project-row.is-closed')).toHaveCount(1);
     await expect(page.locator('.content-panel')).toContainText('No projects open');
     await expect(page.locator('.graph-empty-h')).toHaveText('No project open. Create or open a project.');
     await expect(page.locator('canvas')).toHaveCount(0);

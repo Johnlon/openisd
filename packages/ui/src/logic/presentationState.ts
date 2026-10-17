@@ -86,6 +86,8 @@ export interface PresentationState {
   openDialogOpen: boolean;
   /** The full-screen Projects pane (mobile) is open. */
   projectsPaneOpen: boolean;
+  /** Counts the requests to bring up the projects list (the phone Projects page, the desktop panel). */
+  projectsRequests: number;
   /** The active mobile pane, or null when closed. */
   mobilePane: string | null;
   /** The active mobile destination. */
@@ -112,6 +114,7 @@ export function createPresentationState(): PresentationState {
     editDriverInfo: false,
     optionsOpen: false,
     openDialogOpen: false,
+    projectsRequests: 0,
     projectsPaneOpen: false,
     mobilePane: null,
     mobileDestination: 'box',

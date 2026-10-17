@@ -239,12 +239,6 @@ const PATHS: readonly DestructivePath[] = [
     },
   },
   {
-    name: 'migrate saved projects: merge copies of one project at start-up',
-    seed: () => ({[OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'), goodProjectText('mine'))}),
-    destroys: [OPENISD_PROJECTS_KEY],
-    act: s => { projectRepoOn(engine, noFiles, s, ADDRESS); },
-  },
-  {
     name: 'migrate saved projects: a retired field at start-up',
     seed: () => ({[OPENISD_PROJECTS_KEY]: projectsOf(projectWithFrontQicl('bp4'))}),
     destroys: [OPENISD_PROJECTS_KEY],

@@ -14,6 +14,7 @@ import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import {bootApplication} from '../logic/boot.js';
 import {startSessionSync} from '../logic/sessionSync.js';
+import {startStoringNewProjects} from '../logic/newProjectStore.js';
 import {heldFocusedProject, provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
@@ -24,7 +25,7 @@ import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import CrashScreen from './components/CrashScreen.vue';
 
-const { projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId } = useApp();
+const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch, actions: recentActions } = useTelemetryUi();
@@ -89,6 +90,7 @@ async function handleHashChange() {
 }
 
 let stopSessionSync: () => void = () => {};
+let stopStoringNewProjects: () => void = () => {};
 
 onMounted(async () => {
   // ONE ordered restore (`logic/boot.ts`), then persistence. Nothing writes storage while the
@@ -105,12 +107,14 @@ onMounted(async () => {
   viewStateRepo.save(currentViewSnapshot());
   projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
   stopSessionSync = startSessionSync({ projectRepo, viewStateRepo, appState });
+  stopStoringNewProjects = startStoringNewProjects({ projectRepo, appState, onFailed: () => void designIO.reportStorageFull() });
   window.addEventListener('hashchange', handleHashChange);
   launch.report(activeSkin.value);
 });
 
 onUnmounted(() => {
   stopSessionSync();
+  stopStoringNewProjects();
   window.removeEventListener('hashchange', handleHashChange);
   viewportWatch.stop();
 });

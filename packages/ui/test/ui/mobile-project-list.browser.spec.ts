@@ -3,7 +3,7 @@
  * a show-on-graphs checkbox, a focus tap and a colour swatch.
  */
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
-import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, openMobileMenu, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
 
 /** Count distinct opaque colours drawn on the chart: a second trace is a second colour. */
@@ -95,5 +95,62 @@ test.describe('MobileProjectList', () => {
     const before = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
     await swatch.click();
     await expect.poll(() => swatch.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe(before);
+  });
+});
+
+test.describe('The menu\'s open projects', () => {
+  test('lists the open projects at the top, with tickbox, colour, name and a row at least 48 px tall', async ({ page }) => {
+    await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+    await openMobileMenu(page);
+    const rows = page.locator('.mob-open-project');
+    await expect(rows).toHaveCount(2);
+    await expect(rows.locator('.mob-open-project-name')).toHaveText(['sample-project', 'complete-driver-project']);
+    for (const row of await rows.all()) {
+      const box = await row.boundingBox();
+      expect(box?.height ?? 0).toBeGreaterThanOrEqual(48);
+      await expect(row.locator('.mob-open-project-show')).toBeChecked();
+      await expect(row.locator('.mob-open-project-colour')).toBeVisible();
+    }
+    const first = await rows.first().boundingBox();
+    const items = await page.locator('.mob-menu-item').first().boundingBox();
+    expect(first?.y ?? 0).toBeLessThan(items?.y ?? 0);
+  });
+
+  test('ticking a box leaves the menu open', async ({ page }) => {
+    await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+    await openMobileMenu(page);
+    const box = page.locator('.mob-open-project').first().locator('.mob-open-project-show');
+    await box.uncheck();
+    await expect(box).not.toBeChecked();
+    await expect(page.locator('.mob-menu')).toBeVisible();
+  });
+
+  test('changing a colour leaves the menu open', async ({ page }) => {
+    await openMobileMenu(page);
+    const swatch = page.locator('.mob-open-project').first().locator('.mob-open-project-colour');
+    const before = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
+    await swatch.click();
+    await expect.poll(() => swatch.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe(before);
+    await expect(page.locator('.mob-menu')).toBeVisible();
+  });
+
+  test('the colour of a hidden project can still be changed', async ({ page }) => {
+    await openMobileMenu(page);
+    const row = page.locator('.mob-open-project').first();
+    await row.locator('.mob-open-project-show').uncheck();
+    const swatch = row.locator('.mob-open-project-colour');
+    const before = await swatch.evaluate(el => getComputedStyle(el).backgroundColor);
+    await swatch.click();
+    await expect.poll(() => swatch.evaluate(el => getComputedStyle(el).backgroundColor)).not.toBe(before);
+  });
+
+  test('a tap on a name switches to that project and closes the menu', async ({ page }) => {
+    await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+    await openMobileMenu(page);
+    const rows = page.locator('.mob-open-project');
+    await rows.first().locator('.mob-open-project-name').click();
+    await expect(page.locator('.mob-menu')).toHaveCount(0);
+    await openMobileMenu(page);
+    await expect(rows.first()).toHaveClass(/focused/);
   });
 });

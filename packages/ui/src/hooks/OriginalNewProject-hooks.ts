@@ -469,13 +469,14 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
         case 'bandpass6': return b.bandpass6().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
         case 'abc': return b.abc().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
       }
+    }, (made) => {
+      made.name.set(projName.value.trim() || 'Unnamed project');
+      if (projDescription.value.trim()) {
+        made.description.set(projDescription.value.trim());
+      }
+      made.nDrivers.set(nDrivers.value);
+      made.wiring.set(wiring.value);
     });
-    p.name.set(projName.value.trim() || 'Unnamed project');
-    if (projDescription.value.trim()) {
-      p.description.set(projDescription.value.trim());
-    }
-    p.nDrivers.set(nDrivers.value);
-    p.wiring.set(wiring.value);
 
     newProjectDriver.value = null;
     recentActions.record('new-project');

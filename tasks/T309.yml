@@ -3,6 +3,7 @@ release_note: The driver list says which filters are on and has a Clear filters 
 repo: openisd
 owner: maryu
 status: done
+landed: 16cb0afcd68200b37db2e6e6c3fb51096b085aec
 goal: Driver list keeps its filters but shows which are on; Favorites disabled with no favourites; "No drivers match" with Clear filters
 done_test: bash scripts/test.sh packages/ui/test/logic/driverFilters.test.ts
 files:

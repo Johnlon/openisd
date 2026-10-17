@@ -2,7 +2,7 @@
 import {shallowRef} from 'vue';
 import type {ProjectListRow} from '../../../hooks/projectBinView.js';
 import type {BinRow} from '../../../hooks/binRows.js';
-import type {ProjectRowAction, ProjectRowOrder} from '@openisd/design/fields';
+import {PROJECT_LIST_TEXT, type ProjectRowAction, type ProjectRowOrder} from '@openisd/design/fields';
 import MobilePaneDialog from './MobilePaneDialog.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import {inputChecked} from '../../../logic/domEvents.js';
@@ -114,8 +114,8 @@ function executeRowAction(action: ProjectRowAction): void {
         </div>
       </div>
 
-      <p v-if="projectRows.length === 0" class="mob-hint">No saved project yet.</p>
-      <p v-else-if="shownProjects.length === 0" class="mob-hint">No project matches.</p>
+      <p v-if="projectRows.length === 0" class="mob-hint">{{ PROJECT_LIST_TEXT.EMPTY }}</p>
+      <p v-else-if="shownProjects.length === 0" class="mob-hint">{{ PROJECT_LIST_TEXT.NO_MATCH }}</p>
 
       <div class="mob-projects-list">
         <div
@@ -155,7 +155,9 @@ function executeRowAction(action: ProjectRowAction): void {
 
           <button type="button" class="mob-project-info" @click="chooseProject(p)">
             <div class="mob-project-name-line">
-              <span class="mob-project-name"><span v-if="p.open.kind === 'open' && p.open.unsaved" class="mob-project-dot" title="Unsaved changes"></span>{{ p.name }}</span>
+              <span v-if="p.open.kind === 'open'" class="project-tag project-tag-open mob-project-open-mark">{{ PROJECT_LIST_TEXT.OPEN_MARK }}</span>
+              <span class="mob-project-name">{{ p.name }}</span>
+              <span v-if="p.open.kind === 'open' && p.open.unsaved" class="project-tag project-tag-unsaved mob-project-dirty">{{ PROJECT_LIST_TEXT.UNSAVED_MARK }}</span>
               <span v-for="t in p.tags" :key="t.kind" class="project-tag" :class="`project-tag-${t.kind}`">{{ t.text }}</span>
             </div>
             <div class="mob-project-summary">{{ p.summary }}</div>
@@ -191,7 +193,7 @@ function executeRowAction(action: ProjectRowAction): void {
     </template>
 
     <template v-else>
-      <p v-if="binRows.length === 0" class="mob-hint">The Bin is empty.</p>
+      <p v-if="binRows.length === 0" class="mob-hint">{{ PROJECT_LIST_TEXT.BIN_EMPTY }}</p>
       <div v-for="b in binRows" :key="b.id" class="mob-bin-row">
         <span class="mob-stored-project-name">{{ b.name }}</span>
         <span class="mob-stored-project-summary">{{ b.binnedAt }} · {{ b.device }} · {{ b.size }}</span>
@@ -491,6 +493,8 @@ function executeRowAction(action: ProjectRowAction): void {
   color: var(--mut);
   font-weight: normal;
 }
+.project-tag.project-tag-open { background: var(--acc); color: #fff; }
+.project-tag.project-tag-unsaved { background: var(--acc2); color: #fff; }
 .project-tag-conflict { color: var(--acc2); }
 .project-tag-unreadable { color: var(--bad); }
 .project-sync-mark { white-space: nowrap; }

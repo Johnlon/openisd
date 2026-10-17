@@ -389,27 +389,12 @@ describe('projectRepo', () => {
     });
   });
 
-  describe('stored duplicate project copies (BUG_20261009_stored-project-list-holds-copies)', () => {
-    it('a store with the same project 3 times loads as 1 entry and the backup holds all 3', () => {
-      const storage = createMemoryStorage({
-        [OPENISD_PROJECTS_KEY]: JSON.stringify({
-          version: 1,
-          entries: [
-            { id: 'id-1', text: goodProjectText('mine'), modified: '2026-01-01T00:00:00Z' },
-            { id: 'id-2', text: goodProjectText('mine'), modified: '2026-01-02T00:00:00Z' },
-            { id: 'id-3', text: goodProjectText('mine'), modified: '2026-01-03T00:00:00Z' },
-          ],
-        }),
-      });
+  describe('stored projects that share a name (BUG_20261009_stored-project-list-holds-copies, ruled 17 Oct 2026)', () => {
+    it('are all kept at start-up: the user named them, the store never merges or drops one', () => {
+      const entries = ['id-1', 'id-2', 'id-3'].map((id, n) => ({ id, text: goodProjectText('mine'), modified: `2026-01-0${n + 1}T00:00:00Z` }));
+      const storage = createMemoryStorage({ [OPENISD_PROJECTS_KEY]: JSON.stringify({ version: 1, entries }) });
       const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
-      const list = repo.listStoredProjects();
-      expect(list).toHaveLength(1);
-      expect(list[0].id).toBe('id-3');
-      const backupText = backupOn(storage).readPreRepairCopy('projects');
-      assert.ok(backupText !== null, 'backup must be written when copies are merged');
-      expect(backupText).toContain('"id":"id-1"');
-      expect(backupText).toContain('"id":"id-2"');
-      expect(backupText).toContain('"id":"id-3"');
+      expect(repo.listStoredProjects().map(e => e.id).sort()).toEqual(['id-1', 'id-2', 'id-3']);
     });
 
     it('saving twice leaves 1 entry', () => {
@@ -420,11 +405,84 @@ describe('projectRepo', () => {
       repo.saveToStorage(p1);
       expect(repo.listStoredProjects().filter(e => e.name === 'twice')).toHaveLength(1);
 
-      // Re-opening the same project from file text and saving again also preserves the 1 entry
-      const p2 = OpenISDProject.fromOwprText(p1.toOwprText(), engine);
-      assert.ok(!Array.isArray(p2));
-      repo.saveToStorage(p2);
-      expect(repo.listStoredProjects().filter(e => e.name === 'twice')).toHaveLength(1);
+    });
+  });
+
+  describe('two different projects with one name (BUG_20261017_same-name-projects-show-as-one-row)', () => {
+    it('both are stored as their own, both keep the name, and neither changes the other', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const first = project('ABC');
+      const second = project('ABC');
+      repo.saveToStorage(first);
+      repo.saveToStorage(second);
+      expect(repo.storedIdOf(second)).not.toBe(repo.storedIdOf(first));
+      expect(repo.listStoredProjects().map(e => e.name)).toEqual(['ABC', 'ABC']);
+      expect(second.name.value).toBe('ABC');
+    });
+  });
+
+  describe('storeNew: a project is stored the moment it is made', () => {
+    it('stores a project that has no stored copy, unchanged, and says it is stored', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const made = project('Fresh');
+      expect(repo.isStored(made, [made])).toBe(false);
+      expect(repo.storeNew(made, [made]).kind).toBe('saved');
+      expect(repo.isStored(made, [made])).toBe(true);
+      expect(made.isModified()).toBe(false);
+      expect(repo.listStoredProjects().map(e => e.name)).toEqual(['Fresh']);
+    });
+
+    it('a second project of the same name is stored beside the first, keeps its name, and is not shown as changed', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const first = project('ABC');
+      const second = project('ABC');
+      repo.storeNew(first, [first, second]);
+      repo.storeNew(second, [first, second]);
+      expect(repo.listStoredProjects().map(e => e.name)).toEqual(['ABC', 'ABC']);
+      expect(second.name.value).toBe('ABC');
+      expect(second.isModified()).toBe(false);
+    });
+
+    it('the same file with the same content is the project already stored: it keeps that copy', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const first = project('ABC');
+      repo.storeNew(first, [first]);
+      const again = OpenISDProject.fromOwprText(first.toOwprText(), engine);
+      assert.ok(!Array.isArray(again));
+      repo.storeNew(again, [again]);
+      expect(repo.listStoredProjects()).toHaveLength(1);
+      expect(repo.storedIdOf(again)).toBe(repo.storedIdOf(first));
+    });
+
+    it('a project that already has a stored copy is stored under it again, not beside it', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const made = project('Once');
+      repo.storeNew(made, [made]);
+      repo.storeNew(made, [made]);
+      expect(repo.listStoredProjects()).toHaveLength(1);
+    });
+
+    it('an open project that shares its stored copy with an earlier one is stored as its own', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const first = project('ABC');
+      const second = project('ABC');
+      repo.saveToStorageAs(first, 'one');
+      repo.saveToStorageAs(second, 'one');
+      expect(repo.isStored(first, [first, second])).toBe(true);
+      expect(repo.isStored(second, [first, second])).toBe(false);
+      repo.storeNew(second, [first, second]);
+      expect(repo.storedIdOf(second)).not.toBe('one');
+      expect(repo.listStoredProjects().map(e => e.name)).toEqual(['ABC', 'ABC']);
+    });
+
+    it('says it failed when the store takes no more, and the project is not stored', () => {
+      const storage = createMemoryStorage();
+      const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
+      const made = project('Big');
+      const refuse = vi.spyOn(storage, 'set').mockImplementation(() => { throw new Error('quota'); });
+      expect(repo.storeNew(made, [made]).kind).toBe('failed');
+      refuse.mockRestore();
+      expect(repo.isStored(made, [made])).toBe(false);
     });
   });
 
@@ -533,8 +591,7 @@ describe('projectRepo', () => {
       const parsedStoreRaw: unknown = JSON.parse(storeText);
       const parsedStore = storedProjectsPayload(parsedStoreRaw);
       assert.ok(parsedStore !== null, 'store must be valid stored projects payload');
-      expect(parsedStore.entries).toHaveLength(1);
-      expect(parsedStore.entries[0].id).toBe('id-3');
+      expect(parsedStore.entries.map(e => e.id)).toEqual(['id-1', 'id-2', 'id-3']);
 
       // Start-up 2
       projectRepoOn(engine, noFiles, storage, 'http://localhost');

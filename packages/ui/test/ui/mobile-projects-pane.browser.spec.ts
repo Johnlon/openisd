@@ -69,7 +69,7 @@ test.describe('MobileProjectsPane', () => {
     await expect(pane).toBeHidden();
   });
 
-  test('row menu ⋯ → Hide trace unticks the show checkbox', async ({page}) => {
+  test('row menu ⋯ → Hide on charts unticks the show checkbox', async ({page}) => {
     await forceMobileSkin(page);
     await page.goto('/');
     await openAMobileProject(page);
@@ -85,8 +85,8 @@ test.describe('MobileProjectsPane', () => {
     const actionSheet = page.locator('.mob-action-sheet');
     await expect(actionSheet).toBeVisible();
 
-    // Tap Hide trace
-    await actionSheet.getByRole('button', {name: 'Hide trace'}).click();
+    // Tap Hide on charts
+    await actionSheet.getByRole('button', {name: 'Hide on charts'}).click();
     await expect(actionSheet).toBeHidden();
 
     // Show checkbox is now unticked

@@ -336,6 +336,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     binView.refresh();
     projectListRef.value?.focusSearchOrList();
   }
+  watch(() => presentationState.projectsRequests, openClick);
   function openFromDisk() {
     recentActions.record('open-project');
     openDialogOpen.value = false;
@@ -352,13 +353,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
   function chooseProject(row: ProjectListRow): void {
     recentActions.record('open-project');
-    const handle = row.handle;
-    if (handle.kind === 'saved') {
-      openStoredProject(handle.id);
-      return;
-    }
-    appState.focusProject(appState.openProjects().indexOf(handle.project));
-    openDialogOpen.value = false;
+    openStoredProject(row.handle.id);
   }
   function duplicateProject(row: ProjectListRow): void {
     chooseProject(row);
@@ -376,19 +371,15 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (trimmed === '') return;
     const handle = row.handle;
     let proj: OpenISDProject | null = null;
-    if (handle.kind === 'saved') {
-      if (handle.open !== null) {
-        proj = handle.open;
-      } else {
-        const result = openStoredProjectFromStore(appState, projectRepo, handle.id);
-        if (result.kind === 'refused') {
-          alert('Could not open the saved project: ' + result.errors.join('; '));
-          return;
-        }
-        proj = appState.focusedProject();
-      }
+    if (handle.open !== null) {
+      proj = handle.open;
     } else {
-      proj = handle.project;
+      const result = openStoredProjectFromStore(appState, projectRepo, handle.id);
+      if (result.kind === 'refused') {
+        alert('Could not open the saved project: ' + result.errors.join('; '));
+        return;
+      }
+      proj = appState.focusedProject();
     }
     if (proj !== null) {
       proj.name.set(trimmed);

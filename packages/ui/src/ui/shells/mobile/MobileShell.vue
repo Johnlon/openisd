@@ -27,6 +27,7 @@ import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import {OpenableFiles} from '../../../fileFormat.js';
+import {inputChecked} from '../../../logic/domEvents.js';
 import {APP_UPDATE_TEXT, NO_PROJECT_OPEN} from '@openisd/design/fields';
 
 const {
@@ -34,7 +35,7 @@ const {
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
   showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
+  username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
@@ -159,11 +160,30 @@ const diagnostics = injectDiagnosticsModal();
             <span v-if="username" class="mob-menu-username">{{ username }}</span>
           </div>
         </div>
+        <!-- The open projects, one tap away: show on the graphs, colour, switch to, close. -->
+        <section v-if="projectOpen" class="mob-menu-section" aria-labelledby="mob-menu-head-open">
+          <div id="mob-menu-head-open" class="mob-menu-section-head">Open projects</div>
+          <div v-for="row in openProjectRows" :key="row.key" class="mob-open-project" :class="{ focused: row.open.kind === 'open' && row.open.active }">
+            <template v-if="row.open.kind === 'open'">
+              <label class="mob-open-project-show-wrap">
+                <input type="checkbox" class="mob-open-project-show" :checked="row.open.shown"
+                       :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
+                       @change="setProjectTraceVisible(row, inputChecked($event))">
+              </label>
+              <button type="button" class="mob-open-project-colour-wrap" :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
+                      @click="cycleProjectColour(row)"><span class="mob-open-project-colour" :style="{ background: row.open.colour ?? undefined }"></span></button>
+              <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
+                <span v-if="row.open.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
+              </button>
+            </template>
+            <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
+          </div>
+        </section>
         <!-- Project: what changes or files the open projects. App: the app and its library. -->
         <section class="mob-menu-section" aria-labelledby="mob-menu-head-project">
           <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
-          <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
           <button type="button" class="mob-menu-item" @click="openProjectsPane">Projects</button>
+          <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
           <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
           <!-- Project-level items: only with a project open (John, 16 Oct 2026). -->
           <template v-if="projectOpen">
@@ -418,6 +438,32 @@ const diagnostics = injectDiagnosticsModal();
 .mob-menu-sep { height: 1px; background: var(--line); margin: 3px 0; }
 .mob-menu-section { border-top: 2px solid var(--line); padding: 2px 0; }
 .mob-menu-section-head { padding: 2px 18px 0; font-size: 13px; font-weight: 700; color: var(--acc); }
+.mob-open-project { display: flex; align-items: center; min-height: 48px; }
+.mob-open-project-show-wrap { flex: none; width: 48px; min-height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.mob-open-project-show { width: 20px; height: 20px; margin: 0; }
+.mob-open-project-colour-wrap { all: unset; box-sizing: border-box; flex: none; width: 40px; min-height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.mob-open-project-colour { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--line); display: block; }
+.mob-open-project.focused { background: var(--panel2); }
+.mob-open-project-name {
+  all: unset;
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px 0 6px;
+  font-size: 14px;
+  color: var(--fg);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mob-open-project.focused .mob-open-project-name { font-weight: 600; }
+.mob-open-project-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--acc2); }
+.mob-open-project-close { all: unset; box-sizing: border-box; flex: none; min-width: 48px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--mut); cursor: pointer; }
 
 .mob-empty {
   flex: 1;

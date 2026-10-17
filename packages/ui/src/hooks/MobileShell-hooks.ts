@@ -125,6 +125,10 @@ export interface MobileShellApi {
   openProjectsPane: () => void;
   closeProjectsPane: () => void;
   projectRows: import('vue').ComputedRef<ProjectListRow[]>;
+  /** The open projects in tab order, for the menu's "Open projects" rows. */
+  openProjectRows: import('vue').ComputedRef<ProjectListRow[]>;
+  selectOpenProject: (row: ProjectListRow) => void;
+  closeOpenProject: (row: ProjectListRow) => Promise<void>;
   shownProjects: import('vue').ComputedRef<ProjectListRow[]>;
   /** "35 projects · 770 KB · 2 open". */
   projectsFooter: import('vue').ComputedRef<string>;
@@ -252,6 +256,7 @@ export function useMobileShell(): MobileShellApi {
     projectsPaneOpen.value = true;
     closeMenu();
   }
+  watch(() => presentationState.projectsRequests, openProjectsPane);
   function closeProjectsPane(): void {
     projectsPaneOpen.value = false;
   }
@@ -266,18 +271,35 @@ export function useMobileShell(): MobileShellApi {
   /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
   function chooseProject(row: ProjectListRow): void {
     recentActions.record('open-project');
-    const handle = row.handle;
-    if (handle.kind === 'saved') {
-      openStoredProject(handle.id);
-      return;
-    }
-    appState.focusProject(appState.openProjects().indexOf(handle.project));
-    projectsPaneOpen.value = false;
+    openStoredProject(row.handle.id);
   }
 
   function projectOfRow(row: ProjectListRow): OpenISDProject | null {
-    const handle = row.handle;
-    return handle.kind === 'notSaved' ? handle.project : handle.open;
+    return row.handle.open;
+  }
+
+  /** The open projects, in tab order: the menu's "Open projects" rows. */
+  const openProjectRows = computed<ProjectListRow[]>(() => {
+    const open = openProjects();
+    const place = (row: ProjectListRow): number => {
+      const project = projectOfRow(row);
+      return project === null ? -1 : open.indexOf(project);
+    };
+    return projectRows.value.filter(row => place(row) >= 0).sort((a, b) => place(a) - place(b));
+  });
+
+  /** A tap on an open project in the menu: it becomes the active one and the menu closes. */
+  function selectOpenProject(row: ProjectListRow): void {
+    const project = projectOfRow(row);
+    const index = project === null ? -1 : openProjects().indexOf(project);
+    if (index >= 0) focusProject(index);
+    closeMenu();
+  }
+
+  /** The menu's close button: as the page's, and the menu goes too once no project is left. */
+  async function closeOpenProject(row: ProjectListRow): Promise<void> {
+    await closeProjectRow(row);
+    if (openProjects().length === 0) closeMenu();
   }
 
   function setProjectTraceVisible(row: ProjectListRow, visible: boolean): void {
@@ -538,6 +560,7 @@ export function useMobileShell(): MobileShellApi {
     goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
     projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
+    openProjectRows, selectOpenProject, closeOpenProject,
     setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,

@@ -61,11 +61,11 @@ test.describe('MobileMenu', () => {
     test('items sit in a Project section and an App section, each under its own heading', async ({ page }) => {
       await openMobileMenu(page);
       const sections = page.locator('.mob-menu-section');
-      await expect(sections.locator('.mob-menu-section-head')).toHaveText(['Project', 'App']);
-      const items = (section: string) => page.locator('.mob-menu-section', { has: page.locator('.mob-menu-section-head', { hasText: section }) })
+      await expect(sections.locator('.mob-menu-section-head')).toHaveText(['Open projects', 'Project', 'App']);
+      const items = (section: string) => page.locator('.mob-menu-section', { has: page.locator('.mob-menu-section-head', { hasText: new RegExp(`^${section}$`) }) })
         .locator('.mob-menu-item').evaluateAll(nodes => nodes.map(n => (n.querySelector('.export-menu-trigger') ?? n).textContent?.trim()));
       expect(await items('Project')).toEqual([
-        'New project', 'Projects', 'Open a file', 'Save', 'Save all', 'Save As / Export',
+        'Projects', 'New project', 'Open a file', 'Save', 'Save all', 'Save As / Export',
         'Revert unsaved changes', 'Project details', 'Advanced',
       ]);
       expect(await items('App')).toEqual([
@@ -73,7 +73,7 @@ test.describe('MobileMenu', () => {
         'Automatic view',
       ]);
       // A visible divider sits between the two sections.
-      const divider = await sections.nth(1).evaluate(el => getComputedStyle(el).borderTopWidth);
+      const divider = await sections.nth(2).evaluate(el => getComputedStyle(el).borderTopWidth);
       expect(divider).not.toBe('0px');
     });
 
@@ -98,11 +98,16 @@ test.describe('MobileMenu', () => {
       ]);
     });
 
-    test('the whole menu, open projects included, fits a phone screen without scrolling', async ({ page }) => {
+    test('on a small phone the menu scrolls inside itself and every item can be reached', async ({ page }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await openMobileMenu(page);
-      const fits = await page.locator('.mob-menu').evaluate(el => el.scrollHeight <= el.clientHeight);
-      expect(fits).toBe(true);
+      const menu = page.locator('.mob-menu');
+      const overflowY = await menu.evaluate(el => getComputedStyle(el).overflowY);
+      expect(['auto', 'scroll']).toContain(overflowY);
+      const last = page.locator('.mob-menu-item').last();
+      await last.scrollIntoViewIfNeeded();
+      await expect(last).toBeInViewport();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     });
 
     test('the Graph page has its own menu button', async ({ page }) => {
@@ -118,12 +123,14 @@ test.describe('MobileMenu', () => {
   // projects".
   test.describe('Projects', () => {
     // T204: the list holds every project, saved or open, so the open project shows before it is saved.
-    test('before anything is saved it lists only the open project, marked not saved', async ({ page }) => {
+    test('a project is in the list the moment it is open, marked open and with no unsaved change', async ({ page }) => {
       await tapMobileMenuItem(page, 'Projects');
       const pane = page.locator('.mob-projects-pane');
       await expect(pane).toBeVisible();
       await expect(pane.locator('.mob-project-row')).toHaveCount(1);
-      await expect(pane.locator('.mob-project-row')).toContainText('Not saved yet');
+      await expect(pane.locator('.mob-project-row .mob-project-open-mark')).toBeVisible();
+      await expect(pane.locator('.mob-project-row .mob-project-dirty')).toHaveCount(0);
+      await expect(pane.locator('.mob-project-row')).not.toContainText('Not saved');
     });
 
     test('Save, then "Projects" lists it and reopens it', async ({ page }) => {

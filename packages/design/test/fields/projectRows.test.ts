@@ -22,14 +22,14 @@ function source(name: string, over: Partial<ProjectRowSource<string>> = {}): Pro
     name,
     driver: 'Tang Band W5-1138SMF',
     summary: 'Tang Band W5-1138SMF · Vented · 12.0 L',
-    saved: {kind: 'saved', modifiedMs: DAY_MS, bytes: 22_000, readable: true},
+    saved: {modifiedMs: DAY_MS, bytes: 22_000, readable: true},
     open: CLOSED,
     sync: 'off',
     ...over,
   };
 }
 
-const saved = (modifiedMs: number, bytes = 22_000) => ({kind: 'saved', modifiedMs, bytes, readable: true} as const);
+const saved = (modifiedMs: number, bytes = 22_000) => ({modifiedMs, bytes, readable: true});
 const open = (over: Partial<{active: boolean; shown: boolean; unsaved: boolean}> = {}) =>
   ({kind: 'open', active: false, shown: true, unsaved: false, colour: '#3366cc', ...over} as const);
 
@@ -65,11 +65,8 @@ describe('projectRow', () => {
     expect(hidden.tags).toEqual([{kind: 'hidden', text: 'Hidden'}]);
   });
 
-  it('a project never saved says so and cannot go to the Bin; one that would not read can only be exported or binned', () => {
-    const fresh = projectRow(source('New', {saved: {kind: 'notSaved'}, open: open({active: true})}));
-    expect([fresh.edited, fresh.size, fresh.tags]).toEqual(['Not saved yet', '', [{kind: 'notSaved', text: 'Not saved'}]]);
-    expect(fresh.menu.map(m => m.action)).not.toContain('delete');
-    const broken = projectRow(source('Broken', {summary: '', saved: {kind: 'saved', modifiedMs: DAY_MS, bytes: 10, readable: false}}));
+  it('a project that would not read can only be exported or binned', () => {
+    const broken = projectRow(source('Broken', {summary: '', saved: {modifiedMs: DAY_MS, bytes: 10, readable: false}}));
     expect(broken.tags).toEqual([{kind: 'unreadable', text: 'Could not read'}]);
     expect(broken.menu.map(m => m.action)).toEqual(['export', 'delete']);
   });
@@ -95,11 +92,11 @@ describe('viewProjectRows', () => {
     projectRow(source('Sealed try', {saved: saved(200, 30_000), driver: 'Tang Band', summary: 'Tang Band · Sealed · 8.0 L'})),
     projectRow(source('Sub 12 (conflict, 14 Oct 2026, iPhone)', {saved: saved(400), driver: 'Dayton RSS'})),
     projectRow(source('Sub 12', {saved: saved(100, 50_000), driver: 'Dayton RSS', summary: 'Dayton RSS · Vented · 60.0 L'})),
-    projectRow(source('New', {saved: {kind: 'notSaved'}, open: open({active: true}), driver: 'Audax'})),
+    projectRow(source('New', {saved: saved(500, 0), open: open({active: true}), driver: 'Audax'})),
   ];
   const names = (order: ProjectRowOrder, query = '') => viewProjectRows(rows, order, query).map(r => r.key);
 
-  it('orders by last edited, a project never saved first, each conflict copy right after its original', () => {
+  it('orders by last edited, each conflict copy right after its original', () => {
     expect(names(PROJECT_ROW_ORDERS.NEWEST)).toEqual(['New', 'Sealed try', 'Sub 12', 'Sub 12 (conflict, 14 Oct 2026, iPhone)']);
   });
 

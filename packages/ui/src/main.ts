@@ -335,10 +335,10 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     };
     const flushPendingSaves = (): void => {
       const focused = appState.focusedProject();
+      const open = appState.openProjects();
       if (focused !== null) {
         projectRepo.saveToStorage(focused);
       }
-      const open = appState.openProjects();
       projectRepo.saveOpenProjects(open, focused, appState.hiddenTraces(open));
       viewStateRepo.save(appState.currentViewSnapshot());
     };

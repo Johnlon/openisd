@@ -35,7 +35,7 @@ test.describe('Open sessions', () => {
       }).toBe(true);
     });
 
-    test('a project closed in one tab disappears from the other', async ({ page, context }) => {
+    test('a project closed in one tab is closed in the other, and stays in its list', async ({ page, context }) => {
       await page.goto('/');
       await openAProject(page);
       await copyFocused(page);
@@ -48,9 +48,11 @@ test.describe('Open sessions', () => {
       const discard = page.locator('.close-actions button:has-text("Close without saving")');
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (await discard.isVisible()) await discard.click();
-      await expect(page.locator('.project-row')).toHaveCount(1);
+      await expect(page.locator('.project-row')).toHaveCount(2);
+      await expect(page.locator('.project-row.is-closed')).toHaveCount(1);
 
-      await expect(other.locator('.project-row')).toHaveCount(1);
+      await expect(other.locator('.project-row')).toHaveCount(2);
+      await expect(other.locator('.project-row.is-closed')).toHaveCount(1);
     });
 
     test('an edit made in one tab shows in the other', async ({ page, context }) => {
@@ -276,7 +278,8 @@ test.describe('Open sessions', () => {
 
       await page.reload();
 
-      await expect(page.locator('.project-row')).toHaveCount(1);
+      await expect(page.locator('.project-row')).toHaveCount(2);
+      await expect(page.locator('.project-row.is-closed')).toHaveCount(1);
     });
   });
 });

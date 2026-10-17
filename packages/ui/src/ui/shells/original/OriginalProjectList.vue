@@ -160,7 +160,7 @@ function onQueryInput(e: Event): void {
 }
 
 function onToggleShow(row: ProjectListRow, e: Event): void {
-  const project = row.handle.kind === 'saved' ? row.handle.open : row.handle.project;
+  const project = row.handle.open;
   if (project) {
     emit('setTraceVisible', project, inputChecked(e));
   }
@@ -172,7 +172,7 @@ function onRowClick(row: ProjectListRow): void {
 
 function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
   closeMenu();
-  const project = row.handle.kind === 'saved' ? row.handle.open : row.handle.project;
+  const project = row.handle.open;
   switch (action) {
     case 'open':
     case 'makeActive':
@@ -640,11 +640,6 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
 .project-tag-hidden {
   background: #e8edf2;
   color: #666;
-}
-
-.project-tag-notSaved {
-  background: #fef3c7;
-  color: #92400e;
 }
 
 .project-unsaved-dot {

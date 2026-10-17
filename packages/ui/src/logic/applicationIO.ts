@@ -62,6 +62,8 @@ function sanitizeFilename(name: string | undefined): string {
 }
 
 export interface DesignIO {
+  /** Tells the user a new project was not made because browser storage is full, and offers the projects list. */
+  reportStorageFull(): Promise<void>;
   saveProject(): Promise<boolean>;
   /** Save every open project that has unsaved edits to browser storage, the unfocused ones
    *  too. Resolves with how many were saved. */
@@ -153,24 +155,26 @@ export function createApplicationIO(deps: {
   function exportProjectsArchive(): void {
     featureUse.feature('export');
     const fileName = `openisd-projects-${new Date().toISOString().slice(0, 10)}.json`;
-    const projects = deps.projectRepo.listStoredProjects()
-      .map(p => deps.projectRepo.loadStoredProject(p.id))
-      .filter((p): p is OpenISDProject => !Array.isArray(p));
-    
-    // add currently open projects not yet saved
+    // Every stored project, and for one that is open, the open project as it is now (its unsaved
+    // changes too), never both.
     const open = openProjects();
-    const all = [...projects];
-    for (const p of open) {
-      if (!all.some(a => a.uuid() === p.uuid() || a.name.value === p.name.value)) {
-        all.push(p);
-      }
+    const all: OpenISDProject[] = [];
+    for (const stored of deps.projectRepo.listStoredProjects()) {
+      const holder = open.find(p => deps.projectRepo.storedIdOf(p) === stored.id);
+      const project = holder ?? deps.projectRepo.loadStoredProject(stored.id);
+      if (!Array.isArray(project)) all.push(project);
     }
-    
+    for (const p of open) {
+      if (deps.projectRepo.storedIdOf(p) === null && !all.includes(p)) all.push(p);
+    }
+
     download(fileName, buildProjectsArchive(all), 'application/json');
     recordSave('archive', null);
     exportNotice.exported({kind: 'projects', count: all.length}, fileName);
   }
 
+  /** A save the store refused: the project keeps its stored version and its unsaved changes,
+   *  and the user is told, with an offer to export every project. */
   async function handleSaveFailure(): Promise<void> {
     const confirmed = await deps.confirmPort.ask({
       title: 'Could not save',
@@ -183,6 +187,17 @@ export function createApplicationIO(deps: {
     } else {
       flash('Could not save: browser storage is full');
     }
+  }
+
+  /** A new project the store would not take was not made: say so, and offer the projects list. */
+  async function reportStorageFull(): Promise<void> {
+    const show = await deps.confirmPort.ask({
+      title: 'Browser storage is full',
+      message: 'The new project was not made. Delete old projects to make room, then try again.',
+      confirmLabel: 'Show projects',
+      cancelLabel: 'Close',
+    });
+    if (show) deps.presentation.projectsRequests++;
   }
 
   /** Save — commit the edited project and refresh the browser-storage copy. */
@@ -398,7 +413,7 @@ export function createApplicationIO(deps: {
   }
 
   return {
-    saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
+    reportStorageFull, saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
     exportBackup, saveStoredBackup, importBackup,
   };
 }

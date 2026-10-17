@@ -57,10 +57,12 @@ export type ProjectOpenState =
       readonly colour: string | null;
     };
 
-/** Whether the project is saved in this browser. */
-export type ProjectSaved =
-  | {readonly kind: 'saved'; readonly modifiedMs: number; readonly bytes: number; readonly readable: boolean}
-  | {readonly kind: 'notSaved'};
+/** The project's stored copy in this browser: every project in the list has one. */
+export interface ProjectSaved {
+  readonly modifiedMs: number;
+  readonly bytes: number;
+  readonly readable: boolean;
+}
 
 /** One project as the list is told about it. `handle` is the caller's own and comes back on the
  *  row untouched. */
@@ -80,7 +82,7 @@ export interface ProjectRowSource<H> {
 
 /** A small label after the name. */
 export interface ProjectRowTag {
-  readonly kind: 'conflict' | 'hidden' | 'unreadable' | 'notSaved';
+  readonly kind: 'conflict' | 'hidden' | 'unreadable';
   readonly text: string;
 }
 
@@ -93,8 +95,8 @@ const ACTION_LABELS: Readonly<Record<ProjectRowAction, string>> = {
   open: 'Open',
   makeActive: 'Make active',
   close: 'Close',
-  show: 'Show trace',
-  hide: 'Hide trace',
+  show: 'Show on charts',
+  hide: 'Hide on charts',
   colour: 'Colour…',
   rename: 'Rename…',
   duplicate: 'Duplicate',
@@ -116,9 +118,9 @@ export interface ProjectRow<H> {
   readonly title: string;
   readonly tags: readonly ProjectRowTag[];
   readonly summary: string;
-  /** "5 Oct 2026, 23:32", or "Not saved yet". */
+  /** "5 Oct 2026, 23:32". */
   readonly edited: string;
-  /** "22 KB"; '' when not saved. */
+  /** "22 KB". */
   readonly size: string;
   readonly open: ProjectOpenState;
   /** The sync mark; null when cloud sync is off. */
@@ -146,14 +148,15 @@ export const PROJECT_LIST_TEXT = {
   RESTORE: 'Restore',
   DELETE_FOREVER: 'Delete forever',
   UNSAVED_CHANGES: 'Unsaved changes',
+  OPEN_MARK: 'Open',
+  UNSAVED_MARK: 'Unsaved',
   TRACE_CHECKBOX_TITLE: "Show/hide this project's trace on the graph",
   RENAME_ARIA: 'Rename project',
 } as const;
 
 
 function rowMenu(source: ProjectRowSource<unknown>, conflict: boolean): readonly ProjectRowAction[] {
-  const saved = source.saved;
-  if (saved.kind === 'saved' && !saved.readable) return ['export', 'delete'];
+  if (!source.saved.readable) return ['export', 'delete'];
   const open = source.open;
   const actions: ProjectRowAction[] = [];
   if (open.kind === 'closed') {
@@ -163,10 +166,8 @@ function rowMenu(source: ProjectRowSource<unknown>, conflict: boolean): readonly
     actions.push('close', open.shown ? 'hide' : 'show', 'colour');
   }
   actions.push('rename', 'duplicate', 'export');
-  if (saved.kind === 'saved') {
-    actions.push('delete');
-    if (conflict) actions.push('resolve');
-  }
+  actions.push('delete');
+  if (conflict) actions.push('resolve');
   return actions;
 }
 
@@ -175,8 +176,7 @@ export function projectRow<H>(source: ProjectRowSource<H>): ProjectRow<H> {
   const tags: ProjectRowTag[] = [];
   if (tag !== null) tags.push({kind: 'conflict', text: tag});
   const saved = source.saved;
-  if (saved.kind === 'saved' && !saved.readable) tags.push({kind: 'unreadable', text: 'Could not read'});
-  if (saved.kind === 'notSaved') tags.push({kind: 'notSaved', text: 'Not saved'});
+  if (!saved.readable) tags.push({kind: 'unreadable', text: 'Could not read'});
   if (source.open.kind === 'open' && !source.open.shown) tags.push({kind: 'hidden', text: 'Hidden'});
   const sync = source.sync === 'off' ? null : {mark: source.sync, ...SYNC_SHOWN[source.sync]};
   const active = source.open.kind === 'open' && source.open.active;
@@ -187,8 +187,8 @@ export function projectRow<H>(source: ProjectRowSource<H>): ProjectRow<H> {
     title: `Project — ${stem}${active ? ' (Active)' : ''}`,
     tags,
     summary: source.summary,
-    edited: saved.kind === 'saved' ? formatDateTime(new Date(saved.modifiedMs)) : 'Not saved yet',
-    size: saved.kind === 'saved' ? formatByteSize(saved.bytes) : '',
+    edited: formatDateTime(new Date(saved.modifiedMs)),
+    size: formatByteSize(saved.bytes),
     open: source.open,
     sync,
     menu: rowMenu(source, tag !== null).map(action => ({action, label: ACTION_LABELS[action]})),
@@ -196,9 +196,8 @@ export function projectRow<H>(source: ProjectRowSource<H>): ProjectRow<H> {
       stem,
       isCopy: tag !== null,
       driver: source.driver,
-      // A project never saved counts as edited now: it is the newest.
-      modifiedMs: saved.kind === 'saved' ? saved.modifiedMs : Number.POSITIVE_INFINITY,
-      bytes: saved.kind === 'saved' ? saved.bytes : 0,
+      modifiedMs: saved.modifiedMs,
+      bytes: saved.bytes,
       text: `${source.name} ${source.summary}`.toLowerCase(),
     },
   };

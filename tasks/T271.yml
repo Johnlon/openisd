@@ -1,0 +1,76 @@
+id: T271
+release_note: Two projects with the same name are two rows, every project is stored the moment you make it, and the phone menu lists your open projects.
+repo: openisd
+owner: fable
+status: blocked
+goal: Projects pages bug fixes, projects stored when made, phone menu with open projects, phone Projects page marks
+done_test: bash scripts/test.sh packages/ui/test/hooks/projectBinView.test.ts
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-menu
+files:
+  - tasks/T271.yml
+  - bugs/BUG_20261017_choosing-a-stored-row-opens-a-second-copy.md
+  - bugs/BUG_20261017_hidden-search-word-still-filters-projects.md
+  - bugs/BUG_20261017_phone-projects-page-words-differ-from-desktop.md
+  - bugs/BUG_20261017_project-not-stored-until-saved.md
+  - bugs/BUG_20261017_same-name-projects-show-as-one-row.md
+  - packages/design/fields/projectRows.ts
+  - packages/design/test/fields/projectRows.test.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/destructivePaths.test.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/newProjectStore.ts
+  - packages/ui/src/logic/presentationState.ts
+  - packages/ui/src/logic/storedProjectOpen.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalProjectList.vue
+  - packages/ui/test/hooks/projectBinView.test.ts
+  - packages/ui/test/logic/newProjectStore.test.ts
+  - packages/ui/test/logic/storedProjectOpen.test.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/ui/mobile-project-list.browser.spec.ts
+  - packages/ui/test/ui/mobile-projects-pane.browser.spec.ts
+  - packages/ui/test/ui/mobile-projects-sizes.browser.spec.ts
+  - packages/ui/test/ui/open-project-list.browser.spec.ts
+  - packages/ui/test/ui/open-sessions.browser.spec.ts
+  - packages/ui/test/ui/original-project-list.browser.spec.ts
+  - packages/ui/test/ui/project-bin.browser.spec.ts
+  - packages/ui/test/ui/project-stored-when-made.browser.spec.ts
+  - packages/ui/test/ui/same-name-projects.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - tasks/T305.yml
+blocked_reason: rebase onto origin/main conflicts in: packages/ui/test/visual/SOURCES.sha256 
