@@ -67,11 +67,17 @@ EOF
 printf '%s\n' "$@" > "$GATE_LOG/unit.args"
 [ -f "$GATE_LOG/unit.fail" ] && exit 1; exit 0
 EOF
+    cat > gates/architecture.sh <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$GATE_LOG/architecture.args"
+[ -f "$GATE_LOG/architecture.fail" ] && exit 1; exit 0
+EOF
     chmod +x gates/*.sh
     cat > land.conf <<EOF
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
 UNIT_CMD="bash gates/unit.sh"
+ARCHITECTURE_CMD="bash gates/architecture.sh"
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=5
 LAND_LOCK="$SCRATCH/land.lock"
@@ -154,7 +160,7 @@ if [ $r = 3 ] && [ "$(origin_head)" = "$before" ] \
 else fail "conflict (r=$r)"; fi
 
 # 4. each gate failing refuses and names the gate
-for g in lint typecheck unit; do
+for g in lint typecheck unit architecture; do
     setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
     touch "$GATE_LOG/$g.fail"; before=$(origin_head)
     land w1 T1; r=$?
@@ -194,6 +200,17 @@ sed -i '/^UNIT_CMD=/d' "$SCRATCH/w/w1/land.conf"
 before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "UNIT_CMD" "$SCRATCH/out.w1"; then
     ok "missing UNIT_CMD refuses"; else fail "missing UNIT_CMD (r=$r)"; fi
+
+# 6b2. the architecture gate is mandatory and runs on a landing that changes no package file
+setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+land w1 T1; r=$?
+if [ $r = 0 ] && [ -f "$GATE_LOG/architecture.args" ]; then
+    ok "architecture gate runs whatever changed"; else fail "architecture gate not run (r=$r)"; fi
+setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+sed -i '/^ARCHITECTURE_CMD=/d' "$SCRATCH/w/w1/land.conf"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "ARCHITECTURE_CMD" "$SCRATCH/out.w1"; then
+    ok "missing ARCHITECTURE_CMD refuses"; else fail "missing ARCHITECTURE_CMD (r=$r)"; fi
 
 # 6c. a done_test that names a browser spec is refused before it runs (T036, 11 Oct 2026)
 setup; task w1 T1 a.txt "bash scripts/test.sh packages/ui/test/ui/x.browser.spec.ts"

@@ -19,6 +19,7 @@ case " $* " in
     else echo "general $COST_VITEST_FULL_MB"; fi ;;
   *" typecheck"*|*" tsc "*|*" vue-tsc "*|*typecheck.mjs*) echo "small $COST_TYPECHECK_MB" ;;
   *unit-changed*) echo "general $COST_VITEST_FULL_MB" ;;
+  *unit-architecture*) echo "general $COST_VITEST_FULL_MB" ;;   # 35 files at the full run's worker count
   *lint-changed*) echo "small $COST_LINT_CHANGED_MB" ;;
   *" eslint "*|*" lint"*) echo "general $COST_LINT_MB" ;;
   *) echo "none 0" ;;

@@ -19,7 +19,8 @@
 #      are what origin/main has
 #   4. no open tasks/fixes/*.yml, unless this task is labelled `fixes`
 #   5. lint (the changed files as arguments), typecheck, unit (the changed files as arguments; every
-#      unit test the change reaches, within UNIT_DEADLINE_S), done_test (never a browser spec),
+#      unit test the change reaches, within UNIT_DEADLINE_S), architecture (every architecture unit
+#      test, whatever changed), done_test (never a browser spec),
 #      attribution (each new commit's message on stdin), each within GATE_DEADLINE_S
 #   6. push to origin main, then start the post-land full run on the pushed commit, detached
 #      (scripts/land/post-land/run.sh; only when land.conf sets FULL_SUITE_CMD). The suite itself runs on
@@ -177,6 +178,10 @@ GATE_DEADLINE_S="${TYPECHECK_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate typecheck /
 # longer than lint.
 [ -n "${UNIT_CMD:-}" ] || { GATE_OUT=/dev/null; refuse unit "UNIT_CMD is not set in land.conf; the unit tests of the change must run before a push"; }
 GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate unit /dev/null "$UNIT_CMD" "${changed[@]}"
+# Every architecture test, whatever changed: they read the source tree, so the unit gate's import graph
+# never picks them (F52, F53: main red on architecture tests no landing ran, 17 Oct 2026).
+[ -n "${ARCHITECTURE_CMD:-}" ] || { GATE_OUT=/dev/null; refuse architecture "ARCHITECTURE_CMD is not set in land.conf; every architecture test must run before a push"; }
+GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate architecture /dev/null "$ARCHITECTURE_CMD"
 # A browser spec takes minutes under load and overran the gate deadline (T036, 11 Oct 2026): the
 # browser half runs post-land, never as a task's done_test.
 done_test="$(task_field "$TASK" done_test)"

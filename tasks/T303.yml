@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: d4e1205539493a6e5949b9d7fe2ba2ce52cbb192
 goal: Skin choice gets Automatic (default, follows the window); steppers follow the skin shown
 done_test: bash scripts/test.sh packages/ui/test/logic/presentationState-skin.test.ts
 files:

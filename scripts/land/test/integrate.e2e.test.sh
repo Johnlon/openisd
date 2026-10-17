@@ -40,6 +40,7 @@ STUB
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
 UNIT_CMD="bash gates/unit.sh"
+ARCHITECTURE_CMD="true"
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=20
 LAND_LOCK="$SCRATCH/land.lock"
