@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: ce0bcb1f3196a996a913fcc2bda9d2a195b0f25e
 goal: The UI gallery shows a screen that the before build does not have (such as the storage banner, which arrived on 16 Oct) as 'New in this build' in a neutral colour, not red 'not in before'.
 done_test: bash scripts/quiet-test.sh npm run lint -- scripts/ui-gallery
 files:
