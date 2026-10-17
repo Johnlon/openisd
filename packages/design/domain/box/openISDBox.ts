@@ -173,16 +173,19 @@ export class OpenISDBox implements Box {
 
         const sealedLens = focus(lens, 'sealed');
         const sealedVolumeStored = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v, 'alignment'));
-        const sealedQtc = entryField(focus(sealedLens, 'Qtc'), 'q_tc', () => groupDq(issues().sealed));
-        // The volume is stated (E), or calculated (C) from an entered Qtc when none is stated. Clearing a
-        // stated volume swaps it with Qtc: Qtc keeps its current value as E, the volume is calculated
-        // from it (docs/design/FIELD_CLEAR_RULE.md, John 16 Oct 2026).
+        const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
+        const sealedQtcEntry = entryField(focus(sealedLens, 'Qtc'), 'q_tc', () => groupDq(issues().sealed));
+        const sealedFscEntry = entryField(focus(sealedLens, 'Fsc'), 'resonance_hz');
+        // Vb, Fsc and Qtc each fix the other two for a driver, so exactly one of them is entered (E) and the
+        // other two are calculated (C). The entered one is stored; Vb is calculated from an entered Qtc or Fsc
+        // when none is stated. Entering one drops the others' entries. Clearing the entered Qtc or Fsc makes
+        // Vb E at its current value; clearing the entered Vb makes Qtc E at its current value
+        // (docs/design/FIELD_CLEAR_RULE.md, John 16 Oct 2026, "ok E").
         const sealedVolume = new DualWriteFieldImpl<number>(
             () => {
                 const stated = sealedVolumeStored.value;
                 if (stated === null) {
-                    const qtc = sealedQtc.entered ? sealedQtc.value : null;
-                    const calc = qtc === null ? null : this.#driver.sealedVolumeForQtc(qtc);
+                    const calc = this.#sealedVolumeFromQtcOrFsc(sealedQtcEntry, sealedFscEntry, sealedLosses);
                     if (calc !== null) return calculatedCell<number | null>('volume_m3', calc);
                 }
                 const issue = engine.issues.requiredPositiveIssue('Box volume', stated, 'alignment');
@@ -191,25 +194,66 @@ export class OpenISDBox implements Box {
                     : enteredCell<number | null>('volume_m3', stated, issue ? [issue] : undefined, sealedVolumeStored.precision);
             },
             {
-                entered: (v: number) => sealedVolumeStored.set(v),
+                entered: (v: number) => {
+                    sealedQtcEntry.clear();
+                    sealedFscEntry.clear();
+                    sealedVolumeStored.set(v);
+                },
                 clear: () => {
-                    const qtc = sealedQtc.value;
-                    if (sealedVolumeStored.value !== null && qtc !== null) sealedQtc.set(qtc);
+                    const qtc = sealedQtcEntry.value;
+                    if (sealedVolumeStored.value !== null && qtc !== null) sealedQtcEntry.set(qtc);
+                    sealedFscEntry.clear();
                     sealedVolumeStored.clear();
                 },
                 calculated: () => undefined,
                 dq: () => undefined,
             },
         );
-        const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
+        // Clearing the entered Qtc or Fsc hands the entry to Vb, at the value Vb has now.
+        const handEntryToVolume = (entry: {readonly entered: boolean; clear(): void}): void => {
+            const vb = sealedVolume.value;
+            if (entry.entered && vb !== null) sealedVolumeStored.set(vb);
+            entry.clear();
+        };
+        class SealedQtcField extends DualWriteFieldImpl<number> {
+            override set(v: number, precision?: number): void {
+                sealedVolumeStored.clear();
+                sealedFscEntry.clear();
+                sealedQtcEntry.set(v, precision);
+            }
+            override clear(): void { handEntryToVolume(sealedQtcEntry); }
+        }
+        const sealedQtc = new SealedQtcField(() => sealedQtcEntry, {
+            entered: (v, precision) => sealedQtcEntry.set(v, precision),
+            clear: () => sealedQtcEntry.clear(),
+            calculated: (v, precision) => sealedQtcEntry.setCalculated(v, undefined, precision),
+            dq: (list) => sealedQtcEntry.setDq(list),
+            notAvailable: () => sealedQtcEntry.setNotAvailable(),
+        });
+        class SealedFscField extends DualWriteFieldImpl<number> {
+            override set(v: number, precision?: number): void {
+                sealedVolumeStored.clear();
+                sealedQtcEntry.clear();
+                sealedFscEntry.set(v, precision);
+            }
+            override clear(): void { handEntryToVolume(sealedFscEntry); }
+        }
+        const sealedFsc = new SealedFscField(
+            () => {
+                if (sealedFscEntry.entered) return sealedFscEntry;
+                const v = this.#sealedResonance(sealedVolume.value, sealedLosses, 'lossy')?.Fsc ?? null;
+                return v === null ? absentCell<number>('resonance_hz') : calculatedCell<number | null>('resonance_hz', v);
+            },
+            {
+                entered: (v, precision) => sealedFscEntry.set(v, precision),
+                clear: () => sealedFscEntry.clear(),
+                calculated: () => undefined,
+                dq: () => undefined,
+            },
+        );
         this.sealed = {
             volume_m3: sealedVolume,
-            resonance_hz: new CalculatedFieldImpl<number | null>(() => {
-                const v = this.#sealedResonance(sealedVolume.value, sealedLosses, 'lossy')?.Fsc ?? null;
-                return v === null
-                    ? absentCell<number>('resonance_hz')
-                    : calculatedCell<number | null>('resonance_hz', v);
-            }),
+            resonance_hz: sealedFsc,
             q_tc: sealedQtc,
             losses: sealedLosses,
         };
@@ -680,6 +724,25 @@ export class OpenISDBox implements Box {
         air: () => Air,
     ): OpenISDBox {
         return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air);
+    }
+
+    /** The sealed volume an entered Qtc or an entered Fsc gives; null with neither entered or when no box reaches it. */
+    #sealedVolumeFromQtcOrFsc(
+        qtc: Readable<number | null> & Entered, fsc: Readable<number | null> & Entered, losses: SealedLosses,
+    ): number | null {
+        const entered = qtc.entered && qtc.value !== null ? {kind: 'Qtc', value: qtc.value} as const
+            : fsc.entered && fsc.value !== null ? {kind: 'Fsc', value: fsc.value} as const : null;
+        if (entered === null) return null;
+        const ts = this.#driver.specs;
+        const Fs = ts.Fs_hz.value;
+        const Vas = ts.Vas_m3.value;
+        const Qts = this.#driver.sourceLoadedQts(this.#rs());
+        if (Fs === null || Vas === null || Qts === null) return null;
+        // The same lossy model the Box tab reads Fsc and Qtc from, so the volume gives back the value typed.
+        const feed = {Fs, Vas, Qts, Ql: losses.Ql.value, Qa: losses.Qa.value};
+        return entered.kind === 'Qtc'
+            ? this.#engine.sealed.volumeForLossyQtc(feed, entered.value)
+            : this.#engine.sealed.volumeForResonance(feed, entered.value);
     }
 
     /**

@@ -239,6 +239,16 @@ test.describe('Original Box tab', () => {
     expect(parseFloat(await numInputByLabel(page, 'Volume').nth(1).inputValue())).toBeCloseTo(20, 1);
   });
 
+  // BUG_20261016_box-tab-tuning-input-missing-for-bandpass4-and-pr: every two-chamber box has an
+  // enterable front-chamber tuning on the Box tab, the 4th-order bandpass included.
+  test('a 4th-order bandpass Box tab takes the front chamber tuning', async ({ appPage: page }) => {
+    await setFocusedBoxType(page, 'bandpass4');
+    const tuning = page.locator('#og-ffc-target');
+    await expect(tuning).toBeEditable();
+    await fillAndCommit(tuning, '42');
+    await expect(tuning).toHaveValue(/^42/);
+  });
+
   test('a CLOSED box never reports a passive-radiator tuning', async ({ appPage: page }) => {
     // A sealed box has no port or radiator, so its only resonance is the sealed Fsc on the
     // Box tab — labelled Fsc, never Fh/Fpr. The enclosure/Vents pane and its PR tuning are
@@ -250,7 +260,7 @@ test.describe('Original Box tab', () => {
 
     const readout = page.locator('#og-box-resonance');
     await expect(readout).toBeVisible();
-    await expect(readout.locator('xpath=preceding-sibling::label[1]')).toHaveText('Fsc');
+    await expect(page.locator('label[for="og-box-resonance"]')).toHaveText('Fsc');
     const onBox = await readout.inputValue();
     expect(Number(onBox)).toBeGreaterThan(0);
 

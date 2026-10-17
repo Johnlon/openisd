@@ -1,6 +1,6 @@
 # BUG_20261016_box-tab-tuning-input-missing-for-bandpass4-and-pr
 
-**Status:** OPEN
+**Status:** FIXED (T327 for the sealed box and the 4th-order bandpass; the passive radiator part is split into BUG_20261017_box-tab-has-no-pr-tuning-input.md, held for John)
 
 ## Symptom
 John, 16 Oct 2026: "why does 6th have a [tuning] input for tuning freq; 4th does not; vented does;
@@ -41,3 +41,16 @@ Each box type's Box tab was laid out separately, and bandpass 4 and PR never got
 ## Verification
 A browser spec per skin: for each box type, the Box tab has an enterable tuning field exactly when
 the type has a port or radiator. For sealed, entering any of Vb, Fsc or Qtc updates the other two.
+
+## State after T327 (17 Oct 2026)
+- Sealed: Vb, Fsc and Qtc are enterable on both skins. Entering one makes it E and the other two C;
+  clearing the entered Fsc or Qtc makes Vb E at its value; clearing the entered Vb makes Qtc E at its
+  value. Qtc and Fsc are turned into a volume through the same lossy model the Box tab reads them from,
+  so the value typed is the value shown (`SealedEngine.volumeForLossyQtc`, `volumeForResonance`). The
+  project file gains an optional `Fsc` entry beside `Qtc`.
+- 4th-order bandpass: the front chamber tuning is enterable on the Box tab of both skins. The desktop
+  already showed it; the phone left it out for this box type only.
+- Verification: `packages/design/test/domain/sealed-triple.test.ts`,
+  `packages/design/test/engine/sealed-volume-for-resonance.test.ts`, and the browser specs
+  `sealed-triple`, `original-box-tab` and `mobile-box-tab`.
+- Not established: what WinISD's Box tab shows for the 4th-order bandpass; no probe was run.

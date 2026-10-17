@@ -7,9 +7,10 @@ export interface SealedBox {
      *  the field's own `.dq` rather than being coerced. */
     readonly volume_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable;
 
-    /** The resulting system Fc, calculated from the volume and the driver — null when either is
-     *  not yet known. A CALCULATION, not a stored field, so a readout, not a handle. */
-    readonly resonance_hz: Readable<number | null> & Calculated;
+    /** The system Fc: calculated from the volume and the driver (null when either is not yet
+     *  known), or entered, which makes the volume calculated from it. Vb, Fsc and Qtc each fix
+     *  the other two; exactly one is entered (docs/design/FIELD_CLEAR_RULE.md). */
+    readonly resonance_hz: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable;
 
     /** The resulting system Q (Qtc), under the same loss mode as `resonance_hz` — null on the
      *  same terms. An ENTRY read (S10): the project's `#resolve()` cascade writes it as a

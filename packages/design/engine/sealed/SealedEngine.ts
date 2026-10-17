@@ -25,6 +25,12 @@ export interface SealedEngine {
    *  Null when `Qtc ≤ Qts` — no sealed volume reaches it.
    *  https://en.wikipedia.org/wiki/Thiele/Small_parameters#Small_signal_parameters */
   volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null;
+  /** The box volume whose lossy `resonance` gives system resonance `Fsc`, found by bisection (Fsc
+   *  falls as the box grows). Null when `Fsc` is not above the driver's own `Fs`: no box reaches it. */
+  volumeForResonance(p: Omit<SealedParams, 'Vb'>, Fsc: number): number | null;
+  /** The box volume whose lossy `resonance` gives system Q `Qtc`, found by bisection. Null when the
+   *  lossless form reaches no volume (`Qtc ≤ Qts`) or the losses let no volume reach `Qtc`. */
+  volumeForLossyQtc(p: Omit<SealedParams, 'Vb'>, Qtc: number): number | null;
   /** The lossless textbook Qtc a volume gives — the inverse of `volumeForQtc`. Null when any
    *  input is not positive. */
   qtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null;
@@ -75,6 +81,20 @@ function checkSealedAlignment(p: SealedAlignmentWorkingSet): SealedAlignmentIssu
   return issues;
 }
 
+/** The volume at which `quantityAt` (falling as the box grows) equals `target`, by bisection around
+ *  `guess` (the lossless answer, within a few orders of magnitude of the lossy one). Null when the
+ *  bracket does not straddle `target`: no volume gives it. */
+function bisectVolume(guess: number, quantityAt: (Vb_m3: number) => number, target: number): number | null {
+  let lo = guess / 1000;
+  let hi = guess * 1000;
+  if (!(quantityAt(lo) > target && quantityAt(hi) < target)) return null;
+  for (let i = 0; i < 200; i++) {
+    const mid = Math.sqrt(lo * hi);
+    if (quantityAt(mid) > target) lo = mid; else hi = mid;
+  }
+  return Math.sqrt(lo * hi);
+}
+
 export class SealedEngineImpl implements SealedEngine {
   readonly resonance = sealedResonanceWinisd;
 
@@ -83,6 +103,16 @@ export class SealedEngineImpl implements SealedEngine {
   volumeForQtc(Qts: number, Vas_m3: number, Qtc: number): number | null {
     const ratio = (Qtc / Qts) ** 2 - 1;
     return ratio <= 0 ? null : Vas_m3 / ratio;
+  }
+
+  volumeForResonance(p: Omit<SealedParams, 'Vb'>, Fsc: number): number | null {
+    if (!(Fsc > p.Fs) || !(p.Fs > 0) || !(p.Vas > 0)) return null;
+    return bisectVolume(p.Vas / ((Fsc / p.Fs) ** 2 - 1), Vb => this.resonance({...p, Vb}).Fsc, Fsc);
+  }
+
+  volumeForLossyQtc(p: Omit<SealedParams, 'Vb'>, Qtc: number): number | null {
+    const lossless = this.volumeForQtc(p.Qts, p.Vas, Qtc);
+    return lossless === null ? null : bisectVolume(lossless, Vb => this.resonance({...p, Vb}).Qtc, Qtc);
   }
 
   qtcFromVolume(Qts: number, Vas_m3: number, Vb_m3: number): number | null {

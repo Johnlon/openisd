@@ -66,13 +66,24 @@ test.describe('MobileBoxTab', () => {
 
   test('the Qtc row shows only for a sealed box', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('sealed');
-    await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toBeVisible();
-    await expect(page.locator('.mob-field-label', { hasText: 'Fsc' })).toBeVisible();
+    await expect(mobileFieldRow(page, 'Qtc')).toBeVisible();
+    await expect(mobileFieldRow(page, 'Fsc')).toBeVisible();
 
     await page.locator('#mob-box-type').selectOption('vented');
-    await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toHaveCount(0);
+    await expect(mobileFieldRow(page, 'Qtc')).toHaveCount(0);
     // T074: the line pointing to the Vented tab is gone; the tab bar already shows that tab.
     await expect(page.locator('.mob-hint', { hasText: '"Vented" tab' })).toHaveCount(0);
+  });
+
+  // BUG_20261016_box-tab-tuning-input-missing-for-bandpass4-and-pr: every two-chamber box has an
+  // enterable front-chamber tuning on the Box tab, the 4th-order bandpass included.
+  test('a 4th-order bandpass Box tab takes the front chamber tuning', async ({ appPage: page }) => {
+    await setFocusedBoxType(page, 'bandpass4');
+    const tuning = mobileFieldRow(page, 'Target Tuning Freq (Ffc)').locator('input').first();
+    await expect(tuning).toBeEditable();
+    await tuning.fill('42');
+    await tuning.blur();
+    await expect(tuning).toHaveValue(/^42/);
   });
 
   // Same flex-shrink clipping bug as the Advanced tab's scroll test (see mobile-advanced-tab).
@@ -88,8 +99,8 @@ test.describe('MobileBoxTab', () => {
     test(`${boxType}: the Box tab has a Front chamber volume that steps`, async ({ appPage: page }) => {
       await page.locator('#mob-box-type').selectOption(boxType);
       const panel = page.locator('.mob-panel', { has: page.locator('.mob-panel-head', { hasText: 'Front chamber' }) });
-      // The 6th-order and ABC front chamber also carries its tuning row, below the volume.
-      await expect(panel.locator('input')).toHaveCount(boxType === 'bandpass4' ? 1 : 2);
+      // Every front chamber also carries its tuning row, below the volume.
+      await expect(panel.locator('input')).toHaveCount(2);
       const input = panel.locator('input').first();
       const before = Number(await input.inputValue());
       await panel.locator('.num-stepper-btn').first().click();

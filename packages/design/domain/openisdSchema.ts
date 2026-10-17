@@ -712,6 +712,8 @@ const openISDBoxJsonSchema = z.strictObject({
         // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note; a slot for the
         // sealed-alignment solve to write, wired up in S2-7d.
         Qtc: specEntryJsonSchema.optional(),
+        // The sealed box's entered or calculated system resonance Fsc, a third way to state the box.
+        Fsc: specEntryJsonSchema.optional(),
     }),
     vented: z.strictObject({ chamber: ventedChamberJsonSchema, vent: ventJsonSchema }),
     bandpass4: z.strictObject({

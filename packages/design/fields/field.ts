@@ -1110,6 +1110,24 @@ export class NumberField extends Field {
     precision: 2,
     description: "System Resonance Frequency (Fsc / Fh)\nThe driver's resonance once coupled to the enclosure.",
   });
+  static readonly BOX_FSC_HZ = new NumberField({
+    value: "box_Fsc_hz",
+    label: "Fsc",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
+    limits: {min: 0, max: 20000},
+    floor: "positive",
+    precision: 2,
+    description: "System Resonance Frequency (Fsc)\nThe driver's resonance once coupled to the closed box. Volume, Fsc and Qtc each fix the other two: enter one and the other two are calculated.",
+  });
+  static readonly BOX_QTC_VALUE = new NumberField({
+    value: "box_Qtc_value",
+    label: "Qtc",
+    display: {kind: 'fixed', symbol: ''},
+    limits: {min: 0, max: 5},
+    floor: "positive",
+    precision: 3,
+    description: "System Q (Qtc)\nThe closed box's total system Q. Volume, Fsc and Qtc each fix the other two: enter one and the other two are calculated.",
+  });
   static readonly BOX_REARRESONANCE_HZ = new NumberField({
     value: "box_RearResonance_hz",
     label: "Frc",

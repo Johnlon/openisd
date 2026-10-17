@@ -14,7 +14,7 @@ import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
 const {
   selectedBox, pending, isDual, frontVolumeCell, rearTuningCell, boxLabel,
-  boxResonance, rearQtc, boxVolumeCell,
+  boxResonance, boxVolumeCell, sealedFscCell, sealedQtcCell,
   activeTuning, FB_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
@@ -49,18 +49,14 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
 
     <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="mob-ui-field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" stepper />
     <UIField v-else-if="selectedBox === 'vented'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" stepper />
+    <UIField v-else-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :cell="sealedFscCell" stepper />
     <div v-else class="mob-field-row mob-field-calculated">
       <div class="mob-field-main">
         <span class="mob-field-label">{{ selectedBox === 'box-passive-radiator' ? 'Fh' : 'Fsc' }}</span>
         <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.BOX_RESONANCE_HZ, boxResonance, '—') }}</span>
       </div>
     </div>
-    <div v-if="selectedBox === 'sealed'" class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Qtc</span>
-        <span class="mob-field-value mob-readonly">{{ ReadoutFormat.QTC.text(rearQtc, '—') }}</span>
-      </div>
-    </div>
+    <UIField v-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" stepper />
     <div v-if="selectedBox === 'sealed'" class="mob-row">
       <button class="mob-btn" @click="sealedAlignmentEditor.openEditor">Choose alignment</button>
     </div>
@@ -75,7 +71,7 @@ const { fieldWithUnit, readoutWithUnit } = useUnitReadouts();
   <div v-if="isDual" class="mob-panel">
     <div class="mob-panel-head">Front chamber</div>
     <UIField v-if="frontVolumeCell" class="mob-ui-field" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" stepper />
-    <UIField v-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :cell="activeTuning" stepper />
+    <UIField class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :cell="activeTuning" stepper />
     <div class="mob-row">
       <button class="mob-btn" @click="lossesOpen = 'front'">Box losses -&gt;</button>
     </div>
