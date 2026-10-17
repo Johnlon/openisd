@@ -27,3 +27,9 @@ disk gets nearly full. OpenISD warns you when its storage is 80% full (usage is 
 data); to be safe, use Chrome, turn on Google Drive sync, or export your projects." Usage is shown
 on Options, Your data (both skins), not Diagnostics, so the text names that. The 80% comes from
 `STORAGE_FULL_FROM`.
+
+## Addendum (John, 17 Oct 2026, 23:1x UTC)
+Diagnostics is not a warning. The user deserves an occasional notice on storage usage and the
+number of projects, shown without going to Diagnostics (for example a short line now and then on
+startup or after a save: "12 projects, 1.4 MB of 5 MB used"). How often and where it shows is a
+design call for the next fable session to put to a Fable subagent, not to John. Tracked as T379.
