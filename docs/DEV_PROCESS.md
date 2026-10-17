@@ -55,7 +55,12 @@ One landing at a time (flock `LAND_LOCK`). In order:
    whatever changed: they read the source tree, so the import graph never picks them), `done_test`,
    attribution guard on each new commit message. A gate past its deadline is refused
    and killed.
-6. Push to main, then start the post-land run, detached.
+6. Candidate: the rebased commit is pushed to `land/<task>`, which starts the full suite on GitHub Actions
+   (`.github/workflows/suite.yml`, about 4 min). `CANDIDATE_CMD` (`scripts/land/post-land/actions.sh`)
+   waits for that run. Red, or no run: refused (gate `candidate`, with the failing specs and the run link),
+   main untouched. The branch is removed whatever the result. The landing lock is held throughout, so
+   no other landing moves main in between.
+7. Push to main (only after a green candidate), then start the post-land run, detached.
 
 Config: `land.conf` at the repo root. Lock paths (`LAND_LOCK`, `POST_LAND_LOCK`) and all other
 runtime directories (`OPENISD_HEAVY_GATE_DIR`, `OPENISD_RESERVATION_DIR`,

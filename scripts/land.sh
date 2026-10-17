@@ -22,6 +22,9 @@
 #      unit test the change reaches, within UNIT_DEADLINE_S), architecture (every architecture unit
 #      test, whatever changed), done_test (never a browser spec),
 #      attribution (each new commit's message on stdin), each within GATE_DEADLINE_S
+#   5c. candidate: the rebased commit is pushed to land/<task>, and CANDIDATE_CMD waits for the full suite
+#      on GitHub Actions there (within CANDIDATE_DEADLINE_S); only a green run lets main move. The branch
+#      is removed whatever the result.
 #   6. push to origin main, then start the post-land full run on the pushed commit, detached
 #      (scripts/land/post-land/run.sh; only when land.conf sets FULL_SUITE_CMD). The suite itself runs on
 #      GitHub Actions; post-land waits for it (scripts/land/post-land/actions.sh)
@@ -63,10 +66,13 @@ TASK="tasks/$ID.yml"
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/land.XXXXXX")"
 GATE_OUT="$WORK/gate.out"
+CANDIDATE_BRANCH=""
 cleanup() {
   local status=$?
   run_end "land-$ID" "$status" 2>/dev/null || true
   gate_stop
+  # The candidate branch is only the gate's input: removed whatever the result.
+  [ -z "$CANDIDATE_BRANCH" ] || git push -q origin --delete "$CANDIDATE_BRANCH" > /dev/null 2>&1 || true
   rm -rf "$WORK"
   exit "$status"
 }
@@ -221,6 +227,22 @@ if [ -n "$green_sha" ] && [ -n "$tested_sha" ] && [ "$tested_sha" != "$green_sha
    && [ "$green_age" -gt "${HEALTH_RED_MAX_MIN:-120}" ] && [ "$(task_field "$TASK" label)" != "fixes" ]; then
   refuse red-main "main has been red for $green_age min (last green ${green_sha:0:10}); land a task labelled fixes first"
 fi
+
+# 5c. the full suite on GitHub Actions, BEFORE main moves (fable for John, 17 Oct 2026: main went red four
+# times in a night on things only the full suite saw). The candidate goes to land/<task>; the push there
+# starts the Actions suite (.github/workflows/suite.yml); main is pushed only when that run is green.
+# The landing lock is held throughout, so no other landing moves main in between. CANDIDATE_CMD waits for
+# the run on HEAD and exits 0 only on green (scripts/land/post-land/actions.sh).
+[ -n "${CANDIDATE_CMD:-}" ] || { GATE_OUT=/dev/null; refuse candidate "CANDIDATE_CMD is not set in land.conf; main moves only after the full suite is green on the candidate"; }
+{
+  CANDIDATE_BRANCH="land/$ID"
+  GATE_OUT="$WORK/candidate.out"
+  git push -q -f origin "HEAD:refs/heads/$CANDIDATE_BRANCH" > "$GATE_OUT" 2>&1 \
+    || refuse candidate "origin rejected the push of the candidate to $CANDIDATE_BRANCH"
+  echo "land: candidate $(git rev-parse --short=10 HEAD) is on $CANDIDATE_BRANCH; waiting for GitHub Actions (about 4 min)"
+  GATE_DEADLINE_S="${CANDIDATE_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate candidate /dev/null "$CANDIDATE_CMD"
+  grep -m1 'actions: run ' "$GATE_OUT" | sed 's/^.*actions: /land: candidate green: /'
+}
 
 # 6. push
 before_push="$(git rev-parse origin/main)"

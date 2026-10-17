@@ -78,6 +78,7 @@ LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
 UNIT_CMD="bash gates/unit.sh"
 ARCHITECTURE_CMD="bash gates/architecture.sh"
+CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=5
 LAND_LOCK="$SCRATCH/land.lock"
@@ -211,6 +212,13 @@ sed -i '/^ARCHITECTURE_CMD=/d' "$SCRATCH/w/w1/land.conf"
 before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "ARCHITECTURE_CMD" "$SCRATCH/out.w1"; then
     ok "missing ARCHITECTURE_CMD refuses"; else fail "missing ARCHITECTURE_CMD (r=$r)"; fi
+
+# 6b3. the candidate gate is mandatory: a land.conf without CANDIDATE_CMD refuses, main untouched
+setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+sed -i '/^CANDIDATE_CMD=/d' "$SCRATCH/w/w1/land.conf"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "CANDIDATE_CMD" "$SCRATCH/out.w1"; then
+    ok "missing CANDIDATE_CMD refuses"; else fail "missing CANDIDATE_CMD (r=$r)"; fi
 
 # 6c. a done_test that names a browser spec is refused before it runs (T036, 11 Oct 2026)
 setup; task w1 T1 a.txt "bash scripts/test.sh packages/ui/test/ui/x.browser.spec.ts"

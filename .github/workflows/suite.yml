@@ -6,7 +6,8 @@ name: suite
 # playwright.config.js). The unit tests run in two halves and typecheck in its own job.
 on:
   push:
-    branches: [main]
+    # land/<task>: the candidate of a landing; land.sh pushes main only when this run is green (T301).
+    branches: [main, 'land/**']
   workflow_dispatch:
     inputs:
       sha:
