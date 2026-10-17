@@ -118,7 +118,7 @@ test.describe('Original Signal tab', () => {
       expect(g.P, 'the committed power is the same law').toBeCloseTo((4 * 4) / (g.Re! + (g.Rs ?? 0)), 8);
     });
 
-    test('clearing V returns the pair to the 1 W reference — neither end is left blank', async ({ appPage: page }) => {
+    test('clearing V keeps the power, which becomes the entered end of the pair', async ({ appPage: page }) => {
       const pow = signalInput(page, 'System input power');
       const vol = signalInput(page, 'Driver input voltage');
 
@@ -126,13 +126,12 @@ test.describe('Original Signal tab', () => {
       await expect(vol).toHaveValue(/\d/);
       await fillAndBlur(vol, '');
 
-      // Clearing V empties the pair and the resolve refills it from the 1 W reference: P is 1 W
-      // entered, V is √(Re+Rs) calculated. The rule is pinned in driveSignal.test.ts
-      // ("commit blank V | post: P 1 E, V √6 C").
+      // The power keeps the value it reads and stays the entered end; V is calculated from it
+      // (docs/design/FIELD_CLEAR_RULE.md). Neither end is left blank.
       const live = await focusedDriveGroup(page);
-      expect(live.P, 'clearing V returns the power to the 1 W reference').toBeCloseTo(1, 6);
-      expect(Number(await vol.inputValue()), 'V is √(Re+Rs), never blank').toBeCloseTo(Math.sqrt(live.Re! + (live.Rs ?? 0)), 1);
-      expect(Number(await pow.inputValue()), 'P shows the 1 W reference').toBeCloseTo(1, 1);
+      expect(live.P, 'clearing V keeps the power').toBeCloseTo(10, 6);
+      expect(Number(await vol.inputValue()), 'V is calculated from the power, never blank').toBeCloseTo(Math.sqrt(10 * (live.Re! + (live.Rs ?? 0))), 1);
+      expect(Number(await pow.inputValue()), 'P shows what it was').toBeCloseTo(10, 1);
       await expect(vol).not.toHaveAttribute('title', /No drive level stated/);
     });
 

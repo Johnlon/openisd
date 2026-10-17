@@ -135,7 +135,7 @@ test.describe('touch', () => {
     const unitBefore = await unit.textContent();
     await vasField.locator('.ui-field-dq-btn').tap();
     await expect(unit).toHaveText(unitBefore!);
-    await expect(vasField.locator('.ui-field-note')).toContainText('Vas_m3');
+    await expect(vasField.locator('.ui-field-note')).toContainText('equivalent volume (Vas)');
 
     const width = async () => (await vasField.locator('input').boundingBox())!.width;
     const first = await width();

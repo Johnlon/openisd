@@ -1,6 +1,5 @@
 import {type Engine} from '../../engine/index.js';
 import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, VentedAlignment, VentedDesign } from '../../engine/index.js';
-import { plainNames } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -164,7 +163,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             // silently joining this list.
             switch (issue.kind) {
                 case 'missing-dependencies':
-                    return [{subject: plainNames(issue.target), text: plainNames(`cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`)}];
+                    return [{subject: this.engine.issues.plainNames(issue.target), text: this.engine.issues.plainNames(`cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`)}];
                 case 'inconsistent-inputs':
                 case 'out-of-range':
                     return [];
@@ -172,7 +171,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         });
         const mandatoryFields: readonly NumericDriverSpecFieldName[] = ['Fs_hz', 'Vas_m3', 'Re_ohm', 'Sd_m2'];
         for (const field of mandatoryFields) {
-            if (this.specs[field].value === null) reasons.push({subject: plainNames(field), text: 'is not set'});
+            if (this.specs[field].value === null) reasons.push({subject: this.engine.issues.plainNames(field), text: 'is not set'});
         }
         return reasons;
     }

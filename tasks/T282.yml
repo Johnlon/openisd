@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: c58778625b9bd792a07e3ada272f768e48309a22
 goal: "No browser spec reloads or re-opens the app as a reset or a refresh; only specs about reload, persistence, startup or a service-worker update do (John, 17 Oct 2026, general.md rule 3)"
 done_test: bash scripts/test.sh packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
 notes: |
