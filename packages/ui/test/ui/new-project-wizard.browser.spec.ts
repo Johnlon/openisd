@@ -82,7 +82,7 @@ async function walkWizard(page: Page, boxType: string, name: string, driverText 
   await footerNext(page).click();
   await expect(modal.locator('.selected-driver-banner')).toContainText(driverText);
   await footerNext(page).click();                               // step 2 (num/placement) -> step 3: box type
-  await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption(boxType);
+  await modal.getByLabel('Box type').selectOption(boxType);
   await modal.locator('button', { hasText: 'Next' }).click();
   if (boxType === 'box-passive-radiator') {
     await choosePassiveRadiator(page);                          // step 4: the radiator, as WinISD's wizard asks
@@ -249,11 +249,11 @@ test.describe('New Project wizard', () => {
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await footerNext(page).click();                           // chooses the driver: step 2
       await modal.locator('button', { hasText: 'Next' }).click();
-      await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('sealed');
+      await modal.getByLabel('Box type').selectOption('sealed');
       await modal.locator('button', { hasText: 'Next' }).click();
 
       const volume = modal.locator('#np-sealed-volume');
-      const unit = modal.locator('.field:has(#np-sealed-volume) [role="button"]');
+      const unit = modal.locator('.ui-field:has(#np-sealed-volume) [role="button"]');
       await expect(unit).toHaveText('L');
       await unit.click();
       await expect(unit).toHaveText('cu ft');
@@ -283,7 +283,7 @@ test.describe('New Project wizard', () => {
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await footerNext(page).click();                           // chooses the driver: step 2
       await modal.locator('button', { hasText: 'Next' }).click();
-      await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('box-passive-radiator');
+      await modal.getByLabel('Box type').selectOption('box-passive-radiator');
       await modal.locator('button', { hasText: 'Next' }).click();
       await choosePassiveRadiator(page);
 

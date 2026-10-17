@@ -85,7 +85,7 @@ test.describe('Sealed picker volume switch', () => {
       });
       await modal.locator('button', {hasText: 'Next'}).click();
       await modal.locator('button', {hasText: 'Next'}).click();
-      await modal.locator('.field', {hasText: 'Box type'}).locator('select').selectOption('sealed');
+      await modal.getByLabel('Box type').selectOption('sealed');
       await modal.locator('button', {hasText: 'Next'}).click();
       await modal.locator('#np-alignment').selectOption('0.8');
       return Number(await modal.locator('#np-sealed-volume').inputValue());

@@ -457,9 +457,9 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 20px;
-  font-size: 9px;
+  width: var(--stepper-w, 14px);
+  height: var(--stepper-h, 20px);
+  font-size: 12px;
   line-height: 1;
   color: var(--mut);
   background: var(--panel2, #f0f0f0);

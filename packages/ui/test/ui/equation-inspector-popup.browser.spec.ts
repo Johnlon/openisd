@@ -85,7 +85,7 @@ test.describe('Equation inspector popup', () => {
   });
 
   test('the popup never overlaps the editor, even on a narrow viewport', async ({ appPage: page }) => {
-    await page.setViewportSize({ width: 1400, height: 900 }); // 950px modal, ~225px free per side
+    await page.setViewportSize({ width: 1400, height: 900 }); // 976px modal, ~212px free per side
     await openDriverEditor(page);
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
     await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();

@@ -207,7 +207,7 @@ test.describe('Original Passive Radiator tab', () => {
       await wizard.locator('.dlist .ditem').first().click();
       await next.click();                                        // driver chosen: step 2
       await next.click();                                        // step 3: box type
-      await wizard.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('box-passive-radiator');
+      await wizard.getByLabel('Box type').selectOption('box-passive-radiator');
       await next.click();                                        // step 4: the radiator
       await wizard.locator('#np-pr-select').click();
       await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();

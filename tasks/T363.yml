@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: ef9cc6d5fc5868c5798dc0252d873e73a2309798
 goal: W2+W3: desktop and phone New project wizard: step 4 for every box type, volume and tuning on UIFixedField rows
 done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalNewProject-hooks.test.ts packages/design/test/domain/wizardPlan.test.ts
 files:
