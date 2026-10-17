@@ -10,7 +10,7 @@
  * Run at phone width (412×900), not just the forced mobile skin — the touch-target assertion
  * needs the real narrow layout, not a wide window with the mobile skin switched on.
  */
-import {expect, openAMobileProject, test} from '../fixtures.js';
+import {expect, openAMobileProject, setFocusedBoxType, test} from '../fixtures.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ page }) => {
@@ -144,15 +144,7 @@ test('pressing a step button focuses the button, not the field', async ({ page }
 // John, 2026-10-02 (screenshot): a row with no unit (Qms) had its ▲▼ further right than its
 // neighbours. Every stepper lines up whether or not its row has a unit.
 test('a unitless row\'s step buttons line up with a row that has a unit', async ({ page }) => {
-  await page.evaluate(async (p) => {
-    type AppState = import('../../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, p) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.requireFocusedProject().box.boxType.set('box-passive-radiator');
-  }, 'appState');
+  await setFocusedBoxType(page, 'box-passive-radiator');
   await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
   const withUnit = await fieldRow(page, 'Vas').locator('.num-stepper').boundingBox();
   const unitless = await fieldRow(page, 'Qms').locator('.num-stepper').boundingBox();

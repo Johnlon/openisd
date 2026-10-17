@@ -3,10 +3,9 @@ import type {Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {OpenISDDriver} from '@openisd/design';
-import {createEngine} from '@openisd/design/engine';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
-import {deviceRecord, type SeedDriver} from '../fixtures/seedMyDrivers.js';
+import {createEngine} from '@openisd/design/engine';
+import {owdrText, type SeedDriver} from '../fixtures/seedMyDrivers.js';
 
 const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 's-re.wdr');
 
@@ -30,13 +29,6 @@ async function choosePassiveRadiator(page: Page): Promise<void> {
   await expect(footerNext(page)).toBeDisabled();
   await modal.locator('#np-pr-select').click();
   await page.locator('button', { hasText: 'Define new passive radiator' }).click();
-}
-
-/** A driver as the `.owdr` file a user would have on disk. */
-function owdrText(d: SeedDriver, id: string): string {
-  const driver = OpenISDDriver.fromConformingRecord(deviceRecord(d, id), createEngine());
-  if (Array.isArray(driver)) throw new Error(`fixture driver is invalid: ${driver.join(', ')}`);
-  return driver.toOwdrText();
 }
 
 /** Puts drivers in My Drivers the way a user does: Load File… in the wizard's driver list, one `.owdr` file

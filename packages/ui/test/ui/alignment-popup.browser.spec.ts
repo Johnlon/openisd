@@ -59,16 +59,16 @@ test.describe('Alignment popup', () => {
     await expect(page.locator('.alignment-modal')).toBeHidden();
   });
 
-  test('choosing Butterworth 0.707 sizes the sealed box: Fs=37Hz, Qts=0.38, Vas=30L give Qtc=0.726 and fc=68.84Hz (lossless)', async ({ appPage: page }) => {
+  test('choosing Butterworth 0.707 sizes the sealed box: Fs=37Hz, Qts=0.38, Vas=30L give Qtc=0.726 and fc=68.84Hz (Ql and Qa at their top value)', async ({ appPage: page }) => {
     // Qts + Vas → sealedFromQtc() → Vb → Qtc;  Fs + Vb → fc. Qes is cleared so the Q trio re-solves
     // from the typed Qts against the catalogue driver's Qms; left as it came, Qes/Qms would still
     // describe the OTHER driver and the loaded Qts the Qtc readout uses would have nothing to do
     // with the Qts the alignment sized the box from.
     await setFocusedDriverSpecs(page, { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Qes: null });
 
-    // Ql and Qa at the lossless limit for exact formula match, then Box tab, sealed box
+    // Ql and Qa at their top value (1000, the most the fields accept) is the nearest to lossless a user can get, then Box tab, sealed box
     await setFocusedBoxType(page, 'sealed');
-    await setFocusedSealedLosses(page, { Ql: 1e6, Qa: 1e6 });
+    await setFocusedSealedLosses(page, { Ql: 1000, Qa: 1000 });
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
 
     // Open Alignment modal and choose Butterworth 0.707

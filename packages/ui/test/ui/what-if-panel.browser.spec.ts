@@ -334,6 +334,7 @@ test.describe('Learn panel', () => {
     });
 
     test('a driver spec changed outside the open Learn panel shows in the panel', async ({ page }) => {
+      await page.setViewportSize({ width: 1900, height: 1100 });
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
       const fs = whatIfField(page, 'Fs').locator('input');
       await setFocusedDriverSpecs(page, { Fs_hz: 61.5 });

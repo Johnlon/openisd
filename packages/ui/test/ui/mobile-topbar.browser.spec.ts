@@ -1,9 +1,8 @@
 /**
  * The mobile top bar — the hamburger, then the OpenISD logo and title beside it.
  */
-import {expect, openAMobileProject, test} from '../fixtures.js';
+import {expect, openAMobileProject, renameFocusedProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
-import {renameFocusedProject} from '../fixtures/focusedProjectSeam.js';
 
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);

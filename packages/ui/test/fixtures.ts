@@ -489,16 +489,9 @@ export async function focusedBoxVolume(page: Page): Promise<number> {
 
 /** Write the focused project's main (box) volume, so its design differs from its saved one. */
 export async function setFocusedBoxVolume(page: Page, volume_m3: number): Promise<void> {
-  await page.evaluate(async ({path, v}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    box.volumeOf(box.boxType.value).set(v);
-  }, {path: 'appState', v: volume_m3});
+  await openBoxTab(page);
+  const litres = String(Number((volume_m3 * 1000).toPrecision(12)));
+  await fillAndBlur(page.locator('#og-box-volume, .mob-field-row:has(.mob-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Volume")) input').first(), litres);
 }
 
 /** The drive group's committed state (power, voltage, driver Re, series Rs), read live from the
@@ -553,32 +546,17 @@ export async function focusedBoxType(page: Page): Promise<string> {
 export type BoxTypeName = 'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'abc' | 'box-passive-radiator';
 
 export async function setFocusedBoxType(page: Page, boxType: BoxTypeName): Promise<void> {
-  await page.evaluate(async ({path, value}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.requireFocusedProject().box.boxType.set(value);
-  }, {path: 'appState', value: boxType});
+  await openBoxTab(page);
+  await page.locator('#og-box-type, #mob-box-type').selectOption(boxType);
 }
 
 /** Drop the focused project's own temperature, humidity and pressure, as a freshly built project
  *  has none, so the Advanced tab falls back to the Options environment. */
 export async function clearFocusedEnvironment(page: Page): Promise<void> {
-  await page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    p.envTempK.clear();
-    p.envHumidityPct.clear();
-    p.envPressurePa.clear();
-  }, 'appState');
+  await openTab(page, 'Advanced');
+  for (const label of ['Temperature', 'Relative humidity', 'Air pressure']) {
+    await fillAndBlur(page.locator('.field', { has: page.locator('label', { hasText: new RegExp(`^${label}`) }) }).locator('input').first(), '');
+  }
 }
 
 /** Driver parameters a test may set on the focused project's driver; `null` clears the entry so
@@ -588,50 +566,36 @@ export type DriverSpecEntries = Partial<Record<'Fs_hz' | 'Qes' | 'Qms' | 'Qts' |
 /** Set (or clear) driver parameters on the focused project through the domain, as typing them in
  *  the What-if? panel would. */
 export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntries): Promise<void> {
-  await page.evaluate(async ({path, values}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const specs = m.requireFocusedProject().driver.specs;
-    for (const key of ['Fs_hz', 'Qes', 'Qms', 'Qts', 'Vas_m3', 'Re_ohm'] as const) {
-      const v = values[key];
-      if (v === undefined) continue;
-      if (v === null) specs[key].clear(); else specs[key].set(v);
-    }
-  }, {path: 'appState', values: entries});
+  await openDriverEditor(page);
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  const fields: ReadonlyArray<readonly [keyof DriverSpecEntries, string, number]> = [
+    ['Fs_hz', 'Fs', 1], ['Qes', 'Qes', 1], ['Qms', 'Qms', 1], ['Qts', 'Qts', 1], ['Vas_m3', 'Vas', 1000], ['Re_ohm', 'Re', 1],
+  ];
+  for (const [key, label, scale] of fields) {
+    const v = entries[key];
+    if (v === undefined) continue;
+    const text = v === null ? '' : String(Number((v * scale).toPrecision(12)));
+    await fillAndBlur(driverEditorField(page, label).locator('input').first(), text);
+  }
+  await page.locator('.de-footer button.pri', { hasText: 'OK' }).click();
+  await page.locator('.de-body').waitFor({ state: 'hidden' });
 }
 
 /** Set the focused project's series source resistance Rs (ohm), as the Signal tab does. */
 export async function setFocusedSeriesResistance(page: Page, ohm: number): Promise<void> {
-  await page.evaluate(async ({path, v}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.requireFocusedProject().Rs_ohm.set(v);
-  }, {path: 'appState', v: ohm});
+  await openTab(page, 'Signal');
+  await fillAndBlur(page.locator('.field, .mob-field-row, .ui-field', { has: page.locator('label, .mob-field-label, .ui-field-label', { hasText: /^Series resistance$/ }) }).locator('input').first(), String(ohm));
 }
 
 /** Set the leakage Ql and absorption Qa losses of the focused project's `sealed` box, as the Box
  *  losses popup does. */
 export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa: number}): Promise<void> {
-  await page.evaluate(async ({path, values}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const [sealed] = m.requireFocusedProject().box.lossGroupsOf('sealed');
-    if (!sealed) throw new Error('a sealed box has losses');
-    sealed.Ql.set(values.Ql);
-    sealed.Qa.set(values.Qa);
-  }, {path: 'appState', values: losses});
+  await openBoxTab(page);
+  await page.locator('.box-fields-col .link-btn', { hasText: 'Advanced' }).click();
+  const popup = page.locator('.overlay.open', { hasText: 'Box losses' });
+  await fillAndBlur(popup.locator('.field', { has: page.locator('label', { hasText: /Ql/ }) }).locator('input').first(), String(losses.Ql));
+  await fillAndBlur(popup.locator('.field', { has: page.locator('label', { hasText: /Qa/ }) }).locator('input').first(), String(losses.Qa));
+  await popup.locator('.ok-btn', { hasText: 'OK' }).click();
 }
 
 /** The focused sealed box's resonance Fsc and Qtc as the domain holds them. */
@@ -665,18 +629,10 @@ export async function focusedVentLengthDq(page: Page): Promise<{unreachable: boo
 /** Give the focused vented box a real vent (volume, tuning goal, port diameter) through the same
  *  domain seam the typing drives, so the solver produces a vent length. */
 export async function setFocusedVentedDesign(page: Page, design: {volume_m3: number; tuning_hz: number; diameter_m: number}): Promise<void> {
-  await page.evaluate(async ({path, d}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    p.box.vented.volume_m3.set(d.volume_m3);
-    p.box.vented.tuning_goal_hz.set(d.tuning_hz);
-    p.box.vented.vent.diameter_m.set(d.diameter_m);
-  }, {path: 'appState', d: design});
+  await setFocusedBoxVolume(page, design.volume_m3);
+  await fillAndBlur(page.locator('#og-fb-target'), String(design.tuning_hz));
+  await page.locator('.project-nav li').nth(2).click(); // the box's own tab: the vents
+  await fillAndBlur(page.locator('.field', { has: page.locator('label', { hasText: /^Vent diameter$/ }) }).locator('input').filter({ visible: true }).first(), String(Number((design.diameter_m * 100).toPrecision(12))));
 }
 
 /** The focused bandpass6 rear chamber's tuning goal (Hz). */
@@ -791,15 +747,25 @@ export async function focusedDriverSpec(page: Page, field: 'Fs_hz' | 'Mms_kg'): 
 /** Open a second, independent project as a copy of the focused one, and focus it — the domain
  *  call behind the project list's "＋ Copy". */
 export async function duplicateFocusedProject(page: Page, newName: string): Promise<void> {
-  await page.evaluate(async ({path, name}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'duplicateFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.duplicateFocusedProject(name);
-  }, {path: 'appState', name: newName});
+  if (await page.locator('.mobile-root').count() > 0) {
+    await closeMobileMenu(page);
+    await page.locator('.mob-hamburger').click();
+    await page.locator('.mob-menu-item', { hasText: /^Projects$/ }).click();
+    await page.locator('.mob-project-row.active .mob-project-menu-btn').click();
+    await page.locator('.mob-action-sheet-item.mob-action-duplicate').click();
+    await page.locator('.mob-projects-pane .mob-dlg-ok').click();
+    await renameFocusedProject(page, newName);
+    return;
+  }
+  const row = page.locator('.project-row.selected');
+  await row.locator('.row-menu-btn').click();
+  await page.locator('.row-menu-item.menu-action-duplicate').click();
+  const copy = page.locator('.project-row.selected');
+  await copy.locator('.row-menu-btn').click();
+  await page.locator('.row-menu-item.menu-action-rename').click();
+  const name = page.locator('input[aria-label="Rename project"]');
+  await name.fill(newName);
+  await name.press('Enter');
 }
 
 /** The Options environment temperature (K) as the application settings hold it. */
@@ -840,19 +806,6 @@ export async function boxVolumeUnitToken(page: Page): Promise<string | undefined
     return {...m.ui.unitTokens};
   }, 'presentationState');
   return NumberField.BOX_VB_L.unitTokenFor(rotation);
-}
-
-/** Set the app-wide chart frequency sweep range, as a drag-zoom does. */
-export async function setSweepRange(page: Page, range: {min: number; max: number}): Promise<void> {
-  await page.evaluate(async ({path, r}) => {
-    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
-    function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    m.sweepRange = r;
-  }, {path: 'presentationState', r: range});
 }
 
 /** Sum of the latest computed SPL curve — changes whenever the swept response changes. */
@@ -924,17 +877,7 @@ export async function focusedProjectName(page: Page): Promise<string> {
 
 /** Dirty the focused design: add a highpass filter and move the drive power off its 1 W reference. */
 export async function dirtyFocusedDesign(page: Page): Promise<void> {
-  await page.evaluate(async (path): Promise<void> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const project = m.requireFocusedProject();
-    project.filters.set([...project.filters.value, { type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 30, Q: 0.7 }]);
-    project.powerDrive_W.set(250);
-  }, 'appState');
+  await setFocusedBoxVolume(page, 0.0555);
 }
 
 /** The focused project serialised as `.owpr` JSON, saved first so the saved layer holds the design. */
@@ -964,6 +907,35 @@ export async function focusedAddedMass_kg(page: Page): Promise<number> {
     if (!isAppState(m)) throw new Error('appState module shape mismatch');
     return m.requireFocusedProject().driverAddedMass_kg.value;
   }, 'appState');
+}
+
+/** Renames the focused project from the phone's Project tab, as a user does. */
+export async function renameFocusedProject(page: Page, name: string): Promise<void> {
+  await closeMobileMenu(page);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();
+  await fillAndBlur(page.locator('#mob-proj-name'), name);
+  await page.locator('.mob-dlg[aria-label="Project"] .mob-dlg-ok').click();
+}
+
+/** Taps beside the phone's open menu, as a user does to dismiss it; does nothing when it is closed. */
+async function closeMobileMenu(page: Page): Promise<void> {
+  const menu = page.locator('.mob-menu-overlay');
+  if (await menu.count() === 0) return;
+  const area = (await menu.boundingBox())!;
+  await menu.click({ position: { x: area.width - 2, y: area.height - 2 } });
+}
+
+/** Opens a project tab the way a user does, in whichever skin is showing. */
+export async function openTab(page: Page, tab: string): Promise<void> {
+  await closeMobileMenu(page);
+  const mobileTab = page.locator('.mob-tab', { hasText: new RegExp(`^${tab}$`) });
+  if (await mobileTab.count() > 0) await mobileTab.click();
+  else await page.locator('.project-nav li', { hasText: new RegExp(`^${tab}$`) }).click();
+}
+
+export async function openBoxTab(page: Page): Promise<void> {
+  await openTab(page, 'Box');
 }
 
 /** Open the Driver Editor the way a user does: Driver tab, Edit, wait for the body. */

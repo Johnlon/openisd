@@ -11,9 +11,8 @@
  * The alignment sheet and the box-losses sheet opened from this tab are `mobile-alignment-popup`
  * and `mobile-box-losses-popup`.
  */
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, renameFocusedProject, setFocusedBoxType, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
-import {renameFocusedProject, setFocusedBoxType} from '../fixtures/focusedProjectSeam.js';
 import {forceMobileSkin, mobileFieldRow, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({ appPage: page }) => {

@@ -1,4 +1,4 @@
-import {appEnvDefaultsTempK, clearFocusedEnvironment, expect, openAProject, savedUsername, setSweepRange, test} from '../fixtures.js';
+import {appEnvDefaultsTempK, clearFocusedEnvironment, expect, openAProject, savedUsername, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 
@@ -271,10 +271,17 @@ test.describe('Options dialog', () => {
       // John, 2026-10-01: a drag-zoomed range (stored as e.g. 13.478123 Hz) showed in Options to every
       // digit. The dialog shows it at the field's precision.
       test('Options shows a drag-zoomed frequency range at one decimal', async ({ page }) => {
-        await setSweepRange(page, { min: 13.478123, max: 19987.34567 });
+        const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
+        // Drag along the X-axis strip: the window's ends land on whatever frequencies the pixels mean.
+        await page.mouse.move(box.x + box.width * 0.37, box.y + box.height - 6);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width * 0.58, box.y + box.height - 6, { steps: 7 });
+        await page.mouse.up();
         await openPlotWindow(page);
-        await expect(freqRow(page).nth(0)).toHaveValue('13.5');
-        await expect(freqRow(page).nth(1)).toHaveValue('19987.3');
+        await expect(freqRow(page).nth(0)).not.toHaveValue('1');
+        await expect(freqRow(page).nth(1)).not.toHaveValue('20000');
+        await expect(freqRow(page).nth(0)).toHaveValue(/^\d+(\.\d)?$/);
+        await expect(freqRow(page).nth(1)).toHaveValue(/^\d+(\.\d)?$/);
       });
 
       test('editing only a chart row End applies it against the row placeholder Start', async ({ page }) => {

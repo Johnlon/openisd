@@ -21,6 +21,8 @@
  *     }, myDriversJson([{ brand: 'Scope Test', model: 'Alpha', specs: { Fs_hz: 40, Re_ohm: 6.2, Sd_m2: 0.02 } }]));
  */
 
+import {OpenISDDriver} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
 import {DriverType} from '@openisd/design/filter';
 import {z} from 'zod';
 
@@ -112,4 +114,11 @@ export function myDriversJson(drivers: SeedDriver[]): string {
       return { uuid: id, record: deviceRecord(d, id) };
     }),
   });
+}
+
+/** A driver as the `.owdr` file a user would have on disk. */
+export function owdrText(d: SeedDriver, id: string): string {
+  const driver = OpenISDDriver.fromConformingRecord(deviceRecord(d, id), createEngine());
+  if (Array.isArray(driver)) throw new Error(`fixture driver is invalid: ${driver.join(', ')}`);
+  return driver.toOwdrText();
 }

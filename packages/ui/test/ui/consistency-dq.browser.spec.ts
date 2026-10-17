@@ -9,7 +9,8 @@
  * naming the group and the size of the disagreement, a consistent driver has none, and it
  * blocks nothing.
  */
-import {expect, openAProject, test} from '../fixtures.js';
+import {expect, openAProject, openDriverEditor, test} from '../fixtures.js';
+import {owdrText} from '../fixtures/seedMyDrivers.js';
 import type {Page} from '@playwright/test';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject} from '../fixtures/sampleProject.js';
 
@@ -163,32 +164,14 @@ test('chart failure lists the missing circuit values returned by the sweep', asy
   await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
 
-  await page.evaluate(async () => {
-    function isAppStateModule(m: unknown): m is import('../../src/logic/appState.js').AppState {
-      return typeof m === 'object' && m !== null
-        && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
-    }
-    const modPath = 'appState';
-    const mod: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, modPath) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppStateModule(mod)) throw new Error('appState module did not load as expected');
-    const project = mod.requireFocusedProject();
-    const spec = project.driver.specs;
-    spec.Fs_hz.clear();
-    spec.Re_ohm.clear();
-    spec.Qts.clear();
-    spec.Qes.clear();
-    spec.Qms.clear();
-    spec.Vas_m3.clear();
-    spec.Sd_m2.clear();
-    spec.Dd_m.clear();
-    spec.BL_Tm.clear();
-    spec.Mms_kg.clear();
-    spec.Cms_m_per_N.clear();
-    spec.Rms_kg_per_s.clear();
-    spec.EBP_hz.clear();
-    spec.no.clear();
-    spec.Rme_kg_per_s.clear();
+  // The user swaps in a driver file that carries no electrical or mechanical values.
+  await openDriverEditor(page);
+  await page.locator('.de-modal input[type=file]').setInputFiles({
+    name: 'blank.owdr', mimeType: 'application/x-openisd-driver',
+    buffer: Buffer.from(owdrText({ brand: 'Blank', model: 'Driver', specs: {} }, '00000000-0000-4000-8000-0000000000b1')),
   });
+  await page.locator('.de-footer button.pri', { hasText: 'OK' }).click();
+  await page.locator('.de-body').waitFor({ state: 'hidden' });
 
   const chartMessage = page.locator('.gmsg');
   await expect(chartMessage).toBeVisible();

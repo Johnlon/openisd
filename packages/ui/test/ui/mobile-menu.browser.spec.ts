@@ -154,13 +154,15 @@ test.describe('MobileMenu', () => {
       await expect(save).not.toHaveClass(/dirty/);
       await expect(saveAll).not.toHaveClass(/dirty/);
 
-      await setFocusedBoxVolume(page, 0.012);
+      await setFocusedBoxVolume(page, 0.012);   // editing closes the menu; open it again to look
+      await openMobileMenu(page);
       await expect(save).toHaveClass(/dirty/);
       await expect(saveAll).toBeEnabled();
       await expect(saveAll).toHaveClass(/dirty/);
 
       // Focus moves to a second, unedited project; the first keeps its unsaved changes.
       await duplicateFocusedProject(page, 'Second');
+      await openMobileMenu(page);
       await expect(saveAll).toBeEnabled();
       await expect(saveAll).toHaveClass(/dirty/);
     });
