@@ -56,8 +56,8 @@ has_remote() { git -C "$SCRATCH/origin.git" rev-parse -q --verify "refs/heads/$1
 setup
 wt 1; wt 2; echo x > "$M-t2/stray.txt"; wt 3 ahead; wt 4; printf 'T004\n' > "$M-t4/.task"
 wt 5; ( cd "$M-t5" && exec sleep 300 ) & PIDS+=("$!"); sleep 0.3
-gm branch t6 origin/main; gm branch t7 origin/main; git -C "$M" commit -q --allow-empty -m x 2> /dev/null; gm branch -f t7 HEAD
-gm push -q origin t6:refs/heads/t6 origin/main:refs/heads/land/T009 HEAD:refs/heads/t8
+gm branch t6 origin/main; wt 7 ahead; gm worktree remove "$M-t7"
+gm push -q origin t6:refs/heads/t6 origin/main:refs/heads/land/T009 t7:refs/heads/t8
 gm branch keepme origin/main
 gm worktree add -q --detach "$M-preview" origin/main; gm config --add openisd.syncedCopy "$M-preview"
 tidy; r=$?
@@ -72,6 +72,21 @@ tidy; r=$?
 has_branch t7 && has_remote t8 && ok "branches with commits not on main are kept, local and on origin" || fail "t7/t8 removed"
 has_branch keepme && ok "a branch that is not a task branch is never touched" || fail "keepme removed"
 [ -d "$M-preview" ] && ok "a synced copy is never touched" || fail "preview removed"
+
+# 1b. squash landings (land.sh): a branch whose content is on main goes; so does one whose only difference is its
+#     own task file once main says done; a branch adding work main lacks stays, even when its task is done
+setup
+wt 160 ahead; cp "$M-t160/w160.txt" "$M/w160.txt"; gm add w160.txt; gm commit -qm "T160 squashed"; gm push -q origin main
+gm worktree remove "$M-t160"
+gm branch t161 origin/main; gm worktree add -q "$M-t161" t161; printf 'id: T161\nstatus: open\n' > "$M-t161/tasks/T161.yml"
+git -C "$M-t161" add -A; git -C "$M-t161" commit -qm "T161: task file"; gm worktree remove "$M-t161"
+printf 'id: T161\nstatus: done\nlanded: x\n' > "$M/tasks/T161.yml"; gm add -A; gm commit -qm "T161 landed"; gm push -q origin main
+wt 162 ahead; printf 'id: T162\nstatus: done\n' > "$M/tasks/T162.yml"; gm add -A; gm commit -qm "T162 done elsewhere"; gm push -q origin main
+gm worktree remove "$M-t162"
+tidy
+! has_branch t160 && ok "a branch whose content is on main goes, though its shas are not" || fail "t160 kept: $(cat "$SCRATCH/out")"
+! has_branch t161 && ok "a done task's branch that differs only in its own task file goes" || fail "t161 kept: $(cat "$SCRATCH/out")"
+has_branch t162 && ok "a branch adding work main lacks stays, even when its task says done" || fail "t162 removed"
 
 # 2. leftover folders: only generated folders and no git data goes
 mkdir -p "$M-t20/node_modules/x" "$M-t20/build" "$M-t21" "$M-t22"; echo keep > "$M-t21/notes.txt"; echo "gitdir: /nowhere" > "$M-t22/.git"
@@ -108,6 +123,14 @@ wt 140 ahead; echo wip > "$M-t140/unsaved.txt"
 tidy; grep -q "^held: abandoned task T140's worktree" "$SCRATCH/out" && ok "housekeeping reports it as held" || fail "no held line: $(cat "$SCRATCH/out")"
 git -C "$M-t140" add -A; git -C "$M-t140" commit -qm "late work"; tidy
 [ -d "$M-t140" ] && has_branch t140 && ok "work committed after the archive is not lost: worktree and branch kept" || fail "late work removed"
+
+# 4b. abandon.sh on a task whose task file never reached main: read from its branch, recorded on main
+setup
+wt 145; printf 'id: T145\nowner: maryu\nstatus: open\ngoal: g\ndone_test: true\nfiles:\n  - tasks/T145.yml\n' > "$M-t145/tasks/T145.yml"
+git -C "$M-t145" add -A; git -C "$M-t145" commit -qm "T145: task file"
+( cd "$M" && bash scripts/abandon.sh T145 --by fable "never started" ) > "$SCRATCH/ab.out" 2>&1; r=$?
+[ $r = 0 ] && git -C "$SCRATCH/origin.git" show main:tasks/T145.yml | grep -qx 'status: abandoned' && [ ! -d "$M-t145" ] && ! has_branch t145 \
+  && ok "a task that never reached main is abandoned from its branch's task file" || fail "branch-only abandon (r=$r): $(tail -3 "$SCRATCH/ab.out")"
 
 # 5. abandon.sh refuses a task that is done, or not on main, and asks for --by
 setup

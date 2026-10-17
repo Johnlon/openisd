@@ -3,11 +3,13 @@
 # want dead branches and worktrees lying around"). The watchdog runs it every tick; abandon.sh runs it for the
 # task it abandons. Nothing is ever removed that holds work found nowhere else:
 #   - a worktree beside the main folder (<workspace>/<repo>-*) goes when it is clean (no modified or untracked
-#     file), no running program has its folder inside it, and its HEAD is on origin/main, or its task is
+#     file), no running program has its folder inside it, and its HEAD is on origin/main (by commit or by
+#     content, as for branches below), or its task is
 #     abandoned and HEAD is in the task's archived commits. A claim (.task) left in it is logged as stale.
 #     The main folder and the synced copies (git config openisd.mainFolder / openisd.syncedCopy) are never touched;
 #   - a task branch (t<n>), local or on origin, goes when it is checked out nowhere and every commit on it is on
-#     origin/main, or in its abandoned task's archive (refs/archive/T<n>). A land/<task> candidate branch on origin
+#     origin/main, or its content is (merging it changes nothing but its own task file, once main says the task
+#     is done: land.sh squashes), or it is in its abandoned task's archive (refs/archive/T<n>). A land/<task> candidate branch on origin
 #     goes when it is on origin/main;
 #   - a folder <workspace>/<repo>-* that is not a worktree and has no git data goes when it holds only generated
 #     folders (node_modules, build, test-results, playwright-report, dist, .vite).
@@ -46,10 +48,25 @@ archived() {
   grep -qx 'status: abandoned' <<< "$f" || return 0
   sed -n 's/^archived: *//p' <<< "$f" | head -n 1
 }
-# safe <commit> <branch>: every commit is on origin/main, or in the abandoned task's archive.
+# in_content <commit> <branch>: merging the commit into origin/main changes nothing. land.sh squashes, so a landed
+# task's branch shas are never on main; this finds it by content. The task's own tasks/T<n>.yml may differ (or
+# conflict) once main says the task is done: main's copy is the record.
+in_content() {
+  local tree main_tree id="" conflicts
+  main_tree="$(g rev-parse 'origin/main^{tree}')"
+  tree="$(g merge-tree --write-tree --name-only origin/main "$1" 2> /dev/null | head -n 1)" || true
+  [ "$tree" = "$main_tree" ] && return 0
+  case "$2" in t[0-9]*) id="T${2#t}" ;; *) return 1 ;; esac
+  [ -n "$tree" ] && g show "origin/main:tasks/$id.yml" 2> /dev/null | grep -qx 'status: done' || return 1
+  conflicts="$(g merge-tree --write-tree --name-only origin/main "$1" 2> /dev/null | sed -n '2,/^$/p' | grep -v '^$')"
+  [ -z "$(grep -vxF "tasks/$id.yml" <<< "$conflicts")" ] || return 1
+  g diff --quiet "$main_tree" "$tree" -- . ":(exclude)tasks/$id.yml"
+}
+# safe <commit> <branch>: every commit is on origin/main, its content is, or it is in the abandoned task's archive.
 safe() {
   local arch
   g merge-base --is-ancestor "$1" origin/main 2> /dev/null && return 0
+  in_content "$1" "$2" && return 0
   arch="$(archived "$2")"
   [ -n "$arch" ] && [ "$(g rev-parse -q --verify "refs/archive/T${2#t}")" = "$(g rev-parse -q --verify "$arch")" ] \
     && g merge-base --is-ancestor "$1" "$arch" 2> /dev/null

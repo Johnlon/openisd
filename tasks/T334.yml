@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 5bdaf9fd65f702da742bdd02b1a073620e0161c2
 goal: Housekeeping removes landed and abandoned branches, worktrees and leftover folders; abandon.sh records and applies an abandon decision
 done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
 files:

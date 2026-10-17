@@ -18,4 +18,8 @@ worktree and branch stayed for ever.
 - `scripts/abandon.sh T<n> --by <who> "<why>"` keeps the branch as `refs/archive/T<n>` (here and on origin), lands
   `status: abandoned` with who, when, why and the archived commit, then removes the worktree and branch. An
   abandoned worktree with uncommitted work is kept and becomes an agent alert until that work is committed.
+- T337: `land.sh` squashes, so a landed task's branch shas are never on main and the first live run kept such
+  branches (t303, t314). A branch now also counts as landed when merging it into main changes nothing, apart from
+  its own task file once main says the task is done. `abandon.sh` also takes a task whose task file never reached
+  main (it reads it from the branch).
 - Test: `scripts/land/test/tidy-branches.e2e.test.sh` (real git, real land.sh); `watchdog.test.sh` case 7.

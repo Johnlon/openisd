@@ -1,0 +1,13 @@
+id: T337
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Housekeeping counts a squash-landed branch as landed (merging it into main changes nothing but its own task file); abandon.sh takes a task whose task file never reached main
+done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
+files:
+  - tasks/T337.yml
+  - scripts/land/tidy-branches.sh
+  - scripts/abandon.sh
+  - scripts/land/test/tidy-branches.e2e.test.sh
+  - bugs/BUG_20261017_dead-branches-and-worktrees-pile-up.md

@@ -22,12 +22,15 @@ common="$(git rev-parse --git-common-dir)" || exit 1
 main="$(cd "$(dirname "$common")" && pwd)"
 g() { git -C "$main" "$@"; }
 g fetch -q origin || { echo "abandon: cannot fetch origin" >&2; exit 1; }
-task="$(g show "origin/main:tasks/$ID.yml" 2> /dev/null)" || { echo "abandon: no tasks/$ID.yml on origin/main" >&2; exit 1; }
+# The task file on main; for a task that never landed, the one on its branch (new-task.sh commits it there first).
+branch="t${ID#T}"
+task="$(g show "origin/main:tasks/$ID.yml" 2> /dev/null || g show "refs/heads/$branch:tasks/$ID.yml" 2> /dev/null \
+  || g show "refs/remotes/origin/$branch:tasks/$ID.yml" 2> /dev/null)" \
+  || { echo "abandon: no tasks/$ID.yml on origin/main or on branch $branch" >&2; exit 1; }
 status="$(sed -n 's/^status: *//p' <<< "$task" | head -n 1)"
 case "$status" in done|abandoned) echo "abandon: $ID is already $status" >&2; exit 1 ;; esac
 
 # 1. keep the commits
-branch="t${ID#T}"
 tip="$(g rev-parse -q --verify "refs/heads/$branch" || g rev-parse -q --verify "refs/remotes/origin/$branch")"
 if [ -n "$tip" ]; then
   g update-ref "refs/archive/$ID" "$tip" && g push -q origin "refs/archive/$ID:refs/archive/$ID" \
@@ -39,7 +42,7 @@ fi
 out="$(cd "$main" && bash scripts/new-task.sh "$BY" "Record that $ID is abandoned: $WHY")" || { echo "abandon: new-task.sh failed" >&2; exit 1; }
 rec="$(cut -d' ' -f1 <<< "$out")"; wt="$(cut -d' ' -f2- <<< "$out")"
 f="$wt/tasks/$ID.yml"
-git -C "$wt" show "origin/main:tasks/$ID.yml" > "$f"
+printf '%s\n' "$task" > "$f"
 sed -i '/^status:/d; /^abandoned_by:/d; /^abandoned_on:/d; /^abandoned_why:/d; /^archived:/d' "$f"
 sed -i "/^owner:/a status: abandoned\nabandoned_by: $BY\nabandoned_on: $(date -u +%Y-%m-%d)\nabandoned_why: $WHY\narchived: ${tip:-none}" "$f"
 sed -i "s|^  - tasks/$rec.yml\$|&\n  - tasks/$ID.yml|" "$wt/tasks/$rec.yml"
