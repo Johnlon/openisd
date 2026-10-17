@@ -61,7 +61,7 @@ const {
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
   selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
-  boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen,
+  boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
@@ -755,6 +755,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                       <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
                     </ErrorSwitch>
                   </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdSealedPicker" style="font-size: 12px;" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
+                      <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => project.winisdSealedPicker.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
+                    </ErrorSwitch>
+                  </div>
                 </ErrorSwitchGroup>
                 </div>
               </div>
@@ -859,6 +864,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <select class="alignment-select" :value="sealedAlignmentSelected?.value ?? ''" @change="e => { const qtc = selectedOption(e, sealedAlignmentOptions); if (qtc !== null) sealedAlignmentEditor.selectQtc(qtc); }">
               <option v-for="option in sealedAlignmentOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
             </select>
+            <WinisdDeviationCue v-if="sealedAlignmentDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
           </div></div>
           <div class="field-row"><div class="field"><label>Volume</label><NumInput id="og-sealed-alignment-volume" :model-value="sealedAlignmentVolume_m3" @update:model-value="(v: number | null) => { sealedAlignmentVolume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit unit-cyc" /></div></div>
           <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentSuitability ?? 'unknown'">●</span>

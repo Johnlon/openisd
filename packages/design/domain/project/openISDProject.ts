@@ -319,6 +319,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdDriverCountModel;
     }
 
+    /** WinISD Compatibility "Sealed picker volume" — see `ProjectAdvanced.winisdSealedPicker`. */
+    get winisdSealedPicker(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdSealedPicker;
+    }
+
     /** WinISD Compatibility "Simplified ABC intra-port velocity" — see `ProjectAdvanced.winisdAbcIntraPortVelocity`. */
     get winisdAbcIntraPortVelocity(): SimpleField<boolean> {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcIntraPortVelocity;
@@ -358,6 +363,7 @@ export class OpenISDProject {
             nPassiveRadiators: this.box.passiveRadiator.count.value,
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
             winisdAbcGroupDelay: this.winisdAbcGroupDelay.value,
+            winisdSealedPicker: this.winisdSealedPicker.value,
         });
     }
 

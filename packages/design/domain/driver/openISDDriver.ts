@@ -213,6 +213,18 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return feed === null ? null : this.engine.sealed.volumeForLossyQtc(feed, targetQtc);
     }
 
+    /** The volume the sealed alignment picker gives for `targetQtc`. `winisdPicker` off (the "Sealed picker
+     *  volume" bug switch unticked): the volume at which the Box tab shows `targetQtc`, as `sealedVolumeForQtc`.
+     *  On: WinISD's picker volume, which ignores `Rs_ohm` and `losses` for its own fixed Rg 0.1 and Qa 100. */
+    sealedPickerVolume(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses, winisdPicker: boolean): number | null {
+        if (!winisdPicker) return this.sealedVolumeForQtc(targetQtc, Rs_ohm, losses);
+        const {Vas_m3, Qes, Qms, Re_ohm} = this.specs;
+        const [Vas, qes, qms, Re] = [Vas_m3.value, Qes.value, Qms.value, Re_ohm.value];
+        return Vas === null || qes === null || qms === null || Re === null
+            ? null
+            : this.engine.sealed.winisdPickerVolume({Vas, Qes: qes, Qms: qms, Re}, targetQtc);
+    }
+
     /** What the sealed-box engine takes of this driver, or null while Fs, Vas or Qts is unresolved. */
     #sealedFeed(Rs_ohm: number, losses: SealedBoxLosses): Omit<SealedParams, 'Vb'> | null {
         const Fs = this.specs.Fs_hz.value, Vas = this.specs.Vas_m3.value, Qts = this.sourceLoadedQts(Rs_ohm);

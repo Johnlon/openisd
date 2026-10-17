@@ -1,5 +1,6 @@
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {OpenISDProject, SealedBoxLosses} from '@openisd/design';
+import {WinisdDeviation} from '@openisd/design/fields';
 import type {DriverEngine, EbpSuitability, SealedAlignmentOption, SealedEngine} from '@openisd/design/engine';
 
 export interface SealedAlignmentEditorAPI {
@@ -12,6 +13,8 @@ export interface SealedAlignmentEditorAPI {
   readonly ebp: ComputedRef<number | null>;
   readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
   readonly ebpSuitabilityLabel: ComputedRef<string>;
+  /** The ≠W cue by the picker shows: WinISD's picker volume is not what the picker gives. */
+  readonly deviationShown: ComputedRef<boolean>;
   openEditor(): void;
   selectQtc(qtc: number): void;
   accept(): void;
@@ -30,6 +33,7 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
   readonly ebp: ComputedRef<number | null>;
   readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
   readonly ebpSuitabilityLabel: ComputedRef<string>;
+  readonly deviationShown: ComputedRef<boolean>;
 
   /** The target the draft volume was worked out from, while the draft is still that volume. */
   #picked: {qtc: number; volume_m3: number} | null = null;
@@ -48,6 +52,10 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
       return {Qts: ts.Qts.value, Vas_m3: ts.Vas_m3.value, Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value};
     });
     this.options = computed(() => sealed.alignmentOptions());
+    this.deviationShown = computed(() => {
+      void changed.value;
+      return WinisdDeviation.SEALED_PICKER.cueShown(project.value.errorSwitches);
+    });
     // The Qtc the draft volume gives on the Box tab: the same lossy figure, under the project's own source
     // resistance and box losses.
     this.qtc = computed(() => {
@@ -86,9 +94,11 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
 
   selectQtc(targetQtc: number): void {
     const p = this.project.value;
-    const volume = p.driver.sealedVolumeForQtc(targetQtc, p.Rs_ohm.value, this.#losses());
+    const winisdPicker = p.winisdSealedPicker.value;
+    const volume = p.driver.sealedPickerVolume(targetQtc, p.Rs_ohm.value, this.#losses(), winisdPicker);
     this.volume_m3.value = volume;
-    this.#picked = volume === null ? null : {qtc: targetQtc, volume_m3: volume};
+    // WinISD's picker volume is not the volume the Box tab works out from the Qtc, so the box keeps it as a typed volume.
+    this.#picked = volume === null || winisdPicker ? null : {qtc: targetQtc, volume_m3: volume};
   }
 
   /** A picked target is kept as the box's entered Qtc, with the volume calculated from it; a volume typed

@@ -148,6 +148,15 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly SEALED_PICKER = new WinisdDeviation({
+    title: 'WinISD\'s sealed picker gives a different volume',
+    winisd: 'WinISD picks a different volume here: it leaves out box leakage and uses a fixed Rg of 0.1 Ω and Qa of 100, so its Box tab then shows a Qtc a little off the one you picked.',
+    openisd: 'OpenISD gives the volume at which the Box tab shows the Qtc you picked. It counts the project\'s Rg and every box loss.',
+    size: 'W5-1138SMF (Qts 0.49, Vas 4.85 L), Ql 10: Qtc 0.800 picked gives 3.13 L in WinISD, and its Box tab shows 0.787. OpenISD gives 2.96 L, and the Box tab shows 0.800.',
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDSEALEDPICKER, switchOf: s => s.sealedPicker},
+    charts: [],
+  });
+
   static readonly CLOSED_BOX_TYPING = new WinisdDeviation({
     title: 'WinISD lets you type only the volume of a closed box',
     winisd: 'On a closed box, WinISD lets you type only the volume. Fsc is greyed out and Qtc is a plain readout, both worked out from the volume.',

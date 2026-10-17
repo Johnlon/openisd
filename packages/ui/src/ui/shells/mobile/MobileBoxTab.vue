@@ -10,6 +10,7 @@ import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
+import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
@@ -18,7 +19,7 @@ const {
   boxResonance, boxVolumeCell, sealedFscCell, sealedQtcCell,
   activeTuning, FB_TARGET_TIP, FH_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
-  sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
+  sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
   ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
   ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
@@ -86,6 +87,7 @@ const { readoutWithUnit } = useUnitReadouts();
                 @change="e => { const qtc = selectedOption(e, sealedAlignmentOptions); if (qtc !== null) sealedAlignmentEditor.selectQtc(qtc); }">
           <option v-for="o in sealedAlignmentOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
         </select>
+        <WinisdDeviationCue v-if="sealedAlignmentDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
       </div>
       <div class="mob-field-row mob-field-entered">
         <div class="mob-field-main">

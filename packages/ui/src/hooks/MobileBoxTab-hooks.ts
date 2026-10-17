@@ -33,6 +33,7 @@ export function useMobileBoxTab() {
   // aggregate.
   const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
+  const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
   const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
@@ -62,7 +63,7 @@ export function useMobileBoxTab() {
     boxResonance, boxVolumeCell, sealedFscCell, sealedQtcCell,
     activeTuning, FB_TARGET_TIP, FH_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
-    sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
+    sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,

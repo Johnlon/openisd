@@ -1,6 +1,6 @@
 # BUG_20261017_winisd-sealed-picker-volume-formula-unknown
 
-**Status:** FORMULA FOUND (2026-10-17); switch, cue and register rows still to do
+**Status:** FIXED (2026-10-17, T359): the yellow switch "Sealed picker volume", the ≠W cue and the register rows are in
 
 ## Symptom
 WinISD's New Project wizard sealed alignment picker gives a volume whose Box tab Qtc is not the picked one: picking
@@ -76,8 +76,11 @@ Recommendation: (b) a calculation bug, yellow switch under "Enable WinISD bugs".
   show intent, so John decides if he reads it as (a).
 
 ## Fix
-Formula found (above). Add the switch, the ≠W cue, the
-`docs/research/ACCURACY_IMPROVEMENTS.md` row and the `docs/research/WINISD_PARITY.md` row.
+Done in T359. Yellow bug switch "Sealed picker volume" under "Enable WinISD bugs", off by default. Ticked, both
+pickers (Box tab dialog, New Project wizard; the wizard reads the switch of the project open behind it, off with none)
+give WinISD's volume by the formula above and keep it as a typed volume, so the Box tab shows 0.787 for a picked 0.800.
+Unticked, the picker is unchanged (T347). A ≠W cue sits by each picker while the switch is unticked. Rows in
+`docs/research/ACCURACY_IMPROVEMENTS.md` and `docs/research/WINISD_PARITY.md`.
 
 ## Verification
 A unit test of the switch against the wine captures: Vb 3.1338 L for Qtc 0.800 on the W5-1138SMF, and the rows above.

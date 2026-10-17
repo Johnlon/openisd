@@ -1434,6 +1434,11 @@ export class ToggleField extends Field {
     label: "PR Npr resonance",
     description: "PR Npr resonance: WinISD works out the passive radiator box's losses at a frequency Npr times too low.\nTicked: OpenISD takes the box's leak and absorption at WinISD's frequency, 1/√(Npr·Map·(Cab ∥ Npr·Cap)). WinISD multiplies the radiator mass by Npr where the tuning divides by it.\nUnticked (default): OpenISD takes the same losses at the true tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
   }, "passive radiator boxes with more than one radiator (Npr > 1), with WinISD's lossy model. No change at Npr = 1. Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L (WinISD 21 Hz, tuning 42 Hz): the Impedance chart differs by up to 1 Ω, the Transfer function magnitude chart by up to 2 dB.");
+  static readonly ADV_WINISDSEALEDPICKER = new ToggleField({
+    value: "adv_WinisdSealedPicker",
+    label: "Sealed picker volume",
+    description: "Sealed picker volume: WinISD's sealed alignment picker gives a box volume whose Qtc on the Box tab is not the Qtc you picked.\nTicked: OpenISD works as WinISD does. The picker leaves out the box's leakage losses (Ql) and the project's own Rg and Qa. It adds a fixed Rg of 0.1 Ω to Qes and a fixed Qa of 100: Qt = 1/(1/Qts′ + 1/100), with Qts′ using Qes·(Re + 0.1)/Re. Vb = Vas/((Qtc/Qt)² − 1).\nUnticked (default): OpenISD gives the volume at which the Box tab shows the picked Qtc. It counts the project's Rg and every box loss.\nQtc: the picked total Q. Qts′: the driver's Qts with Rg in it. Vas: the driver's equivalent air volume.",
+  }, "the sealed alignment picker in the New Project wizard and on the Box tab. W5-1138SMF (Qts 0.49, Vas 4.85 L), Ql 10: Qtc 0.800 picked gives 3.13 L, and the Box tab shows 0.787. OpenISD gives 2.96 L, and the Box tab shows 0.800.");
   static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
     value: "adv_WinisdBesselHighpass",
     label: "Bessel high-pass",

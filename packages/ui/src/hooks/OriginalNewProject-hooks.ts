@@ -107,6 +107,8 @@ export interface OriginalNewProjectAPI {
   /** The sealed box volume, SI: derived from the chosen alignment, editable on step 4. */
   readonly sealedVolume_m3: Ref<number>;
   selectSealedAlignment(qtc: number): void;
+  /** The ≠W cue by the sealed picker shows: the open project's "Sealed picker volume" switch is unticked. */
+  readonly sealedPickerDeviationShown: ComputedRef<boolean>;
   setSealedVolume_m3(volume_m3: number): void;
 
   // Step 4: Vented Alignment — WinISD's five, designed as its wizard does
@@ -174,7 +176,7 @@ const STEP_LABELS = Object.freeze([
 ]);
 
 export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
-  const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, isModified, newProjectBoxTypeOptions, newProjectDriver } = deps?.appState ?? useApp().appState;
+  const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, focusedProject, isModified, newProjectBoxTypeOptions, newProjectDriver } = deps?.appState ?? useApp().appState;
   const eng: OriginalNewProjectEngineAreas = deps?.areas ?? useApp().engine;
   const prRepos: NewProjectPassiveRadiatorRepos = deps?.passiveRadiators
     ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };
@@ -296,14 +298,21 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     return qtc.value != null ? eng.sealed.closestAlignment(qtc.value) : null;
   });
 
+  /** The "Sealed picker volume" switch of the project open behind the wizard; unticked with none open,
+   *  as in a new project. */
+  const winisdSealedPicker = (): boolean => focusedProject()?.winisdSealedPicker.value ?? false;
+  const sealedPickerDeviationShown = computed(() => !winisdSealedPicker());
+
   /** Re-derive the sealed volume from the current driver and target Qtc; a driver without
    *  Qts/Vas leaves the previous volume standing. */
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
-    const calculated_m3 = driver.sealedVolumeForQtc(target, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
+    const winisdPicker = winisdSealedPicker();
+    const calculated_m3 = driver.sealedPickerVolume(target, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES, winisdPicker);
     // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
     if (calculated_m3 != null) {
       sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
-      sealedVolumeFromTarget.value = true;
+      // WinISD's picker volume is not the volume the new project works out from the Qtc, so the project is built with it as a typed volume.
+      sealedVolumeFromTarget.value = !winisdPicker;
     }
   }
 
@@ -538,6 +547,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     qtc,
     sealedVolume_m3,
     selectSealedAlignment,
+    sealedPickerDeviationShown,
     setSealedVolume_m3,
 
     VENTED_ALIGNMENT_OPTIONS,

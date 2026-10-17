@@ -88,6 +88,9 @@ const {
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverCountModel" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
         <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
       </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdSealedPicker" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
+        <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => project.winisdSealedPicker.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
+      </ErrorSwitch>
     </ErrorSwitchGroup>
   </div>
 </template>

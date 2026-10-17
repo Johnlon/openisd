@@ -281,7 +281,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ appPage: page }) => {
       const panel = page.locator('.sim-options-box');
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Per-driver impedance/]);
+      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Per-driver impedance/, /Sealed picker volume/]);
       // A pane too narrow for every column scrolls sideways: scrolled to its right end, nothing is clipped.
       await page.locator('.tab-section.active').evaluate(el => { el.scrollLeft = el.scrollWidth; });
       const panelBox = (await panel.boundingBox())!;
@@ -454,7 +454,7 @@ test.describe('Original Advanced tab', () => {
         await page.setViewportSize({width, height});
         await showAdvancedOn(page, 'abc');
         const labels = page.locator('.sim-switches label[data-field-key]');
-        await expect(labels).toHaveCount(9);
+        await expect(labels).toHaveCount(10);
         for (const label of await labels.all()) {
           const m = await label.evaluate(el => {
             const r = document.createRange(); r.selectNodeContents(el);
@@ -517,9 +517,9 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD bugs group', () => {
-    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel'];
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel', 'winisdSealedPicker'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
-    const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator'};
+    const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator', winisdSealedPicker: 'sealed'};
     /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
     const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdDriverCountModel');
     const DESIGN_KEYS = ['winisdWrapPhase', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];

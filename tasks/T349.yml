@@ -3,6 +3,7 @@ release_note: Phone - a Save button (floppy disk) in the top row of every projec
 repo: openisd
 owner: sonnet
 status: done
+landed: d6377a59893cd433938c5a4b56a2e311e9f4b9e1
 goal: Phone: a Save button (floppy icon) at the right of the top row on every project page (Box, Driver, Signal, Vented, PR, Filters, Graph); grey when saved, blue when unsaved; a tap saves under the current name and shows a 'Saved <name>' popup. Not in dialog headers or the menu (John, 17 Oct 2026).
 done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
 files:

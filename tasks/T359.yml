@@ -1,0 +1,44 @@
+id: T359
+release_note: The sealed alignment picker has a WinISD bug switch, Sealed picker volume, that gives WinISD's box volume.
+repo: openisd
+owner: sonnet
+status: done
+goal: Yellow bug switch 'Sealed picker volume' (off by default): ticked, the sealed alignment picker gives WinISD's volume (fixed Rg 0.1, Qa 100, Ql ignored); ≠W cue by the picker while off (John, 17 Oct 2026)
+done_test: bash scripts/test.sh packages/design/test/domain/winisd-sealed-picker.test.ts
+files:
+  - tasks/T359.yml
+  - bugs/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - docs/research/WINISD_PARITY.md
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/project/compatSwitch.ts
+  - packages/design/domain/project/errorSwitches.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectAdvanced.ts
+  - packages/design/engine/sealed/SealedEngine.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/winisdDeviation.ts
+  - packages/design/test/domain/compat-switch.test.ts
+  - packages/design/test/domain/error-switches.test.ts
+  - packages/design/test/domain/winisd-sealed-picker.test.ts
+  - packages/ui/src/hooks/MobileBoxTab-hooks.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/SealedAlignment-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/winisd-sealed-picker.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+visual:
+  - desktop-tab-advanced
+  - desktop-wizard-sealed-step4
+  - mobile-wizard-sealed-step4

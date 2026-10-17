@@ -154,6 +154,17 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "Sealed picker volume": the sealed alignment picker gives WinISD's volume,
+     *  with a fixed Rg of 0.1 Ω and Qa of 100 and no box losses. Off: the volume at which the Box tab
+     *  shows the picked Qtc. Off where a project does not say. */
+    get winisdSealedPicker(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdSealedPicker');
+        return {
+            get value() { return lens.value ?? CompatSwitch.SEALED_PICKER.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "Uncapped flat response": "Force flat response" as WinISD does it, every
      *  point to the transfer function's 0 dB, uncapped (BUG_20260928_force-flat-response-not-winisd).
      *  Off: boost only, up to the passband reference, capped. On where a project does not say. */

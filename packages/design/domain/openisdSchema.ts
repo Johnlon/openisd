@@ -885,6 +885,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "Per-driver impedance": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
     // coils wired into one terminal impedance. Absent parses to OFF.
     winisdDriverCountModel: z.boolean().optional(),
+    // Bug switch "Sealed picker volume": the sealed alignment picker gives WinISD's volume (Rg 0.1 and
+    // Qa 100 fixed, Ql ignored), not the volume at which the Box tab shows the picked Qtc. Absent parses to OFF.
+    winisdSealedPicker: z.boolean().optional(),
     // "Uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
     // off, boost only to the passband reference, capped. Optional: absent parses to ON.
     winisdFlatModel: z.boolean().optional(),

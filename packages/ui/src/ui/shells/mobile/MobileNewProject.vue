@@ -3,7 +3,7 @@
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { onBeforeUnmount } from 'vue';
-import { NumberField, ReadoutFormat } from '@openisd/design/fields';
+import { NumberField, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
@@ -12,6 +12,7 @@ import { useApp } from '../../../logic/app.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import NumInput from '../../components/NumInput.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
+import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
 
@@ -56,6 +57,7 @@ const {
   targetQtc,
   qtc,
   selectSealedAlignment,
+  sealedPickerDeviationShown,
   setSealedVolume_m3,
 
   VENTED_ALIGNMENT_OPTIONS,
@@ -188,6 +190,7 @@ function handleCreate() {
           <select id="np-alignment" :value="targetQtc" @change="e => { const q = selectedOption(e, SEALED_ALIGNMENT_OPTIONS); if (q !== null) selectSealedAlignment(q); }">
             <option v-for="o in SEALED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
           </select>
+          <WinisdDeviationCue v-if="sealedPickerDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
         </div>
         <div class="field"><label>Box volume</label>
           <div class="field-inline"><NumInput id="np-sealed-volume" :model-value="sealedVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) setSealedVolume_m3(v); }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div>

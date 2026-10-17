@@ -222,6 +222,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
   const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
+  const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
   const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
@@ -774,7 +775,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
-     boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen,
+     boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
      ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
