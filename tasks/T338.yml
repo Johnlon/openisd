@@ -1,0 +1,26 @@
+id: T338
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: PR Fp on the Box tab; Mms and Cms on the desktop PR tab
+done_test: bash scripts/test.sh packages/design/test/domain/error-switches.test.ts
+files:
+  - tasks/T338.yml
+  - bugs/BUG_20261017_box-tab-has-no-pr-tuning-input.md
+  - bugs/BUG_20261017_desktop-pr-tab-has-no-mms-and-cms.md
+  - docs/research/WINISD_PARITY.md
+  - packages/design/fields/field.ts
+  - packages/design/fields/winisdDeviation.ts
+  - packages/design/test/domain/error-switches.test.ts
+  - packages/ui/src/hooks/MobileBoxTab-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-num-stepper.browser.spec.ts
+  - packages/ui/test/ui/pr-difference-cues.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+visual:
+  - desktop-box-box-passive-radiator

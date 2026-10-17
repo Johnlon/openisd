@@ -1110,6 +1110,14 @@ export class NumberField extends Field {
     precision: 2,
     description: "System Resonance Frequency (Fsc / Fh)\nThe driver's resonance once coupled to the enclosure.",
   });
+  static readonly BOX_FH_HZ = new NumberField({
+    value: "box_Fh_hz",
+    label: "Fh",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
+    limits: {min: 1, max: 1000},
+    precision: 2,
+    description: "Passive Radiator System Tuning (Fh)\nHelmholtz tuning frequency the passive radiator and the box volume achieve together. The same value as the Fp on the Passive Radiator tab.",
+  });
   static readonly BOX_FSC_HZ = new NumberField({
     value: "box_Fsc_hz",
     label: "Fsc",

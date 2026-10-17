@@ -5,7 +5,7 @@
 // field-wiring factories OriginalShell-hooks.ts exports. PRBrowser is the app's
 // existing global-style overlay, reused unchanged (not duplicated per skin) — position:fixed
 // descendants of .app-root-mobile are already contained to the phone pane (App.vue's own fix).
-import {NumberField, TextField} from '@openisd/design/fields';
+import {NumberField, TextField, WinisdDeviation} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
 import UIField from '../../components/UIField.vue';
 import NumInput from '../../components/NumInput.vue';
@@ -113,8 +113,8 @@ const {fieldWithUnit} = useUnitReadouts();
     <UIField class="mob-ui-field" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" stepper />
-    <UIField class="mob-ui-field" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
 
     <div class="mob-panel-head mob-panel-head-sub">User options</div>

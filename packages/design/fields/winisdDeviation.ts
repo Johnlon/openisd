@@ -157,6 +157,24 @@ export class WinisdDeviation {
     charts: [],
   });
 
+  static readonly PR_BOX_TUNING = new WinisdDeviation({
+    title: 'WinISD lets you type the passive radiator tuning only on the Passive Radiator tab',
+    winisd: 'On the Box tab of a passive radiator box, WinISD greys out Fh. You set the tuning by adding mass on the Passive Radiator tab.',
+    openisd: 'OpenISD lets you type the tuning on the Box tab as well. It is the same value as the tuning on the Passive Radiator tab, and the added mass is worked out from it.',
+    size: 'No chart differs: the same box gives the same curves. Only what you can type differs.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Fh field on the Box tab of a passive radiator box.', remedy: 'WinISD has no way to type this, so OpenISD has no switch to copy it. Type the added mass on the Passive Radiator tab to work the way WinISD does.'},
+    charts: [],
+  });
+
+  static readonly PR_MMS_CMS_TYPING = new WinisdDeviation({
+    title: 'WinISD has no Mms or Cms on the Passive Radiator tab',
+    winisd: 'WinISD takes the passive radiator as Vas, Fs, Qms, Sd and Xmax. It works Mms and Cms out from them and shows neither.',
+    openisd: 'OpenISD shows Mms and Cms, and lets you type them, as a datasheet gives them. Vas and Fs are then worked out from them.',
+    size: 'No chart differs: the same radiator gives the same curves. Only what you can type differs.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Mms and Cms fields on the Passive Radiator tab.', remedy: 'WinISD has no way to type these, so OpenISD has no switch to copy it. Type Vas and Fs to work the way WinISD does.'},
+    charts: [],
+  });
+
   /** The project-wide members, by reflection; declared last. */
   static readonly ALL: readonly WinisdDeviation[] =
     Object.freeze(Object.values(WinisdDeviation).filter((v): v is WinisdDeviation => v instanceof WinisdDeviation));

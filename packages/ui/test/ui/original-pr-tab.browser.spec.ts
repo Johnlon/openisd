@@ -359,8 +359,39 @@ test.describe('Original Passive Radiator tab data quality', () => {
     await expect(page.locator('#og-pr-fs-mass').locator('xpath=ancestor::div[contains(@class,"field")][1]'))
       .toHaveClass(/dq-flag/);
     await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
-    await expect(page.locator('#og-box-resonance').locator('xpath=ancestor::div[contains(@class,"field")][1]'))
-      .toHaveClass(/dq-flag/);
+    // The Box tab's Fh is the same field as the Fp above, so it carries the same cause mark.
+    await expect(page.locator('#og-box-resonance')).toHaveClass(/dq-root/);
+  });
+
+  test('Fh typed on the Box tab is the Fp on the Passive Radiator tab, and the added mass follows', async ({ appPage: page }) => {
+    const pageOps = new PageOps(page);
+    await setFocusedBoxType(page, 'box-passive-radiator');
+    await pageOps.setNum(VOLUME_INPUT, '30');
+    await configureRadiator(page);
+    await pageOps.setNum('#og-pr-madd', '0');
+    await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+    const ceiling = Number(await page.locator('#og-box-resonance').inputValue());
+
+    const target = (ceiling * 0.9).toFixed(2);
+    await pageOps.setNum('#og-box-resonance', target);
+    await expect(page.locator('#og-box-resonance')).toHaveValue(target);
+
+    await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
+    await expect(page.locator('#og-pr-fp')).toHaveValue(target);
+    expect(Number(await page.locator('#og-pr-madd').inputValue())).toBeGreaterThan(0);
+  });
+
+  test('Mms and Cms are on the Passive Radiator tab: Mms typed is kept, and Cms is still shown', async ({ appPage: page }) => {
+    const pageOps = new PageOps(page);
+    await setFocusedBoxType(page, 'box-passive-radiator');
+    await configureRadiator(page);
+    const mms = page.locator('#og-pr-mms');
+    const cms = page.locator('#og-pr-cms');
+    await expect(mms).toHaveValue(/\d/);
+    await expect(cms).toHaveValue(/\d/);
+    await pageOps.setNum('#og-pr-mms', '45');
+    await expect(mms).toHaveValue(/^45/);
+    await expect(cms).toHaveValue(/\d/);
   });
 
   test('a reachable target shows no DQ anywhere', async ({ appPage: page }) => {

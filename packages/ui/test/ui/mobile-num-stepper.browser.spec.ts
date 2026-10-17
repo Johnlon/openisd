@@ -169,8 +169,8 @@ test('an editable value is drawn as an input box; a read-only one is not', async
   // readonly attribute — asserted directly (no `if`, playwright/no-conditional-expect): there is
   // no <input> at all for it to look like one.
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
-  await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-  await expect(fieldRow(page, 'Fh').locator('input')).toHaveCount(0);
+  await page.locator('#mob-box-type').selectOption('bandpass4');
+  await expect(fieldRow(page, 'Fsc').locator('input')).toHaveCount(0);
 });
 
 // Field diagnostics 2026-10-02: a stepper tapped on a field holding 0 threw InvalidStateError
