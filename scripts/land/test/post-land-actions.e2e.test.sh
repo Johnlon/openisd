@@ -42,7 +42,7 @@ setup() {
     git init -q --bare -b main origin.git
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
-    cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/paths.sh" "$REPO/scripts/browser-runs.sh" "$REPO/scripts/slice-events.sh" scripts/
+    cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/; cp "$REPO/scripts/paths.sh" "$REPO/scripts/browser-runs.sh" "$REPO/scripts/slice-events.sh" scripts/
     cp -r "$REPO/scripts/admit" "$REPO/scripts/visual" scripts/
     cat > land.conf <<CONF
 FULL_SUITE_CMD="bash scripts/land/post-land/actions.sh"
@@ -113,6 +113,24 @@ for _ in $(seq 50); do grep -q "run watch $s" "$FAKE_GH/calls" 2>/dev/null && br
 kill -TERM "$p"; wait "$p" 2>/dev/null
 left=$(ps -eo pgid=,args= | awk -v g="$p" '$1 == g' | grep -c .)
 if [ "$left" = 0 ] && [ ! -d "$SCRATCH/copies/$p-${s:0:10}" ]; then ok "killed mid-wait leaves nothing running"; else fail "killed (left=$left)"; fi
+
+# 8. the suite command comes from the tested commit's land.conf, not the main checkout's, which can lag
+setup; s=$(commit_push nine); echo success > "$FAKE_GH/$s.conclusion"
+sed -i 's|^FULL_SUITE_CMD=.*|FULL_SUITE_CMD="false"|' land.conf
+post "$s" a; r=$?
+if [ $r = 0 ] && [ "$(green)" = "$s" ] && grep -q "suite command (from ${s:0:10}): bash scripts/land/post-land/actions.sh" "$SCRATCH/out.a"; then
+    ok "the suite command is the tested commit's"; else fail "commit's suite command (r=$r) $(tail -3 "$SCRATCH/out.a")"; fi
+
+# 9. the main checkout lags origin/main and has local edits: the run uses origin/main's scripts and settings
+setup; s=$(commit_push ten); echo success > "$FAKE_GH/$s.conclusion"
+git clone -q "$SCRATCH/w/origin.git" "$SCRATCH/w/other" 2>/dev/null
+( cd "$SCRATCH/w/other" && git config user.email t@t && git config user.name t \
+  && sed -i 's|^ACTIONS_REPO=.*|ACTIONS_REPO=moved/repo|' land.conf && git commit -qam "repo moved" && git push -q origin main )
+s=$(git -C "$SCRATCH/w/other" rev-parse HEAD); echo success > "$FAKE_GH/$s.conclusion"
+echo 'exit 7' > scripts/land/post-land/actions.sh; echo 'exit 7' > scripts/paths.sh
+post "$s" a; r=$?
+if [ $r = 0 ] && [ "$(green)" = "$s" ] && grep -q -- "--repo moved/repo" "$FAKE_GH/calls" && [ -z "$(ls -d "${TMPDIR:-/tmp}"/post-land-tools.* 2>/dev/null | xargs -r -n1 sh -c 'grep -l "moved/repo" "$0/land.conf" 2>/dev/null')" ]; then
+    ok "a lagging main checkout: origin/main's scripts and settings, snapshot removed"; else fail "lagging checkout (r=$r) $(tail -3 "$SCRATCH/out.a")"; fi
 
 [ $fails = 0 ] && { echo "post-land-actions.e2e: all passed"; exit 0; }
 echo "post-land-actions.e2e: $fails failed"; exit 1

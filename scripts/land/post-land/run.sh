@@ -35,15 +35,26 @@ SHA_ARG="${1:?usage: run.sh <sha>}"
 # 12 Oct: the run lost its cwd and reported a bogus red). Everything below works from ROOT.
 ROOT="$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" || exit 2
 cd "$ROOT" || exit 2
-[ -f land.conf ] || { echo "post-land: no land.conf in $ROOT" >&2; exit 2; }
-# shellcheck source=/dev/null
+# The scripts and settings are origin/main's own, never the main checkout's files: that checkout can lag
+# main (17 Oct: 12 commits behind, held by another session's uncommitted files, so post-land ran the
+# laptop suite after T266 had moved the gate to GitHub Actions). This run re-starts itself from a
+# snapshot of origin/main's scripts/ and land.conf (TOOLS); ROOT is used only for git.
+if [ -z "${POST_LAND_TOOLS:-}" ]; then
+  git fetch -q origin main 2> /dev/null || echo "post-land: cannot fetch origin/main; using the local origin/main" >&2
+  tools="$(mktemp -d "${TMPDIR:-/tmp}/post-land-tools.XXXXXX")" || exit 2
+  git archive origin/main scripts land.conf | tar -x -C "$tools" || { rm -rf "$tools"; echo "post-land: cannot read origin/main's scripts" >&2; exit 2; }
+  exec env POST_LAND_TOOLS="$tools" bash "$tools/scripts/land/post-land/run.sh" "$@"
+fi
+TOOLS="$POST_LAND_TOOLS"
+[ -f "$TOOLS/land.conf" ] || { echo "post-land: no land.conf on origin/main" >&2; exit 2; }
 # paths.sh sets POST_LAND_LOCK (and the runtime dir); land.conf does not, and this script is started
 # detached, so nothing is inherited. 12 Oct: every post-land run died here with POST_LAND_LOCK unbound.
 # shellcheck source=/dev/null
-. "$ROOT/scripts/paths.sh"
-. ./land.conf
-. "$ROOT/scripts/lib/ts-log.sh"
-TS_WRAP=(bash "$ROOT/scripts/lib/ts-log.sh")
+. "$TOOLS/scripts/paths.sh"
+# shellcheck source=/dev/null
+. "$TOOLS/land.conf"
+. "$TOOLS/scripts/lib/ts-log.sh"
+TS_WRAP=(bash "$TOOLS/scripts/lib/ts-log.sh")
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 DEADLINE_S="${POST_LAND_DEADLINE_S:-5400}"
 RUNNING="${POST_LAND_LOCK}.running"
@@ -60,7 +71,7 @@ FIX=""
 # browser run leaves that group (test-browser.sh's setsid), so it is stopped by its record, whose owner
 # is this run (scripts/browser-runs.sh).
 # shellcheck source=../../browser-runs.sh
-. "$ROOT/scripts/browser-runs.sh"
+. "$TOOLS/scripts/browser-runs.sh"
 export OPENISD_BROWSER_OWNER="$$ $(admit_starttime $$)"
 stop_suite() {
   [ -n "$BODY" ] || return 0
@@ -100,7 +111,7 @@ record_red() {
     failing="$(sed -E 's/^[0-9T:.-]+Z [^ ]+ //' "$OUT" | grep -Ev '^[[:space:]]*(stderr|stdout) \|' | grep -E '(^|[[:space:]])(FAIL|✘|×)[[:space:]]|[^ ]+\.(test|spec)\.[tj]sx? *(›|>|failed)' | sed 's/^/  /' | head -n 200)"
     # Screens whose picture differs from its baseline: named, with a before/after page (scripts/visual/).
     visual=""
-    [ ! -f "$ROOT/scripts/visual/failures-page.sh" ] || visual="$(bash "$ROOT/scripts/visual/failures-page.sh" "$COPY" "$SHA" 2> /dev/null || true)"
+    [ ! -f "$TOOLS/scripts/visual/failures-page.sh" ] || visual="$(bash "$TOOLS/scripts/visual/failures-page.sh" "$COPY" "$SHA" 2> /dev/null || true)"
     # One F per fault, not one per pushed commit: a red while an F is open is appended to that F.
     open="$(grep -l '^status: open' "$FIX"/tasks/fixes/F*.yml 2>/dev/null | head -n 1)"
     if [ -n "$open" ]; then
@@ -174,6 +185,7 @@ cleanup() {
   [ -z "$FIX" ] || { git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"; }
   git -C "$ROOT" worktree prune
   rm -f "$OUT" "${MINE:-}"
+  rm -rf "$TOOLS"
   exit "$status"
 }
 trap cleanup EXIT
@@ -229,11 +241,17 @@ echo "post-land: running the full suite on ${SHA:0:10}"
 # Where the next red can be read: whether either slice was throttled (high) or hit its ceiling (max)
 # inside this run's window. The counters are cumulative since boot; the difference is the window.
 # shellcheck source=../../slice-events.sh
-. "$ROOT/scripts/slice-events.sh"
+. "$TOOLS/scripts/slice-events.sh"
 high_before=$(slice_event_count heavy.slice high)
 echo "post-land: start $(slice_events_line heavy.slice)"
 printf '%s %s %s\n' "$$" "$(date +%s)" "$SHA" > "$RUNNING"
 set -m
+# The suite command is the tested commit's own: the main checkout's land.conf can lag main (17 Oct: it
+# sat 12 commits behind, held by another session's uncommitted files, and post-land ran the laptop
+# suite after T266 had switched the gate to GitHub Actions).
+suite_cmd="$(cd "$COPY" && [ -f land.conf ] && . ./land.conf && printf '%s' "${FULL_SUITE_CMD:-}")"
+FULL_SUITE_CMD="${suite_cmd:-$FULL_SUITE_CMD}"
+echo "post-land: suite command (from ${SHA:0:10}): $FULL_SUITE_CMD"
 # ts-log.sh timestamps every line and exits with the suite's own status; it leads the group.
 ( cd "$COPY" && export POST_LAND_SRC="$ROOT" && exec "${TS_WRAP[@]}" bash -c "$FULL_SUITE_CMD" ) > "$OUT" 2>&1 &
 BODY=$!

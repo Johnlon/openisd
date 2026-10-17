@@ -3,6 +3,7 @@ release_note: Export all projects now shows a popup saying how many projects wer
 repo: openisd
 owner: fable
 status: done
+landed: 80e0699e5102400c67bb971b6a350349e33820b5
 goal: Export all (both skins) ends with an OK popup saying what was exported; general rule 4, every button shows a visible result
 done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
 files:

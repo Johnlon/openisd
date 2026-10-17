@@ -1,0 +1,14 @@
+id: T284
+release_note: internal
+label: fixes
+repo: openisd
+owner: maryu
+status: done
+goal: post-land runs origin/main's scripts and settings and the tested commit's suite command, never the main checkout's files
+done_test: bash scripts/land/test/post-land-actions.e2e.test.sh && bash scripts/land/test/post-land.e2e.test.sh
+files:
+  - tasks/T284.yml
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/post-land-actions.e2e.test.sh
+  - bugs/BUG_20261017_post-land-reads-a-stale-land-conf.md
+  - tasks/fixes/F51.yml

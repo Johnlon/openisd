@@ -239,3 +239,9 @@ also_red:
     range: 2947ff6a12a013d238409ed24c7e3c6a2e88b131..80e0699e5102400c67bb971b6a350349e33820b5
     failing: |
     
+note: |
+  (maryu, T284) Two faults share this F. f1a44803d3 is a laptop-only red: GitHub Actions ran it green; the
+  laptop test server died mid-run (BUG_20261017_laptop-suite-server-dies-mid-run), and the run was a laptop
+  run only because post-land read the main checkout's stale land.conf (fixed by T284). The real fault is on
+  GitHub Actions from a605e4060d (T274) on: mobile-sheet-fit fails at 360x740 and 375x667 (abc, bandpass4,
+  bandpass6 sheets do not fit in Tune and Learn). F51 stays open for that.
