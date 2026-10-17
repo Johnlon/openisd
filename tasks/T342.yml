@@ -1,0 +1,10 @@
+id: T342
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Record that T247 is abandoned: no live owner; F45 is closed, so nothing is left to do (QO185)
+done_test: grep -qx 'status: abandoned' tasks/T247.yml
+files:
+  - tasks/T342.yml
+  - tasks/T247.yml

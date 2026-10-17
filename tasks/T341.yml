@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: a4efea3a97b272cf9e237c89d3ae505c529a5624
 goal: Record that T185 is abandoned: no live owner; superseded (QO185)
 done_test: grep -qx 'status: abandoned' tasks/T185.yml
 files:

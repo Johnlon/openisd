@@ -1,0 +1,13 @@
+id: T247
+release_note: internal
+repo: openisd
+owner: maryu
+status: abandoned
+abandoned_by: fable
+abandoned_on: 2026-10-17
+abandoned_why: no live owner; F45 is closed, so nothing is left to do (QO185)
+archived: 041547cad451dc96377284542bb0f067a3770e40
+goal: F45: my-drivers and new-project-wizard specs red after T244
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T247.yml
