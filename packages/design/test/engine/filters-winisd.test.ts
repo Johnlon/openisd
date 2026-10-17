@@ -19,6 +19,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {Filter} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {WINISD_FILTER_CAPTURES} from '../fixtures/winisdFilterCaptures.js';
 
 const engine = createEngine();
@@ -36,7 +37,7 @@ const LE_H = 0.70e-3;
  *  WinISD's own, Bessel high-pass error included (`winisdBesselHighpass`). */
 function chainAt(filters: Filter[], f: number) {
   const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed',
-    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters, winisdBesselHighpass: true}).values!;
+    {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters, winisdBesselHighpass: true, air: REFERENCE_AIR}).values!;
   return {mag: sw.fltMag[0], phase: sw.fltPhase[0], gdMs: sw.fltGd[0]};
 }
 function filterAt(filter: Filter, f: number) { return chainAt([filter], f); }

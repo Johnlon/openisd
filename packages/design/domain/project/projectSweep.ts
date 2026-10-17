@@ -1,7 +1,8 @@
 import type {
-    Air, AirEnvironment, BoxParamsIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
-    SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
+    Air, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
+    SimulationEngine, SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
 } from '../../engine/index.js';
+import { FixedAir } from '../../engine/index.js';
 import type { Filter, EnclosureParams } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell } from '../cell.js';
 import type { Calculated, Readable, SimpleField } from '../cell.js';
@@ -18,7 +19,7 @@ import type { OpenISDDriverEmbedded } from '../driver/openISDDriverEmbedded.js';
  *  fresh one on every sweep/maxCurves/boxParamsIssues/ventAchievedFb/ventMaxReachableFb call, the
  *  same "built fresh" reasoning `driver`/`box` already follow.
  *
- *  `air`/`airEnvironment`/`driveVoltage_V` are already-read VALUES, not
+ *  `air`/`airIssues`/`driveVoltage_V` are already-read VALUES, not
  *  fields or closures: the original private methods read them once per call too (`this.#air(this
  *  .#root())` inside `#sweepParams`/`sweep`/`maxCurves`/`ventMaxReachableFb`), so reading them
  *  once while building the source changes nothing. */
@@ -48,8 +49,9 @@ export interface ProjectSweepSource {
     readonly alfaVC_per_K: SimpleField<number>;
     readonly sweepN: SimpleField<number | null>;
     readonly driveVoltage_V: number;
-    readonly airEnvironment: AirEnvironment;
     readonly air: Air;
+    /** What is wrong with the conditions `air` was solved from; a sweep does not run while any is. */
+    readonly airIssues: readonly EnvironmentIssue[];
     readonly engine: Engine;
     readonly ventIssues: readonly VentIssue[];
     readonly prIssues: readonly PrIssue[];
@@ -66,7 +68,7 @@ function enclosureParamsOf(source: ProjectSweepSource, boxType: SimulatableBoxTy
 /** `eg` is the drive voltage the sweep runs at: `sweepOf` passes the solved `driveVoltage_V`
  *  (gated non-null first), `maxCurvesOf` the 2.83 V reference the engine runs those curves at.
  *  `Vb` is the box volume, already gated non-null by `sweepPlanOf`. */
-function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number, boxType: SimulatableBoxType, Vb: number): SweepParams {
+function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number, boxType: SimulatableBoxType, Vb: number): SweepJobParams {
     const box = source.box;
     let losses: {Ql?: number; Qa?: number; Qp?: number} = {};
     switch (boxType) {
@@ -101,7 +103,6 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
         winisdAbcGroupDelay: source.winisdAbcGroupDelay.value,
         Ql: losses.Ql, Qa: losses.Qa, Qp: losses.Qp,
         ...boxSpecificParamsOf(source, boxType),
-        ...source.airEnvironment,
         driverAddedMass: source.driverAddedMass_kg.value,
         vcTempRise: source.vcTempRise_K.value,
         loading: source.loading.value,
@@ -299,15 +300,31 @@ function boxSweepIssuesOf(source: ProjectSweepSource, box: SimulatableBoxType): 
     return [];
 }
 
-/** A sweep the engine runs as given: `SimulationEngine.sweep(driver, Le_H, box, sweep)` and
- *  `maxCurves(driver, Le_H, box, maxCurves)`. Plain data, so it crosses a Worker boundary. */
+/** A sweep's settings without its air: the job carries the air once, as plain numbers. */
+export type SweepJobParams = Omit<SweepParams, 'air'>;
+
+/** A sweep the engine runs through `runSweepJob` and `runMaxCurvesJob`. Plain data, so it crosses
+ *  a Worker boundary: the air is its c and ρ as numbers, since a structured clone drops an `Air`'s
+ *  methods. */
 export interface SweepJob {
     readonly driver: SweepDriver;
     readonly Le_H: number | undefined;
     readonly box: SimulatableBoxType;
-    readonly sweep: SweepParams;
+    /** The project's c and ρ at the time the job was made. */
+    readonly air: AirValues;
+    readonly sweep: SweepJobParams;
     /** At the 2.83 V reference: the engine runs max curves there whatever `eg` it is handed. */
-    readonly maxCurves: SweepParams;
+    readonly maxCurves: SweepJobParams;
+}
+
+/** The job's frequency response, impedance and excursion. */
+export function runSweepJob(simulation: SimulationEngine, job: SweepJob): SweepSolveResult {
+    return simulation.sweep(job.driver, job.Le_H, job.box, {...job.sweep, air: new FixedAir(job.air)});
+}
+
+/** The job's excursion- and power-limited maximum SPL curves. */
+export function runMaxCurvesJob(simulation: SimulationEngine, job: SweepJob): MaxCurvesSolveResult {
+    return simulation.maxCurves(job.driver, job.Le_H, job.box, {...job.maxCurves, air: new FixedAir(job.air)});
 }
 
 /** The job this project's sweep runs, or the issues that stop it. `issues` is empty when the
@@ -328,6 +345,7 @@ function sweepDriverOf(source: ProjectSweepSource): SweepDriver {
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {
     const box = engineBoxTypeOf(source);
     if (!box) return {kind: 'blocked', issues: []};
+    if (source.airIssues.length) return {kind: 'blocked', issues: source.airIssues};
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};
     // A blank box volume: the engine's own "Box volume (Vb) must be greater than zero" names it.
@@ -337,6 +355,7 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
         driver: sweepDriverOf(source),
         Le_H: source.driver.specs.Le_H.value ?? undefined,
         box,
+        air: {c: source.air.c(), rho: source.air.rho()},
         sweep: sweepParamsOf(source, P, source.driveVoltage_V, box, Vb),
         maxCurves: sweepParamsOf(source, P, 2.83, box, Vb),
     }};
@@ -350,8 +369,7 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
 export function sweepOf(source: ProjectSweepSource, P: FrequencyGrid): SweepSolveResult {
     const plan = sweepPlanOf(source, P);
     if (plan.kind === 'blocked') return {values: null, issues: [...plan.issues]};
-    const {driver, Le_H, box, sweep} = plan.job;
-    return source.engine.simulation.sweep(driver, Le_H, box, sweep);
+    return runSweepJob(source.engine.simulation, plan.job);
 }
 
 /** The excursion- and power-limited maximum SPL curves. Reports on the same terms as `sweepOf`,
@@ -360,8 +378,7 @@ export function sweepOf(source: ProjectSweepSource, P: FrequencyGrid): SweepSolv
 export function maxCurvesOf(source: ProjectSweepSource, P: FrequencyGrid): MaxCurvesSolveResult {
     const plan = sweepPlanOf(source, P);
     if (plan.kind === 'blocked') return {values: null, issues: [...plan.issues], driverPrerequisites: []};
-    const {driver, Le_H, box, maxCurves} = plan.job;
-    return source.engine.simulation.maxCurves(driver, Le_H, box, maxCurves);
+    return runMaxCurvesJob(source.engine.simulation, plan.job);
 }
 
 /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a caller

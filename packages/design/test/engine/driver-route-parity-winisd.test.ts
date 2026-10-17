@@ -3,6 +3,8 @@ import type {TestSolverQuantities} from './testSolver.js';
 import {solveConsistencyGroup} from './testSolver.js';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {FixedAir} from '../../engine/index.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 
@@ -17,9 +19,9 @@ function num(v: number | undefined): number {
 
 // A driver record stating no `c`/`roo` of its own takes WinISD's air model at the
 // reference environment — the same air `airFor({})` reports.
-const driverC   = (): number => engine.environment.solve({}).values.c;
+const driverC   = (): number => REFERENCE_AIR_VALUES.c;
 
-const driverRho = (): number => engine.environment.solve({}).values.rho;
+const driverRho = (): number => REFERENCE_AIR_VALUES.rho;
 
 describe('driver Fs and Vas route parity with WinISD', () => {
   // ── Fs route parity with WinISD — BUG_20260817 ──────────────────────────────
@@ -53,7 +55,7 @@ describe('driver Fs and Vas route parity with WinISD', () => {
       const Qes = 0.4;
       const Vas = 0.045;
       const fs14 = 40;                       // the value rel 14 must produce
-      const no = engine.driver.referenceEfficiency(fs14, Vas, Qes, engine.environment.solve({}).values);
+      const no = engine.driver.referenceEfficiency(fs14, Vas, Qes, REFERENCE_AIR);
 
       // rel 2 inputs engineered to disagree with rel 14's answer (50 Hz instead of 40 Hz).
       const fs2 = 50;
@@ -74,7 +76,7 @@ describe('driver Fs and Vas route parity with WinISD', () => {
       const Qes = 0.4;
       const Vas = 0.045;
       const fs14 = fs11 * 1.5;
-      const no = engine.driver.referenceEfficiency(fs14, Vas, Qes, engine.environment.solve({}).values);
+      const no = engine.driver.referenceEfficiency(fs14, Vas, Qes, REFERENCE_AIR);
 
       const res = solveConsistencyGroup({ Mms_kg: Mms, Cms_m_per_N: Cms, Qes, Vas_m3: Vas, no });
       assert.ok(Math.abs(num(res.Fs_hz) - fs11) < 1e-6, `rel 11 must win over rel 14, expected ${fs11}, got ${res.Fs_hz}`);
@@ -155,7 +157,7 @@ describe('driver Fs and Vas route parity with WinISD', () => {
     } as const;
     // The air WinISD's saved Vas was computed in. OpenISD takes air from the project, never from
     // the record (John, 2026-10-05), so it is handed in as the project's.
-    const W5_AIR = { c: 343.6826980479399, rho: 1.2009621215255684 } as const;
+    const W5_AIR = new FixedAir({ c: 343.6826980479399, rho: 1.2009621215255684 });
     // WinISD's own stored efficiency value for this record (the W5 save), as a FRACTION.
     const NO_WINISD = 0.000895200585183395;
 
@@ -199,7 +201,7 @@ describe('driver Fs and Vas route parity with WinISD', () => {
       // 0.000718523656549444. Spot-check the same happens here.
       assert.ok(res.no != null, 'no still derives from Fs/Qes/Vas once the compliance Vas exists');
       const noFromCompliance = engine.driver.referenceEfficiency(
-        W5.Fs_hz, VAS_COMPLIANCE, W5.Qes, engine.environment.solve({}).values);
+        W5.Fs_hz, VAS_COMPLIANCE, W5.Qes, REFERENCE_AIR);
       assert.ok(Math.abs(num(res.no) - noFromCompliance) <= noFromCompliance * 1e-12,
         `no must be η₀ of the compliance Vas, got ${res.no}`);
     });

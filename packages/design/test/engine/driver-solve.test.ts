@@ -5,13 +5,14 @@ import type {TestSolverQuantities} from './testSolver.js';
 import {checkConsistency, fakeSolverField, solveConsistencyGroup} from './testSolver.js';
 import assert from 'node:assert/strict';
 import {knownDecimals} from '../../fields/precision.js';
+import {REFERENCE_AIR, REFERENCE_CONDITIONS, airOfConditions} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 
-// Deliberately NOT the reference condition (`engine.environment.solve({}).values`): `solveConsistencyGroup`'s own
+// Deliberately NOT the reference condition (`REFERENCE_AIR`): `solveConsistencyGroup`'s own
 // internal driverC/driverRho fallback already defaults to reference air on its own, so a test
 // using reference air here would pass even if `solveDriver` never threaded `air` through at all.
-const AIR = engine.environment.solve({ tempK: 350 }).values;
+const AIR = airOfConditions({...REFERENCE_CONDITIONS, tempK: 350});
 
 function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'series' | 'parallel'> {
   let current = value;
@@ -109,7 +110,7 @@ const BASE: Record<string, number> = {
   Sd_m2: 0.022, Qms: 2.1, BL_Tm: 6.0, Xmax_m: 0.0067, Pe_W: 100,
 };
 
-const AIR_E = engine.environment.solve({}).values;
+const AIR_E = REFERENCE_AIR;
 
 /** Qts = Qes·Qms/(Qes+Qms); its half-width is Σ |∂Qts/∂input| · input half-width. */
 function qtsHalfWidth(qes: number, dQes: number, qms: number, dQms: number): number {
@@ -154,25 +155,25 @@ describe('Engine.solveDriver', () => {
       const p = driverParams({});
       const write = vi.spyOn(p.c_m_per_s, 'setCalculated');
       engine.driver.solve(p, AIR);
-      expect(write).toHaveBeenCalledWith(AIR.c);
-      expect(p.c_m_per_s.value).toBe(AIR.c);
+      expect(write).toHaveBeenCalledWith(AIR.c());
+      expect(p.c_m_per_s.value).toBe(AIR.c());
     });
 
     it('a not-entered roo_kg_per_m3 defaults to the given air and is written back as calculated', () => {
       const p = driverParams({});
       const write = vi.spyOn(p.roo_kg_per_m3, 'setCalculated');
       engine.driver.solve(p, AIR);
-      expect(write).toHaveBeenCalledWith(AIR.rho);
-      expect(p.roo_kg_per_m3.value).toBe(AIR.rho);
+      expect(write).toHaveBeenCalledWith(AIR.rho());
+      expect(p.roo_kg_per_m3.value).toBe(AIR.rho());
     });
 
     it('an entered c_m_per_s/roo_kg_per_m3 is replaced by the given air, written as calculated', () => {
       // John, 2026-10-05: a driver record's own c and roo feed no calculation.
       const p = driverParams({ c_m_per_s: 111111, roo_kg_per_m3: 2.5 });
       engine.driver.solve(p, AIR);
-      expect(p.c_m_per_s.value).toBe(AIR.c);
+      expect(p.c_m_per_s.value).toBe(AIR.c());
       expect(p.c_m_per_s.entered).toBe(false);
-      expect(p.roo_kg_per_m3.value).toBe(AIR.rho);
+      expect(p.roo_kg_per_m3.value).toBe(AIR.rho());
       expect(p.roo_kg_per_m3.entered).toBe(false);
     });
 
@@ -180,7 +181,7 @@ describe('Engine.solveDriver', () => {
       const Vas_m3 = 0.05, Cms_m_per_N = 0.0009;
       const p = driverParams({ c_m_per_s: 0, roo_kg_per_m3: 7, Vas_m3, Cms_m_per_N });
       engine.driver.solve(p, AIR);
-      expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (AIR.rho * AIR.c * AIR.c * Cms_m_per_N)), 12);
+      expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (AIR.rho() * AIR.c() * AIR.c() * Cms_m_per_N)), 12);
     });
   });
 

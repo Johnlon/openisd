@@ -2,6 +2,7 @@ import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
@@ -29,7 +30,7 @@ describe('maxCurves', () => {
       });
 
       const { fs, maxspl } = engine.simulation.maxCurves(sweepDriver(drvNoPe), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR,
       }).values!;
 
       assert(fs.length > 0, 'maxCurves must return non-empty fs array');
@@ -52,7 +53,7 @@ describe('maxCurves', () => {
       });
 
       const { maxspl, maxpwr } = engine.simulation.maxCurves(sweepDriver(drvXmax0), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR,
       }).values!;
 
       assert(maxspl.every(Number.isFinite),
@@ -70,7 +71,7 @@ describe('maxCurves', () => {
       });
 
       const result = engine.simulation.maxCurves(sweepDriver(drvNeither), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR,
       });
 
       assert.equal(result.issues.length, 0, 'unbounded is a valid answer, not a blocking issue');
@@ -89,7 +90,7 @@ describe('maxCurves', () => {
       });
 
       const result = engine.simulation.maxCurves(sweepDriver(drvXmaxOnly), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR,
       });
 
       assert.deepEqual(result.driverPrerequisites, []);

@@ -27,6 +27,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, sep } from 'node:path';
 import {createEngine} from '@openisd/design/engine';
+import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 import { PARSTATE_LEN } from '../../winisd/parstate.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
 import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
@@ -175,7 +176,7 @@ describe('a .wdr survives the round trip THROUGH OpenISDDriver', () => {
 
     it(`${file} — the file's own c and roo are replaced by the air used, marked C`, () => {
       const after = WinISDDriver.fromWdrIni(cycle(src));
-      const air = createEngine().environment.solve({}).values;
+      const air = REFERENCE_AIR_VALUES;
       assert.equal(Number(after.cell('c').value), air.c);
       assert.equal(after.cell('c').state, 'calculated');
       assert.equal(Number(after.cell('roo').value), air.rho);

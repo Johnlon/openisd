@@ -17,7 +17,7 @@ export class RouteGroup {
    *  except `c_m_per_s`/`roo_kg_per_m3`: those are `air`'s, whatever `stated` says (John,
    *  2026-10-05: a driver record's own c and roo feed no calculation). */
   run(stated: DriverWorkingSet, air: Air): DriverWorkingSet {
-    const working: DriverWorkingSet = {...stated, c_m_per_s: air.c, roo_kg_per_m3: air.rho};
+    const working: DriverWorkingSet = {...stated, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()};
     let changed = true;
     for (let pass = 0; changed && pass < MAX_PASSES; pass++) {
       changed = false;

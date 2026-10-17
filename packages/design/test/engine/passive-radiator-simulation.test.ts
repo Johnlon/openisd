@@ -4,6 +4,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
@@ -13,9 +14,9 @@ const engine = createEngine();
 
 // No environment reaches these test's own reimplementation of the formula under test, so ρ/c
 // are computed live at the reference environment — matching production (no stored constant).
-const refRho = (): number => engine.environment.solve({}).values.rho;
+const refRho = (): number => REFERENCE_AIR_VALUES.rho;
 
-const refC = (): number => engine.environment.solve({}).values.c;
+const refC = (): number => REFERENCE_AIR_VALUES.c;
 
 // ---------------------------------------------------------------------------
 // Reference test driver — a synthetic 6.5" mid-woofer, 8 Ω nominal.
@@ -52,12 +53,13 @@ describe('passive radiator simulation', () => {
     const PR_BOX = {Vb: 0.02, prMmd: 0.010, prMadd: 0.020, prSd: 0.0133, prCms: 0.0008, prNum: 1};
     const PR_PARAMS: SweepParams = {
       ...PR_BOX,
+      air: REFERENCE_AIR,
       Ql:     7,      // —  — box leakage Q (same as vented default)
       eg:     2.83,   // V  — IEC 60268-5 reference voltage
       prRms:  1.0,    // kg/s — PR mechanical damping
       prXmax: 0.012,  // m  — PR linear excursion limit (12 mm)
       fmin: 10, fmax: 1000, N: 300,
-      Fr: engine.pr.tuning(PR_BOX, engine.environment.solve({}).values),
+      Fr: engine.pr.tuning(PR_BOX, REFERENCE_AIR),
     };
     const d = solveConsistencyGroup(REF_DRIVER);
     const sw = engine.simulation.sweep(sweepDriver(d), LE_H, 'box-passive-radiator', PR_PARAMS).values!;
@@ -81,7 +83,7 @@ describe('passive radiator simulation', () => {
           peaks.push(sw.fs[i]);
         }
       }
-      const Fp = engine.pr.tuning(PR_BOX, engine.environment.solve({}).values);
+      const Fp = engine.pr.tuning(PR_BOX, REFERENCE_AIR);
       assert.equal(peaks.length, 2,
         `expected 2 impedance peaks, found ${peaks.length}`);
       assert.ok(Fp > peaks[0] && Fp < peaks[1],
@@ -91,9 +93,9 @@ describe('passive radiator simulation', () => {
     it('auto-tune computes added mass that achieves the target Fp to within 0.5 Hz', () => {
       // engine.pr.massForFp() inverts the Fp formula.  We verify the inversion is accurate.
       const TARGET_FP_HZ = 42; // Hz — a typical low bass tuning
-      const totalMass    = engine.pr.massForFp(PR_BOX, TARGET_FP_HZ, engine.environment.solve({}).values);
+      const totalMass    = engine.pr.massForFp(PR_BOX, TARGET_FP_HZ, REFERENCE_AIR);
       const addedMass    = totalMass - PR_BOX.prMmd;
-      const achievedFp   = engine.pr.tuning({ ...PR_BOX, prMadd: addedMass }, engine.environment.solve({}).values);
+      const achievedFp   = engine.pr.tuning({ ...PR_BOX, prMadd: addedMass }, REFERENCE_AIR);
       assert.ok(Math.abs(achievedFp - TARGET_FP_HZ) < TUNING_FREQ_TOLERANCE_HZ,
         `target ${TARGET_FP_HZ} Hz → added ${(addedMass * 1000).toFixed(1)} g → Fp ${achievedFp.toFixed(2)} Hz ` +
         `(limit ±${TUNING_FREQ_TOLERANCE_HZ} Hz)`);

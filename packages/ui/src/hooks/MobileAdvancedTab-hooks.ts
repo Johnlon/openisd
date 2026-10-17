@@ -15,13 +15,12 @@ import {createErrorSwitches} from './errorSwitches.js';
 export function useMobileAdvancedTab() {
   const {envDefaults, projectChanged} = useApp().appState;
   const project = useFocusedProject();
-  const { engine } = useApp();
 
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
     advTemp, advHumidity, advPressure,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
+  } = createEnvironmentAir({ project, projectChanged, envDefaults });
 
 
   const errorSwitches = createErrorSwitches({project, projectChanged});

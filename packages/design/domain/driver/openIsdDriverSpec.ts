@@ -429,7 +429,7 @@ export class OpenIsdDriverSpec {
             Re_terminal_ohm: computedSlot(Re_terminal_ohm),
             BL_terminal_Tm: computedSlot(BL_terminal_entered_Tm),
             wiring: wiringInput,
-            ...(air !== null ? { c_m_per_s: computedSlot(air.c), roo_kg_per_m3: computedSlot(air.rho) } : {}),
+            ...(air !== null ? { c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho()) } : {}),
         };
     }
 

@@ -15,7 +15,6 @@
 
 import {FLAT_MAX_BOOST_DB, P0} from '../constants.js';
 import type {EnvironmentIssue} from '../air.js';
-import {solveEnvironment} from '../air.js';
 import type {Complex} from '../types.js';
 import {cAbs, cArg, cDiv, cMul, cScale, cx} from '../complex.js';
 import type {CircuitQuantities} from '../circuit.js';
@@ -452,9 +451,7 @@ export class SimulationEngineImpl implements SimulationEngine {
     const circuit = circuitQuantities(d, Le_H, drv.winisdBL_Tm);
     if (circuit.value === null) return { values: null, issues: circuit.issues };
     const cq = circuit.value;
-    const env = solveEnvironment(P);
-    if (env.issues.length > 0) return { values: null, issues: env.issues };
-    const { rho } = env.values;
+    const rho = P.air.rho();
     const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
     const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
     const va: number[] = [];

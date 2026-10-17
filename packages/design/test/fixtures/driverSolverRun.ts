@@ -1,4 +1,5 @@
 import type {Engine} from '../../engine/Engine.js';
+import {FixedAir} from '../../engine/index.js';
 import {driverFromSpec} from './recordBuilders.js';
 import {RECORD_FIELDS, SOLVED_FIELDS} from './driverSolverCases.js';
 import type {RecordField, SolvedField, SolverCase} from './driverSolverCases.js';
@@ -52,7 +53,7 @@ function outcomeOfIssue(issue: DriverIssue): IssueOutcome {
 
 export function runCase(engine: Engine, testCase: SolverCase): CaseOutcome {
   // No project: the project's delegate, the app's environment defaults (John, 2026-10-05).
-  const air = engine.environment.solve(engine.environment.defaults()).values;
+  const air = new FixedAir(engine.environment.solve(engine.environment.defaults()).values);
   const solved = engine.driver.solveValues(testCase.stated, air);
   const values: ValueOutcome[] = [];
   for (const field of SOLVED_FIELDS) {

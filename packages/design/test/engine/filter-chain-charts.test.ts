@@ -18,6 +18,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {Filter, SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.70e-3;
@@ -32,9 +33,9 @@ const RAW: TestSolverQuantities = {
   Sd_m2: 0.0133, Re_ohm: 5.6, Le_H: 0.70e-3, Xmax_m: 0.0050, Pe_W: 60, Znom_ohm: 8};
 const DRV = solveConsistencyGroup(RAW);
 
-const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 400 };
+const SEALED: SweepParams = { Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 400, air: REFERENCE_AIR };
 const SP     = Math.PI * (0.05 / 2) ** 2;
-const VENTED: SweepParams = { Vb: 0.030, eg: 2.83, Sp: SP, Leff: 0.30 + 0.732 * 0.05, fmin: 10, fmax: 2000, N: 400 };
+const VENTED: SweepParams = { Vb: 0.030, eg: 2.83, Sp: SP, Leff: 0.30 + 0.732 * 0.05, fmin: 10, fmax: 2000, N: 400, air: REFERENCE_AIR };
 
 /** Index of the grid point nearest a frequency, so a claim can name the frequency it tests. */
 const nearest = (fs: number[], f: number) =>

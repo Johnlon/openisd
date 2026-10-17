@@ -12,6 +12,7 @@ import {describe, expect, it} from 'vitest';
 import type {Filter, SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
 import {solveConsistencyGroup, sweepDriver} from './testSolver.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 const DRV = solveConsistencyGroup({
@@ -26,7 +27,7 @@ function pass(type: 'lowpass' | 'highpass', family: 'bessel' | 'butterworth', or
 
 /** This filter alone at one frequency, as a complex number. */
 function responseAt(filter: Filter, f: number, flag: boolean | undefined): {re: number; im: number} {
-  const P: SweepParams = {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter],
+  const P: SweepParams = {Vb: 0.030, eg: 2.83, fmin: f, fmax: f, N: 0, filters: [filter], air: REFERENCE_AIR,
     ...(flag === undefined ? {} : {winisdBesselHighpass: flag})};
   const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, 'sealed', P).values!;
   const mag = Math.pow(10, sw.fltMag[0]! / 20);

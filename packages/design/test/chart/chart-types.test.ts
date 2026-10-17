@@ -24,6 +24,7 @@ import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
 import {parseChartId, type PlotParams, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
@@ -45,7 +46,7 @@ const LE_H = 0.70e-3;
 // Fb: the tuning this Vb/Sp/Leff already amounts to (Helmholtz, inverted) — winisd-lossy's own
 // Map comes from Fb directly (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
 const SP_VB = 0.030, SP_SP = Math.PI * (0.05 / 2) ** 2, SP_LEFF = 0.30 + 0.732 * 0.05;
-const {c: SP_C} = engine.environment.solve({}).values;
+const SP_C = REFERENCE_AIR_VALUES.c;
 // The one PlotParams the sweeps below share — fmin/fmax is all seriesFor() reads off it, and
 // every SweepParams literal in this file states the same range, so it's built once here rather
 // than narrowed out of each SweepParams (whose fmin/fmax are optional, so cast-free narrowing
@@ -56,6 +57,7 @@ const SP: SweepParams = {
   Vb: SP_VB, eg: 2.83, Sp: SP_SP, Leff: SP_LEFF, Fb: SP_C * Math.sqrt(SP_SP / (SP_LEFF * SP_VB)) / (2 * Math.PI),
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+  air: REFERENCE_AIR,
 };
 const PP = PLOT_RANGE;
 const SW = engine.simulation.sweep(DRV, LE_H, 'vented', SP).values;
@@ -72,11 +74,12 @@ const PR_ENGINE = createEngine();
 const PR_VB = 0.010;
 const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
 const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms, prNum: PR_BOX.prNum },
-  PR_ENGINE.environment.solve({}).values);
+  REFERENCE_AIR);
 const SP_PR: SweepParams = {
   Vb: PR_VB, eg: 2.83, ...PR_BOX, Fr: PR_FR, Ql: 7, Qa: 30,
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+  air: REFERENCE_AIR,
 };
 const PP_PR = PLOT_RANGE;
 const SW_PR = PR_ENGINE.simulation.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
@@ -91,6 +94,7 @@ const SP_BP4: SweepParams = {
   Vb: 0.010, Vf: 0.005, Ff: 60, Qlr: 7, Qar: 30, Qiclfr: 20, Qlf: 9, Qaf: 40, Qpf: 15,
   eg: 2.83, fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+  air: REFERENCE_AIR,
 };
 const PP_BP4 = PLOT_RANGE;
 const SW_BP4 = BP4_ENGINE.simulation.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;

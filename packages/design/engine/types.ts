@@ -68,6 +68,7 @@ export type SimulatableBoxType =
   | 'abc';
 
 import type {SelectorOption} from '../fields/index.js';
+import type {Air} from './air.js';
 
 /** One of WinISD's sealed-box target-Q choices from the New Project wizard: `value` IS the Qtc. */
 export type SealedAlignmentOption = SelectorOption<number>;
@@ -299,16 +300,9 @@ export interface SweepParams {
   SpIntra?: number;
   // Signal chain
   filters?: Filter[];
-  // ---- Environment (per project — WinISD keeps T/p/phi in the .wpr [Box] section) --------
-  /** Ambient temperature, K. Absent → `T_REF_K` (293.15). */
-  tempK?: number;
-  /**
-   * Relative humidity, PERCENT (0–100). Absent → `RH_REF_PCT` (30). WinISD's `.wpr` `phi` is
-   * a FRACTION; the one conversion between the two lives in the `.wpr` writer.
-   */
-  humidityPct?: number;
-  /** Static air pressure, Pa. Absent → `P_REF_PA` (101325). */
-  pressurePa?: number;
+  // ---- Air (per project — the caller's c and ρ; the engine never sees T/RH/p) ------------
+  /** The air the sweep runs in. */
+  air: Air;
   // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. docs/research/WINISD_PARITY.md.
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.

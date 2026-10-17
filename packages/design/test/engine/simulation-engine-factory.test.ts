@@ -5,12 +5,13 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {createSimulationEngine} from '../../engine/simulation/SimulationEngine.js';
 import type {SweepParams} from '../../engine/types.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 const engine = createEngine();
 const LE_H = 0.70e-3;
-const SP: SweepParams = {Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 50, filters: []};
+const SP: SweepParams = {Vb: 0.030, eg: 2.83, fmin: 10, fmax: 2000, N: 50, filters: [], air: REFERENCE_AIR};
 
 function solvedDriver() {
   const specs = ProjectBuilder.empty(engine).driver.specs;

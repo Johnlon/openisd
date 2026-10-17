@@ -23,6 +23,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import {createEngine} from '@openisd/design/engine';
+import {REFERENCE_CONDITIONS} from '../fixtures/referenceAir.js';
 import { OpenISDDriver, type Readable } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/winIsdDriverImport.js';
 import { openIsdDriverToWinIsdDriver } from '../../domain/winIsdDriverConverter.js';
@@ -462,6 +463,7 @@ describe('WinISD parity (functional) — field calculations against goldens WinI
         // feeds the reference values directly into the engine. The project's temperature stays
         // its own — the env-t-303 divergence entry bounds that leg.
         const air = createEngine().environment.solve({
+          ...REFERENCE_CONDITIONS,
           tempK: s.environment.T,
         }).values;
         for (const [key, got] of [['c', air.c], ['roo', air.rho]] as const) {

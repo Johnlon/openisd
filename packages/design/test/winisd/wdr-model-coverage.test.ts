@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {createEngine} from '@openisd/design/engine';
+import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
 import type {Calculated, Entered, Readable} from '../../domain/cell.js';
 import type {CellState} from '../../winisd/cellState.js';
@@ -87,7 +88,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     it('a record\'s own c and roo export as the air the driver used, marked calculated', () => {
         // John, 2026-10-05: a driver record's own c/roo feed no calculation; the export writes
         // the air actually used. Synthetic values on purpose — they must not survive.
-        const {c: refC, rho: refRho} = createEngine().environment.solve({}).values;
+        const {c: refC, rho: refRho} = REFERENCE_AIR_VALUES;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
@@ -114,7 +115,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     it('c and roo, unentered, read as the reference-environment values', () => {
         // The engine's `solveConsistencyGroup` fills c/roo from the air model when unset, marked
         // `calculated` — no stored constant anywhere.
-        const {c: refC, rho: refRho} = createEngine().environment.solve({}).values;
+        const {c: refC, rho: refRho} = REFERENCE_AIR_VALUES;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped('Acme'), brand: scraped('Acme'), model: scraped('Widget'),
@@ -139,7 +140,7 @@ describe('every .wdr field has a home in the OpenISD model', () => {
     });
 
     it('set then cleared c/roo: both read the driver\'s air, never the value set', () => {
-        const {c: refC, rho: refRho} = createEngine().environment.solve({}).values;
+        const {c: refC, rho: refRho} = REFERENCE_AIR_VALUES;
         const record = {
             uuid: {value: '00000000-0000-4000-8000-000000000000'},
             manufacturer: scraped(''), brand: scraped(''), model: scraped(''),

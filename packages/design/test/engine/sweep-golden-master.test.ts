@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {createEngine} from '../../engine/Engine.js';
-import {readGoldenFixture} from '../fixtures/goldenFixture.js';
+import {readGoldenFixture, sweepParamsOf} from '../fixtures/goldenFixture.js';
 
 
 const here        = dirname(fileURLToPath(import.meta.url));
@@ -72,8 +72,8 @@ describe('golden-master — engine reproduces committed fixtures exactly', () =>
         BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
           : engine.driver.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
       };
-      const sw = engine.simulation.sweep(sweepDriver(drv), driverRaw.Le, box, P).values;
-      const mx = engine.simulation.maxCurves(sweepDriver(drv), driverRaw.Le, box, P).values;
+      const sw = engine.simulation.sweep(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
+      const mx = engine.simulation.maxCurves(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
       assert.ok(sw && mx, `${name}: the engine refused this fixture`);
 
       for (const k of ['fs', 'spl', 'phase', 'exc', 'excPR', 'pv', 'zmag', 'zph', 'gd'] as const)

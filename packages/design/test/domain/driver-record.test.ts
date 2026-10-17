@@ -4,6 +4,7 @@ import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {fixedAppContext, scraped, wooferOf, specSection, whatIfSpec, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
+import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 /** An entry's numeric `value`, narrowed from what the record holds (no `any` from a matcher). */
 function numericValueOf(entry: unknown): number | undefined {
@@ -530,7 +531,7 @@ describe('OpenISDDriver record', () => {
     it('a not-entered c_m_per_s lands in the record as a calculated entry equal to the driver\'s own air', () => {
       const engine = createEngine();
       const d = OpenISDDriver.empty(engine);
-      const air = engine.environment.solve({}).values;
+      const air = REFERENCE_AIR_VALUES;
       const entry = wooferOf(d.cloneDriver())?.c_m_per_s;
       expect(entry).toMatchObject({ state: 'C', value: air.c });
     });

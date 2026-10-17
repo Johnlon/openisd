@@ -166,8 +166,8 @@ export class DriverEngineImpl implements DriverEngine {
       const v = route.value(working, air);
       return positive(v) ? v : null;
     };
-    const Cms = positive(air.c) && positive(air.rho) && positive(Vas_m3) && positive(Sd_m2)
-      ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c, roo_kg_per_m3: air.rho}) : null;
+    const Cms = positive(air.c()) && positive(air.rho()) && positive(Vas_m3) && positive(Sd_m2)
+      ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
     const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
     const Mms = positive(Fs_hz) && positive(Cms_m_per_N)
       ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
@@ -208,7 +208,7 @@ export class DriverEngineImpl implements DriverEngine {
       gamma_m_per_s2_A: enteredDriverValue(params.gamma_m_per_s2_A), Gloss: enteredDriverValue(params.Gloss),
       Vcd_m: enteredDriverValue(params.Vcd_m), Depth_m: enteredDriverValue(params.Depth_m), MagDepth_m: enteredDriverValue(params.MagDepth_m),
       Magnet_m: enteredDriverValue(params.Magnet_m), DVol_m3: enteredDriverValue(params.DVol_m3),
-      c_m_per_s: air.c, roo_kg_per_m3: air.rho,
+      c_m_per_s: air.c(), roo_kg_per_m3: air.rho(),
       Re_terminal_ohm: enteredDriverValue(params.Re_terminal_ohm),
       BL_terminal_Tm: enteredDriverValue(params.BL_terminal_Tm), numVC: enteredDriverValue(params.numVC),
       wiring: params.wiring.value ?? undefined,
@@ -235,8 +235,8 @@ export class DriverEngineImpl implements DriverEngine {
     writeDriverBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m, widths.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
     writeDriverBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
     writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm, widths.BL_terminal_Tm);
-    params.c_m_per_s.setCalculated(air.c);
-    params.roo_kg_per_m3.setCalculated(air.rho);
+    params.c_m_per_s.setCalculated(air.c());
+    params.roo_kg_per_m3.setCalculated(air.rho());
 
     return issues;
   }
@@ -354,11 +354,11 @@ export class DriverEngineImpl implements DriverEngine {
   }
 
   referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number {
-    return referenceEfficiency(Fs, Vas, Qes, air.c);
+    return referenceEfficiency(Fs, Vas, Qes, air.c());
   }
 
   splFromEfficiency(no: number, air: Air): number {
-    return splFromEfficiency(no, air.rho, air.c);
+    return splFromEfficiency(no, air.rho(), air.c());
   }
 
   /**
