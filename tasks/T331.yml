@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 868fde7704ad6cdd01d5e84d1615365ebf5ab781
 goal: Every landing is a GitHub pull request from land/<task>; main still moves only by land.sh's fast-forward push of the tested commit
 done_test: bash scripts/land/test/land-pull-request.e2e.test.sh
 files:

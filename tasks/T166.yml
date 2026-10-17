@@ -1,0 +1,13 @@
+id: T166
+release_note: internal
+repo: openisd
+owner: sonnet-keep-source-urls
+status: abandoned
+abandoned_by: fable
+abandoned_on: 2026-10-17
+abandoned_why: no live owner; superseded (QO185)
+archived: d1ff1c448b4fdc46da3c01109739014a8e1bc031
+goal: Slim embedded driver keeps the three data_sources URLs (product page, datasheet, listing page) as bare values
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T166.yml

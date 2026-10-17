@@ -1,0 +1,10 @@
+id: T339
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Record that T166 is abandoned: no live owner; superseded (QO185)
+done_test: grep -qx 'status: abandoned' tasks/T166.yml
+files:
+  - tasks/T339.yml
+  - tasks/T166.yml
