@@ -145,6 +145,11 @@ run immediately without queueing. Only untargeted/heavy Chromium sweeps queue fo
 
 All agent changes to UI components, shells, and dialogs MUST be verified to ensure controls NEVER disappear or get clipped off the bottom or sides of the screen, NOR cause unwanted horizontal or vertical scrollbars to appear.
 
+## General rules — always
+
+`.claude/rules/general.md`: no workarounds for unexpected issues, no backdoor in UI testing, no
+reload in tests unless testing reload, and in the app every button shows a visible result.
+
 ## Loaded on demand
 
 The rest of the project's working conventions live in path-scoped rules and docs so they only

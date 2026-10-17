@@ -3,6 +3,7 @@ release_note: The Project tab shows Created and Modified as "16 Oct 2026", like 
 repo: openisd
 owner: maryu
 status: done
+landed: 9a5062a2da42c5e7887fed240db62561ed36e94b
 goal: Project tab Created and Modified show dates as 16 Oct 2026, through the one design formatter
 done_test: bash scripts/test.sh packages/design/test/fields/format-date.test.ts
 visual:
