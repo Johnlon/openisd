@@ -32,7 +32,7 @@ fi
 
 # shellcheck source=./test-concurrency.sh
 source "$SCRIPT_DIR/test-concurrency.sh"
-reserve_test_slot   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
+reserve_test_slot || exit 1   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
                      # is a locked critical section rather than each run reading memory alone.
 
 # Every process in this run's group EXCEPT this shell. After the setsid re-exec above, $$ is

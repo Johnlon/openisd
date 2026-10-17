@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 74c6a8b58340d9af8c36d8e073fbcdbbb2731440
 goal: Actions suite: laptop's distro and fonts, cloudSync spec binds 127.0.0.1, shards balanced by time
 done_test: bash scripts/test.sh packages/ui/test/scripts/shard-specs.test.ts
 files:
