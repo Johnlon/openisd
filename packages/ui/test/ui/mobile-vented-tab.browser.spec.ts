@@ -11,7 +11,7 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('MobileVentedTab', () => {
-  test('shows the vent config and readouts', async ({ page }) => {
+  test('shows the vent config and readouts', async ({ appPage: page }) => {
     // The tab bar's label is the box type's own name ("Vented" — enclosureNavLabel falls back to
     // boxLabel for anything that isn't sealed/PR); the panel's own section header says "Vents".
     await expect(page.locator('.mob-panel-head').first()).toHaveText('Vents');
@@ -29,7 +29,7 @@ test.describe('MobileVentedTab', () => {
     await expect(mobileFieldRow(page, '1st port resonance')).toBeVisible();
   });
 
-  test('editing the vent diameter writes through to the field', async ({ page }) => {
+  test('editing the vent diameter writes through to the field', async ({ appPage: page }) => {
     const diameterInput = mobileFieldRow(page, 'Vent diameter').locator('input');
     await diameterInput.fill('6');
     await diameterInput.blur();
@@ -39,7 +39,7 @@ test.describe('MobileVentedTab', () => {
   // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
   // entered; the tuning shows what that length gives. The volume is never overwritten and nothing
   // goes blank. Mirrors the desktop spec in original-vented-tab.browser.spec.ts.
-  test('clearing Target Tuning Freq keeps the vent length; the tuning is calculated', async ({ page }) => {
+  test('clearing Target Tuning Freq keeps the vent length; the tuning is calculated', async ({ appPage: page }) => {
     const fbInput = mobileFieldRow(page, 'Target Tuning Freq').locator('input');
     await fbInput.fill('40');
     await fbInput.blur();
@@ -57,7 +57,7 @@ test.describe('MobileVentedTab', () => {
     await expect(lengthInput).toHaveClass(/value-e/);
   });
 
-  test('clearing Vent diameter keeps the cross area; the diameter is calculated', async ({ page }) => {
+  test('clearing Vent diameter keeps the cross area; the diameter is calculated', async ({ appPage: page }) => {
     const diameter = mobileFieldRow(page, 'Vent diameter').locator('input');
     const area = page.locator('.mob-field-row', { hasText: 'Cross area' }).locator('.mob-readonly');
     const areaBefore = (await area.textContent()) ?? '';
@@ -72,7 +72,7 @@ test.describe('MobileVentedTab', () => {
   });
 
   // John, 2026-10-01: the port velocity limit sits on the vent section in both layouts.
-  test('the port velocity limit shows 17 m/s and takes an edit', async ({ page }) => {
+  test('the port velocity limit shows 17 m/s and takes an edit', async ({ appPage: page }) => {
     const input = page.locator('#mob-vent-velocity-limit');
     await expect(input).toHaveValue(/^17(\.0+)?$/);
     await input.fill('25');

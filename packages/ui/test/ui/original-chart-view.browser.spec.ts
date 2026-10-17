@@ -50,12 +50,12 @@ async function graphCanvasDrawn(page: Page): Promise<boolean> {
 }
 
 test.describe('Original chart view', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
   });
 
-  test('the chart-select dropdown switches the shared GraphPanel', async ({ page }) => {
+  test('the chart-select dropdown switches the shared GraphPanel', async ({ appPage: page }) => {
     await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
     await page.locator('.chart-select').click();
     await page.locator('.chart-select .menu-item', { hasText: /^Cone excursion$/ }).click();
@@ -63,7 +63,7 @@ test.describe('Original chart view', () => {
     await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
   });
 
-  test('chart-menu checkboxes stack charts that share one cursor; ✕ removes one; a label shows it alone', async ({ page }) => {
+  test('chart-menu checkboxes stack charts that share one cursor; ✕ removes one; a label shows it alone', async ({ appPage: page }) => {
     const panels = page.locator('.graph-wrap .gpanel');
     await expect(panels).toHaveCount(1);
 
@@ -93,7 +93,7 @@ test.describe('Original chart view', () => {
     await expect(page.locator('.chart-close')).toHaveCount(0);
   });
 
-  test('the Transfer function magnitude readout shows F3 and F10, and the right-click menu jumps the cursor to either', async ({ page }) => {
+  test('the Transfer function magnitude readout shows F3 and F10, and the right-click menu jumps the cursor to either', async ({ appPage: page }) => {
     await page.locator('.chart-select').click();
     await page.locator('.chart-select .menu-item', { hasText: /^Transfer function magnitude$/ }).click();
     await expect.poll(() => graphCanvasDrawn(page)).toBe(true);
@@ -115,7 +115,7 @@ test.describe('Original chart view', () => {
     await expect(page.locator('.ctx-menu')).toHaveCount(0);
   });
 
-  test('"Charts high" stacks that many charts in the height; more open charts add columns', async ({ page }) => {
+  test('"Charts high" stacks that many charts in the height; more open charts add columns', async ({ appPage: page }) => {
     await page.setViewportSize({ width: 1400, height: 900 });
     await page.locator('.chart-select').click();
     for (const name of [/^Cone excursion$/, /^Impedance$/, /^Group Delay$/])
@@ -131,7 +131,7 @@ test.describe('Original chart view', () => {
     await expect.poll(async () => new Set(await lefts()).size).toBe(2);
   });
 
-  test('the chart menu lists only the charts that apply to the current box', async ({ page }) => {
+  test('the chart menu lists only the charts that apply to the current box', async ({ appPage: page }) => {
     const menuItems = () => page.locator('.chart-select .menu-item');
 
     // The sample project opens vented: its own port charts are in the menu, no PR chart.
@@ -178,7 +178,7 @@ test.describe('Original chart view', () => {
     await expect(menuItems().filter({ hasText: 'Front port - Gain' })).toBeVisible();
   });
 
-  test('the Amplifier apparent load power (VA) chart reads out in VA at the cursor', async ({ page }) => {
+  test('the Amplifier apparent load power (VA) chart reads out in VA at the cursor', async ({ appPage: page }) => {
     await page.locator('.chart-select').click();
     await page.locator('.chart-select .menu-item', { hasText: 'Amplifier apparent load power (VA)' }).click();
     await expect(page.locator('.chart-select .chart-name')).toHaveText('Amplifier apparent load power (VA)');
@@ -187,7 +187,7 @@ test.describe('Original chart view', () => {
     await expect(page.locator('.ro-val')).toHaveText(/^\d+\.\d{3} VA$/);
   });
 
-  test('the ◄ and ► nudge buttons step the cursor frequency down and up by 2 %', async ({ page }) => {
+  test('the ◄ and ► nudge buttons step the cursor frequency down and up by 2 %', async ({ appPage: page }) => {
     const hz = page.locator('.ro-hz-input');
     await hz.fill('100');
     await hz.press('Enter');
@@ -201,7 +201,7 @@ test.describe('Original chart view', () => {
     await expect(hz).toHaveValue('98.04');
   });
 
-  test('a click on the chart locks the cursor: moving the pointer afterwards leaves it put', async ({ page }) => {
+  test('a click on the chart locks the cursor: moving the pointer afterwards leaves it put', async ({ appPage: page }) => {
     // A click before the first draw is ignored by the panel, so wait for the drawn chart first.
     await expect.poll(() => graphCanvasDrawn(page)).toBe(true);
     const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
@@ -216,7 +216,7 @@ test.describe('Original chart view', () => {
     await expect(hz).toHaveValue(locked);
   });
 
-  test('the chart drop-down is a fixed narrow width; a long chart name is cut short on one line and named in full by its tooltip', async ({ page }) => {
+  test('the chart drop-down is a fixed narrow width; a long chart name is cut short on one line and named in full by its tooltip', async ({ appPage: page }) => {
     const select = page.locator('.chart-select');
     const name = page.locator('.chart-select .chart-name');
     const widths: number[] = [];
@@ -230,7 +230,7 @@ test.describe('Original chart view', () => {
     expect(widths[0]).toBe(widths[1]);
   });
 
-  test('chart maximise fills the main area, keeps the toolbar, and restores', async ({ page }) => {
+  test('chart maximise fills the main area, keeps the toolbar, and restores', async ({ appPage: page }) => {
     // Two toolbar buttons share `.chart-max-btn` (⟲ reset-all-charts and this ⛶ maximise
     // toggle) — address the maximise one by its role-bearing title.
     const maxBtn = page.locator('.chart-max-btn[title*="Maximise the chart"], .chart-max-btn[title*="Restore the normal layout"]');
@@ -246,7 +246,7 @@ test.describe('Original chart view', () => {
     await expect(page.locator('.content-panel')).toBeVisible();
   });
 
-  test('hovering the chart draws ONE horizontal level line where the cursor crosses the curve', async ({ page }) => {
+  test('hovering the chart draws ONE horizontal level line where the cursor crosses the curve', async ({ appPage: page }) => {
     const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
     expect(await levelLineClusters(page)).toBe(0);
     await page.mouse.move(box.x + box.width * 0.6, box.y + box.height * 0.5);
@@ -254,7 +254,7 @@ test.describe('Original chart view', () => {
     await expect.poll(() => levelLineClusters(page)).toBe(1);
   });
 
-  test('a drag-select draws a horizontal level line for BOTH selection cursors', async ({ page }) => {
+  test('a drag-select draws a horizontal level line for BOTH selection cursors', async ({ appPage: page }) => {
     const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
     const y = box.y + box.height * 0.5;
     // Double-click the X-axis strip: resets the frequency window to 1 Hz – 20 kHz, so the
@@ -272,7 +272,7 @@ test.describe('Original chart view', () => {
     await expect.poll(() => levelLineClusters(page)).toBe(2);
   });
 
-  test('the Color button cycles the current design trace colour (and wraps)', async ({ page }) => {
+  test('the Color button cycles the current design trace colour (and wraps)', async ({ appPage: page }) => {
     const swatch = page.locator('.color-btn');
     const bg = () => swatch.evaluate(el => getComputedStyle(el).backgroundColor);
     const before = await bg();
@@ -283,7 +283,7 @@ test.describe('Original chart view', () => {
     expect(await bg()).toBe(before);
   });
 
-  test('the trace colour chosen with the Color button survives a reload (saved in the project)', async ({ page }) => {
+  test('the trace colour chosen with the Color button survives a reload (saved in the project)', async ({ appPage: page }) => {
     const colorBtn = page.locator('.chart-color-btn');
     const before = await colorBtn.evaluate(el => getComputedStyle(el).backgroundColor);
     await colorBtn.click();
@@ -297,7 +297,7 @@ test.describe('Original chart view', () => {
 });
 
 test.describe('Original chart view with no project open', () => {
-  test('the chart area with no project open offers icon links for New, Open, and Import', async ({ page }) => {
+  test('the chart area with no project open offers icon links for New, Open, and Import', async ({ appPage: page }) => {
     await page.goto('/');
 
     const emptyState = page.locator('.graph-empty');

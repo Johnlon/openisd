@@ -15,18 +15,18 @@ function overlaps(a: Rect, b: Rect): boolean {
 }
 
 test.describe('Equation inspector popup', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
   });
 
-  test('Inspect Provenance checkbox is present in Driver Editor header', async ({ page }) => {
+  test('Inspect Provenance checkbox is present in Driver Editor header', async ({ appPage: page }) => {
     await openDriverEditor(page);
     const chk = page.getByRole('checkbox', { name: 'Inspect Provenance' });
     await expect(chk).toBeVisible();
   });
 
-  test('Toggling Inspect Provenance on and clicking Qts highlights feeding fields and pops up non-modal Equation Inspector', async ({ page }) => {
+  test('Toggling Inspect Provenance on and clicking Qts highlights feeding fields and pops up non-modal Equation Inspector', async ({ appPage: page }) => {
     await openDriverEditor(page);
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
     await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
@@ -45,7 +45,7 @@ test.describe('Equation inspector popup', () => {
     await expect(inspector).toContainText('Qms');
   });
 
-  test('Inspecting a multi-formula field (Qes) displays multiple derivation paths and distinct color swatches', async ({ page }) => {
+  test('Inspecting a multi-formula field (Qes) displays multiple derivation paths and distinct color swatches', async ({ appPage: page }) => {
     await openDriverEditor(page);
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
     await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
@@ -66,7 +66,7 @@ test.describe('Equation inspector popup', () => {
     await expect(pathCards.nth(1)).toContainText('Qes = (2π × Fs_hz × Mms_kg × Re_ohm) / BL²');
   });
 
-  test('Closing Equation Inspector via ✕ button dismisses the non-modal overlay while keeping Driver Editor open', async ({ page }) => {
+  test('Closing Equation Inspector via ✕ button dismisses the non-modal overlay while keeping Driver Editor open', async ({ appPage: page }) => {
     await openDriverEditor(page);
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
     await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
@@ -84,7 +84,7 @@ test.describe('Equation inspector popup', () => {
     await expect(page.locator('.de-body')).toBeVisible();
   });
 
-  test('the popup never overlaps the editor, even on a narrow viewport', async ({ page }) => {
+  test('the popup never overlaps the editor, even on a narrow viewport', async ({ appPage: page }) => {
     await page.setViewportSize({ width: 1400, height: 900 }); // 950px modal, ~225px free per side
     await openDriverEditor(page);
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
@@ -99,7 +99,7 @@ test.describe('Equation inspector popup', () => {
       .toBe(false);
   });
 
-  test('the popup is visible on screen at a normal window height', async ({ page }) => {
+  test('the popup is visible on screen at a normal window height', async ({ appPage: page }) => {
     // bugs/archive/BUG_20260817_equation_inspector_popup_overlaps_the_editor.md — the "below the modal"
     // fallback picked a vertical band without checking the popup's own height fit in it, so at an
     // ordinary (not maximized) window height the popup rendered past the bottom of the viewport —
@@ -115,7 +115,7 @@ test.describe('Equation inspector popup', () => {
       .toBeLessThanOrEqual(vh + 1);
   });
 
-  test('the popup shows no "Live:" substitution line', async ({ page }) => {
+  test('the popup shows no "Live:" substitution line', async ({ appPage: page }) => {
     await openDriverEditor(page);
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
     await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();

@@ -9,13 +9,13 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 const PAGE = {name: 'OpenISD and WinISD differences'};
 
-test.beforeEach(async ({page}) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
-test('the menu opens the page full screen; Close shuts it', async ({page}) => {
+test('the menu opens the page full screen; Close shuts it', async ({ appPage: page }) => {
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-item', {hasText: 'OpenISD and WinISD differences'}).click();
   const help = page.getByRole('dialog', PAGE);
@@ -28,7 +28,7 @@ test('the menu opens the page full screen; Close shuts it', async ({page}) => {
   await expect(help).toHaveCount(0);
 });
 
-test('the "Enable WinISD bugs" heading\'s help link opens the page at the bug-switch section', async ({page}) => {
+test('the "Enable WinISD bugs" heading\'s help link opens the page at the bug-switch section', async ({ appPage: page }) => {
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
   await page.locator('.error-switch-group .compat-help-link').click();
@@ -37,7 +37,7 @@ test('the "Enable WinISD bugs" heading\'s help link opens the page at the bug-sw
   await expect(section).toBeInViewport();
 });
 
-test('a ≠W cue opens the page at that cue\'s entry', async ({page}) => {
+test('a ≠W cue opens the page at that cue\'s entry', async ({ appPage: page }) => {
   await page.locator('.mob-tab', {hasText: 'Filters'}).click();
   await page.getByText('+ AP', {exact: true}).click();
   const order = page.locator('.filter-edit-body label').filter({hasText: /^Order\b/}).locator('input');

@@ -43,20 +43,20 @@ async function overlappingControls(page: Page): Promise<Overlap[]> {
   });
 }
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await page.goto('/');
   await openAProject(page);
 });
 
 test.describe('Original shell layout', () => {
   test.describe('frame', () => {
-    test('choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)', async ({ page }) => {
+    test('choosing Original swaps to the ported WinISD shell (titlebar, projects, graph)', async ({ appPage: page }) => {
       await expect(page.locator('.original-root')).toContainText('Projects');
       await expect(page.locator('.original-root')).toContainText('Signal Generator');
       await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
     });
 
-    test('all seven project tabs render their ported content', async ({ page }) => {
+    test('all seven project tabs render their ported content', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await page.locator('#og-box-type').selectOption('vented');
       const nav = page.locator('.project-nav li');
@@ -78,7 +78,7 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.content-panel')).toContainText('Description');
     });
 
-    test('Learn is below the right-edge legend, not in the Driver row', async ({ page }) => {
+    test('Learn is below the right-edge legend, not in the Driver row', async ({ appPage: page }) => {
       const legend = page.locator('.value-legend');
       const whatIf = page.locator('.save-rail .what-if-btn');
 
@@ -91,7 +91,7 @@ test.describe('Original shell layout', () => {
       expect(whatIfTop).toBeGreaterThanOrEqual(legendBottom);
     });
 
-    test('Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)', async ({ page }) => {
+    test('Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       const { railLeft, tabsRight, railTop, tabsTop } = await page.evaluate((): { railLeft: number; tabsRight: number; railTop: number; tabsTop: number } => {
         const railEl = document.querySelector('.save-rail');
@@ -105,7 +105,7 @@ test.describe('Original shell layout', () => {
       expect(Math.abs(railTop - tabsTop)).toBeLessThanOrEqual(4); // both start at the top of the panel
     });
 
-    test('the Driver tab Model box is three times its old width, and the row fits at 1280', async ({ page }) => {
+    test('the Driver tab Model box is three times its old width, and the row fits at 1280', async ({ appPage: page }) => {
       await page.setViewportSize({ width: 1880, height: 900 });
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       const model = page.locator('.driver-model-input');
@@ -124,7 +124,7 @@ test.describe('Original shell layout', () => {
       expect(narrow).toBeGreaterThanOrEqual(140);
     });
 
-    test('Original skin buttons have readable dark text on their light fill', async ({ page }) => {
+    test('Original skin buttons have readable dark text on their light fill', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       const btn = page.locator('.edit-btn', { hasText: 'Select Driver' });
       const rgbSum = await btn.evaluate((el) => {
@@ -137,7 +137,7 @@ test.describe('Original shell layout', () => {
   });
 
   test.describe('splitters', () => {
-    test('the left panel collapses and expands via the splitter toggle', async ({ page }) => {
+    test('the left panel collapses and expands via the splitter toggle', async ({ appPage: page }) => {
       await expect(page.locator('.quad-topleft')).toBeVisible();
       await page.locator('.split-v .split-toggle').click();
       await expect(page.locator('.quad-topleft')).toBeHidden();
@@ -145,7 +145,7 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.quad-topleft')).toBeVisible();
     });
 
-    test('the left panel resizes by dragging the vertical splitter', async ({ page }) => {
+    test('the left panel resizes by dragging the vertical splitter', async ({ appPage: page }) => {
       const before = (await page.locator('.quad-topleft').boundingBox())!;
       const split = (await page.locator('.split-v').boundingBox())!;
       await page.mouse.move(split.x + split.width / 2, split.y + split.height / 2);
@@ -156,7 +156,7 @@ test.describe('Original shell layout', () => {
       expect(after.width).toBeGreaterThan(before.width + 50);
     });
 
-    test('the bottom section collapses (chart grows) and expands via the splitter toggle', async ({ page }) => {
+    test('the bottom section collapses (chart grows) and expands via the splitter toggle', async ({ appPage: page }) => {
       const graphBefore = (await page.locator('.graph-area').boundingBox())!;
       await page.locator('.split-h .split-toggle').click();
       await expect(page.locator('.content-panel')).toBeHidden();
@@ -166,7 +166,7 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.content-panel')).toBeVisible();
     });
 
-    test('the bottom section cannot be dragged deeper, and a stored taller height is ignored', async ({ page }) => {
+    test('the bottom section cannot be dragged deeper, and a stored taller height is ignored', async ({ appPage: page }) => {
       const before = (await page.locator('.content-panel').boundingBox())!;
       const split = (await page.locator('.split-h').boundingBox())!;
       await page.mouse.move(split.x + split.width / 2, split.y + split.height / 2);
@@ -183,7 +183,7 @@ test.describe('Original shell layout', () => {
 
   test.describe('narrow window', () => {
     for (const width of WIDTHS) {
-      test(`no pane overlaps its own controls at ${width}px wide`, async ({ page }) => {
+      test(`no pane overlaps its own controls at ${width}px wide`, async ({ appPage: page }) => {
         await page.setViewportSize({ width, height: 900 });
         const tabs = page.locator('.project-nav li');
         const panes = await tabs.allInnerTexts();
@@ -197,7 +197,7 @@ test.describe('Original shell layout', () => {
       });
     }
 
-    test('a too-narrow content pane scrolls horizontally instead of squeezing its columns', async ({ page }) => {
+    test('a too-narrow content pane scrolls horizontally instead of squeezing its columns', async ({ appPage: page }) => {
       await page.setViewportSize({ width: 780, height: 900 });
       await page.locator('.project-nav li', { hasText: /^Advanced$/ }).click();
       const pane = page.locator('.tab-section.active');
@@ -208,7 +208,7 @@ test.describe('Original shell layout', () => {
   });
 
   test.describe('box type changes', () => {
-    test('the bottom panel keeps ONE height across box types (no wobble from the tab count)', async ({ page }) => {
+    test('the bottom panel keeps ONE height across box types (no wobble from the tab count)', async ({ appPage: page }) => {
       const select = page.locator('#og-box-type');
       await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
       const boxes = await select.locator('option').evaluateAll(os => os.map(o => {
@@ -297,11 +297,11 @@ test.describe('Original shell layout', () => {
       });
     }
 
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ appPage: page }) => {
       await page.setViewportSize({ width: 1600, height: 400 });
     });
 
-    test('bottom panels at a short window height never get scrollbars and contents do not overflow', async ({ page }) => {
+    test('bottom panels at a short window height never get scrollbars and contents do not overflow', async ({ appPage: page }) => {
       const boxTypes = ['vented', 'sealed', 'bandpass4', 'bandpass6', 'abc'] as const;
   
       for (const boxType of boxTypes) {

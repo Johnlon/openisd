@@ -1,0 +1,83 @@
+id: T250
+release_note: internal
+repo: openisd
+owner: fable
+reviewer: bob
+status: done
+goal: Browser tests load the app once per worker and reset it between tests, instead of a fresh page per test
+done_test: bash scripts/test.sh packages/ui/test/logic/appState-issues.test.ts
+files:
+  - questions.yml
+  - bugs/BUG_20261017_housekeeping-leaves-orphaned-processes-and-the-suite-waits-on-long-runs.md
+  - packages/ui/test/ui/my-drivers.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - bugs/BUG_20261017_browser-specs-use-a-test-back-door-into-app-state.md
+  - packages/ui/src/logic/testHooks.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/logic/seedMyDrivers.test.ts
+  - packages/ui/test/fixtures/seedMyDrivers.ts
+  - tasks/T250.yml
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/mobileSkin.ts
+  - packages/ui/test/ui/app-reset-isolation.browser.spec.ts
+  - packages/ui/test/ui/original-toolbar.browser.spec.ts
+  - packages/ui/test/ui/mobile-shell.browser.spec.ts
+  - packages/ui/test/ui/original-chart-view.browser.spec.ts
+  - packages/ui/test/ui/my-drivers.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/original-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - packages/ui/test/ui/original-chart-auto-y.browser.spec.ts
+  - packages/ui/test/ui/original-project-list.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-enclosure-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/box-losses-popup.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts
+  - packages/ui/test/ui/confirm-dialog.browser.spec.ts
+  - packages/ui/test/ui/modal-behaviour.browser.spec.ts
+  - packages/ui/test/ui/equation-inspector-popup.browser.spec.ts
+  - packages/ui/test/ui/options-fit.browser.spec.ts
+  - packages/ui/test/ui/original-winisd-differences.browser.spec.ts
+  - packages/ui/test/ui/mobile-winisd-differences.browser.spec.ts
+measurements:
+  cold_app_load_ms: 650
+  median_test_time_ms: 1401
+  load_fraction: "46% (> 33.3%, proceeding)"
+  baseline_5_specs_before:
+    original_toolbar: 1153 ms (13 tests)
+    mobile_shell: 1138 ms (6 tests)
+    original_chart_view: 1207 ms (15 tests)
+    my_drivers: 1540 ms (13 tests)
+    new_project_wizard: 1526 ms (18 tests)
+  baseline_5_specs_after:
+    original_toolbar: 270 ms (13 tests)
+    mobile_shell: 204 ms (6 tests)
+    original_chart_view: 301 ms (15 tests)
+    my_drivers: 502 ms (13 tests)
+    new_project_wizard: 532 ms (18 tests)
+    median_test_time_ms: 466 ms (67% reduction, 3x speedup)
+cold_start_specs_left_alone:
+  - packages/ui/test/ui/splash.browser.spec.ts
+  - packages/ui/test/ui/mobile-splash.browser.spec.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - packages/ui/test/ui/persistence-banner-layout.browser.spec.ts
+  - packages/ui/test/ui/storage-guard.browser.spec.ts
+  - packages/ui/test/ui/app-update.browser.spec.ts
+  - packages/ui/test/ui/telemetry.browser.spec.ts
+  - packages/ui/test/ui/cloud-boot.browser.spec.ts
+  - packages/ui/test/ui/redirectRoundTrip.browser.spec.ts
+  - packages/ui/test/ui/skin-selection.browser.spec.ts
+  - packages/ui/test/ui/projects-across-addresses.browser.spec.ts
+  - packages/ui/test/ui/about-page.browser.spec.ts
+  - packages/ui/test/ui/open-sessions.browser.spec.ts
+blocked_reason: rebase onto origin/main conflicts in: packages/ui/test/ui/mobile-vented-tab.browser.spec.ts packages/ui/test/ui/original-box-tab.browser.spec.ts packages/ui/test/ui/original-vented-tab.browser.spec.ts 

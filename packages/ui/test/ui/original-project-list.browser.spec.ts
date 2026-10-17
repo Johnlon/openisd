@@ -40,13 +40,13 @@ async function addCopies(page: Page, n: number) {
 }
 
 test.describe('Original project list', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
   });
 
   // T217 review: at the default layout the name was cut to "s…" by the Not saved tag and ⋯.
-  test('the project name keeps its room at the default window size', async ({ page }) => {
+  test('the project name keeps its room at the default window size', async ({ appPage: page }) => {
     await page.setViewportSize({width: 1880, height: 1000});
     const name = page.locator('.project-row.selected .project-name');
     await expect(name).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('Original project list', () => {
     expect(fits).toBe(true);
   });
 
-  test('a saved project that is not open is listed and a click opens it', async ({ page }) => {
+  test('a saved project that is not open is listed and a click opens it', async ({ appPage: page }) => {
     await page.locator('.tb-btn[title^="Save - "]').click();
     await page.locator('.project-row.selected .row-menu-btn').click();
     await page.locator('.row-menu-item:has-text("Close")').click();
@@ -75,7 +75,7 @@ test.describe('Original project list', () => {
     await expect(row.locator('.project-swatch')).toHaveClass(/swatch-open/);
   });
 
-  test('⋯ → Hide unticks the show box', async ({ page }) => {
+  test('⋯ → Hide unticks the show box', async ({ appPage: page }) => {
     const cbx = page.locator('.project-row.selected .project-show-cbx');
     await expect(cbx).toBeChecked();
 
@@ -88,7 +88,7 @@ test.describe('Original project list', () => {
     await expect(page.locator('.project-row.selected .project-swatch')).toHaveClass(/swatch-hidden/);
   });
 
-  test('⋯ → Close closes it', async ({ page }) => {
+  test('⋯ → Close closes it', async ({ appPage: page }) => {
     // Dirty the project first so the unsaved changes challenge appears
     await setFocusedBoxVolume(page, 0.037);
 
@@ -102,7 +102,7 @@ test.describe('Original project list', () => {
     await expect(page.locator('.projects-empty')).toBeVisible();
   });
 
-  test('⋯ → Move to Bin moves it to the Bin', async ({ page }) => {
+  test('⋯ → Move to Bin moves it to the Bin', async ({ appPage: page }) => {
     await page.locator('.tb-btn[title^="Save - "]').click();
     await page.locator('.project-row.selected .row-menu-btn').click();
     await page.locator('.row-menu-item:has-text("Move to Bin")').click();
@@ -120,7 +120,7 @@ test.describe('Original project list', () => {
     await expect(page.locator('.bin-row .bin-name')).toHaveText('sample-project');
   });
 
-  test('the toolbar Open focuses the search box when there are 9 or more projects', async ({ page }) => {
+  test('the toolbar Open focuses the search box when there are 9 or more projects', async ({ appPage: page }) => {
     // 1 initial project + 8 copies = 9 projects (> PROJECT_SEARCH_FROM_ROWS = 8)
     for (let i = 1; i <= 8; i++) {
       await duplicateFocusedProject(page, `Copy ${i}`);
@@ -139,7 +139,7 @@ test.describe('Original project list', () => {
     await expect(searchInput).toBeFocused();
   });
 
-  test('no page overflow at 1024x768', async ({ page }) => {
+  test('no page overflow at 1024x768', async ({ appPage: page }) => {
     await page.setViewportSize({ width: 1024, height: 768 });
     const overflow768 = await page.evaluate(() => ({
       hasHorizontalScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
@@ -157,7 +157,7 @@ test.describe('Original project list', () => {
     expect(overflow1080.hasVerticalScroll).toBe(false);
   });
 
-  test('every project row keeps its own show/hide state, including the active one', async ({ page }) => {
+  test('every project row keeps its own show/hide state, including the active one', async ({ appPage: page }) => {
     await addCopies(page, 2);
 
     // Untick all three — the active row included.
@@ -171,7 +171,7 @@ test.describe('Original project list', () => {
     await expect.poll(async () => (await rowStates(page)).map(r => r.checked)).toEqual([false, false, false]);
   });
 
-  test('hiding a project removes its trace from the chart, and showing it brings it back', async ({ page }) => {
+  test('hiding a project removes its trace from the chart, and showing it brings it back', async ({ appPage: page }) => {
     await addCopies(page, 1);
 
     // After duplicateFocusedProject the COPY is open; the non-selected row is the original
@@ -191,7 +191,7 @@ test.describe('Original project list', () => {
   });
 
   // bugs/BUG_20261005_project-selection-lost-on-reload.md
-  test('a hidden project is still hidden after a reload, and the chart still leaves its trace out', async ({ page }) => {
+  test('a hidden project is still hidden after a reload, and the chart still leaves its trace out', async ({ appPage: page }) => {
     await addCopies(page, 1);
     const overlayCheckbox = page.locator('.project-row:not(.selected) .project-show-cbx');
     await expect(overlayCheckbox).toBeChecked();
@@ -209,7 +209,7 @@ test.describe('Original project list', () => {
     await expect.poll(async () => Math.abs(await inkPixels(page) - hidden)).toBeLessThan(shown - hidden);
   });
 
-  test('open projects are never written into the active design (nothing to leak into its file)', async ({ page }) => {
+  test('open projects are never written into the active design (nothing to leak into its file)', async ({ appPage: page }) => {
     await addCopies(page, 2);
     await page.locator('.project-row').nth(1).click();          // work in the copy for a moment
     await page.locator('.project-row').nth(0).click();          // and back
@@ -228,7 +228,7 @@ test.describe('Original project list', () => {
     expect(activeDesignText).not.toContain('Copy 1');
   });
 
-  test('closing an unsaved project asks first, and offers all three outcomes by name', async ({ page }) => {
+  test('closing an unsaved project asks first, and offers all three outcomes by name', async ({ appPage: page }) => {
     await addCopies(page, 1);
     await setFocusedBoxVolume(page, 0.037);  // make it unsaved
 
@@ -249,7 +249,7 @@ test.describe('Original project list', () => {
     await expect(page.locator('.project-row')).toHaveCount(1);
   });
 
-  test('the last project can be closed too — the app lands on an empty workspace', async ({ page }) => {
+  test('the last project can be closed too — the app lands on an empty workspace', async ({ appPage: page }) => {
     // Dirty it first, so the challenge is CERTAIN to appear and the close path under test is the
     // same one every other close goes through.
     await setFocusedBoxVolume(page, 0.037);
@@ -263,7 +263,7 @@ test.describe('Original project list', () => {
     await expect(page.locator('.projects-empty')).toBeVisible();
   });
 
-  test('the projects checkbox hides that project\'s trace without removing the project', async ({ page }) => {
+  test('the projects checkbox hides that project\'s trace without removing the project', async ({ appPage: page }) => {
     await duplicateFocusedProject(page, 'Copy 1');
     const rows = page.locator('.projects-list .project-row');
     await expect(rows).toHaveCount(2); // current design + 1 comparison
@@ -278,7 +278,7 @@ test.describe('Original project list', () => {
     await expect(rows.nth(1)).not.toHaveClass(/trace-hidden/);
   });
 
-  test('opening a second project: edits land on the correct one, and the Project tab reflects whichever is focused', async ({ page }) => {
+  test('opening a second project: edits land on the correct one, and the Project tab reflects whichever is focused', async ({ appPage: page }) => {
     // Name the original project so the two open tabs are distinguishable from the start.
     await page.locator('.project-nav li', { hasText: 'Project' }).click();
     const nameInput = page.locator('.tab-section.active .field', { hasText: 'Name' }).locator('input');
@@ -307,7 +307,7 @@ test.describe('Original project list', () => {
     await expect(nameInput).toHaveValue('Edited Copy');
   });
 
-  test('closing the last open project keeps the shell and exposes recovery actions', async ({ page }) => {
+  test('closing the last open project keeps the shell and exposes recovery actions', async ({ appPage: page }) => {
     // The default single open project is unmodified at fresh load, so Close needs no confirmation.
     await page.locator('.project-row.selected .row-menu-btn').click();
     await page.locator('.row-menu-item:has-text("Close")').click();
@@ -323,7 +323,7 @@ test.describe('Original project list', () => {
     await expect(page.locator('.modal-titlebar', { hasText: 'New Project' })).toBeVisible();
   });
 
-  test('the unsaved mark stays on a project row after another project takes focus', async ({ page }) => {
+  test('the unsaved mark stays on a project row after another project takes focus', async ({ appPage: page }) => {
     // John, 2026-09-24: "there is a yellow mark to indicate an unsaved project - it only shows
     // for the focused project - it needs to be always visible".
     await duplicateFocusedProject(page, 'Copy 1');
@@ -343,7 +343,7 @@ test.describe('Original project list', () => {
     await expect(originalRow).not.toHaveClass(/is-unsaved/);
   });
 
-  test('rename from the row menu changes the project name shown in the row and in the title', async ({ page }) => {
+  test('rename from the row menu changes the project name shown in the row and in the title', async ({ appPage: page }) => {
     const row = page.locator('.project-row.selected');
     await expect(row.locator('.project-name')).toHaveText('sample-project');
     await expect(row).toHaveAttribute('title', 'Project — sample-project (Active)');

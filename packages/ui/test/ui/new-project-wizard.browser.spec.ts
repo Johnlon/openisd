@@ -3,9 +3,10 @@ import type {Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
-import {MY_DRIVERS_KEY, myDriversJson} from '../fixtures/seedMyDrivers.js';
+import {deviceRecord, type SeedDriver} from '../fixtures/seedMyDrivers.js';
 
 const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 's-re.wdr');
 
@@ -29,6 +30,30 @@ async function choosePassiveRadiator(page: Page): Promise<void> {
   await expect(footerNext(page)).toBeDisabled();
   await modal.locator('#np-pr-select').click();
   await page.locator('button', { hasText: 'Define new passive radiator' }).click();
+}
+
+/** A driver as the `.owdr` file a user would have on disk. */
+function owdrText(d: SeedDriver, id: string): string {
+  const driver = OpenISDDriver.fromConformingRecord(deviceRecord(d, id), createEngine());
+  if (Array.isArray(driver)) throw new Error(`fixture driver is invalid: ${driver.join(', ')}`);
+  return driver.toOwdrText();
+}
+
+/** Puts drivers in My Drivers the way a user does: Load File… in the wizard's driver list, one `.owdr` file
+ *  each. The import lands on the driver's summary, which has no way back to the list, so each driver gets its
+ *  own opening of the wizard. */
+async function importDrivers(page: Page, drivers: SeedDriver[]): Promise<void> {
+  for (const [i, d] of drivers.entries()) {
+    await openWizard(page);
+    const modal = page.locator('.overlay.open');
+    const id = `00000000-0000-4000-8000-00000000000${i + 1}`;
+    await modal.locator('input[type=file]').setInputFiles({
+      name: `${d.model}.owdr`, mimeType: 'application/x-openisd-driver', buffer: Buffer.from(owdrText(d, id)),
+    });
+    await expect(page.locator('.flash').last(), `${d.model} was not imported`).toContainText(`Driver imported to My Drivers: ${d.brand} ${d.model}`);
+    await modal.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(page.locator('.overlay.open')).toHaveCount(0);
+  }
 }
 
 /** The wizard's one footer: Back, Next/Create (the green lead), Cancel. */
@@ -86,15 +111,12 @@ async function buildProject(page: Page, boxType: string, name = 'Wizard project'
 
 test.describe('New Project wizard', () => {
   test.describe('with a project open', () => {
-    test.beforeEach(async ({ page }) => {
-      await page.addInitScript(([key, json]) => {
-        localStorage.setItem(key, json);
-      }, [MY_DRIVERS_KEY, myDriversJson([DRIVER, W5_1138SMF.toSeedDriver()])] as const);
-      await page.goto('/');
+    test.beforeEach(async ({ appPage: page }) => {
       await openAProject(page);
+      await importDrivers(page, [DRIVER, W5_1138SMF.toSeedDriver()]);
     });
 
-    test('every step has one footer: Back, Next (the green lead), Cancel; step 1 has no Use and one Cancel', async ({ page }) => {
+    test('every step has one footer: Back, Next (the green lead), Cancel; step 1 has no Use and one Cancel', async ({ appPage: page }) => {
       await openWizard(page);
       const modal = page.locator('.overlay.open');
       await expect(modal.locator('.modal-footer')).toHaveCount(1);
@@ -115,7 +137,7 @@ test.describe('New Project wizard', () => {
       expect(await background(footerNext(page))).toMatch(GREEN_FILL);
     });
 
-    test('Back returns to the previous step with its values kept', async ({ page }) => {
+    test('Back returns to the previous step with its values kept', async ({ appPage: page }) => {
       await openWizard(page);
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
@@ -130,7 +152,7 @@ test.describe('New Project wizard', () => {
       await expect(modal.locator('.selected-driver-banner')).toContainText('Wizard Test RS225');
     });
 
-    test('Cancel closes the wizard without creating a project', async ({ page }) => {
+    test('Cancel closes the wizard without creating a project', async ({ appPage: page }) => {
       const rows = page.locator('.projects-list .project-row');
       const before = await rows.count();
       await openWizard(page);
@@ -142,7 +164,7 @@ test.describe('New Project wizard', () => {
       await expect(rows).toHaveCount(before);
     });
 
-    test('the last step\'s green lead is Create, and it creates the project', async ({ page }) => {
+    test('the last step\'s green lead is Create, and it creates the project', async ({ appPage: page }) => {
       const rows = page.locator('.projects-list .project-row');
       const before = await rows.count();
       await openWizard(page);
@@ -162,13 +184,13 @@ test.describe('New Project wizard', () => {
       expect(await focusedProjectName(page)).toBe('Lead creates');
     });
 
-    test('walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar', async ({ page }) => {
+    test('walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar', async ({ appPage: page }) => {
       await buildProject(page, 'sealed', 'My Sub Build');
       expect(await focusedProjectName(page)).toBe('My Sub Build');
       await expect(page.locator('.projects-list .project-row.selected')).toContainText('My Sub Build');
     });
 
-    test('starts fresh — it discards the previous design (filters, params)', async ({ page }) => {
+    test('starts fresh — it discards the previous design (filters, params)', async ({ appPage: page }) => {
       await dirtyFocusedDesign(page);
 
       await openWizard(page);
@@ -182,13 +204,13 @@ test.describe('New Project wizard', () => {
     // One test per box type: each wizard walk has its own time limit, so a slow machine never
     // fails the sixth walk for the time the first five took.
     for (const box of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc']) {
-      test(`a wizard-created ${box} project draws a chart`, async ({ page }) => {
+      test(`a wizard-created ${box} project draws a chart`, async ({ appPage: page }) => {
         await buildProject(page, box);
         await expect.poll(() => curvesSplLength(page)).toBeGreaterThan(0);
       });
     }
 
-    test('wizard-created vented project has a vent diameter and a tuning; the PR project has a radiator', async ({ page }) => {
+    test('wizard-created vented project has a vent diameter and a tuning; the PR project has a radiator', async ({ appPage: page }) => {
       await buildProject(page, 'vented');
       await expect(page.locator('.field', { hasText: 'Diameter' }).locator('input')).toHaveValue(/\d/);
       // WinISD's default C4/SC4 alignment at the new project's Rg 0.1 Ω / Ql 10 — the same design the
@@ -207,7 +229,7 @@ test.describe('New Project wizard', () => {
         .not.toBe('');
     });
 
-    test('a wizard-created project gets the copper voice-coil resistance TC', async ({ page }) => {
+    test('a wizard-created project gets the copper voice-coil resistance TC', async ({ appPage: page }) => {
       await buildProject(page, 'sealed');
 
       // Navigate to Driver tab
@@ -219,7 +241,7 @@ test.describe('New Project wizard', () => {
       await expect(tc).toHaveValue('3.9000');
     });
 
-    test('a new sealed project drives the sealed alignment towards Qt 0.707 and derives its volume', async ({ page }) => {
+    test('a new sealed project drives the sealed alignment towards Qt 0.707 and derives its volume', async ({ appPage: page }) => {
       await buildProject(page, 'sealed', 'Sealed project');
       await page.locator('#og-box-type').selectOption('sealed');
 
@@ -231,7 +253,7 @@ test.describe('New Project wizard', () => {
       expect(volVal, `volume derived from alignment, got ${volVal}`).toBeGreaterThan(0.1);
     });
 
-    test('the sealed volume input follows the volume unit rotation: rotated to cu ft, a typed cu ft value is the created volume', async ({ page }) => {
+    test('the sealed volume input follows the volume unit rotation: rotated to cu ft, a typed cu ft value is the created volume', async ({ appPage: page }) => {
       await openWizard(page);
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
@@ -256,7 +278,7 @@ test.describe('New Project wizard', () => {
 
     // WinISD's wizard asks for the passive radiator after the box type.
     // bugs/archive/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
-    test('the passive-radiator step\'s Vas / Qms / Fs reach the created project', async ({ page }) => {
+    test('the passive-radiator step\'s Vas / Qms / Fs reach the created project', async ({ appPage: page }) => {
       await page.locator('.tb-btn[title*="New project"]').click();
       const modal = page.locator('.overlay.open');
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
@@ -282,15 +304,8 @@ test.describe('New Project wizard', () => {
   });
 
   test.describe('with no project open', () => {
-    test('opening a .wdr with no project starts the wizard, not a default sealed project', async ({ page }) => {
-      // No project open is this test's precondition. The clear also takes the shared fixture's
-      // splash seed with it, so put that back — the splash is an overlay across the whole app and
-      // is not what this test is about (`splash.browser.spec.ts` covers it).
-      await page.addInitScript(() => {
-        localStorage.clear();
-        localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } }));
-      });
-      await page.goto('/');
+    test('opening a .wdr with no project starts the wizard, not a default sealed project', async ({ appPage: page }) => {
+      // No project open is this test's precondition: the reset gives it.
       await expect(page.locator('.original-root')).toBeVisible();
 
       await page.locator('.original-root input[type=file]').setInputFiles({

@@ -1,7 +1,7 @@
 /** Options dialog: no unit or input pokes out past the edge of its group box (kg/m³ did, 14 Oct 2026). */
 import {expect, openAProject, test} from '../fixtures.js';
 
-test('every control and unit in the Options dialog stays inside its group box', async ({page}) => {
+test('every control and unit in the Options dialog stays inside its group box', async ({ appPage: page }) => {
   await page.setViewportSize({width: 1280, height: 800});
   await page.goto('/');
   await openAProject(page);

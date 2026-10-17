@@ -15,13 +15,13 @@ function signalInput(page: Page, label: string): Locator {
 }
 
 test.describe('Original Signal tab', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
     await page.locator('.project-nav li', { hasText: 'Signal' }).click();
   });
 
-  test('System input power spins by about 1 % a tap: 1 W up is 1.01 W, down is 0.99 W', async ({ page }) => {
+  test('System input power spins by about 1 % a tap: 1 W up is 1.01 W, down is 0.99 W', async ({ appPage: page }) => {
     const pow = signalInput(page, 'System input power');
     await fillAndBlur(pow, '1');
     await pow.focus();
@@ -33,18 +33,18 @@ test.describe('Original Signal tab', () => {
     await expect(pow).toHaveValue('0.99');
   });
 
-  test('System input power is a UIField: label, box, ⚠ slot and unit in one row', async ({ page }) => {
+  test('System input power is a UIField: label, box, ⚠ slot and unit in one row', async ({ appPage: page }) => {
     const row = page.locator('.ui-field', { hasText: 'System input power' });
     await expect(row.locator('input')).toHaveValue(/\d/);
     await expect(row.locator('.ui-field-unit')).toHaveText('W');
   });
 
   test.describe('series resistance', () => {
-    test('shows WinISD 3-dp precision (0.100 ohm)', async ({ page }) => {
+    test('shows WinISD 3-dp precision (0.100 ohm)', async ({ appPage: page }) => {
       await expect(signalInput(page, 'Series resistance')).toHaveValue(/^\d+\.\d{3}$/);
     });
 
-    test('holds a typed value instead of resetting to 0', async ({ page }) => {
+    test('holds a typed value instead of resetting to 0', async ({ appPage: page }) => {
       const rs = signalInput(page, 'Series resistance');
       await fillAndBlur(rs, '0.5');
       await expect(rs).toHaveValue(/0\.5/);
@@ -54,7 +54,7 @@ test.describe('Original Signal tab', () => {
   });
 
   test.describe('UIField rows (bugs/BUG_20261005_no-common-ui-field-component.md)', () => {
-    test('series resistance: an emptied box is refused with a ⚠ and Esc restores the stored value', async ({ page }) => {
+    test('series resistance: an emptied box is refused with a ⚠ and Esc restores the stored value', async ({ appPage: page }) => {
       const row = page.locator('.ui-field', { hasText: 'Series resistance' });
       const box = row.locator('input');
       await fillAndBlur(box, '0.5');
@@ -65,7 +65,7 @@ test.describe('Original Signal tab', () => {
       await expect(box).toHaveValue(/^0\.5/);
     });
 
-    test('driver input voltage is a UIField row; emptied, it goes back to a calculated value', async ({ page }) => {
+    test('driver input voltage is a UIField row; emptied, it goes back to a calculated value', async ({ appPage: page }) => {
       const row = page.locator('.ui-field', { hasText: 'Driver input voltage' });
       const box = row.locator('input');
       await fillAndBlur(box, '12');
@@ -75,7 +75,7 @@ test.describe('Original Signal tab', () => {
   });
 
   test.describe('power and voltage pair', () => {
-    test('both cells are filled from the stored 1 W reference and explain their law', async ({ page }) => {
+    test('both cells are filled from the stored 1 W reference and explain their law', async ({ appPage: page }) => {
       const pow = signalInput(page, 'System input power');
       const vol = signalInput(page, 'Driver input voltage');
       await expect(pow).toHaveValue(/\d/);
@@ -86,7 +86,7 @@ test.describe('Original Signal tab', () => {
       await expect(vol).toHaveAttribute('title', /V = √\(P · Re\)/);
     });
 
-    test('moving the power moves the voltage, and the entered power survives its own blur', async ({ page }) => {
+    test('moving the power moves the voltage, and the entered power survives its own blur', async ({ appPage: page }) => {
       const pow = signalInput(page, 'System input power');
       const vol = signalInput(page, 'Driver input voltage');
 
@@ -104,7 +104,7 @@ test.describe('Original Signal tab', () => {
       expect(Number(await vol.inputValue()), 'lowering power must lower the voltage').toBeLessThan(v10);
     });
 
-    test('entering a voltage derives the power V²/(Re+Rs) on blur and keeps it', async ({ page }) => {
+    test('entering a voltage derives the power V²/(Re+Rs) on blur and keeps it', async ({ appPage: page }) => {
       const pow = signalInput(page, 'System input power');
       const vol = signalInput(page, 'Driver input voltage');
 
@@ -118,7 +118,7 @@ test.describe('Original Signal tab', () => {
       expect(g.P, 'the committed power is the same law').toBeCloseTo((4 * 4) / (g.Re! + (g.Rs ?? 0)), 8);
     });
 
-    test('clearing V returns the pair to the 1 W reference — neither end is left blank', async ({ page }) => {
+    test('clearing V returns the pair to the 1 W reference — neither end is left blank', async ({ appPage: page }) => {
       const pow = signalInput(page, 'System input power');
       const vol = signalInput(page, 'Driver input voltage');
 
@@ -136,7 +136,7 @@ test.describe('Original Signal tab', () => {
       await expect(vol).not.toHaveAttribute('title', /No drive level stated/);
     });
 
-    test('clearing P keeps the voltage, which becomes the entered end of the pair', async ({ page }) => {
+    test('clearing P keeps the voltage, which becomes the entered end of the pair', async ({ appPage: page }) => {
       const pow = signalInput(page, 'System input power');
       const vol = signalInput(page, 'Driver input voltage');
 
@@ -156,7 +156,7 @@ test.describe('Original Signal tab', () => {
 });
 
 test.describe('Original Signal tab with a complete driver', () => {
-  test('a complete driver stores the 1 W reference and draws a chart without a drive data-quality note', async ({ page }) => {
+  test('a complete driver stores the 1 W reference and draws a chart without a drive data-quality note', async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
     await expect.poll(() => curvesSplLength(page)).toBeGreaterThan(0);

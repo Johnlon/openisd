@@ -1,5 +1,5 @@
 prefix: QO
-next: 182
+next: 183
 questions:
 - id: QO179
   title: unit tests import the file they test; one test file per source file, never a barrel
@@ -9963,3 +9963,14 @@ questions:
     What I will do instead: change the file forward by hand in a new edit, now that it is committed.
     Who was told: fable (coordinator), in a message the same hour.
     Needs from you: nothing, unless you want a different rule.
+- id: QO182
+  title: bob tried git checkout on a file with his own debug line; the guard blocked it
+  status: open
+  raised: '2026-10-17'
+  body: 'Task: reviewing T250 (browser tests reuse the app between tests). I had added one temporary debug
+    line to the new-project wizard spec in the t250 worktree to see why the driver list was empty. To
+    take the line out again I ran git checkout on that one file. The guard blocked it, as it should: that
+    file held uncommitted work. I did not look for another way round. I committed the file as it was,
+    then removed the debug line with a normal edit and committed again, so nothing was lost. No other
+    agent was involved and nothing was decided with anyone. Plain mistake: I should have committed before
+    thinking about reverting.'

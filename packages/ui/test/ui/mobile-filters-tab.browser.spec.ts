@@ -7,19 +7,19 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', { hasText: 'Filters' }).click();
 });
 
-test('shows the quick-add row and an empty list with no filters yet', async ({ page }) => {
+test('shows the quick-add row and an empty list with no filters yet', async ({ appPage: page }) => {
   await expect(page.getByText('+ LP', { exact: true })).toBeVisible();
   await expect(page.getByText('No filters active.')).toBeVisible();
 });
 
-test('adding a filter opens its editor immediately, and it survives switching tabs', async ({ page }) => {
+test('adding a filter opens its editor immediately, and it survives switching tabs', async ({ appPage: page }) => {
   await page.getByText('+ LP', { exact: true }).click();
   await expect(page.getByText('Cutoff')).toBeVisible();
 
@@ -28,7 +28,7 @@ test('adding a filter opens its editor immediately, and it survives switching ta
   await expect(page.getByText('Lowpass', { exact: false })).toBeVisible();
 });
 
-test('removing a filter clears the list back to empty', async ({ page }) => {
+test('removing a filter clears the list back to empty', async ({ appPage: page }) => {
   await page.getByText('+ HP', { exact: true }).click();
   await expect(page.getByText('No filters active.')).toBeHidden();
 
@@ -36,7 +36,7 @@ test('removing a filter clears the list back to empty', async ({ page }) => {
   await expect(page.getByText('No filters active.')).toBeVisible();
 });
 
-test('an order-4 allpass shows the WinISD deviation cue, and it opens the differences page at its entry, within the phone width', async ({ page }) => {
+test('an order-4 allpass shows the WinISD deviation cue, and it opens the differences page at its entry, within the phone width', async ({ appPage: page }) => {
   await page.getByText('+ AP', { exact: true }).click();
   const order = page.locator('.filter-edit-body label').filter({ hasText: /^Order\b/ }).locator('input');
   await order.fill('4');
@@ -54,7 +54,7 @@ test('an order-4 allpass shows the WinISD deviation cue, and it opens the differ
   expect(box.x + box.width).toBeLessThanOrEqual(width);
 });
 
-test('Options "Show WinISD difference markers (≠W)" hides the cue, and ticking it brings it back', async ({ page }) => {
+test('Options "Show WinISD difference markers (≠W)" hides the cue, and ticking it brings it back', async ({ appPage: page }) => {
   await page.getByText('+ AP', { exact: true }).click();
   const cue = page.locator('button.winisd-deviation-cue');
   await expect(cue).toBeVisible();

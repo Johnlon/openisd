@@ -4,7 +4,7 @@
  */
 import {expect, openAProject, test} from '../fixtures.js';
 
-test('Auto Y off holds the Y axis through a box volume edit; on rescales it', async ({ page }) => {
+test('Auto Y off holds the Y axis through a box volume edit; on rescales it', async ({ appPage: page }) => {
   await page.goto('/');
   await openAProject(page);
   const panel = page.locator('.graph-wrap .gpanel').first();

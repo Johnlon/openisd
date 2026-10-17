@@ -30,7 +30,7 @@ test.describe('Modal behaviour', () => {
       await expect(rows.nth(0)).toHaveClass(/selected/);
     }
 
-    test('the Driver Editor is a true modal — the project rows are unclickable while it is open', async ({ page }) => {
+    test('the Driver Editor is a true modal — the project rows are unclickable while it is open', async ({ appPage: page }) => {
       await page.goto('/');
       await openAProject(page);
 
@@ -49,7 +49,7 @@ test.describe('Modal behaviour', () => {
       );
     });
 
-    test('the driver library is a true modal — the project rows are unclickable while it is open', async ({ page }) => {
+    test('the driver library is a true modal — the project rows are unclickable while it is open', async ({ appPage: page }) => {
       await page.goto('/');
       await openAProject(page);
 
@@ -79,7 +79,7 @@ test.describe('Modal behaviour', () => {
     // long gone from the shell; the governed way into the driver editor is the picker's
     // "Add new Driver" (DriverBrowser.vue), which opens the same `.de-modal`.
 
-    test('Escape dismisses the driver editor opened from the library', async ({ page }) => {
+    test('Escape dismisses the driver editor opened from the library', async ({ appPage: page }) => {
       await page.goto('/');
       await openAProject(page);
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();

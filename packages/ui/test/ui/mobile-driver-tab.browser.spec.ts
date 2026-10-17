@@ -7,25 +7,25 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', { hasText: 'Driver' }).click();
 });
 
-test('shows the driver identity and the Select/Edit actions', async ({ page }) => {
+test('shows the driver identity and the Select/Edit actions', async ({ appPage: page }) => {
   await expect(page.locator('.mob-driver-model')).toBeVisible();
   await expect(page.getByText('Select driver')).toBeVisible();
   await expect(page.getByText('Edit')).toBeVisible();
 });
 
-test('Edit opens the driver editor modal', async ({ page }) => {
+test('Edit opens the driver editor modal', async ({ appPage: page }) => {
   await page.getByText('Edit', { exact: true }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
 });
 
-test('changing the number of drivers and the wiring writes the project', async ({ page }) => {
+test('changing the number of drivers and the wiring writes the project', async ({ appPage: page }) => {
   await page.locator('#mob-n-drivers').selectOption('2');
   await expect(page.locator('#mob-n-drivers')).toHaveValue('2');
 

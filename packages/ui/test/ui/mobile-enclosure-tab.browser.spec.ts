@@ -6,14 +6,14 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
 test.describe('MobileEnclosureTab', () => {
-  test('a sealed box drops the enclosure destination from the tab bar', async ({ page }) => {
+  test('a sealed box drops the enclosure destination from the tab bar', async ({ appPage: page }) => {
     await expect(page.locator('.mob-tab', { hasText: 'Vented' })).toBeVisible();
     await page.locator('#mob-box-type').selectOption('sealed');
     await expect(page.locator('.mob-tab', { hasText: 'Vented' })).toHaveCount(0);
@@ -22,7 +22,7 @@ test.describe('MobileEnclosureTab', () => {
   // BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell: on a 4th-order bandpass the
   // Ffc entry and the vent diameter belong to the FRONT chamber; they were written to the vented
   // box's cells, so the diameter re-read empty and the vent length never solved.
-  test('a 4th-order bandpass keeps its front-chamber tuning and vent diameter, and solves the vent length', async ({ page }) => {
+  test('a 4th-order bandpass keeps its front-chamber tuning and vent diameter, and solves the vent length', async ({ appPage: page }) => {
     await page.locator('.mob-tab', { hasText: 'Box' }).click();
     await page.locator('#mob-box-type').selectOption('bandpass4');
     await page.locator('.mob-tab', { hasText: '4th Order Bandpass' }).click();
@@ -39,7 +39,7 @@ test.describe('MobileEnclosureTab', () => {
 
   // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied vent dimension clears, never
   // stores 0. A cleared diameter settles to the 50 mm starting port (John, 2026-10-09).
-  test('an emptied vent diameter settles to the starting port instead of becoming 0', async ({ page }) => {
+  test('an emptied vent diameter settles to the starting port instead of becoming 0', async ({ appPage: page }) => {
     await page.locator('.mob-tab', { hasText: 'Vented' }).click();
     const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
     await diameter.fill('');

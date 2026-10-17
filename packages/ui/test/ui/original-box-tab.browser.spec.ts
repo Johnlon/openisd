@@ -15,7 +15,7 @@ const qtcInput = (page: Page) => page.locator('.box-layout .field', { hasText: '
 const fscInput = (page: Page) => page.locator('#og-box-resonance');
 const boxTab = (page: Page) => page.locator('.project-nav li', { hasText: 'Box' });
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await page.goto('/');
   await openAProject(page);
 });
@@ -47,7 +47,7 @@ async function expectReadoutTracks(page: Page, message: string): Promise<void> {
 
 // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
 // the current alignment gives (10.69 L for the sample's driver), never blank and never 0.
-test('emptying the box volume settles it to the alignment volume', async ({ page }) => {
+test('emptying the box volume settles it to the alignment volume', async ({ appPage: page }) => {
   await page.locator('.project-nav li', { hasText: 'Box' }).click();
   const vol = page.locator('#og-box-volume');
   await vol.fill('40');
@@ -59,12 +59,12 @@ test('emptying the box volume settles it to the alignment volume', async ({ page
 });
 
 test.describe('Original Box tab', () => {
-  test('the Box tab owns the box-type selector', async ({ page }) => {
+  test('the Box tab owns the box-type selector', async ({ appPage: page }) => {
     await boxTab(page).click();
     await expect(page.locator('#og-box-type')).toBeVisible();
   });
 
-  test('no box type row is dim grey, and 6th-order bandpass and ABC are selectable', async ({ page }) => {
+  test('no box type row is dim grey, and 6th-order bandpass and ABC are selectable', async ({ appPage: page }) => {
     await boxTab(page).click();
     const dim = 'rgb(153, 153, 153)';
     const sel = page.locator('select#og-box-type');
@@ -74,7 +74,7 @@ test.describe('Original Box tab', () => {
     await expect(sel).toHaveValue('abc');
   });
 
-  test('the Box tab exposes all six box types and drives the shared store for each', async ({ page }) => {
+  test('the Box tab exposes all six box types and drives the shared store for each', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     const boxSel = page.locator('select#og-box-type');
     await expect(boxSel.locator('option')).toHaveCount(6);
@@ -93,7 +93,7 @@ test.describe('Original Box tab', () => {
     expect(await focusedBoxType(page)).toBe('abc');
   });
 
-  test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab', async ({ page }) => {
+  test('the Closed (sealed) box hides the dynamic enclosure tab — Volume lives only on the Box tab', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('vented');
     const nav = page.locator('.project-nav li');
@@ -110,7 +110,7 @@ test.describe('Original Box tab', () => {
     await expect(page.locator('.tab-section.active')).toContainText('Volume');
   });
 
-  test('an externally loaded box type re-syncs the Box tab', async ({ page }) => {
+  test('an externally loaded box type re-syncs the Box tab', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('abc');
     await expect(page.locator('#og-box-diagram-abc')).toBeVisible();
@@ -124,7 +124,7 @@ test.describe('Original Box tab', () => {
     await expect(page.locator('.graph-wrap .gpanel')).toBeVisible();
   });
 
-  test('the 6th-order bandpass Frc field persists a typed value instead of discarding it', async ({ page }) => {
+  test('the 6th-order bandpass Frc field persists a typed value instead of discarding it', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('bandpass6');
     const frc = page.locator('.field', { hasText: 'Tuning freq (Frc)' }).locator('input');
@@ -136,7 +136,7 @@ test.describe('Original Box tab', () => {
   });
 
   // bugs/BUG_20261007_bp6-abc-front-tuning-edits-the-vented-box.md
-  test('the 6th-order bandpass Ffc field edits the front chamber, not the vented box', async ({ page }) => {
+  test('the 6th-order bandpass Ffc field edits the front chamber, not the vented box', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('bandpass6');
     const before = await focusedBandpass6Tunings(page);
@@ -149,7 +149,7 @@ test.describe('Original Box tab', () => {
 
   // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied Frc is never stored as 0. Under the
   // clear rule (docs/design/FIELD_CLEAR_RULE.md) the vent length becomes the entry and Frc is calculated.
-  test('the 6th-order bandpass Frc field, when emptied, shows the calculated tuning instead of 0', async ({ page }) => {
+  test('the 6th-order bandpass Frc field, when emptied, shows the calculated tuning instead of 0', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('bandpass6');
     const frc = page.locator('.ui-field', { hasText: 'Tuning freq (Frc)' }).locator('input');
@@ -159,7 +159,7 @@ test.describe('Original Box tab', () => {
     await expect(frc).toHaveClass(/value-c/);
   });
 
-  test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in a 20L box shows the WinISD-lossy Qtc and fc', async ({ page }) => {
+  test('sealed box: Fs=37Hz, Qts=0.38, Vas=30L driver in a 20L box shows the WinISD-lossy Qtc and fc', async ({ appPage: page }) => {
     // Qtc = Qts × √(1 + Vas/Vb), fc = Fs × √(1 + Vas/Vb) in the lossless model; the default
     // WinISD-lossy model reads them from the loss-mode cubic, so the expected numbers come from
     // the W5-1138SMF table.
@@ -175,7 +175,7 @@ test.describe('Original Box tab', () => {
     expect(fsc).toBeCloseTo(parseFloat(expected.fc_hz), 1);
   });
 
-  test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 Vb=6L Ql=10 Qa=100 → Fsc=63.1762Hz Qtc=0.5995', async ({ page }) => {
+  test('sealed box WinISD golden: Fs=40 Vas=7.65L Qes=0.45 Qms=2.94 Re=6.6 Rg=0.1 Vb=6L Ql=10 Qa=100 → Fsc=63.1762Hz Qtc=0.5995', async ({ appPage: page }) => {
     // WinISD's own readout for this driver and box (user-supplied ground truth, verified against
     // the reverse-engineered SEALED_FSC_MODEL.md). The Box tab's Fsc/Qtc must show it, so the
     // source resistance Rg and the Qes/Qms-derived Qts are proven wired in — not just the engine.
@@ -194,7 +194,7 @@ test.describe('Original Box tab', () => {
     expect(parseFloat(await qtcInput(page).inputValue())).toBeCloseTo(0.5995, 2);
   });
 
-  test('sealed Fsc/Qtc readouts re-render after volume, losses and driver swap', async ({ page }) => {
+  test('sealed Fsc/Qtc readouts re-render after volume, losses and driver swap', async ({ appPage: page }) => {
     await setFocusedBoxType(page, 'sealed');
     await boxTab(page).click();
 
@@ -227,7 +227,7 @@ test.describe('Original Box tab', () => {
     await expectReadoutTracks(page, 'after driver swap to W5-1138SMF');
   });
 
-  test('bandpass4 box: 15L rear + 20L front chamber volumes enter and render', async ({ page }) => {
+  test('bandpass4 box: 15L rear + 20L front chamber volumes enter and render', async ({ appPage: page }) => {
     // The front-chamber vent length is deliberately not asserted: the Box- and Enclosure-tab Ffc
     // inputs write box.vented.tuning_goal_hz even for bandpass4 while the front-vent solve reads
     // box.bandpass4.chambers.front.tuning_goal_hz, so it cannot solve through the UI (tracked app bug).
@@ -239,7 +239,7 @@ test.describe('Original Box tab', () => {
     expect(parseFloat(await numInputByLabel(page, 'Volume').nth(1).inputValue())).toBeCloseTo(20, 1);
   });
 
-  test('a CLOSED box never reports a passive-radiator tuning', async ({ page }) => {
+  test('a CLOSED box never reports a passive-radiator tuning', async ({ appPage: page }) => {
     // A sealed box has no port or radiator, so its only resonance is the sealed Fsc on the
     // Box tab — labelled Fsc, never Fh/Fpr. The enclosure/Vents pane and its PR tuning are
     // dropped entirely for a closed box (no "Passive Radiator" nav entry to report one).
@@ -259,7 +259,7 @@ test.describe('Original Box tab', () => {
     await expect(page.locator('body')).not.toContainText('Fpr');
   });
 
-  test('the box cut-through diagram sits at the same x for every box type', async ({ page }) => {
+  test('the box cut-through diagram sits at the same x for every box type', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
     const select = page.locator('#og-box-type');
     const types = await select.locator('option').evaluateAll(os => os.map(o => {

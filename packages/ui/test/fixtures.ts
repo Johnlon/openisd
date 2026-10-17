@@ -1,7 +1,8 @@
 import {existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {basename, join} from 'node:path';
-import {type Browser, expect, type Locator, type Page, test as base} from '@playwright/test';
+import {type Browser, type BrowserContext, type Disposable, expect, type Locator, type Page, test as base} from '@playwright/test';
+import {DEFAULT_ENV_DEFAULTS, DEFAULT_VENTED_DESIGN_LIMITS} from '@openisd/design/engine';
 import {NumberField} from '@openisd/design/fields';
 import {CHROME_OUTAGE_POLICY, CHROME_STABLE_MS, type OutageClock, waitOutOutage} from './fixtures/chromeOutage.js';
 import {fillAndBlur} from './fixtures/numField.js';
@@ -40,6 +41,7 @@ export interface BrowserLog {
   pageErrors: string[];
   networkErrors: string[];
   reset: () => void;
+  _attach?: (page: Page) => () => void;
 }
 
 /**
@@ -59,7 +61,148 @@ const REAL_CLOCK: OutageClock = {
   sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
 };
 
-export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }>({
+/**
+ * What a test adds to the shared worker page itself and Playwright keeps until told otherwise: init
+ * scripts, event listeners (dialog handlers included), cookies, extra headers and media emulation.
+ * `removeAll` undoes them. App state is not here: a value the app carries from one test to the next
+ * is an app bug, not something to reset.
+ */
+/** The page events a test can attach a handler to (Playwright's own plumbing does not use them). */
+const PAGE_EVENTS = [
+  'close', 'console', 'crash', 'dialog', 'domcontentloaded', 'download', 'filechooser', 'frameattached',
+  'framedetached', 'framenavigated', 'load', 'pageerror', 'popup', 'request', 'requestfailed',
+  'requestfinished', 'response', 'websocket', 'worker',
+] as const;
+
+export class TestAdditions {
+  readonly #page: Page;
+  readonly #scripts: Disposable[] = [];
+
+  constructor(page: Page) {
+    this.#page = page;
+    const addPageScript = page.addInitScript.bind(page);
+    page.addInitScript = async (...args: Parameters<Page['addInitScript']>) => {
+      const added = await addPageScript(...args);
+      this.#scripts.push(added);
+      return added;
+    };
+    const context = page.context();
+    const addContextScript = context.addInitScript.bind(context);
+    context.addInitScript = async (...args: Parameters<BrowserContext['addInitScript']>) => {
+      const added = await addContextScript(...args);
+      this.#scripts.push(added);
+      return added;
+    };
+  }
+
+  async removeAll(): Promise<void> {
+    for (const script of this.#scripts.splice(0)) await script.dispose().catch(() => {});
+    for (const event of PAGE_EVENTS) this.#page.removeAllListeners(event);
+    await this.#page.context().clearCookies();
+    await this.#page.setExtraHTTPHeaders({});
+    await this.#page.emulateMedia({colorScheme: null, media: null, reducedMotion: null, forcedColors: null});
+  }
+}
+
+/**
+ * Resets the open worker app back to a clean initial state:
+ * - clears route stubs (page.unrouteAll)
+ * - resets viewport to default desktop (1280x720)
+ * - clears active element focus
+ * - clears storage back to splashSeen / persist_warning_dismissed baseline
+ * - closes all open projects and resets focused project to null
+ * - resets application settings (difference cues, vented limits, env defaults)
+ * - closes all dialogs / modals and clears presentation state (unit tokens, skin override, zoom)
+ */
+export async function resetApp(page: Page, additions: TestAdditions): Promise<void> {
+  await additions.removeAll();
+  await page.context().unrouteAll({ behavior: 'ignoreErrors' });
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  await page.setViewportSize({ width: 1280, height: 720 });
+
+  await page.evaluate(({ ventedLimits, envDefaults }) => {
+    function isTestHooks(m: unknown): m is TestHooks {
+      return typeof m === 'object' && m !== null && 'appState' in m && 'presentationState' in m;
+    }
+    const doc = globalThis.document;
+    const Html = globalThis.HTMLElement;
+    const Dialog = globalThis.HTMLDialogElement;
+    if (doc.activeElement instanceof Html) doc.activeElement.blur();
+
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } }));
+      localStorage.setItem('openisd_persist_warning_dismissed', '1');
+    } catch {}
+
+    const hooks: unknown = Reflect.get(globalThis, 'openisdTestHooks');
+    if (isTestHooks(hooks)) {
+      const { appState, presentationState } = hooks;
+      appState.restoreProjects([], 0, new Set());
+      appState.setDifferenceCuesShown(true);
+      appState.setVentedLimits(ventedLimits);
+      appState.setEnvDefaults(envDefaults);
+
+      presentationState.optionsOpen = false;
+      presentationState.browseOpen = false;
+      presentationState.newProjectOpen = false;
+      presentationState.editDriver = false;
+      presentationState.editDriverInfo = false;
+      presentationState.openDialogOpen = false;
+      presentationState.projectsPaneOpen = false;
+      presentationState.mobilePane = null;
+      presentationState.mobileDestination = 'box';
+      presentationState.yRanges = {};
+      presentationState.sweepRange = { min: 10, max: 20000 };
+      presentationState.resetUnitTokens();
+      presentationState.setSkinOverride(null);
+      presentationState.ui = { splashSeen: true, unitTokens: {} };
+    }
+
+    for (const d of Array.from(doc.querySelectorAll('dialog[open]'))) {
+      if (d instanceof Dialog) d.close();
+    }
+    // A click on empty page closes any dropdown a test left open, as it does for a user.
+    doc.body.click();
+    const binBack = doc.querySelector('.bin-footer .bin-toggle');
+    if (binBack instanceof Html) binBack.click();
+    const mobBinBack = doc.querySelector('.mob-bin-toggle');
+    if (mobBinBack instanceof Html && mobBinBack.textContent?.includes('Back')) mobBinBack.click();
+    const closeSelectors = [
+      '.overlay.on .x', '.overlay.open .x',
+      '.overlay.on .close-btn', '.overlay.open .close-btn',
+      '.overlay.on [title*="Close" i]', '.overlay.open [title*="Close" i]',
+      '.wd-x', '.wd-footer button',
+      '.confirm-dialog-cancel', '.confirm-dialog-dismiss',
+      '.mob-sheet-close', '.mob-menu-close',
+    ].join(', ');
+    for (const closeBtn of Array.from(doc.querySelectorAll(closeSelectors))) {
+      if (closeBtn instanceof Html) closeBtn.click();
+    }
+  }, { ventedLimits: DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: DEFAULT_ENV_DEFAULTS });
+
+  if (page.url().includes('#') || page.url().includes('?')) {
+    await page.evaluate(() => {
+      globalThis.location.hash = '';
+      globalThis.history.replaceState(null, '', '/');
+    });
+  }
+
+  const overlaySelector = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, dialog[open]';
+  for (let i = 0; i < 3; i++) {
+    const hasOverlay = await page.evaluate(sel => Boolean(globalThis.document.querySelector(sel)), overlaySelector);
+    if (!hasOverlay) break;
+    await page.keyboard.press('Escape').catch(() => {});
+  }
+}
+
+type TestHooks = import('../src/logic/testHooks.js').TestHooks;
+
+export const test = base.extend<
+  { browserLog: BrowserLog; page: Page; appPage: Page },
+  { browser: Browser; workerAppPage: Page; testAdditions: TestAdditions }
+>({
   // Replaces Playwright's own `browser` so a Chrome launch outage is waited out here instead of
   // failing tests in milliseconds (bugs/BUG_20261007_browser-processes-die-mid-suite.md). A launch
   // counts only once Chrome has stayed up for a few seconds and loaded two throwaway pages: a burst
@@ -94,24 +237,64 @@ export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }
     await browser.close();
   }, { scope: 'worker', timeout: CHROME_OUTAGE_POLICY.timeoutMs + 30_000 }],
 
-  browserLog: [async ({ page }, use, testInfo) => {
-    // Every browser test arrives with empty storage, which is exactly what makes the splash
-    // raise itself — an overlay across the whole app before any test's first click. Seed the
-    // view-state key so the suite starts past it. The splash's OWN spec
-    // (`splash.browser.spec.ts`) uses Playwright's base `test`, so it still sees the real
-    // first-visit behaviour.
+  workerAppPage: [async ({ browser }, use) => {
+    const port = process.env.OPENISD_TEST_PORT;
+    const baseURL = port ? `http://localhost:${port}` : 'http://localhost:4100';
+    const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 720 } });
+    const page = await context.newPage();
     await page.addInitScript(() => {
-      // Only when nothing is stored yet: a test that has already saved view state (unit
-      // tokens, chart colours) reloads with that state, and overwriting it here would
-      // silently undo what the test set up.
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
-      catch { /* storage disabled — the splash then shows, and that test will say so */ }
-      // The same for the startup warning a browser that will not keep the data raises; its own
-      // spec (`persistent-storage.browser.spec.ts`) clears this to see it.
+      catch { /* storage disabled */ }
       try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
       catch { /* storage disabled */ }
     });
+    await page.goto('/');
+    await page.waitForFunction(() => 'openisdTestHooks' in globalThis);
 
+    // Avoid full page reloads when tests call page.goto('/') on the already-loaded worker app page.
+    const rawGoto = page.goto.bind(page);
+    page.goto = async (url: string, options?: Parameters<Page['goto']>[1]) => {
+      if (url === '/' || url === '' || url === baseURL || url === `${baseURL}/`) {
+        return null;
+      }
+      return rawGoto(url, options);
+    };
+
+    await use(page);
+    await context.close().catch(() => {});
+  }, { scope: 'worker' }],
+
+  page: async ({ page, browserLog }, use) => {
+    await page.addInitScript(() => {
+      try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
+      catch { /* storage disabled */ }
+      try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
+      catch { /* storage disabled */ }
+    });
+    const detach = browserLog._attach?.(page);
+    try {
+      await use(page);
+    } finally {
+      detach?.();
+    }
+  },
+
+  testAdditions: [async ({ workerAppPage }, use) => {
+    await use(new TestAdditions(workerAppPage));
+  }, { scope: 'worker' }],
+
+  appPage: async ({ workerAppPage, testAdditions, browserLog }, use) => {
+    await resetApp(workerAppPage, testAdditions);
+    const detach = browserLog._attach?.(workerAppPage);
+    try {
+      await use(workerAppPage);
+    } finally {
+      detach?.();
+      await resetApp(workerAppPage, testAdditions);
+    }
+  },
+
+  browserLog: [async ({}, use, testInfo) => {
     const log: BrowserLog = {
       consoleErrors: [], consoleWarnings: [], pageErrors: [], networkErrors: [],
       reset: () => {
@@ -119,31 +302,47 @@ export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }
       },
     };
 
-    page.on('console', m => {
-      // A spec that blocks the telemetry collector (telemetry.browser.spec.ts) makes the browser
-      // log the refused beacon; that is the point of the spec, not an app fault.
-      if (m.location().url.startsWith(TELEMETRY_COLLECTOR_ORIGIN)) return;
-      if (m.type() === 'error') log.consoleErrors.push(m.text());
-      else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
-    });
-    page.on('pageerror', e => log.pageErrors.push(e.message));
-    page.on('requestfailed', r => {
-      // external federated sources (github.com) may be unreachable in CI — not our bug
-      if (r.url().includes('localhost')) {
-        const err = r.failure()?.errorText;
-        if (err !== 'net::ERR_ABORTED') {
-          log.networkErrors.push(`FAILED ${r.url()} — ${err}`);
+    const pageRef: { page: Page | null; detach: (() => void) | null } = { page: null, detach: null };
+
+    log._attach = (p: Page) => {
+      pageRef.page = p;
+      const onConsole = (m: import('@playwright/test').ConsoleMessage) => {
+        if (m.location().url.startsWith(TELEMETRY_COLLECTOR_ORIGIN)) return;
+        if (m.type() === 'error') log.consoleErrors.push(m.text());
+        else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
+      };
+      const onPageError = (e: Error) => log.pageErrors.push(e.message);
+      const onRequestFailed = (r: import('@playwright/test').Request) => {
+        if (r.url().includes('localhost')) {
+          const err = r.failure()?.errorText;
+          if (err !== 'net::ERR_ABORTED') {
+            log.networkErrors.push(`FAILED ${r.url()} — ${err}`);
+          }
         }
-      }
-    });
-    page.on('response', r => {
-      if (r.url().includes('localhost') && r.status() >= 400) log.networkErrors.push(`${r.status()} ${r.url()}`);
-    });
+      };
+      const onResponse = (r: import('@playwright/test').Response) => {
+        if (r.url().includes('localhost') && r.status() >= 400) log.networkErrors.push(`${r.status()} ${r.url()}`);
+      };
+
+      p.on('console', onConsole);
+      p.on('pageerror', onPageError);
+      p.on('requestfailed', onRequestFailed);
+      p.on('response', onResponse);
+
+      pageRef.detach = () => {
+        p.off('console', onConsole);
+        p.off('pageerror', onPageError);
+        p.off('requestfailed', onRequestFailed);
+        p.off('response', onResponse);
+      };
+      return pageRef.detach;
+    };
 
     await use(log);
-    // A route handler still inside route.fetch() when the test ends throws "Test ended" into the
-    // result (F41). Wait for in-flight handlers and drop the routes, for every spec.
-    await page.unrouteAll({ behavior: 'ignoreErrors' });
+    if (pageRef.page) {
+      await pageRef.page.unrouteAll({ behavior: 'ignoreErrors' });
+    }
+    pageRef.detach?.();
 
     const dump = {
       consoleErrors: log.consoleErrors,

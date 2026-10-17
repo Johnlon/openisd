@@ -90,12 +90,32 @@ async function captureSavedFiles(page: Page): Promise<void> {
       },
     });
   });
+  await page.evaluate(() => {
+    const files: Record<string, string> = {};
+    window.__savedFiles = files;
+    Object.defineProperty(window, 'showSaveFilePicker', {
+      configurable: true,
+      value: async (opts?: { suggestedName?: string }) => {
+        const name = opts?.suggestedName ?? 'unnamed';
+        return {
+          name,
+          createWritable: async () => ({
+            write: async (t: string) => { files[name] = t; },
+            close: async () => { /* nothing to flush — the text is already held */ },
+          }),
+        };
+      },
+    });
+  }).catch(() => {});
 }
 
 async function seed(page: Page, myDrivers: SavedDriver[] = [SEEDED]): Promise<void> {
   await page.addInitScript(([json, key]: readonly [string, string]) => {
     localStorage.setItem(key, json);
   }, [myDriversJson(myDrivers), MY_DRIVERS_KEY] as const);
+  await page.evaluate(([json, key]: readonly [string, string]) => {
+    localStorage.setItem(key, json);
+  }, [myDriversJson(myDrivers), MY_DRIVERS_KEY] as const).catch(() => {});
   await page.goto('/');
   await openAProject(page);
 }
@@ -141,7 +161,7 @@ const SEEDED_ID = `${SEEDED_BRAND}/${SEEDED_MODEL}`;
 
 // ---- route 1: Add new Driver -----------------------------------------------------------
 
-test('Add new Driver opens a completely blank driver; OK asks for an identity instead of dying', async ({ page }) => {
+test('Add new Driver opens a completely blank driver; OK asks for an identity instead of dying', async ({ appPage: page }) => {
   await seed(page);
   await openPicker(page);
   await page.getByRole('button', { name: 'Add new Driver' }).click();
@@ -161,7 +181,7 @@ test('Add new Driver opens a completely blank driver; OK asks for an identity in
   await expect(page.locator(EDITOR), 'nothing was filed under a missing identity').toBeVisible();
 });
 
-test('Add new Driver saves the new driver into My Drivers and leaves the project alone', async ({ page }) => {
+test('Add new Driver saves the new driver into My Drivers and leaves the project alone', async ({ appPage: page }) => {
   await seed(page);
   const before = await projectDriver(page);
   await openPicker(page);
@@ -189,7 +209,7 @@ test('Add new Driver saves the new driver into My Drivers and leaves the project
 
 // ---- route 2: Clone driver -------------------------------------------------------------
 
-test('Clone driver forks a saved driver into My Drivers as "Copy of …"', async ({ page }) => {
+test('Clone driver forks a saved driver into My Drivers as "Copy of …"', async ({ appPage: page }) => {
   await seed(page);
   await openPicker(page);
   await page.locator(MY_ROWS, { hasText: SEEDED_MODEL }).click();
@@ -206,7 +226,7 @@ test('Clone driver forks a saved driver into My Drivers as "Copy of …"', async
   await expect(page.locator(MY_ROWS), 'the clone did not appear in the My Drivers section').toHaveCount(2);
 });
 
-test('Clone driver copies a LIBRARY driver into My Drivers too', async ({ page }) => {
+test('Clone driver copies a LIBRARY driver into My Drivers too', async ({ appPage: page }) => {
   await seed(page);
   await openPicker(page);
   const row = page.locator(POOL_ROWS).first();
@@ -219,7 +239,7 @@ test('Clone driver copies a LIBRARY driver into My Drivers too', async ({ page }
   expect(saved.filter(d => d.model?.startsWith('Copy of '))).toHaveLength(1);
 });
 
-test('cloning a library driver does not link its favourite star to the original', async ({ page }) => {
+test('cloning a library driver does not link its favourite star to the original', async ({ appPage: page }) => {
   await seed(page, []);
   await openPicker(page);
 
@@ -254,7 +274,7 @@ test('cloning a library driver does not link its favourite star to the original'
 
 // ---- route 3: Load File… ---------------------------------------------------------------
 
-test('Load File… puts the driver in My Drivers, not in the project', async ({ page }) => {
+test('Load File… puts the driver in My Drivers, not in the project', async ({ appPage: page }) => {
   await seed(page);
   const before = await projectDriver(page);
   await openPicker(page);
@@ -271,7 +291,7 @@ test('Load File… puts the driver in My Drivers, not in the project', async ({ 
   await expect(page.locator('.wb-modal h2')).toContainText('From Disk');
 });
 
-test('a loaded driver comment stays in the General tab comment field', async ({ page }) => {
+test('a loaded driver comment stays in the General tab comment field', async ({ appPage: page }) => {
   await seed(page);
   await openPicker(page);
   const withComment = DISK_WDR.replace('ProvidedBy=OpenISD', 'ProvidedBy=OpenISD\nComment=imported-comment-123456');
@@ -289,7 +309,7 @@ test('a loaded driver comment stays in the General tab comment field', async ({ 
   await expect(page.locator(`${EDITOR} > .de-comment`)).toHaveCount(0);
 });
 
-test('a file that names no brand or model takes its identity from the file name', async ({ page }) => {
+test('a file that names no brand or model takes its identity from the file name', async ({ appPage: page }) => {
   await seed(page);
   await openPicker(page);
   await page.locator('.wb-modal input[type=file]').setInputFiles({
@@ -303,7 +323,7 @@ test('a file that names no brand or model takes its identity from the file name'
 
 // ---- route 4: save a .wdr and load it back ---------------------------------------------
 
-test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page }) => {
+test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ appPage: page }) => {
   await captureSavedFiles(page);
   await seed(page);
   await openPicker(page);
@@ -332,7 +352,7 @@ test('a driver saved to .wdr and loaded back lands in My Drivers', async ({ page
 });
 
 // John, 2026-10-05: "when a driver or project has been imported/exported we need a little message".
-test('the Driver Editor says which file it imported a driver from, and says so when it cannot', async ({ page }) => {
+test('the Driver Editor says which file it imported a driver from, and says so when it cannot', async ({ appPage: page }) => {
   await captureSavedFiles(page);
   await seed(page);
   await openPicker(page);
@@ -355,7 +375,7 @@ test('the Driver Editor says which file it imported a driver from, and says so w
 
 // ---- Edit enablement -------------------------------------------------------------------
 
-test('Edit is enabled for library driver overview and saving goes to My Drivers with brand/model prompt', async ({ page }) => {
+test('Edit is enabled for library driver overview and saving goes to My Drivers with brand/model prompt', async ({ appPage: page }) => {
   await seed(page);
   await openPicker(page);
 
@@ -388,7 +408,7 @@ test('Edit is enabled for library driver overview and saving goes to My Drivers 
   expect(await savedIds(page)).toContain('Library/Edited Copy');
 });
 
-test('editing a library driver\'s overview and saving to My Drivers does not link its favourite star to the original', async ({ page }) => {
+test('editing a library driver\'s overview and saving to My Drivers does not link its favourite star to the original', async ({ appPage: page }) => {
   await seed(page, []);
   await openPicker(page);
 
@@ -432,7 +452,7 @@ test('editing a library driver\'s overview and saving to My Drivers does not lin
 
 // ---- favourites reach My Drivers -------------------------------------------------------
 
-test('a My Drivers row stars like any other, and the Favorites filter covers that section', async ({ page }) => {
+test('a My Drivers row stars like any other, and the Favorites filter covers that section', async ({ appPage: page }) => {
   await seed(page);
   await openPicker(page);
 
@@ -444,4 +464,8 @@ test('a My Drivers row stars like any other, and the Favorites filter covers tha
   await page.locator('.fav-filter').click();
   await expect(page.locator(MY_ROWS), 'the Favorites filter dropped the starred My Driver').toHaveCount(1);
   await expect(page.locator(POOL_ROWS), 'the Favorites filter left unstarred library rows on screen').toHaveCount(0);
+
+  // The browser keeps its filters between openings (John, 17 Oct 2026): this spec switches its own filter off.
+  await page.locator('.fav-filter').click();
+  await expect(page.locator('.fav-filter'), 'the Favorites filter did not switch off').not.toHaveClass(/active/);
 });

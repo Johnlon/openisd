@@ -11,11 +11,11 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
 });
 
-test('a cold start with no project shows the empty state with New/Open actions', async ({ page }) => {
+test('a cold start with no project shows the empty state with New/Open actions', async ({ appPage: page }) => {
   await page.goto('/');
   await expect(page.locator('.mobile-root')).toBeVisible();
   await expect(page.locator('.mob-empty')).toBeVisible();
@@ -27,7 +27,7 @@ test('a cold start with no project shows the empty state with New/Open actions',
   await expect(page.locator('.mob-project-title')).toHaveCount(0);
 });
 
-test('the empty state shows the app logo and name above the New/Open buttons', async ({ page }) => {
+test('the empty state shows the app logo and name above the New/Open buttons', async ({ appPage: page }) => {
   await page.goto('/');
   const empty = page.locator('.mob-empty');
   const brand = empty.locator('.mob-empty-brand', { hasText: 'OpenISD' });
@@ -44,7 +44,7 @@ test('the empty state shows the app logo and name above the New/Open buttons', a
 // John, 2026-10-05: "the mobile app chart screen doesn't allow opening from browser storage, only
 // New and Open a file". The empty state now matches desktop's empty chart: New project, Open project
 // (the menu's saved-project sheet), Import project (a file).
-test('the empty state opens a project saved in the browser', async ({ page }) => {
+test('the empty state opens a project saved in the browser', async ({ appPage: page }) => {
   await page.goto('/');
   await openAMobileProject(page);
   await tapMobileMenuItem(page, /^Save$/);
@@ -68,7 +68,7 @@ test('the empty state opens a project saved in the browser', async ({ page }) =>
 
 // John 2026-10-05: "if I close the last project then I see the init screen, but if I refresh then
 // the last project comes back". Closing empties the open list; the saved copy stays.
-test('closing the last project stays closed after a reload, and Open project still lists it', async ({ page }) => {
+test('closing the last project stays closed after a reload, and Open project still lists it', async ({ appPage: page }) => {
   await page.goto('/');
   await openAMobileProject(page);
   await tapMobileMenuItem(page, /^Save$/);
@@ -87,7 +87,7 @@ test('closing the last project stays closed after a reload, and Open project sti
   await expect(page.locator('.mob-projects-pane .mob-project-row')).toHaveCount(1);
 });
 
-test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ page }) => {
+test('opening a project swaps the empty state for the tab bar, defaulting to the Box tab', async ({ appPage: page }) => {
   await page.goto('/');
   await openAMobileProject(page);
   await expect(page.locator('.mob-empty')).toHaveCount(0);
@@ -96,7 +96,7 @@ test('opening a project swaps the empty state for the tab bar, defaulting to the
   await expect(page.locator('.mob-panel-head').first()).toHaveText('Box');
 });
 
-test('the tab bar switches between Box, Driver, Signal and Graph', async ({ page }) => {
+test('the tab bar switches between Box, Driver, Signal and Graph', async ({ appPage: page }) => {
   await page.goto('/');
   await openAMobileProject(page);
 

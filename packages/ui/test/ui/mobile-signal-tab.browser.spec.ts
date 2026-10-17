@@ -7,14 +7,14 @@ import {expect, openAMobileProject, test} from '../fixtures.js';
 import {fillAndBlur} from '../fixtures/numField.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
 });
 
-test('shows power, voltage and series resistance fields', async ({ page }) => {
+test('shows power, voltage and series resistance fields', async ({ appPage: page }) => {
   await expect(page.locator('.ui-field-label', { hasText: 'System input power' })).toBeVisible();
   await expect(page.locator('.ui-field-label', { hasText: 'Driver input voltage' })).toBeVisible();
   await expect(page.locator('.ui-field-label', { hasText: 'Series resistance' })).toBeVisible();
@@ -24,7 +24,7 @@ function rowInput(page: import('@playwright/test').Page, label: string) {
   return page.locator('.mob-ui-field', { hasText: label }).locator('input');
 }
 
-test('typing a drive voltage moves the derived input power', async ({ page }) => {
+test('typing a drive voltage moves the derived input power', async ({ appPage: page }) => {
   const powerBefore = await rowInput(page, 'System input power').inputValue();
 
   const voltageInput = rowInput(page, 'Driver input voltage');
@@ -36,13 +36,13 @@ test('typing a drive voltage moves the derived input power', async ({ page }) =>
   expect(powerAfter).not.toBe(powerBefore);
 });
 
-test('editing series resistance persists the typed value', async ({ page }) => {
+test('editing series resistance persists the typed value', async ({ appPage: page }) => {
   const rsInput = rowInput(page, 'Series resistance');
   await fillAndBlur(rsInput, '0.5');
   await expect(rsInput).toHaveValue(/0\.5/);
 });
 
-test('System input power spins by about 1 % a tap: 1 W up is 1.01 W, by key and by button', async ({ page }) => {
+test('System input power spins by about 1 % a tap: 1 W up is 1.01 W, by key and by button', async ({ appPage: page }) => {
   const pow = rowInput(page, 'System input power');
   await pow.fill('1');
   await pow.blur();

@@ -6,14 +6,14 @@ import {mobileFieldRow} from '../fixtures/mobileSkin.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
 test.describe('MobileAlignmentPopup', () => {
-  test('the sealed sheet picks an alignment and writes its volume on Accept', async ({ page }) => {
+  test('the sealed sheet picks an alignment and writes its volume on Accept', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('sealed');
     await expect(page.locator('.mob-btn', { hasText: 'Choose alignment' })).toBeVisible();
 
@@ -31,7 +31,7 @@ test.describe('MobileAlignmentPopup', () => {
     await expect(volumeField).toHaveValue(/20/);
   });
 
-  test('the vented sheet picks an alignment and writes volume + tuning on Accept', async ({ page }) => {
+  test('the vented sheet picks an alignment and writes volume + tuning on Accept', async ({ appPage: page }) => {
     // The default sample project has no T/S params, so ventedDesign() has nothing to compute from
     // (recalculate() would silently no-op) — needs COMPLETE_DRIVER_PROJECT_OWPR's real Fs/Qes/Vas.
     await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
@@ -56,7 +56,7 @@ test.describe('MobileAlignmentPopup', () => {
     await expect(volumeField).not.toHaveValue('');
   });
 
-  test('Cancel discards the sheet\'s draft without touching the volume field', async ({ page }) => {
+  test('Cancel discards the sheet\'s draft without touching the volume field', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('sealed');
     const volumeField = mobileFieldRow(page, 'Volume').locator('input').first();
     await volumeField.fill('15');

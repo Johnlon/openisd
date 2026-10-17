@@ -5,7 +5,7 @@ import {enableCloudSync, stubGoogleApis} from './fixtures/cloudSyncStubs.js';
 const WIDTHS = [1280, 1024, 900, 780];
 
 test.describe('Original toolbar', () => {
-  test('the toolbar carries the brand, no version, and its groups sit in one row', async ({ page }) => {
+  test('the toolbar carries the brand, no version, and its groups sit in one row', async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
 
@@ -31,7 +31,7 @@ test.describe('Original toolbar', () => {
     expect(brandBox!.x + brandBox!.width).toBeLessThanOrEqual(readout!.x);
   });
 
-  test('the toolbar carries WinISD\'s icon buttons + chart-select', async ({ page }) => {
+  test('the toolbar carries WinISD\'s icon buttons + chart-select', async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
     // Toolbar: 9 icon controls (.tb-btn) — Open, New, Save, Save all, Revert, Save-As/Export,
@@ -40,7 +40,7 @@ test.describe('Original toolbar', () => {
     await expect(page.locator('.toolbar .chart-select .chart-name')).toBeVisible();
   });
 
-  test('Revert is disabled until the project is modified, then restores the saved state', async ({ page }) => {
+  test('Revert is disabled until the project is modified, then restores the saved state', async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
     // 1. Click Revert button when not modified (should be disabled)
@@ -67,7 +67,7 @@ test.describe('Original toolbar', () => {
     await expect(revertBtn).toHaveClass(/disabled/);
   });
 
-  test('a reload keeps unsaved edits unsaved, and Revert still restores the saved value', async ({ page }) => {
+  test('a reload keeps unsaved edits unsaved, and Revert still restores the saved value', async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
     const saved = await focusedBoxVolume(page);
@@ -94,7 +94,7 @@ test.describe('Original toolbar', () => {
   });
 
   for (const [width, menuWidth] of [[1280, 180], [1439, 180], [1440, 270], [1880, 270]] as const) {
-    test(`the toolbar never overflows at ${width}px wide, with every chart open and cloud sync on, and the chart menu is ${menuWidth}px`, async ({ page }) => {
+    test(`the toolbar never overflows at ${width}px wide, with every chart open and cloud sync on, and the chart menu is ${menuWidth}px`, async ({ appPage: page }) => {
       await enableCloudSync(page);
       await stubGoogleApis(page);
       await page.setViewportSize({ width, height: 800 });
@@ -118,13 +118,13 @@ test.describe('Original toolbar', () => {
   }
 
   test.describe('window widths', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ appPage: page }) => {
       await page.goto('/');
       await openAProject(page);
     });
 
     for (const width of [1400, ...WIDTHS]) {
-      test(`the toolbar's icons, brand and cursor readout never overlap at ${width}px wide`, async ({ page }) => {
+      test(`the toolbar's icons, brand and cursor readout never overlap at ${width}px wide`, async ({ appPage: page }) => {
         await page.setViewportSize({ width, height: 900 });
         const boxes = await page.evaluate(() =>
           ['.tb-icons', '.app-brand', '.cursor-readout'].map(s => {

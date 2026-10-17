@@ -5,14 +5,14 @@ import {expect, openAMobileProject, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
 test.describe('MobileBoxLossesPopup', () => {
-  test('edits Ql/Qa, and Qp only for a vented box', async ({ page }) => {
+  test('edits Ql/Qa, and Qp only for a vented box', async ({ appPage: page }) => {
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
     await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
     await expect(page.locator('.ui-field-label', { hasText: 'Leakage Ql' })).toBeVisible();
@@ -32,7 +32,7 @@ test.describe('MobileBoxLossesPopup', () => {
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
   });
 
-  test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ page }) => {
+  test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ appPage: page }) => {
     await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
     const q = (label: string) => page.locator('.mob-ui-field', { hasText: label }).locator('input');
     await q('Leakage Ql').fill('7'); await q('Leakage Ql').blur();
@@ -52,7 +52,7 @@ test.describe('MobileBoxLossesPopup', () => {
       return page.locator('.mob-align-sheet');
     };
 
-    test(`${type}: each chamber panel's button opens only that chamber's set`, async ({ page }) => {
+    test(`${type}: each chamber panel's button opens only that chamber's set`, async ({ appPage: page }) => {
       await page.locator('#mob-box-type').selectOption(type);
       const rear = await openFor(page, 'Rear');
       await expect(rear.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Rear chamber']);
@@ -64,7 +64,7 @@ test.describe('MobileBoxLossesPopup', () => {
       await expect(front.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(1);
     });
 
-    test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ page }) => {
+    test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ appPage: page }) => {
       await page.locator('#mob-box-type').selectOption(type);
       const q = (sheet: Locator, label: string) =>
         sheet.locator('.mob-ui-field', { hasText: label }).locator('input');
