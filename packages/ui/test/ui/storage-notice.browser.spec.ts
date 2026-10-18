@@ -5,6 +5,7 @@
 import type {Page} from '@playwright/test';
 import {expect, openAMobileProject, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 const SAVED = /^Saved 1 project\. 1 project, [\d.]+ KB of 5 MB used\.$/;
 const STARTUP = /^1 project, [\d.]+ KB of 5 MB used\.$/;
@@ -13,7 +14,7 @@ const STARTUP = /^1 project, [\d.]+ KB of 5 MB used\.$/;
 async function newTab(page: Page, phone: boolean): Promise<Page> {
   const tab = await page.context().newPage();
   if (phone) {
-    await tab.setViewportSize({width: 411, height: 923});
+    await tab.setViewportSize(PIXEL_9);
     await forceMobileSkin(tab);
   }
   await tab.goto('/');
@@ -63,7 +64,7 @@ test('mobile: a new tab flashes the stored projects and storage used, once, uncl
   const strip = tab.getByTestId('flash-strip');
   await expect(strip).toHaveText(STARTUP);
   const box = await strip.boundingBox();
-  expect(box !== null && box.x >= 0 && box.x + box.width <= 411).toBe(true);
+  expect(box !== null && box.x >= 0 && box.x + box.width <= PIXEL_9.width).toBe(true);
   expect(await tab.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   await tab.reload();
   await expect(tab.locator('.mobile-root')).toBeVisible();

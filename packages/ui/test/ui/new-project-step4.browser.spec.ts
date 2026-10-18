@@ -1,6 +1,7 @@
 import {expect, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 /**
  * Step 4 of the New project wizard, on both skins: every box type has it, and it holds the box's
@@ -41,7 +42,7 @@ async function toStepFour(page: Page, mobile: boolean, box: string): Promise<voi
 
 for (const mobile of [false, true]) {
   test.describe(`${mobile ? 'Phone' : 'Desktop'} wizard`, () => {
-    if (mobile) test.use({viewport: {width: 411, height: 923}});
+    if (mobile) test.use({viewport: PIXEL_9});
 
     test.beforeEach(async ({page}) => {
       if (mobile) await forceMobileSkin(page);

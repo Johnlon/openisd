@@ -9,6 +9,7 @@ import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {fillAndCommit, setNumField} from '../fixtures/numField.js';
 import type {Locator, Page} from '@playwright/test';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 const UNREACHABLE = /can't reach that tuning/;
 const shotDir = process.env['SHOT_DIR'];
@@ -55,7 +56,7 @@ test.describe('Original skin', () => {
 });
 
 test.describe('Mobile skin', () => {
-  test.use({viewport: {width: 411, height: 923}});
+  test.use({viewport: PIXEL_9});
 
   test.beforeEach(async ({page}) => {
     await forceMobileSkin(page);

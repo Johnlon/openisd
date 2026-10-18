@@ -9,8 +9,9 @@ import {expect, openAMobileProject, test} from '../fixtures.js';
 import {fillAndCommit} from '../fixtures/numField.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
-test.use({viewport: {width: 411, height: 923}});
+test.use({viewport: PIXEL_9});
 
 const shotDir = process.env['SHOT_DIR'];
 const shotName = process.env['SHOT_NAME'] ?? 'shot';

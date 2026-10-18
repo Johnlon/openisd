@@ -14,7 +14,7 @@ const DEFAULT_ROOT = '/home/john/work/winisd/ui-gallery';
 
 const VIEWPORTS = {
   d: { name: 'desktop', label: 'Desktop 1440x900', displayWidth: 560, ctx: { viewport: { width: 1440, height: 900 } } },
-  p: { name: 'phone', label: 'Pixel 9 411x923', displayWidth: 230, ctx: { viewport: { width: 411, height: 923 }, deviceScaleFactor: 2.6, isMobile: true, hasTouch: true } },
+  p: { name: 'phone', label: 'Pixel 9 374x705', displayWidth: 230, ctx: { viewport: { width: 374, height: 705 }, deviceScaleFactor: 2.566, isMobile: true, hasTouch: true } },
 };
 
 function parseArgs(argv) {

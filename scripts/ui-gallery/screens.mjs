@@ -75,7 +75,7 @@ export async function reset(page) {
   for (let i = 0; i < 2; i++) { await page.keyboard.press('Escape'); await page.waitForTimeout(200); }
   // Menus close only on an outside click, as a user does it.
   if (page.viewportSize().width > 800 && await page.getByText('About OpenISD', { exact: true }).first().isVisible().catch(() => false)) { await page.mouse.click(870, 19); await page.waitForTimeout(200); }
-  if (await page.locator('[data-testid=app-version]').first().isVisible().catch(() => false)) { await page.mouse.click(405, 600); await page.waitForTimeout(300); }
+  if (await page.locator('[data-testid=app-version]').first().isVisible().catch(() => false)) { await page.mouse.click(Math.min(405, page.viewportSize().width - 6), 600); await page.waitForTimeout(300); }
   // Older builds close Diagnostics only with its Dismiss button.
   const close = page.getByRole('button', { name: /^(Close|Dismiss)$/ }).first();
   if (await close.isVisible().catch(() => false)) { await close.click({ timeout: 2000 }).catch(() => {}); await page.waitForTimeout(200); }

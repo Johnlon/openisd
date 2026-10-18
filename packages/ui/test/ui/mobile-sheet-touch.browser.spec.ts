@@ -1,6 +1,6 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
-import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
+import {PHONE_SIZES, PIXEL_9} from '../fixtures/phoneSizes.js';
 import {SheetSizes} from '@openisd/design/fields';
 
 /**
@@ -48,7 +48,7 @@ for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetName of
 }
 
 test('a message on the phone never covers a control', async ({page}) => {
-  await page.setViewportSize({width: 411, height: 923});
+  await page.setViewportSize(PIXEL_9);
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);

@@ -1,6 +1,6 @@
 # UI gallery
 
-Deterministic screenshots of every screen, desktop (1440x900) and Pixel 9 phone (411x923, x2.6), before vs after. No AI, starts no server.
+Deterministic screenshots of every screen, desktop (1440x900) and Pixel 9 phone (374x705, x2.566: the Chrome page area John measured on his phone), before vs after. No AI, starts no server.
 
 Run (app already up, e.g. `bash scripts/preview-4000.sh`):
 

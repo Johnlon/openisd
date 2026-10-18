@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: tools
 status: done
+landed: 0753831cfd8dfb6b7264cd2de7a10864642c289d
 goal: land.sh pull-request title is at most 256 characters (ID: goal cut with an ellipsis); the whole goal stays in the PR body
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

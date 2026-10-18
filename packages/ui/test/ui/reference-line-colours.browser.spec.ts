@@ -5,6 +5,7 @@
 import type {Page} from '@playwright/test';
 import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 /** A green nothing else on the chart uses. */
 const CHOSEN = '#00c000';
@@ -40,7 +41,7 @@ test('desktop: the -3dB line picker colours the line on the transfer function ch
 });
 
 test('mobile: the -3dB line picker colours the line on the transfer function chart', async ({page}) => {
-  await page.setViewportSize({width: 411, height: 923});
+  await page.setViewportSize(PIXEL_9);
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);

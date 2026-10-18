@@ -1,6 +1,7 @@
 import {expect, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import type {Locator, Page} from '@playwright/test';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 /**
  * Step 4 of the New project wizard, every box type, desktop and Pixel 9: each row (a pick list or a
@@ -15,7 +16,6 @@ const BOX_TYPES = [
   {box: 'bandpass4', desktopColumns: 2}, {box: 'bandpass6', desktopColumns: 2}, {box: 'abc', desktopColumns: 2},
 ] as const;
 const TEST_DRIVER = 'Tang Band W5-1138SMF';
-const PIXEL_9 = {width: 411, height: 923};
 
 async function toStepFour(page: Page, mobile: boolean, box: string): Promise<void> {
   if (mobile) await page.getByText('New project').first().click();

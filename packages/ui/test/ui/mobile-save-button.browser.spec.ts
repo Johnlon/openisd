@@ -4,8 +4,9 @@
  */
 import {expect, openAMobileProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
-const SIZES = [{ width: 360, height: 740 }, { width: 411, height: 923 }];
+const SIZES = [{ width: 360, height: 740 }, PIXEL_9];
 
 test.beforeEach(async ({ page }) => {
   await forceMobileSkin(page);
