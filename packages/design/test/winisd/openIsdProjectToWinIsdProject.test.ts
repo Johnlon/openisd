@@ -462,11 +462,7 @@ describe('openIsdProjectToWinIsdProject', () => {
       assert.ok(ventBlock![1].includes('len=0.15'), '[VentRear] len is present once length_m is stated');
     });
 
-    it('[VentRear] does not throw and takes WinISD\'s own template default Shape once the vent is slotted', () => {
-      // `WinISDProject`'s own template also defaults Shape to '1' (winisdProject.ts TEMPLATE), the
-      // same code this bridge writes for round — so a slotted vent's output is not distinguishable
-      // from round's here (the file's own comment at this line already flags slotted's real WinISD
-      // code as unconfirmed). This proves the branch runs cleanly, not a distinguishable output.
+    it('[VentRear] a slotted vent writes Shape=2 (docs/research/WPR_VENT_SHAPES.md)', () => {
       const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
       project.box.vented.vent.shape.set('slotted');
 
@@ -475,7 +471,7 @@ describe('openIsdProjectToWinIsdProject', () => {
       if (!wpr) throw new Error('expected a WinISDProject');
       const text = wpr.toWpr().replace(/\r\n/g, '\n');
       const ventBlock = text.match(/\[VentRear\]\n([\s\S]*?)(?=\n\[|$)/);
-      assert.ok(ventBlock && ventBlock[1].includes('Shape=1'));
+      assert.ok(ventBlock && ventBlock[1].includes('Shape=2'));
     });
 
     it('passive-radiator [Box] reports Fr once the system tuning is computable', () => {

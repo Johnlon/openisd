@@ -158,11 +158,11 @@ function boxSectionValues(
   }
 }
 
-/** `[VentFront]`/`[VentRear]` values for box types that have a single port whose geometry this
- *  bridge can read directly. `crosscalc`'s meaning and `Shape`'s non-round codes are not
- *  documented anywhere in this repo (confirmed: no `docs/design/WINISD_SCHEMA.md`) — ⚠ UNVERIFIED
- *  beyond `Shape=1` (round), which every sampled golden uses; `WinISDProject.TEMPLATE`'s own
- *  defaults are left in place for everything this function does not explicitly state. */
+/** `[VentFront]`/`[VentRear]`/`[VentIntra]` values for box types that have a single port whose
+ *  geometry this bridge can read directly. WinISD's `Shape` is 1 (round, `dia1` = diameter) or 2
+ *  (rectangle, `dia1` = width and `dia2` = height here); see `docs/research/WPR_VENT_SHAPES.md`.
+ *  `crosscalc` changes nothing in WinISD, so `WinISDProject.TEMPLATE`'s own default is left in
+ *  place, as for everything this function does not explicitly state. */
 function ventSectionValues(
   box: Box, boxType: Box['boxType']['value'],
 ): Record<string, Record<string, string | number>> {
@@ -173,9 +173,15 @@ function ventSectionValues(
     // entry — so null reaches here only from an unresolved one, and writes the same default.
     v.Num = vent.count.value;
     if (vent.shape.value === 'round') {
-      v.Shape = 1; // ⚠ unverified: slotted's own code is not confirmed
+      v.Shape = 1;
       const diameter = vent.diameter_m.value;
       if (diameter != null) v.dia1 = diameter;
+    } else {
+      v.Shape = 2;
+      const width = vent.width_m.value;
+      if (width != null) v.dia1 = width;
+      const height = vent.height_m.value;
+      if (height != null) v.dia2 = height;
     }
     if (fb_hz != null) v.Fb = fb_hz;
     const area = vent.area_m2.value;
@@ -202,33 +208,39 @@ function ventSectionValues(
   return out;
 }
 
-/** One `[VentRear]`/`[VentFront]` block's `dia1`/`endcorrection` -> a `VentWindow`'s
- *  `diameter_m`/`endCorrection_m`. `endcorrection` is a coefficient (×D) in the file and in
- *  `endCorrection_m` alike, so it carries over unchanged whatever the shape. `dia1` only applies
- *  to a round vent (`Shape=1`) — WinISD's own non-round codes are not confirmed anywhere in this
- *  repo (`ventSectionValues`'s own doc comment), so any other stated `Shape` skips the diameter
- *  with a warn rather than guessing what its geometry keys mean. A missing or non-numeric key
- *  leaves the vent's own default in place (older files omit keys) — never an error. Called
- *  BEFORE `vent.count.set(Num)`: `diameter_m`'s write is what the vent's own length ends up
- *  computed from, so it must land first. */
 /** The one message for a `BType` this importer does not read — absent, or a code WinISD writes
  *  that has no OpenISD topology yet. */
 function unsupportedBType(bType: number | null | undefined): string {
   return `Unsupported or missing box type (BType=${String(bType)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), passive radiator (4), 6th-order bandpass (3) and ABC (5) boxes.`;
 }
 
+/** One `[VentRear]`/`[VentFront]`/`[VentIntra]` block's `Shape`/`dia1`/`dia2`/`endcorrection` -> a
+ *  `VentWindow`'s shape, sizes and `endCorrection_m` (`docs/research/WPR_VENT_SHAPES.md`).
+ *  `Shape=1` is round: `dia1` is the diameter, `dia2` is stale and ignored. `Shape=2` is a
+ *  rectangle: `dia1` is the width and `dia2` the height. Any other stated `Shape` is a warn and
+ *  leaves the geometry alone (WinISD calculates nothing for it). `endcorrection` is a coefficient
+ *  (×D) in the file and in `endCorrection_m` alike. A missing or non-numeric key leaves the
+ *  vent's own default in place (older files omit keys) — never an error. Called BEFORE
+ *  `vent.count.set(Num)`: the geometry write is what the vent's own length ends up computed
+ *  from, so it must land first. */
 function importVentGeometry(
   wpr: WinISDProject, section: string, vent: Vent, errors: DriverError[],
 ): void {
   const shapeRaw = wpr.number(section, 'Shape');
-  if (shapeRaw != null && shapeRaw !== 1) {
-    errors.push({
-      level: 'warn', field: `${section} Shape`,
-      message: `vent shape ${shapeRaw} not imported: only round vents are read`,
-    });
-  } else {
+  if (shapeRaw == null || shapeRaw === 1) {
     const dia1 = wpr.number(section, 'dia1');
     if (dia1 != null) vent.diameter_m.set(dia1);
+  } else if (shapeRaw === 2) {
+    vent.shape.set('slotted');
+    const dia1 = wpr.number(section, 'dia1');
+    if (dia1 != null) vent.width_m.set(dia1);
+    const dia2 = wpr.number(section, 'dia2');
+    if (dia2 != null) vent.height_m.set(dia2);
+  } else {
+    errors.push({
+      level: 'warn', field: `${section} Shape`,
+      message: `vent shape ${shapeRaw} not imported: WinISD knows only round (1) and rectangular (2) vents`,
+    });
   }
   const endcorrection = wpr.number(section, 'endcorrection');
   if (endcorrection != null) vent.endCorrection_m.set(endcorrection);

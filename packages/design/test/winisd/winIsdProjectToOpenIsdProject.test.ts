@@ -345,15 +345,15 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project.Rs_ohm.value, 0.1); // default, Rg absent
     });
 
-    it('[VentRear] Shape other than round: diameter is skipped with a warn, endcorrection still imports', () => {
+    it('[VentRear] Shape neither round nor rectangle: diameter is skipped with a warn, endcorrection still imports', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
-        + '[Box]\nBType=1\nVr=0.03\nFr=40\n[VentRear]\nShape=2\ndia1=0.09\nendcorrection=0.4\n';
+        + '[Box]\nBType=1\nVr=0.03\nFr=40\n[VentRear]\nShape=3\ndia1=0.09\nendcorrection=0.4\n';
       const engine = createEngine();
       const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
       if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
       assert.equal(project.box.vented.vent.endCorrection_m.value, 0.4);
       assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'VentRear Shape'
-        && e.message === 'vent shape 2 not imported: only round vents are read'));
+        && e.message === 'vent shape 3 not imported: WinISD knows only round (1) and rectangular (2) vents'));
     });
 
     it('round-trips a vented project\'s losses, vent diameter/end correction and Rs through .wpr text', () => {

@@ -1,0 +1,19 @@
+id: T392
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Opening a WinISD project whose port is not round (slot/rectangular) loses the port size: import reads only Shape=1 (round) and warns, and export never writes a slotted vent's shape or sizes. First capture under wine: save .wpr files from WinISD with each vent shape it offers to learn the Shape codes and what dia1, dia2 and crosscalc hold; then import and export every shape. Bug: bugs/BUG_20261018_wpr-non-round-vents-lost.md. John 18 Oct 2026: 'BUG DISPATCH TO FIX'. Starts after T390.
+done_test: bash scripts/test.sh packages/design/test/winisd/wpr-vent-shapes.test.ts
+files:
+  - tasks/T392.yml
+  - bugs/BUG_20261018_wpr-non-round-vents-lost.md
+  - docs/research/WPR_VENT_SHAPES.md
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts
+  - packages/design/test/winisd/winIsdProjectToOpenIsdProject.test.ts
+  - packages/design/test/winisd/wpr-vent-shapes.test.ts
+  - packages/design/test/winisd/fixtures/wpr-vent-shapes/round-xc0.wpr
+  - packages/design/test/winisd/fixtures/wpr-vent-shapes/round-xc1.wpr
+  - packages/design/test/winisd/fixtures/wpr-vent-shapes/rect-xc0.wpr
+  - packages/design/test/winisd/fixtures/wpr-vent-shapes/rect-xc1.wpr
