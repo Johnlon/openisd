@@ -17,4 +17,8 @@ describe('exportedNotice', () => {
     expect(exportedNotice({kind: 'storageLog'}, 'openisd-storage-log-20261017T101500Z.json'))
       .toEqual({title: 'Storage log exported', message: 'Exported the storage log to openisd-storage-log-20261017T101500Z.json.', okLabel: 'OK'});
   });
+  it('names the chart whose data was downloaded', () => {
+    expect(exportedNotice({kind: 'chartData', chart: 'Cone excursion'}, 'My sub - Cone excursion.csv'))
+      .toEqual({title: 'Chart data downloaded', message: 'Saved the Cone excursion chart data to My sub - Cone excursion.csv.', okLabel: 'OK'});
+  });
 });

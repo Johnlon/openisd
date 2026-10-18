@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: ddce9abb464c3f040cbe24a10f8af14e0fb249d3
 goal: With 'Use transmission line model for port simulation' ticked, OpenISD keeps the port end correction, so the bass tuning stays where the Box tab says (WinISD drops it: Fb 38 -> impedance min ~40 Hz). New yellow bug switch under 'Enable WinISD bugs' (off by default) brings WinISD's shift back for 100% compat; a Difference cue by the TL tickbox says what WinISD does while it is off. Record as a WinISD bug: bugs/BUG_*_winisd-*.md, ACCURACY_IMPROVEMENTS fixed-by-default row, WINISD_PARITY row. John 18 Oct 2026: 'ok implement the TL switch AND include a bug switch to make it 100% WimIsd compat'. Help: the 'OpenISD and WinISD differences' page gets one entry (packages/design/fields/winisdDifference.ts) that explains the TL option in plain words (what it shows: the port's pipe notes; when to use it), WinISD's tuning shift, and the new yellow switch; the ≠W cue by the TL tickbox opens that entry on desktop and phone. John 18 Oct 2026: 'do it'.
 done_test: bash scripts/test.sh packages/design/test/engine/tl-port-end-correction.test.ts packages/design/test/engine/tl-port-model-winisd.test.ts
 visual:

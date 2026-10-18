@@ -167,8 +167,8 @@ export function referenceLineColors(chosen: {readonly zeroDb?: string; readonly 
 /** The 0 dB and −3 dB lines of a 0 dB-normalized chart: TFMag, PRTFMag and the port gains. */
 function referenceLines(sw: SweepResult, lines: ReferenceLineColors): Series[] {
   return [
-    { xs: sw.fs, ys: sw.fs.map(() => 0), color: lines.zeroDb, name: '0 dB', dash: true },
-    { xs: sw.fs, ys: sw.fs.map(() => -3), color: lines.minus3Db, name: '−3 dB', dash: true },
+    { xs: sw.fs, ys: sw.fs.map(() => 0), color: lines.zeroDb, name: '0 dB', dash: true, reference: true },
+    { xs: sw.fs, ys: sw.fs.map(() => -3), color: lines.minus3Db, name: '−3 dB', dash: true, reference: true },
   ];
 }
 
@@ -187,7 +187,7 @@ function portVelocityBuild({ meta, sw, pick, P }: CurveCtx, vel: number[]): Curv
   // The project's port air-velocity limit (`OpenISDProject.portVelocityLimit_m_per_s`).
   const limit = P.portVelocityLimit_m_per_s;
   if (limit !== undefined) {
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color: REDLINE, name:`${limit} m/s`, dash:true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color: REDLINE, name:`${limit} m/s`, dash: true, reference: true });
   }
   return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1, (limit ?? 0) * 1.1) };
 }
@@ -228,9 +228,9 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // in-plot legend, since only one named series remains).
     if (!bare) {
       const f3 = engine.simulation.rolloffFreq(sw, 3), f6 = engine.simulation.rolloffFreq(sw, 6), f10 = engine.simulation.rolloffFreq(sw, 10);
-      if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true });
-      if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true });
-      if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true });
+      if (f3  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  3), color: '#ffb454', name: `F3 = ${f3.toFixed(0)} Hz`,  dash: true, reference: true });
+      if (f6  != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 -  6), color: '#ff6b6b', name: `F6 = ${f6.toFixed(0)} Hz`,  dash: true, reference: true });
+      if (f10 != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => mx2 - 10), color: '#c08bff', name: `F10 = ${f10.toFixed(0)} Hz`, dash: true, reference: true });
     }
     return { series, ymin, ymax };
   },
@@ -274,7 +274,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // the missing line is surfaced to the user as a dismissable issue elsewhere).
     const drvXmax_m = drv.values.Xmax_m;
     const xm = drvXmax_m != null && drvXmax_m > 0 ? NumberField.XMAX_M.toDisplay(drvXmax_m, 'mm') : null;
-    if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color: REDLINE, name:'Xmax', dash:true });
+    if (xm != null) series.push({ xs: sw.fs, ys: sw.fs.map(() => xm), color: REDLINE, name:'Xmax', dash: true, reference: true });
     const top = Math.max((xm || 0) * 1.4, Math.max(...sw.exc.slice(0, 20)) * 1.1);
     return { series, ymin: 0, ymax: top };
   },
@@ -285,7 +285,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     const xmp = NumberField.XMAX_M.toDisplay(P.prXmax || 0.01, 'mm');
     const series: Series[] = [
       { xs: sw.fs, ys: sw.excPR, color: meta.color, name: 'PR' },
-      { xs: sw.fs, ys: sw.fs.map(() => xmp), color: REDLINE, name: 'PR Xmax', dash: true },
+      { xs: sw.fs, ys: sw.fs.map(() => xmp), color: REDLINE, name: 'PR Xmax', dash: true, reference: true },
     ];
     const top = Math.max(xmp * 1.3, Math.max(...sw.excPR.slice(0, 30)) * 1.1);
     return { series, ymin: 0, ymax: top };
@@ -386,7 +386,7 @@ const CURVE_BUILDERS: Record<ChartId, (c: CurveCtx) => CurveBuild> = {
     // Unity gain is this chart's DEFINING datum (it is what the help pins 0 dB to), not an
     // optional annotation, so it is drawn in the bare mode too — same reasoning as
     // TFMag's 0 dB line.
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: lines.zeroDb, name: '0 dB', dash: true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => 0), color: lines.zeroDb, name: '0 dB', dash: true, reference: true });
     const real = engine.simulation.realLevels(sw.fltMag);
     const hi = real.length ? Math.max(...real, 0) : 0;
     const lo = real.length ? Math.min(...real, 0) : 0;

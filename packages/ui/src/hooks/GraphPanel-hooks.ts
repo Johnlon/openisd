@@ -3,7 +3,7 @@ import {useApp} from '../logic/app.js';
 import {computed, ref, watch} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
-  buildPlotData, type ChartEngineAreas, referenceLineColors, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
+  buildPlotData, ChartData, type ChartEngineAreas, referenceLineColors, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
 } from '@openisd/design/chart';
 import type {ChartId, DriverError} from '@openisd/design/engine';
@@ -27,6 +27,8 @@ export interface GraphPanelAPI {
   readonly warningsDismissed: Readonly<Ref<boolean>>;
   /** The plot as drawn: `plotData` with this chart's Y-axis override applied, when it has one. */
   readonly viewPlot: Readonly<Ref<PlotData | null>>;
+  /** The plotted curves as a text table; null with no plot. */
+  readonly chartData: Readonly<Ref<ChartData | null>>;
   /** True while this chart has no Y-axis override, so its Y axis fits the data. */
   readonly autoY: Readonly<Ref<boolean>>;
   /** The drawn Y range as axis labels, `min to max`; empty with no plot. */
@@ -91,6 +93,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
   );
 
   const plotData = computed(() => plot.value.value);
+  const chartData = computed(() => plotData.value ? ChartData.of(meta.value.name, plotData.value) : null);
   const blockErrors = computed(() => plot.value.errors.filter(e => e.level === 'error'));
   const blocked = computed(() => blockErrors.value.length > 0);
   const warnings = computed(() =>
@@ -171,6 +174,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
     warnings,
     warningsDismissed,
     viewPlot,
+    chartData,
     autoY,
     yRangeLabel,
     dismissWarnings,

@@ -1,5 +1,6 @@
 
 import type { Engine } from '@openisd/design/engine';
+import type { ChartData } from '@openisd/design/chart';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
 import { savedNotice } from '@openisd/design/fields';
 import { createExportNotice } from './exportNotice.js';
@@ -88,6 +89,10 @@ export interface DesignIO {
    *  `download` rather than a second `FileSave` instance. */
   exportProjectsArchive(): void;
   exportBackup(): void;
+  /** A chart's data table as a CSV file named after the focused project and the chart; a popup says what was saved. */
+  downloadChartData(data: ChartData): void;
+  /** A chart's data table onto the clipboard, tab separated; a message says it was copied or why not. */
+  copyChartData(data: ChartData): Promise<void>;
   /** Save a stored backup (`StorageHistory.exportFile`) as a file. */
   saveStoredBackup(file: HistoryFile): void;
   /** Restore every persisted key from a previously-downloaded backup file. Pure pass-through to
@@ -407,6 +412,21 @@ export function createApplicationIO(deps: {
     flash(`Backup downloaded as ${fileName}`);
   }
 
+  function downloadChartData(data: ChartData): void {
+    const fileName = data.fileName(requireFocusedProject().name.value);
+    download(fileName, data.csv(), 'text/csv');
+    exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
+  }
+
+  async function copyChartData(data: ChartData): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(data.text());
+      flash(`Copied the ${data.chartName} chart data`);
+    } catch {
+      flash(`Could not copy the ${data.chartName} chart data: the browser refused the clipboard`);
+    }
+  }
+
   function saveStoredBackup(file: HistoryFile): void {
     download(file.fileName, file.text, 'application/json');
     flash(`Backup saved as ${file.fileName}`);
@@ -418,6 +438,6 @@ export function createApplicationIO(deps: {
 
   return {
     reportStorageFull, saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
-    exportBackup, saveStoredBackup, importBackup,
+    exportBackup, downloadChartData, copyChartData, saveStoredBackup, importBackup,
   };
 }

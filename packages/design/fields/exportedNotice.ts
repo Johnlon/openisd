@@ -4,7 +4,8 @@ export type ExportedFile =
   | {readonly kind: 'myDrivers'}
   | {readonly kind: 'brokenDriver'}
   | {readonly kind: 'everything'}
-  | {readonly kind: 'storageLog'};
+  | {readonly kind: 'storageLog'}
+  | {readonly kind: 'chartData'; readonly chart: string};
 
 export interface ExportedNotice {
   readonly title: string;
@@ -28,5 +29,7 @@ export function exportedNotice(what: ExportedFile, fileName: string): ExportedNo
       return {title: 'Everything exported', message: `Exported everything this browser holds for OpenISD to ${fileName}.`, okLabel: OK};
     case 'storageLog':
       return {title: 'Storage log exported', message: `Exported the storage log to ${fileName}.`, okLabel: OK};
+    case 'chartData':
+      return {title: 'Chart data downloaded', message: `Saved the ${what.chart} chart data to ${fileName}.`, okLabel: OK};
   }
 }

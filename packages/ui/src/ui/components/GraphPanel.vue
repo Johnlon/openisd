@@ -8,6 +8,7 @@ import {drawOne} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 import {useApp} from '../../logic/app.js';
 import {inputChecked} from '../../logic/domEvents.js';
+import ChartDataDialog from './ChartDataDialog.vue';
 
 // `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
 // F3/F6/F10 reference lines or legend, coloured to match the shell's Color swatch.
@@ -35,6 +36,8 @@ const viewPlot = graph.viewPlot;
 const autoY = graph.autoY;
 const yRangeLabel = graph.yRangeLabel;
 const rolloffs = graph.rolloffs;
+const chartData = graph.chartData;
+const dataOpen = ref(false);
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
 function resetY() { graph.setAutoY(true); }
 
@@ -346,7 +349,9 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
          @pointerleave="onPointerLeave"
          @pointercancel="onPointerCancel"
          @dblclick="onDblClick" />
-    <div class="gtitle">{{ meta.name }}</div>
+    <div class="gtitle">{{ meta.name }}<button v-if="chartData" type="button" class="gdata"
+            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button></div>
+    <ChartDataDialog v-if="dataOpen && chartData" :data="chartData" @close="dataOpen = false" />
     <label v-if="!blocked && !hideAutoY" class="gautoy"
            title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
       <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
@@ -396,6 +401,28 @@ canvas { touch-action: none; }
 
 .axis-overlay {
   pointer-events: auto;
+}
+
+/* "Data" opens the chart's data table: a small button after the title, inside the title's band. */
+.gdata {
+  pointer-events: auto;
+  position: relative;
+  vertical-align: top; /* keeps the title one 12 px line, inside the title's band */
+  margin-left: 6px;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 9.5px;
+  line-height: 10px;
+  color: var(--chart-text, var(--mut));
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.gdata:hover { color: var(--fg); }
+/* A finger needs a bigger target than the drawn button. */
+@media (pointer: coarse) {
+  .gdata::after { content: ''; position: absolute; inset: -12px -10px; }
 }
 
 /* Auto Y switch: the empty corner left of the frequency labels, below the level labels. */

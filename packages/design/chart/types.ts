@@ -15,6 +15,9 @@ export interface Series {
   dash?: boolean;
   /** Per-point "Xmax is the limiting factor" flags — drives two-pass MaxSPL coloring. */
   xlim?: boolean[];
+  /** A fixed level drawn for orientation (0 dB, −3 dB, F3, a limit), not a computed curve: the
+   *  chart's data table leaves it out. */
+  reference?: boolean;
   /** Legend-only entry with no drawn line. */
   phantom?: boolean;
   /** This is the focused project's own trace, not a compare overlay — the legend and the

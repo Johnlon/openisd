@@ -1,0 +1,49 @@
+id: T394
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Every chart has a 'Show data' action (desktop and phone) that opens the plotted series as a text table (frequency plus one column per curve, units in the headers, values formatted by packages/design) with Copy and Download CSV buttons; download names the file after project and chart and shows a popup saying what was saved. Table rows and CSV text are built in packages/design; the UI only displays them. John, 18 Oct 2026: 'WE NEED TO ADD AN OPTION TO OPENISD TO SEE THE CHART DATA AS TEXT / DOWNLOAD'.
+done_test: bash scripts/test.sh packages/design/test/chart/chart-data.test.ts packages/design/test/fields/exportedNotice.test.ts
+files:
+  - tasks/T394.yml
+  - packages/design/chart/chartData.ts
+  - packages/design/chart/index.ts
+  - packages/design/chart/series.ts
+  - packages/design/chart/types.ts
+  - packages/design/fields/exportedNotice.ts
+  - packages/design/test/chart/chart-data.test.ts
+  - packages/design/test/fields/exportedNotice.test.ts
+  - packages/ui/src/hooks/GraphPanel-hooks.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/ui/components/ChartDataDialog.vue
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/test/ui/chart-data-dialog.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-tab-graph
