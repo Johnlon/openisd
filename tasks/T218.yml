@@ -1,6 +1,6 @@
 id: T218
 label: fixes
-release_note: Tune sheet session, hooks and mode state
+release_note: internal
 repo: openisd
 owner: sonnet
 status: blocked

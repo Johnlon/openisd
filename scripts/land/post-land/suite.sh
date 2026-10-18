@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The full suite of the post-land run (FULL_SUITE_CMD in land.conf): unit, then browser.
+# The full suite of the post-land run (FULL_SUITE_CMD in land.conf): unit, browser, then the shell tests.
 # Runs in the clean copy, which has no node_modules; run.sh exports POST_LAND_SRC, the clone that
 # started the run, and its node_modules are hardlinked in (no install, no network).
 set -euo pipefail
@@ -37,7 +37,7 @@ src="${POST_LAND_SRC:?POST_LAND_SRC not set: start this through scripts/land/pos
 for dir in $(cd "$src" && ls -d node_modules packages/*/node_modules 2> /dev/null); do
   [ -e "$dir" ] || { mkdir -p "$(dirname "$dir")"; cp -al "$src/$dir" "$dir"; }
 done
-# Both halves always run: a red unit half must not hide the browser half. Red when either failed.
+# All three always run: a red unit half must not hide the browser or shell tests. Red when any failed.
 unit=0; browser=0
 run_start "post-land-unit"
 node_modules/.bin/vitest run || unit=$?
@@ -45,6 +45,10 @@ run_end "post-land-unit" "$unit"
 run_start "post-land-browser"
 bash scripts/test-browser.sh || browser=$?
 run_end "post-land-browser" "$browser"
-echo "suite: unit exit $unit, browser exit $browser"
-rc=0; [ "$unit" = 0 ] && [ "$browser" = 0 ] || rc=1
+shell=0
+run_start "post-land-shell"
+bash scripts/test-shell.sh || shell=$?
+run_end "post-land-shell" "$shell"
+echo "suite: unit exit $unit, browser exit $browser, shell exit $shell"
+rc=0; [ "$unit" = 0 ] && [ "$browser" = 0 ] && [ "$shell" = 0 ] || rc=1
 exit "$rc"

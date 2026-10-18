@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 0b94288d4a8d377d0499ebd747168dfa5d0beee1
 goal: openisd.app/test/ opens past the loading screen in a browser that already has OpenISD data or an older /test/ service worker (John's Windows browser hangs on the dark loading overlay, 18 Oct 2026 ~13:00Z). Release blocker for 7.0.953.
 done_test: bash scripts/test.sh packages/ui/test/scripts/vite-config.test.ts
 files:

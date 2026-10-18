@@ -1,5 +1,5 @@
 id: T211
-release_note: 'Clearing a box volume or a loss Q puts back a sensible value; an empty filter box is marked red'
+release_note: 'Clearing a box volume or a loss Q puts back a sensible value; an empty filter box is marked red.'
 repo: openisd
 owner: maryu
 status: done

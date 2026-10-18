@@ -1,5 +1,5 @@
 id: T240
-release_note: 'Phone field labels no longer touch the row border'
+release_note: 'Phone field labels no longer touch the row border.'
 repo: openisd
 owner: sonnet
 status: done

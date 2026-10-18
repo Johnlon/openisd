@@ -89,6 +89,28 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
 
+  # Every shell test under scripts/**/test/ (T400): nothing else runs them, and a red one sat unseen. Red refuses the landing.
+  shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+          fetch-depth: 0
+      - name: git identity for the tests' scratch repos
+        run: |
+          git config --global user.email ci@example.invalid
+          git config --global user.name ci
+          git config --global init.defaultBranch main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: shell tests
+        run: bash scripts/test-shell.sh
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15

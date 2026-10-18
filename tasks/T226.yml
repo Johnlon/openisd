@@ -1,5 +1,5 @@
 id: T226
-release_note: 'Closing the last project no longer shows the crash screen. With no project open, both views say "No project open. Create or open a project."'
+release_note: 'Closing the last project no longer shows the crash screen; with no project open, both views now say that no project is open.'
 repo: openisd
 owner: maryu
 status: done

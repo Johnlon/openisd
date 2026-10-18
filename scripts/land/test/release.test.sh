@@ -85,7 +85,11 @@ git init -q --bare "$GH_REMOTE"
 W="$S/work"; git init -q "$W"; cd "$W" || exit 1
 mkdir -p scripts tasks/fixes
 cp "$REPO/scripts/snap.sh" "$REPO/scripts/snap-prune.sh" "$REPO/scripts/release.sh" "$REPO/scripts/version-info.mjs" scripts/
-mkdir -p scripts/hosting; cp "$REPO/scripts/hosting/releaseNotes.mjs" scripts/hosting/
+mkdir -p scripts/hosting/test; cp "$REPO/scripts/hosting/releaseNotes.mjs" scripts/hosting/
+# release.sh runs the hosted-copies end-to-end test and the UI gallery capture, both of which need a browser and
+# openisd.app; their own suites cover them, so here each is a stand-in that passes.
+printf 'process.exit(0);\n' > scripts/hosting/test/hosted-copies.e2e.mjs
+mkdir -p scripts/ui-gallery; printf 'process.exit(0);\n' > scripts/ui-gallery/capture.mjs
 printf 'id: F1\nstatus: closed\n' > tasks/fixes/F1.yml
 git remote add origin "$GH_REMOTE"
 git add -A; git commit -q -m "first change"; git push -q origin main

@@ -1,5 +1,5 @@
 id: T111
-release_note: Mobile: the bottom bar stays on screen in Firefox Android and DuckDuckGo, and the page no longer runs past the screen
+release_note: Mobile: the bottom bar stays on screen in Firefox Android and DuckDuckGo, and the page no longer runs past the screen.
 repo: openisd
 owner: fable
 status: done

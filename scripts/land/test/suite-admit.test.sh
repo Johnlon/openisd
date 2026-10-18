@@ -23,6 +23,7 @@ export SUITE_RUN_LOCK="$SCRATCH/suite-run.lock"
 mkdir -p "$SRC/node_modules/.bin"
 printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/%s"\necho "token=${ADMIT_TOKEN:-none}" >> "$SEEN/token"\n' unit > "$SRC/node_modules/.bin/vitest"
 printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/browser"\n' > "$COPY/scripts/test-browser.sh"
+printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/shell"\n' > "$COPY/scripts/test-shell.sh"
 chmod +x "$SRC/node_modules/.bin/vitest"
 export SEEN="$SCRATCH/seen"; mkdir -p "$SEEN"; export PATH="$SCRATCH/bin:$PATH"
 
