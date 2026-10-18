@@ -136,6 +136,24 @@ All of it in a pair of worktrees, one per repo, kept off main until it works. Th
 6. **Switch**: delete the old record writing and the 17 per-manufacturer `emit.py` files; rename `driver_spec.json` to `driver.json`; rebuild the corpus (John clears it), then the swap.
 7. **Triage** (section 4a): the AI review step runs after the rebuild and after every later extraction run; its reader and rule faults feed the next round of work.
 
+## 5a. Test cases from live faults
+
+Faults John found in the live driver database on 18 Oct 2026. Each becomes a test of the shared rules; none is fixed
+per vendor. John: "this is why we need the scraper redesign - all logic in one place".
+
+| Case | Printed | Today | Expected |
+|---|---|---|---|
+| Dayton GF180-4, datasheet Vas | "16.5 liters" | read as "16.5 mm", unit refused, reading dropped; Vas filled as C 17.3 L from Cms | Vas E 16.5 L from the datasheet |
+| Dayton CE4876-16, product page Vas | "Compliance Equivalent Volume (Vas) 0.02ft³" | label not mapped, no reading | a Vas reading of 0.566 L that agrees with the datasheet's "0.57 liters" |
+| Dayton CE4876-16, datasheet Vas | "0.57 liters" | set aside because only one source printed it; Vas filled as C 0.583 L | Vas E 0.57 L from the datasheet |
+| Source roles (Dayton, Scan-Speak) | datasheet and product page | a value only one source prints is never used: 318 values in 50 records, 134 of them Dayton datasheet values | the datasheet is the main source; other pages only add confidence and flag conflicts (John: "the datasheet is the golden source") |
+
+A reading is never dropped: a refused unit or label keeps its printed text as evidence and is flagged.
+
+Bug files: `winisd_tools/bugs/BUG_20261018_gf180-4-vas-unit-read-as-mm.md`,
+`BUG_20261018_ce4876-16-vas-product-page-not-read.md`, `BUG_20261018_cross-source-only-reading-not-used.md`,
+`BUG_20261018_reading-rules-spread-across-vendor-plugins.md`.
+
 ## 6. Tests and credit
 
 - While coding: only the tests for the piece in hand.
