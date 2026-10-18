@@ -28,3 +28,23 @@ export class DesktopSizes {
 
   private constructor() {}
 }
+
+/**
+ * How wide a desktop pick list or text box in a field row is, as in 7.0.951's New project wizard:
+ * the list fills the row's control column, whatever its longest choice. The UI reads `css`.
+ */
+export class PickWidth {
+  /** Number of drivers, voice coil connection. */
+  static readonly SHORT = new PickWidth(180);
+  /** Box type. */
+  static readonly MEDIUM = new PickWidth(240);
+  /** Sealed and vented alignment. */
+  static readonly LONG = new PickWidth(260);
+  /** A name typed into a text box. */
+  static readonly TEXT = new PickWidth(280);
+
+  private constructor(readonly px: number) {}
+
+  /** The width as a CSS length. */
+  get css(): string { return `${this.px}px`; }
+}

@@ -4,7 +4,7 @@
  * State management delegated to useOgNewProject() hook per ui.md.
  */
 import { onBeforeUnmount, ref } from 'vue';
-import { NumberField, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
+import { NumberField, PickWidth, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -138,7 +138,7 @@ function handleCreate() {
         <!-- Step 2: Driver count & placement -->
         <div v-else-if="isCountStep" class="step-content">
           <div class="field-row">
-            <UIPickField label="Num. of drivers" input-id="np-ndrivers">
+            <UIPickField label="Num. of drivers" input-id="np-ndrivers" :width="PickWidth.SHORT">
               <select id="np-ndrivers" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }">
                 <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} driver(s)</option>
               </select>
@@ -149,7 +149,7 @@ function handleCreate() {
             <label><input type="radio" name="placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
           </div>
           <div class="field-row">
-            <UIPickField label="Voice coil connection" input-id="np-wiring">
+            <UIPickField label="Voice coil connection" input-id="np-wiring" :width="PickWidth.SHORT">
               <select id="np-wiring" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }">
                 <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
@@ -160,7 +160,7 @@ function handleCreate() {
         <!-- Step 3: Type of design (Box Type + EBP) -->
         <div v-else-if="isBoxTypeStep" class="step-content">
           <div class="field-row">
-            <UIPickField label="Box type" input-id="np-box-type">
+            <UIPickField label="Box type" input-id="np-box-type" :width="PickWidth.MEDIUM">
               <select id="np-box-type" :value="boxType" @change="e => { const b = selectedOption(e, BOX_OPTIONS); if (b !== null) boxType = b; }">
                 <option v-for="o in BOX_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
               </select>
@@ -187,7 +187,7 @@ function handleCreate() {
         <!-- Step 4: Sealed Alignment (only when Closed/sealed) -->
         <div v-else-if="isBoxDetailsStep && isSealed" class="step-content">
           <div class="field-row">
-            <UIPickField label="Alignment" input-id="np-alignment">
+            <UIPickField label="Alignment" input-id="np-alignment" :width="PickWidth.LONG">
               <select id="np-alignment" :value="targetQtc" @change="e => { const q = selectedOption(e, SEALED_ALIGNMENT_OPTIONS); if (q !== null) selectSealedAlignment(q); }">
                 <option v-for="o in SEALED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
@@ -207,7 +207,7 @@ function handleCreate() {
         <!-- Step 4: Vented Alignment (only when box type is Vented; WinISD's five — docs/research/VENTED_ALIGNMENT_FORMULAS.md) -->
         <div v-else-if="isBoxDetailsStep && isVented" class="step-content">
           <div class="field-row">
-            <UIPickField label="Alignment" input-id="np-vented-alignment">
+            <UIPickField label="Alignment" input-id="np-vented-alignment" :width="PickWidth.LONG">
               <select id="np-vented-alignment" :value="selectedVentedAlignment" @change="e => { const a = selectedOption(e, VENTED_ALIGNMENT_OPTIONS); if (a !== null) selectVentedAlignment(a); }">
                 <option v-for="o in VENTED_ALIGNMENT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
@@ -252,7 +252,7 @@ function handleCreate() {
         <!-- Step 5: Project Information -->
         <div v-else-if="isProjectInfoStep" class="step-content">
           <div class="field-row">
-            <UIPickField label="Project name" input-id="np-project-name">
+            <UIPickField label="Project name" input-id="np-project-name" :width="PickWidth.TEXT">
               <input id="np-project-name" type="text" placeholder="e.g. Living-room sub" v-model="projName" @keydown.enter="handleCreate">
             </UIPickField>
           </div>

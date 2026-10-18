@@ -195,7 +195,7 @@ a { color:var(--acc) }
 .mob-ui-field.ui-field .ui-field-unit { grid-column: 3; width: 30px; font-size: 13px; }
 .mob-ui-field.ui-field .ui-field-value .num-input-wrap { flex: 1 1 auto; width: 0; min-width: 0; }
 .mob-ui-field.ui-field .ui-field-value .num-input-wrap > input { width: 100%; }
-.mob-ui-field.ui-field .ui-field-value select { flex: 1 1 auto; width: 100%; min-width: 0; min-height: var(--mob-input-h); font-size: 18px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.mob-ui-field.ui-field .ui-field-value select { flex: 1 1 auto; width: 100%; min-width: 0; min-height: var(--mob-input-h); font: inherit; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
 .mob-ui-field.ui-field .ui-field-value input {
   flex: 1 1 auto; width: auto; min-width: 0; height: auto; min-height: var(--mob-input-h);
   font-size: 18px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff;

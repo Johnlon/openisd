@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: d1ec890da10f9b5215a8ce947e97637d3d04a1d7
 goal: Advanced tab: Sound velocity (c) and Air density (ρ) are typeable again as Entered/Calculated fields of the project air model (T375), like the other air fields; T361 made them readonly grey rows, which John called a bug (17 Oct: 'who decided to make c roo ReadonlyField'). Bug file first.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

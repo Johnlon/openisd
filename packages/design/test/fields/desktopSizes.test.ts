@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {DesktopSizes} from '../../fields/index.js';
+import {DesktopSizes, PickWidth} from '../../fields/index.js';
 
 describe('DesktopSizes', () => {
   it('names every size as a CSS variable in px', () => {
@@ -11,5 +11,11 @@ describe('DesktopSizes', () => {
 
   it('makes the arrows at least as tall as the number box', () => {
     expect(DesktopSizes.CONTROL_H_PX).toBeGreaterThanOrEqual(28);
+  });
+});
+
+describe('PickWidth', () => {
+  it('keeps the widths the wizard had in 7.0.951', () => {
+    expect([PickWidth.SHORT, PickWidth.MEDIUM, PickWidth.LONG, PickWidth.TEXT].map(w => w.css)).toEqual(['180px', '240px', '260px', '280px']);
   });
 });
