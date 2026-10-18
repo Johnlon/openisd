@@ -98,16 +98,16 @@ describe('transmission-line port model', () => {
     // Qp far below any realistic port loss (typically ~10-100) — chosen only to push
     // k·Leff/Qp past the guard's threshold at every frequency in the sweep, not as a
     // physically meaningful port.
-    // `tlPortModel` is a lossless-form-only option (WinISD's lossy model is always lumped —
-    // circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md) — this test is about the TL
-    // model itself, so it must ask for the branch that has one.
+    // The vented box with TL on and no losses takes WinISD's own fixed-resistance form (T430), which has
+    // no tanh; the 4th-order bandpass's lossless branch still builds `portImpedance`'s tanh line, so
+    // this test asks for that box.
     const HEAVILY_DAMPED: SweepParams = {
-      Vb: 0.030, eg: 2.83, Sp: SP, Leff: LEFF, Qp: 0.001, tlPortModel: true,
+      Vb: 0.030, Vf: 0.030, eg: 2.83, Sp: SP, Leff: LEFF, Qp: 0.001, tlPortModel: true,
       Ql: 1e6, Qa: 1e6, fmin: 10, fmax: 1000, N: 20, air: REFERENCE_AIR,
     };
 
     it('stays finite across the whole sweep once the line is heavily damped enough to saturate tanh', () => {
-      const sw = engine.simulation.sweep(DRV, LE_H, 'vented', HEAVILY_DAMPED).values!;
+      const sw = engine.simulation.sweep(DRV, LE_H, 'bandpass4', HEAVILY_DAMPED).values!;
       assert.ok(sw, 'a heavily-damped TL port must still produce a sweep');
       for (let i = 0; i < sw.fs.length; i++) {
         assert.ok(Number.isFinite(sw.zmag[i]), `zmag[${i}] must be finite at ${sw.fs[i]} Hz`);

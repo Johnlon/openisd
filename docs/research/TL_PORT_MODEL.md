@@ -114,7 +114,16 @@ yellow no-end-correction switch on, on WinISD's own 2087-point grid; same probe 
 - The lossless branches of bp4, bp6 and ABC were not captured with TL on. The bp6 one is
   documented in code as "OpenISD's own simple model (not WinISD-captured)". Not tested here.
 - Not tested: TL off with Ql = Qa = 1e6 (no such capture).
-- Fix, for a later task: in WinISD the `lossless` Q limit is no model switch; every box keeps its
+- Fix (done, T430 below): in WinISD the `lossless` Q limit is no model switch; every box keeps its
   fixed-resistance form at omega-b. Route Ql, Qa >= 1e6 through the `winisd-lossy` form (resistances
   vanish as Q grows) for the TL-on case, then add a lossless test to
   `tl-port-model-winisd.test.ts` from the new capture.
+
+## T430: fix (18 Oct 2026)
+
+- `engine/circuit.ts`: vented box, TL port model on, Ql and Qa >= 1e6 now takes the `winisd-lossy` form.
+- Test: lossless case in `tl-port-model-winisd.test.ts` from `runs/vented-w5-tlports-lossless`
+  (SPL, impedance, port velocity, transfer function). Before: 4 of 4 fail (TF 1 Hz -129.3 vs -120.7 dB).
+  After: all pass.
+- Not changed, no capture: TL off with Ql = Qa = 1e6; the bp4, bp6, ABC and passive-radiator
+  lossless branches with TL on.

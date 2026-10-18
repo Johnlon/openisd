@@ -13,6 +13,7 @@ import type {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {type CaptureCheck as Check, absolute, assertMatchesCapture, relative} from '../fixtures/winisdCaptureCheck.js';
 import {WINISD_TL_PORTS_CAPTURE as VENTED, type WinIsdPlottedPoint} from '../fixtures/winisdTlPortsCapture.js';
+import {WINISD_TL_PORTS_LOSSLESS_CAPTURE as VENTED_LOSSLESS} from '../fixtures/winisdTlPortsLosslessCapture.js';
 import {WINISD_BP4_TL_PORTS_CAPTURE as BP4} from '../fixtures/winisdBp4TlPortsCapture.js';
 import {WINISD_BP6_TL_PORTS_CAPTURE as BP6} from '../fixtures/winisdBp6TlPortsCapture.js';
 import {WINISD_ABC_TL_PORTS_CAPTURE as ABC} from '../fixtures/winisdAbcTlPortsCapture.js';
@@ -52,20 +53,21 @@ const bandpassChecks = (capture: BoxCapture) => (sw: Sweep): readonly Check[] =>
   {title: 'transfer function (≤1e-11 dB)', name: 'transfer function', got: sw.tfMag, want: capture.tfMag_dB, bound: absolute(1e-11)},
 ];
 
+/** The vented box's four checks against one capture. */
+const ventedChecks = (capture: typeof VENTED, bound: number) => (sw: Sweep): readonly Check[] => [
+  spl(sw, capture),
+  // The line length is rebuilt from Fb; its last-bit rounding reaches the port flow at ~4e-11
+  // (the closed-form fit, toys/w5_tl_port_model_check.py, bottoms out there too).
+  {title: 'port velocity (≤1e-10 relative)', name: 'port velocity', got: sw.pv, want: capture.portVelocity_m_per_s, bound: relative(1e-10)},
+  impedance(sw, capture),
+  // TF passes through 0 dB, where a relative bound means nothing.
+  {title: `transfer function (≤${bound.toExponential(0)} dB)`, name: 'transfer function', got: sw.tfMag, want: capture.tfMag_dB, bound: absolute(bound)},
+];
+
 const CASES: readonly Case[] = [
-  {
-    label: 'vented box', wpr: 'vented-w5-tlports', capture: VENTED,
-    configure: (project) => project.useTransmissionLinePortModel.set(true),
-    checks: (sw) => [
-      spl(sw, VENTED),
-      // The line length is rebuilt from Fb; its last-bit rounding reaches the port flow at ~4e-11
-      // (the closed-form fit, toys/w5_tl_port_model_check.py, bottoms out there too).
-      {title: 'port velocity (≤1e-10 relative)', name: 'port velocity', got: sw.pv, want: VENTED.portVelocity_m_per_s, bound: relative(1e-10)},
-      impedance(sw, VENTED),
-      // TF passes through 0 dB, where a relative bound means nothing.
-      {title: 'transfer function (≤1e-12 dB)', name: 'transfer function', got: sw.tfMag, want: VENTED.tfMag_dB, bound: absolute(1e-12)},
-    ],
-  },
+  {label: 'vented box', wpr: 'vented-w5-tlports', capture: VENTED, configure: (project) => project.useTransmissionLinePortModel.set(true), checks: ventedChecks(VENTED, 1e-12)},
+  // Ql = Qa = 1e6: WinISD uses the same fixed-resistance port form as with losses (bugs/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md).
+  {label: 'lossless vented box', wpr: 'vented-w5-tlports-lossless', capture: VENTED_LOSSLESS, configure: (project) => project.useTransmissionLinePortModel.set(true), checks: ventedChecks(VENTED_LOSSLESS, 1e-11)},
   {label: '4th-order bandpass box', wpr: 'bp4-w5-tlports', capture: BP4, configure: () => undefined, checks: bandpassChecks(BP4)},
   {label: '6th-order bandpass box', wpr: 'bp6-w5-tlports', capture: BP6, configure: () => undefined, checks: bandpassChecks(BP6)},
   {label: 'ABC box', wpr: 'abc-w5-tlports', capture: ABC, configure: () => undefined, checks: bandpassChecks(ABC)},

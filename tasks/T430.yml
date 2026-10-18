@@ -1,0 +1,19 @@
+id: T430
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Transmission line port model with Ql and Qa >= 1e6 matches WinISD: circuit.ts sends near-lossless projects to its own 'lossless' port branch, which ignores the TL port and 'TL port without end correction' switches; with TL on they go through the winisd-lossy form as WinISD does. Pinned by a value-level test from winisd_research runs/vented-w5-tlports-lossless (all four charts below 0.05%). Bug bugs/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md (from T389) closed; register and README updated if a cell changes.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T430.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md
+  - docs/research/TL_PORT_MODEL.md
+  - packages/design/engine/circuit.ts
+  - packages/design/test/engine/tl-port-model-winisd.test.ts
+  - packages/design/test/fixtures/winisdTlPortsLosslessCapture.ts
+  - packages/design/test/winisd/fixtures/vented-w5-tlports-lossless.wpr
+  - docs/research/WINISD_EQUIVALENCE.md
+  - packages/design/test/engine/tl-port-model.test.ts
+visual: []

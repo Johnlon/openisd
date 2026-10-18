@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 92b94d6d5b285741b13888de27b70ccede1cb16d
 goal: Find the source of the 0.5-0.9% leftover error between OpenISD and WinISD with 'Use transmission line model for port simulation' ticked (the error stays when losses are near zero, so check how WinISD sets the pipe length as well as the loss terms; lossless capture winisd_research runs/vented-w5-tlports-lossless at 57f444e; see docs/research/TL_PORT_MODEL.md). Research only: a doc update and, if a real difference is proven, a bug file. Parked: starts after the UI fixes, on opi's go.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

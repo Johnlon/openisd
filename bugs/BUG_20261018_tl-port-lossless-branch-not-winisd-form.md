@@ -1,6 +1,6 @@
 # BUG_20261018_tl-port-lossless-branch-not-winisd-form
 
-**Status:** OPEN (found by T389; fix not yet made)
+**Status:** FIXED (T430)
 
 ## Symptom
 With the TL port tickbox on and Ql and Qa both at 1e6 (lossless), OpenISD's charts differ from
@@ -21,3 +21,9 @@ Figures: `docs/research/TL_PORT_MODEL.md`, section T389.
 
 ## Not a WinISD difference
 No yellow switch and no register row: OpenISD is wrong, WinISD is consistent.
+
+## Fix (T430)
+`engine/circuit.ts`: a vented box with the TL port model on takes the `winisd-lossy` form even at
+Ql = Qa >= 1e6. Pinned by the lossless case in `test/engine/tl-port-model-winisd.test.ts`
+(`runs/vented-w5-tlports-lossless`). TL off keeps the `lossless` branch (no capture).
+Untested, no capture, unchanged: the bp4, bp6, ABC and passive-radiator `lossless` branches with TL on.
