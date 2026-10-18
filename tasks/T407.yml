@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: e1ea29d382876f8f1bf3ed40b49ae4a11ae9979b
 goal: cloud-sync-activity.browser.spec.ts:32 'desktop: the Cloud sync dialog lists each project sent and received' passes every time: find why the click on .cloud-sync-badge times out on some runs (red in F55 at 1789a508, again on T406 candidate PR #74) and fix it at its source in the app or the spec, with a bug file; no retry, no longer timeout, no skip
 done_test: bash scripts/test.sh packages/ui/test/architecture/browser-specs-never-fetch-through-runner.test.ts
 files:
