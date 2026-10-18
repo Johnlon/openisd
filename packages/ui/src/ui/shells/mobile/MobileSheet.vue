@@ -70,11 +70,7 @@ const { isOpen, lines, rowSlots, mode, sizeStyle, portEditor, portView, portValu
   cursor: pointer;
 }
 .mob-sheet {
-  /* The sheet keeps its own dense rows; the tab rows' roomier label line is not its. */
-  --mob-row-pad-y: 2px;
-  --mob-label-lh: 14px;
-  --mob-row-min: var(--sheet-row);
-  --mob-input-h: var(--sheet-touch);
+  /* The sheet's own dense rows come from PhoneRowSizes.SHEET (sizeStyle). */
   /* Shrinks before the chart does (the chart keeps 120 px); its rows then scroll inside it. */
   flex: 1 1 0;
   min-width: 0;

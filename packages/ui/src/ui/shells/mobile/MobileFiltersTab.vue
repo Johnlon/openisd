@@ -18,14 +18,14 @@ const api = useMobileFiltersTab();
 
 <style scoped>
 .mob-panel {
-  margin: 6px 12px;
+  margin: 12px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
 }
 .mob-panel-head {
-  padding: 5px 12px;
+  padding: 10px 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--mut);

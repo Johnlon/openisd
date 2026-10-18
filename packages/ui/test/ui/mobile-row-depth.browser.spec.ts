@@ -2,11 +2,13 @@ import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 /**
- * Phone field rows stay shallow and tappable (John, 2026-10-15), and the bottom tab bar stays
- * pinned while a tuning tab scrolls (John, 2026-10-16: "scrolling is fine on those views"). Every
- * row of a tuning tab is at least 40 px to tap, at every phone size; the tab bar sits on screen
- * before and after the content is scrolled to its end, and the last row can be scrolled into view.
+ * Phone tab rows are 7.0.951's depth (PhoneRowSizes.TAB, John never asked for shallower tab rows),
+ * and the bottom tab bar stays pinned while a tuning tab scrolls (John, 2026-10-16: "scrolling is
+ * fine on those views"). Every row of a tuning tab is at least the tab row height, at every phone
+ * size; the tab bar sits on screen before and after the content is scrolled to its end, and the
+ * last row can be scrolled into view.
  */
+import {PhoneRowSizes} from '@openisd/design/fields';
 import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 const TUNING_TABS = [
   {type: 'vented', tab: 'Vented'},
@@ -14,7 +16,7 @@ const TUNING_TABS = [
   {type: 'bandpass6', tab: '6th Order Bandpass'},
   {type: 'box-passive-radiator', tab: 'Passive Radiator'},
 ];
-const MIN_TAP_PX = 40;
+const MIN_ROW_PX = PhoneRowSizes.TAB.rowMinPx;
 
 for (const size of PHONE_SIZES) {
   for (const {type, tab} of TUNING_TABS) {
@@ -45,7 +47,7 @@ for (const size of PHONE_SIZES) {
 
       const rowHeights = await page.locator('.mob-content .mob-row, .mob-content .mob-field-row, .mob-content .mob-ui-field')
         .evaluateAll(rows => rows.map(r => r.getBoundingClientRect().height));
-      expect(Math.min(...rowHeights)).toBeGreaterThanOrEqual(MIN_TAP_PX);
+      expect(Math.min(...rowHeights), `${tab}: every row is the tab row height`).toBeGreaterThanOrEqual(MIN_ROW_PX);
     });
   }
 }

@@ -42,14 +42,14 @@ const { project, brand, model, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARR
 
 <style scoped>
 .mob-panel {
-  margin: 6px 12px;
+  margin: 12px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
 }
 .mob-panel-head {
-  padding: 5px 12px;
+  padding: 10px 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--mut);
@@ -86,7 +86,7 @@ const { project, brand, model, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARR
 .mob-select {
   flex: 1;
   max-width: 60%;
-  min-height: 36px;
+  min-height: 40px;
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 4px;

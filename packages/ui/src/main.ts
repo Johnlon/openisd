@@ -87,7 +87,7 @@ import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
-import {DesktopSizes, trailOfLocation} from '@openisd/design/fields';
+import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
 import {basicUtc, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
@@ -442,6 +442,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   };
 
   for (const [name, value] of DesktopSizes.cssVars()) document.documentElement.style.setProperty(name, value);
+  for (const [name, value] of PhoneRowSizes.TAB.cssVars()) document.documentElement.style.setProperty(name, value);
   app.mount('#app');
   overlay?.onAppMounted();
   flashStartupUse(storedUseOf(projectRepo, storageUsage), createUsageNoticeTab(tabStore), logging.flash);

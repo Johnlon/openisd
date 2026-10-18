@@ -57,9 +57,21 @@ test('a message on the phone never covers a control', async ({page}) => {
   await expect(page.locator('.flash')).toHaveCount(0);
   const covered = await page.evaluate(() => {
     const s = document.querySelector('[data-testid="flash-strip"]')?.getBoundingClientRect();
+    // The part of a control on screen: a control scrolled out of its scroll box is not covered.
+    const shown = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      let left = r.left, right = r.right, top = r.top, bottom = r.bottom;
+      for (let a = el.parentElement; a !== null; a = a.parentElement) {
+        if (getComputedStyle(a).overflowY === 'visible') continue;
+        const c = a.getBoundingClientRect();
+        left = Math.max(left, c.left); right = Math.min(right, c.right);
+        top = Math.max(top, c.top); bottom = Math.min(bottom, c.bottom);
+      }
+      return {left, right, top, bottom, width: right - left, height: bottom - top};
+    };
     return [...document.querySelectorAll('button, input, select, a')]
       .filter(el => !el.closest('[data-testid="flash-strip"]'))
-      .map(el => ({el: (el.getAttribute('aria-label') ?? el.textContent ?? '').trim(), r: el.getBoundingClientRect()}))
+      .map(el => ({el: (el.getAttribute('aria-label') ?? el.textContent ?? '').trim(), r: shown(el)}))
       .filter(c => c.r.width > 0 && c.r.height > 0 && s !== undefined &&
         c.r.left < s.right && c.r.right > s.left && c.r.top < s.bottom && c.r.bottom > s.top)
       .map(c => c.el);

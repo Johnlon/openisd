@@ -76,7 +76,8 @@ test.describe('MobileProjectList', () => {
     await page.locator('.mob-project-row', { hasText: 'sample-project' }).locator('.mob-project-show').uncheck();
     await page.locator('.mob-dlg-close').click();
     await graphTab(page).click();
-    await expect.poll(() => inkColours(page)).toBeLessThan(shown);
+    // A chart not yet redrawn has no ink at all; wait for the one trace left, not for an empty canvas.
+    await expect.poll(async () => { const ink = await inkColours(page); return ink > 0 && ink < shown; }).toBe(true);
     const hidden = await inkColours(page);
 
     await page.reload();

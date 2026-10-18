@@ -141,14 +141,14 @@ const {
 
 <style scoped>
 .mob-panel {
-  margin: 6px 12px;
+  margin: 12px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
 }
 .mob-panel-head {
-  padding: 5px 12px;
+  padding: 10px 12px;
   font-size: 13px;
   font-weight: 600;
   color: var(--mut);
@@ -171,7 +171,7 @@ const {
 .mob-select {
   flex: 1;
   max-width: 60%;
-  min-height: 36px;
+  min-height: 40px;
   padding: 6px 8px;
   border: 1px solid var(--line);
   border-radius: 4px;
@@ -212,7 +212,7 @@ const {
    column takes the slack so the box, ⚠ and unit line up at the right edge. */
 .mob-field-calculated { border-left-color: var(--acc); }
 .mob-field-dq { border-left-color: var(--acc2); }
-.mob-field-main { display: flex; flex-direction: column; gap: 0; flex: 1; min-width: 0; }
+.mob-field-main { display: flex; flex-direction: column; gap: var(--mob-label-gap); flex: 1; min-width: 0; }
 .mob-field-label { font-size: 13px; line-height: var(--mob-label-lh); color: var(--mut); }
 .mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
 .mob-field-value :deep(input) {
