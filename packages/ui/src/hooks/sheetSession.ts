@@ -9,27 +9,16 @@
  */
 import type {ComputedRef, Ref} from 'vue';
 import {computed, getCurrentScope, onScopeDispose} from 'vue';
+import {readSheetSlot, ventOfSlot, writeSheetSlot} from '@openisd/design';
 import type {OpenISDProject, Vent} from '@openisd/design';
 import type {BoxType} from '@openisd/design/engine';
 import {SheetField, SheetMode, type SheetSlot} from '@openisd/design/fields';
-import {enterVentArea} from '../logic/ventGroup.js';
+import {suspendVentSolve} from '../logic/ventGroup.js';
 
 export interface SheetSessionDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
   mode: SheetMode;
-}
-
-/** The port a port slot names, or null when the box has no such port. */
-function ventOf(p: OpenISDProject, type: BoxType, slot: SheetSlot): Vent | null {
-  switch (slot) {
-    case 'ventArea': case 'frontVentArea': return p.box.ventGroupOf(type).vent;
-    case 'rearVentArea': return p.box.rearVentGroupOf(type)?.vent ?? null;
-    case 'intraVentArea': return p.box.ventPortsOf(type).find(port => port.name === 'Intra')?.vent ?? null;
-    case 'volume': case 'frontVolume': case 'ventTuning': case 'rearTuning': case 'prAddedMass': case 'prCount':
-    case 'driverFs': case 'driverQts': case 'driverVas': case 'driverCount': case 'inputPower':
-      return null;
-  }
 }
 
 /** One sheet row: the field and its current value in SI, or null when it has none. */
@@ -57,43 +46,10 @@ export interface SheetSession {
   close(): void;
 }
 
-function read(p: OpenISDProject, type: BoxType, slot: SheetSlot): number | null {
-  switch (slot) {
-    case 'volume': return p.box.volumeOf(type).value;
-    case 'frontVolume': return p.box.frontVolumeOf(type)?.value ?? null;
-    case 'ventTuning': return p.box.ventGroupOf(type).tuning_goal_hz.value;
-    case 'rearTuning': return p.box.rearTuningOf(type)?.value ?? null;
-    case 'ventArea': case 'rearVentArea': case 'frontVentArea': case 'intraVentArea':
-      return ventOf(p, type, slot)?.area_m2.value ?? null;
-    case 'prAddedMass': return p.box.passiveRadiator.addedMass_kg.value;
-    case 'prCount': return p.box.passiveRadiator.count.value;
-    case 'driverFs': return p.driver.specField('Fs_hz').value;
-    case 'driverQts': return p.driver.specField('Qts').value;
-    case 'driverVas': return p.driver.specField('Vas_m3').value;
-    case 'driverCount': return p.nDrivers.value;
-    case 'inputPower': return p.powerDrive_W.value;
-  }
-}
-
+/** A port-area write also parks the store's auto-solve watch: one user action, one solve. */
 function write(p: OpenISDProject, type: BoxType, slot: SheetSlot, v: number): void {
-  switch (slot) {
-    case 'volume': p.box.volumeOf(type).set(v); return;
-    case 'frontVolume': p.box.frontVolumeOf(type)?.set(v); return;
-    case 'ventTuning': p.box.ventGroupOf(type).tuning_goal_hz.set(v); return;
-    case 'rearTuning': p.box.rearTuningOf(type)?.set(v); return;
-    case 'ventArea': case 'rearVentArea': case 'frontVentArea': case 'intraVentArea': {
-      const vent = ventOf(p, type, slot);
-      if (vent !== null) enterVentArea(p, vent, v);
-      return;
-    }
-    case 'prAddedMass': p.box.passiveRadiator.addedMass_kg.set(v); return;
-    case 'prCount': p.box.passiveRadiator.count.set(Math.round(v)); return;
-    case 'driverFs': p.driver.specField('Fs_hz').set(v); return;
-    case 'driverQts': p.driver.specField('Qts').set(v); return;
-    case 'driverVas': p.driver.specField('Vas_m3').set(v); return;
-    case 'driverCount': p.nDrivers.set(Math.round(v)); return;
-    case 'inputPower': p.powerDrive_W.set(v); return;
-  }
+  if (ventOfSlot(p, type, slot) === null) writeSheetSlot(p, type, slot, v);
+  else suspendVentSolve(() => writeSheetSlot(p, type, slot, v));
 }
 
 export function createSheetSession({ project, projectChanged, mode }: SheetSessionDeps): SheetSession {
@@ -105,8 +61,8 @@ export function createSheetSession({ project, projectChanged, mode }: SheetSessi
     return m.lines(type).map(line =>
       line.map(field => ({
         field,
-        value: read(p, type, field.slot),
-        vent: ventOf(p, type, field.slot),
+        value: readSheetSlot(p, type, field.slot),
+        vent: ventOfSlot(p, type, field.slot),
       })),
     );
   });

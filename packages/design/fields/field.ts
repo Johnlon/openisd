@@ -1422,8 +1422,8 @@ export class ToggleField extends Field {
   static readonly ADV_WINISDDRIVERMODEL = new ToggleField({
     value: "adv_WinisdDriverModel",
     label: "Two-BL driver",
-    description: "Two-BL driver: WinISD mixes the entered BL with the BL that Fs, Qes and Vas imply. We count this as a WinISD bug.\nTicked: OpenISD uses two BLs, as WinISD does. The damping comes from Cms worked out from Vas, then Mms, Rms and BL worked out from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off.\nUnticked (default): OpenISD uses the entered datasheet values, with one BL throughout.",
-  }, "every chart, only when the entered driver values disagree with Fs, Vas, Qes and Qms. W5-1138SMF (entered BL 7.17, implied 7.384): the SPL chart differs by 0.26 dB in the passband, the Impedance chart peak is about 1.2 Ω (8 %) high, and the Transfer function magnitude chart differs by 0.51 dB.");
+    description: "Two-BL driver: WinISD uses two BLs. The BL that Re, Fs, Qes and Vas imply sets the damping, and the entered BL sets the loudness. We count this as a WinISD bug.\nTicked: OpenISD does the same. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off.\nUnticked (default): OpenISD uses one BL, the one that Re, Fs, Qes and Vas imply, for the loudness and the damping. An entered BL that disagrees with them is marked and does not change the charts.",
+  }, "every chart, only when the entered BL disagrees with the one that Re, Fs, Qes and Vas imply. W5-1138SMF (entered BL 7.17, implied 7.384): the SPL chart differs by 0.26 dB in the passband, the Impedance chart peak is about 1.2 Ω (8 %) high, and the Transfer function magnitude chart differs by 0.51 dB.");
   static readonly ADV_WINISDVAMODEL = new ToggleField({
     value: "adv_WinisdVaModel",
     label: "Re without Rg",

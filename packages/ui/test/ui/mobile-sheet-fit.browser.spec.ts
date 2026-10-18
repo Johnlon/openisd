@@ -28,9 +28,9 @@ async function selectTwoRadiators(page: Page): Promise<void> {
 import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 
 const BOXES = [
-  {type: 'vented', tab: 'Vented', tuneRows: 5, whatIfRows: 8, setup: selectRectangularTwoVents},
-  {type: 'box-passive-radiator', tab: 'Passive Radiator', tuneRows: 5, whatIfRows: 8, setup: selectTwoRadiators},
-  {type: 'abc', tab: 'ABC', tuneRows: 8, whatIfRows: 11, setup: selectRectangularTwoVents},
+  {type: 'vented', tab: 'Vented', tuneRows: 5, whatIfRows: 9, setup: selectRectangularTwoVents},
+  {type: 'box-passive-radiator', tab: 'Passive Radiator', tuneRows: 5, whatIfRows: 9, setup: selectTwoRadiators},
+  {type: 'abc', tab: 'ABC', tuneRows: 8, whatIfRows: 12, setup: selectRectangularTwoVents},
 ];
 const SHEETS = [
   {name: 'Tune', rows: (b: typeof BOXES[number]) => b.tuneRows},

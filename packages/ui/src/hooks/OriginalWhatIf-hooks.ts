@@ -4,7 +4,8 @@ import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassOf} from '../logic/driverCells.js';
 import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
-import {SheetMode} from '@openisd/design/fields';
+import {driverSpecOfSlot} from '@openisd/design';
+import {type NumberField, SheetField, SheetMode} from '@openisd/design/fields';
 import type {NumSpecField} from '../logic/appState.js';
 import {createSheetSession} from './sheetSession.js';
 
@@ -16,7 +17,18 @@ export type { NumSpecField };
  * never in the project: a write with no What-if open (the panel restored by a reload) starts
  * one. `close` ends it and the project is as it was; `reset` puts the project's values back.
  */
+/** One driver row of the panel: the spec field it edits, its registry field and its label. */
+export interface WhatIfDriverRow { readonly key: NumSpecField; readonly def: NumberField; readonly label: string }
+
+// The driver rows the phone What-if sheet offers (Fs, Qes, Qms, Vas) come from the same design list.
+const SHEET_ROWS: readonly WhatIfDriverRow[] = SheetField.DRIVER_SPEC.flatMap(row => {
+  const key = driverSpecOfSlot(row.slot);
+  return key === null ? [] : [{ key, def: row.field, label: row.label }];
+});
+
 export interface OriginalWhatIfAPI {
+  /** The driver rows shared with the phone What-if sheet, in its order. */
+  readonly sheetRows: readonly WhatIfDriverRow[];
   readonly ebp: Readonly<Ref<number | null>>;
   readonly vb_m3: Readonly<Ref<number | null>>;
 
@@ -101,6 +113,7 @@ export function useOriginalWhatIf(): OriginalWhatIfAPI {
   }
 
   return {
+    sheetRows: SHEET_ROWS,
     ebp,
     vb_m3,
     specField,

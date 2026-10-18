@@ -23,17 +23,21 @@ import type {
     SolverField,
     SolverInput,
 } from '../solverTypes.js';
-import {missingDependencies} from '../consistency.js';
+import {approximateCharts, missingDependencies} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, SolveRoute} from '../consistency.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
 import {hotRe, perCoilBL_Tm, perCoilRe_ohm, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  CMS_FROM_VAS_SD_ROUTE, type ConsistencyCheck, MMS_FROM_FS_CMS_ROUTE,
+  CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, MMS_FROM_FS_CMS_ROUTE,
   RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
 import type {DriverRoute} from './routes/index.js';
+
+/** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
+ *  both Q's are twice Qts, which makes the total Q equal Qts. */
+const WINISD_Q_FALLBACK_FACTOR = 2;
 
 export type DriverQuantityName = keyof DriverSolverParams;
 export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue;
@@ -125,12 +129,13 @@ export interface DriverEngine {
    *  stated `c_m_per_s`/`roo_kg_per_m3`, which come back as `air`'s. The handle solve above runs
    *  this same group. */
   solveValues(stated: DriverWorkingSet, air: AirState): DriverWorkingSet;
-  /** `values` as WinISD's own circuit takes them (the "Two-BL driver" switch):
+  /** `values` as the circuit takes them, the way WinISD builds its simulation (decompile `fr_45e090`):
    *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the
-   *  terminal BL from Re, Fs, Qes and that Cms. Each is replaced only where its own inputs are
-   *  positive and the result is positive; otherwise the entered value stands. `air` is the
-   *  project's. */
-  winisdCircuitValues(values: DriverValues, air: Air): DriverValues;
+   *  terminal BL from Re, Fs, Qes and that Cms. The entered Cms, Mms and Rms are not read.
+   *  A driver with a Qts but neither Qes nor Qms gets WinISD's fallback, Qes = Qms = 2·Qts.
+   *  Each is replaced only where its own inputs are positive and the result is positive;
+   *  otherwise the stated value stands. `air` is the project's. */
+  circuitValues(values: DriverValues, air: Air): DriverValues;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -186,9 +191,12 @@ export class DriverEngineImpl implements DriverEngine {
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
 
-  winisdCircuitValues(values: DriverValues, air: Air): DriverValues {
+  circuitValues(values: DriverValues, air: Air): DriverValues {
     const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
-    const {Fs_hz, Qms, Qes, Vas_m3, Sd_m2} = values;
+    const {Fs_hz, Vas_m3, Sd_m2, Qts} = values;
+    const fallback = !positive(values.Qes) && !positive(values.Qms) && positive(Qts) ? WINISD_Q_FALLBACK_FACTOR * Qts : null;
+    const Qes = fallback ?? values.Qes;
+    const Qms = fallback ?? values.Qms;
     const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
       const v = route.value(working);
       return positive(v) ? v : null;
@@ -205,7 +213,7 @@ export class DriverEngineImpl implements DriverEngine {
     const BL = positive(Re_terminal_ohm) && positive(Fs_hz) && positive(Qes) && positive(Cms_m_per_N)
       ? Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N)) : null;
     return {
-      ...values, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
+      ...values, Qes, Qms, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
       BL_terminal_Tm: positive(BL) ? BL : values.BL_terminal_Tm,
     };
   }
@@ -384,7 +392,11 @@ export class DriverEngineImpl implements DriverEngine {
     // Qts ALONE pass as consistent — the group structurally still has no independent route to
     // confirm it (S9a Cluster 6).
     const enteredTrioCount = (['Qts', 'Qes', 'Qms'] as const).filter(f => entered[f] != null).length;
-    if (enteredTrioCount < 2) {
+    if (entered.Qts != null && entered.Qes == null && entered.Qms == null) {
+      // WinISD still draws the charts, from Qes = Qms = 2·Qts (`circuitValues`); they are approximate.
+      issues.push(approximateCharts('Qts', ['Qts', 'Qes', 'Qms'],
+        'Only Qts is stated, so Qes and Qms are taken as twice Qts, as WinISD does. The charts are approximate - state Qes and Qms for accurate ones.'));
+    } else if (enteredTrioCount < 2) {
       const missing: NumericDriverQuantityName[] = (['Qes', 'Qms'] as const).filter(f => entered[f] == null);
       issues.push(missingDependencies('Qts',
         [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing }]));
@@ -509,4 +521,9 @@ export class DriverEngineImpl implements DriverEngine {
 
     return { Fsc: peakFreq, Qtc };
   }
+}
+
+/** The driver area alone: its routes and consistency relations, which read no app setting. */
+export function createDriverEngine(): DriverEngine {
+  return new DriverEngineImpl(new RouteGroup(DRIVER_ROUTES), new ConsistencyCheck(DRIVER_RELATIONS));
 }

@@ -337,13 +337,11 @@ export type SweepPlan =
     | { readonly kind: 'ready'; readonly job: SweepJob }
     | { readonly kind: 'blocked'; readonly issues: readonly SweepIssue[] };
 
-/** The driver as the sweep reads it: WinISD's own circuit values when "Use WinISD driver
- *  calculations" is on, the entered ones otherwise. The entered BL still reaches the engine as
- *  `winisdBL_Tm`, which WinISD's inductance model reads too. */
+/** The driver as the sweep reads it. "Two-BL driver" ticked is WinISD's bug: the typed BL sets the motor's
+ *  push while Qes sets the damping. Unticked there is one BL, the one Re, Fs, Qes and Vas imply, and a typed BL is not read. */
 function sweepDriverOf(source: ProjectSweepSource, air: Air): SweepDriver {
     const entered = source.driver.specs.sweepDriver(air);
-    if (!source.winisdDriverModel.value) return entered;
-    return {...entered, values: source.engine.driver.winisdCircuitValues(entered.values, air)};
+    return source.winisdDriverModel.value ? entered : {...entered, winisdBL_Tm: null};
 }
 
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {

@@ -104,18 +104,14 @@ describe('Engine.checkConsistency', () => {
       }
     });
 
-    it('reports a missing-dependencies issue for the trio even when Qts ITSELF is entered — the group has no route with fewer than two of three stated (S9a Cluster 6)', () => {
+    it('warns that the charts are approximate when ONLY Qts is entered: WinISD takes Qes = Qms = 2·Qts (John, 18 Oct 2026)', () => {
       const issues = checkConsistency({ Qts: 0.38 });
       expect(issues).toHaveLength(1);
       expect(issues[0]).toMatchObject({
-        kind: 'missing-dependencies',
+        kind: 'approximate-charts',
         target: 'Qts',
+        fields: ['Qts', 'Qes', 'Qms'],
       });
-      if (issues[0].kind === 'missing-dependencies') {
-        expect(issues[0].routes).toEqual([
-          { formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qes', 'Qms'] },
-        ]);
-      }
     });
   });
 

@@ -66,10 +66,10 @@ describe('findImpedancePeak', () => {
       const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', P).values!;
       const peak = engine.driver.findImpedancePeak(result, drv.Re_ohm!);
       assert.ok(peak !== null);
-      // Assert peak frequency is near 54.81 Hz
-      assert.ok(Math.abs(peak.Fsc - 54.81) < 0.1, `Expected Fsc near 54.81 Hz, got ${peak.Fsc}`);
-      // Assert Qtc is near 0.481
-      assert.ok(Math.abs(peak.Qtc - 0.481) < 0.01, `Expected Qtc near 0.481, got ${peak.Qtc}`);
+      // The circuit runs on Vas (10 L), not the stated Cms 0.0006 (which implies a stiffer driver): Fsc 56.66 Hz.
+      assert.ok(Math.abs(peak.Fsc - 56.66) < 0.1, `Expected Fsc near 56.66 Hz, got ${peak.Fsc}`);
+      // Qtc follows the same T/S-driven circuit: 0.429.
+      assert.ok(Math.abs(peak.Qtc - 0.429) < 0.01, `Expected Qtc near 0.429, got ${peak.Qtc}`);
     });
 
     it('returns null when there is no sweep result to search', () => {

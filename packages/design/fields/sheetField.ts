@@ -21,14 +21,14 @@ import {NumberField} from './field.js';
  * - `ventArea`, `rearVentArea`, `frontVentArea`, `intraVentArea` — one port's cross-sectional area,
  *   whatever its shape (round or slotted); where the port has a tuning goal its length follows.
  * - `prAddedMass`, `prCount` — the passive radiator's added mass and number of radiators.
- * - `driverFs`, `driverQts`, `driverVas` — the driver's own spec.
+ * - `driverFs`, `driverQes`, `driverQms`, `driverVas` — the driver's own spec.
  * - `driverCount` — the number of drivers.
  * - `inputPower` — the system input power.
  */
 export type SheetSlot =
   | 'volume' | 'frontVolume' | 'ventTuning' | 'rearTuning'
   | 'ventArea' | 'rearVentArea' | 'frontVentArea' | 'intraVentArea'
-  | 'prAddedMass' | 'prCount' | 'driverFs' | 'driverQts' | 'driverVas' | 'driverCount' | 'inputPower';
+  | 'prAddedMass' | 'prCount' | 'driverFs' | 'driverQes' | 'driverQms' | 'driverVas' | 'driverCount' | 'inputPower';
 
 export class SheetField {
   static readonly BOX_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Box volume', 'Box volume');
@@ -47,12 +47,13 @@ export class SheetField {
   static readonly PR_COUNT = new SheetField('prCount', NumberField.PR_NUM, 'Radiators', 'Radiators');
   static readonly INPUT_POWER = new SheetField('inputPower', NumberField.SIGNAL_PIN_W, 'Input power', 'Power');
   static readonly DRIVER_FS = new SheetField('driverFs', NumberField.FS_HZ, 'Fs', 'Fs');
-  static readonly DRIVER_QTS = new SheetField('driverQts', NumberField.QTS, 'Qts', 'Qts');
+  static readonly DRIVER_QES = new SheetField('driverQes', NumberField.QES, 'Qes', 'Qes');
+  static readonly DRIVER_QMS = new SheetField('driverQms', NumberField.QMS, 'Qms', 'Qms');
   static readonly DRIVER_VAS = new SheetField('driverVas', NumberField.VAS_M3, 'Vas', 'Vas');
   static readonly DRIVER_COUNT = new SheetField('driverCount', NumberField.DRIVER_NDRIVERS, 'Drivers', 'Drivers');
 
   /** The driver's own spec rows: What-if offers them, Tune does not. */
-  static readonly DRIVER_SPEC: readonly SheetField[] = Object.freeze([SheetField.DRIVER_FS, SheetField.DRIVER_QTS, SheetField.DRIVER_VAS]);
+  static readonly DRIVER_SPEC: readonly SheetField[] = Object.freeze([SheetField.DRIVER_FS, SheetField.DRIVER_VAS, SheetField.DRIVER_QES, SheetField.DRIVER_QMS]);
 
   /** Every member, built by reflection so none can be left out. Declared last. */
   static readonly ALL: readonly SheetField[] = Object.freeze(
@@ -96,6 +97,6 @@ export class SheetField {
   }
 
   static #commonRows(): readonly SheetField[] {
-    return [SheetField.INPUT_POWER, SheetField.DRIVER_FS, SheetField.DRIVER_QTS, SheetField.DRIVER_VAS, SheetField.DRIVER_COUNT];
+    return [SheetField.INPUT_POWER, ...SheetField.DRIVER_SPEC, SheetField.DRIVER_COUNT];
   }
 }

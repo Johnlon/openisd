@@ -156,9 +156,9 @@ describe('the sweep actually consumes humidity and pressure', () => {
     assert.ok(d > 1e-4, `humidity moved SPL by ${d} dB — an inert input moves it by 0`);
   });
 
-  it('changing air pressure changes SPL — the input is not inert', () => {
+  it('pressure moves SPL only a little: the driver runs on Vas, so box and driver compliance both scale with ρc² and SPL follows c alone', () => {
     const d = maxAbsDelta(splAt({ ...BASE, air: airOfConditions({ ...REFERENCE_CONDITIONS, pressurePa: 90000 }) }), splAt({ ...BASE, air: airOfConditions({ ...REFERENCE_CONDITIONS, pressurePa: 105000 }) }));
-    assert.ok(d > 0.1, `pressure moved SPL by ${d} dB`);
+    assert.ok(d > 1e-4 && d < 0.05, `pressure moved SPL by ${d} dB; expected a small, non-zero move (about 0.004 dB)`);
   });
 });
 

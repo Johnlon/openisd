@@ -267,11 +267,12 @@ test.describe('What-if panel', () => {
 
     test('a blank Q autocalculates from the other two, with the editor E/C/N marks and red border', async ({ page }) => {
       const whatIf = await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
-      const qts = whatIfField(page, 'Qts').locator('input');
+      // The panel has no Qts row (John, 18 Oct 2026): Qes and Qms are the Q inputs.
+      await expect(whatIfField(page, 'Qts')).toHaveCount(0);
       const qes = whatIfField(page, 'Qes').locator('input');
       const qms = whatIfField(page, 'Qms').locator('input');
 
-      // All three entered to begin with.
+      // Both entered to begin with.
       await expect(qms).toHaveClass(/value-e/);
 
       // Clear Qms: the other two still solve it, so it fills itself in — marked Calculated, and
@@ -295,14 +296,13 @@ test.describe('What-if panel', () => {
       await qes.pressSequentially('0.55');
       await expect(qms).not.toHaveValue(before);
 
-      // Clear Qes again: the solver does not use a calculated Qms as a new stated input, so both
-      // dependent fields become unavailable while the entered Qts remains visible.
+      // Clear Qes again: the solver does not use a calculated Qms as a new stated input, so Qms
+      // becomes unavailable too.
       await qes.press('Control+a');
       await qes.press('Delete');
       await qes.blur();
       await expect(qes).toHaveClass(/value-n/);
       await expect(qes).toHaveValue('');
-      await expect(qts).toHaveClass(/value-e/);
       await expect(qms).toHaveClass(/value-n/);
       await expect(qms).toHaveValue('');
       await expect(whatIf).toBeVisible();

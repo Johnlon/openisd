@@ -1,13 +1,13 @@
 /**
  * `SheetField.forBox` — the sheet's rows for each box type: the box's own fields first, then
- * input power, the driver specs (Fs, Qts, Vas) and the number of drivers.
+ * input power, the driver specs (Fs, Qes, Qms, Vas) and the number of drivers.
  */
 import {describe, expect, it} from 'vitest';
 import type {BoxType} from '../../engine/types.js';
 import {NumberField} from '../../fields/field.js';
 import {BOX_TYPE_OPTIONS} from '../../fields/options.js';
 import {SheetField} from '../../fields/sheetField.js';
-const COMMON = [SheetField.INPUT_POWER, SheetField.DRIVER_FS, SheetField.DRIVER_QTS, SheetField.DRIVER_VAS, SheetField.DRIVER_COUNT];
+const COMMON = [SheetField.INPUT_POWER, SheetField.DRIVER_FS, SheetField.DRIVER_VAS, SheetField.DRIVER_QES, SheetField.DRIVER_QMS, SheetField.DRIVER_COUNT];
 
 const EXPECTED: Readonly<Record<BoxType, readonly SheetField[]>> = {
   'sealed': [SheetField.BOX_VOLUME, ...COMMON],

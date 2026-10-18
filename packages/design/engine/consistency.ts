@@ -11,9 +11,9 @@ export interface SolveRoute<Q extends string> {
 }
 
 /**
- * One calculation's diagnostic: either a target that could not be derived (naming every route
- * that was tried and what each one is still missing), or a target whose entered value
- * contradicts what the OTHER entered values imply for it.
+ * One calculation's diagnostic: a target that could not be derived (naming every route
+ * that was tried and what each one is still missing), a target whose entered value
+ * contradicts what the OTHER entered values imply for it, or a result drawn from a fallback.
  */
 export type CalculationIssue<Q extends string> =
   | {
@@ -33,6 +33,12 @@ export type CalculationIssue<Q extends string> =
       readonly expected: number;
       readonly actual: number;
       readonly relative: number;
+      readonly text: string;
+    }
+  | {
+      readonly kind: 'approximate-charts';
+      readonly target: Q;
+      readonly fields: readonly Q[];
       readonly text: string;
     };
 
@@ -144,6 +150,11 @@ export function inconsistentInputs<Q extends string>(
   };
 }
 
+/** The charts are drawn, but from a fallback standing in for values the driver does not state. */
+export function approximateCharts<Q extends string>(target: Q, fields: readonly Q[], text: string): CalculationIssue<Q> {
+  return {kind: 'approximate-charts', target, fields, text};
+}
+
 /** A driver field outside its physically possible band (D14). */
 export function outOfRange(
   field: string, value: number, limit: number, side: 'below' | 'above',
@@ -204,7 +215,11 @@ export function negativeValue(value: number): NegativeValueIssue {
  *  blocked route's formula joined for `missing-dependencies`, since more than one route can be
  *  the reason a target is unavailable. */
 export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): string {
-  if (issue.kind === 'inconsistent-inputs') return issue.formula;
+  switch (issue.kind) {
+    case 'inconsistent-inputs': return issue.formula;
+    case 'approximate-charts': return issue.text;
+    case 'missing-dependencies': break;
+  }
   return issue.routes.map(r => r.formula).join('; or ');
 }
 

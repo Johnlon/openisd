@@ -3,6 +3,7 @@ release_note: Phone - field rows on the Box, Driver, Signal, Advanced and Filter
 repo: openisd
 owner: maryu
 status: done
+landed: 4bf2ec77f5a51f6f87b570e990d4ef2cd2f0d39d
 goal: Phone tabs Box, Driver, Signal, Advanced and Filters: field rows are back to the 7.0.951 height and padding (48 px, 10 px), while the Tune and What-if sheets on the phone Graph tab keep their tight rows (2 px padding); two row metrics in packages/design, tab and sheet; T240's label clearance stays.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 visual:

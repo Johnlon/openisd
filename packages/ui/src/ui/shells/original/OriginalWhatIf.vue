@@ -7,6 +7,7 @@
  */
 import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {useApp} from '../../../logic/app.js';
+import type {NumericDriverSpecFieldName} from '@openisd/design';
 import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import {cellClassOf} from '../../../logic/driverCells.js';
@@ -28,7 +29,7 @@ function specVal(key: NumKey): number | null {
 // WinISD's own field names — the registry keys by these; the driver's spec section carries the
 // SI-suffixed name (`Fs_hz`, `Vas_m3`), so `SPEC` maps the twelve this panel edits to their
 // `Field` on the focused project's driver.
-type NumKey = 'Fs_hz' | 'Qts' | 'Qes' | 'Qms' | 'Vas_m3' | 'Sd_m2' | 'Re_ohm' | 'Le_H' | 'Xmax_m' | 'Pe_W' | 'BL_Tm' | 'Mms_kg';
+type NumKey = NumericDriverSpecFieldName;
 
 function enterField(key: NumKey, v: number, precision?: number): void { whatIf.enterField(key, v, precision); }
 function clearField(key: NumKey): void { whatIf.clearField(key); }
@@ -40,11 +41,7 @@ function clearField(key: NumKey): void { whatIf.clearField(key); }
 // dimensionless Q).
 interface PanelField { key: NumKey; def: NumberField; label: string }
 const MAIN: PanelField[] = [
-  { key: 'Fs_hz', def: NumberField.FS_HZ,  label: 'Fs' },
-  { key: 'Qts', def: NumberField.QTS, label: 'Qts' },
-  { key: 'Qes', def: NumberField.QES, label: 'Qes' },
-  { key: 'Qms', def: NumberField.QMS, label: 'Qms' },
-  { key: 'Vas_m3', def: NumberField.VAS_M3, label: 'Vas' },
+  ...whatIf.sheetRows,
   { key: 'Sd_m2', def: NumberField.SD_M2,  label: 'Sd' },
   { key: 'Re_ohm', def: NumberField.RE_OHM,  label: 'Re' },
 ];

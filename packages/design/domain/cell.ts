@@ -451,6 +451,8 @@ function issueMark(issue: DqIssue, detail: string): DqMark {
         };
       }
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
+    case 'approximate-charts':
+      return { kind: 'calc', severity: 'warn', rule: 'approximate-charts', params: { fields: [...issue.fields] }, detail };
     case 'non-physical':
     case 'target-unreachable':
     case 'invalid-value':

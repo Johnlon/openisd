@@ -24,16 +24,16 @@ const validDriver = () => sweepDriver(solveConsistencyGroup({
 
 describe('driver preconditions', () => {
   // ── Criterion 1 ──────────────────────────────────────────────────────────────
-  describe('a driver with Vas and Qts but no Qms gets a message naming what is missing, not a blank graph', () => {
-    // One Q is not enough to resolve the T/S group, so `Cms`/`Mms`/`Rms`/`BL` never derive and the
-    // circuit has nothing to run on. The REFUSAL now lives in `sweep`, not in a separate derive
+  describe('a driver with Vas but no Q at all gets a message naming what is missing, not a blank graph', () => {
+    // With no Q the T/S group cannot resolve, so `Rms`/`BL` never derive and the
+    // circuit has nothing to run on. (A lone Qts is no longer this case: WinISD takes Qes = Qms = 2·Qts.) The REFUSAL now lives in `sweep`, not in a separate derive
     // step: it checks the six the circuit reads unguarded, and reports what a user could state.
-    const VAS_AND_QTS_ONLY: TestSolverQuantities = { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
+    const VAS_NO_Q: TestSolverQuantities = { Fs_hz: 37, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
     const refused = () => engine.simulation.sweep(
-      sweepDriver(solveConsistencyGroup(VAS_AND_QTS_ONLY)), undefined, 'sealed', P_SEALED);
+      sweepDriver(solveConsistencyGroup(VAS_NO_Q)), undefined, 'sealed', P_SEALED);
 
     it('is refused before any arithmetic, so nothing non-finite is ever produced', () => {
-      assert.equal(refused().values, null, 'one Q cannot solve the group; the sweep must refuse');
+      assert.equal(refused().values, null, 'no Q cannot solve the group; the sweep must refuse');
     });
 
     it('the refusal names exactly the circuit fields still missing, one issue per field — '
@@ -49,9 +49,15 @@ describe('driver preconditions', () => {
       }
       const targets = issues.map(i => i.kind === 'missing-dependencies' ? i.target : null);
       // Vas+Fs derive Cms and Mms; nothing derives BL_terminal_Tm (no BL_Tm stated) or
-      // Rms_kg_per_s (needs Qms, which VAS_AND_QTS_ONLY does not state).
+      // Rms_kg_per_s (needs Qms, which VAS_NO_Q does not state).
       assert.ok(targets.includes('BL_terminal_Tm'), 'BL_terminal_Tm is genuinely absent and must be named');
       assert.ok(targets.includes('Rms_kg_per_s'), 'Rms_kg_per_s is genuinely absent and must be named');
+    });
+
+    it('a driver with only Qts is NOT refused: Qes = Qms = 2·Qts, as WinISD does', () => {
+      const qtsOnly: TestSolverQuantities = { Fs_hz: 37, Qts: 0.38, Vas_m3: 0.030, Sd_m2: 0.0133, Re_ohm: 5.6 };
+      const swept = engine.simulation.sweep(sweepDriver(solveConsistencyGroup(qtsOnly)), undefined, 'sealed', P_SEALED);
+      assert.ok(swept.values, 'WinISD draws the charts from Qes = Qms = 2·Qts');
     });
 
     it('a complete driver is NOT refused — the guard is about what is missing, not about being strict', () => {

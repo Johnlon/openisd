@@ -164,6 +164,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'missing-dependencies':
                     return [{subject: this.engine.issues.plainNames(issue.target), text: this.engine.issues.plainNames(`cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`)}];
                 case 'inconsistent-inputs':
+                case 'approximate-charts':
                 case 'out-of-range':
                     return [];
             }
@@ -250,6 +251,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'inconsistent-inputs':
                     return [{subject: issue.target, text: `${issue.formula} — stated as ${issue.actual}, the others imply ${issue.expected}`}];
                 case 'missing-dependencies':
+                case 'approximate-charts':
                 case 'out-of-range':
                     return [];
             }
@@ -266,6 +268,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'out-of-range':
                     return [{level: 'warn', field: issue.field, message: issue.text}];
                 case 'inconsistent-inputs':
+                case 'approximate-charts':
                     return [{level: 'warn', field: issue.target, message: issue.text}];
                 case 'missing-dependencies':
                     return [];

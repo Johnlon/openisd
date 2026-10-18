@@ -1,0 +1,77 @@
+id: T403
+release_note: internal
+repo: openisd
+owner: bob
+status: blocked
+goal: The engine drives every chart from Fs, Vas, Qes, Qms, Re, Sd, BL, Le as WinISD does (Cms, Mms, Rms display only, dq when they disagree; Qts only fills a missing Qes/Qms; Qts-only driver uses WinISD's 2·Qts fallback with a warning); What-if rows Fs, Vas, Qes, Qms; Two-BL switch off = one BL from Qes. A test proves every field, setting and What-if row recalculates. Bug: bugs/BUG_20261018_what-if-qts-vas-do-not-move-charts.md.
+done_test: bash scripts/test.sh packages/design/test/domain/every-input-recalculates.test.ts packages/design/test/engine/driver-circuit-values.test.ts packages/design/test/domain/driver-circuit-dq.test.ts
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-tab-graph
+files:
+  - bugs/BUG_20261018_what-if-qts-vas-do-not-move-charts.md
+  - bugs/BUG_20261018_typed-bl-conflict-no-dq-mark.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - docs/research/WINISD_PARITY.md
+  - packages/design/domain/cell.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/index.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/domain/project/sheetSlots.ts
+  - packages/design/engine/Engine.ts
+  - packages/design/engine/consistency.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/sheetField.ts
+  - packages/design/test/domain/driver-circuit-dq.test.ts
+  - packages/design/test/domain/every-input-recalculates.test.ts
+  - packages/design/test/domain/project-sweep.test.ts
+  - packages/design/test/domain/winisdDriverModel.test.ts
+  - packages/design/test/engine/air.test.ts
+  - packages/design/test/engine/driver-circuit-values.test.ts
+  - packages/design/test/engine/driver-consistency-check.test.ts
+  - packages/design/test/engine/driver-preconditions.test.ts
+  - packages/design/test/engine/find-impedance-peak.test.ts
+  - packages/design/test/fields/sheetField.test.ts
+  - packages/design/test/fixtures/air-migration/golden-main.json
+  - packages/design/test/fixtures/air-migration/golden-t375-in-main.json
+  - packages/design/test/fixtures/driverSolverGolden.ts
+  - packages/design/test/fixtures/driverSolverRun.ts
+  - packages/design/test/fixtures/golden/bandpass4-single.json
+  - packages/design/test/fixtures/golden/pr-single.json
+  - packages/design/test/fixtures/golden/sealed-2drv-parallel.json
+  - packages/design/test/fixtures/golden/sealed-single.json
+  - packages/design/test/fixtures/golden/vented-2drv-series.json
+  - packages/design/test/fixtures/golden/vented-single.json
+  - packages/ui/src/hooks/sheetSession.ts
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - tasks/T403.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+blocked_reason: rebase onto origin/main conflicts in: bugs/BUG_20261018_desktop-what-if-right-units-clipped.md 

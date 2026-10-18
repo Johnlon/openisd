@@ -41,6 +41,7 @@ export type { SweepJob, SweepJobParams, SweepPlan } from './project/projectSweep
 export { runMaxCurvesJob, runSweepJob } from './project/projectSweep.js';
 export type { ErrorSwitchState, ErrorSwitchStates } from './project/errorSwitches.js';
 export { CompatSwitch } from './project/compatSwitch.js';
+export { driverSpecOfSlot, readSheetSlot, ventOfSlot, writeSheetSlot } from './project/sheetSlots.js';
 export { withMovedChamberQicl } from './project/movedChamberQicl.js';
 export { buildProjectsArchive, parseProjectsArchive, type ArchiveParseResult } from './project/projectsArchive.js';
 export type { CompatSwitchKind } from './project/compatSwitch.js';

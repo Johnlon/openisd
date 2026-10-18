@@ -20,7 +20,8 @@ import {cAbs, cArg, cDiv, cMul, cScale, cx} from '../complex.js';
 import type {CircuitQuantities} from '../circuit.js';
 import {hfAsymptotePressure_Pa, solve} from '../circuit.js';
 import {missingDependencies} from '../consistency.js';
-import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
+import {createDriverEngine} from '../driver/DriverEngine.js';
+import type {DriverEngine, DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
@@ -367,10 +368,13 @@ export interface SimulationEngine {
 /** The simulation area alone, for a thread that only sweeps. It reads no app setting, so it takes none;
  *  the whole engine comes from `createEngine`. */
 export function createSimulationEngine(): SimulationEngine {
-  return new SimulationEngineImpl();
+  return new SimulationEngineImpl(createDriverEngine());
 }
 
 export class SimulationEngineImpl implements SimulationEngine {
+  /** `driver` turns the stated T/S values into the ones the circuit runs on (`circuitValues`). */
+  constructor(private readonly driver: DriverEngine) {}
+
   /**
    * The passband reference level of an SPL curve, in dB — the peak of the real curve,
    * ignoring the silence sentinel so a single dead point can't define the reference.
@@ -446,7 +450,8 @@ export class SimulationEngineImpl implements SimulationEngine {
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
-    const single = withAddedMass(driverValues(drv.values), P.driverAddedMass ?? 0);
+    // The circuit runs on Fs, Vas, Qes, Qms, Re, Sd, BL and Le as WinISD's does; the stated Cms, Mms and Rms are not read.
+    const single = withAddedMass(driverValues(this.driver.circuitValues(drv.values, P.air)), P.driverAddedMass ?? 0);
     const d = P.loading === 'isobaric' ? isobarikPair(single) : single;
     const circuit = circuitQuantities(d, Le_H, drv.winisdBL_Tm);
     if (circuit.value === null) return { values: null, issues: circuit.issues };
