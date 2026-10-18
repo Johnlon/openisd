@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: e3fa817551f21113704440f3449e2431874576e6
 goal: The lap:4000 preview stays working after a landing: sync-main-folder moves the main checkout under the live Vite dev server and Vite serves a stale module ('index.ts does not provide an export named acknowledgementInPlaceOfBannerMark', app shows 'OpenISD could not start'). Sync restarts the openisd-preview unit after it moves the main folder, proven end-to-end in a scratch repo first; bug file bugs/BUG_20261018_preview-stale-after-land-sync.md.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
