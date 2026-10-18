@@ -1,0 +1,11 @@
+id: T422
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: scripts/preview-4000.sh restarts the openisd-preview systemd user unit (systemctl --user restart openisd-preview) instead of killing port 4000 and starting Vite itself; a copy of the unit file lives under scripts/systemd/.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T422.yml
+  - scripts/preview-4000.sh
+  - scripts/systemd/openisd-preview.service
