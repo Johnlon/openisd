@@ -6,14 +6,14 @@ Run (app already up, e.g. `bash scripts/preview-4000.sh`):
 
     node scripts/ui-gallery/capture.mjs
 
-`scripts/release.sh` runs it for every release: the snapshot (`https://openisd.app/snap/<stamp>/`) after, the current Latest before; a failed capture stops the release.
+`scripts/release.sh` runs it for every release: the snapshot (`https://snapshots.openisd.app/snap/<stamp>/`) after, the current Latest before; a failed capture stops the release.
 
 Options:
 
 | Flag | Default | Meaning |
 |---|---|---|
 | `--after <url>` | `http://localhost:4000` | build under test |
-| `--before <url\|dir\|none>` | `https://openisd.app/v/20261015T1542Z/` | live build, or the `after/` dir of an earlier run, or `none` |
+| `--before <url\|dir\|none>` | `https://snapshots.openisd.app/v/20261015T1542Z/` | live build, or the `after/` dir of an earlier run, or `none` |
 | `--root <dir>` | `/home/john/work/winisd/ui-gallery` | all runs are kept here |
 
 Output: `<root>/<UTC stamp>_<build id>/` with `before/`, `after/`, `index.html`, `run.json`; and `<root>/index.html` listing every run (newest first).

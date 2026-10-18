@@ -15,13 +15,13 @@
 | Publish | Tag `snap-<stamp>`, GitHub pre-release "Snapshot <stamp>", notes since the last release. |
 | Notes | Plain sentences from each task file's `release_note:` (a sentence, or `internal`), plus resolved bugs. No ids, no hashes. Internal work is only counted. |
 | Keep | The newest 10. Older pre-releases, tags and site folders are deleted. |
-| Try one | Open `openisd.app/snap/`, tap a row. Or `openisd.app/snap/<stamp>/`. |
+| Try one | `test.openisd.app` is the newest. Or open `snapshots.openisd.app/snap/`, tap a row, or `snapshots.openisd.app/snap/<stamp>/`. |
 
 ## Releases
 
 | Action | Command | Result |
 |---|---|---|
-| Promote | `bash scripts/release.sh --public <n.n.n> <stamp>` | `--public` is the public number, `7.0.951` for the first release (WinISD's latest is 0.7.0.950); each later release adds 1 to the last part, the first two change only for a redesign. The script refuses a number not greater than the last. It becomes the release title "OpenISD 7.0.951" and the Version column of RELEASES.md; About and the footer show it. Adds tag `v<stamp>` on the same commit. The pre-release becomes a release marked Latest. Branch `release` moves forward. A row is added to RELEASES.md. Nothing is built or downloaded. |
+| Promote | `bash scripts/release.sh --public <n.n.n> <stamp>` | Runs the hosted copies end-to-end test and the UI gallery first; either failing refuses. `--public` is the public number, `7.0.951` for the first release (WinISD's latest is 0.7.0.950); each later release adds 1 to the last part, the first two change only for a redesign. The script refuses a number not greater than the last. It becomes the release title "OpenISD 7.0.951" and the Version column of RELEASES.md; About and the footer show it. Adds tag `v<stamp>` on the same commit. The pre-release becomes a release marked Latest. Branch `release` moves forward. A row is added to RELEASES.md. Nothing is built or downloaded. |
 | Refused when | No `snap-<stamp>` tag, or an F in `tasks/fixes/` is open. | Nothing changes. |
 | Own notes | `bash scripts/release.sh --public <n.n.n> --notes-file F <stamp>` | F replaces the notes. Without it the snapshot's notes are kept. |
 | Roll back | `bash scripts/release.sh --latest <stamp>` | The older release becomes Latest. The site root follows. |
@@ -30,9 +30,11 @@
 
 | Where | What |
 |---|---|
-| `openisd.app/` | The Latest release. Installing as an app is offered here only. |
-| `openisd.app/v/` | Every release, newest first. Each stays hosted at `v/<stamp>/`. |
-| `openisd.app/snap/` | Snapshot builds. The page warns they may upgrade saved data; a backup is taken first. |
+| `openisd.app/` | The Latest release, and nothing else. Installing as an app is offered here only. The old addresses `/test/`, `/v/…` and `/snap/…` send you to the new sites. |
+| `test.openisd.app` | The newest snapshot build. |
+| `snapshots.openisd.app/v/` | Every release, newest first. Each stays hosted at `v/<stamp>/`. |
+| `snapshots.openisd.app/snap/` | Snapshot builds. The page warns they may upgrade saved data; a backup is taken first. |
+| Storage | Each of the three sites is its own origin: a test or snapshot build never sees production's projects or service worker. |
 | About in the app | The list of releases and snapshot builds, this one marked. |
 
 ## Tags

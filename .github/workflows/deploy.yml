@@ -1,8 +1,13 @@
 name: deploy
 
-# Rebuilds the whole Pages site from the GitHub Releases and deploys it. Never runs on a push to
-# main by itself: build.yml calls it after a snapshot build, release.yml after a release changes.
-# scripts/hosting/assemble-site.sh does the work; this file only checks out, calls it and uploads.
+# Rebuilds the three Pages sites from the GitHub Releases and deploys them: openisd.app from this
+# repo's Pages, test.openisd.app and snapshots.openisd.app as the gh-pages branch of
+# Johnlon/openisd-test and Johnlon/openisd-snapshots (T398). Never runs on a push to main by itself:
+# build.yml calls it after a snapshot build, release.yml after a release changes.
+# scripts/hosting/assemble-site.sh builds them, scripts/hosting/push-site.sh publishes the two
+# others; this file only checks out, calls them and uploads. Each of the two repos has a deploy key
+# with write access; its private half is this repo's secret TEST_SITE_DEPLOY_KEY or
+# SNAPSHOTS_SITE_DEPLOY_KEY.
 on:
   workflow_call:
   workflow_dispatch:
@@ -28,10 +33,24 @@ jobs:
       - run: bash scripts/hosting/assemble-site.sh build/site
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: publish test.openisd.app
+        env:
+          DEPLOY_KEY: ${{ secrets.TEST_SITE_DEPLOY_KEY }}
+        run: |
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/key" && chmod 600 "$RUNNER_TEMP/key"
+          GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            bash scripts/hosting/push-site.sh build/site/test git@github.com:Johnlon/openisd-test.git
+      - name: publish snapshots.openisd.app
+        env:
+          DEPLOY_KEY: ${{ secrets.SNAPSHOTS_SITE_DEPLOY_KEY }}
+        run: |
+          printf '%s\n' "$DEPLOY_KEY" > "$RUNNER_TEMP/key" && chmod 600 "$RUNNER_TEMP/key"
+          GIT_SSH_COMMAND="ssh -i $RUNNER_TEMP/key -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
+            bash scripts/hosting/push-site.sh build/site/snapshots git@github.com:Johnlon/openisd-snapshots.git
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build/site
+          path: ./build/site/prod
 
   deploy:
     needs: assemble

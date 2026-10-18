@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: c8fd859dfb06e41870316d0f7599c8c4e463b3cd
 goal: The UI gallery's Pixel 9 phone viewport and every phone layout check use John's measured Pixel 9 Chrome page area, 374 x 705 CSS px at DPR 2.566, instead of 411 x 923 (the other phone sizes stay); the before/after gallery run is retaken at that size and the visual-review Top 10 is rechecked against it.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

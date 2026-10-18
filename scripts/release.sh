@@ -68,8 +68,8 @@ node scripts/hosting/test/hosted-copies.e2e.mjs || refuse "hosted copies end-to-
 # ../ui-gallery/ as the release's before/after record. A failed capture stops the release.
 LATEST_TAG="$(gh release view --json tagName --jq .tagName 2> /dev/null || true)"
 BEFORE=none
-[ -z "$LATEST_TAG" ] || BEFORE="https://openisd.app/v/${LATEST_TAG#v}/"
-node scripts/ui-gallery/capture.mjs --after "https://openisd.app/snap/$STAMP/" --before "$BEFORE" || refuse "UI gallery capture failed"
+[ -z "$LATEST_TAG" ] || BEFORE="https://snapshots.openisd.app/v/${LATEST_TAG#v}/"
+node scripts/ui-gallery/capture.mjs --after "https://snapshots.openisd.app/snap/$STAMP/" --before "$BEFORE" || refuse "UI gallery capture failed"
 
 git tag "$REL" "$SHA"
 git push --quiet origin "refs/tags/$REL"
@@ -90,7 +90,7 @@ fi
 DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"
 if [ -n "$NOTES_FILE" ]; then NOTE_TEXT="$(cat "$NOTES_FILE")"; else NOTE_TEXT="$(gh release view "$REL" --json body --jq .body)"; fi
 SUBJECT="$(printf '%s\n' "$NOTE_TEXT" | node scripts/hosting/releaseNotes.mjs headline | tr '|' '/')"
-ROW="| $PUBLIC | $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
+ROW="| $PUBLIC | $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://snapshots.openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
 if [ ! -f RELEASES.md ]; then
   printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
 fi
