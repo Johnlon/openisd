@@ -18,7 +18,8 @@ export function useMobileAdvancedTab() {
 
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
   } = createEnvironmentAir({ project, projectChanged });
 
@@ -33,7 +34,8 @@ export function useMobileAdvancedTab() {
   return {
     project,
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
     abcVelocityApplies, errorSwitches,
   };

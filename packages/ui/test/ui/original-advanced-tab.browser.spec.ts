@@ -35,6 +35,18 @@ async function showAdvancedOn(page: Page, boxType: BoxTypeName): Promise<void> {
   await advancedTab(page).click();
 }
 
+/** The first chart's data table as the user reads it: every cell of the Data dialog, in one string. */
+async function firstChartTable(page: Page): Promise<string> {
+  const panel = page.locator('.chart-cell .gpanel').first();
+  await panel.getByRole('button', { name: 'Data' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.locator('tbody tr').first()).toBeVisible();
+  const text = await dialog.locator('tbody').innerText();
+  await dialog.getByRole('button', { name: 'Close' }).click();
+  await expect(dialog).toBeHidden();
+  return text;
+}
+
 test.beforeEach(async ({ appPage: page }) => {
   await page.goto('/');
   await openAProject(page);
@@ -57,7 +69,46 @@ test.describe('Original Advanced tab', () => {
       await expect(airFields.locator('label', { hasText: 'Air pressure' })).toBeVisible();
       await expect(airFields.locator('label', { hasText: 'Sound velocity' })).toBeVisible();
       await expect(airFields.locator('label', { hasText: 'Air density' })).toBeVisible();
-      await expect(airFields.locator('input[readonly]')).toHaveCount(2);
+      await expect(airFields.locator('input[readonly]')).toHaveCount(0);
+    });
+
+    test('typing a sound velocity and an air density enters them; clearing returns them to calculated', async ({ appPage: page }) => {
+      const c = soundVelocity(page);
+      const rho = airDensity(page);
+      await expect(c).toHaveClass(/value-c/);
+      await expect(rho).toHaveClass(/value-c/);
+
+      await fillAndCommit(c, '222.5');
+      await expect(c).toHaveValue(/222\.5/);
+      await expect(c).not.toHaveClass(/value-c/);
+
+      await fillAndCommit(rho, '2.34567');
+      await expect(rho).toHaveValue(/2\.34567/);
+      await expect(rho).not.toHaveClass(/value-c/);
+      await expect(c).toHaveValue(/222\.5/);
+
+      await fillAndCommit(c, '');
+      await fillAndCommit(rho, '');
+      await expect(c).toHaveClass(/value-c/);
+      await expect(rho).toHaveClass(/value-c/);
+      await expect(c).toHaveValue('343.99');
+      await expect(rho).toHaveValue('1.19885');
+    });
+
+    test('a typed air density, and separately a typed sound velocity, change the chart data', async ({ appPage: page }) => {
+      const calculated = await firstChartTable(page);
+
+      await fillAndCommit(airDensity(page), '2.34567');
+      const withRho = await firstChartTable(page);
+      expect(withRho).not.toBe(calculated);
+      await fillAndCommit(airDensity(page), '');
+      expect(await firstChartTable(page)).toBe(calculated);
+
+      await fillAndCommit(soundVelocity(page), '222.5');
+      const withC = await firstChartTable(page);
+      expect(withC).not.toBe(calculated);
+      await fillAndCommit(soundVelocity(page), '');
+      expect(await firstChartTable(page)).toBe(calculated);
     });
 
     test('air constants and calculated readouts use two columns', async ({ appPage: page }) => {

@@ -49,6 +49,73 @@ test('editing the temperature writes through and clearing it falls back to the a
   await expect(tempInput).not.toHaveValue(/300/);
 });
 
+test('typing a sound velocity and an air density enters them; clearing returns them to calculated', async ({ page }) => {
+  const c = fieldRow(page, 'Sound velocity').locator('input');
+  const rho = fieldRow(page, 'Air density').locator('input');
+  await expect(c).toHaveClass(/value-c/);
+  await expect(rho).toHaveClass(/value-c/);
+  const calculatedC = await c.inputValue();
+  const calculatedRho = await rho.inputValue();
+
+  await c.fill('222.5');
+  await c.press('Tab');
+  await expect(c).toHaveValue(/222\.5/);
+  await expect(c).not.toHaveClass(/value-c/);
+
+  await rho.fill('2.34567');
+  await rho.press('Tab');
+  await expect(rho).toHaveValue(/2\.34567/);
+  await expect(rho).not.toHaveClass(/value-c/);
+  await expect(c).toHaveValue(/222\.5/);
+
+  await c.fill('');
+  await c.press('Tab');
+  await rho.fill('');
+  await rho.press('Tab');
+  await expect(c).toHaveClass(/value-c/);
+  await expect(rho).toHaveClass(/value-c/);
+  await expect(c).toHaveValue(calculatedC);
+  await expect(rho).toHaveValue(calculatedRho);
+});
+
+test('a typed air density, and separately a typed sound velocity, change the chart data', async ({ page }) => {
+  const closeAdvanced = () => page.getByRole('button', { name: 'Close', exact: true }).last().click();
+  const openAdvanced = async () => {
+    await page.locator('.mob-tab', { hasText: 'Box' }).click();
+    await page.locator('.mob-hamburger').click();
+    await page.locator('.mob-menu-item', { hasText: 'Advanced' }).click();
+  };
+  const chartTable = async (): Promise<string> => {
+    await closeAdvanced();
+    await page.locator('.mob-tab', { hasText: 'Graph' }).click();
+    await page.locator('.mob-chart-cell .gpanel').first().getByRole('button', { name: 'Data' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog.locator('tbody tr').first()).toBeVisible();
+    const text = await dialog.locator('tbody').innerText();
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    await expect(dialog).toBeHidden();
+    await openAdvanced();
+    return text;
+  };
+  const type = async (label: string, value: string) => {
+    const input = fieldRow(page, label).locator('input');
+    await input.fill(value);
+    await input.press('Tab');
+  };
+
+  const calculated = await chartTable();
+
+  await type('Air density', '2.34567');
+  expect(await chartTable()).not.toBe(calculated);
+  await type('Air density', '');
+  expect(await chartTable()).toBe(calculated);
+
+  await type('Sound velocity', '222.5');
+  expect(await chartTable()).not.toBe(calculated);
+  await type('Sound velocity', '');
+  expect(await chartTable()).toBe(calculated);
+});
+
 test('toggling the "Force flat response" checkbox writes through to the project', async ({ page }) => {
   const checkbox = page.locator('label', { hasText: 'Force flat response' }).locator('input[type=checkbox]');
   const before = await checkbox.isChecked();

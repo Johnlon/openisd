@@ -1,26 +1,23 @@
-# Advanced tab: Sound velocity and Air density cannot be typed
+# BUG_20261018_advanced-c-rho-readonly
 
-Status: open. Found by John on the Work Board (QO236), 18 Oct 2026.
+**Status:** RESOLVED (T420, 18 Oct 2026)
 
-## What is wrong
+Recorded 18 Oct 2026. John, 17 Oct: "win isd has c and roo, these must be C or E values in openisd"; "who decided to make c roo ReadonlyField".
 
-The Advanced tab (phone and desktop) shows Sound velocity (c) and Air density (ρ) as greyed
-readonly readouts. The user cannot type either.
+## Symptom
+On the Advanced tab (desktop and phone), Sound velocity and Air density are grey read-only boxes. The user cannot type a value for either. Temperature, humidity and pressure beside them can be typed.
 
-## What John ruled
+## Evidence
+- `OriginalShell.vue` and `MobileAdvancedTab.vue` render both as `UIFixedField ... readonly` fed from `advAir.c` / `advAir.rho` (T361, d3dcc245).
+- Since T375 (3b5bafe6) the project holds five air fields, each Entered or Calculated (`envC_m_per_s`, `envRoo_kg_per_m3` are the same `AirField` as `envTempK`), so a typed c or rho is supported by the model.
+- WinISD lets the user enter c and rho.
 
-17 Oct 2026 (project air model, "go"): the project holds five air fields, temperature, humidity,
-pressure, c and ρ. Each is entered or calculated. A typed c or ρ pins and the solver back-calculates
-a cleared temperature, humidity or pressure. A loaded .wpr puts its c and roo on the project as entered.
-
-## Where it comes from
-
-T361 (d3dcc245) made the two rows `UIFixedField ... readonly` before the five-field model (T375)
-landed, and T375 did not make them editable. The engine side (T372 solver, T375 fields) already
-supports a typed c or ρ.
+## Cause
+T361 turned the two rows into read-only readouts before T375 made c and rho entered-or-calculated fields. The rows were never switched back to the editable field row used by the other air fields.
 
 ## Fix
+Done: render c and rho on the Advanced tab (both shells) with the same editable settling field row as temperature, humidity and pressure, wired to the project's c and rho air fields (typed = Entered, cleared = Calculated).
 
-The two rows are ordinary editable fields with the E/C mark and the clear rule, like temperature,
-humidity and pressure. A typed value pins; clearing it goes back to the calculated value.
-Visual baselines for the Advanced tab are retaken.
+## Verification
+- Done, red before / green after: browser specs (desktop and phone): type a Sound velocity and an Air density; each shows as Entered and the other derived values follow; clearing returns it to Calculated. `original-advanced-tab` and `mobile-advanced-tab` specs pass; the old "two read-only inputs" assertion now expects none.
+- Baselines retaken: desktop-tab-advanced, mobile-tab-advanced.

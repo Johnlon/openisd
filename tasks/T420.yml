@@ -1,0 +1,22 @@
+id: T420
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Advanced tab: Sound velocity (c) and Air density (ρ) are typeable again as Entered/Calculated fields of the project air model (T375), like the other air fields; T361 made them readonly grey rows, which John called a bug (17 Oct: 'who decided to make c roo ReadonlyField'). Bug file first.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T420.yml
+  - bugs/BUG_20261018_advanced-c-rho-readonly.md
+  - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+visual:
+  - desktop-tab-advanced
+  - mobile-tab-advanced

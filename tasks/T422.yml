@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 18a610287a3bbaf8041e3e338bd44f183950ddeb
 goal: scripts/preview-4000.sh restarts the openisd-preview systemd user unit (systemctl --user restart openisd-preview) instead of killing port 4000 and starting Vite itself; a copy of the unit file lives under scripts/systemd/.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

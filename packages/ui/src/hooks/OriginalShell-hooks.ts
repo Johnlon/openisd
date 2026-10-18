@@ -50,12 +50,14 @@ import {projectCloudMarks, useCloudSync, useCloudSyncUi} from './CloudSync-hooks
 import type {ConflictCopy} from '@openisd/design/cloud';
 import {CLOUD_SYNC_MENU_LABEL, DriverId, ProjectId} from '@openisd/design/cloud';
 
-export type AirField = 'temperature' | 'humidity' | 'pressure';
+export type AirField = 'temperature' | 'humidity' | 'pressure' | 'soundVelocity' | 'airDensity';
 
 const AIR_FIELD_LIMITS: Readonly<Record<AirField, { min: number; max: number; label: string }>> = {
   temperature: { min: 0, max: 400, label: 'Temperature' },
   humidity: { min: 0, max: 100, label: 'Relative humidity' },
   pressure: { min: 1000, max: 200000, label: 'Air pressure' },
+  soundVelocity: { min: 0, max: 1000, label: 'Sound velocity' },
+  airDensity: { min: 0, max: 10, label: 'Air density' },
 };
 
 export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
@@ -122,6 +124,10 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   const advTemp = entryOf(temp);
   const advHumidity = entryOf(humidity);
   const advPressure = entryOf(pressure);
+  const soundVelocity = () => project.value.envC_m_per_s;
+  const airDensity = () => project.value.envRoo_kg_per_m3;
+  const advSoundVelocity = entryOf(soundVelocity);
+  const advAirDensity = entryOf(airDensity);
   /** Empties all five air fields: the air solver fills each from the app's levels again. */
   function resetAirToAppDefaults(): void {
     project.value.clearAir();
@@ -135,8 +141,10 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   });
   return {
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
+    envSoundVelocityStored: storedOf(soundVelocity), envAirDensityStored: storedOf(airDensity),
     envTempDq: dqOf('temperature', temp), envHumidityDq: dqOf('humidity', humidity), envPressureDq: dqOf('pressure', pressure),
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityDq: dqOf('soundVelocity', soundVelocity), envAirDensityDq: dqOf('airDensity', airDensity),
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
   };
 }
@@ -636,7 +644,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Delegated to the unit-tested `createEnvironmentAir` above.
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
   } = createEnvironmentAir({ project, projectChanged });
 
@@ -785,9 +794,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
     fmt,
-    advTemp, advHumidity, advPressure, advAir,
+    advTemp, advHumidity, advPressure, advAir, advSoundVelocity, advAirDensity,
     envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
     powerLocked, rsOhm,
     projectName, projectCreator, projectCreated, projectModified, projectDateCommits: dateCommits, projectDescription,
     lossesOpen, openLossGroups, resetBoxLosses,
