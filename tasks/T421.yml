@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: e82721ce69e41b9ea7d6b67d60314e024298fc58
 goal: T365 fallout fixed: phone wizard dropdowns lose the 18 px font, desktop wizard select widths and the uneven Back/Next/Cancel buttons return to 7.0.951; T365's button sizes stay (review REVIEW_20261018_UI_CHANGES_SINCE_7.0.951 row 15).
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

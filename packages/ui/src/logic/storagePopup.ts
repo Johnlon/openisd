@@ -1,7 +1,7 @@
 /** The startup storage popup: asks the shared confirm dialog to show what the design layer says
  *  about the browser's storage, once the splash is out of the way. */
 import {watch, type Ref} from 'vue';
-import {storagePopup, storagePopupAfterSave, type StorageLevel, type StoragePopup, type StoredUse} from '@openisd/design/fields';
+import {acknowledgementInPlaceOfBannerMark, storagePopup, storagePopupAfterSave, type StorageLevel, type StoragePopup, type StoredUse} from '@openisd/design/fields';
 import type {BrowserStoragePort, PersistenceStatus, SaveSignal} from '@openisd/persistence';
 import type {ConfirmPort} from './confirmPort.js';
 
@@ -45,9 +45,12 @@ export async function showStoragePopup(deps: StoragePopupDeps): Promise<void> {
   const estimate = await deps.browserStorage.estimate();
   await untilFalse(deps.splashOpen);
   const use = deps.readUse();
+  const browser = deps.browserStorage.browser();
+  const inPlaceOfBannerMark = acknowledgementInPlaceOfBannerMark({outcome, browser, acknowledgedRisk: deps.persistence.acknowledgedRisk()});
+  if (inPlaceOfBannerMark !== null) deps.persistence.acknowledgeRisk(inPlaceOfBannerMark);
   const popup = storagePopup({
     outcome,
-    browser: deps.browserStorage.browser(),
+    browser,
     use,
     estimate,
     acknowledgedRisk: deps.persistence.acknowledgedRisk(),

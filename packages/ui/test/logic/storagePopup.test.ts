@@ -60,6 +60,13 @@ describe('showStoragePopup', () => {
     expect(s.persistence.acknowledgedRisk()).toBe('refused:Firefox');
   });
 
+  it('replaces a closed-banner mark with the condition seen now, without showing the popup', async () => {
+    const s = setup({outcome: 'granted', localBytes: mb, seen: '1'});
+    await s.run();
+    expect(s.asked).toEqual([]);
+    expect(s.persistence.acknowledgedRisk()).toBe('granted:Firefox');
+  });
+
   it('waits until the splash is closed', async () => {
     const s = setup({outcome: 'refused', localBytes: mb});
     s.splashOpen.value = true;

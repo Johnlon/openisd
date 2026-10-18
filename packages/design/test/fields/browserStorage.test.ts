@@ -7,6 +7,7 @@ import {
   savedNotice,
   siteStorageLine,
   startupNotice,
+  acknowledgementInPlaceOfBannerMark,
   storagePopup,
   storagePopupAfterSave,
   storageFullWarning,
@@ -123,6 +124,14 @@ describe('the storage popup', () => {
 
   it('counts a banner dismissed before the popup existed as seen', () => {
     expect(storagePopup({...quiet, outcome: 'refused', browser: 'Firefox', acknowledgedRisk: '1'})).toEqual({kind: 'none'});
+  });
+
+  it('replaces the closed-banner mark with the condition seen now, so a later change shows the popup (John, QO251)', () => {
+    expect(acknowledgementInPlaceOfBannerMark({...quiet, outcome: 'refused', browser: 'Firefox', acknowledgedRisk: '1'})).toBe('refused:Firefox');
+    expect(acknowledgementInPlaceOfBannerMark({...quiet, outcome: 'granted', browser: 'Chrome', acknowledgedRisk: '1'})).toBe('granted:Chrome');
+    expect(storagePopup({...quiet, outcome: 'refused', browser: 'Chrome', acknowledgedRisk: 'granted:Chrome'})).toMatchObject({kind: 'risk'});
+    expect(acknowledgementInPlaceOfBannerMark({...quiet, outcome: 'refused', browser: 'Firefox', acknowledgedRisk: 'refused:Firefox'})).toBeNull();
+    expect(acknowledgementInPlaceOfBannerMark({...quiet, outcome: 'refused', browser: 'Firefox', acknowledgedRisk: null})).toBeNull();
   });
 
   it('says how full storage is from 80%, and suggests Drive sync, else export or delete', () => {

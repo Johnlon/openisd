@@ -129,10 +129,9 @@ then appended six bullets of file/line evidence nobody asked for.
 
 ## Running the app locally — `scripts/preview-4000.sh`
 
-To build or run the app for John to look at, run `bash scripts/preview-4000.sh` from the repo root
-(background it). It kills whatever holds port 4000, then starts the live Vite dev server with HMR at
-http://localhost:4000. Never hand-roll `npx vite` on another port, and never run the script from
-inside `scripts/`: Vite then finds no config and serves 404 on every page.
+To build or run the app for John to look at, run `bash scripts/preview-4000.sh`. It restarts the
+openisd-preview systemd user unit (copy in `scripts/systemd/`), which serves the live Vite dev server
+with HMR at http://localhost:4000 from the main checkout. Never hand-roll `npx vite` on another port.
 
 ## Test output — quiet by default
 

@@ -119,6 +119,7 @@ export {
   siteStorageLine,
   STORAGE_FULL_FROM,
   storageFullWarning,
+  acknowledgementInPlaceOfBannerMark,
   storagePopup,
   storagePopupAfterSave,
   storageUseLine,

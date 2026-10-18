@@ -129,6 +129,12 @@ export function storagePopup(input: StoragePopupInput): StoragePopup {
   };
 }
 
+/** What to store in place of the closed-banner mark: the condition seen now, so the popup shows when
+ *  the browser's storage situation changes (John, QO251, 18 Oct 2026). Null when there is no such mark. */
+export function acknowledgementInPlaceOfBannerMark(input: Pick<StoragePopupInput, 'outcome' | 'browser' | 'acknowledgedRisk'>): string | null {
+  return input.acknowledgedRisk === BANNER_DISMISSED_BEFORE_POPUP ? `${input.outcome}:${input.browser}` : null;
+}
+
 /** The flash once per browser tab at startup: "12 projects, 1.4 MB of 5 MB used."; null when no
  *  project is stored. */
 export function startupNotice(use: StoredUse): string | null {
