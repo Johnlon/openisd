@@ -19,6 +19,8 @@ async function infoMenuItem(page, text) { await toolbar(page, 'Info'); await pag
 
 async function startWizard(page) { await clickBtn(page, 'New project'); await page.getByText('Step 1 of 5').waitFor(T); }
 async function pickDriver(page) { await clickText(page, 'Accuton AS168-9-470'); await page.waitForTimeout(200); }
+// The Driver tab's Edit button opens the driver editor; desktop labels it "✎ Edit", phone "Edit".
+async function editDriver(page, tab) { await tab(page); await page.getByRole('button', { name: /^(✎ )?Edit$/ }).locator('visible=true').first().click(T); await page.waitForTimeout(600); }
 async function next(page) { await clickBtn(page, 'Next'); await page.waitForTimeout(500); }
 
 export const SCREENS = [
@@ -43,6 +45,7 @@ export const SCREENS = [
     } },
   // desktop
   { key: 'tab-driver', label: 'Driver tab', vp: [DESKTOP], act: (p) => clickText(p, 'Driver') },
+  { key: 'driver-editor', label: 'Driver editor', vp: [DESKTOP], act: (p) => editDriver(p, (q) => clickText(q, 'Driver')) },
   { key: 'tab-filters', label: 'Filters tab', vp: [DESKTOP], act: (p) => clickText(p, 'Filters') },
   { key: 'tab-signal', label: 'Signal tab', vp: [DESKTOP], act: (p) => clickText(p, 'Signal') },
   { key: 'tab-advanced', label: 'Advanced tab', vp: [DESKTOP], act: (p) => clickText(p, 'Advanced') },
@@ -56,6 +59,7 @@ export const SCREENS = [
   // phone
   { key: 'menu', label: 'Menu open', vp: [PHONE], act: openPhoneMenu },
   { key: 'tab-driver', label: 'Driver tab', vp: [PHONE], act: (p) => clickBtn(p, 'Driver') },
+  { key: 'driver-editor', label: 'Driver editor', vp: [PHONE], act: (p) => editDriver(p, (q) => clickBtn(q, 'Driver')) },
   { key: 'tab-signal', label: 'Signal tab', vp: [PHONE], act: (p) => clickBtn(p, 'Signal') },
   { key: 'tab-filters', label: 'Filters tab', vp: [PHONE], act: (p) => clickBtn(p, 'Filters') },
   { key: 'tab-graph', label: 'Graph tab', vp: [PHONE], act: (p) => clickBtn(p, 'Graph') },

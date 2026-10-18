@@ -1,0 +1,13 @@
+id: T412
+release_note: internal
+repo: openisd
+owner: maryu
+status: blocked
+goal: The UI gallery captures the driver editor dialog (phone and desktop, opened from the Driver tab's edit button), and its after side defaults to the newest deployed snapshot instead of localhost:4000, so cloud UI and the real build are compared.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T412.yml
+  - scripts/ui-gallery/capture.mjs
+  - scripts/ui-gallery/screens.mjs
+  - scripts/ui-gallery/README.md
+blocked_reason: rebase onto origin/main conflicts in: scripts/ui-gallery/README.md scripts/ui-gallery/capture.mjs 

@@ -9,7 +9,8 @@ import { SCREENS, reset } from './screens.mjs';
 import { measure } from './measure.mjs';
 
 const DEFAULT_BEFORE = 'https://snapshots.openisd.app/v/20261015T1542Z/';
-const DEFAULT_AFTER = 'http://localhost:4000';
+// The newest snapshot: a real deployed build, so cloud sync shows as users see it.
+const DEFAULT_AFTER = 'https://test.openisd.app/';
 const DEFAULT_ROOT = '/home/john/work/winisd/ui-gallery';
 
 const VIEWPORTS = {

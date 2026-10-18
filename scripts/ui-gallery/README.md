@@ -2,7 +2,7 @@
 
 Deterministic screenshots of every screen, desktop (1440x900) and Pixel 9 phone (374x705, x2.566: the Chrome page area John measured on his phone), before vs after. No AI, starts no server.
 
-Run (app already up, e.g. `bash scripts/preview-4000.sh`):
+Run (after side defaults to the newest snapshot; for a local build start `bash scripts/preview-4000.sh` and pass `--after http://localhost:4000`):
 
     node scripts/ui-gallery/capture.mjs
 
@@ -12,7 +12,7 @@ Options:
 
 | Flag | Default | Meaning |
 |---|---|---|
-| `--after <url>` | `http://localhost:4000` | build under test |
+| `--after <url>` | `https://test.openisd.app/` | build under test; the default is the newest snapshot, a deployed build, so cloud sync shows as users see it. A local dev server (`http://localhost:4000`) has no Google client id and hides cloud sync. |
 | `--before <url\|dir\|none>` | `https://snapshots.openisd.app/v/20261015T1542Z/` | live build, or the `after/` dir of an earlier run, or `none` |
 | `--root <dir>` | `/home/john/work/winisd/ui-gallery` | all runs are kept here |
 
