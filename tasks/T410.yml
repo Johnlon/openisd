@@ -1,0 +1,13 @@
+id: T410
+release_note: internal
+repo: openisd
+owner: tools
+status: done
+goal: land.sh pull-request title is at most 256 characters (ID: goal cut with an ellipsis); the whole goal stays in the PR body
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T410.yml
+  - scripts/land.sh
+  - scripts/land/pr-title.sh
+  - scripts/land/test/pr-title.test.sh
+  - bugs/BUG_20261018_land-pr-title-over-256.md

@@ -53,6 +53,8 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 # shellcheck source=/dev/null
 . "$HERE/paths.sh"
 # shellcheck source=/dev/null
+. "$HERE/land/pr-title.sh"
+# shellcheck source=/dev/null
 . "$CONF"
 # shellcheck source=./land/core/task.sh
 . "$CORE/task.sh"
@@ -317,7 +319,7 @@ fi
     goal="$(task_field "$TASK" goal)"
     printf '%s\n\nOpened by scripts/land.sh. Its checks are the candidate gate: when they pass, land.sh moves main to this commit by a fast-forward push, and GitHub shows this pull request merged. A refused landing closes it, saying why.\n' \
       "${goal:-$ID}" > "$WORK/pr-body.md"
-    PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$ID${goal:+: $goal}" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
+    PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$(pr_title "$ID" "$goal")" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
       || { GATE_OUT="$WORK/pr.out"; PR_NUMBER=""; refuse pull-request "GitHub did not open the pull request for $CANDIDATE_BRANCH"; }
     echo "land: pull request #$PR_NUMBER: https://github.com/${ACTIONS_REPO:-}/pull/$PR_NUMBER"
   fi
