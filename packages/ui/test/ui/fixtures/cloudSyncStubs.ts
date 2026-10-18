@@ -1,24 +1,19 @@
 import type {Page} from '@playwright/test';
+import {readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
+/** The built app the suite's server serves (playwright.config.js BUILD_TEST_APP). */
+const TEST_DIST = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', '..', 'build', `test-dist-${process.env.OPENISD_TEST_PORT}`);
+
+/** The app built with a Google client id: its main script, read from the built app on disk, with the
+ *  client id set. Read from disk, never fetched through the test runner: the runner's pooled
+ *  connection to the server was reset under load (F55, BUG_20261018_cloud-sync-stub-fetch-reset). */
 export async function enableCloudSync(page: Page): Promise<void> {
-  await page.route('**/*main*', async route => {
-    const url = route.request().url();
-    // Only the script that holds the client id is rewritten. The stylesheet main-<hash>.css matched
-    // the old test and was fetched through the test runner for nothing: its fetch is what the
-    // post-land run saw reset (F55).
-    if (!url.endsWith('.js') && !url.endsWith('.ts') && !/\/assets\/main-[^/]*\.js(\?|$)/.test(url)) {
-      await route.continue();
-      return;
-    }
-    const response = await route.fetch();
-    let text = await response.text();
-    if (text.includes('clientId:null')) {
-      text = text.replace('clientId:null', 'clientId:"stubbed-client-id"');
-    }
-    await route.fulfill({
-      response,
-      body: text,
-    });
+  await page.route(/\/assets\/main-[^/?]*\.js(\?|$)/, async route => {
+    const script = readFileSync(join(TEST_DIST, new URL(route.request().url()).pathname), 'utf8');
+    if (!script.includes('clientId:null')) throw new Error('the built main script no longer holds clientId:null');
+    await route.fulfill({contentType: 'text/javascript', body: script.replace('clientId:null', 'clientId:"stubbed-client-id"')});
   });
 }
 

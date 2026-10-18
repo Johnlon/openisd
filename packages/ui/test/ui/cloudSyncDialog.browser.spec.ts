@@ -1,24 +1,6 @@
 import type {Page} from '@playwright/test';
 import {expect, openAProject, test} from '../fixtures.js';
-
-async function enableCloudSync(page: Page) {
-  await page.route('**/*main*', async route => {
-    const url = route.request().url();
-    if (!url.endsWith('.js') && !url.endsWith('.ts') && !url.includes('/assets/main-')) {
-      await route.continue();
-      return;
-    }
-    const response = await route.fetch();
-    let text = await response.text();
-    if (text.includes('clientId:null')) {
-      text = text.replace('clientId:null', 'clientId:"stubbed-client-id"');
-    }
-    await route.fulfill({
-      response,
-      body: text,
-    });
-  });
-}
+import {enableCloudSync} from './fixtures/cloudSyncStubs.js';
 
 async function stubGoogleApis(page: Page) {
   await page.route('**/accounts.google.com/**', async route => {

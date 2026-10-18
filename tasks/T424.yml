@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 53e26e9175e2341b7f17307965b93e8c54fb8f2d
 goal: The ▲▼ stepper default size (T222 shrank it to 14x20 px with a 9 px glyph) and the desktop Driver tab Model box width (T224 made it 420 px beside a narrow Brand box) are back to how 7.0.951 looks; T222's arrows stay on desktop number boxes (review REVIEW_20261018_UI_CHANGES_SINCE_7.0.951 rows 3 and 5).
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
