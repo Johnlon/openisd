@@ -54,9 +54,10 @@ group delay, phase.
 ## Finding: ticking it retunes the box
 
 WinISD's pipe drops the end correction, so its low-frequency mass is smaller than the Fb mass
-Map. Ticking the box moves the tuning up by about 1.1 Hz on this project (sum: 38 → 39.4 Hz),
-while the Box tab still shows Fb 38 Hz. A real port's mouth mass (the end correction) does not
-disappear when you model the duct as a pipe.
+Map. Ticking the box moves the tuning up by about 1.1 Hz on this project (impedance minimum
+39.13 Hz to 40.26 Hz), while the Box tab still shows Fb 38 Hz. A real port's mouth mass (the end
+correction) does not disappear when you model the duct as a pipe. Recorded as
+`bugs/BUG_20261018_winisd-tl-port-no-end-correction.md`.
 
 ## OpenISD
 
@@ -66,14 +67,15 @@ disappear when you model the duct as a pipe.
 - Code: `winisdLinePortReactance` in `packages/design/engine/boxes/port.ts`.
 - Not matched: a box with Ql and Qa both at the lossless limit (1e6). OpenISD then uses its own
   line, `portImpedance` (tanh with loss, mouth radiation, end correction kept), not WinISD's.
-  Capture `runs/vented-w5-tlports-lossless` was queued, not yet checked.
+  Capture `runs/vented-w5-tlports-lossless` (winisd_research 57f444e): WinISD keeps its tan form
+  there too, fit 8.8e-3 (best lumped 7.7e-2). With losses the same fit is 5.1e-3. Neither is
+  machine precision; T389 finds the residual.
 
-## Recommendation
+## Done (T390, 18 Oct 2026)
 
-- Keep the switch as it is: native WinISD control, WinISD's maths by default.
-- The retuning is a calculation bug by the house rule (a value that contradicts WinISD's own
-  Fb readout). Candidate yellow bug switch "TL port without end correction": unticked, OpenISD
-  keeps the end correction in L so the pipe tunes to the shown Fb; ticked, WinISD's L. Needs
-  John's ruling before any code.
-- Lossless case: check the queued capture; if WinISD uses its fixed form there too, OpenISD's
-  lossless branch should use `winisdLinePortReactance` as well.
+- OpenISD keeps the end correction by default, so the pipe tunes at Fb (impedance minimum 38.69 Hz
+  on this project; the pipe's tan() is a little heavier than the lumped mass).
+- Yellow bug switch "TL port without end correction" (`winisdTlPortNoEndCorrection`) brings
+  WinISD's pipe back. On, the fits above hold.
+- A ≠W cue by the tickbox opens the "OpenISD and WinISD differences" entry, on desktop and phone.
+- Still open (T389): the lossless case and the 0.5–0.9 % fit residual (see above).

@@ -30,6 +30,8 @@ export interface ErrorSwitchStates {
     readonly driverCount: ErrorSwitchState;
     /** WinISD sealed picker volume: the picker's volume does not give the picked Qtc on the Box tab. */
     readonly sealedPicker: ErrorSwitchState;
+    /** WinISD TL port without end correction: the transmission-line port pipe leaves out the end correction. */
+    readonly tlPortEndCorrection: ErrorSwitchState;
 }
 
 export interface ErrorSwitchInputs {
@@ -47,12 +49,16 @@ export interface ErrorSwitchInputs {
     readonly hasBesselHighpass: boolean;
     readonly winisdAbcGroupDelay: boolean;
     readonly winisdSealedPicker: boolean;
+    readonly winisdTlPortNoEndCorrection: boolean;
+    /** "Use transmission line model for port simulation" is ticked. */
+    readonly tlPortModel: boolean;
 }
 
 export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
     const isPr = i.boxType === 'box-passive-radiator';
     const isAbc = i.boxType === 'abc';
     const isSealed = i.boxType === 'sealed';
+    const hasLinePort = i.boxType === 'vented' || i.boxType === 'bandpass4' || i.boxType === 'bandpass6' || isAbc;
     return {
         driverModel: {marked: true, applicable: true, inScope: true, reproducesError: i.winisdDriverModel},
         vaModel: {marked: true, applicable: true, inScope: true, reproducesError: i.winisdVaModel},
@@ -61,5 +67,6 @@ export function errorSwitchStatesOf(i: ErrorSwitchInputs): ErrorSwitchStates {
         abcGroupDelay: {marked: true, applicable: isAbc, inScope: isAbc, reproducesError: i.winisdAbcGroupDelay},
         driverCount: {marked: true, applicable: i.nDrivers > 1, inScope: true, reproducesError: i.winisdDriverCountModel},
         sealedPicker: {marked: true, applicable: isSealed, inScope: isSealed, reproducesError: i.winisdSealedPicker},
+        tlPortEndCorrection: {marked: true, applicable: i.tlPortModel && hasLinePort, inScope: hasLinePort, reproducesError: i.winisdTlPortNoEndCorrection},
     };
 }

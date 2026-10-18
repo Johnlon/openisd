@@ -133,6 +133,17 @@ export class ProjectAdvanced {
         };
     }
 
+    /** WinISD Compatibility "TL port without end correction": with the transmission-line port model on,
+     *  the port pipe is WinISD's, its length less the end correction, so the box tunes above Fb.
+     *  Off: the end correction stays and the box tunes at Fb. Off where a project does not say. */
+    get winisdTlPortNoEndCorrection(): SimpleField<boolean> {
+        const lens = focus(this.#advanced, 'winisdTlPortNoEndCorrection');
+        return {
+            get value() { return lens.value ?? CompatSwitch.TL_PORT_END_CORRECTION.winisdValue; },
+            set: (on: boolean) => lens.set(on),
+        };
+    }
+
     /** WinISD Compatibility "Phase wrapping": wraps phase curves to [-180°, +180°] (default).
      *  Off: continuous unwrapped phase. On where a project does not say. */
     get winisdWrapPhase(): SimpleField<boolean> {

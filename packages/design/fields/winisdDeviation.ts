@@ -139,6 +139,15 @@ export class WinisdDeviation {
     charts: ['GD'],
   });
 
+  static readonly TL_PORT_END_CORRECTION = new WinisdDeviation({
+    title: 'WinISD\'s transmission line port tunes the box higher',
+    winisd: 'With "Use transmission line model" ticked, WinISD builds the port as a pipe without the port\'s end correction. The pipe is lighter than the Fb mass, so the bass tuning rises, while the Box tab still says Fb. The option also shows the port\'s own pipe notes, peaks and dips a few hundred Hz up. Use it to check that a long port does not put a note in the midrange.',
+    openisd: 'OpenISD keeps the end correction, so the pipe tunes at the Fb on the Box tab. The pipe notes are still shown.',
+    size: 'W5-1138SMF, Fb 38 Hz: the impedance minimum is 40.3 Hz in WinISD, 38.7 Hz in OpenISD, and 39.1 Hz with the option off.',
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, switchOf: s => s.tlPortEndCorrection},
+    charts: [],
+  });
+
   static readonly DRIVER_COUNT = new WinisdDeviation({
     title: 'WinISD shows one driver\'s impedance',
     winisd: 'With more than one driver, WinISD\'s impedance chart shows the impedance of one driver, not of all the drivers the amplifier drives. Its SPL, VA and maximum power charts do show all the drivers.',

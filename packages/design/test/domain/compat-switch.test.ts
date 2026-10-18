@@ -13,7 +13,7 @@ import {CompatSwitchGroup} from '../../fields/compatSwitchGroup.js';
 import {ToggleField} from '../../fields/field.js';
 import {WinisdDeviation} from '../../fields/winisdDeviation.js';
 describe('CompatSwitch', () => {
-  it('lists the seven WinISD bugs and the three options', () => {
+  it('lists the eight WinISD bugs and the three options', () => {
     expect(CompatSwitch.BUGS.map(s => s.field.label)).toEqual([
       'Two-BL driver',
       'Re without Rg',
@@ -22,6 +22,7 @@ describe('CompatSwitch', () => {
       'ABC group delay',
       'Per-driver impedance',
       'Sealed picker volume',
+      'TL port without end correction',
     ]);
     expect(CompatSwitch.OPTIONS.map(s => s.field.label)).toEqual([
       'Phase wrapping',

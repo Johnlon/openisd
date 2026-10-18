@@ -63,3 +63,12 @@ export function winisdLinePortReactance(w: number, Map: number, Sp: number, endC
   const L = Map * Sp / rho - endCorrection_m;
   return rho * c / Sp * Math.tan(w * L / c);
 }
+
+/**
+ * The end correction the transmission-line port pipe drops: WinISD's own pipe is Map·S/ρ less the
+ * end correction, so the box tunes above Fb (`winisdTlPortNoEndCorrection` on); with it off the
+ * pipe keeps the end correction, is Map·S/ρ long and tunes at Fb.
+ */
+export function droppedEndCorrection_m(endCorrection_m: number | undefined, winisdTlPortNoEndCorrection: boolean | undefined): number {
+  return winisdTlPortNoEndCorrection === true ? endCorrection_m ?? NaN : 0;
+}

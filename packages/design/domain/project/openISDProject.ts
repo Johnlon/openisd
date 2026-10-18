@@ -348,6 +348,11 @@ export class OpenISDProject {
         return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdAbcGroupDelay;
     }
 
+    /** WinISD Compatibility "TL port without end correction" — see `ProjectAdvanced.winisdTlPortNoEndCorrection`. */
+    get winisdTlPortNoEndCorrection(): SimpleField<boolean> {
+        return ProjectAdvanced.wrap(this.#slot('advanced'), this.#slot('filters')).winisdTlPortNoEndCorrection;
+    }
+
     /** The controls that reproduce a known WinISD error: which carry the warning look, whether each
      *  applies to the open box, and whether it is reproducing the error now. */
     get errorSwitches(): ErrorSwitchStates {
@@ -363,6 +368,8 @@ export class OpenISDProject {
             hasBesselHighpass: this.filters.value.some(f => f.type === 'highpass' && f.family === 'bessel' && f.enabled),
             winisdAbcGroupDelay: this.winisdAbcGroupDelay.value,
             winisdSealedPicker: this.winisdSealedPicker.value,
+            winisdTlPortNoEndCorrection: this.winisdTlPortNoEndCorrection.value,
+            tlPortModel: this.useTransmissionLinePortModel.value,
         });
     }
 
@@ -778,6 +785,7 @@ export class OpenISDProject {
             winisdPrNprResonance: this.winisdPrNprResonance,
             winisdBesselHighpass: this.winisdBesselHighpass,
             winisdAbcGroupDelay: this.winisdAbcGroupDelay,
+            winisdTlPortNoEndCorrection: this.winisdTlPortNoEndCorrection,
             rgAtDriverSide: this.rgAtDriverSide,
             useTransmissionLinePortModel: this.useTransmissionLinePortModel,
             forceFlatResponse: this.forceFlatResponse,

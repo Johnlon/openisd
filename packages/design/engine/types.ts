@@ -215,6 +215,9 @@ export interface SweepParams {
    *  f, the driver's own phase slope left out (true), or −dφ/dω of the plotted phase (false/absent).
    *  ABC only. */
   winisdAbcGroupDelay?: boolean;
+  /** With `tlPortModel`: the port pipe as WinISD builds it, its length less the end correction, so
+   *  the box tunes above Fb (true), or with the end correction kept, tuned at Fb (false/absent). */
+  winisdTlPortNoEndCorrection?: boolean;
   // Box losses
   Ql?: number;
   Qa?: number;

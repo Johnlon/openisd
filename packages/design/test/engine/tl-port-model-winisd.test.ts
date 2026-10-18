@@ -76,6 +76,8 @@ function setUpProject(c: Case): OpenISDProject {
   if (project === null) throw new Error('winIsdProjectToOpenIsdProject returned problems: ' + JSON.stringify(errors));
   project.winisdDriverModel.set(true);
   project.rgAtDriverSide.set(false);
+  // WinISD's own pipe, without the end correction.
+  project.winisdTlPortNoEndCorrection.set(true);
   c.configure(project);
   return project;
 }

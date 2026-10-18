@@ -908,6 +908,9 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "ABC group delay": the ABC group delay as WinISD computes it, the
     // driver part held at the chart frequency while the box is stepped. Absent parses to OFF.
     winisdAbcGroupDelay: z.boolean().optional(),
+    // Bug switch "TL port without end correction": with the transmission-line port model on, the port pipe
+    // as WinISD builds it, without the end correction, so the tuning rises. Absent parses to OFF.
+    winisdTlPortNoEndCorrection: z.boolean().optional(),
     // "Phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // Bug switch "Per-driver impedance": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N

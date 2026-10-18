@@ -761,6 +761,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                       <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => project.winisdSealedPicker.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
                     </ErrorSwitch>
                   </div>
+                  <div>
+                    <ErrorSwitch as="label" field-key="winisdTlPortNoEndCorrection" style="font-size: 12px;" :marked="errorSwitches.tlPortEndCorrection.marked" :applicable="errorSwitches.tlPortEndCorrection.applicable" :reproduces-error="errorSwitches.tlPortEndCorrection.reproducesError" :title="ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.description">
+                      <input type="checkbox" :checked="project.winisdTlPortNoEndCorrection.value" :disabled="!errorSwitches.tlPortEndCorrection.applicable" @change="e => project.winisdTlPortNoEndCorrection.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.label }}
+                    </ErrorSwitch>
+                  </div>
                 </ErrorSwitchGroup>
                 </div>
               </div>

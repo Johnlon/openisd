@@ -281,7 +281,7 @@ test.describe('Original Advanced tab', () => {
     test('WinISD Compatibility labels say "optional" or "bug" and are unclipped', async ({ appPage: page }) => {
       const panel = page.locator('.sim-options-box');
       const labels = panel.locator('label[data-field-key]');
-      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Per-driver impedance/, /Sealed picker volume/]);
+      await expect(labels).toHaveText([/Phase wrapping/, /Uncapped flat response/, /Simplified ABC intra-port velocity/, /Two-BL driver/, /Re without Rg/, /PR Npr resonance/, /Bessel high-pass/, /ABC group delay/, /Per-driver impedance/, /Sealed picker volume/, /TL port without end correction/]);
       // A pane too narrow for every column scrolls sideways: scrolled to its right end, nothing is clipped.
       await page.locator('.tab-section.active').evaluate(el => { el.scrollLeft = el.scrollWidth; });
       const panelBox = (await panel.boundingBox())!;
@@ -454,7 +454,7 @@ test.describe('Original Advanced tab', () => {
         await page.setViewportSize({width, height});
         await showAdvancedOn(page, 'abc');
         const labels = page.locator('.sim-switches label[data-field-key]');
-        await expect(labels).toHaveCount(10);
+        await expect(labels).toHaveCount(11);
         for (const label of await labels.all()) {
           const m = await label.evaluate(el => {
             const r = document.createRange(); r.selectNodeContents(el);
@@ -506,6 +506,24 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
+    // T390: the ≠W cue by the transmission-line tickbox and the "TL port without end correction"
+    // switch pushed the panel past the right edge of a 1440×900 window.
+    test('at 1440×900 on a vented box the whole Advanced tab fits: no sideways scroll, no switch cut off', async ({ appPage: page }) => {
+      await page.setViewportSize({width: 1440, height: 900});
+      await showAdvancedOn(page, 'vented');
+      await expect(page.locator('label[data-field-key="tlPortModel"] .winisd-deviation-cue')).toBeVisible();
+      const pane = page.locator('.tab-section.active');
+      const [scroll, client] = await pane.evaluate(el => [el.scrollWidth, el.clientWidth]);
+      expect(scroll, 'pane scrolls sideways').toBeLessThanOrEqual(client);
+      const paneBox = (await pane.boundingBox())!;
+      for (const label of await page.locator('.sim-switches label[data-field-key]').all()) {
+        const textRight = await label.evaluate(el => {
+          const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().right;
+        });
+        expect(textRight, await label.innerText()).toBeLessThanOrEqual(paneBox.x + paneBox.width);
+      }
+    });
+
     test('the error group fits inside the Compatibility panel', async ({ appPage: page }) => {
       await showAdvancedOn(page, 'abc');
       const panel = page.locator('.sim-options-box');
@@ -517,11 +535,11 @@ test.describe('Original Advanced tab', () => {
   });
 
   test.describe('WinISD bugs group', () => {
-    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel', 'winisdSealedPicker'];
+    const ERROR_KEYS = ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel', 'winisdSealedPicker', 'winisdTlPortNoEndCorrection'];
     /** The box type each error switch acts on; a switch that applies everywhere is shown on an ABC box. */
     const BOX_FOR: Record<string, BoxTypeName> = {winisdPrNprResonance: 'box-passive-radiator', winisdSealedPicker: 'sealed'};
     /** The Bessel switch acts only on a project with a Bessel high-pass filter, so it cannot be ticked here. */
-    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdDriverCountModel');
+    const TICKABLE_KEYS = ERROR_KEYS.filter(key => key !== 'winisdBesselHighpass' && key !== 'winisdDriverCountModel' && key !== 'winisdTlPortNoEndCorrection');
     const DESIGN_KEYS = ['winisdWrapPhase', 'winisdFlatModel', 'winisdAbcIntraPortVelocity'];
 
     test('the error switches carry the warning class, unticked and ticked', async ({ appPage: page }) => {
@@ -539,6 +557,18 @@ test.describe('Original Advanced tab', () => {
           await expect(label).toHaveClass(want ? /error-switch-on/ : /^(?!.*error-switch-on)/);
         }
       }
+    });
+
+    test('TL port without end correction is greyed until the transmission line tickbox is ticked, then ticks', async ({ appPage: page }) => {
+      await showAdvancedOn(page, 'vented');
+      const tl = page.locator('label[data-field-key="tlPortModel"] input');
+      const label = page.locator('label[data-field-key="winisdTlPortNoEndCorrection"]');
+      await tl.setChecked(false);
+      await expect(label.locator('input')).toBeDisabled();
+      await tl.setChecked(true);
+      await expect(label.locator('input')).toBeEnabled();
+      await label.locator('input').setChecked(true);
+      await expect(label).toHaveClass(/error-switch-on/);
     });
 
     test('the design-choice switches do not carry it', async ({ appPage: page }) => {

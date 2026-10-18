@@ -1449,6 +1449,11 @@ export class ToggleField extends Field {
     label: "ABC group delay",
     description: "ABC group delay: WinISD's ABC group delay leaves the driver out.\nTicked: OpenISD works as WinISD does. It steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is missing. The result disagrees with WinISD's own phase chart.\nUnticked (default): the group delay is −dφ/dω of the plotted phase.",
   }, "the Group Delay chart of an ABC box only. W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz.");
+  static readonly ADV_WINISDTLPORTNOENDCORRECTION = new ToggleField({
+    value: "adv_WinisdTlPortNoEndCorrection",
+    label: "TL port without end correction",
+    description: "TL port without end correction: with the transmission line model on, WinISD builds the port pipe without the port's end correction, so the box tunes above the Fb on the Box tab.\nTicked: OpenISD works as WinISD does. The pipe is the Fb port length less the end correction. On the W5-1138SMF at Fb 38 Hz, the impedance minimum is 40.3 Hz, against 38.7 Hz unticked.\nUnticked (default): the pipe keeps the end correction and the box tunes where the Box tab says.\nOnly where \"Use transmission line model\" is ticked on a vented, bandpass or ABC box.",
+  }, "the Impedance, SPL and Transfer function charts of vented, bandpass and ABC boxes with the transmission line model on. W5-1138SMF, Fb 38 Hz: impedance minimum 40.3 Hz in WinISD against 38.7 Hz with the end correction.");
 
   static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
     value: "adv_WinisdDriverCountModel",
