@@ -10,6 +10,16 @@ export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/sync-main-folder.XXXXXX")"
 export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"
+export SYNC_SYSTEMCTL="$SCRATCH/systemctl"
+# stub systemctl: records every call; "cat" succeeds only when $SCRATCH/unit.exists is there; restart fails when $SCRATCH/restart.fails is there
+cat > "$SCRATCH/systemctl" <<STUB
+#!/usr/bin/env bash
+echo "\$*" >> "$SCRATCH/systemctl.calls"
+[ "\$2" = cat ] && [ ! -e "$SCRATCH/unit.exists" ] && exit 1
+[ "\$2" = restart ] && [ -e "$SCRATCH/restart.fails" ] && exit 1
+exit 0
+STUB
+chmod +x "$SCRATCH/systemctl"
 export POST_LAND_LOCK="$SCRATCH/rt/post-land.lock" SYNC_LOG="$SCRATCH/sync.log" SYNC_NPM="$SCRATCH/npm"
 printf '#!/usr/bin/env bash\necho "npm $* in $PWD" >> "%s/npm.calls"\n' "$SCRATCH" > "$SCRATCH/npm"; chmod +x "$SCRATCH/npm"
 fails=0
@@ -21,7 +31,7 @@ SYNC="$REPO/scripts/land/sync-main-folder.sh"
 # setup: origin with one commit; the main folder (a clone, as the real one); the preview, a detached worktree
 # of it listed in openisd.syncedCopy; a dev clone that lands commits.
 setup() {
-  rm -rf "$SCRATCH/w" "$SCRATCH/npm.calls" "$SYNC_LOG"; mkdir -p "$SCRATCH/w"; cd "$SCRATCH/w" || exit 2
+  rm -rf "$SCRATCH/w" "$SCRATCH/npm.calls" "$SCRATCH/systemctl.calls" "$SCRATCH/unit.exists" "$SCRATCH/restart.fails" "$SYNC_LOG"; mkdir -p "$SCRATCH/w"; cd "$SCRATCH/w" || exit 2
   git init -q --bare -b main origin.git
   git clone -q origin.git dev 2> /dev/null
   printf 'a\n' > dev/a.txt; printf 'q1\n' > dev/questions.yml; printf 'lock1\n' > dev/package-lock.json
@@ -113,6 +123,25 @@ if [ $r = 1 ] && grep -q "git refused to rebase onto .* (no conflict)" "$SCRATCH
    && [ ! -e "$gd/rebase-merge" ] && [ ! -e "$gd/rebase-apply" ]; then
   ok "a rebase git refuses without a conflict is reported as that, not as a conflict"
 else fail "refused rebase (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+
+# 9. the preview unit runs Vite on the main folder, and a rebase leaves Vite serving stale modules: when the main
+#    folder moved, the unit is restarted (once, after the move); nothing moved, no restart; no unit, no restart;
+#    a failed restart is logged and exits 1
+setup; touch "$SCRATCH/unit.exists"; land a.txt b
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+moved_calls=$(grep -c "^--user restart openisd-preview" "$SCRATCH/systemctl.calls" 2> /dev/null)
+rm -f "$SCRATCH/systemctl.calls"; bash "$SYNC" "$SCRATCH/w/main" > /dev/null 2>&1
+still_calls=$(grep -c "restart" "$SCRATCH/systemctl.calls" 2> /dev/null)
+if [ $r = 0 ] && [ "$moved_calls" = 1 ] && [ "${still_calls:-0}" = 0 ]; then ok "main folder moved: the preview unit is restarted once; unmoved: not restarted"
+else fail "restart on move (r=$r moved=$moved_calls still=$still_calls): $(tail -3 "$SCRATCH/out")"; fi
+setup; land a.txt b
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && ! grep -q restart "$SCRATCH/systemctl.calls" 2> /dev/null; then ok "no preview unit installed: no restart, no error"
+else fail "no unit (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+setup; touch "$SCRATCH/unit.exists" "$SCRATCH/restart.fails"; land a.txt b
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 1 ] && grep -q "preview restart FAILED" "$SCRATCH/out"; then ok "a failed preview restart is logged loudly and exits 1"
+else fail "restart failure (r=$r): $(tail -3 "$SCRATCH/out")"; fi
 
 [ $fails = 0 ] && { echo "sync-main-folder.e2e: all passed"; exit 0; }
 echo "sync-main-folder.e2e: $fails failed"; exit 1

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 0437bf2771d3e9523d9ca5e17b5b1a9f569e2851
 goal: Opening a project file that holds keys this build does not know (written by a later build) shows no repair notice: the loader drops unknown keys silently and the app works. Change in parseRepairing (packages/design/domain/schemaRepair.ts): unrecognized_keys removed but not listed in repaired.
 done_test: bash scripts/test.sh packages/design/test/domain/schemaRepair.test.ts packages/design/test/domain/owpr-repair.test.ts
 files:

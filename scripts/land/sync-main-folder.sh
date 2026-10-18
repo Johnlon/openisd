@@ -10,7 +10,10 @@
 #      land. The agent fixes it: land.sh runs this after its push and refuses to call the landing finished
 #      until it is fixed (John, 17 Oct 2026: the agent is responsible). The watchdog's run only logs it.
 #      Exception: handover-only commits the workspace repo already holds are dropped first (drop-superseded-handover.sh).
-#   4. package-lock.json changed: npm ci runs in the copy. Vite reloads the preview by itself.
+#   4. package-lock.json changed: npm ci runs in the copy.
+#   5. The main folder moved to a new commit: the openisd-preview unit (Vite on the main folder) is restarted, if
+#      installed. Vite does not cope with a rebase under it: it serves a mix of old and new modules (T427).
+#      A failed restart is logged and exits 1.
 # Only a passed commit is ever pulled: the last green that post-land recorded (${POST_LAND_LOCK}.green), never
 # the tip of main. Every action is logged with a UTC timestamp; runs never overlap (flock in the git dir).
 #
@@ -19,7 +22,7 @@
 #
 # Copies: the main folder, plus each path in the repo's git config openisd.syncedCopy (the preview, which stays
 # a detached worktree). Env: SYNC_LOG (default <main>/build/test-logs/sync-main-folder.log), SYNC_NPM (default
-# npm), POST_LAND_LOCK / OPENISD_RUNTIME_DIR (scripts/paths.sh).
+# npm), SYNC_SYSTEMCTL (default systemctl), POST_LAND_LOCK / OPENISD_RUNTIME_DIR (scripts/paths.sh).
 # Exit 0 every copy at the last passed commit, 1 a copy is held (conflict, own commits, git failure): logged.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,6 +36,8 @@ common="$(cd "$repo" && cd "$(git rev-parse --git-common-dir)" && pwd)" || { ech
 main="$(dirname "$common")"
 LOG="${SYNC_LOG:-$main/build/test-logs/sync-main-folder.log}"
 NPM="${SYNC_NPM:-npm}"
+SYSTEMCTL="${SYNC_SYSTEMCTL:-systemctl}"
+PREVIEW_UNIT=openisd-preview
 GREEN="${POST_LAND_LOCK}.green"
 
 mkdir -p "$(dirname "$LOG")"
@@ -99,8 +104,17 @@ sync() {
   fi
 }
 
+# restart_preview: Vite on the main folder serves stale modules after the folder moves under it.
+restart_preview() {
+  "$SYSTEMCTL" --user cat "$PREVIEW_UNIT" > /dev/null 2>&1 || { log "no $PREVIEW_UNIT unit; preview not restarted"; return 0; }
+  if "$SYSTEMCTL" --user restart "$PREVIEW_UNIT" >> "$LOG" 2>&1; then log "main folder moved: restarted $PREVIEW_UNIT"
+  else log "preview restart FAILED: systemctl --user restart $PREVIEW_UNIT; the preview may serve stale modules, run scripts/preview-4000.sh"; return 1; fi
+}
+
 status=0
+main_before="$(git -C "$main" rev-parse HEAD)"
 sync "$main" || status=1
+[ "$(git -C "$main" rev-parse HEAD)" = "$main_before" ] || restart_preview || status=1
 while read -r copy; do
   [ -n "$copy" ] && { sync "$copy" || status=1; }
 done < <(git -C "$main" config --get-all openisd.syncedCopy)
