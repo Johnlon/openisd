@@ -245,12 +245,15 @@ export default defineConfig(({ command, mode }) => ({
         // registerType 'autoUpdate' reloads open pages onto a new build.
         globPatterns: ['**/*.{js,css,html,svg,ico}'],
         globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
-        // about/ and install/ are pages of their own: without this an installed app answers
-        // them with the app shell. They are precached, so they still open offline. v/, snap/
-        // and test/ are the hosted copies: the root worker's scope covers them, and it must not answer a
-        // copy's address with the ROOT build's shell. Not anchored to the origin root, because a
-        // copy's own worker sees /v/<stamp>/about/ too.
-        navigateFallbackDenylist: [/\/(about|install|v|snap|test)(\/|$)/],
+        // No navigation fallback: the worker answers a page only when it has that exact page
+        // precached (the copy's own index.html, about/ and install/, a directory address reaching
+        // its index.html). Every other address in its scope goes to the network. The root
+        // worker's scope covers the hosted copies v/, snap/ and test/, and a fallback answered them
+        // with the root build's page, whose assets do not exist under the copy's path, so the
+        // page never started (BUG_20261018_test-build-hangs-on-loading-screen). A deny-list of
+        // copies missed test/; the build is deployed at relative paths, so no build-time pattern
+        // can name its own page instead.
+        navigateFallback: null,
         // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
         // this file's variables would not exist.
         runtimeCaching: [{

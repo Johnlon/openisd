@@ -62,9 +62,12 @@ describe('buildVersion', () => {
     assert.equal(buildVersion('serve', {OPENISD_BUILD_VERSION: 'v-e2e-b'}), '');
   });
 
-  it('the worker leaves /test/ to the hosted test build (T243)', () => {
+  // BUG_20261018_test-build-hangs-on-loading-screen: the root worker answered /test/ with the root
+  // build's page, whose assets do not exist under /test/, so the page never started.
+  it('the worker has no navigation fallback, so it never answers another copy\'s address with its own page', () => {
     const config = readFileSync(join(ROOT, 'vite.config.js'), 'utf8');
-    assert.match(config, /navigateFallbackDenylist: \[\/\\\/\(about\|install\|v\|snap\|test\)/);
+    assert.match(config, /navigateFallback: null,/);
+    assert.doesNotMatch(config, /navigateFallback(Denylist|Allowlist)/);
   });
 
   it('returns empty string when build-info.json is missing or invalid', () => {

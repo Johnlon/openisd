@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: tools
 status: done
+landed: ae7495c0ed4165373750e20b01d266a07b62b4a3
 goal: Acking a zoo result removes its standing watchdog alert (scripts/land/watchdog.sh check_results deletes result-<job>.alert once delivered=yes); watchdog.test.sh case 'acking a result removes its standing alert'. Bug: zoo/bugs/_archive/BUG_20261018_acked_result_alert_stays_on_disk.md.
 done_test: bash scripts/quiet-test.sh bash scripts/land/test/watchdog.test.sh
 files:

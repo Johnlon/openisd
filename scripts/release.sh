@@ -8,6 +8,7 @@
 # must be greater than the highest number already in a release title. It goes in the release title
 # "OpenISD <n.n.n>" and in RELEASES.md.
 # Promote refuses unless snap-<stamp> exists and no F is open (tasks/fixes/*.yml, status: open).
+# It runs scripts/hosting/test/hosted-copies.e2e.mjs; a failure refuses.
 # It runs the UI gallery (scripts/ui-gallery/capture.mjs), snapshot after and current Latest before;
 # a failed capture refuses.
 # It then adds tag v<stamp> on the same commit (the snap- tag stays), turns the pre-release into a
@@ -59,6 +60,9 @@ open_fixes="$(grep -lE '^status:[[:space:]]*open[[:space:]]*$' tasks/fixes/*.yml
 
 git fetch --quiet origin "refs/tags/$SNAP:refs/tags/$SNAP"
 SHA="$(git rev-parse "refs/tags/$SNAP^{commit}")"
+
+# Every release starts in a browser that already runs the live build (T396). A failure stops it.
+node scripts/hosting/test/hosted-copies.e2e.mjs || refuse "hosted copies end-to-end test failed"
 
 # Every release has a UI gallery run: this snapshot against the current Latest, kept under
 # ../ui-gallery/ as the release's before/after record. A failed capture stops the release.
