@@ -30,7 +30,9 @@ WinISD's "transmission line model for port" option is there too, and matches Win
 
 **Charts.** The transfer function readout shows F3 and F10, and the popup jumps the cursor to
 either. The active project draws thicker. The legend names each project. The 180 degree phase
-wrap is a faint dotted jump, not part of the line.
+wrap is a faint dotted jump, not part of the line. Every chart has a Data button: a table of the
+plotted curves, with Copy and Download CSV. The 0 dB and -3 dB line colours in Options now colour
+those lines; the defaults match WinISD, black and grey.
 
 **Fields that behave.** Every desktop number field has step arrows, and the stepped digit stays
 marked. Letters are refused, typed or pasted. Clearing a value gives you a sensible default, and
@@ -40,9 +42,11 @@ messages say "moving mass (Mms)", not an internal key.
 **Driver library.** The list says which filters are on and has Clear filters. Favourites greys out
 until you star a driver. The Model box is three times wider.
 
-**WinISD parity.** One more WinISD bug switch: Sealed picker volume gives WinISD's box volume from
-the sealed alignment picker. As always, the correct result is the default and the switch brings
-WinISD's back.
+**WinISD parity.** WinISD projects with rectangular (slot) vents now import and export. Two more
+WinISD bug switches: Sealed picker volume gives WinISD's box volume from the sealed alignment
+picker, and TL port without end correction gives WinISD's tuning shift when the transmission line
+port model is on. As always, the correct result is the default and the switch brings WinISD's
+back.
 
 **And the small things.** Dates read "16 Oct 2026" everywhere. Every export says what it exported
 and where. A new version reaches an open app on its own, or waits if you have unsaved changes.

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 5f65d4ca4af6601adbe85938776e77d5e948ed46
 goal: Every chart has a 'Show data' action (desktop and phone) that opens the plotted series as a text table (frequency plus one column per curve, units in the headers, values formatted by packages/design) with Copy and Download CSV buttons; download names the file after project and chart and shows a popup saying what was saved. Table rows and CSV text are built in packages/design; the UI only displays them. John, 18 Oct 2026: 'WE NEED TO ADD AN OPTION TO OPENISD TO SEE THE CHART DATA AS TEXT / DOWNLOAD'.
 done_test: bash scripts/test.sh packages/design/test/chart/chart-data.test.ts packages/design/test/fields/exportedNotice.test.ts
 files:
