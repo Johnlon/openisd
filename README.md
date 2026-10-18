@@ -82,17 +82,14 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Parity state** (2026-10-05, one driver, W5-1138SMF): 152 of 184 cells in the
+- **Parity state** (2026-10-18; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
+  SB15SFCR-00): 179 of 190 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
   ≤ 1e-12. Every chart exists for every box type.
 - **Remaining gaps:**
+  - differs from WinISD: a driver with two voice coils wired in parallel (sealed box);
   - not yet compared with WinISD:
-    - filters for 6th-order bandpass and ABC;
-    - amplifier load with Rg 1 Ω for vented, 4th-order bandpass and passive radiator;
-    - SPL limited by Xmax, except sealed and vented;
-    - non-default air temperature, pressure and humidity, except sealed and vented;
-    - more than one port, and slot ports;
-    - any driver other than the W5-1138SMF;
+    - a driver with two voice coils in vented, bandpass, passive radiator and ABC boxes;
     - readouts: sealed Fsc and Qtc, vent length, key stats, bandpass Fr and Ff, and the
       maximum-power/Xmax crossover.
 

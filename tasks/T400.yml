@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: tools
 status: done
+landed: e137ff19f225e6c20076a12e752097a2cc3ea3ac
 goal: Every scripts/land/test/*.test.sh (and other shell tests under scripts/**/test/) runs in a gate: land.sh fast gates or the post-land suite on GitHub Actions; a red one refuses the landing. Found by bob in T398: release.test.sh was red and nothing ran it (BUG_20261018_release-test-red-and-unrun).
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
