@@ -1,0 +1,11 @@
+id: T397
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Upgrade test with a service worker: a browser context with the previous released build's service worker installed opens the new build; it updates and reaches the app. Runs against real build URLs in the release script or post-land run. Follow-up to T396 (BUG_20261018_test-build-hangs-on-loading-screen).
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T397.yml
+  - scripts/hosting/test/hosted-copies.e2e.mjs
+  - bugs/BUG_20261018_test-build-hangs-on-loading-screen.md

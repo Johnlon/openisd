@@ -48,8 +48,9 @@ from a released build. Fix: an upgrade test against real build URLs, wired into 
 script or the post-land run:
 1. (T396) Previous released build in a browser context, create and save a project, then the same
    context opens the new build: it gets past the loading overlay and shows the project.
-2. (follow-up task) Previous build's service worker installed, then the new build: it updates and
-   reaches the app.
+2. (T397) Previous build's service worker installed, then the new build at the same address: every
+   open starts, and a tab opened again runs the new build (hosted-copies.e2e.mjs case 4). Reloads stay
+   on the old build while the new worker waits: builds before T243 do not take over an open tab.
 
 ## Also wrong
 A boot failure leaves the overlay up forever with nothing on screen: the user gets no message and

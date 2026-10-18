@@ -7,6 +7,8 @@
 //      /test/ with the root build's page: BUG_20261018_test-build-hangs-on-loading-screen);
 //   3. for information only: prev at / in control, new at /test/. Builds released before the fix
 //      answer /test/ with their own page, so this hangs until a fixed build is the root release.
+//   4. prev at / in control, then / swapped to new (a release): every open starts, and a tab opened
+//      again runs new (T397).
 // Usage: node scripts/hosting/test/hosted-copies.e2e.mjs   (about 2 minutes, most of it the build)
 import {execFileSync} from 'node:child_process';
 import http from 'node:http';
@@ -127,6 +129,36 @@ const browser = await chromium.launch();
   await page.goto(`${origin}/test/`);
   const ok = await untilStarted(page, 20000);
   console.log(`[${seconds()}] info the live root build (${rootCopy.controlled}) in control: /test/ ${ok ? 'starts' : 'stays on the loading screen; fixed once a build with T396 is the root release'}`);
+  await context.close();
+}
+
+// 4. Upgrade: the live root build's worker in control at /, then the site swaps / to the new build, as a
+// release does. Every open starts the app; once the tab is closed and opened again it runs the new build.
+// Reloads may keep the old build while the new worker waits: builds before T243 do not take over an open
+// tab (info only; app-update.e2e.mjs covers the takeover for builds since).
+{
+  mounts = [['/', prevDir]];
+  const context = await browser.newContext();
+  const rootCopy = await openControlled(context, '/');
+  check(rootCopy.ok && rootCopy.controlled === `${origin}/sw.js`, `the live build starts at / under its own worker (${rootCopy.controlled})`);
+  mounts = [['/', newDir]];
+  const newBundle = fs.readFileSync(path.join(newDir, 'index.html'), 'utf8').match(/\/(main-[^"/]+\.js)/)?.[1];
+  const bundleOf = page => page.evaluate(() => [...document.scripts].map(s => s.src).find(s => s.includes('/main-'))?.split('/').pop()).catch(() => undefined);
+  const page = rootCopy.page;
+  let allStarted = true;
+  for (let open = 1; open <= 2; open += 1) {
+    await page.reload();
+    const started = await untilStarted(page, 20000);
+    allStarted &&= started;
+    await page.waitForTimeout(3000);
+    console.log(`[${seconds()}] info reload ${open}: ${started ? 'started' : 'stuck on the loading screen'}, ${await bundleOf(page) === newBundle ? 'new build' : 'old build'}`);
+  }
+  check(allStarted, 'every reload after the swap starts the app');
+  await page.close();
+  const reopened = await context.newPage();
+  await reopened.goto(`${origin}/`);
+  check(await untilStarted(reopened, 20000), 'the tab closed and opened again starts the app');
+  check(await bundleOf(reopened) === newBundle, `the tab opened again runs the new build (${newBundle})`);
   await context.close();
 }
 
