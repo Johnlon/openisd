@@ -440,7 +440,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <section class="tab-section" :class="{ active: activeTab === 'driver' }">
           <div class="field-row driver-id-row">
             <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="project.driver.brand.value" readonly></div>
-            <div class="field tight driver-model"><label>Model</label><input type="text" class="driver-model-input" :value="model" readonly></div>
+            <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
             <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
           </div>
@@ -1376,10 +1376,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .field :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; flex:none; }
 .field.tight label { width:auto; margin-right:2px; }
 .driver-id-row { align-items:center; gap:10px; }
-/* The Model box is 420 px, three times its old 140 px; on a narrow window it shrinks to 140 px
-   rather than push the buttons off the row. */
-.field.driver-model { flex:0 1 auto; min-width:0; }
-.field input.driver-model-input { width:420px; min-width:140px; flex:0 1 420px; }
 /* A calculated readout row is as tall as the entered rows beside it (the old hand-built row was 1 px taller). */
 .field.ui-field-readout { padding-bottom:1px; }
 .field :deep(input.greyed) { background:#e9e9e9; color:#777; }
