@@ -366,3 +366,27 @@ test.describe('What-if panel', () => {
     });
   });
 });
+
+test('the Optional rows (Le, Xmax, Pe) are labelled like every other row: the heading says they are optional', async ({ page }) => {
+  await openWhatIf(page);
+  const look = (label: string) => whatIfField(page, label).locator('label').evaluate(el => {
+    const s = getComputedStyle(el);
+    return `${s.color} ${s.fontStyle} ${s.fontSize}`;
+  });
+  const fs = await look('Fs');
+  for (const label of ['Le', 'Xmax', 'Pe']) expect(await look(label), label).toBe(fs);
+});
+
+test('every row fits inside the panel: no unit label runs past its right edge', async ({ page }) => {
+  const whatIf = await openWhatIf(page);
+  const panel = await whatIf.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    return { right: r.right - parseFloat(getComputedStyle(el).paddingRight), scrollX: el.scrollWidth - el.clientWidth };
+  });
+  expect(panel.scrollX).toBe(0);
+  const rows = whatIf.locator('.what-if-fld');
+  for (let i = 0; i < await rows.count(); i++) {
+    const right = await rows.nth(i).evaluate(el => Math.max(...[...el.querySelectorAll('*')].map(c => c.getBoundingClientRect().right)));
+    expect(right, await rows.nth(i).locator('label').innerText()).toBeLessThanOrEqual(panel.right + 0.5);
+  }
+});

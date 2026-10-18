@@ -185,7 +185,7 @@ useEscToClose(() => presentationState.editDriver, close);
     <div class="what-if-subsect">Optional</div>
     <div class="what-if-grid">
       <div v-for="f in OPTIONAL" :key="f.key" class="what-if-fld">
-        <label class="opt-lbl">{{ f.label }}</label>
+        <label>{{ f.label }}</label>
         <div class="what-if-unit">
           <NumInput :field="f.def" :model-value="specVal(f.key)" :precision="f.def.precision" :class="fieldClasses(f)" stepper hide-mark @update:model-value="(v, p) => v === null ? clearField(f.key) : enterField(f.key, v, p)" />
           <div v-if="dqNote(f.key)" class="dq-tooltip-container">
@@ -234,10 +234,10 @@ useEscToClose(() => presentationState.editDriver, close);
 </template>
 
 <style scoped>
-/* Width follows its content: two columns of label(34) + gap(6) + input(78) + gap(4) + unit(~26). */
+/* Width follows its content (two columns of label, input, stepper, dq mark and unit), so no unit runs past the edge. */
 .what-if-panel {
   position: fixed; right: 24px; bottom: 24px; z-index: 60;
-  width: 340px; max-width: calc(100vw - 32px); max-height: 80vh; overflow-y: auto;
+  width: max-content; max-width: calc(100vw - 32px); max-height: 80vh; overflow-y: auto;
   background: #f7f7f7; border: 1px solid #888; border-radius: 8px;
   box-shadow: 0 6px 24px rgba(0,0,0,.35); padding: 10px 14px 14px; font-size: 13px;
 }
@@ -250,7 +250,6 @@ useEscToClose(() => presentationState.editDriver, close);
 /* Right-aligned so each label ends against its own input. 34px holds the widest ("Xmax"). */
 .what-if-fld { min-width: 0; display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 6px; }
 .what-if-fld label { font-size: 11px; color: #555; text-align: right; white-space: nowrap; }
-.what-if-fld .opt-lbl { color: #999; font-style: italic; }
 .what-if-unit { display: flex; align-items: center; gap: 4px; }
 /* Sized to its own content, not to the column. 78px holds the widest value any of these
    fields shows ("30.0000" at the registry's 4 dp) with room to spare; stretching to 100% of
