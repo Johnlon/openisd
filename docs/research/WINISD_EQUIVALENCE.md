@@ -35,8 +35,8 @@ with the ND140-PR or SB15SFCR-00 radiator).
 | ------------------------------------ | ----: | ------: | ---: | ------------: | --------------: | -----------: |
 | Table 1 — chart × box, base settings | 76    | 76      | 0    | 0             | 0               | 0            |
 | Table 2 — setting × box              | 106   | 106     | 0    | 0             | 0               | 0            |
-| Table 3 — readouts and tools         | 8     | 3       | 5    | 0             | 5               | 0            |
-| Total                                | 190   | 185     | 5    | 0             | 5               | 0            |
+| Table 3 — readouts and tools         | 9     | 4       | 5    | 0             | 5               | 0            |
+| Total                                | 191   | 186     | 5    | 0             | 5               | 0            |
 
 Worst matched deviation anywhere, excluding group delay: ≤ 1e-9 (BP6/ABC transfer function
 magnitude, impedance, and rear/front/intrachamber port velocity — `bp6-w5-1`/`abc-w5-1`, exact
@@ -152,7 +152,8 @@ deviation, or ❔.
 | Passive radiator system tuning, Npr > 1           | ✅ 39.45 Hz = WinISD's displayed Fb (2 decimals), ec8d2016    | `pr-tuning-count-winisd.test.ts`; [bug](../../bugs/archive/BUG_20260928_pr-system-tuning-ignores-radiator-count.md?html) |
 | Sealed Fsc, Qtc readouts                          | ❔                                                            | —                                                                                                                |
 | Vented vent length readout                        | ❔ (end-correction default differs: ACCURACY_IMPROVEMENTS #7) | —                                                                                                                |
-| Key stats (F3, peak Z)                            | ❔                                                            | —                                                                                                                |
+| F3 / F10 on the TF chart (WinISD's -3dB line)     | ✅ crossing ≤ 1e-13 dB, 4 cases; "not reached" where WinISD's curve never meets its line | winisd_research `runs/t408-sealed-lp-a`, `-b`, `-gain`, `-gainneg` |
+| Key stats peak Z                                  | ❔                                                            | —                                                                                                                |
 | Bandpass Fr/Ff readouts                           | ❔                                                            | —                                                                                                                |
 | Maximum-power / Xmax crossover readouts           | ❔                                                            | —                                                                                                                |
 

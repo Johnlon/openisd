@@ -1,0 +1,13 @@
+id: T408
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Settle by WinISD capture whether WinISD's F3 readout counts from the unfiltered 0 dB passband (as OpenISD does, claimed to match WinISD but unverified): capture a steep low-pass on a small box, record the result in the WinISD equivalence register and docs/research/WINISD_PARITY.md, and a bug file plus failing test if OpenISD differs
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T408.yml
+  - docs/ANNOUNCEMENT_7.0.953.md
+  - README.md
+  - docs/research/WINISD_EQUIVALENCE.md
+  - docs/research/WINISD_PARITY.md

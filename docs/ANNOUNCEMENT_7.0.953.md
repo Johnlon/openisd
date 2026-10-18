@@ -46,7 +46,7 @@ until you star a driver. The Model box is three times wider.
 WinISD bug switches: Sealed picker volume gives WinISD's box volume from the sealed alignment
 picker, and TL port without end correction gives WinISD's tuning shift when the transmission line
 port model is on. As always, the correct result is the default and the switch brings WinISD's
-back. The chart-by-chart check against WinISD's own saved files now matches on 179 of 190 cases,
+back. The chart-by-chart check against WinISD's own saved files now matches on 186 of 191 cases,
 up from 152, including the passive radiator box, bandpass filters and slot ports.
 
 **And the small things.** Dates read "16 Oct 2026" everywhere. Every export says what it exported

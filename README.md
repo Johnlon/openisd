@@ -83,11 +83,11 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
 - **Parity state** (2026-10-18; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
-  SB15SFCR-00): 185 of 190 cells in the
+  SB15SFCR-00): 186 of 191 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
   ≤ 1e-12. Every chart exists for every box type.
 - **Remaining gaps:**
-  - not yet compared with WinISD: the readouts sealed Fsc and Qtc, vent length, key stats,
+  - not yet compared with WinISD: the readouts sealed Fsc and Qtc, vent length, peak impedance,
     bandpass Fr and Ff, and the maximum-power/Xmax crossover.
 
 Details:
