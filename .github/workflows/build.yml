@@ -42,6 +42,7 @@ jobs:
     needs: snapshot
     if: needs.snapshot.outputs.built == 'true'
     uses: ./.github/workflows/deploy.yml
+    secrets: inherit
     permissions:
       contents: read
       pages: write

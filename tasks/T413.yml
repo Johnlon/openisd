@@ -1,0 +1,13 @@
+id: T413
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: The site deploy gets its deploy keys: build.yml and release.yml call deploy.yml with secrets: inherit, so test.openisd.app and snapshots.openisd.app publish (T398 follow-up; the first run failed with an empty DEPLOY_KEY).
+done_test: bash scripts/test.sh packages/ui/test/scripts/release-workflows.test.ts
+files:
+  - tasks/T413.yml
+  - .github/workflows/build.yml
+  - .github/workflows/release.yml
+  - packages/ui/test/scripts/release-workflows.test.ts
+  - bugs/BUG_20261018_deploy-keys-not-passed.md

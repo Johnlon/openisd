@@ -37,3 +37,11 @@ describe('deploy.yml', () => {
     assert.match(text, /id: retry\n\s+if: steps\.deployment\.outcome == 'failure'\n\s+uses: actions\/deploy-pages@v4/);
   });
 });
+
+describe('the callers of deploy.yml', () => {
+  // A called workflow gets none of the repo's secrets unless its caller passes them: without this the
+  // site deploy keys arrive empty and test.openisd.app / snapshots.openisd.app never publish (T413).
+  it.each(['build.yml', 'release.yml'])('%s passes its secrets to deploy.yml', name => {
+    assert.match(workflow(name), /uses: \.\/\.github\/workflows\/deploy\.yml\n\s+secrets: inherit\n/);
+  });
+});
