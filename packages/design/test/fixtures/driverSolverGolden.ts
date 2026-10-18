@@ -274,11 +274,11 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
  },
  {
   name: "terminal values series coils",
-  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 4}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 12}, {field: "Mpow_N_per_sqrtW", value: 3.464101615137755}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 6}, {field: "BL_terminal_Tm", value: 12}],
+  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 8}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 24}, {field: "Mpow_N_per_sqrtW", value: 4.898979485566357}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 6}, {field: "BL_terminal_Tm", value: 12}],
  },
  {
   name: "terminal values parallel coils",
-  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 4}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 12}, {field: "Mpow_N_per_sqrtW", value: 3.464101615137755}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 1.5}, {field: "BL_terminal_Tm", value: 6}],
+  values: [{field: "Re_ohm", value: 3}, {field: "Znom_ohm", value: 2}, {field: "BL_Tm", value: 6}, {field: "Rme_kg_per_s", value: 24}, {field: "Mpow_N_per_sqrtW", value: 4.898979485566357}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 1.5}, {field: "BL_terminal_Tm", value: 6}],
  },
  {
   name: "a stated value is never overwritten",

@@ -370,9 +370,18 @@ function wdrVCCon(spec: DriverSpec): WdrCell {
  *  an entered value is E; a derived one is C when WinISD itself would derive it, E otherwise (the
  *  Sd ruling — openisd derives Sd from Dd beyond WinISD, so it is written E, never C, John
  *  2026-09-05). An absent value is written `0` mark N. */
+/** A per-coil field written as its terminal value: the value is the terminal one, the entered
+ *  mark is the field's own. */
+function terminalCell(
+  perCoil: Entered,
+  value: number | null
+): Pick<Readable<number | null>, "value"> & Entered {
+  return { value, entered: perCoil.entered };
+}
+
 function wdrRow(
   errors: DriverError[],
-  field: Readable<number | null> & Entered,
+  field: Pick<Readable<number | null>, "value"> & Entered,
   calculable: boolean,
   wdrName: string
 ): readonly [string, WdrCell] {
@@ -508,6 +517,10 @@ export function openIsdDriverToWinIsdDriver(
   // slot, not E").
   const numVC = spec.numVC;
 
+  // `Re` and `BL` in a `.wdr` are TERMINAL values (WINISD_PARITY.md section 11b); the record holds
+  // them per coil. The entered mark stays the per-coil field's own.
+  const terminal = spec.solverParams();
+
   // THE FIXED 48-ROW STRUCTURE, each row written explicitly in WinISD's file order, plus Xlim's
   // slot-10 mark last. `.wdr` is a FIXED structure — no loops, no row-order list: the sequence
   // IS the order, and each row names the field, its `.wdr` key and whether WinISD derives it
@@ -518,11 +531,11 @@ export function openIsdDriverToWinIsdDriver(
     wdrRow(errors, spec.Fs_hz, true, "Fs"),
     wdrRow(errors, spec.Pe_W, true, "Pe"),
     wdrRow(errors, spec.SPL_dB, true, "SPL"),
-    wdrRow(errors, spec.Re_ohm, true, "Re"),
+    wdrRow(errors, terminalCell(spec.Re_ohm, terminal.Re_terminal_ohm.value), true, "Re"),
     wdrRow(errors, spec.Le_H, false, "Le"),
     wdrRow(errors, spec.fLe_hz, false, "fLe"),
     wdrRow(errors, spec.KLe_H_sqrtHz, true, "KLe"),
-    wdrRow(errors, spec.BL_Tm, true, "BL"),
+    wdrRow(errors, terminalCell(spec.BL_Tm, terminal.BL_terminal_Tm.value), true, "BL"),
     wdrRow(errors, spec.Xmax_m, false, "Xmax"),
     wdrRow(errors, spec.Cms_m_per_N, true, "Cms"),
     wdrRow(errors, spec.Qms, true, "Qms"),

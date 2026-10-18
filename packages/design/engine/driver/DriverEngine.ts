@@ -27,7 +27,7 @@ import {missingDependencies} from '../consistency.js';
 import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, SolveRoute} from '../consistency.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
-import {hotRe, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
+import {hotRe, perCoilBL_Tm, perCoilRe_ohm, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
   CMS_FROM_VAS_SD_ROUTE, type ConsistencyCheck, MMS_FROM_FS_CMS_ROUTE,
@@ -161,6 +161,16 @@ export interface DriverEngine {
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
 }
 
+/** `p` with `Re_ohm` and `BL_Tm` (stored per coil) replaced by what the amplifier sees, given the
+ *  set's own coil count and wiring. */
+function toTerminalSpace(p: DriverWorkingSet): DriverWorkingSet {
+  return {
+    ...p,
+    ...(p.Re_ohm == null ? {} : {Re_ohm: terminalRe_ohm(p.Re_ohm, p.numVC, p.wiring)}),
+    ...(p.BL_Tm == null ? {} : {BL_Tm: terminalBL_Tm(p.BL_Tm, p.numVC, p.wiring)}),
+  };
+}
+
 export class DriverEngineImpl implements DriverEngine {
   constructor(
     private readonly routes: RouteGroup,
@@ -275,6 +285,32 @@ export class DriverEngineImpl implements DriverEngine {
    * terminal values below, and never consumes them; dropping them would make re-solving lossy.
    */
   solveValues(p: DriverWorkingSet, air: AirState): DriverWorkingSet {
+    // THE RELATIONS RUN ON TERMINAL Re AND BL. A `.wdr`'s Qes, Rme and Mpow describe the driver the
+    // amplifier sees, and a multi-coil driver's wiring changes both Re and BL. The record keeps them
+    // per coil, so they are converted in here and back at the end; callers see per-coil values.
+    const r = this.solveTerminal(toTerminalSpace(p), air);
+
+    // THE TERMINAL VALUES, LAST. Not a relation - nothing else in the group constrains them, and
+    // they answer a question about the WIRING rather than about the driver's parameters. `r.Re_ohm`
+    // and `r.BL_Tm` ARE terminal here, so they are the terminal values.
+    //
+    // Here rather than at the caller because `sweep` REQUIRES this pair. A solver that stopped short
+    // of it left every caller to finish the job, and a caller that forgot got a driver the engine
+    // refused with a message naming a field it had never been able to supply.
+    if (r.Re_terminal_ohm == null && r.Re_ohm != null) r.Re_terminal_ohm = r.Re_ohm;
+    if (r.BL_terminal_Tm == null && r.BL_Tm != null) r.BL_terminal_Tm = r.BL_Tm;
+
+    // Back to per coil. A value the caller stated is returned exactly as stated, never as a
+    // terminal round trip of it.
+    if (r.Re_ohm != null) r.Re_ohm = p.Re_ohm ?? perCoilRe_ohm(r.Re_ohm, r.numVC, r.wiring);
+    if (r.BL_Tm != null) r.BL_Tm = p.BL_Tm ?? perCoilBL_Tm(r.BL_Tm, r.numVC, r.wiring);
+
+    return r;
+  }
+
+  /** The consistency group over a set whose `Re_ohm` and `BL_Tm` are TERMINAL values; the result's
+   *  are terminal too. The relations are written for the driver the amplifier sees. */
+  private solveTerminal(p: DriverWorkingSet, air: AirState): DriverWorkingSet {
     // `run` puts `air` into the working set's c/roo, so the result shows the air used.
     const r = this.routes.run(p, air);
 
@@ -283,22 +319,6 @@ export class DriverEngineImpl implements DriverEngine {
     // never recomputed ad hoc downstream.
     if (r.EBP_hz == null && r.Fs_hz != null && r.Qes != null && r.Qes > 0) {
       r.EBP_hz = ebp(r.Fs_hz, r.Qes);
-    }
-
-    // THE TERMINAL VALUES, LAST. Not a relation — nothing else in the group constrains them, and
-    // they answer a question about the WIRING rather than about the driver's parameters. So they
-    // are computed once, after the fixpoint, from whatever `Re_ohm` and `BL_Tm` finally are:
-    // `Re_ohm` is itself derivable, so computing these earlier would fix them to a value the solve
-    // then moved.
-    //
-    // Here rather than at the caller because `sweep` REQUIRES this pair. A solver that stopped short
-    // of it left every caller to finish the job, and a caller that forgot got a driver the engine
-    // refused with a message naming a field it had never been able to supply.
-    if (r.Re_terminal_ohm == null && r.Re_ohm != null) {
-      r.Re_terminal_ohm = terminalRe_ohm(r.Re_ohm, r.numVC, r.wiring);
-    }
-    if (r.BL_terminal_Tm == null && r.BL_Tm != null) {
-      r.BL_terminal_Tm = terminalBL_Tm(r.BL_Tm, r.numVC, r.wiring);
     }
 
     return r;
@@ -346,8 +366,15 @@ export class DriverEngineImpl implements DriverEngine {
    * interval is, never recomputed from the resolved number here.
    */
   private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams, air: AirState): DriverIssue[] {
+    // Checked in terminal space, where the relations hold. A half-width scales like its value.
+    const terminalPrecision = (field: NumericDriverQuantityName): number => {
+      const width = params[field].precision ?? 0;
+      if (field === 'Re_ohm') return terminalRe_ohm(width, entered.numVC, entered.wiring);
+      if (field === 'BL_Tm') return terminalBL_Tm(width, entered.numVC, entered.wiring);
+      return width;
+    };
     const issues: DriverIssue[] = this.consistency.check(
-      entered, stated => this.solveValues(stated, air), field => params[field].precision ?? 0);
+      toTerminalSpace(entered), stated => this.solveTerminal(stated, air), terminalPrecision);
 
     // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
     // stating fewer than two of the three cannot solve it, and the caller needs to know exactly

@@ -1026,6 +1026,8 @@ to have.
 | refuse to import multi-coil drivers    | punishes the user for WinISD's bug                                                                                                      |
 | store the terminal value, not per-coil | that IS WinISD's design, and §11b rejects it: storing the terminal value is exactly what forces the silent rewrite                      |
 
+The driver solver's relations (Qes, Rme, Mpow and the routes that solve from them) run on the terminal Re and BL (Znom also follows the terminal Re), converted from the stored per-coil values and back.
+
 **The one consequence to SURFACE, not hide:** when `numVC > 1`, the per-coil figure is only as
 good as the file's `VCCon`. That belongs in the field help — the user may well know the truth when
 the file does not.

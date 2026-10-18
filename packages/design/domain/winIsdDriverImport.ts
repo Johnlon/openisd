@@ -133,6 +133,35 @@ function readSpecEntryInto(
     }
 }
 
+/** The file's own coil count and wiring (`VCCon` 2 is series, anything else parallel). */
+function wdrWiring(entries: Readonly<Record<string, SpecEntryJson>>): {coils: number; series: boolean} {
+    const numVC = entries['numVC'];
+    const vcCon = entries['VCCon'];
+    return {
+        coils: numVC?.state === 'E' && numVC.value >= 1 ? numVC.value : 1,
+        series: vcCon?.state === 'E' && vcCon.value === 2,
+    };
+}
+
+/** Replace an entry's value (and its parsed reading) by `perCoil(value)`, keeping the printed
+ *  literal and the E mark exactly as the file had them. Absent entries stay absent. */
+function perCoilEntryInto(
+    entries: Record<string, SpecEntryJson>,
+    schemaKey: string,
+    perCoil: (terminal: number) => number,
+): void {
+    const entry = entries[schemaKey];
+    if (entry?.state !== 'E') return;
+    const value = perCoil(entry.value);
+    const manual = entry.readings?.manual;
+    entries[schemaKey] = {
+        ...entry,
+        value,
+        ...(entry.readings === undefined || manual === undefined
+            ? {} : {readings: {...entry.readings, manual: {...manual, read_value: value}}}),
+    };
+}
+
 export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     { record: OpenISDDeviceJson; warnings: DriverError[] } {
 
@@ -194,6 +223,13 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     readSpecEntryInto(specEntries, wdr, 'Outer_m', 'Outer', warnings);
     readSpecEntryInto(specEntries, wdr, 'Vcd_m', 'Vcd', warnings);
     readSpecEntryInto(specEntries, wdr, 'DVol_m3', 'DVol', warnings);
+
+    // `Re` and `BL` in a `.wdr` are TERMINAL values; the record stores them PER COIL
+    // (docs/research/WINISD_PARITY.md section 11b, "Reading a .wdr back"). The wiring is the file's
+    // own `VCCon`, trusted as stated: the same factor is applied back on export, so it cancels.
+    const {coils, series} = wdrWiring(specEntries);
+    perCoilEntryInto(specEntries, 'Re_ohm', Re => series ? Re / coils : Re * coils);
+    perCoilEntryInto(specEntries, 'BL_Tm', BL => series ? BL / coils : BL);
 
     // Optional: present only when the header line is non-blank, so a `.wdr` that never states
     // one produces no field — not an empty string standing in for "unstated"

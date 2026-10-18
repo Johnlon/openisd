@@ -877,7 +877,7 @@ export class OpenISDProject {
      * Null when the driver has no usable `Re`, or the curve has no peak.
      */
     impedancePeak(sw: SweepResult | null): { Fsc: number; Qtc: number } | null {
-        const Re_ohm = this.driver.specs.Re_ohm.value;
+        const Re_ohm = this.driver.specs.solverParams().Re_terminal_ohm.value;
         return Re_ohm === null ? null : this.#engine.driver.findImpedancePeak(sw, Re_ohm);
     }
 

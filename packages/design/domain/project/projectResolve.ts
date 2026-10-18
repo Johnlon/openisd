@@ -153,7 +153,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             const Qts = ts.Qts.value;
             if (Qts === null) return null;
             return engine.driver.sourceLoadedQts(
-                ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN,
+                ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN,
                 directRoot.value.driverEmbedding.Rs_ohm, Qts);
         };
         sealed = engine.sealed.solve({

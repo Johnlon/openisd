@@ -34,9 +34,9 @@ with the ND140-PR or SB15SFCR-00 radiator).
 | Scope                                | Cells | Matched | Gaps | Deviation (✗) | Unverified (❔) | Missing (⛔) |
 | ------------------------------------ | ----: | ------: | ---: | ------------: | --------------: | -----------: |
 | Table 1 — chart × box, base settings | 76    | 76      | 0    | 0             | 0               | 0            |
-| Table 2 — setting × box              | 106   | 100     | 6    | 1             | 5               | 0            |
+| Table 2 — setting × box              | 106   | 106     | 0    | 0             | 0               | 0            |
 | Table 3 — readouts and tools         | 8     | 3       | 5    | 0             | 5               | 0            |
-| Total                                | 190   | 179     | 11   | 1             | 10              | 0            |
+| Total                                | 190   | 185     | 5    | 0             | 5               | 0            |
 
 Worst matched deviation anywhere, excluding group delay: ≤ 1e-9 (BP6/ABC transfer function
 magnitude, impedance, and rear/front/intrachamber port velocity — `bp6-w5-1`/`abc-w5-1`, exact
@@ -139,7 +139,7 @@ deviation, or ❔.
 | Air T / p / humidity ≠ 293.15 K / 101325 Pa / 30 % | ✅ SPL, TF, Z ≤ 3e-14 (sealed-w5-air313: 313.15 K, 95000 Pa, 60 %); c, ρ ≤ 1e-12 rel (air.test.ts) | ✅ SPL, TF, Z ≤ 3e-14 (vented-w5-air313, vented-w5-air313-tf)                                                                               | ✅ SPL, TF ≤ 4e-13, Z 2e-14 (bp4-w5-air313) | ✅ SPL, TF, Z ≤ 3e-14 (pr-w5-air313) | ✅ SPL, TF ≤ 4e-12, Z 2e-14 (bp6-w5-air313) | ✅ SPL, TF, Z ≤ 3e-14 (abc-w5-air313) |
 | More than one port / slot port                     | —                                                                                                                                                            | ✅ 2 round ports, 1 slot: TF, Z ≤ 3e-14, port velocity 2e-12 rel (vented-w5-ports2, vented-w5-slot) | ✅ TF 4e-13, Z 2e-14, port velocity 2e-12 rel (bp4-w5-ports2, bp4-w5-slot) | —                                                                        | ✅ TF 3e-12, Z 2e-14, port velocities 2e-12 rel (bp6-w5-ports2, bp6-w5-slot) | ✅ TF, Z ≤ 4e-14, port velocities 2e-12 rel (abc-w5-ports2, abc-w5-slot) |
 | Another driver than W5-1138SMF                     | ✅ E150HE-44 (1 coil): Z 4e-14, all charts (sweep-t393a-sealed-e150he44) | ✅ E150HE-44: ≤ 5e-14, port velocity 3e-15 rel (sweep-t393a-vented-e150he44) | ✅ E150HE-44: TF ≤ 2e-12 (sweep-t393a-bp4-e150he44) | ✅ E150HE-44 + ND140-PR / + SB15SFCR-00: ≤ 6e-13 (sweep-t393a-pr-e150he44-nd140pr, -sb15sfcr00) | ✅ E150HE-44: TF ≤ 9e-12 (sweep-t393a-bp6-e150he44) | ✅ E150HE-44: ≤ 5e-14 (sweep-t393a-abc-e150he44) |
-|  Driver with 2 voice coils, parallel  | ✗ E150HE-44 as filed (numVC 2): Z 3.3 Ω, SPL 6 dB ([bug](../../bugs/BUG_20261018_dual-coil-wpr-re-halved.md); sweep-t393a-sealed-e150he44-numvc2) | ❔ | ❔ | ❔ | ❔ | ❔ |
+| Driver with 2 voice coils, parallel                | ✅ E150HE-44 as filed (numVC 2): Z 4e-14 Ω, SPL 1e-14 dB, excursion 1e-15 mm, max power 2e-13 W ([bug](../../bugs/BUG_20261018_dual-coil-wpr-re-halved.md?html) fixed; sweep-t393a-sealed-e150he44-numvc2) | ✅ ≤ 1e-12 (sweep-t393a-vented-e150he44-numvc2) | ✅ ≤ 2e-12 (sweep-t393a-bp4-e150he44-numvc2) | ✅ + ND140-PR: ≤ 6e-13 (sweep-t393a-pr-e150he44-nd140pr-numvc2) | ✅ ≤ 1e-11; group delay 0.12 ms at 2.7 kHz, the same as with 1 coil (sweep-t393a-bp6-e150he44-numvc2) | ✅ ≤ 4e-13 (sweep-t393a-abc-e150he44-numvc2) |
 
 ---
 

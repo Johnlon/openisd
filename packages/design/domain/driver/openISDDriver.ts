@@ -183,7 +183,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const Qts = ts.Qts.value;
         if (Qts === null) return null;
         return this.engine.driver.sourceLoadedQts(
-            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, Rs_ohm, Qts);
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN, Rs_ohm, Qts);
     }
 
     /** Efficiency bandwidth product, Fs/Qes. Null without Fs or Qes, or for Qes = 0. */
@@ -217,8 +217,9 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  On: WinISD's picker volume, which ignores `Rs_ohm` and `losses` for its own fixed Rg 0.1 and Qa 100. */
     sealedPickerVolume(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses, winisdPicker: boolean): number | null {
         if (!winisdPicker) return this.sealedVolumeForQtc(targetQtc, Rs_ohm, losses);
-        const {Vas_m3, Qes, Qms, Re_ohm} = this.specs;
-        const [Vas, qes, qms, Re] = [Vas_m3.value, Qes.value, Qms.value, Re_ohm.value];
+        const {Vas_m3, Qes, Qms} = this.specs;
+        // The Re the amplifier sees: the picker loads Qes with Rg against it.
+        const [Vas, qes, qms, Re] = [Vas_m3.value, Qes.value, Qms.value, this.specs.solverParams().Re_terminal_ohm.value];
         return Vas === null || qes === null || qms === null || Re === null
             ? null
             : this.engine.sealed.winisdPickerVolume({Vas, Qes: qes, Qms: qms, Re}, targetQtc);

@@ -1,0 +1,27 @@
+id: T401
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: A WinISD .wpr (and .wdr) driver with two voice coils (numVC=2, any VCCon) simulates with the file's terminal Re and BL, as WINISD_PARITY §11b says: E150HE-44 numVC=2 matches WinISD's capture (Z 6.6 ohm at 20 kHz, SPL and excursion equal). Bug: bugs/BUG_20261018_dual-coil-wpr-re-halved.md. Then capture the other 5 boxes with dual coil and update the register + README.
+done_test: bash scripts/test.sh packages/design/test/winisd/wdr-dual-coil-terminal-values.test.ts packages/design/test/domain/dual-coil-sweep-equals-single-coil.test.ts
+files:
+  - tasks/T401.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261018_dual-coil-wpr-re-halved.md
+  - docs/research/WINISD_PARITY.md
+  - docs/research/WINISD_EQUIVALENCE.md
+  - README.md
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/winIsdDriverConverter.ts
+  - packages/design/domain/winIsdDriverImport.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/solvers/driverQuantities.ts
+  - packages/design/test/fixtures/driverSolverGolden.ts
+  - packages/design/test/domain/dual-coil-sweep-equals-single-coil.test.ts
+  - packages/design/test/fixtures/dual-coil/e150he-44-parallel.wdr
+  - packages/design/test/fixtures/dual-coil/e150he-44-series.wdr
+  - packages/design/test/winisd/wdr-dual-coil-terminal-values.test.ts
