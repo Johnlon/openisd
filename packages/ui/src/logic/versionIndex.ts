@@ -2,10 +2,10 @@ import {type BuildKind, formatDay, runningHeading, parseBasicUtc, stampOfVersion
 
 export type {BuildKind};
 
-/** Where the deploy publishes the list of every hosted build. Root-relative on purpose: the same
- *  bytes run at the site root, under /v/<stamp>/ and under /snap/<stamp>/, and all of them read
- *  the one list at the root. */
-export const VERSION_INDEX_PATH = '/v/index.json';
+/** Where the deploy publishes the list of every hosted build. Absolute on purpose: the same bytes
+ *  run at openisd.app, test.openisd.app and under snapshots.openisd.app, and all of them read the
+ *  one list, which lives with the builds (GitHub Pages lets any site read it). */
+const VERSION_INDEX_URL = 'https://snapshots.openisd.app/v/index.json';
 
 /** One hosted build, as v/index.json states it (scripts/hosting/siteIndex.mjs writes it). */
 export interface BuildEntry {
@@ -68,7 +68,7 @@ export function parseVersionIndex(raw: unknown): readonly BuildEntry[] | null {
 /** The list of hosted builds, or null when it cannot be read (offline, dev server, no list yet). */
 export async function fetchVersionIndex(fetchFn: typeof fetch): Promise<readonly BuildEntry[] | null> {
   try {
-    const r = await fetchFn(VERSION_INDEX_PATH, {cache: 'no-store'});
+    const r = await fetchFn(VERSION_INDEX_URL, {cache: 'no-store'});
     if (!r.ok) return null;
     return parseVersionIndex(await r.json());
   } catch {

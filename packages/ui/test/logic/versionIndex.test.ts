@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {
-  describeVersions, fetchVersionIndex, parseVersionIndex, startVersionIndex, VERSION_INDEX_PATH, type BuildEntry,
+  describeVersions, fetchVersionIndex, parseVersionIndex, startVersionIndex, type BuildEntry,
 } from '../../src/logic/versionIndex.js';
 
 function entry(stamp: string, kind: 'release' | 'snap', over: Partial<BuildEntry> = {}): BuildEntry {
@@ -37,10 +37,10 @@ describe('parseVersionIndex', () => {
 });
 
 describe('fetchVersionIndex', () => {
-  it('reads /v/index.json uncached', async () => {
+  it('reads the list from snapshots.openisd.app, uncached', async () => {
     const fetchFn = vi.fn(() => Promise.resolve(response([R1])));
     expect(await fetchVersionIndex(fetchFn)).toEqual([R1]);
-    expect(fetchFn).toHaveBeenCalledWith(VERSION_INDEX_PATH, {cache: 'no-store'});
+    expect(fetchFn).toHaveBeenCalledWith('https://snapshots.openisd.app/v/index.json', {cache: 'no-store'});
   });
 
   it('is null on a missing list, a network failure and unparseable text', async () => {

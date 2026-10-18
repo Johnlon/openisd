@@ -1,5 +1,6 @@
 import {expect, test, openAProject, setFocusedBoxVolume, duplicateFocusedProject} from '../fixtures.js';
 import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {standInForSnapshotsSite} from '../fixtures/snapshotsSite.js';
 import '../fixtures/generateSample.js';
 
 test.describe('Projects across addresses', () => {
@@ -39,6 +40,7 @@ test.describe('Projects across addresses', () => {
     
     // Fresh storage is a browser context that has never seen the app: its first load.
     const freshContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    await standInForSnapshotsSite(freshContext);
     const fresh = await freshContext.newPage();
     await fresh.addInitScript(() => {
       localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } }));

@@ -8,7 +8,7 @@ import { execFileSync } from 'node:child_process';
 import { SCREENS, reset } from './screens.mjs';
 import { measure } from './measure.mjs';
 
-const DEFAULT_BEFORE = 'https://openisd.app/v/20261015T1542Z/';
+const DEFAULT_BEFORE = 'https://snapshots.openisd.app/v/20261015T1542Z/';
 const DEFAULT_AFTER = 'http://localhost:4000';
 const DEFAULT_ROOT = '/home/john/work/winisd/ui-gallery';
 

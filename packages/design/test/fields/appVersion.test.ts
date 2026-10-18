@@ -1,14 +1,17 @@
 import {describe, expect, it} from 'vitest';
-import {formatAppVersion, trailOfPathname, type AppVersion} from '../../fields/appVersion.js';
+import {formatAppVersion, trailOfLocation, type AppVersion} from '../../fields/appVersion.js';
 import {formatDateTime} from '../../fields/format.js';
 
-describe('trailOfPathname', () => {
+describe('trailOfLocation', () => {
   it.each([
-    ['/', 'release'], ['/index.html', 'release'], ['/v/20261014T1045Z/', 'release'],
-    ['/snap/20261014T1045Z/', 'snap'], ['/snap/20261014T1045Z/index.html', 'snap'],
-    ['/snap/', 'release'], ['/test/', 'test'], ['/test', 'release'],
-  ] as const)('%s is %s', (path, trail) => {
-    expect(trailOfPathname(path)).toBe(trail);
+    ['https://openisd.app/', 'release'], ['https://openisd.app/index.html', 'release'],
+    ['https://snapshots.openisd.app/v/20261014T1045Z/', 'release'],
+    ['https://snapshots.openisd.app/snap/20261014T1045Z/', 'snap'], ['https://snapshots.openisd.app/snap/20261014T1045Z/index.html', 'snap'],
+    ['https://snapshots.openisd.app/snap/', 'release'],
+    ['https://test.openisd.app/', 'test'], ['https://test.openisd.app/about/', 'test'],
+    ['https://openisd.app/test/', 'release'],
+  ] as const)('%s is %s', (address, trail) => {
+    expect(trailOfLocation(new URL(address))).toBe(trail);
   });
 });
 

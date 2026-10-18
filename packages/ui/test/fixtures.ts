@@ -6,6 +6,7 @@ import {CHROME_OUTAGE_POLICY, CHROME_STABLE_MS, type OutageClock, waitOutOutage}
 import {createHash} from 'node:crypto';
 import {z} from 'zod';
 import {fillAndBlur} from './fixtures/numField.js';
+import {standInForSnapshotsSite} from './fixtures/snapshotsSite.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
@@ -213,7 +214,7 @@ async function clearHash(page: Page): Promise<void> {
 }
 
 export const test = base.extend<
-  { browserLog: BrowserLog; page: Page; appPage: Page },
+  { browserLog: BrowserLog; context: BrowserContext; page: Page; appPage: Page },
   { browser: Browser; workerAppPage: Page; testAdditions: TestAdditions }
 >({
   // Replaces Playwright's own `browser` so a Chrome launch outage is waited out here instead of
@@ -254,6 +255,7 @@ export const test = base.extend<
     const port = process.env.OPENISD_TEST_PORT;
     const baseURL = port ? `http://localhost:${port}` : 'http://localhost:4100';
     const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 720 } });
+    await standInForSnapshotsSite(context);
     const page = await context.newPage();
     await page.addInitScript(() => {
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
@@ -280,6 +282,11 @@ export const test = base.extend<
     await use(page);
     await context.close().catch(() => {});
   }, { scope: 'worker' }],
+
+  context: async ({ context }, use) => {
+    await standInForSnapshotsSite(context);
+    await use(context);
+  },
 
   page: async ({ page, browserLog }, use) => {
     await page.addInitScript(() => {

@@ -87,7 +87,7 @@ import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
-import {DesktopSizes, trailOfPathname} from '@openisd/design/fields';
+import {DesktopSizes, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
 import {basicUtc, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
@@ -288,7 +288,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // The hosted builds, read once now (nothing is stored): they name the running release's number.
   const versionIndex = startVersionIndex(appVersionText, fetch);
   const appVersion = createAppVersionPort(
-    isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, trailOfPathname(location.pathname), hotUpdateSource,
+    isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, trailOfLocation(location), hotUpdateSource,
     versionIndex.view().then(view => view.running?.version ?? ''),
   );
 

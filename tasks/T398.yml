@@ -1,0 +1,33 @@
+id: T398
+release_note: internal
+repo: openisd
+owner: bob
+status: blocked
+goal: Test and snapshot builds live on their own sites, so they never share storage or service workers with production. test.openisd.app = newest snapshot (was openisd.app/test/); snapshots.openisd.app/v/<stamp>/ and /snap/<stamp>/ = every release and snapshot, with their list pages (were openisd.app/v/ and /snap/); openisd.app carries production only, and its old copy addresses hold a page that sends the visitor on plus the kill-switch worker. Two GitHub repos (Johnlon/openisd-test, Johnlon/openisd-snapshots), Pages from their gh-pages branch, CNAME file in each deploy, Enforce HTTPS once the cert issues; deploy.yml pushes there with a deploy key per repo. Straight to the custom domains, no github.io phase (opi, 18 Oct 2026); John added both Porkbun CNAMEs to johnlon.github.io the same day. John must add https://test.openisd.app as an authorised origin and redirect for Google sign-in. Done: both sites open in a fresh browser; openisd.app has no /test/, /v/ or /snap/ builds; T396's upgrade test passes. Starts after the 7.0.953 cut. John approved the plan via fable, 18 Oct 2026 ~13:30Z ('ok do it').
+done_test: bash scripts/test.sh packages/design/test/fields/appVersion.test.ts packages/ui/test/logic/versionIndex.test.ts packages/ui/test/scripts/site-index.test.ts
+files:
+  - bugs/BUG_20261018_land-pr-title-over-256.md
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/snapshotsSite.ts
+  - packages/ui/test/ui/projects-across-addresses.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T398.yml
+  - bugs/BUG_20261018_release-test-red-and-unrun.md
+  - .github/workflows/deploy.yml
+  - RELEASING.md
+  - packages/design/fields/appVersion.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/appVersion.test.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/versionIndex.ts
+  - packages/ui/test/logic/versionIndex.test.ts
+  - packages/ui/test/scripts/site-index.test.ts
+  - scripts/hosting/assemble-site.sh
+  - scripts/hosting/push-site.sh
+  - scripts/hosting/siteIndex.mjs
+  - scripts/hosting/test/push-site.test.sh
+  - scripts/land/test/release.test.sh
+  - scripts/release.sh
+  - scripts/ui-gallery/README.md
+  - scripts/ui-gallery/capture.mjs
+blocked_reason: rebase onto origin/main conflicts in: bugs/BUG_20261018_land-pr-title-over-256.md 

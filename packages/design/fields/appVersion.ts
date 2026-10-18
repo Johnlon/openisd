@@ -22,13 +22,23 @@ export function stampOfVersion(version: string): string {
   return version.startsWith(VERSION_PREFIX) ? version.slice(VERSION_PREFIX.length) : version;
 }
 
-/** Which trail of the site the app runs from: the root release, a /snap/<stamp>/ copy or the /test/ copy. */
+/** Which trail the app runs from: a release (openisd.app, or snapshots.openisd.app/v/<stamp>/), a
+ *  snapshots.openisd.app/snap/<stamp>/ copy, or the test.openisd.app copy of the newest snapshot. */
 export type BuildTrail = 'release' | 'snap' | 'test';
 
-/** "/snap/20261014T1045Z/" → 'snap', "/test/" → 'test', anything else (the root, /v/<stamp>/) → 'release'. */
-export function trailOfPathname(pathname: string): BuildTrail {
-  if (/^\/snap\/[^/]+\//.test(pathname)) return 'snap';
-  if (/^\/test\//.test(pathname)) return 'test';
+/** The site that serves the newest snapshot at its root. */
+export const TEST_HOSTNAME = 'test.openisd.app';
+
+/** The page's address: `location` in the browser, or a `URL`. */
+export interface PageAddress {
+  readonly hostname: string;
+  readonly pathname: string;
+}
+
+/** test.openisd.app → 'test', ".../snap/20261014T1045Z/" → 'snap', anything else → 'release'. */
+export function trailOfLocation(address: PageAddress): BuildTrail {
+  if (address.hostname === TEST_HOSTNAME) return 'test';
+  if (/^\/snap\/[^/]+\//.test(address.pathname)) return 'snap';
   return 'release';
 }
 

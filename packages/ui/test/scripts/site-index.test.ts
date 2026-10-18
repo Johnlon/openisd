@@ -97,6 +97,12 @@ describe('pageHtml', () => {
     assert.ok(pageHtml('snap', entries).includes('<script src="../dates.js"></script>'));
   });
 
+  it('links the newest snapshot to test.openisd.app and OpenISD to openisd.app', () => {
+    const html = pageHtml('release', entries);
+    assert.ok(html.includes('<a href="https://test.openisd.app/">Newest snapshot (test.openisd.app)</a>'));
+    assert.ok(html.includes('<a href="https://openisd.app/">OpenISD</a>'));
+  });
+
   it('links Launch to the build folder and GitHub to the release page; the Launch link covers the row', () => {
     const snap = pageHtml('snap', entries);
     assert.ok(snap.includes('<a class="launch" href="20260211T0900Z/">Launch</a>'));

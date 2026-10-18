@@ -130,7 +130,7 @@ export { parseUnitRotation } from './unitRotation.js';
 export { caretSpin, tenthsCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin } from './caretSpin.js';
 export { parsePublicVersion, formatPublicVersion, titleOfPublicVersion, publicVersionOfTitle, comparePublicVersion, runningHeading, type PublicVersion } from './publicVersion.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
-export { type AppVersion, type BuildKind, type BuildTrail, formatAppVersion, trailOfPathname, stampOfVersion } from './appVersion.js';
+export { type AppVersion, type BuildKind, type BuildTrail, type PageAddress, formatAppVersion, trailOfLocation, stampOfVersion } from './appVersion.js';
 
 /** The bottom sheet's rows per box type and sheet modes (Tune and What-if). */
 export { SheetField, type SheetSlot } from './sheetField.js';
