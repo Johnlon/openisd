@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 7d6dd48e1d2aeb751d7ecba7f659918c602c8545
 goal: The 7.0.953 announcement states the WinISD equivalence register result (179 of 190 cells matched, up from 152) from T393.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

@@ -69,11 +69,19 @@ jobs:
       - run: npm ci
       - name: unit tests
         run: node_modules/.bin/vitest run --shard=${{ matrix.half }}/2 2>&1 | tee unit.log; exit "${PIPESTATUS[0]}"
+      # Uploads below are diagnosis, not verdict: a failed one warns (next step) and does not fail the job.
       - uses: actions/upload-artifact@v4
+        id: upload_unit_log
+        continue-on-error: true
         if: ${{ !cancelled() }}
         with:
           name: unit-log-${{ matrix.half }}
           path: unit.log
+      - name: warn that the upload_unit_log upload failed
+        if: ${{ !cancelled() && steps.upload_unit_log.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::unit-log-${{ matrix.half }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact unit-log-${{ matrix.half }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
 
   typecheck:
     runs-on: ubuntu-latest
@@ -199,12 +207,26 @@ jobs:
         if: ${{ !cancelled() }}
         run: mv build/pw-report.json build/pw-report-${{ matrix.shard }}.json || true
       - uses: actions/upload-artifact@v4
+        id: upload_report
+        continue-on-error: true
         if: ${{ !cancelled() }}
         with:
           name: report-${{ matrix.shard }}
           path: build/pw-report-${{ matrix.shard }}.json
+      - name: warn that the upload_report upload failed
+        if: ${{ !cancelled() && steps.upload_report.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::report-${{ matrix.shard }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact report-${{ matrix.shard }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
+        id: upload_failures
+        continue-on-error: true
         if: ${{ failure() }}
         with:
           name: failures-${{ matrix.shard }}
           path: test-results/
+      - name: warn that the upload_failures upload failed
+        if: ${{ !cancelled() && steps.upload_failures.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::failures-${{ matrix.shard }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact failures-${{ matrix.shard }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
