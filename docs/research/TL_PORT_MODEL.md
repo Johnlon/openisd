@@ -65,11 +65,8 @@ correction) does not disappear when you model the duct as a pipe. Recorded as
 - Matches WinISD on vented, bandpass 4, bandpass 6 and ABC to 1e-11 dB or better
   (`WINISD_EQUIVALENCE.md`, row "Transmission-line ports").
 - Code: `winisdLinePortReactance` in `packages/design/engine/boxes/port.ts`.
-- Not matched: a box with Ql and Qa both at the lossless limit (1e6). OpenISD then uses its own
-  line, `portImpedance` (tanh with loss, mouth radiation, end correction kept), not WinISD's.
-  Capture `runs/vented-w5-tlports-lossless` (winisd_research 57f444e): WinISD keeps its tan form
-  there too, fit 8.8e-3 (best lumped 7.7e-2). With losses the same fit is 5.1e-3. Neither is
-  machine precision; T389 finds the residual.
+- Not matched: a box with Ql and Qa both at the lossless limit (1e6). OpenISD then takes its separate
+  `lossless` branch (own line, see T389 below), not WinISD's form.
 
 ## Done (T390, 18 Oct 2026)
 
@@ -78,4 +75,46 @@ correction) does not disappear when you model the duct as a pipe. Recorded as
 - Yellow bug switch "TL port without end correction" (`winisdTlPortNoEndCorrection`) brings
   WinISD's pipe back. On, the fits above hold.
 - A ≠W cue by the tickbox opens the "OpenISD and WinISD differences" entry, on desktop and phone.
-- Still open (T389): the lossless case and the 0.5–0.9 % fit residual (see above).
+- The lossless case: see T389.
+
+## T389: the leftover error (18 Oct 2026)
+
+Result: the leftover is an OpenISD fault, not a WinISD difference. WinISD uses the same tan form
+with or without losses. OpenISD's `lossless` branch (Ql and Qa both >= 1e6, `engine/circuit.ts`
+`loss`) does not. Bug: `bugs/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md`.
+
+Setup: `runs/vented-w5-tlports-lossless` (Ql = Qa = 1e6, Qp 15, TL on) against OpenISD with the
+yellow no-end-correction switch on, on WinISD's own 2087-point grid; same probe on
+`runs/vented-w5-tlports` (Ql 7, Qa 30) as the control. Worst relative error per chart:
+
+| Chart | Control (Ql 7) | Lossless as is | Lossless, losses at 999999.9999 |
+|---|---:|---:|---:|
+| SPL | 3e-13 | 1.4e+1 (4 Hz), 2.6e-2 (10-50 Hz), 7e-2 (200-500 Hz) | 3e-14 |
+| Impedance | 3e-15 | 2.7e-1 (30-50 Hz), 1.4e-1 (50-100 Hz), 1.6e-8 (>5 kHz) | 4e-15 |
+| Rear port velocity | 3e-12 | 4.8 (200-500 Hz) | 3e-12 |
+| TF magnitude | 3e-11 | 1.0e+2 (100-200 Hz) | 3e-11 |
+
+- The error is largest at the tuning and at the pipe resonances (232 Hz quarter wave), and shrinks
+  above 5 kHz in impedance. The earlier 0.5-0.9 % fit figure came from the closed-form fit
+  (`toys/w5_tl_port_model_check.py`); the engine itself is off by far more, see the table.
+- Candidate causes, one at a time:
+
+| Candidate | Result |
+|---|---|
+| End correction / pipe length | ruled out: the lossless branch ignores the switch, so on and off give identical numbers; with losses 1e-12 is reached using WinISD's length. |
+| Speed of sound / air density | ruled out: control matches at 1e-15 with the same air. |
+| Frequency grid / interpolation | ruled out: same grid, control matches. |
+| Rounding of shown inputs | ruled out: control matches at 1e-15. |
+| Port count / flare | ruled out: one round port, no flare in this project; control matches. |
+| Line termination (no radiation load, tan not tanh) | ruled out: same tan form fits the lossless capture once the branch is the lossy one. |
+| Branch choice (own `portImpedance` line, tanh with Qp loss, mouth radiation, vs WinISD fixed-resistance form) | proven: sending the same project through the `winisd-lossy` branch (Ql = Qa = 999999.9999, no engine change) gives SPL 3e-14, impedance 4e-15, port velocity 3e-12, TF 3e-11 (all below 0.05 %, in fact machine level). Ql = Qa = 999999 gives 9e-12 / 6e-12 / 1e-11 / 9e-9. |
+
+- Other captures are untouched: the bp4, bp6 and ABC `tlports` captures have Ql 7 and Qa 30, so
+  they never enter the `lossless` branch; their 1e-11 fits stand.
+- The lossless branches of bp4, bp6 and ABC were not captured with TL on. The bp6 one is
+  documented in code as "OpenISD's own simple model (not WinISD-captured)". Not tested here.
+- Not tested: TL off with Ql = Qa = 1e6 (no such capture).
+- Fix, for a later task: in WinISD the `lossless` Q limit is no model switch; every box keeps its
+  fixed-resistance form at omega-b. Route Ql, Qa >= 1e6 through the `winisd-lossy` form (resistances
+  vanish as Q grows) for the TL-on case, then add a lossless test to
+  `tl-port-model-winisd.test.ts` from the new capture.
