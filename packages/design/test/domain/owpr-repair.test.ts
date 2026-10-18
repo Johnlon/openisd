@@ -40,11 +40,11 @@ describe('OpenISDProject.fromOwprTextRepairing', () => {
     expect(result.project.box.sealed.volume_m3.value).toBeCloseTo(0.03, 9); // the design survives
   });
 
-  it('a key the schema does not know is dropped and named', () => {
+  it('a key the schema does not know (written by a later build) is dropped silently', () => {
     const broken = savedText().replace('"saved": {', '"saved": {"notAField": 1,');
     const result = OpenISDProject.fromOwprTextRepairing(broken, engine);
     if (Array.isArray(result)) throw new Error(result.join('; '));
-    expect(result.repaired).toEqual([['saved', 'notAField']]);
+    expect(result.repaired).toEqual([]);
     expect(result.project.box.sealed.volume_m3.value).toBeCloseTo(0.03, 9);
   });
 

@@ -56,6 +56,7 @@ function messagesOf(issues: readonly z.core.$ZodIssue[]): string[] {
 /**
  * Parse `input` against `schema`, removing each field that fails so the schema's own default
  * (or absence) applies, until it parses. A missing required field removes its parent instead.
+ * A key the schema does not know is removed too but not listed in `repaired`.
  * Refused (the messages) only when the failure is at the record's root — the input is not this
  * kind of record at all.
  */
@@ -69,18 +70,18 @@ export function parseRepairing<S extends z.ZodType>(schema: S, input: unknown): 
         for (const issue of result.error.issues) {
             const path = keysOf(issue.path);
             if (path === null) return messagesOf(result.error.issues);
-            const targets: FieldPath[] = issue.code === 'unrecognized_keys'
-                ? issue.keys.map(key => [...path, key])
-                : [path];
-            for (const target of targets) {
-                if (target.length === 0) return messagesOf(result.error.issues);
-                if (removeAt(working, target)) {
-                    repaired.push(target);
-                    progressed = true;
-                } else if (target.length > 1 && removeAt(working, target.slice(0, -1))) {
-                    repaired.push(target.slice(0, -1));
-                    progressed = true;
-                }
+            if (issue.code === 'unrecognized_keys') {
+                // A key a later build wrote: dropped silently, nothing this build reads was lost.
+                for (const key of issue.keys) progressed = removeAt(working, [...path, key]) || progressed;
+                continue;
+            }
+            if (path.length === 0) return messagesOf(result.error.issues);
+            if (removeAt(working, path)) {
+                repaired.push(path);
+                progressed = true;
+            } else if (path.length > 1 && removeAt(working, path.slice(0, -1))) {
+                repaired.push(path.slice(0, -1));
+                progressed = true;
             }
         }
         if (!progressed) return messagesOf(result.error.issues);
