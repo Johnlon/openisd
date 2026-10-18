@@ -49,4 +49,4 @@ agree, and both were wrong in the same way:
 ## Captures after the fix (T401)
 All six boxes with E150HE-44 as filed (numVC 2, parallel) match WinISD: sealed ≤ 4e-14, vented ≤ 1e-12,
 bp4 ≤ 2e-12, PR (ND140-PR) ≤ 6e-13, bp6 ≤ 1e-11, abc ≤ 4e-13 (winisd_research `runs/sweep-t393a-*-numvc2.json`).
-bp6 group delay differs by 0.12 ms at 2.7 kHz, the same as with 1 coil, so not this bug.
+bp6 group delay differs by 0.12 ms at 2.7 kHz with 1 coil and with 2: WinISD rounding noise above ~200 Hz (WINISD_EQUIVALENCE.md, John 2026-10-05), not this bug.
