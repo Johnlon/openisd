@@ -111,7 +111,6 @@ export interface DriverBrowsingState {
   statusErr: Ref<boolean>;
   initialized: Ref<boolean>;
   filterQ: Ref<string>;
-  typeHelpOpen: Ref<boolean>;
   typeStates: Ref<Record<string, string>>;
   fsMin: Ref<string>; fsMax: Ref<string>;
   sdMin: Ref<string>; sdMax: Ref<string>;
@@ -202,7 +201,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const statusMsg = ref('');
   const statusErr = ref(false);
   const initialized = ref(false);
-  const typeHelpOpen = ref(false);
   const typeStates = ref<Record<string, string>>({});   // id → 'include' | 'exclude'
   const fsMin = ref('');
   const fsMax = ref('');
@@ -564,7 +562,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   return {
     DRIVER_TYPES, DRIVER_SCOPES, DISPLAY_LIMIT,
     allDrivers, statusMsg, statusErr, initialized,
-    filterQ, typeHelpOpen, typeStates,
+    filterQ, typeStates,
     fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
     toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, clearAllFilters,
     // favourites — `clearParamFilters` deliberately leaves favoritesOnly alone: that button

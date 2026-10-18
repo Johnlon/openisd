@@ -170,8 +170,6 @@ export const SCREENS = [
   // The wizard again, this time choosing a passive radiator: its own step, then the radiator browser inside it.
   { key: 'wizard-pr-step', label: 'New project, passive radiator step', vp: BOTH, keep: true, covers: ['NewProjectPassiveRadiatorStep', 'OriginalNewProject', 'MobileNewProject'], act: async (page) => {
       if (page.viewportSize().width > 800) await startWizard(page); else { await phoneMenuItem(page, 'New project'); await page.getByText('Step 1 of 5').waitFor(T); }
-      // The type-help list opened on the Manage drivers screen is still open here; a click outside closes it, as a user does.
-      if (await page.getByText('Driver Range Classifications').first().isVisible().catch(() => false)) { await page.mouse.click(3, 300); await page.waitForTimeout(300); }
       await pickDriver(page); await next(page); await next(page);
       await page.locator('select:visible').filter({ hasText: 'Passive Radiator' }).last().selectOption('Passive Radiator'); await page.waitForTimeout(400);
       await next(page);

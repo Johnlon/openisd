@@ -20,6 +20,9 @@ export type DriverListMode = 'manage' | 'pick';
 
 const props = defineProps<{ showName?: boolean; host: DriverListMode }>();
 
+// The type-help list belongs to this library, so it starts closed whenever a library opens.
+const typeHelpOpen = ref(false);
+
 const { driverBrowsing, selection } = useApp();
 const { openNewDriver } = selection;
 
@@ -29,7 +32,7 @@ const { openNewDriver } = selection;
 const {
   DRIVER_TYPES, DRIVER_SCOPES,
   allDrivers, statusMsg, statusErr,
-  filterQ, typeHelpOpen, typeStates,
+  filterQ, typeStates,
   fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
   toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, clearAllFilters,
   filteredDrivers, displayedDrivers, listTruncated, listedCount,

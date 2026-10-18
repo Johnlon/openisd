@@ -1,6 +1,6 @@
 # BUG_20261018_driver-type-help-stays-open-across-libraries
 
-**Status:** OPEN
+**Status:** RESOLVED
 
 ## Symptom
 Open Manage drivers, tap the driver-type "?" so the "Driver Range Classifications" list shows, then close Manage drivers. Start a new project: the wizard's driver library opens with that list already showing, and its backdrop blocks taps in the wizard until the user taps outside it.
@@ -13,7 +13,7 @@ Open Manage drivers, tap the driver-type "?" so the "Driver Range Classification
 The help list's open state is app-wide, so it outlives the library it was opened in.
 
 ## Fix
-Make the help list's open state belong to each library instance (local to DriverLibrary), so it starts closed every time a library opens.
+`typeHelpOpen` is now a local ref in `DriverLibrary.vue`, so each library instance starts with the help list closed. It is removed from the shared driver-browsing state and its interface. The click-outside step in `scripts/ui-gallery/screens.mjs` `wizard-pr-step` is removed.
 
 ## Verification
-A browser spec opens Manage drivers, opens the type help, closes Manage drivers, starts a new project, and sees no "Driver Range Classifications" list. Then drop the click-outside step in `scripts/ui-gallery/screens.mjs` `wizard-pr-step`.
+`packages/ui/test/ui/driver-type-help-per-library.browser.spec.ts` (desktop and phone 374x705): opens Manage drivers, opens the type help, closes Manage drivers, starts a new project, expects no "Driver Range Classifications" list and a driver pickable. Failed before the fix (list still showing), passes after.

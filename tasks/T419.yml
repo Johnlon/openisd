@@ -1,0 +1,16 @@
+id: T419
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: The driver-type help list (Driver Range Classifications) belongs to each driver library and starts closed every time a library opens, so it never carries over from Manage drivers into the new-project wizard (bugs/BUG_20261018_driver-type-help-stays-open-across-libraries.md); the UI gallery's click-outside step in wizard-pr-step is removed.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T419.yml
+  - bugs/BUG_20261018_driver-type-help-stays-open-across-libraries.md
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/test/ui/driver-type-help-per-library.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - scripts/ui-gallery/screens.mjs
+visual: []
