@@ -135,6 +135,9 @@ printf 'job=j2\ndelivered=yes\n' > "$WORKSPACE/zoo/state/jobs/j2.env"
 tick > /dev/null
 al result-j1 | grep -q '^for carol: zoo result j1 is unread' && ok "unacked result alerts its owner" || fail "no alert for j1"
 [ -z "$(al result-j2)" ] && ok "acked result is quiet" || fail "acked result alerted"
+printf 'job=j1\ndelivered=yes\n' > "$WORKSPACE/zoo/state/jobs/j1.env"
+tick > /dev/null
+[ ! -e "$WATCHDOG_ALERTS/result-j1.alert" ] && ok "acking a result removes its standing alert" || fail "alert for acked j1 still on disk"
 
 # 6. gate refused twice in an hour -> one infra F
 now=$(date +%s)

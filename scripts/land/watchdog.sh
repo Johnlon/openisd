@@ -233,7 +233,7 @@ check_results() {
   [ -f "$ASK" ] || return 0
   while read -r id name; do
     [ -n "$id" ] || continue
-    grep -qx 'delivered=yes' "$JOBS/$id.env" 2> /dev/null && continue
+    if grep -qx 'delivered=yes' "$JOBS/$id.env" 2> /dev/null; then rm -f "$ALERTS/result-$id.alert"; continue; fi
     alert "result-$id" "$name" "zoo result $id is unread; read its summary under zoo/results, then run: zoo-run.sh ack $id"
   done < <(sed -n 's/^.*result for \([^ ]*\) NOT DELIVERED.*zoo-run\.sh ack \([^ ]*\)[[:space:]]*$/\2 \1/p' "$ASK" | sort -u)
 }
