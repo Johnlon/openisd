@@ -15,6 +15,8 @@ import ConfirmDialog from './components/ConfirmDialog.vue';
 import {bootApplication} from '../logic/boot.js';
 import {startSessionSync} from '../logic/sessionSync.js';
 import {startStoringNewProjects} from '../logic/newProjectStore.js';
+import {showStoragePopup} from '../logic/storagePopup.js';
+import {storedUseOf} from '../logic/storedUse.js';
 import {heldFocusedProject, provideFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {provideSplashModal} from '../hooks/SplashModal-hooks.js';
@@ -25,7 +27,7 @@ import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
 import CrashScreen from './components/CrashScreen.vue';
 
-const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId } = useApp();
+const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch, actions: recentActions } = useTelemetryUi();
@@ -65,7 +67,7 @@ provideFocusedProject(heldFocusedProject(focusedProject, requireFocusedProject))
 // menu reopens it. Provided here so the shell's menu and the modal share one instance. The
 // catalogue counts it shows are the bundled indexes' own lengths, fetched only once the splash
 // is actually on screen.
-provideSplashModal(presentationState, {
+const splash = provideSplashModal(presentationState, {
   driverCount: async () => (await bundledDrivers.index()).length,
   passiveRadiatorCount: async () => (await bundledPassiveRadiators.index()).length,
 }, versionIndex);
@@ -110,6 +112,14 @@ onMounted(async () => {
   stopStoringNewProjects = startStoringNewProjects({ projectRepo, appState, onFailed: () => void designIO.reportStorageFull() });
   window.addEventListener('hashchange', handleHashChange);
   launch.report(activeSkin.value);
+  void showStoragePopup({
+    persistence,
+    browserStorage,
+    readUse: () => storedUseOf(projectRepo, storageUsage),
+    confirm: confirmPort.port,
+    saves,
+    splashOpen: splash.open,
+  });
 });
 
 onUnmounted(() => {

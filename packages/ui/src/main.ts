@@ -89,7 +89,7 @@ import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
 import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
-import {basicUtc, formatDateTime, persistenceLine} from '@openisd/design/fields';
+import {basicUtc, browserNameOf, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
@@ -143,7 +143,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // FIRST: a fault that fires while the rest of this file runs must still be caught.
   // A repair's backup is a file download: the user keeps it outside the browser.
   // Whether the browser keeps OpenISD's data: asked once, below, once the fault log is up.
-  const browserStorage = createBrowserStoragePort('storage' in navigator ? navigator.storage : undefined);
+  const browserStorage = createBrowserStoragePort('storage' in navigator ? navigator.storage : undefined, browserNameOf(navigator.userAgent));
   const persistence = createPersistenceStatus(browserStorage, localStore);
   const faultLog = createFaultLog((fileName, text) => {
     const a = document.createElement('a');
@@ -424,7 +424,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, browserStorage, persistence, appUpdate, appVersion, versionIndex,
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, browserStorage, persistence, saves, appUpdate, appVersion, versionIndex,
     confirmPort, appState, presentation,
     recordedProjectId: recordedProjectIdStore.get,
     cloudSync,

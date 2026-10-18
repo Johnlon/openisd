@@ -5,26 +5,26 @@ import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 describe('createBrowserStoragePort', () => {
   it('is granted at once when the browser already keeps the data, without asking again', async () => {
     const persist = vi.fn(() => Promise.resolve(false));
-    expect(await createBrowserStoragePort({persisted: () => Promise.resolve(true), persist}).persist()).toBe('granted');
+    expect(await createBrowserStoragePort({persisted: () => Promise.resolve(true), persist}, 'Chrome').persist()).toBe('granted');
     expect(persist).not.toHaveBeenCalled();
   });
 
   it('asks, and says granted or refused as the browser answers', async () => {
-    expect(await createBrowserStoragePort({persisted: () => Promise.resolve(false), persist: () => Promise.resolve(true)}).persist()).toBe('granted');
-    expect(await createBrowserStoragePort({persist: () => Promise.resolve(false)}).persist()).toBe('refused');
+    expect(await createBrowserStoragePort({persisted: () => Promise.resolve(false), persist: () => Promise.resolve(true)}, 'Chrome').persist()).toBe('granted');
+    expect(await createBrowserStoragePort({persist: () => Promise.resolve(false)}, 'Chrome').persist()).toBe('refused');
   });
 
   it('is unsupported when the browser has no storage manager or it throws', async () => {
-    expect(await createBrowserStoragePort(undefined).persist()).toBe('unsupported');
-    expect(await createBrowserStoragePort({}).persist()).toBe('unsupported');
-    expect(await createBrowserStoragePort({persist: () => Promise.reject(new Error('no'))}).persist()).toBe('unsupported');
+    expect(await createBrowserStoragePort(undefined, 'Chrome').persist()).toBe('unsupported');
+    expect(await createBrowserStoragePort({}, 'Chrome').persist()).toBe('unsupported');
+    expect(await createBrowserStoragePort({persist: () => Promise.reject(new Error('no'))}, 'Chrome').persist()).toBe('unsupported');
   });
 
   it('gives the estimate only when the browser says both numbers', async () => {
-    expect(await createBrowserStoragePort({estimate: () => Promise.resolve({usage: 10, quota: 100})}).estimate()).toEqual({usage: 10, quota: 100});
-    expect(await createBrowserStoragePort({estimate: () => Promise.resolve({usage: 10})}).estimate()).toBeNull();
-    expect(await createBrowserStoragePort(undefined).estimate()).toBeNull();
-    expect(await createBrowserStoragePort({estimate: () => Promise.reject(new Error('no'))}).estimate()).toBeNull();
+    expect(await createBrowserStoragePort({estimate: () => Promise.resolve({usage: 10, quota: 100})}, 'Chrome').estimate()).toEqual({usage: 10, quota: 100});
+    expect(await createBrowserStoragePort({estimate: () => Promise.resolve({usage: 10})}, 'Chrome').estimate()).toBeNull();
+    expect(await createBrowserStoragePort(undefined, 'Chrome').estimate()).toBeNull();
+    expect(await createBrowserStoragePort({estimate: () => Promise.reject(new Error('no'))}, 'Chrome').estimate()).toBeNull();
   });
 });
 
@@ -32,6 +32,7 @@ describe('createPersistenceStatus', () => {
   function fakePort(answer: 'granted' | 'refused'): BrowserStoragePort & {asked: number} {
     const port = {
       asked: 0,
+      browser: () => 'Chrome' as const,
       persist() { port.asked++; return Promise.resolve(answer); },
       estimate: () => Promise.resolve(null),
     };
@@ -50,12 +51,16 @@ describe('createPersistenceStatus', () => {
     expect(changed).toHaveBeenCalledTimes(1);
   });
 
-  it('remembers a dismissed banner in this browser', () => {
+  it('remembers in this browser which risk the user closed', () => {
     const storage = createMemoryStorage({});
     const status = createPersistenceStatus(fakePort('refused'), storage);
-    expect(status.bannerDismissed()).toBe(false);
-    status.dismissBanner();
-    expect(createPersistenceStatus(fakePort('refused'), storage).bannerDismissed()).toBe(true);
+    expect(status.acknowledgedRisk()).toBeNull();
+    status.acknowledgeRisk('refused:Firefox');
+    expect(createPersistenceStatus(fakePort('refused'), storage).acknowledgedRisk()).toBe('refused:Firefox');
+  });
+
+  it('names the browser the port was given', () => {
+    expect(createBrowserStoragePort(undefined, 'Firefox').browser()).toBe('Firefox');
   });
 });
 

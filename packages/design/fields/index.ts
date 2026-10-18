@@ -111,7 +111,7 @@ export {
 export { restoredProjectName, storageUsedLine } from './backupText.js';
 export {
   LOCAL_STORE_LIMIT_BYTES,
-  persistenceBanner,
+  browserNameOf,
   persistenceLine,
   persistenceWarning,
   savedNotice,
@@ -119,7 +119,13 @@ export {
   siteStorageLine,
   STORAGE_FULL_FROM,
   storageFullWarning,
+  storagePopup,
+  storagePopupAfterSave,
   storageUseLine,
+  type BrowserName,
+  type StorageLevel,
+  type StoragePopup,
+  type StoragePopupInput,
   type StoredUse,
   type PersistOutcome,
   type StorageEstimate,

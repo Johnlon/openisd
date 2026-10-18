@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: f0026e90752ff271d68b4549dac89ab818893bf1
 goal: The UI gallery captures every screen, dialog, tab and sheet of both shells, driven by one list in code that a unit test checks against the app's dialog and tab components, so a new or missed screen fails the test. At least: driver editor General, Parameters, Advanced and Dimensions tabs, each at the top and scrolled to the bottom, phone and desktop; Inspect Provenance on; Manage drivers with the editor opened from it; Tune and What-if sheets over the phone chart; phone Box and Enclosure tabs; desktop What-if; chart data dialog; cloud sync dialog; save to library dialog; confirm dialog; equation inspector; export menu; splash; crash screen; mobile pane dialogs; help and difference popups. Every capture at 374x705 phone and desktop, before (7.0.951) and after. John, 18 Oct 2026: 'the screenshot facility completely ignores the driver editor, lots else is missing too'.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

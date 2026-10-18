@@ -64,7 +64,7 @@ export {
   createBrowserStoragePort,
   createPersistenceStatus,
   createUsageNoticeTab,
-  PERSIST_BANNER_DISMISSED_KEY,
+  PERSIST_RISK_ACKNOWLEDGED_KEY,
   type PersistenceStatus,
   type StorageManagerLike,
   USAGE_NOTICE_SHOWN_KEY,

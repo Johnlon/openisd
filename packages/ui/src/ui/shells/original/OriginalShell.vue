@@ -6,7 +6,6 @@
 // src/hooks/OriginalShell-hooks.ts (`useOriginalShell`), where it is a plain composable that
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
-import PersistenceBanner from '../../components/PersistenceBanner.vue';
 import {APP_UPDATE_TEXT, CompatSwitchGroup, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import UnitToggle from '../../components/UnitToggle.vue';
 import NumInput from '../../components/NumInput.vue';
@@ -209,7 +208,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         </div>
     </div>
 
-    <PersistenceBanner />
     <!-- Cloud sync strips / notices in flow directly under toolbar -->
     <div v-if="updateOffered" class="cloud-conflict-notice update-strip" role="status" data-testid="update-strip">
       <span class="cloud-strip-label">{{ APP_UPDATE_TEXT.offer }}</span>

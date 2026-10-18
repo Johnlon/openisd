@@ -17,3 +17,5 @@ project open: no in-flow sibling's box intersects the banner, the first element 
 at or below its bottom edge, and the page has no scrollbar and nothing pushed past the window bottom.
 Passes. If the banner is wanted out of the way of the menu, that is a new ruling (the menu would open
 below the banner instead of over it), not a layout bug.
+
+T416 (18 Oct 2026) removed the banner for a popup; the spec named above is now `storage-popup-layout.browser.spec.ts`.

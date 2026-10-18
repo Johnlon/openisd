@@ -17,6 +17,7 @@ import {
   createProjectBinMarks,
   createBrowserStoragePort,
   createPersistenceStatus,
+  createSaveSignal,
 } from '@openisd/persistence';
 import {createLogging} from '../../src/logging/flash.js';
 import {createFaultLog} from '../../src/diagnostics/faultLog.js';
@@ -81,7 +82,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
     driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage,
-    browserStorage: createBrowserStoragePort(undefined), persistence: createPersistenceStatus(createBrowserStoragePort(undefined), storage),
+    browserStorage: createBrowserStoragePort(undefined, 'This browser'), persistence: createPersistenceStatus(createBrowserStoragePort(undefined, 'This browser'), storage), saves: createSaveSignal(),
     appUpdate: new AppUpdate({
       container: {addEventListener: () => {}},
       visibility: {onVisible: () => {}},

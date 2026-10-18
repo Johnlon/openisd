@@ -19,7 +19,8 @@ import type {
     StorageUsage,
     ViewStateRepo,
     BrowserStoragePort,
-    PersistenceStatus
+    PersistenceStatus,
+    SaveSignal
 } from '@openisd/persistence';
 import type {Logging} from '../logging/flash.js';
 import type {FaultLog} from '../diagnostics/faultLog.js';
@@ -72,6 +73,8 @@ export interface AppLogic {
   browserStorage: BrowserStoragePort;
   /** Whether the browser keeps OpenISD's data. */
   persistence: PersistenceStatus;
+  /** Tells when anything was written to storage: the storage popup re-checks fullness then. */
+  saves: SaveSignal;
   faultLog: FaultLog;
   /** Keeps the running build in step with the deployed one. */
   appUpdate: AppUpdate;

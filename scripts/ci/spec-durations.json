@@ -90,7 +90,7 @@
  "ui/original-toolbar.browser.spec.ts": 35939,
  "ui/original-vented-tab.browser.spec.ts": 33423,
  "ui/original-winisd-differences.browser.spec.ts": 6104,
- "ui/persistence-banner-layout.browser.spec.ts": 2992,
+ "ui/storage-popup-layout.browser.spec.ts": 2992,
  "ui/persistent-storage.browser.spec.ts": 3601,
  "ui/pr-browser.browser.spec.ts": 2960,
  "ui/project-bin.browser.spec.ts": 7766,

@@ -64,12 +64,12 @@ const ENCLOSURE_TAB = /^(Vented|Enclosure)$/;
 
 export const SCREENS = [
   { key: 'welcome', label: 'First-run welcome (splash)', vp: BOTH, keep: true, covers: ['SplashModal', 'SplashContent'], act: async () => {} },
-  { key: 'welcome-banner', label: 'First screen with the storage banner', vp: BOTH, covers: ['PersistenceBanner'], act: async (page) => { await clickBtn(page, 'Start designing'); await page.getByRole('alert').filter({ has: page.getByRole('button', { name: 'Dismiss' }) }).waitFor(T); } },
-  // From here on the banner is dismissed, as a user does with its close control.
-  { key: 'empty', label: 'No project open (banner dismissed)', vp: BOTH, covers: ['OriginalShell', 'MobileShell', 'OriginalProjectList'], act: async (page) => {
-      // Builds without the banner have nothing to dismiss.
-      const dismiss = page.getByRole('button', { name: 'Dismiss', exact: true }).first();
-      if (await dismiss.isVisible().catch(() => false)) await dismiss.click(T);
+  { key: 'storage-popup', label: 'First screen with the storage popup', vp: BOTH, covers: ['ConfirmDialog'], act: async (page) => { await clickBtn(page, 'Start designing'); await page.getByRole('alertdialog').waitFor(T); } },
+  // From here on the popup is closed, as a user does with its Close button.
+  { key: 'empty', label: 'No project open (popup closed)', vp: BOTH, covers: ['OriginalShell', 'MobileShell', 'OriginalProjectList'], act: async (page) => {
+      // A browser that keeps the data shows no popup, so there is nothing to close.
+      const close = page.getByRole('alertdialog').getByRole('button', { name: 'Close', exact: true });
+      if (await close.isVisible().catch(() => false)) await close.click(T);
       await page.waitForTimeout(300);
     } },
   { key: 'wizard-1', label: 'New project step 1', vp: BOTH, keep: true, covers: ['OriginalNewProject', 'MobileNewProject', 'DriverLibrary'], act: startWizard },

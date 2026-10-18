@@ -43,11 +43,6 @@ export function persistenceWarning(outcome: PersistOutcome | null, use: StoredUs
     + 'to be safe, use Chrome, turn on Google Drive sync, or export your projects.';
 }
 
-/** The startup banner: the warning, until the user dismisses it in this browser. */
-export function persistenceBanner(outcome: PersistOutcome | null, dismissed: boolean, use: StoredUse): string | null {
-  return dismissed ? null : persistenceWarning(outcome, use);
-}
-
 /** "This site uses 1.2 MB of the 2.3 GB this browser allows."; null when the browser cannot say. */
 export function siteStorageLine(estimate: StorageEstimate | null): string | null {
   if (estimate === null || estimate.quota <= 0) return null;
@@ -57,11 +52,81 @@ export function siteStorageLine(estimate: StorageEstimate | null): string | null
 /** "Storage is 86% full (40 projects, 4.3 MB of 5 MB used). Export or delete old projects." when
  *  the local store or the site's whole allowance is at least STORAGE_FULL_FROM full, else null. */
 export function storageFullWarning(use: StoredUse, estimate: StorageEstimate | null): string | null {
+  const percent = storageFullPercent(use, estimate);
+  return percent === null ? null : `Storage is ${percent}% full (${storageUseLine(use)}). Export or delete old projects.`;
+}
+
+/** How full storage is, in whole percent (at most 100), when it is at least STORAGE_FULL_FROM full:
+ *  the local store or the site's whole allowance, whichever is fuller. Else null. */
+function storageFullPercent(use: StoredUse, estimate: StorageEstimate | null): number | null {
   const local = use.localBytes / LOCAL_STORE_LIMIT_BYTES;
   const site = estimate === null || estimate.quota <= 0 ? 0 : estimate.usage / estimate.quota;
   const full = Math.max(local, site);
-  if (full < STORAGE_FULL_FROM) return null;
-  return `Storage is ${Math.min(100, Math.floor(full * 100))}% full (${storageUseLine(use)}). Export or delete old projects.`;
+  return full < STORAGE_FULL_FROM ? null : Math.min(100, Math.floor(full * 100));
+}
+
+/** The browsers OpenISD names to the user; `This browser` when the user agent says none of them. */
+export type BrowserName = 'Edge' | 'Opera' | 'Samsung Internet' | 'Firefox' | 'Chrome' | 'Safari' | 'This browser';
+
+/** The browser that sent this user agent. Order matters: Edge, Opera and Samsung Internet also say
+ *  Chrome, and everything says Safari. */
+export function browserNameOf(userAgent: string): BrowserName {
+  if (/\bEdg(e|A|iOS)?\//.test(userAgent)) return 'Edge';
+  if (/\bOPR\/|\bOPT\/|\bOpera\b/.test(userAgent)) return 'Opera';
+  if (userAgent.includes('SamsungBrowser/')) return 'Samsung Internet';
+  if (/\b(Firefox|FxiOS)\//.test(userAgent)) return 'Firefox';
+  if (/(Chrome|CriOS)\//.test(userAgent)) return 'Chrome';
+  if (userAgent.includes('Safari/')) return 'Safari';
+  return 'This browser';
+}
+
+/** What the startup popup holds: nothing to say; the browser cannot promise to keep the data (the
+ *  `condition` names which, so closing it is remembered for that case only); or storage is nearly
+ *  full. The UI shows `title` and `message` and nothing else. */
+export type StoragePopup =
+  | {readonly kind: 'none'}
+  | {readonly kind: 'risk'; readonly condition: string; readonly title: string; readonly message: string}
+  | {readonly kind: 'nearlyFull'; readonly title: string; readonly message: string};
+
+/** What the app observed at startup. `acknowledgedRisk` is the condition the user last closed, or
+ *  null. */
+export interface StoragePopupInput {
+  readonly outcome: PersistOutcome | null;
+  readonly browser: BrowserName;
+  readonly use: StoredUse;
+  readonly estimate: StorageEstimate | null;
+  readonly acknowledgedRisk: string | null;
+}
+
+/** Stored by the dismissed banner that came before the popup: a user who closed that has seen the risk. */
+const BANNER_DISMISSED_BEFORE_POPUP = '1';
+
+const DRIVE_FIRST = 'Best: turn on Google Drive sync, so your projects live in Drive.';
+
+/** The popup for what the app observed: nearly full wins (and also names the browser when it cannot
+ *  promise); else the risk, once per condition; else none. */
+export function storagePopup(input: StoragePopupInput): StoragePopup {
+  const risky = input.outcome === 'refused' || input.outcome === 'unsupported';
+  const promise = `${input.browser} has not promised to keep this site's data`;
+  const percent = storageFullPercent(input.use, input.estimate);
+  if (percent !== null) {
+    const state = `Storage is ${percent}% full (${storageUseLine(input.use)}).`;
+    const browserLine = risky ? ` ${promise}.` : '';
+    return {
+      kind: 'nearlyFull',
+      title: 'Storage is nearly full',
+      message: `${state}${browserLine} ${DRIVE_FIRST} Otherwise export your projects or delete old ones.`,
+    };
+  }
+  if (!risky) return {kind: 'none'};
+  const condition = `${input.outcome}:${input.browser}`;
+  if (input.acknowledgedRisk === condition || input.acknowledgedRisk === BANNER_DISMISSED_BEFORE_POPUP) return {kind: 'none'};
+  return {
+    kind: 'risk',
+    condition,
+    title: 'Your projects may not be kept',
+    message: `${promise}, so it could clear your OpenISD projects if your disk gets nearly full. ${DRIVE_FIRST} Otherwise export your projects.`,
+  };
 }
 
 /** The flash once per browser tab at startup: "12 projects, 1.4 MB of 5 MB used."; null when no
@@ -76,4 +141,18 @@ export function savedNotice(savedCount: number, use: StoredUse): string {
   if (savedCount === 0) return 'Nothing to save';
   const usage = storageFullWarning(use, null) ?? `${storageUseLine(use)}.`;
   return `Saved ${formatCountOf(savedCount, 'project')}. ${usage}`;
+}
+
+/** How much storage held before a save: the part of `StoragePopupInput` that tells fullness. */
+export interface StorageLevel {
+  readonly use: StoredUse;
+  readonly estimate: StorageEstimate | null;
+}
+
+/** The popup after a save: nearly full only when this save took storage from below STORAGE_FULL_FROM
+ *  to at or above it, so it shows once per crossing. Otherwise none. */
+export function storagePopupAfterSave(before: StorageLevel, after: StoragePopupInput): StoragePopup {
+  if (storageFullPercent(before.use, before.estimate) !== null) return {kind: 'none'};
+  const popup = storagePopup(after);
+  return popup.kind === 'nearlyFull' ? popup : {kind: 'none'};
 }

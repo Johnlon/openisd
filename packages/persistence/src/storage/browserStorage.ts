@@ -1,6 +1,6 @@
 /** The browser's storage manager, behind a port: whether it keeps OpenISD's data, and how much it
  *  holds and allows. */
-import type {PersistOutcome, StorageEstimate} from '@openisd/design/fields';
+import type {BrowserName, PersistOutcome, StorageEstimate} from '@openisd/design/fields';
 import type {KeyValueStorage} from './keyValueStorage.js';
 
 /** The parts of the browser's `navigator.storage` the port uses; any may be missing. */
@@ -15,10 +15,13 @@ export interface BrowserStoragePort {
   persist(): Promise<PersistOutcome>;
   /** What the site uses and is allowed; null when the browser cannot say. */
   estimate(): Promise<StorageEstimate | null>;
+  /** Which browser this is: parsed once from its user agent by the design layer. */
+  browser(): BrowserName;
 }
 
-export function createBrowserStoragePort(manager: StorageManagerLike | undefined): BrowserStoragePort {
+export function createBrowserStoragePort(manager: StorageManagerLike | undefined, browser: BrowserName): BrowserStoragePort {
   return {
+    browser: () => browser,
     async persist() {
       if (manager?.persist === undefined) return 'unsupported';
       try {
@@ -48,13 +51,13 @@ export interface PersistenceStatus {
   outcome(): PersistOutcome | null;
   /** Call `onChange` when the answer comes. Returns the call that stops it. */
   watch(onChange: () => void): () => void;
-  /** Whether the user dismissed the startup warning in this browser. */
-  bannerDismissed(): boolean;
-  dismissBanner(): void;
+  /** The risk condition the user last closed the startup popup on in this browser; null if none. */
+  acknowledgedRisk(): string | null;
+  acknowledgeRisk(condition: string): void;
 }
 
-/** Where the dismissal of the startup warning is remembered. */
-export const PERSIST_BANNER_DISMISSED_KEY = 'openisd_persist_warning_dismissed';
+/** Where the closed risk condition is remembered (the key the dismissed banner used). */
+export const PERSIST_RISK_ACKNOWLEDGED_KEY = 'openisd_persist_warning_dismissed';
 
 export function createPersistenceStatus(port: BrowserStoragePort, storage: KeyValueStorage): PersistenceStatus {
   let answer: Promise<PersistOutcome> | null = null;
@@ -74,10 +77,9 @@ export function createPersistenceStatus(port: BrowserStoragePort, storage: KeyVa
       listeners.add(onChange);
       return () => { listeners.delete(onChange); };
     },
-    bannerDismissed: () => storage.get(PERSIST_BANNER_DISMISSED_KEY) === '1',
-    dismissBanner() {
-      storage.set(PERSIST_BANNER_DISMISSED_KEY, '1');
-      for (const listener of listeners) listener();
+    acknowledgedRisk: () => storage.get(PERSIST_RISK_ACKNOWLEDGED_KEY),
+    acknowledgeRisk(condition) {
+      storage.set(PERSIST_RISK_ACKNOWLEDGED_KEY, condition);
     },
   };
 }
