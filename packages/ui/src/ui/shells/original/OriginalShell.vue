@@ -361,7 +361,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </div>
 
           <div class="box-layout">
-            <div v-if="!isDual" class="box-fields-col" style="width: 412px;">
+            <div v-if="!isDual" class="box-fields-col" style="width: 412px; --label-w:150px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
                 <UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" />
@@ -1322,6 +1322,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
 .box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
+/* A long label ("Target Tuning Freq (Ffc)") wraps in the narrow chamber columns; it is never cut by an ellipsis. */
+.box-fields-col .field :deep(.ui-field-label) { white-space:normal; overflow:visible; text-overflow:clip; line-height:13px; }
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
@@ -1362,7 +1364,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .vent-col .field label { width:auto; }
 .project-tab .field label { width: 70px; }
 .vent-config-col .field label {
-  width: 100px;
+  width: 116px;
   margin-right: 6px;
 }
 .vent-dims-col .field label {

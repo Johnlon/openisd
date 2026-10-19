@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: d67671befa1310d35d3ddd00e1b38ef770231e8c
 goal: Calculation parity sweep: every chart, readout and editor field is compared against a WinISD capture for the four capture drivers (W5-1138SMF, E150HE, ND140-PR, SB15SFCR-00) and every box type, each after an edit of each driver and box input (not only a loaded file), and each pinned with a value-level test; every difference found gets a bugs/ file and a register row (docs/research/WINISD_EQUIVALENCE.md). Starts after T389. Why: the register proved charts only for captured inputs; John found Qts and Vas edits leaving charts unchanged on 18 Oct 2026 (bugs/BUG_20261018_what-if-qts-vas-do-not-move-charts.md), and six calculation bugs surfaced in three days.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

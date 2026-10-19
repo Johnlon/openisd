@@ -8,6 +8,11 @@ export type RelationValues = Readonly<Partial<Record<RouteQuantity, number>>>;
  * whichever direction, carries the same relation, and the consistency check predicts `target`
  * from it. `fields` is the target first, then the other quantities the equation reads: the
  * members the consistency check reports. `predict` reads only members listed in `fields`.
+ * `modelTolerance` is the share of the predicted value a datasheet may differ by with no mark,
+ * for a relation that reaches `target` through other quantities' own datasheet scatter (a
+ * compliance taken from Vas, Sd and the air); 0 where the equation is exact.
+ * `onlyWhenTargetEntered` limits the check to a target the user stated: a computed target that
+ * disagrees is the symptom of another group's conflict, which that group already reports.
  */
 export class Relation {
   constructor(
@@ -15,5 +20,7 @@ export class Relation {
     readonly target: RouteQuantity,
     readonly fields: readonly RouteQuantity[],
     readonly predict: (v: RelationValues) => number,
+    readonly modelTolerance: number = 0,
+    readonly onlyWhenTargetEntered: boolean = false,
   ) {}
 }
