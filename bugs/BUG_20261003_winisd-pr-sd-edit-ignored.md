@@ -40,3 +40,6 @@ a PR Sd edit: add one.
   typed edits and the cut-and-paste trigger was not tried.
 - The file-load route for Fs and Qms (an edit that moves the chart on its own
   shows the field is linked, so the load run was not needed).
+
+## T429 U6 (2026-10-19)
+SB15SFCR-00 PR box, Sd 0.0178 typed to 0.0205, then the Volume retyped (which recalculates every other typed edit): WinISD's Cone excursion (PR) is still that of Sd 0.0178 (OpenISD with 0.0178 matches to 8e-16; with 0.0205 it is 0.13 off). Pinned `it.fails` in `packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts`. All other charts match, as Sd does not enter them.

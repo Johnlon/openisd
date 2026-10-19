@@ -3,6 +3,7 @@ release_note: "Phone Advanced tab: the warning mark on each WinISD bug switch is
 repo: openisd
 owner: bugfix-B
 status: done
+landed: 20b53ccda3389f090217faa840dd72de205438ac
 goal: Phone Advanced tab - the warning mark on each yellow bug switch sits inside its row (was clipped at the panel edge), and the "Enable WinISD-style" heading loses its trailing ellipsis (bugs/BUG_20261019_phone-advanced-bug-switch-warning-icon-clipped.md, bugs/BUG_20261019_phone-advanced-winisd-style-heading-cut-short.md).
 done_test: bash scripts/test.sh packages/design/test/domain/compat-switch.test.ts
 files:

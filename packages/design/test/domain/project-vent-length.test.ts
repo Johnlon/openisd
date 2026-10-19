@@ -52,6 +52,16 @@ function trial(targetFb: number) {
   return p;
 }
 
+describe('project vent length — the end correction is honoured', () => {
+  it('a bigger end correction shortens the pipe for the same tuning by dk x diameter', () => {
+    const p = trial(40);
+    const k06 = p.box.vented.vent.lengthForTuning_m(0.03, 40)!;
+    p.box.vented.vent.endCorrection_m.set(0.85);
+    const k085 = p.box.vented.vent.lengthForTuning_m(0.03, 40)!;
+    assert.ok(Math.abs((k06 - k085) - (0.85 - 0.6) * 0.05) < 1e-9, `length moved ${k06 - k085} m`);
+  });
+});
+
 describe('project vent length — an unreachable tuning must surface, not hide', () => {
   it('a reachable target has a positive solved length', () => {
     const p = trial(40);

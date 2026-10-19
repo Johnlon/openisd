@@ -1,0 +1,13 @@
+id: T472
+release_note: internal
+repo: openisd
+owner: unassigned
+status: open
+goal: The Vents tab cross-area box shows the area of all ports together, as WinISD's does (bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md). The per-port figure sits behind a WinISD-style option whose tooltip names the case. No stored-field change. Needs John's word on any layout or option change. Remove the two it.fails markers for "Vents tab: cross area" in driver-edit-parity-w5.test.ts and driver-edit-parity-e150he-44.test.ts.
+done_test: bash scripts/test.sh packages/design/test/domain/driver-edit-parity-w5.test.ts packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
+files:
+  - tasks/T472.yml
+  - bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md
+  - packages/design/test/domain/driver-edit-parity-w5.test.ts
+  - packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
+visual: []
