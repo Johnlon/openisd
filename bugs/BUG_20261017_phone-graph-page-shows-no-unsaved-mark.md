@@ -1,6 +1,6 @@
 # BUG_20261017_phone-graph-page-shows-no-unsaved-mark
 
-**Status:** OPEN
+**Status:** CLOSED (19 Oct 2026, no change: the Save icon top right of the Graph page is the unsaved mark; John on QO276: "don't we have a big save file icon on top right")
 
 ## Symptom
 On the phone skin, the Graph page has no top bar, so nothing on screen says the project has

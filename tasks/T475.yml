@@ -1,0 +1,10 @@
+id: T475
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Close the phone Graph unsaved-mark bug: the Save icon already marks it (QO276)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T475.yml
+  - bugs/BUG_20261017_phone-graph-page-shows-no-unsaved-mark.md
