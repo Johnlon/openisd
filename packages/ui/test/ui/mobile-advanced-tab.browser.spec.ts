@@ -137,9 +137,22 @@ test('the bug switches carry the warning class under a "Enable WinISD bugs" head
   await expect(group.locator('label[data-field-key="winisdDriverCountModel"] input')).toBeDisabled();
 });
 
+test('the warning mark of every bug switch sits fully inside its row and inside the screen', async ({ page }) => {
+  const rows = page.locator('.error-switch-group label.error-switch-marked');
+  const n = await rows.count();
+  expect(n).toBeGreaterThan(0);
+  for (let i = 0; i < n; i++) {
+    const row = (await rows.nth(i).boundingBox())!;
+    const mark = (await rows.nth(i).locator('.error-switch-mark').boundingBox())!;
+    expect(mark.x, `mark ${i} left edge`).toBeGreaterThanOrEqual(row.x);
+    expect(mark.x + mark.width, `mark ${i} right edge`).toBeLessThanOrEqual(row.x + row.width);
+    expect(mark.x, `mark ${i} on screen`).toBeGreaterThanOrEqual(0);
+  }
+});
+
 test('the "Enable WinISD-style" group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
   const panel = page.locator('.mob-panel', { hasText: 'WinISD compatibility' });
-  await expect(panel.locator('.mob-group-head').first()).toHaveText('Enable WinISD-style …');
+  await expect(panel.locator('.mob-group-head').first()).toHaveText('Enable WinISD-style');
   for (const key of ['winisdWrapPhase', 'winisdFlatModel']) {
     const checkbox = panel.locator(`label[data-field-key="${key}"] input[type=checkbox]`);
     await expect(checkbox, key).toBeVisible();
