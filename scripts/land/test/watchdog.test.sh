@@ -35,6 +35,7 @@ printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE_RUN_LOG"\n' > "$SCRATCH/fake-ru
 ASK="$WORKSPACE/zoo/ASK.md"; : > "$ASK"
 # Alerts are files the gate hook shows to agents (T333); tmux is never used, so the fake below must stay unused.
 export WATCHDOG_ALERTS="$SCRATCH/rt/agent-alerts" SYNC_LOG="$SCRATCH/logs/sync-main-folder.log" TIDY_LOG="$SCRATCH/logs/tidy.log"
+export WATCHDOG_SESSIONS="$SCRATCH/no-sessions"   # absent: owners are not tracked (case 10 makes one)
 al() { cat "$WATCHDOG_ALERTS/$1.alert" 2> /dev/null; }
 
 # fake tmux: list-windows prints $FAKE_WINDOWS, everything is logged
@@ -222,14 +223,29 @@ after=$(ls -d "${TMPDIR:-/tmp}"/watchdog-tools.* 2> /dev/null | wc -l)
 [ $r = 0 ] && ! grep -q BROKEN "$SCRATCH/snap.out" && grep -q 'tick done' "$WATCHDOG_LOG" && ok "a broken main checkout: the tick runs origin/main's scripts" || fail "snapshot tick (r=$r): $(tail -3 "$SCRATCH/snap.out")"
 [ "$after" = "$before" ] && ok "the snapshot is removed after the tick" || fail "snapshot left behind ($before -> $after)"
 
-# 9. the main folder held (a stray edit not on main) is an agent alert for the leader, every tick until fixed
+# 9. a stray edit in the main folder no longer holds it (T476): it is kept on a stray/ branch, the folder moves to main,
+#    no main-folder alert
 git -C "$WATCHDOG_REPO" rev-parse origin/main > "$POST_LAND_LOCK.green"
 echo stray > "$WATCHDOG_REPO/stray-not-on-main.txt"
-tick > /dev/null
-al main-folder | grep -q '^for lots: the main folder cannot update to main: .*of its own' && ok "a held main folder alerts the leader" \
-  || fail "no main-folder alert: $(al main-folder) $(grep 'main folder' "$WATCHDOG_LOG" | tail -2)"
-[ -z "$(git -C "$WATCHDOG_REPO" status --porcelain)" ] && git -C "$WATCHDOG_REPO" show HEAD:stray-not-on-main.txt > /dev/null 2>&1 \
-  && ok "the stray edit is committed there, nothing lost" || fail "stray edit not committed"
+rm -f "$WATCHDOG_ALERTS/main-folder.alert"   # earlier ticks had no passed commit; that alert is over
+SYNC_SYSTEMCTL=false tick > /dev/null
+[ -z "$(al main-folder)" ] && [ -z "$(git -C "$WATCHDOG_REPO" status --porcelain)" ] \
+  && git -C "$WATCHDOG_REPO" show "$(git -C "$WATCHDOG_REPO" branch --list 'stray/*' --format='%(refname:short)' | head -1):stray-not-on-main.txt" > /dev/null 2>&1 \
+  && ok "a stray edit is kept on a stray branch; the main folder is not held and raises no alert" \
+  || fail "stray edit: alert=$(al main-folder) $(grep 'main folder' "$WATCHDOG_LOG" | tail -2)"
+
+# 10. an alert whose named owner has no live session goes to the coordinator (T476); a live owner keeps it
+mk_f F4 carol "$(date -d '2 hours ago' +%s) +0000"
+SESS="$SCRATCH/sessions"; mkdir -p "$SESS"
+SP=$$   # this shell is bob's live Claude Code process; carol has only a file for a dead pid
+printf '{"name":"bob","pid":%s,"procStart":"%s"}\n' "$SP" "$(starttime "$SP")" > "$SESS/$SP.json"
+printf '{"name":"carol","pid":999999,"procStart":"1"}\n' > "$SESS/999999.json"
+WATCHDOG_SESSIONS="$SESS" WATCHDOG_COORDINATOR=fable tick > /dev/null
+al F-F1 | grep -q '^for bob: F1: open' && ok "a live owner still gets the alert" || fail "bob's alert: $(al F-F1)"
+al F-F4 | grep -q '^for fable: F4: open.*(owner carol has no live session)' && ok "a dead owner's alert goes to the coordinator" || fail "carol's alert: $(al F-F4)"
+printf '{"name":"bob","pid":%s,"procStart":"1"}\n' "$SP" > "$SESS/$SP.json"   # right pid, wrong start time: the pid was reused
+WATCHDOG_SESSIONS="$SESS" tick > /dev/null
+al F-F1 | grep -q '^for fable: F1' && ok "a reused pid is not a live session" || fail "reused pid: $(al F-F1)"
 
 [ ! -s "$FAKE_TMUX_LOG" ] && ok "tmux is never used" || fail "tmux was called: $(head -3 "$FAKE_TMUX_LOG")"
 ! grep -q 'watchdog' "$ASK" && ok "nothing is written to ASK.md" || fail "ASK.md written: $(grep watchdog "$ASK" | head -2)"

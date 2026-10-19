@@ -10,7 +10,8 @@
 #   WATCHDOG_STATE WATCHDOG_HOLDER WATCHDOG_POST_LAND_LOG WATCHDOG_REFUSALS WATCHDOG_HOUSEKEEPING
 #   WATCHDOG_NOW (epoch) WATCHDOG_HUNG_MIN (20) WATCHDOG_HUNG_S WATCHDOG_F_AGE_S (1800)
 #   WATCHDOG_RUN_SH WATCHDOG_STALL_S (600) WATCHDOG_REFUSE_WINDOW_S (3600) WATCHDOG_GRACE_S (10)
-#   WATCHDOG_CPU_SLACK_TICKS (= one second of CPU).
+#   WATCHDOG_CPU_SLACK_TICKS (= one second of CPU) WATCHDOG_COORDINATOR (fable)
+#   WATCHDOG_SESSIONS (Claude Code's registry, $HOME/.claude/sessions).
 set -uo pipefail
 REPO="${WATCHDOG_REPO:-/home/john/work/winisd/openisd}"
 # The scripts and settings are origin/main's own, never the main checkout's files: that checkout can lag
@@ -36,6 +37,14 @@ run_start "watchdog"
 
 WORKSPACE="${WORKSPACE:-/home/john/work/winisd}"
 LEADER="${WATCHDOG_LEADER:-lots}"
+COORDINATOR="${WATCHDOG_COORDINATOR:-fable}"
+# Live sessions (T476): Claude Code's own registry, one file SESSIONS/<pid>.json per session with "name", "pid" and
+# "procStart" (the process start time in clock ticks, field 22 of /proc/<pid>/stat). An owner is live when a file names
+# it, its pid exists and its start time equals procStart (guards pid reuse). Files of dead pids are ignored. When the
+# directory exists, an alert whose named owner is not live goes to the coordinator instead (the owner's session ended
+# and nobody would read it: 19 Oct, the alerts for lots sat unread for hours). No directory: owners are not tracked
+# and every alert goes to its owner.
+SESSIONS="${WATCHDOG_SESSIONS:-$HOME/.claude/sessions}"
 ALERTS="${WATCHDOG_ALERTS:-$OPENISD_RUNTIME_DIR/agent-alerts}"
 LOG="${WATCHDOG_LOG:-$REPO/build/test-logs/watchdog.log}"
 export HOUSEKEEPING_LOG="${HOUSEKEEPING_LOG:-$REPO/build/test-logs/housekeeping.log}"
@@ -72,8 +81,31 @@ flock -n 7 || { echo "watchdog: another tick is running"; exit 0; }
 # every agent session, at most every 5 min, until it is over. A problem that still holds is re-written every tick;
 # an alert not re-written for 10 min is over. No tmux, no ASK.md, no inbox (John, 17 Oct 2026: "our scripts cannot
 # rely on tmux at all"; "only stuff we control or which is part of Claude can be used").
+owner_live() { # owner_live <name>: has that session a live process (pid and start time match)?
+  local pid start
+  [ -d "$SESSIONS" ] || return 0
+  while read -r pid start; do
+    [ -n "$pid" ] && [ "$(admit_starttime "$pid")" = "$start" ] && return 0
+  done < <(python3 -I - "$SESSIONS" "$1" 2> /dev/null << 'PY'
+import glob, json, os, sys
+for f in glob.glob(os.path.join(sys.argv[1], "*.json")):
+    try:
+        d = json.load(open(f))
+        if d["name"] == sys.argv[2]:
+            print(int(d["pid"]), d["procStart"])
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+PY
+)
+  return 1
+}
 alert() { # alert <key> <owner> <text>
-  local f="$ALERTS/$1.alert" line="for $2: $3"
+  local f="$ALERTS/$1.alert" owner="$2" line
+  if [ "$owner" != "$COORDINATOR" ] && ! owner_live "$owner"; then
+    log "alert $1: owner $owner has no live session; addressed to $COORDINATOR"
+    set -- "$1" "$COORDINATOR" "$3 (owner $owner has no live session)"
+  fi
+  line="for $2: $3"
   mkdir -p "$ALERTS" || { log "alert FAILED (cannot create $ALERTS) for $2: $3"; return; }
   [ "$(cat "$f" 2> /dev/null)" = "$line" ] || log "alert $1 for $2: $3"
   printf '%s\n' "$line" > "$f.tmp" && mv -f "$f.tmp" "$f" || log "alert FAILED (cannot write $f) for $2: $3"

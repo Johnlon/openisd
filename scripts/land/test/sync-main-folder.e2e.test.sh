@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# T328, processes.md rule 7: scripts/land/sync-main-folder.sh end to end in a scratch repo with real git: a main
-# folder (clone), a preview copy (detached worktree), stray edits, a conflict, and npm ci only on a lockfile
-# change (a fake npm on PATH that records its calls).
+# T328, T476, processes.md rule 7: scripts/land/sync-main-folder.sh end to end in a scratch repo with real git: a
+# main folder (clone), a preview copy (detached worktree), stray edits, a stray edit to a file that landed
+# differently, the folder's own commits, and npm ci only on a lockfile change (a fake npm on PATH that records
+# its calls). Stray work goes to a stray/ branch; main only fast-forwards; exit 0.
 set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/sync-gitconfig.XXXXXX")"
 printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\tdefaultBranch = main\n' > "$GITCFG"
@@ -67,36 +68,39 @@ bash "$SYNC" "$SCRATCH/w/main" > /dev/null 2>&1
 if [ "$(head_of main)" = "$passed" ]; then ok "only the last passed commit is pulled, never an unpassed tip"
 else fail "unpassed tip pulled"; fi
 
-# 3. a stray modified file and a stray untracked file whose content is already on main: committed, then they
-#    drop out in the rebase; the folder equals main, ignored files untouched
+# 3. a stray modified file and a stray untracked file whose content is already on main: kept on a stray/ branch,
+#    the folder equals main, ignored files untouched, exit 0
 setup; land questions.yml q2; cp dev/questions.yml main/questions.yml; mkdir -p main/new; printf 'n\n' > main/new/f.txt
 cp main/new/f.txt dev/f.txt 2> /dev/null; mkdir -p dev/new; cp main/new/f.txt dev/new/f.txt
 git -C dev add -A; git -C dev commit -qm "same content"; git -C dev push -q origin main; head_of dev > "$POST_LAND_LOCK.green"
 bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
-if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -z "$(dirty main)" ] && [ -f main/node_modules/x ]; then
-  ok "stray edits already on main drop out; the folder equals main; ignored files kept"
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -z "$(dirty main)" ] && [ -f main/node_modules/x ] \
+   && [ "$(git -C main branch --list 'stray/*' | wc -l)" = 1 ]; then
+  ok "stray edits already on main: kept on a stray branch; the folder equals main; ignored files kept"
 else fail "already on main (r=$r dirty=$(dirty main)): $(tail -3 "$SCRATCH/out")"; fi
 
-# 4. a stray edit not on main that applies cleanly: committed and kept on top, exit 1 naming it; nothing lost
-setup; land a.txt b; printf 'mine\n' > main/extra.txt
+# 4. a stray edit not on main: exit 0, main == target, the edit is on the stray branch, main's own history untouched
+setup; land a.txt b; printf 'mine\n' > main/extra.txt; before=$(head_of main)
 bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
-if [ $r = 1 ] && [ "$(git -C main rev-parse HEAD~1)" = "$(head_of dev)" ] && [ "$(git -C main show HEAD:extra.txt)" = mine ] \
-   && [ -z "$(dirty main)" ] && grep -q "land what is wanted" "$SCRATCH/out"; then
-  ok "an edit not on main: committed on top of main, kept, and reported"
-else fail "own edit (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+sb=$(git -C main branch --list 'stray/*' --format='%(refname:short)' | head -1)
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -n "$sb" ] && [ "$(git -C main show "$sb:extra.txt")" = mine ] \
+   && [ "$(git -C main rev-parse "$sb~1")" = "$before" ] && [ -z "$(dirty main)" ] && grep -q "STRAY main folder: kept on branch $sb" "$SYNC_LOG"; then
+  ok "an edit not on main: on a stray branch made from HEAD, main fast-forwarded, logged, exit 0"
+else fail "own edit (r=$r sb=$sb): $(tail -3 "$SCRATCH/out")"; fi
 
-# 5. a conflict (today's questions.yml: both sides appended): the rebase is cancelled, the folder is as it
-#    was with the WIP commit, no rebase left in progress, exit 1 naming the file; a second run says the same
+# 5. the stuck case (T476): a stray edit to a file that landed differently on main: exit 0, main == target, the
+#    stray branch holds the edit; a second run makes no second branch
 setup; land questions.yml "QO182 from main"; printf 'QO182 stray\n' >> main/questions.yml
-before=$(head_of main); bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+sb=$(git -C main branch --list 'stray/*' --format='%(refname:short)' | head -1)
 gd=$(git -C main rev-parse --absolute-git-dir)
-if [ $r = 1 ] && [ "$(git -C main rev-parse HEAD~1)" = "$before" ] && [ ! -e "$gd/rebase-merge" ] && [ ! -e "$gd/rebase-apply" ] \
-   && grep -q "CONFLICT rebasing onto .* in questions.yml" "$SCRATCH/out" && grep -q "QO182 stray" main/questions.yml && [ -z "$(dirty main)" ]; then
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -n "$sb" ] && git -C main show "$sb:questions.yml" | grep -q "QO182 stray" \
+   && ! grep -q "QO182 stray" main/questions.yml && [ ! -e "$gd/rebase-merge" ] && [ ! -e "$gd/rebase-apply" ] && [ -z "$(dirty main)" ]; then
   bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out2" 2>&1; r2=$?
-  if [ $r2 = 1 ] && grep -q CONFLICT "$SCRATCH/out2" && [ "$(git -C main rev-list --count HEAD~1..HEAD)" = 1 ]; then
-    ok "a conflict: cancelled, nothing lost, reported again on the next run, no second WIP commit"
+  if [ $r2 = 0 ] && [ "$(git -C main branch --list 'stray/*' | wc -l)" = 1 ]; then
+    ok "a conflicting stray edit: main == target, the edit is on a stray branch, exit 0, no second branch"
   else fail "conflict, second run (r=$r2): $(tail -3 "$SCRATCH/out2")"; fi
-else fail "conflict (r=$r): $(tail -4 "$SCRATCH/out")"; fi
+else fail "conflict (r=$r sb=$sb): $(tail -4 "$SCRATCH/out")"; fi
 
 # 6. two runs at once never overlap: the second exits 0 at once
 setup; land a.txt b
@@ -112,17 +116,23 @@ bash "$SYNC" --passed "$s" "$SCRATCH/w/main" > /dev/null 2>&1; r=$?
 if [ $r = 0 ] && [ "$(head_of main)" = "$s" ]; then ok "--passed pulls the commit land.sh just pushed"
 else fail "--passed (r=$r)"; fi
 
-# 8. git refuses the rebase for a reason that is not a conflict (here a tracked file changes again right after the
-#    WIP commit, made by a post-commit hook): reported as a refusal, never as a CONFLICT, no rebase left in progress
+# 8. a post-commit hook that dirties a tracked file after the stray commit cannot stick the sync (the commit runs
+#    with hooks off): exit 0, main == target, clean
 setup; land a.txt b; echo stray > main/stray.txt
 printf '#!/bin/sh\necho again >> questions.yml\n' > "$(git -C main rev-parse --absolute-git-dir)/hooks/post-commit"
 chmod +x "$(git -C main rev-parse --absolute-git-dir)/hooks/post-commit"
 bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
-gd=$(git -C main rev-parse --absolute-git-dir)
-if [ $r = 1 ] && grep -q "git refused to rebase onto .* (no conflict)" "$SCRATCH/out" && ! grep -q CONFLICT "$SCRATCH/out" \
-   && [ ! -e "$gd/rebase-merge" ] && [ ! -e "$gd/rebase-apply" ]; then
-  ok "a rebase git refuses without a conflict is reported as that, not as a conflict"
-else fail "refused rebase (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -z "$(dirty main)" ]; then
+  ok "a hook on the stray commit cannot leave the folder dirty or held"
+else fail "hook (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+
+# 8b. the folder's own commit (not on main): moved to a stray branch, main reset to the target only after the branch holds it
+setup; land a.txt b; printf 'own\n' > main/own.txt; git -C main add own.txt; git -C main commit -qm "own work"; own=$(head_of main)
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+sb=$(git -C main branch --list 'stray/*' --format='%(refname:short)' | head -1)
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -n "$sb" ] && [ "$(git -C main rev-parse "$sb")" = "$own" ] && [ -z "$(dirty main)" ]; then
+  ok "the folder's own commit is kept on a stray branch; main == target"
+else fail "own commit (r=$r sb=$sb): $(tail -3 "$SCRATCH/out")"; fi
 
 # 9. the preview unit runs Vite on the main folder, and a rebase leaves Vite serving stale modules: when the main
 #    folder moved, the unit is restarted (once, after the move); nothing moved, no restart; no unit, no restart;

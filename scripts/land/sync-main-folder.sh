@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 # Keeps the main folder (the main checkout) and the lap:4000 preview copy at the last commit whose GitHub run
 # passed (T328, John 17 Oct 2026). Nobody runs it by hand: the watchdog runs it every tick and land.sh after
-# every landing. For each copy:
-#   1. Stray edits (modified, staged or untracked files) are committed there first, as one WIP commit: nothing
-#      is ever lost.
-#   2. It pulls with a rebase onto the last passed commit. Edits already on main drop out by themselves.
-#   3. A conflict: the rebase is cancelled (the copy is back as it was, WIP commit included), and it exits 1
-#      saying what to fix. Commits of its own left on top of main after a clean rebase: exits 1 saying what to
-#      land. The agent fixes it: land.sh runs this after its push and refuses to call the landing finished
-#      until it is fixed (John, 17 Oct 2026: the agent is responsible). The watchdog's run only logs it.
+# every landing. It can never get stuck (T476, John 19 Oct 2026): it never rebases, never conflicts, and never
+# commits onto the copy's own main. For each copy:
+#   1. Stray edits (modified, staged or untracked files) are committed to a new branch stray/<UTC yyyymmddThhmmssZ>
+#      made from the copy's current HEAD (hooks off for that commit); the working tree then returns to the state
+#      of the branch it was on, so the copy's main is unchanged by the commit.
+#   2. Commits of the copy's own that are not on the passed commit are kept on a stray/ branch the same way (one
+#      branch holds both). The copy's main is reset to the passed commit ONLY after the branch ref exists and is
+#      verified to contain them.
+#   3. Otherwise main moves with git merge --ff-only <passed commit>.
+#   4. Every stray branch made is logged (STRAY) and printed; someone lands what is wanted from it. Exit stays 0.
 #      Exception: handover-only commits the workspace repo already holds are dropped first (drop-superseded-handover.sh).
-#   4. package-lock.json changed: npm ci runs in the copy.
-#   5. The main folder moved to a new commit: the openisd-preview unit (Vite on the main folder) is restarted, if
-#      installed. Vite does not cope with a rebase under it: it serves a mix of old and new modules (T427).
+#   5. package-lock.json changed: npm ci runs in the copy.
+#   6. The main folder moved to a new commit: the openisd-preview unit (Vite on the main folder) is restarted, if
+#      installed. Vite does not cope with a branch moving under it: it serves a mix of old and new modules (T427).
 #      A failed restart is logged and exits 1.
 # Only a passed commit is ever pulled: the last green that post-land recorded (${POST_LAND_LOCK}.green), never
 # the tip of main. Every action is logged with a UTC timestamp; runs never overlap (flock in the git dir).
@@ -23,7 +25,8 @@
 # Copies: the main folder, plus each path in the repo's git config openisd.syncedCopy (the preview, which stays
 # a detached worktree). Env: SYNC_LOG (default <main>/build/test-logs/sync-main-folder.log), SYNC_NPM (default
 # npm), SYNC_SYSTEMCTL (default systemctl), POST_LAND_LOCK / OPENISD_RUNTIME_DIR (scripts/paths.sh).
-# Exit 0 every copy at the last passed commit, 1 a copy is held (conflict, own commits, git failure): logged.
+# Exit 0 every copy at the last passed commit (stray branches made are not a failure), 1 a copy is held (git
+# failure, a stray branch that could not be made or verified): logged.
 set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=../paths.sh
@@ -54,9 +57,34 @@ target="${passed:-$(cat "$GREEN" 2> /dev/null)}"
 git -C "$main" merge-base --is-ancestor "$target" origin/main 2> /dev/null \
   || { log "the last passed commit ${target:0:10} is not on origin/main; nothing moved"; exit 1; }
 
-# sync <copy>: commit its stray edits, then rebase it onto the last passed commit.
+# stray_branch <copy> <name> <head>: put the copy's stray edits and own commits on stray/<utc time> (made from
+# <head>), verified, and leave the copy as it was at <head> with a clean tree. Prints the branch name.
+stray_branch() {
+  local copy="$1" name="$2" head="$3" ref base branch n=0
+  g() { git -C "$copy" "$@"; }
+  ref="$(g symbolic-ref -q HEAD)"
+  base="stray/$(date -u +%Y%m%dT%H%M%SZ)"; [ "$copy" = "$main" ] || base="$base-$(basename "$copy")"
+  branch="$base"
+  while g show-ref -q --verify "refs/heads/$branch"; do n=$((n + 1)); branch="$base-$n"; done
+  if [ -n "$(g status --porcelain --untracked-files=all)" ]; then
+    g checkout -q -b "$branch" || { log "$name: could not make $branch; not moved"; return 1; }
+    g add -A && g -c core.hooksPath=/dev/null commit -q -m "WIP $name: stray edits, committed by sync-main-folder" \
+      || { log "$name: could not commit its stray edits to $branch; not moved"; return 1; }
+    [ -z "$(g status --porcelain --untracked-files=all)" ] || { log "$name: tree still dirty after the commit on $branch; not moved"; return 1; }
+    if [ -n "$ref" ]; then g checkout -q "${ref#refs/heads/}"; else g checkout -q --detach "$head"; fi \
+      || { log "$name: could not return to ${ref:-$head} from $branch; stray work is safe on $branch"; return 1; }
+  else
+    g branch "$branch" "$head" || { log "$name: could not make $branch; not moved"; return 1; }
+  fi
+  g merge-base --is-ancestor "$head" "refs/heads/$branch" 2> /dev/null \
+    || { log "$name: $branch does not hold ${head:0:10}; not moved"; return 1; }
+  log "STRAY $name: kept on branch $branch ($(g rev-list --count "$target..$branch") commit(s) not on main): $(g diff --name-only "$head" "$branch" | tr '\n' ' ')"
+  echo "sync-main-folder: stray work from $name is on branch $branch; land what is wanted from a worktree" >&2
+}
+
+# sync <copy>: keep its stray work on a stray/ branch, then move it to the last passed commit.
 sync() {
-  local copy="$1" name gd head lock_before ahead rebase_out
+  local copy="$1" name gd head lock_before ahead
   [ "$copy" = "$main" ] && name="main folder" || name="$(basename "$copy")"
   [ -d "$copy" ] || { log "$name: $copy is listed but missing; skipped"; return 0; }
   g() { git -C "$copy" "$@"; }
@@ -67,35 +95,19 @@ sync() {
   head="$(g rev-parse HEAD)" || return 1
   lock_before="$(g rev-parse -q --verify HEAD:package-lock.json)"
 
-  if [ -n "$(g status --porcelain --untracked-files=all)" ]; then
-    g add -A && g commit -q -m "WIP $name: stray edits, committed by sync-main-folder $(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-      || { log "$name: could not commit its stray edits; not moved"; return 1; }
-    log "$name: committed stray edits as $(g rev-parse --short HEAD): $(g show --name-only --format= HEAD | tr '\n' ' ')"
+  if [ "$copy" = "$main" ]; then   # handover-only commits the workspace repo already holds
+    bash "$HERE/drop-superseded-handover.sh" "$copy" "$target"; head="$(g rev-parse HEAD)" || return 1
   fi
-
-  if [ "$copy" != "$main" ] && [ -z "$(g symbolic-ref -q HEAD)" ] && [ "$(g rev-list --count "$target..HEAD")" = 0 ]; then
-    g checkout -q --detach "$target" || { log "$name: could not move to ${target:0:10}"; return 1; }
-  elif ! rebase_out="$(g rebase -q "$target" 2>&1)"; then
-    if [ ! -e "$gd/rebase-merge" ] && [ ! -e "$gd/rebase-apply" ]; then
-      log "$name: git refused to rebase onto ${target:0:10} (no conflict): $(head -3 <<< "$rebase_out" | tr '\n' ' ')"
-      echo "sync-main-folder: to fix, in $copy: see why git refused, then rerun" >&2
-      return 1
-    fi
-    local conflicts; conflicts="$(g diff --name-only --diff-filter=U | tr '\n' ' ')"
-    g rebase --abort
-    log "$name: CONFLICT rebasing onto ${target:0:10} in $conflicts; cancelled, left at ${head:0:10} for someone to fix"
-    echo "sync-main-folder: to fix, in $copy: git rebase ${target:0:10}, resolve, then land what is wanted from a worktree" >&2
-    return 1
+  ahead="$(g rev-list --count "$target..HEAD")" || return 1
+  if [ -n "$(g status --porcelain --untracked-files=all)" ] || [ "$ahead" != 0 ]; then
+    stray_branch "$copy" "$name" "$head" || return 1
   fi
-
-  [ "$copy" = "$main" ] && bash "$HERE/drop-superseded-handover.sh" "$copy" "$target"   # handover-only commits the workspace repo already holds
-  ahead="$(g rev-list --count "$target..HEAD")"
-  [ "$(g rev-parse HEAD)" = "$head" ] || log "$name: moved ${head:0:10} -> $(g rev-parse --short=10 HEAD)"
   if [ "$ahead" != 0 ]; then
-    log "$name: $ahead commit(s) of its own are on top of main; left for someone to land or drop"
-    echo "sync-main-folder: to fix, land what is wanted from a worktree (they then drop out by themselves): $(g log --format='%h %s' "$target..HEAD" | head -10 | tr '\n' ';')" >&2
-    return 1
+    g reset -q --hard "$target" || { log "$name: could not reset to ${target:0:10}; its commits are safe on the stray branch"; return 1; }
+  elif ! g merge -q --ff-only "$target" 2> /dev/null; then
+    log "$name: could not fast-forward ${head:0:10} -> ${target:0:10}"; return 1
   fi
+  [ "$(g rev-parse HEAD)" = "$head" ] || log "$name: moved ${head:0:10} -> $(g rev-parse --short=10 HEAD)"
 
   if [ "$lock_before" != "$(g rev-parse -q --verify HEAD:package-lock.json)" ]; then
     log "$name: package-lock.json changed; running npm ci"
