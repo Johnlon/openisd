@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // The group the WinISD bug switches sit in, in both shells: a heading and a tooltip saying what the
-// group is (`CompatSwitchGroup.BUGS`). Which controls belong in it is decided in the design package
+// group is (`CompatSwitchGroup.BUGS`). A shell may replace the heading row through the `head` slot (the phone puts it on a grey band). Which controls belong in it is decided in the design package
 // (`CompatSwitch.BUGS`, `OpenISDProject.errorSwitches`), not here.
 import {CompatSwitchGroup} from '@openisd/design/fields';
 import CompatGroupHelpLink from './CompatGroupHelpLink.vue';
@@ -10,7 +10,7 @@ const group = CompatSwitchGroup.BUGS;
 
 <template>
   <div class="error-switch-group" :title="group.tooltip">
-    <div class="error-switch-group-headrow"><div class="error-switch-group-head">{{ group.heading }}</div><CompatGroupHelpLink :group="group" /></div>
+    <slot name="head"><div class="error-switch-group-headrow"><div class="error-switch-group-head">{{ group.heading }}</div><CompatGroupHelpLink :group="group" /></div></slot>
     <slot />
   </div>
 </template>

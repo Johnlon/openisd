@@ -1,6 +1,6 @@
 # BUG_20261019_phone-advanced-winisd-style-heading-cut-short
 
-**Status:** PARTLY FIXED (T446). The trailing "…" is gone from the heading and tooltip (design test compat-switch.test.ts, mobile and desktop browser specs). The grey-band look is not done: see the question at the bottom.
+**Status:** FIXED (T474). The heading keeps its "…" (John, 19 Oct 2026: "there should be elpisis after style..."; T446 had removed it by mistake) and sits on a grey band on the phone, like every other heading (John, QO277).
 
 Recorded 19 Oct 2026. Seen on prod, Advanced tab, phone 374x705 CSS px (John's Pixel 9).
 
@@ -32,5 +32,6 @@ phone mock, QO268 Advanced,
 Phone 374x705: the heading shows in full with no "…", as a grey band like the other groups. Before/after
 screenshots. Check any test that asserts the old heading text.
 
-## Question for John
-The heading now reads "Enable WinISD-style", the name the project rules already use. Do you also want the phone group headings drawn as grey bands (the classic mock)? That is a layout change nobody has asked for in words, so it is not made.
+## Result (maryu, 20 Oct 2026, T474)
+- Heading and tooltip read "Enable WinISD-style …" again: `packages/design/fields/compatSwitchGroup.ts`, test `compat-switch.test.ts`.
+- Phone: both group headings are grey bands (`MobileAdvancedTab.vue`, `ErrorSwitchGroup.vue` head slot); spec `mobile-advanced-tab.browser.spec.ts`. Desktop baseline `desktop-tab-advanced` changed for the "…" only.

@@ -80,7 +80,7 @@ Three kinds of WinISD difference, handled differently:
   Compatibility panel. The native control stays as WinISD has it.
 - Group headings name the kind (John, 2026-10-05): the bug switches sit under the "Enable WinISD
   bugs" heading and are named by the bug (e.g. "Re without Rg"); the plain WinISD-vs-OpenISD
-  choices sit under "Enable WinISD-style" and are named by the calculation (e.g. "Phase
+  choices sit under "Enable WinISD-style …" and are named by the calculation (e.g. "Phase
   wrapping"). Titles and tooltips live in `packages/design`
   (`ToggleField`, listed by `CompatSwitch`); each tooltip says in plain words what ticked and
   unticked do.

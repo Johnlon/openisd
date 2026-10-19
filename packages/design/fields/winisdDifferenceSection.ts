@@ -27,7 +27,7 @@ export class WinisdDifferenceSection {
 
   static readonly OPTIONS = new WinisdDifferenceSection(
     'Options: WinISD\'s way or alternative',
-    'OpenISD copies WinISD by default. However, sometimes there is an alternative approach: untick the switch under "Enable WinISD-style" on the Advanced tab for the other form.',
+    'OpenISD copies WinISD by default. However, sometimes there is an alternative approach: untick the switch under "Enable WinISD-style …" on the Advanced tab for the other form.',
     'option', 'winisd-diff-options', CompatSwitchGroup.OPTIONS, ['option']);
 
   static readonly FIXED = new WinisdDifferenceSection(

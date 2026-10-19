@@ -123,9 +123,18 @@ test('toggling the "Force flat response" checkbox writes through to the project'
   await expect(checkbox).toBeChecked({ checked: !before });
 });
 
+test('both WinISD compatibility group headings sit on the same grey band as the Environment heading', async ({ page }) => {
+  const band = (loc: import('@playwright/test').Locator) => loc.evaluate((el) => getComputedStyle(el.closest('.mob-panel-head') ?? el).backgroundColor);
+  const environment = await band(page.locator('.mob-panel-head', { hasText: 'Environment' }));
+  expect(environment).not.toBe('rgba(0, 0, 0, 0)');
+  expect(await band(page.getByText('Enable WinISD-style …', { exact: true }))).toBe(environment);
+  expect(await band(page.getByText('Enable WinISD bugs', { exact: true }))).toBe(environment);
+  await expect(page.locator('.mob-panel-head', { has: page.getByText('Enable WinISD bugs', { exact: true }) })).toHaveCount(1);
+});
+
 test('the bug switches carry the warning class under a "Enable WinISD bugs" heading', async ({ page }) => {
   const group = page.locator('.error-switch-group');
-  await expect(group.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
+  await expect(group.locator('.mob-bug-head')).toHaveText('Enable WinISD bugs');
   for (const key of ['winisdDriverModel', 'winisdVaModel', 'winisdPrNprResonance', 'winisdBesselHighpass', 'winisdAbcGroupDelay', 'winisdDriverCountModel', 'winisdSealedPicker', 'winisdTlPortNoEndCorrection']) {
     const label = group.locator(`label[data-field-key="${key}"]`);
     await expect(label, key).toHaveClass(/error-switch-marked/);
@@ -152,7 +161,7 @@ test('the warning mark of every bug switch sits fully inside its row and inside 
 
 test('the "Enable WinISD-style" group has every WinISD option the desktop has, and each one writes through', async ({ page }) => {
   const panel = page.locator('.mob-panel', { hasText: 'WinISD compatibility' });
-  await expect(panel.locator('.mob-group-head').first()).toHaveText('Enable WinISD-style');
+  await expect(panel.locator('.mob-group-head').first()).toHaveText('Enable WinISD-style …');
   for (const key of ['winisdWrapPhase', 'winisdFlatModel']) {
     const checkbox = panel.locator(`label[data-field-key="${key}"] input[type=checkbox]`);
     await expect(checkbox, key).toBeVisible();

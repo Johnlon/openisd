@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 7e7f7adcb45634937119b95166b834ffa70efdc6
 goal: Main folder can never get stuck: sync-main-folder puts stray edits on a stray/<time> branch and only fast-forwards main; a guard refuses edits in the main folder; watchdog alerts for a dead owner go to the coordinator.
 done_test: bash scripts/land/test/sync-main-folder.e2e.test.sh && bash scripts/land/test/watchdog.test.sh && bash scripts/land/test/main-folder-edit-guard.test.sh
 files:

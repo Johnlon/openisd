@@ -365,7 +365,7 @@ test.describe('Original Advanced tab', () => {
       const panel = page.locator('.sim-options-box');
       await expect(panel.locator('button:not(.compat-help-link)')).toHaveCount(0);
       await expect(panel.locator('button.compat-help-link')).toHaveCount(2);
-      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD-style');
+      await expect(panel.locator('.option-switch-group-head')).toHaveText('Enable WinISD-style …');
       await expect(panel.locator('.error-switch-group-head')).toHaveText('Enable WinISD bugs');
     });
 

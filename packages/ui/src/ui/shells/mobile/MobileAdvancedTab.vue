@@ -46,7 +46,7 @@ const {
 
   <div class="mob-panel">
     <div class="mob-panel-head">WinISD compatibility</div>
-    <div class="mob-row mob-group-headrow"><span class="mob-group-head" :title="CompatSwitchGroup.OPTIONS.tooltip">{{ CompatSwitchGroup.OPTIONS.heading }}</span><CompatGroupHelpLink :group="CompatSwitchGroup.OPTIONS" /></div>
+    <div class="mob-panel-head mob-panel-head-row"><span class="mob-group-head" :title="CompatSwitchGroup.OPTIONS.tooltip">{{ CompatSwitchGroup.OPTIONS.heading }}</span><CompatGroupHelpLink :group="CompatSwitchGroup.OPTIONS" /></div>
     <div class="mob-row mob-checkbox-row">
       <label data-field-key="winisdWrapPhase" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
         <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
@@ -63,6 +63,7 @@ const {
       </label>
     </div>
     <ErrorSwitchGroup>
+      <template #head><div class="mob-panel-head mob-panel-head-sub mob-panel-head-row"><span class="mob-bug-head">{{ CompatSwitchGroup.BUGS.heading }}</span><CompatGroupHelpLink :group="CompatSwitchGroup.BUGS" /></div></template>
       <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="ToggleField.ADV_WINISDDRIVERMODEL.description">
         <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERMODEL.label }}
       </ErrorSwitch>
@@ -143,8 +144,11 @@ const {
   font: inherit;
   font-size: 14px;
 }
-.mob-group-headrow { min-height: 0; display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
-.mob-group-head { font-size: 12px; font-weight: 600; color: var(--mut); }
+.mob-panel-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.mob-panel-head-sub { border-top: 1px solid var(--line); }
+.mob-panel-head + .mob-row { border-top: none; }
+/* The bug group looks different by rule: its heading keeps the warning colour on the grey band. */
+.mob-bug-head { color: #8a6500; }
 .mob-row-na { opacity: 0.45; }
 /* The phone panel has no gutter for a badge on the row's border: the warning mark sits inside the row. */
 .mob-row.error-switch-marked :deep(.error-switch-mark) { position: static; transform: none; flex: none; background: none; }
