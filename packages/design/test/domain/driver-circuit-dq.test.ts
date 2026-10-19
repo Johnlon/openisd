@@ -30,10 +30,16 @@ describe('OpenISDDriver data quality for the circuit', () => {
     expect(driver.specs.BL_Tm.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(true);
   });
 
-  it('flags a typed BL that disagrees with Qes even when no Mms is typed (the conflict shows on Fs, Mms and Cms)', () => {
+  it('marks a typed BL that disagrees with Qes, Fs, Re and Vas, with no Mms typed', () => {
     const driver = driverFromSpec(engine, {...LIBRARY, BL_Tm: 5});
     expect(driver.specs.BL_Tm.provenance).toBe('E');
-    expect(driver.issues().some(i => i.kind === 'inconsistent-inputs')).toBe(true);
+    expect(driver.specs.BL_Tm.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(true);
+  });
+
+  it('does not mark a typed BL that sits within datasheet rounding of the BL Qes, Fs, Re and Vas imply', () => {
+    // The implied BL for LIBRARY is 7.3046; 7.17 is a datasheet value 1.8% under it.
+    const driver = driverFromSpec(engine, {...LIBRARY, BL_Tm: 7.17});
+    expect(driver.specs.BL_Tm.dq.some(i => i.kind === 'inconsistent-inputs')).toBe(false);
   });
 
   it('marks a driver with only Qts as approximate, and still draws its charts', () => {

@@ -1,6 +1,6 @@
 # BUG_20261019_desktop-target-tuning-label-cut
 
-**Status:** OPEN
+**Status:** FIXED (T460) for the cut labels; the one-legend item is not done
 
 Recorded 19 Oct 2026 by fable, from bob's QO269 prod capture.
 
@@ -25,3 +25,9 @@ Not yet found. The label column is narrower than the longest label the Box tab s
 2. Widen the label column or wrap the label (two lines are fine, John 19 Oct 2026) so no label is
    cut at 1280x800.
 3. One legend component with one wording for both skins.
+
+## Fix (T460)
+Single-chamber Box tab label column 150 px; chamber columns wrap long labels; Vents label column 116 px. Test: packages/ui/test/ui/original-field-labels-uncut.browser.spec.ts (Box tab for 5 box types and Vented tab, 1280x800). Pictures: ui-gallery/fixes-20261019/desktop-target-tuning-label-cut/ (before-*, after-*).
+
+## Question for John (worker E, 19 Oct 2026)
+The two legends (bottom strip "Not entered"; right-hand "Entered / App level / calculated / Normal"; phone "Entered / Calculated / Not Available") are still different. Which one wording should both skins use?

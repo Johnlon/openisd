@@ -1,6 +1,6 @@
 # BUG_20261016_new-project-wizard-steps-inconsistent
 
-**Status:** OPEN
+**Status:** FIXED (T362, T363, T365)
 
 ## Symptom
 John, 16 Oct 2026, New project wizard on MOBILE (all of these reports are mobile), steps 3–5, every box type:
@@ -20,3 +20,6 @@ There are two wizards, one per skin (OriginalNewProject.vue and MobileNewProject
 - An alignment pick fills the volume (and tuning) but the field stays editable; typing a value is always allowed.
 - Volume sits on the same step for every box type (the alignment/volume step).
 - Architecture test: no NumInput outside UIFieldBody (covers the wizard). Browser spec per box type × skin: every number field on every step has arrows, no row overflows at 360 px.
+
+## Closed 19 Oct 2026 (worker E)
+Evidence on origin/main: WizardPlan (T362) is the one design plan per box type; step 4 holds volume and tuning for every box type as UIFixedField rows (T363); one label column and control width (T365). packages/ui/test/ui/new-project-step4.browser.spec.ts checks, on desktop and phone, every number box on step 4 for all six box types: stepper arrows present, fits the width, no sideways scroll. Alignment pick fills the volume and the field stays editable.

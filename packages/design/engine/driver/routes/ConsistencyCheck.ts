@@ -63,7 +63,7 @@ export class ConsistencyCheck {
       if (!isFinite(expected)) continue;
 
       // `rel.target` is one of `rel.fields`, so `delta[rel.target]` was set above for it.
-      let tolerance = delta[rel.target] ?? 0;
+      let tolerance = (delta[rel.target] ?? 0) + rel.modelTolerance * Math.abs(expected);
       for (const f of rel.fields) {
         const fieldDelta = delta[f];
         if (f === rel.target || !(fieldDelta! > 0)) continue;
