@@ -1,6 +1,6 @@
 # BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard
 
-**Status:** FIXED (T439), awaiting John on his phone
+**Status:** RESOLVED (T439). John confirmed it on his Pixel 9, 20 Oct 2026, on the lap:4000 preview: the last box on the Box tab (Target Tuning Freq) stays put when ▲ closes the keyboard.
 
 ## Symptom
 John, 19 Oct 2026, phone. Tap a number box: the keyboard opens. Tap ▲ or ▼ by it: the keyboard

@@ -3,6 +3,7 @@ release_note: "On the phone, the WinISD compatibility group headings sit on a gr
 repo: openisd
 owner: maryu
 status: done
+landed: 550c946589a193e106ac4149af2dfe23dcd2c9a1
 goal: Phone Advanced tab: the two WinISD compatibility group headings (Enable WinISD-style, Enable WinISD bugs) sit on the grey heading band every other phone section heading uses (John, QO277: do what is consistent with the rest of the design), and "Enable WinISD-style" keeps its "…" (John, 19 Oct: "there should be elpisis after style...").
 done_test: bash scripts/test.sh packages/design/test/domain/compat-switch.test.ts
 files:
