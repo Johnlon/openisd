@@ -1,6 +1,6 @@
 # BUG_20261019_phone-advanced-bug-switch-warning-icon-clipped
 
-**Status:** OPEN
+**Status:** FIXED (T446; test: mobile-advanced-tab.browser.spec.ts "the warning mark of every bug switch sits fully inside its row and inside the screen"). The phone rows now draw the mark inside the row; the desktop rows keep the mark on the border, unchanged.
 
 Recorded 19 Oct 2026. Seen on prod, Advanced tab, phone 374x705 CSS px (John's Pixel 9).
 

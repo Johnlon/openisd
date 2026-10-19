@@ -1,0 +1,20 @@
+id: T446
+release_note: fix
+repo: openisd
+owner: bugfix-B
+status: done
+goal: Phone Advanced tab - the warning mark on each yellow bug switch sits inside its row (was clipped at the panel edge), and the "Enable WinISD-style" heading loses its trailing ellipsis (bugs/BUG_20261019_phone-advanced-bug-switch-warning-icon-clipped.md, bugs/BUG_20261019_phone-advanced-winisd-style-heading-cut-short.md).
+done_test: bash scripts/test.sh packages/design/test/domain/compat-switch.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - tasks/T446.yml
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/design/fields/compatSwitchGroup.ts
+  - packages/design/test/domain/compat-switch.test.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - bugs/BUG_20261019_phone-advanced-bug-switch-warning-icon-clipped.md
+  - bugs/BUG_20261019_phone-advanced-winisd-style-heading-cut-short.md
+visual:
+  - desktop-tab-advanced

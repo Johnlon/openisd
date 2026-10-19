@@ -146,6 +146,8 @@ const {
 .mob-group-headrow { min-height: 0; display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
 .mob-group-head { font-size: 12px; font-weight: 600; color: var(--mut); }
 .mob-row-na { opacity: 0.45; }
+/* The phone panel has no gutter for a badge on the row's border: the warning mark sits inside the row. */
+.mob-row.error-switch-marked :deep(.error-switch-mark) { position: static; transform: none; flex: none; background: none; }
 .mob-adv-options { padding: 10px 12px; }
 .mob-adv-options :deep(.adv-options) { gap: 12px; }
 .mob-adv-options :deep(.adv-options label) { font-size: 14px; min-height: 32px; }

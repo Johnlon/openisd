@@ -3,6 +3,7 @@ release_note: Phone menu closes after Save As / Export and Share link shows its 
 repo: openisd
 owner: bugfix-A
 status: done
+landed: 9547fd5ee57c1c4645f81c6ab0ea01ff32c79335
 goal: Fix three menu and file IO bugs (owpr-save-as-says-stays-unsaved-when-saved, phone-menu-stays-open-after-save-as-export, phone-share-link-menu-item-no-visible-result).
 done_test: bash scripts/test.sh packages/ui/test/logic/applicationIO.test.ts
 files:
