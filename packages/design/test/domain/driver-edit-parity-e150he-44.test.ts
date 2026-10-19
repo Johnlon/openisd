@@ -6,7 +6,7 @@
 import assert from 'node:assert/strict';
 import {describe, expect, it} from 'vitest';
 import {
-  DRIVER_VAS_EDIT, UNSTATED_ZERO_KEYS, GROUP_DELAY_BOUND_MS, SEALED_FSC, SEALED_QTC, BOX_VOLUME, VENTED_FB, VENT_CROSS_AREA, VENT_LENGTH,
+  DRIVER_VAS_EDIT, UNSTATED_ZERO_KEYS, unstatedBlankDeviations, GROUP_DELAY_BOUND_MS, SEALED_FSC, SEALED_QTC, BOX_VOLUME, VENTED_FB, VENT_CROSS_AREA, VENT_LENGTH,
   applyEdit, assertChartMatches, assertLoadParity, assertReadout, chartRules, editorDeviations,
   loadBase, loadEditCapture, sweepAfterEdit,
 } from '../fixtures/winisdEditCapture.js';
@@ -39,9 +39,8 @@ describe('E150HE-44 sealed, Vas typed in the Driver editor (sweep-t429-e150-seal
     expect(editorDeviations(project, capture, (f) => !UNSTATED_ZERO_KEYS.includes(f.key))).toEqual([]);
   });
 
-  // WinISD shows fLe, KLe, Hc and Hg as entered zeros although the file does not state them; OpenISD shows them as not entered.
-  it.fails('Driver editor: fLe, KLe, Hc, Hg after Vas edit — bugs/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md', () => {
-    expect(editorDeviations(project, capture, (f) => UNSTATED_ZERO_KEYS.includes(f.key))).toEqual([]);
+  it('Driver editor: fLe, KLe, Hc, Hg the file leaves out stay blank (WinISD shows entered zeros; John, QO279)', () => {
+    expect(unstatedBlankDeviations(project, capture)).toEqual([]);
   });
 });
 
@@ -114,16 +113,12 @@ describe('E150HE-44 sealed, Vb typed in the Box tab (sweep-t429-e150-sealed-edit
 
 const VENTED_CHARTS: readonly Quantity[] = ['tfmag', 'spl', 'groupdelay', 'tfphase', 'excursion', 'impedance', 'rearportvelocity'];
 
-const VENT_AREA_BUG = 'bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md';
-
-function ventedReadouts(capture: EditCapture, project: OpenISDProject, areaBug: string | null = null): void {
+function ventedReadouts(capture: EditCapture, project: OpenISDProject): void {
   it('Box tab: Vb and Fb read as WinISD prints them', () => {
     assertReadout(capture, BOX_VOLUME, project.box.vented.volume_m3.value, 'Vb');
     assertReadout(capture, VENTED_FB, project.box.vented.tuning_goal_hz.value, 'Fb');
   });
-  const area = (): void => assertReadout(capture, VENT_CROSS_AREA, project.box.vented.vent.area_m2.value, 'cross area as the Vents tab shows it');
-  if (areaBug === null) it('Vents tab: cross area reads as WinISD prints it', area);
-  else it.fails(`Vents tab: cross area after ${capture.field} edit (WinISD shows all ports, OpenISD one) — ${areaBug}`, area);
+  it('Vents tab: cross area reads as WinISD prints it', () => assertReadout(capture, VENT_CROSS_AREA, project.box.vented.vent.totalArea_m2(), 'cross area as the Vents tab shows it'));
   it('Vents tab: vent length reads as WinISD prints it', () => assertReadout(capture, VENT_LENGTH, project.box.vented.vent.length_m.value, 'vent length'));
 }
 
@@ -158,7 +153,7 @@ for (const {run, field, write} of VENT_EDITS) {
     write(project, capture.typed);
     const swept = sweepAfterEdit(project, capture);
     chartCases(capture, swept, VENTED_CHARTS);
-    ventedReadouts(capture, project, field === 'Num' ? VENT_AREA_BUG : null);
+    ventedReadouts(capture, project);
   });
 }
 

@@ -39,6 +39,16 @@ test.describe('Original Vented tab', () => {
       await page.locator('select#vent-count').selectOption('2');
       await expect.poll(async () => parseFloat(await length.inputValue())).toBeGreaterThan(one);
     });
+
+    // WinISD's Cross area box reads all ports together (bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md).
+    test('picking two vents makes the Cross area box show twice the one-port area', async ({ appPage: page }) => {
+      await openVentedTab(page);
+      const area = page.locator('.field', { hasText: 'Cross area' }).locator('input');
+      const one = parseFloat(await area.inputValue());
+      expect(one).toBeGreaterThan(0);
+      await page.locator('select#vent-count').selectOption('2');
+      await expect.poll(async () => parseFloat(await area.inputValue()) / one).toBeCloseTo(2, 2);
+    });
   });
 
   test.describe('vent shape and end correction', () => {

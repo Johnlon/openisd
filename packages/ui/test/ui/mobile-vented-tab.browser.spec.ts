@@ -71,6 +71,14 @@ test.describe('MobileVentedTab', () => {
     await expect(area).toHaveText(areaBefore);
   });
 
+  test('picking two vents makes the Cross area box show twice the one-port area', async ({ appPage: page }) => {
+    const area = page.locator('.ui-field', { hasText: 'Cross area' }).locator('.mob-readonly');
+    const one = parseFloat((await area.textContent()) ?? '');
+    expect(one).toBeGreaterThan(0);
+    await page.locator('.mob-row', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
+    await expect.poll(async () => parseFloat((await area.textContent()) ?? '') / one).toBeCloseTo(2, 2);
+  });
+
   // John, 2026-10-01: the port velocity limit sits on the vent section in both layouts.
   test('the port velocity limit shows 17 m/s and takes an edit', async ({ appPage: page }) => {
     const input = page.locator('#mob-vent-velocity-limit');

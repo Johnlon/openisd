@@ -1,6 +1,6 @@
 # BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports
 
-**Status:** OPEN
+**Status:** FIXED
 
 ## Symptom
 Type 2 into the Vents tab "Number of vents". WinISD's cross area box then reads the area of both ports together. OpenISD's Vents tab cross area box (Original shell and Mobile, `NumberField.VENT_CROSSAREA_M2` bound to `vent.area_m2`) reads one port. A control OpenISD shares with WinISD must read as WinISD does, so this is an OpenISD difference, not a WinISD bug.
@@ -16,7 +16,8 @@ Seen on W5-1138SMF (vented, 38 Hz, 50 mm round port, 10 L): WinISD 0.0039 m2, Op
 Kind: a different display convention, copied by default under the WinISD rule. The OpenISD box shows the per-port area. ⚠ Only the one-port to two-port edit is captured; whether WinISD's box takes a typed total is not verified.
 
 ## Fix
-Separate fix task. The Vents tab cross-area box shows the total of all ports by default (WinISD's way), with the per-port figure behind a WinISD-style option whose tooltip names the case. No stored-field change. Needs John's word on any layout or option change.
+The Cross area box on the Vents tab (Original and Mobile, single vent and each bandpass/ABC port) now binds to `vent.totalArea_m2()`, the area of all ports together, as WinISD shows. The vent tooltip says the box adds up all the ports. No stored-field change, no layout change, no new option (the per-port option waits for John).
 
 ## Verification
-Remove both `it.fails` markers; both tests pass.
+- packages/design/test/domain/driver-edit-parity-w5.test.ts and driver-edit-parity-e150he-44.test.ts: the `it.fails` markers are gone; both pass.
+- packages/ui/test/ui/original-vented-tab.browser.spec.ts, mobile-vented-tab.browser.spec.ts, original-bandpass-vents.browser.spec.ts: two vents show twice the one-port area (red before the fix, green after).

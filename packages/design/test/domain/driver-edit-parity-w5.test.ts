@@ -20,7 +20,6 @@ const spec = (field: string, name: NumericDriverSpecFieldName): SpecEditTarget =
 const vent = (field: string, kind: VentEditTarget['kind']): VentEditTarget => ({pane: 'Vent', field, boxType: 'vented', kind});
 
 const BUG_NUMVC = 'bugs/BUG_20261019_winisd-numvc-is-not-a-simulation-input.md';
-const BUG_VENT_TOTAL_AREA = 'bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md';
 
 /** The checks that deviate, pinned: `it.fails` names the bug file. Key: `<fixture>|<check label>`. */
 const W5: DriverRuns = {
@@ -29,7 +28,6 @@ const W5: DriverRuns = {
     ...BP4_GROUP_DELAY_NOISE,
     ...['tfmag', 'spl', 'groupdelay', 'tfphase', 'excursion', 'impedance', 'maxpower', 'impedancephase', 'maxspl', 'Box tab: Fsc', 'Box tab: Qtc', 'Driver editor: stated fields']
       .map((label): [string, string] => [`sealed-edit-numvc|${label}`, BUG_NUMVC]),
-    ['vented-edit-ventnum|Vents tab: cross area', BUG_VENT_TOTAL_AREA],
   ]),
 };
 const describeRun = (run: Run): void => describeDriverRun(W5, run);

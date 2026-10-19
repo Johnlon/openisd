@@ -59,7 +59,7 @@ const {
     <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="activeVent.length_m" stepper />
     <UIField class="mob-ui-field" :title="FB_TARGET_TIP" :field="tuningField" :cell="activeTuning" stepper />
 
-    <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.area_m2.value" readonly plain />
+    <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.totalArea_m2()" readonly plain />
     <UIFixedField class="mob-ui-field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" readonly plain />
     <UIFixedField class="mob-ui-field" input-id="mob-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :defaulted="false" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" />
     <p v-if="fbUnreachable" class="mob-hint mob-hint-warn">{{ fbUnreachableMsg }}</p>
@@ -133,7 +133,7 @@ const {
       </template>
       <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" stepper />
       <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" stepper />
-      <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.area_m2.value" readonly plain />
+      <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.totalArea_m2()" readonly plain />
       <UIFixedField class="mob-ui-field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" readonly plain />
     </div>
   </template>

@@ -556,7 +556,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField id="og-vent-fb-target-field" class="field" input-id="og-vent-fb-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" />
                 </div>
                 <div class="field-row">
-                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.area_m2.value" readonly />
+                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.totalArea_m2()" readonly />
                 </div>
                 <div class="field-row">
                   <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" readonly />
@@ -656,7 +656,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   </div>
                 </div>
                 <div class="vent-port-row">
-                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.area_m2.value" readonly />
+                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.totalArea_m2()" readonly />
                   <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" readonly />
                 </div>
               </div>

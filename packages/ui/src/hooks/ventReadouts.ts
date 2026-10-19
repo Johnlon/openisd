@@ -29,7 +29,7 @@ export const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, n
  *  slotted. Width is always an input, never derived. */
 export const VENT_GEOMETRY_TIP = 'Cross area is solved from the vent\'s own dimension: diameter for a '
   + 'round vent, height for a slotted one. Width is always an input, never derived. Enter '
-  + 'either the dimension or the area and the other is calculated from it.';
+  + 'either the dimension or the area and the other is calculated from it. The Cross area box adds up all the ports.';
 /** Fh (Helmholtz Frequency) tooltip explaining meaning and calculation. */
 export const FH_TARGET_TIP = 'Fh (Helmholtz Frequency):\n'
   + 'The system tuning frequency of the passive radiator enclosure.\n'

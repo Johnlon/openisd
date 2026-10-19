@@ -5,7 +5,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   BOX_VOLUME, FRONT_BOX_VOLUME, FRONT_TUNING, FRONT_VENT_CROSS_AREA, FRONT_VENT_LENGTH, GROUP_DELAY_BOUND_MS, INTRA_VENT_CROSS_AREA,
-  INTRA_VENT_LENGTH, PR_TUNING, SEALED_FSC, SEALED_QTC, UNSTATED_ZERO_KEYS, VENTED_FB, VENT_CROSS_AREA, VENT_LENGTH, applyEdit,
+  INTRA_VENT_LENGTH, PR_TUNING, SEALED_FSC, SEALED_QTC, UNSTATED_ZERO_KEYS, VENTED_FB, VENT_CROSS_AREA, VENT_LENGTH, applyEdit, unstatedBlankDeviations,
   applyLossEdit, applyPortEdit, applySignalEdit, applySpecEdit, applyVentEdit, assertChartMatches, assertLoadParity, assertReadout,
   chartRules, editorDeviations, loadBase, loadEditCapture, sweepAfterEdit,
 } from './winisdEditCapture.js';
@@ -63,7 +63,7 @@ export function readouts(box: BoxType, capture: Capture, p: OpenISDProject): rea
       return [
         r('Box tab: Vb', BOX_VOLUME, b.vented.volume_m3.value), r('Box tab: Fb', VENTED_FB, b.vented.tuning_goal_hz.value),
         r('Vents tab: vent length', VENT_LENGTH, b.vented.vent.length_m.value),
-        r('Vents tab: cross area', VENT_CROSS_AREA, b.vented.vent.area_m2.value),
+        r('Vents tab: cross area', VENT_CROSS_AREA, b.vented.vent.totalArea_m2()),
       ];
     case 'bandpass4': {
       const {chambers, vents} = b.bandpass4;
@@ -71,7 +71,7 @@ export function readouts(box: BoxType, capture: Capture, p: OpenISDProject): rea
         r('Box tab: rear Vb', BOX_VOLUME, chambers.rear.volume_m3.value),
         r('Box tab: front Vb', FRONT_BOX_VOLUME, chambers.front.volume_m3.value), r('Box tab: front Fb', FRONT_TUNING, chambers.front.tuning_goal_hz.value),
         r('Vents tab: front vent length', FRONT_VENT_LENGTH, vents.front.length_m.value),
-        r('Vents tab: front cross area', FRONT_VENT_CROSS_AREA, vents.front.area_m2.value),
+        r('Vents tab: front cross area', FRONT_VENT_CROSS_AREA, vents.front.totalArea_m2()),
       ];
     }
     case 'abc': {
@@ -80,11 +80,11 @@ export function readouts(box: BoxType, capture: Capture, p: OpenISDProject): rea
         r('Box tab: rear Vb', BOX_VOLUME, chambers.rear.volume_m3.value), r('Box tab: rear Fb', VENTED_FB, chambers.rear.tuning_goal_hz.value),
         r('Box tab: front Vb', FRONT_BOX_VOLUME, chambers.front.volume_m3.value), r('Box tab: front Fb', FRONT_TUNING, chambers.front.tuning_goal_hz.value),
         r('Vents tab: rear vent length', VENT_LENGTH, vents.rear.length_m.value),
-        r('Vents tab: rear cross area', VENT_CROSS_AREA, vents.rear.area_m2.value),
+        r('Vents tab: rear cross area', VENT_CROSS_AREA, vents.rear.totalArea_m2()),
         r('Vents tab: front vent length', FRONT_VENT_LENGTH, vents.front.length_m.value),
-        r('Vents tab: front cross area', FRONT_VENT_CROSS_AREA, vents.front.area_m2.value),
+        r('Vents tab: front cross area', FRONT_VENT_CROSS_AREA, vents.front.totalArea_m2()),
         r('Vents tab: intra vent length', INTRA_VENT_LENGTH, vents.intra.length_m.value),
-        r('Vents tab: intra cross area', INTRA_VENT_CROSS_AREA, vents.intra.area_m2.value),
+        r('Vents tab: intra cross area', INTRA_VENT_CROSS_AREA, vents.intra.totalArea_m2()),
       ];
     }
     case 'bandpass6': {
@@ -93,9 +93,9 @@ export function readouts(box: BoxType, capture: Capture, p: OpenISDProject): rea
         r('Box tab: rear Vb', BOX_VOLUME, chambers.rear.volume_m3.value), r('Box tab: rear Fb', VENTED_FB, chambers.rear.tuning_goal_hz.value),
         r('Box tab: front Vb', FRONT_BOX_VOLUME, chambers.front.volume_m3.value), r('Box tab: front Fb', FRONT_TUNING, chambers.front.tuning_goal_hz.value),
         r('Vents tab: rear vent length', VENT_LENGTH, vents.rear.length_m.value),
-        r('Vents tab: rear cross area', VENT_CROSS_AREA, vents.rear.area_m2.value),
+        r('Vents tab: rear cross area', VENT_CROSS_AREA, vents.rear.totalArea_m2()),
         r('Vents tab: front vent length', FRONT_VENT_LENGTH, vents.front.length_m.value),
-        r('Vents tab: front cross area', FRONT_VENT_CROSS_AREA, vents.front.area_m2.value),
+        r('Vents tab: front cross area', FRONT_VENT_CROSS_AREA, vents.front.totalArea_m2()),
       ];
     }
     case 'box-passive-radiator':
@@ -142,10 +142,9 @@ export function describeRun(driver: DriverRuns, run: Run): void {
       if (bug === undefined) it(`${c.label} matches`, c.check);
       else it.fails(`${c.label} after ${run.edit.field} — ${bug}`, c.check);
     }
-    // WinISD shows fLe, KLe, Hc and Hg as entered zeros although the file does not state them; OpenISD shows them as not entered.
     if (capture.editor !== null) {
-      it.fails(`Driver editor: fLe, KLe, Hc, Hg after ${run.edit.field} — bugs/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md`, () => {
-        expect(editorDeviations(project, capture, (f) => UNSTATED_ZERO_KEYS.includes(f.key))).toEqual([]);
+      it('Driver editor: fLe, KLe, Hc, Hg the file leaves out stay blank (WinISD shows entered zeros; John, QO279)', () => {
+        expect(unstatedBlankDeviations(project, capture)).toEqual([]);
       });
     }
   });

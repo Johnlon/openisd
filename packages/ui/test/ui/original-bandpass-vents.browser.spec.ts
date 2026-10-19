@@ -58,6 +58,15 @@ test('bandpass6: the rear vent length follows the rear tuning set on the Box tab
   expect(Number(await page.locator('#og-vent-length-rear').inputValue())).toBeGreaterThan(0);
 });
 
+test('bandpass6: two rear vents make the rear Cross area box show twice the one-port area', async ({page}) => {
+  await openVents(page, 'bandpass6');
+  const area = page.locator('.vent-col', {has: page.locator('#og-vent-count-rear')}).locator('.field', {hasText: 'Cross area'}).locator('input');
+  const one = parseFloat(await area.inputValue());
+  expect(one).toBeGreaterThan(0);
+  await page.locator('#og-vent-count-rear').selectOption('2');
+  await expect.poll(async () => parseFloat(await area.inputValue()) / one).toBeCloseTo(2, 2);
+});
+
 /** WinISD's Vents tab per port (capture bp6_abc_wizard_defaults): Number, Shape, Vent diameter,
  *  Vent length, End Correction, Cross area, 1st port resonance. Each must sit fully inside the
  *  bottom panel, not clipped or scrolled away. */

@@ -463,6 +463,19 @@ export function openIsdMark(project: OpenISDProject, spec: NumericDriverSpecFiel
   return 'N';
 }
 
+/** The fields the file leaves out (fLe, KLe, Hc, Hg) stay blank in OpenISD: mark N, no value (John, QO279). */
+export function unstatedBlankDeviations(project: OpenISDProject, capture: Capture): readonly string[] {
+  const out: string[] = [];
+  if (capture.editor === null) return out;
+  for (const [f] of capture.editor) {
+    if (!UNSTATED_ZERO_KEYS.includes(f.key)) continue;
+    const mark = openIsdMark(project, f.spec);
+    const raw = project.driver.specField(f.spec).value;
+    if (mark !== 'N' || raw !== null) out.push(`${f.key}: mark ${mark}, value ${raw}`);
+  }
+  return out;
+}
+
 /** Every editor field: OpenISD's mark equals WinISD's, and its value rounds to what WinISD printed. */
 export function editorDeviations(project: OpenISDProject, capture: Capture, only: (f: EditorField) => boolean): readonly string[] {
   const out: string[] = [];
