@@ -1,0 +1,10 @@
+id: T462
+release_note: internal
+repo: openisd
+owner: worker-wt
+status: done
+goal: Record bug: new-worktree.sh bases on unlanded main folder commits
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T462.yml
+  - bugs/BUG_20261019_new-worktree-bases-on-unlanded-main-folder-commits.md
