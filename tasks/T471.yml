@@ -1,0 +1,10 @@
+id: T471
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Record that prod's phone Graph page already marks unsaved changes (QO276 evidence)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T471.yml
+  - bugs/BUG_20261017_phone-graph-page-shows-no-unsaved-mark.md

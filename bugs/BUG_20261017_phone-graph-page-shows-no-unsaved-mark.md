@@ -16,6 +16,15 @@ until they leave the Graph page and open the menu (the Save item lights up there
   see the mark, and one assertion looked for a class (`.mob-open-project-dot`) that no component
   has, so it passed whatever the app did. Removed.
 
+## Update 19 Oct 2026 (bob, QO276): prod already shows a mark
+- test.openisd.app at 374x705, 19 Oct: after stepping a Tune value and closing Tune, the Graph page
+  has its own top row (menu, chart picker, per-screen, Save), and the Save button is solid blue.
+  Picture: http://lap:8000/winisd/ui-gallery/QO276/prod-graph.png
+- Code: `MobileChartView.vue` draws `MobileSaveButton`, which is grey when saved and `lit` (solid
+  blue) when the open project has unsaved changes. Added by T349 (d6377a59), after this bug was filed.
+- So the symptom above no longer holds: the Graph page shows the unsaved state through the Save
+  button. Whether a second mark is wanted (QO276 options a/b) is John's call; if not, close this bug.
+
 ## Cause
 The Graph page hides the top bar to give the charts the screen, and no other element carries the
 unsaved state.
