@@ -59,6 +59,10 @@ export interface DriverYmlProjection {
  *  help a caller that must also emit YAML text preserving the source's key order. */
 const SCRAPER_ONLY_KEY = "scraper_meta";
 
+/** The scraper's list of everything it read that no field took (QT93). It is the scraper's own
+ *  store: accepted here and dropped, so it never reaches `openisd.json` or a `.wdr`. */
+const SCRAPER_PRINTED_KEY = "printed";
+
 /** What a field MEANS. It belongs to `driver.yml` and to nothing downstream — John, 2026-09-01:
  *  "definition is 100% dead, it has no place in our openisd work except where I strip it in the
  *  bridge". A consumer of an openisd record already knows what `Fs` is.
@@ -755,7 +759,7 @@ export class WinIsdDriverConverter {
   ): Record<string, unknown> {
     const out: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(driverYml)) {
-      if (key === SCRAPER_ONLY_KEY) continue;
+      if (key === SCRAPER_ONLY_KEY || key === SCRAPER_PRINTED_KEY) continue;
       out[key] =
         key === "specs"
           ? this.#projectSpecs(stripDefinitionField(value),  warnings)

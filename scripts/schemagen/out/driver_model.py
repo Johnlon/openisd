@@ -38,10 +38,10 @@ class RootQuality(Strict):
     issue: str = None
     confirmed_fields: list[str] = None
     fields_with_issues: list[str] = None
-    missing: list[str]
+    missing: list[str] = None
     invalid: list[str]
     parse_errors: list[str]
-    cross_source_only: list[object]
+    cross_source_only: list[object] = None
 
 class TextFieldDqScraper(Strict):
     kind: str

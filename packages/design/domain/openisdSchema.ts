@@ -535,10 +535,12 @@ export const openISDDeviceJsonSchema = z.strictObject({
         // them must keep parsing beside a new one that has neither.
         confirmed_fields: z.string().array().optional(),
         fields_with_issues: z.string().array().optional(),
-        missing: z.string().array(),
+        // Optional (T433): today's scraper record carries neither, and an absent one stays absent —
+        // no default is invented for it. An older record still carrying them parses beside it.
+        missing: z.string().array().optional(),
         invalid: z.string().array(),
         parse_errors: z.string().array(),
-        cross_source_only: z.unknown().array(),
+        cross_source_only: z.unknown().array().optional(),
     }),
     manufacturer: textField,
     brand: textField,
