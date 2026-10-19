@@ -1,0 +1,10 @@
+id: T463
+release_note: internal
+repo: openisd
+owner: worker-lint
+status: done
+goal: Record bug: land lint gate logged 2 hours, the clock jumped
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - bugs/BUG_20261019_land-lint-gate-took-two-hours.md
+  - tasks/T463.yml
