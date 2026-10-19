@@ -1,6 +1,6 @@
 # BUG_20261018_phone-equation-inspector-covers-editor-tabs
 
-**Status:** OPEN
+**Status:** FIXED in T470 (test: packages/ui/test/ui/driver-editor-phone-fixes.browser.spec.ts).
 
 ## Symptom
 On the phone (374x705), in the driver editor with Inspect Provenance ticked, tapping a field opens the Provenance card at the top right. The card covers the editor's Close ✕ and the Advanced and Dimensions tabs. The user cannot switch tabs or close the editor until they close the card.
@@ -17,3 +17,6 @@ On the phone, the card must not cover the editor's header, tabs or footer button
 
 ## Verification
 Gallery screen `phone-equation-inspector`: the editor's Close ✕ and all four tabs are visible and tappable while the card is open. A browser spec taps the Advanced tab with the card open and sees the Advanced tab.
+
+## Fixed
+Fixed in T470 (driver-editor-phone-fixes.browser.spec.ts). Before/after: ui-gallery/fixes-20261019/driver-editor/. On the phone the card docks over the lower half of the editor body.

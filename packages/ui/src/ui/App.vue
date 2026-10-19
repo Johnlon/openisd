@@ -246,8 +246,13 @@ onUnmounted(() => {
 .app-root-mobile :deep(.de-btn-row) { gap: 4px; }
 .app-root-mobile :deep(.de-btn-row > button) { padding-left: 6px; padding-right: 6px; }
 .app-root-mobile :deep(.de-params) {
-  grid-template-columns: max-content max-content 34px 16px !important;
+  grid-template-columns: max-content max-content minmax(34px, max-content) 16px !important;
 }
+/* Bug (John, 18 Oct 2026: "the driver editor buttons are tiny"): the tabs, the close cross and
+   the footer buttons are at least 44 px tall on a phone, 44 wide. */
+.app-root-mobile :deep(.de-tab) { min-height: 44px; }
+.app-root-mobile :deep(.de-modal h2 .x) { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.app-root-mobile :deep(.de-footer button) { min-height: 44px; min-width: 44px; }
 .app-root-mobile :deep(.de-dims) {
   flex-direction: column !important;
 }

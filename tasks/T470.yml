@@ -1,0 +1,17 @@
+id: T470
+release_note: internal
+repo: openisd
+owner: worker-d
+status: done
+goal: Driver editor on the phone (bugs/BUG_20261018_driver-editor-buttons-tiny.md, bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md, bugs/BUG_20261018_phone-equation-inspector-covers-editor-tabs.md). Tabs, close cross and footer buttons at least 44 px; unit buttons take their width from their text; the Provenance card docks inside the editor body so it never covers the tabs, close cross or footer.
+done_test: bash scripts/test.sh packages/ui/test/architecture/driver-editor-template.test.ts packages/ui/test/architecture/unit-label-underline-owned-by-unittoggle.test.ts
+files:
+  - tasks/T470.yml
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/EquationInspectorModal.vue
+  - packages/ui/test/ui/driver-editor-phone-fixes.browser.spec.ts
+  - bugs/BUG_20261018_driver-editor-buttons-tiny.md
+  - bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md
+  - bugs/BUG_20261018_phone-equation-inspector-covers-editor-tabs.md
+visual: []

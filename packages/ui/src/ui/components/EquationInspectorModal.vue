@@ -106,6 +106,7 @@ const emit = defineEmits<{ close: [] }>();
   gap: 8px;
   max-height: 320px;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .eq-empty {

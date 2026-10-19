@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: worker-wt
 status: done
+landed: 529ccf9232e0597a54cab3a1b05e92de5b2a597b
 goal: Record bug: new-worktree.sh bases on unlanded main folder commits
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

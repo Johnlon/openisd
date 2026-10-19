@@ -234,6 +234,21 @@ function updatePopupPosition() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
+  // No room beside the editor (a phone, where the editor fills the screen): dock the card
+  // inside the editor, over the lower part of its body, so the header, tabs and footer buttons
+  // stay in view and tappable.
+  const body = el.querySelector('.de-body');
+  if (r.left <= gap && vw - r.right - 2 * gap < 200 && body) {
+    const b = body.getBoundingClientRect();
+    const height = Math.min(popupHeight, Math.round(b.height / 2));
+    popupStyle.value = {
+      position: 'fixed', left: `${Math.round(b.left)}px`, width: `${Math.round(b.width)}px`,
+      top: `${Math.round(b.bottom - height)}px`, right: 'auto', bottom: 'auto',
+      maxWidth: 'none', maxHeight: `${height}px`, display: 'flex', flexDirection: 'column',
+    };
+    return;
+  }
+
   const width = Math.min(popupWidth, Math.max(200, vw - r.right - 2 * gap));
   const left = Math.min(Math.max(gap, r.right + gap), vw - gap - width);
   const top = Math.min(Math.max(gap, r.top), vh - gap - popupHeight);
@@ -932,6 +947,9 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
      panel every time it was cycled. Wide enough for the longest unit the editor shows. */
   width: 34px; text-align: left; box-sizing: border-box;
 }
+/* A unit button wider than two characters ("mm/N", "1000/K", "kg/m³") takes its width from its
+   text; 34px is the minimum. bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md */
+.de-body :deep(.unit-toggle) { width: auto; min-width: 34px; }
 .de-fld.cl-dim input, .de-fld.cl-dim select { background: var(--panel2); color: var(--mut); }
 .de-row2 { display: flex; gap: 16px; }
 .de-row2 .de-fld { flex: 1; width: auto; }
@@ -1022,9 +1040,9 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
+  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
   /* 2px between tracks: 15 gaps across 16 tracks; at 6px the grid was wider than the modal's body in Chromium and wider still in Firefox, so the body scrolled sideways. */
-  gap: 3px 2px !important;
+  gap: 3px 0 !important;
   align-items: center !important;
   align-content: start !important;
   justify-content: start !important;
@@ -1044,7 +1062,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
      on one column edge. FOUR tracks: label, input, unit, DQ marker — the marker needs a track
      of its own or the row it appears on wraps and stops matching the rows around it. */
   display: grid;
-  grid-template-columns: max-content max-content 34px 16px;
+  grid-template-columns: max-content max-content minmax(34px, max-content) 16px;
   align-items: center;
   /* A tight row pitch: eight fields read as ONE list, as they do in WinISD's own Dimensions
      page. Row spacing lives HERE and nowhere else — a per-field margin on top of it stacked
@@ -1155,7 +1173,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
    columns of them overran the modal and forced a sideways scroll. */
 .de-cols {
   display: grid !important;
-  grid-template-columns: repeat(4, max-content max-content 34px 16px) !important;
+  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }
