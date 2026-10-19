@@ -3,6 +3,7 @@ release_note: "Desktop Box and Vents labels are no longer cut off, and a typed B
 repo: openisd
 owner: bugfix-e
 status: done
+landed: 6c6630bc3f667b85cb5a3946cc567427ef8c540d
 goal: Group E bug-fix wave. A typed BL that disagrees with Fs, Qes, Re and Vas gets a dq mark with no Mms typed (5% datasheet tolerance); no Box or Vented tab label is cut at 1280x800; close the new-project wizard bug with evidence; Auto Y question recorded.
 done_test: bash scripts/test.sh packages/design/test/domain/driver-circuit-dq.test.ts packages/design/test/domain/driver-consistency-solver-golden.test.ts packages/persistence/test/storageUpgrade.test.ts
 files:

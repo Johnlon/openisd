@@ -22,6 +22,11 @@ bare ✅/❌. On the OpenISD side "the field exists" is not a test — the row n
 CONSUMES the value, or the test that exercises it; a declared-but-unconsumed field is recorded
 as inert, not as ✅.
 
+**The ≠W Difference cue** marks a significant difference only: a result a user would notice
+and care about (a chart, a calculated value, an input WinISD ignores, a field WinISD does not let
+you type). A trivial difference, such as a value the file never gave shown blank where WinISD
+shows an entered 0, gets no cue (John, 19 Oct 2026, QO279).
+
 Measured calculation equivalence (worst deviation per chart, box and setting) lives in
 [`WINISD_EQUIVALENCE.md`](WINISD_EQUIVALENCE.md); this file covers features and fields.
 

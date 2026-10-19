@@ -67,6 +67,12 @@ Three kinds of WinISD difference, handled differently:
   are other tests and signals. It also means OpenISD may already have copied such a bug while
   chasing parity: look for it, and remove it.
 - When it is unclear which kind a WinISD behaviour is, ask John.
+- **The ≠W Difference cue is for significant differences only** (John, 2026-10-19, QO279: "the
+  diff thing is for significant diffs not trivial stuff like this"). It goes by a control or chart
+  where OpenISD gives a different result from WinISD that a user would notice and care about: a
+  chart, a calculated value, an input WinISD ignores, a field WinISD does not let you type. A
+  trivial difference gets no cue and no question to John: keep OpenISD's way and record it in the
+  bug file. Example: a value the file never gave is blank in OpenISD and an entered 0 in WinISD.
 
 - Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
   is at driver side").
