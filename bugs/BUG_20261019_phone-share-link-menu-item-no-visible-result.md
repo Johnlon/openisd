@@ -1,6 +1,6 @@
 # BUG_20261019_phone-share-link-menu-item-no-visible-result
 
-**Status:** OPEN
+**Status:** FIXED in T445 — test: mobile-menu.browser.spec.ts Share Link case, applicationIO.test.ts: 'Share link shows the link in a message when the clipboard refuses'
 
 Recorded 19 Oct 2026 by fable, from bob's sweep of test.openisd.app at 374x705.
 

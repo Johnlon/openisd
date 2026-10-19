@@ -289,4 +289,20 @@ test.describe('MobileMenu', () => {
       expect(await lib.boundingBox()).toEqual(before.lib);
     });
   });
+
+  // BUG_20261019_phone-menu-stays-open-after-save-as-export / phone-share-link-menu-item-no-visible-result:
+  // choosing a Save As / Export item closes the whole phone menu so the result message shows.
+  test.describe('Save As / Export items', () => {
+    test.use({ viewport: { width: 374, height: 705 }, permissions: ['clipboard-read', 'clipboard-write'] });
+
+    for (const item of [/Save As WinISD project/, /Export WinISD Driver/, /Share Link to Project/]) {
+      test(`${item} closes the menu and shows its message`, async ({ page }) => {
+        await openMobileMenu(page);
+        await page.locator('.mob-menu-export .export-menu-trigger').click();
+        await page.locator('.export-menu-list button', { hasText: item }).click();
+        await expect(page.locator('.mob-menu-overlay')).toHaveCount(0);
+        await expect(page.getByTestId('flash-strip')).toBeVisible();
+      });
+    }
+  });
 });

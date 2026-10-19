@@ -1,0 +1,20 @@
+id: T445
+release_note: Phone menu closes after Save As / Export and Share link shows its result; the .owpr download message says unsaved only when it is.
+repo: openisd
+owner: bugfix-A
+status: active
+goal: Fix three menu and file IO bugs (owpr-save-as-says-stays-unsaved-when-saved, phone-menu-stays-open-after-save-as-export, phone-share-link-menu-item-no-visible-result).
+done_test: bash scripts/test.sh packages/ui/test/logic/applicationIO.test.ts
+files:
+  - tasks/T445.yml
+  - bugs/BUG_20261019_owpr-save-as-says-stays-unsaved-when-saved.md
+  - bugs/BUG_20261019_phone-menu-stays-open-after-save-as-export.md
+  - bugs/BUG_20261019_phone-share-link-menu-item-no-visible-result.md
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/ui/components/ExportMenu.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/logic/applicationIO.test.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+visual: []
+blocked_reason: rebase onto origin/main conflicts in: bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md 

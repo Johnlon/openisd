@@ -1,6 +1,6 @@
 # BUG_20261019_phone-menu-stays-open-after-save-as-export
 
-**Status:** OPEN
+**Status:** FIXED in T445 — test: mobile-menu.browser.spec.ts: 'Save As / Export items' (3 items at 374x705)
 
 Recorded 19 Oct 2026 by fable, from bob's sweep of test.openisd.app at 374x705.
 
