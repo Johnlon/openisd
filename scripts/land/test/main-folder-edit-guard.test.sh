@@ -30,5 +30,15 @@ run "$S/wt" Edit "{\"file_path\":\"$S/wt/a.ts\"}" "$S/wt"; r=$?
 [ $r = 0 ] && ok "a worktree's own gate allows its edits" || fail "wt (r=$r)"
 run "$S/wt" Bash "{\"command\":\"sed -i s/a/b/ a.ts\"}" "$S/wt"; r=$?
 [ $r = 0 ] && ok "sed -i in a worktree is allowed" || fail "sed -i wt (r=$r)"
+# T478: a session whose cwd is the main folder edits in a sibling worktree named like it (openisd-t450).
+git -C "$S/main" worktree add -q "$S/main-t1" -b t1 2> /dev/null
+run "$S/main" Bash "{\"command\":\"cd $S/main-t1 && sed -i s/a/b/ a.ts\"}" "$S/main"; r=$?
+[ $r = 0 ] && ok "cd into a sibling worktree then sed -i is allowed" || fail "cd sibling sed -i (r=$r)"
+run "$S/main" Bash "{\"command\":\"sed -i s/a/b/ $S/main-t1/a.ts 2> /dev/null\"}" "$S/main"; r=$?
+[ $r = 0 ] && ok "sed -i on a sibling worktree's absolute path is allowed" || fail "abs sibling sed -i (r=$r)"
+run "$S/main" Bash "{\"command\":\"sed -i s/a/b/ $S/main/a.ts\"}" "$S/wt"; r=$?
+[ $r != 0 ] && ok "sed -i on the main folder's absolute path from a worktree is refused" || fail "abs main from wt (r=$r)"
+run "$S/main" Bash "{\"command\":\"cd $S/main-t1 && sed -i s/a/b/ $S/main/a.ts\"}" "$S/main"; r=$?
+[ $r != 0 ] && ok "a cd elsewhere does not excuse an absolute main-folder path" || fail "cd + abs main (r=$r)"
 [ $fails = 0 ] && { echo "main-folder-edit-guard: all passed"; exit 0; }
 echo "main-folder-edit-guard: $fails failed"; exit 1

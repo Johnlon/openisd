@@ -1,0 +1,12 @@
+id: T478
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Main-folder edit guard: a Bash in-place edit counts as in the main folder only when its effective directory (a leading cd, else the session cwd) or a path it names is inside the main folder; a sibling worktree path (openisd-t450) is not the main folder.
+done_test: bash scripts/land/test/main-folder-edit-guard.test.sh
+files:
+  - tasks/T478.yml
+  - gates.py
+  - scripts/land/test/main-folder-edit-guard.test.sh
+  - bugs/BUG_20261020_main-folder-guard-refuses-worktree-edits.md

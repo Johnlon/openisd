@@ -68,6 +68,23 @@ def in_main_folder(path: str, base: str, main: str) -> bool:
     return full.split(os.sep)[len(main.split(os.sep))] not in ALLOWED_TOP if full != main else True
 
 
+LEADING_CD = re.compile(r"^\s*cd\s+(['\"]?)([^'\"\s;&|]+)\1\s*(&&|;)")
+ABS_PATH = re.compile(r"(?<![\w.])/[^\s'\";&|()<>]+")
+
+
+def bash_edits_main_folder(command: str, cwd: str, main: str) -> bool:
+    """An in-place edit hits the main folder when a path it names is inside it, or, naming no path
+    elsewhere, when it runs there: a leading `cd X &&` sets where it runs, else the session cwd.
+    Paths compare by whole components, so a sibling worktree (openisd-t450) is not the main folder (T478)."""
+    paths = [p for p in ABS_PATH.findall(command) if not p.startswith("/dev/")]
+    if any(in_main_folder(p, cwd, main) for p in paths):
+        return True
+    if paths:
+        return False
+    cd = LEADING_CD.match(command)
+    return in_main_folder(os.path.join(cwd, cd.group(2)) if cd else cwd, cwd, main)
+
+
 def payload_object(payload: str) -> dict:
     try:
         data = json.loads(payload)
@@ -88,7 +105,7 @@ def check_edit(tool: str, payload: str) -> int:
         hit = isinstance(path, str) and in_main_folder(path, cwd, main)
     else:
         command = tool_input.get("command") if isinstance(tool_input.get("command"), str) else ""
-        hit = bool(IN_PLACE.search(command)) and (in_main_folder(cwd, cwd, main) or main in command)
+        hit = bool(IN_PLACE.search(command)) and bash_edits_main_folder(command, cwd, main)
     if not hit:
         return 0
     print("openisd gate: " + MAIN_FOLDER_MESSAGE, file=sys.stderr)
