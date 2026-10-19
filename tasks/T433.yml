@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: a4d2a419a9f5f1f4f8f0e17242e8ed4cd910bc00
 goal: openisdSchema.ts accepts the driver.json record the scraper writes today and the bridge bundle packages/design/dist/openisd-bridge.js is rebuilt from it. quality.missing and quality.cross_source_only are optional with no invented default; driver_type.value is a string or an array of strings, parsed into one typed form; spec state is the scraper's full set as a sum type; `printed` is accepted and dropped, never in openisd.json or .wdr output. Fixtures from morel/tiw-634nd and an older record both parse. From winisd_tools bugs/BUG_20261009_openisd-bridge-rejects-printed-key.md.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

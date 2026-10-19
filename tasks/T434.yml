@@ -1,0 +1,11 @@
+id: T434
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Record the phone toolbar bug seen on the 19 Oct sweep (bugs/BUG_20261019_phone-toolbar-project-name-cut.md): the project name in the phone top bar is cut to an ellipsis at 374 px. Doc only, no code.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T434.yml
+  - bugs/BUG_20261019_phone-toolbar-project-name-cut.md
+visual: []
