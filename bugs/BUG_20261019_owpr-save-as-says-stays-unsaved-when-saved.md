@@ -1,6 +1,6 @@
 # BUG_20261019_owpr-save-as-says-stays-unsaved-when-saved
 
-**Status:** OPEN
+**Status:** FIXED in T445 — test: applicationIO.test.ts: 'Save As download says the project stays unsaved only when it has unsaved changes'
 
 Recorded 19 Oct 2026 by fable, from bob's sweep of test.openisd.app at 374x705.
 

@@ -194,7 +194,7 @@ const diagnostics = injectDiagnosticsModal();
             <div class="mob-menu-sep"></div>
             <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
             <button type="button" class="mob-menu-item" :class="{ dirty: anyUnsaved }" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
-            <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
+            <ExportMenu class="mob-menu-item mob-menu-export" @chosen="closeMenu">Save As / Export</ExportMenu>
             <div class="mob-menu-sep"></div>
             <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
             <div class="mob-menu-sep"></div>

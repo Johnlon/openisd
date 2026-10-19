@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: worker-lint
 status: done
+landed: 974ad3659a4c8bfe2cc10a2f2e9af0d39bbdef72
 goal: Record bug: land lint gate logged 2 hours, the clock jumped
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

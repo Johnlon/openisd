@@ -129,7 +129,7 @@ export function createApplicationIO(deps: {
   const featureUse = deps.featureUse ?? new FeatureUse(telemetry, deps.actions);
   const recordSave = (format: SaveFormat, project: OpenISDProject | null): void =>
     telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? ''});
-  const { currentViewSnapshot, driverName, focusedProject, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
+  const { currentViewSnapshot, driverName, focusedProject, isModified, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
   const presentationState = deps.presentation;
   // Save/export/share operate on committed project state. An open What-if? is transient, so
   // these boundaries cancel it before reading or promoting anything.
@@ -263,7 +263,7 @@ export function createApplicationIO(deps: {
     adoptFileName(result.name, suggested);
     const fileName = result.name ?? suggested;
     if (!result.written) {
-      flash(`Project downloaded as ${fileName}. It stays marked unsaved.`);
+      flash(isModified.value ? `Project downloaded as ${fileName}. It stays marked unsaved.` : `Project downloaded as ${fileName}`);
       return;
     }
     markProjectSaved();
@@ -280,11 +280,10 @@ export function createApplicationIO(deps: {
     featureUse.feature('share_link');
     const url = await deps.projectRepo.stateToUrl(requireFocusedProject(), currentViewSnapshot());
     setShareUrl(url);
+    const showLink = (): void => flash(`Could not copy the share link. Copy it from here: ${url}`);
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(url).then(
-        () => flash('Share link copied to clipboard'),
-        () => prompt('Copy this share link:', url));
-    } else { prompt('Copy this share link:', url); }
+      navigator.clipboard.writeText(url).then(() => flash('Share link copied to clipboard'), showLink);
+    } else { showLink(); }
   }
 
   function exportWdr(): void {
