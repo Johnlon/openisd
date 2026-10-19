@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import {computed, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
+import {computed, inject, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
 import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, tenthsCaret, NumberField, type NumberEdit, type SpinDirection} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
 import {entryRefusal, type EntryBounds} from '../../logic/entryRefusal.js';
+import {STEPPER_PIN} from '../../logic/stepperPin.js';
+import {screenTopPx} from '../../logic/visibleViewport.js';
 const presentationState = useApp().presentation;
+const stepperPin = inject(STEPPER_PIN, null);
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
 // bind them to the INPUT explicitly (never the ⚠ note).
@@ -251,6 +254,9 @@ function startRepeat(dir: SpinDirection, e: PointerEvent): void {
   const fromCaret = caretForStep();
   const isMobile = presentationState.shownSkin() === 'mobile' || e.pointerType === 'touch';
   if (isMobile) {
+    // The box has the keyboard up: the press closes it, so the pin keeps the box where it is on screen.
+    const box = inputEl.value;
+    if (stepperPin !== null && box !== null && document.activeElement === box) stepperPin.pin(() => screenTopPx(box, window));
     if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
   } else {
     inputEl.value?.focus();

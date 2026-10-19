@@ -3,14 +3,15 @@
  * destination, plus the manual skin switch and the no-project empty state. One hook, one
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
-import {type Ref, computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
+import {type Ref, computed, nextTick, onMounted, onUnmounted, provide, ref, watch} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
 import {cycleTraceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse, useRecentActions} from './telemetryContext.js';
 import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {inputFrom} from '../logic/domEvents.js';
-import {visibleViewportHeightPx} from '../logic/visibleViewport.js';
+import {visibleViewportHeightPx, visibleViewportTopPx} from '../logic/visibleViewport.js';
+import {STEPPER_PIN, StepperPin} from '../logic/stepperPin.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
 import type {TabId} from '../logic/tabId.js';
@@ -100,6 +101,12 @@ export interface MobileShellApi {
   goToAdvanced: () => void;
   /** The real, currently-visible viewport height in px — see the field's own comment. */
   viewportHeightPx: import('vue').Ref<number>;
+  /** How far the browser has panned the page (the keyboard): the shell is moved down by it. */
+  viewportTopPx: import('vue').Ref<number>;
+  /** The space below the form that keeps a box in place when ▲▼ closes the keyboard (`StepperPin`). */
+  pinSpacePx: import('vue').Ref<number>;
+  /** Bound to `.mob-content`'s `scroll`: the scroll edges, and the pin. */
+  onContentScroll: () => void;
   /** Mirrors desktop's own nav gate: sealed has no Enclosure destination (Volume + Fsc live only
    *  on the Box tab). */
   showEnclosureTab: import('vue').ComputedRef<boolean>;
@@ -438,15 +445,29 @@ export function useMobileShell(): MobileShellApi {
   // `visibleViewportHeightPx` says which number and why — re-read on every event any browser
   // fires when such a bar appears or disappears.
   const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : visibleViewportHeightPx(window));
-  function updateViewportHeight(): void { viewportHeightPx.value = visibleViewportHeightPx(window); }
+  const viewportTopPx = ref(0);
+  function updateViewportHeight(): void {
+    viewportHeightPx.value = visibleViewportHeightPx(window);
+    viewportTopPx.value = visibleViewportTopPx(window);
+  }
+  // The visible screen changed size (the keyboard): the box being typed in is scrolled into view
+  // inside the form, and a pinned box is held where it was.
+  function onVisibleResize(): void {
+    updateViewportHeight();
+    void nextTick().then(() => {
+      const el = document.activeElement;
+      if (el instanceof HTMLInputElement && contentEl.value?.contains(el)) el.scrollIntoView({block: 'nearest'});
+      stepperPin.hold();
+    });
+  }
   // DuckDuckGo fires neither a window nor a visualViewport resize when it hides its address bar,
   // and the bar's animation ends after the touch does: these events re-measure now and once more
   // on the next frame.
   function remeasureSoon(): void { updateViewportHeight(); requestAnimationFrame(updateViewportHeight); }
   onMounted(() => {
     window.addEventListener('resize', updateViewportHeight);
-    window.visualViewport?.addEventListener('resize', updateViewportHeight);
-    window.visualViewport?.addEventListener('scroll', updateViewportHeight);
+    window.visualViewport?.addEventListener('resize', onVisibleResize);
+    window.visualViewport?.addEventListener('scroll', onVisibleResize);
     window.addEventListener('scroll', remeasureSoon);
     window.addEventListener('touchend', remeasureSoon);
     window.addEventListener('orientationchange', remeasureSoon);
@@ -454,8 +475,8 @@ export function useMobileShell(): MobileShellApi {
   });
   onUnmounted(() => {
     window.removeEventListener('resize', updateViewportHeight);
-    window.visualViewport?.removeEventListener('resize', updateViewportHeight);
-    window.visualViewport?.removeEventListener('scroll', updateViewportHeight);
+    window.visualViewport?.removeEventListener('resize', onVisibleResize);
+    window.visualViewport?.removeEventListener('scroll', onVisibleResize);
     window.removeEventListener('scroll', remeasureSoon);
     window.removeEventListener('touchend', remeasureSoon);
     window.removeEventListener('orientationchange', remeasureSoon);
@@ -468,6 +489,19 @@ export function useMobileShell(): MobileShellApi {
   // indicator on `.mob-content` itself would sit entirely behind them and never be seen — the
   // shadow has to live on the ALWAYS-VISIBLE, never-covered top/tab bars instead.
   const contentEl = ref<HTMLElement | null>(null);
+  const pinSpacePx = ref(0);
+  const stepperPin = new StepperPin({
+    screenHeightPx: () => window.screen.height,
+    scrollBy: dy => { if (contentEl.value !== null) contentEl.value.scrollTop += dy; },
+    setSpacePx: px => { pinSpacePx.value = px; },
+    belowViewPx: () => {
+      const el = contentEl.value;
+      return el === null ? 0 : el.scrollHeight - el.scrollTop - el.clientHeight;
+    },
+    now: () => performance.now(),
+    nextFrame: run => { requestAnimationFrame(run); },
+  });
+  provide(STEPPER_PIN, stepperPin);
   const canScrollUp = ref(false);
   const canScrollDown = ref(false);
   function updateScrollEdges(): void {
@@ -475,6 +509,10 @@ export function useMobileShell(): MobileShellApi {
     if (el === null) { canScrollUp.value = false; canScrollDown.value = false; return; }
     canScrollUp.value = el.scrollTop > 1;
     canScrollDown.value = el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+  }
+  function onContentScroll(): void {
+    updateScrollEdges();
+    stepperPin.onScroll();
   }
   // Catches content height changes the user didn't cause by scrolling (switching box type,
   // editing a field that shows/hides a hint row, …) without a per-field wiring: watches the
@@ -559,7 +597,7 @@ export function useMobileShell(): MobileShellApi {
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
-    goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
+    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll, showEnclosureTab, enclosureNavLabel,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
     projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
     openProjectRows, selectOpenProject, closeOpenProject,

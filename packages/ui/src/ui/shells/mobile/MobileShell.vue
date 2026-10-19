@@ -33,8 +33,8 @@ import {APP_UPDATE_TEXT, NO_PROJECT_OPEN} from '@openisd/design/fields';
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
-  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
-  showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
+  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
+  showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown,
   username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
@@ -50,7 +50,7 @@ const diagnostics = injectDiagnosticsModal();
 </script>
 
 <template>
-  <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined }">
+  <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }">
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <!-- No top bar over the Graph destination — it's deliberately full-screen (see
@@ -92,13 +92,14 @@ const diagnostics = injectDiagnosticsModal();
     </div>
 
     <template v-else>
-      <main ref="contentEl" class="mob-content" @scroll="updateScrollEdges">
+      <main ref="contentEl" class="mob-content" @scroll="onContentScroll">
         <MobileChartView v-if="destination === 'graph'" @menu="toggleMenu" />
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
         <MobileFiltersTab v-else-if="destination === 'filters'" />
         <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
+        <div v-if="pinSpacePx > 0" class="mob-pin-space" :style="{ height: pinSpacePx + 'px' }" aria-hidden="true"></div>
       </main>
       <ProvenanceLegend v-if="destination === 'box' || destination === 'signal' || destination === 'enclosure'" />
       <MobilePaneDialog v-if="pane === 'project'" title="Project" @close="closePane">
