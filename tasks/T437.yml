@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 20edf4d7a9a24965b58f26a89783efffb300a9cf
 goal: Record two phone Advanced tab bugs seen on prod (bugs/BUG_20261019_phone-advanced-bug-switch-warning-icon-clipped.md, bugs/BUG_20261019_phone-advanced-winisd-style-heading-cut-short.md). Doc only, no code.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

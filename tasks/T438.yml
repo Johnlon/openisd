@@ -1,0 +1,13 @@
+id: T438
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Record three phone menu bugs seen on prod (bugs/BUG_20261019_phone-share-link-menu-item-no-visible-result.md, bugs/BUG_20261019_phone-menu-stays-open-after-save-as-export.md, bugs/BUG_20261019_owpr-save-as-says-stays-unsaved-when-saved.md). Doc only, no code.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T438.yml
+  - bugs/BUG_20261019_phone-share-link-menu-item-no-visible-result.md
+  - bugs/BUG_20261019_phone-menu-stays-open-after-save-as-export.md
+  - bugs/BUG_20261019_owpr-save-as-says-stays-unsaved-when-saved.md
+visual: []
