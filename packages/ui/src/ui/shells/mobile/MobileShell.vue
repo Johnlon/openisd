@@ -177,7 +177,7 @@ const diagnostics = injectDiagnosticsModal();
               <button type="button" class="mob-open-project-colour-wrap" :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
                       @click="cycleProjectColour(row)"><span class="mob-open-project-colour" :style="{ background: row.open.colour ?? undefined }"></span></button>
               <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
-                <span v-if="row.open.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
+                <span v-if="row.open.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span><span class="mob-open-project-name-text">{{ row.name }}</span>
               </button>
             </template>
             <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
@@ -340,12 +340,13 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; font-weight: 600; font-size: 17px; }
 .mob-brand img { width: 24px; height: 24px; display: block; }
-/* The focused project's name: takes the rest of the bar, cut with an ellipsis when long. */
+/* The focused project's name: takes the rest of the bar and wraps to two lines (ellipsis only past two). */
 .mob-project-title {
   all: unset;
   box-sizing: border-box;
   flex: 1; min-width: 0; margin-left: 12px; text-align: right;
-  font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 15px; line-height: 1.15; overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
   cursor: pointer;
   color: inherit;
 }
@@ -466,6 +467,8 @@ const diagnostics = injectDiagnosticsModal();
   white-space: nowrap;
 }
 .mob-open-project.focused .mob-open-project-name { font-weight: 600; }
+/* A long name wraps onto more lines; the whole name always shows (John, 20 Oct 2026). */
+.mob-open-project-name-text { flex: 0 1 auto; min-width: 0; display: block; padding: 6px 0; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; }
 .mob-open-project-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--acc2); }
 .mob-open-project-close { all: unset; box-sizing: border-box; flex: none; min-width: 48px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--mut); cursor: pointer; }
 

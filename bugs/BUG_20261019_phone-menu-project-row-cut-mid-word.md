@@ -1,6 +1,6 @@
 # BUG_20261019_phone-menu-project-row-cut-mid-word
 
-**Status:** OPEN
+**Status:** FIXED (T450): the name is its own span and wraps onto more lines, whole name shown (John, 20 Oct 2026: "use multi line there for the project name"); test mobile-project-list.browser.spec.ts "a long open-project name in the phone menu wraps onto more lines, nothing cut". Before/after: ui-gallery/fixes-20261019/phone-menu-project-row-cut-mid-word
 
 Recorded 19 Oct 2026 by fable, from bob's button sweep of test.openisd.app at 374x705
 (ui-gallery/screens/buttons/README.md in the workspace repo).

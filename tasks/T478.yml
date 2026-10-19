@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: bc4d077dc58e04cc2c0a37376fcde4046c69dc09
 goal: Main-folder edit guard: a Bash in-place edit counts as in the main folder only when its effective directory (a leading cd, else the session cwd) or a path it names is inside the main folder; a sibling worktree path (openisd-t450) is not the main folder.
 done_test: bash scripts/land/test/main-folder-edit-guard.test.sh
 files:

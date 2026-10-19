@@ -1,6 +1,6 @@
 # BUG_20261019_phone-toolbar-project-name-cut
 
-**Status:** OPEN
+**Status:** FIXED (T450): the name wraps to two lines in the same bar height; test mobile-topbar.browser.spec.ts "a long project name ... wrapped, not cut". Before/after: ui-gallery/fixes-20261019/phone-toolbar-project-name-cut
 
 Recorded 19 Oct 2026 by fable, from bob's sweep of test.openisd.app at 374x705.
 

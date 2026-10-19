@@ -37,3 +37,8 @@ stays off because Learn never changes the project.
 ## Verification
 Browser spec on the phone skin: open Graph, step a Tune value, the mark shows on the Graph page
 itself; Close in Learn after stepping, no mark.
+
+## Question for John (19 Oct 2026, bug-fix wave group C)
+Not fixed: the look of the mark is John's call. Options: (a) a small dot beside the hamburger-less
+Graph page's corner, (b) a mark on the Tune pull-tab. Recommendation: (b), it sits where the user
+edits. Reply with a or b and the fix follows.

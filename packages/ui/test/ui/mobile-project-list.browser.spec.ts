@@ -2,7 +2,7 @@
  * The open-project rows in the Projects pane: one row per open project, with
  * a show-on-graphs checkbox, a focus tap and a colour swatch.
  */
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, renameFocusedProject, test} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
 
@@ -156,4 +156,21 @@ test.describe('The menu\'s open projects', () => {
     await openMobileMenu(page);
     await expect(rows.first()).toHaveClass(/focused/);
   });
+});
+
+// BUG_20261019_phone-menu-project-row-cut-mid-word: a long open-project name was clipped mid-word.
+// John, 20 Oct 2026: "use multi line there for the project name" — the whole name shows, wrapped.
+test('a long open-project name in the phone menu wraps onto more lines, nothing cut', async ({ page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  const name = 'W5-1138SMF vented 30 L tuned low for the car door';
+  await renameFocusedProject(page, name);
+  await openMobileMenu(page);
+  const text = page.locator('.mob-open-project-name-text');
+  await expect(text).toHaveText(name);
+  const shown = await text.evaluate((e) => {
+    const lineHeight = parseFloat(getComputedStyle(e).lineHeight);
+    return { cut: e.scrollWidth > e.clientWidth || e.scrollHeight > e.clientHeight, lines: Math.round(e.clientHeight / lineHeight) > 1 };
+  });
+  // 374 px wide menu: the name cannot fit on one line, so it wraps and none of it is hidden
+  expect(shown).toEqual({ cut: false, lines: true });
 });
