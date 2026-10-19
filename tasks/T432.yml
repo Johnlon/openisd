@@ -1,0 +1,11 @@
+id: T432
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Record the desktop Box tab bug seen on the QO269 prod capture (bugs/BUG_20261019_desktop-target-tuning-label-cut.md): "Target Tuning Freq (Fb)" and "Number of Vents" labels cut by ellipsis at 1280x800, and two legends with different words. Doc only, no code.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T432.yml
+  - bugs/BUG_20261019_desktop-target-tuning-label-cut.md
+visual: []
