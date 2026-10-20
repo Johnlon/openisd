@@ -3,7 +3,8 @@ label: fixes
 release_note: internal
 repo: openisd
 owner: sonnet
-status: blocked
+status: done
+landed: 3433a3a0f8631068a148e482fb7d6f68778957b2
 goal: 'Tune sheet task 2: sheet session and hooks (no template changes). Also F37 architecture failure: StoragePrefix gets a createStoragePrefix factory'
 done_test: bash scripts/test.sh packages/ui/test/hooks/sheetSession.test.ts packages/ui/test/hooks/MobileSheet-hooks.test.ts packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
 files:
@@ -28,4 +29,3 @@ files:
   - packages/ui/test/hooks/runHook.ts
   - packages/ui/test/hooks/sheetSession.test.ts
   - tasks/T218.yml
-blocked_reason: rebase onto origin/main conflicts in: packages/persistence/src/storage/storagePrefix.ts packages/persistence/test/storagePrefix.test.ts 

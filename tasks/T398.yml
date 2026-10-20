@@ -2,7 +2,8 @@ id: T398
 release_note: internal
 repo: openisd
 owner: bob
-status: blocked
+status: done
+landed: 836876e508002bbc880134a4e61ab76f64e3fdd1
 goal: Test and snapshot builds live on their own sites, so they never share storage or service workers with production. test.openisd.app = newest snapshot (was openisd.app/test/); snapshots.openisd.app/v/<stamp>/ and /snap/<stamp>/ = every release and snapshot, with their list pages (were openisd.app/v/ and /snap/); openisd.app carries production only, and its old copy addresses hold a page that sends the visitor on plus the kill-switch worker. Two GitHub repos (Johnlon/openisd-test, Johnlon/openisd-snapshots), Pages from their gh-pages branch, CNAME file in each deploy, Enforce HTTPS once the cert issues; deploy.yml pushes there with a deploy key per repo. Straight to the custom domains, no github.io phase (opi, 18 Oct 2026); John added both Porkbun CNAMEs to johnlon.github.io the same day. John must add https://test.openisd.app as an authorised origin and redirect for Google sign-in. Done: both sites open in a fresh browser; openisd.app has no /test/, /v/ or /snap/ builds; T396's upgrade test passes. Starts after the 7.0.953 cut. John approved the plan via fable, 18 Oct 2026 ~13:30Z ('ok do it').
 done_test: bash scripts/test.sh packages/design/test/fields/appVersion.test.ts packages/ui/test/logic/versionIndex.test.ts packages/ui/test/scripts/site-index.test.ts
 files:
@@ -30,4 +31,3 @@ files:
   - scripts/release.sh
   - scripts/ui-gallery/README.md
   - scripts/ui-gallery/capture.mjs
-blocked_reason: rebase onto origin/main conflicts in: bugs/BUG_20261018_land-pr-title-over-256.md 

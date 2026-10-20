@@ -2,7 +2,8 @@ id: T271
 release_note: Two projects with the same name are two rows, every project is stored the moment you make it, and the phone menu lists your open projects.
 repo: openisd
 owner: fable
-status: blocked
+status: done
+landed: 1789a508050431fa8837fb2c5e47f434cfb127a9
 goal: Projects pages bug fixes, projects stored when made, phone menu with open projects, phone Projects page marks
 done_test: bash scripts/test.sh packages/ui/test/hooks/projectBinView.test.ts
 visual:
@@ -73,4 +74,3 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
   - tasks/T305.yml
-blocked_reason: rebase onto origin/main conflicts in: packages/ui/test/visual/SOURCES.sha256 

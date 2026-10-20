@@ -2,11 +2,11 @@ id: T116
 release_note: The chart legend always names each project, with one project or several.
 repo: openisd
 owner: bob
-status: blocked
+status: done
+landed: 982570d3eb95c0102964b5f6efa7f9296eb184ef
 goal: The chart legend entry for a project is always the project name, with one project or many.
 done_test: bash scripts/test.sh packages/design/test/chart/build-plot-data.test.ts
 files:
   - tasks/T116.yml
   - packages/design/chart/series.ts
   - packages/design/test/chart/build-plot-data.test.ts
-blocked_reason: rebase onto origin/main conflicts in: packages/design/chart/series.ts 

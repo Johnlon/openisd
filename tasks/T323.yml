@@ -2,7 +2,8 @@ id: T323
 release_note: internal
 repo: openisd
 owner: maryu
-status: blocked
+status: done
+landed: c45b6611cc6b4b653f86ac4f0bb8532177d0027c
 goal: Restore T321's task file; land.sh refuses a task file that overwrites another task's; new-worktree.sh refuses loudly
 done_test: bash scripts/land/test/land-task-id.e2e.test.sh
 files:
@@ -14,4 +15,3 @@ files:
   - scripts/land/test/land-task-id.e2e.test.sh
   - docs/DEV_PROCESS.md
   - bugs/BUG_20261017_task-id-reused-overwrites-landed-record.md
-blocked_reason: rebase onto origin/main conflicts in: tasks/T321.yml 

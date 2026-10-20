@@ -1,0 +1,13 @@
+id: T499
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: A task whose file says blocked is marked done when it lands, and at the next landing when its commit is already on main (ten landed tasks still said blocked)
+done_test: bash scripts/land/test/land-squash.test.sh
+files:
+  - tasks/T499.yml
+  - scripts/land.sh
+  - scripts/land/core/task.sh
+  - scripts/land/test/land-squash.test.sh
+  - bugs/BUG_20261020_blocked-task-stays-blocked-after-landing.md

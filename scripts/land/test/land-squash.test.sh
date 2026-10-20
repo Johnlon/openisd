@@ -96,5 +96,20 @@ ld5=$(git -C "$SCRATCH/w/origin.git" show main:tasks/fixes/F5.yml | sed -n 's/^l
 if [ $r = 0 ] && [ "$st5" = open ] && [ -z "$ld5" ]; then ok "open F5 is not closed by the next landing"
 else fail "fix task auto-closed (r=$r st=$st5 landed=$ld5)"; fi
 
+# g. T499: a task once blocked by a rebase conflict lands with status done and no blocked_reason; another task
+# still blocked whose "<id>:" commit is on main is marked done and landed by the same landing
+setup
+sed -i 's/^status: claimed$/status: blocked/' tasks/T9.yml; printf 'blocked_reason: rebase onto origin/main conflicts in: f.txt\n' >> tasks/T9.yml
+printf 'id: T8\nowner: t\nstatus: blocked\nrelease_note: internal\ngoal: Old one.\ndone_test: true\nfiles:\n  - g.txt\nblocked_reason: rebase onto origin/main conflicts in: g.txt\n' > tasks/T8.yml
+echo g > g.txt; git add -A; git commit -qm "T8: Old one."; git push -q origin main
+echo 1 > f.txt; git add -A; git commit -qm "wip"
+bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
+t8sha=$(git -C "$SCRATCH/w/origin.git" log --format='%H %s' main | awk '$2 == "T8:" { print $1; exit }')
+t9=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T9.yml); t8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml)
+if [ $r = 0 ] && grep -qx 'status: done' <<< "$t9" && ! grep -q blocked_reason <<< "$t9" \
+   && grep -qx 'status: done' <<< "$t8" && grep -qx "landed: $t8sha" <<< "$t8" && ! grep -q blocked_reason <<< "$t8"; then
+  ok "a blocked task that lands is done; a blocked task already on main becomes done + landed"
+else fail "blocked stays blocked (r=$r) T9: $(grep -E '^(status|blocked)' <<< "$t9" | tr '\n' ' ') T8: $(grep -E '^(status|landed|blocked)' <<< "$t8" | tr '\n' ' ')"; fi
+
 [ $fails = 0 ] && { echo "land-squash: all passed"; exit 0; }
 echo "land-squash: $fails failed"; exit 1

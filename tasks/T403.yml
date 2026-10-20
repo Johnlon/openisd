@@ -2,7 +2,8 @@ id: T403
 release_note: internal
 repo: openisd
 owner: bob
-status: blocked
+status: done
+landed: 774848b5b8e42fd9423ce58ab333a7e4e2bb8e8a
 goal: The engine drives every chart from Fs, Vas, Qes, Qms, Re, Sd, BL, Le as WinISD does (Cms, Mms, Rms display only, dq when they disagree; Qts only fills a missing Qes/Qms; Qts-only driver uses WinISD's 2·Qts fallback with a warning); What-if rows Fs, Vas, Qes, Qms; Two-BL switch off = one BL from Qes. A test proves every field, setting and What-if row recalculates. Bug: bugs/BUG_20261018_what-if-qts-vas-do-not-move-charts.md.
 done_test: bash scripts/test.sh packages/design/test/domain/every-input-recalculates.test.ts packages/design/test/engine/driver-circuit-values.test.ts packages/design/test/domain/driver-circuit-dq.test.ts
 visual:
@@ -74,4 +75,3 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
-blocked_reason: rebase onto origin/main conflicts in: bugs/BUG_20261018_desktop-what-if-right-units-clipped.md 

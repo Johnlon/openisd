@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 53c3b4fad048300216a53e12a1f203c8484e57b1
 goal: A task branch that merges cleanly with origin/main lands even when replaying its commits one by one would conflict: land.sh puts the task onto origin/main as one commit with the merged tree.
 done_test: bash scripts/land/test/land-clean-merge.e2e.test.sh && bash scripts/land/test/land-squash.test.sh
 files:

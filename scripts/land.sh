@@ -214,7 +214,8 @@ fi
 
 # 2b. a task lands as one commit. Any other task whose "<id>:" commit is on main and that lacks
 # `landed` gets status done and the sha here, whatever its status said (T099: claims that outlived
-# their landing, T053 and F11-fix, blocked other claims for a day); every commit of this branch must
+# their landing, T053 and F11-fix, blocked other claims for a day; T499: a task blocked once by a rebase
+# conflict and landed later kept "blocked" for good); every commit of this branch must
 # be this task's own; then the branch is squashed into "<id>: <goal>" with status done and the
 # release note as the body (T064). Never a tasks/fixes/F*.yml: its "F<n>: the full suite is red"
 # commit is on main from the moment it opens, so this loop closed F15 to F19 at the next landing
@@ -223,7 +224,7 @@ edited=0
 for tf in tasks/*.yml; do
   [ -f "$tf" ] && [ "$tf" != "$TASK" ] || continue
   [ -z "$(task_field "$tf" landed)" ] || continue
-  case "$(task_field "$tf" status)" in open|claimed|todo|done) ;; *) continue ;; esac
+  case "$(task_field "$tf" status)" in open|claimed|todo|blocked|done) ;; *) continue ;; esac
   tid="$(task_field "$tf" id)"
   [ -n "$tid" ] || continue
   lsha="$(git log origin/main --format='%H %s' | awk -v p="$tid:" 'index($2, p) == 1 { print $1; exit }')"
@@ -233,7 +234,7 @@ for tf in tasks/*.yml; do
   edited=1
 done
 if [ "$(task_field "$TASK" status)" != done ]; then
-  case "$(task_field "$TASK" status)" in open|claimed|todo) task_mark_done "$TASK"; edited=1 ;; esac
+  case "$(task_field "$TASK" status)" in open|claimed|todo|blocked) task_mark_done "$TASK"; edited=1 ;; esac
 fi
 if [ -n "$(git rev-list origin/main..HEAD)" ] || [ "$edited" = 1 ]; then
   task_commit_message "$ID" "$(task_field "$TASK" goal)" "$(task_field "$TASK" release_note)" > "$WORK/squash.msg"
