@@ -1,0 +1,14 @@
+id: T492
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: The architecture unit tests finish well inside their time limit on a loaded box: the ts-morph no-globals check (197 s at load 35 against a 60 s limit) is made fast, so a landing's architecture gate is not refused for load.
+done_test: bash scripts/test.sh packages/design/test/architecture-no-globals.test.ts packages/ui/test/architecture/import-from-declarer-only.test.ts packages/ui/test/architecture/no-domain-value-through-component.test.ts packages/ui/test/architecture/no-persistence-vocabulary-drift.test.ts
+files:
+  - tasks/T492.yml
+  - bugs/BUG_20261020_architecture-tests-time-out-under-load.md
+  - packages/design/test/architecture-no-globals.test.ts
+  - packages/ui/test/architecture/import-from-declarer-only.test.ts
+  - packages/ui/test/architecture/no-domain-value-through-component.test.ts
+  - packages/ui/test/architecture/no-persistence-vocabulary-drift.test.ts

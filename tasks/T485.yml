@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 9a9c07219097ed672a7c3075b2c727dc034f497d
 goal: sync-main-folder leaves untracked files in the main folder where John put them; only tracked edits go to a stray branch.
 done_test: bash scripts/land/test/sync-main-folder.e2e.test.sh && bash scripts/land/test/watchdog.test.sh
 files:

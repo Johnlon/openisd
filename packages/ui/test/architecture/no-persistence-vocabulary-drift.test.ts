@@ -81,6 +81,11 @@ function sourceFileOf(file: string): SourceFile {
   return created;
 }
 
+// Every file any check below reads is added BEFORE any check asks a question. Adding a file
+// invalidates the type checker, and `isExported()` consults it, so adding files one at a time
+// between questions rebuilt the program once per file: 10 s for one check (T492).
+for (const f of [...filesUnder(UI_SRC), ...filesUnder(PERSISTENCE_SRC)]) sourceFileOf(f);
+
 const rel = (f: string) => relative(UI_SRC, f);
 
 /** Every module specifier a VALUE import pulls in — `import type` erases at compile time and

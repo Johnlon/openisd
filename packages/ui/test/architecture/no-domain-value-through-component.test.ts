@@ -224,11 +224,13 @@ describe('a component API carries no domain value (A9)', () => {
     const isDomainFile = (p: string) => p.startsWith(DOMAIN_ROOT + '/');
     const offences: string[] = [];
 
-    for (const f of vueFilesUnder(COMPONENT_ROOT)) {
-      const rel = relative(REPO_ROOT, f);
-      if (EXEMPT_COMPONENTS.includes(rel)) continue;
-      offences.push(...domainTypesInComponentApi(
-        scriptOf(f), isDomainFile, p => relative(REPO_ROOT, p)));
+    // Every script is added BEFORE any is analysed: adding a file invalidates the type checker,
+    // so adding one then typing it, once per component, rebuilt the program each time (T492).
+    const scripts = vueFilesUnder(COMPONENT_ROOT)
+      .filter(f => !EXEMPT_COMPONENTS.includes(relative(REPO_ROOT, f)))
+      .map(scriptOf);
+    for (const script of scripts) {
+      offences.push(...domainTypesInComponentApi(script, isDomainFile, p => relative(REPO_ROOT, p)));
     }
 
     assert.deepEqual(offences, [],

@@ -46,7 +46,6 @@ import {
     Node,
     Project,
     SyntaxKind,
-    type VariableDeclaration,
     VariableDeclarationKind,
     type VariableStatement
 } from 'ts-morph';
@@ -81,7 +80,7 @@ function isMutableBinding(stmt: VariableStatement): boolean {
  * nothing. `new Map()`/`new Set()`/`new` anything is still state.
  *
  * SEPARATELY, and regardless of the initializer, a module-scoped binding that anything WRITES to
- * is state — see `isWrittenTo`.
+ * is state — see `writtenDeclarations`.
  */
 function isMutableContainer(stmt: VariableStatement): boolean {
   return stmt.getDeclarations().some((decl) => {
@@ -127,41 +126,59 @@ const MUTATORS = new Set([
   'set', 'delete', 'clear', 'add',
 ]);
 
-function isWrittenTo(decl: VariableDeclaration): boolean {
-  const name = decl.getNameNode();
-  if (!Node.isIdentifier(name)) return false;
-  for (const ref of name.findReferencesAsNodes()) {
-    if (ref === name) continue;
-    // Walk out through parentheses, casts and non-null assertions: `(T as any).k = 1` is the
-    // same write as `T.k = 1`, and the cast is exactly what gets written when the types refuse.
-    let node: Node = ref;
-    let parent = node.getParent();
-    while (parent && (Node.isParenthesizedExpression(parent) || Node.isAsExpression(parent)
-                      || Node.isNonNullExpression(parent))) {
-      node = parent;
-      parent = node.getParent();
-    }
-    if (!parent) continue;
-
-    // `T.k` / `T[k]` — a write only if it is the target of an assignment or a `delete`.
-    if ((Node.isPropertyAccessExpression(parent) || Node.isElementAccessExpression(parent))
-        && parent.getExpression() === node) {
-      const outer = parent.getParent();
-      if (outer && Node.isBinaryExpression(outer) && outer.getLeft() === parent
-          && outer.getOperatorToken().getText().endsWith('=')) return true;
-      if (outer && Node.isDeleteExpression(outer)) return true;
-      // `T.push(...)` — the mutating-method case.
-      if (Node.isPropertyAccessExpression(parent) && MUTATORS.has(parent.getName())
-          && outer && Node.isCallExpression(outer)) return true;
-      continue;
-    }
-
-    // `T = x` — reassignment of the binding itself (a `const` makes this a compile error, but a
-    // `let` that slipped past `isMutableBinding` would not).
-    if (Node.isBinaryExpression(parent) && parent.getLeft() === node
-        && parent.getOperatorToken().getText().endsWith('=')) return true;
+/** Whether this identifier occurrence is the target of a write: see `MUTATORS` and the shapes above. */
+function isWriteSite(ref: Node): boolean {
+  // Walk out through parentheses, casts and non-null assertions: `(T as any).k = 1` is the
+  // same write as `T.k = 1`, and the cast is exactly what gets written when the types refuse.
+  let node: Node = ref;
+  let parent = node.getParent();
+  while (parent && (Node.isParenthesizedExpression(parent) || Node.isAsExpression(parent)
+                    || Node.isNonNullExpression(parent))) {
+    node = parent;
+    parent = node.getParent();
   }
-  return false;
+  if (!parent) return false;
+
+  // `T.k` / `T[k]` — a write only if it is the target of an assignment or a `delete`.
+  if ((Node.isPropertyAccessExpression(parent) || Node.isElementAccessExpression(parent))
+      && parent.getExpression() === node) {
+    const outer = parent.getParent();
+    if (outer && Node.isBinaryExpression(outer) && outer.getLeft() === parent
+        && outer.getOperatorToken().getText().endsWith('=')) return true;
+    if (outer && Node.isDeleteExpression(outer)) return true;
+    // `T.push(...)` — the mutating-method case.
+    if (Node.isPropertyAccessExpression(parent) && MUTATORS.has(parent.getName())
+        && outer && Node.isCallExpression(outer)) return true;
+    return false;
+  }
+
+  // `T = x` — reassignment of the binding itself (a `const` makes this a compile error, but a
+  // `let` that slipped past `isMutableBinding` would not).
+  return Node.isBinaryExpression(parent) && parent.getLeft() === node
+    && parent.getOperatorToken().getText().endsWith('=');
+}
+
+/**
+ * Every variable declaration in the project that something writes to.
+ *
+ * Found from the WRITES, not from the declarations: one walk collects the few identifiers in a
+ * write position, then each is resolved (through an import alias to the declaration it names) to
+ * its declaration. Asking the language service for every reference to each of the ~200
+ * module-scoped bindings instead cost one project-wide search per binding, which took 6 s alone
+ * and over 190 s on a loaded box (T492). The answer is the same: a reference to a binding that
+ * sits in a write position is exactly a write to the binding.
+ */
+function writtenDeclarations(project: Project): ReadonlySet<Node> {
+  const written = new Set<Node>();
+  for (const source of project.getSourceFiles()) {
+    for (const id of source.getDescendantsOfKind(SyntaxKind.Identifier)) {
+      if (!isWriteSite(id)) continue;
+      const symbol = id.getSymbol();
+      const target = symbol?.isAlias() ? symbol.getAliasedSymbol() : symbol;
+      for (const declaration of target?.getDeclarations() ?? []) written.add(declaration);
+    }
+  }
+  return written;
 }
 
 /**
@@ -191,6 +208,7 @@ const PARSED = shippedSource();
 /** Every module-scoped variable statement in the package's shipped source. */
 function moduleScopedStatements() {
   const project = PARSED;
+  const writtenTo = writtenDeclarations(project);
   const found: { file: string; line: number; text: string; why: string }[] = [];
 
   for (const source of project.getSourceFiles()) {
@@ -200,7 +218,7 @@ function moduleScopedStatements() {
     // `getVariableStatements()` returns TOP-LEVEL statements only — one inside a function or a
     // class body is a local, which is exactly what this rule wants people to use instead.
     for (const stmt of source.getVariableStatements()) {
-      const written = stmt.getDeclarations().some(isWrittenTo);
+      const written = stmt.getDeclarations().some((d) => writtenTo.has(d));
       const why = isMutableBinding(stmt) ? `\`${stmt.getDeclarationKind()}\` binding can be reassigned`
         : written ? 'written to after declaration — shared MUTABLE state'
         : isMutableContainer(stmt) ? '`const` binding, but the VALUE is mutable and shared'
@@ -220,10 +238,6 @@ function moduleScopedStatements() {
 }
 
 describe('packages/design has no global variables', () => {
-  // 30s, not the 5s default. `isWrittenTo` asks the language service for every reference to every
-  // module-scoped binding — the only way to tell an immutable constant from one something mutates
-  // elsewhere, which is the distinction the rule turns on. That walk is what makes this gate slow,
-  // and a gate that fails on the clock instead of on a finding teaches a reader to ignore it.
   it('declares no module-scoped mutable state anywhere in its shipped source', () => {
     const offences = moduleScopedStatements();
     const report = offences.map((o) =>
@@ -275,8 +289,9 @@ describe('packages/design has no global variables', () => {
       '}',
     ].join('\n'));
 
+    const writtenTo = writtenDeclarations(project);
     const flagged = probe.getVariableStatements()
-      .filter((s) => isMutableBinding(s) || s.getDeclarations().some(isWrittenTo)
+      .filter((s) => isMutableBinding(s) || s.getDeclarations().some((d) => writtenTo.has(d))
         || isMutableContainer(s))
       .flatMap((s) => s.getDeclarations().map((d) => d.getName()));
 
@@ -296,8 +311,9 @@ describe('packages/design has no global variables', () => {
       '}',
     ].join('\n'));
 
+    const writtenTo = writtenDeclarations(project);
     const flagged = probe.getVariableStatements()
-      .filter((s) => s.getDeclarations().some(isWrittenTo))
+      .filter((s) => s.getDeclarations().some((d) => writtenTo.has(d)))
       .flatMap((s) => s.getDeclarations().map((d) => d.getName()));
 
     expect(flagged.sort()).toEqual(['CACHE', 'SEEN']);
