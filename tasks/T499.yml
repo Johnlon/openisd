@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: ebd1064c07725deb9358a94b8706735857fd9ec3
 goal: A task whose file says blocked is marked done when it lands, and at the next landing when its commit is already on main (ten landed tasks still said blocked)
 done_test: bash scripts/land/test/land-squash.test.sh
 files:

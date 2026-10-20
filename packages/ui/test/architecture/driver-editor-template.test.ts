@@ -460,7 +460,7 @@ describe('driver editor — every bound cell is one the driver model answers', (
     // one control in the dialog with no mark, so a Parallel nobody stated looked exactly like a
     // Parallel the user picked. VCCon is entry-backed now — a resolve stores the default as 'C'
     // — so there is a real provenance for the control to show.
-    const sel = /<select class="de-conn-sel"[^>]*>/.exec(src);
+    const sel = /<select [^>]*class="de-conn-sel"[^>]*>/.exec(src);
     assert.ok(sel, 'no wiring <select> in the editor');
     assert.match(sel![0], /:class="wiringClass"/, 'the wiring select binds no provenance class');
 

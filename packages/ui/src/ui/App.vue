@@ -7,6 +7,7 @@ import MobileNewProject from './shells/mobile/MobileNewProject.vue';
 import OriginalWhatIf from './shells/original/OriginalWhatIf.vue';
 import DriverBrowser from './components/DriverBrowser.vue';
 import DriverEditorModal from './components/DriverEditorModal.vue';
+import {PHONE_DRIVER_EDITOR_SKIN} from './components/driverEditorSkin.js';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import SplashModal from './components/SplashModal.vue';
@@ -153,7 +154,7 @@ onUnmounted(() => {
     <OriginalNewProject v-else-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
     <!-- Both read the focused project, so neither may mount without one — whatever set the
          flag. The shell itself renders with no project; these do not. -->
-    <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" @close="presentationState.editDriverInfo = false" />
+    <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" :skin="activeSkin === 'mobile' ? PHONE_DRIVER_EDITOR_SKIN : undefined" @close="presentationState.editDriverInfo = false" />
     <OriginalWhatIf v-if="presentationState.editDriver && projectOpen" />
     <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
     <DriverBrowser />
@@ -212,53 +213,22 @@ onUnmounted(() => {
   border-radius: 0;
 }
 
-/* Bug (John, live on his phone, 2026-09-29, screenshot): Driver Editor's Parameters tab rendered
-   with labels and inputs overlapping/garbled, illegibly. DriverEditorModal.vue's own CSS builds
-   ONE whole-tab grid sized for "4 field-slots per row" at a 770px desktop width (.de-params'
-   own comment) — on a phone that grid has nowhere near the room, and the fixed-width modal
-   (.de-modal, 770px) only had a weak max-width:96vw safety net, not an actually responsive
-   layout. Collapsing to one field-slot's worth of tracks (4, not 16) makes every .de-fld — which
-   already spans exactly 4 tracks — stack one per row with no changes needed there. `!important`
-   to outrank the component's own `!important` rules (its own comments explain why IT needs
-   those, against a different collision than the one this fixes). */
+/* The driver editor is the whole phone screen. Its fields, tabs and buttons are the shared phone ones
+   (DriverEditorModal's `skin`); `!important` outranks the component's own fixed desktop box. */
 .app-root-mobile :deep(.de-modal) {
   width: 100% !important;
   max-width: none !important;
   height: 100% !important;
   max-height: none !important;
   min-height: 0 !important;
+  min-width: 0 !important;
   border-radius: 0 !important;
-}
-/* Bug (John, live on his phone, 2026-10-05: "that screen is really broken due to the bottom
-   bar"): the footer's legend and seven buttons, the tab row and long DQ formulas did not wrap,
-   so their width pushed the editor past both screen edges. On a phone the editor is the screen's
-   width: the four tabs share its width, the legend is one row above the buttons, the
-   buttons wrap, and long formulas break. */
-.app-root-mobile :deep(.de-modal) { min-width: 0 !important; }
-.app-root-mobile :deep(.de-modal > *) { min-width: 0; }
-.app-root-mobile :deep(.de-tabs) { flex-shrink: 0; padding-left: 6px; padding-right: 6px; }
-.app-root-mobile :deep(.de-tab) { white-space: nowrap; flex: 1 1 0; min-width: 0; padding-left: 2px; padding-right: 2px; font-size: 12px; }
-.app-root-mobile :deep(.de-toolbar) { flex-wrap: wrap; row-gap: 6px; }
-.app-root-mobile :deep(.de-incomplete) { overflow-wrap: anywhere; }
-.app-root-mobile :deep(.de-footer) { padding-left: 10px; padding-right: 10px; }
-.app-root-mobile :deep(.de-legend2) { flex-wrap: wrap; gap: 4px 12px; }
-.app-root-mobile :deep(.de-btns) { min-width: 0; flex-direction: column; align-items: flex-start; gap: 6px; }
-.app-root-mobile :deep(.de-btn-row) { gap: 4px; }
-.app-root-mobile :deep(.de-btn-row > button) { padding-left: 6px; padding-right: 6px; }
-.app-root-mobile :deep(.de-params) {
-  grid-template-columns: max-content max-content minmax(34px, max-content) 16px !important;
 }
 /* Bug (John, 18 Oct 2026: "the driver editor buttons are tiny"): the tabs, the close cross and
    the footer buttons are at least 44 px tall on a phone, 44 wide. */
 .app-root-mobile :deep(.de-tab) { min-height: 44px; }
 .app-root-mobile :deep(.de-modal h2 .x) { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
 .app-root-mobile :deep(.de-footer button) { min-height: 44px; min-width: 44px; }
-.app-root-mobile :deep(.de-dims) {
-  flex-direction: column !important;
-}
-.app-root-mobile :deep(.de-dimlist) {
-  width: 100% !important;
-}
 
 /* Bug (John, 2026-10-02: "something is eclipsing the bottom of the Use and Cancel buttons when
    picking driver"): DriverBrowser.vue's own .wb-modal is fixed at 770x535 (a weak max-width/

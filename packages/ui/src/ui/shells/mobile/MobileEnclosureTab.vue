@@ -74,7 +74,7 @@ const {
       </div>
     </div>
     <div class="mob-row mob-pr-actions">
-      <button class="mob-btn" @click="prBrowseOpen = true">Select passive radiator</button>
+      <button class="mob-btn mob-btn-primary" @click="prBrowseOpen = true">Select passive radiator</button>
       <button class="mob-btn mob-btn-secondary" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
     </div>
     <SaveToLibraryDialog v-if="prSaveOpen" title="Save passive radiator to library"
@@ -184,18 +184,6 @@ const {
 .mob-pr-label { font-size: 13px; color: var(--mut); }
 .mob-pr-name { font-size: 17px; font-weight: 600; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
 .mob-pr-actions { gap: 12px; }
-.mob-btn {
-  flex: 1;
-  min-height: 44px;
-  border: 1px solid var(--acc);
-  border-radius: 4px;
-  background: var(--acc);
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.mob-btn-secondary { background: var(--panel); color: var(--acc); }
 
 .mob-field-row {
   display: flex;

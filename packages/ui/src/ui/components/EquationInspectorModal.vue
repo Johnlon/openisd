@@ -2,6 +2,8 @@
 import type {ProvenanceInfo} from '../../logic/provenance.js';
 
 defineProps<{
+  /** In the flow of the dialog that hosts it, under its body (the phone), not floating beside it. */
+  docked?: boolean;
   open: boolean;
   targetField: string | null;
   provenanceInfo: ProvenanceInfo | null;
@@ -11,9 +13,9 @@ const emit = defineEmits<{ close: [] }>();
 </script>
 
 <template>
-  <div v-if="open && targetField && provenanceInfo" class="eq-inspector-card" title="Non-modal Equation Inspector — live formula provenance">
+  <div v-if="open && targetField && provenanceInfo" class="eq-inspector-card" :class="{'eq-docked': docked}" title="Non-modal Equation Inspector — live formula provenance">
     <div class="eq-hdr">
-      <span class="eq-title">🔍 Provenance: <strong class="eq-target">{{ targetField }}</strong></span>
+      <span class="eq-title">Provenance: <strong class="eq-target">{{ targetField }}</strong></span>
       <button class="eq-x" @click="emit('close')" title="Close Equation Inspector">✕</button>
     </div>
 
@@ -56,6 +58,21 @@ const emit = defineEmits<{ close: [] }>();
   pointer-events: auto;
   animation: eq-fade 0.15s ease-out;
 }
+
+/* Docked: a band in the dialog's own column, between its body and its footer, so it covers none of
+   the dialog's controls. Sizes come from the dialog's phone row sizes (`--mob-*`, PhoneRowSizes). */
+.eq-inspector-card.eq-docked {
+  position: static;
+  flex: none;
+  width: auto;
+  max-width: none;
+  border-radius: 0;
+  border-width: 1px 0 0;
+  box-shadow: none;
+  animation: none;
+}
+.eq-docked .eq-x { min-width: var(--mob-touch-min); min-height: var(--mob-touch-min); }
+.eq-docked .eq-body { max-height: calc(var(--mob-row-min) * 2); }
 
 @keyframes eq-fade {
   from { opacity: 0; transform: translateY(10px); }

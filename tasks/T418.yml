@@ -1,0 +1,28 @@
+id: T418
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Driver editor rebuilt on shared components: the Edit Project Driver dialog on both shells uses the shared field rows, steppers, tabs and buttons every other dialog uses, with the shared 44 px touch buttons on the phone; no per-screen sizes; the four tabs keep their content. Before/after at 374x705 from the UI gallery. Fixes BUG_20261018_driver-editor-buttons-tiny.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/design/fields/phoneRowSizes.ts
+  - bugs/BUG_20261018_phone-equation-inspector-covers-editor-tabs.md
+  - packages/ui/src/ui/components/EquationInspectorModal.vue
+  - tasks/T418.yml
+  - bugs/BUG_20261020_phone-driver-editor-general-boxes-narrow.md
+  - bugs/BUG_20261020_phone-driver-editor-tab-has-line-across.md
+  - bugs/BUG_20261018_box-advanced-buttons-under-44.md
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/driverEditorSkin.ts
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/test/ui/mobile-driver-editor.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-provenance.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261018_driver-editor-buttons-tiny.md
+  - packages/ui/test/architecture/driver-editor-template.test.ts
+  - packages/ui/test/ui/driver-editor-layout.browser.spec.ts

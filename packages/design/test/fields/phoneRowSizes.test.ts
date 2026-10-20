@@ -18,7 +18,17 @@ describe('PhoneRowSizes', () => {
     expect(vars.get('--mob-label-gap')).toBe('0px');
   });
 
+  it('compact rows are a half-way house: 40 px rows, 36 px boxes, the label on the row\'s own line', () => {
+    const vars = PhoneRowSizes.COMPACT.cssVars();
+    expect(vars.get('--mob-row-min')).toBe('40px');
+    expect(vars.get('--mob-input-h')).toBe('36px');
+    expect(vars.get('--mob-label-w')).toBe('120px');
+    expect(vars.get('--mob-stepper-w')).toBe('40px');
+    expect(vars.get('--mob-touch-min')).toBe(`${SheetSizes.TOUCH_MIN_PX}px`);
+  });
+
   it('both sets name the same variables', () => {
     expect([...PhoneRowSizes.SHEET.cssVars().keys()]).toEqual([...PhoneRowSizes.TAB.cssVars().keys()]);
+    expect([...PhoneRowSizes.COMPACT.cssVars().keys()]).toEqual([...PhoneRowSizes.TAB.cssVars().keys()]);
   });
 });

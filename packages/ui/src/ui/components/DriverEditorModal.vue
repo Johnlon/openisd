@@ -14,6 +14,8 @@ import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
 import UIField from './UIField.vue';
 import UIFixedField from './UIFixedField.vue';
+import UIPickField from './UIPickField.vue';
+import type {DriverEditorSkin} from './driverEditorSkin.js';
 import {provideCellScope} from './cellScope.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
@@ -44,6 +46,10 @@ const { presentation: presentationState, selection, myDrivers, logging, driverFi
 // driverSelection.ts) — see architecture.test.ts "ManagedProject is the only holder of
 // OpenISDDriver".
 
+defineProps<{
+  /** The phone's classes for the shared field rows and buttons; none on the desktop. */
+  skin?: DriverEditorSkin;
+}>();
 const emit = defineEmits<{ close: [] }>();
 
 type Tab = 'General' | 'Parameters' | 'Advanced' | 'Dimensions';
@@ -138,7 +144,29 @@ const driverRaw = computed(() => {
   };
 });
 
-function setText(field: 'brand' | 'model' | 'providedBy' | 'comment' | 'manufacturer' | 'added' | 'sku', e: Event) {
+/** The General tab's text boxes, three to a row on the desktop and one per row on the phone. */
+type TextKey = 'manufacturer' | 'brand' | 'model' | 'sku' | 'providedBy' | 'added';
+interface TextRow { readonly key: TextKey; readonly def: TextField | DateField }
+const GENERAL_TEXT_ROWS: readonly (readonly TextRow[])[] = [
+  [
+    {key: 'manufacturer', def: TextField.DRIVER_MANUFACTURER},
+    {key: 'brand', def: TextField.DRIVER_BRAND},
+    {key: 'model', def: TextField.DRIVER_MODEL},
+  ],
+  [
+    {key: 'sku', def: TextField.DRIVER_SKU},
+    {key: 'providedBy', def: TextField.DRIVER_PROVIDEDBY},
+    {key: 'added', def: DateField.DRIVER_ADDED},
+  ],
+];
+/** Brand and Model are the filing key: bold border always, red while empty. */
+function textInputClass(key: TextKey): Record<string, boolean> {
+  if (key !== 'brand' && key !== 'model') return {};
+  const value = driverRaw.value[key];
+  return {'de-brand': key === 'brand', 'de-model': key === 'model', 'de-input-mandatory': true, 'de-input-empty': !value || !value.trim()};
+}
+
+function setText(field: TextKey | 'comment', e: Event) {
   // Metadata is a ScrapedField, a different envelope from a SpecEntry, so it has its own
   // entry point. Routing a string through enter() would put it in the wrong envelope.
   const edited = editableFrom(e);
@@ -606,174 +634,198 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
 <template>
   <div class="overlay on">
-    <div class="modal de-modal" ref="modalRootEl">
+    <div class="modal de-modal" :class="skin ? 'de-phone' : 'de-desktop'" :style="skin?.rowVars" ref="modalRootEl">
       <h2>{{ editorTitle }}<button class="x" @click="cancel" title="Close without keeping changes">✕</button></h2>
 
       <div class="de-tabs">
         <button v-for="t in TABS" :key="t" class="de-tab" :class="{ on: tab === t }" @click="tab = t">{{ t }}</button>
       </div>
 
-      <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }"
-           :style="dockedCardHeight > 0 ? { paddingBottom: `${dockedCardHeight}px`, scrollPaddingBottom: `${dockedCardHeight}px` } : {}" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
-        <!-- ============================= General ============================= -->
-        <div v-if="tab === 'General'" class="de-general">
-          <div class="de-row2">
-            <div class="de-fld" data-field-key="manufacturer" :title="TextField.DRIVER_MANUFACTURER.description">
-              <label>{{ TextField.DRIVER_MANUFACTURER.label }}</label>
-              <input type="text" :value="driverRaw.manufacturer || ''" @input="setText('manufacturer', $event)">
+      <!-- The scroll area: the fields, then what is wrong with them. On the desktop it dissolves into the dialog's own column; on the phone it is the one thing that scrolls. -->
+      <div class="de-scroll">
+        <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }"
+             :style="dockedCardHeight > 0 ? { paddingBottom: `${dockedCardHeight}px`, scrollPaddingBottom: `${dockedCardHeight}px` } : {}" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
+          <!-- ============================= General ============================= -->
+          <div v-if="tab === 'General'" class="de-general">
+            <div v-for="(row, i) in GENERAL_TEXT_ROWS" :key="i" class="de-row2">
+              <template v-for="t in row" :key="t.key">
+                <UIPickField v-if="skin" class="de-fld" :class="skin.field" :data-field-key="t.key" :title="t.def.description" :label="t.def.label" :input-id="`de-text-${t.key}`">
+                  <input :id="`de-text-${t.key}`" type="text" :class="textInputClass(t.key)" :value="driverRaw[t.key] || ''" @input="setText(t.key, $event)">
+                </UIPickField>
+                <div v-else class="de-fld" :data-field-key="t.key" :title="t.def.description">
+                  <label>{{ t.def.label }}</label>
+                  <input type="text" :class="textInputClass(t.key)" :value="driverRaw[t.key] || ''" @input="setText(t.key, $event)">
+                </div>
+              </template>
             </div>
-            <div class="de-fld" data-field-key="brand" :title="TextField.DRIVER_BRAND.description">
-              <label>{{ TextField.DRIVER_BRAND.label }}</label>
-              <input type="text" class="de-brand" :value="driverRaw.brand || ''" @input="setText('brand', $event)"
-                     :class="{ 'de-input-mandatory': true, 'de-input-empty': !driverRaw.brand || !driverRaw.brand.trim() }">
-            </div>
-            <div class="de-fld" data-field-key="model" :title="TextField.DRIVER_MODEL.description">
-              <label>{{ TextField.DRIVER_MODEL.label }}</label>
-              <input type="text" class="de-model" :value="driverRaw.model || ''" @input="setText('model', $event)"
-                     :class="{ 'de-input-mandatory': true, 'de-input-empty': !driverRaw.model || !driverRaw.model.trim() }">
-            </div>
-          </div>
-          <div class="de-row2">
-            <div class="de-fld" data-field-key="sku" :title="TextField.DRIVER_SKU.description">
-              <label>{{ TextField.DRIVER_SKU.label }}</label>
-              <input type="text" :value="driverRaw.sku || ''" @input="setText('sku', $event)">
-            </div>
-            <div class="de-fld" data-field-key="providedBy" :title="TextField.DRIVER_PROVIDEDBY.description">
-              <label>{{ TextField.DRIVER_PROVIDEDBY.label }}</label>
-              <input type="text" :value="driverRaw.providedBy || ''" @input="setText('providedBy', $event)">
-            </div>
-            <div class="de-fld" data-field-key="added" :title="DateField.DRIVER_ADDED.description">
-              <label>{{ DateField.DRIVER_ADDED.label }}</label>
-              <input type="text" :value="driverRaw.added || ''" @input="setText('added', $event)">
-            </div>
-          </div>
-          <div class="de-fld de-comment" data-field-key="comment" :title="TextField.DRIVER_COMMENT.description">
-            <label>{{ TextField.DRIVER_COMMENT.label }}</label>
-            <textarea :value="driverRaw.comment || ''" @input="setText('comment', $event)"></textarea>
-          </div>
-        </div>
-
-        <!-- ============================= Parameters ============================= -->
-        <div v-if="tab === 'Parameters'" class="de-params">
-          <div class="de-group">
-            <div class="de-hdr">Thiele/Small parameters</div>
-            <div class="de-cols">
-              <UIField class="de-fld" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
-              <UIField class="de-fld" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
-              <UIField class="de-fld" data-field-key="Qts" :style="getFieldStyle('Qts')" :field="NumberField.QTS" :cell="fieldOf('Qts')" />
-              <UIField class="de-fld" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :field="NumberField.FS_HZ" :cell="fieldOf('Fs_hz')" required />
-              <UIField class="de-fld" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :field="NumberField.VAS_M3" :cell="fieldOf('Vas_m3')" required />
+            <UIPickField v-if="skin" class="de-fld de-comment" :class="skin.fieldStacked" data-field-key="comment" :title="TextField.DRIVER_COMMENT.description" :label="TextField.DRIVER_COMMENT.label" input-id="de-text-comment">
+              <textarea id="de-text-comment" :value="driverRaw.comment || ''" @input="setText('comment', $event)"></textarea>
+            </UIPickField>
+            <div v-else class="de-fld de-comment" data-field-key="comment" :title="TextField.DRIVER_COMMENT.description">
+              <label>{{ TextField.DRIVER_COMMENT.label }}</label>
+              <textarea :value="driverRaw.comment || ''" @input="setText('comment', $event)"></textarea>
             </div>
           </div>
 
-          <div class="de-group">
-            <div class="de-hdr">Electro-Mechanical parameters</div>
-            <div class="de-cols">
-              <UIField class="de-fld" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
-              <UIField class="de-fld" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
-              <UIField class="de-fld" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
-              <UIField class="de-fld" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
-              <UIField class="de-fld" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
-              <UIField class="de-fld" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
-              <UIField class="de-fld" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
-              <UIField class="de-fld" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
-              <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
-                   scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
-                   Hz as kHz and put the field out by 1e6. -->
-              <UIField class="de-fld" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :field="NumberField.FLE_HZ" :cell="fieldOf('fLe_hz')" />
-              <UIField class="de-fld" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :cell="fieldOf('KLe_H_sqrtHz')" />
-            </div>
-          </div>
-
-          <div class="de-group">
-            <div class="de-hdr">Large-Signal parameters</div>
-            <div class="de-cols">
-              <UIField class="de-fld" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
-              <UIField class="de-fld" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
-              <UIField class="de-fld" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :field="NumberField.HG_M" :cell="fieldOf('Hg_m')" />
-
-              <UIField class="de-fld" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :field="NumberField.VD_M3" :cell="fieldOf('Vd_m3')" />
-              <UIField class="de-fld" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :field="NumberField.XLIM_M" :cell="fieldOf('Xlim_m')" />
-              <UIField class="de-fld" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :field="NumberField.PE_W" :cell="fieldOf('Pe_W')" />
-            </div>
-          </div>
-
-          <div class="de-group">
-            <div class="de-hdr">Miscellaneous parameters</div>
-            <div class="de-cols">
-              <UIField class="de-fld" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
-              <UIField class="de-fld" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
-              <UIField class="de-fld" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :field="NumberField.USPL_DB" :cell="fieldOf('USPL_dB')" />
-              <UIField class="de-fld" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
-              <UIField class="de-fld" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
-              <div class="de-fld de-conn" data-field-key="VCCon" :title="EnumField.VCCON.description">
-                <label>{{ EnumField.VCCON.label }}</label>
-                <select class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+          <!-- ============================= Parameters ============================= -->
+          <div v-if="tab === 'Parameters'" class="de-params">
+            <div class="de-group">
+              <div class="de-hdr">Thiele/Small parameters</div>
+              <div class="de-cols">
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Qts" :style="getFieldStyle('Qts')" :field="NumberField.QTS" :cell="fieldOf('Qts')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :field="NumberField.FS_HZ" :cell="fieldOf('Fs_hz')" required />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :field="NumberField.VAS_M3" :cell="fieldOf('Vas_m3')" required />
               </div>
-              <UIField class="de-fld" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
+            </div>
+
+            <div class="de-group">
+              <div class="de-hdr">Electro-Mechanical parameters</div>
+              <div class="de-cols">
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
+                <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
+                     scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
+                     Hz as kHz and put the field out by 1e6. -->
+                <UIField class="de-fld" :class="skin?.field" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :field="NumberField.FLE_HZ" :cell="fieldOf('fLe_hz')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :cell="fieldOf('KLe_H_sqrtHz')" />
+              </div>
+            </div>
+
+            <div class="de-group">
+              <div class="de-hdr">Large-Signal parameters</div>
+              <div class="de-cols">
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :field="NumberField.HG_M" :cell="fieldOf('Hg_m')" />
+
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :field="NumberField.VD_M3" :cell="fieldOf('Vd_m3')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :field="NumberField.XLIM_M" :cell="fieldOf('Xlim_m')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :field="NumberField.PE_W" :cell="fieldOf('Pe_W')" />
+              </div>
+            </div>
+
+            <div class="de-group">
+              <div class="de-hdr">Miscellaneous parameters</div>
+              <div class="de-cols">
+                <UIField class="de-fld" :class="skin?.field" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :field="NumberField.USPL_DB" :cell="fieldOf('USPL_dB')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
+                <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
+                  <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                </UIPickField>
+                <UIField class="de-fld" :class="skin?.field" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================= Advanced parameters ============================= -->
+          <div v-if="tab === 'Advanced'" class="de-params">
+            <div class="de-group">
+              <div class="de-hdr">Thermal parameters</div>
+              <div class="de-cols">
+                <UIField class="de-fld" :class="skin?.field" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :cell="fieldOf('Ct_J_per_K')" />
+              </div>
+            </div>
+
+            <div class="de-group">
+              <div class="de-hdr">Figure of merits</div>
+              <div class="de-cols">
+                <UIField class="de-fld" :class="skin?.field" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :cell="fieldOf('Rme_kg_per_s')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :cell="fieldOf('gamma_m_per_s2_A')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :cell="fieldOf('Mpow_N_per_sqrtW')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :cell="fieldOf('Mcost_kg_per_s')" />
+                <UIField class="de-fld" :class="skin?.field" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :field="NumberField.EBP_HZ" :cell="fieldOf('EBP_hz')" />
+                <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
+                     percentage. The `percent` unit group is the ONE place that ×100 lives. -->
+                <UIField class="de-fld" :class="skin?.field" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :field="NumberField.GLOSS" :cell="fieldOf('Gloss')" />
+              </div>
+            </div>
+
+            <div class="de-group">
+              <div class="de-hdr">Environment parameters</div>
+              <div class="de-cols">
+                <UIFixedField class="de-fld value-c" :class="skin?.field" data-field-key="c_m_per_s" :title="NumberField.C_M_PER_S.description" :field="NumberField.C_M_PER_S" :value="cellVal('c_m_per_s')" readonly />
+                <UIFixedField class="de-fld value-c" :class="skin?.field" data-field-key="roo_kg_per_m3" :title="NumberField.ROO_KG_PER_M3.description" :field="NumberField.ROO_KG_PER_M3" :value="cellVal('roo_kg_per_m3')" readonly />
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================= Dimensions ============================= -->
+          <div v-if="tab === 'Dimensions'" class="de-dims">
+            <div class="de-dimlist">
+              <div class="de-hdr">Dimensions</div>
+              <!-- Every length below is stored in METRES and shown in MILLIMETRES (the length unit group),
+                   the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
+                   WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
+                   Thick read a metre value under an inches label. -->
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Thick_m" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
+            </div>
+
+            <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
+              <DriverDimensionsDiagram />
             </div>
           </div>
         </div>
-
-        <!-- ============================= Advanced parameters ============================= -->
-        <div v-if="tab === 'Advanced'" class="de-params">
-          <div class="de-group">
-            <div class="de-hdr">Thermal parameters</div>
-            <div class="de-cols">
-              <UIField class="de-fld" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
-              <UIField class="de-fld" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
-              <UIField class="de-fld" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :cell="fieldOf('Ct_J_per_K')" />
-            </div>
-          </div>
-
-          <div class="de-group">
-            <div class="de-hdr">Figure of merits</div>
-            <div class="de-cols">
-              <UIField class="de-fld" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
-              <UIField class="de-fld" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
-              <UIField class="de-fld" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :cell="fieldOf('Rme_kg_per_s')" />
-              <UIField class="de-fld" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :cell="fieldOf('gamma_m_per_s2_A')" />
-              <UIField class="de-fld" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :cell="fieldOf('Mpow_N_per_sqrtW')" />
-              <UIField class="de-fld" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :cell="fieldOf('Mcost_kg_per_s')" />
-              <UIField class="de-fld" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :field="NumberField.EBP_HZ" :cell="fieldOf('EBP_hz')" />
-              <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
-                   percentage. The `percent` unit group is the ONE place that ×100 lives. -->
-              <UIField class="de-fld" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :field="NumberField.GLOSS" :cell="fieldOf('Gloss')" />
-            </div>
-          </div>
-
-          <div class="de-group">
-            <div class="de-hdr">Environment parameters</div>
-            <div class="de-cols">
-              <UIFixedField class="de-fld value-c" data-field-key="c_m_per_s" :title="NumberField.C_M_PER_S.description" :field="NumberField.C_M_PER_S" :value="cellVal('c_m_per_s')" readonly />
-              <UIFixedField class="de-fld value-c" data-field-key="roo_kg_per_m3" :title="NumberField.ROO_KG_PER_M3.description" :field="NumberField.ROO_KG_PER_M3" :value="cellVal('roo_kg_per_m3')" readonly />
-            </div>
-          </div>
+      <!-- What is wrong, and what it actually costs. Saving is never blocked by any of them —
+           each strip states its own consequence instead, so the human keeps their typing. Three
+           strips, not one: a missing Brand does not blank a chart, a missing Fs does not stop
+           the driver being filed, and values that merely disagree do neither — they are all
+           present, so every chart plots from them as stated. Per-field red borders stay. -->
+      <div class="de-strips">
+        <div v-if="identityReasons.length" class="de-incomplete"
+             :title="reasonTitle(identityReasons)">
+          <span class="de-incomplete-hd">⚠ Saves fine, but can’t be filed under a name because:</span>
+          <ul class="de-incomplete-list">
+            <li v-for="r in identityReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
+          </ul>
         </div>
-
-        <!-- ============================= Dimensions ============================= -->
-        <div v-if="tab === 'Dimensions'" class="de-dims">
-          <div class="de-dimlist">
-            <div class="de-hdr">Dimensions</div>
-            <!-- Every length below is stored in METRES and shown in MILLIMETRES (the length unit group),
-                 the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
-                 WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
-                 Thick read a metre value under an inches label. -->
-            <UIField class="de-fld" data-field-key="Thick_m" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
-            <UIField class="de-fld" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
-            <UIField class="de-fld" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
-            <UIField class="de-fld" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
-            <UIField class="de-fld" data-field-key="Basket_m" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
-            <UIField class="de-fld" data-field-key="Outer_m" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
-            <UIField class="de-fld" data-field-key="Vcd_m" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
-            <UIField class="de-fld" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
-          </div>
-
-          <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
-            <DriverDimensionsDiagram />
-          </div>
+        <div v-if="chartBlockingReasons.length" class="de-incomplete"
+             :title="reasonTitle(chartBlockingReasons)">
+          <span class="de-incomplete-hd">⚠ Saves fine, but the charts stay blank because:</span>
+          <ul class="de-incomplete-list">
+            <li v-for="r in chartBlockingReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
+          </ul>
+        </div>
+        <div v-if="inconsistentInputReasons.length" class="de-incomplete de-inconsistent"
+             :title="reasonTitle(inconsistentInputReasons)">
+          <span class="de-incomplete-hd">⚠ Saves fine and the charts plot from the values as stated, but those values disagree because:</span>
+          <ul class="de-incomplete-list">
+            <li v-for="r in inconsistentInputReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
+          </ul>
         </div>
       </div>
+      </div>
+
+      <!-- On the phone the card is a band under the body, so it never covers the header, tabs or footer. -->
+      <EquationInspectorModal
+        v-if="skin"
+        docked
+        :open="inspectProvenance && inspectedField !== null"
+        :target-field="inspectedField"
+        :provenance-info="provenanceInfo"
+        @close="inspectedField = null"
+      />
 
       <div class="de-toolbar">
         <label class="de-provenance-chk" title="Auto-calculate derived/unknown T/S fields when parameters change">
@@ -786,33 +838,6 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         </label>
       </div>
 
-      <!-- What is wrong, and what it actually costs. Saving is never blocked by any of them —
-           each strip states its own consequence instead, so the human keeps their typing. Three
-           strips, not one: a missing Brand does not blank a chart, a missing Fs does not stop
-           the driver being filed, and values that merely disagree do neither — they are all
-           present, so every chart plots from them as stated. Per-field red borders stay. -->
-      <div v-if="identityReasons.length" class="de-incomplete"
-           :title="reasonTitle(identityReasons)">
-        <span class="de-incomplete-hd">⚠ Saves fine, but can’t be filed under a name because:</span>
-        <ul class="de-incomplete-list">
-          <li v-for="r in identityReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
-        </ul>
-      </div>
-      <div v-if="chartBlockingReasons.length" class="de-incomplete"
-           :title="reasonTitle(chartBlockingReasons)">
-        <span class="de-incomplete-hd">⚠ Saves fine, but the charts stay blank because:</span>
-        <ul class="de-incomplete-list">
-          <li v-for="r in chartBlockingReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
-        </ul>
-      </div>
-      <div v-if="inconsistentInputReasons.length" class="de-incomplete de-inconsistent"
-           :title="reasonTitle(inconsistentInputReasons)">
-        <span class="de-incomplete-hd">⚠ Saves fine and the charts plot from the values as stated, but those values disagree because:</span>
-        <ul class="de-incomplete-list">
-          <li v-for="r in inconsistentInputReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
-        </ul>
-      </div>
-
       <div class="de-footer">
         <div class="de-legend2">
           <span class="de-legend-item"><span class="de-sw value-e"></span>Entered</span>
@@ -823,17 +848,17 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <input type="file" ref="fileInput" style="display:none" @change="handleFileLoaded" :accept="DriverFileFormat.ACCEPT">
           <!-- File actions left, dialog actions right; each group is its own row on a phone. -->
           <div class="de-btn-row">
-            <button @click="requestExport" title="Export this driver to a file — choose the format, then where to put it">Export</button>
-            <button @click="triggerLoad" title="Import a driver from a file">Import</button>
-            <button class="de-copy-my" @click="copyToMyDrivers"
+            <button :class="[skin?.button, skin?.buttonSecondary]" @click="requestExport" title="Export this driver to a file — choose the format, then where to put it">Export</button>
+            <button :class="[skin?.button, skin?.buttonSecondary]" @click="triggerLoad" title="Import a driver from a file">Import</button>
+            <button class="de-copy-my" :class="[skin?.button, skin?.buttonSecondary]" @click="copyToMyDrivers"
                     :title="copiedMsg || 'Copy this driver into My Drivers as an independent copy — no link back to it'">
               {{ copiedMsg || 'Copy to My Drivers' }}
             </button>
           </div>
           <div class="de-btn-row">
-            <button class="pri" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
-            <button @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
-            <button @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+            <button class="pri" :class="[skin?.button, skin?.buttonPrimary]" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+            <button :class="[skin?.button, skin?.buttonSecondary]" @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
+            <button :class="[skin?.button, skin?.buttonSecondary]" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
           </div>
         </div>
       </div>
@@ -849,7 +874,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             project and the saved file all find it again. Every other field can stay empty.
           </p>
           <div class="fmt-foot">
-            <button class="pri" @click="dismissIdentityMsg">Fill them in</button>
+            <button class="pri" :class="[skin?.button, skin?.buttonPrimary]" @click="dismissIdentityMsg">Fill them in</button>
           </div>
         </div>
       </div>
@@ -869,7 +894,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             <span class="fmt-note">For opening in WinISD. Discards OpenISD-specific metadata and dimensions that the format has no field for.</span>
           </button>
           <div class="fmt-foot">
-            <button @click="exportPickerOpen = false">Cancel</button>
+            <button :class="[skin?.button, skin?.buttonSecondary]" @click="exportPickerOpen = false">Cancel</button>
           </div>
         </div>
       </div>
@@ -883,8 +908,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             original and save your changes as a copy?
           </p>
           <div class="fmt-foot" style="margin-top: 14px;">
-            <button class="pri rename-in-place-btn" @click="saveRenameInPlace">Rename this driver</button>
-            <button class="save-as-copy-btn" @click="saveAsCopy">Save as a copy</button>
+            <button class="pri rename-in-place-btn" :class="[skin?.button, skin?.buttonPrimary]" @click="saveRenameInPlace">Rename this driver</button>
+            <button class="save-as-copy-btn" :class="[skin?.button, skin?.buttonSecondary]" @click="saveAsCopy">Save as a copy</button>
           </div>
         </div>
       </div>
@@ -894,6 +919,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         @save="confirmSaveToMyDrivers" @cancel="saveMyDialogOpen = false" />
     </div>
     <EquationInspectorModal
+      v-if="!skin"
       :open="inspectProvenance && inspectedField !== null"
       :target-field="inspectedField"
       :provenance-info="provenanceInfo"
@@ -955,15 +981,10 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 }
 .de-body { display: flex; flex-direction: column; gap: 6px; flex: 1 !important; }
 
-.de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; position: relative; }
-.de-fld :deep(label) { font-size: 11px; color: var(--mut); white-space: nowrap; }
-.de-fld input, .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); width: 110px; }
-.de-fld .u, .u {
-  font-size: 11px; color: var(--mut); white-space: nowrap !important; display: inline-block;
-  /* FIXED width. A unit sized by its own text ("mm" 19px, "cm³" 21px) reflowed the whole
-     panel every time it was cycled. Wide enough for the longest unit the editor shows. */
-  width: 34px; text-align: left; box-sizing: border-box;
-}
+.de-fld { position: relative; }
+.de-desktop .de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; }
+.de-desktop .de-fld :deep(label) { font-size: 11px; color: var(--mut); white-space: nowrap; }
+.de-desktop .de-fld input, .de-desktop .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); }
 /* A unit button wider than two characters ("mm/N", "1000/K", "kg/m³") takes its width from its
    text; 34px is the minimum. bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md */
 .de-body :deep(.unit-toggle) { width: auto; min-width: 34px; }
@@ -1005,7 +1026,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
    both classes deliberately: `.de-fld` is one class too and declares `width: fit-content`
    further down the sheet, which won on cascade order and collapsed the box to 50px.
    bugs/archive/BUG_20260817_driver_editor_general_comment_box_renders_50px_wide.md */
-.de-general .de-fld.de-comment {
+.de-desktop .de-general .de-fld.de-comment {
   display: flex !important;
   flex-direction: column !important;
   flex: 1 1 auto !important;
@@ -1043,16 +1064,16 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
    Three shapes: cellClass() lands directly on NumInput's root <input> (fallthrough
    attrs), on a wrapping .de-fld for the read-only derived fields, or on the Connection
    <select>, whose value is a wiring name rather than a number. */
-input.value-e, .de-fld.value-e input, select.value-e { color: var(--good); }
-input.value-c, .de-fld.value-c input, select.value-c { color: var(--acc); }
-input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
+input.value-e, .de-fld.value-e input, .de-modal select.value-e { color: var(--good); }
+input.value-c, .de-fld.value-c input, .de-modal select.value-c { color: var(--acc); }
+input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mut); }
 
 /* ONE grid for the WHOLE tab, not one per section: WinISD's editor puts Qes, Mms, Xmax and
    `no` on the same column edge even though they live under four different headings, and a grid
    per section can only align the rows inside it. The section wrappers dissolve into it with
    `display: contents`, so every field on the tab sits in the same four columns and each heading
    spans the lot. The columns need no negotiation — every field component is the same width. */
-.de-params {
+.de-desktop .de-params {
   display: grid !important;
   /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
@@ -1066,14 +1087,14 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   max-width: 100% !important;
   overflow-x: hidden !important;
 }
-.de-params > .de-group,
-.de-params .de-cols { display: contents !important; }
-.de-params .de-hdr { grid-column: 1 / -1 !important; margin: 2px 0 0 !important; }
+.de-desktop .de-params > .de-group,
+.de-desktop .de-params .de-cols { display: contents !important; }
+.de-desktop .de-params .de-hdr { grid-column: 1 / -1 !important; margin: 2px 0 0 !important; }
 .de-hdr { background: var(--panel2); text-align: center; font-size: 11px; padding: 1px 0; border-radius: 3px; margin-bottom: 2px; color: var(--mut); }
 .de-col { display: flex; flex-direction: column; }
 
 .de-dims { display: flex; gap: 20px; align-items: flex-start; height: 100%; flex: 1 1 auto; }
-.de-dimlist {
+.de-desktop .de-dimlist {
   /* Sized by its widest row, not a fixed 200px — the labels alone are wider than that, which
      is what forced them over their inputs. `max-content` on the label track keeps every row
      on one column edge. FOUR tracks: label, input, unit, DQ marker — the marker needs a track
@@ -1107,7 +1128,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
    sizing itself, so "same width" is enforced structurally, not by a guessed pixel number that
    fits one tab's labels and clips another's. The provenance highlight is painted on this box,
    so it wraps all four parts as one component. */
-.de-fld {
+.de-desktop .de-fld {
   display: grid !important;
   grid-template-columns: subgrid !important;
   grid-column: span 4 !important;
@@ -1123,11 +1144,11 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 }
 /* Connection sits directly UNDER Voicecoils, not beside it: an explicit column-1 start pushes
    it past Voicecoils' own column-1 slot (already taken) into column 1 of the NEXT row. */
-.de-conn { grid-column: 1 / span 4 !important; }
+.de-desktop .de-conn { grid-column: 1 / span 4 !important; }
 /* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
    it read as "Paralle" with the last letter clipped. Widened just for this one field. */
-.de-conn-sel { width: 96px !important; }
-.de-fld label {
+.de-desktop .de-conn-sel { width: 96px !important; }
+.de-desktop .de-fld label {
   display: block !important;
   /* Sized by the shared subgrid track, never by a fixed pixel width: the track is as wide as
      the column's longest label — Parameters/Advanced labels are short and the track shrinks to
@@ -1141,42 +1162,23 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
   text-align: left !important;
   flex: 0 0 auto !important;
 }
-/* ONE fixed width for every value box, wide enough for the longest value in any unit (a Vas in
-   cu in, a Vd in cu ft). `:deep` because the box is NumInput's own input, which a scoped
-   `.de-fld input` never reaches: it fell back to the browser default and resized when a unit was
-   cycled. bugs/BUG_20261005_driver-editor-dq-tap-cycles-unit-and-fields-resize.md */
-.de-fld :deep(input),
-.de-fld select {
-  width: 90px !important;
-  box-sizing: border-box !important;
-}
-
 /* Column-flex (labels-above) override specifically for the General tab */
-.de-general .de-fld {
+.de-desktop .de-general .de-fld {
   flex-direction: column !important;
   align-items: flex-start !important;
   gap: 2px !important;
   margin-bottom: 3px !important;
 }
-.de-general .de-fld label {
+.de-desktop .de-general .de-fld label {
   display: block !important;
   width: auto !important;
   text-align: left !important;
   flex: none !important;
 }
-.de-general .de-fld :deep(input),
-.de-general .de-fld select,
 .de-general input,
 .de-general textarea {
   background: #ffffff !important;
   color: #000000 !important;
-}
-.de-general .de-fld :deep(input),
-.de-general .de-fld select {
-  width: 110px !important;
-}
-.de-general .de-row2 .de-fld :deep(input) {
-  width: 100% !important;
 }
 
 /* FOUR field columns, each of four parts: label, input, DQ marker, unit. The parts are real
@@ -1188,7 +1190,7 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
    bugs/archive/BUG_20260817_driver_editor_columns_do_not_share_a_column_edge.md
    minmax(0, …) on the two content tracks: a bare max-content track refuses to shrink, and four
    columns of them overran the modal and forced a sideways scroll. */
-.de-cols {
+.de-desktop .de-cols {
   display: grid !important;
   grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
   gap: 6px 12px !important;
@@ -1196,28 +1198,64 @@ input.value-n, .de-fld.value-n input, select.value-n { color: var(--mut); }
 }
 /* Placement is EXPLICIT, never by document order: a field without a DQ marker would otherwise
    slide its unit into the marker's track and break the column it shares. */
-.de-cols .de-fld > label,
-.de-dimlist .de-fld > label { grid-column: 1 !important; }
+.de-desktop .de-cols .de-fld > label,
+.de-desktop .de-dimlist .de-fld > label { grid-column: 1 !important; }
 
-.de-cols .de-fld > .ui-field-value,
-.de-dimlist .de-fld > .ui-field-value,
-.de-cols .de-fld > :deep(input), .de-cols .de-fld > select,
-.de-dimlist .de-fld > :deep(input), .de-dimlist .de-fld > select { grid-column: 2 !important; }
+.de-desktop .de-cols .de-fld > .ui-field-value,
+.de-desktop .de-dimlist .de-fld > .ui-field-value,
+.de-desktop .de-cols .de-fld > :deep(input), .de-desktop .de-cols .de-fld > select,
+.de-desktop .de-dimlist .de-fld > :deep(input), .de-desktop .de-dimlist .de-fld > select { grid-column: 2 !important; }
 
-.de-cols .de-fld > .ui-field-unit,
-.de-dimlist .de-fld > .ui-field-unit,
-.de-cols .de-fld > .u,
-.de-dimlist .de-fld > .u { grid-column: 3 !important; }
+.de-desktop .de-cols .de-fld > .ui-field-unit,
+.de-desktop .de-dimlist .de-fld > .ui-field-unit,
+.de-desktop .de-cols .de-fld > .u,
+.de-desktop .de-dimlist .de-fld > .u { grid-column: 3 !important; }
 
-.de-cols .de-fld > .ui-field-dq,
-.de-dimlist .de-fld > .ui-field-dq,
-.de-cols .de-fld > .de-dq,
-.de-dimlist .de-fld > .de-dq {
+.de-desktop .de-cols .de-fld > .ui-field-dq,
+.de-desktop .de-dimlist .de-fld > .ui-field-dq,
+.de-desktop .de-cols .de-fld > .de-dq,
+.de-desktop .de-dimlist .de-fld > .de-dq {
   grid-column: 4 !important;
   /* The DQ track sits right against the input/unit with no padding of its own, so the triangle
      glyph renders flush on the unit's edge. A small left margin only. */
   margin-left: 4px !important;
 }
+
+/* ── Phone: the shared pieces, nothing sized here ─────────────────────────────────────────────
+   The field rows are `mob-ui-field` and the buttons `mob-btn` (style.css), handed in as `skin`.
+   What is left is the dialog's own frame: the tab strip and toolbar at finger height, the groups
+   stacked, the footer in two rows. Every size comes from SheetSizes via those shared classes. */
+.de-phone > * { min-width: 0; }
+.de-phone .de-tabs { flex-shrink: 0; padding-left: 6px; padding-right: 6px; }
+.de-phone .de-tab { flex: 1 1 0; min-width: 0; min-height: var(--mob-touch-min); padding-left: 2px; padding-right: 2px; font-size: 13px; white-space: nowrap; }
+/* The selected tab owns the strip's bottom line: it sits 1 px over it, so the line never shows across the tab (at any pixel density), and the others keep it under them. */
+.de-phone .de-tab.on { position: relative; margin-bottom: -1px; }
+.de-desktop .de-scroll { display: contents; }
+.de-desktop .de-toolbar { order: 1; }
+.de-desktop .de-strips { order: 2; }
+.de-desktop .de-footer { order: 3; }
+.de-phone .de-scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+.de-phone .de-body { flex: none; overflow: visible; padding: 0; gap: 0; }
+.de-phone .de-params, .de-phone .de-group, .de-phone .de-cols, .de-phone .de-dimlist, .de-phone .de-row2 { display: block; }
+.de-phone .de-hdr { padding: 6px 0; margin: 0; border-radius: 0; font-size: 13px; }
+.de-phone .de-dims { flex-direction: column; align-items: stretch; gap: 0; height: auto; }
+.de-phone .de-diagram { min-width: 0; height: auto; padding: 12px; }
+.de-phone .de-general { display: block !important; height: auto !important; }
+.de-phone .de-general .de-fld.de-comment textarea { flex: 1 1 auto; width: 100% !important; min-height: 120px; font-size: 18px; border-radius: 6px; padding: 8px !important; }
+.de-phone h2 .x { min-width: var(--mob-touch-min); min-height: var(--mob-touch-min); }
+/* The unit toggle and the ⚠ are buttons: as tall as the row's box, so a finger finds them. */
+.de-phone :deep(.ui-field-unit), .de-phone :deep(.ui-field-dq-btn) { min-height: var(--mob-input-h); display: inline-flex; align-items: center; }
+.de-phone .de-toolbar { gap: 6px; padding-left: 10px; padding-right: 10px; }
+.de-phone .de-provenance-chk { flex: 1 1 0; min-width: 0; min-height: var(--mob-input-h); box-sizing: border-box; font-size: 12px; }
+.de-phone .de-provenance-chk input { width: 18px; height: 18px; }
+.de-phone .de-incomplete { overflow-wrap: anywhere; }
+.de-phone .de-footer { padding-left: 10px; padding-right: 10px; }
+.de-phone .de-legend2 { flex-wrap: wrap; gap: 4px 12px; }
+.de-phone .de-btns { min-width: 0; flex-direction: column; align-items: stretch; gap: 6px; }
+.de-phone .de-btn-row { gap: 6px; flex-wrap: nowrap; }
+.de-phone .de-btn-row > button { min-width: 0; padding-left: 6px; padding-right: 6px; }
+.de-phone .fmt-foot { gap: 8px; }
+.de-phone .fmt-foot > button { flex: 1; }
 
 /* Format picker — scoped to the editor, not the page, so it reads as part of the editor. */
 .fmt-scrim {

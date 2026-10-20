@@ -1,6 +1,6 @@
 # Driver editor: buttons tiny and unusable, and the dialog looks totally different from the rest of the app
 
-Status: OPEN. Touch targets FIXED in T470 (tabs, close cross, footer buttons 44 px on the phone; test: packages/ui/test/ui/driver-editor-phone-fixes.browser.spec.ts). Restyle question below waits for John.
+Status: FIXED — T418 (bob): the editor is built from the shared phone rows, steppers and 44 px buttons on the phone, and from the shared fields with no own sizes on the desktop. Before/after: ui-gallery/T418. John, 18 Oct 2026, reviewing main for the 7.0.953 cut: "the driver editor buttons are tiny and unusable".
 
 ## What is wrong
 

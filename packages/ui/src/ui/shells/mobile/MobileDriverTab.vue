@@ -16,7 +16,7 @@ const { project, brand, model, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARR
       </div>
     </div>
     <div class="mob-row mob-row-actions">
-      <button type="button" class="mob-btn" @click="browseDrivers">Select driver</button>
+      <button type="button" class="mob-btn mob-btn-primary" @click="browseDrivers">Select driver</button>
       <button type="button" class="mob-btn mob-btn-secondary" @click="editDriver">Edit</button>
     </div>
   </div>
@@ -71,18 +71,6 @@ const { project, brand, model, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARR
 .mob-driver-brand { font-size: 13px; color: var(--mut); }
 .mob-driver-model { font-size: 17px; font-weight: 600; }
 .mob-row-actions { gap: 12px; }
-.mob-btn {
-  flex: 1;
-  min-height: 44px;
-  border: 1px solid var(--acc);
-  border-radius: 4px;
-  background: var(--acc);
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.mob-btn-secondary { background: var(--panel); color: var(--acc); }
 .mob-select {
   flex: 1;
   max-width: 60%;

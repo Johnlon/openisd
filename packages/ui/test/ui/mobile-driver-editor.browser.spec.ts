@@ -9,6 +9,8 @@
  */
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
+import {PhoneRowSizes, SheetSizes} from '@openisd/design/fields';
 
 /** Where to save a screenshot of the editor at phone width; no screenshot when unset. */
 const SCREENSHOT_PATH = process.env.DRIVER_EDITOR_SCREENSHOT;
@@ -156,4 +158,157 @@ test('the Driver Editor tab titles all fit without scrolling sideways at phone w
     expect(scroll, `tabs at ${width}px`).toBeLessThanOrEqual(client);
     for (const tab of await page.locator('.de-tab').all()) await expect(tab).toBeInViewport({ ratio: 1 });
   }
+});
+
+// John, 18 Oct 2026: "the driver editor buttons are tiny and unusable" and "looks totally different".
+// bugs/BUG_20261018_driver-editor-buttons-tiny.md. The editor is built from the same pieces as the
+// phone tabs: the shared phone field row, and finger-sized buttons, tabs and boxes.
+for (const tabName of ['General', 'Parameters', 'Advanced', 'Dimensions']) {
+  test(`on the phone the Driver Editor ${tabName} tab: compact one-line rows, finger-sized buttons, DQ text inside the scroll, nothing past the edge`, async ({ page }) => {
+    await page.setViewportSize(PIXEL_9);
+    await page.getByText('Edit', { exact: true }).click();
+    await expect(page.locator('.de-modal')).toBeVisible();
+    await page.locator('.de-tab', { hasText: tabName }).click();
+
+    // Buttons and tabs are finger-sized; the boxes inside a row are the compact set's.
+    const small = await page.locator('.de-modal').evaluate((root, [touch, box]) => {
+      const shown = (el: Element): boolean => el.getClientRects().length > 0;
+      const rowPart = '.num-stepper-btn, .ui-field-dq-btn, .ui-field-unit';
+      const buttons = [...root.querySelectorAll('button, [role=button]')].filter(el => shown(el) && !el.matches(rowPart));
+      const parts = [...root.querySelectorAll(`${rowPart}, select, input:not([type=file]):not([type=checkbox])`)].filter(shown);
+      const checks = [...root.querySelectorAll('input[type=checkbox]')].filter(shown).map(el => el.closest('label') ?? el);
+      const measure = (el: Element, min: number) => ({
+        what: `${el.tagName}.${el.className} ${el.getAttribute('title') ?? el.getAttribute('aria-label') ?? el.textContent?.trim() ?? ''}`.trim(),
+        h: el.getBoundingClientRect().height, min,
+      });
+      return [...buttons.map(el => measure(el, touch)), ...[...parts, ...checks].map(el => measure(el, box))].filter(c => c.h < c.min);
+    }, [SheetSizes.TOUCH_MIN_PX, PhoneRowSizes.COMPACT.inputMinPx]);
+    expect(small, 'controls under their minimum').toEqual([]);
+
+    const notPhoneRows = await page.locator('.de-fld.ui-field').evaluateAll(els =>
+      els.filter(el => !el.classList.contains('mob-ui-field')).map(el => el.getAttribute('data-field-key')));
+    expect(notPhoneRows, 'field rows that are not the shared phone row').toEqual([]);
+
+    // A row is at most 44 px deep, and its label is on the same line as its box (the two overlap vertically).
+    const rows = await page.locator('.de-fld.mob-ui-field-inline').evaluateAll(els => els.map(el => {
+      const r = el.getBoundingClientRect();
+      const l = el.querySelector('label')!.getBoundingClientRect();
+      const b = el.querySelector('input, select')!.getBoundingClientRect();
+      return { key: el.getAttribute('data-field-key'), h: r.height, sameLine: l.top < b.bottom && l.bottom > b.top };
+    }));
+    expect(rows.length, 'inline rows on the tab').toBeGreaterThan(0);
+    expect(rows.filter(r => r.h > 44 || !r.sameLine), 'rows deeper than 44 px or with the label above the box').toEqual([]);
+
+    expect(await elementsPastScreenEdges(page, '.de-modal')).toEqual([]);
+    const scroll = page.locator('.de-scroll');
+    expect(await scroll.evaluate(el => el.scrollWidth <= el.clientWidth), 'no sideways scroll').toBe(true);
+  });
+}
+
+test('on the phone the incomplete-driver text scrolls with the fields, not fixed above the footer', async ({ page }) => {
+  await page.setViewportSize(PIXEL_9);
+  await page.getByText('Edit', { exact: true }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+  await page.locator('.de-tab', { hasText: 'General' }).click();
+  await page.locator('.de-fld[data-field-key="brand"] input').fill('');
+  const strip = page.locator('.de-incomplete').first();
+  await expect(strip).toBeVisible();
+  expect(await strip.evaluate(el => el.closest('.de-scroll') !== null), 'the strip is inside the scroll area').toBe(true);
+});
+
+// bugs/BUG_20261018_phone-equation-inspector-covers-editor-tabs.md: the Provenance card sat over the
+// editor's ✕ and tabs, so the editor could be neither switched nor closed until the card was.
+test.describe('Provenance card on the phone', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize(PIXEL_9);
+    await page.getByText('Edit', { exact: true }).click();
+    await expect(page.locator('.de-modal')).toBeVisible();
+    await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+    await page.locator('.de-fld:has-text("Qts") input').first().click();
+    await expect(page.locator('.eq-inspector-card')).toBeVisible();
+  });
+
+  test('with the card open the Advanced tab can be tapped and shows', async ({ page }) => {
+    await page.locator('.de-tab', { hasText: 'Advanced' }).click();
+    await expect(page.locator('.de-tab.on')).toHaveText('Advanced');
+    await expect(page.locator('.de-fld:has-text("AlfaVC")').first()).toBeVisible();
+  });
+
+  test('with the card open the editor\'s ✕ closes the editor', async ({ page }) => {
+    await page.locator('.de-modal h2 .x').click();
+    await expect(page.locator('.de-modal')).toHaveCount(0);
+  });
+
+  test('the card sits inside the screen and clear of the header, tabs and footer', async ({ page }) => {
+    const box = async (sel: string) => (await page.locator(sel).first().boundingBox())!;
+    const card = await box('.eq-inspector-card');
+    const tabs = await box('.de-tabs');
+    const footer = await box('.de-footer');
+    expect(card.y).toBeGreaterThanOrEqual(tabs.y + tabs.height - 1);
+    expect(card.y + card.height).toBeLessThanOrEqual(footer.y + 1);
+    expect(card.x).toBeGreaterThanOrEqual(0);
+    expect(card.x + card.width).toBeLessThanOrEqual(PIXEL_9.width + 1);
+  });
+});
+
+test('on the phone the General tab\'s text rows are one line: label left, box on the same line, running to the right edge', async ({ page }) => {
+  await page.setViewportSize(PIXEL_9);
+  await page.getByText('Edit', { exact: true }).click();
+  await page.locator('.de-tab', { hasText: 'General' }).click();
+  const m = await page.locator('.de-general').evaluate(el => {
+    const g = el.getBoundingClientRect();
+    return {right: g.right, left: g.left, scrollW: document.documentElement.scrollWidth, innerW: window.innerWidth,
+      rows: [...el.querySelectorAll('.de-fld:not(.de-comment)')].map(row => {
+        const l = row.querySelector('label')!.getBoundingClientRect();
+        const b = row.querySelector('input[type=text]')!.getBoundingClientRect();
+        const rr = row.getBoundingClientRect();
+        const contentRight = rr.right - parseFloat(getComputedStyle(row).paddingRight);
+        return {key: row.getAttribute('data-field-key'), contentRight, labelRight: l.right, labelTop: l.top, labelBottom: l.bottom, boxLeft: b.left, boxRight: b.right, boxTop: b.top, boxBottom: b.bottom};
+      })};
+  });
+  expect(m.rows.length, 'the text rows are there').toBeGreaterThanOrEqual(6);
+  for (const r of m.rows) {
+    const labelMid = (r.labelTop + r.labelBottom) / 2;
+    expect(labelMid, `${r.key} label is level with its box`).toBeGreaterThan(r.boxTop);
+    expect(labelMid, `${r.key} label is level with its box`).toBeLessThan(r.boxBottom);
+    expect(r.boxLeft, `${r.key} box is right of its label`).toBeGreaterThanOrEqual(r.labelRight - 1);
+    expect(r.contentRight - r.boxRight, `${r.key} box reaches the content's right edge`).toBeLessThanOrEqual(4);
+    expect(r.contentRight - r.boxRight).toBeGreaterThanOrEqual(-0.5);
+  }
+  expect(m.scrollW, 'no sideways scroll').toBeLessThanOrEqual(m.innerW);
+});
+
+test.describe('tab strip at the Pixel 9 pixel density', () => {
+  test.use({ deviceScaleFactor: 2.566 });
+
+  test('no line is drawn across the selected tab: its face runs unbroken down into the page', async ({ page }) => {
+    await page.setViewportSize(PIXEL_9);
+    await page.getByText('Edit', { exact: true }).click();
+    await page.locator('.de-tab', { hasText: 'General' }).click();
+    const tab = page.locator('.de-tab.on');
+    const box = (await tab.boundingBox())!;
+    const strip = (await page.locator('.de-tabs').boundingBox())!;
+    const bottom = Math.max(box.y + box.height, strip.y + strip.height);
+    // The tab's lower 8 px and 3 px below it, away from the rounded sides.
+    const clip = {x: box.x + 10, y: bottom - 8, width: box.width - 20, height: 11};
+    const png = await page.screenshot({clip});
+    const rows = await page.evaluate(async (b64: string) => {
+      const img = new Image();
+      img.src = 'data:image/png;base64,' + b64;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.width; c.height = img.height;
+      const ctx = c.getContext('2d')!;
+      ctx.drawImage(img, 0, 0);
+      const out: string[] = [];
+      for (let y = 0; y < img.height; y++) {
+        const seen = new Set<string>();
+        for (let x = 0; x < img.width; x++) seen.add([...ctx.getImageData(x, y, 1, 1).data].join(','));
+        out.push([...seen].join('|'));
+      }
+      return out;
+    }, png.toString('base64'));
+    const broken = rows.map((r, y) => ({r, y})).filter(({r}) => r.includes('|'));
+    expect(broken, 'every pixel row across the tab\'s face and just below it is one colour').toEqual([]);
+  });
 });

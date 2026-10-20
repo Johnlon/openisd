@@ -80,6 +80,17 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
     await page.locator('.de-body').waitFor({ state: 'visible' });
   });
 
+  test('The Connection select wears the colour of its provenance class, the same as a number box of that class', async ({ page }) => {
+    await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+    const select = page.locator('.de-conn-sel');
+    const cls = await select.evaluate(el => ['value-e', 'value-c', 'value-n'].find(c => el.classList.contains(c)) ?? '');
+    expect(cls, 'Connection carries a provenance class').not.toBe('');
+    const colourOf = (l: import('@playwright/test').Locator) => l.evaluate(el => getComputedStyle(el).color);
+    const sameClassBox = page.locator(`.de-body input.${cls}`).first();
+    await expect(sameClassBox).toBeVisible();
+    expect(await colourOf(select)).toBe(await colourOf(sameClassBox));
+  });
+
   test('All input fields on Parameters tab render valid E/C/N provenance classes (value-e, value-c, or value-n)', async ({ page }) => {
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 

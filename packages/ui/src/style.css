@@ -209,10 +209,30 @@ a { color:var(--acc) }
   height: 32px !important;
   font-size: 16px !important;
 }
+/* The ▲▼ pair is as tall as the row's box (32 px on the tabs, 44 px where the screen sets the sheet's
+   row sizes, as the driver editor does). */
+.mob-ui-field.ui-field .num-stepper-btn { height: var(--mob-input-h, 32px) !important; }
 .mob-ui-field.ui-field .num-stepper,
 .mob-what-if-rows .num-stepper {
   margin-left: 6px !important;
 }
+/* The inline phone row (the driver editor's): the label on the row's own line, left, in a fixed column,
+   then the box with its ▲▼, the ⚠ and the unit. Every size is a PhoneRowSizes variable. */
+.mob-ui-field.mob-ui-field-inline.ui-field {
+  display: grid;
+  grid-template-columns: var(--mob-label-w) 1fr 10px var(--mob-unit-w);
+  align-items: center;
+}
+.mob-ui-field.mob-ui-field-inline.ui-field > label { font-size: 12px; }
+.mob-ui-field.mob-ui-field-inline.ui-field > label { grid-column: 1; grid-row: 1; }
+.mob-ui-field.mob-ui-field-inline.ui-field .ui-field-value { grid-column: 2; grid-row: 1; }
+.mob-ui-field.mob-ui-field-inline.ui-field .ui-field-dq { grid-column: 3; grid-row: 1; }
+.mob-ui-field.mob-ui-field-inline.ui-field .ui-field-unit { grid-column: 4; grid-row: 1; width: var(--mob-unit-w); padding-left: 4px; box-sizing: border-box; }
+.mob-ui-field.mob-ui-field-inline.ui-field .ui-field-value input { font-size: 15px; padding: 2px 6px; }
+.mob-ui-field.mob-ui-field-inline.ui-field .num-stepper-btn { width: var(--mob-stepper-w) !important; }
+/* The General tab's text rows have no unit: the box runs to the right edge. */
+.de-general .mob-ui-field.mob-ui-field-inline.ui-field .ui-field-value { grid-column: 2 / -1; }
+
 /* Steppers are on by default (desktop). On the phone they stay only where a row is laid out for a
    touch-sized pair: the UIField rows and the Tune and What-if sheets. Everywhere else (wizard, dialogs,
    Advanced) they stay hidden until those screens are laid out for them. */
@@ -225,6 +245,22 @@ a { color:var(--acc) }
   padding: 2px 8px;
   font-size: 18px;
 }
+
+/* The phone touch button, one for every screen that has none of its own: at least 44 px tall (the
+   SheetSizes touch minimum). `-primary` is the filled call to action, `-secondary` the outlined one;
+   a screen that styles `.mob-btn` itself in a scoped sheet (Box, Advanced) keeps its own look, and
+   weight and cursor live on the two variants so they never reach it. */
+.mob-btn {
+  flex: 1;
+  min-height: 44px;
+  border: 1px solid var(--acc);
+  border-radius: 4px;
+  background: var(--acc);
+  color: #fff;
+  font: inherit;
+}
+.mob-btn-primary { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 600; cursor: pointer; }
+.mob-btn-secondary { background: var(--panel); border-color: var(--acc); color: var(--acc); font-weight: 600; cursor: pointer; }
 
 /* Footer buttons (Back, Next, Cancel, OK, Close, Defaults, Reset): one size on every desktop dialog, from DesktopSizes. */
 .modal-footer .footer-buttons button, .opt-footer button, .what-if-btns button {
