@@ -14,7 +14,7 @@ test.beforeEach(async ({ appPage: page }) => {
 test.describe('MobileBoxLossesPopup', () => {
   test('edits Ql/Qa, and Qp only for a vented box', async ({ appPage: page }) => {
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
-    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
     await expect(page.locator('.ui-field-label', { hasText: 'Leakage Ql' })).toBeVisible();
     await expect(page.locator('.ui-field-label', { hasText: 'Absorption Qa' })).toBeVisible();
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toBeVisible();
@@ -28,19 +28,19 @@ test.describe('MobileBoxLossesPopup', () => {
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
 
     await page.locator('#mob-box-type').selectOption('sealed');
-    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
   });
 
   test('Escape closes the sheet', async ({ appPage: page }) => {
-    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
     await expect(page.locator('.mob-align-sheet')).toHaveCount(1);
     await page.keyboard.press('Escape');
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
   });
 
   test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ appPage: page }) => {
-    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
     const q = (label: string) => page.locator('.mob-ui-field', { hasText: label }).locator('input');
     await q('Leakage Ql').fill('7'); await q('Leakage Ql').blur();
     await q('Absorption Qa').fill('20'); await q('Absorption Qa').blur();
@@ -54,8 +54,8 @@ test.describe('MobileBoxLossesPopup', () => {
   // "Box losses" button per chamber panel, each opening that chamber's set only.
   for (const [type, rearPorts] of [['bandpass4', 0], ['bandpass6', 1], ['abc', 1]] as const) {
     const openFor = async (page: Page, chamber: 'Rear' | 'Front') => {
-      await page.locator('.mob-panel', { has: page.locator('.mob-panel-head', { hasText: `${chamber} chamber` }) })
-        .locator('.mob-btn', { hasText: 'Box losses' }).click();
+      await page.locator('.mob-csection', { has: page.locator('.mob-band-title', { hasText: `${chamber} chamber` }) })
+        .locator('.mob-clink', { hasText: 'Box losses' }).click();
       return page.locator('.mob-align-sheet');
     };
 

@@ -8,11 +8,8 @@
 import { computed } from 'vue';
 import type { MobileDestination } from '../../../hooks/MobileShell-hooks.js';
 
-const props = defineProps<{
+defineProps<{
   modelValue: MobileDestination;
-  /** Mirrors desktop's own nav gate: sealed has no Enclosure destination. */
-  showEnclosure: boolean;
-  enclosureLabel: string;
   /** True while the content pane above has more to scroll down to — shows as a shadow on this
    *  bar's own top edge (MobileShell-hooks.ts's `canScrollDown`). */
   shadowAbove?: boolean;
@@ -23,7 +20,6 @@ const DESTINATIONS = computed<{ id: MobileDestination; label: string }[]>(() => 
   { id: 'box', label: 'Box' },
   { id: 'driver', label: 'Driver' },
   { id: 'signal', label: 'Signal' },
-  ...(props.showEnclosure ? [{ id: 'enclosure' as const, label: props.enclosureLabel }] : []),
   { id: 'filters', label: 'Filters' },
   { id: 'graph', label: 'Graph' },
 ]);

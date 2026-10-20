@@ -22,7 +22,7 @@ const binding = computed<UIBinding>(() => ({
 </script>
 
 <template>
-  <UIFieldBody :field="field" :label="label" :required="required" :input-id="inputId" :max="max" :stepper="stepper" :readonly="readonly" :plain="plain" :format="format" :binding="binding" :deviation="deviation" :dq-state="dqState" :allow-out-of-range="allowOutOfRange" :defaulted="defaulted" :dq="dq">
+  <UIFieldBody :field="field" :label="label" :required="required" :input-id="inputId" :max="max" :stepper="stepper" :readonly="readonly" :plain="plain" :format="format" :binding="binding" :deviation="deviation" :dq-state="dqState" :allow-out-of-range="allowOutOfRange" :defaulted="defaulted" :dq="dq" :columns="columns">
     <template v-for="(_, name) in $slots" #[name]="slotData"><slot :name="name" v-bind="slotData" /></template>
   </UIFieldBody>
 </template>

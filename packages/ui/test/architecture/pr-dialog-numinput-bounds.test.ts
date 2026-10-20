@@ -21,10 +21,10 @@ import {Field, NumberField} from '@openisd/design/fields';
 const here = dirname(fileURLToPath(import.meta.url));
 const shells = join(here, '..', '..', 'src', 'ui', 'shells');
 
-/** The passive-radiator pane of a shell template: from its `v-else-if` to the next one. */
+/** The passive-radiator pane of a shell template: from its `v-if` or `v-else-if` to the next `v-else-if`. */
 function prPane(file: string): string {
   const src = readFileSync(join(shells, file), 'utf8');
-  const start = src.indexOf("v-else-if=\"selectedBox === 'box-passive-radiator'\"");
+  const start = src.search(/v-(?:else-)?if="selectedBox === 'box-passive-radiator'"/);
   assert.ok(start >= 0, `${file} has no passive-radiator pane`);
   const end = src.indexOf('v-else-if=', start + 1);
   return src.slice(start, end < 0 ? undefined : end);

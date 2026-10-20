@@ -32,7 +32,7 @@ async function hold(page: Page, target: Locator, reached: () => Promise<boolean>
 }
 
 test('a tap focuses the button, steps the digit the caret last sat on, and the row does not move', async ({page}) => {
-  const row = mobileFieldRow(page, 'Series resistance');
+  const row = mobileFieldRow(page, 'Rs');
   const box = row.locator('input');
   const up = row.locator('.num-stepper-btn').first();
   await box.focus();
@@ -53,7 +53,7 @@ test('a tap focuses the button, steps the digit the caret last sat on, and the r
 });
 
 test('a box that never had a caret steps 0.1, and nothing in the box is focused or selected', async ({page}) => {
-  const row = mobileFieldRow(page, 'Series resistance');
+  const row = mobileFieldRow(page, 'Rs');
   const box = row.locator('input');
   const before = await box.inputValue();
   const selection = await selectionOf(box);
@@ -67,7 +67,7 @@ test('a box that never had a caret steps 0.1, and nothing in the box is focused 
 });
 
 test('pressing into the text box afterwards gives the keyboard\'s box back as normal', async ({page}) => {
-  const row = mobileFieldRow(page, 'Series resistance');
+  const row = mobileFieldRow(page, 'Rs');
   const box = row.locator('input');
   await row.locator('.num-stepper-btn').first().tap();
   await box.tap();
@@ -75,7 +75,7 @@ test('pressing into the text box afterwards gives the keyboard\'s box back as no
 });
 
 test('a hold keeps focus on the button and steps the same digit throughout', async ({page}) => {
-  const row = mobileFieldRow(page, 'Series resistance');
+  const row = mobileFieldRow(page, 'Rs');
   const box = row.locator('input');
   const up = row.locator('.num-stepper-btn').first();
   await box.focus();

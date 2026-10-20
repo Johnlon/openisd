@@ -13,6 +13,8 @@ const cueOf = (page: Page, label: 'Fsc' | 'Qtc') =>
   page.locator('.ui-field', {has: page.locator('label', {hasText: new RegExp(`^${label}$`)})}).locator('button.winisd-deviation-cue');
 
 for (const skin of ['desktop', 'mobile'] as const) {
+  const volume = skin === 'mobile' ? 'Vb' : 'Volume';
+
   test.describe(`${skin}: the closed box's Fsc and Qtc carry a ≠W cue`, () => {
     test.beforeEach(async ({appPage: page}) => {
       if (skin === 'mobile') await forceMobileSkin(page);
@@ -34,8 +36,8 @@ for (const skin of ['desktop', 'mobile'] as const) {
     test('the cue never moves the field: Fsc and Qtc rows are as wide as the Volume row', async ({appPage: page}) => {
       await setFocusedBoxType(page, 'sealed');
       const inputWidth = async (label: string) => Math.round((await page.locator('.ui-field', {has: page.locator('label', {hasText: new RegExp(`^${label}$`)})}).locator('input').first().boundingBox())?.width ?? NaN);
-      expect(await inputWidth('Fsc')).toBe(await inputWidth('Volume'));
-      expect(await inputWidth('Qtc')).toBe(await inputWidth('Volume'));
+      expect(await inputWidth('Fsc')).toBe(await inputWidth(volume));
+      expect(await inputWidth('Qtc')).toBe(await inputWidth(volume));
     });
 
     test('a vented box has no such field and no cue', async ({appPage: page}) => {

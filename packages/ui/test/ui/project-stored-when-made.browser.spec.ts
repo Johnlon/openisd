@@ -58,7 +58,7 @@ test.describe('Mobile: a project is stored when it is made', () => {
     await expect(page.locator('.mob-project-row .mob-project-dirty')).toHaveCount(0);
     await page.locator('.mob-dlg-close').click();
 
-    await fillAndBlur(mobileFieldRow(page, 'Volume').locator('input').first(), '25');
+    await fillAndBlur(mobileFieldRow(page, 'Vb').locator('input').first(), '25');
     await openMobileMenu(page);
     await expect(page.locator('.mob-menu-item', {hasText: /^Save$/})).toHaveClass(/dirty/);
     await expect(page.locator('.mob-open-project-dot')).toBeVisible();

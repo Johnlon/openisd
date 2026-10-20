@@ -26,7 +26,7 @@ function fieldRow(page: import('playwright').Page, label: string) {
 
 test('a step button click moves the value by the exact same amount as an ArrowUp keypress', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const row = fieldRow(page, 'Series resistance');
+  const row = fieldRow(page, 'Rs');
   const input = row.locator('input');
   const upBtn = row.locator('.num-stepper-btn').first(); // [▲, ▼] order — ▲ is first
 
@@ -49,7 +49,7 @@ test('a step button click moves the value by the exact same amount as an ArrowUp
 
 test('the down button undoes the up button exactly — same step size, opposite direction', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const row = fieldRow(page, 'Series resistance');
+  const row = fieldRow(page, 'Rs');
   const input = row.locator('input');
   const [upBtn, downBtn] = await row.locator('.num-stepper-btn').all(); // [▲, ▼] order
 
@@ -65,7 +65,7 @@ test('the down button undoes the up button exactly — same step size, opposite 
 
 test('a long hold on ▲ takes 10 % steps and lands on a round value when released', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const row = fieldRow(page, 'Series resistance');
+  const row = fieldRow(page, 'Rs');
   const input = row.locator('input');
   const upBtn = row.locator('.num-stepper-btn').first();
 
@@ -84,7 +84,7 @@ test('a long hold on ▲ takes 10 % steps and lands on a round value when releas
 
 test('the stepper buttons meet a touch-sized minimum at phone width', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
-  const btn = fieldRow(page, 'Volume').locator('.num-stepper-btn').first();
+  const btn = fieldRow(page, 'Vb').locator('.num-stepper-btn').first();
   await expect(btn).toBeVisible();
   const box = await btn.boundingBox();
   expect(box).not.toBeNull();
@@ -101,7 +101,7 @@ test('the stepper buttons meet a touch-sized minimum at phone width', async ({ p
 
 test('holding the button repeats the step, not just one click\'s worth of movement', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const row = fieldRow(page, 'Series resistance');
+  const row = fieldRow(page, 'Rs');
   const input = row.locator('input');
   const upBtn = row.locator('.num-stepper-btn').first(); // [▲, ▼] order — ▲ is first
 
@@ -130,10 +130,10 @@ test('holding the button repeats the step, not just one click\'s worth of moveme
 // John, 2026-10-02: focus on the tapped button, never the input (it pops the phone keyboard).
 test('pressing a step button focuses the button, not the field', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
-  const other = fieldRow(page, 'Volume').locator('input');
+  const other = fieldRow(page, 'Vb').locator('input');
   await other.focus();
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const row = fieldRow(page, 'Series resistance');
+  const row = fieldRow(page, 'Rs');
   const input = row.locator('input');
   const btn = row.locator('.num-stepper-btn').first();
   await btn.click();
@@ -145,7 +145,6 @@ test('pressing a step button focuses the button, not the field', async ({ page }
 // neighbours. Every stepper lines up whether or not its row has a unit.
 test('a unitless row\'s step buttons line up with a row that has a unit', async ({ page }) => {
   await setFocusedBoxType(page, 'box-passive-radiator');
-  await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
   const withUnit = await fieldRow(page, 'Vas').locator('.num-stepper').boundingBox();
   const unitless = await fieldRow(page, 'Qms').locator('.num-stepper').boundingBox();
   expect(withUnit).not.toBeNull();
@@ -156,7 +155,7 @@ test('a unitless row\'s step buttons line up with a row that has a unit', async 
 // John, 2026-10-02: "make the mobile fields look like inputs when they are input".
 test('an editable value is drawn as an input box; a read-only one is not', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const input = fieldRow(page, 'Series resistance').locator('input');
+  const input = fieldRow(page, 'Rs').locator('input');
   const style = await input.evaluate(el => {
     const s = getComputedStyle(el);
     return { border: s.borderTopStyle, width: parseFloat(s.borderTopWidth), bg: s.backgroundColor };
@@ -179,7 +178,7 @@ test('a step button on a field holding zero steps up instead of throwing', async
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const row = fieldRow(page, 'Series resistance');
+  const row = fieldRow(page, 'Rs');
   const input = row.locator('input');
   await input.fill('0');
   await input.blur();

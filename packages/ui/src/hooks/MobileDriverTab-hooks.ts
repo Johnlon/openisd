@@ -21,11 +21,21 @@ export function useMobileDriverTab() {
   const brand = computed(() => { void projectChanged.value; return project.value.driver.brand.value; });
   const model = computed(() => { void projectChanged.value; return project.value.driver.model.value || driverName.value; });
 
+  /** Brand and model on one line, for the name box. */
+  const fullName = computed(() => [brand.value, model.value].filter(part => part !== '').join(' '));
+
+  /** The driver's key figures, read off its spec (SI; the field formats them). */
+  const keyFigures = computed(() => {
+    void projectChanged.value;
+    const spec = project.value.driver.specs;
+    return {Fs: spec.Fs_hz.value, Qts: spec.Qts.value, Vas: spec.Vas_m3.value, Re: spec.Re_ohm.value, Xmax: spec.Xmax_m.value};
+  });
+
   function browseDrivers(): void { presentationState.browseOpen = true; }
   function editDriver(): void { selection.editProjectDriver(); }
 
   return {
-    project, brand, model, browseDrivers, editDriver,
+    project, brand, model, fullName, keyFigures, browseDrivers, editDriver,
     N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption,
   };
 }

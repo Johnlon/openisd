@@ -24,8 +24,9 @@ async function numberIn(input: Locator): Promise<number | null> {
 export async function shownPassiveRadiator(page: Page): Promise<ShownPassiveRadiator> {
   await setFocusedBoxType(page, 'sealed');
   await setFocusedBoxType(page, 'box-passive-radiator');
-  await openTab(page, 'Passive Radiator');
-  if (await page.locator('.mobile-root').count() > 0) {
+  const phone = await page.locator('.mobile-root').count() > 0;
+  if (!phone) await openTab(page, 'Passive Radiator');
+  if (phone) {
     const input = (label: string) => mobileFieldRow(page, label).locator('input').first();
     return {
       name: await page.locator('#mob-pr-name').inputValue(),
