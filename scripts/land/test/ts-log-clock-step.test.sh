@@ -28,7 +28,7 @@ exec "$REAL_DATE" -d "+\${off} seconds" "\$@"
 SHIM
 chmod +x "$SCRATCH/bin/date"
 export PATH="$SCRATCH/bin:$PATH"
-export OPENISD_RUNTIME_DIR="$SCRATCH/run"
+export OPENISD_RUNTIME_DIR="$SCRATCH/run" OPENISD_STATE_DIR="$SCRATCH/state"
 export OPENISD_RUN_ID="STEP-RUN"
 
 field() { sed -n "s/.* $1=\(-\?[0-9]*\).*/\1/p" <<<"$2"; }

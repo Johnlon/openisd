@@ -20,7 +20,7 @@ sleep 300 & echo $! >> "$FAKE_PIDS"
 wait
 NPX
 chmod +x "$SCRATCH/bin/npx"
-export PATH="$SCRATCH/bin:$PATH" OPENISD_RUNTIME_DIR="$SCRATCH/rt" FAKE_PIDS="$SCRATCH/pids"
+export PATH="$SCRATCH/bin:$PATH" OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state" FAKE_PIDS="$SCRATCH/pids"
 alive() { local n=0 p; for p in $(cat "$FAKE_PIDS" 2> /dev/null); do kill -0 "$p" 2> /dev/null && n=$((n + 1)); done; echo "$n"; }
 
 # INT is not tested: a non-interactive shell starts background jobs with INT ignored; a tty sends it to the group.

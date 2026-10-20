@@ -12,7 +12,7 @@ trap cleanup EXIT
 fails=0
 ok() { echo "ok   $*"; }
 fail() { echo "FAIL $*"; fails=$((fails + 1)); }
-export OPENISD_RUNTIME_DIR="$SCRATCH/run"
+export OPENISD_RUNTIME_DIR="$SCRATCH/run" OPENISD_STATE_DIR="$SCRATCH/state"
 export SUITE_RUN_LOCK="$SCRATCH/suite-run.lock"
 export OPENISD_RESERVATION_DIR="$SCRATCH/reservations" OPENISD_RESERVATION_LOCK="$SCRATCH/reservations.lock"
 yield() { bash "$REPO/scripts/yield-to-suite.sh" "$@"; }

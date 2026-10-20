@@ -296,9 +296,9 @@ done
 GATE_OUT=/dev/null
 now_s="$(date +%s)"
 age_min() { echo $(( (now_s - $(stat -c %Y "$1")) / 60 )); }
-green_sha="$(cat "${POST_LAND_LOCK}.green" 2>/dev/null)"
-tested_sha="$(cat "${POST_LAND_LOCK}.tested" 2>/dev/null)"
-green_age=""; [ -f "${POST_LAND_LOCK}.green" ] && green_age="$(age_min "${POST_LAND_LOCK}.green")"
+green_sha="$(cat "${POST_LAND_RECORD}.green" 2>/dev/null)"
+tested_sha="$(cat "${POST_LAND_RECORD}.tested" 2>/dev/null)"
+green_age=""; [ -f "${POST_LAND_RECORD}.green" ] && green_age="$(age_min "${POST_LAND_RECORD}.green")"
 run_state=none
 [ -f "${POST_LAND_LOCK}.running" ] && run_state="running $(age_min "${POST_LAND_LOCK}.running")m"
 load="$(cut -d' ' -f1 /proc/loadavg 2>/dev/null)"

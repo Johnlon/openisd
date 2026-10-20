@@ -20,7 +20,7 @@ trap 'exit 129' HUP
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
-export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"
 export ADMIT_DIR="$SCRATCH/admit"
 export WATCHDOG_STATE="$SCRATCH/rt/watchdog" WATCHDOG_LOG="$SCRATCH/logs/watchdog.log" HOUSEKEEPING_LOG="$SCRATCH/logs/housekeeping.log"
 export WORKSPACE="$SCRATCH/ws"; mkdir -p "$WORKSPACE/zoo/state/jobs"
@@ -30,7 +30,8 @@ export WATCHDOG_HUNG_S=100 WATCHDOG_GRACE_S=2 WATCHDOG_LEADER=lots
 export WATCHDOG_REPO="$SCRATCH/repo"
 # The tree under test, not a snapshot of the scratch repo's origin/main (case 8 tests the snapshot).
 export WATCHDOG_TOOLS="$REPO_SRC"
-export POST_LAND_LOCK="$SCRATCH/rt/post.lock" WATCHDOG_RUN_SH="$SCRATCH/fake-run.sh" FAKE_RUN_LOG="$SCRATCH/run.log"
+mkdir -p "$OPENISD_STATE_DIR"
+export POST_LAND_LOCK="$SCRATCH/rt/post.lock" POST_LAND_RECORD="$OPENISD_STATE_DIR/post-land" WATCHDOG_RUN_SH="$SCRATCH/fake-run.sh" FAKE_RUN_LOG="$SCRATCH/run.log"
 printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE_RUN_LOG"\n' > "$SCRATCH/fake-run.sh"
 ASK="$WORKSPACE/zoo/ASK.md"; : > "$ASK"
 # Alerts are files the gate hook shows to agents (T333); tmux is never used, so the fake below must stay unused.
@@ -192,7 +193,7 @@ kill -KILL -- "-$WP" 2> /dev/null; rm -f "$SUITE_RUN_LOCK.waiting" "$WATCHDOG_HO
 
 # 9. main has an untested commit and no run is alive: a run is started (once old enough)
 main_sha=$(git -C "$WATCHDOG_REPO" rev-parse origin/main)
-rm -f "$FAKE_RUN_LOG" "$WATCHDOG_HOLDER" "$POST_LAND_LOCK.tested"
+rm -f "$FAKE_RUN_LOG" "$WATCHDOG_HOLDER" "$POST_LAND_RECORD.tested"
 tick > /dev/null; sleep 0.5
 [ ! -e "$FAKE_RUN_LOG" ] && ok "a young untested main is left to land.sh's own run" || fail "started a run on a young commit"
 WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
@@ -210,7 +211,7 @@ kill -KILL -- "-$HP" 2> /dev/null; wait "$HP" 2> /dev/null; rm -f "$WATCHDOG_HOL
 WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
 [ ! -e "$FAKE_RUN_LOG" ] && ok "a held post-land lock means no second run" || fail "started over a held lock"
 kill -KILL "$!" 2> /dev/null
-printf '%s\n' "$main_sha" > "$POST_LAND_LOCK.tested"
+printf '%s\n' "$main_sha" > "$POST_LAND_RECORD.tested"
 WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
 [ ! -e "$FAKE_RUN_LOG" ] && ok "a tested main starts nothing" || fail "started a run on a tested main"
 
@@ -233,7 +234,7 @@ after=$(ls -d "$SNAP_TMP"/watchdog-tools.* 2> /dev/null | wc -l)
 
 # 9. a stray edit in the main folder no longer holds it (T476): it is kept on a stray/ branch, the folder moves to main,
 #    no main-folder alert
-git -C "$WATCHDOG_REPO" rev-parse origin/main > "$POST_LAND_LOCK.green"
+git -C "$WATCHDOG_REPO" rev-parse origin/main > "$POST_LAND_RECORD.green"
 echo stray >> "$WATCHDOG_REPO/tasks/fixes/F0.yml"   # a tracked edit (untracked files are left alone, T485)
 rm -f "$WATCHDOG_ALERTS/main-folder.alert"   # earlier ticks had no passed commit; that alert is over
 SYNC_SYSTEMCTL=false tick > /dev/null

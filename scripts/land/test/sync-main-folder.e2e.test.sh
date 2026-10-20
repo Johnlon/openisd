@@ -10,7 +10,7 @@ export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/sync-main-folder.XXXXXX")"
-export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"
 export SYNC_SYSTEMCTL="$SCRATCH/systemctl"
 # stub systemctl: records every call; "cat" succeeds only when $SCRATCH/unit.exists is there; restart fails when $SCRATCH/restart.fails is there
 cat > "$SCRATCH/systemctl" <<STUB
@@ -21,13 +21,15 @@ echo "\$*" >> "$SCRATCH/systemctl.calls"
 exit 0
 STUB
 chmod +x "$SCRATCH/systemctl"
-export POST_LAND_LOCK="$SCRATCH/rt/post-land.lock" SYNC_LOG="$SCRATCH/sync.log" SYNC_NPM="$SCRATCH/npm"
+# The last green is kept on disk under the state dir, never under the runtime dir (/run is cleared at boot, T497).
+export SYNC_LOG="$SCRATCH/sync.log" SYNC_NPM="$SCRATCH/npm"; mkdir -p "$OPENISD_STATE_DIR"
 printf '#!/usr/bin/env bash\necho "npm $* in $PWD" >> "%s/npm.calls"\n' "$SCRATCH" > "$SCRATCH/npm"; chmod +x "$SCRATCH/npm"
 fails=0
 trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 SYNC="$REPO/scripts/land/sync-main-folder.sh"
+GREEN="$OPENISD_STATE_DIR/post-land.green"
 
 # setup: origin with one commit; the main folder (a clone, as the real one); the preview, a detached worktree
 # of it listed in openisd.syncedCopy; a dev clone that lands commits.
@@ -47,7 +49,7 @@ setup() {
 land() {
   while [ $# -gt 0 ]; do printf '%s\n' "$2" >> "$SCRATCH/w/dev/$1"; shift 2; done
   git -C "$SCRATCH/w/dev" add -A; git -C "$SCRATCH/w/dev" commit -qm landed; git -C "$SCRATCH/w/dev" push -q origin main
-  git -C "$SCRATCH/w/dev" rev-parse HEAD > "$POST_LAND_LOCK.green"
+  git -C "$SCRATCH/w/dev" rev-parse HEAD > "$GREEN"
 }
 head_of() { git -C "$SCRATCH/w/$1" rev-parse HEAD; }
 dirty()   { git -C "$SCRATCH/w/$1" status --porcelain --untracked-files=all; }
@@ -109,7 +111,7 @@ if [ $r = 0 ] && grep -q "another run is syncing" "$SCRATCH/out" && [ "$(head_of
 else fail "overlap (r=$r): $(cat "$SCRATCH/out")"; fi
 
 # 7. --passed (land.sh's call): the named commit is pulled before post-land records it
-setup; land a.txt b; s=$(head_of dev); rm -f "$POST_LAND_LOCK.green"
+setup; land a.txt b; s=$(head_of dev); rm -f "$GREEN"
 bash "$SYNC" --passed "$s" "$SCRATCH/w/main" > /dev/null 2>&1; r=$?
 if [ $r = 0 ] && [ "$(head_of main)" = "$s" ]; then ok "--passed pulls the commit land.sh just pushed"
 else fail "--passed (r=$r)"; fi
@@ -185,6 +187,13 @@ bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
 if [ $r = 1 ] && [ "$(head_of main)" = "$before" ] && [ "$(cat main/new.txt)" = johns ] && grep -q "untracked new.txt would be overwritten" "$SYNC_LOG"; then
   ok "an untracked file the passed commit adds holds the copy (reset path); content unchanged"
 else fail "collision reset (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+
+# 12. a restart clears the runtime dir (/run): the last green is still found and the copies move to it (T497)
+setup; land a.txt b; s=$(head_of dev); rm -rf "$OPENISD_RUNTIME_DIR"
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$s" ]; then ok "the last green survives a wiped runtime dir"
+else fail "green lost with the runtime dir (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+mkdir -p "$OPENISD_RUNTIME_DIR"
 
 [ $fails = 0 ] && { echo "sync-main-folder.e2e: all passed"; exit 0; }
 echo "sync-main-folder.e2e: $fails failed"; exit 1

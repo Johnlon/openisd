@@ -16,6 +16,13 @@ POST_LAND_LOCK="${POST_LAND_LOCK:-$OPENISD_RUNTIME_DIR/post-land.lock}"
 # Held exclusive by the post-land full suite, shared by every agent browser spec run (scripts/suite-lock.sh).
 SUITE_RUN_LOCK="${SUITE_RUN_LOCK:-$OPENISD_RUNTIME_DIR/suite-run.lock}"
 
+# OPENISD_STATE_DIR holds records that must survive a restart; /run is cleared at boot (T497: the last green
+# was lost and the main folder stopped updating). Default follows XDG_STATE_HOME, then ~/.local/state/openisd.
+OPENISD_STATE_DIR="${OPENISD_STATE_DIR:-${XDG_STATE_HOME:-$HOME/.local/state}/openisd}"
+mkdir -p "$OPENISD_STATE_DIR"
+# Post-land's results: ${POST_LAND_RECORD}.green (last green sha) and ${POST_LAND_RECORD}.tested (last tested sha).
+POST_LAND_RECORD="${POST_LAND_RECORD:-$OPENISD_STATE_DIR/post-land}"
+
 # Heavy gate reservations (scripts/hooks-local/heavy-gate-concurrency.sh)
 OPENISD_HEAVY_GATE_DIR="${OPENISD_HEAVY_GATE_DIR:-$OPENISD_RUNTIME_DIR/heavy-gate-reservations}"
 OPENISD_HEAVY_GATE_ACCOUNTING_LOCK="${OPENISD_HEAVY_GATE_ACCOUNTING_LOCK:-$OPENISD_HEAVY_GATE_DIR.lock}"

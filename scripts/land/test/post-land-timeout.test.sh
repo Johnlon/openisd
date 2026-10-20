@@ -30,6 +30,7 @@ EOF2
 cat > land.conf <<EOF2
 FULL_SUITE_CMD="bash suite.sh"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 POST_LAND_DEADLINE_S=2
 EOF2

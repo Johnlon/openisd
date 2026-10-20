@@ -31,6 +31,7 @@ SUITE
     cat > land.conf <<CONF
 FULL_SUITE_CMD="bash suite.sh"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 CONF
     git add -A; git commit -qm base; git push -q origin main

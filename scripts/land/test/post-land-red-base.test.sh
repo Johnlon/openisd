@@ -23,7 +23,7 @@ setup() {
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/
     printf '#!/usr/bin/env bash\n[ -f FAIL ] && { echo "browser (3): TEST START a/ok.browser.spec.ts > ok works"; echo "browser (3): TEST END a/ok.browser.spec.ts > ok works status=passed"; printf "browser (3):   \\342\\234\\230  4 a/bad.browser.spec.ts:9:5 \\342\\200\\272 bad breaks (2.5s)TEST END a/bad.browser.spec.ts > bad breaks status=failed\\n"; printf "unit (1): \\033[41m FAIL \\033[49m test/x.test.ts > x\\n"; echo "unit (2): ^[[41m^[[1m FAIL ^[[22m^[[49m test/y.test.ts > y"; echo "spec broken.spec.ts failed"; exit 1; }\nexit 0\n' > suite.sh
-    printf 'FULL_SUITE_CMD="bash suite.sh"\nPOST_LAND_LOCK="%s/post.lock"\nPOST_LAND_DIR="%s/copies"\n' "$SCRATCH" "$SCRATCH" > land.conf
+    printf 'FULL_SUITE_CMD="bash suite.sh"\nPOST_LAND_LOCK="%s/post.lock"\nPOST_LAND_RECORD="%s/post.lock"\nPOST_LAND_DIR="%s/copies"\n' "$SCRATCH" "$SCRATCH" "$SCRATCH" > land.conf
     git add -A; git commit -qm base; git push -q origin main
 }
 local_commit() { echo "$1" >> f.txt; [ -n "${2:-}" ] && touch "$2"; git add -A; git commit -qm "$1"; git rev-parse HEAD; }

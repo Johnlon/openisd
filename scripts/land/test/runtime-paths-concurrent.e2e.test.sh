@@ -80,6 +80,7 @@ GATE_DEADLINE_S=5
 LAND_LOCK="$OPENISD_RUNTIME_DIR/land.lock"
 $suite_line
 POST_LAND_LOCK="$OPENISD_RUNTIME_DIR/post-land.lock"
+POST_LAND_RECORD="$OPENISD_RUNTIME_DIR/post-land.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 EOF
     if [ "$with_suite" = "true" ]; then

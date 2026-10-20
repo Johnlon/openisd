@@ -19,7 +19,7 @@ CPU_TOKENS=2
 COST_VITEST_FULL_MB=200
 COST_CPU_VITEST_FULL=1
 CONF
-export BUDGET_CONF="$SCRATCH/budget.conf" BUDGET_DIR="$SCRATCH/locks" OPENISD_RUNTIME_DIR="$SCRATCH/run"
+export BUDGET_CONF="$SCRATCH/budget.conf" BUDGET_DIR="$SCRATCH/locks" OPENISD_RUNTIME_DIR="$SCRATCH/run" OPENISD_STATE_DIR="$SCRATCH/state"
 # A gate whose command line is costed as a unit run (budget-cost.sh: unit-changed).
 cat > "$SCRATCH/unit-changed.sh" <<'EOS'
 #!/usr/bin/env bash

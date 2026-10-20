@@ -198,7 +198,7 @@ check_untested_main() {
   [ -n "${WATCHDOG_RUN_SH:-}" ] || cp "$ROOT/scripts/land/post-land/run.sh" "$run" || { log "cannot copy run.sh to $run"; return 0; }
   timeout 60 git -C "$REPO" fetch -q origin main 2> /dev/null || { log "fetch of origin/main failed; no untested-main check this tick"; return 0; }
   main=$(git -C "$REPO" rev-parse origin/main 2> /dev/null) || return 0
-  tested=$(cat "$lock.tested" 2> /dev/null)
+  tested=$(cat "${POST_LAND_RECORD}.tested" 2> /dev/null)
   [ "$tested" != "$main" ] || return 0
   [ -z "$tested" ] || ! git -C "$REPO" merge-base --is-ancestor "$main" "$tested" 2> /dev/null || return 0
   ctime=$(git -C "$REPO" log -1 --format=%ct "$main" 2> /dev/null || echo 0)

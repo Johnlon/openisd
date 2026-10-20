@@ -31,6 +31,7 @@ ATTRIBUTION_CMD="bash gates/ok.sh"
 GATE_DEADLINE_S=30
 LAND_LOCK="$SCRATCH/land.lock"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 CONF
     printf 'id: T9\nowner: t\nstatus: claimed\nrelease_note: internal\ngoal: Do the thing.\ndone_test: true\nfiles:\n  - f.txt\n%s' "${1:-}" > tasks/T9.yml
     git add -A; git commit -qm base; git push -q origin main

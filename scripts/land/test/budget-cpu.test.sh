@@ -18,7 +18,7 @@ POOL_SMALL_MB=300
 POOL_GENERAL_MB=400
 CPU_TOKENS=2
 CONF
-export BUDGET_CONF="$SCRATCH/budget.conf" BUDGET_DIR="$SCRATCH/locks" OPENISD_RUNTIME_DIR="$SCRATCH/run"
+export BUDGET_CONF="$SCRATCH/budget.conf" BUDGET_DIR="$SCRATCH/locks" OPENISD_RUNTIME_DIR="$SCRATCH/run" OPENISD_STATE_DIR="$SCRATCH/state"
 B="$REPO/scripts/budget.sh"
 started() { [ -e "$SCRATCH/$1.started" ]; }
 waitfor() { local i; for i in $(seq 1 100); do "$@" && return 0; sleep 0.1; done; return 1; }

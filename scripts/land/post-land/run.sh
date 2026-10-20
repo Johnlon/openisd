@@ -7,7 +7,7 @@
 #   2. checks <sha> out as a clean copy under POST_LAND_DIR, outside every clone;
 #   3. runs FULL_SUITE_CMD in the copy once. There is no rerun: a flake is a red;
 #   4. removes the copy;
-#   5. green: records <sha> as the last green in ${POST_LAND_LOCK}.green (written atomically) and
+#   5. green: records <sha> as the last green in ${POST_LAND_RECORD}.green (written atomically) and
 #      prints "post-land: green at <sha>"; red: pushes tasks/fixes/F<n>.yml (status: open, sha, owner =
 #      author of the first commit since the last green, the failing spec lines, the output's last lines)
 #      to main, exit 1. The next landing is refused while that task is open. A red while an F is already
@@ -18,7 +18,7 @@
 # OLDER commit's suite running WAITS for it: a running suite is never killed (John, 2026-10-16). When its turn
 # comes it waits until origin/main has had POST_LAND_QUIET_S (60 s) without a new commit; if main moved on it ends
 # "superseded by <tip>" (the run that landed the tip tests it), else it tests its own commit. A run whose sha is an ancestor of the last tested sha
-# (${POST_LAND_LOCK}.tested) ends "superseded by <sha> (already tested)", exit 0. A red lists every commit since the last green in its F, with the tested sha, the last green and the range.
+# (${POST_LAND_RECORD}.tested) ends "superseded by <sha> (already tested)", exit 0. A red lists every commit since the last green in its F, with the tested sha, the last green and the range.
 # A TERM with no newer run behind it (no ${POST_LAND_LOCK}.supersede, no live record in .pending) is a red
 # that says "post-land: killed by signal at <sha>": the sha is recorded as tested and the F
 # is opened as for any red. The watchdog starts a run when main holds an untested commit and none is alive.
@@ -108,7 +108,7 @@ record_red() {
     git -C "$ROOT" worktree remove --force "$FIX" 2>/dev/null; rm -rf "$FIX"
     git worktree add -q --detach "$FIX" "$base" || exit 2
     mkdir -p "$FIX/tasks/fixes"
-    green="$(cat "${POST_LAND_LOCK}.green" 2>/dev/null)"
+    green="$(cat "${POST_LAND_RECORD}.green" 2>/dev/null)"
     if [ -n "$green" ] && git merge-base --is-ancestor "$green" "$SHA" 2>/dev/null; then range="$green..$SHA"; else range="-n 20 $SHA"; fi
     # The failing spec names, in full: an F that keeps only the log tail lost them (F7-F9 cost a
     # 38 min full run to find them again). vitest prints " FAIL  <file>", Playwright "✘ … <file>".
@@ -222,7 +222,7 @@ killed() {
   fi
   echo "post-land: killed by signal at ${SHA:0:10}" | tee -a "$OUT"
   rm -f "$RUNNING"
-  printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}.tested.$$" "${POST_LAND_LOCK}.tested"
+  printf '%s\n' "$SHA" > "${POST_LAND_RECORD}.tested.$$" && mv -f "${POST_LAND_RECORD}.tested.$$" "${POST_LAND_RECORD}.tested"
   record_red
 }
 cleanup() {
@@ -269,8 +269,8 @@ while :; do
   echo "post-land: main is $age s old at ${tip:0:10}; waiting $((QUIET_S - age)) s of quiet before testing"
   sleep $((QUIET_S - age))
 done
-# A later commit has already been tested (${POST_LAND_LOCK}.tested): this run's result is stale.
-tested="$(cat "${POST_LAND_LOCK}.tested" 2>/dev/null)"
+# A later commit has already been tested (${POST_LAND_RECORD}.tested): this run's result is stale.
+tested="$(cat "${POST_LAND_RECORD}.tested" 2>/dev/null)"
 if [ -n "$tested" ] && [ "$tested" != "$SHA" ] && git merge-base --is-ancestor "$SHA" "$tested" 2>/dev/null; then
   echo "post-land: superseded by ${tested:0:10} (already tested)"; exit 0
 fi
@@ -332,10 +332,10 @@ if [ "$(slice_event_count heavy.slice high)" != "$high_before" ]; then
   echo "post-land: suite throttled: sizing bug (heavy.slice went over MemoryHigh during this run; re-measure scripts/budget.conf)"
 fi
 trap 'exit 143' TERM
-printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.tested.$$" && mv -f "${POST_LAND_LOCK}.tested.$$" "${POST_LAND_LOCK}.tested"
+printf '%s\n' "$SHA" > "${POST_LAND_RECORD}.tested.$$" && mv -f "${POST_LAND_RECORD}.tested.$$" "${POST_LAND_RECORD}.tested"
 
 if [ "$rc" = 0 ]; then
-  printf '%s\n' "$SHA" > "${POST_LAND_LOCK}.green.$$" && mv -f "${POST_LAND_LOCK}.green.$$" "${POST_LAND_LOCK}.green"
+  printf '%s\n' "$SHA" > "${POST_LAND_RECORD}.green.$$" && mv -f "${POST_LAND_RECORD}.green.$$" "${POST_LAND_RECORD}.green"
   echo "post-land: green at ${SHA:0:10}"
   close_fixed
   exit 0

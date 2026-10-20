@@ -19,7 +19,7 @@
 #   6. The main folder moved to a new commit: the openisd-preview unit (Vite on the main folder) is restarted, if
 #      installed. Vite does not cope with a branch moving under it: it serves a mix of old and new modules (T427).
 #      A failed restart is logged and exits 1.
-# Only a passed commit is ever pulled: the last green that post-land recorded (${POST_LAND_LOCK}.green), never
+# Only a passed commit is ever pulled: the last green that post-land recorded (${POST_LAND_RECORD}.green), never
 # the tip of main. Every action is logged with a UTC timestamp; runs never overlap (flock in the git dir).
 #
 #   bash scripts/land/sync-main-folder.sh [--passed <sha>] [<any checkout of the repo>]
@@ -27,7 +27,7 @@
 #
 # Copies: the main folder, plus each path in the repo's git config openisd.syncedCopy (the preview, which stays
 # a detached worktree). Env: SYNC_LOG (default <main>/build/test-logs/sync-main-folder.log), SYNC_NPM (default
-# npm), SYNC_SYSTEMCTL (default systemctl), POST_LAND_LOCK / OPENISD_RUNTIME_DIR (scripts/paths.sh).
+# npm), SYNC_SYSTEMCTL (default systemctl), POST_LAND_RECORD / OPENISD_STATE_DIR (scripts/paths.sh).
 # Exit 0 every copy at the last passed commit (stray branches made are not a failure), 1 a copy is held (git
 # failure, a stray branch that could not be made or verified): logged.
 set -uo pipefail
@@ -44,7 +44,7 @@ LOG="${SYNC_LOG:-$main/build/test-logs/sync-main-folder.log}"
 NPM="${SYNC_NPM:-npm}"
 SYSTEMCTL="${SYNC_SYSTEMCTL:-systemctl}"
 PREVIEW_UNIT=openisd-preview
-GREEN="${POST_LAND_LOCK}.green"
+GREEN="${POST_LAND_RECORD}.green"
 
 mkdir -p "$(dirname "$LOG")"
 log() { printf '%s sync-main-folder: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" | tee -a "$LOG"; }

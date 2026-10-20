@@ -9,7 +9,7 @@ cleanup() { for p in "${PIDS[@]}"; do kill -KILL -- "-$p" 2> /dev/null; kill -KI
 trap cleanup EXIT
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
-export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"
 export SUITE_RUN_LOCK="$SCRATCH/suite-run.lock"
 L="$REPO/scripts/suite-lock.sh"
 # A command that marks its start, then holds until its release file exists.

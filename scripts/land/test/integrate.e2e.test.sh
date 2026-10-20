@@ -16,7 +16,7 @@ ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
 W="$SCRATCH/w"
-export OPENISD_RUNTIME_DIR="$SCRATCH/runtime" INTEGRATE_DIR="$SCRATCH/integrate" GATE_LOG="$SCRATCH/gatelog"
+export OPENISD_RUNTIME_DIR="$SCRATCH/runtime" OPENISD_STATE_DIR="$SCRATCH/state" INTEGRATE_DIR="$SCRATCH/integrate" GATE_LOG="$SCRATCH/gatelog"
 
 setup() {
     rm -rf "$W" "$INTEGRATE_DIR" "$GATE_LOG"; mkdir -p "$W" "$GATE_LOG"; cd "$W" || exit 2

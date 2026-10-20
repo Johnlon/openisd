@@ -53,6 +53,7 @@ EOF
     cat > land.conf <<EOF
 FULL_SUITE_CMD="bash suite.sh"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 EOF
     git add -A; git commit -qm base; git push -q origin main; git push -q origin main:release

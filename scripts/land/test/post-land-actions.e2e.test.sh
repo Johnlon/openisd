@@ -47,6 +47,7 @@ setup() {
     cat > land.conf <<CONF
 FULL_SUITE_CMD="bash scripts/land/post-land/actions.sh"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 ACTIONS_REPO=owner/name
 ACTIONS_FIND_S=3
