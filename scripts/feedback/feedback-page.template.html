@@ -26,13 +26,6 @@ a { color:inherit; }
 .look { font-size:15px; margin:4px 0 8px; padding:6px 8px; border-left:4px solid #1d5fd0; background:var(--card); }
 .look.missing { border-color:#c62828; color:#c62828; }
 .todo { font-size:16px; color:var(--fg); background:var(--card); border:2px solid #1d5fd0; border-radius:8px; padding:10px; margin:0 0 12px; }
-.cm { display:flex; gap:6px; margin:6px 0 0; }
-.cm input, .cm textarea { flex:1; min-width:0; font:inherit; font-size:15px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
-.cm button { font:inherit; font-size:15px; padding:8px 14px; border:0; border-radius:6px; background:#1d5fd0; color:#fff; }
-.said { font-size:14px; margin:4px 0 0; padding:4px 8px; border-left:3px solid var(--line); }
-.sent, .sending { font-size:14px; color:var(--muted); margin:4px 0 0 11px; }
-.said.john { border-color:#1d5fd0; }
-.cm-err { color:#c00; font-size:13px; }
 .live { display:inline-block; margin:6px 0 0; padding:10px 14px; border-radius:6px; background:#1d5fd0; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
 .permalink { float:right; font-size:13px; line-height:1; color:var(--muted); text-decoration:none; padding:2px 4px; }
 .side { min-width:0; }
@@ -42,6 +35,7 @@ figure.here { outline:3px solid #c62828; outline-offset:3px; border-radius:4px; 
 details.ruled { margin:8px 0 0; }
 details.ruled summary { font-size:15px; color:var(--muted); padding:8px 0; cursor:pointer; }
 </style>
+<script src="/board/thread.js"></script>
 </head>
 <body>
 <p class="sub todo"><b>What to do:</b> __TODO__</p>
@@ -138,111 +132,25 @@ function lookLine(text) {
   }).join('');
 }
 
-const entryNo = (id) => { const m = /(\d+)$/.exec(id || ''); return m ? Number(m[1]) : NaN; };
-// Entry-number order (QO271.c12 -> 12), never by time string; an entry with no number sorts by time after the numbered ones.
-const byEntry = (a, b) => {
-  const x = entryNo(a.id), y = entryNo(b.id);
-  if (!Number.isNaN(x) && !Number.isNaN(y)) return x - y;
-  if (!Number.isNaN(x)) return -1;
-  if (!Number.isNaN(y)) return 1;
-  return (a.at || '') < (b.at || '') ? -1 : 1;
-};
-const ANSWER_TIMEOUT_S = 120, DUPLICATE_MS = 10000, POLL_MS = 3000;
-const shown = new Set();     // entry ids already on the page
-const boxes = [];            // { fig, take(entry) -> bool } per picture
-let owner = 'fable';
-let newestId = '';
+// Every comment box, every entry under a picture, the polling and the "is answering" line come from the one thread module.
+const store = BoardThread.store(ITEM);
 
-function said(fig, text, at, john, id) {
-  const d = document.createElement('div');
-  d.className = 'said' + (john ? ' john' : '');
-  if (id) { d.dataset.id = id; shown.add(id); }
-  d.textContent = `${john ? 'You' : 'Agent'}${at ? ' · ' + new Date(at).toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : ''}: ${text}`;
-  fig.querySelector('form').before(d);
-  return d;
-}
-
-function noteNewest(id) { if (id && (!newestId || entryNo(id) > entryNo(newestId))) newestId = id; }
-const stripTag = (t) => t.replace(/^\[(picture|item): [^\]]*\]/, '').trim();
-
-// "<owner> is answering… 0:03" under John's entry, counting; the answer replaces it; after 120 s it says nobody has answered yet.
-function waitingLine(after, id, since) {
-  const line = document.createElement('div'); line.className = 'sent'; line.dataset.for = id;
-  const t0 = since;
-  const paint = () => {
-    const s = Math.floor((Date.now() - t0) / 1000);
-    if (s >= ANSWER_TIMEOUT_S) { line.textContent = `No answer yet; ${owner} will answer.`; line.dataset.late = '1'; clearInterval(line._t); return; }
-    line.textContent = `Sent, ${owner} is answering… ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-  };
-  paint(); line._t = setInterval(paint, 1000);
-  after.after(line);
-}
-function stopWaiting(fig) {
-  for (const l of fig.querySelectorAll('.sent')) { clearInterval(l._t); l.remove(); }
-}
-
-function commentBoxes(thread) {
+function commentBoxes() {
   for (const fig of document.querySelectorAll('figure[data-item]')) {
-    const n = fig.dataset.name;
-    const f = document.createElement('form'); f.className = 'cm';
-    f.innerHTML = `<textarea rows="2" aria-label="Comment on ${esc(n)}" placeholder="Your comment"></textarea><button type="submit">Send</button>`;
-    const err = document.createElement('div'); err.className = 'cm-err'; err.hidden = true;
-    fig.append(f, err);
-    const also = fig.dataset.also;  // a pair holds two pictures: comments on either belong to it
-    const tagged = (t, m) => typeof t.text === 'string' && (t.text.startsWith(`[${fig.dataset.kind}: ${m}]`) || t.text.startsWith(`[picture: ${m}]`) || t.text.startsWith(`[item: ${m}]`));
-    // An answer, reply, decision or reopen names the entry it is about, not the picture: it goes where that entry is.
-    const own = new Set();
-    const onPicture = (t) => t.picture === n || (also && t.picture === also) || tagged(t, n) || (also && tagged(t, also));
-    const linked = (t) => [t.answers, t.replies_to, t.decides, t.reopens].some((r) => r && own.has(r));
-    const belongs = (t) => onPicture(t) || linked(t);
-    const mine = [...thread].sort(byEntry).filter((t) => belongs(t) && (own.add(t.id), true));
-    const divs = mine.map((t) => said(fig, stripTag(t.text), t.at, t.by === 'John', t.id));
-    // John's comment is the last word on it: he has ruled, so it is folded where it stands until an agent answers.
-    const johnOnBefore = mine.some((t) => t.by === 'John' && (t.picture === n || tagged(t, n)));
-    const lastE = mine[mine.length - 1];
-    // After a reload, a John question nobody has answered yet shows the answering line again, counted from its time.
-    const open = lastE && lastE.by === 'John' && lastE.kind === 'question' && Date.parse(lastE.at) > 0;
-    if (open) waitingLine(divs[divs.length - 1], lastE.id, Date.parse(lastE.at));
-    else if (lastE && lastE.by === 'John' && (!also || johnOnBefore)) fig.dataset.ruled = '1';
-    boxes.push({ fig, take(t) {
-      if (!belongs(t) || (t.id && shown.has(t.id))) return false;
-      own.add(t.id);
-      const john = t.by === 'John';
-      said(fig, stripTag(t.text), t.at, john, t.id);
-      if (!john) { stopWaiting(fig); unfold(fig); }
-      return true;
+    const n = fig.dataset.name, also = fig.dataset.also;  // a pair holds two pictures: comments on either belong to it
+    const topic = { kind: fig.dataset.kind, name: n, also };
+    let first = true;
+    const list = store.list({ topic, onSync: (entries) => {
+      const last = entries[entries.length - 1];
+      if (first) {
+        first = false;
+        // John's comment is the last word on it: he has ruled, so it is folded where it stands until an agent answers.
+        const johnOnBefore = entries.some((t) => BoardThread.isJohn(t.by) && BoardThread.topicOf(t)?.name === n);
+        const waiting = last && BoardThread.isJohn(last.by) && last.kind === 'question';
+        if (last && BoardThread.isJohn(last.by) && !waiting && (!also || johnOnBefore)) fig.dataset.ruled = '1';
+      } else if (last && !BoardThread.isJohn(last.by)) unfold(fig);
     } });
-    const ta = f.querySelector('textarea'), btn = f.querySelector('button');
-    let last = { text: '', at: 0 };
-    const refresh = () => { btn.disabled = ta.value.trim() === last.text && Date.now() - last.at < DUPLICATE_MS; };
-    ta.addEventListener('input', refresh);
-    f.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const words = ta.value.trim();
-      if (!words) return;
-      refresh(); if (btn.disabled) return;
-      btn.disabled = true; btn.textContent = 'Sending…'; err.hidden = true;
-      // His entry shows in place at once and the box clears; the server takes about a second to save it.
-      const d = said(fig, words, new Date().toISOString(), true, '');
-      const sending = document.createElement('div'); sending.className = 'sending'; sending.textContent = 'Sending…';
-      d.after(sending); ta.value = ''; ta.focus({ preventScroll: true });
-      const undo = (why) => { sending.remove(); d.remove(); ta.value = words; err.textContent = why; err.hidden = false; btn.textContent = 'Send'; };
-      try {
-        const r = await fetch('/board/api/inbox', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ kind: 'comment', item: ITEM, text: `[${fig.dataset.kind}: ${n}] ${words}` }) });
-        if (r.ok) {
-          const id = (await r.json().catch(() => ({}))).id || '';
-          sending.remove();
-          if (id) { d.dataset.id = id; shown.add(id); }
-          if (/\.c\d+$/.test(id)) { own.add(id); waitingLine(d, id, Date.now()); noteNewest(id); }
-          last = { text: words, at: Date.now() };
-          btn.textContent = 'Sent'; ta.focus({ preventScroll: true });
-          setTimeout(() => { btn.textContent = 'Send'; }, DUPLICATE_MS);
-          pollThread(true);
-        } else undo((await r.text()) || `Not sent: HTTP ${r.status}`);
-      } catch (x) { undo(`Not sent: ${x.message}`); }
-      btn.disabled = false; refresh();
-    });
+    fig.append(list, store.compose({ topic, label: 'Comment on ' + n, placeholder: 'Your comment' }));
   }
 }
 
@@ -258,20 +166,6 @@ function foldRuled() {
 }
 function unfold(fig) { const d = fig.closest('details.ruled'); if (d) { d.replaceWith(fig); delete fig.dataset.ruled; } }
 
-// Live: while the page is visible, ask for entries after the newest one known, every 3 s.
-let polling = false;
-async function pollThread(force) {
-  if (polling || (document.hidden && !force)) return;
-  polling = true;
-  try {
-    const r = await fetch(`/board/api/thread?item=${encodeURIComponent(ITEM)}&since=${encodeURIComponent(newestId)}`, { cache: 'no-store' });
-    if (!r.ok) return;
-    const res = await r.json();
-    for (const t of (res.entries || []).sort(byEntry)) { noteNewest(t.id); for (const b of boxes) b.take(t); }
-  } catch (x) { /* the next tick retries */ } finally { polling = false; }
-}
-setInterval(() => pollThread(false), POLL_MS);
-
 // Deep link: index.html#<id> opens the answered fold if needed, scrolls to the item and rings it.
 function goToHash() {
   document.querySelectorAll('figure.here').forEach((f) => f.classList.remove('here'));
@@ -284,15 +178,10 @@ function goToHash() {
 }
 addEventListener('hashchange', goToHash);
 
-const threadP = fetch('/board/api/items', { cache: 'no-store' })
-  .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
-  .then((b) => { const it = b.items.find((i) => i.id === ITEM); owner = it?.owner || 'fable'; const th = it?.thread || []; th.forEach((t) => noteNewest(t.id)); return th; })
-  .catch((x) => { const e = document.createElement('p'); e.className = 'cm-err'; e.textContent = `Earlier comments not loaded: ${x.message}`; document.body.prepend(e); return []; });
-
 fetch('index.md?html', { cache: 'no-store' })
   .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
   .then(render)
-  .then(() => threadP).then(commentBoxes).then(foldRuled).then(goToHash)
+  .then(() => store.ready).then(commentBoxes).then(foldRuled).then(goToHash)
   .catch((e) => { out.innerHTML = `<p class="note">Could not read index.md (${esc(String(e))}).</p>`; });
 </script>
 </body>

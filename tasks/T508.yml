@@ -1,0 +1,13 @@
+id: T508
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Pictures page comments use the board's shared thread module (/board/thread.js), so a comment under a picture and the board item thread are one conversation
+done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T508.yml
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_live_test.mjs
+  - scripts/feedback/feedback_page_ruled_test.mjs
+  - scripts/feedback/feedback_page_test.py

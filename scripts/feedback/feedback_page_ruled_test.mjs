@@ -6,6 +6,9 @@
 import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 
+// The pictures page loads the board's one thread module; serve the workspace copy.
+const THREAD_JS = readFileSync('/home/john/work/winisd/_agent_files/board-state/thread.js', 'utf8');
+
 const page_html = readFileSync(process.argv[2], 'utf8');
 const md = `<table><thead><tr><th>Fix</th><th>Task</th><th>State</th><th>Pictures</th><th>Look at</th></tr></thead><tbody>
 <tr><td>Ruled fix</td><td>T1</td><td>landed</td><td><a href="a/before.png">before</a> · <a href="a/after.png">after</a></td><td>x</td></tr>
@@ -16,11 +19,11 @@ const md = `<table><thead><tr><th>Fix</th><th>Task</th><th>State</th><th>Picture
 <tr><td>Live only</td><td>T5</td><td>landed</td><td><a href="mock-b.html?tab=vented&look=x">live</a></td><td>the vented tab</td></tr>
 </tbody></table>`;
 const thread = [
-  { by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/a/before.png] ok' },
-  { by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/a/after.png] ok' },
-  { by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/b/before.png] ok' },
-  { by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/b/after.png] too narrow' },
-  { by: 'bob', at: '2026-10-20T02:00:00Z', text: '[picture: F/b/after.png] fixed, new picture' },
+  { id: 'QO0.c1', by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/a/before.png] ok' },
+  { id: 'QO0.c2', by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/a/after.png] ok' },
+  { id: 'QO0.c3', by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/b/before.png] ok' },
+  { id: 'QO0.c4', by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/b/after.png] too narrow' },
+  { id: 'QO0.c5', by: 'bob', at: '2026-10-20T02:00:00Z', text: '[picture: F/b/after.png] fixed, new picture' },
 ];
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 
@@ -32,12 +35,13 @@ try {
     const u = r.request().url();
     if (u.endsWith('/F/index.html')) return r.fulfill({ contentType: 'text/html', body: page_html });
     if (u.includes('index.md?html')) return r.fulfill({ contentType: 'text/html', body: md });
-    if (u.endsWith('/board/api/items')) return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ items: [{ id: 'QO0', thread }] }) });
+    if (u.endsWith('/board/thread.js')) return r.fulfill({ contentType: 'text/javascript', body: THREAD_JS });
+    if (u.includes('/board/api/thread')) return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ entries: thread, states: {}, owner: 'bob' }) });
     if (u.endsWith('.png')) return r.fulfill({ contentType: 'image/png', body: png });
     return r.fulfill({ status: 404, body: '' });
   });
   await p.goto('http://test.invalid/F/index.html');
-  await p.waitForSelector('form.cm'); await p.waitForSelector('details.ruled', { state: 'attached' });
+  await p.waitForSelector('form.compose'); await p.waitForSelector('details.ruled', { state: 'attached' });
   // Answered pictures stay in page order, each in its own closed fold; none moved to a bottom fold.
   const allOrder = await p.$$eval('figure[data-item]', (fs) => fs.map((f) => f.dataset.name));
   const wantAll = ['F/mock-b.html?tab=vented&look=x', 'F/e/shot.png', 'F/d/before.png', 'F/b/before.png', 'F/c/side-by-side.png', 'F/a/before.png'];
@@ -78,7 +82,7 @@ try {
   if ((await p.$$('figure[data-name="F/c/side-by-side.png"] img')).length !== 1) failures.push('side-by-side item should hold one picture');
   if ((await p.$$('figure[data-name="F/e/shot.png"] img')).length !== 1) failures.push('lone picture should be one item with one picture');
   // The pair thread shows comments made on the after path too.
-  const said = await p.$$eval('figure[data-name="F/b/before.png"] .said', (ds) => ds.map((d) => d.textContent));
+  const said = await p.$$eval('figure[data-name="F/b/before.png"] .c', (ds) => ds.map((d) => d.querySelector('.txt').textContent));
   if (said.length !== 3 || !said.some((t) => /too narrow/.test(t))) failures.push(`pair thread should hold both paths' comments: ${JSON.stringify(said)}`);
   // Less noise: the anchor is a small icon, not the word "link".
   const anchors = await p.$$eval('a.permalink', (as) => as.map((a) => [a.textContent.trim(), a.getAttribute('aria-label'), a.getAttribute('title')]));
@@ -89,7 +93,7 @@ try {
     if (sw > w) failures.push(`horizontal scroll at ${w}: ${sw}`);
   }
   await p.setViewportSize({ width: 374, height: 705 });
-  const txt = await p.$eval('figure[data-name*="mock-b"]', (f) => f.querySelector('.look')?.textContent + '|' + !!f.querySelector('form.cm'));
+  const txt = await p.$eval('figure[data-name*="mock-b"]', (f) => f.querySelector('.look')?.textContent + '|' + !!f.querySelector('form.compose'));
   if (!/vented tab\|true/.test(txt)) failures.push(`live-only item lacks look/comment box: ${txt}`);
   // Deep link: every item has id + link anchor.
   const ids = await p.$$eval('figure[data-item]', (fs) => fs.map((f) => [f.id, f.querySelector('a.permalink')?.getAttribute('href')]));

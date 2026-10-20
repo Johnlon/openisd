@@ -152,6 +152,16 @@ class MarkDiff(unittest.TestCase):
 
 
 
+class SharedThreadModule(unittest.TestCase):
+    """One conversation, one code (T508): the page draws, sends and polls through the board's thread module."""
+    def test_template_uses_board_thread_module_only(self):
+        t = (HERE / "feedback-page.template.html").read_text(encoding="utf-8")
+        self.assertIn('<script src="/board/thread.js"></script>', t)
+        self.assertIn("store.list(", t); self.assertIn("store.compose(", t)
+        for own_copy in ("waitingLine", "pollThread", "/board/api/inbox", "/board/api/thread", "function said("):
+            self.assertNotIn(own_copy, t)
+
+
 @unittest.skipUnless(NODE_OK, "playwright missing")
 class RuledPictures(unittest.TestCase):
     def test_answered_pictures_fold_away(self):

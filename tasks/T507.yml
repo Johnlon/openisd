@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: bb4008679e031c0a5515656b2a3ad70a192d03d9
 goal: Pictures page shows John's comment in place the moment he presses Send (Sending…, then Sent and the answering line); the box clears at once
 done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
 files:
