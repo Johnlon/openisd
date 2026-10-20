@@ -57,7 +57,7 @@ export function drawOne(
   for (const line of freqAxis.gridLines()) {
     const x = X(line.f); ctx.globalAlpha = line.major ? 0.85 : 0.28;
     ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
-    if (line.labelled) { ctx.globalAlpha = 1; ctx.textAlign = 'center'; ctx.fillText(freqAxis.tickLabel(line.f), x, m.t + ph + 11); }
+    if (line.labelled) { ctx.globalAlpha = 1; ctx.textAlign = 'center'; const label = freqAxis.tickLabel(line.f); ctx.fillText(label, layout.freqLabelCentreX(x, ctx.measureText(label).width, W), m.t + ph + 11); }
   }
   ctx.globalAlpha = 1;
 

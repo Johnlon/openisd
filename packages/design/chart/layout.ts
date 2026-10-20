@@ -36,5 +36,13 @@ export class ChartLayout {
     return `${bold ? 'bold ' : ''}${px}px ${ChartLayout.FONT_FAMILY}`;
   }
 
+  /** Where a frequency label is centred: on its grid line, moved in just far enough that the whole label
+   *  stays inside the panel. The last label (20.0k) sits on the plot's right edge and is wider than the
+   *  right margin, so centred on its line it was cut at the panel edge. */
+  freqLabelCentreX(lineX: number, labelWidthPx: number, panelWidthPx: number): number {
+    const half = labelWidthPx / 2;
+    return Math.min(Math.max(lineX, half), panelWidthPx - half);
+  }
+
   static readonly CHART = new ChartLayout({ l: 44, r: 10, t: 24, b: 20 }, 16, 9, 3, 1);
 }

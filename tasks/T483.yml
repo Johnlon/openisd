@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: f29cfaa4df397fba9ba5c32309a2f1392e5cb1f1
 goal: Gate and run durations come from a clock that never jumps, so a wall-clock step no longer logs a 34 s lint as 2 hours; the end line names any step as clock_step_s.
 done_test: bash scripts/land/test/ts-log.test.sh && bash scripts/land/test/ts-log-kill.test.sh && bash scripts/land/test/metrics.test.sh && bash scripts/land/test/ts-log-clock-step.test.sh
 files:

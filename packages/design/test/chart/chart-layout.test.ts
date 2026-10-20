@@ -18,3 +18,21 @@ describe('ChartLayout chart text font', () => {
     expect(ChartLayout.CHART.font(9, true)).toBe('bold 9px "Inter", system-ui, sans-serif');
   });
 });
+
+describe('ChartLayout frequency label placement', () => {
+  const layout = ChartLayout.CHART;
+
+  it('keeps the last label (20.0k, centred on the plot edge) inside the panel', () => {
+    const width = 25, canvasW = 800, plotRight = canvasW - layout.margin.r;
+    const x = layout.freqLabelCentreX(plotRight, width, canvasW);
+    expect(x + width / 2).toBeLessThanOrEqual(canvasW);
+  });
+
+  it('leaves a label that already fits where its grid line is', () => {
+    expect(layout.freqLabelCentreX(400, 25, 800)).toBe(400);
+  });
+
+  it('keeps a label at the left edge inside the panel', () => {
+    expect(layout.freqLabelCentreX(2, 25, 800) - 12.5).toBeGreaterThanOrEqual(0);
+  });
+});
