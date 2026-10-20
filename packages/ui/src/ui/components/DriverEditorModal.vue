@@ -218,6 +218,9 @@ const inspectedField = ref<string | null>(null);
 // dialog it is inspecting, at any viewport size.
 const modalRootEl = ref<HTMLElement | null>(null);
 const popupStyle = ref<Record<string, string>>({});
+// Phone: height of the docked card. The editor body gets this much bottom padding and scroll
+// padding, so every row can be scrolled clear of the card and the tapped row is kept above it.
+const dockedCardHeight = ref(0);
 function updatePopupPosition() {
   const el = modalRootEl.value;
   if (!el) return;
@@ -246,8 +249,11 @@ function updatePopupPosition() {
       top: `${Math.round(b.bottom - height)}px`, right: 'auto', bottom: 'auto',
       maxWidth: 'none', maxHeight: `${height}px`, display: 'flex', flexDirection: 'column',
     };
+    dockedCardHeight.value = height;
+    nextTick(keepInspectedRowAboveCard);
     return;
   }
+  dockedCardHeight.value = 0;
 
   const width = Math.min(popupWidth, Math.max(200, vw - r.right - 2 * gap));
   const left = Math.min(Math.max(gap, r.right + gap), vw - gap - width);
@@ -255,7 +261,17 @@ function updatePopupPosition() {
 
   popupStyle.value = { position: 'fixed', left: `${Math.round(left)}px`, top: `${Math.round(top)}px`, right: 'auto', bottom: 'auto', width: `${Math.round(width)}px` };
 }
-watch(inspectedField, (v) => { if (v) nextTick(updatePopupPosition); });
+function keepInspectedRowAboveCard() {
+  const key = inspectedField.value;
+  const body = modalRootEl.value?.querySelector('.de-body');
+  if (!key || !body || dockedCardHeight.value === 0) return;
+  const row = Array.from(body.querySelectorAll<HTMLElement>('.de-fld')).find(f => f.dataset.fieldKey === key);
+  row?.scrollIntoView({block: 'nearest'});
+}
+watch(inspectedField, (v) => {
+  if (v) nextTick(updatePopupPosition);
+  else dockedCardHeight.value = 0;
+});
 window.addEventListener('resize', updatePopupPosition);
 onBeforeUnmount(() => window.removeEventListener('resize', updatePopupPosition));
 
@@ -597,7 +613,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         <button v-for="t in TABS" :key="t" class="de-tab" :class="{ on: tab === t }" @click="tab = t">{{ t }}</button>
       </div>
 
-      <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
+      <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }"
+           :style="dockedCardHeight > 0 ? { paddingBottom: `${dockedCardHeight}px`, scrollPaddingBottom: `${dockedCardHeight}px` } : {}" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
         <!-- ============================= General ============================= -->
         <div v-if="tab === 'General'" class="de-general">
           <div class="de-row2">

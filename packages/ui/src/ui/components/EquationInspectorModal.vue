@@ -118,7 +118,7 @@ const emit = defineEmits<{ close: [] }>();
 
 .eq-path-card {
   border-left: 3px solid #3b82f6;
-  background: color-mix(in srgb, var(--panel, #161c28) 95%, transparent);
+  background: var(--panel2, #1d2535);
   border-radius: 4px;
   padding: 8px;
   display: flex;

@@ -58,3 +58,24 @@ test('with the Provenance card open the editor tabs, close button and footer sta
   await page.getByRole('button', {name: 'Advanced', exact: true}).click();
   await expect(page.locator('.de-tab.on')).toHaveText('Advanced');
 });
+
+/** bugs/BUG_20261020_phone-provenance-card-see-through-over-fields.md */
+test('the Provenance card is opaque and the tapped field row is not under it', async ({page}) => {
+  await page.getByRole('button', {name: 'Parameters', exact: true}).click();
+  await page.locator('.de-provenance-chk', {hasText: 'Inspect Provenance'}).click();
+  const row = page.locator('.de-fld[data-field-key="Cms_m_per_N"]');
+  await row.locator('input').click();
+  const card = page.locator('.eq-inspector-card');
+  await expect(card).toBeVisible();
+  await expect.poll(() => card.evaluate(el => getComputedStyle(el).opacity)).toBe('1');
+  const paint = await card.evaluate(el => {
+    const s = getComputedStyle(el);
+    return {bg: s.backgroundColor, opacity: s.opacity};
+  });
+  expect(paint.bg, 'card background is a solid colour').toMatch(/^rgb\(/);
+  await expect.poll(async () => {
+    const c = (await card.boundingBox())!;
+    const r = (await row.boundingBox())!;
+    return r.y + r.height <= c.y + 0.5;
+  }, {message: 'the tapped Cms row is above the card'}).toBe(true);
+});

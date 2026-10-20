@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: c1bc9109f0166020edcd915637ce416a42137b10
 goal: "Bug file, closed: a landing's typecheck gate stopped by SIGTERM at load 90 was John stopping processes by hand; no fix"
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
