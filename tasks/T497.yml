@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 08f039770fadcbad8b7d70da548535ce86a30322
 goal: The last green sha survives a restart: post-land writes it to disk (not only /run), and sync-main-folder and land.sh read it from there; the locks stay on /run.
 done_test: bash scripts/land/test/sync-main-folder.e2e.test.sh
 files:

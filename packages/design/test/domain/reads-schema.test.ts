@@ -88,6 +88,12 @@ describe('readingJsonSchema — Usable | RejectedParsed | RejectedUnparsed | Unr
     expect(readingJsonSchema.safeParse(wrong).success).toBe(false);
   });
 
+  it('accepts unit-not-recognised as a known RejectedUnparsed reason, printed text kept (John, 2026-10-20)', () => {
+    const unit = {actual_reading: '0.06 ft.³', rejected: 'unit-not-recognised'};
+    expect(readingJsonSchema.parse(unit)).toEqual(unit);
+    expect(readingJsonSchema.safeParse({...unit, read_value: 0.06}).success).toBe(false);
+  });
+
   it('refuses the ohm-glyph reason without read_value', () => {
     const wrong = {actual_reading: '3.19', rejected: 'ohm-glyph-merged-as-digit'};
     expect(readingJsonSchema.safeParse(wrong).success).toBe(false);

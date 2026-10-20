@@ -166,7 +166,7 @@ class RejectedUnparsedReading(Strict):
     actual_reading: str = None
     conformed_reading: str = None
     conformed_by: str = None
-    rejected: Literal["no-numeric-value"]
+    rejected: Literal["no-numeric-value", "unit-not-recognised"]
     note: str = None
     reads: UsableReadingReads = None
 
@@ -174,7 +174,7 @@ _union_reading_json_schema_3_member_2 = TypeAdapter(RejectedUnparsedReading)
 def _union_reading_json_schema_3_finish_2(out):
     return out.model_dump(by_alias=True, exclude_unset=True)
 def _rejected_unrecognised_parsed_reading_rejected_5(reason):
-    if not (not (any((known == reason) for known in [*["no-numeric-value"], *["ohm-glyph-merged-as-digit"]]))):
+    if not (not (any((known == reason) for known in [*["no-numeric-value", "unit-not-recognised"], *["ohm-glyph-merged-as-digit"]]))):
         raise ValueError("a recognised rejection reason belongs to its own variant")
     return reason
 

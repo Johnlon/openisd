@@ -1,0 +1,13 @@
+id: T496
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: A reading the scraper rejected as 'unit-not-recognised' loads, keeping its printed text like 'no-numeric-value'. John, 20 Oct 2026, after a hold ("stop that wasn't my understanding") and the explanation that the scraper writes it and OpenISD must accept it, answered "go".
+done_test: bash scripts/test.sh packages/design/test/domain/reads-schema.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+files:
+  - tasks/T496.yml
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/test/domain/reads-schema.test.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - scripts/schemagen/out/driver_model.py
