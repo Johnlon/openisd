@@ -167,7 +167,7 @@ test.describe('Mobile skin', () => {
  * box, and marked nothing. Focus stays on the pressed button, the step uses the caret the box had
  * before the press (kept for further presses), and the stepped digit is marked.
  */
-test.describe('Mobile vent editor: Target Tuning Freq (calculated) steps the digit at the caret', () => {
+test.describe('Mobile vent editor: Tuning freq (calculated) steps the digit at the caret', () => {
   test.use({hasTouch: true});
 
   test.beforeEach(async ({page}) => {
@@ -182,7 +182,7 @@ test.describe('Mobile vent editor: Target Tuning Freq (calculated) steps the dig
   });
 
   test('the caret after the units digit: ▲ steps the units, focus stays on ▲, the units digit is marked, a repeat steps it again', async ({page}) => {
-    const row = mobileFieldRow(page, 'Target Tuning Freq');
+    const row = mobileFieldRow(page, 'Tuning freq');
     const box = row.locator('input');
     await expect(box).toHaveClass(/value-c/);
     const before = Number(await box.inputValue());
@@ -201,7 +201,7 @@ test.describe('Mobile vent editor: Target Tuning Freq (calculated) steps the dig
   });
 
   test('the caret after the decimal point: ▲ steps the tenths', async ({page}) => {
-    const row = mobileFieldRow(page, 'Target Tuning Freq');
+    const row = mobileFieldRow(page, 'Tuning freq');
     const box = row.locator('input');
     const before = await box.inputValue();
     await box.focus();

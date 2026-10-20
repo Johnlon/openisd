@@ -79,7 +79,7 @@ test.describe('MobileBoxTab', () => {
   // enterable front-chamber tuning on the Box tab, the 4th-order bandpass included.
   test('a 4th-order bandpass Box tab takes the front chamber tuning', async ({ appPage: page }) => {
     await setFocusedBoxType(page, 'bandpass4');
-    const tuning = mobileFieldRow(page, 'Target Tuning Freq (Ffc)').locator('input').first();
+    const tuning = mobileFieldRow(page, 'Tuning freq (Ffc)').locator('input').first();
     await expect(tuning).toBeEditable();
     await tuning.fill('42');
     await tuning.blur();
@@ -136,7 +136,7 @@ test.describe('MobileBoxTab', () => {
       await page.locator('#mob-box-type').selectOption('vented');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
       await page.locator('.mob-tab', { hasText: 'Vented' }).click();
-      const targetTuning = mobileFieldRow(page, 'Target Tuning Freq').locator('input');
+      const targetTuning = mobileFieldRow(page, 'Tuning freq').locator('input');
       await expect(targetTuning).not.toHaveValue('');
       await expect(targetTuning).not.toHaveValue('0.00');
       await expect(mobileFieldRow(page, 'Vent diameter').locator('input')).not.toHaveValue('0.00');

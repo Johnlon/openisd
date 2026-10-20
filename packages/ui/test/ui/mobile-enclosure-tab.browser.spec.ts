@@ -30,7 +30,7 @@ test.describe('MobileEnclosureTab', () => {
     await diameter.fill('5');
     await diameter.blur();
     await expect(diameter).toHaveValue(/5/);
-    const tuning = mobileFieldRow(page, 'Target Tuning Freq (Ffc)').locator('input');
+    const tuning = mobileFieldRow(page, 'Tuning freq (Ffc)').locator('input');
     await tuning.fill('47.8');
     await tuning.blur();
     await expect(tuning).toHaveValue(/47\.8/);

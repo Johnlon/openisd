@@ -54,7 +54,7 @@ export interface Box {
     applyStartingValues(): void;
     /** Re-derive the vented box's volume and tuning from a named alignment (the same QB3-style
      *  design `applyStartingValues` gives a fresh box, unless `alignment` is given), UNLIKE
-     *  `applyStartingValues` overwriting unconditionally. Used when clearing Target Tuning Freq
+     *  `applyStartingValues` overwriting unconditionally. Used when clearing Tuning freq
      *  (or Vent length) leaves nothing entered on either side of the Helmholtz pair: falling
      *  back to a real alignment instead of leaving both blank and unrecoverable (QO142). A no-op
      *  if the driver has no design to give (Fs/Qts/Vas unresolved). */
