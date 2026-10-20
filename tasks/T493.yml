@@ -1,0 +1,10 @@
+id: T493
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: kill-http.sh succeeds when only a leftover client socket is on the port (no listener): the T489 'still occupied after 10 attempts' case maryu reported, pinned by a test.
+done_test: bash scripts/land/test/services-load.test.sh
+files:
+  - tasks/T493.yml
+  - scripts/land/test/services-load.test.sh

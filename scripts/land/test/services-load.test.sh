@@ -27,6 +27,16 @@ bash "$REPO/scripts/kill-http.sh" "$P" > /dev/null 2>&1
 sleep 0.3
 ! alive "$LP" && alive "$CP" && ok "row 1/17: kill-http kills the listener only, a connected client lives" || fail "row 1: listener alive=$(alive "$LP" && echo y) client alive=$(alive "$CP" && echo y)"
 kill -KILL "$CP" 2> /dev/null
+# 1b. a leftover client socket with no listener (T489 run, 20 Oct: "still occupied after 10 attempts") is not "occupied"
+P=$(free_port)
+python3 -m http.server "$P" --bind 127.0.0.1 --directory "$S/www" > /dev/null 2>&1 & LP=$!; PIDS+=("$LP")
+sleep 0.7
+python3 -c 'import socket,sys,time; s=socket.create_connection(("127.0.0.1",int(sys.argv[1]))); time.sleep(300)' "$P" & CP=$!; PIDS+=("$CP")
+sleep 0.5
+kill -KILL "$LP"; wait "$LP" 2> /dev/null; sleep 0.3
+timeout 30 bash "${KILL_HTTP:-$REPO/scripts/kill-http.sh}" "$P" > "$S/kh.out" 2>&1; r=$?
+[ $r = 0 ] && alive "$CP" && ok "row 1b: kill-http with only a client socket on the port exits 0, the client lives" || fail "row 1b: exit $r, client alive=$(alive "$CP" && echo y): $(tail -1 "$S/kh.out")"
+kill -KILL "$CP" 2> /dev/null
 n=$(grep -c "lsof -ti" "$REPO/scripts/kill-http.sh"); m=$(grep "lsof -ti" "$REPO/scripts/kill-http.sh" | grep -c "sTCP:LISTEN")
 [ "$n" -gt 0 ] && [ "$n" = "$m" ] && ok "row 17: every lsof call in kill-http.sh is LISTEN-only" || fail "row 17: $m of $n lsof calls are LISTEN-only"
 

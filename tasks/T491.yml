@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: e904fc619f3897cacaaf6f9d1750d48e356c3058
 goal: On the phone chart the 10.0k and 20.0k frequency labels keep a clear gap
 done_test: bash scripts/test.sh packages/design/test/chart/chart-layout.test.ts
 files:
