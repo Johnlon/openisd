@@ -1,0 +1,11 @@
+id: T507
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Pictures page shows John's comment in place the moment he presses Send (Sending…, then Sent and the answering line); the box clears at once
+done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T507.yml
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_live_test.mjs

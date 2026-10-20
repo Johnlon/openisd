@@ -30,7 +30,7 @@ a { color:inherit; }
 .cm input, .cm textarea { flex:1; min-width:0; font:inherit; font-size:15px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
 .cm button { font:inherit; font-size:15px; padding:8px 14px; border:0; border-radius:6px; background:#1d5fd0; color:#fff; }
 .said { font-size:14px; margin:4px 0 0; padding:4px 8px; border-left:3px solid var(--line); }
-.sent { font-size:14px; color:var(--muted); margin:4px 0 0 11px; }
+.sent, .sending { font-size:14px; color:var(--muted); margin:4px 0 0 11px; }
 .said.john { border-color:#1d5fd0; }
 .cm-err { color:#c00; font-size:13px; }
 .live { display:inline-block; margin:6px 0 0; padding:10px 14px; border-radius:6px; background:#1d5fd0; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
@@ -222,19 +222,25 @@ function commentBoxes(thread) {
       if (!words) return;
       refresh(); if (btn.disabled) return;
       btn.disabled = true; btn.textContent = 'Sending…'; err.hidden = true;
+      // His entry shows in place at once and the box clears; the server takes about a second to save it.
+      const d = said(fig, words, new Date().toISOString(), true, '');
+      const sending = document.createElement('div'); sending.className = 'sending'; sending.textContent = 'Sending…';
+      d.after(sending); ta.value = ''; ta.focus({ preventScroll: true });
+      const undo = (why) => { sending.remove(); d.remove(); ta.value = words; err.textContent = why; err.hidden = false; btn.textContent = 'Send'; };
       try {
         const r = await fetch('/board/api/inbox', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ kind: 'comment', item: ITEM, text: `[${fig.dataset.kind}: ${n}] ${words}` }) });
         if (r.ok) {
           const id = (await r.json().catch(() => ({}))).id || '';
-          const d = said(fig, words, new Date().toISOString(), true, id);
+          sending.remove();
+          if (id) { d.dataset.id = id; shown.add(id); }
           if (/\.c\d+$/.test(id)) { own.add(id); waitingLine(d, id, Date.now()); noteNewest(id); }
           last = { text: words, at: Date.now() };
-          ta.value = ''; btn.textContent = 'Sent'; ta.focus({ preventScroll: true });
+          btn.textContent = 'Sent'; ta.focus({ preventScroll: true });
           setTimeout(() => { btn.textContent = 'Send'; }, DUPLICATE_MS);
           pollThread(true);
-        } else { err.textContent = (await r.text()) || `Not sent: HTTP ${r.status}`; err.hidden = false; btn.textContent = 'Send'; }
-      } catch (x) { err.textContent = `Not sent: ${x.message}`; err.hidden = false; btn.textContent = 'Send'; }
+        } else undo((await r.text()) || `Not sent: HTTP ${r.status}`);
+      } catch (x) { undo(`Not sent: ${x.message}`); }
       btn.disabled = false; refresh();
     });
   }

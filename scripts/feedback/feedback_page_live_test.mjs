@@ -41,7 +41,8 @@ try {
     }
     if (u.endsWith('/board/api/inbox')) {
       setTimeout(() => { answerReady = true; }, 4000);
-      return r.fulfill({ status: 200, contentType: 'application/json', body: '{"id": "QO0.c20"}' });
+      // The real server takes over a second to save: the page must not wait for it to show John's entry.
+      return new Promise((done) => setTimeout(() => done(r.fulfill({ status: 200, contentType: 'application/json', body: '{"id": "QO0.c20"}' })), 1500));
     }
     if (u.endsWith('.png')) return r.fulfill({ contentType: 'image/png', body: png });
     return r.fulfill({ status: 404, body: '' });
@@ -65,7 +66,14 @@ try {
   await fig.locator('textarea').fill('please recheck');
   const t0 = Date.now();
   await fig.locator('button[type=submit]').click();
-  await fig.locator('.sent').waitFor({ timeout: 2000 });
+  // Within 200 ms, before the server answers: the box is clear and his entry is in place, marked Sending….
+  await p.waitForTimeout(150);
+  if ((await fig.locator('textarea').inputValue()) !== '') failures.push('box not cleared at once');
+  if (!(await fig.locator('.said.john', { hasText: 'please recheck' }).count())) failures.push('entry not shown at once');
+  const sending = (await fig.locator('.sending').allTextContents()).map((t) => t.trim());
+  if (JSON.stringify(sending) !== '["Sending…"]') failures.push(`sending line ${JSON.stringify(sending)}`);
+  await fig.locator('.sent').waitFor({ timeout: 4000 });
+  if (await fig.locator('.sending').count()) failures.push('Sending… line left after the server answered');
   const sentText = (await fig.locator('.sent').textContent()).trim();
   if (!/^Sent, bob is answering… 0:0\d$/.test(sentText)) failures.push(`sent line ${JSON.stringify(sentText)}`);
   if (await p.evaluate(() => /\{\s*"id"/.test(document.body.innerText))) failures.push('raw JSON shown');
@@ -147,6 +155,14 @@ try {
   if (!(await r2.locator('figure[data-name="F/b/before.png"] .said', { hasText: 'loaded answer' }).count())) failures.push('answer linked by answers not shown under its picture on load');
   if ((await lineOf('F/c/before.png')).length) failures.push('note got an answering line');
   if (!(await r2.locator('figure[data-name="F/a/before.png"]').isVisible())) failures.push('waiting question hidden in a fold');
+  // A send the server refuses: his entry goes, his words come back into the box, and the error says why.
+  const cf = r2.locator('figure[data-name="F/b/before.png"]');
+  await cf.locator('textarea').fill('will fail');
+  await cf.locator('button[type=submit]').click();
+  await cf.locator('.cm-err:visible').waitFor({ timeout: 3000 }).catch(() => failures.push('no error after a refused send'));
+  if ((await cf.locator('textarea').inputValue()) !== 'will fail') failures.push('words not back in the box after a refused send');
+  if (await cf.locator('.said.john', { hasText: 'will fail' }).count()) failures.push('refused entry still shown');
+  if (await cf.locator('.sending').count()) failures.push('Sending… left after a refused send');
 } finally {
   await browser.close();
 }
