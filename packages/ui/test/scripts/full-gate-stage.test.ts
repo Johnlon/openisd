@@ -60,6 +60,8 @@ describe('scripts/test-browser.sh', () => {
     // Never the real kill-http.sh: this copy's port reservation is a scratch one, so the port it is given
     // can be a live run's (4100), and the real script killed that run's server mid-suite (17 Oct 2026).
     writeFileSync(join(dir, 'scripts', 'kill-http.sh'), `#!/usr/bin/env bash\necho "kill-http $*" >> '${events}'\n`);
+    // The build before Playwright (T489) is recorded, not run: the real one is a full vite build.
+    writeFileSync(join(dir, 'scripts', 'build-test-app.sh'), `#!/usr/bin/env bash\necho "build-test-app" >> '${events}'\n`);
     writeFileSync(join(bin, 'npx'), [
       '#!/usr/bin/env bash',
       'case "$*" in',
@@ -76,8 +78,9 @@ describe('scripts/test-browser.sh', () => {
     });
     const runs = lines(events);
     assert.equal(done.status, 3);
-    assert.equal(runs.length, 2);
+    assert.equal(runs.length, 3);
     assert.match(runs[0], /^kill-http 41\d\d$/);
-    assert.match(runs[1], /^playwright test/);
+    assert.equal(runs[1], 'build-test-app');
+    assert.match(runs[2], /^playwright test/);
   });
 });

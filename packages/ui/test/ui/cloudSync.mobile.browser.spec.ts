@@ -79,7 +79,7 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
         cwd: REPO_ROOT,
         env: {
           ...process.env,
-          OPENISD_DRIVERS_BUNDLE_DIR: 'build/test-bundle',
+          OPENISD_DRIVERS_BUNDLE_DIR: `build/test-bundle-${process.env.OPENISD_TEST_PORT}`,
         },
         stdio: 'pipe',
       },

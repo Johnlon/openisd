@@ -103,6 +103,9 @@ if ! printf '%s' "$LIST_OUT" | grep -qE '^Total: [1-9][0-9]* test'; then
   exit 1
 fi
 
+# The deterministic build runs here, before Playwright, with no deadline (Playwright's webServer limit cannot be 0).
+bash "$SCRIPT_DIR/build-test-app.sh"
+
 set +e
 run_start "browser-test"
 npx playwright test "$@"

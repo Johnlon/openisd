@@ -9,6 +9,7 @@ fails=0; ok() { echo "ok   $1"; }; fail() { echo "FAIL $1"; fails=$((fails + 1))
 mkdir -p "$SCRATCH/repo" "$SCRATCH/bin" "$SCRATCH/rt"
 cp -r "$REPO/scripts" "$SCRATCH/repo/scripts"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$SCRATCH/repo/scripts/kill-http.sh"   # never touch a real port
+printf '#!/usr/bin/env bash\nexit 0\n' > "$SCRATCH/repo/scripts/build-test-app.sh"   # no real vite build (T489)
 # fake npx: --list reports one test; the run starts a TERM-ignoring grandchild and a plain one, and records their pids
 cat > "$SCRATCH/bin/npx" <<'NPX'
 #!/usr/bin/env bash
