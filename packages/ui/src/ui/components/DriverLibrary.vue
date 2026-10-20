@@ -30,7 +30,7 @@ const { openNewDriver } = selection;
 // no controls for them. The custom-GitHub-URL loader they were grouped with has no
 // implementation anywhere in the codebase — dead, not merely hidden.
 const {
-  DRIVER_TYPES, DRIVER_SCOPES,
+  DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES,
   allDrivers, statusMsg, statusErr,
   filterQ, typeStates,
   fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
@@ -100,17 +100,13 @@ onMounted(openedLibrary);
               <div class="help-title">Driver Range Classifications</div>
               <table class="help-table">
                 <thead>
-                  <tr><th>Type</th><th>Criteria</th></tr>
+                  <tr><th>Type</th><th>Filter buttons</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>Tweeter</td><td>Fs &gt; 800Hz, Sd &lt; 25cm²</td></tr>
-                  <tr><td>Midrange</td><td>Fs [100Hz, 800Hz], Sd &lt; 90cm²</td></tr>
-                  <tr><td>Woofer</td><td>Fs [35Hz, 120Hz], Sd [90cm², 350cm²]</td></tr>
-                  <tr><td>Subwoofer</td><td>Fs &lt; 40Hz, Sd &gt; 180cm²</td></tr>
-                  <tr><td>PR</td><td>Has Sd and Cms/Mmd, but no voice coil (Re=0)</td></tr>
+                  <tr v-for="row in DRIVER_TYPE_HELP_ROWS" :key="row.type"><td>{{ row.type }}</td><td>{{ row.chips }}</td></tr>
                 </tbody>
               </table>
-              <div class="help-ref mt-1">Classified programmatically from T/S parameters. See DRIVER_TYPES.md for details.</div>
+              <div class="help-ref mt-1">The type is the maker's own word. Each type counts under the filter buttons shown.</div>
             </div>
             <div v-if="typeHelpOpen" class="help-backdrop" @click="typeHelpOpen = false"></div>
           </div>

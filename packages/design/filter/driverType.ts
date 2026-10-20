@@ -86,6 +86,14 @@ export class DriverType {
   static readonly ALL: readonly DriverType[] =
     Object.values(DriverType).filter((v): v is DriverType => v instanceof DriverType);
 
+  /** The help popup's rows: each type's display text and its chip labels, comma-joined. Types
+   *  with no chip (Unclassified) are left out. */
+  static helpRows(): readonly { type: string; chips: string }[] {
+    return DriverType.ALL
+      .filter((d) => d.chips.length > 0)
+      .map((d) => ({ type: d.display, chips: d.chips.map((c) => c.label).join(', ') }));
+  }
+
   /**
    * The one string → member boundary, mirroring Python's `DriverType(s)`.
    *

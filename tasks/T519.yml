@@ -1,0 +1,15 @@
+id: T519
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: The driver browser's type help popup lists each driver type and the filter chips it counts under, built from DriverType in packages/design, so it shows Bass, Bass-midrange and Midrange-not-a-woofer (QT102) and cannot drift.
+done_test: bash scripts/test.sh packages/design/test/filter/driverType.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - tasks/T519.yml
+  - packages/design/filter/driverType.ts
+  - packages/design/test/filter/driverType.test.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/test/ui/driver-type-help-per-library.browser.spec.ts

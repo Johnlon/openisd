@@ -1,6 +1,6 @@
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
 import type {OpenISDDriver} from '@openisd/design';
-import {Chip} from '@openisd/design/filter';
+import {Chip, DriverType} from '@openisd/design/filter';
 import type {PresentationState} from './presentationState.js';
 import {readDriverFileText} from './driverFileText.js';
 import {DriverFileFormat, sniff} from '../fileFormat.js';
@@ -97,12 +97,16 @@ export const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kick
 // the DriverType member (`DriverType.Subwoofer.chips`). Nothing is duplicated here.
 export const DRIVER_TYPES = Chip.ALL;
 
+// The type-help popup's rows: each driver type and the chips it answers to, from the DriverType enum.
+export const DRIVER_TYPE_HELP_ROWS = DriverType.helpRows();
+
 // The scope control's segments, in the order it renders them — which IS the click cycle,
 // because `DriverScope.next` walks this same array.
 export const DRIVER_SCOPES = DriverScope.ALL;
 
 export interface DriverBrowsingState {
   DRIVER_TYPES: typeof DRIVER_TYPES;
+  DRIVER_TYPE_HELP_ROWS: typeof DRIVER_TYPE_HELP_ROWS;
   DRIVER_SCOPES: typeof DRIVER_SCOPES;
   DISPLAY_LIMIT: number;
   /** The bundled pool: the catalogue index, fetched when the picker first opens. */
@@ -560,7 +564,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   watch(() => presentationState.editDriverInfo, open => { if (!open && presentationState.browseOpen) reloadMyDrivers(); });
 
   return {
-    DRIVER_TYPES, DRIVER_SCOPES, DISPLAY_LIMIT,
+    DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES, DISPLAY_LIMIT,
     allDrivers, statusMsg, statusErr, initialized,
     filterQ, typeStates,
     fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,

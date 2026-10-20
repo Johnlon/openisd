@@ -39,3 +39,16 @@ test('phone: help left open in Manage drivers is closed in the new-project wizar
   await page.getByText(TEST_DRIVER).click();
   await expect(page.locator('.mob-np-footer').getByText('Next', {exact: true})).toBeEnabled();
 });
+
+test('desktop: help lists Bass-midrange, and Midrange is not under Woofer', async ({page}) => {
+  await page.setViewportSize({width: 1400, height: 900});
+  await page.goto('/');
+  await page.locator('.tb-btn[title^="Manage Drivers"]').click();
+  await page.getByTitle('How are driver types classified?').click();
+  await expect(page.getByText(HELP)).toBeVisible();
+  const table = page.locator('.help-table');
+  await expect(table.getByRole('row', {name: /^Bass-midrange/})).toBeVisible();
+  const midrange = table.getByRole('row', {name: /^Midrange/});
+  await expect(midrange).toContainText('Mid');
+  await expect(midrange).not.toContainText('Woofer');
+});

@@ -70,3 +70,24 @@ describe('DriverType — a record with several roles', () => {
     expect(DriverType.displayOf([DriverType.Midrange, DriverType.Tweeter])).toBe('Midrange / Tweeter');
   });
 });
+
+describe('DriverType — the help popup rows', () => {
+  const chipsOf = (display: string) => DriverType.helpRows().find((r) => r.type === display)?.chips;
+
+  it('Bass counts under Bass and Woofer', () => {
+    expect(chipsOf('Bass')).toBe('Bass, Woofer');
+  });
+
+  it('Bass-midrange counts under Bass, Mid and Woofer', () => {
+    expect(chipsOf('Bass-midrange')).toBe('Bass, Mid, Woofer');
+  });
+
+  it('Midrange counts under Mid only, so it is not a woofer', () => {
+    expect(chipsOf('Midrange')).toBe('Mid');
+  });
+
+  it('lists every type but Unclassified, which carries no chip', () => {
+    expect(DriverType.helpRows()).toHaveLength(DriverType.ALL.length - 1);
+    expect(chipsOf('Unclassified')).toBeUndefined();
+  });
+});
