@@ -85,6 +85,12 @@ class Checker(unittest.TestCase):
         two = '<figure data-item data-name="x"><p class="look">Look at: x</p><img src="%s"><img src="%s"><form><input type=text></form></figure>' % (MARKED, MARKED)
         r = run_check(self.page(good_page(two))); self.assertEqual(r.returncode, 1)
 
+    def test_before_after_pair_is_one_item(self):
+        pair = '<figure data-item data-pair="pair" data-name="x"><p class="look">Look at: x</p><img src="%s"><img src="%s"><form><textarea></textarea></form></figure>' % (MARKED, MARKED)
+        r = run_check(self.page(good_page(pair))); self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        three = pair.replace("<form>", '<img src="%s"><form>' % MARKED)
+        self.assertEqual(run_check(self.page(good_page(three))).returncode, 1)
+
     def test_unmarked_picture_fails(self):
         r = run_check(self.page(good_page(fig("plain-one", src=PLAIN))))
         self.assertEqual(r.returncode, 1); self.assertIn("not marked", r.stdout); self.assertIn("plain-one", r.stdout)

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: fe9748979e6886765ea66f060e0f0e4f90e464fa
 goal: On a 374x705 phone the passive radiator library keeps its Define and Done buttons on screen: they sit in a pinned footer and only the list scrolls.
 done_test: bash scripts/test.sh packages/ui/test/hooks/PRBrowser-hooks.test.ts
 files:

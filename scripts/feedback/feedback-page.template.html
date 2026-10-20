@@ -20,7 +20,6 @@ h1 { font-size:20px; margin:0 0 4px; }
 .group h3 { font-size:14px; margin:0 0 4px; color:var(--muted); font-weight:600; }
 .pair { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:8px; }
 figure { margin:0; }
-figcaption { font-size:13px; font-weight:600; margin:0 0 2px; }
 img { width:100%; height:auto; border:1px solid var(--line); border-radius:4px; display:block; background:#fff; }
 a { color:inherit; }
 .note { font-size:14px; color:var(--muted); }
@@ -28,13 +27,16 @@ a { color:inherit; }
 .look.missing { border-color:#c62828; color:#c62828; }
 .todo { font-size:16px; color:var(--fg); background:var(--card); border:2px solid #1d5fd0; border-radius:8px; padding:10px; margin:0 0 12px; }
 .cm { display:flex; gap:6px; margin:6px 0 0; }
-.cm input { flex:1; min-width:0; font:inherit; font-size:15px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
+.cm input, .cm textarea { flex:1; min-width:0; font:inherit; font-size:15px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
 .cm button { font:inherit; font-size:15px; padding:8px 14px; border:0; border-radius:6px; background:#1d5fd0; color:#fff; }
 .said { font-size:14px; margin:4px 0 0; padding:4px 8px; border-left:3px solid var(--line); }
 .said.john { border-color:#1d5fd0; }
 .cm-err { color:#c00; font-size:13px; }
 .live { display:inline-block; margin:6px 0 0; padding:10px 14px; border-radius:6px; background:#1d5fd0; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
-.permalink { font-size:12px; color:var(--muted); margin-left:6px; font-weight:400; }
+.permalink { float:right; font-size:13px; line-height:1; color:var(--muted); text-decoration:none; padding:2px 4px; }
+.side { min-width:0; }
+.lbl { display:block; font-size:12px; color:var(--muted); margin:0 0 2px; }
+
 figure.here { outline:3px solid #c62828; outline-offset:3px; border-radius:4px; }
 details.ruled { margin:8px 0 0; }
 details.ruled summary { font-size:15px; color:var(--muted); padding:8px 0; cursor:pointer; }
@@ -52,6 +54,7 @@ const isLive = (l) => /^live$/i.test(l.label.trim());
 const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 // A before picture is a still of today's app, never the live mock.
 const isBefore = (label) => /^before$/i.test(label.trim());
+const isAfter = (label) => /^after$/i.test(label.trim());
 const isImg = (u) => /\.(png|jpe?g|gif|webp|svg)$/i.test(u);
 const ITEM = '__ITEM__';
 const FOLDER = '__FOLDER__';  // every comment on this page goes to this board item, prefixed with its picture
@@ -71,7 +74,14 @@ function pictures(cell) {
   // A side-by-side already holds the before and the after: show it alone, never the same picture twice.
   return together.map((g) => {
     const sbs = g.links.filter((l) => /side-by-side/i.test(l.url));
-    return sbs.length ? { name: g.name, links: sbs, live: g.live } : g;
+    if (sbs.length) return { name: g.name, items: sbs.map((l) => ({ lone: l })), live: g.live };
+    // A before and its after are ONE item (compare them side by side); any other link stands alone.
+    const before = g.links.find((l) => isBefore(l.label) && isImg(l.url));
+    const after = g.links.find((l) => isAfter(l.label) && isImg(l.url));
+    const paired = before && after;
+    const items = g.links.filter((l) => !paired || (l !== before && l !== after)).map((l) => ({ lone: l }));
+    if (paired) items.unshift({ before, after });
+    return { name: g.name, items, live: g.live };
   });
 }
 
@@ -102,19 +112,26 @@ function lookLine(text) {
     const cls = /^landed/.test(state) ? 'done' : 'wait';
     const groups = pictures(cell || '');
     const rowLive = groups.map((g) => g.live).find(Boolean) || '';
-    const any = groups.some((g) => g.links.length || g.live);
+    const any = groups.some((g) => g.items.length || g.live);
     const btn = (u) => u ? `<a class="live" href="${esc(u)}">Open live mock</a>` : '';
     const idOf = (n) => `id="${esc(slug(n))}"`;
-    const link = (n) => `<a class="permalink" href="#${esc(slug(n))}">link</a>`;
+    const link = (n) => `<a class="permalink" href="#${esc(slug(n))}" aria-label="link to this item" title="link to this item">\u{1F517}</a>`;
     const textItem = (n, lk, u) => `<figure ${idOf(n)} data-item data-kind="item" data-name="${esc(n)}">${link(n)}${lk}${btn(u)}</figure>`;
     const body = !any ? textItem(name('', '', ''), lookLine(look), '') : groups.map((g) => {
       const lk = lookLine(lookFor(look, g.name));
       const u = g.live || rowLive;
-      const figs = g.links.length ? g.links.map(({ label, url }) => isImg(url)
-        ? `<figure ${idOf(name(label, g.name, url))} data-item data-kind="picture" data-name="${esc(name(label, g.name, url))}"><figcaption>${esc(label)} ${link(name(label, g.name, url))}</figcaption>${lk}${isBefore(label) ? '' : btn(u)}<a href="${esc(url)}"><img loading="lazy" src="${esc(url)}" alt="${esc(label)}"></a></figure>`
-        : `<p><a href="${esc(url)}">${esc(label)}</a></p>`).join('')
+      const pic = (l, lbl) => `<div class="side">${lbl ? `<span class="lbl">${lbl}</span>` : ''}<a href="${esc(l.url)}"><img loading="lazy" src="${esc(l.url)}" alt="${esc(l.label)}"></a></div>`;
+      const figs = g.items.length ? g.items.map((it) => {
+        if (it.lone && !isImg(it.lone.url)) return `<p><a href="${esc(it.lone.url)}">${esc(it.lone.label)}</a></p>`;
+        if (it.lone) {
+          const { label, url } = it.lone, n = name(label, g.name, url);
+          return `<figure ${idOf(n)} data-item data-kind="picture" data-name="${esc(n)}">${link(n)}${lk}${isBefore(label) ? '' : btn(u)}${pic(it.lone, '')}</figure>`;
+        }
+        const n = name('', g.name, it.before.url), other = name('', g.name, it.after.url);
+        return `<figure ${idOf(n)} data-item data-kind="picture" data-pair="pair" data-name="${esc(n)}" data-also="${esc(other)}">${link(n)}${lk}${btn(u)}<div class="pair">${pic(it.before, 'before')}${pic(it.after, 'after')}</div></figure>`;
+      }).join('')
         : textItem(name('', '', g.live), lk, g.live);
-      return `<div class="group">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}<div class="pair">${figs}</div></div>`;
+      return `<div class="group">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}<div class="${g.items.some((i) => i.lone) && !g.items.some((i) => i.before) ? 'pair' : 'items'}">${figs}</div></div>`;
     }).join('');
     return `<section class="fix"><h2>${esc(fix)}</h2><p class="meta">${esc(task)} · <span class="state ${cls}">${esc(state)}</span></p>${body}</section>`;
   }).join('');
@@ -131,18 +148,22 @@ function commentBoxes(thread) {
   for (const fig of document.querySelectorAll('figure[data-item]')) {
     const n = fig.dataset.name;
     const f = document.createElement('form'); f.className = 'cm';
-    f.innerHTML = `<input type="text" aria-label="Comment on ${esc(n)}" placeholder="Your comment"><button type="submit">Send</button>`;
+    f.innerHTML = `<textarea rows="2" aria-label="Comment on ${esc(n)}" placeholder="Your comment"></textarea><button type="submit">Send</button>`;
     const err = document.createElement('div'); err.className = 'cm-err'; err.hidden = true;
     fig.append(f, err);
-    const pre = `[${fig.dataset.kind}: ${n}]`;
-    const mine = thread.filter((t) => typeof t.text === 'string' && (t.text.startsWith(pre) || t.text.startsWith(`[picture: ${n}]`) || t.text.startsWith(`[item: ${n}]`)))
+    const tagged = (t, m) => typeof t.text === 'string' && (t.text.startsWith(`[${fig.dataset.kind}: ${m}]`) || t.text.startsWith(`[picture: ${m}]`) || t.text.startsWith(`[item: ${m}]`));
+    // A pair holds two pictures: comments on either path belong to it.
+    const also = fig.dataset.also;
+    const mine = thread.filter((t) => tagged(t, n) || (also && tagged(t, also)))
       .sort((a, b) => (a.at < b.at ? -1 : 1));
     mine.forEach((t) => said(fig, t.text.replace(/^\[(picture|item): [^\]]*\]/, '').trim(), t.at, t.by === 'John'));
     // John's comment is the last word on it: he has ruled, so it is not shown again until an agent answers.
-    if (mine.length && mine[mine.length - 1].by === 'John') fig.dataset.ruled = '1';
+    // A pair is answered when John has answered its before path (and nobody has spoken after him).
+    const johnOnBefore = mine.some((t) => t.by === 'John' && tagged(t, n));
+    if (mine.length && mine[mine.length - 1].by === 'John' && (!also || johnOnBefore)) fig.dataset.ruled = '1';
     f.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const inp = f.querySelector('input'), btn = f.querySelector('button'), words = inp.value.trim();
+      const inp = f.querySelector('textarea'), btn = f.querySelector('button'), words = inp.value.trim();
       if (!words) return;
       btn.disabled = true; btn.textContent = 'Sending…'; err.hidden = true;
       try {

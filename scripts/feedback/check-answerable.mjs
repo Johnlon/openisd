@@ -29,7 +29,8 @@ function inspect() {
     const label = it.dataset.name || it.querySelector('img')?.getAttribute('alt') || it.innerText.trim().slice(0, 40);
     if (!hasBox(it)) problems.push(`item has no comment box: ${label}`);
     const imgs = [...it.querySelectorAll('img')].filter(big);
-    if (imgs.length > 1) problems.push(`item shares its comment box between ${imgs.length} pictures: ${label}`);
+    const allowed = it.hasAttribute('data-pair') ? 2 : 1; // a before and its after are one item
+    if (imgs.length > allowed) problems.push(`item shares its comment box between ${imgs.length} pictures: ${label}`);
     const st = it.querySelector('.look,[data-statement]');
     const text = (st?.innerText || '').replace(/^\s*(look at|what to do|question)\s*:/i, '').trim();
     if (!text || /not written yet/i.test(text)) problems.push(`item has no clear statement (what to do / look at / question): ${label}`);
