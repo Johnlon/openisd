@@ -50,6 +50,8 @@ const out = document.getElementById('out');
 const linkRe = /\[([^\]]+)\]\(([^)]+)\)/g;
 const isLive = (l) => /^live$/i.test(l.label.trim());
 const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// A before picture is a still of today's app, never the live mock.
+const isBefore = (label) => /^before$/i.test(label.trim());
 const isImg = (u) => /\.(png|jpe?g|gif|webp|svg)$/i.test(u);
 const ITEM = '__ITEM__';
 const FOLDER = '__FOLDER__';  // every comment on this page goes to this board item, prefixed with its picture
@@ -109,7 +111,7 @@ function lookLine(text) {
       const lk = lookLine(lookFor(look, g.name));
       const u = g.live || rowLive;
       const figs = g.links.length ? g.links.map(({ label, url }) => isImg(url)
-        ? `<figure ${idOf(name(label, g.name, url))} data-item data-kind="picture" data-name="${esc(name(label, g.name, url))}"><figcaption>${esc(label)} ${link(name(label, g.name, url))}</figcaption>${lk}${btn(u)}<a href="${esc(url)}"><img loading="lazy" src="${esc(url)}" alt="${esc(label)}"></a></figure>`
+        ? `<figure ${idOf(name(label, g.name, url))} data-item data-kind="picture" data-name="${esc(name(label, g.name, url))}"><figcaption>${esc(label)} ${link(name(label, g.name, url))}</figcaption>${lk}${isBefore(label) ? '' : btn(u)}<a href="${esc(url)}"><img loading="lazy" src="${esc(url)}" alt="${esc(label)}"></a></figure>`
         : `<p><a href="${esc(url)}">${esc(label)}</a></p>`).join('')
         : textItem(name('', '', g.live), lk, g.live);
       return `<div class="group">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}<div class="pair">${figs}</div></div>`;

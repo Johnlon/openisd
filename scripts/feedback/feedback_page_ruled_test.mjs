@@ -44,9 +44,12 @@ try {
   if (!/3/.test(summary)) failures.push(`no "already answered (3)" fold: got ${JSON.stringify(summary)}`);
   // Live mock: a button keeping the query string, never a picture or plain link.
   const lives = await p.$$eval('a.live', (as) => as.map((a) => a.getAttribute('href')));
-  const wantLive = ['mock-b.html?tab=vented&look=x', 'mock-a.html?look=fb-handle', 'mock-a.html?look=fb-handle'];
+  const wantLive = ['mock-b.html?tab=vented&look=x', 'mock-a.html?look=fb-handle'];
   if (JSON.stringify(lives) !== JSON.stringify(wantLive)) failures.push(`live buttons ${JSON.stringify(lives)}, want ${JSON.stringify(wantLive)}`);
   if (await p.$('a[href^="mock-a.html"]:not(.live)')) failures.push('live link also rendered as a plain link');
+  // The before picture is a still of today's app: it never carries the live-mock button.
+  if (await p.$('figure[data-name="F/d/before.png"] a.live')) failures.push('live button under the before picture');
+  if (!(await p.$('figure[data-name="F/d/after.png"] a.live'))) failures.push('no live button under the after picture');
   const txt = await p.$eval('figure[data-name*="mock-b"]', (f) => f.querySelector('.look')?.textContent + '|' + !!f.querySelector('form.cm'));
   if (!/vented tab\|true/.test(txt)) failures.push(`live-only item lacks look/comment box: ${txt}`);
   // Deep link: every item has id + link anchor.
