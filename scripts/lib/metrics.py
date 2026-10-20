@@ -36,6 +36,14 @@ def parse_iso(ts_str):
             return datetime.fromisoformat(f"{base}.{frac}{tz}")
     return None
 
+def budget_limits(root):
+    """The pool sizes, read from scripts/budget.conf (the one place they are set)."""
+    conf = root / "scripts" / "budget.conf"
+    if not conf.exists():
+        return {}
+    return {m.group(1): int(m.group(2)) for m in re.finditer(r'^(POOL_\w+_MB)=(\d+)', conf.read_text(), re.M)}
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Generate OpenISD test and SDLC metrics.")
@@ -533,11 +541,7 @@ def main():
         },
         "slowest_20_specs": slowest_20_specs,
         "all_reds_records": reds_by_cause["records"],
-        "budget_limits": {
-            "POOL_SUITE_MB": 1400,
-            "POOL_SMALL_MB": 4000,
-            "POOL_GENERAL_MB": 5100
-        }
+        "budget_limits": budget_limits(root)
     }
 
     # Write metrics.json
