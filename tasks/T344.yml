@@ -1,0 +1,12 @@
+id: T344
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Housekeeping removes worktrees without a task name (old run and scratch copies) when clean, unused, on main and 6 h old
+done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
+files:
+  - tasks/T344.yml
+  - scripts/land/tidy-branches.sh
+  - scripts/land/test/tidy-branches.e2e.test.sh
+  - bugs/BUG_20261017_dead-branches-and-worktrees-pile-up.md

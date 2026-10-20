@@ -88,6 +88,17 @@ tidy
 ! has_branch t161 && ok "a done task's branch that differs only in its own task file goes" || fail "t161 kept: $(cat "$SCRATCH/out")"
 has_branch t162 && ok "a branch adding work main lacks stays, even when its task says done" || fail "t162 removed"
 
+# 1c. worktrees without a task name, outside the workspace's task folders: an old clean one on main goes; a young
+#     one (a live run's copy between steps) and an old one holding a commit not on main stay
+gm worktree add -q --detach "$SCRATCH/old-copy" origin/main; touch -d '7 hours ago' "$(git -C "$SCRATCH/old-copy" rev-parse --absolute-git-dir)/HEAD"
+gm worktree add -q --detach "$SCRATCH/young-copy" origin/main
+gm worktree add -q --detach "$SCRATCH/old-ahead" origin/main; echo z > "$SCRATCH/old-ahead/z"; git -C "$SCRATCH/old-ahead" add z; git -C "$SCRATCH/old-ahead" commit -qm z
+touch -d '7 hours ago' "$(git -C "$SCRATCH/old-ahead" rev-parse --absolute-git-dir)/HEAD"
+tidy
+[ ! -d "$SCRATCH/old-copy" ] && ok "an old, clean, unused copy on main without a task name goes" || fail "old copy kept: $(grep old-copy "$TIDY_LOG")"
+[ -d "$SCRATCH/young-copy" ] && ok "a copy younger than 6 h stays (a live run's)" || fail "young copy removed"
+[ -d "$SCRATCH/old-ahead" ] && ok "an old copy holding a commit not on main stays" || fail "old-ahead removed"
+
 # 2. leftover folders: only generated folders and no git data goes
 mkdir -p "$M-t20/node_modules/x" "$M-t20/build" "$M-t21" "$M-t22"; echo keep > "$M-t21/notes.txt"; echo "gitdir: /nowhere" > "$M-t22/.git"
 mkdir -p "$M-t23/node_modules"

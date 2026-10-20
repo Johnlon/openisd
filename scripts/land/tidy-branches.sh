@@ -3,8 +3,10 @@
 # want dead branches and worktrees lying around"). The watchdog runs it every tick. Nothing is ever removed that holds work found nowhere else:
 #   - a worktree beside the main folder (<workspace>/<repo>-*) goes when it is clean (no modified or untracked
 #     file), no running program has its folder inside it, and its HEAD is on origin/main (by commit or by
-#     content, as for branches below),. A claim (.task) left in it is logged as stale.
-#     The main folder and the synced copies (git config openisd.mainFolder / openisd.syncedCopy) are never touched;
+#     content, as for branches below). A claim (.task) left in it is logged as stale.
+#     A worktree anywhere else (a run's or a scratch copy) goes on the same terms once its HEAD is 6 h old
+#     (TIDY_OTHER_MIN_AGE_S). The main folder and the synced copies (git config openisd.mainFolder /
+#     openisd.syncedCopy) are never touched;
 #   - a task branch (t<n>), local or on origin, goes when it is checked out nowhere and every commit on it is on
 #     origin/main, or its content is (merging it changes nothing but its own task file, once main says the task
 #     is done: land.sh squashes). A land/<task> candidate branch on origin
@@ -29,6 +31,7 @@ main="$(dirname "$common")"
 name="$(basename "$main")"
 WORKSPACE="${WORKSPACE:-$(dirname "$main")}"
 LOG="${TIDY_LOG:-$main/build/test-logs/tidy-branches.log}"
+OTHER_MIN_AGE_S="${TIDY_OTHER_MIN_AGE_S:-21600}"
 mkdir -p "$(dirname "$LOG")"
 log() { printf '%s tidy-branches: %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" | tee -a "$LOG"; }
 g() { git -C "$main" "$@"; }
@@ -71,9 +74,15 @@ tidy_worktree() { # tidy_worktree <path> <branch or empty>
   local wt="$1" br="$2" head claim
   wt_paths["$wt"]=1
   grep -qxF -- "$wt" <<< "$keep_list" && return 0
-  case "$wt" in "$WORKSPACE/$name"-*) ;; *) return 0 ;; esac
   wanted "$br" || return 0
   head="$(git -C "$wt" rev-parse HEAD 2> /dev/null)" || { log "kept $wt: cannot read HEAD"; return 0; }
+  # A worktree without a task name (a run's copy, a scratch copy) goes only once it is OTHER_MIN_AGE_S old: no run
+  # lives that long (the longest deadline is 90 min), so a live run's copy is never taken between its steps.
+  case "$wt" in
+    "$WORKSPACE/$name"-*) ;;
+    *) [ $(( $(date +%s) - $(stat -c %Y "$(git -C "$wt" rev-parse --absolute-git-dir 2> /dev/null)/HEAD" 2> /dev/null || date +%s) )) \
+         -ge "$OTHER_MIN_AGE_S" ] || return 0 ;;
+  esac
   safe "$head" "$br" || return 0
   if [ -n "$(git -C "$wt" status --porcelain --untracked-files=all 2> /dev/null)" ]; then
     log "kept $wt: uncommitted work"
