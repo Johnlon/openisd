@@ -162,5 +162,13 @@ class RuledPictures(unittest.TestCase):
                                   capture_output=True, text=True, cwd="/tmp")
             self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
+    def test_live_thread_send_order_and_poll(self):
+        with tempfile.TemporaryDirectory() as d:
+            folder = pathlib.Path(d) / "F"; folder.mkdir()
+            page = load().write_page(folder, "QO0", "t")
+            done = subprocess.run(["node", str(HERE / "feedback_page_live_test.mjs"), str(page)],
+                                  capture_output=True, text=True, cwd="/tmp")
+            self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
 if __name__ == "__main__":
     unittest.main()

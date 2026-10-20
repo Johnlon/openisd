@@ -30,6 +30,7 @@ a { color:inherit; }
 .cm input, .cm textarea { flex:1; min-width:0; font:inherit; font-size:15px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); }
 .cm button { font:inherit; font-size:15px; padding:8px 14px; border:0; border-radius:6px; background:#1d5fd0; color:#fff; }
 .said { font-size:14px; margin:4px 0 0; padding:4px 8px; border-left:3px solid var(--line); }
+.sent { font-size:14px; color:var(--muted); margin:4px 0 0 11px; }
 .said.john { border-color:#1d5fd0; }
 .cm-err { color:#c00; font-size:13px; }
 .live { display:inline-block; margin:6px 0 0; padding:10px 14px; border-radius:6px; background:#1d5fd0; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
@@ -137,11 +138,47 @@ function lookLine(text) {
   }).join('');
 }
 
-function said(fig, text, at, john) {
+const entryNo = (id) => { const m = /(\d+)$/.exec(id || ''); return m ? Number(m[1]) : NaN; };
+// Entry-number order (QO271.c12 -> 12), never by time string; an entry with no number sorts by time after the numbered ones.
+const byEntry = (a, b) => {
+  const x = entryNo(a.id), y = entryNo(b.id);
+  if (!Number.isNaN(x) && !Number.isNaN(y)) return x - y;
+  if (!Number.isNaN(x)) return -1;
+  if (!Number.isNaN(y)) return 1;
+  return (a.at || '') < (b.at || '') ? -1 : 1;
+};
+const ANSWER_TIMEOUT_S = 120, DUPLICATE_MS = 10000, POLL_MS = 3000;
+const shown = new Set();     // entry ids already on the page
+const boxes = [];            // { fig, take(entry) -> bool } per picture
+let owner = 'fable';
+let newestId = '';
+
+function said(fig, text, at, john, id) {
   const d = document.createElement('div');
   d.className = 'said' + (john ? ' john' : '');
+  if (id) { d.dataset.id = id; shown.add(id); }
   d.textContent = `${john ? 'You' : 'Agent'}${at ? ' · ' + new Date(at).toLocaleDateString('en-GB', {day:'numeric', month:'short'}) : ''}: ${text}`;
   fig.querySelector('form').before(d);
+  return d;
+}
+
+function noteNewest(id) { if (id && (!newestId || entryNo(id) > entryNo(newestId))) newestId = id; }
+const stripTag = (t) => t.replace(/^\[(picture|item): [^\]]*\]/, '').trim();
+
+// "<owner> is answering… 0:03" under John's entry, counting; the answer replaces it; after 120 s it says nobody has answered yet.
+function waitingLine(after, id, since) {
+  const line = document.createElement('div'); line.className = 'sent'; line.dataset.for = id;
+  const t0 = since;
+  const paint = () => {
+    const s = Math.floor((Date.now() - t0) / 1000);
+    if (s >= ANSWER_TIMEOUT_S) { line.textContent = `No answer yet; ${owner} will answer.`; line.dataset.late = '1'; clearInterval(line._t); return; }
+    line.textContent = `Sent, ${owner} is answering… ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  };
+  paint(); line._t = setInterval(paint, 1000);
+  after.after(line);
+}
+function stopWaiting(fig) {
+  for (const l of fig.querySelectorAll('.sent')) { clearInterval(l._t); l.remove(); }
 }
 
 function commentBoxes(thread) {
@@ -151,48 +188,78 @@ function commentBoxes(thread) {
     f.innerHTML = `<textarea rows="2" aria-label="Comment on ${esc(n)}" placeholder="Your comment"></textarea><button type="submit">Send</button>`;
     const err = document.createElement('div'); err.className = 'cm-err'; err.hidden = true;
     fig.append(f, err);
+    const also = fig.dataset.also;  // a pair holds two pictures: comments on either belong to it
     const tagged = (t, m) => typeof t.text === 'string' && (t.text.startsWith(`[${fig.dataset.kind}: ${m}]`) || t.text.startsWith(`[picture: ${m}]`) || t.text.startsWith(`[item: ${m}]`));
-    // A pair holds two pictures: comments on either path belong to it.
-    const also = fig.dataset.also;
-    const mine = thread.filter((t) => tagged(t, n) || (also && tagged(t, also)))
-      .sort((a, b) => (a.at < b.at ? -1 : 1));
-    mine.forEach((t) => said(fig, t.text.replace(/^\[(picture|item): [^\]]*\]/, '').trim(), t.at, t.by === 'John'));
-    // John's comment is the last word on it: he has ruled, so it is not shown again until an agent answers.
-    // A pair is answered when John has answered its before path (and nobody has spoken after him).
-    const johnOnBefore = mine.some((t) => t.by === 'John' && tagged(t, n));
-    if (mine.length && mine[mine.length - 1].by === 'John' && (!also || johnOnBefore)) fig.dataset.ruled = '1';
+    const belongs = (t) => t.picture === n || (also && t.picture === also) || tagged(t, n) || (also && tagged(t, also));
+    const mine = thread.filter(belongs).sort(byEntry);
+    const divs = mine.map((t) => said(fig, stripTag(t.text), t.at, t.by === 'John', t.id));
+    // John's comment is the last word on it: he has ruled, so it is folded where it stands until an agent answers.
+    const johnOnBefore = mine.some((t) => t.by === 'John' && (t.picture === n || tagged(t, n)));
+    const lastE = mine[mine.length - 1];
+    // After a reload, a John question nobody has answered yet shows the answering line again, counted from its time.
+    const open = lastE && lastE.by === 'John' && lastE.kind === 'question' && Date.parse(lastE.at) > 0;
+    if (open) waitingLine(divs[divs.length - 1], lastE.id, Date.parse(lastE.at));
+    else if (lastE && lastE.by === 'John' && (!also || johnOnBefore)) fig.dataset.ruled = '1';
+    boxes.push({ fig, take(t) {
+      if (!belongs(t) || (t.id && shown.has(t.id))) return false;
+      const john = t.by === 'John';
+      said(fig, stripTag(t.text), t.at, john, t.id);
+      if (!john) { stopWaiting(fig); unfold(fig); }
+      return true;
+    } });
+    const ta = f.querySelector('textarea'), btn = f.querySelector('button');
+    let last = { text: '', at: 0 };
+    const refresh = () => { btn.disabled = ta.value.trim() === last.text && Date.now() - last.at < DUPLICATE_MS; };
+    ta.addEventListener('input', refresh);
     f.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const inp = f.querySelector('textarea'), btn = f.querySelector('button'), words = inp.value.trim();
+      const words = ta.value.trim();
       if (!words) return;
+      refresh(); if (btn.disabled) return;
       btn.disabled = true; btn.textContent = 'Sending…'; err.hidden = true;
       try {
         const r = await fetch('/board/api/inbox', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ kind: 'comment', item: ITEM, text: `[${fig.dataset.kind}: ${n}] ${words}` }) });
-        if (r.status === 204) { said(fig, words, new Date().toISOString(), true); inp.value = ''; btn.textContent = 'Sent'; }
-        else { err.textContent = (await r.text()) || `Not sent: HTTP ${r.status}`; err.hidden = false; btn.textContent = 'Send'; }
+        if (r.ok) {
+          const id = (await r.json().catch(() => ({}))).id || '';
+          const d = said(fig, words, new Date().toISOString(), true, id);
+          if (/\.c\d+$/.test(id)) { waitingLine(d, id, Date.now()); noteNewest(id); }
+          last = { text: words, at: Date.now() };
+          ta.value = ''; btn.textContent = 'Sent'; ta.focus({ preventScroll: true });
+          setTimeout(() => { btn.textContent = 'Send'; }, DUPLICATE_MS);
+          pollThread(true);
+        } else { err.textContent = (await r.text()) || `Not sent: HTTP ${r.status}`; err.hidden = false; btn.textContent = 'Send'; }
       } catch (x) { err.textContent = `Not sent: ${x.message}`; err.hidden = false; btn.textContent = 'Send'; }
-      btn.disabled = false;
+      btn.disabled = false; refresh();
     });
   }
 }
 
-// Answered pictures go into one closed fold at the bottom, so the page shows only what still needs John.
+// Answered pictures stay where they are in the page order, each in its own closed fold.
 function foldRuled() {
   const ruled = [...document.querySelectorAll('figure[data-item][data-ruled]')];
-  if (!ruled.length) return;
-  const fold = document.createElement('details'); fold.className = 'ruled';
-  fold.innerHTML = `<summary>Already answered (${ruled.length}): tap to show</summary>`;
-  for (const sec of document.querySelectorAll('#out > section.fix')) {
-    const figs = [...sec.querySelectorAll('figure[data-item]')];
-    if (figs.every((f) => f.dataset.ruled)) { fold.append(sec); continue; }
-    const copy = sec.cloneNode(false); copy.innerHTML = sec.querySelector('h2').outerHTML;
-    for (const f of figs.filter((f) => f.dataset.ruled)) copy.append(f);
-    fold.append(copy);
+  for (const fig of ruled) {
+    const fold = document.createElement('details'); fold.className = 'ruled';
+    fold.innerHTML = '<summary>Answered: tap to show</summary>';
+    fig.before(fold); fold.append(fig);
   }
-  out.append(fold);
-  if (!out.querySelector(':scope > section.fix')) fold.insertAdjacentHTML('beforebegin', '<p class="note">Nothing new to look at: every picture here has your answer.</p>');
+  if (ruled.length && !out.querySelector('figure[data-item]:not([data-ruled])')) out.insertAdjacentHTML('afterbegin', '<p class="note">Nothing new to look at: every picture here has your answer.</p>');
 }
+function unfold(fig) { const d = fig.closest('details.ruled'); if (d) { d.replaceWith(fig); delete fig.dataset.ruled; } }
+
+// Live: while the page is visible, ask for entries after the newest one known, every 3 s.
+let polling = false;
+async function pollThread(force) {
+  if (polling || (document.hidden && !force)) return;
+  polling = true;
+  try {
+    const r = await fetch(`/board/api/thread?item=${encodeURIComponent(ITEM)}&since=${encodeURIComponent(newestId)}`, { cache: 'no-store' });
+    if (!r.ok) return;
+    const res = await r.json();
+    for (const t of (res.entries || []).sort(byEntry)) { noteNewest(t.id); for (const b of boxes) b.take(t); }
+  } catch (x) { /* the next tick retries */ } finally { polling = false; }
+}
+setInterval(() => pollThread(false), POLL_MS);
 
 // Deep link: index.html#<id> opens the answered fold if needed, scrolls to the item and rings it.
 function goToHash() {
@@ -208,7 +275,7 @@ addEventListener('hashchange', goToHash);
 
 const threadP = fetch('/board/api/items', { cache: 'no-store' })
   .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
-  .then((b) => b.items.find((i) => i.id === ITEM)?.thread || [])
+  .then((b) => { const it = b.items.find((i) => i.id === ITEM); owner = it?.owner || 'fable'; const th = it?.thread || []; th.forEach((t) => noteNewest(t.id)); return th; })
   .catch((x) => { const e = document.createElement('p'); e.className = 'cm-err'; e.textContent = `Earlier comments not loaded: ${x.message}`; document.body.prepend(e); return []; });
 
 fetch('index.md?html', { cache: 'no-store' })

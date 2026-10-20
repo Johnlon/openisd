@@ -38,11 +38,16 @@ try {
   });
   await p.goto('http://test.invalid/F/index.html');
   await p.waitForSelector('form.cm'); await p.waitForSelector('details.ruled', { state: 'attached' });
+  // Answered pictures stay in page order, each in its own closed fold; none moved to a bottom fold.
+  const allOrder = await p.$$eval('figure[data-item]', (fs) => fs.map((f) => f.dataset.name));
+  const wantAll = ['F/mock-b.html?tab=vented&look=x', 'F/e/shot.png', 'F/d/before.png', 'F/b/before.png', 'F/c/side-by-side.png', 'F/a/before.png'];
+  if (JSON.stringify(allOrder) !== JSON.stringify(wantAll)) failures.push(`page order ${JSON.stringify(allOrder)}, want ${JSON.stringify(wantAll)}`);
+  if (await p.$('#out > details.ruled:last-child')) failures.push('answered fold at the bottom');
   const shown = await p.$$eval('figure[data-item]', (fs) => fs.filter((f) => f.checkVisibility()).map((f) => f.dataset.name));
   const want = ['F/mock-b.html?tab=vented&look=x', 'F/e/shot.png', 'F/d/before.png', 'F/b/before.png', 'F/c/side-by-side.png'];
   if (JSON.stringify(shown) !== JSON.stringify(want)) failures.push(`shown pictures ${JSON.stringify(shown)}, want ${JSON.stringify(want)}`);
   const summary = await p.$eval('details.ruled summary', (s) => s.textContent).catch(() => '');
-  if (!/\(1\)/.test(summary)) failures.push(`no "already answered (1)" fold: got ${JSON.stringify(summary)}`);
+  if (summary !== 'Answered: tap to show') failures.push(`answered fold summary: got ${JSON.stringify(summary)}`);
   // Live mock: a button keeping the query string, never a picture or plain link.
   const lives = await p.$$eval('a.live', (as) => as.map((a) => a.getAttribute('href')));
   const wantLive = ['mock-b.html?tab=vented&look=x', 'mock-a.html?look=fb-handle'];
