@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: df46da04cb75ce3d72134f7333493efbb0e2d428
 goal: Review pages show a before and its after as one item, side by side, with less noise
 done_test: python3 scripts/feedback/feedback_page_test.py
 files:

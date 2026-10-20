@@ -34,7 +34,9 @@ function inspect() {
     const st = it.querySelector('.look,[data-statement]');
     const text = (st?.innerText || '').replace(/^\s*(look at|what to do|question)\s*:/i, '').trim();
     if (!text || /not written yet/i.test(text)) problems.push(`item has no clear statement (what to do / look at / question): ${label}`);
-    for (const img of imgs) pics.push({ label, src: img.currentSrc || img.src });
+    // In a pair, name the picture itself (its link), not the item, which carries the before's name.
+    const own = (img) => (imgs.length > 1 && img.closest('a')?.getAttribute('href')) || label;
+    for (const img of imgs) pics.push({ label: own(img), src: img.currentSrc || img.src });
   }
   return { problems, sw: document.documentElement.scrollWidth, pics };
 }
