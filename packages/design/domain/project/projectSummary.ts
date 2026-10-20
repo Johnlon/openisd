@@ -21,6 +21,8 @@ export class ProjectSummary {
         readonly driver: string,
         readonly boxType: BoxType,
         readonly volume: SummaryVolume,
+        /** The driver's short code (its sku); '' when it has none. */
+        readonly code: string,
     ) {}
 
     static of(project: OpenISDProject): ProjectSummary {
@@ -32,12 +34,22 @@ export class ProjectSummary {
             ? {kind: 'one', volume_m3: main_m3}
             : {kind: 'two', rear_m3: main_m3, front_m3: front.value};
         const driver = [project.driver.brand.value, project.driver.model.value].filter(s => s.length > 0).join(' ');
-        return new ProjectSummary(driver, type, volume);
+        return new ProjectSummary(driver, type, volume, project.driver.sku.value);
     }
 
     /** "Tang Band W5-1138SMF · Vented · 12.0 L": the box type as the Box tab names it, the volume
      *  in the unit `unitTokens` holds for the box volume (rear + front for a two-chamber box). */
     line(unitTokens: Readonly<Record<string, string>>): string {
+        return this.lineWith(this.driver, unitTokens);
+    }
+
+    /** "E150HE-44 · Closed · 3.5 L": as `line`, with the driver's sku upper-cased in place of its
+     *  brand and model; a driver with no sku shows the brand and model (QO259). */
+    phoneLine(unitTokens: Readonly<Record<string, string>>): string {
+        return this.lineWith(this.code.length > 0 ? this.code.toUpperCase() : this.driver, unitTokens);
+    }
+
+    private lineWith(driverText: string, unitTokens: Readonly<Record<string, string>>): string {
         const field = NumberField.BOX_VB_L;
         const token = field.unitTokenFor(unitTokens);
         const decimals = decimalsIn(field.unitFor(token), VOLUME_DECIMALS_IN_LITRES);
@@ -46,6 +58,6 @@ export class ProjectSummary {
             ? shown(this.volume.volume_m3)
             : `${shown(this.volume.rear_m3)} + ${shown(this.volume.front_m3)}`;
         const typeName = BOX_TYPE_OPTIONS.find(o => o.value === this.boxType)?.label ?? this.boxType;
-        return [this.driver, typeName, `${amount} ${field.unitLabel(token)}`].join(' · ');
+        return [driverText, typeName, `${amount} ${field.unitLabel(token)}`].join(' · ');
     }
 }

@@ -115,6 +115,7 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
         name: project !== null ? deps.appState.projectDisplayName(project) : listing.name,
         driver: summary?.driver ?? '',
         summary: summary?.line(units) ?? '',
+        phoneSummary: summary?.phoneLine(units) ?? '',
         saved: {modifiedMs: new Date(listing.modified).getTime(), bytes: listing.bytes, readable: listing.kind === 'readable'},
         open: openState(project),
         sync: projectSyncMark({

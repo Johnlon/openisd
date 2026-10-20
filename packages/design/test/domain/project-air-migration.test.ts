@@ -114,7 +114,10 @@ describe('a file this build saves opens in the earlier build with the same numbe
     const before = inMain[file];
     if (before === undefined) throw new Error(`no golden for ${file}`);
     const now = observe(load(file));
-    expect(now.repaired).toEqual([]);
+    // That file's driver came from a WinISD import and holds the model text as its short code;
+    // the load clears it (QO259). Nothing else is repaired.
+    const importSku = file === 'saved-by-t375-sample_project_vented.owpr' ? ['["saved","driverEmbedding","device","sku"]'] : [];
+    expect(now.repaired).toEqual(importSku);
     expect(now.modified).toBe(false);
     expect(now.T).toBe(before.T);
     expect(now.RH).toBe(before.RH);

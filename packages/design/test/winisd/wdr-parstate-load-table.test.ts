@@ -100,7 +100,8 @@ describe('winISDDriverFromOpenISDDeviceJson', () => {
     assert.equal(named.brand.value, 'SEAS');
     assert.equal(named.model.value, '19TAFD/G');
     assert.equal(named.manufacturer.value, 'SEAS');
-    assert.equal(named.sku.value, '19TAFD/G');
+    // A .wdr has no short code: the model text is not one, so the import stores none (T431, QO259).
+    assert.equal(named.sku.value, '');
     assert.equal(unnamed.brand.value, 'n/a');
     assert.equal(unnamed.model.value, 'n/a');
     assert.equal(unnamed.manufacturer.value, 'n/a');

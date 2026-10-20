@@ -470,7 +470,7 @@ export class WinIsdProjectConverter {
           brand: {value: 'WinISD import'}, model: {value: 'passive-radiator'},
           manufacturer: {value: 'WinISD import'}, driver_type: {value: ['passive-radiator']},
           uuid: {value: '00000000-0000-4000-8000-000000000002'},
-          sku: {value: 'WPR-IMPORT', grounds: [{origin: 'manual', reading: 'WPR-IMPORT'}]},
+          sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
           data_sources: {value: {}},
           quality: {
             confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],

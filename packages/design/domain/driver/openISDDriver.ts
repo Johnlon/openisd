@@ -8,6 +8,7 @@ import { openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
+import { deviceWithoutImportSku } from '../project/withoutImportSku.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import { blankDeviceRecord } from './blankDeviceRecord.js';
 import { OpenISDDevice } from './openISDDevice.js';
@@ -50,7 +51,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
         const driver = asDriverDevice(conformed.json);
         if (driver === null) return [NOT_A_DRIVER];
-        return OpenISDDriverStandalone.wrap(driver, engine);
+        // A library driver saved from a WinISD import holds the model text as its short code; it opens with none (QO259).
+        return OpenISDDriverStandalone.wrap(deviceWithoutImportSku(driver), engine);
     }
 
     /** A driver stating nothing — what the editor opens on "create a new driver from scratch".

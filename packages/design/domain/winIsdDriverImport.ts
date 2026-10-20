@@ -254,7 +254,8 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
         manufacturer: {value: manufacturer},
         brand: {value: brand},
         model: {value: model},
-        sku: {value: model, grounds: [{origin: 'manual', reading: model}]},
+        // A WinISD file states no short code (QO259).
+        sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
         driver_type: {value: [...(wdr.driverTypes() ?? ['woofer'])]},
         data_sources: {value: {}},
         ...(providedBy ? {provided_by: providedBy} : {}),

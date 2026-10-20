@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 16cb35849ae9fe5921c45415debdf5abcc3afc78
 goal: Driver files whose data came from a distributor (data_sources keys distributor_datasheet, distributor_product_page, distributor_listing_page) load in OpenISD instead of being refused.
 done_test: bash scripts/test.sh packages/design/test/domain/data-sources-schema.test.ts
 files:

@@ -8,13 +8,13 @@ import {NumberField} from '../../fields/field.js';
 const scraped = <T,>(value: T) => ({value});
 const spec = (read_value: number) => ({state: 'E' as const, value: read_value, origin: 'scraped', readings: {scraped: {read_value}}});
 
-function project(): OpenISDProject {
+function project(sku = 'TEST-SKU'): OpenISDProject {
   const engine = createEngine();
   const record = {
     uuid: {value: '00000000-0000-4000-8000-000000000000'},
     manufacturer: scraped('Tang Band'), brand: scraped('Tang Band'), model: scraped('W5-1138SMF'),
     provided_by: scraped('test'), comment: scraped(''), added: scraped('2026-01-01'),
-    sku: {value: 'TEST-SKU', grounds: [{origin: 'manufacturer_datasheet', reading: 'TEST-SKU'}]},
+    sku: {value: sku, grounds: [{origin: 'manufacturer_datasheet', reading: sku}]},
     driver_type: scraped(['woofer']),
     data_sources: {value: {manufacturer_datasheet: 'https://example.invalid/ds.pdf'}},
     quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []},
@@ -55,5 +55,20 @@ describe('ProjectSummary — the Open project list\'s second line', () => {
     const rotation = {[NumberField.BOX_VB_L.value]: 'cuft'};
     expect(ProjectSummary.of(projectOf('vented', 0.012)).line(rotation)).toBe('Tang Band W5-1138SMF · Vented · 0.42 cu ft');
     expect(ProjectSummary.of(projectOf('bandpass4', 0.012, 0.008)).line(rotation)).toBe('Tang Band W5-1138SMF · 4th Order Bandpass · 0.42 + 0.28 cu ft');
+  });
+
+  describe('phoneLine: the driver short code, upper-cased, in place of brand and model', () => {
+    it('shows the sku upper-cased before box and volume', () => {
+      const p = project('e150he-44');
+      p.box.boxType.set('sealed');
+      p.box.volumeOf('sealed').set(0.0035);
+      expect(ProjectSummary.of(p).phoneLine(LITRES)).toBe('E150HE-44 · Closed · 3.5 L');
+    });
+    it('falls back to the model text when the sku is blank', () => {
+      const p = project('');
+      p.box.boxType.set('sealed');
+      p.box.volumeOf('sealed').set(0.0035);
+      expect(ProjectSummary.of(p).phoneLine(LITRES)).toBe('Tang Band W5-1138SMF · Closed · 3.5 L');
+    });
   });
 });

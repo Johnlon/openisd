@@ -160,7 +160,7 @@ function executeRowAction(action: ProjectRowAction): void {
               <span v-if="p.open.kind === 'open' && p.open.unsaved" class="project-tag project-tag-unsaved mob-project-dirty">{{ PROJECT_LIST_TEXT.UNSAVED_MARK }}</span>
               <span v-for="t in p.tags" :key="t.kind" class="project-tag" :class="`project-tag-${t.kind}`">{{ t.text }}</span>
             </div>
-            <div class="mob-project-summary">{{ p.summary }}</div>
+            <div class="mob-project-summary">{{ p.phoneSummary }}</div>
             <div class="mob-project-meta">
               <span>{{ p.edited }}</span>
               <template v-if="p.size"> · <span>{{ p.size }}</span></template>

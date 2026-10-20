@@ -175,7 +175,7 @@ test.describe('MobileMenu', () => {
     });
 
     // John, 2026-10-05: "can the Open project action show the driver name, and volume and type?"
-    test('each saved project shows its driver, box type and volume under its name', async ({ page }) => {
+    test('each saved project shows its driver short code, box type and volume under its name', async ({ page }) => {
       await setFocusedBoxType(page, 'vented');
       await setFocusedBoxVolume(page, 0.012);
       await tapMobileMenuItem(page, /^Save$/);
@@ -189,8 +189,8 @@ test.describe('MobileMenu', () => {
       await expect(rows).toHaveCount(2);
       await expect(rows.locator('.mob-project-name')).toHaveText(['Second', 'sample-project']);
       await expect(rows.locator('.mob-project-summary')).toHaveText([
-        'Tang Band W5-1138SMF · Closed · 20.0 L',
-        'Tang Band W5-1138SMF · Vented · 12.0 L',
+        'W5-1138SMF · Closed · 20.0 L',
+        'W5-1138SMF · Vented · 12.0 L',
       ]);
       // John, 2026-10-12: never US style; the one design formatter shows "5 Oct 2026, 23:32", whatever the browser locale.
       for (const modified of await rows.locator('.mob-project-meta').allTextContents()) {

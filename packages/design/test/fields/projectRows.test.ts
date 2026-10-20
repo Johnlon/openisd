@@ -24,6 +24,7 @@ function source(name: string, over: Partial<ProjectRowSource<string>> = {}): Pro
     name,
     driver: 'Tang Band W5-1138SMF',
     summary: 'Tang Band W5-1138SMF · Vented · 12.0 L',
+    phoneSummary: 'W5-1138SMF · Vented · 12.0 L',
     saved: {modifiedMs: DAY_MS, bytes: 22_000, readable: true},
     open: CLOSED,
     sync: 'off',
