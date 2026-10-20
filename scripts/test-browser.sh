@@ -27,7 +27,30 @@ if [ -z "${OPENISD_IN_OWN_GROUP:-}" ]; then
   # housekeeper stops it when that owner is gone (scripts/browser-runs.sh). post-land/run.sh sets its own.
   [ -n "${OPENISD_BROWSER_OWNER:-}" ] \
     || export OPENISD_BROWSER_OWNER="$PPID $(awk '{print $22}' "/proc/$PPID/stat" 2> /dev/null)"
-  exec setsid --fork --wait bash "$0" "$@"
+  # The run starts in a new session as a background child (setsid execs in place, so $! is the
+  # session and group leader). Any exit or TERM/INT/HUP of this wrapper stops that whole group:
+  # TERM, a short grace, KILL, then reap. A bare `exec setsid --wait` forwarded nothing, so a
+  # killed wrapper left playwright, vite and chrome running.
+  setsid bash "$0" "$@" &
+  RUN_LEADER=$!
+  stop_run() {
+    trap '' TERM INT HUP
+    if kill -0 -- "-$RUN_LEADER" 2>/dev/null; then
+      kill -TERM -- "-$RUN_LEADER" 2>/dev/null
+      sleep 1
+      kill -KILL -- "-$RUN_LEADER" 2>/dev/null
+    fi
+    wait "$RUN_LEADER" 2>/dev/null
+  }
+  trap 'stop_run; exit 143' TERM
+  trap 'stop_run; exit 130' INT
+  trap 'stop_run; exit 129' HUP
+  trap 'stop_run' EXIT
+  wait "$RUN_LEADER"
+  RUN_STATUS=$?
+  trap - EXIT
+  stop_run
+  exit "$RUN_STATUS"
 fi
 
 # shellcheck source=./test-concurrency.sh

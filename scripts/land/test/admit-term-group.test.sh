@@ -10,12 +10,14 @@ trap 'rm -rf "$SCRATCH"' EXIT
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
-group_size() { ps -eo pgid= | awk -v g="$1" '$1==g' | wc -l; }
+# admit.sh runs the job in its own group (T488), whose leader pid job.sh writes to $SCRATCH/jobpg: count both groups.
+group_size() { ps -eo pgid= | awk -v g="$1" -v j="$(cat "$SCRATCH/jobpg" 2>/dev/null)" '$1==g || $1==j' | wc -l; }
 
 # A job shaped like the post-land suite: a shell that starts a background job and waits on it, as
 # `npx vitest run || unit=$?` does, with a descendant that takes a second to handle TERM.
 cat > "$SCRATCH/job.sh" <<'JOB'
 #!/usr/bin/env bash
+echo $$ > "$(dirname "$0")/jobpg"
 bash -c 'trap "sleep 1; exit 0" TERM; while :; do sleep 1; done' &
 inner=$!
 wait "$inner"

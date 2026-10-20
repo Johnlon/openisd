@@ -76,15 +76,17 @@ esac
 # stopped. (A quiet typecheck on a busy machine prints nothing for minutes but burns CPU; a run
 # waiting for a lane prints one line and then sleeps. Neither is stuck.)
 IDLE_LIMIT_S="${OPENISD_IDLE_LIMIT_S:-180}"
-# CPU time (clock ticks) used so far by the process and everything under it.
+# CPU time (clock ticks) used so far by the process and everything under it: one read of /proc and
+# one awk per poll (cat tolerates processes that vanish mid-read).
 tree_cpu_ticks() {
-  local pid="$1" child total=0 fields
-  if fields=$(cut -d')' -f2- "/proc/$pid/stat" 2>/dev/null); then
-    set -- $fields
-    total=$(( ${12:-0} + ${13:-0} ))
-  fi
-  for child in $(pgrep -P "$pid"); do total=$(( total + $(tree_cpu_ticks "$child") )); done
-  echo "$total"
+  cat /proc/[0-9]*/stat 2>/dev/null | awk -v root="$1" '
+    { pid = $1; r = $0; sub(/^.*\) /, "", r); n = split(r, f, " ")
+      if (n < 13) next
+      ppid[pid] = f[2]; ticks[pid] = f[12] + f[13] }
+    END { total = 0
+      for (p in ticks) { q = p; d = 0
+        while (q != "" && q != 0 && d++ < 200) { if (q == root) { total += ticks[p]; break } q = ppid[q] } }
+      print total }'
 }
 node_descendants() {
   local parent="$1" child
@@ -110,6 +112,10 @@ RUN_PID=$!
 kill_session() { pkill "-$1" -s "$RUN_PID" 2>/dev/null; }
 trap 'kill_session TERM' EXIT
 trap 'exit 143' INT TERM HUP
+case " $* " in
+  *" lint"*|*" typecheck"*|*" tsc "*|*" vue-tsc "*|*"/tsc "*|*"/vue-tsc "*|*" eslint "*|*"/eslint "*) IDLE_KILL=0 ;;
+  *) IDLE_KILL=1 ;;
+esac
 LAST_SIZE=-1
 LAST_CPU=-1
 IDLE_S=0
@@ -130,7 +136,8 @@ while kill -0 "$RUN_PID" 2>/dev/null; do
     if [ "$IDLE_S" -gt 0 ]; then echo "quiet-test: IDLE for $IDLE_S s (stalls at $IDLE_LIMIT_S s)" >&2
     else echo "quiet-test: working, elapsed $(progress_duration $((SECONDS - STARTED))), idle 0 s, log $((SIZE / 1024)) KB" >&2; fi
   fi
-  if [ "$IDLE_S" -ge "$IDLE_LIMIT_S" ]; then
+  # Lint and typecheck are deterministic tools: they never get an idle kill, however long they wait.
+  if [ "$IDLE_S" -ge "$IDLE_LIMIT_S" ] && [ "$IDLE_KILL" = 1 ]; then
     STALLED=1
     for NODE_PID in $( [ "$(ps -o comm= -p "$RUN_PID")" = "node" ] && echo "$RUN_PID"; node_descendants "$RUN_PID"); do kill -USR2 "$NODE_PID" 2>/dev/null; done
     sleep 3

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 6ce5b6b123d1f5fb2c8b8e0d9f479b138eb4e54f
 goal: kill-http.sh succeeds when only a leftover client socket is on the port (no listener): the T489 'still occupied after 10 attempts' case maryu reported, pinned by a test.
 done_test: bash scripts/land/test/services-load.test.sh
 files:
