@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 04611f43d0f26f663e1600e017b987393c7f9df4
 goal: Desktop ABC Box tab: rear and front chamber labels say the same thing the same way (Volume / Tuning freq (Frc) and Tuning freq (Ffc)); WinISD names both chambers' boxes Volume and Tuning freq.
 done_test: bash scripts/test.sh packages/design/test/fields/abc-chamber-labels.test.ts
 files:

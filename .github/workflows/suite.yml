@@ -116,6 +116,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Pillow for the feedback-page tools
+        run: python3 -m pip install pillow==10.4.0
       - name: shell tests
         run: bash scripts/test-shell.sh
 

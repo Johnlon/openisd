@@ -44,7 +44,7 @@ bash scripts/visual/publish-changes.sh T1 "$base" "$head" > out.txt 2>&1
 page="$VISUAL_PAGES_DIR/T1-$(git rev-parse --short=10 "$head")"
 grep -q "visual changes: http://example.test/pages/T1-.*/index.html" out.txt && [ -s "$page/index.html" ] && ok "a landed change publishes its page and prints the link" || fail "no page: $(cat out.txt)"
 [ "$(cat "$page/mobile-a.before.png" | tail -c3)" = one ] && [ "$(tail -c3 "$page/mobile-a.after.png")" = two ] && ok "the page holds the picture before and after" || fail "wrong pictures on the page"
-grep -q "mobile-c" "$page/index.html" && [ ! -e "$page/mobile-c.before.png" ] && [ -e "$page/mobile-c.after.png" ] && ok "a new screen shows no before" || fail "new screen wrong"
+grep -q "mobile-c" "$page/index.md" && [ ! -e "$page/mobile-c.before.png" ] && [ -e "$page/mobile-c.after.png" ] && ok "a new screen shows no before" || fail "new screen wrong"
 [ -e "$page/desktop-b.before.png" ] && [ ! -e "$page/desktop-b.after.png" ] && ok "a removed screen shows no after" || fail "removed screen wrong"
 bash scripts/visual/publish-changes.sh T1 "$head" "$head" > out.txt 2>&1; [ ! -s out.txt ] && ok "no change publishes nothing" || fail "published for no change"
 
