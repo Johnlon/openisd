@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 282ef259f1b55072377cfa1bf0a4717a5965360f
 goal: Service scripts cannot overload the box: kill-http kills only the port listener, start-http never touches the :4000 preview and runs no suites, its server is group-owned, watchdog and housekeeping are bounded and cheap, heavy runs go in heavy.slice (load audit 20 Oct, 13 rows).
 done_test: bash scripts/land/test/services-load.test.sh && bash scripts/land/test/housekeeping.test.sh && bash scripts/land/test/watchdog.test.sh && bash scripts/land/test/tidy-branches.e2e.test.sh
 files:
