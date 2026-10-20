@@ -1,0 +1,12 @@
+id: T498
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: A task branch that merges cleanly with origin/main lands even when replaying its commits one by one would conflict: land.sh puts the task onto origin/main as one commit with the merged tree.
+done_test: bash scripts/land/test/land-clean-merge.e2e.test.sh && bash scripts/land/test/land-squash.test.sh
+files:
+  - tasks/T498.yml
+  - bugs/BUG_20261020_land-rebase-replays-clean-merge.md
+  - scripts/land.sh
+  - scripts/land/test/land-clean-merge.e2e.test.sh
