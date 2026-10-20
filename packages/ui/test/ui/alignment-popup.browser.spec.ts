@@ -84,12 +84,13 @@ test.describe('Alignment popup', () => {
     await expect(fscInput).not.toHaveValue('');
     const qtc = parseFloat(await qtcInput.inputValue());
     const fsc = parseFloat(await fscInput.inputValue());
-    // The picked Qtc is the box's entered Qtc, so the Box tab shows exactly it (BUG_20261016_sealed-alignment-
-    // picker-qtc-disagrees-with-box-tab-qtc). The volume is worked out against the SOURCE-LOADED Qts (the
-    // default Rg 0.1 Ω over Re 3.4 Ω lifts Qes 0.4254 → 0.4379, Qts_loaded 0.390): Fsc = 37 Hz · 0.707 / 0.390
-    // = 67.0 Hz, and the residual losses at Ql = Qa = 1000 add a tenth of a hertz.
-    expect(qtc).toBeCloseTo(0.707, 3);
-    await expect(qtcInput).toHaveClass(/value-e/);
+    // The pick stores its volume as the box's entered volume (T495, John 20 Oct 2026 "keep the vol"), so the
+    // Box tab shows Qtc calculated from it: the picked 0.707 to the volume field's 2dp rounding. The volume
+    // is worked out against the SOURCE-LOADED Qts (Rg 0.1 over Re 3.4 lifts Qts to 0.390): Fsc = 37 Hz * 0.707 /
+    // 0.390 = 67.0 Hz, and the residual losses at Ql = Qa = 1000 add a tenth of a hertz.
+    expect(qtc).toBeCloseTo(0.707, 2);
+    await expect(page.locator('#og-box-volume')).toHaveClass(/value-e/);
+    await expect(qtcInput).not.toHaveClass(/value-e/);
     expect(fsc).toBeGreaterThan(67.0);
     expect(fsc).toBeLessThan(67.3);
   });

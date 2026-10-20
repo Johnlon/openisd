@@ -35,9 +35,6 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
   readonly ebpSuitabilityLabel: ComputedRef<string>;
   readonly deviationShown: ComputedRef<boolean>;
 
-  /** The target the draft volume was worked out from, while the draft is still that volume. */
-  #picked: {qtc: number; volume_m3: number} | null = null;
-
   readonly #driverValues: ComputedRef<{Qts: number | null; Vas_m3: number | null; Fs_hz: number | null; Qes: number | null}>;
 
   constructor(
@@ -87,7 +84,6 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
   }
 
   openEditor(): void {
-    this.#picked = null;
     this.volume_m3.value = this.project.value.box.sealed.volume_m3.value;
     this.open.value = true;
   }
@@ -97,25 +93,17 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
     const winisdPicker = p.winisdSealedPicker.value;
     const volume = p.driver.sealedPickerVolume(targetQtc, p.Rs_ohm.value, this.#losses(), winisdPicker);
     this.volume_m3.value = volume;
-    // WinISD's picker volume is not the volume the Box tab works out from the Qtc, so the box keeps it as a typed volume.
-    this.#picked = volume === null || winisdPicker ? null : {qtc: targetQtc, volume_m3: volume};
   }
 
-  /** A picked target is kept as the box's entered Qtc, with the volume calculated from it; a volume typed
-   *  after the pick is kept as the entered volume instead (John, 16 Oct 2026). */
+  /** The accepted volume is kept as the box's entered volume, picked or typed: Qtc is then calculated, and a
+   *  driver edit leaves the volume alone, as in WinISD (John, 20 Oct 2026, QO274 "keep the vol"). */
   accept(): void {
     const v = this.volume_m3.value;
-    const sealed = this.project.value.box.sealed;
-    if (v != null && v > 0) {
-      if (this.#picked !== null && this.#picked.volume_m3 === v) sealed.q_tc.set(this.#picked.qtc);
-      else sealed.volume_m3.set(v);
-    }
-    this.#picked = null;
+    if (v != null && v > 0) this.project.value.box.sealed.volume_m3.set(v);
     this.open.value = false;
   }
 
   cancel(): void {
-    this.#picked = null;
     this.open.value = false;
     this.volume_m3.value = null;
   }

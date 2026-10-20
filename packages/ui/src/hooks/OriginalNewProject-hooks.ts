@@ -213,9 +213,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   }, { flush: 'sync' });
   const targetQtc = ref(0.707);
   const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
-  /** The sealed volume on show was worked out from the target Qtc, not typed: the project then keeps the
-   *  target as its entered value and calculates the volume from it. */
-  const sealedVolumeFromTarget = ref(false);
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
 
   const projName = ref('');
@@ -307,8 +304,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
     if (calculated_m3 != null) {
       sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
-      // WinISD's picker volume is not the volume the new project works out from the Qtc, so the project is built with it as a typed volume.
-      sealedVolumeFromTarget.value = !winisdPicker;
     }
   }
 
@@ -328,7 +323,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
 
   function setSealedVolume_m3(v: number): void {
     sealedVolume_m3.value = v;
-    sealedVolumeFromTarget.value = false;
   }
 
   /** A volume or tuning typed over the alignment's; null while the alignment's own is on show. */
@@ -459,7 +453,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     // disagree.
     const p = createProjectInStore(selectedDriver.value, (b) => {
       switch (boxType.value) {
-        case 'sealed': return sealedVolumeFromTarget.value ? b.sealed().qtc(targetQtc.value) : b.sealed().volume_m3(sealedVolume_m3.value);
+        case 'sealed': return b.sealed().volume_m3(sealedVolume_m3.value);
         case 'vented': return ventedVolumeTyped_m3.value === null && ventedTuningTyped_hz.value === null
           ? b.vented().alignment(selectedVentedAlignment.value)
           : b.vented().volume_m3(ventedVolume_m3.value).tuning_goal_hz(ventedTuning_hz.value);

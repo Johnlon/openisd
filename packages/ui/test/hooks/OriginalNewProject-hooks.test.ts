@@ -322,7 +322,7 @@ describe('useOgNewProject', () => {
     expect(wizard.sealedVolume_m3.value).not.toBe(raw);
   });
 
-  it('a picked Qtc becomes the new project\'s entered Qtc, with the volume calculated from it', () => {
+  it('a picked Qtc becomes the new project\'s entered volume, with Qtc calculated', () => {
     const engine = createEngine();
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });
     wizard.selectDriver(createTestDriver(engine, { Qts: 0.38, Vas_m3: 0.03 }));
@@ -330,9 +330,9 @@ describe('useOgNewProject', () => {
     wizard.selectSealedAlignment(0.8);
 
     const sealed = wizard.createProject()?.box.sealed;
-    expect(sealed?.q_tc.entered).toBe(true);
-    expect(sealed?.q_tc.value).toBe(0.8);
-    expect(sealed?.volume_m3.entered).toBe(false);
+    expect(sealed?.volume_m3.entered).toBe(true);
+    expect(sealed?.volume_m3.value).toBeCloseTo(wizard.sealedVolume_m3.value, 9);
+    expect(sealed?.q_tc.entered).toBe(false);
   });
 
   it('a volume typed after the pick is the project\'s entered volume, with Qtc calculated', () => {

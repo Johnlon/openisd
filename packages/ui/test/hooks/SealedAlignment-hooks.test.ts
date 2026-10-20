@@ -43,20 +43,24 @@ describe('SealedAlignmentEditor', () => {
     expect(project.box.sealed.volume_m3.value).toBeCloseTo(0.012, 9);
   });
 
-  it('accepting a picked Qtc keeps it as the box\'s entered Qtc: the Box tab then shows it, with the volume calculated', () => {
+  it('accepting a picked Qtc keeps the volume as the box\'s entered volume; Qtc is calculated and the volume stays when the driver changes', () => {
     const {engine, project} = completeProject();
     const projectRef = shallowRef(project);
     const editor = new SealedAlignmentEditor(computed(() => projectRef.value), ref(0), engine.sealed, engine.driver);
 
     editor.openEditor();
     editor.selectQtc(0.707);
-    expect(editor.qtc.value).toBeCloseTo(0.707, 6);
     editor.accept();
 
-    expect(project.box.sealed.q_tc.entered).toBe(true);
-    expect(project.box.sealed.q_tc.value).toBe(0.707);
-    expect(project.box.sealed.volume_m3.entered).toBe(false);
-    expect(project.box.sealed.volume_m3.value).toBeCloseTo(editor.volume_m3.value ?? NaN, 9);
+    const vb = editor.volume_m3.value ?? NaN;
+    expect(project.box.sealed.volume_m3.entered).toBe(true);
+    expect(project.box.sealed.volume_m3.value).toBeCloseTo(vb, 9);
+    expect(project.box.sealed.q_tc.entered).toBe(false);
+    const qtcBefore = project.box.sealed.q_tc.value;
+
+    project.driver.specs.Qts.set(0.5);
+    expect(project.box.sealed.volume_m3.value).toBeCloseTo(vb, 9);
+    expect(project.box.sealed.q_tc.value).not.toBeCloseTo(qtcBefore ?? NaN, 3);
   });
 
   it('a volume typed after the pick is kept as the entered volume instead', () => {
