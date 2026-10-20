@@ -26,6 +26,7 @@ a { color:inherit; }
 .note { font-size:14px; color:var(--muted); }
 .look { font-size:15px; margin:4px 0 8px; padding:6px 8px; border-left:4px solid #1d5fd0; background:var(--card); }
 .look.missing { border-color:#c62828; color:#c62828; }
+.look .ask { display:block; margin:4px 0 0; }
 .todo { font-size:16px; color:var(--fg); background:var(--card); border:2px solid #1d5fd0; border-radius:8px; padding:10px; margin:0 0 12px; }
 .live { display:inline-block; margin:6px 0 0; padding:10px 14px; border-radius:6px; background:#1d5fd0; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
 .permalink { float:right; font-size:13px; line-height:1; color:var(--muted); text-decoration:none; padding:2px 4px; }
@@ -99,7 +100,9 @@ function lookFor(cell, group) {
   return parts.length === 1 || !group ? (cell || '').trim() : '';
 }
 function lookLine(text) {
-  return text ? `<p class="look"><b>Look at:</b> ${esc(text)}</p>`
+  // A second line, written after ' ¶ ' in the cell, is its own line in the same block.
+  const [first, ...more] = (text || '').split(' ¶ ');
+  return text ? `<p class="look"><b>Look at:</b> ${esc(first)}${more.map((m) => `<span class="ask">${esc(m)}</span>`).join('')}</p>`
     : '<p class="look missing"><b>Look at:</b> not written yet. Tell us in the box what is unclear.</p>';
 }
 

@@ -13,7 +13,7 @@ const page_html = readFileSync(process.argv[2], 'utf8');
 const md = `<table><thead><tr><th>Fix</th><th>Task</th><th>State</th><th>Pictures</th><th>Look at</th></tr></thead><tbody>
 <tr><td>Ruled fix</td><td>T1</td><td>landed</td><td><a href="a/before.png">before</a> · <a href="a/after.png">after</a></td><td>x</td></tr>
 <tr><td>Triple fix</td><td>T3</td><td>landed</td><td><a href="c/before.png">before</a> · <a href="c/after.png">after</a> · <a href="c/side-by-side.png">before and after</a></td><td>z</td></tr>
-<tr><td>Open fix</td><td>T2</td><td>landed</td><td><a href="b/before.png">before</a> · <a href="b/after.png">after</a></td><td>y</td></tr>
+<tr><td>Open fix</td><td>T2</td><td>landed</td><td><a href="b/before.png">before</a> · <a href="b/after.png">after</a></td><td>y ¶ Type here if it is wrong.</td></tr>
 <tr><td>Live fix</td><td>T4</td><td>landed</td><td>phone: <a href="d/before.png">before</a> <a href="d/after.png">after</a> <a href="mock-a.html?look=fb-handle">live</a></td><td>phone: the handle</td></tr>
 <tr><td>Lone fix</td><td>T6</td><td>landed</td><td><a href="e/shot.png">screenshot</a></td><td>the shot</td></tr>
 <tr><td>Live only</td><td>T5</td><td>landed</td><td><a href="mock-b.html?tab=vented&look=x">live</a></td><td>the vented tab</td></tr>
@@ -81,6 +81,9 @@ try {
   if (await p.$('figure[data-name="F/c/before.png"], figure[data-name="F/c/after.png"]')) failures.push('before/after shown beside the side-by-side');
   if ((await p.$$('figure[data-name="F/c/side-by-side.png"] img')).length !== 1) failures.push('side-by-side item should hold one picture');
   if ((await p.$$('figure[data-name="F/e/shot.png"] img')).length !== 1) failures.push('lone picture should be one item with one picture');
+  // A second Look-at line (after ' ¶ ' in the cell) is its own line in the one look block, never a raw ¶.
+  const look2 = await p.$eval('figure[data-name="F/b/before.png"] .look', (l) => [l.textContent, [...l.querySelectorAll('.ask')].map((a) => a.textContent), getComputedStyle(l.querySelector('.ask') ?? l).display]);
+  if (look2[0].includes('¶') || JSON.stringify(look2[1]) !== '["Type here if it is wrong."]' || look2[2] !== 'block') failures.push(`second look line: ${JSON.stringify(look2)}`);
   // The pair thread shows comments made on the after path too.
   const said = await p.$$eval('figure[data-name="F/b/before.png"] .c', (ds) => ds.map((d) => d.querySelector('.txt').textContent));
   if (said.length !== 3 || !said.some((t) => /too narrow/.test(t))) failures.push(`pair thread should hold both paths' comments: ${JSON.stringify(said)}`);

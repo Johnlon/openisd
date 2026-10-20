@@ -1,0 +1,11 @@
+id: T517
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Pictures page shows a second Look-at line (written after ' || ' in the Look at cell) as its own line, never the raw ||
+done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T517.yml
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_ruled_test.mjs

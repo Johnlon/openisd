@@ -3,6 +3,7 @@ release_note: "Phone: rows, bands and tabs follow the classic design."
 repo: openisd
 owner: worker-B1
 status: done
+landed: 4fbdb046da4b40d95eb1d1e5a10d48ce81770490
 goal: "Phone classic build B1-B4 so far: classic row sizes and measuring spec, shared frame (key strip, tab bar, band), Box, Driver and Signal pages on the classic rows. Merged as it stands on John's word (20 Oct) before the build resumes."
 done_test: bash scripts/test.sh packages/design/test/fields/phoneRowSizes.test.ts
 visual:
