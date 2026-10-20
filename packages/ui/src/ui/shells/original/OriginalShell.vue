@@ -1322,7 +1322,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
 .box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
-/* A long label ("Target Tuning Freq (Ffc)") wraps in the narrow chamber columns; it is never cut by an ellipsis. */
+/* A long label ("Tuning freq (Fb)") wraps in the narrow chamber columns; it is never cut by an ellipsis. */
+.box-fields-col :deep(.ui-field) { align-items:center; }
 .box-fields-col .field :deep(.ui-field-label) { white-space:normal; overflow:visible; text-overflow:clip; line-height:13px; }
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type

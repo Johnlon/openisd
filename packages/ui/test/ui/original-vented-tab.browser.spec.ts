@@ -97,7 +97,7 @@ test.describe('Original Vented tab', () => {
   test.describe('target tuning', () => {
     test('the vented box calls Fb the TARGET, and says what it drives', async ({ appPage: page }) => {
       const field = page.locator('#og-fb-target-field');
-      await expect(field.locator('label')).toHaveText('Target Tuning Freq (Fb)');
+      await expect(field.locator('label')).toHaveText('Tuning freq (Fb)');
       await expect(field).toHaveAttribute('title', /port dimension/i);
     });
 
@@ -130,7 +130,7 @@ test.describe('Original Vented tab', () => {
     // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
     // entered, and the tuning shows what that length gives, calculated. The box volume is never
     // overwritten, and nothing goes blank (the 2026-10-01 blank-pair bug stays fixed).
-    test('clearing Target Tuning Freq keeps the vent length and the volume; the tuning is calculated', async ({ appPage: page }) => {
+    test('clearing Tuning freq keeps the vent length and the volume; the tuning is calculated', async ({ appPage: page }) => {
       const pageOps = new PageOps(page);
       await pageOps.setNum('#og-fb-target', '40');
       await expect(page.locator('#og-fb-target')).toHaveValue('40.00');
@@ -197,7 +197,7 @@ test.describe('Original Vented tab', () => {
 
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const ventField = page.locator('#og-vent-fb-target-field');
-      await expect(ventField.locator('label')).toHaveText('Target Tuning Freq (Fb)');
+      await expect(ventField.locator('label')).toHaveText('Tuning freq (Fb)');
       await expect(page.locator('#og-vent-fb-target')).toHaveValue('42.00');
 
       // Vents → Box: editing here must move the Box tab's field AND re-solve the vent length.

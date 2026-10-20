@@ -39,8 +39,8 @@ test.describe('MobileVentedTab', () => {
   // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
   // entered; the tuning shows what that length gives. The volume is never overwritten and nothing
   // goes blank. Mirrors the desktop spec in original-vented-tab.browser.spec.ts.
-  test('clearing Target Tuning Freq keeps the vent length; the tuning is calculated', async ({ appPage: page }) => {
-    const fbInput = mobileFieldRow(page, 'Target Tuning Freq').locator('input');
+  test('clearing Tuning freq keeps the vent length; the tuning is calculated', async ({ appPage: page }) => {
+    const fbInput = mobileFieldRow(page, 'Tuning freq').locator('input');
     await fbInput.fill('40');
     await fbInput.blur();
     await expect(fbInput).toHaveValue(/40/);

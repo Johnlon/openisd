@@ -27,15 +27,15 @@ function volumeInput(page: Page) {
 
 test.describe('MobileBoxTab', () => {
   // John, 2026-10-06: "does it line up on the screen". A UIField row (Volume) and an older row
-  // (Target tuning) put the box, ▲▼ and unit at the same x.
-  test('the Volume row lines up with the Target tuning row below it', async ({ appPage: page }) => {
+  // (Tuning freq) put the box, ▲▼ and unit at the same x.
+  test('the Volume row lines up with the Tuning freq row below it', async ({ appPage: page }) => {
     const edges = async (label: string) => {
       const row = page.locator('.mob-ui-field, .mob-field-row').filter({ hasText: label }).first();
       const box = async (sel: string) => (await row.locator(sel).first().boundingBox()) ?? { x: NaN, width: NaN };
       const input = await box('input'), up = await box('button:has-text("▲")'), unit = await box('.ui-field-unit, .mob-unit');
       return [input.x, input.x + input.width, up.x, unit.x].map(Math.round);
     };
-    expect(await edges('Volume')).toEqual(await edges('Target tuning'));
+    expect(await edges('Volume')).toEqual(await edges('Tuning freq'));
   });
 
   // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
@@ -79,7 +79,7 @@ test.describe('MobileBoxTab', () => {
   // enterable front-chamber tuning on the Box tab, the 4th-order bandpass included.
   test('a 4th-order bandpass Box tab takes the front chamber tuning', async ({ appPage: page }) => {
     await setFocusedBoxType(page, 'bandpass4');
-    const tuning = mobileFieldRow(page, 'Target Tuning Freq (Ffc)').locator('input').first();
+    const tuning = mobileFieldRow(page, 'Tuning freq (Ffc)').locator('input').first();
     await expect(tuning).toBeEditable();
     await tuning.fill('42');
     await tuning.blur();
@@ -136,7 +136,7 @@ test.describe('MobileBoxTab', () => {
       await page.locator('#mob-box-type').selectOption('vented');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
       await page.locator('.mob-tab', { hasText: 'Vented' }).click();
-      const targetTuning = mobileFieldRow(page, 'Target Tuning Freq').locator('input');
+      const targetTuning = mobileFieldRow(page, 'Tuning freq').locator('input');
       await expect(targetTuning).not.toHaveValue('');
       await expect(targetTuning).not.toHaveValue('0.00');
       await expect(mobileFieldRow(page, 'Vent diameter').locator('input')).not.toHaveValue('0.00');

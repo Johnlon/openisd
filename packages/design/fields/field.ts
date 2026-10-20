@@ -320,7 +320,7 @@ export class NumberField extends Field {
   });
   static readonly BOX_VF_L = new NumberField({
     value: "box_Vf_l",
-    label: "Front volume",
+    label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
     limits: {min: 0.0001, max: 100},
     precision: 2,
@@ -328,22 +328,22 @@ export class NumberField extends Field {
   });
   static readonly BOX_FB_HZ = new NumberField({
     value: "box_Fb_hz",
-    label: "Target Tuning Freq (Fb)",
+    label: "Tuning freq (Fb)",
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume.",
+    description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume. The tuning is a goal; the box may not reach it.",
   });
 
   static readonly BOX_FFC_HZ = new NumberField({
     value: "box_Ffc_hz",
-    label: "Target Tuning Freq (Ffc)",
+    label: "Tuning freq (Ffc)",
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume.",
+    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume. The tuning is a goal; the box may not reach it.",
   });
 
   // ── Vent ──────────────────────────────────────────────────────────────────────────────────
@@ -1150,7 +1150,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     precision: 2,
-    description: "Rear Chamber Tuning Frequency (Frc)\nTarget Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box.",
+    description: "Rear Chamber Tuning Frequency (Frc)\nTarget Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box. The tuning is a goal; the box may not reach it.",
   });
 
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
