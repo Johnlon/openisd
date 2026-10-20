@@ -554,6 +554,10 @@ export const openISDDeviceJsonSchema = z.strictObject({
         manufacturer_datasheet: z.string().optional(),
         manufacturer_product_page: z.string().optional(),
         manufacturer_listing_page: z.string().optional(),
+        // Backup sources when the maker publishes no datasheet (QO282, John 2026-10-19).
+        distributor_datasheet: z.string().optional(),
+        distributor_product_page: z.string().optional(),
+        distributor_listing_page: z.string().optional(),
     })),
     // Retired (John, 2026-10-04): the app picks a reading's origin itself (selectOrigin.ts). Older
     // records still carry it, so it parses; nothing reads it and OpenISD never writes it.

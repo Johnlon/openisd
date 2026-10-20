@@ -112,6 +112,9 @@ class RootDataSourcesValue(Strict):
     manufacturer_datasheet: str = None
     manufacturer_product_page: str = None
     manufacturer_listing_page: str = None
+    distributor_datasheet: str = None
+    distributor_product_page: str = None
+    distributor_listing_page: str = None
 
 class RootDataSources(Strict):
     value: RootDataSourcesValue
