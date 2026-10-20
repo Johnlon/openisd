@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: efa231f5cf1a1f26cff45c3c6f9228ec127f90e4
 goal: land-candidate e2e: the stopped-landing case leaves a 1 s sleep of ts-log behind about half the time
 done_test: bash scripts/test.sh scripts/land/test/land-candidate.e2e.test.sh
 files:
