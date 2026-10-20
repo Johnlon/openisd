@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # T328, T476, processes.md rule 7: scripts/land/sync-main-folder.sh end to end in a scratch repo with real git: a
-# main folder (clone), a preview copy (detached worktree), stray edits, a stray edit to a file that landed
+# main folder (clone), a preview copy (detached worktree), stray edits (tracked; untracked files are left alone, T485), a stray edit to a file that landed
 # differently, the folder's own commits, and npm ci only on a lockfile change (a fake npm on PATH that records
 # its calls). Stray work goes to a stray/ branch; main only fast-forwards; exit 0.
 set -uo pipefail
@@ -68,22 +68,20 @@ bash "$SYNC" "$SCRATCH/w/main" > /dev/null 2>&1
 if [ "$(head_of main)" = "$passed" ]; then ok "only the last passed commit is pulled, never an unpassed tip"
 else fail "unpassed tip pulled"; fi
 
-# 3. a stray modified file and a stray untracked file whose content is already on main: kept on a stray/ branch,
-#    the folder equals main, ignored files untouched, exit 0
-setup; land questions.yml q2; cp dev/questions.yml main/questions.yml; mkdir -p main/new; printf 'n\n' > main/new/f.txt
-cp main/new/f.txt dev/f.txt 2> /dev/null; mkdir -p dev/new; cp main/new/f.txt dev/new/f.txt
-git -C dev add -A; git -C dev commit -qm "same content"; git -C dev push -q origin main; head_of dev > "$POST_LAND_LOCK.green"
+# 3. a stray modified tracked file whose content is already on main: kept on a stray/ branch, the folder equals
+#    main, ignored files untouched, exit 0
+setup; land questions.yml q2; cp dev/questions.yml main/questions.yml
 bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
 if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -z "$(dirty main)" ] && [ -f main/node_modules/x ] \
    && [ "$(git -C main branch --list 'stray/*' | wc -l)" = 1 ]; then
   ok "stray edits already on main: kept on a stray branch; the folder equals main; ignored files kept"
 else fail "already on main (r=$r dirty=$(dirty main)): $(tail -3 "$SCRATCH/out")"; fi
 
-# 4. a stray edit not on main: exit 0, main == target, the edit is on the stray branch, main's own history untouched
-setup; land a.txt b; printf 'mine\n' > main/extra.txt; before=$(head_of main)
+# 4. a stray tracked edit not on main: exit 0, main == target, the edit is on the stray branch, main's own history untouched
+setup; land a.txt b; printf 'mine\n' >> main/questions.yml; before=$(head_of main)
 bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
 sb=$(git -C main branch --list 'stray/*' --format='%(refname:short)' | head -1)
-if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -n "$sb" ] && [ "$(git -C main show "$sb:extra.txt")" = mine ] \
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -n "$sb" ] && git -C main show "$sb:questions.yml" | grep -q mine \
    && [ "$(git -C main rev-parse "$sb~1")" = "$before" ] && [ -z "$(dirty main)" ] && grep -q "STRAY main folder: kept on branch $sb" "$SYNC_LOG"; then
   ok "an edit not on main: on a stray branch made from HEAD, main fast-forwarded, logged, exit 0"
 else fail "own edit (r=$r sb=$sb): $(tail -3 "$SCRATCH/out")"; fi
@@ -118,7 +116,7 @@ else fail "--passed (r=$r)"; fi
 
 # 8. a post-commit hook that dirties a tracked file after the stray commit cannot stick the sync (the commit runs
 #    with hooks off): exit 0, main == target, clean
-setup; land a.txt b; echo stray > main/stray.txt
+setup; land a.txt b; echo stray >> main/questions.yml
 printf '#!/bin/sh\necho again >> questions.yml\n' > "$(git -C main rev-parse --absolute-git-dir)/hooks/post-commit"
 chmod +x "$(git -C main rev-parse --absolute-git-dir)/hooks/post-commit"
 bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
@@ -152,6 +150,41 @@ setup; touch "$SCRATCH/unit.exists" "$SCRATCH/restart.fails"; land a.txt b
 bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
 if [ $r = 1 ] && grep -q "preview restart FAILED" "$SCRATCH/out"; then ok "a failed preview restart is logged loudly and exits 1"
 else fail "restart failure (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+
+# 10. untracked files are John's (T485): left on disk with the same content, on no stray branch; with nothing else
+#     dirty no stray branch is made at all; the copies still move. In the main folder and in the preview copy.
+setup; land a.txt b; printf 'ps listing\n' > main/lll1; printf 'pv\n' > preview/lll2
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ "$(head_of preview)" = "$(head_of dev)" ] \
+   && [ "$(cat main/lll1 2> /dev/null)" = "ps listing" ] && [ "$(cat preview/lll2 2> /dev/null)" = pv ] \
+   && [ -z "$(git -C main branch --list 'stray/*')" ] && ! grep -q STRAY "$SYNC_LOG"; then
+  ok "untracked files in the main folder and the preview survive a sync; no stray branch is made"
+else fail "untracked left alone (r=$r branches=$(git -C main branch --list 'stray/*')): $(tail -3 "$SCRATCH/out")"; fi
+
+# 10b. an untracked file beside a tracked edit: the edit goes to the stray branch, the untracked file stays on
+#      disk and is on no branch
+setup; land a.txt b; printf 'ps listing\n' > main/lll1; printf 'mine\n' >> main/questions.yml
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+sb=$(git -C main branch --list 'stray/*' --format='%(refname:short)' | head -1)
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -n "$sb" ] && git -C main show "$sb:questions.yml" | grep -q mine \
+   && ! git -C main cat-file -e "$sb:lll1" 2> /dev/null && [ "$(cat main/lll1 2> /dev/null)" = "ps listing" ]; then
+  ok "tracked edit on a stray branch; the untracked file stays on disk and on no branch"
+else fail "untracked beside edit (r=$r sb=$sb): $(tail -3 "$SCRATCH/out")"; fi
+
+# 11. collision: an untracked file at a path the passed commit adds: the copy is held (exit 1, not moved), the log
+#     names the file, the content is unchanged. Fast-forward path, then the reset path (the copy has its own commit).
+setup; land new.txt landed; printf 'johns\n' > main/new.txt; before=$(head_of main)
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 1 ] && [ "$(head_of main)" = "$before" ] && [ "$(cat main/new.txt)" = johns ] && grep -q "untracked new.txt would be overwritten" "$SYNC_LOG" \
+   && [ -z "$(git -C main branch --list 'stray/*')" ]; then
+  ok "an untracked file the passed commit adds holds the copy (fast-forward path); content unchanged"
+else fail "collision ff (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+setup; land new.txt landed; printf 'own\n' > main/own.txt; git -C main add own.txt; git -C main commit -qm "own work"
+printf 'johns\n' > main/new.txt; before=$(head_of main)
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 1 ] && [ "$(head_of main)" = "$before" ] && [ "$(cat main/new.txt)" = johns ] && grep -q "untracked new.txt would be overwritten" "$SYNC_LOG"; then
+  ok "an untracked file the passed commit adds holds the copy (reset path); content unchanged"
+else fail "collision reset (r=$r): $(tail -3 "$SCRATCH/out")"; fi
 
 [ $fails = 0 ] && { echo "sync-main-folder.e2e: all passed"; exit 0; }
 echo "sync-main-folder.e2e: $fails failed"; exit 1
