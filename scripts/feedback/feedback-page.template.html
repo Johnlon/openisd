@@ -19,6 +19,7 @@ h1 { font-size:20px; margin:0 0 4px; }
 .group { margin:8px 0 0; }
 .group h3 { font-size:14px; margin:0 0 4px; color:var(--muted); font-weight:600; }
 .pair { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:8px; }
+.pair.ba { grid-template-columns:1fr 1fr; }  /* before | after side by side at every width, never stacked */
 figure { margin:0; }
 img { width:100%; height:auto; border:1px solid var(--line); border-radius:4px; display:block; background:#fff; }
 a { color:inherit; }
@@ -123,7 +124,7 @@ function lookLine(text) {
           return `<figure ${idOf(n)} data-item data-kind="picture" data-name="${esc(n)}">${link(n)}${lk}${isBefore(label) ? '' : btn(u)}${pic(it.lone, '')}</figure>`;
         }
         const n = name('', g.name, it.before.url), other = name('', g.name, it.after.url);
-        return `<figure ${idOf(n)} data-item data-kind="picture" data-pair="pair" data-name="${esc(n)}" data-also="${esc(other)}">${link(n)}${lk}${btn(u)}<div class="pair">${pic(it.before, 'before')}${pic(it.after, 'after')}</div></figure>`;
+        return `<figure ${idOf(n)} data-item data-kind="picture" data-pair="pair" data-name="${esc(n)}" data-also="${esc(other)}">${link(n)}${lk}${btn(u)}<div class="pair ba">${pic(it.before, 'before')}${pic(it.after, 'after')}</div></figure>`;
       }).join('')
         : textItem(name('', '', g.live), lk, g.live);
       return `<div class="group">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}<div class="${g.items.some((i) => i.lone) && !g.items.some((i) => i.before) ? 'pair' : 'items'}">${figs}</div></div>`;

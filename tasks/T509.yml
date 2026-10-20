@@ -1,0 +1,11 @@
+id: T509
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Pictures page shows each before/after pair as two columns side by side at every width, 374 px included, never stacked
+done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T509.yml
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_ruled_test.mjs

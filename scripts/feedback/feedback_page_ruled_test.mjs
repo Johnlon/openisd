@@ -91,6 +91,10 @@ try {
     await p.setViewportSize({ width: w, height: 800 });
     const sw = await p.evaluate(() => document.documentElement.scrollWidth);
     if (sw > w) failures.push(`horizontal scroll at ${w}: ${sw}`);
+    // A pair is two columns at every width, never stacked (John, 20 Oct 2026: "put old and new side by side
+    // for mobile views"): before left, after right, same top.
+    const sides = await p.$eval('figure[data-name="F/b/before.png"]', (f) => [...f.querySelectorAll('img')].map((i) => { const r = i.getBoundingClientRect(); return [Math.round(r.top), Math.round(r.left)]; }));
+    if (sides.length !== 2 || sides[0][0] !== sides[1][0] || !(sides[0][1] < sides[1][1])) failures.push(`pair not side by side at ${w}: ${JSON.stringify(sides)}`);
   }
   await p.setViewportSize({ width: 374, height: 705 });
   const txt = await p.$eval('figure[data-name*="mock-b"]', (f) => f.querySelector('.look')?.textContent + '|' + !!f.querySelector('form.compose'));
