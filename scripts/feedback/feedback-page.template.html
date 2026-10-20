@@ -33,6 +33,9 @@ a { color:inherit; }
 .said { font-size:14px; margin:4px 0 0; padding:4px 8px; border-left:3px solid var(--line); }
 .said.john { border-color:#1d5fd0; }
 .cm-err { color:#c00; font-size:13px; }
+.live { display:inline-block; margin:6px 0 0; padding:10px 14px; border-radius:6px; background:#1d5fd0; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
+.permalink { font-size:12px; color:var(--muted); margin-left:6px; font-weight:400; }
+figure.here { outline:3px solid #c62828; outline-offset:3px; border-radius:4px; }
 details.ruled { margin:8px 0 0; }
 details.ruled summary { font-size:15px; color:var(--muted); padding:8px 0; cursor:pointer; }
 </style>
@@ -45,6 +48,8 @@ details.ruled summary { font-size:15px; color:var(--muted); padding:8px 0; curso
 // Reads index.md (the table agents keep) and shows each fix with its pictures inline.
 const out = document.getElementById('out');
 const linkRe = /\[([^\]]+)\]\(([^)]+)\)/g;
+const isLive = (l) => /^live$/i.test(l.label.trim());
+const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const isImg = (u) => /\.(png|jpe?g|gif|webp|svg)$/i.test(u);
 const ITEM = '__ITEM__';
 const FOLDER = '__FOLDER__';  // every comment on this page goes to this board item, prefixed with its picture
@@ -55,16 +60,16 @@ function pictures(cell) {
   const groups = cell.split(' · ').map((g) => {
     const m = g.match(/^\s*([^\[]+?):\s*(\[.*)$/);
     const name = m ? m[1] : '';
-    const links = [...(m ? m[2] : g).matchAll(linkRe)].map((x) => ({ label: x[1], url: x[2] }));
-    return { name, links };
+    const all = [...(m ? m[2] : g).matchAll(linkRe)].map((x) => ({ label: x[1], url: x[2] }));
+    return { name, links: all.filter((l) => !isLive(l)), live: all.find(isLive)?.url || '' };
   });
   // Ungrouped single links (before · after) belong together.
-  const together = groups.every((g) => !g.name && g.links.length === 1)
-    ? [{ name: '', links: groups.flatMap((g) => g.links) }] : groups;
+  const together = groups.every((g) => !g.name && g.links.length <= 1)
+    ? [{ name: '', links: groups.flatMap((g) => g.links), live: groups.map((g) => g.live).find(Boolean) || '' }] : groups;
   // A side-by-side already holds the before and the after: show it alone, never the same picture twice.
   return together.map((g) => {
     const sbs = g.links.filter((l) => /side-by-side/i.test(l.url));
-    return sbs.length ? { name: g.name, links: sbs } : g;
+    return sbs.length ? { name: g.name, links: sbs, live: g.live } : g;
   });
 }
 
@@ -94,12 +99,19 @@ function lookLine(text) {
     const name = (label, group, url) => url ? FOLDER + '/' + url : FOLDER + '/' + task;
     const cls = /^landed/.test(state) ? 'done' : 'wait';
     const groups = pictures(cell || '');
-    const any = groups.some((g) => g.links.length);
-    const body = !any ? `<figure data-item data-kind="item" data-name="${esc(name('', '', ''))}">${lookLine(look)}</figure>` : groups.map((g) => {
+    const rowLive = groups.map((g) => g.live).find(Boolean) || '';
+    const any = groups.some((g) => g.links.length || g.live);
+    const btn = (u) => u ? `<a class="live" href="${esc(u)}">Open live mock</a>` : '';
+    const idOf = (n) => `id="${esc(slug(n))}"`;
+    const link = (n) => `<a class="permalink" href="#${esc(slug(n))}">link</a>`;
+    const textItem = (n, lk, u) => `<figure ${idOf(n)} data-item data-kind="item" data-name="${esc(n)}">${link(n)}${lk}${btn(u)}</figure>`;
+    const body = !any ? textItem(name('', '', ''), lookLine(look), '') : groups.map((g) => {
       const lk = lookLine(lookFor(look, g.name));
-      const figs = g.links.map(({ label, url }) => isImg(url)
-        ? `<figure data-item data-kind="picture" data-name="${esc(name(label, g.name, url))}"><figcaption>${esc(label)}</figcaption>${lk}<a href="${esc(url)}"><img loading="lazy" src="${esc(url)}" alt="${esc(label)}"></a></figure>`
-        : `<p><a href="${esc(url)}">${esc(label)}</a></p>`).join('');
+      const u = g.live || rowLive;
+      const figs = g.links.length ? g.links.map(({ label, url }) => isImg(url)
+        ? `<figure ${idOf(name(label, g.name, url))} data-item data-kind="picture" data-name="${esc(name(label, g.name, url))}"><figcaption>${esc(label)} ${link(name(label, g.name, url))}</figcaption>${lk}${btn(u)}<a href="${esc(url)}"><img loading="lazy" src="${esc(url)}" alt="${esc(label)}"></a></figure>`
+        : `<p><a href="${esc(url)}">${esc(label)}</a></p>`).join('')
+        : textItem(name('', '', g.live), lk, g.live);
       return `<div class="group">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}<div class="pair">${figs}</div></div>`;
     }).join('');
     return `<section class="fix"><h2>${esc(fix)}</h2><p class="meta">${esc(task)} · <span class="state ${cls}">${esc(state)}</span></p>${body}</section>`;
@@ -159,6 +171,18 @@ function foldRuled() {
   if (!out.querySelector(':scope > section.fix')) fold.insertAdjacentHTML('beforebegin', '<p class="note">Nothing new to look at: every picture here has your answer.</p>');
 }
 
+// Deep link: index.html#<id> opens the answered fold if needed, scrolls to the item and rings it.
+function goToHash() {
+  document.querySelectorAll('figure.here').forEach((f) => f.classList.remove('here'));
+  const id = decodeURIComponent(location.hash.slice(1));
+  const el = id && document.getElementById(id);
+  if (!el) return;
+  const fold = el.closest('details.ruled'); if (fold) fold.open = true;
+  el.classList.add('here');
+  el.scrollIntoView({ block: 'center' });
+}
+addEventListener('hashchange', goToHash);
+
 const threadP = fetch('/board/api/items', { cache: 'no-store' })
   .then((r) => (r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status))))
   .then((b) => b.items.find((i) => i.id === ITEM)?.thread || [])
@@ -167,7 +191,7 @@ const threadP = fetch('/board/api/items', { cache: 'no-store' })
 fetch('index.md?html', { cache: 'no-store' })
   .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
   .then(render)
-  .then(() => threadP).then(commentBoxes).then(foldRuled)
+  .then(() => threadP).then(commentBoxes).then(foldRuled).then(goToHash)
   .catch((e) => { out.innerHTML = `<p class="note">Could not read index.md (${esc(String(e))}).</p>`; });
 </script>
 </body>

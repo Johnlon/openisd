@@ -98,6 +98,10 @@ class Checker(unittest.TestCase):
         r = run_check(self.page(good_page(fig("a"), folded)))
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
 
+    def test_live_mock_item_passes(self):
+        ok = '<figure data-item data-name="m"><p class="look">Look at: the handle</p><a class="live" href="mock-a.html?look=fb-handle">Open live mock</a><form><input type=text></form></figure>'
+        r = run_check(self.page(good_page(ok))); self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
     def test_empty_statement_fails(self):
         r = run_check(self.page(good_page(fig("nostate", look="Look at:"))))
         self.assertEqual(r.returncode, 1); self.assertIn("no clear statement", r.stdout)

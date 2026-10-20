@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 4322deb909d84d0e8a5a3b1f9c9654ecf8092cbb
 goal: Driver editor rebuilt on shared components: the Edit Project Driver dialog on both shells uses the shared field rows, steppers, tabs and buttons every other dialog uses, with the shared 44 px touch buttons on the phone; no per-screen sizes; the four tabs keep their content. Before/after at 374x705 from the UI gallery. Fixes BUG_20261018_driver-editor-buttons-tiny.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

@@ -11,6 +11,8 @@ const md = `<table><thead><tr><th>Fix</th><th>Task</th><th>State</th><th>Picture
 <tr><td>Ruled fix</td><td>T1</td><td>landed</td><td><a href="a/before.png">before</a> · <a href="a/after.png">after</a></td><td>x</td></tr>
 <tr><td>Triple fix</td><td>T3</td><td>landed</td><td><a href="c/before.png">before</a> · <a href="c/after.png">after</a> · <a href="c/side-by-side.png">before and after</a></td><td>z</td></tr>
 <tr><td>Open fix</td><td>T2</td><td>landed</td><td><a href="b/before.png">before</a> · <a href="b/after.png">after</a></td><td>y</td></tr>
+<tr><td>Live fix</td><td>T4</td><td>landed</td><td>phone: <a href="d/before.png">before</a> <a href="d/after.png">after</a> <a href="mock-a.html?look=fb-handle">live</a></td><td>phone: the handle</td></tr>
+<tr><td>Live only</td><td>T5</td><td>landed</td><td><a href="mock-b.html?tab=vented&look=x">live</a></td><td>the vented tab</td></tr>
 </tbody></table>`;
 const thread = [
   { by: 'John', at: '2026-10-20T01:00:00Z', text: '[picture: F/a/before.png] ok' },
@@ -36,10 +38,29 @@ try {
   await p.goto('http://test.invalid/F/index.html');
   await p.waitForSelector('form.cm'); await p.waitForSelector('details.ruled', { state: 'attached' });
   const shown = await p.$$eval('figure[data-item]', (fs) => fs.filter((f) => f.checkVisibility()).map((f) => f.dataset.name));
-  const want = ['F/b/after.png', 'F/c/side-by-side.png'];
+  const want = ['F/mock-b.html?tab=vented&look=x', 'F/d/before.png', 'F/d/after.png', 'F/b/after.png', 'F/c/side-by-side.png'];
   if (JSON.stringify(shown) !== JSON.stringify(want)) failures.push(`shown pictures ${JSON.stringify(shown)}, want ${JSON.stringify(want)}`);
   const summary = await p.$eval('details.ruled summary', (s) => s.textContent).catch(() => '');
   if (!/3/.test(summary)) failures.push(`no "already answered (3)" fold: got ${JSON.stringify(summary)}`);
+  // Live mock: a button keeping the query string, never a picture or plain link.
+  const lives = await p.$$eval('a.live', (as) => as.map((a) => a.getAttribute('href')));
+  const wantLive = ['mock-b.html?tab=vented&look=x', 'mock-a.html?look=fb-handle', 'mock-a.html?look=fb-handle'];
+  if (JSON.stringify(lives) !== JSON.stringify(wantLive)) failures.push(`live buttons ${JSON.stringify(lives)}, want ${JSON.stringify(wantLive)}`);
+  if (await p.$('a[href^="mock-a.html"]:not(.live)')) failures.push('live link also rendered as a plain link');
+  const txt = await p.$eval('figure[data-name*="mock-b"]', (f) => f.querySelector('.look')?.textContent + '|' + !!f.querySelector('form.cm'));
+  if (!/vented tab\|true/.test(txt)) failures.push(`live-only item lacks look/comment box: ${txt}`);
+  // Deep link: every item has id + link anchor.
+  const ids = await p.$$eval('figure[data-item]', (fs) => fs.map((f) => [f.id, f.querySelector('a.permalink')?.getAttribute('href')]));
+  if (ids.some(([id, h]) => !id || !/^[a-z0-9-]+$/.test(id) || h !== '#' + id)) failures.push(`item ids/links bad: ${JSON.stringify(ids)}`);
+  // Deep link to a visible item scrolls and rings it.
+  await p.goto('http://test.invalid/F/index.html#f-b-after-png');
+  await p.waitForSelector('details.ruled', { state: 'attached' }); await p.waitForSelector('figure.here');
+  const inView = await p.$eval('figure.here', (f) => { const r = f.getBoundingClientRect(); return r.top >= 0 && r.top < innerHeight; });
+  if (!inView) failures.push('deep-linked item not scrolled into view');
+  // Deep link into the closed answered fold opens it.
+  await p.goto('http://test.invalid/F/index.html#f-a-before-png');
+  await p.waitForSelector('figure.here');
+  if (!(await p.$eval('details.ruled', (d) => d.open)) || !(await p.$eval('figure.here', (f) => f.checkVisibility()))) failures.push('deep link into answered fold did not open it');
 } finally {
   await browser.close();
 }
