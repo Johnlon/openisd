@@ -138,7 +138,7 @@ def main():
     # Line regexes
     re_ts_line = re.compile(r'^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z)\s+(\S+)\s+(.*)$')
     re_start = re.compile(r'^START\s+(\S+)$')
-    re_end = re.compile(r'^END\s+(\S+)\s+status=(\d+)\s+duration_s=(\d+)$')
+    re_end = re.compile(r'^END\s+(\S+)\s+status=(\d+)\s+duration_s=(\d+)(?:\s+clock_step_s=-?\d+)?$')
     re_spec_end = re.compile(r'SPEC END\s+(\S+)\s+status=(\S+)\s+duration_ms=([0-9.]+)')
     re_test_end = re.compile(r'TEST END\s+(\S+)\s+status=(\S+)\s+duration_ms=([0-9.]+)')
     re_pw_test = re.compile(r'^\s*(?:✓|✘)\s+\d+\s+([^:]+\.browser\.spec\.ts):\d+:\d+\s+›.*\((\d+(?:\.\d+)?)(s|ms)\)')

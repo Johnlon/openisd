@@ -1,6 +1,8 @@
 # BUG_20261019_land-lint-gate-took-two-hours
 
-**Status:** OPEN
+**Status:** FIXED
+
+Fixed by T483.
 
 Recorded 19 Oct 2026 by worker-lint.
 

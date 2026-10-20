@@ -16,7 +16,12 @@
 # Formats:
 #   <ts> <run id> <line>
 #   <ts> <run id> START <name>
-#   <ts> <run id> END <name> status=<n> duration_s=<n>
+#   <ts> <run id> END <name> status=<n> duration_s=<n> [clock_step_s=<n>]
+#
+# duration_s is read from the monotonic clock (/proc/uptime, which never jumps), not from date.
+# The UTC wall time is only the line's label. When wall and monotonic durations differ by more than
+# 60 s the wall clock stepped (WSL freeze or sleep) and the END line adds clock_step_s=<wall - mono>,
+# signed seconds. The CLI start file holds "<mono_ms> <wall_ms>"; an old one-number file is wall only.
 set -uo pipefail
 
 ts_now() {
@@ -51,20 +56,29 @@ _ts_now_ms() {
   fi
 }
 
+# Milliseconds from the monotonic clock, or nothing when /proc/uptime is unreadable.
+_ts_mono_ms() {
+  local up
+  read -r up _ < /proc/uptime 2>/dev/null || return 0
+  [[ "$up" =~ ^([0-9]+)\.([0-9]{2})$ ]] || return 0
+  printf '%s' "$(( ${BASH_REMATCH[1]} * 1000 + 10#${BASH_REMATCH[2]} * 10 ))"
+}
+
 run_start() {
   local name="${1:?usage: run_start <name>}"
-  local ts run_id now_ms dir safe_name
+  local ts run_id now_ms mono_ms dir safe_name
   ts="$(ts_now)"
   run_id="$(ts_run_id)"
   now_ms="$(_ts_now_ms)"
-  _TS_STARTS["$name"]="$now_ms"
+  mono_ms="$(_ts_mono_ms)"
+  _TS_STARTS["$name"]="${mono_ms:-0} $now_ms"
   # Sourced callers keep the start in memory. Only the CLI form (another process calls run_end)
   # needs a file; run_end removes it, and the directory goes with the last file.
   if [ "$_TS_PERSIST" = 1 ]; then
     dir="$(_ts_start_dir)"
     mkdir -p "$dir" 2>/dev/null || true
     safe_name="$(printf '%s' "$name" | tr -c 'a-zA-Z0-9_.-' '_')"
-    printf '%s\n' "$now_ms" > "$dir/$safe_name" 2>/dev/null || true
+    printf '%s\n' "${mono_ms:-0} $now_ms" > "$dir/$safe_name" 2>/dev/null || true
   fi
   printf '%s %s START %s\n' "$ts" "$run_id" "$name"
 }
@@ -72,25 +86,36 @@ run_start() {
 run_end() {
   local name="${1:?usage: run_end <name> <status>}"
   local status="${2:?usage: run_end <name> <status>}"
-  local ts run_id now_ms start_ms duration_s dir safe_name
+  local ts run_id now_ms mono_ms start start_mono start_ms duration_s step dir safe_name extra=""
   ts="$(ts_now)"
   run_id="$(ts_run_id)"
   now_ms="$(_ts_now_ms)"
-  start_ms="${_TS_STARTS["$name"]:-}"
+  mono_ms="$(_ts_mono_ms)"
+  start="${_TS_STARTS["$name"]:-}"
   dir="$(_ts_start_dir)"
   safe_name="$(printf '%s' "$name" | tr -c 'a-zA-Z0-9_.-' '_')"
-  if [ -z "$start_ms" ] && [ -f "$dir/$safe_name" ]; then
-    start_ms="$(cat "$dir/$safe_name" 2>/dev/null || true)"
+  if [ -z "$start" ] && [ -f "$dir/$safe_name" ]; then
+    start="$(cat "$dir/$safe_name" 2>/dev/null || true)"
+  fi
+  if [[ "$start" == *" "* ]]; then
+    start_mono="${start%% *}"; start_ms="${start##* }"
+  else
+    start_mono=0; start_ms="$start"   # old one-number file: wall only
   fi
   rm -f "$dir/$safe_name" 2>/dev/null || true
   rmdir "$dir" 2>/dev/null || true
   if [ -n "$start_ms" ] && [ "$start_ms" -gt 0 ] 2>/dev/null; then
     duration_s=$(( (now_ms - start_ms) / 1000 ))
+    if [ "$start_mono" -gt 0 ] 2>/dev/null && [ -n "$mono_ms" ]; then
+      duration_s=$(( (mono_ms - start_mono) / 1000 ))
+      step=$(( ((now_ms - start_ms) - (mono_ms - start_mono)) / 1000 ))
+      if [ "$step" -gt 60 ] || [ "$step" -lt -60 ]; then extra=" clock_step_s=$step"; fi
+    fi
     [ "$duration_s" -ge 0 ] || duration_s=0
   else
     duration_s=0
   fi
-  printf '%s %s END %s status=%s duration_s=%s\n' "$ts" "$run_id" "$name" "$status" "$duration_s"
+  printf '%s %s END %s status=%s duration_s=%s%s\n' "$ts" "$run_id" "$name" "$status" "$duration_s" "$extra"
 }
 
 ts_prefix_stream() {

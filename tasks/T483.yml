@@ -1,0 +1,13 @@
+id: T483
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Gate and run durations come from a clock that never jumps, so a wall-clock step no longer logs a 34 s lint as 2 hours; the end line names any step as clock_step_s.
+done_test: bash scripts/land/test/ts-log.test.sh && bash scripts/land/test/ts-log-kill.test.sh && bash scripts/land/test/metrics.test.sh && bash scripts/land/test/ts-log-clock-step.test.sh
+files:
+  - tasks/T483.yml
+  - scripts/lib/ts-log.sh
+  - scripts/lib/metrics.py
+  - scripts/land/test/ts-log-clock-step.test.sh
+  - bugs/BUG_20261019_land-lint-gate-took-two-hours.md

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 61b06c378948de351aba47d54b82b9a39f017700
 goal: Phone project name no longer cut. Toolbar name wraps to two lines in the same bar height; menu open-project row wraps a long name onto more lines, whole name shown (John, 20 Oct 2026). Closes bugs/BUG_20261019_phone-toolbar-project-name-cut.md and bugs/BUG_20261019_phone-menu-project-row-cut-mid-word.md. Graph-page unsaved mark left open with a question for John.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
