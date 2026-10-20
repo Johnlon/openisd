@@ -124,7 +124,9 @@ else fail "concurrent (r1=$r1 r2=$r2): $(cat "$FAKE_GH/watched")"; fi
 setup; task w1 T1 a.txt; echo success > "$FAKE_GH/conclusion"; echo 30 > "$FAKE_GH/watch"; before=$(origin_main)
 ( cd "$SCRATCH/w/w1" && exec setsid bash scripts/land.sh T1 > "$SCRATCH/out.w1" 2>&1 ) & lp=$!
 for _ in $(seq 1 40); do [ -s "$FAKE_GH/watched" ] && break; sleep 0.25; done
-kill -TERM -- "-$lp" 2> /dev/null; wait $lp 2> /dev/null; sleep 1
+# ts-log.sh gives a stopped command a 1 s grace timer (a sleep child it reaps itself); under load the wrapper is
+# still inside that window 1 s after the TERM, so the group is read once the window and its reaping are over.
+kill -TERM -- "-$lp" 2> /dev/null; wait $lp 2> /dev/null; sleep 4
 left=$(ps -o pid= -g "$lp" 2> /dev/null | wc -l)
 if [ -s "$FAKE_GH/watched" ] && [ "$(origin_main)" = "$before" ] && [ -z "$(origin_branches)" ] && [ "$left" = 0 ]; then
     ok "stopped while waiting: main untouched, branch removed, nothing left running"
