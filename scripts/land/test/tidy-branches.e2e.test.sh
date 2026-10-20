@@ -90,8 +90,12 @@ has_branch t162 && ok "a branch adding work main lacks stays, even when its task
 
 # 2. leftover folders: only generated folders and no git data goes
 mkdir -p "$M-t20/node_modules/x" "$M-t20/build" "$M-t21" "$M-t22"; echo keep > "$M-t21/notes.txt"; echo "gitdir: /nowhere" > "$M-t22/.git"
+mkdir -p "$M-t23/node_modules"
+touch -d '3 days ago' "$M-t20" "$M-t21" "$M-t22"
 tidy
 [ ! -e "$M-t20" ] && ok "a leftover folder with only generated folders goes" || fail "t20 kept"
+[ -d "$M-t23" ] && grep -q "kept $M-t23: newer than a day" "$TIDY_LOG" && ok "T486 row 10: a fresh peer folder survives" || fail "t23 removed or not logged"
+! grep -q readlink "$REPO/scripts/land/tidy-branches.sh" && ok "T486 rows 10/15: no readlink fork per process" || fail "readlink in tidy-branches.sh"
 [ -f "$M-t21/notes.txt" ] && grep -q "kept $M-t21: not a worktree, but holds notes.txt" "$TIDY_LOG" && ok "a leftover folder with a file of its own is kept" || fail "t21 removed"
 [ -e "$M-t22/.git" ] && ok "a folder with git data is kept" || fail "t22 removed"
 

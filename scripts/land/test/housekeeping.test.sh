@@ -57,6 +57,21 @@ timeout 30 bash "$H" > /dev/null 2>&1
 # 3. missing ADMIT_DIR is nothing to do
 ADMIT_DIR="$SCRATCH/nope" timeout 30 bash "$H" > /dev/null 2>&1; r=$?
 [ $r = 0 ] && ok "missing ADMIT_DIR exits 0" || fail "missing dir exit $r"
+# 3b. T486 row 11: that early exit still logs the END line of its START
+out=$(ADMIT_DIR="$SCRATCH/nope" timeout 30 bash "$H" 2>&1)
+grep -q ' START housekeeping' <<< "$out" && grep -q ' END housekeeping status=0 ' <<< "$out" && ok "no-admit-dir run logs START and END" || fail "START/END missing: $out"
+# 3c. T486 row 7: the tag scan reads environ in-shell: tag_of has no tr/sed/command substitution, no call of it forks
+fn=$(sed -n '/^tag_of() {/,/^}/p' "$H")
+! grep -qE '\btr\b|\bsed\b|\$\(' <<< "$fn" && ! grep -qE '\$\(tag_of' "$H" && ok "tag_of forks nothing" || fail "tag_of forks"
+env HK_T="a=b c" sleep 30 & TP=$!; PIDS+=("$TP"); sleep 0.3
+v=$(TAG=HK_T bash -c "$fn"$'\n'"tag_of $TP; printf %s \"\$TAG_VAL\"")
+[ "$v" = "a=b c" ] && ok "tag_of returns the value, = and spaces kept" || fail "tag_of value '$v'"
+v=$(TAG=HK_NONE bash -c "$fn"$'\n'"tag_of $TP; printf %s \"\$TAG_VAL\"")
+[ -z "$v" ] && ok "tag_of: no tag gives empty" || fail "tag_of untagged '$v'"
+v=$(TAG=HK_T bash -c "$fn"$'\n'"tag_of 999999; printf %s \"\$TAG_VAL\"" 2>&1)
+[ -z "$v" ] && ok "tag_of: a gone pid gives empty, no noise" || fail "tag_of gone '$v'"
+fk=$(strace -f -c -e trace=execve bash -c "$fn"$'\n'"TAG=HK_T; for e in /proc/[0-9]*/environ; do p=\${e#/proc/}; tag_of \${p%/environ}; done" 2>&1 > /dev/null | awk '$NF=="execve"{print $4}')
+[ -n "$fk" ] && [ "$fk" -le 3 ] && ok "scanning every process execs $fk programs" || fail "scan execve count '$fk'"
 
 # 4. unreadable q dir fails loudly (skipped as root: permissions do not bind)
 if [ "$(id -u)" != 0 ]; then

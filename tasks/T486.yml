@@ -1,0 +1,26 @@
+id: T486
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Service scripts cannot overload the box: kill-http kills only the port listener, start-http never touches the :4000 preview and runs no suites, its server is group-owned, watchdog and housekeeping are bounded and cheap, heavy runs go in heavy.slice (load audit 20 Oct, 13 rows).
+done_test: bash scripts/land/test/services-load.test.sh && bash scripts/land/test/housekeeping.test.sh && bash scripts/land/test/watchdog.test.sh && bash scripts/land/test/tidy-branches.e2e.test.sh
+files:
+  - tasks/T486.yml
+  - Makefile
+  - bugs/BUG_20261020_service-scripts-overload-box.md
+  - scripts/dev-4200.sh
+  - scripts/housekeeping.sh
+  - scripts/kill-http.sh
+  - scripts/land/test/housekeeping.test.sh
+  - scripts/land/test/services-load.test.sh
+  - scripts/land/test/tidy-branches.e2e.test.sh
+  - scripts/land/test/watchdog.test.sh
+  - scripts/land/tidy-branches.sh
+  - scripts/land/watchdog.service
+  - scripts/land/watchdog.sh
+  - scripts/measure-peak.sh
+  - scripts/run-ui-telemetry.sh
+  - scripts/start-http.sh
+  - scripts/stop-http.sh
+  - scripts/systemd/openisd-preview.service

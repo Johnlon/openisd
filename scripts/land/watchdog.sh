@@ -120,23 +120,17 @@ tree_cpu() { # tree_cpu <pid>: utime+stime in clock ticks over <pid> and every d
   # Descendants, not the process group: run.sh starts the suite under set -m, so the suite is its
   # own group and the holder's group alone sits idle for the whole run (12 Oct: a live full run
   # was "quiet for 632s of 1200s" and would have been killed at 20 min).
-  local root="$1" p s total=0 kids pid
-  declare -A PPID_OF TICKS
-  for p in /proc/[0-9]*; do
-    s=$(cat "$p/stat" 2> /dev/null) || continue
-    pid=${p#/proc/}; s=${s##*) }; set -- $s     # $2 ppid, $12 utime, $13 stime
-    PPID_OF[$pid]=$2; TICKS[$pid]=$(( ${12} + ${13} ))
-  done
-  kids="$root"
-  while [ -n "$kids" ]; do
-    local next=""
-    for pid in $kids; do
-      total=$((total + ${TICKS[$pid]:-0}))
-      for p in "${!PPID_OF[@]}"; do [ "${PPID_OF[$p]}" = "$pid" ] && next="$next $p"; done
-    done
-    kids="$next"
-  done
-  echo "$total"
+  # One cat and one awk over every /proc/<pid>/stat, whatever the number of processes.
+  cat /proc/[0-9]*/stat 2> /dev/null | awk -v root="$1" '
+    { pid = $1; sub(/^[0-9]+ \(.*\) /, ""); ppid[pid] = $2; ticks[pid] = $12 + $13 }
+    END {
+      in_tree[root] = 1
+      do { grew = 0
+        for (p in ppid) if (!(p in in_tree) && (ppid[p] in in_tree)) { in_tree[p] = 1; grew = 1 }
+      } while (grew)
+      for (p in in_tree) total += ticks[p]
+      print total + 0
+    }'
 }
 check_hung() {
   local holder lock plog pid start sha cur size mtime cpu prev t
@@ -223,7 +217,7 @@ check_untested_main() {
   # cgroup, setsid or not (16 Oct 2026: three runs started here died at once and were recorded red).
   # The run therefore starts as a transient service of the user manager, outside the tick's cgroup.
   if command -v systemd-run > /dev/null 2>&1; then
-    systemd-run --user --quiet --collect --unit="openisd-postland-${main:0:10}-$(now)" \
+    systemd-run --user --quiet --collect --slice=heavy.slice --unit="openisd-postland-${main:0:10}-$(now)" \
       --working-directory="$REPO" --property=StandardOutput="append:$plog" --property=StandardError="append:$plog" \
       -- bash "$run" "$main" || log "systemd-run failed to start the post-land run on ${main:0:10}"
   else
@@ -236,8 +230,14 @@ check_untested_main
 # A copy held (its own commits conflict with main, or are not on main) is an agent alert every tick until it is
 # fixed (John, 17 Oct 2026: "if the land fails then no one acts"). land.sh also stops the landing agent on it.
 check_main_folder() {
-  local out why
-  out="$(bash "$ROOT/scripts/land/sync-main-folder.sh" "$REPO" 2>&1)" && return 0
+  local out why rc
+  out="$(timeout 900 bash "$ROOT/scripts/land/sync-main-folder.sh" "$REPO" 2>&1)"; rc=$?
+  [ "$rc" != 0 ] || return 0
+  if [ "$rc" = 124 ]; then
+    log "ERROR: sync-main-folder.sh timed out after 900 s"
+    alert main-folder-timeout "$LEADER" "sync-main-folder.sh timed out after 900 s; the main folder is not updating"
+    return 0
+  fi
   why="$(grep -E 'CONFLICT|of its own|to fix|in progress|cannot|FAILED' <<< "$out" | sed 's/^.*sync-main-folder: //' | tr '\n' ' ')"
   log "main folder held: $why"
   alert main-folder "$LEADER" "the main folder cannot update to main: $why"
@@ -318,8 +318,14 @@ check_refusals
 # --- (f) landed and abandoned branches, worktrees and leftover folders (tidy-branches.sh, T334) ---------
 # A "held: <text>" line from tidy-branches.sh is an agent alert.
 check_worktrees() {
-  local out held
-  out="$(bash "$ROOT/scripts/land/tidy-branches.sh" "$REPO" 2>&1)" || log "tidy-branches failed: $(tail -2 <<< "$out" | tr '\n' ' ')"
+  local out held rc
+  out="$(timeout 900 bash "$ROOT/scripts/land/tidy-branches.sh" "$REPO" 2>&1)"; rc=$?
+  if [ "$rc" = 124 ]; then
+    log "ERROR: tidy-branches.sh timed out after 900 s"
+    alert tidy-timeout "$LEADER" "tidy-branches.sh timed out after 900 s; branches and worktrees are not being tidied"
+  elif [ "$rc" != 0 ]; then
+    log "tidy-branches failed: $(tail -2 <<< "$out" | tr '\n' ' ')"
+  fi
   while IFS= read -r held; do
     [ -n "$held" ] && alert "held-$(md5sum <<< "$held" | cut -c1-8)" "$LEADER" "$held"
   done < <(sed -n 's/^held: //p' <<< "$out")

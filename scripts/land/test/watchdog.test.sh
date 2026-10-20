@@ -195,6 +195,7 @@ WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
 [ "$(cat "$FAKE_RUN_LOG" 2> /dev/null)" = "$main_sha" ] && ok "an old untested main with no run alive starts one on origin/main" || fail "run not started: $(cat "$FAKE_RUN_LOG" 2> /dev/null)"
 grep -q "main ${main_sha:0:10} is untested.*starting one" "$WATCHDOG_LOG" && ok "start logged" || fail "start not logged"
 grep -q -- "--user .*--collect .*-- bash .* $main_sha" "$FAKE_SYSTEMD_LOG" 2> /dev/null && ok "the run starts as a transient user service, outside the tick's cgroup" || fail "run not started through systemd-run: $(cat "$FAKE_SYSTEMD_LOG" 2> /dev/null)"
+grep -q -- "--slice=heavy.slice" "$FAKE_SYSTEMD_LOG" 2> /dev/null && ok "T486 row 8: the post-land run starts in heavy.slice" || fail "no --slice=heavy.slice: $(cat "$FAKE_SYSTEMD_LOG" 2> /dev/null)"
 rm -f "$FAKE_RUN_LOG"
 setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
 hold "$HP"

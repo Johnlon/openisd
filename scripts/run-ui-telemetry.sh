@@ -88,13 +88,28 @@ stop_sampler() {
   fi
   rm -f "$OUT_DIR/sampler.pid"
 }
-trap 'stop_sampler' EXIT
+PW_PID=""
+stop_run() { # sampler, then playwright's own group (its vite and chrome too)
+  stop_sampler
+  [ -z "$PW_PID" ] || kill -TERM -- "-$PW_PID" 2>/dev/null || true
+}
+trap 'stop_run' EXIT
+trap 'exit 143' INT TERM
 
 write_run_json running 0 "" ""
 
-OPENISD_TEST_WORKERS=1 OPENISD_TEST_PORT="$PORT" \
-  npx playwright test --workers=1 --retries=0 2>&1 | tee "$OUT_DIR/run.log"
-EXIT_CODE="${PIPESTATUS[0]}"
+# The sweep is heavy: it runs in heavy.slice (its ceiling), in its own process group (job control gives the
+# background pipeline one) so the EXIT trap can stop it with its vite and chrome.
+set -m
+{ OPENISD_TEST_WORKERS=1 OPENISD_TEST_PORT="$PORT" \
+    systemd-run --user --scope --quiet --collect --slice=heavy.slice -- \
+    npx playwright test --workers=1 --retries=0 2>&1 | tee "$OUT_DIR/run.log"
+  exit "${PIPESTATUS[0]}"; } &
+PW_PID=$!
+wait "$PW_PID"
+EXIT_CODE=$?
+PW_PID=""
+set +m
 
 ENDED_AT="$(date -Is)"
 ELAPSED=$(( $(date +%s) - STARTED_EPOCH ))

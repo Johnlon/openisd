@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Kill all processes on the specified port(s).
+# Kill the process LISTENING on the specified port(s); clients connected to it (browsers, curl) are never touched.
 # Usage: scripts/kill-http.sh <port> [port ...]
 # Escalation chain per port:
 #   1. tskill <winpid>  — most reliable: Terminal Services kill, works on orphaned PPID=0 processes
@@ -13,6 +13,12 @@ set -euo pipefail
 { [ -n "${MSYSTEM:-}" ] || [ "$(uname -s)" = Linux ]; } || { echo "ERROR: must run in Git Bash on Windows, WSL or Linux, not PowerShell/cmd" >&2; exit 1; }
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
+
+# Port 4000 is the openisd-preview systemd unit (Restart=always): killing its server only makes systemd
+# restart it. Restart it with scripts/preview-4000.sh instead.
+for p in "$@"; do
+  [ "$p" != 4000 ] || { echo "ERROR: port 4000 is the openisd-preview unit; use bash scripts/preview-4000.sh" >&2; exit 1; }
+done
 
 if [ $# -eq 0 ]; then
   echo "ERROR: kill-http.sh requires at least one port argument" >&2
@@ -36,7 +42,7 @@ if [ -z "${MSYSTEM:-}" ]; then
     [ -n "$now" ] && [ "$now" = "$ostart" ] && echo "$opid"
   }
   for port in "${ports[@]}"; do
-    for pid in $(lsof -ti :"$port" 2>/dev/null || true); do
+    for pid in $(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true); do
       if owner=$(live_other_run "$pid"); then
         echo "port $port: ERROR — PID $pid is the test server of another live run (owner pid $owner); not killed" >&2
         exit 1
@@ -46,7 +52,7 @@ if [ -z "${MSYSTEM:-}" ]; then
     # Killing once and assuming it worked is what let an orphan survive into the next
     # run: `lsof` reporting a PID is not proof the socket is released a moment later.
     for attempt in $(seq 1 10); do
-      pids=$(lsof -ti :"$port" 2>/dev/null || true)
+      pids=$(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true)
       [ -z "$pids" ] && break
       echo "port $port: [attempt $attempt] killing PID(s) $pids"
       # SIGTERM once so a server can close its sockets; SIGKILL from then on, because a
@@ -58,7 +64,7 @@ if [ -z "${MSYSTEM:-}" ]; then
       fi
       sleep 1
     done
-    if [ -n "$(lsof -ti :"$port" 2>/dev/null || true)" ]; then
+    if [ -n "$(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true)" ]; then
       echo "port $port: ERROR — still occupied after 10 attempts, aborting" >&2; exit 1
     fi
   done

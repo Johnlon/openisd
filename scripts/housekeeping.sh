@@ -11,6 +11,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 . "$ROOT/scripts/lib/ts-log.sh"
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 run_start "housekeeping"
+trap 'run_end "housekeeping" $?' EXIT   # every exit path, early ones and die included
 DIR="$(admit_dir)"
 LOG="${HOUSEKEEPING_LOG:-$ROOT/build/test-logs/housekeeping.log}"
 
@@ -71,20 +72,28 @@ stat_field() { # stat_field <pid> <n>: the nth field after the command name (1 s
 # Without admit_starttime every owner would look dead and every tagged process would be stopped.
 declare -F admit_starttime > /dev/null && [ -n "$(admit_starttime $$)" ] || die "admit_starttime is missing or broken; no tag scan"
 TAG="${HOUSEKEEPING_TAG:-OPENISD_BROWSER_OWNER}"   # a test sets its own name, so the scan sees only its processes
-tag_of() { tr '\0' '\n' < "/proc/$1/environ" 2> /dev/null | sed -n "s/^$TAG=//p"; }
+# tag_of <pid>: sets TAG_VAL to the tag's value, "" when none. In-shell: no fork per process (a pile-up scan hit the timeout).
+tag_of() {
+  local kv; TAG_VAL=""
+  { while IFS= read -r -d '' kv; do
+      case "$kv" in "$TAG="*) TAG_VAL=${kv#"$TAG="}; break ;; esac
+    done < "/proc/$1/environ"; } 2> /dev/null
+  return 0
+}
 own_group=$(stat_field $$ 3)
 declare -A targets=() cmds=()   # "<pid or -group>" -> "<pid> <start> owner <owner pid>"; its command line
 for env in /proc/[0-9]*/environ; do
   p=${env#/proc/}; p=${p%/environ}
   [ "$p" != $$ ] || continue
-  owner=$(tag_of "$p"); [ -n "$owner" ] || continue
+  tag_of "$p"; owner=$TAG_VAL; [ -n "$owner" ] || continue
   read -r opid ostart <<< "$owner"
   [ -n "${opid:-}" ] || continue
   now=$(admit_starttime "$opid")
   if [ -n "$now" ] && ! zombie "$opid" && { [ -z "${ostart:-}" ] || [ "$now" = "$ostart" ]; }; then continue; fi
   g=$(stat_field "$p" 3) || continue
   [ "$g" != "$own_group" ] || continue
-  if [ "$(tag_of "$g")" = "$owner" ]; then key="-$g"; else key="$p"; fi
+  tag_of "$g"
+  if [ "$TAG_VAL" = "$owner" ]; then key="-$g"; else key="$p"; fi
   targets[$key]="$p $(admit_starttime "$p") owner $opid"
   cmds[$key]=$(tr '\0' ' ' < "/proc/$p/cmdline" 2> /dev/null | cut -c1-80)
 done
@@ -128,4 +137,4 @@ for rec in "$DIR"/q/*.rec; do
   fi
 done
 say "housekeeping: $freed slot(s) freed, $live live"
-run_end "housekeeping" 0
+exit 0

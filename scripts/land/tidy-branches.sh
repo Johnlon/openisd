@@ -10,7 +10,7 @@
 #     is done: land.sh squashes). A land/<task> candidate branch on origin
 #     goes when it is on origin/main;
 #   - a folder <workspace>/<repo>-* that is not a worktree and has no git data goes when it holds only generated
-#     folders (node_modules, build, test-results, playwright-report, dist, .vite).
+#     folders (node_modules, build, test-results, playwright-report, dist, .vite), and is more than a day old.
 # Every removal and every kept item with a reason is logged with a UTC timestamp.
 #
 #   bash scripts/land/tidy-branches.sh [--only T<n>] [<any checkout of the repo>]
@@ -58,13 +58,10 @@ safe() {
   in_content "$1" "$2"
 }
 wanted() { [ -z "$only" ] || [ "$1" = "t${only#T}" ]; }
+CWDS=""   # every process's current folder, read once per run
 in_use() { # in_use <dir>: a running program's current folder is inside it
-  local p cwd
-  for p in /proc/[0-9]*; do
-    cwd="$(readlink "$p/cwd" 2> /dev/null)" || continue
-    case "$cwd/" in "$1"/*) return 0 ;; esac
-  done
-  return 1
+  [ -n "$CWDS" ] || CWDS="$(find /proc/[0-9]*/cwd -maxdepth 0 -printf '%l/\n' 2> /dev/null; echo -)"
+  awk -v d="$1/" 'index($0, d) == 1 { f = 1 } END { exit !f }' <<< "$CWDS"
 }
 keep_list="$( { g config --get openisd.mainFolder; g config --get-all openisd.syncedCopy; echo "$main"; } 2> /dev/null)"
 
@@ -128,6 +125,7 @@ for dir in "$WORKSPACE/$name"-*/; do
   [ -e "$dir/.git" ] && { log "kept $dir: it has git data but is not a worktree of $name"; continue; }
   other="$(cd "$dir" && ls -A | grep -vxE 'node_modules|build|test-results|playwright-report|dist|\.vite' | head -3 | tr '\n' ' ')"
   [ -z "$other" ] || { log "kept $dir: not a worktree, but holds $other"; continue; }
+  [ -n "$(find "$dir" -maxdepth 0 -mmin +1440)" ] || { log "kept $dir: newer than a day"; continue; }
   in_use "$dir" && { log "kept $dir: a running program is inside it"; continue; }
   rm -rf -- "$dir" && log "removed leftover folder $dir: not a worktree, only generated folders"
 done
