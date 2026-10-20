@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 0998c508747d6100472dd25cdfe09496ecbf39d6
 goal: Landing network calls (fetch, push, gh pr create) are bounded so a stall cannot hold the landing lock, the browser-run build has no deadline, and each browser run serves its own test bundle.
 done_test: bash scripts/land/test/land-network-bound.e2e.test.sh && bash scripts/land/test/land-pull-request.e2e.test.sh && bash scripts/land/test/land.e2e.test.sh && bash scripts/test.sh packages/ui/test/scripts/test-bundle-per-port.test.ts
 files:

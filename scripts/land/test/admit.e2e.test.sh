@@ -63,7 +63,9 @@ else fail "dead owner (r=$r): $(tr '\n' ' ' < "$SCRATCH/hk")"; fi
 # 5. a land.sh fast gate is not blocked while the slot is held
 timeout 60 bash "$A" holder -- sleep 8 & hpid=$!
 sleep 1
-grep -q 'admit' "$REPO/scripts/land/core/"* 2>/dev/null && fail "land.sh core calls admit (fast gates must not queue)" \
+# The rule is about the heavy slot, scripts/admit.sh. A gate waiting in budget.sh for memory and cores (T487) is not
+# the slot, so the search names admit.sh, not the word "admit".
+grep -q 'admit\.sh' "$REPO/scripts/land/core/"* 2>/dev/null && fail "land.sh core calls admit (fast gates must not queue)" \
     || ok "land.sh fast gates do not take the slot"
 wait "$hpid"
 

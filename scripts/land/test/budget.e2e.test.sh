@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # End-to-end test of the memory admission pool (scripts/budget.sh) with real concurrent processes in a
-# scratch lock directory and a small scratch config: 4 general tokens, 3 small, 2 suite.
+# scratch lock directory and a small scratch config: 4 general tokens, 3 small (suite is an alias of general). CPU: 8 tokens, never the limit here.
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d)"
@@ -13,9 +13,9 @@ fail() { echo "FAIL $*"; fails=$((fails + 1)); }
 cat > "$SCRATCH/budget.conf" <<'CONF'
 BUDGET_MB=900
 TOKEN_MB=100
-POOL_SUITE_MB=200
 POOL_SMALL_MB=300
 POOL_GENERAL_MB=400
+CPU_TOKENS=8
 CONF
 export BUDGET_CONF="$SCRATCH/budget.conf" BUDGET_DIR="$SCRATCH/locks" OPENISD_RUNTIME_DIR="$SCRATCH/run"
 B="$REPO/scripts/budget.sh"
@@ -52,11 +52,16 @@ release d; release e
 # the small pool is separate: lint-sized jobs start at once however full the general pool is
 job f general 400; waitfor started f
 job g small 300; waitfor started g && ok "the small pool is free while the general pool is full" || fail "g did not start"
-job h suite 200; waitfor started h && ok "the suite pool is its own reserve" || fail "h did not start"
-release g; release h
+release g; release f
+
+# the old suite pool name draws on the general pool
+job h2 suite 400; sleep 0.5
+job h3 general 100; sleep 0.7
+if started h3; then fail "h3 started while the suite-named job holds all of general"; else ok "pool name suite is an alias of general"; fi
+release h2; waitfor started h3 && ok "and the next job starts when it ends" || fail "h3 never started"
+release h3
 
 # a job killed outright frees its tokens (the kernel drops the flocks; no cleanup runs)
-release f
 job j general 400; waitfor started j
 holder=${pids[-1]}
 job k general 100
