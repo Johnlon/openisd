@@ -6,7 +6,7 @@ set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 S="$(mktemp -d "${TMPDIR:-/tmp}/services-load.XXXXXX")"
 PIDS=(); GRPS=(); fails=0
-cleanup() { for p in "${PIDS[@]}"; do kill -KILL "$p" 2> /dev/null; done
+cleanup() { for p in "${PIDS[@]}"; do [ "$p" -gt 1 ] 2> /dev/null && kill -KILL "$p" 2> /dev/null; done
   for g in "${GRPS[@]}"; do kill -KILL -- "-$g" 2> /dev/null; done; rm -rf "$S"; }
 trap cleanup EXIT
 ok()   { echo "ok   $1"; }
@@ -73,13 +73,15 @@ unset HTTP_STATE_DIR
 # 4. run-ui-telemetry: playwright under heavy.slice, in its own group, killed by the EXIT trap
 R="$S/repo"; mkdir -p "$R/scripts" "$S/tbin"
 cp "$REPO/scripts/run-ui-telemetry.sh" "$R/scripts/"; printf '#!/usr/bin/env bash\nexit 0\n' > "$R/scripts/kill-http.sh"; : > "$R/scripts/telemetry-sampler.mjs"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$R/scripts/build-test-app.sh"   # the build before playwright (T489), not a real vite build
 git -C "$R" init -q 2> /dev/null; git -C "$R" -c user.name=t -c user.email=t@t commit -q --allow-empty -m init 2> /dev/null
 printf '#!/usr/bin/env bash\nexec sleep 300\n' > "$S/tbin/node"
 printf '#!/usr/bin/env bash\necho $$ > "%s/npx.pid"\nsleep 300 &\necho $! > "%s/npxkid"\nwait\n' "$S" "$S" > "$S/tbin/npx"
 printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*" >> "%s/sd.log"\nwhile [ "$1" != "--" ]; do shift; done; shift\nexec "$@"\n' "$S" > "$S/tbin/systemd-run"
 chmod +x "$S/tbin/"*
 PATH="$S/tbin:$PATH" setsid bash "$R/scripts/run-ui-telemetry.sh" > "$S/tel.out" 2>&1 & TP=$!; PIDS+=("$TP"); GRPS+=("$TP")
-waitfile "$S/npxkid"; sleep 0.3; NP=$(cat "$S/npx.pid" 2> /dev/null); NK=$(cat "$S/npxkid" 2> /dev/null); PIDS+=("${NP:-0}" "${NK:-0}")
+waitfile "$S/npxkid"; sleep 0.3; NP=$(cat "$S/npx.pid" 2> /dev/null); NK=$(cat "$S/npxkid" 2> /dev/null); # Only pids that were written: a 0 here would make the cleanup's `kill -KILL 0` kill this test's own group.
+[ -n "$NP" ] && PIDS+=("$NP"); [ -n "$NK" ] && PIDS+=("$NK")
 grep -q -- '--slice=heavy.slice' "$S/sd.log" 2> /dev/null && grep -q -- '--scope' "$S/sd.log" && ok "row 4: playwright starts under systemd-run --scope --slice=heavy.slice" || fail "row 4: systemd-run log: $(cat "$S/sd.log" 2> /dev/null)"
 kill -TERM "$TP"; wait "$TP" 2> /dev/null; sleep 0.5
 ! alive "${NP:-0}" && ! alive "${NK:-0}" && ok "row 4: killing the script kills playwright and its children" || fail "row 4: playwright alive=$(alive "$NP" && echo y) child alive=$(alive "$NK" && echo y)"

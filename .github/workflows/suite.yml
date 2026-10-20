@@ -2,8 +2,8 @@ name: suite
 
 # Prototype (T251, T252, T258): the full suite of the laptop post-land run (scripts/land/post-land/suite.sh)
 # on GitHub's runners. It gates nothing yet. Same rules as post-land: no retries, a flake is a red.
-# One job builds the suite's app; the browser shards download it and serve it (OPENISD_PREBUILT=1 in
-# playwright.config.js). The unit tests run in two halves and typecheck in its own job.
+# One job builds the suite's app; the browser shards download it and serve it (built by
+# scripts/build-test-app.sh). The unit tests run in two halves and typecheck in its own job.
 on:
   push:
     # land/<task>: the candidate of a landing; land.sh pushes main only when this run is green (T301), and main
@@ -140,7 +140,7 @@ jobs:
           name: test-app
           path: |
             build/test-dist-${{ env.OPENISD_TEST_PORT }}
-            build/test-bundle
+            build/test-bundle-${{ env.OPENISD_TEST_PORT }}
             packages/ui/public/build-info.json
           retention-days: 1
 
@@ -200,7 +200,6 @@ jobs:
           fc-cache -f > /dev/null; fc-list | wc -l
       - name: browser tests
         env:
-          OPENISD_PREBUILT: '1'
           OPENISD_TEST_WORKERS: ${{ env.WORKERS }}
         # The shard's spec files, split by measured time (scripts/ci/shard-specs.mjs), not Playwright's
         # --shard, which split by count and left one shard twice as long as another.
