@@ -101,7 +101,9 @@ write_run_json running 0 "" ""
 # The sweep is heavy: it runs in heavy.slice (its ceiling), in its own process group (job control gives the
 # background pipeline one) so the EXIT trap can stop it with its vite and chrome.
 set -m
-{ OPENISD_TEST_WORKERS=1 OPENISD_TEST_PORT="$PORT" \
+{ OPENISD_TEST_PORT="$PORT" systemd-run --user --scope --quiet --collect --slice=heavy.slice -- \
+    bash "$(dirname "${BASH_SOURCE[0]}")/build-test-app.sh" || exit $?
+  OPENISD_TEST_WORKERS=1 OPENISD_TEST_PORT="$PORT" \
     systemd-run --user --scope --quiet --collect --slice=heavy.slice -- \
     npx playwright test --workers=1 --retries=0 2>&1 | tee "$OUT_DIR/run.log"
   exit "${PIPESTATUS[0]}"; } &

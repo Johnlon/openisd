@@ -98,10 +98,12 @@ const PORT = process.env.OPENISD_TEST_PORT;
 // any ad-hoc run: `OPENISD_EXTERNAL=1 npx playwright test <path>`.
 const EXTERNAL_NETWORK_SPECS = ['**/micka-crosscheck.browser.spec.ts'];
 
-// The suite's app: built once, then served. OPENISD_PREBUILT=1 serves a build already in place (the
-// GitHub Actions suite builds it in one job and every shard serves it, .github/workflows/suite.yml).
-export const BUILD_TEST_APP = `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs build/test-bundle && node_modules/.bin/vite build --mode test --outDir ../../build/test-dist-${PORT} --emptyOutDir`;
-const SERVE_TEST_APP = `OPENISD_DRIVERS_BUNDLE_DIR=build/test-bundle node_modules/.bin/vite preview --outDir ../../build/test-dist-${PORT} --port ${PORT} --strictPort`;
+// The suite's app: built once BEFORE Playwright starts (scripts/build-test-app.sh; the GitHub Actions suite builds it
+// in one job and every shard serves it, .github/workflows/suite.yml), then served by the webServer below.
+// One bundle dir per PORT, like the dist dir: concurrent runs never empty each other's catalogue (T489).
+export const TEST_BUNDLE_DIR = `build/test-bundle-${PORT}`;
+export const BUILD_TEST_APP = `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs ${TEST_BUNDLE_DIR} && node_modules/.bin/vite build --mode test --outDir ../../build/test-dist-${PORT} --emptyOutDir`;
+const SERVE_TEST_APP = `OPENISD_DRIVERS_BUNDLE_DIR=${TEST_BUNDLE_DIR} node_modules/.bin/vite preview --outDir ../../build/test-dist-${PORT} --port ${PORT} --strictPort`;
 
 export default defineConfig({
   testDir: './packages/ui/test',
@@ -181,11 +183,13 @@ export default defineConfig({
     // static files. The dev server compiled every page on demand: under load a page took 50–80 s and
     // 19 of 23 failures on 11 Oct 2026 were 60 s goto timeouts. Mode `test` is the only build that
     // installs the fixtures' seam (packages/ui/src/logic/testHooks.ts). One dist per PORT.
-    command: process.env.OPENISD_PREBUILT === '1' ? SERVE_TEST_APP : `${BUILD_TEST_APP} && ${SERVE_TEST_APP}`,
+    command: SERVE_TEST_APP,
     url: `http://localhost:${PORT}`,
     // Never latch onto a server already on this port: it belongs to another run. test-browser.sh frees
     // the reserved port first, so a busy port here is a collision and must fail, not be shared.
     reuseExistingServer: false,
+    // The server start only; the build is not here. Playwright reads 0 as its 60 s default, so the deterministic
+    // build runs before Playwright starts (scripts/build-test-app.sh, called by test-browser.sh and run-ui-telemetry.sh).
     timeout: 300000,
   },
 
