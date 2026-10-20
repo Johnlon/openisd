@@ -1,0 +1,13 @@
+id: T501
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: On a 374x705 phone the passive radiator library keeps its Define and Done buttons on screen: they sit in a pinned footer and only the list scrolls.
+done_test: bash scripts/test.sh packages/ui/test/hooks/PRBrowser-hooks.test.ts
+files:
+  - tasks/T501.yml
+  - bugs/BUG_20261020_phone-pr-library-buttons-off-screen.md
+  - packages/ui/src/ui/components/PRBrowser.vue
+  - packages/ui/test/ui/mobile-pr-library-buttons.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

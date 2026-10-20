@@ -59,17 +59,18 @@ useEscToClose(() => true, close);
             <span v-if="p.dq" class="dq-flag" title="Data quality issues detected — Fs, Sd, or a moving mass / compliance is missing or not positive. Open to review.">⚠</span>
           </div>
         </div>
-
-        <div class="btns" style="margin-top:10px">
-          <button @click="emit('define')" title="Define a brand-new passive radiator from scratch">＋ Define new passive radiator</button>
-          <button class="pri" @click="close" title="Close">Done</button>
-        </div>
+      </div>
+      <div class="btns pr-footer">
+        <button @click="emit('define')" title="Define a brand-new passive radiator from scratch">＋ Define new passive radiator</button>
+        <button class="pri" @click="close" title="Close">Done</button>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+/* Pinned under the scrolling .body (the .modal is a flex column): Define and Done never scroll off. */
+.pr-footer { margin-top: 0; padding: 10px 14px 12px; flex-shrink: 0; }
 .pri { background: var(--acc); color:#fff; border-color: var(--acc); }
 .fav-btn { flex-shrink: 0; background: none; border: none; color: #c8c8c8; cursor: pointer; padding: 0 4px; font-size: 16px; line-height: 1; }
 .fav-btn:hover { color: #e8a317; }
