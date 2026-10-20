@@ -65,7 +65,9 @@ export class DriverType {
 
   static readonly Woofer          = new DriverType('woofer',           'Woofer',           [Chip.Woofer, Chip.Bass]);
   static readonly Subwoofer       = new DriverType('subwoofer',        'Subwoofer',        [Chip.Sub, Chip.Woofer, Chip.Bass]);
-  static readonly Midrange        = new DriverType('midrange',         'Midrange',         [Chip.Mid, Chip.Woofer]);
+  static readonly Midrange        = new DriverType('midrange',         'Midrange',         [Chip.Mid]);
+  static readonly Bass            = new DriverType('bass',             'Bass',             [Chip.Bass, Chip.Woofer]);
+  static readonly BassMidrange    = new DriverType('bass-midrange',    'Bass-midrange',    [Chip.Bass, Chip.Mid, Chip.Woofer]);
   static readonly MidBass         = new DriverType('mid-bass',         'Mid-bass',         [Chip.Woofer, Chip.Mid, Chip.Bass]);
   static readonly MidWoofer       = new DriverType('mid-woofer',       'Mid-woofer',       [Chip.Woofer, Chip.Mid, Chip.Bass]);
   static readonly FullRange       = new DriverType('full-range',       'Full-range',       [Chip.Woofer, Chip.Mid, Chip.Tweet, Chip.Bass, Chip.FullRange]);

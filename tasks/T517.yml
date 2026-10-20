@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: fda18a975264ee07633cfec9d8668655c1d4f313
 goal: Pictures page shows a second Look-at line (written after ' || ' in the Look at cell) as its own line, never the raw ||
 done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
 files:
