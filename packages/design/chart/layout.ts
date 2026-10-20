@@ -44,5 +44,20 @@ export class ChartLayout {
     return Math.min(Math.max(lineX, half), panelWidthPx - half);
   }
 
+  /** The least clear space between two neighbouring frequency labels. */
+  static readonly MIN_FREQ_LABEL_GAP_PX = 6;
+
+  /** Centres for a row of frequency labels, left to right: each kept inside the panel, and each moved left
+   *  as far as needed to leave `MIN_FREQ_LABEL_GAP_PX` clear before the label to its right. On a phone the
+   *  last label (20.0k) is pulled in from the edge and would otherwise nearly touch 10.0k. */
+  freqLabelCentres(lineXs: readonly number[], widthsPx: readonly number[], panelWidthPx: number): number[] {
+    const centres = lineXs.map((x, i) => this.freqLabelCentreX(x, widthsPx[i], panelWidthPx));
+    for (let i = centres.length - 2; i >= 0; i--) {
+      const limit = centres[i + 1] - widthsPx[i + 1] / 2 - ChartLayout.MIN_FREQ_LABEL_GAP_PX - widthsPx[i] / 2;
+      centres[i] = Math.min(centres[i], limit);
+    }
+    return centres;
+  }
+
   static readonly CHART = new ChartLayout({ l: 44, r: 10, t: 24, b: 20 }, 16, 9, 3, 1);
 }

@@ -54,11 +54,15 @@ export function drawOne(
 
   // frequency grid
   ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = layout.font(layout.tickFontPx); ctx.lineWidth = 1;
+  const freqLabels: { text: string; x: number }[] = [];
   for (const line of freqAxis.gridLines()) {
     const x = X(line.f); ctx.globalAlpha = line.major ? 0.85 : 0.28;
     ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
-    if (line.labelled) { ctx.globalAlpha = 1; ctx.textAlign = 'center'; const label = freqAxis.tickLabel(line.f); ctx.fillText(label, layout.freqLabelCentreX(x, ctx.measureText(label).width, W), m.t + ph + 11); }
+    if (line.labelled) freqLabels.push({ text: freqAxis.tickLabel(line.f), x });
   }
+  const labelXs = layout.freqLabelCentres(freqLabels.map(l => l.x), freqLabels.map(l => ctx.measureText(l.text).width), W);
+  ctx.globalAlpha = 1; ctx.textAlign = 'center';
+  freqLabels.forEach((l, i) => ctx.fillText(l.text, labelXs[i], m.t + ph + 11));
   ctx.globalAlpha = 1;
 
   // y grid

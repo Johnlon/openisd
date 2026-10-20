@@ -35,4 +35,18 @@ describe('ChartLayout frequency label placement', () => {
   it('keeps a label at the left edge inside the panel', () => {
     expect(layout.freqLabelCentreX(2, 25, 800) - 12.5).toBeGreaterThanOrEqual(0);
   });
+
+  it('keeps a clear gap between neighbouring labels at phone width (10.0k, 20.0k)', () => {
+    const canvasW = 374, plotW = canvasW - layout.margin.l - layout.margin.r;
+    const widths = [25, 25];
+    const lineXs = [layout.margin.l + plotW * 0.9, layout.margin.l + plotW];
+    const [a, b] = layout.freqLabelCentres(lineXs, widths, canvasW);
+    const gap = (b - widths[1] / 2) - (a + widths[0] / 2);
+    expect(gap).toBeGreaterThanOrEqual(ChartLayout.MIN_FREQ_LABEL_GAP_PX);
+    expect(b + widths[1] / 2).toBeLessThanOrEqual(canvasW);
+  });
+
+  it('leaves well-spaced labels on their grid lines', () => {
+    expect(layout.freqLabelCentres([100, 300, 500], [25, 25, 25], 800)).toEqual([100, 300, 500]);
+  });
 });
