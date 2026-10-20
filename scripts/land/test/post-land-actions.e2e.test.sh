@@ -43,7 +43,7 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/; cp "$REPO/scripts/paths.sh" "$REPO/scripts/browser-runs.sh" "$REPO/scripts/slice-events.sh" scripts/
-    cp -r "$REPO/scripts/admit" "$REPO/scripts/visual" scripts/
+    cp -r "$REPO/scripts/admit" "$REPO/scripts/visual" "$REPO/scripts/feedback" scripts/
     cat > land.conf <<CONF
 FULL_SUITE_CMD="bash scripts/land/post-land/actions.sh"
 POST_LAND_LOCK="$SCRATCH/post.lock"

@@ -36,7 +36,7 @@ setup() {
     cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/land.sh" scripts/ 2>/dev/null
     cp "$REPO/scripts/paths.sh" scripts/
     cp -r "$REPO/scripts/lib" scripts/
-    cp "$REPO/scripts/browser-runs.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/; cp -r "$REPO/scripts/visual" scripts/; cp "$REPO/scripts/slice-events.sh" scripts/
+    cp "$REPO/scripts/browser-runs.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/; cp -r "$REPO/scripts/visual" "$REPO/scripts/feedback" scripts/; cp "$REPO/scripts/slice-events.sh" scripts/
     # suite: fails if FAIL exists; with ONCE it fails the first time only (a flake)
     cat > suite.sh <<'EOF'
 #!/usr/bin/env bash

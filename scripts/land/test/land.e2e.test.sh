@@ -44,7 +44,7 @@ setup() {
     mkdir -p scripts tasks/fixes gates
     cp "$REPO/scripts/land.sh" scripts/
     cp -r "$REPO/scripts/land" scripts/
-    cp -r "$REPO/scripts/visual" scripts/
+    cp -r "$REPO/scripts/visual" "$REPO/scripts/feedback" scripts/
     cp "$REPO/scripts/paths.sh" scripts/
     cp -r "$REPO/scripts/lib" scripts/
     cat > gates/lint.sh <<'EOF'

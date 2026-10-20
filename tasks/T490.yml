@@ -1,0 +1,26 @@
+id: T490
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Visual-changes pages are made by feedback-page.py: one item per before/after pair, pictures marked by mark-diff.py, What-to-do first line, answerable at 374 and 1280 wide.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T003.yml
+  - tasks/T490.yml
+  - scripts/land/test/visual-page.test.sh
+  - scripts/land/test/visual.e2e.test.sh
+  - scripts/visual/diff-page.mjs
+  - scripts/visual/failures-page.sh
+  - scripts/visual/publish-changes.sh
+  - scripts/feedback/feedback-page.py
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/mark-diff.py
+  - scripts/feedback/check-answerable.mjs
+  - scripts/feedback/feedback_page_test.py
+  - scripts/feedback/feedback_page_ruled_test.mjs
+  - .github/workflows/suite.yml
+  - scripts/land/test/land.e2e.test.sh
+  - scripts/land/test/post-land-actions.e2e.test.sh
+  - scripts/land/test/post-land.e2e.test.sh
+  - tasks/T001.yml

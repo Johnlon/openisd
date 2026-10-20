@@ -20,5 +20,5 @@ while IFS= read -r id; do
 done <<< "$ids"
 printf ']' >> "$entries"
 out="$VISUAL_PAGES_DIR/${task}-$(git rev-parse --short=10 "$head")"
-node "$VISUAL_SCRIPTS/diff-page.mjs" "$out" "$task: screens whose baseline changed" "$entries" > /dev/null
+node "$VISUAL_SCRIPTS/diff-page.mjs" "$out" "$task: screens whose baseline changed" "$entries" "$task" > /dev/null
 printf 'visual changes: %s/%s/index.html\n' "$VISUAL_PAGES_URL" "$(basename "$out")"

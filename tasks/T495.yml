@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 8ecd2c9c0fb761937f01f947aa701a6a09f5489d
 goal: Picking a sealed alignment keeps the box volume fixed when the driver changes; Qtc is recalculated, as in WinISD
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
