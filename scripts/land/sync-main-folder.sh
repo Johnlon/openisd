@@ -3,7 +3,10 @@
 # passed (T328, John 17 Oct 2026). Nobody runs it by hand: the watchdog runs it every tick and land.sh after
 # every landing. It can never get stuck (T476, John 19 Oct 2026): it never rebases, never conflicts, and never
 # commits onto the copy's own main. For each copy:
-#   1. Stray edits (modified, staged or untracked files) are committed to a new branch stray/<UTC yyyymmddThhmmssZ>
+#   1. Untracked files are never touched: they stay where they are, on disk and on no branch (T485, John 20 Oct
+#      2026: a sync swept his file into a stray branch). One at a path the passed commit adds would be overwritten
+#      by the move: the copy is held, logged, exit 1. Stray edits to tracked files (modified, staged, deleted)
+#      are committed to a new branch stray/<UTC yyyymmddThhmmssZ>
 #      made from the copy's current HEAD (hooks off for that commit); the working tree then returns to the state
 #      of the branch it was on, so the copy's main is unchanged by the commit.
 #   2. Commits of the copy's own that are not on the passed commit are kept on a stray/ branch the same way (one
@@ -66,11 +69,11 @@ stray_branch() {
   base="stray/$(date -u +%Y%m%dT%H%M%SZ)"; [ "$copy" = "$main" ] || base="$base-$(basename "$copy")"
   branch="$base"
   while g show-ref -q --verify "refs/heads/$branch"; do n=$((n + 1)); branch="$base-$n"; done
-  if [ -n "$(g status --porcelain --untracked-files=all)" ]; then
+  if [ -n "$(g status --porcelain --untracked-files=no)" ]; then
     g checkout -q -b "$branch" || { log "$name: could not make $branch; not moved"; return 1; }
-    g add -A && g -c core.hooksPath=/dev/null commit -q -m "WIP $name: stray edits, committed by sync-main-folder" \
+    g add -u && g -c core.hooksPath=/dev/null commit -q -m "WIP $name: stray edits, committed by sync-main-folder" \
       || { log "$name: could not commit its stray edits to $branch; not moved"; return 1; }
-    [ -z "$(g status --porcelain --untracked-files=all)" ] || { log "$name: tree still dirty after the commit on $branch; not moved"; return 1; }
+    [ -z "$(g status --porcelain --untracked-files=no)" ] || { log "$name: tree still dirty after the commit on $branch; not moved"; return 1; }
     if [ -n "$ref" ]; then g checkout -q "${ref#refs/heads/}"; else g checkout -q --detach "$head"; fi \
       || { log "$name: could not return to ${ref:-$head} from $branch; stray work is safe on $branch"; return 1; }
   else
@@ -99,7 +102,10 @@ sync() {
     bash "$HERE/drop-superseded-handover.sh" "$copy" "$target"; head="$(g rev-parse HEAD)" || return 1
   fi
   ahead="$(g rev-list --count "$target..HEAD")" || return 1
-  if [ -n "$(g status --porcelain --untracked-files=all)" ] || [ "$ahead" != 0 ]; then
+  while IFS= read -r f; do
+    g cat-file -e "$target:$f" 2> /dev/null && { log "$name: untracked $f would be overwritten by ${target:0:10}; not moved"; return 1; }
+  done < <(g ls-files --others --exclude-standard)
+  if [ -n "$(g status --porcelain --untracked-files=no)" ] || [ "$ahead" != 0 ]; then
     stray_branch "$copy" "$name" "$head" || return 1
   fi
   if [ "$ahead" != 0 ]; then

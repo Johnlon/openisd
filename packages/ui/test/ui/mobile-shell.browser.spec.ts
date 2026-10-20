@@ -34,7 +34,8 @@ test('the empty state shows the app logo and name above the New/Open buttons', a
   // Vite inlines the small icon.svg as a data: URL, so the img is found by place, not by src.
   const logo = brand.locator('img');
   await expect(logo).toBeVisible();
-  expect(await logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
+  // A fixed CSS size makes the img visible before it has decoded; wait for the decode itself.
+  await expect.poll(() => logo.evaluate((img: HTMLImageElement) => (img.complete ? img.naturalWidth : 0))).toBeGreaterThan(0);
   await expect(brand).toBeVisible();
   const brandBox = await brand.boundingBox();
   const ctaBox = await empty.locator('.mob-cta').first().boundingBox();

@@ -1,0 +1,16 @@
+id: T485
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: sync-main-folder leaves untracked files in the main folder where John put them; only tracked edits go to a stray branch.
+done_test: bash scripts/land/test/sync-main-folder.e2e.test.sh && bash scripts/land/test/watchdog.test.sh
+files:
+  - tasks/T485.yml
+  - bugs/BUG_20261020_sync-main-folder-swept-johns-file.md
+  - scripts/land/sync-main-folder.sh
+  - scripts/land/test/sync-main-folder.e2e.test.sh
+  - scripts/land/test/watchdog.test.sh
+  - bugs/BUG_20261020_watchdog-test-flaky.md
+  - packages/ui/test/ui/mobile-shell.browser.spec.ts
+  - bugs/BUG_20261020_mobile-logo-test-reads-before-decode.md
