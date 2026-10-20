@@ -94,7 +94,7 @@ test('opening a project swaps the empty state for the tab bar, defaulting to the
   await expect(page.locator('.mob-empty')).toHaveCount(0);
   await expect(page.locator('.mob-tabbar')).toBeVisible();
   await expect(page.locator('.mob-tab.active')).toHaveText('Box');
-  await expect(page.locator('.mob-panel-head').first()).toHaveText('Box');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('Box');
 });
 
 test('the tab bar switches between Box, Driver, Signal and Graph', async ({ appPage: page }) => {
@@ -103,11 +103,11 @@ test('the tab bar switches between Box, Driver, Signal and Graph', async ({ appP
 
   await page.locator('.mob-tab', { hasText: 'Driver' }).click();
   await expect(page.locator('.mob-tab.active')).toHaveText('Driver');
-  await expect(page.locator('.mob-panel-head').first()).toHaveText('Driver');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('Driver');
 
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
   await expect(page.locator('.mob-tab.active')).toHaveText('Signal');
-  await expect(page.locator('.mob-panel-head').first()).toHaveText('Signal');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('Signal');
 
   await page.locator('.mob-tab', { hasText: 'Graph' }).click();
   await expect(page.locator('.mob-tab.active')).toHaveText('Graph');
@@ -115,5 +115,5 @@ test('the tab bar switches between Box, Driver, Signal and Graph', async ({ appP
   await expect(page.locator('.mob-tabbar')).toBeVisible();
 
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
-  await expect(page.locator('.mob-panel-head').first()).toHaveText('Box');
+  await expect(page.locator('.mob-band-title').first()).toHaveText('Box');
 });

@@ -4,14 +4,13 @@
 // (src/hooks/MobileShell-hooks.ts), mirroring OriginalShell.vue's own 1-to-1 hook rule.
 import MobileSaveButton from './MobileSaveButton.vue';
 import MobileTabBar from './MobileTabBar.vue';
-import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
+import MobileKeyStrip from './MobileKeyStrip.vue';
 import MobileBoxTab from './MobileBoxTab.vue';
 import MobileDriverTab from './MobileDriverTab.vue';
 import MobileSignalTab from './MobileSignalTab.vue';
 import MobileChartView from './MobileChartView.vue';
 import MobileProjectTab from './MobileProjectTab.vue';
 import MobileFiltersTab from './MobileFiltersTab.vue';
-import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import MobileAdvancedTab from './MobileAdvancedTab.vue';
 import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
@@ -34,7 +33,7 @@ const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
   browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
-  showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown,
+  contentEl, canScrollUp, canScrollDown,
   username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
@@ -77,6 +76,8 @@ const diagnostics = injectDiagnosticsModal();
       <MobileSaveButton v-if="projectOpen" />
     </div>
 
+    <MobileKeyStrip v-if="projectOpen && destination !== 'graph'" />
+
     <div v-if="!projectOpen" class="mob-empty">
       <div class="mob-empty-brand">
         <img src="/icon.svg" alt="" aria-hidden="true">
@@ -98,10 +99,8 @@ const diagnostics = injectDiagnosticsModal();
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
         <MobileFiltersTab v-else-if="destination === 'filters'" />
-        <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
         <div v-if="pinSpacePx > 0" class="mob-pin-space" :style="{ height: pinSpacePx + 'px' }" aria-hidden="true"></div>
       </main>
-      <ProvenanceLegend v-if="destination === 'box' || destination === 'signal' || destination === 'enclosure'" />
       <MobilePaneDialog v-if="pane === 'project'" title="Project" @close="closePane">
         <MobileProjectTab />
       </MobilePaneDialog>
@@ -130,8 +129,7 @@ const diagnostics = injectDiagnosticsModal();
         <button type="button" class="mob-update-reload" @click="turnOnHint">{{ cloudSyncDisplay.hint.yes }}</button>
         <button type="button" class="mob-update-later" :aria-label="cloudSyncDisplay.hint.no" :title="cloudSyncDisplay.hint.no" @click="dismissHint">&#10005;</button>
       </div>
-      <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel"
-        :shadow-above="canScrollDown" />
+      <MobileTabBar v-model="destination" :shadow-above="canScrollDown" />
 
     </template>
 

@@ -37,16 +37,17 @@ test('the What-if panel has the legend as one thin row at its bottom', async ({p
   await expectOneThinRow(page.locator('.what-if-panel > .prov-legend'));
 });
 
-test('the phone Box, Signal and Enclosure tabs have the legend between their content and the tab bar', async ({page}) => {
+test('the phone Box and Signal pages have the key strip directly under the header, in Entered, Calculated, Not Available', async ({page}) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
   for (const tab of ['Box', 'Signal']) {
     await page.locator('.mob-tab', {hasText: tab}).click();
-    const legend = page.locator('.mobile-root > .prov-legend');
-    await expectOneThinRow(legend);
-    const l = (await legend.boundingBox())!;
-    const bar = (await page.locator('.mob-tabbar').boundingBox())!;
-    expect(l.y + l.height).toBeLessThanOrEqual(bar.y + 1);
+    const strip = page.locator('.mob-key-strip');
+    await expect(strip).toHaveText(/Entered\W*Calculated\W*Not Available/);
+    const s = (await strip.boundingBox())!;
+    const header = (await page.locator('.mob-topbar').boundingBox())!;
+    expect(Math.abs(s.y - (header.y + header.height))).toBeLessThanOrEqual(1);
+    expect(s.height).toBeCloseTo(24, 0);
   }
 });

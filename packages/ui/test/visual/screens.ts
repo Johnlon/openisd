@@ -99,7 +99,8 @@ function screens(): readonly Screen[] {
   all.push(screen(VisualSkin.MOBILE, 'tab-enclosure', async page => {
     await VisualSkin.MOBILE.openProject(page);
     await setFocusedBoxType(page, 'vented');
-    await page.locator('.mob-tab').nth(3).click();
+    // The vents are on the Box page now: the screen is the page scrolled to its vent sections.
+    await page.locator('.mob-content').evaluate(el => { el.scrollTop = el.scrollHeight; });
   }));
   all.push(screen(VisualSkin.MOBILE, 'tab-advanced', async page => {
     await VisualSkin.MOBILE.openProject(page);

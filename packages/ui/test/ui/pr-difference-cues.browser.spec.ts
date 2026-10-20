@@ -25,7 +25,7 @@ for (const skin of ['desktop', 'mobile'] as const) {
     });
 
     const openTab = async (page: Page, tab: 'Box' | 'Passive Radiator'): Promise<void> => {
-      if (skin === 'mobile') await page.locator('.mob-tab', {hasText: tab}).click();
+      if (skin === 'mobile') await page.locator('.mob-tab', {hasText: 'Box'}).click();
       else await page.locator('.project-nav li', {hasText: tab}).first().click();
     };
 

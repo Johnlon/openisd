@@ -26,7 +26,6 @@ test.beforeEach(async ({page}) => {
   await openAMobileProject(page);
   await expect(page.getByText(/Project imported/)).toBeHidden();
   await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-  await page.locator('.mob-tab', {hasText: 'Passive Radiator'}).click();
 });
 
 test('the radiator Mms and Cms are rows the user can see and enter', async ({page}) => {

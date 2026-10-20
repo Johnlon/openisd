@@ -68,10 +68,9 @@ test.describe('Mobile skin', () => {
   test('an unreachable rear tuning shows its message once and covers no row', async ({page}) => {
     await page.locator('.mob-tab', {hasText: 'Box'}).click();
     await page.locator('#mob-box-type').selectOption('abc');
-    const tuning = page.locator('.ui-field', {hasText: 'Tuning freq (Frc)'}).locator('input');
+    const tuning = page.locator('.ui-field', {hasText: 'Frc'}).locator('input');
     await fillAndCommit(tuning, '2000');
-    await page.locator('.mob-tab', {hasText: 'ABC'}).click();
-    const rear = page.locator('.mob-panel', {has: page.locator('.mob-panel-head', {hasText: 'Rear vent'})});
+    const rear = page.locator('.mob-csection', {has: page.locator('.mob-band-title', {hasText: 'Rear vent'})});
     const length = rear.locator('.ui-field', {hasText: 'Vent length'});
     const resonance = rear.locator('.ui-field', {hasText: '1st port resonance'});
     const note = await openMessage(page, length);

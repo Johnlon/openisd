@@ -15,7 +15,6 @@ import {STEPPER_PIN, StepperPin} from '../logic/stepperPin.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
 import type {TabId} from '../logic/tabId.js';
-import {createSelectedBox} from './boxFields.js';
 import type {BinRow} from './binRows.js';
 import type {ProjectListRow} from './projectBinView.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
@@ -38,7 +37,7 @@ import {
  *  — a destination that has no desktop counterpart, because `GraphPanel`'s canvas sets
  *  `touch-action: none` (custom pointer pan/zoom) and would trap vertical scroll if it sat
  *  inline in a form column instead of owning the whole screen. */
-export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'enclosure'> | 'graph';
+export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters'> | 'graph';
 
 /** The panes the hamburger menu opens as full-screen dialogs over the current destination. */
 export type MobilePane = 'project' | 'advanced' | 'drivers' | 'cloudSync';
@@ -46,7 +45,6 @@ export type MobilePane = 'project' | 'advanced' | 'drivers' | 'cloudSync';
 const DEST_ACTIONS: Record<MobileDestination, ActionName> = {
   box: 'tab:box',
   driver: 'tab:driver',
-  enclosure: 'tab:enclosure',
   filters: 'tab:filters',
   signal: 'tab:signal',
   graph: 'tab:graph',
@@ -107,11 +105,6 @@ export interface MobileShellApi {
   pinSpacePx: import('vue').Ref<number>;
   /** Bound to `.mob-content`'s `scroll`: the scroll edges, and the pin. */
   onContentScroll: () => void;
-  /** Mirrors desktop's own nav gate: sealed has no Enclosure destination (Volume + Fsc live only
-   *  on the Box tab). */
-  showEnclosureTab: import('vue').ComputedRef<boolean>;
-  /** The Enclosure tab bar label, matching desktop's `enclosureNavLabel`. */
-  enclosureNavLabel: import('vue').ComputedRef<string>;
   /** Bound to `.mob-content` so its scroll position/height can be read. */
   contentEl: import('vue').Ref<HTMLElement | null>;
   /** True while there is unscrolled content ABOVE the current view — shows as a shadow under
@@ -187,7 +180,7 @@ export interface MobileShellApi {
 export function useMobileShell(): MobileShellApi {
   const recentActions = useRecentActions();
   const { appState, presentation: presentationState } = useApp();
-  const { setTraceVisible, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
+  const { setTraceVisible, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
   const { setSkinOverride } = presentationState;
   const { designIO, projectRepo, projectBin, appUpdate, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
@@ -201,7 +194,6 @@ export function useMobileShell(): MobileShellApi {
     presentationState.mobileDestination = d;
     recentActions.record(DEST_ACTIONS[d]);
     if (d === 'filters') featureUse.feature('filters');
-    if (d === 'enclosure') featureUse.feature('vents');
   }, { immediate: true });
   watch(pane, p => {
     presentationState.mobilePane = p;
@@ -216,10 +208,7 @@ export function useMobileShell(): MobileShellApi {
   // (OptionsModal.vue), not a new setting of its own.
   const username = computed(() => presentationState.ui.username || null);
 
-  // Mirrors desktop's own nav gate (OriginalShell-hooks.ts) — its own selectedBox instance, kept
-  // synced to the project the same way (see createSelectedBox's own comment).
-  const { showEnclosureTab, enclosureNavLabel } =
-    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
+
 
 
 
@@ -597,7 +586,7 @@ export function useMobileShell(): MobileShellApi {
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
-    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll, showEnclosureTab, enclosureNavLabel,
+    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
     projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
     openProjectRows, selectOpenProject, closeOpenProject,

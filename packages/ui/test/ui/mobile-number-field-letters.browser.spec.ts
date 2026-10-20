@@ -9,7 +9,7 @@ test('Mobile: a number field refuses letters typed or pasted and takes the numbe
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', {hasText: 'Signal'}).click();
-  const input = mobileFieldRow(page, 'Series resistance').locator('input');
+  const input = mobileFieldRow(page, 'Rs').locator('input');
 
   await input.click();
   const start = await input.inputValue();

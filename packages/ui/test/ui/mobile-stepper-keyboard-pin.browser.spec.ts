@@ -38,6 +38,8 @@ test('the last box on the tab stays put when its ▲ closes the keyboard, and a 
     return b !== null && b.y >= 0 && b.y + b.height <= KEYBOARD_UP.height;
   }).toBe(true);
 
+  // The tap scrolls its button fully into view first; take the box's place after that, not before.
+  await up.scrollIntoViewIfNeeded();
   const before = await boxOf(box);
   const btn = await boxOf(up);
   const first = await box.inputValue();

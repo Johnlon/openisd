@@ -493,7 +493,7 @@ export type EditorTab = 'General' | 'Parameters' | 'Advanced' | 'Dimensions';
 
 /** The Volume input on the Box tab, in either skin. */
 function boxVolumeInput(page: Page): Locator {
-  return page.locator('#og-box-volume, .mob-field-row:has(.mob-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Volume")) input').first();
+  return page.locator('#og-box-volume, .mob-field-row:has(.mob-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Vb")) input').first();
 }
 
 /** The Box tab's Volume as the screen shows it, in the unit shown (litres until a user rotates it). */

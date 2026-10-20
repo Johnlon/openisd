@@ -131,7 +131,7 @@ test.describe('Mobile skin', () => {
   });
 
   test('▲ button holds focus, steps tenths across carry 9.9 -> 10.0, and marks tenths with underline overlay', async ({page}) => {
-    const row = mobileFieldRow(page, 'Volume').first();
+    const row = mobileFieldRow(page, 'Vb').first();
     const box = row.locator('input').first();
     await box.fill('9.9');
     await box.blur();
@@ -175,14 +175,13 @@ test.describe('Mobile vent editor: Tuning freq (calculated) steps the digit at t
     await forceMobileSkin(page);
     await page.goto('/');
     await openAMobileProject(page);
-    await page.locator('.mob-tab', {hasText: 'Vented'}).click();
     const length = mobileFieldRow(page, 'Vent length').locator('input');
     await length.fill('30');
     await length.blur();
   });
 
   test('the caret after the units digit: ▲ steps the units, focus stays on ▲, the units digit is marked, a repeat steps it again', async ({page}) => {
-    const row = mobileFieldRow(page, 'Tuning freq');
+    const row = mobileFieldRow(page, 'Fb');
     const box = row.locator('input');
     await expect(box).toHaveClass(/value-c/);
     const before = Number(await box.inputValue());
@@ -201,7 +200,7 @@ test.describe('Mobile vent editor: Tuning freq (calculated) steps the digit at t
   });
 
   test('the caret after the decimal point: ▲ steps the tenths', async ({page}) => {
-    const row = mobileFieldRow(page, 'Tuning freq');
+    const row = mobileFieldRow(page, 'Fb');
     const box = row.locator('input');
     const before = await box.inputValue();
     await box.focus();

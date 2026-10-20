@@ -14,7 +14,7 @@ test.beforeEach(async ({page}) => {
 
 /** The numbers of every vent panel, by panel title, as shown. */
 async function shownVentPanels(page: Page): Promise<Record<string, string[]>> {
-  const titles = await page.locator('.mob-panel-head', {hasText: /^(Rear|Front|Intra) vent$/}).allTextContents();
+  const titles = await page.locator('.mob-band-title', {hasText: /^(Rear|Front|Intra) vent$/}).allTextContents();
   const panels: Record<string, string[]> = {};
   for (const title of titles) {
     panels[title] = await ventPanel(page, title).locator('.ui-field input').evaluateAll(
@@ -29,18 +29,18 @@ async function chooseBox(page: Page, option: 'bandpass6' | 'abc'): Promise<void>
 }
 
 const ventPanel = (page: Page, title: string) =>
-  page.locator('.mob-panel', {has: page.locator('.mob-panel-head', {hasText: title})});
+  page.locator('.mob-csection', {has: page.locator('.mob-band-title', {hasText: title})});
 
 test('bandpass6: the Front chamber panel on the Box tab edits the front chamber tuning', async ({page}) => {
   await chooseBox(page, 'bandpass6');
   const ventedTuning = async (): Promise<string> => {
     await page.locator('#mob-box-type').selectOption('vented');
-    const shown = await page.locator('.ui-field', {hasText: 'Tuning'}).locator('input').first().inputValue();
+    const shown = await page.locator('.ui-field', {hasText: 'Fb'}).locator('input').first().inputValue();
     await page.locator('#mob-box-type').selectOption('bandpass6');
     return shown;
   };
   const before = await ventedTuning();
-  const tuning = ventPanel(page, 'Front chamber').locator('.ui-field', {hasText: 'Tuning'}).locator('input');
+  const tuning = ventPanel(page, 'Front chamber').locator('.ui-field', {hasText: 'Ffc'}).locator('input');
   await tuning.fill('31.5');
   await tuning.blur();
   await expect(tuning).toHaveValue(/^31\.5/);
@@ -49,8 +49,7 @@ test('bandpass6: the Front chamber panel on the Box tab edits the front chamber 
 
 test('bandpass6: one vent panel per port, no pending note, a diameter edit reaches only that vent', async ({page}) => {
   await chooseBox(page, 'bandpass6');
-  await page.locator('.mob-tab', {hasText: '6th Order Bandpass'}).click();
-  await expect(page.locator('.mob-panel-head', {hasText: /^(Rear|Front) vent$/})).toHaveText(['Rear vent', 'Front vent']);
+  await expect(page.locator('.mob-band-title', {hasText: /^(Rear|Front) vent$/})).toHaveText(['Rear vent', 'Front vent']);
   await expect(page.locator('body')).not.toContainText('Response model pending');
   const before = await shownVentPanels(page);
   const diameter = ventPanel(page, 'Rear vent').locator('.ui-field', {hasText: 'Vent diameter'}).locator('input');
@@ -63,8 +62,7 @@ test('bandpass6: one vent panel per port, no pending note, a diameter edit reach
 
 test('abc: Rear, Front and Intra vent panels; the Intra length is editable', async ({page}) => {
   await chooseBox(page, 'abc');
-  await page.locator('.mob-tab', {hasText: 'ABC'}).click();
-  await expect(page.locator('.mob-panel-head', {hasText: /^(Rear|Front|Intra) vent$/})).toHaveText(['Rear vent', 'Front vent', 'Intra vent']);
+  await expect(page.locator('.mob-band-title', {hasText: /^(Rear|Front|Intra) vent$/})).toHaveText(['Rear vent', 'Front vent', 'Intra vent']);
   const length = ventPanel(page, 'Intra vent').locator('.ui-field', {hasText: 'Vent length'}).locator('input');
   await length.fill('7');
   await length.blur();

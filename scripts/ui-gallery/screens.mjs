@@ -61,6 +61,8 @@ const openGroupHelp = async (page) => { await page.getByRole('button', { name: /
 // A vented project: the Box type is the first select that offers "Vented"; its tab then carries the box name.
 async function makeVented(page) { await page.locator('select:visible').filter({ hasText: 'Vented' }).first().selectOption('Vented'); await page.waitForTimeout(800); }
 const ENCLOSURE_TAB = /^(Vented|Enclosure)$/;
+// Builds before the combined Box page have a bottom-bar tab for the box's vents; later ones show them on the Box page.
+const clickIfPresent = async (p, name) => { const tab = p.getByRole('button', { name, exact: typeof name === 'string' }); if (await tab.count() > 0) await tab.first().click(T); };
 
 export const SCREENS = [
   { key: 'welcome', label: 'First-run welcome (splash)', vp: BOTH, keep: true, covers: ['SplashModal', 'SplashContent'], act: async () => {} },
@@ -121,7 +123,7 @@ export const SCREENS = [
   { key: 'diagnostics', label: 'Diagnostics', vp: [DESKTOP], covers: ['DiagnosticsModal'], act: (p) => infoMenuItem(p, 'Diagnostics') },
   // phone
   { key: 'menu', label: 'Menu open', vp: [PHONE], covers: ['MobileShell'], act: openPhoneMenu },
-  { key: 'tab-driver', label: 'Driver tab', vp: [PHONE], covers: ['MobileDriverTab'], act: (p) => clickBtn(p, 'Driver') },
+  { key: 'tab-driver', label: 'Driver tab', vp: [PHONE], covers: ['MobileDriverTab', 'MobileKeyStrip', 'PhoneBand', 'PhoneClassicPage'], act: (p) => clickBtn(p, 'Driver') },
   { key: 'tab-signal', label: 'Signal tab', vp: [PHONE], covers: ['MobileSignalTab'], act: (p) => clickBtn(p, 'Signal') },
   { key: 'tab-filters', label: 'Filters tab', vp: [PHONE], covers: ['MobileFiltersTab', 'OriginalFilters'], act: (p) => clickBtn(p, 'Filters') },
   { key: 'tab-graph', label: 'Graph tab', vp: [PHONE], covers: ['MobileChartView', 'GraphPanel'], act: (p) => clickBtn(p, 'Graph') },
@@ -162,9 +164,9 @@ export const SCREENS = [
   { key: 'diagnostics', label: 'Diagnostics', vp: [PHONE], covers: ['DiagnosticsModal'], act: (p) => phoneMenuItem(p, 'Diagnostics') },
   { key: 'about', label: 'About (splash on demand)', vp: [PHONE], covers: ['SplashModal'], act: (p) => phoneMenuItem(p, 'About OpenISD') },
   // A vented project: its box tab. Last, because the project stays vented.
-  { key: 'tab-enclosure', label: 'Enclosure tab (vented box)', vp: BOTH, covers: ['MobileEnclosureTab', 'VentPortFields', 'OriginalShell'], act: async (p) => { await (p.viewportSize().width > 800 ? clickText(p, 'Box') : clickBtn(p, 'Box')); await makeVented(p); await (p.viewportSize().width > 800 ? clickText(p, 'Vented') : p.getByRole('button', { name: ENCLOSURE_TAB }).click(T)); await p.waitForTimeout(400); } },
+  { key: 'tab-enclosure', label: 'Enclosure tab (vented box)', vp: BOTH, covers: ['MobileEnclosureTab', 'VentPortFields', 'OriginalShell'], act: async (p) => { await (p.viewportSize().width > 800 ? clickText(p, 'Box') : clickBtn(p, 'Box')); await makeVented(p); await (p.viewportSize().width > 800 ? clickText(p, 'Vented') : clickIfPresent(p, ENCLOSURE_TAB)); await p.waitForTimeout(400); } },
   // A passive-radiator project: its box tab, the radiator browser and the save-to-library dialog.
-  { key: 'tab-passive-radiator', label: 'Passive radiator tab', vp: BOTH, keep: true, covers: ['MobileEnclosureTab', 'OriginalShell'], act: async (p) => { await (p.viewportSize().width > 800 ? clickText(p, 'Box') : clickBtn(p, 'Box')); await p.locator('select:visible').filter({ hasText: 'Passive Radiator' }).first().selectOption('Passive Radiator'); await p.waitForTimeout(800); await (p.viewportSize().width > 800 ? clickText(p, 'Passive Radiator') : p.getByRole('button', { name: 'Passive Radiator', exact: true }).click(T)); await p.waitForTimeout(400); } },
+  { key: 'tab-passive-radiator', label: 'Passive radiator tab', vp: BOTH, keep: true, covers: ['MobileEnclosureTab', 'OriginalShell'], act: async (p) => { await (p.viewportSize().width > 800 ? clickText(p, 'Box') : clickBtn(p, 'Box')); await p.locator('select:visible').filter({ hasText: 'Passive Radiator' }).first().selectOption('Passive Radiator'); await p.waitForTimeout(800); await (p.viewportSize().width > 800 ? clickText(p, 'Passive Radiator') : clickIfPresent(p, 'Passive Radiator')); await p.waitForTimeout(400); } },
   { key: 'pr-browser', label: 'Select passive radiator dialog', vp: BOTH, covers: ['PRBrowser'], act: async (p) => { await p.getByRole('button', { name: 'Select passive radiator' }).click(T); await p.waitForTimeout(500); } },
   { key: 'pr-save-to-library', label: 'Save passive radiator to library dialog', vp: BOTH, covers: ['SaveToLibraryDialog'], act: async (p) => { await p.getByTitle(/^Save a copy of this passive radiator/).click(T); await p.getByRole('dialog', { name: 'Save passive radiator to library' }).waitFor(T); } },
   // The wizard again, this time choosing a passive radiator: its own step, then the radiator browser inside it.

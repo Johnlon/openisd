@@ -15,14 +15,13 @@ test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
-  await page.locator('.mob-tab', { hasText: 'Vented' }).click();
 });
 
 test.describe('MobileVentedTab', () => {
   test('shows the vent config and readouts', async ({ appPage: page }) => {
     // The tab bar's label is the box type's own name ("Vented" — enclosureNavLabel falls back to
     // boxLabel for anything that isn't sealed/PR); the panel's own section header says "Vents".
-    await expect(page.locator('.mob-panel-head').first()).toHaveText('Vents');
+    await expect(page.locator('.mob-band-title', {hasText: /^Vents$/})).toHaveCount(1);
     await expect(page.getByText('Number of Vents')).toBeVisible();
     await expect(page.getByText('Shape')).toBeVisible();
     await expect(mobileFieldRow(page, 'Vent diameter')).toBeVisible();
@@ -39,8 +38,8 @@ test.describe('MobileVentedTab', () => {
   // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
   // entered; the tuning shows what that length gives. The volume is never overwritten and nothing
   // goes blank. Mirrors the desktop spec in original-vented-tab.browser.spec.ts.
-  test('clearing Tuning freq keeps the vent length; the tuning is calculated', async ({ appPage: page }) => {
-    const fbInput = mobileFieldRow(page, 'Tuning freq').locator('input');
+  test('clearing Target Tuning Freq keeps the vent length; the tuning is calculated', async ({ appPage: page }) => {
+    const fbInput = mobileFieldRow(page, 'Fb').locator('input');
     await fbInput.fill('40');
     await fbInput.blur();
     await expect(fbInput).toHaveValue(/40/);
@@ -75,7 +74,7 @@ test.describe('MobileVentedTab', () => {
     const area = page.locator('.ui-field', { hasText: 'Cross area' }).locator('.mob-readonly');
     const one = parseFloat((await area.textContent()) ?? '');
     expect(one).toBeGreaterThan(0);
-    await page.locator('.mob-row', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
+    await page.locator('.mob-crow', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
     await expect.poll(async () => parseFloat((await area.textContent()) ?? '') / one).toBeCloseTo(2, 2);
   });
 

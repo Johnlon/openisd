@@ -1,6 +1,6 @@
 /**
  * Phone field rows keep their label clear: the label's line is at least as tall as its text, sits
- * below the row's top border and ends above the input. Every mobile tab with field rows.
+ * below the row's top border and does not run into the input (above it, or beside it on the classic rows). Every mobile tab with field rows.
  */
 import type {Page} from '@playwright/test';
 import {expect, openAMobileProject, test} from '../fixtures.js';
@@ -31,13 +31,13 @@ async function labelProblems(page: Page): Promise<{rows: number; problems: RowPr
       const borderTop = parseFloat(getComputedStyle(row).borderTopWidth);
       if (l.height < fontSize) problems.push({row: name, problem: `label line ${l.height}px is shorter than its ${fontSize}px text`});
       if (l.top - r.top < borderTop + 2) problems.push({row: name, problem: `label is ${l.top - r.top}px from the row top, border ${borderTop}px`});
-      if (l.bottom > i.top + 0.5 && l.top < i.bottom) problems.push({row: name, problem: `label box overlaps its input by ${l.bottom - i.top}px`});
+      if (l.bottom > i.top + 0.5 && l.top < i.bottom && l.right > i.left + 0.5 && l.left < i.right) problems.push({row: name, problem: `label box overlaps its input by ${l.bottom - i.top}px`});
     }
     return {rows: rows.length, problems};
   });
 }
 
-/** The Vented tab exists only once the box type is vented; the other tabs keep the default box. */
+/** "Vented" is the Box page with a vented box (the vent rows live on the Box page); the other tabs keep the default box. */
 async function chooseBoxType(page: Page, tab: (typeof TABS)[number]): Promise<void> {
   if (tab !== 'Vented') return;
   await page.locator('.mob-tab', {hasText: 'Box'}).click();
@@ -51,7 +51,7 @@ for (const tab of TABS) {
     await page.goto('/');
     await openAMobileProject(page);
     await chooseBoxType(page, tab);
-    await page.locator('.mob-tab', {hasText: tab}).first().click();
+    await page.locator('.mob-tab', {hasText: tab === 'Vented' ? 'Box' : tab}).first().click();
     const found = await labelProblems(page);
     expect(found.rows, `no field rows found on ${tab}`).toBeGreaterThan(0);
     expect(found.problems).toEqual([]);

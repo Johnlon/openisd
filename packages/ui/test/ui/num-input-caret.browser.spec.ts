@@ -79,7 +79,7 @@ test.describe('Mobile skin', () => {
   });
 
   test('a focused box steps at the caret; the ▲ button, with no caret, steps as before', async ({page}) => {
-    const row = mobileFieldRow(page, 'Series resistance');
+    const row = mobileFieldRow(page, 'Rs');
     const box = row.locator('input');
     await expect(box).toHaveAttribute('inputmode', 'decimal');
     await setTextAndCaret(box, '1.00', 4);

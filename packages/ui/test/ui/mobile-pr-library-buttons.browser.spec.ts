@@ -14,7 +14,6 @@ test.beforeEach(async ({ appPage: page }) => {
   await openAMobileProject(page);
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
   await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-  await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
 });
 
 async function openLibrary(page: Page) {

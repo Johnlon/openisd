@@ -10,6 +10,9 @@ import {SheetSizes} from './sheetSizes.js';
 export class PhoneRowSizes {
   /** Tab rows: 48 px, 10 px above and below, as in 7.0.951. */
   static readonly TAB = new PhoneRowSizes(48, 10, 32, 16, 2, 0, 64, 30);
+  /** Classic rows (the accepted classic phone design): 40 px, 34 px boxes. Replaces TAB for tab pages.
+   *  The widths across the row are PhoneRowColumns; these last three match PhoneRowColumns.STANDARD. */
+  static readonly CLASSIC = new PhoneRowSizes(40, 3, 34, 16, 0, 82, 45, 40);
   /** Sheet rows: as tight as a finger allows. */
   static readonly SHEET = new PhoneRowSizes(SheetSizes.ROW_MIN_PX, 2, SheetSizes.TOUCH_MIN_PX, 14, 0, 0, 64, 30);
   /** Compact rows (John, 18 Oct 2026, "try a half way house"): 40 px rows, 36 px boxes, the label
@@ -47,6 +50,34 @@ export class PhoneRowSizes {
       ['--mob-stepper-w', `${this.stepperWidthPx}px`],
       ['--mob-unit-w', `${this.unitColPx}px`],
       ['--mob-touch-min', `${SheetSizes.TOUCH_MIN_PX}px`],
+    ]);
+  }
+}
+
+/** The widths across a classic phone row: label, ▲▼ area, unit chip, and the text gutter in the box. */
+export class PhoneRowColumns {
+  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 14);
+  /** The driver editor's General tab, whose labels are longer. */
+  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 14);
+
+  private constructor(
+    /** The label column. */
+    readonly labelPx: number,
+    /** The ▲▼ area; readouts and selects leave it empty. */
+    readonly stepperPx: number,
+    /** The smallest width of a unit chip. */
+    readonly chipMinPx: number,
+    /** The gap between the box's left edge and its text. */
+    readonly textGutterPx: number,
+  ) {}
+
+  /** The widths as CSS custom properties. */
+  cssVars(): ReadonlyMap<string, string> {
+    return new Map([
+      ['--mob-col-label', `${this.labelPx}px`],
+      ['--mob-col-stepper', `${this.stepperPx}px`],
+      ['--mob-col-chip-min', `${this.chipMinPx}px`],
+      ['--mob-col-gutter', `${this.textGutterPx}px`],
     ]);
   }
 }

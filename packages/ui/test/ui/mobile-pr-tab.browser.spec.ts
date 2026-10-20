@@ -17,8 +17,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('MobilePrTab', () => {
   test('a passive-radiator box shows passive radiator fields and Select passive radiator opens the browser', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
-    await expect(page.locator('.mob-panel-head').first()).toHaveText('Passive radiator');
+    await expect(page.locator('.mob-band-title', {hasText: /^Passive radiator$/})).toHaveCount(1);
     await expect(mobileFieldRow(page, 'Vas')).toBeVisible();
     await expect(mobileFieldRow(page, 'Fpr (with added mass)')).toBeVisible();
 
@@ -31,9 +30,8 @@ test.describe('MobilePrTab', () => {
   // John, 2026-10-05: every PR field is editable on the page, so the page has no Edit button.
   test('the PR page has no Edit button and edits every passive radiator field in place', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
 
-    await expect(page.locator('.mob-pr-actions button', { hasText: /^Edit$/ })).toHaveCount(0);
+    await expect(page.locator('.mob-cbtns button', { hasText: /^Edit$/ })).toHaveCount(0);
 
     const input = (label: string) => mobileFieldRow(page, label).locator('input').first();
     await page.locator('#mob-pr-name').fill('Bench PR 12');
@@ -58,7 +56,6 @@ test.describe('MobilePrTab', () => {
   // name typed there names the library copy only; the project's radiator keeps its own name.
   test('Save to library asks for a name, prefilled, and saves a copy under the typed name', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
 
     await page.locator('#mob-pr-name').fill('Bench PR');
     await page.getByRole('button', { name: 'Save to library' }).click();

@@ -18,9 +18,9 @@ async function chartHeight(page: Page): Promise<number> {
   return page.locator('.mob-chart-cell .gpanel').first().evaluate(el => el.getBoundingClientRect().height);
 }
 async function selectRectangularTwoVents(page: Page): Promise<void> {
-  const selects = page.locator('.mob-content select.mob-select');
-  await selects.nth(0).selectOption('2');
-  await selects.nth(1).selectOption('slotted');
+  const select = (label: string) => page.locator('.mob-crow', {hasText: label}).first().locator('select');
+  await select('Number of Vents').selectOption('2');
+  await select('Shape').selectOption('slotted');
 }
 async function selectTwoRadiators(page: Page): Promise<void> {
   await page.locator('#mob-pr-count').selectOption('2');
@@ -28,9 +28,9 @@ async function selectTwoRadiators(page: Page): Promise<void> {
 import {PHONE_SIZES} from '../fixtures/phoneSizes.js';
 
 const BOXES = [
-  {type: 'vented', tab: 'Vented', tuneRows: 5, whatIfRows: 9, setup: selectRectangularTwoVents},
-  {type: 'box-passive-radiator', tab: 'Passive Radiator', tuneRows: 5, whatIfRows: 9, setup: selectTwoRadiators},
-  {type: 'abc', tab: 'ABC', tuneRows: 8, whatIfRows: 12, setup: selectRectangularTwoVents},
+  {type: 'vented', tuneRows: 5, whatIfRows: 9, setup: selectRectangularTwoVents},
+  {type: 'box-passive-radiator', tuneRows: 5, whatIfRows: 9, setup: selectTwoRadiators},
+  {type: 'abc', tuneRows: 8, whatIfRows: 12, setup: selectRectangularTwoVents},
 ];
 const SHEETS = [
   {name: 'Tune', rows: (b: typeof BOXES[number]) => b.tuneRows},
@@ -45,7 +45,6 @@ for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetKind of
     await openAMobileProject(page);
     await page.locator('.mob-tab', {hasText: 'Box'}).click();
     await page.locator('#mob-box-type').selectOption(box.type);
-    await page.locator('.mob-tab', {hasText: box.tab}).first().click();
     await box.setup(page);
     await page.locator('.mob-tab', {hasText: 'Graph'}).click();
     await page.getByRole('button', {name: `Open ${sheetKind.name}`}).click();

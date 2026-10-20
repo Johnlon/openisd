@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 6bdde62e121711fd97632b839c0975e0ccd25576
 goal: Pictures page shows each before/after pair as two columns side by side at every width, 374 px included, never stacked
 done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
 files:

@@ -10,7 +10,7 @@ test('on a phone-sized window with no saved layout choice, a mouse click on ▲ 
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
-  const row = mobileFieldRow(page, 'Series resistance');
+  const row = mobileFieldRow(page, 'Rs');
   const upButton = row.locator('.num-stepper-btn').first();
 
   await upButton.click();

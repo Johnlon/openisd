@@ -15,6 +15,7 @@
  * bugs/BUG_20261005_no-common-ui-field-component.md
  */
 import {computed, ref, useId} from 'vue';
+import {PhoneRowColumns} from '@openisd/design/fields';
 import NumInput from './NumInput.vue';
 import NumReadout from './NumReadout.vue';
 import UnitToggle from './UnitToggle.vue';
@@ -28,6 +29,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   required: false,
   inputId: undefined,
   max: undefined,
+  columns: () => PhoneRowColumns.STANDARD,
   stepper: true,
   readonly: false,
   plain: false,
@@ -41,6 +43,8 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
 
 const scope = useCellScope();
 const generatedId = useId();
+/** The row's column widths as CSS variables, from the design constant. */
+const columnVars = computed(() => Object.fromEntries(props.columns.cssVars()));
 const id = computed(() => props.inputId ?? generatedId);
 
 /** The cell read once per change of the hosting view: Vue cannot see the cell itself change. */
@@ -105,7 +109,7 @@ function write(v: number | null, precision?: number): void {
 </script>
 
 <template>
-  <div :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false}]">
+  <div :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false}]">
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
     <span class="ui-field-value">
       <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">

@@ -14,7 +14,7 @@ type Quantity = 'Volume' | 'Fsc' | 'Qtc';
 type Provenance = 'value-e' | 'value-c';
 
 const input = (page: Page, quantity: Quantity): Locator =>
-  page.locator('.ui-field', {has: page.locator('label', {hasText: new RegExp(`^${quantity}$`)})}).locator('input').first();
+  page.locator('.ui-field', {has: page.locator('label', {hasText: new RegExp(`^${quantity === 'Volume' ? '(Volume|Vb)' : quantity}$`)})}).locator('input').first();
 
 async function provenances(page: Page): Promise<Record<Quantity, Provenance>> {
   const of = async (q: Quantity): Promise<Provenance> =>

@@ -15,7 +15,7 @@ test.beforeEach(async ({ appPage: page }) => {
 });
 
 test('shows the driver identity and the Select/Edit actions', async ({ appPage: page }) => {
-  await expect(page.locator('.mob-driver-model')).toBeVisible();
+  await expect(page.locator('.mob-cname')).toBeVisible();
   await expect(page.getByText('Select driver')).toBeVisible();
   await expect(page.getByText('Edit')).toBeVisible();
 });

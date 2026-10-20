@@ -134,7 +134,7 @@ test.describe('MobileMenu', () => {
     });
 
     test('Save, then "Projects" lists it and reopens it', async ({ page }) => {
-      const before = await mobileFieldRow(page, 'Volume').locator('input').first().inputValue();
+      const before = await mobileFieldRow(page, 'Vb').locator('input').first().inputValue();
 
       await tapMobileMenuItem(page, /^Save$/);
 
@@ -147,7 +147,7 @@ test.describe('MobileMenu', () => {
       await expect(pane).toHaveCount(0);
       // Reopening the same project lands back on the Box tab with the same value — a real
       // re-load, not a no-op that merely closed the sheet.
-      await expect(mobileFieldRow(page, 'Volume').locator('input').first()).toHaveValue(before);
+      await expect(mobileFieldRow(page, 'Vb').locator('input').first()).toHaveValue(before);
     });
 
     // John, 2026-10-14: a project was marked unsaved but Save all was not highlighted. Save is

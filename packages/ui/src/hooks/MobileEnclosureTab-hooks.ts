@@ -9,7 +9,8 @@ import {useApp} from '../logic/app.js';
 import {createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
-import {END_CORRECTION_OPTIONS, NumberField, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
+import {computed} from 'vue';
+import {END_CORRECTION_OPTIONS, NumberField, PhoneHelp, PhoneLabels, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 
 const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
 const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
@@ -29,7 +30,14 @@ export function useMobileEnclosureTab() {
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
 
+  /** The tuning row that heads a vent section (vented: Fb; 4th order bandpass: Ffc); the other types keep theirs in the chamber. */
+  const tuningLabel = computed(() => tuningField.value === NumberField.BOX_FFC_HZ ? PhoneLabels.FFC : PhoneLabels.FB);
+  const tuningHeadsVents = computed(() => selectedBox.value === 'vented' || selectedBox.value === 'bandpass4');
+  /** One section per vent the box draws, each with its own help sheet. */
+  const ventSections = computed(() => ventPorts.value.map(port => ({...port, help: PhoneHelp.ventSection(port.name)})));
+
   return {
+    tuningLabel, tuningHeadsVents, ventSections,
     project, selectedBox,
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
     prResonanceMassDq, prFsMass_hz, prNaturalFh,

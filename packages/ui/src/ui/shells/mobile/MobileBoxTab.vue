@@ -2,7 +2,7 @@
 // The mobile Box tab — box type, volume, and the calculated resonance/Qtc readout. Thin: all
 // state and domain reads/writes live in useMobileBoxTab() (src/hooks/MobileBoxTab-hooks.ts), which
 // calls the SAME field-wiring factories src/hooks/boxFields.ts exports.
-import {NumberField, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
+import {NumberField, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -12,6 +12,9 @@ import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
+import MobileEnclosureTab from './MobileEnclosureTab.vue';
+import PhoneBand from './PhoneBand.vue';
+import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
@@ -34,50 +37,49 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
 </script>
 
 <template>
-  <div class="mob-panel">
-    <div class="mob-panel-head">Box</div>
-    <div class="mob-row">
-      <label class="mob-row-label" for="mob-box-type">Box type</label>
-      <select id="mob-box-type" class="mob-select" :value="selectedBox"
+  <PhoneClassicPage>
+    <section class="mob-csection">
+    <PhoneBand :section="PhoneHelp.BOX" />
+    <div class="mob-crow">
+      <label class="mob-crow-label" for="mob-box-type">Box type</label>
+      <select id="mob-box-type" class="mob-cselect mob-cselect-wide" :value="selectedBox"
               @change="e => selectBoxType((e.target as HTMLSelectElement).value)">
         <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
       </select>
     </div>
-    <p v-if="pending" class="mob-hint mob-hint-warn">
+    <p v-if="pending" class="mob-chint mob-chint-warn">
       Response model pending — {{ boxLabel }} isn't simulated by the engine yet, so no curve is drawn.
     </p>
-    <div class="mob-diagram"><BoxTypeDiagram :box-type="selectedBox" /></div>
-  </div>
+    <div class="mob-cpic"><BoxTypeDiagram :box-type="selectedBox" /></div>
+    </section>
 
-  <div class="mob-panel">
-    <div class="mob-panel-head">Rear chamber</div>
-    <UIField class="mob-ui-field" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" stepper />
+    <section class="mob-csection">
+    <PhoneBand :section="PhoneHelp.rearChamber(selectedBox)" />
+    <UIField class="mob-ui-field" :field="NumberField.BOX_VB_L" :label="PhoneLabels.VB" :cell="boxVolumeCell" stepper />
+    <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="mob-ui-field" :field="NumberField.BOX_FRC_HZ" :label="PhoneLabels.FRC" :cell="rearTuningCell" stepper />
+    <UIField v-else-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :label="PhoneLabels.FSC" :cell="sealedFscCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
+    <UIField v-else-if="selectedBox === 'box-passive-radiator'" class="mob-ui-field" :title="FH_TARGET_TIP" :field="NumberField.BOX_FH_HZ" :label="PhoneLabels.FH" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
+    <UIFixedField v-else-if="selectedBox !== 'vented'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :label="PhoneLabels.FSC" :value="boxResonance" readonly plain />
+    <UIField v-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_QTC_VALUE" :label="PhoneLabels.QTC" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
+    <div class="mob-clinks">
+      <button v-if="selectedBox === 'sealed'" type="button" class="mob-clink" @click="sealedAlignmentEditor.openEditor">Choose alignment</button>
+      <button v-else-if="selectedBox === 'vented'" type="button" class="mob-clink" @click="ventedAlignmentEditor.openEditor">Choose alignment</button>
+      <button type="button" class="mob-clink mob-clink-end" @click="lossesOpen = isDual ? 'rear' : 'whole'">Box losses (Qa, Ql, Qp)…</button>
+    </div>
 
-    <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="mob-ui-field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" stepper />
-    <UIField v-else-if="selectedBox === 'vented'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" stepper />
-    <UIField v-else-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :cell="sealedFscCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
-    <UIField v-else-if="selectedBox === 'box-passive-radiator'" class="mob-ui-field" :title="FH_TARGET_TIP" :field="NumberField.BOX_FH_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
-    <UIFixedField v-else class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :value="boxResonance" readonly plain />
-    <UIField v-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
-    <div v-if="selectedBox === 'sealed'" class="mob-row">
-      <button class="mob-btn" @click="sealedAlignmentEditor.openEditor">Choose alignment</button>
-    </div>
-    <div v-if="selectedBox === 'vented'" class="mob-row">
-      <button class="mob-btn" @click="ventedAlignmentEditor.openEditor">Choose alignment</button>
-    </div>
-    <div class="mob-row">
-      <button class="mob-btn" @click="lossesOpen = isDual ? 'rear' : 'whole'">Box losses -&gt;</button>
-    </div>
-  </div>
+    </section>
 
-  <div v-if="isDual" class="mob-panel">
-    <div class="mob-panel-head">Front chamber</div>
-    <UIField v-if="frontVolumeCell" class="mob-ui-field" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" stepper />
-    <UIField class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :cell="activeTuning" stepper />
-    <div class="mob-row">
-      <button class="mob-btn" @click="lossesOpen = 'front'">Box losses -&gt;</button>
-    </div>
-  </div>
+    <section v-if="isDual" class="mob-csection">
+      <PhoneBand :section="PhoneHelp.FRONT_CHAMBER" />
+      <UIField v-if="frontVolumeCell" class="mob-ui-field" :field="NumberField.BOX_VF_L" :label="PhoneLabels.VF" :cell="frontVolumeCell" stepper />
+      <UIField v-if="selectedBox !== 'bandpass4'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :label="PhoneLabels.FFC" :cell="activeTuning" stepper />
+      <div class="mob-clinks">
+        <button type="button" class="mob-clink mob-clink-end" @click="lossesOpen = 'front'">Box losses (Qa, Ql, Qp)…</button>
+      </div>
+    </section>
+
+    <MobileEnclosureTab />
+  </PhoneClassicPage>
 
   <div v-if="sealedAlignmentOpen" class="mob-align-overlay" @click.self="sealedAlignmentEditor.cancel">
     <div class="mob-align-sheet">
