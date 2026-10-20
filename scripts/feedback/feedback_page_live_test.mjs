@@ -34,7 +34,7 @@ try {
     if (u.includes('/board/api/thread')) {
       threadCalls.push(new URL(u).search);
       const entries = answerReady ? [
-        { id: 'QO0.c21', by: 'bob', at: '2026-10-20T10:00:00Z', answers: 'QO0.c20', picture: 'F/b/before.png', text: 'the answer' },
+        { id: 'QO0.c21', by: 'bob', at: '2026-10-20T10:00:00Z', answers: 'QO0.c20', text: 'the answer' },
         { id: 'QO0.c22', by: 'bob', at: '2026-10-20T10:00:05Z', picture: 'F/a/before.png', text: 'a changed' },
       ] : [];
       return r.fulfill({ contentType: 'application/json', body: JSON.stringify({ entries, states: {} }) });
@@ -124,6 +124,8 @@ try {
     { id: 'QO0.c40', by: 'John', kind: 'question', at: ago(30), text: '[picture: F/a/before.png] why?' },
     { id: 'QO0.c41', by: 'John', kind: 'question', at: ago(200), text: '[picture: F/b/before.png] why not?' },
     { id: 'QO0.c42', by: 'John', kind: 'note', at: ago(30), text: '[picture: F/c/before.png] fine' },
+    // A real answer names the entry it answers, never the picture: it must still show under that picture.
+    { id: 'QO0.c43', by: 'answerer', kind: 'answer', answers: 'QO0.c41', at: ago(10), text: 'loaded answer' },
   ];
   const r2 = await browser.newPage({ viewport: { width: 374, height: 705 } });
   await r2.route('**/*', (r) => {
@@ -141,7 +143,8 @@ try {
   const la = await lineOf('F/a/before.png');
   if (la.length !== 1 || !/^Sent, bob is answering… 0:(3\d|4[0-5])$/.test(la[0])) failures.push(`reload question line ${JSON.stringify(la)}`);
   const lb = await lineOf('F/b/before.png');
-  if (JSON.stringify(lb) !== '["No answer yet; bob will answer."]') failures.push(`reload late line ${JSON.stringify(lb)}`);
+  if (lb.length) failures.push(`answered question still waiting ${JSON.stringify(lb)}`);
+  if (!(await r2.locator('figure[data-name="F/b/before.png"] .said', { hasText: 'loaded answer' }).count())) failures.push('answer linked by answers not shown under its picture on load');
   if ((await lineOf('F/c/before.png')).length) failures.push('note got an answering line');
   if (!(await r2.locator('figure[data-name="F/a/before.png"]').isVisible())) failures.push('waiting question hidden in a fold');
 } finally {

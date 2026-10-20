@@ -190,8 +190,12 @@ function commentBoxes(thread) {
     fig.append(f, err);
     const also = fig.dataset.also;  // a pair holds two pictures: comments on either belong to it
     const tagged = (t, m) => typeof t.text === 'string' && (t.text.startsWith(`[${fig.dataset.kind}: ${m}]`) || t.text.startsWith(`[picture: ${m}]`) || t.text.startsWith(`[item: ${m}]`));
-    const belongs = (t) => t.picture === n || (also && t.picture === also) || tagged(t, n) || (also && tagged(t, also));
-    const mine = thread.filter(belongs).sort(byEntry);
+    // An answer, reply, decision or reopen names the entry it is about, not the picture: it goes where that entry is.
+    const own = new Set();
+    const onPicture = (t) => t.picture === n || (also && t.picture === also) || tagged(t, n) || (also && tagged(t, also));
+    const linked = (t) => [t.answers, t.replies_to, t.decides, t.reopens].some((r) => r && own.has(r));
+    const belongs = (t) => onPicture(t) || linked(t);
+    const mine = [...thread].sort(byEntry).filter((t) => belongs(t) && (own.add(t.id), true));
     const divs = mine.map((t) => said(fig, stripTag(t.text), t.at, t.by === 'John', t.id));
     // John's comment is the last word on it: he has ruled, so it is folded where it stands until an agent answers.
     const johnOnBefore = mine.some((t) => t.by === 'John' && (t.picture === n || tagged(t, n)));
@@ -202,6 +206,7 @@ function commentBoxes(thread) {
     else if (lastE && lastE.by === 'John' && (!also || johnOnBefore)) fig.dataset.ruled = '1';
     boxes.push({ fig, take(t) {
       if (!belongs(t) || (t.id && shown.has(t.id))) return false;
+      own.add(t.id);
       const john = t.by === 'John';
       said(fig, stripTag(t.text), t.at, john, t.id);
       if (!john) { stopWaiting(fig); unfold(fig); }
@@ -223,7 +228,7 @@ function commentBoxes(thread) {
         if (r.ok) {
           const id = (await r.json().catch(() => ({}))).id || '';
           const d = said(fig, words, new Date().toISOString(), true, id);
-          if (/\.c\d+$/.test(id)) { waitingLine(d, id, Date.now()); noteNewest(id); }
+          if (/\.c\d+$/.test(id)) { own.add(id); waitingLine(d, id, Date.now()); noteNewest(id); }
           last = { text: words, at: Date.now() };
           ta.value = ''; btn.textContent = 'Sent'; ta.focus({ preventScroll: true });
           setTimeout(() => { btn.textContent = 'Send'; }, DUPLICATE_MS);
