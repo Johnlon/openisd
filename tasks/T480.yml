@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 643ef7b4d4c65917f2c5f23a32bb8d6f8cbfc06c
 goal: Chart: the last frequency label (20.0k) is cut at the right edge
 done_test: bash scripts/test.sh packages/design/test/chart/chart-layout.test.ts
 files:
