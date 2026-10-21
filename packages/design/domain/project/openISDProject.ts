@@ -32,6 +32,9 @@ import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
 import { resolveProject, usableRe } from './projectResolve.js';
 import { ProjectSignal } from './projectSignal.js';
+import { TuneLimits } from './tuneLimits.js';
+import { tuneViewOf } from './tuneView.js';
+import type { TuneView } from './tuneView.js';
 
 // The domain declares its state here. JSON shapes live in `openisdSchema.ts`.
 // Internal JSON types are never re-exported from `domain/index.ts`.
@@ -851,6 +854,13 @@ export class OpenISDProject {
         return this.#engine.simulation.peaks(sw);
     }
 
+    /** What the Tune view shows for this design over `grid`: curves, F3/F10, the readings, and
+     *  where each stands against `limits` (blank unless given). `applies` is false when the box is
+     *  not vented or will not sweep. */
+    tune(grid: FrequencyGrid, limits: TuneLimits = TuneLimits.NONE): TuneView {
+        return tuneViewOf(this, grid, limits);
+    }
+
     /** A non-finite value anywhere in the response, or null. A sweep that produced NaN is a fault
      *  to report, never a curve to draw. */
     classifyFinite(sw: SweepResult): DriverError | null {
@@ -911,6 +921,17 @@ export class OpenISDProject {
     /** Whether this project currently has a transient what-if layer. */
     isWhatIfActive(): boolean {
         return this.#whatif !== null;
+    }
+
+    /** Keep the What-if layer: its values become ordinary unsaved edits of the design and the
+     *  layer closes. A no-op when no What-if is open. */
+    commitWhatIf(): void {
+        const whatIf = this.#whatif;
+        if (!whatIf) return;
+        this.#whatif = null;
+        this.#edited = this.#stampModified(this.#committed(), whatIf);
+        this.#resolve();
+        this.#notify();
     }
 
     /** Discard the what-if layer without touching saved or ordinary edited state. The current

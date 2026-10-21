@@ -40,6 +40,13 @@ export type { FrequencyGrid } from './box/frequencyGrid.js';
 export type { SweepJob, SweepJobParams, SweepPlan } from './project/projectSweep.js';
 export { runMaxCurvesJob, runSweepJob } from './project/projectSweep.js';
 export type { ErrorSwitchState, ErrorSwitchStates } from './project/errorSwitches.js';
+export {
+    ExcursionLimit_mm, F3Limit_hz, Limit, LimitKind, LimitState, TuneLimits, TuneStates, VentDiameterLimit_cm,
+    VentLengthLimit_cm, VentSpeedLimit_m_per_s, VolumeLimit_L, limitState, parseLimit,
+} from './project/tuneLimits.js';
+export type { LimitDirection, LimitParse, LimitStateCases, TuneReading } from './project/tuneLimits.js';
+export { tuneViewOf } from './project/tuneView.js';
+export type { TuneAvailable, TuneCurve, TunePoint, TuneUnavailable, TuneView } from './project/tuneView.js';
 export { CompatSwitch } from './project/compatSwitch.js';
 export { driverSpecOfSlot, readSheetSlot, ventOfSlot, writeSheetSlot } from './project/sheetSlots.js';
 export { withMovedChamberQicl } from './project/movedChamberQicl.js';
