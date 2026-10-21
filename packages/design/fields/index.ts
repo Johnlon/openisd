@@ -142,6 +142,8 @@ export { type AppVersion, type BuildKind, type BuildTrail, type PageAddress, for
 /** The bottom sheet's rows per box type and sheet modes (Tune and What-if). */
 export { SheetField, type SheetSlot } from './sheetField.js';
 export { SheetSizes } from './sheetSizes.js';
+export { ChartPageSizes, type ChartPageSizesValues } from './chartPageSizes.js';
+export { ChartPageHelp } from './chartPageText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { type PhoneHelpRow, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneHelp } from './phoneText.js';
 export { DesktopSizes, PickWidth } from './desktopSizes.js';

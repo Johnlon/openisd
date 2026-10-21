@@ -2,7 +2,7 @@
  * A chart's title never sits on its tick labels (17 Oct 2026: on the phone Graph tab "SPL response" was drawn
  * over the top level label, 100). The labels are drawn on the canvas from `ChartLayout`; the title is a page
  * element. Its real box must end above the highest point the top level label can reach, on every chart, on
- * every phone size and on desktop.
+ * every phone size and on desktop. On the phone the title is the band over the chart (classic Graph page).
  */
 import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
@@ -13,18 +13,21 @@ import type {Locator} from '@playwright/test';
 const LAYOUT = ChartLayout.CHART;
 
 /** How far the title's bottom sits below the top of its chart's canvas. */
-async function titleBottomInCanvas(panel: Locator): Promise<number> {
-  return panel.evaluate(el => {
-    const title = el.querySelector('.gtitle');
+async function titleBottomInCanvas(panel: Locator, titleSel: string): Promise<number> {
+  return panel.evaluate((el, sel) => {
+    const title = el.querySelector(sel);
     const canvas = el.querySelector('canvas');
     if (!title || !canvas) throw new Error('the chart has no title or no canvas');
     return title.getBoundingClientRect().bottom - canvas.getBoundingClientRect().top;
-  });
+  }, titleSel);
 }
 
-async function expectTitleClear(panel: Locator, what: string): Promise<void> {
-  const name = (await panel.locator('.gtitle').textContent())?.trim();
-  expect(await titleBottomInCanvas(panel), `${what}: "${name}" runs into the top level label`)
+const DESKTOP_TITLE = '.gtitle';
+const PHONE_TITLE = '.mob-band';
+
+async function expectTitleClear(panel: Locator, what: string, titleSel: string): Promise<void> {
+  const name = (await panel.locator(titleSel).first().textContent())?.trim();
+  expect(await titleBottomInCanvas(panel, titleSel), `${what}: "${name}" runs into the top level label`)
     .toBeLessThanOrEqual(LAYOUT.levelLabelTopPx - LAYOUT.gapPx);
 }
 
@@ -35,9 +38,9 @@ for (const size of PHONE_SIZES) {
     await page.goto('/');
     await openAMobileProject(page);
     await page.locator('.mob-tab', {hasText: 'Graph'}).click();
-    const panel = page.locator('.mob-chart-cell .gpanel').first();
+    const panel = page.locator('.mob-chart-cell').first();
     await expect(panel.locator('canvas')).toBeVisible();
-    await expectTitleClear(panel, `${size.width}×${size.height}`);
+    await expectTitleClear(panel, `${size.width}×${size.height}`, PHONE_TITLE);
   });
 }
 
@@ -55,9 +58,9 @@ test('every chart title clears the tick labels on the narrowest phone', async ({
   for (const name of names) {
     await page.locator('.mob-chart-pick').click();
     await page.locator('.mob-chart-row .mob-chart-name', {hasText: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`)}).click();
-    const panel = page.locator('.mob-chart-cell .gpanel').first();
+    const panel = page.locator('.mob-chart-cell').first();
     await expect(panel.locator('canvas')).toBeVisible();
-    await expectTitleClear(panel, name);
+    await expectTitleClear(panel, name, PHONE_TITLE);
   }
 });
 
@@ -67,5 +70,5 @@ test('desktop: the chart title clears the tick labels', async ({page}) => {
   await openAProject(page);
   const panel = page.locator('.gpanel').first();
   await expect(panel.locator('canvas')).toBeVisible();
-  await expectTitleClear(panel, 'desktop');
+  await expectTitleClear(panel, 'desktop', DESKTOP_TITLE);
 });

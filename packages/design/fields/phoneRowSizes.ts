@@ -12,7 +12,8 @@ export class PhoneRowSizes {
   static readonly BUTTON_PX = 44;
   /** Tab rows: 48 px, 10 px above and below, as in 7.0.951. */
   static readonly TAB = new PhoneRowSizes(48, 10, 32, 16, 2, 0, 64, 30);
-  /** Classic rows (the accepted classic phone design): 40 px, 34 px boxes. Replaces TAB for tab pages.
+  /** Classic rows (the accepted classic phone design): 40 px, 34 px boxes. Replaces TAB for tab pages, and
+   *  the Tune and What-if sheets use it too (one row size across the app, John, 20 Oct 2026).
    *  The widths across the row are PhoneRowColumns; these last three match PhoneRowColumns.STANDARD. */
   static readonly CLASSIC = new PhoneRowSizes(40, 3, 34, 16, 0, 82, 45, 40);
   /** Sheet rows: as tight as a finger allows. */

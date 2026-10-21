@@ -2,6 +2,18 @@ import {NumberField} from '@openisd/design/fields';
 import type {FrequencyAxis, PlotData} from '@openisd/design/chart';
 import type {DragRange, Geo} from '../types.js';
 
+/** How a chart is dressed. The phone Graph page shows its legend once above the charts and writes
+ *  each reference line's words on the line, so its charts draw neither a legend nor a key. */
+export interface DrawStyle {
+  /** The named series listed in a key inside the plot. */
+  readonly keyInPlot: boolean;
+  /** Each reference line (0 dB, −3 dB, the air speed limit) carries its words on the line. */
+  readonly labelReferenceLines: boolean;
+}
+
+export const DESKTOP_DRAW_STYLE: DrawStyle = {keyInPlot: true, labelReferenceLines: false};
+export const PHONE_DRAW_STYLE: DrawStyle = {keyInPlot: false, labelReferenceLines: true};
+
 // Returns geo so the caller can map pixel → frequency for crosshair.
 export function drawOne(
   canvas: HTMLCanvasElement | null,
@@ -9,6 +21,7 @@ export function drawOne(
   cursorF: number | null,
   readEl: HTMLElement | null,
   dragRange: DragRange | null,
+  style: DrawStyle = DESKTOP_DRAW_STYLE,
 ): Geo | null {
   if (!canvas || !plotData) return null;
   const ctx = canvas.getContext('2d')!;
@@ -127,9 +140,26 @@ export function drawOne(
   }
   ctx.setLineDash([]);
 
+  if (style.labelReferenceLines) {
+    // The words sit just above their line, right-aligned in the plot, on a halo of the panel's colour; a
+    // label that would touch the one above goes under its own line instead.
+    const halo = getComputedStyle(canvas.parentElement ?? canvas).backgroundColor;
+    ctx.font = layout.font(layout.tickFontPx, true); ctx.textAlign = 'right'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+    let lastY = Number.NEGATIVE_INFINITY;
+    for (const s of plotData.series) {
+      if (!s.reference || s.phantom || s.ys.length === 0) continue;
+      const y = Y(s.ys[0]);
+      if (!isFinite(y) || y < m.t || y > m.t + ph) continue;
+      const ty = y - 5 - lastY < 14 ? y + 15 : y - 5; lastY = ty;
+      ctx.strokeStyle = halo; ctx.strokeText(s.lineLabel ?? s.name, m.l + pw - 4, ty);
+      ctx.fillStyle = s.color; ctx.fillText(s.lineLabel ?? s.name, m.l + pw - 4, ty);
+    }
+    ctx.lineWidth = 1; ctx.textAlign = 'left';
+  }
+
   // legend — only when there are multiple named series
   const namedSeries = plotData.series.filter(s => s.name);
-  if (namedSeries.length > 1) {
+  if (style.keyInPlot && namedSeries.length > 1) {
     ctx.font = layout.font(layout.tickFontPx); ctx.textAlign = 'left';
     const lh = 13, lx = m.l + 6;
     let ly = m.t + 6;

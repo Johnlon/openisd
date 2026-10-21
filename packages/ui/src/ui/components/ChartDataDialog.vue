@@ -1,18 +1,20 @@
 <script setup lang="ts">
-// A chart's plotted curves as a text table, with Copy and Download CSV.
+// A chart's plotted curves as a text table, with Copy and Download CSV. `phone` makes it a full-screen sheet
+// (title and ✕ over the table, buttons in a footer), the classic phone Graph page's Data sheet.
 import type {ChartData} from '@openisd/design/chart';
 import {useApp} from '../../logic/app.js';
 
-const props = defineProps<{ data: ChartData }>();
+const props = defineProps<{ data: ChartData; phone?: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 const { designIO } = useApp();
 </script>
 
 <template>
   <Teleport to="body">
-    <div class="cdata-overlay" @click.self="emit('close')">
+    <div class="cdata-overlay" :class="{ phone }" @click.self="emit('close')">
       <div class="cdata-modal" role="dialog" aria-labelledby="cdata-title" aria-modal="true">
         <h2 id="cdata-title">{{ props.data.chartName }} data</h2>
+        <button v-if="phone" type="button" class="cdata-x" aria-label="Dismiss" @click="emit('close')">✕</button>
         <div class="cdata-scroll">
           <table class="cdata-table">
             <thead>
@@ -94,4 +96,16 @@ const { designIO } = useApp();
   padding: 10px 14px;
   border-top: 1px solid var(--line);
 }
+
+/* The phone sheet: the whole screen; a 48 px title row, a table of 14 px rows, a footer of 44 px buttons. */
+.cdata-overlay.phone { background: #fff; }
+.phone .cdata-modal { position: relative; width: 100%; max-height: none; height: 100%; border: none; border-radius: 0; box-shadow: none; }
+.phone .cdata-modal h2 { display: flex; align-items: center; box-sizing: border-box; height: 48px; padding: 0 16px; font-size: 16px; }
+.phone .cdata-x { position: absolute; top: 4px; right: 12px; width: 40px; height: 40px; border: none; background: none; font-size: 20px; color: var(--mut); cursor: pointer; }
+.phone .cdata-table { font-size: 14px; }
+.phone .cdata-table th { padding: 6px 16px; border-bottom: 1px solid var(--line); }
+.phone .cdata-table td { padding: 3px 16px; border-bottom: 1px solid #f0f0f0; }
+.phone .cdata-footer { flex-wrap: nowrap; justify-content: stretch; padding: 8px 16px 10px; background: var(--panel); }
+.phone .cdata-footer button { flex: 1 0 auto; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.phone .cdata-footer button.pri { background: var(--acc); border-color: var(--acc); color: #fff; }
 </style>

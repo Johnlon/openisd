@@ -38,8 +38,7 @@ test('Mobile skin: Data shows the chart as a table, and Close closes it', async 
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-tab', {hasText: 'Graph'}).click();
-  const panel = page.locator('.mob-chart-cell .gpanel').first();
-  await panel.getByRole('button', {name: 'Data'}).click();
+  await page.locator('.mob-chart-cell .mob-band').first().getByRole('button', {name: 'Data'}).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.locator('th').first()).toHaveText('Frequency (Hz)');
   await expect(dialog.getByRole('button', {name: 'Download CSV'})).toBeInViewport();

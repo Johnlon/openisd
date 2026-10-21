@@ -14,7 +14,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createSheetSession, type SheetRow} from './sheetSession.js';
 import {portFieldsView, type PortFieldsView} from './portFieldsView.js';
-import {PhoneRowSizes, SheetSizes, type SheetField, type SheetMode} from '@openisd/design/fields';
+import {ChartPageHelp, PhoneRowSizes, SheetSizes, type PhoneHelpSection, type SheetField, type SheetMode} from '@openisd/design/fields';
 
 /** The sheet's open state (owned by the chart view; its Auto Y box follows it) and its fixed mode. */
 export interface MobileSheetDeps {
@@ -27,6 +27,8 @@ export interface MobileSheetDeps {
 const MIN_CHART_PX = 120;
 /** Dragging the sheet below this height closes it. */
 const CLOSE_BELOW_PX = 90;
+/** A press on the sheet's band moves less than this and it is a tap, not a drag. */
+const DRAG_START_PX = 4;
 /** An upward drag on the pull-tab longer than this sets the opened sheet's height. */
 const TAB_DRAG_PX = 12;
 /** The pull-tab's own height, added back when an upward drag sizes the sheet. */
@@ -59,6 +61,8 @@ export interface MobileSheetAPI {
   closePortEditor(): void;
   /** The sizes the sheet's controls and rows take, as CSS variables (from design). */
   readonly sizeStyle: string;
+  /** What the ? on the sheet's band opens: the sheet, then one line per row it shows for this box. */
+  readonly help: ComputedRef<PhoneHelpSection>;
   readonly sheetEl: Ref<HTMLElement | null>;
   /** The sheet's inline height: its default (CSS) until dragged. */
   readonly sheetStyle: ComputedRef<string>;
@@ -83,7 +87,9 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
   const isOpen = computed(() => open());
   const sheetEl = ref<HTMLElement | null>(null);
   const height = ref<number | null>(null);
-  const sheetStyle = computed(() => height.value === null ? '' : `height: ${height.value}px`);
+  /** Dragged, the sheet takes the finger's height, past the usual cap. */
+  const sheetStyle = computed(() => height.value === null ? '' : `height: ${height.value}px; max-height: none`);
+  const help = computed(() => { void projectChanged.value; return ChartPageHelp.forSheet(mode, project.value.box.boxType.value); });
 
   /** An emptied field is left alone: every sheet slot holds a value. */
   function setValue(field: SheetField, v: number | null): void {
@@ -151,6 +157,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
   }
   function onHandleMove(e: PointerEvent): void {
     if (drag === null) return;
+    if (height.value === null && Math.abs(drag.y - e.clientY) < DRAG_START_PX) return;
     height.value = Math.min(drag.max, Math.max(0, drag.height + drag.y - e.clientY));
   }
   function onHandleUp(): void {
@@ -161,8 +168,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
 
   return {
     isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode,
-    sizeStyle: [`--sheet-touch: ${SheetSizes.TOUCH_MIN_PX}px; --sheet-row: ${SheetSizes.ROW_MIN_PX}px; --sheet-tab: ${SheetSizes.TAB_PX}px`,
-      ...[...PhoneRowSizes.SHEET.cssVars()].map(([name, value]) => `${name}: ${value}`)].join('; '),
+    sizeStyle: [...PhoneRowSizes.CLASSIC.cssVars()].map(([name, value]) => `${name}: ${value}`).join('; '), help,
     portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };

@@ -1,28 +1,30 @@
 <script setup lang="ts">
 // One bottom sheet on the mobile Graph page, Tune or What-if (each its own sheet, with its own
-// fields): a pull-tab when closed, a resizable sheet of rows when open. Behaviour lives in
-// MobileSheet-hooks.ts.
+// fields): a pull-tab when closed, a resizable sheet of rows when open. Its band (name and ?) is
+// the drag handle. Behaviour lives in MobileSheet-hooks.ts.
 import NumInput from '../../components/NumInput.vue';
 import VentPortFields from '../../components/VentPortFields.vue';
 import UnitToggle from '../../components/UnitToggle.vue';
+import PhoneBand from './PhoneBand.vue';
+import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
 import type { SheetMode } from '@openisd/design/fields';
 
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean] }>();
 
-const { isOpen, lines, rowSlots, mode, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: props.mode });
 </script>
 
 <template>
-  <button v-if="!isOpen && !hidden" type="button" class="mob-sheet-tab" :style="sizeStyle" :aria-label="'Open ' + mode.label"
-          @pointerdown="onTabDown" @pointerup="onTabUp" @click="openSheet">{{ mode.label }} ▲</button>
-  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
+  <PhoneButton v-if="!isOpen && !hidden" class="mob-sheet-tab" :style="sizeStyle" :aria-label="'Open ' + mode.label"
+               @pointerdown="onTabDown" @pointerup="onTabUp" @click="openSheet">{{ mode.label }} ▲</PhoneButton>
+  <section v-else-if="isOpen" ref="sheetEl" class="mob-sheet mob-classic" :style="[sizeStyle, sheetStyle]" :aria-label="mode.label">
     <div class="mob-sheet-handle" role="separator" aria-label="Drag to resize"
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
-      <span class="mob-sheet-grip"></span>
+      <PhoneBand :section="help" />
     </div>
     <div class="mob-sheet-rows" :style="{ '--mob-row-slots': rowSlots }">
       <div v-for="(line, lineIdx) in lines" :key="lineIdx" class="mob-sheet-line">
@@ -41,46 +43,39 @@ const { isOpen, lines, rowSlots, mode, sizeStyle, portEditor, portView, portValu
     <div v-if="portEditor !== null" class="mob-sheet-port" role="dialog" :aria-label="portEditor.field.portTitle ?? 'Port'">
       <div class="mob-sheet-port-head">
         <span class="mob-sheet-port-title">{{ portEditor.field.portTitle }}</span>
-        <button type="button" class="mob-sheet-btn mob-sheet-close" @click="closePortEditor">Close</button>
+        <PhoneButton primary class="mob-sheet-btn mob-sheet-close" @click="closePortEditor">Close</PhoneButton>
       </div>
       <div class="mob-sheet-port-body"><VentPortFields v-if="portView !== null" :port="portView" /></div>
     </div>
     <div class="mob-sheet-foot">
       <div class="mob-sheet-actions">
-        <button v-if="mode.edits === 'whatIfLayer'" type="button" class="mob-sheet-btn" title="Back to the design's values" @click="reset">Reset</button>
-        <button type="button" class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. The design is not changed.' : 'Close'" @click="close">Close</button>
+        <PhoneButton v-if="mode.edits === 'whatIfLayer'" class="mob-sheet-btn" title="Back to the design's values" @click="reset">Reset</PhoneButton>
+        <PhoneButton primary class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. The design is not changed.' : 'Close'" @click="close">Close</PhoneButton>
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
+/* Sizes: ChartPageSizes (--gp-*, set on the chart view) and PhoneRowSizes.CLASSIC (--mob-*, set on the sheet). */
 .mob-sheet-tab {
-  flex: 1;
+  /* The one phone button (PhoneButton), plain grey; only its drag behaviour is its own. */
   min-width: 0;
-  height: var(--sheet-tab);
-  border: none;
-  border-top: 1px solid var(--line);
-  background: var(--panel2, #f0f0f0);
-  color: var(--fg);
-  font: inherit;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   touch-action: none;
-  cursor: pointer;
 }
 .mob-sheet {
-  /* The sheet's own dense rows come from PhoneRowSizes.SHEET (sizeStyle). */
-  /* Shrinks before the chart does (the chart keeps 120 px); its rows then scroll inside it. */
+  /* Its rows give way and scroll once it is taller than the cap; it shrinks before the chart does (120 px). */
   flex: 1 1 0;
   min-width: 0;
   height: auto;
+  max-height: var(--gp-sheet-max);
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: var(--panel);
-  border-top: 1px solid var(--line);
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+  background: #fff;
+  border-top: 2px solid var(--acc);
   position: relative;
 }
 /* A port's own fields over the sheet, a sheet within the sheet; Close returns to the rows. */
@@ -100,120 +95,122 @@ const { isOpen, lines, rowSlots, mode, sizeStyle, portEditor, portView, portValu
   padding: 6px 12px;
   border-bottom: 1px solid var(--line);
 }
+.mob-sheet-port-head .mob-sheet-btn { flex: none; }
 .mob-sheet-port-title { font-weight: 600; font-size: 15px; }
 .mob-sheet-port-body { flex: 1; min-height: 0; overflow-y: auto; }
-.mob-sheet-handle {
-  flex: none;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  touch-action: none;
-  cursor: ns-resize;
-}
-.mob-sheet-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); }
+/* The band is the handle: drag it to resize the sheet, tap its ? for help. */
+.mob-sheet-handle { flex: none; touch-action: none; cursor: ns-resize; }
+.mob-sheet-handle :deep(.mob-band) { height: var(--gp-sheet-band); margin-top: 0; }
 
 .mob-sheet-rows {
   /* The rows take their own height; when the screen is too short they give way and scroll. */
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding-bottom: 8px;
 }
 .mob-sheet-line {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: var(--mob-row-pad-y) 12px;
-  min-height: var(--mob-row-min);
-  border-top: 1px solid var(--line);
   box-sizing: border-box;
+  height: var(--mob-row-min);
+  padding: 0 16px;
+  border-bottom: 1px solid #e6e6e6;
 }
-.mob-sheet-line:first-child { border-top: none; }
+.mob-sheet-line:last-child { border-bottom: none; }
 
 .mob-sheet-cell {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
+  flex: 1;
   min-width: 0;
 }
-
-.mob-sheet-cell { flex: 1; }
 .mob-sheet-label {
   flex: none;
-  width: 80px;
-  font-size: 13px;
-  line-height: var(--mob-label-lh, 13px);
-  color: var(--mut);
+  box-sizing: border-box;
+  width: var(--mob-label-w);
+  padding-right: 8px;
+  font-size: 14px;
+  line-height: var(--mob-label-lh);
+  color: #555;
 }
 
-.mob-sheet-value :deep(.num-stepper) { margin-left: 4px; }
-.mob-sheet-value :deep(.num-stepper-btn) {
-  width: var(--sheet-touch) !important;
-  min-width: var(--sheet-touch);
-  height: var(--sheet-touch) !important;
-  font-size: 16px !important;
-}
 .mob-sheet-value {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  font-size: 16px;
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
-.mob-sheet-value :deep(input) {
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: var(--mob-input-h);
-  padding: 2px 6px;
-  border: 1px solid var(--line);
+.mob-sheet-value :deep(.num-input-wrap) { flex: 1 1 auto; width: 0; min-width: 0; }
+.mob-sheet-value :deep(.num-stepper) { flex: none; margin-left: 6px !important; gap: 4px; }
+.mob-sheet-value :deep(.num-stepper-btn) {
+  width: var(--mob-stepper-w) !important;
+  min-width: var(--mob-stepper-w);
+  height: var(--mob-input-h) !important;
+  padding: 0;
+  border: 1px solid #999;
   border-radius: 6px;
+  background: linear-gradient(#fdfdfd, #e2e2e2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  font-size: 18px !important;
+  line-height: 1;
+  color: #222;
+}
+.mob-sheet-value :deep(input) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: var(--mob-input-h);
+  padding: 0 46px 0 14px;
+  border: 1px solid #c4c4c4;
+  border-radius: 4px;
   background: #fff;
   color: var(--fg);
   font: inherit;
 }
-.mob-sheet-value :deep(input:focus) { border-color: var(--acc); outline: none; }
+.mob-sheet-value :deep(input:focus) { border: 2px solid var(--acc); outline: none; }
+/* The unit sits inside the box's right edge, left of the ▲▼ pair (two buttons, a 4 px gap, a 6 px margin). */
 .mob-sheet-cell :deep(.mob-sheet-unit) {
-  flex: none;
-  min-width: var(--sheet-touch);
-  min-height: var(--sheet-touch);
-  justify-content: center;
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  right: calc(var(--mob-stepper-w) * 2 + 10px + 1px);
+  box-sizing: border-box;
+  min-width: var(--mob-stepper-w);
+  padding: 0 6px;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  border: none;
   font-size: 13px;
-  color: var(--mut);
   white-space: nowrap;
+  color: #888;
+  background: none;
+}
+.mob-sheet-cell :deep(.mob-sheet-unit.unit-toggle) {
+  border-left: 1px solid #cfcfcf;
+  border-radius: 0 3px 3px 0;
+  background: #efefef;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
 }
 
 .mob-sheet-foot {
   flex: none;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding: 8px 12px;
+  padding: 4px 16px;
   border-top: 1px solid var(--line);
+  background: var(--panel);
 }
-.mob-sheet-actions {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
+.mob-sheet-actions { display: flex; flex: 1; gap: 8px; align-items: center; }
 .mob-sheet-btn {
-  min-height: var(--sheet-touch);
-  min-width: var(--sheet-touch);
-  padding: 0 16px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
+  /* The one phone button (PhoneButton); Close is the primary. */
+  min-width: 0;
+  padding: 0 12px;
   font-size: 15px;
-  cursor: pointer;
-}
-.mob-sheet-close {
-  background: var(--acc, #36c);
-  border-color: var(--acc, #36c);
-  color: #fff;
 }
 </style>

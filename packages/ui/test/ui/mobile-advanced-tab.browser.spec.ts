@@ -88,7 +88,7 @@ test('a typed air density, and separately a typed sound velocity, change the cha
   const chartTable = async (): Promise<string> => {
     await closeAdvanced();
     await page.locator('.mob-tab', { hasText: 'Graph' }).click();
-    await page.locator('.mob-chart-cell .gpanel').first().getByRole('button', { name: 'Data' }).click();
+    await page.locator('.mob-chart-cell .mob-band').first().getByRole('button', { name: 'Data' }).click();
     const dialog = page.getByRole('dialog');
     await expect(dialog.locator('tbody tr').first()).toBeVisible();
     const text = await dialog.locator('tbody').innerText();

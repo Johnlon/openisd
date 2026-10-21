@@ -1,14 +1,15 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {PHONE_SIZES, PIXEL_9} from '../fixtures/phoneSizes.js';
-import {SheetSizes} from '@openisd/design/fields';
+import {PhoneRowSizes, SheetSizes} from '@openisd/design/fields';
 
 /**
  * Finger-sized controls on the phone sheets (John, 17 Oct 2026: "buttons too small to be
- * practical"): in Tune and What-if, on every phone size, every tappable control (the pull-tab, the
- * steppers, the value inputs, the unit toggles, Reset, Close) is at least 44x44 CSS px and every
- * row at least 48. The rows scroll inside the sheet and the chart keeps 120 px. The sizes come
- * from packages/design (SheetSizes).
+ * practical"): in Tune and What-if, on every phone size, every button (the pull-tab, Reset, Close)
+ * is the one 44 px phone button, and the rows are the app's standard classic rows (John, 20 Oct
+ * 2026: one button size and one row size across the app): 40 px, with the row's ▲▼ and unit at
+ * least 40 px wide. The rows scroll inside the sheet and the chart keeps 120 px. The sizes come
+ * from packages/design (SheetSizes, PhoneRowSizes.CLASSIC).
  */
 const BOXES = [
   {type: 'vented', tab: 'Vented'},
@@ -17,7 +18,7 @@ const BOXES = [
 const SHEETS = ['Tune', 'What-if'];
 
 for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetName of SHEETS) {
-  test(`${box.type} ${sheetName} sheet: controls at least 44 px, rows at least 48 px at ${size.width}×${size.height}`, async ({page}) => {
+  test(`${box.type} ${sheetName} sheet: 44 px buttons, standard 40 px rows at ${size.width}×${size.height}`, async ({page}) => {
     await page.setViewportSize(size);
     await forceMobileSkin(page);
     await page.goto('/');
@@ -31,16 +32,19 @@ for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetName of
     await tab.click();
     await expect(page.locator('.mob-sheet')).toBeVisible();
 
-    const small = await page.locator('.mob-sheet button, .mob-sheet input, .mob-sheet-unit').evaluateAll((els, min) =>
-      els.map(el => {
-        const r = el.getBoundingClientRect();
-        return {what: `${el.tagName} ${el.getAttribute('title') ?? el.getAttribute('aria-label') ?? el.textContent ?? ''}`.trim(), w: r.width, h: r.height};
-      }).filter(c => c.w < min || c.h < min), SheetSizes.TOUCH_MIN_PX);
-    expect(small, 'controls under 44 px').toEqual([]);
+    const sizes = (selector: string) => page.locator(selector).evaluateAll(els => els.map(el => {
+      const r = el.getBoundingClientRect();
+      return {what: `${el.tagName} ${el.getAttribute('title') ?? el.getAttribute('aria-label') ?? el.textContent ?? ''}`.trim(), w: r.width, h: r.height};
+    }));
+    const buttons = await sizes('.mob-sheet-btn');
+    expect(buttons.length, 'Close, and Reset on What-if').toBeGreaterThan(0);
+    expect(buttons.filter(c => c.w < SheetSizes.TOUCH_MIN_PX || Math.abs(c.h - SheetSizes.TOUCH_MIN_PX) > 0.5), 'buttons not the 44 px button').toEqual([]);
+    const rowParts = await sizes('.mob-sheet .num-stepper-btn, .mob-sheet-unit.unit-toggle');
+    expect(rowParts.filter(c => c.w < PhoneRowSizes.CLASSIC.unitColPx || c.h < PhoneRowSizes.CLASSIC.inputMinPx - 2), 'row ▲▼ and units smaller than the standard row').toEqual([]);
 
-    const shortRows = await page.locator('.mob-sheet-line').evaluateAll((els, min) =>
-      els.map(el => el.getBoundingClientRect().height).filter(h => h < min), SheetSizes.ROW_MIN_PX);
-    expect(shortRows, 'rows under 48 px').toEqual([]);
+    const offRows = await page.locator('.mob-sheet-line').evaluateAll((els, px) =>
+      els.map(el => el.getBoundingClientRect().height).filter(h => Math.abs(h - px) > 0.5), PhoneRowSizes.CLASSIC.rowMinPx);
+    expect(offRows, 'rows not the standard 40 px').toEqual([]);
 
     const chart = await page.locator('.mob-chart-cell .gpanel').first().evaluate(el => el.getBoundingClientRect().height);
     expect(chart).toBeGreaterThanOrEqual(120);

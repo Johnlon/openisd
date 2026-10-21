@@ -1,0 +1,35 @@
+id: T513
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: B8 phone Graph tab, Data sheet, Tune sheet, What-if sheet (screens 11-14) as the accepted mock; Auto Y stays where it is (QO278 open)
+done_test: bash scripts/test.sh packages/design/test/fields/chartPage.test.ts packages/design/test/fields/phoneRowSizes.test.ts
+visual:
+  - mobile-tab-graph
+files:
+  - tasks/T513.yml
+  - packages/design/chart/series.ts
+  - packages/design/chart/types.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/fields/chartPageSizes.ts
+  - packages/design/fields/chartPageText.ts
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/design/test/fields/chartPage.test.ts
+  - packages/ui/src/hooks/MobileChartView-hooks.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/ui/canvas.ts
+  - packages/ui/src/ui/components/ChartDataDialog.vue
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/mobile/PhoneBand.vue
+  - packages/ui/test/ui/mobile-graph-classic.browser.spec.ts
+  - packages/ui/test/ui/chart-data-dialog.browser.spec.ts
+  - packages/ui/test/ui/chart-title-clears-axis-labels.browser.spec.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-touch.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
