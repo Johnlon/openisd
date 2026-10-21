@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: b4e12e76fb7412c795c668016feec74b6e05eb62
 goal: The General tab Comment box fills the remaining height of the tab on the phone; the Dimensions diagram stays full size.
 done_test: bash scripts/test.sh packages/ui/test/architecture/driver-editor-general-fill.test.ts
 files:

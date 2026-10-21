@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, inject, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, tenthsCaret, NumberField, type NumberEdit, type SpinDirection} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, tenthsCaret, steppingCaret, NumberField, type NumberEdit, type SpinDirection} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -211,7 +211,7 @@ function caretForStep(): number | null {
  *  focus), an underline mirror overlay is shown instead and the box is untouched. */
 function stepFrom(caret: number | null, dir: SpinDirection): void {
   const el = inputEl.value;
-  const at = caret ?? tenthsCaret(display.value);
+  const at = steppingCaret(display.value, caret);
   const spun = caretSpin(display.value, at, dir, {min: dispMin.value, max: dispMax.value})
     ?? caretSpin(display.value, tenthsCaret(display.value), dir, {min: dispMin.value, max: dispMax.value});
   if (spun === null) return;
