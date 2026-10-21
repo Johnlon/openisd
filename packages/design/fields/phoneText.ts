@@ -1,5 +1,5 @@
 import type {BoxType, FilterType} from '../engine/index.js';
-import {ToggleField} from './field.js';
+import {NumberField, ToggleField} from './field.js';
 import {WinisdDeviation, WinisdFilterDeviation} from './winisdDeviation.js';
 import {WinisdDifference} from './winisdDifference.js';
 import {WinisdOption} from './winisdOption.js';
@@ -341,5 +341,33 @@ export class PhoneDriverListText {
 export class PhonePrBrowserText {
   static specsLine(sd: string, mms: string, cms: string): string {
     return `Sd = ${sd} · Mms = ${mms} · Cms = ${cms}`;
+  }
+}
+
+/** The words of the phone driver editor's footer, "values disagree" bar and equation inspector (gaps-phone/equation-inspector.html). */
+export class PhoneEditorText {
+  static readonly MORE = 'More';
+  static readonly MORE_MARK = '▲';
+  /** The mark on a row whose value can be worked out from other rows; tapping it opens the equation inspector. */
+  static readonly FX_MARK = 'ƒ';
+  /** The More menu's two hint lines. */
+  static readonly HINT_UNIT = 'Tap a unit to change it.';
+  static readonly HINT_SPIN = 'Arrow keys spin a value.';
+
+  /** What a tap on the bar says while the inspector is open (the list would sit on the card). */
+  static readonly CLOSE_PROVENANCE_FIRST = 'Close provenance to open this list';
+
+  /** The bar's heading: "3 values disagree", or "1 value disagrees". */
+  static disagreeHeading(count: number): string {
+    return count === 1 ? '1 value disagrees' : `${count} values disagree`;
+  }
+
+  /** A formula input in the inspector, with the value it has now: "Qes = 0.420", "Fs = 45.00 Hz". A key no field claims, or an input with no value yet, shows the key alone. */
+  static valueBadge(key: string, valueSI: number | null): string {
+    const field = NumberField.named(key);
+    if (field === undefined) return key;
+    if (valueSI === null) return field.label;
+    const unit = field.unitLabel();
+    return `${field.label} = ${field.format(valueSI)}${unit === '' ? '' : ` ${unit}`}`;
   }
 }

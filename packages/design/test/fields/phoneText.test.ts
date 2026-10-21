@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {KeyStripText, NumberField, PHONE_FILTER_CHIPS, PhoneDriverListText, PhoneHelp, PhoneLabels, PhonePrBrowserText, ToggleField, WinisdDeviation, WinisdDifference} from '../../fields/index.js';
+import {KeyStripText, NumberField, PHONE_FILTER_CHIPS, PhoneDriverListText, PhoneEditorText, PhoneHelp, PhoneLabels, PhonePrBrowserText, ToggleField, WinisdDeviation, WinisdDifference} from '../../fields/index.js';
 
 describe('phone text', () => {
   it('the key strip says Entered, Calculated, Not Available', () => {
@@ -77,5 +77,17 @@ describe('phone text', () => {
   it('the transmission line option line links to the TL port entry', () => {
     const tl = PhoneHelp.ADVANCED_SIMULATION.rows.find(r => r.label === ToggleField.ADV_TLPORTMODEL.label);
     expect(tl?.difference).toBe(WinisdDifference.forDeviation(WinisdDeviation.TL_PORT_END_CORRECTION));
+  });
+
+  it('the disagree bar heading counts the values', () => {
+    expect(PhoneEditorText.disagreeHeading(3)).toBe('3 values disagree');
+    expect(PhoneEditorText.disagreeHeading(1)).toBe('1 value disagrees');
+  });
+
+  it('an inspector badge shows the label, the value to the field\'s precision and its unit', () => {
+    expect(PhoneEditorText.valueBadge('Qes', 0.42)).toBe('Qes = 0.420');
+    expect(PhoneEditorText.valueBadge('Fs_hz', 45)).toBe('Fs = 45.00 Hz');
+    expect(PhoneEditorText.valueBadge('Fs_hz', null)).toBe('Fs');
+    expect(PhoneEditorText.valueBadge('no_such_key', 1)).toBe('no_such_key');
   });
 });

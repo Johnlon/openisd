@@ -7,6 +7,8 @@ defineProps<{
   open: boolean;
   targetField: string | null;
   provenanceInfo: ProvenanceInfo | null;
+  /** Phone: the text of an input's badge, with the input's current value ("Qes = 0.420"). Absent: the badge names the input only. */
+  inputBadge?: (key: string) => string;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
@@ -33,7 +35,7 @@ const emit = defineEmits<{ close: [] }>();
         <div class="eq-inputs">
           <span class="eq-in-lbl">Participating fields:</span>
           <span v-for="k in path.inputs" :key="k" class="eq-in-badge" :style="{ borderColor: path.color, color: path.color }">
-            {{ k }}
+            {{ inputBadge ? inputBadge(k) : k }}
           </span>
         </div>
       </div>

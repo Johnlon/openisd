@@ -1,0 +1,18 @@
+id: T532
+release_note: On the phone, the driver editor has an OK, Cancel and More footer, a bar listing values that disagree, an f mark on rows you can inspect, and values on the inspector's input badges.
+repo: openisd
+owner: maryu
+status: done
+goal: Phone driver editor follow-up to T530: build the round-3 mock's More footer menu, the 'N values disagree' bar, the f mark on rows, and value badges in the equation inspector
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
+files:
+  - tasks/T532.yml
+  - packages/design/fields/index.ts
+  - packages/design/fields/phoneText.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/EquationInspectorModal.vue
+  - packages/ui/test/architecture/driver-editor-provenance-row-tint.test.ts
+  - packages/ui/test/architecture/driver-editor-template.test.ts
+  - packages/ui/test/ui/mobile-driver-editor.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

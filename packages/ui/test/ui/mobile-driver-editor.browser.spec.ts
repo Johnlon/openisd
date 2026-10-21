@@ -26,6 +26,14 @@ test.beforeEach(async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Driver' }).click();
 });
 
+/** Open the footer's More menu (Export, Import, Copy to My Drivers, Reset). */
+async function openMore(page: import('@playwright/test').Page) {
+  await page.getByRole('button', {name: /^More/}).click();
+  const menu = page.getByRole('menu', {name: 'More actions'});
+  await expect(menu).toBeVisible();
+  return menu;
+}
+
 test('the Driver Editor field rows stack without overlapping at phone width', async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 900 });
   await page.getByText('Edit', { exact: true }).click();
@@ -82,32 +90,136 @@ test('at phone width the Driver Editor fits the screen: first tab, legend one ro
   await screenshotIfAsked(page);
 });
 
-// John, 2026-10-05: the phone footer is two rows — Export, Import, Copy to My Drivers, then
-// OK, Reset, Cancel.
-test('at phone width the Driver Editor footer rows are Export, Import, Copy to My Drivers then OK, Reset, Cancel', async ({ page }) => {
+// T532 (editor-live.html): the phone footer is one row, OK (blue), Cancel, More ▲. Export, Import,
+// Copy to My Drivers and Reset are in the More menu, a popup that stays a popup.
+test('at phone width the Driver Editor footer is OK, Cancel, More; the other actions are in the More menu', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.getByText('Edit', { exact: true }).click();
   const footer = page.locator('.de-footer');
   await expect(footer).toBeVisible();
-  const rows = [['Export', 'Import', 'Copy to My Drivers'], ['OK', 'Reset', 'Cancel']];
-  const boxes = await Promise.all(rows.map(row => Promise.all(row.map(async name =>
-    (await footer.getByRole('button', { name, exact: true }).boundingBox())!))));
-  for (const row of boxes) {
-    for (let i = 1; i < row.length; i++) {
-      expect(row[i].y).toBeCloseTo(row[0].y, 0);
-      expect(row[i].x).toBeGreaterThanOrEqual(row[i - 1].x + row[i - 1].width - 1);
+  const names = ['OK', 'Cancel', 'More'];
+  const boxes = [];
+  for (const name of names) boxes.push((await footer.getByRole('button', {name: new RegExp(`^${name}`)}).boundingBox())!);
+  for (let i = 1; i < boxes.length; i++) {
+    expect(boxes[i].y).toBeCloseTo(boxes[0].y, 0);
+    expect(boxes[i].x).toBeGreaterThanOrEqual(boxes[i - 1].x + boxes[i - 1].width - 1);
+  }
+  for (const b of boxes) expect(b.height).toBeGreaterThanOrEqual(PhoneRowSizes.BUTTON_PX - 0.5);
+  await expect(footer.locator('button.mob-btn-primary'), 'one blue button').toHaveCount(1);
+  for (const name of ['Export', 'Import', 'Copy to My Drivers', 'Reset']) {
+    await expect(footer.getByRole('button', {name, exact: true})).toHaveCount(0);
+  }
+  for (const button of await footer.locator('button').all()) await expect(button).toBeInViewport({ratio: 1});
+
+  const menu = await openMore(page);
+  for (const name of ['Export', 'Import', 'Copy to My Drivers', 'Reset']) {
+    const item = menu.getByRole('menuitem', {name, exact: true});
+    await expect(item).toBeVisible();
+    expect((await item.boundingBox())!.height).toBeGreaterThanOrEqual(SheetSizes.TOUCH_MIN_PX - 0.5);
+  }
+  const m = (await menu.boundingBox())!;
+  expect(m.x).toBeGreaterThanOrEqual(0);
+  expect(m.x + m.width).toBeLessThanOrEqual(375);
+  expect(m.y + m.height, 'the menu sits above the footer').toBeLessThanOrEqual(boxes[2].y + 1);
+  expect(await elementsPastScreenEdges(page, '.de-modal')).toEqual([]);
+  // Tapping outside closes it without doing anything.
+  await page.locator('.de-more-scrim').click({position: {x: 5, y: 5}});
+  await expect(menu).toHaveCount(0);
+  await expect(page.locator('.de-modal')).toBeVisible();
+});
+
+test('on the phone Reset in the More menu puts the opening values back and closes the menu', async ({ page }) => {
+  await page.setViewportSize(PIXEL_9);
+  await page.getByText('Edit', { exact: true }).click();
+  await page.locator('.de-tab', { hasText: 'General' }).click();
+  const comment = page.locator('#de-text-comment');
+  const before = await comment.inputValue();
+  await comment.fill(before + ' changed');
+  const menu = await openMore(page);
+  await menu.getByRole('menuitem', {name: 'Reset', exact: true}).click();
+  await expect(menu).toHaveCount(0);
+  await expect(comment).toHaveValue(before);
+});
+
+// T532 (editor-live.html): a bar above the checkboxes, closed: "N values disagree ▸"; open, one line per disagreement.
+test.describe('values disagree bar on the phone', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize(PIXEL_9);
+    await page.getByText('Edit', { exact: true }).click();
+    await page.locator('.de-tab', { hasText: 'Parameters' }).click();
+  });
+
+  async function enterDisagreeingQs(page: import('@playwright/test').Page) {
+    for (const [key, v] of [['Qts', '0.1'], ['Qes', '0.5'], ['Qms', '3']]) {
+      const input = page.locator(`.de-fld[data-field-key="${key}"] input`);
+      await input.fill(v);
+      await input.press('Tab');
     }
   }
-  expect(boxes[1][0].y).toBeGreaterThanOrEqual(boxes[0][0].y + boxes[0][0].height - 1);
-  for (const button of await footer.locator('button').all()) await expect(button).toBeInViewport({ ratio: 1 });
-  expect(await elementsPastScreenEdges(page, '.de-modal')).toEqual([]);
+
+  test('the bar is outside the scroll, above the checkboxes, closed by default, and opens to list the disagreements', async ({ page }) => {
+    await enterDisagreeingQs(page);
+    const bar = page.locator('.de-dq-bar');
+    await expect(bar).toBeVisible();
+    await expect(bar.locator('.de-dq-head')).toHaveText(/\d+ values? disagrees?/);
+    expect(await bar.evaluate(el => el.closest('.de-scroll') === null), 'not in the scroll area').toBe(true);
+    await expect(bar.locator('.de-dq-list')).toHaveCount(0);
+    const head = (await bar.locator('.de-dq-head').boundingBox())!;
+    expect(head.height).toBeGreaterThanOrEqual(SheetSizes.TOUCH_MIN_PX - 0.5);
+    const toolbar = (await page.locator('.de-toolbar').boundingBox())!;
+    expect(head.y + head.height).toBeLessThanOrEqual(toolbar.y + 1);
+
+    await bar.locator('.de-dq-head').click();
+    await expect(bar.locator('.de-dq-list li').first()).toBeVisible();
+    expect(await bar.locator('.de-dq-list li').count()).toBeGreaterThanOrEqual(1);
+    expect(await elementsPastScreenEdges(page, '.de-modal')).toEqual([]);
+    const footer = (await page.locator('.de-footer').boundingBox())!;
+    const list = (await bar.boundingBox())!;
+    expect(list.y + list.height).toBeLessThanOrEqual(footer.y + 1);
+    await bar.locator('.de-dq-head').click();
+    await expect(bar.locator('.de-dq-list')).toHaveCount(0);
+  });
+});
+
+// T532 (equation-inspector.html): with Inspect Provenance on, a row that can be calculated is marked ƒ,
+// tapping it opens the inspector, and the inspector's input badges carry the value ("Qes = 0.420").
+test.describe('ƒ marks and value badges on the phone', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize(PIXEL_9);
+    await page.getByText('Edit', { exact: true }).click();
+    await page.locator('.de-tab', { hasText: 'Parameters' }).click();
+  });
+
+  test('no ƒ marks until Inspect Provenance is ticked; then calculable rows have one and plain rows do not', async ({ page }) => {
+    await expect(page.locator('.de-fx')).toHaveCount(0);
+    await page.getByRole('checkbox', {name: 'Inspect Provenance'}).check();
+    await expect(page.locator('.de-fld.de-fx[data-field-key="Qts"]')).toHaveCount(1);
+    await expect(page.locator('.de-fld.de-fx[data-field-key="Fs_hz"]')).toHaveCount(1);
+    await expect(page.locator('.de-fld.de-fx[data-field-key="Le_H"]')).toHaveCount(0);
+    const mark = await page.locator('.de-fld[data-field-key="Qts"]').evaluate(el => getComputedStyle(el, '::before').content);
+    expect(mark).toContain('ƒ');
+    await page.getByRole('checkbox', {name: 'Inspect Provenance'}).uncheck();
+    await expect(page.locator('.de-fx')).toHaveCount(0);
+  });
+
+  test('tapping the ƒ row opens the inspector and its badges show the current values', async ({ page }) => {
+    await page.getByRole('checkbox', {name: 'Inspect Provenance'}).check();
+    const qes = page.locator('.de-fld[data-field-key="Qes"] input');
+    await qes.fill('0.42');
+    await qes.press('Tab');
+    await page.locator('.de-fld[data-field-key="Qts"] label').first().click();
+    const card = page.locator('.eq-inspector-card');
+    await expect(card).toBeVisible();
+    await expect(card.locator('.eq-in-badge', {hasText: 'Qes = 0.420'})).toBeVisible();
+    for (const b of await card.locator('.eq-in-badge').all()) expect(await b.textContent()).toMatch(/^\s*\S+( = \S+( \S+)?)?\s*$/);
+  });
 });
 
 // Bug (John, live on his phone, 2026-10-05): the Save to My Drivers boxes ran past the dialog.
 test('at phone width the Save to My Drivers dialog sits on screen with its boxes inside it', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.getByText('Edit', { exact: true }).click();
-  await page.locator('.de-copy-my').click();
+  await (await openMore(page)).getByRole('menuitem', {name: 'Copy to My Drivers', exact: true}).click();
   const panel = page.getByRole('dialog', { name: 'Save to My Drivers' });
   await expect(panel).toBeVisible();
 
@@ -319,7 +431,7 @@ test.describe('tab strip at the Pixel 9 pixel density', () => {
 test('on the phone the Save to My Drivers dialog follows the mock: label above 36 px boxes, Cancel then Save at 44 px', async ({ page }) => {
   await page.setViewportSize(PIXEL_9);
   await page.getByText('Edit', { exact: true }).click();
-  await page.locator('.de-copy-my').click();
+  await (await openMore(page)).getByRole('menuitem', {name: 'Copy to My Drivers', exact: true}).click();
   const panel = page.getByRole('dialog', { name: 'Save to My Drivers' });
   await expect(panel).toBeVisible();
 
@@ -353,7 +465,7 @@ test('on the phone the Save to My Drivers dialog follows the mock: label above 3
 test('on the phone Cancel in the Save to My Drivers dialog closes it and tells nothing was saved', async ({ page }) => {
   await page.setViewportSize(PIXEL_9);
   await page.getByText('Edit', { exact: true }).click();
-  await page.locator('.de-copy-my').click();
+  await (await openMore(page)).getByRole('menuitem', {name: 'Copy to My Drivers', exact: true}).click();
   const panel = page.getByRole('dialog', { name: 'Save to My Drivers' });
   await panel.locator('.save-cancel-btn').click();
   await expect(panel).toHaveCount(0);

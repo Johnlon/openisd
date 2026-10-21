@@ -37,12 +37,12 @@ describe('Inspect Provenance row tint', () => {
     assert.ok(info.paths.some(p => p.inputs.includes('Qes')), 'Qes feeds Qts');
   });
 
-  it('every field that takes a provenance style also takes the de-feeds class for the same key', () => {
+  it('every field that takes a provenance style also takes the inspector row classes (de-feeds and the ƒ mark) for the same key', () => {
     const styled = [...src.matchAll(/<UIField[^>]*data-field-key="(\w+)"[^>]*:style="getFieldStyle\('(\w+)'\)"/g)];
     assert.ok(styled.length > 30, `found the styled fields (${styled.length})`);
     for (const [line, key, styleKey] of styled) {
       assert.equal(styleKey, key, `style key matches field key for ${key}`);
-      assert.ok(line.includes(`feedsClass('${key}')`), `${key} takes feedsClass('${key}')`);
+      assert.ok(line.includes(`inspectClass('${key}')`), `${key} takes inspectClass('${key}')`);
     }
   });
 

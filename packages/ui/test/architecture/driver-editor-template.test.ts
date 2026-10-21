@@ -388,7 +388,7 @@ describe('driver editor — Auto calculate unknowns checkbox drives the draft, n
 
 describe('driver editor — DQ strips are a scrollable bullet list with the subject highlighted', () => {
   // Static source checks, same convention as `boundFields()` above: no mount, no browser.
-  const stripBlocks = src.match(/<div v-if="\w+Reasons\.length"[\s\S]*?<\/div>\n/g) ?? [];
+  const stripBlocks = src.match(/<div v-if="(?:!skin && )?\w+Reasons\.length"[\s\S]*?<\/div>\n/g) ?? [];
 
   it('finds all three DQ strips (identity, chart-blocking, inconsistent-input)', () => {
     assert.equal(stripBlocks.length, 3, 'expected exactly the identity/chartBlocking/inconsistentInput strips');

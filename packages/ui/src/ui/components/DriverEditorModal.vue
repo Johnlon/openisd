@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
+import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, ref, watch} from 'vue';
 import type {NumSpecField} from '../../logic/appState.js';
@@ -24,7 +24,7 @@ import MobileKeyStrip from '../shells/mobile/MobileKeyStrip.vue';
 import PhoneBand from '../shells/mobile/PhoneBand.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
-import {getProvenanceInfo} from '../../logic/provenance.js';
+import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
 import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
 
 function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calculated {
@@ -48,7 +48,7 @@ const { presentation: presentationState, selection, myDrivers, logging, driverFi
 // driverSelection.ts) — see architecture.test.ts "ManagedProject is the only holder of
 // OpenISDDriver".
 
-defineProps<{
+const props = defineProps<{
   /** The phone's classes for the shared field rows and buttons; none on the desktop. */
   skin?: DriverEditorSkin;
 }>();
@@ -305,27 +305,44 @@ watch(inspectedField, (v) => {
 window.addEventListener('resize', updatePopupPosition);
 onBeforeUnmount(() => window.removeEventListener('resize', updatePopupPosition));
 
-const provenanceInfo = computed(() => {
-  if (!inspectProvenance.value || !inspectedField.value) return null;
-  // `driverRaw` is metadata only (brand/model/…) — it never carried a T/S value, so every
-  // "Live:" substitution read `undefined` and printed `?` for every input, always.
-  // bugs/archive/BUG_20260817_provenance_live_substitution_always_shows_question_marks.md
-  // The driver's own spec section, keyed by schema name — every value a formula input can name,
-  // no hand-listed inputs and no field-name casting. `cellVal` is the same accessor every
-  // NumInput on this modal reads through, and it is reactive to `trigger`.
+/** Every number in the draft driver by schema name: what a formula input is worth right now. `driverRaw`
+ *  is metadata only (brand/model/…), so the values come from the driver's own spec section.
+ *  bugs/archive/BUG_20260817_provenance_live_substitution_always_shows_question_marks.md */
+const inspectedValues = computed<Record<string, number | null>>(() => {
+  void trigger.value;
   const currentValues: Record<string, number | null> = {};
   for (const [field, handle] of Object.entries(draftDriver.value.specs)) {
     const v = handle.value;
     if (typeof v === 'number') currentValues[field] = v;
   }
-  return getProvenanceInfo(inspectedField.value, currentValues);
+  return currentValues;
 });
+
+const provenanceInfo = computed(() => {
+  if (!inspectProvenance.value || !inspectedField.value) return null;
+  return getProvenanceInfo(inspectedField.value, inspectedValues.value);
+});
+
+/** Phone inspector: a formula input with its current value ("Qes = 0.420"); none on the desktop. */
+const inputBadge = computed<((key: string) => string) | undefined>(() =>
+  props.skin === undefined ? undefined : (key) => PhoneEditorText.valueBadge(key, inspectedValues.value[key] ?? null));
 
 /** A field a formula path names as an input is tinted across its whole row cell (see `.de-feeds`). */
 function feedsClass(fieldKey: string): string {
   const info = provenanceInfo.value;
   if (!inspectProvenance.value || !info || fieldKey === inspectedField.value) return '';
   return info.paths.some(path => path.inputs.includes(fieldKey)) ? 'de-feeds' : '';
+}
+
+/** Phone: a row whose value can be worked out from other rows carries the ƒ mark while Inspect Provenance is on. */
+function fxClass(fieldKey: string): string {
+  if (props.skin === undefined || !inspectProvenance.value) return '';
+  return Object.hasOwn(PROVENANCE_MAP, fieldKey) ? 'de-fx' : '';
+}
+
+/** The classes a row takes while the provenance inspector is on: fed by the inspected field, and the ƒ mark. */
+function inspectClass(fieldKey: string): string {
+  return `${feedsClass(fieldKey)} ${fxClass(fieldKey)}`.trim();
 }
 
 function getFieldStyle(fieldKey: string) {
@@ -560,6 +577,22 @@ function reset() {
   forceUpdate();
 }
 
+// Phone footer: OK, Cancel and More; More opens Export, Import, Copy to My Drivers and Reset as a popup.
+const moreOpen = ref(false);
+function fromMore(action: () => void) {
+  moreOpen.value = false;
+  action();
+}
+
+// Phone: the "N values disagree" bar. Its list stays shut while the inspector is on (it would sit on the card).
+const disagreeOpen = ref(false);
+const disagreeListShown = computed(() => disagreeOpen.value && !inspectProvenance.value);
+function toggleDisagree() {
+  if (inspectProvenance.value) logging.flash(PhoneEditorText.CLOSE_PROVENANCE_FIRST);
+  else disagreeOpen.value = !disagreeOpen.value;
+}
+const modalStyle = computed(() => props.skin === undefined ? undefined : {...props.skin.rowVars, '--de-fx': `'${PhoneEditorText.FX_MARK}'`});
+
 const fileInput = ref<HTMLInputElement | null>(null);
 function triggerLoad() {
   fileInput.value?.click();
@@ -639,7 +672,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
 <template>
   <div class="overlay on">
-    <div class="modal de-modal" :class="skin ? 'de-phone mob-classic' : 'de-desktop'" :style="skin?.rowVars" ref="modalRootEl">
+    <div class="modal de-modal" :class="skin ? 'de-phone mob-classic' : 'de-desktop'" :style="modalStyle" ref="modalRootEl">
       <h2>{{ editorTitle }}<button class="x" @click="cancel" title="Close without keeping changes">✕</button></h2>
 
       <div class="de-tabs">
@@ -680,11 +713,11 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THIELE_SMALL" />
               <div v-else class="de-hdr">Thiele/Small parameters</div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Qes')]" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Qms')]" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Qts')]" data-field-key="Qts" :style="getFieldStyle('Qts')" :field="NumberField.QTS" :cell="fieldOf('Qts')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Fs_hz')]" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :field="NumberField.FS_HZ" :cell="fieldOf('Fs_hz')" required />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Vas_m3')]" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :field="NumberField.VAS_M3" :cell="fieldOf('Vas_m3')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Qes')]" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Qms')]" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Qts')]" data-field-key="Qts" :style="getFieldStyle('Qts')" :field="NumberField.QTS" :cell="fieldOf('Qts')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Fs_hz')]" data-field-key="Fs_hz" :style="getFieldStyle('Fs_hz')" :field="NumberField.FS_HZ" :cell="fieldOf('Fs_hz')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Vas_m3')]" data-field-key="Vas_m3" :style="getFieldStyle('Vas_m3')" :field="NumberField.VAS_M3" :cell="fieldOf('Vas_m3')" required />
               </div>
             </div>
 
@@ -692,19 +725,19 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ELECTRO_MECHANICAL" />
               <div v-else class="de-hdr">Electro-Mechanical parameters</div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Dd_m')]" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Le_H')]" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Dd_m')]" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Le_H')]" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />
                 <!-- fLe is STORED IN HERTZ (docs/design/WINISD_SCHEMA.md) and shown in kHz, so the
                      scale DIVIDES by 1000. NumInput renders `SI × scale`, so a ×1000 here read
                      Hz as kHz and put the field out by 1e6. -->
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('fLe_hz')]" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :field="NumberField.FLE_HZ" :cell="fieldOf('fLe_hz')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('KLe_H_sqrtHz')]" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :cell="fieldOf('KLe_H_sqrtHz')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('fLe_hz')]" data-field-key="fLe_hz" :style="getFieldStyle('fLe_hz')" :field="NumberField.FLE_HZ" :cell="fieldOf('fLe_hz')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('KLe_H_sqrtHz')]" data-field-key="KLe_H_sqrtHz" :style="getFieldStyle('KLe_H_sqrtHz')" :field="NumberField.KLE_H_SQRTHZ" :cell="fieldOf('KLe_H_sqrtHz')" />
               </div>
             </div>
 
@@ -712,13 +745,13 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_LARGE_SIGNAL" />
               <div v-else class="de-hdr">Large-Signal parameters</div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Xmax_m')]" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Hc_m')]" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Hg_m')]" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :field="NumberField.HG_M" :cell="fieldOf('Hg_m')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Xmax_m')]" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Hc_m')]" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Hg_m')]" data-field-key="Hg_m" :style="getFieldStyle('Hg_m')" :field="NumberField.HG_M" :cell="fieldOf('Hg_m')" />
 
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Vd_m3')]" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :field="NumberField.VD_M3" :cell="fieldOf('Vd_m3')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Xlim_m')]" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :field="NumberField.XLIM_M" :cell="fieldOf('Xlim_m')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Pe_W')]" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :field="NumberField.PE_W" :cell="fieldOf('Pe_W')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Vd_m3')]" data-field-key="Vd_m3" :style="getFieldStyle('Vd_m3')" :field="NumberField.VD_M3" :cell="fieldOf('Vd_m3')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Xlim_m')]" data-field-key="Xlim_m" :style="getFieldStyle('Xlim_m')" :field="NumberField.XLIM_M" :cell="fieldOf('Xlim_m')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Pe_W')]" data-field-key="Pe_W" :style="getFieldStyle('Pe_W')" :field="NumberField.PE_W" :cell="fieldOf('Pe_W')" />
               </div>
             </div>
 
@@ -726,15 +759,15 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_MISCELLANEOUS" />
               <div v-else class="de-hdr">Miscellaneous parameters</div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('no')]" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Znom_ohm')]" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('USPL_dB')]" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :field="NumberField.USPL_DB" :cell="fieldOf('USPL_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('SPL_dB')]" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('no')]" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Znom_ohm')]" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('USPL_dB')]" data-field-key="USPL_dB" :style="getFieldStyle('USPL_dB')" :field="NumberField.USPL_DB" :cell="fieldOf('USPL_dB')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('SPL_dB')]" data-field-key="SPL_dB" :style="getFieldStyle('SPL_dB')" :field="NumberField.SPL_DB" :cell="fieldOf('SPL_dB')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('numVC')]" data-field-key="numVC" :style="getFieldStyle('numVC')" :field="NumberField.NUMVC" :cell="fieldOf('numVC')" />
                 <UIPickField class="de-fld de-conn" :class="skin?.field" data-field-key="VCCon" :title="EnumField.VCCON.description" :label="EnumField.VCCON.label" input-id="de-conn-sel">
                   <select id="de-conn-sel" class="de-conn-sel" :class="wiringClass" :value="driverRaw.VCCon ?? 'parallel'" @change="setWiring"><option v-for="o in WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                 </UIPickField>
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('power_peak_W')]" data-field-key="power_peak_W" :style="getFieldStyle('power_peak_W')" :field="NumberField.POWER_PEAK_W" :cell="fieldOf('power_peak_W')" />
               </div>
             </div>
           </div>
@@ -745,9 +778,9 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THERMAL" />
               <div v-else class="de-hdr">Thermal parameters</div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('alfaVC_per_K')]" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Rt_K_per_W')]" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Ct_J_per_K')]" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :cell="fieldOf('Ct_J_per_K')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('alfaVC_per_K')]" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rt_K_per_W')]" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Ct_J_per_K')]" data-field-key="Ct_J_per_K" :style="getFieldStyle('Ct_J_per_K')" :field="NumberField.CT_J_PER_K" :cell="fieldOf('Ct_J_per_K')" />
               </div>
             </div>
 
@@ -755,16 +788,16 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_FIGURE_OF_MERIT" />
               <div v-else class="de-hdr">Figure of merits</div>
               <div class="de-cols">
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('SPLmaxLF_dB')]" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('SPLmax_dB')]" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Rme_kg_per_s')]" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :cell="fieldOf('Rme_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('gamma_m_per_s2_A')]" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :cell="fieldOf('gamma_m_per_s2_A')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Mpow_N_per_sqrtW')]" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :cell="fieldOf('Mpow_N_per_sqrtW')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Mcost_kg_per_s')]" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :cell="fieldOf('Mcost_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('EBP_hz')]" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :field="NumberField.EBP_HZ" :cell="fieldOf('EBP_hz')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('SPLmaxLF_dB')]" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('SPLmax_dB')]" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Rme_kg_per_s')]" data-field-key="Rme_kg_per_s" :style="getFieldStyle('Rme_kg_per_s')" :field="NumberField.RME_KG_PER_S" :cell="fieldOf('Rme_kg_per_s')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('gamma_m_per_s2_A')]" data-field-key="gamma_m_per_s2_A" :style="getFieldStyle('gamma_m_per_s2_A')" :field="NumberField.GAMMA_M_PER_S2_A" :cell="fieldOf('gamma_m_per_s2_A')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mpow_N_per_sqrtW')]" data-field-key="Mpow_N_per_sqrtW" :style="getFieldStyle('Mpow_N_per_sqrtW')" :field="NumberField.MPOW_N_PER_SQRTW" :cell="fieldOf('Mpow_N_per_sqrtW')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Mcost_kg_per_s')]" data-field-key="Mcost_kg_per_s" :style="getFieldStyle('Mcost_kg_per_s')" :field="NumberField.MCOST_KG_PER_S" :cell="fieldOf('Mcost_kg_per_s')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('EBP_hz')]" data-field-key="EBP_hz" :style="getFieldStyle('EBP_hz')" :field="NumberField.EBP_HZ" :cell="fieldOf('EBP_hz')" />
                 <!-- The model holds the FRACTION the .wdr carries; WinISD's pane prints a
                      percentage. The `percent` unit group is the ONE place that ×100 lives. -->
-                <UIField class="de-fld" :class="[skin?.field, feedsClass('Gloss')]" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :field="NumberField.GLOSS" :cell="fieldOf('Gloss')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Gloss')]" data-field-key="Gloss" :style="getFieldStyle('Gloss')" :field="NumberField.GLOSS" :cell="fieldOf('Gloss')" />
               </div>
             </div>
 
@@ -788,13 +821,13 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
                    WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                    Thick read a metre value under an inches label. -->
               <UIField class="de-fld" :class="skin?.field" data-field-key="Thick_m" :label="skin ? PhoneLabels.THICK : undefined" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('Depth_m')]" data-field-key="Depth_m" :label="skin ? PhoneLabels.DEPTH : undefined" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('MagDepth_m')]" data-field-key="MagDepth_m" :label="skin ? PhoneLabels.MAG_DEPTH : undefined" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
+              <UIField class="de-fld" :class="[skin?.field, inspectClass('Depth_m')]" data-field-key="Depth_m" :label="skin ? PhoneLabels.DEPTH : undefined" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
+              <UIField class="de-fld" :class="[skin?.field, inspectClass('MagDepth_m')]" data-field-key="MagDepth_m" :label="skin ? PhoneLabels.MAG_DEPTH : undefined" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
+              <UIField class="de-fld" :class="[skin?.field, inspectClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
               <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
+              <UIField class="de-fld" :class="[skin?.field, inspectClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>
 
             <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
@@ -822,7 +855,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             <li v-for="r in chartBlockingReasons" :key="r.subject + r.text"><strong class="de-incomplete-subject">{{ r.subject }}</strong> {{ r.text }}</li>
           </ul>
         </div>
-        <div v-if="inconsistentInputReasons.length" class="de-incomplete de-inconsistent"
+        <div v-if="!skin && inconsistentInputReasons.length" class="de-incomplete de-inconsistent"
              :title="reasonTitle(inconsistentInputReasons)">
           <span class="de-incomplete-hd">⚠ Saves fine and the charts plot from the values as stated, but those values disagree because:</span>
           <ul class="de-incomplete-list">
@@ -839,8 +872,18 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         :open="inspectProvenance && inspectedField !== null"
         :target-field="inspectedField"
         :provenance-info="provenanceInfo"
+        :input-badge="inputBadge"
         @close="inspectedField = null"
       />
+
+      <div v-if="skin && inconsistentInputReasons.length" class="de-dq-bar">
+        <button type="button" class="de-dq-head" :aria-expanded="disagreeListShown" @click="toggleDisagree">
+          {{ PhoneEditorText.disagreeHeading(inconsistentInputReasons.length) }}<span aria-hidden="true">{{ disagreeListShown ? '▾' : '▸' }}</span>
+        </button>
+        <ul v-if="disagreeListShown" class="de-dq-list">
+          <li v-for="r in inconsistentInputReasons" :key="r.subject + r.text"><strong>{{ r.subject }}</strong> {{ r.text }}</li>
+        </ul>
+      </div>
 
       <div class="de-toolbar">
         <label class="de-provenance-chk" title="Auto-calculate derived/unknown T/S fields when parameters change">
@@ -861,21 +904,39 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         </div>
         <div class="de-btns">
           <input type="file" ref="fileInput" style="display:none" @change="handleFileLoaded" :accept="DriverFileFormat.ACCEPT">
-          <!-- File actions left, dialog actions right; each group is its own row on a phone. -->
-          <div class="de-btn-row">
-            <button :class="[skin?.button, skin?.buttonSecondary]" @click="requestExport" title="Export this driver to a file — choose the format, then where to put it">Export</button>
-            <button :class="[skin?.button, skin?.buttonSecondary]" @click="triggerLoad" title="Import a driver from a file">Import</button>
-            <button class="de-copy-my" :class="[skin?.button, skin?.buttonSecondary]" @click="copyToMyDrivers"
-                    :title="copiedMsg || 'Copy this driver into My Drivers as an independent copy — no link back to it'">
-              {{ copiedMsg || 'Copy to My Drivers' }}
-            </button>
-          </div>
-          <div class="de-btn-row">
-            <button class="pri" :class="[skin?.button, skin?.buttonPrimary]" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
-            <button :class="[skin?.button, skin?.buttonSecondary]" @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
-            <button :class="[skin?.button, skin?.buttonSecondary]" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+          <template v-if="!skin">
+            <div class="de-btn-row">
+              <button @click="requestExport" title="Export this driver to a file — choose the format, then where to put it">Export</button>
+              <button @click="triggerLoad" title="Import a driver from a file">Import</button>
+              <button class="de-copy-my" @click="copyToMyDrivers"
+                      :title="copiedMsg || 'Copy this driver into My Drivers as an independent copy — no link back to it'">
+                {{ copiedMsg || 'Copy to My Drivers' }}
+              </button>
+            </div>
+            <div class="de-btn-row">
+              <button class="pri" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+              <button @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
+              <button @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+            </div>
+          </template>
+          <div v-else class="de-btn-row">
+            <button class="pri" :class="[skin.button, skin.buttonPrimary]" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+            <button :class="[skin.button, skin.buttonSecondary]" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+            <button class="de-more" :class="[skin.button, skin.buttonSecondary, {on: moreOpen}]" aria-haspopup="menu" :aria-expanded="moreOpen" @click="moreOpen = !moreOpen">{{ PhoneEditorText.MORE }}<i>{{ PhoneEditorText.MORE_MARK }}</i></button>
           </div>
         </div>
+        <template v-if="skin && moreOpen">
+          <div class="de-more-scrim" @click="moreOpen = false"></div>
+          <div class="de-more-menu" role="menu" aria-label="More actions">
+            <button type="button" role="menuitem" class="de-more-item" @click="fromMore(requestExport)" title="Export this driver to a file — choose the format, then where to put it">Export</button>
+            <button type="button" role="menuitem" class="de-more-item" @click="fromMore(triggerLoad)" title="Import a driver from a file">Import</button>
+            <button type="button" role="menuitem" class="de-more-item de-copy-my" @click="fromMore(copyToMyDrivers)" title="Copy this driver into My Drivers as an independent copy — no link back to it">Copy to My Drivers</button>
+            <button type="button" role="menuitem" class="de-more-item" @click="fromMore(reset)" title="Reset fields to the values when the editor was opened">Reset</button>
+            <hr>
+            <div class="de-more-hint">{{ PhoneEditorText.HINT_UNIT }}</div>
+            <div class="de-more-hint">{{ PhoneEditorText.HINT_SPIN }}</div>
+          </div>
+        </template>
       </div>
 
       <!-- Brand/Model gate. A popup rather than a disabled button, because a disabled button
@@ -1339,4 +1400,28 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   max-height: 7em; overflow-y: auto;
 }
 .de-incomplete-subject { color: var(--fg); font-weight: 600; }
+
+/* ── Phone footer: OK, Cancel, More ▲ and the More popup (editor-live.html) ── */
+.de-phone .de-footer { position: relative; }
+.de-phone .de-btn-row > button { flex: 1 1 0; }
+.de-phone .de-btn-row > .de-more { flex: 0 0 auto; padding-left: 14px; padding-right: 14px; white-space: nowrap; }
+.de-phone .de-more i { font-style: normal; font-size: 11px; margin-left: 6px; }
+.de-phone .de-more.on { position: relative; z-index: 7; background: #3a3a3a; color: #fff; border-color: #222; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .5); }
+.de-more-scrim { position: fixed; inset: 0; z-index: 5; background: rgba(0, 0, 0, .25); }
+.de-more-menu { position: absolute; z-index: 6; right: 10px; bottom: 100%; width: min(260px, calc(100% - 20px)); box-sizing: border-box; background: #fff; border: 1px solid #999; border-radius: 8px; box-shadow: 0 6px 24px rgba(0, 0, 0, .25); padding: 4px 0; font-size: 14px; color: #222; }
+.de-more-item { display: block; width: 100%; min-height: var(--mob-touch-min); text-align: left; padding: 0 14px; border: none; background: none; font: inherit; color: inherit; cursor: pointer; }
+.de-more-item:active { background: #eee; }
+.de-more-menu hr { border: none; border-top: 1px solid #e3e3e3; margin: 2px 0; }
+.de-more-hint { color: #666; font-size: 13px; padding: 4px 14px; line-height: 18px; }
+
+/* ── Phone: the "N values disagree" bar, between the body and the checkboxes ── */
+.de-dq-bar { flex: none; border-top: 1px solid #e3b4b4; background: #fbeaea; color: #a02020; font-size: 13px; }
+.de-dq-head { display: flex; align-items: center; width: 100%; min-height: var(--mob-touch-min); padding: 0 16px; font: inherit; font-weight: 600; border: none; background: none; color: inherit; text-align: left; cursor: pointer; }
+.de-dq-head span { margin-left: auto; font-size: 16px; }
+.de-dq-list { margin: 0; padding: 0 16px 6px; list-style: none; max-height: calc(var(--mob-row-min) * 3); overflow-y: auto; }
+.de-dq-list li { padding: 2px 0; color: #5a1a1a; overflow-wrap: anywhere; }
+
+/* ── Phone: the ƒ mark in the left gutter of a row the inspector can explain ── */
+.de-phone .de-fld.de-fx { position: relative; }
+.de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: Georgia, serif; font-size: 14px; line-height: 1; pointer-events: none; }
 </style>
