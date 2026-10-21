@@ -6,6 +6,7 @@ import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
+import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {isRecord, at, specSection, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
 
 describe('editing a driver — copy, then update or drop', () => {
@@ -232,6 +233,31 @@ describe('editing a driver — copy, then update or drop', () => {
     if (back.value === null) throw new Error('winIsdDriverToOpenIsdDriver returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.specs.Fs_hz.value).toBeCloseTo(41.5, 3);
     expect(back.value.model.value).toBe('RS225');
+  });
+
+  // BUG_20261005_winisd-vccon-editor-combo: WinISD saves a one-coil Series pick as VCCon=1 and
+  // reloads it as Parallel, and a coil-count edit resets its combo to Parallel.
+  it('a one-coil driver wired Series is saved as VCCon=2 and reloads as Series from .wdr text', () => {
+    const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    driver.specs.numVC.set(1);
+    driver.specs.VCCon.set(VoiceCoilWiring.Series);
+
+    const { value: text } = driver.toWdrIniText();
+    if (text === null) throw new Error('toWdrIniText produced no text');
+    expect(text).toMatch(/^VCCon=2\r?$/m);
+
+    const back = new WinIsdDriverConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
+    if (back.value === null) throw new Error('winIsdDriverToOpenIsdDriver returned problems: ' + JSON.stringify(back.errors));
+    expect(back.value.specs.numVC.value).toBe(1);
+    expect(back.value.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
+  });
+
+  it('changing the coil count keeps the Series wiring the user chose', () => {
+    const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
+    driver.specs.numVC.set(2);
+    driver.specs.VCCon.set(VoiceCoilWiring.Series);
+    driver.specs.numVC.set(3);
+    expect(driver.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
   });
 
   it('WinIsdProjectConverter round-trips a project through WinISD .wpr text', () => {

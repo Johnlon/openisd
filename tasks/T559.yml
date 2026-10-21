@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 9c5da70c698f8a71b81df0605c28e6d518f1fe00
 goal: Re-verify seven 3-5 Oct bug files against main and give the report-upload bug a Status line
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

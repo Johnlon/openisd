@@ -28,3 +28,9 @@ cannot leave them out of step; keeps and writes the wiring the user chose at any
 
 ## Ruling (John, 2026-10-07, bug walk)
 Acked as a WinISD bug: linkage bug, never copied, no switch. Recorded in ACCURACY_IMPROVEMENTS.md and WINISD_PARITY.md (already). Still to add for publicity: the in-app help entry (`WinisdFixedBug`), plus a one-coil Series round-trip test.
+
+## Re-verified
+21 Oct 2026, T560: the one-coil Series round-trip test from John's 7 Oct ruling is in
+`packages/design/test/domain/driver-edit.test.ts` (saved as `VCCon=2`, reloads as Series), with a second
+test that a coil-count edit keeps Series. Both pass on main faa577b95. The help entry is in
+`packages/design/fields/winisdFixedBug.ts` (voice coil connection). No follow-up left.
