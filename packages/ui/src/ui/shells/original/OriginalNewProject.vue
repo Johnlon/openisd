@@ -169,8 +169,7 @@ function handleCreate() {
 
           <div class="ebp-readout-card">
             <div class="ebp-row">
-              <span class="ebp-label">Efficiency Bandwidth Product (EBP):</span>
-              <strong class="ebp-value">{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong>
+              <span class="ebp-label">Efficiency Bandwidth Product (EBP):</span> <strong class="ebp-value">{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong>
             </div>
             <div class="suitability-row">
               <span class="suitability-badge" :class="ebpSuitabilityLabel.toLowerCase().startsWith('sealed') ? 'sealed' : ebpSuitabilityLabel.toLowerCase().startsWith('vented') ? 'vented' : 'either'">

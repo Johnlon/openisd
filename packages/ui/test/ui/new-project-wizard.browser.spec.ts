@@ -141,6 +141,15 @@ test.describe('New Project wizard', () => {
       await expect(modal.locator('.selected-driver-banner')).toContainText('Wizard Test RS225');
     });
 
+    test('step 3 reads "Efficiency Bandwidth Product (EBP): <value>" with a space after the colon', async ({ appPage: page }) => {
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();                           // step 2
+      await footerNext(page).click();                           // step 3
+      await expect(modal.locator('.ebp-row')).toHaveText(/^Efficiency Bandwidth Product \(EBP\): [\d.]+$/);
+    });
+
     test('changing the Options air leaves an open project\'s temperature alone; a project made after it gets the new value', async ({ appPage: page }) => {
       const advancedTemperature = () => page.locator('.tab-section.active .field', { hasText: 'Temperature' }).locator('input');
       await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
