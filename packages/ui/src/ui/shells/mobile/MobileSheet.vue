@@ -8,10 +8,11 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import PhoneBand from './PhoneBand.vue';
 import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
-import type { SheetMode } from '@openisd/design/fields';
+import { SheetMode } from '@openisd/design/fields';
+import { inputChecked } from '../../../logic/domEvents.js';
 
-const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean }>();
-const emit = defineEmits<{ 'update:open': [open: boolean] }>();
+const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean; autoY: boolean }>();
+const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: boolean] }>();
 
 const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
@@ -48,6 +49,9 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
       <div class="mob-sheet-port-body"><VentPortFields v-if="portView !== null" :port="portView" /></div>
     </div>
     <div class="mob-sheet-foot">
+      <label class="mob-sheet-autoy" :title="SheetMode.AUTO_Y_TITLE">
+        <input type="checkbox" :checked="autoY" @change="emit('update:autoY', inputChecked($event))">{{ SheetMode.AUTO_Y_LABEL }}
+      </label>
       <div class="mob-sheet-actions">
         <PhoneButton v-if="mode.edits === 'whatIfLayer'" class="mob-sheet-btn" title="Back to the design's values" @click="reset">Reset</PhoneButton>
         <PhoneButton primary class="mob-sheet-btn mob-sheet-close" :title="mode.edits === 'whatIfLayer' ? 'Close. The design is not changed.' : 'Close'" @click="close">Close</PhoneButton>
@@ -206,7 +210,11 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
   border-top: 1px solid var(--line);
   background: var(--panel);
 }
-.mob-sheet-actions { display: flex; flex: 1; gap: 8px; align-items: center; }
+.mob-sheet-foot { gap: 8px; }
+/* Auto Y: a 44 px tall tap row at the footer's left (QO267 mock .gsf .ay). */
+.mob-sheet-autoy { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-size: 15px; color: var(--fg); cursor: pointer; user-select: none; }
+.mob-sheet-autoy input { margin: 0; width: 22px; height: 22px; }
+.mob-sheet-actions { display: flex; flex: 1; gap: 8px; align-items: center; justify-content: flex-end; }
 .mob-sheet-btn {
   /* The one phone button (PhoneButton); Close is the primary. */
   min-width: 0;

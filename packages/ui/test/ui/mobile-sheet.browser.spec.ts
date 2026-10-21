@@ -86,8 +86,9 @@ test('Tune: stepping a field modifies the project; edit survives Close and reloa
   await expect(sheet).toBeVisible();
   const initialPicture = await chartPicture(page);
 
-  // Auto Y shows while sheet is open
-  await expect(panel.getByRole('checkbox', { name: 'Auto Y' })).toHaveCount(1);
+  // Auto Y is in the sheet footer, not on the chart
+  await expect(panel.getByRole('checkbox', { name: 'Auto Y' })).toHaveCount(0);
+  await expect(sheet.getByRole('checkbox', { name: 'Auto Y' })).toHaveCount(1);
 
   const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);

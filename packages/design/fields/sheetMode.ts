@@ -13,6 +13,9 @@ import {SheetField} from './sheetField.js';
 export type SheetEdits = 'project' | 'whatIfLayer';
 
 export class SheetMode {
+  /** The sheet footer's Auto Y box (QO267 mock): its label and what it does. */
+  static readonly AUTO_Y_LABEL = 'Auto Y';
+  static readonly AUTO_Y_TITLE = 'Auto Y: ticked, the charts fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it.';
   static readonly TUNE = new SheetMode('Tune', 'project', SheetMode.#tuneFields);
   static readonly WHAT_IF = new SheetMode('What-if', 'whatIfLayer', t => SheetField.forBox(t).map(f => [f]));
   static readonly ALL: readonly SheetMode[] = Object.freeze([SheetMode.TUNE, SheetMode.WHAT_IF]);

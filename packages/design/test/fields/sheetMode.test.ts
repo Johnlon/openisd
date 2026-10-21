@@ -8,6 +8,11 @@ import {SheetField} from '../../fields/sheetField.js';
 import {SheetMode} from '../../fields/sheetMode.js';
 
 describe('SheetMode', () => {
+  it('names the footer Auto Y box and says what it does', () => {
+    expect(SheetMode.AUTO_Y_LABEL).toBe('Auto Y');
+    expect(SheetMode.AUTO_Y_TITLE).toContain('Unticked, the Y axis stays');
+  });
+
   it('exposes TUNE, WHAT_IF and ALL', () => {
     expect(SheetMode.ALL).toEqual([SheetMode.TUNE, SheetMode.WHAT_IF]);
     expect(SheetMode.TUNE.label).toBe('Tune');

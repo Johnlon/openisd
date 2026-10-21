@@ -7,7 +7,7 @@ import {ChartPageSizes, PhoneRowSizes} from '@openisd/design/fields';
 /**
  * The classic phone Graph page (PHONE_CLASSIC_BUILD_SPEC screens 11 to 14): the chart bar, a 28 px
  * band over each chart with the Data chip and a ?, one shared legend, the Tune / What-if button
- * strip, the Data sheet and the shorter Tune and What-if sheets. Auto Y stays on the chart (QO278).
+ * strip, the Data sheet and the shorter Tune and What-if sheets. Auto Y is in the sheet footer (T545).
  * Sizes come from ChartPageSizes and PhoneRowSizes.CLASSIC (the standard
  * 40 px rows; every button the one 44 px button).
  */
@@ -136,7 +136,8 @@ for (const size of PHONE_SIZES) {
       expect(await sheet.locator('.mob-sheet-cell .mob-sheet-unit').count(), 'units are measured').toBeGreaterThan(0);
       expect(covered, 'no value hidden under its unit').toEqual([]);
       await expect(sheet.getByRole('button', {name: 'Reset'}), 'only What-if has Reset').toHaveCount(resetButtons);
-      await expect(page.locator('.gautoy'), 'Auto Y stays on the chart').toBeVisible();
+      await expect(page.locator('.gautoy'), 'Auto Y is not on the phone chart').toHaveCount(0);
+      await expect(sheet.locator('.mob-sheet-foot').getByRole('checkbox', {name: 'Auto Y'}), 'Auto Y is in the sheet footer').toBeVisible();
       await noSidewaysOverflow(page);
     });
   }

@@ -1,6 +1,6 @@
 # BUG_20261017_auto-y-overlaps-first-frequency-label
 
-**Status:** OPEN (owner maryu, waiting on a layout choice from fable)
+**Status:** PHONE FIXED by T545 (21 Oct 2026): on the phone, Auto Y is a box in the Tune and What-if sheet footer, as the accepted QO267 Graph mock draws it, and the chart shows none. DESKTOP still waits on QO278.
 
 ## Symptom
 In the same screenshot as the title bug (phone Graph tab, Tune sheet open): the "Auto Y" box in the chart's

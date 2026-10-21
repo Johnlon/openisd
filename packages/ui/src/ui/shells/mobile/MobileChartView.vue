@@ -11,7 +11,7 @@ import { useMobileChartView } from '../../../hooks/MobileChartView-hooks.js';
 
 const emit = defineEmits<{ menu: [] }>();
 const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, TUNE, WHAT_IF } = useMobileChartView();
+  chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart, TUNE, WHAT_IF } = useMobileChartView();
 </script>
 
 <template>
@@ -46,8 +46,8 @@ const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pick
     </ul>
     <div ref="stackEl" class="mob-chart-stack" :class="{ stacked: openCharts.length > 1 }" :style="stackStyle">
       <div v-for="id in openCharts" :key="id" class="mob-chart-cell">
-        <!-- Auto Y shows only while the sheet is open (John, 2026-10-05). -->
-        <GraphPanel :chart-id="id" :bare="true" :classic="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="!sheetOpen">
+        <!-- Auto Y is in the sheet footer (QO267 mock), not over the chart. -->
+        <GraphPanel :ref="el => collectChart(id, el)" :chart-id="id" :bare="true" :classic="true" :primary-color="traceColour" :overlays="overlays" :hide-auto-y="true">
           <template #band="{ title, hasData, openData }">
             <PhoneBand :title="title" :section="helpFor(title) ?? undefined">
               <button v-if="hasData" type="button" class="mob-chart-data" title="Show this chart's data as a table, to copy or download as CSV" @click="openData"><span class="mob-chart-data-chip">Data</span></button>
@@ -58,8 +58,8 @@ const { legendItems, sizeVars, helpFor, openCharts, chartItems, chartLabel, pick
     </div>
     <!-- Two separate sheets, each from its own pull-tab, side by side when both are closed. -->
     <div class="mob-sheet-dock" :class="{ 'mob-sheet-dock-closed': !sheetOpen }">
-      <MobileSheet v-model:open="tuneOpen" :mode="TUNE" :hidden="whatIfOpen" />
-      <MobileSheet v-model:open="whatIfOpen" :mode="WHAT_IF" :hidden="tuneOpen" />
+      <MobileSheet v-model:open="tuneOpen" :mode="TUNE" :hidden="whatIfOpen" :auto-y="autoY" @update:auto-y="setAutoY" />
+      <MobileSheet v-model:open="whatIfOpen" :mode="WHAT_IF" :hidden="tuneOpen" :auto-y="autoY" @update:auto-y="setAutoY" />
     </div>
   </div>
 </template>

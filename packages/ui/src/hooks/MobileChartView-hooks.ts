@@ -4,6 +4,7 @@
  * that opens and closes them. Mobile only renders this destination once a project is open.
  */
 import {computed, ref, watch} from 'vue';
+import type {ComponentPublicInstance} from 'vue';
 import {useFeatureUse} from './telemetryContext.js';
 import {traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
@@ -20,6 +21,12 @@ import {ChartPageHelp, ChartPageSizes, SheetMode} from '@openisd/design/fields';
 export interface LegendItem {
   readonly name: string;
   readonly color: string;
+}
+
+/** What a chart panel exposes to its page: the setter of its Auto Y state. */
+interface SetsAutoY { setAutoY(on: boolean): void }
+function isSetsAutoY(v: Element | ComponentPublicInstance | null): v is ComponentPublicInstance & SetsAutoY {
+  return v !== null && 'setAutoY' in v && typeof v.setAutoY === 'function';
 }
 
 export function useMobileChartView() {
@@ -50,11 +57,22 @@ export function useMobileChartView() {
   });
   const { el: stackEl, style: stackStyle } = useChartStack(computed(() => openCharts.value.length), chartsHigh, () => 1);
 
-  /** Whether a bottom sheet (Tune or What-if, one at a time) is open. The chart's Auto Y box shows only then: without a
-   *  sheet there is nothing to rescale for (John, 2026-10-05). */
+  /** Whether a bottom sheet (Tune or What-if, one at a time) is open. The Auto Y box lives in its footer (QO267 mock),
+   *  never over the chart; without a sheet there is nothing to rescale for (John, 2026-10-05). */
   const tuneOpen = ref(false);
   const whatIfOpen = ref(false);
   const sheetOpen = computed(() => tuneOpen.value || whatIfOpen.value);
+
+  /** Each open chart's Auto Y setter, handed up by its GraphPanel; the sheet footer's one Auto Y box drives them all. */
+  const yScalers = new Map<ChartId, SetsAutoY>();
+  function collectChart(id: ChartId, panel: Element | ComponentPublicInstance | null): void {
+    if (isSetsAutoY(panel)) yScalers.set(id, panel); else yScalers.delete(id);
+  }
+  /** Ticked while no open chart has a fixed Y range (the same state the chart's own box showed). */
+  const autoY = computed(() => openCharts.value.every(id => presentationState.yRanges[id] == null));
+  function setAutoY(on: boolean): void {
+    for (const id of openCharts.value) yScalers.get(id)?.setAutoY(on);
+  }
 
   const traceColour = computed(() => { void projectChanged.value; return traceColor(project.value); });
 
@@ -69,7 +87,7 @@ export function useMobileChartView() {
   });
 
   return { openCharts, legendItems, sizeVars: Object.fromEntries(ChartPageSizes.CLASSIC.cssVars()), helpFor: ChartPageHelp.forChart, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen,
+    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart,
     TUNE: SheetMode.TUNE, WHAT_IF: SheetMode.WHAT_IF };
 }
 

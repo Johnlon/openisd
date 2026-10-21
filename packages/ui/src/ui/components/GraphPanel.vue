@@ -25,6 +25,8 @@ const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: str
 const project = useFocusedProject();
 const { appState: { projectChanged }, presentation: presentationState, engine } = useApp();
 const graph = useGraphPanel(props, engine);
+// The caller that owns Auto Y elsewhere (the phone sheet footer) sets it through this.
+defineExpose({ setAutoY: graph.setAutoY });
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
