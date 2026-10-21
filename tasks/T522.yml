@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: b4f6124dd68719ac1f815d400e3bbf3da319bed0
 goal: A number box spin starts at the tenths digit unless the person put the caret on another digit, and Box volume on a Closed box (Box tab and What-if) marks the stepped digit like every other box.
 done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:
