@@ -696,7 +696,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 0.1},
     floor: "non-negative",
     precision: 3,
-    plausible: {min: 0.0, max: 0.1},
+    plausible: {min: 1e-06, max: 0.1},
     description: "Voice Coil Inductance (Le)\nSelf-inductance of the coil — raises electrical impedance at high frequency.",
   });
   static readonly MMS_KG = new NumberField({
@@ -778,7 +778,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 5,
-    plausible: {min: 0.0, max: 200.0},
+    plausible: {min: 0.01, max: 200.0},
     formula: "Rms = 2π·Fs·Mms/Qms",
     description: "Mechanical Resistance (Rms)\nFriction loss in the driver's suspension.",
   });

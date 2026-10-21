@@ -1,0 +1,13 @@
+id: T546
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: Le and Rms of 0 in a datasheet reading fail the plausibility check, like Qts = 0
+done_test: bash scripts/test.sh packages/design/test/engine/isPhysicallyPlausible.test.ts
+files:
+  - tasks/T546.yml
+  - bugs/BUG_20261021_le-rms-zero-passes-plausibility.md
+  - packages/design/fields/field.ts
+  - packages/design/test/engine/isPhysicallyPlausible.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
