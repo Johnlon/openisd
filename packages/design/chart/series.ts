@@ -145,22 +145,39 @@ interface CurveCtx {
   pick: (arr: number[]) => { xs: number[]; ys: number[] };
 }
 
-/** The colours of the 0 dB and −3 dB reference lines: Options, Plot Window, "0 dB line" and
- *  "-3dB line". */
+/** The colours of the reference lines: Options, Plot Window, "0 dB line", "-3dB line" and
+ *  "Air speed limit" (the port air velocity limit line). */
 export interface ReferenceLineColors {
   readonly zeroDb: string;
   readonly minus3Db: string;
+  readonly airSpeedLimit: string;
 }
 
 /** WinISD's own defaults (Options, Plot Window, docs/images/winisd/options-plot-window.png):
  *  0 dB black, −3 dB grey. */
-export const DEFAULT_REFERENCE_LINE_COLORS: ReferenceLineColors = {zeroDb: '#000000', minus3Db: '#808080'};
+export const DEFAULT_REFERENCE_LINE_COLORS: ReferenceLineColors = {zeroDb: '#000000', minus3Db: '#808080', airSpeedLimit: REDLINE};
+
+/** The colour of the shaded dragged frequency range when none is chosen: Options, Plot Window,
+ *  "Selected range". Black, drawn faint (see `selectedRangeCss`), as the band has always looked on
+ *  the white chart. */
+export const DEFAULT_SELECTED_RANGE_COLOR = '#000000';
+
+/** The CSS colours of the dragged range's shading and its edge lines, from the one colour chosen
+ *  (or the default): the fill is faint so the curves show through, the edge stronger. */
+export function selectedRangeCss(chosen: string | undefined): {readonly fill: string; readonly edge: string} {
+  const colour = chosen ?? DEFAULT_SELECTED_RANGE_COLOR;
+  return {
+    fill: `color-mix(in srgb, ${colour} 5%, transparent)`,
+    edge: `color-mix(in srgb, ${colour} 30%, transparent)`,
+  };
+}
 
 /** The colours the user chose in Options; a colour not chosen keeps its default. */
-export function referenceLineColors(chosen: {readonly zeroDb?: string; readonly minus3Db?: string} | undefined): ReferenceLineColors {
+export function referenceLineColors(chosen: {readonly zeroDb?: string; readonly minus3Db?: string; readonly airSpeedLimit?: string} | undefined): ReferenceLineColors {
   return {
     zeroDb: chosen?.zeroDb ?? DEFAULT_REFERENCE_LINE_COLORS.zeroDb,
     minus3Db: chosen?.minus3Db ?? DEFAULT_REFERENCE_LINE_COLORS.minus3Db,
+    airSpeedLimit: chosen?.airSpeedLimit ?? DEFAULT_REFERENCE_LINE_COLORS.airSpeedLimit,
   };
 }
 
@@ -182,12 +199,12 @@ type CurveBuild = { series: Series[]; ymin: number; ymax: number; logy?: boolean
  *  present (`bandpass6`/`abc`) and falls back to `sw.pv` otherwise (`vented`, whose one port IS
  *  the rear one — `SweepResult.pvRear`'s own doc); `IntraPort` reads `sw.pvIntra` (`null` outside
  *  `abc`'s own `winisd-lossy` branch, drawn as a flat zero rather than hiding the chart). */
-function portVelocityBuild({ meta, sw, pick, P }: CurveCtx, vel: number[]): CurveBuild {
+function portVelocityBuild({ meta, sw, pick, P, lines }: CurveCtx, vel: number[]): CurveBuild {
   const series: Series[] = [{ ...pick(vel), color: meta.color, name: 'Port vel' }];
   // The project's port air-velocity limit (`OpenISDProject.portVelocityLimit_m_per_s`).
   const limit = P.portVelocityLimit_m_per_s;
   if (limit !== undefined) {
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color: REDLINE, name:`${limit} m/s`, lineLabel: `limit ${limit} m/s`, dash: true, reference: true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color: lines.airSpeedLimit, name:`${limit} m/s`, lineLabel: `limit ${limit} m/s`, dash: true, reference: true });
   }
   return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1, (limit ?? 0) * 1.1) };
 }

@@ -109,6 +109,7 @@ const {
   setFreqRange,
   canApply, apply: applyAppSettings,
   referenceLineDefaults,
+  selectedRangeDefault,
 } = useOptionsModal();
 
 type Tab = 'General' | 'Plot Window' | 'Your data';
@@ -191,8 +192,8 @@ function defaultColor(key: ColorKey): string {
     case 'labels': return '#000000';
     case 'xmaxLimit': return '#ff0000';
     case 'cursor': return '#2e8b57';
-    case 'airSpeedLimit': return '#d2691e';
-    case 'selectedRange': return '#e6e6e6';
+    case 'airSpeedLimit': return referenceLineDefaults.airSpeedLimit;
+    case 'selectedRange': return selectedRangeDefault;
   }
 }
 /** The phone's full colour list, in the order of the accepted mock. */
@@ -204,8 +205,8 @@ const PHONE_COLOR_ROWS: readonly { key: ColorKey; label: string; reset: string }
   { key: 'labels', label: 'Labels', reset: 'black' },
   { key: 'xmaxLimit', label: 'Xmax limit', reset: 'red' },
   { key: 'cursor', label: 'Cursor lines', reset: 'green' },
-  { key: 'airSpeedLimit', label: 'Air speed limit', reset: 'orange' },
-  { key: 'selectedRange', label: 'Selected range', reset: 'grey' },
+  { key: 'airSpeedLimit', label: 'Air speed limit', reset: 'red' },
+  { key: 'selectedRange', label: 'Selected range', reset: 'black' },
 ];
 function setColor(key: ColorKey, e: Event) {
   const v = inputValue(e);

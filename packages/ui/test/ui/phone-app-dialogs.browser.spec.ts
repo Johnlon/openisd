@@ -224,7 +224,7 @@ test('Options: the colours, the username and the import choice are kept by OK an
   await expect(dialog.locator('#opt-phone-color-airSpeedLimit')).toHaveValue('#112233');
   await expect(dialog.locator('#opt-phone-color-selectedRange')).toHaveValue('#445566');
   await dialog.getByRole('button', {name: 'Reset Air speed limit'}).click();
-  await expect(dialog.locator('#opt-phone-color-airSpeedLimit')).toHaveValue('#d2691e');
+  await expect(dialog.locator('#opt-phone-color-airSpeedLimit')).toHaveValue('#ff6b6b');
   await dialog.getByRole('button', {name: 'Cancel'}).click();
   await expect(dialog).toHaveCount(0);
 

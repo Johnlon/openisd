@@ -34,6 +34,8 @@ export interface ChartColors {
   labels?: string;
   xmaxLimit?: string;
   cursor?: string;
+  airSpeedLimit?: string;
+  selectedRange?: string;
   [key: string]: string | undefined;
 }
 
