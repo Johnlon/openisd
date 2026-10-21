@@ -1,0 +1,42 @@
+id: T516
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: B11 phone classic: Options, About, Cloud sync, Differences, Diagnostics, cloud badge, flash toast, storage history, store gate built to the accepted mocks (screens 20-24, 30, 33, 37, 38)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneDialogText.test.ts
+visual:
+  - mobile-tab-advanced
+files:
+  - packages/design/test/fields/phoneDialogText.test.ts
+  - tasks/T516.yml
+  - packages/design/fields/index.ts
+  - packages/design/fields/phoneDialogText.ts
+  - packages/ui/src/ui/components/CloudSyncBadge.vue
+  - packages/ui/src/ui/components/CloudSyncDialog.vue
+  - packages/ui/src/ui/components/DiagnosticsModal.vue
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/src/ui/components/PhoneDialogPage.vue
+  - packages/ui/src/ui/components/SplashModal.vue
+  - packages/ui/src/ui/components/StorageHistory.vue
+  - packages/ui/src/ui/components/StoreGate.vue
+  - packages/ui/src/ui/components/WinisdDifferencesModal.vue
+  - packages/ui/src/ui/shells/mobile/MobilePaneDialog.vue
+  - packages/ui/test/ui/mobile-backups.browser.spec.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/ui/mobile-winisd-differences.browser.spec.ts
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/ui/phone-app-dialogs.browser.spec.ts
+  - packages/ui/test/ui/backups-restore-project.browser.spec.ts
+  - packages/ui/test/ui/closed-box-typing-cue.browser.spec.ts
+  - packages/ui/test/ui/mobile-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/no-project-app-menu.browser.spec.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - packages/ui/test/ui/pr-difference-cues.browser.spec.ts
+  - packages/ui/test/ui/reference-line-colours.browser.spec.ts
+  - packages/ui/test/ui/tl-port-difference-cue.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-dialogs.browser.spec.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-file-open.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png

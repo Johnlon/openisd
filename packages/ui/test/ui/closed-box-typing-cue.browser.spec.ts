@@ -30,7 +30,7 @@ for (const skin of ['desktop', 'mobile'] as const) {
       await cueOf(page, 'Qtc').click();
       const help = page.getByRole('dialog', {name: 'OpenISD and WinISD differences'});
       await expect(help).toBeVisible();
-      await expect(help.locator('.wd-entry.current h4')).toHaveText(TITLE);
+      await expect(help.locator('.wd-entry.current h4, .mob-dcard.current .mob-dcard-title')).toHaveText(TITLE);
     });
 
     test('the cue never moves the field: Fsc and Qtc rows are as wide as the Volume row', async ({appPage: page}) => {

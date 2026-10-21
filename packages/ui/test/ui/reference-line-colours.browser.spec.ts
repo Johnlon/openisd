@@ -22,8 +22,8 @@ const chosenPixels = (page: Page, canvas: string) => page.evaluate(selector => {
 }, canvas);
 
 async function chooseMinus3DbColour(page: Page): Promise<void> {
-  await page.locator('.opt-tab', {hasText: 'Plot Window'}).click();
-  await page.locator('.opt-color-row', {hasText: '-3dB line'}).locator('input[type=color]').fill(CHOSEN);
+  await page.locator('.opt-tab, .opt-phone-tabs button', {hasText: 'Plot Window'}).click();
+  await page.locator('.opt-color-row, .mob-dcolor-row', {hasText: '-3dB line'}).locator('input[type=color]').fill(CHOSEN);
   await page.getByTestId('settings-apply').click();
 }
 

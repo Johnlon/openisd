@@ -45,8 +45,8 @@ test('an order-4 allpass shows the WinISD deviation cue, and it opens the differ
   await expect(cue).toBeVisible();
   await cue.click();
   const dialog = page.getByRole('dialog', { name: 'OpenISD and WinISD differences' });
-  const entry = dialog.locator('.wd-entry.current');
-  await expect(entry.locator('h4')).toHaveText('WinISD ignores allpass orders above 2');
+  const entry = dialog.locator('.wd-entry.current, .mob-dcard.current');
+  await expect(entry.locator('h4, .mob-dcard-title')).toHaveText('WinISD ignores allpass orders above 2');
   await expect(entry.locator('dt', { hasText: 'Switch' })).toHaveCount(0);
   const box = (await dialog.boundingBox())!;
   const width = page.viewportSize()!.width;

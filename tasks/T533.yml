@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: ce4c18c3c1c81d2763749e84da81066bcd3beac4
 goal: A new project's name starts as "<driver model> <box type>" (e.g. "W5-1138SMF vented") in the wizard in both skins, stays editable, and a typed name is kept; imported files keep their own name.
 done_test: bash scripts/test.sh packages/design/test/domain/defaultProjectName.test.ts
 files:

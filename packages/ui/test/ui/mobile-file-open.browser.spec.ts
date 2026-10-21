@@ -59,11 +59,11 @@ test.describe('Mobile file-open dialog and diagnostics', () => {
     await diagItem.click();
 
     // Diagnostics modal is now visible via explicit action
-    await expect(page.locator('.dg')).toBeVisible();
-    await expect(page.locator('.dg header h2')).toBeVisible();
+    const diagnostics = page.locator('.mob-dlg[aria-label="Diagnostics"]');
+    await expect(diagnostics).toBeVisible();
 
     // Dismiss closes it
-    await page.locator('.dg-x').click();
-    await expect(page.locator('.dg')).toHaveCount(0);
+    await diagnostics.getByRole('button', { name: 'Dismiss' }).click();
+    await expect(diagnostics).toHaveCount(0);
   });
 });

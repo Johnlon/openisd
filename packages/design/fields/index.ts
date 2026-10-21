@@ -153,3 +153,4 @@ export { NO_PROJECT_OPEN } from './noProject.js';
 export { APP_UPDATE_TEXT, UNSAVED_RELOAD_CONFIRM } from './appUpdateText.js';
 
 export { TuneText } from './tuneText.js';
+export { PhoneDialogHelp, ImportChoiceText, AboutText } from './phoneDialogText.js';

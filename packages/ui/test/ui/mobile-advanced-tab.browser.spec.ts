@@ -183,7 +183,7 @@ test('a help line on the bugs band links to its Differences entry, which opens a
   await expect(sheet).toBeHidden();
   const diff = page.getByRole('dialog', { name: 'OpenISD and WinISD differences' });
   await expect(diff).toBeVisible();
-  await expect(diff.locator('.wd-entry.current')).toContainText('WinISD mixes two BL values');
+  await expect(diff.locator('.mob-dcard.current .mob-dcard-title')).toContainText('WinISD mixes two BL values');
   await diff.getByRole('button', { name: 'Close' }).last().click();
   await expect(page.locator('.mob-band', { hasText: 'Enable WinISD bugs' })).toBeVisible();
 });

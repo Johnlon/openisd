@@ -2,12 +2,20 @@
 // The Options "Your data" Storage and Backups groups: what each kind of data takes, and everything
 // kept in this browser, one row each. Display only — rows, wording and every action come from
 // `StorageHistory-hooks.ts`.
+import {computed} from 'vue';
+import {PhoneDialogHelp} from '@openisd/design/fields';
 import {useStorageHistory} from '../../hooks/StorageHistory-hooks.js';
+import {useApp} from '../../logic/app.js';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
 
 const {
   usedLine, siteLine, fullWarning, persistWarning, usageRows, binHasProjects, emptyBin, deleteAllBackups,
   rows, totalSize, keepRule, picker, backUpNow, exportRow, restoreRow, openPicker, closePicker, restoreProject, deleteRow,
 } = useStorageHistory();
+
+/** The phone draws Storage and Backups as classic bands and cards (PHONE_CLASSIC_BUILD_SPEC rows 20 and 37). */
+const presentation = useApp().presentation;
+const phone = computed(() => presentation.shownSkin() === 'mobile');
 
 async function onRestore(key: string) {
   const outcome = await restoreRow(key);
@@ -19,70 +27,130 @@ async function onRestore(key: string) {
 </script>
 
 <template>
-  <fieldset class="opt-group su-page">
-    <legend>Storage</legend>
+  <template v-if="phone">
+    <PhoneBand :section="PhoneDialogHelp.OPTIONS_STORAGE" />
     <p v-if="persistWarning" class="su-warning su-persist-warning" role="alert">{{ persistWarning }}</p>
     <p v-if="fullWarning" class="su-warning su-full-warning" role="alert">{{ fullWarning }}</p>
-    <p class="opt-help su-used">{{ usedLine }}</p>
-    <p v-if="siteLine" class="opt-help su-site">{{ siteLine }}</p>
-    <dl class="su-rows">
-      <div v-for="u in usageRows" :key="u.label" class="su-row"><dt>{{ u.label }}</dt><dd>{{ u.size }}</dd></div>
+    <p class="mob-dhint su-used">{{ usedLine }}</p>
+    <p v-if="siteLine" class="mob-dhint su-site">{{ siteLine }}</p>
+    <dl class="su-rows su-phone-rows">
+      <div v-for="u in usageRows" :key="u.label" class="mob-dkv su-row"><dt>{{ u.label }}</dt><dd>{{ u.size }}</dd></div>
     </dl>
-    <div class="opt-group-actions">
-      <button class="opt-reset-btn su-empty-bin" :disabled="!binHasProjects" @click="emptyBin">Empty Bin</button>
-      <button class="opt-reset-btn su-delete-all" :disabled="rows.length === 0" @click="deleteAllBackups">Delete all backups</button>
+    <div class="mob-cbtns">
+      <button type="button" class="su-empty-bin" :disabled="!binHasProjects" @click="emptyBin">Empty Bin</button>
+      <button type="button" class="su-delete-all" :disabled="rows.length === 0" @click="deleteAllBackups">Delete all backups</button>
     </div>
-  </fieldset>
-  <fieldset class="opt-group sh-page">
-    <legend>Backups</legend>
-    <p class="opt-help">{{ keepRule }}</p>
-    <div class="opt-group-actions sh-head">
-      <button class="opt-reset-btn sh-backup-now" title="Make a backup of everything in this browser now." @click="backUpNow">
-        Back up now
-      </button>
-      <span class="sh-total">Total {{ totalSize }}</span>
+    <PhoneBand :section="PhoneDialogHelp.OPTIONS_BACKUPS" />
+    <p class="mob-dhint sh-page">{{ keepRule }}</p>
+    <div class="mob-cbtns sh-phone-head">
+      <button type="button" class="sh-backup-now" title="Make a backup of everything in this browser now." @click="backUpNow">Back up now</button>
     </div>
-    <p v-if="rows.length === 0" class="opt-help sh-empty">No backups yet.</p>
-    <ul v-else class="sh-rows">
+    <div class="mob-dkv sh-total-line"><span class="sh-total">Total {{ totalSize }}</span></div>
+    <p v-if="rows.length === 0" class="mob-dhint sh-empty">No backups yet.</p>
+    <ul v-else class="sh-rows sh-phone-rows">
       <template v-for="row in rows" :key="row.kind === 'copy' ? row.copy : row.key">
         <li v-if="row.kind === 'backup'" class="sh-row">
           <div class="sh-line">
             <span class="sh-taken">{{ row.takenAt }}</span>
             <span class="sh-reason">{{ row.reason }}</span>
-            <span class="sh-projects">{{ row.projects }}</span>
-            <span class="sh-size">{{ row.size }}</span>
+            <span class="sh-projects">{{ row.projects }} · {{ row.size }}</span>
           </div>
-          <p v-if="row.note" class="opt-help sh-note">{{ row.note }}</p>
+          <p v-if="row.note" class="sh-note">{{ row.note }}</p>
           <div class="sh-actions">
-            <button class="opt-reset-btn sh-restore" :disabled="!row.restorable" @click="onRestore(row.key)">Restore everything</button>
-            <button class="opt-reset-btn sh-restore-one" :disabled="!row.restorable" @click="openPicker(row.key)">Restore one project</button>
-            <button class="opt-reset-btn sh-export" @click="exportRow(row)">Export</button>
-            <button class="opt-reset-btn sh-delete" @click="deleteRow(row)">Delete</button>
+            <button type="button" class="sh-restore" :disabled="!row.restorable" @click="onRestore(row.key)">Restore everything</button>
+            <button type="button" class="sh-restore-one" :disabled="!row.restorable" @click="openPicker(row.key)">Restore one project</button>
+            <button type="button" class="sh-export" @click="exportRow(row)">Export</button>
+            <button type="button" class="sh-delete" @click="deleteRow(row)">Delete</button>
           </div>
           <div v-if="picker !== null && picker.key === row.key" class="sh-picker">
-            <p v-if="picker.projects.length === 0" class="opt-help">This backup holds no saved project.</p>
+            <p v-if="picker.projects.length === 0" class="sh-note">This backup holds no saved project.</p>
             <div v-for="p in picker.projects" :key="p.id" class="sh-picker-row">
               <span class="sh-picker-name">{{ p.name }}</span>
-              <button class="opt-reset-btn sh-picker-restore" :disabled="!p.readable" @click="restoreProject(p)">Restore</button>
+              <button type="button" class="sh-picker-restore" :disabled="!p.readable" @click="restoreProject(p)">Restore</button>
             </div>
-            <button class="opt-reset-btn sh-picker-close" @click="closePicker">Close</button>
+            <button type="button" class="sh-picker-close" @click="closePicker">Close</button>
           </div>
         </li>
         <li v-else class="sh-row sh-copy-row">
           <div class="sh-line">
             <span class="sh-taken">{{ row.takenAt }}</span>
             <span class="sh-reason">{{ row.reason }}</span>
-            <span class="sh-holds">{{ row.holds }}</span>
-            <span class="sh-size">{{ row.size }}</span>
+            <span class="sh-projects">{{ row.holds }} · {{ row.size }}</span>
           </div>
           <div class="sh-actions">
-            <button class="opt-reset-btn sh-export" @click="exportRow(row)">Export</button>
-            <button class="opt-reset-btn sh-delete" @click="deleteRow(row)">Delete</button>
+            <button type="button" class="sh-export" @click="exportRow(row)">Export</button>
+            <button type="button" class="sh-delete" @click="deleteRow(row)">Delete</button>
           </div>
         </li>
       </template>
     </ul>
-  </fieldset>
+  </template>
+  <template v-else>
+    <fieldset class="opt-group su-page">
+      <legend>Storage</legend>
+      <p v-if="persistWarning" class="su-warning su-persist-warning" role="alert">{{ persistWarning }}</p>
+      <p v-if="fullWarning" class="su-warning su-full-warning" role="alert">{{ fullWarning }}</p>
+      <p class="opt-help su-used">{{ usedLine }}</p>
+      <p v-if="siteLine" class="opt-help su-site">{{ siteLine }}</p>
+      <dl class="su-rows">
+        <div v-for="u in usageRows" :key="u.label" class="su-row"><dt>{{ u.label }}</dt><dd>{{ u.size }}</dd></div>
+      </dl>
+      <div class="opt-group-actions">
+        <button class="opt-reset-btn su-empty-bin" :disabled="!binHasProjects" @click="emptyBin">Empty Bin</button>
+        <button class="opt-reset-btn su-delete-all" :disabled="rows.length === 0" @click="deleteAllBackups">Delete all backups</button>
+      </div>
+    </fieldset>
+    <fieldset class="opt-group sh-page">
+      <legend>Backups</legend>
+      <p class="opt-help">{{ keepRule }}</p>
+      <div class="opt-group-actions sh-head">
+        <button class="opt-reset-btn sh-backup-now" title="Make a backup of everything in this browser now." @click="backUpNow">
+          Back up now
+        </button>
+        <span class="sh-total">Total {{ totalSize }}</span>
+      </div>
+      <p v-if="rows.length === 0" class="opt-help sh-empty">No backups yet.</p>
+      <ul v-else class="sh-rows">
+        <template v-for="row in rows" :key="row.kind === 'copy' ? row.copy : row.key">
+          <li v-if="row.kind === 'backup'" class="sh-row">
+            <div class="sh-line">
+              <span class="sh-taken">{{ row.takenAt }}</span>
+              <span class="sh-reason">{{ row.reason }}</span>
+              <span class="sh-projects">{{ row.projects }}</span>
+              <span class="sh-size">{{ row.size }}</span>
+            </div>
+            <p v-if="row.note" class="opt-help sh-note">{{ row.note }}</p>
+            <div class="sh-actions">
+              <button class="opt-reset-btn sh-restore" :disabled="!row.restorable" @click="onRestore(row.key)">Restore everything</button>
+              <button class="opt-reset-btn sh-restore-one" :disabled="!row.restorable" @click="openPicker(row.key)">Restore one project</button>
+              <button class="opt-reset-btn sh-export" @click="exportRow(row)">Export</button>
+              <button class="opt-reset-btn sh-delete" @click="deleteRow(row)">Delete</button>
+            </div>
+            <div v-if="picker !== null && picker.key === row.key" class="sh-picker">
+              <p v-if="picker.projects.length === 0" class="opt-help">This backup holds no saved project.</p>
+              <div v-for="p in picker.projects" :key="p.id" class="sh-picker-row">
+                <span class="sh-picker-name">{{ p.name }}</span>
+                <button class="opt-reset-btn sh-picker-restore" :disabled="!p.readable" @click="restoreProject(p)">Restore</button>
+              </div>
+              <button class="opt-reset-btn sh-picker-close" @click="closePicker">Close</button>
+            </div>
+          </li>
+          <li v-else class="sh-row sh-copy-row">
+            <div class="sh-line">
+              <span class="sh-taken">{{ row.takenAt }}</span>
+              <span class="sh-reason">{{ row.reason }}</span>
+              <span class="sh-holds">{{ row.holds }}</span>
+              <span class="sh-size">{{ row.size }}</span>
+            </div>
+            <div class="sh-actions">
+              <button class="opt-reset-btn sh-export" @click="exportRow(row)">Export</button>
+              <button class="opt-reset-btn sh-delete" @click="deleteRow(row)">Delete</button>
+            </div>
+          </li>
+        </template>
+      </ul>
+    </fieldset>
+  </template>
 </template>
 
 <style scoped>
@@ -103,4 +171,19 @@ async function onRestore(key: string) {
 .sh-picker-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .sh-picker-close { align-self: flex-start; }
 .su-warning { margin: 0 0 8px; padding: 6px 8px; border-radius: 4px; background: #fdecc8; color: #5a3a00; font-size: 12px; line-height: 1.4; }
+
+/* The phone's backup cards (accepted mock, storage-history): one card per backup, small buttons under it. */
+.sh-phone-rows { margin: 0; padding: 8px 16px; gap: 10px; }
+.sh-phone-rows .sh-row { border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; background: #f8fafc; }
+.sh-phone-rows .sh-line { flex-direction: column; flex-wrap: nowrap; gap: 2px; font-size: 12px; margin-bottom: 8px; }
+.sh-phone-rows .sh-taken { font-weight: 600; color: #111; font-size: 13px; }
+.sh-phone-rows .sh-reason { color: var(--acc); font-weight: 500; }
+.sh-phone-rows .sh-note { margin: 0 0 8px; font-size: 12px; color: var(--mut); }
+.sh-phone-rows .sh-actions { gap: 6px; margin-top: 0; }
+.sh-phone-rows .sh-actions button, .sh-phone-rows .sh-picker button { height: 32px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; font: inherit; font-size: 11px; font-weight: 500; cursor: pointer; }
+.sh-phone-rows .sh-actions button:first-child { background: #e0efff; border-color: #93c5fd; color: #0369a1; font-weight: 600; }
+.sh-phone-rows .sh-actions button:disabled { opacity: 0.5; cursor: default; }
+.su-phone-rows { margin: 0; }
+.su-phone-rows .su-row { display: flex; }
+.su-phone-rows dd { font-weight: 600; color: var(--fg); }
 </style>

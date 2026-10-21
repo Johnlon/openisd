@@ -10,14 +10,67 @@
  * unexpected app state is still the user's work, and wiping it also destroys the evidence
  * needed to fix the cause.
  */
+import {computed} from 'vue';
+import {PhoneDialogHelp} from '@openisd/design/fields';
 import {injectDiagnosticsModal} from '../../hooks/DiagnosticsModal-hooks.js';
+import {useApp} from '../../logic/app.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
+import MobilePaneDialog from '../shells/mobile/MobilePaneDialog.vue';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
+import PhoneDialogPage from './PhoneDialogPage.vue';
 const {faultLog, open, outcome, copied, applyFix, downloadOriginal, reload, copyReport} = injectDiagnosticsModal();
 useEscToClose(() => open.value, () => { open.value = false; });
+/** The phone draws this as a classic full-screen dialog (PHONE_CLASSIC_BUILD_SPEC row 24). */
+const presentation = useApp().presentation;
+const phone = computed(() => presentation.shownSkin() === 'mobile');
+const title = computed(() => faultLog.faults.length ? 'Something went wrong' : faultLog.repairs.length ? 'Saved projects were repaired' : 'Diagnostics');
 </script>
 
 <template>
-  <div v-if="open" class="dg-backdrop">
+  <MobilePaneDialog v-if="open && phone" :title="title" @close="open = false">
+    <PhoneDialogPage>
+      <div v-for="(r, i) in faultLog.repairs" :key="'r' + i" class="dg-fix dg-phone-card">
+        <strong>“{{ r.projectName }}” loaded with {{ r.fields.length }} field(s) reset to the default</strong>
+        <div class="dg-loses">Reset: {{ r.fields.join(', ') }}</div>
+        <button v-if="r.backupKey" type="button" class="dg-phone-btn" @click="downloadOriginal(r)">Download the original</button>
+      </div>
+      <div v-for="f in faultLog.faults" :key="f.id" class="dg-fault dg-phone-card">
+        <div class="dg-msg">
+          <span class="dg-kind">{{ f.kind }}</span>
+          <span class="dg-kind">{{ f.originLabel }}</span>
+          {{ f.message }}
+          <span v-if="f.count > 1" class="dg-count">×{{ f.count }}</span>
+        </div>
+        <pre v-if="f.stack" class="dg-stack">{{ f.stack.split('\n').slice(0, 5).join('\n') }}</pre>
+      </div>
+      <template v-if="faultLog.applicable().length">
+        <p class="mob-dhint"><b>Repairs — least damaging first</b></p>
+        <div v-for="fix in faultLog.applicable()" :key="fix.id" class="dg-fix dg-phone-card">
+          <strong>{{ fix.title }}</strong>
+          <div class="dg-keeps">Keeps: {{ fix.keeps }}</div>
+          <div v-if="fix.loses" class="dg-loses">Loses: {{ fix.loses }}</div>
+          <div v-else class="dg-keeps">Loses: nothing</div>
+          <button type="button" class="dg-phone-btn" @click="applyFix(fix)">Apply</button>
+        </div>
+      </template>
+      <p v-else-if="faultLog.faults.length" class="mob-dhint">No stored-state repair applies — this fault is in the running code, not in your saved data. Copy the report below.</p>
+      <p v-if="!faultLog.faults.length && !faultLog.repairs.length" class="mob-dhint">
+        Nothing to report. No fault has occurred and no saved project needed repair. Copy diagnostics gives a report of this browser's stored data if you want to send one.
+      </p>
+      <PhoneBand :section="PhoneDialogHelp.DIAGNOSTICS_CLOUD_SYNC" />
+      <pre class="mob-dpre">{{ faultLog.cloudSyncLines().join('\n') }}</pre>
+      <PhoneBand :section="PhoneDialogHelp.DIAGNOSTICS_BROWSER_STORAGE" />
+      <pre class="mob-dpre">{{ faultLog.storageLines().join('\n') }}</pre>
+      <p v-if="outcome" class="dg-outcome mob-dhint">{{ outcome }}</p>
+    </PhoneDialogPage>
+    <template #footer>
+      <button type="button" class="mob-dlg-btn" @click="copyReport">{{ copied ? 'Copied' : 'Copy diagnostics' }}</button>
+      <button type="button" class="mob-dlg-btn" @click="reload">Reload</button>
+      <span class="mob-dlg-spacer"></span>
+      <button type="button" class="mob-dlg-btn pri" @click="open = false">Dismiss</button>
+    </template>
+  </MobilePaneDialog>
+  <div v-else-if="open" class="dg-backdrop">
     <div class="dg" role="alertdialog" aria-labelledby="dg-title">
       <header>
         <h2 id="dg-title">{{ faultLog.faults.length ? 'Something went wrong' : faultLog.repairs.length ? 'Saved projects were repaired' : 'Diagnostics' }}</h2>
@@ -124,6 +177,8 @@ useEscToClose(() => open.value, () => { open.value = false; });
 .dg-keeps { opacity: .8; }
 .dg-loses { color: var(--warn, #b45309); }
 .dg-nofix { opacity: .85; }
+.dg-phone-card { margin: 8px 16px; }
+.dg-phone-btn { margin-top: 8px; height: 36px; padding: 0 12px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; }
 .dg-outcome { border-left: 3px solid var(--accent, #2563eb); padding-left: .6rem; white-space: pre-wrap; }
 .dg footer { display: flex; gap: .5rem; margin-top: .9rem; }
 </style>
