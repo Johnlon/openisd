@@ -1,6 +1,6 @@
 # BUG_20261007_browser-processes-die-mid-suite
 
-**Status:** OPEN. Chrome processes die in launch bursts; the probable cause is winisd_tools' watchdog killing them (see Probable cause); a launch wait is PROVISIONAL (below).
+**Status:** RESOLVED 21 Oct 2026 (T553, fable). Root cause eliminated in winisd_tools b462dcbc; outage handling in openisd 9c576106c.
 
 ## Symptom
 During a full browser suite (the pre-push hook), Chrome processes die and a large block of tests fails at once with
@@ -77,3 +77,8 @@ A full browser suite run 5 times without a mass browser death, or a captured cau
 loaded `about:blank` twice; failures retry every second for up to 180 s, each logged `CHROME-OUTAGE`; the first worker
 to give up writes a stamp so the others of that run fail fast. Test bodies are not retried; `retries: 0` and
 `maxFailures: 180` stay (BUG_20260909 ruling). Unit test: `packages/ui/test/fixtures/chromeOutage.test.ts`.
+
+## Resolution (21 Oct 2026, T553)
+- Root cause: `winisd_tools` unit_pool watchdog (`unit_pool.py`) was performing a cross-process sweep SIGKILLing any process on the machine matching `chrome`, `chromium`, or `tesseract` outside its own pool.
+- Fix: `winisd_tools` commit `b462dcbc` deleted the cross-OS sweep and restricted kills strictly to the pool's own workers' process trees. In `openisd`, commit `9c576106c` added outage handling in `packages/ui/test/fixtures.ts` (`waitOutOutage`).
+- Verification: Full browser suites pass cleanly without Chrome death bursts; unit test `packages/ui/test/fixtures/chromeOutage.test.ts` passes.

@@ -1,0 +1,10 @@
+id: T553
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Close stale bug: Chrome processes die mid-suite (BUG_20261007_browser-processes-die-mid-suite)
+done_test: bash scripts/test.sh packages/ui/test/fixtures/chromeOutage.test.ts
+files:
+  - tasks/T553.yml
+  - bugs/BUG_20261007_browser-processes-die-mid-suite.md
