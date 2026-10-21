@@ -1,0 +1,18 @@
+id: T525
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: A project turns amber within 10 % of a Tune limit and red over it, and project.tune() gives the Tune view every number, state and text it shows.
+done_test: bash scripts/test.sh packages/design/test/domain/tune-limits.test.ts packages/design/test/domain/tune-view.test.ts
+files:
+  - tasks/T525.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/domain/project/tuneLimits.ts
+  - packages/design/domain/project/tuneView.ts
+  - packages/design/fields/tuneText.ts
+  - packages/design/fields/index.ts
+  - packages/design/domain/index.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/test/domain/tune-limits.test.ts
+  - packages/design/test/domain/tune-view.test.ts
