@@ -50,6 +50,7 @@ import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
 import {useBackupSettings} from '../../hooks/useBackupSettings.js';
 import {useApp} from '../../logic/app.js';
 import type {ChartId} from '@openisd/design/engine';
+import type {ChartColorKey} from '@openisd/design/chart';
 import NumInput from './NumInput.vue';
 import PhoneDialogPage from './PhoneDialogPage.vue';
 import StorageHistory from './StorageHistory.vue';
@@ -108,8 +109,7 @@ const {
   minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
   setFreqRange,
   canApply, apply: applyAppSettings,
-  referenceLineDefaults,
-  selectedRangeDefault,
+  colorRows, colorDefault,
 } = useOptionsModal();
 
 type Tab = 'General' | 'Plot Window' | 'Your data';
@@ -172,47 +172,14 @@ function fmt(n: number | null | undefined, dp: number): string {
   return formatFixedOrDash(n ?? null, dp);
 }
 
-type ColorKey = 'zeroDb' | 'minus3Db' | 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor' | 'airSpeedLimit' | 'selectedRange';
-const COLOR_ROWS: { key: ColorKey; label: string }[] = [
-  { key: 'background', label: 'Background' },
-  { key: 'otherLines',  label: 'Other lines' },
-  { key: 'labels',      label: 'Labels' },
-  { key: 'xmaxLimit',   label: 'Xmax limit' },
-  { key: 'cursor',      label: 'Cursor lines' },
-];
-function colorValue(key: ColorKey): string {
-  return draft.chartColors?.[key] ?? defaultColor(key);
+function colorValue(key: ChartColorKey): string {
+  return draft.chartColors?.[key] ?? colorDefault(key);
 }
-function defaultColor(key: ColorKey): string {
-  switch (key) {
-    case 'zeroDb': return referenceLineDefaults.zeroDb;
-    case 'minus3Db': return referenceLineDefaults.minus3Db;
-    case 'background': return '#ffffff';
-    case 'otherLines': return '#3a7bd5';
-    case 'labels': return '#000000';
-    case 'xmaxLimit': return '#ff0000';
-    case 'cursor': return '#2e8b57';
-    case 'airSpeedLimit': return referenceLineDefaults.airSpeedLimit;
-    case 'selectedRange': return selectedRangeDefault;
-  }
-}
-/** The phone's full colour list, in the order of the accepted mock. */
-const PHONE_COLOR_ROWS: readonly { key: ColorKey; label: string; reset: string }[] = [
-  { key: 'zeroDb', label: '0 dB line', reset: 'black' },
-  { key: 'minus3Db', label: '-3dB line', reset: 'grey' },
-  { key: 'background', label: 'Background', reset: 'white' },
-  { key: 'otherLines', label: 'Other lines', reset: 'blue' },
-  { key: 'labels', label: 'Labels', reset: 'black' },
-  { key: 'xmaxLimit', label: 'Xmax limit', reset: 'red' },
-  { key: 'cursor', label: 'Cursor lines', reset: 'green' },
-  { key: 'airSpeedLimit', label: 'Air speed limit', reset: 'red' },
-  { key: 'selectedRange', label: 'Selected range', reset: 'black' },
-];
-function setColor(key: ColorKey, e: Event) {
+function setColor(key: ChartColorKey, e: Event) {
   const v = inputValue(e);
   draft.chartColors[key] = v;
 }
-function clearColor(key: ColorKey) {
+function clearColor(key: ChartColorKey) {
   delete draft.chartColors[key];
 }
 
@@ -303,10 +270,10 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 
       <template v-else-if="tab.v === 'Plot Window'">
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_COLORS" />
-        <div v-for="row in PHONE_COLOR_ROWS" :key="row.key" class="mob-crow mob-dcolor-row">
+        <div v-for="row in colorRows" :key="row.key" class="mob-crow mob-dcolor-row">
           <label class="mob-crow-label" :for="'opt-phone-color-' + row.key">{{ row.label }}</label>
           <input :id="'opt-phone-color-' + row.key" class="mob-dcolor" type="color" :value="colorValue(row.key)" :aria-label="row.label + ' colour'" @input="setColor(row.key, $event)" />
-          <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" :title="'Back to ' + row.reset" @click="clearColor(row.key)">↺</button>
+          <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" :title="'Back to ' + row.resetWord" @click="clearColor(row.key)">↺</button>
         </div>
         <p class="mob-dhint">Each project's curve colour is its coloured square in the ☰ menu.</p>
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_LIMITS" />
@@ -505,29 +472,10 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
           <fieldset class="opt-group">
             <legend>Colors</legend>
             <div class="opt-color-grid">
-              <div class="opt-color-col">
-                <div class="opt-color-row" title="Colour of the 0 dB line on the transfer function, port gain and filter charts.">
-                  <label>0 dB line</label>
-                  <input type="color" :value="colorValue('zeroDb')" @input="setColor('zeroDb', $event)" />
-                  <button class="opt-clear-btn" title="Reset to black" @click="clearColor('zeroDb')">↺</button>
-                </div>
-                <div class="opt-color-row" title="Colour of the -3 dB line on the transfer function and port gain charts.">
-                  <label>-3dB line</label>
-                  <input type="color" :value="colorValue('minus3Db')" @input="setColor('minus3Db', $event)" />
-                  <button class="opt-clear-btn" title="Reset to grey" @click="clearColor('minus3Db')">↺</button>
-                </div>
-                <div class="opt-color-row" v-for="row in COLOR_ROWS.filter(row => row.key === 'background')" :key="row.key">
-                  <label>{{ row.label }}</label>
-                  <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
-                  <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
-                </div>
-              </div>
-              <div class="opt-color-col">
-                <div class="opt-color-row" v-for="row in COLOR_ROWS.filter(row => row.key !== 'background')" :key="row.key">
-                  <label>{{ row.label }}</label>
-                  <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
-                  <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
-                </div>
+              <div class="opt-color-row" v-for="row in colorRows" :key="row.key" :title="row.hint">
+                <label>{{ row.label }}</label>
+                <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
+                <button class="opt-clear-btn" :title="row.hint ? 'Reset to ' + row.resetWord : 'Revert to the app\'s own color'" @click="clearColor(row.key)">↺</button>
               </div>
             </div>
           </fieldset>
@@ -577,7 +525,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
    those same class names here would leak the shell's positioning/sizing onto this modal. */
 .opt-overlay { position: fixed; inset: 0; background: rgba(4, 8, 14, 0.66); display: flex;
   align-items: center; justify-content: center; z-index: 200; }
- .opt-modal { width: min(520px, 92vw); max-height: 94vh; display: flex; flex-direction: column;
+ .opt-modal { width: min(560px, 92vw); max-height: 94vh; display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
   color: var(--fg); }
 .opt-h2 { margin: 0; font-size: 14px; padding: 11px 14px; border-bottom: 1px solid var(--line);
@@ -648,14 +596,14 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
   appearance: none;
 }
 
-.opt-color-grid { display: grid; grid-template-columns: max-content max-content; gap: 14px 30px; }
+.opt-color-grid { display: grid; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: max-content; gap: 2px 6px; }
 .opt-color-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.opt-color-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.opt-color-row label { flex: 0 0 88px; color: var(--mut); }
-.opt-color-row input[type="color"] { width: 32px; height: 22px; padding: 0; border: 1px solid var(--line); cursor: pointer; }
+.opt-color-row { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+.opt-color-row label { flex: 0 0 84px; white-space: nowrap; color: var(--mut); }
+.opt-color-row input[type="color"] { width: 36px; height: 26px; padding: 0; border: 1px solid var(--line); cursor: pointer; }
 .opt-color-row.opt-disabled input[type="color"] { cursor: not-allowed; opacity: 0.5; }
 .opt-clear-btn { border: 1px solid var(--line); background: var(--panel2); color: var(--mut);
-  cursor: pointer; font-size: 12px; width: 22px; height: 22px; line-height: 1; }
+  cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; }
 
 .opt-limits { width: auto; border-collapse: collapse; font-size: 11px; }
 .opt-limits th, .opt-limits td { padding: 3px 4px; text-align: left; }
