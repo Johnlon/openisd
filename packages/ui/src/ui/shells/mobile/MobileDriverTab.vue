@@ -12,7 +12,6 @@ const { project, fullName, keyFigures, browseDrivers, editDriver, N_DRIVERS_OPTI
 
 <template>
   <PhoneClassicPage>
-    <PhoneBand :section="PhoneHelp.DRIVER" />
     <div class="mob-crow">
       <button type="button" class="mob-cname mob-cname-button" @click="browseDrivers">{{ fullName || 'No driver selected' }}</button>
     </div>
@@ -20,7 +19,7 @@ const { project, fullName, keyFigures, browseDrivers, editDriver, N_DRIVERS_OPTI
       <button type="button" class="mob-btn mob-btn-primary" @click="browseDrivers">Select driver</button>
       <button type="button" class="mob-btn mob-btn-secondary" @click="editDriver">Edit</button>
     </div>
-    <PhoneBand :section="PhoneHelp.DRIVER_ARRAY" />
+    <PhoneBand :section="PhoneHelp.DRIVER" />
     <div class="mob-crow">
       <label class="mob-crow-label" for="mob-n-drivers">{{ PhoneLabels.DRIVERS }}</label>
       <select id="mob-n-drivers" class="mob-cselect" :value="project.nDrivers.value"
@@ -37,10 +36,11 @@ const { project, fullName, keyFigures, browseDrivers, editDriver, N_DRIVERS_OPTI
     </div>
 
     <PhoneBand :section="PhoneHelp.KEY_FIGURES" />
-    <UIFixedField class="mob-ui-field" :field="NumberField.FS_HZ" label="Fs" :value="keyFigures.Fs" readonly plain />
-    <UIFixedField class="mob-ui-field" :field="NumberField.QTS" label="Qts" :value="keyFigures.Qts" readonly plain />
-    <UIFixedField class="mob-ui-field" :field="NumberField.VAS_M3" label="Vas" :value="keyFigures.Vas" readonly plain />
-    <UIFixedField class="mob-ui-field" :field="NumberField.RE_OHM" label="Re" :value="keyFigures.Re" readonly plain />
-    <UIFixedField class="mob-ui-field" :field="NumberField.XMAX_M" label="Xmax" :value="keyFigures.Xmax" readonly plain />
+    <!-- Tapping a key figure opens the driver editor (the mock's Key figures help: "Tap one to edit the driver."). -->
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.FS_HZ" label="Fs" :value="keyFigures.Fs" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.QTS" label="Qts" :value="keyFigures.Qts" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.VAS_M3" label="Vas" :value="keyFigures.Vas" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.RE_OHM" label="Re" :value="keyFigures.Re" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.XMAX_M" label="Xmax" :value="keyFigures.Xmax" readonly plain />
   </PhoneClassicPage>
 </template>

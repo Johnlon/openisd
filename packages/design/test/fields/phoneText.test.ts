@@ -90,4 +90,10 @@ describe('phone text', () => {
     expect(PhoneEditorText.valueBadge('Fs_hz', null)).toBe('Fs');
     expect(PhoneEditorText.valueBadge('no_such_key', 1)).toBe('no_such_key');
   });
+
+  it('the Driver tab has one Driver band over the driver count and wiring, its help names all four rows, and Key figures says tap to edit', () => {
+    expect(PhoneHelp.DRIVER.title).toBe('Driver');
+    expect(PhoneHelp.DRIVER.rows.map(r => r.label)).toEqual(['Select driver', 'Edit', 'Drivers', 'Connection']);
+    expect(PhoneHelp.KEY_FIGURES.intro).toContain('Tap one to edit the driver.');
+  });
 });

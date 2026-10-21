@@ -152,15 +152,13 @@ export class PhoneHelp {
   static readonly CHART = new PhoneHelpSection('Chart', 'Settings for the charts. They do not change the design.', [
     {label: 'Velocity limit', text: 'the air speed above which the charts mark the vent as likely to be noisy.'},
   ]);
-  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design.', [
+  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design and how the drivers are wired.', [
     {label: 'Select driver', text: 'picks a driver from the library.'},
     {label: 'Edit', text: 'opens the driver\'s parameters.'},
-  ]);
-  static readonly DRIVER_ARRAY = new PhoneHelpSection('Drivers', 'How many drivers the box has and how they are wired.', [
     {label: 'Drivers', text: 'the number of drivers in the box.'},
     {label: 'Connection', text: 'parallel or series wiring of the drivers. It sets the load in ohms the amplifier drives.'},
   ]);
-  static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Edit the driver to change them.', [
+  static readonly KEY_FIGURES = new PhoneHelpSection('Key figures', 'The driver\'s main parameters, for reference. Tap one to edit the driver.', [
     {label: 'Fs', text: 'the frequency at which the driver vibrates most freely, out of a box. Lower Fs can reach lower bass.'},
     {label: 'Qts', text: 'how sharply the driver resonates, from its motor and suspension together. It shows which box type suits the driver.'},
     {label: 'Vas', text: 'the volume of air that is as easy to compress as the suspension is to stretch. A larger Vas needs a larger box.'},

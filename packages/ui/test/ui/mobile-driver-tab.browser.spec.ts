@@ -37,3 +37,24 @@ test('changing the number of drivers and the wiring writes the project', async (
   // eslint-disable-next-line playwright/prefer-web-first-assertions -- comparing two runtime-captured values, not a fixed expected one
   expect(wiringAfter).not.toBe(wiringBefore);
 });
+
+test('page order matches the mock: name, buttons, Driver band, count, wiring, Key figures band, five figures', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  const kids = await page.locator('.mob-classic').evaluate(root => [...root.children].map(e => ({
+    cls: e.className,
+    text: (e instanceof HTMLElement ? e.innerText : '').replace(/\s+/g, ' ').trim(),
+  })));
+  expect(kids.map(k => k.text.split(' ')[0])).toEqual(['Tang', 'Select', 'DRIVER', 'Drivers', 'Connection', 'KEY', 'Fs', 'Qts', 'Vas', 'Re', 'Xmax']);
+  expect(kids.filter(k => k.cls.includes('mob-band')).map(k => k.text)).toEqual(['DRIVER ?', 'KEY FIGURES ?']);
+});
+
+test('tapping a key figure opens the driver editor', async ({ appPage: page }) => {
+  await page.locator('.mob-ui-field', { hasText: 'Qts' }).click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+});
+
+test('no sideways scroll and nothing cut at 374x705', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  const over = await page.locator('.mob-classic').evaluate(el => el.scrollWidth - el.clientWidth);
+  expect(over).toBeLessThanOrEqual(0);
+});

@@ -178,6 +178,7 @@ a { color:var(--acc) }
    label on its own line, then the value (with ▲▼) filling the width, the ⚠ and the unit. Global, not
    in one tab's scoped style, so every mobile tab gets the same row; `.mob-ui-field.ui-field` outranks
    UIField's own scoped desktop grid. */
+.mob-ui-field-tap { cursor: pointer; }
 .mob-ui-field.ui-field {
   /* value | ⚠ | unit, sized so the ▲▼ end and the unit start where the older .mob-field-row rows put
      them (value area ends 40px from the edge, unit 30px wide): the two kinds of row line up. */
