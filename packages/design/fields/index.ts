@@ -146,6 +146,7 @@ export { ChartPageSizes, type ChartPageSizesValues } from './chartPageSizes.js';
 export { ChartPageHelp } from './chartPageText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { type PhoneHelpRow, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneHelp, PhoneDriverListText, PhonePrBrowserText } from './phoneText.js';
+export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } from './phoneWizardText.js';
 export { DesktopSizes, PickWidth } from './desktopSizes.js';
 export { SheetMode, type SheetEdits } from './sheetMode.js';
 export { NO_PROJECT_OPEN } from './noProject.js';

@@ -319,7 +319,7 @@ a { color:var(--acc) }
 .mob-classic .mob-crow-label { flex: none; width: var(--mob-col-label); box-sizing: border-box; padding-right: 8px; font-size: 14px; line-height: var(--mob-label-lh); color: #555; }
 .mob-classic .mob-cselect {
   flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); margin-right: var(--mob-col-stepper);
-  padding: 0 0 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background-color: #fff; color: inherit; font: inherit; font-size: 14px; text-overflow: ellipsis;
+  padding: 0 0 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background-color: #fff; color: inherit; font: inherit; font-size: 15px; text-overflow: ellipsis;
 }
 .mob-classic .mob-cselect-wide { margin-right: 0; }
 .mob-classic .mob-cname { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4; font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }

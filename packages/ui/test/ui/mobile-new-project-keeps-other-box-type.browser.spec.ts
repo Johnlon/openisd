@@ -12,14 +12,14 @@ const TEST_DRIVER = 'Tang Band W5-1138SMF';
 async function createWithWizard(page: Page, name: string, boxLabel: string): Promise<void> {
   await tapMobileMenuItem(page, 'New project');
   await page.getByText(TEST_DRIVER).click();
-  const next = page.locator('.mob-np-footer').getByText('Next', {exact: true});
+  const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
   await next.click();
   await next.click();
   await page.locator('#np-box-type').selectOption({label: boxLabel});
   await next.click();
   await next.click();
-  await page.getByPlaceholder('e.g. Living-room sub').fill(name);
-  await page.locator('.mob-np-footer').getByText('Create', {exact: true}).click();
+  await page.getByLabel('Project name').fill(name);
+  await page.locator('.mob-np-footer').getByText('Create Project', {exact: true}).click();
   await expect(page.locator('.mob-np-overlay')).toBeHidden();
 }
 

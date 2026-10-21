@@ -208,6 +208,12 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Qtc;
     }
 
+    /** The sealed box resonance Fsc (Hz) of this driver in `volume_m3`, on the same footing as `sealedQtc`. */
+    sealedFsc(volume_m3: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(Rs_ohm, losses);
+        return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Fsc;
+    }
+
     /** The sealed volume that gives this driver `targetQtc` on the Box tab, as driven through `Rs_ohm`
      *  with box losses `losses`. Null without Fs/Qts/Vas, or when no volume reaches it. */
     sealedVolumeForQtc(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {

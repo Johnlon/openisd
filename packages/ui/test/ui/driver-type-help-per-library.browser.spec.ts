@@ -35,10 +35,10 @@ test('phone: help left open in Manage drivers is closed in the new-project wizar
   await expect(page.getByText(HELP)).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('button', {name: 'New project', exact: true}).click();
-  await expect(page.getByText('Step 1 of 5')).toBeVisible();
+  await expect(page.locator('.np-step')).toHaveText('Select driver for project');   // the phone's step bar shows the title only
   await expect(page.getByText(HELP)).toHaveCount(0);
   await page.getByText(TEST_DRIVER).click();
-  await expect(page.locator('.mob-np-footer').getByText('Next', {exact: true})).toBeEnabled();
+  await expect(page.locator('.mob-np-footer').getByText('Next ▸', {exact: true})).toBeEnabled();
 });
 
 test('desktop: help lists Bass-midrange, and Midrange is not under Woofer', async ({page}) => {

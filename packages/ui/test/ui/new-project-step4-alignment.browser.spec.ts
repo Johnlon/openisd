@@ -22,27 +22,30 @@ async function toStepFour(page: Page, mobile: boolean, box: string): Promise<voi
   else await page.locator('.tb-btn[title*="New project"]').click();
   const root = mobile ? page.locator('.mob-np-body') : page.locator('.overlay.open .modal-body');
   const footer = mobile ? page.locator('.mob-np-footer') : page.locator('.overlay.open .modal-footer');
-  const next = footer.getByText('Next', {exact: true});
+  const next = footer.getByText(mobile ? 'Next ▸' : 'Next', {exact: true});
   await root.getByText(TEST_DRIVER).first().click();
   await next.click();
   await next.click();
   await page.locator('#np-box-type').selectOption(box);
   await next.click();
-  await expect(page.locator('.np-step')).toContainText('Step 4 of 5');
+  await expect(page.locator('.np-step')).toContainText(mobile ? /Alignment|Passive Radiator|Chambers/ : 'Step 4 of 5');
 }
 
 interface Edges { readonly id: string; readonly labelLeft: number; readonly controlLeft: number; readonly height: number }
 
 /** Every pick list and text/number box on the step, with its label's and its own left edge and its height. */
-async function rows(page: Page): Promise<Edges[]> {
-  const controls = page.locator('.step-content select, .step-content input[type=text], .step-content input:not([type])');
+async function rows(page: Page, mobile: boolean): Promise<Edges[]> {
+  const root = mobile ? '.mob-np-body' : '.step-content';   // the phone wizard has no .step-content: its pages are classic pages
+  const controls = page.locator(`${root} select, ${root} input[type=text], ${root} input:not([type])`);
   const count = await controls.count();
   const out: Edges[] = [];
   for (let i = 0; i < count; i++) {
     const control: Locator = controls.nth(i);
     const id = await control.getAttribute('id');
     expect(id, 'every control on step 4 has an id, so its label can be tied to it').not.toBeNull();
-    const label = page.locator(`.step-content label[for="${id}"]`);
+    // Phone: the wide pick list (label above it) and the unlabelled name box are full-width rows by design; the rest are label | box.
+    if (mobile && (await control.locator('xpath=ancestor::*[contains(@class,"mob-crow-stack")]').count() > 0 || await control.getAttribute('aria-label') !== null)) continue;
+    const label = page.locator(`${root} label[for="${id}"]`);
     await expect(label, `${id} has a label`).toHaveCount(1);
     const l = await label.boundingBox();
     const c = await control.boundingBox();
@@ -64,7 +67,7 @@ for (const mobile of [false, true]) {
     for (const {box, desktopColumns} of BOX_TYPES) {
       test(`${box}: one label column, one control left edge, one control height`, async ({page}) => {
         await toStepFour(page, mobile, box);
-        const r = await rows(page);
+        const r = await rows(page, mobile);
 
         expect(r.length, 'step 4 has controls').toBeGreaterThan(0);
         // Chambers are two side-by-side columns on desktop: each column is one column of its own.
@@ -79,7 +82,7 @@ for (const mobile of [false, true]) {
 
       test(`${box}: the arrows are one size on every number box`, async ({page}) => {
         await toStepFour(page, mobile, box);
-        const sizes = await page.locator('.step-content .num-stepper-btn').evaluateAll(els => els.map(el => {
+        const sizes = await page.locator(`${mobile ? '.mob-np-body' : '.step-content'} .num-stepper-btn`).evaluateAll(els => els.map(el => {
           const b = el.getBoundingClientRect();
           return `${Math.round(b.width)}x${Math.round(b.height)}`;
         }));

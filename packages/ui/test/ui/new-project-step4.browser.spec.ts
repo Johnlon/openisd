@@ -32,7 +32,7 @@ async function toStepFour(page: Page, mobile: boolean, box: string): Promise<voi
   else await page.locator('.tb-btn[title*="New project"]').click();
   const root = mobile ? page.locator('.mob-np-body') : page.locator('.overlay.open .modal-body');
   const footer = mobile ? page.locator('.mob-np-footer') : page.locator('.overlay.open .modal-footer');
-  const next = footer.getByText('Next', {exact: true});
+  const next = footer.getByText(mobile ? 'Next ▸' : 'Next', {exact: true});
   await root.getByText(TEST_DRIVER).first().click();
   await next.click();
   await next.click();
@@ -52,7 +52,8 @@ for (const mobile of [false, true]) {
     for (const {box, inputs, label} of STEP_FOURS) {
       test(`${box}: step 4 holds ${inputs.length} number box(es), each with arrows, and nothing runs off the screen`, async ({page}) => {
         await toStepFour(page, mobile, box);
-        await expect(page.locator('.np-step')).toContainText(`Step 4 of 5 — ${label}`);
+        // The phone's step bar shows the title only (screen 25); the desktop shows the step number too.
+        await expect(page.locator('.np-step')).toContainText(mobile ? label : `Step 4 of 5 — ${label}`);
         for (const id of inputs) {
           const input = page.locator(`#${id}`);
           await expect(input, `${id} is on step 4`).toBeVisible();

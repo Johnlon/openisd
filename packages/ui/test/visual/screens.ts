@@ -62,7 +62,7 @@ async function wizardAt(page: Page, skin: VisualSkin, type: BoxTypeName, step: n
   const root = skin === VisualSkin.MOBILE ? page.locator('.mob-np-body') : page.locator('.overlay.open .modal-body');
   await root.locator('.dlist .ditem').first().click();
   const footer = skin === VisualSkin.MOBILE ? page.locator('.mob-np-footer') : page.locator('.overlay.open .modal-footer');
-  const next = footer.getByText('Next', {exact: true});
+  const next = footer.getByText(skin === VisualSkin.MOBILE ? 'Next ▸' : 'Next', {exact: true});
   await next.click();
   if (step >= 3) {
     await next.click();

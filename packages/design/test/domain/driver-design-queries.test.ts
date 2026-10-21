@@ -37,6 +37,15 @@ describe('OpenISDDriver design queries', () => {
     expect(zero.ebp()).toBeNull();
   });
 
+  it('sealedFsc(volume, Rs, losses) is the Fsc of the same sealed resonance as sealedQtc, and null without a volume or specs', () => {
+    const d = driver();
+    const losses = {Ql: 10, Qa: 100};
+    const loaded = d.sourceLoadedQts(0.1)!;
+    expect(d.sealedFsc(0.03, 0.1, losses)).toBe(engine.sealed.resonance({Fs: 40, Vas: 0.02, Qts: loaded, Vb: 0.03, ...losses}).Fsc);
+    expect(d.sealedFsc(0, 0.1, losses)).toBeNull();
+    expect(OpenISDDriver.empty(createEngine()).sealedFsc(0.03, 0.1, losses)).toBeNull();
+  });
+
   it('sealedQtc(volume, Rs, losses) is the lossy Qtc of the source-loaded driver, and sealedVolumeForQtc inverts it', () => {
     const d = driver();
     const losses = {Ql: 10, Qa: 100};

@@ -9,7 +9,7 @@ import {PhoneRowColumns, PhoneRowSizes} from '@openisd/design/fields';
  * at every phone size, every field row is the CLASSIC depth, value boxes share one left edge with
  * the text gutter inside, chips sit inside their box, nothing is cut or scrolls sideways, the key
  * strip sits under the header, and section bands are 28 px with a ? at the right.
- * Driver editor tabs and wizard step 4 join when B6 and B12 land.
+ * Driver editor tabs join when B6 lands; the New project wizard (B12, screen 25) is measured at the end of this file.
  */
 const ROW_PX = PhoneRowSizes.CLASSIC.rowMinPx;
 const GUTTER_PX = PhoneRowColumns.STANDARD.textGutterPx;
@@ -262,3 +262,161 @@ for (const size of PHONE_SIZES) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
   });
 }
+
+/**
+ * B12, screen 25: the New project wizard follows QO267/wizard-live.html. Every step, every box type on
+ * step 4, at every phone size: classic rows (40 px, one value-box edge, 14 px gutter, chip inside),
+ * 28 px bands with no ? of their own (the one ? is on the step bar), the key strip under the header,
+ * the step bar with the title only, a two-line banner on steps 2 to 5, the pictures, and the footer
+ * Cancel, Back, Next. The alignment select is the one row that is taller: its label sits above it.
+ */
+const WIZARD_DRIVER = 'Tang Band W5-1138SMF';
+
+const WIZARD_STEPS: readonly {readonly name: string; readonly box: string; readonly at: number; readonly pictures: number}[] = [
+  {name: 'step 2 drivers and placement', box: 'vented', at: 2, pictures: 1},
+  {name: 'step 3 type of design', box: 'vented', at: 3, pictures: 1},
+  ...['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'].map(box => ({name: `step 4 ${box}`, box, at: 4, pictures: 1})),
+  {name: 'step 5 project information', box: 'vented', at: 5, pictures: 0},
+];
+
+async function wizardAt(page: Page, at: number, box: string): Promise<void> {
+  await page.getByText('New project').click();
+  await page.getByText(WIZARD_DRIVER).click();
+  const next = page.locator('.mob-np-footer button.np-primary');
+  await next.click();                                   // step 2
+  if (at > 2) await next.click();                       // step 3
+  if (at > 3) { await page.locator('#np-box-type').selectOption(box); await next.click(); }   // step 4
+  if (at > 4) await next.click();                       // step 5
+}
+
+for (const size of PHONE_SIZES) {
+  for (const step of WIZARD_STEPS) {
+    test(`classic wizard: ${step.name} at ${size.width}×${size.height}`, async ({page}) => {
+      await page.setViewportSize(size);
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await wizardAt(page, step.at, step.box);
+      const body = page.locator('.mob-np-body');
+
+      const rows = body.locator('.mob-ui-field, .mob-crow:not(.mob-crow-stack)');
+      const heights = await rows.evaluateAll(els => els.map(e => e.getBoundingClientRect().height));
+      expect(heights.length, 'the page has field rows (step 5 has none)').toBeGreaterThanOrEqual(step.at === 5 ? 0 : 1);
+      for (const h of heights) expect(Math.abs(h - ROW_PX), `row height ${h}`).toBeLessThanOrEqual(TOL);
+
+      const boxes = await rows.evaluateAll(els => els.flatMap(row => {
+        const input = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value .mob-readonly, select.mob-cselect');
+        if (!input) return [];
+        const box = input.getBoundingClientRect();
+        const chip = row.querySelector<HTMLElement>('.ui-field-unit')?.getBoundingClientRect();
+        return [{left: box.left, gutter: parseFloat(getComputedStyle(input).paddingLeft),
+          chipInside: chip === undefined || chip.width === 0 || (chip.left >= box.left && chip.right <= box.right + 0.5)}];
+      }));
+      for (const b of boxes) {
+        expect(Math.abs(b.left - boxes[0].left), 'value boxes share one left edge').toBeLessThanOrEqual(TOL);
+        expect(b.gutter, 'text gutter').toBe(GUTTER_PX);
+        expect(b.chipInside, 'unit chip inside its box').toBe(true);
+      }
+
+      const overflow = await page.evaluate(() => ({
+        page: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        body: (() => { const b = document.querySelector('.mob-np-body'); return b ? b.scrollWidth > b.clientWidth : true; })(),
+        cut: [...document.querySelectorAll<HTMLElement>('.mob-np-overlay label, .mob-np-overlay input, .mob-np-overlay button, .mob-np-overlay select')]
+          .filter(e => e.scrollWidth > e.clientWidth + 1).map(e => `${e.tagName}.${e.className}:${e.textContent?.trim() || e.id}`),
+        outside: [...document.querySelectorAll<HTMLElement>('.mob-np-overlay input, .mob-np-overlay button, .mob-np-overlay select, .mob-np-overlay textarea')]
+          .filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < -0.5 || r.right > window.innerWidth + 0.5); }).length,
+      }));
+      expect(overflow.page, 'no horizontal page scroll').toBe(false);
+      expect(overflow.body, 'no horizontal scroll in the wizard body').toBe(false);
+      expect(overflow.cut, 'no label, value or button is cut').toEqual([]);
+      expect(overflow.outside, 'no control outside the viewport sideways').toBe(0);
+
+      const strip = page.locator('.mob-np-overlay .mob-key-strip');
+      for (const word of ['Entered', 'Calculated', 'Not Available']) await expect(strip).toContainText(word);
+      const gap = await page.evaluate(() => {
+        const header = document.querySelector('.mob-np-head')?.getBoundingClientRect();
+        const s = document.querySelector('.mob-np-overlay .mob-key-strip')?.getBoundingClientRect();
+        return header && s ? s.top - header.bottom : NaN;
+      });
+      expect(Math.abs(gap), 'strip touches the header bottom').toBeLessThanOrEqual(1);
+
+      const bar = page.locator('.mob-np-stepbar');
+      await expect(bar, 'step bar shows the title only').not.toContainText(/step \d/i);
+      await expect(bar.locator('.np-step')).not.toBeEmpty();
+      await expect(bar.locator('.mob-np-help'), 'one ? on the step bar').toHaveCount(1);
+      await expect(page.locator('.mob-np-overlay .mob-band-help'), 'bands carry no ? in the wizard').toHaveCount(0);
+      await expect(page.locator('.mob-np-overlay .mob-np-dots'), 'no progress dots').toHaveCount(0);
+      const bands = await body.locator('.mob-band').evaluateAll(els => els.map(e => e.getBoundingClientRect().height));
+      expect(bands.length, 'the page has section bands').toBeGreaterThan(0);
+      for (const h of bands) expect(Math.abs(h - BAND_PX), 'band height').toBeLessThanOrEqual(TOL);
+
+      await expect(body.locator('.mob-np-banner'), 'two-line banner').toHaveCount(1);
+      await expect(body.locator('.mob-np-banner > *')).toHaveCount(2);
+      await expect(body.locator('.mob-np-pic svg:visible')).toHaveCount(step.pictures);
+
+      const btnHeights = await page.locator('.mob-np-footer button').evaluateAll(els => els.map(e => e.getBoundingClientRect().height));
+      for (const h of btnHeights) expect(Math.abs(h - 44), 'one 44 px button').toBeLessThanOrEqual(TOL);
+      await expect(page.locator('.mob-np-footer .np-primary'), 'one primary button').toHaveCount(1);
+      const primaryBg = await page.locator('.mob-np-footer .np-primary').evaluate(e => getComputedStyle(e).backgroundColor);
+      expect(primaryBg, 'primary is blue, not green').not.toBe('rgb(27, 125, 27)');
+      const footer = await page.locator('.mob-np-footer button').allTextContents();
+      expect(footer.map(t => t.trim()), 'footer order').toEqual(['Cancel', '◀ Back', step.at === 5 ? 'Create Project' : 'Next ▸']);
+    });
+  }
+}
+
+test('classic wizard: the ? on the step bar opens that step\'s help and closes again', async ({page}) => {
+  await page.setViewportSize(PIXEL_9);
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await wizardAt(page, 2, 'vented');
+  await page.locator('.mob-np-help').click();
+  const sheet = page.getByRole('dialog', {name: /Help: Number of drivers and placement/});
+  await expect(sheet).toContainText('Driver Array');
+  await expect(sheet).toContainText('Placement');
+  await sheet.getByRole('button', {name: 'Close help'}).click();
+  await expect(sheet).toHaveCount(0);
+});
+
+test('classic wizard: Iso-Barik shows its drawing and the not-modelled note; the ⓘ explains placement', async ({page}) => {
+  await page.setViewportSize(PIXEL_9);
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await wizardAt(page, 2, 'vented');
+  await expect(page.locator('.mob-np-pic')).not.toContainText('not modelled');
+  await page.locator('#np-placement').selectOption('iso');
+  await expect(page.locator('.mob-np-pic')).toContainText('Iso-Barik is not modelled yet');
+  await page.getByRole('button', {name: 'About driver placement'}).click();
+  await expect(page.getByRole('dialog', {name: 'Driver placement'})).toContainText('Standard');
+  await page.getByRole('dialog', {name: 'Driver placement'}).getByRole('button', {name: 'Close'}).click();
+  await expect(page.getByRole('dialog', {name: 'Driver placement'})).toHaveCount(0);
+});
+
+test('classic wizard: step 3 has the EBP row under Box type with its badge; its ⓘ gives the driver\'s EBP', async ({page}) => {
+  await page.setViewportSize(PIXEL_9);
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await wizardAt(page, 3, 'vented');
+  const row = page.locator('.mob-np-ebp');
+  await expect(row).toContainText(/^EBP: [\d.]+\s*Fs \/ Qes/);
+  await expect(row.locator('.mob-np-ebp-badge')).toHaveText(/Sealed|Vented|Sealed or vented/);
+  await page.getByRole('button', {name: 'About EBP'}).click();
+  await expect(page.getByRole('dialog', {name: 'EBP'})).toContainText('Your driver: EBP');
+});
+
+test('classic wizard: step 5 has the name and description boxes with their labels above, and Enter in the name does not create', async ({page}) => {
+  await page.setViewportSize(PIXEL_9);
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await wizardAt(page, 5, 'vented');
+  const name = page.getByLabel('Project name');
+  const description = page.getByLabel('Description');
+  const [nameBox, labelBox] = [await name.boundingBox(), await page.locator('label', {hasText: 'Project name'}).boundingBox()];
+  expect(labelBox!.y + labelBox!.height, 'label above the name box').toBeLessThanOrEqual(nameBox!.y + 1);
+  await name.fill('My sub');
+  await name.press('Enter');
+  await expect(page.locator('.mob-np-overlay'), 'Enter finishes the box, it does not create').toBeVisible();
+  await expect(name).toHaveValue('My sub');
+  await description.fill('Notes');
+  await page.locator('.mob-np-footer').getByText('Create Project').click();
+  await expect(page.locator('.mob-np-overlay')).toBeHidden();
+});

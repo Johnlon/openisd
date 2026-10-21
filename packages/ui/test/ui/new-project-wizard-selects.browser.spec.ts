@@ -29,7 +29,7 @@ async function toStep(page: Page, mobile: boolean, step: number, box: string): P
   else await page.locator('.tb-btn[title*="New project"]').click();
   const root = mobile ? page.locator('.mob-np-body') : page.locator('.overlay.open .modal-body');
   const footer = mobile ? page.locator('.mob-np-footer') : page.locator('.overlay.open .modal-footer');
-  const next = footer.getByText('Next', {exact: true});
+  const next = footer.getByText(mobile ? 'Next ▸' : 'Next', {exact: true});
   await page.getByPlaceholder('Search drivers').fill('W5-1138SMF');
   await root.getByText(TEST_DRIVER).first().click();
   await next.click();
@@ -37,7 +37,7 @@ async function toStep(page: Page, mobile: boolean, step: number, box: string): P
     await next.click();
     if (at === 2) await page.locator('#np-box-type').selectOption(box);
   }
-  await expect(page.locator('.np-step')).toContainText(`Step ${step} of 5`);
+  if (!mobile) await expect(page.locator('.np-step')).toContainText(`Step ${step} of 5`);   // the phone's step bar shows the title only
 }
 
 /** What one skin looks like in 7.0.951: the pick list text size and widths. */
@@ -54,11 +54,23 @@ const SKINS: readonly Skin[] = [
 ];
 
 async function measure(page: Page, id: string): Promise<{font: string; width: number; column: number}> {
-  return page.locator(`#${id}`).evaluate(el => ({
-    font: getComputedStyle(el).fontSize,
-    width: el.getBoundingClientRect().width,
-    column: el.closest('.ui-field-value')?.getBoundingClientRect().width ?? 0,
-  }));
+  return page.locator(`#${id}`).evaluate(el => {
+    // The classic phone row (label | pick list): the pick list fills to the ▲▼ column, a wide one to the row's edge.
+    const row = el.closest('.mob-crow');
+    const label = row?.querySelector('.mob-crow-label');
+    let phone: number | null = null;
+    if (row && label) {
+      const cs = getComputedStyle(row);
+      const content = row.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const stepper = el.classList.contains('mob-cselect-wide') ? 0 : parseFloat(cs.getPropertyValue('--mob-col-stepper'));
+      phone = content - (row.classList.contains('mob-crow-stack') ? 0 : label.getBoundingClientRect().width) - stepper;
+    }
+    return {
+      font: getComputedStyle(el).fontSize,
+      width: el.getBoundingClientRect().width,
+      column: phone ?? el.closest('.ui-field-value')?.getBoundingClientRect().width ?? 0,
+    };
+  });
 }
 
 for (const skin of SKINS) {

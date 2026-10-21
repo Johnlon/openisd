@@ -76,7 +76,9 @@ export const SCREENS = [
     } },
   { key: 'wizard-1', label: 'New project step 1', vp: BOTH, keep: true, covers: ['OriginalNewProject', 'MobileNewProject', 'DriverLibrary'], act: startWizard },
   { key: 'wizard-2', label: 'New project step 2', vp: BOTH, keep: true, covers: ['OriginalNewProject', 'MobileNewProject', 'BoxTypeDiagram'], act: async (page) => { await pickDriver(page); await next(page); } },
-  { key: 'wizard-3', label: 'New project step 3', vp: BOTH, keep: true, covers: ['OriginalNewProject', 'MobileNewProject'], act: next },
+  { key: 'wizard-2-help', label: 'New project step 2, help sheet', vp: [PHONE], covers: ['WizardHelpSheet'], act: async (p) => { await clickBtn(p, 'Help for this step'); await p.getByRole('dialog', { name: /^Help: / }).waitFor(T); } },
+  { key: 'wizard-2-info', label: 'New project step 2, placement ⓘ card', vp: [PHONE], covers: ['WizardInfoCard'], act: async (p) => { await clickBtn(p, 'Close help'); await clickBtn(p, 'About driver placement'); await p.getByRole('dialog').locator('visible=true').first().waitFor(T); } },
+  { key: 'wizard-3', label: 'New project step 3', vp: BOTH, keep: true, covers: ['OriginalNewProject', 'MobileNewProject'], act: async (p) => { const close = p.locator('.mob-np-icard button'); if (await close.count() > 0) await close.first().click(T); await next(p); } },
   { key: 'wizard-4', label: 'New project step 4', vp: BOTH, keep: true, covers: ['OriginalNewProject', 'MobileNewProject'], act: next },
   { key: 'wizard-5', label: 'New project step 5', vp: BOTH, keep: true, covers: ['OriginalNewProject', 'MobileNewProject'], act: next },
   { key: 'project-box', label: 'Project, Box tab', vp: BOTH, covers: ['OriginalShell', 'MobileShell', 'MobileBoxTab', 'MobileTabBar', 'MobileSaveButton', 'OriginalProjectList', 'ProvenanceLegend', 'GraphPanel'], act: async (page) => {

@@ -1,0 +1,77 @@
+id: T511
+release_note: The phone New project wizard now follows the new classic design, with a key strip, one help button on the step bar, a placement drawing, an EBP row and a box picture on the alignment step.
+repo: openisd
+owner: maryu
+status: done
+goal: Phone classic B12: new project wizard follows the approved classic mock (screen 25)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneWizardText.test.ts
+files:
+  - tasks/T511.yml
+  - packages/design/fields/phoneWizardText.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/phoneWizardText.test.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/test/domain/driver-design-queries.test.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/components/PlacementDiagram.vue
+  - packages/ui/src/ui/components/WizardInfoCard.vue
+  - packages/ui/src/ui/components/WizardInfoButton.vue
+  - packages/ui/src/ui/components/WizardHelpSheet.vue
+  - packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/mobile-new-project-keeps-other-box-type.browser.spec.ts
+  - packages/ui/test/ui/new-project-step4.browser.spec.ts
+  - packages/ui/test/ui/new-project-step4-alignment.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-selects.browser.spec.ts
+  - packages/ui/test/ui/driver-type-help-per-library.browser.spec.ts
+  - packages/ui/test/visual/screens.ts
+  - packages/ui/src/style.css
+  - scripts/ui-gallery/screens.mjs
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step5.png
+visual:
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-abc-step5
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass4-step5
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-bandpass6-step5
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-sealed-step5
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
+  - mobile-wizard-vented-step5

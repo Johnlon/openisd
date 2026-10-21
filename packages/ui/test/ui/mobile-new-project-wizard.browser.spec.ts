@@ -1,6 +1,6 @@
 /**
  * The mobile New Project wizard. Every step is a regular page with one footer: Back, Next
- * (green) and Cancel (John, 2026-10-03: "this needs to be a regular looking page, back/next
+ * and Cancel (John, 2026-10-03: "this needs to be a regular looking page, back/next
  * green/cancel"). On step 1 the driver preview has no Use/Cancel pair of its own — Next is what
  * chooses the driver being read and moves on, so there is one set of buttons, not two.
  *
@@ -22,26 +22,27 @@ test.beforeEach(async ({ page }) => {
 test('step 1 has one footer, in the list and in the driver preview: Next and Cancel, no Use', async ({ page }) => {
   const footer = page.locator('.mob-np-footer');
   await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
-  await expect(footer.getByText('Next', {exact: true})).toBeDisabled();   // nothing chosen or being read yet
+  await expect(footer.getByText('Next ▸', {exact: true})).toBeDisabled();   // nothing chosen or being read yet
   await page.getByText(TEST_DRIVER).click();
   await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
-  await expect(footer.getByText('Next', {exact: true})).toBeEnabled();
+  await expect(footer.getByText('Next ▸', {exact: true})).toBeEnabled();
   await expect(page.locator('.prev-footer')).toHaveCount(0);   // the preview's own Use/Cancel pair is gone
   await expect(page.getByText('Use', { exact: true })).toHaveCount(0);
 });
 
 test('Next chooses the driver being read and advances to step 2 with the footer intact', async ({ page }) => {
   await page.getByText(TEST_DRIVER).click();
-  await page.locator('.mob-np-footer').getByText('Next', {exact: true}).click();
-  await expect(page.locator('.np-step')).toContainText('Step 2 of 5');
-  await expect(page.locator('.mob-np-footer').getByText('Back', {exact: true})).toBeVisible();
+  await page.locator('.mob-np-footer').getByText('Next ▸', {exact: true}).click();
+  await expect(page.locator('.np-step')).toHaveText('Number of drivers and placement');
+  await expect(page.locator('.mob-np-footer').getByText('◀ Back', {exact: true})).toBeVisible();
 });
 
-test('Next is green', async ({ page }) => {
+test('Next is the blue lead button, Create Project the green one (screen 25)', async ({ page }) => {
   await page.getByText(TEST_DRIVER).click();
-  const bg = await page.locator('.mob-np-footer').getByText('Next', {exact: true}).evaluate(el => getComputedStyle(el).backgroundColor);
+  const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
+  const bg = await next.evaluate(el => getComputedStyle(el).backgroundColor);
   expect(bg).not.toBe('rgb(240, 240, 240)');
-  expect(bg).toMatch(/^rgb\(\d+, (1[0-9]{2}|[2-9][0-9]), \d+\)$/);   // a green-dominant fill
+  expect(bg).toMatch(/^rgb\(\d+, \d+, (1[5-9][0-9]|2[0-5][0-9])\)$/);   // a blue-dominant fill
 });
 
 test('the header close (✕) still cancels the whole wizard from step 1', async ({ page }) => {

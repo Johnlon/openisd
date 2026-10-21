@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: f82c62a8c6293036ea292e61585250cfab167f30
 goal: B9 phone Advanced tab (screen 15): grey heading bands (QO277), help lines link to Differences entries, warning inside the row, WinISD difference cue on rows
 done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
 files:

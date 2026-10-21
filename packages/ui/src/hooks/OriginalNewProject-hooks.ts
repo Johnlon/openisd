@@ -109,6 +109,8 @@ export interface OriginalNewProjectAPI {
   readonly selectedSealedAlignment: ComputedRef<SelectorOption<number> | null>;
   readonly targetQtc: Ref<number>;
   readonly qtc: ComputedRef<number | null>;
+  /** The sealed box resonance Fsc (Hz) at the chosen volume; null without a driver. */
+  readonly sealedFsc_hz: ComputedRef<number | null>;
   /** The sealed box volume, SI: derived from the chosen alignment, editable on step 4. */
   readonly sealedVolume_m3: Ref<number>;
   selectSealedAlignment(qtc: number): void;
@@ -285,6 +287,12 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     const driver = selectedDriver.value;
     if (!driver) return null;
     return driver.sealedQtc(sealedVolume_m3.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
+  });
+
+  const sealedFsc_hz = computed(() => {
+    const driver = selectedDriver.value;
+    if (!driver) return null;
+    return driver.sealedFsc(sealedVolume_m3.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
   });
 
   const selectedSealedAlignment = computed(() => {
@@ -522,6 +530,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     selectedSealedAlignment,
     targetQtc,
     qtc,
+    sealedFsc_hz,
     sealedVolume_m3,
     selectSealedAlignment,
     sealedPickerDeviationShown,
