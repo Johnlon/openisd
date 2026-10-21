@@ -1,4 +1,4 @@
-import type {SpinBounds, SpinDirection} from './spinnerStep.js';
+import {spinValue, type SpinBounds, type SpinDirection, type SpinRule} from './spinnerStep.js';
 
 /**
  * Spinning at the caret (John, 2026-10-15: "spin the digits at the precision of the position of the
@@ -117,7 +117,8 @@ export interface SteppedPlace {
  * digit (10.5 down a ten is 0.5, up a ten is 10.5 again). Otherwise it is at `at`, the tenths
  * digit by default (`steppingCaret`). `null` when there is no number to step.
  */
-export function spinStep(text: string, at: StepAt, last: SteppedPlace | null, dir: SpinDirection, bounds: SpinBounds): CaretSpin | null {
+export function spinStep(text: string, at: StepAt, last: SteppedPlace | null, dir: SpinDirection, bounds: SpinBounds, rule?: SpinRule): CaretSpin | null {
+  if (rule?.kind === 'integer') return integerSpin(text, dir, bounds, rule.step);
   if (last !== null && sameStepAt(last.at, at)) {
     const parts = NUMBER_TEXT.exec(text);
     if (parts !== null && (parts[2] !== '' || (parts[3] ?? '') !== '')) {
@@ -126,6 +127,14 @@ export function spinStep(text: string, at: StepAt, last: SteppedPlace | null, di
   }
   return caretSpin(text, steppingCaret(text, at), dir, bounds)
     ?? caretSpin(text, tenthsCaret(text), dir, bounds);
+}
+
+/** A whole number stepped by `step` through `spinValue`, shown with no decimals, the units digit marked. */
+function integerSpin(text: string, dir: SpinDirection, bounds: SpinBounds, step: number): CaretSpin | null {
+  if (!/\d/.test(text)) return null;
+  const value = spinValue(text, dir, {kind: 'integer', step}, bounds);
+  const out = String(value);
+  return {text: out, value, caret: out.length, mark: out.length - 1, place: 0, decimals: 0};
 }
 
 /** The caret of a number nobody has put a caret in: just after the tenths digit, so a step is 0.1.

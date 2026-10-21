@@ -52,6 +52,8 @@ export {
   type ValueFloor,
   Field,
   NumberField,
+  integerSpin,
+  type FieldSpin,
   EnumField,
   TextField,
   ToggleField,

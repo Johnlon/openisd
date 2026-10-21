@@ -96,6 +96,6 @@ describe('OriginalFilters', () => {
     const lr = {...engine.filters.default('lowpass'), family: 'linkwitzRiley' as const, order: 4};
     if (lr.type !== 'lowpass') throw new Error('expected lowpass');
     expect(api.passOrderEntry(lr)).toEqual(engine.filters.passOrderEntry(lr));
-    expect(api.passOrderEntry(lr).step).toBe(2);
+    expect(api.passOrderEntry(lr).spin).toEqual({kind: 'integer', step: 2});
   });
 });

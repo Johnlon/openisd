@@ -1,5 +1,5 @@
 import type {Clearable, Entered, Precise, ProvenanceLetter, Readable, SimpleField, Writable} from '@openisd/design';
-import type {NumberField, PhoneRowColumns, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
+import type {FieldSpin, NumberField, PhoneRowColumns, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 
 /** A number a person can enter, clear and state the precision of: an emptied box clears it. */
 export type ClearableUICell = Readable<number | null> & Entered & Precise & Writable<number> & Clearable;
@@ -26,12 +26,16 @@ export interface UIFieldCommon {
   required?: boolean;
   /** The input's id, for a view or test that addresses the box directly. */
   inputId?: string;
+  /** A lower bound tighter than the registry's, in SI. */
+  min?: number;
   /** An upper bound tighter than the registry's, in SI. */
   max?: number;
   /** The widths across a phone row (label, ▲▼ area, chip, text gutter). Default `PhoneRowColumns.STANDARD`. */
   columns?: PhoneRowColumns;
   /** ▲▼ buttons beside the box (the phone layout). */
   stepper?: boolean;
+  /** Replaces the field's own spin rule for the ▲▼ buttons (an even-only Order box moves 2). */
+  spin?: FieldSpin;
   /** A calculated value: shown in the greyed readout look, never editable. */
   readonly?: boolean;
   /** A readonly value shown to this readout's decimals, not the field's. */

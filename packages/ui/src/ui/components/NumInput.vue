@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, inject, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type FieldSpin, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -33,6 +33,8 @@ const props = withDefaults(defineProps<{
   dq?: readonly string[];
   dqState?: ProvenanceLetter;
   stepper?: boolean;
+  /** Replaces the field's own spin rule (an even-only Order box moves 2 a press). */
+  spin?: FieldSpin;
   /** The host draws the ⚠ itself (`UIField`), so this box draws no mark of its own. */
   hideMark?: boolean;
 }>(), {
@@ -218,7 +220,9 @@ let lastStep: SteppedPlace | null = null;
  *  focus), an underline mirror overlay is shown instead and the box is untouched. */
 function stepFrom(at: StepAt, dir: SpinDirection): void {
   const el = inputEl.value;
-  const spun = spinStep(display.value, at, lastStep, dir, {min: dispMin.value, max: dispMax.value});
+  const bounds = {min: dispMin.value, max: dispMax.value};
+  const rule = props.field === undefined ? undefined : props.field.spinRule(activeToken.value, props.spin);
+  const spun = spinStep(display.value, at, lastStep, dir, bounds, rule);
   if (spun === null) return;
   const si = fromDisp(spun.value);
   display.value = spun.text;

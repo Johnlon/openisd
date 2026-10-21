@@ -28,9 +28,11 @@ import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), {
   required: false,
   inputId: undefined,
+  min: undefined,
   max: undefined,
   columns: () => PhoneRowColumns.STANDARD,
   stepper: true,
+  spin: undefined,
   readonly: false,
   plain: false,
   label: undefined,
@@ -115,7 +117,7 @@ function write(v: number | null, precision?: number): void {
       <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">
         <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses, {'mob-readonly': plain}]" :value="view.value" :field="field" :format="format" :as-input="!plain" />
         <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-          :half-width="view.precision" :mandatory="view.mandatory" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :blank-refused="binding.kind === 'fixed'" hide-mark
+          :half-width="view.precision" :mandatory="view.mandatory" :min="min" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :spin="spin" :blank-refused="binding.kind === 'fixed'" hide-mark
           @update:model-value="write" @refusal="text => refusal = text" />
       </slot>
     </span>

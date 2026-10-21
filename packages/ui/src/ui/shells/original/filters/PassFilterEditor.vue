@@ -5,11 +5,14 @@
 import {NumberField, PASS_FAMILY_OPTIONS, WinisdFilterDeviation} from '@openisd/design/fields';
 import WinisdDeviationCue from '../../../components/WinisdDeviationCue.vue';
 import {selectedOption} from '../../../../logic/domEvents.js';
-import {liveNum, numFrom} from './numericInput.js';
+import {computed} from 'vue';
 import type {PassFilter} from '@openisd/design/engine';
+import UIFixedField from '../../../components/UIFixedField.vue';
 import type {OriginalFiltersAPI} from '../../../../hooks/OriginalFilters-hooks.js';
 
 const {f, api} = defineProps<{ f: PassFilter; api: OriginalFiltersAPI }>();
+
+const entry = computed(() => api.passOrderEntry(f));
 
 function onFamily(e: Event): void {
   const family = selectedOption(e, PASS_FAMILY_OPTIONS);
@@ -25,9 +28,8 @@ function onFamily(e: Event): void {
       </select>
     </label>
     <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.BESSEL_HIGHPASS, f)" :deviation="WinisdFilterDeviation.BESSEL_HIGHPASS" />
-    <label :title="api.passOrderEntry(f).title">Order <input type="number" :step="api.passOrderEntry(f).step" v-limits="api.passOrderEntry(f).limits" :disabled="!api.passOrderEntry(f).editable" :value="f.order" :class="{'value-empty': NumberField.FILTER_ORDER.emptyAndAllowed(f.order)}" @input="liveNum($event, v => api.editPass(f, {order: v}))" @change="api.editPass(f, {order: numFrom($event)})"></label>
-    <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, f)" :deviation="WinisdFilterDeviation.LINKWITZ_RILEY_ORDER" />
-    <label>Q <input v-expo-step="NumberField.FILTER_Q" type="number" v-limits="NumberField.FILTER_Q.limits" :value="f.Q" :class="{'value-empty': NumberField.FILTER_Q.emptyAndAllowed(f.Q)}" @input="liveNum($event, v => api.editPass(f, {Q: v}))" @change="api.editPass(f, {Q: numFrom($event)})"></label>
-    <label>Cutoff <input v-expo-step="NumberField.FILTER_FC_HZ" type="number" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fc" :class="{'value-empty': NumberField.FILTER_FC_HZ.emptyAndAllowed(f.fc)}" @input="liveNum($event, v => api.editPass(f, {fc: v}))" @change="api.editPass(f, {fc: numFrom($event)})"> Hz</label>
+    <UIFixedField :title="entry.title" :field="NumberField.FILTER_ORDER" label="Order" :value="f.order" :min="entry.limits.min" :max="entry.limits.max" :spin="entry.spin" :readonly="!entry.editable" :deviation="api.deviationShown(WinisdFilterDeviation.LINKWITZ_RILEY_ORDER, f) ? WinisdFilterDeviation.LINKWITZ_RILEY_ORDER : undefined" @update:value="v => api.editPass(f, {order: v})" />
+    <UIFixedField :field="NumberField.FILTER_Q" label="Q" :value="f.Q" @update:value="v => api.editPass(f, {Q: v})" />
+    <UIFixedField :field="NumberField.FILTER_FC_HZ" label="Cutoff" :value="f.fc" @update:value="v => api.editPass(f, {fc: v})" />
   </div>
 </template>

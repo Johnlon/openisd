@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 904ac9ce1ec49036c2e6569e6298aea43545a5d3
 goal: Rule: every system option exists on both skins, added in the same task (John QO291.c218/c220)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

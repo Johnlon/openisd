@@ -1,9 +1,8 @@
 <script setup lang="ts">
 /** Display only: every edit is decided by `api.editAllpass` (the engine's filters area), not here. */
 import {NumberField, WinisdFilterDeviation} from '@openisd/design/fields';
-import WinisdDeviationCue from '../../../components/WinisdDeviationCue.vue';
-import {liveNum, numFrom} from './numericInput.js';
 import type {AllpassFilter} from '@openisd/design/engine';
+import UIFixedField from '../../../components/UIFixedField.vue';
 import type {OriginalFiltersAPI} from '../../../../hooks/OriginalFilters-hooks.js';
 
 const {f, api} = defineProps<{ f: AllpassFilter; api: OriginalFiltersAPI }>();
@@ -11,9 +10,8 @@ const {f, api} = defineProps<{ f: AllpassFilter; api: OriginalFiltersAPI }>();
 
 <template>
   <div class="filter-edit-body">
-    <label>Order <input type="number" step="1" v-limits="NumberField.FILTER_ORDER.limits" :value="f.order" :class="{'value-empty': NumberField.FILTER_ORDER.emptyAndAllowed(f.order)}" @input="liveNum($event, v => api.editAllpass(f, {order: v}))" @change="api.editAllpass(f, {order: numFrom($event)})"></label>
-    <WinisdDeviationCue v-if="api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, f)" :deviation="WinisdFilterDeviation.ALLPASS_ORDER" />
-    <label>Q <input v-expo-step="NumberField.FILTER_Q" type="number" v-limits="NumberField.FILTER_Q.limits" :value="f.Q" :class="{'value-empty': NumberField.FILTER_Q.emptyAndAllowed(f.Q)}" @input="liveNum($event, v => api.editAllpass(f, {Q: v}))" @change="api.editAllpass(f, {Q: numFrom($event)})"></label>
-    <label>t <input v-expo-step="NumberField.FILTER_T_S" type="number" v-limits="NumberField.FILTER_T_S.limits" :value="f.t" :class="{'value-empty': NumberField.FILTER_T_S.emptyAndAllowed(f.t)}" @input="liveNum($event, v => api.editAllpass(f, {t: v}))" @change="api.editAllpass(f, {t: numFrom($event)})"> s</label>
+    <UIFixedField :field="NumberField.FILTER_ORDER" label="Order" :value="f.order" :deviation="api.deviationShown(WinisdFilterDeviation.ALLPASS_ORDER, f) ? WinisdFilterDeviation.ALLPASS_ORDER : undefined" @update:value="v => api.editAllpass(f, {order: v})" />
+    <UIFixedField :field="NumberField.FILTER_Q" label="Q" :value="f.Q" @update:value="v => api.editAllpass(f, {Q: v})" />
+    <UIFixedField :field="NumberField.FILTER_T_S" label="t" :value="f.t" @update:value="v => api.editAllpass(f, {t: v})" />
   </div>
 </template>

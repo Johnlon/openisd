@@ -78,15 +78,17 @@ export type ValueFloor = 'positive' | 'non-negative' | 'none';
  *   decimals shown.
  * - `proportionalFloored` — the same, never finer than `10^finestExp` in the field's fixed unit: a
  *   signed level that passes through 0 (gain in dB steps 0 → ±0.1).
- * - `integer` — a count or an order: every press is 1.
+ * - `integer` — a count or an order: every press is `step` (1; 2 for an even-only order).
  */
 export type FieldSpin =
   | {readonly kind: 'proportional'}
   | {readonly kind: 'proportionalFloored'; readonly finestExp: number}
-  | {readonly kind: 'integer'};
+  | {readonly kind: 'integer'; readonly step: number};
 
 const PROPORTIONAL_SPIN: FieldSpin = Object.freeze({kind: 'proportional'});
-const INTEGER_SPIN: FieldSpin = Object.freeze({kind: 'integer'});
+/** A count or an order that moves `step` a press. */
+export function integerSpin(step: number): FieldSpin { return Object.freeze({kind: 'integer', step}); }
+const INTEGER_SPIN: FieldSpin = integerSpin(1);
 
 interface FieldSpec {
   readonly value: string;
@@ -226,10 +228,9 @@ export class NumberField extends Field {
   }
 
   /** The spinner rule for this field shown in unit `token`. */
-  spinRule(token?: string): SpinRule {
-    const spin = this.spin;
+  spinRule(token?: string, spin: FieldSpin = this.spin): SpinRule {
     switch (spin.kind) {
-      case 'integer': return {kind: 'integer'};
+      case 'integer': return {kind: 'integer', step: spin.step};
       case 'proportional': return {kind: 'proportional', finestExp: 0 - decimalsIn(this.unitFor(token), this.precision)};
       case 'proportionalFloored':
         return {kind: 'proportional', finestExp: Math.max(spin.finestExp, 0 - decimalsIn(this.unitFor(token), this.precision))};
@@ -1226,7 +1227,7 @@ export class NumberField extends Field {
     display: {kind: 'fixed', symbol: ''},
     limits: FILTER_ORDER_LIMITS,
     spin: INTEGER_SPIN,
-    precision: 3,
+    precision: 0,
     description: "Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct. Up to 20.\nWinISD stops at order 10 (above that it hits a floating-point overflow error); a project with a higher order shows that error in WinISD.",
     allowedEmpty: true,
   });
