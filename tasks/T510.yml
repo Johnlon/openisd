@@ -3,6 +3,7 @@ release_note: The driver picker, Manage drivers and the passive radiator library
 repo: openisd
 owner: maryu
 status: done
+landed: 7f66191dee2c6cea8e20a0d53e942fccbd63f59f
 goal: Phone classic B5: driver picker, Manage drivers and passive radiator browser follow the approved classic mocks (screens 6, 7, 35)
 visual:
   - mobile-tab-driver
