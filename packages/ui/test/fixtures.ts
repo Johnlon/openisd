@@ -1,8 +1,6 @@
-import {existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
-import {tmpdir} from 'node:os';
-import {basename, join} from 'node:path';
-import {type Browser, type BrowserContext, type Disposable, expect, type Locator, type Page, test as base} from '@playwright/test';
-import {CHROME_OUTAGE_POLICY, CHROME_STABLE_MS, type OutageClock, waitOutOutage} from './fixtures/chromeOutage.js';
+import {readFileSync} from 'node:fs';
+import {basename} from 'node:path';
+import {type BrowserContext, type Disposable, expect, type Locator, type Page, test as base} from '@playwright/test';
 import {createHash} from 'node:crypto';
 import {z} from 'zod';
 import {fillAndBlur} from './fixtures/numField.js';
@@ -44,23 +42,6 @@ export interface BrowserLog {
   reset: () => void;
   _attach?: (page: Page) => () => void;
 }
-
-/**
- * Written by the first worker whose launch wait ran out; the other workers of the same run (children
- * of the same runner process) then fail fast instead of each waiting out the full time again, which
- * for a Chrome that is really broken would take hours across 180 failing tests.
- */
-const GAVE_UP_STAMP = join(tmpdir(), `openisd-chrome-gave-up-${process.ppid}`);
-const GAVE_UP_STAMP_MAX_AGE_MS = 30 * 60 * 1000;
-
-function someWorkerGaveUp(): boolean {
-  return existsSync(GAVE_UP_STAMP) && Date.now() - statSync(GAVE_UP_STAMP).mtimeMs < GAVE_UP_STAMP_MAX_AGE_MS;
-}
-
-const REAL_CLOCK: OutageClock = {
-  now: () => Date.now(),
-  sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
-};
 
 /**
  * What a test adds to the shared worker page itself and Playwright keeps until told otherwise: init
@@ -217,42 +198,8 @@ async function clearHash(page: Page): Promise<void> {
 
 export const test = base.extend<
   { browserLog: BrowserLog; context: BrowserContext; page: Page; appPage: Page },
-  { browser: Browser; workerAppPage: Page; testAdditions: TestAdditions }
+  { workerAppPage: Page; testAdditions: TestAdditions }
 >({
-  // Replaces Playwright's own `browser` so a Chrome launch outage is waited out here instead of
-  // failing tests in milliseconds (bugs/BUG_20261007_browser-processes-die-mid-suite.md). A launch
-  // counts only once Chrome has stayed up for a few seconds and loaded two throwaway pages: a burst
-  // flips between launched and dead every 1-3 s.
-  // After a failed test Playwright starts a new worker, which waits here too, so a burst fails at
-  // most the tests already running in it. Test bodies are never retried.
-  browser: [async ({ playwright, browserName, headless, channel, launchOptions }, use) => {
-    const launchAndProbe = async (): Promise<Browser> => {
-      const launched = await playwright[browserName].launch({ ...launchOptions, headless, channel, handleSIGINT: false });
-      const loadBlankPage = async (): Promise<void> => {
-        const context = await launched.newContext();
-        await (await context.newPage()).goto('about:blank');
-        await context.close();
-      };
-      try {
-        await loadBlankPage();
-        await REAL_CLOCK.sleep(CHROME_STABLE_MS);
-        if (!launched.isConnected()) throw new Error(`Chrome died within ${CHROME_STABLE_MS / 1000} s of launch`);
-        await loadBlankPage();
-      } catch (error) {
-        await launched.close().catch(() => { /* already dead: the original error is the one to report */ });
-        throw error;
-      }
-      return launched;
-    };
-    const policy = someWorkerGaveUp() ? { ...CHROME_OUTAGE_POLICY, timeoutMs: 0 } : CHROME_OUTAGE_POLICY;
-    const browser = await waitOutOutage(launchAndProbe, policy, REAL_CLOCK, line => console.error(line)).catch((error: unknown) => {
-      writeFileSync(GAVE_UP_STAMP, String(Date.now()));
-      throw error;
-    });
-    await use(browser);
-    await browser.close();
-  }, { scope: 'worker', timeout: CHROME_OUTAGE_POLICY.timeoutMs + 30_000 }],
-
   workerAppPage: [async ({ browser }, use) => {
     const port = process.env.OPENISD_TEST_PORT;
     const baseURL = port ? `http://localhost:${port}` : 'http://localhost:4100';

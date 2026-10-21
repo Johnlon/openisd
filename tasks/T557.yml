@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 85535d8f0c9755c997541eeb5db7144877713dab
 goal: Close BUG_20261007_driver-browser-ok-spec-click-times-out-under-load: no long task near 20 s on opening the driver editor, no recurrence in 100 GitHub suite runs
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

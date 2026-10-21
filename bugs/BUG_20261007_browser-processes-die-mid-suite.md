@@ -1,6 +1,10 @@
 # BUG_20261007_browser-processes-die-mid-suite
 
-**Status:** RESOLVED 21 Oct 2026 (T553, fable). Root cause eliminated in winisd_tools b462dcbc; outage handling in openisd 9c576106c.
+**Status:** RESOLVED 21 Oct 2026 (T553, fable; launch wait removed by T552, opi). Root cause eliminated in
+winisd_tools b462dcbc. Bursts still came on the laptop under the full suite's load after that fix (15 Oct post-land
+red, F31); since 17 Oct the full suite runs on GitHub Actions, and in its last 100 runs (to 21 Oct) the launch wait
+never fired and no test failed with "has been closed". So the provisional launch wait is removed: a Chrome that dies
+now fails its tests at once.
 
 ## Symptom
 During a full browser suite (the pre-push hook), Chrome processes die and a large block of tests fails at once with
@@ -72,7 +76,7 @@ moment. Until then a broad `has been closed` failure is rerun whole, never read 
 ## Verification
 A full browser suite run 5 times without a mass browser death, or a captured cause.
 
-## Fix (PROVISIONAL)
+## Fix (PROVISIONAL, removed by T552)
 `packages/ui/test/fixtures.ts` overrides the worker's `browser`: a launch counts once Chrome has stayed up 3 s and
 loaded `about:blank` twice; failures retry every second for up to 180 s, each logged `CHROME-OUTAGE`; the first worker
 to give up writes a stamp so the others of that run fail fast. Test bodies are not retried; `retries: 0` and
@@ -80,5 +84,5 @@ to give up writes a stamp so the others of that run fail fast. Test bodies are n
 
 ## Resolution (21 Oct 2026, T553)
 - Root cause: `winisd_tools` unit_pool watchdog (`unit_pool.py`) was performing a cross-process sweep SIGKILLing any process on the machine matching `chrome`, `chromium`, or `tesseract` outside its own pool.
-- Fix: `winisd_tools` commit `b462dcbc` deleted the cross-OS sweep and restricted kills strictly to the pool's own workers' process trees. In `openisd`, commit `9c576106c` added outage handling in `packages/ui/test/fixtures.ts` (`waitOutOutage`).
-- Verification: Full browser suites pass cleanly without Chrome death bursts; unit test `packages/ui/test/fixtures/chromeOutage.test.ts` passes.
+- Fix: `winisd_tools` commit `b462dcbc` deleted the cross-OS sweep and restricted kills strictly to the pool's own workers' process trees. In `openisd`, commit `9c576106c` added outage handling in `packages/ui/test/fixtures.ts` (`waitOutOutage`); T552 removed it again, as no outage has come since the suite left the laptop.
+- Verification: Full browser suites pass cleanly without Chrome death bursts.
