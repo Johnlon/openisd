@@ -90,11 +90,11 @@ test.describe('MobileMenu', () => {
 
     test('Save, Save all and Save As sit together; Revert follows in its own section', async ({ page }) => {
       await openMobileMenu(page);
-      const rows = await page.locator('.mob-menu-section > .mob-menu-item, .mob-menu-section > .mob-menu-sep').evaluateAll(
-        nodes => nodes.map(n => n.classList.contains('mob-menu-sep') ? '---' : (n.textContent ?? '').trim()));
-      const from = rows.indexOf('Open a file');
-      expect(rows.slice(from, from + 8)).toEqual([
-        'Open a file', '---', 'Save', 'Save all', 'Save As / Export', '---', 'Revert unsaved changes', '---',
+      const rows = await page.locator('.mob-menu-section > .mob-menu-item').evaluateAll(
+        nodes => nodes.map(n => (n.textContent ?? '').trim() + (n.classList.contains('gap') ? ' ---' : '')));
+      const from = rows.indexOf('Open a file ---');
+      expect(rows.slice(from, from + 6)).toEqual([
+        'Open a file ---', 'Save', 'Save all', 'Save As / Export', 'Revert unsaved changes ---', 'Project details',
       ]);
     });
 

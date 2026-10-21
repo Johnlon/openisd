@@ -3,6 +3,7 @@ release_note: The charts draw the vent air speed limit line and a dragged freque
 repo: openisd
 owner: bob
 status: done
+landed: dbf8ea4de27cb81d5f5839b835c10ebd0e44486b
 goal: The charts draw the vent air speed limit line and the selected range shading in the colours chosen in Options (Air speed limit, Selected range), as they already do for Xmax limit and Cursor lines.
 done_test: bash scripts/test.sh packages/design/test/chart/chart-types.test.ts
 files:

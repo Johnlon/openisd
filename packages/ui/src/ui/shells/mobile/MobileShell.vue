@@ -186,16 +186,13 @@ const diagnostics = injectDiagnosticsModal();
           <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
           <button type="button" class="mob-menu-item" @click="openProjectsPane">Projects</button>
           <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
-          <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
+          <button type="button" class="mob-menu-item" :class="{ gap: projectOpen }" @click="openFromDisk">Open a file</button>
           <!-- Project-level items: only with a project open (John, 16 Oct 2026). -->
           <template v-if="projectOpen">
-            <div class="mob-menu-sep"></div>
             <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
             <button type="button" class="mob-menu-item" :class="{ dirty: anyUnsaved }" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
             <ExportMenu class="mob-menu-item mob-menu-export" @chosen="closeMenu">Save As / Export</ExportMenu>
-            <div class="mob-menu-sep"></div>
-            <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
-            <div class="mob-menu-sep"></div>
+            <button type="button" class="mob-menu-item gap" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
             <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
             <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
           </template>
@@ -403,13 +400,19 @@ const diagnostics = injectDiagnosticsModal();
 .mob-menu-item {
   all: unset;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
   width: 100%;
-  padding: 5px 18px;
+  height: 31px;
+  padding: 0 16px;
+  border-bottom: 1px solid transparent;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--fg);
   cursor: pointer;
 }
+/* The last row of a group carries the rule under it, as the accepted mock's .mi.gap. */
+.mob-menu-item.gap { border-bottom-color: var(--line); }
 .mob-menu-item:disabled { color: var(--mut); cursor: default; }
 .mob-menu-item.dirty { color: var(--acc2); font-weight: 600; }
 .mob-menu-cloud {
@@ -427,25 +430,28 @@ const diagnostics = injectDiagnosticsModal();
 /* .mob-menu-item's own padding lands on THIS element too (its class list includes both) — zero
    it here so the trigger button below isn't double-indented (12px+12px) relative to every plain
    `<button class="mob-menu-item">` sibling. */
-.mob-menu-export { padding: 0; }
+.mob-menu-export { display: block; height: auto; padding: 0; border-bottom: none; }
 .mob-menu-export :deep(.export-menu-trigger) {
   all: unset;
   box-sizing: border-box;
   width: 100%;
+  height: 31px;
   display: block;
-  padding: 5px 18px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--fg);
   cursor: pointer;
 }
+.mob-menu-export:has(.export-menu-list) :deep(.export-menu-trigger) { border-bottom-color: transparent; }
 .mob-menu-export :deep(.export-menu-trigger:disabled) { color: var(--mut); cursor: default; }
 .mob-menu-export :deep(.export-menu-trigger) { display: flex; align-items: center; justify-content: space-between; }
 .mob-menu-export :deep(.export-menu-trigger)::after { content: "▾"; color: var(--mut); }
 .mob-menu-export:has(.export-menu-list) :deep(.export-menu-trigger)::after { content: "▴"; }
 .mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-radius: 0; margin-top: 0; padding: 0; }
-.mob-menu-export :deep(.export-menu-list button) { display: block; box-sizing: border-box; width: 100%; padding: 5px 16px 5px 26px; font-size: 14px; }
-.mob-menu-sep { height: 1px; background: var(--line); margin: 3px 0; }
+.mob-menu-export :deep(.export-menu-list button) { display: flex; align-items: center; box-sizing: border-box; width: 100%; height: 31px; padding: 0 16px 0 26px; border-bottom: 1px solid transparent; font-size: 14px; }
+.mob-menu-export :deep(.export-menu-list button:last-child) { border-bottom-color: var(--line); }
 .mob-menu-section { border-top: 1px solid var(--line); padding: 0 0 2px; }
 .mob-menu-section-head { height: 28px; display: flex; align-items: center; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
 .mob-open-project { display: flex; align-items: center; min-height: 48px; }

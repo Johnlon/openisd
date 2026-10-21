@@ -1,0 +1,16 @@
+id: T541
+release_note: On the phone the menu text is a little larger, and a line separates each group of items.
+repo: openisd
+owner: bob
+status: done
+goal: The phone ☰ menu matches the accepted mock (QO267 box-combined-live.html?ov=menu): item text size, row height and the rule lines between sub-items.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - tasks/T541.yml
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/mobile-menu-rows.browser.spec.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+visual:
+  - mobile-menu
