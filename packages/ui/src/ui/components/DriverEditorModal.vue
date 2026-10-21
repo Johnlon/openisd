@@ -1240,8 +1240,13 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-phone .de-hdr { padding: 6px 0; margin: 0; border-radius: 0; font-size: 13px; }
 .de-phone .de-dims { flex-direction: column; align-items: stretch; gap: 0; height: auto; }
 .de-phone .de-diagram { min-width: 0; height: auto; padding: 12px; }
-.de-phone .de-general { display: block !important; height: auto !important; }
-.de-phone .de-general .de-fld.de-comment textarea { flex: 1 1 auto; width: 100% !important; min-height: 120px; font-size: 18px; border-radius: 6px; padding: 8px !important; }
+.de-phone .de-scroll { display: flex; flex-direction: column; }
+.de-phone .de-scroll > .de-body { flex: 1 0 auto !important; }
+/* General tab on the phone: the Comment box takes whatever height the tab has left. */
+.de-phone .de-general { display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: auto !important; }
+.de-phone .de-general .de-fld.de-comment { display: flex; flex-direction: column; flex: 1 1 auto; }
+.de-phone .de-general .de-fld.de-comment > :deep(.ui-field-value) { flex: 1 1 auto; display: flex; align-items: stretch; }
+.de-phone .de-general .de-fld.de-comment textarea { flex: 1 1 auto; width: 100% !important; min-height: 120px !important; font-size: 18px; border-radius: 6px; padding: 8px !important; }
 .de-phone h2 .x { min-width: var(--mob-touch-min); min-height: var(--mob-touch-min); }
 /* The unit toggle and the ⚠ are buttons: as tall as the row's box, so a finger finds them. */
 .de-phone :deep(.ui-field-unit), .de-phone :deep(.ui-field-dq-btn) { min-height: var(--mob-input-h); display: inline-flex; align-items: center; }

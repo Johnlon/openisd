@@ -1,0 +1,14 @@
+id: T520
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: The General tab Comment box fills the remaining height of the tab on the phone; the Dimensions diagram stays full size.
+done_test: bash scripts/test.sh packages/ui/test/architecture/driver-editor-general-fill.test.ts
+files:
+  - tasks/T520.yml
+  - bugs/BUG_20261021_driver-editor-dimensions-diagram-too-big.md
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/ui/driver-editor-dimensions-diagram.browser.spec.ts
+  - packages/ui/test/architecture/driver-editor-general-fill.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
