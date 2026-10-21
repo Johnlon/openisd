@@ -21,8 +21,8 @@ test.describe('desktop width', () => {
     const cue = page.locator('label[data-field-key="tlPortModel"] button.winisd-deviation-cue');
     await expect(cue).toBeVisible();
     await cue.click();
-    const entry = page.getByRole('dialog', PAGE).locator('.wd-entry.current');
-    await expect(entry.locator('h4')).toHaveText(ENTRY_TITLE);
+    const entry = page.getByRole('dialog', PAGE).locator('.wd-entry.current, .mob-dcard.current');
+    await expect(entry.locator('h4, .mob-dcard-title')).toHaveText(ENTRY_TITLE);
     await expect(entry).toContainText('pipe notes');
     await expect(entry).toContainText('TL port without end correction');
     await expect(entry).toBeInViewport();
@@ -43,8 +43,8 @@ test.describe('phone width', () => {
     const cue = page.locator('label[data-field-key="tlPortModel"] button.winisd-deviation-cue');
     await expect(cue).toBeVisible();
     await cue.click();
-    const entry = page.getByRole('dialog', PAGE).locator('.wd-entry.current');
-    await expect(entry.locator('h4')).toHaveText(ENTRY_TITLE);
+    const entry = page.getByRole('dialog', PAGE).locator('.wd-entry.current, .mob-dcard.current');
+    await expect(entry.locator('h4, .mob-dcard-title')).toHaveText(ENTRY_TITLE);
     await expect(entry).toContainText('pipe notes');
     await expect(entry).toContainText('TL port without end correction');
     await expect(entry).toBeInViewport();

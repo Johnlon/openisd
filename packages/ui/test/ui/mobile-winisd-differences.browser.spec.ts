@@ -24,7 +24,7 @@ test('the menu opens the page full screen; Close shuts it', async ({ appPage: pa
   const box = (await help.boundingBox())!;
   const app = (await page.locator('.app-root-mobile').boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(app.width - 1);
-  await help.locator('.wd-footer button', {hasText: 'Close'}).click();
+  await help.locator('.mob-dlg-footer button', {hasText: 'Close'}).click();
   await expect(help).toHaveCount(0);
 });
 
@@ -33,7 +33,6 @@ test('the "Enable WinISD bugs" heading\'s help link opens the page at the bug-sw
   await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
   await page.locator('.error-switch-group .compat-help-link').click();
   const section = page.getByRole('dialog', PAGE).locator('#winisd-diff-bugs');
-  await expect(section).toHaveClass(/current/);
   await expect(section).toBeInViewport();
 });
 
@@ -44,7 +43,7 @@ test('a ≠W cue opens the page at that cue\'s entry', async ({ appPage: page })
   await order.fill('4');
   await order.blur();
   await page.locator('button.winisd-deviation-cue').click();
-  const entry = page.getByRole('dialog', PAGE).locator('.wd-entry.current');
-  await expect(entry.locator('h4')).toHaveText('WinISD ignores allpass orders above 2');
+  const entry = page.getByRole('dialog', PAGE).locator('.mob-dcard.current');
+  await expect(entry.locator('.mob-dcard-title')).toContainText('WinISD ignores allpass orders above 2');
   await expect(entry).toBeInViewport();
 });

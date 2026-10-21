@@ -43,15 +43,19 @@
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. The rows are
 //             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartId`.
-import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
-import {reactive, ref} from 'vue';
+import {formatFixedOrDash, ImportChoiceText, NumberField, PhoneDialogHelp, PhoneRowColumns} from '@openisd/design/fields';
+import {computed, reactive, ref} from 'vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
 import {useBackupSettings} from '../../hooks/useBackupSettings.js';
 import {useApp} from '../../logic/app.js';
 import type {ChartId} from '@openisd/design/engine';
 import NumInput from './NumInput.vue';
+import PhoneDialogPage from './PhoneDialogPage.vue';
 import StorageHistory from './StorageHistory.vue';
+import UIFixedField from './UIFixedField.vue';
+import MobilePaneDialog from '../shells/mobile/MobilePaneDialog.vue';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
 import UnitToggle from './UnitToggle.vue';
 import {inputValue} from '../../logic/domEvents.js';
 
@@ -61,6 +65,10 @@ function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); 
 useEscToClose(() => true, close);
 
 const { confirmPort, presentation: presentationState } = useApp();
+/** The phone draws this dialog as a classic full-screen dialog (PHONE_CLASSIC_BUILD_SPEC row 20); the desktop is unchanged. */
+/** The label column the dialogs' rows use (their labels are longer than a project page's). */
+const DIALOG_COLUMNS = PhoneRowColumns.WIDE_LABEL;
+const phone = computed(() => presentationState.shownSkin() === 'mobile');
 const { resetUnitTokens } = presentationState;
 const { downloadBackup, restoreFromFile } = useBackupSettings();
 const backupFileInput = ref<HTMLInputElement | null>(null);
@@ -163,7 +171,7 @@ function fmt(n: number | null | undefined, dp: number): string {
   return formatFixedOrDash(n ?? null, dp);
 }
 
-type ColorKey = 'zeroDb' | 'minus3Db' | 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
+type ColorKey = 'zeroDb' | 'minus3Db' | 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor' | 'airSpeedLimit' | 'selectedRange';
 const COLOR_ROWS: { key: ColorKey; label: string }[] = [
   { key: 'background', label: 'Background' },
   { key: 'otherLines',  label: 'Other lines' },
@@ -183,8 +191,22 @@ function defaultColor(key: ColorKey): string {
     case 'labels': return '#000000';
     case 'xmaxLimit': return '#ff0000';
     case 'cursor': return '#2e8b57';
+    case 'airSpeedLimit': return '#d2691e';
+    case 'selectedRange': return '#e6e6e6';
   }
 }
+/** The phone's full colour list, in the order of the accepted mock. */
+const PHONE_COLOR_ROWS: readonly { key: ColorKey; label: string; reset: string }[] = [
+  { key: 'zeroDb', label: '0 dB line', reset: 'black' },
+  { key: 'minus3Db', label: '-3dB line', reset: 'grey' },
+  { key: 'background', label: 'Background', reset: 'white' },
+  { key: 'otherLines', label: 'Other lines', reset: 'blue' },
+  { key: 'labels', label: 'Labels', reset: 'black' },
+  { key: 'xmaxLimit', label: 'Xmax limit', reset: 'red' },
+  { key: 'cursor', label: 'Cursor lines', reset: 'green' },
+  { key: 'airSpeedLimit', label: 'Air speed limit', reset: 'orange' },
+  { key: 'selectedRange', label: 'Selected range', reset: 'grey' },
+];
 function setColor(key: ColorKey, e: Event) {
   const v = inputValue(e);
   draft.chartColors[key] = v;
@@ -226,7 +248,119 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 </script>
 
 <template>
-  <div class="opt-overlay" @click="onBackdrop">
+  <MobilePaneDialog v-if="phone" title="Options" class="opt-phone" @close="close">
+    <template #sub>
+      <div class="opt-phone-tabs" role="tablist">
+        <button v-for="t in (['General', 'Plot Window', 'Your data'] as const)" :key="t" type="button" role="tab" :aria-selected="tab.v === t" :class="{ on: tab.v === t }" @click="tab.v = t">{{ t }}</button>
+      </div>
+      <div v-if="!canApply" class="opt-error opt-phone-error" data-testid="settings-error">{{ limitsError ?? 'The frequency range needs both a start and an end, with the start below the end.' }}</div>
+    </template>
+    <PhoneDialogPage>
+      <template v-if="tab.v === 'General'">
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_USER" />
+        <div class="mob-crow">
+          <label class="mob-crow-label" for="opt-phone-username">Username</label>
+          <input id="opt-phone-username" class="mob-dtext" type="text" v-model="draft.username" placeholder="johnl" autocomplete="off" />
+        </div>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_ENVIRONMENT" />
+        <p class="mob-dhint">The air a project uses for any of these it has not set on its own Advanced tab.</p>
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_TEMP_K" :value="tempK" stepper @update:value="v => tempK = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_HUMIDITY_PCT" :value="humidityPct" stepper @update:value="v => humidityPct = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_PRESSURE_KPA" :value="pressurePa" stepper @update:value="v => pressurePa = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="defaultAir.c" readonly plain />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="defaultAir.rho" readonly plain />
+        <div class="mob-cbtns mob-dbtns-one">
+          <button type="button" data-testid="env-reset" :disabled="envIsFactory" @click="resetEnv">Reset to defaults</button>
+        </div>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" />
+        <p class="mob-dhint">
+          A vented design outside these limits is marked. Its numbers are never changed.
+          <button type="button" class="mob-dlink" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
+        </p>
+        <div v-if="limitsMoreOpen" class="mob-dhint" role="note" data-testid="limits-more-popup">
+          <p>WinISD does not limit its vented alignments, so it will design a box of any size or tuning.</p>
+          <p>OpenISD gives the same answer, so its results match WinISD.</p>
+          <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
+        </div>
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" stepper @update:value="v => minVolume_m3 = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" stepper @update:value="v => minTuning_hz = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" stepper @update:value="v => maxVolume_m3 = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max tuning" :field="NumberField.BOX_FB_HZ" :value="maxTuning_hz" stepper @update:value="v => maxTuning_hz = v" />
+        <div class="mob-cbtns mob-dbtns-one">
+          <button type="button" data-testid="settings-reset" :disabled="limitsAreFactory" @click="resetLimits">Reset to defaults</button>
+        </div>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_WINISD_DIFFERENCES" />
+        <label class="mob-dcheck" data-testid="difference-cues">
+          <input type="checkbox" v-model="differenceCuesShown" />
+          <span>Show WinISD difference markers (≠W)</span>
+        </label>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_UNITS" />
+        <div class="mob-cbtns mob-dbtns-one">
+          <button type="button" @click="resetUnitsDraft">Reset to Metric (l, mm, …)</button>
+        </div>
+      </template>
+
+      <template v-else-if="tab.v === 'Plot Window'">
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_COLORS" />
+        <div v-for="row in PHONE_COLOR_ROWS" :key="row.key" class="mob-crow mob-dcolor-row">
+          <label class="mob-crow-label" :for="'opt-phone-color-' + row.key">{{ row.label }}</label>
+          <input :id="'opt-phone-color-' + row.key" class="mob-dcolor" type="color" :value="colorValue(row.key)" :aria-label="row.label + ' colour'" @input="setColor(row.key, $event)" />
+          <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" :title="'Back to ' + row.reset" @click="clearColor(row.key)">↺</button>
+        </div>
+        <p class="mob-dhint">Each project's curve colour is its coloured square in the ☰ menu.</p>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_LIMITS" />
+        <div class="mob-dlim">
+          <label class="mob-crow-label" for="opt-phone-lim-fmin">Frequency range</label>
+          <div class="mob-dlim-range">
+            <input id="opt-phone-lim-fmin" type="number" inputmode="decimal" aria-label="Frequency range start" v-limits="NumberField.PLOT_FMIN_HZ.limits" v-model.number="draft.P.fmin" @change="onFreqChange" />
+            <span>–</span>
+            <input type="number" inputmode="decimal" aria-label="Frequency range end" v-limits="NumberField.PLOT_FMAX_HZ.limits" v-model.number="draft.P.fmax" @change="onFreqChange" />
+            <span>Hz</span>
+          </div>
+          <button type="button" class="mob-dreset" aria-label="Reset Frequency range" title="Back to the default" @click="resetFreqRange()">↺</button>
+        </div>
+        <div v-for="row in LIMIT_ROWS" :key="row.tab" class="mob-dlim">
+          <label class="mob-crow-label" :for="'opt-phone-lim-' + row.tab">{{ row.label }}</label>
+          <div class="mob-dlim-range">
+            <input :id="'opt-phone-lim-' + row.tab" type="number" inputmode="decimal" :aria-label="row.label + ' start'" v-limits="{ min: -10000, max: 100000 }" :value="limitVal(row.tab, 'min') ?? row.start" @change="setLimit(row.tab, 'min', $event)" />
+            <span>–</span>
+            <input type="number" inputmode="decimal" :aria-label="row.label + ' end'" v-limits="{ min: -10000, max: 100000 }" :value="limitVal(row.tab, 'max') ?? row.end" @change="setLimit(row.tab, 'max', $event)" />
+            <span>{{ row.unit }}</span>
+          </div>
+          <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" title="Back to auto-scale" @click="resetLimit(row.tab)">↺</button>
+        </div>
+      </template>
+
+      <template v-else>
+        <StorageHistory />
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_EXPORT_IMPORT" />
+        <p class="mob-dhint">Everything in this browser as one file: projects, My Drivers, My Passive Radiators and settings. The built-in driver catalogue is not included.</p>
+        <div class="mob-cbtns">
+          <button type="button" @click="downloadBackup">Export everything</button>
+          <button type="button" @click="pickBackupFile">Import file…</button>
+        </div>
+        <p class="mob-dhint"><b>{{ ImportChoiceText.LEAD }}</b></p>
+        <label class="mob-dcheck">
+          <input type="radio" name="opt-import-choice" :checked="!replaceEverything" @change="replaceEverything = false" />
+          <span>{{ ImportChoiceText.ADD_LABEL }}</span>
+        </label>
+        <p class="mob-dhint">{{ ImportChoiceText.ADD_LINE }}</p>
+        <label class="mob-dcheck">
+          <input type="radio" name="opt-import-choice" :checked="replaceEverything" @change="replaceEverything = true" />
+          <span>{{ ImportChoiceText.REPLACE_LABEL }}</span>
+        </label>
+        <p class="mob-dhint">{{ ImportChoiceText.REPLACE_LINE }}</p>
+        <input ref="backupFileInput" type="file" accept="application/json,.json" style="display:none" @change="onBackupFile">
+      </template>
+    </PhoneDialogPage>
+    <template #footer>
+      <button type="button" class="mob-dlg-btn" @click="restoreDefaults">Defaults</button>
+      <span class="mob-dlg-spacer"></span>
+      <button type="button" class="mob-dlg-btn pri" data-testid="settings-apply" :disabled="!canApply" :title="canApply ? 'Apply and close' : 'Resolve the error before applying'" @click="saveAndClose">OK</button>
+      <button type="button" class="mob-dlg-btn" @click="close">Cancel</button>
+    </template>
+  </MobilePaneDialog>
+  <div v-else class="opt-overlay" @click="onBackdrop">
     <div class="opt-modal">
       <h2 class="opt-h2">Options<button class="opt-x" @click="close" title="Close">✕</button></h2>
 
@@ -527,4 +661,10 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 .opt-limits th { color: var(--mut); font-weight: 500; border-bottom: 1px solid var(--line); }
 .opt-limits .opt-num,
 .opt-limits :deep(.opt-num) { width: 70px; }
+
+/* The phone's tab strip under the title (accepted mock, Options): three equal tabs, 40 px. */
+.opt-phone-tabs { flex: none; display: flex; border-bottom: 1px solid var(--line); background: var(--panel); }
+.opt-phone-tabs button { flex: 1; min-width: 0; height: 40px; border: none; border-bottom: 3px solid transparent; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--mut); white-space: nowrap; cursor: pointer; }
+.opt-phone-tabs button.on { color: var(--acc); border-bottom-color: var(--acc); }
+.opt-phone-error { margin: 0; border-radius: 0; font-size: 13px; padding: 6px 16px; }
 </style>

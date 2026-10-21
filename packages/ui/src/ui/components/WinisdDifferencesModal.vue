@@ -3,7 +3,12 @@
 // screen on a phone (App.vue's mobile rules). The design package decides what it lists
 // (`WinisdDifferenceSection`, `WinisdDifference`); the hook decides where it opens. This component
 // renders them and scrolls the target into view.
-import {nextTick, watch} from 'vue';
+import {computed, nextTick, ref, watch} from 'vue';
+import {PhoneDialogHelp, WinisdDifference} from '@openisd/design/fields';
+import {useApp} from '../../logic/app.js';
+import MobilePaneDialog from '../shells/mobile/MobilePaneDialog.vue';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
+import PhoneDialogPage from './PhoneDialogPage.vue';
 import {injectWinisdDifferencesModal} from '../../hooks/WinisdDifferencesModal-hooks.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 
@@ -11,15 +16,48 @@ const {open, sections, target, close} = injectWinisdDifferencesModal();
 
 useEscToClose(() => open.value, close);
 
+/** The phone draws each difference as a card that folds (PHONE_CLASSIC_BUILD_SPEC row 23). */
+const presentation = useApp().presentation;
+const phone = computed(() => presentation.shownSkin() === 'mobile');
+const unfolded = ref<ReadonlySet<string>>(new Set());
+function fold(anchor: string): void {
+  const next = new Set(unfolded.value);
+  if (!next.delete(anchor)) next.add(anchor);
+  unfolded.value = next;
+}
+
 watch([open, target], async ([isOpen, t]) => {
   if (!isOpen || t === null) return;
+  // A difference opened from its ≠W cue or its link arrives unfolded.
+  if (t instanceof WinisdDifference) unfolded.value = new Set([...unfolded.value, t.anchor]);
   await nextTick();
   document.getElementById(t.anchor)?.scrollIntoView({block: 'start'});
 });
 </script>
 
 <template>
-  <div v-if="open" class="wd-overlay" @click.self="close">
+  <MobilePaneDialog v-if="open && phone" title="OpenISD and WinISD differences" @close="close">
+    <PhoneDialogPage>
+      <p class="mob-dhint">OpenISD behaves as WinISD by default. These are the places it differs, or lets you choose. Tap one to read it.</p>
+      <section v-for="s in sections" :id="s.anchor" :key="s.anchor">
+        <PhoneBand :section="PhoneDialogHelp.differenceSection(s.heading, s.tone)" />
+        <p class="mob-dhint">{{ s.intro }}</p>
+        <article v-for="e in s.entries" :id="e.anchor" :key="e.anchor" class="mob-dcard" :class="{ bug: s.tone === 'bug', current: target === e }">
+          <button type="button" class="mob-dcard-head" :aria-expanded="unfolded.has(e.anchor)" @click="fold(e.anchor)">
+            <b><span class="mob-dcard-title">{{ e.title }}</span><small v-if="e.control !== null">Switch: {{ e.control }}</small></b>
+            <span class="ar" aria-hidden="true">{{ unfolded.has(e.anchor) ? '▴' : '▾' }}</span>
+          </button>
+          <dl v-if="unfolded.has(e.anchor)" class="mob-dcard-body">
+            <div><dt>WinISD</dt><dd>{{ e.winisd }}</dd></div>
+            <div><dt>OpenISD</dt><dd>{{ e.openisd }}</dd></div>
+            <div><dt>Seen in</dt><dd>{{ e.seenIn }}</dd></div>
+            <div><dt>Size</dt><dd>{{ e.size }}</dd></div>
+          </dl>
+        </article>
+      </section>
+    </PhoneDialogPage>
+  </MobilePaneDialog>
+  <div v-else-if="open" class="wd-overlay" @click.self="close">
     <div class="wd-modal" role="dialog" aria-label="OpenISD and WinISD differences">
       <h2 class="wd-head">OpenISD and WinISD differences<button type="button" class="wd-x" title="Close" aria-label="Close" @click="close">✕</button></h2>
       <div class="wd-body">

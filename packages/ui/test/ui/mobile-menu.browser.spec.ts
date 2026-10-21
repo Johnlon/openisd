@@ -238,7 +238,7 @@ test.describe('MobileMenu', () => {
       await tapMobileMenuItem(page, 'Options');
 
       const rootBox = await page.locator('.mobile-root').boundingBox();
-      const modalBox = await page.locator('.opt-modal').boundingBox();
+      const modalBox = await page.locator('.mob-dlg[aria-label="Options"]').boundingBox();
       expect(rootBox).not.toBeNull();
       expect(modalBox).not.toBeNull();
       expect(modalBox!.width).toBeGreaterThanOrEqual(rootBox!.width - 1);
