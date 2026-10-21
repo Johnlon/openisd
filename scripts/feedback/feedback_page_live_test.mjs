@@ -79,18 +79,18 @@ try {
   const sums = await p.$$eval('details.ruled > summary', (ss) => ss.map((s) => s.textContent.trim()));
   if (JSON.stringify(sums) !== '["Answered: tap to show","Answered: tap to show"]') failures.push(`summaries ${JSON.stringify(sums)}`);
   if (await p.$('#out > details.ruled:last-child') && (await p.$$eval('#out > details.ruled', (d) => d.length))) failures.push('answered fold moved to the bottom');
-  // Comments in entry-number order, not time order.
+  // Comments newest first by entry number (not time): eleven (c11) before five (c5).
   const said = await texts(p.locator('figure[data-name="F/b/before.png"]'));
-  if (JSON.stringify(said) !== '["five","eleven"]') failures.push(`comment order ${JSON.stringify(said)}, want five, eleven`);
+  if (JSON.stringify(said) !== '["eleven","five"]') failures.push(`comment order ${JSON.stringify(said)}, want eleven, five`);
 
   // Send.
   const fig = p.locator('figure[data-name="F/b/before.png"]');
-  await fig.locator('textarea').fill('please recheck?');
+  await fig.locator('form.compose textarea').fill('please recheck?');
   const t0 = Date.now();
   await fig.locator('button[type=submit]').click();
   // Within 200 ms, before the server answers: the box is clear and his entry is in place, marked Sent.
   await p.waitForTimeout(150);
-  if ((await fig.locator('textarea').inputValue()) !== '') failures.push('box not cleared at once');
+  if ((await fig.locator('form.compose textarea').inputValue()) !== '') failures.push('box not cleared at once');
   if (!(await fig.locator('.c.john', { hasText: 'please recheck?' }).count())) failures.push('entry not shown at once');
   const sent = (await fig.locator('.c.john .sent').allTextContents()).map((t) => t.trim());
   if (JSON.stringify(sent) !== '["Sent"]') failures.push(`sent line ${JSON.stringify(sent)}`);
@@ -99,12 +99,12 @@ try {
   if (!/^bob is answering… 0:\d\d$/.test(sentText)) failures.push(`answering line ${JSON.stringify(sentText)}`);
   if (await p.evaluate(() => /\{\s*"id"/.test(document.body.innerText))) failures.push('raw JSON shown');
   if (await fig.locator('.err:visible').count()) failures.push('error shown after a good send');
-  if ((await fig.locator('textarea').inputValue()) !== '') failures.push('box not cleared');
+  if ((await fig.locator('form.compose textarea').inputValue()) !== '') failures.push('box not cleared');
   const mine = await fig.locator('.c.john').allTextContents();
   if (mine.length !== 1 || !/please recheck\?/.test(mine[0])) failures.push(`John entry ${JSON.stringify(mine)}`);
-  if (!(await fig.locator('textarea').evaluate((t) => t === document.activeElement))) failures.push('box lost focus after Send');
+  if (!(await fig.locator('form.compose textarea').evaluate((t) => t === document.activeElement))) failures.push('box lost focus after Send');
   // Same text again within 10 s: nothing more is posted, and the page says so.
-  await fig.locator('textarea').fill('please recheck?');
+  await fig.locator('form.compose textarea').fill('please recheck?');
   await fig.locator('button[type=submit]').click();
   if (Date.now() - t0 < 9000) {
     await p.waitForTimeout(300);
@@ -117,7 +117,7 @@ try {
   if (await fig.locator('.answering').count()) failures.push('answering line still shown after the answer');
   const seq = await texts(fig);
   const ix = (w) => seq.findIndex((t) => t.includes(w));
-  if (!(ix('five') < ix('eleven') && ix('eleven') < ix('please recheck') && ix('please recheck') < ix('the answer'))) failures.push(`thread order ${JSON.stringify(seq)}`);
+  if (!(ix('the answer') < ix('please recheck') && ix('please recheck') < ix('eleven') && ix('eleven') < ix('five'))) failures.push(`thread order ${JSON.stringify(seq)}`);
   // The poll asks for entries after the newest it knows.
   if (!threadCalls.length || !threadCalls.every((q) => q.includes('item=QO0') && q.includes('since='))) failures.push(`thread calls ${JSON.stringify(threadCalls)}`);
   if (!threadCalls.some((q) => q.includes('since=QO0.c20'))) failures.push('poll never asked after the sent entry');
@@ -134,7 +134,7 @@ try {
   await q.goto('http://test.invalid/F/index.html');
   await q.waitForSelector('form.compose', { state: 'attached' });
   const qf = q.locator('figure[data-name="F/b/before.png"]');
-  await qf.locator('textarea').fill('hello?');
+  await qf.locator('form.compose textarea').fill('hello?');
   await qf.locator('button[type=submit]').click();
   await qf.locator('.answering').waitFor();
   await q.clock.runFor(135000);
@@ -165,10 +165,10 @@ try {
   if (!(await r2.locator('figure[data-name="F/a/before.png"]').isVisible())) failures.push('waiting question hidden in a fold');
   // A send the server refuses: his entry goes, his words come back into the box, and the error says why.
   const cf = r2.locator('figure[data-name="F/b/before.png"]');
-  await cf.locator('textarea').fill('will fail');
+  await cf.locator('form.compose textarea').fill('will fail');
   await cf.locator('button[type=submit]').click();
   await cf.locator('.err:visible').waitFor({ timeout: 3000 }).catch(() => failures.push('no error after a refused send'));
-  if ((await cf.locator('textarea').inputValue()) !== 'will fail') failures.push('words not back in the box after a refused send');
+  if ((await cf.locator('form.compose textarea').inputValue()) !== 'will fail') failures.push('words not back in the box after a refused send');
   if (await cf.locator('.c.john', { hasText: 'will fail' }).count()) failures.push('refused entry still shown');
   if (!/The board is down/.test(await cf.locator('.err').textContent())) failures.push('error does not say why');
 } finally {

@@ -66,7 +66,7 @@ try {
   for (const n of ['F/b/before.png', 'F/d/before.png']) {
     const info = await p.$eval(`figure[data-name="${n}"]`, (f) => ({
       imgs: [...f.querySelectorAll('img')].map((i) => i.getAttribute('alt')),
-      boxes: f.querySelectorAll('textarea').length, forms: f.querySelectorAll('form').length,
+      boxes: f.querySelectorAll('form.compose textarea').length, forms: f.querySelectorAll('form').length,
       looks: f.querySelectorAll('.look').length, caps: f.querySelectorAll('figcaption').length,
       labels: [...f.querySelectorAll('.lbl')].map((l) => l.textContent.trim()),
       kind: f.dataset.kind }));
@@ -87,6 +87,17 @@ try {
   // The pair thread shows comments made on the after path too.
   const said = await p.$$eval('figure[data-name="F/b/before.png"] .c', (ds) => ds.map((d) => d.querySelector('.txt').textContent));
   if (said.length !== 3 || !said.some((t) => /too narrow/.test(t))) failures.push(`pair thread should hold both paths' comments: ${JSON.stringify(said)}`);
+  // John, 21 Oct 2026: comments newest first; the picture's box right under the picture, above the comments;
+  // every entry has its own reply box.
+  if (!/fixed, new picture/.test(said[0])) failures.push(`newest not first: ${JSON.stringify(said)}`);
+  if (!/ok/.test(said[said.length - 1])) failures.push(`oldest not last: ${JSON.stringify(said)}`);
+  const entryInfo = await p.$eval('figure[data-name="F/b/before.png"]', (f) => {
+    const cs = [...f.querySelectorAll('.c')], box = f.querySelector('form.compose'), list = f.querySelector('.thread');
+    return { entries: cs.length, replies: cs.filter((c) => c.querySelector('textarea.reply')).length,
+      boxAboveList: !!(box && list && (box.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING)) };
+  });
+  if (entryInfo.entries !== 3 || entryInfo.replies !== entryInfo.entries) failures.push(`reply box per entry: ${JSON.stringify(entryInfo)}`);
+  if (!entryInfo.boxAboveList) failures.push('picture comment box not above its comment list');
   // Less noise: the anchor is a small icon, not the word "link".
   const anchors = await p.$$eval('a.permalink', (as) => as.map((a) => [a.textContent.trim(), a.getAttribute('aria-label'), a.getAttribute('title')]));
   if (!anchors.length || anchors.some(([t, al, ti]) => /link/i.test(t) || t.length > 2 || al !== 'link to this item' || ti !== 'link to this item')) failures.push(`anchor not an icon: ${JSON.stringify(anchors)}`);

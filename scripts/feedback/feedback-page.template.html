@@ -144,7 +144,7 @@ function commentBoxes() {
     const n = fig.dataset.name, also = fig.dataset.also;  // a pair holds two pictures: comments on either belong to it
     const topic = { kind: fig.dataset.kind, name: n, also };
     let first = true;
-    const list = store.list({ topic, onSync: (entries) => {
+    const list = store.list({ topic, order: 'newest', replies: true, onSync: (entries) => {
       const last = entries[entries.length - 1];
       if (first) {
         first = false;
@@ -154,7 +154,8 @@ function commentBoxes() {
         if (last && BoardThread.isJohn(last.by) && !waiting && (!also || johnOnBefore)) fig.dataset.ruled = '1';
       } else if (last && !BoardThread.isJohn(last.by)) unfold(fig);
     } });
-    fig.append(list, store.compose({ topic, label: 'Comment on ' + n, placeholder: 'Your comment' }));
+    // the picture's own box sits right under the picture, above its comments (newest first), each with its own reply box
+    fig.append(store.compose({ topic, label: 'Comment on ' + n, placeholder: 'Your comment' }), list);
   }
 }
 

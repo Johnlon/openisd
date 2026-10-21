@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 6d611c68ac6aacdb7f80b2ea35a710afda5d27ea
 goal: A project turns amber within 10 % of a Tune limit and red over it, and project.tune() gives the Tune view every number, state and text it shows.
 done_test: bash scripts/test.sh packages/design/test/domain/tune-limits.test.ts packages/design/test/domain/tune-view.test.ts
 files:
