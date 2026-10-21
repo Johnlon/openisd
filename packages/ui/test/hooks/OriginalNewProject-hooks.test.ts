@@ -418,6 +418,61 @@ describe('useOgNewProject', () => {
       expect(project.box.sealed.volume_m3.value).toBeCloseTo(0.02, 4);
     }
   });
+
+  describe('default project name', () => {
+    it('defaults to "<driver model> <box type>" when user does not edit the name', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      wizard.boxType.value = 'vented';
+      expect(wizard.projName.value).toBe('W5-1138SMF vented');
+
+      const project = wizard.createProject();
+      expect(project?.name.value).toBe('W5-1138SMF vented');
+    });
+
+    it('updates the default project name when changing box type if the user has not edited it', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      expect(wizard.projName.value).toBe('W5-1138SMF closed');
+
+      wizard.boxType.value = 'vented';
+      expect(wizard.projName.value).toBe('W5-1138SMF vented');
+
+      wizard.boxType.value = 'bandpass4';
+      expect(wizard.projName.value).toBe('W5-1138SMF 4th order bandpass');
+    });
+
+    it('a renamed project keeps its name even when box type changes', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      wizard.boxType.value = 'vented';
+      wizard.projName.value = 'Custom Vented Sub';
+
+      wizard.boxType.value = 'bandpass4';
+      expect(wizard.projName.value).toBe('Custom Vented Sub');
+
+      const project = wizard.createProject();
+      expect(project?.name.value).toBe('Custom Vented Sub');
+    });
+
+    it('falls back to default name if user clears the name', () => {
+      const engine = createEngine();
+      const driver = createTestDriver(engine);
+      driver.model.set('W5-1138SMF');
+      const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver });
+      wizard.boxType.value = 'vented';
+      wizard.projName.value = '   ';
+
+      const project = wizard.createProject();
+      expect(project?.name.value).toBe('W5-1138SMF vented');
+    });
+  });
 });
 
 describe('useOgNewProject — bandpass6 and ABC take both chambers and both tunings', () => {

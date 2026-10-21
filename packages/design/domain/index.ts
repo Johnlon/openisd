@@ -82,6 +82,7 @@ export { OpenISDProject } from './project/openISDProject.js';
 export { compactedStoredText } from './project/projectSerialization.js';
 export { ProjectBuilder } from './openisdTransforms.js';
 export { ProjectSummary, type SummaryVolume } from './project/projectSummary.js';
+export { defaultProjectName } from './project/defaultProjectName.js';
 export type { BoxProjectBuilder } from './openisdTransforms.js';
 export { WinIsdDriverConverter } from './winIsdDriverConverter.js';
 export { WinIsdProjectConverter } from './winIsdProjectConverter.js';
