@@ -1190,6 +1190,17 @@ export class NumberField extends Field {
     description: "Cutoff / Center Frequency\nCutoff or center frequency of the active filter.",
     allowedEmpty: true,
   });
+  /** The same frequency on the phone's Filters cards, shown in whole hertz (the accepted classic phone
+   *  mock, screen 10). The desktop keeps FILTER_FC_HZ's decimals and fine spinner steps. */
+  static readonly PHONE_FILTER_FC_HZ = new NumberField({
+    value: "phone_Filter_Fc_hz",
+    label: "Cutoff / Center freq",
+    display: {kind: 'fixed', symbol: 'Hz'},
+    limits: FILTER_FC_LIMITS,
+    precision: 0,
+    description: "Cutoff / Center Frequency\nCutoff or center frequency of the active filter.",
+    allowedEmpty: true,
+  });
   static readonly FILTER_Q = new NumberField({
     value: "filter_Q",
     label: "Q",

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {KeyStripText, PhoneHelp, PhoneLabels} from '../../fields/index.js';
+import {NumberField, PHONE_FILTER_CHIPS, KeyStripText, PhoneHelp, PhoneLabels} from '../../fields/index.js';
 
 describe('phone text', () => {
   it('the key strip says Entered, Calculated, Not Available', () => {
@@ -22,5 +22,20 @@ describe('phone text', () => {
   it('chamber rows use WinISD symbols', () => {
     expect(PhoneLabels.VB).toBe('Vb');
     expect(PhoneLabels.FB).toBe('Fb');
+  });
+
+  it('every filter chip has a help sheet that says what the filter does', () => {
+    expect(PHONE_FILTER_CHIPS).toHaveLength(10);
+    for (const chip of PHONE_FILTER_CHIPS) {
+      const help = PhoneHelp.filter(chip.type);
+      expect(help.intro, chip.short).not.toBe('');
+      expect(help.rows[0].label, chip.short).toBe('Tick');
+    }
+  });
+
+  it('filter frequencies are shown in whole hertz', () => {
+    expect(NumberField.PHONE_FILTER_FC_HZ.format(31.5)).toBe('32');
+    expect(NumberField.PHONE_FILTER_FC_HZ.format(100)).toBe('100');
+    expect(NumberField.FILTER_FC_HZ.format(31.5), 'the desktop keeps its decimals').not.toBe('32');
   });
 });

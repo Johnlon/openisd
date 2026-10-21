@@ -1,0 +1,37 @@
+id: T512
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: B7 phone Filters tab, with the one 44 px PhoneButton (chips and round ‹ › arrows), (screen 10): card per filter (tick, name, fold, ?), buttons on one line, carousel shows more filters exist; the eight filter editors use the standard field control and show the filter frequency in whole hertz
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts packages/design/test/fields/phoneRowSizes.test.ts
+files:
+  - tasks/T512.yml
+  - packages/design/fields/field.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/phoneText.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/ui/src/ui/shells/mobile/PhoneBand.vue
+  - packages/ui/src/ui/shells/mobile/PhoneHelpSheet.vue
+  - packages/ui/src/ui/shells/mobile/MobileFiltersTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileFilterCard.vue
+  - packages/ui/src/ui/shells/mobile/filters/AllpassFields.vue
+  - packages/ui/src/ui/shells/mobile/filters/LinkwitzFields.vue
+  - packages/ui/src/ui/shells/mobile/filters/ParametricEqFields.vue
+  - packages/ui/src/ui/shells/mobile/filters/PassFields.vue
+  - packages/ui/src/ui/shells/mobile/filters/PeakHighpassFields.vue
+  - packages/ui/src/ui/shells/mobile/filters/RaisedCosineFields.vue
+  - packages/ui/src/ui/shells/mobile/filters/ShelfFields.vue
+  - packages/ui/src/ui/shells/mobile/filters/StaticGainFields.vue
+  - packages/ui/test/ui/mobile-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/ui/mobile-winisd-differences.browser.spec.ts
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/ui/src/ui/shells/mobile/PhoneButton.vue
+  - packages/ui/src/style.css
+  - scripts/ui-gallery/screens.mjs
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+visual:
+  - mobile-tab-filters

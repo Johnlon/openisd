@@ -40,7 +40,7 @@ test('the "Enable WinISD bugs" heading\'s help link opens the page at the bug-sw
 test('a ≠W cue opens the page at that cue\'s entry', async ({ appPage: page }) => {
   await page.locator('.mob-tab', {hasText: 'Filters'}).click();
   await page.getByText('+ AP', {exact: true}).click();
-  const order = page.locator('.filter-edit-body label').filter({hasText: /^Order\b/}).locator('input');
+  const order = page.locator('.mob-fcard .ui-field', {has: page.locator('.ui-field-label', {hasText: /^Order$/})}).locator('input');
   await order.fill('4');
   await order.blur();
   await page.locator('button.winisd-deviation-cue').click();

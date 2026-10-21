@@ -39,6 +39,10 @@ const PAGES: readonly {readonly name: string; readonly open: (page: Page) => Pro
   })),
   {name: 'Driver', open: async page => { await page.locator('.mob-tab', {hasText: 'Driver'}).first().click(); }},
   {name: 'Signal', open: async page => { await page.locator('.mob-tab', {hasText: 'Signal'}).first().click(); }},
+  {name: 'Filters', open: async page => {
+    await page.locator('.mob-tab', {hasText: 'Filters'}).first().click();
+    for (const chip of ['+ LP', '+ AP', '+ LT', '+ PEQ', '+ DLP']) await page.getByText(chip, {exact: true}).click();
+  }},
 ];
 
 for (const size of PHONE_SIZES) {
@@ -78,8 +82,10 @@ for (const size of PHONE_SIZES) {
       const overflow = await page.evaluate(() => ({
         page: document.documentElement.scrollWidth > document.documentElement.clientWidth,
         cut: [...document.querySelectorAll<HTMLElement>('.mob-content label, .mob-content input, .mob-content button')]
+          .filter(e => e.closest('[data-carousel]') === null)
           .filter(e => e.scrollWidth > e.clientWidth + 1).map(e => `${e.tagName}.${e.className}:${e.textContent?.trim() || e.getAttribute('aria-label') || e.id}`),
         outside: [...document.querySelectorAll<HTMLElement>('.mob-content input, .mob-content button')]
+          .filter(e => e.closest('[data-carousel]') === null)
           .filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < 0 || r.right > window.innerWidth + 0.5); }).length,
       }));
       expect(overflow.page, 'no horizontal page scroll').toBe(false);

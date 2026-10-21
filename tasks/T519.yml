@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 0223d5d2d17c4a0d411b36899646943d587b3105
 goal: The driver browser's type help popup lists each driver type and the filter chips it counts under, built from DriverType in packages/design, so it shows Bass, Bass-midrange and Midrange-not-a-woofer (QT102) and cannot drift.
 done_test: bash scripts/test.sh packages/design/test/filter/driverType.test.ts
 files:

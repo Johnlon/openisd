@@ -1,4 +1,4 @@
-import type {BoxType} from '../engine/index.js';
+import type {BoxType, FilterType} from '../engine/index.js';
 
 /** One line of a help sheet: the row's label, then what it is. */
 export interface PhoneHelpRow {
@@ -37,7 +37,41 @@ export class PhoneLabels {
   static readonly POWER = 'Power';
   static readonly VOLTS = 'Volts';
   static readonly RS = 'Rs';
+  static readonly SUBTYPE = 'Subtype';
+  static readonly ORDER = 'Order';
+  static readonly Q = 'Q';
+  static readonly CUTOFF = 'Cutoff';
+  static readonly T = 't';
+  static readonly F0 = 'f0';
+  static readonly Q0 = 'Q0';
+  static readonly FP = 'fp';
+  static readonly QP = 'Qp';
+  static readonly FC = 'fc';
+  static readonly GAIN = 'Gain';
+  static readonly GPK = 'Gpk';
+  static readonly FPK = 'fpk';
+  static readonly BW = 'BW';
 }
+
+/** One quick-add chip of the phone Filters tab, in WinISD's Filter Editor order, then the two OpenISD-only shelves. */
+export interface PhoneFilterChip {
+  readonly type: FilterType;
+  /** The short name on the chip after the "+" and in the card header. */
+  readonly short: string;
+}
+
+export const PHONE_FILTER_CHIPS: readonly PhoneFilterChip[] = Object.freeze([
+  {type: 'lowpass', short: 'LP'},
+  {type: 'highpass', short: 'HP'},
+  {type: 'allpass', short: 'AP'},
+  {type: 'linkwitz', short: 'LT'},
+  {type: 'peaking', short: 'PEQ'},
+  {type: 'peakHighpass', short: 'Peak HP'},
+  {type: 'staticGain', short: 'Gain'},
+  {type: 'raisedCosine', short: 'DLP'},
+  {type: 'lowshelf', short: 'LS'},
+  {type: 'highshelf', short: 'HS'},
+]);
 
 const VB_HELP = {label: 'Vb (volume, box)', text: 'the space inside the box. A larger box plays lower bass and makes the low-end peak smaller.'};
 const CHOOSE_ALIGNMENT = {label: 'Choose alignment', text: 'sets the box volume and tuning from a standard recipe for this driver.'};
@@ -50,6 +84,12 @@ const VENT_ROWS: readonly PhoneHelpRow[] = [
   {label: 'Vent length', text: 'the vent length needed for the box tuning frequency.'},
   {label: 'Cross area', text: 'the cross-section area of the vent.'},
   {label: '1st port resonance', text: 'the frequency at which the vent itself resonates. Keep it well above the bass the box is designed to play, or it colours the sound.'},
+];
+
+const PASS_ROWS: readonly PhoneHelpRow[] = [
+  {label: 'Subtype', text: 'the filter\'s shape: Butterworth is flattest, Linkwitz-Riley sums flat with its partner, Bessel keeps the timing, SOS takes your own Q.'},
+  {label: 'Order', text: 'how steeply the filter cuts: 6 dB per octave for each order.'},
+  {label: 'Q', text: 'how sharp the filter is around its frequency. Higher is sharper.'},
 ];
 
 /** The help sheets of the Box, Driver and Signal pages; the words follow the box type where they differ. */
@@ -139,6 +179,50 @@ export class PhoneHelp {
           {label: 'Frc (frequency, rear chamber)', text: 'the frequency at which the rear chamber\'s vent reinforces the bass most.'},
           LOSSES,
         ]);
+    }
+  }
+
+  static readonly ADD_FILTER = new PhoneHelpSection('Add filter', 'Adds a filter to the signal before the driver. LP lowpass, HP highpass, AP allpass, LT Linkwitz transform, PEQ parametric EQ, Peak HP peaking highpass, Gain fixed gain, DLP raised-cosine EQ, LS low shelf, HS high shelf.', []);
+
+  /** The help sheet of one filter card: what the filter does, then one line per row. */
+  static filter(type: FilterType): PhoneHelpSection {
+    const enabled = {label: 'Tick', text: 'untick to switch the filter off without removing it.'};
+    const q = {label: 'Q', text: 'how sharp the filter is around its frequency. Higher is sharper.'};
+    const gain = {label: 'Gain', text: 'how much the filter boosts (positive) or cuts (negative).'};
+    const fc = {label: 'fc', text: 'the centre frequency.'};
+    switch (type) {
+      case 'lowpass':
+        return new PhoneHelpSection('Lowpass', 'Lets low frequencies through and cuts the highs above the cutoff.', [enabled, ...PASS_ROWS, {label: 'Cutoff', text: 'the frequency where the filter starts to cut.'}]);
+      case 'highpass':
+        return new PhoneHelpSection('Highpass', 'Lets high frequencies through and cuts the lows below the cutoff. Protects the driver from deep bass it cannot play.', [enabled, ...PASS_ROWS, {label: 'Cutoff', text: 'the frequency where the filter starts to cut.'}]);
+      case 'allpass':
+        return new PhoneHelpSection('Allpass', 'Changes the phase and delay without changing the level.', [enabled, PASS_ROWS[1], q, {label: 't', text: 'the delay the allpass adds.'}]);
+      case 'linkwitz':
+        return new PhoneHelpSection('Linkwitz transform', 'Moves the box\'s low-end resonance (f0, Q0) to a new one (fp, Qp), to reach lower or roll off more gently.', [
+          enabled,
+          {label: 'f0', text: 'the box\'s own low-end resonance.'},
+          {label: 'Q0', text: 'the box\'s own Q at f0.'},
+          {label: 'fp', text: 'the resonance you want instead.'},
+          {label: 'Qp', text: 'the Q you want at fp.'},
+        ]);
+      case 'peaking':
+        return new PhoneHelpSection('Parametric EQ', 'A boost or cut around one frequency.', [enabled, fc, gain, q]);
+      case 'peakHighpass':
+        return new PhoneHelpSection('Peaking 2nd order highpass', 'A highpass with a peak just above its corner.', [
+          enabled,
+          {label: 'Gpk', text: 'the height of the peak above the corner.'},
+          {label: 'fpk', text: 'the frequency of the peak.'},
+        ]);
+      case 'staticGain':
+        return new PhoneHelpSection('Static gain', 'Raises or lowers the whole response by a fixed amount.', [enabled, gain]);
+      case 'raisedCosine':
+        return new PhoneHelpSection('DLP Raised Cosine', 'A smooth boost or cut over a band.', [
+          enabled, fc, gain, {label: 'BW', text: 'the width of the band, in octaves.'},
+        ]);
+      case 'lowshelf':
+        return new PhoneHelpSection('Low shelf', 'Raises or lowers everything below a frequency.', [enabled, fc, q, gain]);
+      case 'highshelf':
+        return new PhoneHelpSection('High shelf', 'Raises or lowers everything above a frequency.', [enabled, fc, q, gain]);
     }
   }
 

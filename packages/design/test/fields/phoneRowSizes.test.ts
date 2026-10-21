@@ -27,6 +27,13 @@ describe('PhoneRowSizes', () => {
     expect(vars.get('--mob-touch-min')).toBe(`${SheetSizes.TOUCH_MIN_PX}px`);
   });
 
+  it('every set gives the one 44 px phone button', () => {
+    expect(PhoneRowSizes.BUTTON_PX).toBe(44);
+    for (const set of [PhoneRowSizes.TAB, PhoneRowSizes.CLASSIC, PhoneRowSizes.SHEET, PhoneRowSizes.COMPACT]) {
+      expect(set.cssVars().get('--mob-button-h')).toBe('44px');
+    }
+  });
+
   it('both sets name the same variables', () => {
     expect([...PhoneRowSizes.SHEET.cssVars().keys()]).toEqual([...PhoneRowSizes.TAB.cssVars().keys()]);
     expect([...PhoneRowSizes.COMPACT.cssVars().keys()]).toEqual([...PhoneRowSizes.TAB.cssVars().keys()]);

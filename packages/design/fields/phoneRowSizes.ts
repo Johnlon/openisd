@@ -8,6 +8,8 @@ import {SheetSizes} from './sheetSizes.js';
  * The UI reads these as the CSS variables `cssVars()` names; it never picks a size of its own.
  */
 export class PhoneRowSizes {
+  /** The one phone button's height, app-wide (John, 20 Oct 2026, QO291.c36: one button size). */
+  static readonly BUTTON_PX = 44;
   /** Tab rows: 48 px, 10 px above and below, as in 7.0.951. */
   static readonly TAB = new PhoneRowSizes(48, 10, 32, 16, 2, 0, 64, 30);
   /** Classic rows (the accepted classic phone design): 40 px, 34 px boxes. Replaces TAB for tab pages.
@@ -50,6 +52,7 @@ export class PhoneRowSizes {
       ['--mob-stepper-w', `${this.stepperWidthPx}px`],
       ['--mob-unit-w', `${this.unitColPx}px`],
       ['--mob-touch-min', `${SheetSizes.TOUCH_MIN_PX}px`],
+      ['--mob-button-h', `${PhoneRowSizes.BUTTON_PX}px`],
     ]);
   }
 }

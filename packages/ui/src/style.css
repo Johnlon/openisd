@@ -246,13 +246,13 @@ a { color:var(--acc) }
   font-size: 18px;
 }
 
-/* The phone touch button, one for every screen that has none of its own: at least 44 px tall (the
-   SheetSizes touch minimum). `-primary` is the filled call to action, `-secondary` the outlined one;
+/* The phone touch button, one for every screen that has none of its own: at least PhoneRowSizes.BUTTON_PX
+   (44 px, --mob-button-h) tall. PhoneButton.vue renders it. `-primary` is the filled call to action, `-secondary` the outlined one;
    a screen that styles `.mob-btn` itself in a scoped sheet (Box, Advanced) keeps its own look, and
    weight and cursor live on the two variants so they never reach it. */
 .mob-btn {
   flex: 1;
-  min-height: 44px;
+  min-height: var(--mob-button-h);
   border: 1px solid var(--acc);
   border-radius: 4px;
   background: var(--acc);
@@ -260,6 +260,8 @@ a { color:var(--acc) }
   font: inherit;
 }
 .mob-btn-primary { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 600; cursor: pointer; }
+.mob-btn-plain { background: #f2f2f2; border-color: #b4b4b4; color: #222; cursor: pointer; }
+.mob-btn-plain:active { background: #e2e2e2; }
 .mob-btn-secondary { background: var(--panel); border-color: var(--acc); color: var(--acc); font-weight: 600; cursor: pointer; }
 /* Classic phone pages (PHONE_CLASSIC_BUILD_SPEC §2): Box, Driver and Signal. Every size is a --mob-row-*
    or --mob-col-* variable from packages/design (PhoneRowSizes, PhoneRowColumns). Row: label | value box |
