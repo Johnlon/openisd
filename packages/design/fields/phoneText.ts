@@ -1,9 +1,15 @@
 import type {BoxType, FilterType} from '../engine/index.js';
+import {ToggleField} from './field.js';
+import {WinisdDeviation, WinisdFilterDeviation} from './winisdDeviation.js';
+import {WinisdDifference} from './winisdDifference.js';
+import {WinisdOption} from './winisdOption.js';
 
 /** One line of a help sheet: the row's label, then what it is. */
 export interface PhoneHelpRow {
   readonly label: string;
   readonly text: string;
+  /** The "OpenISD and WinISD differences" entry the line links to ("More in Differences"). */
+  readonly difference?: WinisdDifference;
 }
 
 /** What a section band's ? opens: what the section is for, then one line per row in it. */
@@ -72,6 +78,14 @@ export const PHONE_FILTER_CHIPS: readonly PhoneFilterChip[] = Object.freeze([
   {type: 'lowshelf', short: 'LS'},
   {type: 'highshelf', short: 'HS'},
 ]);
+
+function bugLine(field: ToggleField, text: string, deviation: WinisdDeviation): PhoneHelpRow {
+  return {label: field.label, text, difference: WinisdDifference.forDeviation(deviation)};
+}
+
+function styleLine(option: WinisdOption, text: string): PhoneHelpRow {
+  return {label: option.switchField.label, text, difference: WinisdDifference.forOption(option)};
+}
 
 const VB_HELP = {label: 'Vb (volume, box)', text: 'the space inside the box. A larger box plays lower bass and makes the low-end peak smaller.'};
 const CHOOSE_ALIGNMENT = {label: 'Choose alignment', text: 'sets the box volume and tuning from a standard recipe for this driver.'};
@@ -167,6 +181,39 @@ export class PhoneHelp {
     {label: 'Modified', text: 'the day the project was last changed.'},
     {label: 'Description', text: 'free-text notes.'},
   ]);
+  static readonly ADVANCED_ENVIRONMENT = new PhoneHelpSection('Environment', 'The air this project plays into. It changes the speed of sound and the weight of the air, which moves the results a little. Clear a value to use the app\'s air.', [
+    {label: 'Temperature', text: 'how warm the air is.'},
+    {label: 'Relative humidity', text: 'how much water the air holds, as a share of the most it could hold.'},
+    {label: 'Air pressure', text: 'the weight of the air above you. Sea level is 101325 Pa.'},
+    {label: 'Sound velocity', text: 'how fast sound travels in this air. Worked out from the three above; type a value to set it yourself.'},
+    {label: 'Air density', text: 'how heavy the air is. Worked out from the three above; type a value to set it yourself.'},
+    {label: 'Reset to app levels', text: 'sets the air back to the levels in Options.'},
+  ]);
+  static readonly ADVANCED_SIMULATION = new PhoneHelpSection('Simulation options', 'How closely the charts follow the real speaker. They change the results, not the design.', [
+    {label: ToggleField.ADV_SIMVCINDUCTANCE.label, text: 'applies the voice coil inductance to the sound output as well as the impedance.'},
+    {label: ToggleField.ADV_FORCEFLATRESPONSE.label, text: 'adds EQ to make the response flat. The excursion and port speed charts then show what that costs.'},
+    {label: ToggleField.ADV_TLPORTMODEL.label, text: 'treats the port as a pipe with a length, not a lump of air. The charts then show the pipe\'s own notes.', difference: WinisdDifference.forDeviation(WinisdDeviation.TL_PORT_END_CORRECTION)},
+    {label: ToggleField.ADV_RGATDRIVERSIDE.label, text: 'ticked: each driver gets its own series resistance Rg. Unticked: Rg sits once, at the amplifier.'},
+    {label: ToggleField.ADV_SPLXMAXLIMITED.label, text: 'holds the SPL curve down where the cone would move past Xmax.'},
+  ]);
+  static readonly ADVANCED_WINISD_STYLE = new PhoneHelpSection('Enable WinISD-style', 'Places where WinISD calculates in its own way. OpenISD copies it by default. Untick a switch for the other form.', [
+    styleLine(WinisdOption.WRAP_PHASE, 'ticked: phase curves wrap at ±180°, as in WinISD. Unticked: they run on smoothly.'),
+    styleLine(WinisdOption.FLAT_MODEL, 'ticked: Force flat response cuts and boosts without limit, as WinISD does. Unticked: boost only, to 20 dB at most.'),
+    styleLine(WinisdOption.ABC_INTRA_PORT_VELOCITY, 'ticked: the ABC intra-port velocity drops a small leak term, as WinISD does. Unticked: the exact velocity.'),
+  ]);
+  static readonly ADVANCED_WINISD_BUGS = new PhoneHelpSection('Enable WinISD bugs', 'Mistakes in WinISD\'s maths. OpenISD gets them right. A yellow switch brings WinISD\'s result back. A switch greyed out does nothing for this box.', [
+    bugLine(ToggleField.ADV_WINISDDRIVERMODEL, 'WinISD uses two different BL values.', WinisdDeviation.DRIVER_MODEL),
+    bugLine(ToggleField.ADV_WINISDVAMODEL, 'WinISD works out the amplifier load with Re, not Re + Rg.', WinisdDeviation.VA_MODEL),
+    bugLine(ToggleField.ADV_WINISDPRNPRRESONANCE, 'WinISD takes passive radiator losses at the wrong frequency, with more than one radiator.', WinisdDeviation.PR_NPR_RESONANCE),
+    bugLine(ToggleField.ADV_WINISDBESSELHIGHPASS, 'WinISD\'s Bessel high-pass is not the mirror of its low-pass.', WinisdFilterDeviation.BESSEL_HIGHPASS),
+    bugLine(ToggleField.ADV_WINISDABCGROUPDELAY, 'WinISD\'s ABC group delay leaves the driver out.', WinisdDeviation.ABC_GROUP_DELAY),
+    bugLine(ToggleField.ADV_WINISDDRIVERCOUNTMODEL, 'with more than one driver, WinISD\'s impedance chart shows one driver.', WinisdDeviation.DRIVER_COUNT),
+    bugLine(ToggleField.ADV_WINISDSEALEDPICKER, 'WinISD\'s sealed picker gives a volume whose Qtc is not the one you picked.', WinisdDeviation.SEALED_PICKER),
+    bugLine(ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, 'with the transmission line model on, WinISD leaves out the port end correction and tunes the box higher.', WinisdDeviation.TL_PORT_END_CORRECTION),
+  ]);
+  static readonly ADVANCED_SECTIONS: readonly PhoneHelpSection[] = [
+    PhoneHelp.ADVANCED_ENVIRONMENT, PhoneHelp.ADVANCED_SIMULATION, PhoneHelp.ADVANCED_WINISD_STYLE, PhoneHelp.ADVANCED_WINISD_BUGS,
+  ];
 
   /** The rear (or only) chamber: its rows follow the box type. */
   static rearChamber(boxType: BoxType): PhoneHelpSection {

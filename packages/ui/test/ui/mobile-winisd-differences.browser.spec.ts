@@ -28,13 +28,14 @@ test('the menu opens the page full screen; Close shuts it', async ({ appPage: pa
   await expect(help).toHaveCount(0);
 });
 
-test('the "Enable WinISD bugs" heading\'s help link opens the page at the bug-switch section', async ({ appPage: page }) => {
+test('a line of the "Enable WinISD bugs" help sheet opens the page at that bug\'s entry', async ({ appPage: page }) => {
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
-  await page.locator('.error-switch-group .compat-help-link').click();
-  const section = page.getByRole('dialog', PAGE).locator('#winisd-diff-bugs');
-  await expect(section).toHaveClass(/current/);
-  await expect(section).toBeInViewport();
+  await page.getByRole('button', {name: 'Help: Enable WinISD bugs'}).click();
+  await page.getByRole('dialog', {name: 'Help: Enable WinISD bugs'}).getByRole('button', {name: 'More in Differences ›'}).first().click();
+  const entry = page.getByRole('dialog', PAGE).locator('.wd-entry.current');
+  await expect(entry).toContainText('WinISD mixes two BL values');
+  await expect(entry).toBeInViewport();
 });
 
 test('a ≠W cue opens the page at that cue\'s entry', async ({ appPage: page }) => {

@@ -1,0 +1,23 @@
+id: T515
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: B9 phone Advanced tab (screen 15): grey heading bands (QO277), help lines link to Differences entries, warning inside the row, WinISD difference cue on rows
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
+files:
+  - tasks/T515.yml
+  - packages/design/fields/phoneText.ts
+  - packages/design/fields/winisdDifference.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/ui/src/hooks/WinisdDifferencesModal-hooks.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/PhoneHelpSheet.vue
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/ui/test/ui/mobile-winisd-differences.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+visual:
+  - mobile-tab-advanced

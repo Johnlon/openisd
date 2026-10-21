@@ -313,6 +313,7 @@ a { color:var(--acc) }
 .mob-help-head { display: flex; align-items: center; justify-content: space-between; height: 48px; font-size: 16px; font-weight: 600; }
 .mob-help-close { all: unset; cursor: pointer; padding: 8px; color: var(--mut); }
 .mob-help-intro, .mob-help-row { margin: 0 0 8px; }
+.mob-help-more { all: unset; cursor: pointer; color: var(--acc); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
 
 .mob-classic .mob-crow { display: flex; align-items: center; box-sizing: border-box; height: var(--mob-row-min); padding: 0 var(--mob-edge); box-shadow: inset 0 -1px 0 #e6e6e6; }
 .mob-classic .mob-crow-label { flex: none; width: var(--mob-col-label); box-sizing: border-box; padding-right: 8px; font-size: 14px; line-height: var(--mob-label-lh); color: #555; }

@@ -61,6 +61,8 @@ export class PhoneRowSizes {
 /** The widths across a classic phone row: label, ▲▼ area, unit chip, and the text gutter in the box. */
 export class PhoneRowColumns {
   static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 14);
+  /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
+  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 14);
   /** The driver editor's General tab, whose labels are longer. */
   static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 14);
 

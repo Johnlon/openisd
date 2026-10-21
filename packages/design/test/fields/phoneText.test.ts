@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {NumberField, PHONE_FILTER_CHIPS, KeyStripText, PhoneDriverListText, PhoneHelp, PhoneLabels, PhonePrBrowserText} from '../../fields/index.js';
+import {KeyStripText, NumberField, PHONE_FILTER_CHIPS, PhoneDriverListText, PhoneHelp, PhoneLabels, PhonePrBrowserText, ToggleField, WinisdDeviation, WinisdDifference} from '../../fields/index.js';
 
 describe('phone text', () => {
   it('the key strip says Entered, Calculated, Not Available', () => {
@@ -51,5 +51,22 @@ describe('phone text', () => {
 
   it('the driver list help sections are headed Search and Drivers', () => {
     expect([PhoneHelp.DRIVER_SEARCH.title, PhoneHelp.DRIVER_LIST_PICK.title, PhoneHelp.DRIVER_LIST_MANAGE.title]).toEqual(['Search', 'Drivers', 'Drivers']);
+  });
+
+  it('the Advanced bands are Environment, Simulation options, Enable WinISD-style and Enable WinISD bugs', () => {
+    expect(PhoneHelp.ADVANCED_SECTIONS.map(s => s.title)).toEqual(['Environment', 'Simulation options', 'Enable WinISD-style', 'Enable WinISD bugs']);
+  });
+
+  it('every line of the bug and style help links to its Differences entry', () => {
+    for (const section of [PhoneHelp.ADVANCED_WINISD_BUGS, PhoneHelp.ADVANCED_WINISD_STYLE]) {
+      for (const row of section.rows) expect(row.difference, `${section.title}: ${row.label}`).toBeInstanceOf(WinisdDifference);
+    }
+    const twoBl = PhoneHelp.ADVANCED_WINISD_BUGS.rows.find(r => r.label === ToggleField.ADV_WINISDDRIVERMODEL.label);
+    expect(twoBl?.difference).toBe(WinisdDifference.forDeviation(WinisdDeviation.DRIVER_MODEL));
+  });
+
+  it('the transmission line option line links to the TL port entry', () => {
+    const tl = PhoneHelp.ADVANCED_SIMULATION.rows.find(r => r.label === ToggleField.ADV_TLPORTMODEL.label);
+    expect(tl?.difference).toBe(WinisdDifference.forDeviation(WinisdDeviation.TL_PORT_END_CORRECTION));
   });
 });

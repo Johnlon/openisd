@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: f3c972e4f4686dea091cf05ab0cf38df6026eca7
 goal: Inspect Provenance tints the whole row of each feeding field (label, value, unit), not only the field box edge.
 done_test: bash scripts/test.sh packages/ui/test/architecture/driver-editor-provenance-row-tint.test.ts
 files:
