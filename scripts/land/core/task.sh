@@ -98,12 +98,12 @@ task_first_sentence() {
   printf '%s' "$1" | sed 's/\([.!?]\) .*/\1/'
 }
 
-# task_commit_subject <id> <goal>: "<id>: <first sentence of goal>", the sentence cut to 72 chars.
+# task_commit_subject <id> <goal>: "(auto) <id>: <first sentence of goal>", the sentence cut to 72 chars.
 task_commit_subject() {
   local sentence
   sentence="$(task_first_sentence "$2")"
-  [ -n "$sentence" ] || { printf '%s' "$1"; return; }
-  printf '%s: %s' "$1" "${sentence:0:72}"
+  [ -n "$sentence" ] || { printf '(auto) %s' "$1"; return; }
+  printf '(auto) %s: %s' "$1" "${sentence:0:72}"
 }
 
 # task_commit_message <id> <goal> <release_note>: subject, then the full goal when the subject cut

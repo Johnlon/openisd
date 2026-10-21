@@ -3,6 +3,7 @@ release_note: On the phone, the driver editor has an OK, Cancel and More footer,
 repo: openisd
 owner: maryu
 status: done
+landed: 9e67cad10477e5e15dfb1b38debfd6faff603fc6
 goal: Phone driver editor follow-up to T530: build the round-3 mock's More footer menu, the 'N values disagree' bar, the f mark on rows, and value badges in the equation inspector
 done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
 files:

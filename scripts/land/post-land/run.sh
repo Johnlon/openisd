@@ -128,7 +128,7 @@ record_red() {
         printf '%s\n' "$failing" | sed 's/^/    /'
         [ -z "$visual" ] || { printf '    visual: |\n'; printf '%s\n' "$visual" | sed 's/^/      /'; }
       } >> "$open"
-      subject="F$n: still red at ${SHA:0:10}"
+      subject="(auto) F$n: still red at ${SHA:0:10}"
     else
       last="$(ls "$FIX/tasks/fixes" 2>/dev/null | sed -n 's/^F\([0-9][0-9]*\)\.yml$/\1/p' | sort -n | tail -n 1)"
       n=$(( ${last:-0} + 1 ))
@@ -145,7 +145,7 @@ record_red() {
         printf 'output: |\n'
         tail -n 40 "$OUT" | sed 's/^/  /'
       } > "$FIX/tasks/fixes/F$n.yml"
-      subject="F$n: the full suite is red at ${SHA:0:10}"
+      subject="(auto) F$n: the full suite is red at ${SHA:0:10}"
     fi
     git -C "$FIX" add "tasks/fixes/F$n.yml"
     git -C "$FIX" commit -q -m "$subject" || exit 2
@@ -190,7 +190,7 @@ close_fixed() {
       closed="$closed $n"
     done
     [ -n "$closed" ] || return 0
-    git -C "$FIX" commit -q -m "${closed# }: closed, the full suite is green at ${SHA:0:10}" || return 0
+    git -C "$FIX" commit -q -m "(auto) ${closed# }: closed, the full suite is green at ${SHA:0:10}" || return 0
     if pushed="$(git -C "$FIX" push -q origin HEAD:main 2>&1)"; then
       echo "post-land: closed${closed} on main (green at ${SHA:0:10})"
       return 0

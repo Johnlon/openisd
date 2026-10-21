@@ -28,7 +28,7 @@ out="$(bash scripts/new-task.sh fable "Say what is done." 2>&1)"
 [ -f "$SCRATCH/openisd-t008/tasks/T008.yml" ] && ok "task file written in the worktree" || fail "no task file"
 grep -q '^owner: fable$' "$SCRATCH/openisd-t008/tasks/T008.yml" && ok "owner recorded" || fail "owner missing"
 grep -q '^goal: Say what is done.$' "$SCRATCH/openisd-t008/tasks/T008.yml" && ok "goal recorded" || fail "goal missing"
-[ "$(git -C "$SCRATCH/openisd-t008" log -1 --format=%s)" = "T008: task file" ] && ok "task file committed on t008" || fail "commit: $(git -C "$SCRATCH/openisd-t008" log -1 --format=%s)"
+[ "$(git -C "$SCRATCH/openisd-t008" log -1 --format=%s)" = "(auto) T008: task file" ] && ok "task file committed on t008" || fail "commit: $(git -C "$SCRATCH/openisd-t008" log -1 --format=%s)"
 
 out2="$(bash scripts/new-task.sh bob 2>&1)"
 [ "$out2" = "T009 $SCRATCH/openisd-t009" ] && ok "second claim is the next id: $out2" || fail "second claim: $out2"

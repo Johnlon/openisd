@@ -191,7 +191,7 @@ if [ -f "$TASK" ]; then
   sed -i '/^landed:/d' "$TASK"
   printf 'landed: %s\n' "$(git rev-parse --short=10 HEAD)" >> "$TASK"
   git add "$TASK"
-  git commit -q -m "$ID: landed $(git rev-parse --short=10 HEAD)" || { GATE_OUT=/dev/null; refuse commit "task commit failed"; }
+  git commit -q -m "(auto) $ID: landed $(git rev-parse --short=10 HEAD)" || { GATE_OUT=/dev/null; refuse commit "task commit failed"; }
 fi
 git push -q origin HEAD:main > "$WORK/push.out" 2>&1 || { GATE_OUT="$WORK/push.out"; refuse push "origin rejected the push"; }
 pushed="$(git rev-parse HEAD)"

@@ -115,7 +115,7 @@ trap 'exit 129' HUP
 if [ -n "$(git status --porcelain)" ]; then
   # The subject says what landed: the task's goal (the id alone when the task file has none).
   goal="$(task_field "$TASK" goal)"
-  git add -A && git commit -q -m "$ID${goal:+: $goal}" || { echo "land: commit failed" >&2; exit 2; }
+  git add -A && git commit -q -m "(auto) $ID${goal:+: $goal}" || { echo "land: commit failed" >&2; exit 2; }
 fi
 
 # One landing at a time. The lock is released when this process ends, however it ends.
@@ -127,7 +127,7 @@ net "git fetch" git fetch -q origin main || { echo "land: fetch failed" >&2; exi
 # The branch's own commits are checked here, before step 2 replaces them (T498, 20 Oct 2026: the clean-merge
 # squash left the checks one new commit to read): every commit is this task's own (mixed), and each message
 # passes the attribution gate, because the squash into one commit discards the messages.
-others="$(git log --format=%s origin/main..HEAD | grep -E '^[TF][0-9]+(-fix)?([: ]|$)' | grep -vE "^$ID([: ]|\$)")"
+others="$(git log --format=%s origin/main..HEAD | grep -E '^(\(auto\) )?[TF][0-9]+(-fix)?([: ]|$)' | grep -vE "^(\(auto\) )?$ID([: ]|\$)")"
 [ -z "$others" ] || { GATE_OUT=/dev/null; refuse mixed "the branch carries commits of other tasks, land them on their own branches: $(printf '%s' "$others" | tr '\n' '|')"; }
 for sha in $(git rev-list origin/main..HEAD); do
   git log -1 --format=%B "$sha" > "$WORK/message"
@@ -178,7 +178,7 @@ rebase_onto_main() { # rebase_onto_main: 0 rebased; 1 a conflict stopped it (the
 # file. A merge that is not clean takes the rebase path, which still handles the baselines.
 squash_onto_main() { # squash_onto_main: 0 the branch is now one commit on origin/main with the merged tree; 1 not clean, nothing moved
   local tree commit subject
-  subject="$ID: $(task_field "$TASK" goal)"
+  subject="(auto) $ID: $(task_field "$TASK" goal)"
   tree="$(git merge-tree --write-tree origin/main HEAD 2> /dev/null)" || return 1
   commit="$(git commit-tree "$tree" -p origin/main -m "$subject")" || return 1
   git reset -q --keep "$commit"
@@ -189,7 +189,7 @@ elif ! rebase_onto_main; then
   conflicts="$(git diff --name-only --diff-filter=U | tr '\n' ' ')"
   git rebase --abort
   task_mark_blocked "$TASK" "rebase onto origin/main conflicts in: ${conflicts:-unknown files}"
-  git add "$TASK" && git commit -q -m "$ID: blocked, rebase onto origin/main conflicts"
+  git add "$TASK" && git commit -q -m "(auto) $ID: blocked, rebase onto origin/main conflicts"
   echo "land: BLOCKED $ID: rebase conflicts in ${conflicts:-unknown files}" >&2
   exit 3
 fi
@@ -198,7 +198,7 @@ if [ -n "$RETAKE_BASELINES" ]; then
   run_gate visual-retake /dev/null "$VISUAL_RETAKE_CMD"
   git add -A -- "$VISUAL_SNAPSHOT_DIR" "$VISUAL_SOURCES_HASH_FILE"
   if ! git diff --cached --quiet; then
-    git commit -q -m "$ID: visual baselines re-taken on origin/main" > "$GATE_OUT" 2>&1 \
+    git commit -q -m "(auto) $ID: visual baselines re-taken on origin/main" > "$GATE_OUT" 2>&1 \
       || refuse visual-retake "the re-taken baselines could not be committed (a changed screen the task does not list in files:?)"
   fi
 fi
@@ -227,7 +227,7 @@ for tf in tasks/*.yml; do
   case "$(task_field "$tf" status)" in open|claimed|todo|blocked|done) ;; *) continue ;; esac
   tid="$(task_field "$tf" id)"
   [ -n "$tid" ] || continue
-  lsha="$(git log origin/main --format='%H %s' | awk -v p="$tid:" 'index($2, p) == 1 { print $1; exit }')"
+  lsha="$(git log origin/main --format='%H %s' | awk -v p="$tid:" '{ i = ($2 == "(auto)") ? 3 : 2 } index($i, p) == 1 { print $1; exit }')"
   [ -n "$lsha" ] || continue
   task_mark_done "$tf"
   task_mark_landed "$tf" "$lsha"
