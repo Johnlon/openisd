@@ -10,6 +10,12 @@ describe('ChartLayout', () => {
   it('places the top level label from the plot margin', () => {
     expect(new ChartLayout({ l: 0, r: 0, t: 30, b: 0 }, 0, 9, 3, 0).levelLabelTopPx).toBe(23);
   });
+
+  it('title row height accommodates the title, data button, and Auto Y switch clear of tick labels', () => {
+    const layout = ChartLayout.CHART;
+    // Top tick label starts at levelLabelTopPx (17px). The title row ends inside titleBottomPx (16px).
+    expect(layout.titleBottomPx).toBeLessThanOrEqual(layout.levelLabelTopPx - layout.gapPx);
+  });
 });
 
 describe('ChartLayout chart text font', () => {

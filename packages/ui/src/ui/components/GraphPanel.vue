@@ -360,13 +360,14 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
          @pointercancel="onPointerCancel"
          @dblclick="onDblClick" />
     <div v-if="!classic" class="gtitle">{{ meta.name }}<button v-if="chartData" type="button" class="gdata"
-            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button></div>
+            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button>
+      <label v-if="!blocked && !hideAutoY" class="gautoy"
+             title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
+        <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
+        <span>Auto Y</span>
+      </label>
+    </div>
     <ChartDataDialog v-if="dataOpen && chartData" :data="chartData" :phone="classic === true" @close="dataOpen = false" />
-    <label v-if="!blocked && !hideAutoY" class="gautoy"
-           title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
-      <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
-      <span>Auto Y</span>
-    </label>
     <div v-if="warnings.length && !warningsDismissed" class="gwarn gwarn-pill" :title="warnings.map(w => w.message).join('\n')">
       <span class="gwarn-icon">⚠</span>
       <span class="gwarn-text">{{ warnings[0].message }}</span>
@@ -437,20 +438,22 @@ canvas { touch-action: none; }
   .gdata::after { content: ''; position: absolute; inset: -12px -10px; }
 }
 
-/* Auto Y switch: the empty corner left of the frequency labels, below the level labels. */
+/* Auto Y switch: sits in the title row after the chart title and Data tag (QO278 option b). */
 .gautoy {
-  position: absolute;
-  left: 2px;
-  bottom: 1px;
-  z-index: 2;
+  pointer-events: auto;
+  position: relative;
+  vertical-align: top;
+  margin-left: 8px;
   display: inline-flex;
   align-items: center;
   gap: 2px;
   font-size: 9.5px;
+  line-height: 10px;
   color: var(--chart-text, var(--mut));
   cursor: pointer;
   user-select: none;
 }
+.gautoy:hover { color: var(--fg); }
 .gautoy input { margin: 0; width: 11px; height: 11px; cursor: pointer; }
 
 /* Blocking message shown in place of the chart when the driver has no derivable
