@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {computed, inject, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type NumberEdit, type SpinDirection, type SteppedPlace} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
@@ -183,44 +183,46 @@ const underlineIndex = ref<number | null>(null);
 let repeatTimer: ReturnType<typeof setTimeout> | undefined;
 
 // Where the caret last was in this box, kept after the box loses focus: a ▲▼ button steps that
-// digit (John, 2026-10-15). null until a caret has been set; a step then uses the tenths digit.
-let lastCaret: number | null = null;
+// digit (John, 2026-10-15). None until a caret has been set; a step then uses the tenths digit.
+let lastCaret: StepAt = {kind: 'none'};
 function rememberCaret(): void {
   const el = inputEl.value;
   if (el === null || document.activeElement !== el || el.selectionStart === null) return;
-  lastCaret = el.selectionStart;
+  lastCaret = el.selectionEnd === el.selectionStart + 1
+    ? {kind: 'digit', at: el.selectionStart}
+    : {kind: 'caret', at: el.selectionStart};
 }
 function onSelectionChange(): void { rememberCaret(); }
 onMounted(() => document.addEventListener('selectionchange', onSelectionChange));
 onBeforeUnmount(() => document.removeEventListener('selectionchange', onSelectionChange));
 
-function caretForStep(): number | null {
+function caretForStep(): StepAt {
   const el = inputEl.value;
   if (el !== null && el.selectionStart !== null && el.selectionEnd !== null) {
     if (el.selectionEnd === el.selectionStart + 1) {
-      return el.selectionEnd;
+      return {kind: 'digit', at: el.selectionStart};
     }
     if (document.activeElement === el) {
-      return el.selectionStart;
+      return {kind: 'caret', at: el.selectionStart};
     }
   }
   return lastCaret;
 }
 
-// The place the last step stepped and the caret it left: the next step keeps that place until the
-// caret moves (John, 2026-10-21, QO291.c153).
+// The place the last step stepped and where it left the box: the next step keeps that place until
+// the caret moves (John, 2026-10-21, QO291.c153).
 let lastStep: SteppedPlace | null = null;
 
-/** One step of the digit at `caret` (the tenths digit when there is none). On desktop (the box is
+/** One step of the digit at `at` (the tenths digit when there is none). On desktop (the box is
  *  focused), the stepped digit stays selected at its place value. On mobile (a ▲▼ button holds
  *  focus), an underline mirror overlay is shown instead and the box is untouched. */
-function stepFrom(caret: number | null, dir: SpinDirection): void {
+function stepFrom(at: StepAt, dir: SpinDirection): void {
   const el = inputEl.value;
-  const spun = spinStep(display.value, caret, lastStep, dir, {min: dispMin.value, max: dispMax.value});
+  const spun = spinStep(display.value, at, lastStep, dir, {min: dispMin.value, max: dispMax.value});
   if (spun === null) return;
   const si = fromDisp(spun.value);
   display.value = spun.text;
-  lastCaret = spun.caret;
+  lastCaret = {kind: 'digit', at: spun.mark};
   if (el !== null) {
     el.value = spun.text;
     if (document.activeElement === el) {
@@ -230,7 +232,7 @@ function stepFrom(caret: number | null, dir: SpinDirection): void {
       underlineIndex.value = spun.mark;
     }
   }
-  lastStep = {place: spun.place, caret: caretForStep()};
+  lastStep = {place: spun.place, at: caretForStep()};
   if (valid(si)) emit('update:modelValue', si, typedPrecision(spun.text));
 }
 

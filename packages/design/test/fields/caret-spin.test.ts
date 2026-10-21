@@ -1,5 +1,9 @@
 import {describe, it, expect} from 'vitest';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, spinStep, steppingCaret, tenthsCaret} from '../../fields/caretSpin.js';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, spinStep, steppingCaret, tenthsCaret, type StepAt} from '../../fields/caretSpin.js';
+
+const NONE: StepAt = {kind: 'none'};
+const caretAt = (at: number): StepAt => ({kind: 'caret', at});
+const digitAt = (at: number): StepAt => ({kind: 'digit', at});
 
 const OPEN = {min: -Infinity, max: undefined};
 
@@ -201,40 +205,67 @@ describe('a remembered caret', () => {
 // grows .. unless human intervenes to move the focus digit". A step after a step steps the same place.
 describe('spinStep: the next step keeps the place until the caret moves', () => {
   it('with no last step, steps at the caret like caretSpin, and at the tenths with no caret', () => {
-    expect(spinStep('9.5', 1, null, 1, OPEN)?.text).toBe('10.5');
-    expect(spinStep('6.00', null, null, 1, OPEN)?.text).toBe('6.10');
-    expect(spinStep('6.00', 4, null, 1, OPEN)?.text).toBe('6.10');
+    expect(spinStep('9.5', caretAt(1), null, 1, OPEN)?.text).toBe('10.5');
+    expect(spinStep('6.00', NONE, null, 1, OPEN)?.text).toBe('6.10');
+    expect(spinStep('6.00', caretAt(4), null, 1, OPEN)?.text).toBe('6.10');
   });
   it('keeps the tens through a lost digit: 10.5 down is 0.5, up again is 10.5', () => {
-    const down = spinStep('10.5', 0, null, -1, OPEN);
+    const down = spinStep('10.5', caretAt(0), null, -1, OPEN);
     expect(down?.text).toBe('0.5');
     expect(down?.place).toBe(1);
-    const up = spinStep(down?.text ?? '', down?.caret ?? null, {place: 1, caret: down?.caret ?? null}, 1, OPEN);
+    const left = caretAt(down?.caret ?? -1);
+    const up = spinStep(down?.text ?? '', left, {place: 1, at: left}, 1, OPEN);
     expect(up?.text).toBe('10.5');
     expect(up?.place).toBe(1);
     expect(up?.mark).toBe(0);
   });
   it('keeps the hundreds through 105 down to 5 and back', () => {
-    const last = {place: 2, caret: 0};
-    expect(spinStep('5', 0, last, 1, OPEN)?.text).toBe('105');
-    expect(spinStep('5', 0, last, -1, OPEN)?.text).toBe('-95');
+    const last = {place: 2, at: caretAt(0)};
+    expect(spinStep('5', caretAt(0), last, 1, OPEN)?.text).toBe('105');
+    expect(spinStep('5', caretAt(0), last, -1, OPEN)?.text).toBe('-95');
   });
   it('keeps the tens as 90 becomes 100 and the tenths as 9.9 becomes 10.0', () => {
-    expect(spinStep('90', 2, {place: 1, caret: 2}, 1, OPEN)?.text).toBe('100');
-    const tenths = spinStep('9.9', 3, {place: -1, caret: 3}, 1, OPEN);
+    expect(spinStep('90', caretAt(2), {place: 1, at: caretAt(2)}, 1, OPEN)?.text).toBe('100');
+    const tenths = spinStep('9.9', caretAt(3), {place: -1, at: caretAt(3)}, 1, OPEN);
     expect(tenths?.text).toBe('10.0');
     expect(tenths?.mark).toBe(3);
     expect(tenths?.caret).toBe(4);
   });
   it('keeps a place the text has too few decimals for, and shows it', () => {
-    expect(spinStep('100', 3, {place: -1, caret: 3}, 1, OPEN)?.text).toBe('100.1');
+    expect(spinStep('100', caretAt(3), {place: -1, at: caretAt(3)}, 1, OPEN)?.text).toBe('100.1');
   });
   it('follows the caret once the person has moved it', () => {
-    expect(spinStep('0.5', 1, {place: 1, caret: 0}, 1, OPEN)?.text).toBe('1.5');
+    expect(spinStep('0.5', caretAt(1), {place: 1, at: caretAt(0)}, 1, OPEN)?.text).toBe('1.5');
   });
   it('clamps to the limits at the kept place', () => {
-    expect(spinStep('0.5', 0, {place: 1, caret: 0}, 1, {min: 0, max: 8})?.text).toBe('8.0');
-    expect(spinStep('5', 0, {place: 1, caret: 0}, -1, {min: 0, max: undefined})?.text).toBe('0');
+    expect(spinStep('0.5', caretAt(0), {place: 1, at: caretAt(0)}, 1, {min: 0, max: 8})?.text).toBe('8.0');
+    expect(spinStep('5', caretAt(0), {place: 1, at: caretAt(0)}, -1, {min: 0, max: undefined})?.text).toBe('0');
+  });
+});
+
+// fable, 21 Oct 2026 (bugs/BUG_20261021_last-decimal-digit-cannot-spin.md): a selected digit spins its
+// own place wherever it sits; a bare caret at the end chooses no digit (tenths default, T522).
+describe('a selected digit chooses its place', () => {
+  it('the last digit of 1.05 selected spins the hundredths', () => {
+    expect(steppingCaret('1.05', digitAt(3))).toBe(4);
+    const r = spinStep('1.05', digitAt(3), null, 1, OPEN);
+    expect(r?.text).toBe('1.06');
+    expect(r?.place).toBe(-2);
+    expect(r?.mark).toBe(3);
+  });
+  it('a bare caret at the end still spins the tenths', () => {
+    expect(spinStep('1.05', caretAt(4), null, 1, OPEN)?.text).toBe('1.15');
+  });
+  it('any other selected digit spins its place, as a caret right of it does', () => {
+    expect(spinStep('1.05', digitAt(0), null, 1, OPEN)?.text).toBe('2.05');
+    expect(spinStep('1.05', digitAt(2), null, 1, OPEN)?.text).toBe('1.15');
+  });
+  it('the next step keeps the place while the same digit is still selected', () => {
+    expect(spinStep('1.09', digitAt(3), {place: -2, at: digitAt(3)}, 1, OPEN)?.text).toBe('1.10');
+    expect(spinStep('9.99', digitAt(3), {place: -2, at: digitAt(3)}, 1, OPEN)?.text).toBe('10.00');
+  });
+  it('a caret and a selection at the same index are different positions', () => {
+    expect(spinStep('0.5', digitAt(0), {place: 1, at: caretAt(0)}, 1, OPEN)?.text).toBe('1.5');
   });
 });
 
@@ -260,18 +291,18 @@ describe('caretRepeatDelayMs — the hold-to-repeat schedule', () => {
 
 describe('steppingCaret — a step starts at the tenths unless the person moved the digit (John, 21 Oct 2026)', () => {
   it('uses the tenths digit when no caret was ever set', () => {
-    expect(steppingCaret('20.00', null)).toBe(4);
+    expect(steppingCaret('20.00', NONE)).toBe(4);
   });
   it('uses the tenths digit when the caret is only at the end, where typing leaves it', () => {
-    expect(steppingCaret('20.00', 5)).toBe(4);
-    expect(steppingCaret('4.8', 3)).toBe(3);
+    expect(steppingCaret('20.00', caretAt(5))).toBe(4);
+    expect(steppingCaret('4.8', caretAt(3))).toBe(3);
   });
   it('keeps a caret the person put on another digit', () => {
-    expect(steppingCaret('20.00', 1)).toBe(1);
-    expect(steppingCaret('20.00', 2)).toBe(2);
+    expect(steppingCaret('20.00', caretAt(1))).toBe(1);
+    expect(steppingCaret('20.00', caretAt(2))).toBe(2);
   });
   it('a number with no decimals steps its units digit', () => {
-    expect(steppingCaret('600', null)).toBe(3);
-    expect(steppingCaret('600', 3)).toBe(3);
+    expect(steppingCaret('600', NONE)).toBe(3);
+    expect(steppingCaret('600', caretAt(3))).toBe(3);
   });
 });

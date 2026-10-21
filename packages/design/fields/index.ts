@@ -134,7 +134,7 @@ export {
 export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
-export { caretSpin, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace } from './caretSpin.js';
+export { caretSpin, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';
 export { parsePublicVersion, formatPublicVersion, titleOfPublicVersion, publicVersionOfTitle, comparePublicVersion, runningHeading, type PublicVersion } from './publicVersion.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
 export { type AppVersion, type BuildKind, type BuildTrail, type PageAddress, formatAppVersion, trailOfLocation, stampOfVersion } from './appVersion.js';

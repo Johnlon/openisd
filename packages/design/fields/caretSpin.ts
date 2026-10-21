@@ -88,27 +88,43 @@ function stepAtPlace(negative: boolean, whole: string, fraction: string, exp: nu
   return {text: out, value, caret, mark, place: exp, decimals};
 }
 
-/** The place the last step stepped, and the caret that step left in the box. */
+/** Where the box says to step: nothing chosen, a bare caret at index `at`, or the one digit at index
+ *  `at` selected. A selected digit is always a choice, even the last digit; a bare caret at the end
+ *  of the text is not (that is where typing leaves it). */
+export type StepAt =
+  | {readonly kind: 'none'}
+  | {readonly kind: 'caret'; readonly at: number}
+  | {readonly kind: 'digit'; readonly at: number};
+
+function sameStepAt(a: StepAt, b: StepAt): boolean {
+  switch (a.kind) {
+    case 'none': return b.kind === 'none';
+    case 'caret': return b.kind === 'caret' && b.at === a.at;
+    case 'digit': return b.kind === 'digit' && b.at === a.at;
+  }
+}
+
+/** The place the last step stepped, and where that step left the box. */
 export interface SteppedPlace {
   readonly place: number;
-  readonly caret: number | null;
+  readonly at: StepAt;
 }
 
 /**
  * One step of `text` (John, 2026-10-21: "if I was spinning 10s then it needs to move to 100s as the
- * number grows .. unless human intervenes to move the focus digit"). While the caret is still where
+ * number grows .. unless human intervenes to move the focus digit"). While the box is still where
  * the `last` step left it, the step is at that step's place, even when the number has lost that
- * digit (10.5 down a ten is 0.5, up a ten is 10.5 again). Otherwise it is at the caret, the tenths
+ * digit (10.5 down a ten is 0.5, up a ten is 10.5 again). Otherwise it is at `at`, the tenths
  * digit by default (`steppingCaret`). `null` when there is no number to step.
  */
-export function spinStep(text: string, caret: number | null, last: SteppedPlace | null, dir: SpinDirection, bounds: SpinBounds): CaretSpin | null {
-  if (last !== null && last.caret === caret) {
+export function spinStep(text: string, at: StepAt, last: SteppedPlace | null, dir: SpinDirection, bounds: SpinBounds): CaretSpin | null {
+  if (last !== null && sameStepAt(last.at, at)) {
     const parts = NUMBER_TEXT.exec(text);
     if (parts !== null && (parts[2] !== '' || (parts[3] ?? '') !== '')) {
       return stepAtPlace(parts[1] === '-', parts[2], parts[3] ?? '', last.place, dir, bounds);
     }
   }
-  return caretSpin(text, steppingCaret(text, caret), dir, bounds)
+  return caretSpin(text, steppingCaret(text, at), dir, bounds)
     ?? caretSpin(text, tenthsCaret(text), dir, bounds);
 }
 
@@ -119,11 +135,16 @@ export function tenthsCaret(text: string): number {
   return mark >= 0 && mark + 1 < text.length ? mark + 2 : text.length;
 }
 
-/** Where a step starts: the tenths digit by default (John, 2026-10-21: "by default start the spin at
- *  the 1/10th unit"). A caret the person put on a digit is kept; no caret, or a caret at the very end
- *  (where typing leaves it, which is not a chosen digit), means the default. */
-export function steppingCaret(text: string, caret: number | null): number {
-  return caret === null || caret >= text.length ? tenthsCaret(text) : caret;
+/** The caret a step starts from: the tenths digit by default (John, 2026-10-21: "by default start the
+ *  spin at the 1/10th unit"). A selected digit is kept, as the caret just right of it; a bare caret
+ *  the person put on a digit is kept; no caret, or a bare caret at the very end (where typing leaves
+ *  it, which is not a chosen digit), means the default. */
+export function steppingCaret(text: string, at: StepAt): number {
+  switch (at.kind) {
+    case 'none': return tenthsCaret(text);
+    case 'caret': return at.at >= text.length ? tenthsCaret(text) : at.at;
+    case 'digit': return at.at + 1;
+  }
 }
 
 /** A held ▲▼ waits this long before it repeats. */

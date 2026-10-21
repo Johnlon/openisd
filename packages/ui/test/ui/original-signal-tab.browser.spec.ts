@@ -68,6 +68,27 @@ test.describe('Original Signal tab', () => {
     await expect(pow).toHaveValue(/^10\.5/);
   });
 
+  // fable, 21 Oct 2026 (bugs/BUG_20261021_last-decimal-digit-cannot-spin.md): a selected digit spins
+  // its own place, even the last digit; a bare caret at the end still spins the tenths.
+  test('selecting the last digit spins that digit, by key and by ▲▼', async ({ appPage: page }) => {
+    const pow = signalInput(page, 'System input power');
+    await fillAndBlur(pow, '1.05');
+    await pow.focus();
+    await pow.press('End');
+    await pow.press('Shift+ArrowLeft');     // the 5 selected
+    await pow.press('ArrowUp');
+    await expect(pow).toHaveValue('1.06');
+    const [upBtn] = await page.locator('.field', { hasText: 'System input power' })
+      .locator('.num-stepper-btn').all();   // [▲, ▼] order
+    await upBtn.click();
+    await expect(pow).toHaveValue('1.07');
+    await fillAndBlur(pow, '1.05');
+    await pow.focus();
+    await pow.press('End');                 // a bare caret at the end chooses no digit
+    await pow.press('ArrowUp');
+    await expect(pow).toHaveValue('1.15');
+  });
+
   test('System input power is a UIField: label, box, ⚠ slot and unit in one row', async ({ appPage: page }) => {
     const row = page.locator('.field', { hasText: 'System input power' });
     await expect(row.locator('input')).toHaveValue(/\d/);

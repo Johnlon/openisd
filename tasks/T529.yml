@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 73777d9fef276f6900d52c30da452807c9046f94
 goal: phone What-if keyboard shoves view and closes
 visual:
   - mobile-tab-graph
