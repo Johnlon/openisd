@@ -1,6 +1,8 @@
 # BUG_20261007_shared-main-moved-under-a-running-commit-hook
 
-**Status:** OPEN (fix later, not tonight)
+**Status:** RESOLVED 21 Oct 2026 (T547, opi). The cause is gone: no hook runs a test suite now (the hooks only
+check the task allowlist and AI attribution, so they take seconds), and main moves only through `scripts/land.sh`,
+one landing at a time under its own lock (docs/DEV_PROCESS.md).
 
 ## Symptom
 A commit in the shared tree ran its pre-commit hook for 2 hours, passed, and then failed with

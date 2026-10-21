@@ -1,0 +1,13 @@
+id: T547
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Close four infra bugs already fixed or obsolete: hooks drift, main moved under hook, land subject WIP, post-land unit red skips browser
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T547.yml
+  - bugs/BUG_20261007_installed-hooks-are-untracked-copies-and-drift.md
+  - bugs/BUG_20261007_shared-main-moved-under-a-running-commit-hook.md
+  - bugs/BUG_20261009_land-commit-subject-says-work-in-progress.md
+  - bugs/BUG_20261009_post-land-unit-red-skips-browser-specs.md

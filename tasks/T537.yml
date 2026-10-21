@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: d66441886ff9e6d608dee8c8cc2c9f1fafb947fa
 goal: Fit Enable WinISD bugs group inside desktop Advanced tab without clipping
 done_test: bash scripts/test.sh packages/ui/test/ui/OriginalShell-advanced-layout.test.ts
 files:
