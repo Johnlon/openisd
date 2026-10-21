@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 1adc57f0611f3e0961f40f037b716a2d5d5ed75d
 goal: The engine gives peak vent speed and peak cone excursion from the sweep, and a vented F3/F10 fixture pins rolloffFreq.
 done_test: bash scripts/test.sh packages/design/test/engine/sweep-peaks.test.ts packages/design/test/domain/tune-vent-length.test.ts
 files:
