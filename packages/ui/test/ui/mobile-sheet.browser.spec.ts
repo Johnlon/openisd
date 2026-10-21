@@ -7,7 +7,7 @@
  * - Close in What-if discards it; dragging down closes the sheet; leaving Graph ends it.
  * - The two sheets have their own fields.
  */
-import {chartPicture, expect, focusedIsModified, openAMobileProject, shownBoxVolume, test} from '../fixtures.js';
+import {chartPicture, expect, focusedIsModified, openAMobileProject, settledChartPicture, shownBoxVolume, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import type {Locator, Page} from '@playwright/test';
 
@@ -15,6 +15,9 @@ async function openGraph(page: Page) {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
+  // The import's flash strip (42 px, bottom of the page) takes space from the chart for about two seconds; when it goes
+  // the chart grows and is redrawn. The pictures below are taken after that, as the chart stays for the user.
+  await expect(page.getByTestId('flash-strip')).toHaveCount(0);
   await page.locator('.mob-tab', { hasText: 'Graph' }).click();
   return page.locator('.mob-chart-cell .gpanel').first();
 }
@@ -79,7 +82,8 @@ test('Tune: stepping a field modifies the project; edit survives Close and reloa
   await expect(panel.getByRole('checkbox', { name: 'Auto Y' })).toHaveCount(0);
   expect(await focusedIsModified(page)).toBe(false);
 
-  const closedPicture = await chartPicture(page);
+  // The settled picture, taken once the chart has stopped changing.
+  const closedPicture = await settledChartPicture(page);
 
   await page.getByRole('button', { name: 'Open Tune' }).click();
   const sheet = page.locator('.mob-sheet');
@@ -117,7 +121,8 @@ test('What-if: stepping a field changes charts but not the project; Close puts c
   await openGraph(page);
   expect(await focusedIsModified(page)).toBe(false);
 
-  const closedPicture = await chartPicture(page);
+  // The settled picture, taken once the chart has stopped changing.
+  const closedPicture = await settledChartPicture(page);
 
   await page.getByRole('button', { name: 'Open What-if' }).click();
   const sheet = page.locator('.mob-sheet');
@@ -164,7 +169,7 @@ test('a What-if experiment never shows in Tune', async ({ page }) => {
 
 test('dragging the mobile sheet down closes it and ends What-if What-if', async ({ page }) => {
   await openGraph(page);
-  const initialPicture = await chartPicture(page);
+  const initialPicture = await settledChartPicture(page);
 
   await page.getByRole('button', { name: 'Open What-if' }).click();
   const sheet = page.locator('.mob-sheet');

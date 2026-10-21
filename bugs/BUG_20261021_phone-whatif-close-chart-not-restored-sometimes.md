@@ -1,6 +1,6 @@
 # BUG_20261021_phone-whatif-close-chart-not-restored-sometimes
 
-**Status:** OPEN. For maryu (phone What-if, T545), via fable.
+**Status:** FIXED by T556 (a spec bug: the before-picture was taken while the import flash strip was up).
 
 Recorded 21 Oct 2026 by opi, from the T547 candidate run.
 
@@ -16,10 +16,15 @@ on T537's candidate run an hour earlier, so it fails only some of the time.
 - Green run on the same code: https://github.com/Johnlon/openisd/actions/runs/39667878499 (land/T537).
 
 ## Cause
-Not known. Two candidates: the "before" picture is taken (line 120) before the charts have finished drawing, so it
-is not the settled picture; or Close does not always put the chart back (T545 moved Auto Y into this sheet's
-footer just before).
+Spec bug, not an app bug. `openAMobileProject` leaves the import's flash strip (`flash-strip`, a 42 px bar at the
+bottom of the page) up for about two seconds. While it is up the chart is 604 px high; when it goes the chart grows
+to 646 px and is redrawn. The spec took `closedPicture` straight after tapping Graph, usually while the strip was
+still up: that picture is hash 20944220... (the CI "expected"); the settled one is 69d2a0d1... (the CI "received").
+After Close the chart is the settled one, so the check failed whenever the picture was taken before the strip went.
+Evidence: a timeline probe polled the chart after the Graph tap: 20944220... (canvas 604 px, `mob-update-banner`
+42 px present), then about 1.5 s later 69d2a0d1... (canvas 646 px, banner gone). The same two hashes as CI. A first
+attempt (wait for a stable picture only) still failed 1 run in 5, because the picture is stable while the strip is up.
 
 ## Fix
-Find which: take the "before" picture only once the charts have settled; if Close still leaves a different picture,
-it is an app bug in the What-if revert.
+`mobile-sheet.browser.spec.ts`: `openGraph` waits for the flash strip to go, and the before pictures use
+`settledChartPicture` (What-if, Tune, drag-down tests). The app is right: Close restores the settled chart.

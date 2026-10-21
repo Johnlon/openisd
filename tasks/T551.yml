@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 9ba821a3350cebf7bf00c89221e54444684253f4
 goal: The ohm unit shows as Ω on every skin (phone Signal Rs, Driver Re, desktop, driver editor)
 done_test: bash scripts/test.sh packages/design/test/fields/field-display.test.ts
 files:
