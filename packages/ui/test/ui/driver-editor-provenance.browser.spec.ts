@@ -214,7 +214,7 @@ test.describe('Driver Editor provenance map and field boxes', () => {
     await driverEditorField(page, 'Qts').locator('label').click();
     await expect(driverEditorField(page, 'Qts')).toHaveAttribute('style', /outline/);
     for (const input of ['Qes', 'Qms']) {
-      await expect(driverEditorField(page, input), `${input} feeds Qts`).toHaveAttribute('style', /border-color/);
+      await expect(driverEditorField(page, input), `${input} feeds Qts`).toHaveAttribute('style', /background-color/);
     }
   });
 

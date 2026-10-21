@@ -1,0 +1,15 @@
+id: T521
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Inspect Provenance tints the whole row of each feeding field (label, value, unit), not only the field box edge.
+done_test: bash scripts/test.sh packages/ui/test/architecture/driver-editor-provenance-row-tint.test.ts
+files:
+  - tasks/T521.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261021_provenance-highlight-edge-only.md
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/test/ui/driver-editor-provenance-row.browser.spec.ts
+  - packages/ui/test/architecture/driver-editor-provenance-row-tint.test.ts
+  - packages/ui/test/ui/driver-editor-provenance.browser.spec.ts
