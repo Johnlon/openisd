@@ -3,7 +3,7 @@ import {useApp} from '../logic/app.js';
 import {computed, ref, watch} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {
-  buildPlotData, ChartData, type ChartEngineAreas, referenceLineColors, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
+  buildPlotData, ChartData, type ChartEngineAreas, referenceLineColors, selectedRangeCss, type Design, DPAL, FrequencyAxis, type PlotData, rangeStatsOf, type RangeStats, type Rolloff,
   type SnapDirection, type SnapExtremum, snapFrequency, TAB_META,
 } from '@openisd/design/chart';
 import type {ChartId, DriverError} from '@openisd/design/engine';
@@ -19,6 +19,7 @@ export interface GraphPanelProps {
 
 export interface GraphPanelAPI {
   readonly meta: Readonly<Ref<(typeof TAB_META)[ChartId]>>;
+  readonly selectedRangeCss: typeof selectedRangeCss;
   readonly currentDesign: Readonly<Ref<Design>>;
   readonly plotData: Readonly<Ref<PlotData | null>>;
   readonly blockErrors: Readonly<Ref<DriverError[]>>;
@@ -167,6 +168,7 @@ export function useGraphPanel(props: GraphPanelProps, chartEngine: ChartEngineAr
 
   return {
     meta,
+    selectedRangeCss,
     currentDesign,
     plotData,
     blockErrors,

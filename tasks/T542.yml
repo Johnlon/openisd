@@ -3,6 +3,7 @@ release_note: On the phone, the Box tab's alignment and box losses sheets have t
 repo: openisd
 owner: opi
 status: done
+landed: 436be50c0256cdead09a4e9d6c5f75cbc93da9f3
 goal: Phone Box tab sheet buttons (alignment Cancel/Accept, box losses Reset/OK) are the shared 44 px PhoneButton, not a 40 px scoped copy (BUG_20261018_box-advanced-buttons-under-44).
 done_test: bash scripts/test.sh packages/ui/test/ui/MobileBoxTab-buttons.test.ts
 files:

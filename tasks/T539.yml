@@ -1,0 +1,20 @@
+id: T539
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: The charts draw the vent air speed limit line and the selected range shading in the colours chosen in Options (Air speed limit, Selected range), as they already do for Xmax limit and Cursor lines.
+done_test: bash scripts/test.sh packages/design/test/chart/chart-types.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T539.yml
+  - packages/design/chart/series.ts
+  - packages/design/test/chart/chart-types.test.ts
+  - packages/design/test/chart/build-plot-data.test.ts
+  - packages/ui/src/logic/presentationState.ts
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/test/ui/chart-colours-air-speed-selected-range.browser.spec.ts
+  - packages/design/chart/index.ts
+  - packages/ui/src/hooks/GraphPanel-hooks.ts
+  - packages/ui/src/hooks/OptionsModal-hooks.ts
+  - packages/ui/src/ui/components/OptionsModal.vue

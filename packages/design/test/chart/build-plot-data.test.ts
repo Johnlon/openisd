@@ -90,7 +90,7 @@ describe('buildPlotData — comparing two or more designs', () => {
 
   it('draws the 0 dB and −3 dB lines in the colours it is given', () => {
     const out = buildPlotData(engine, 'TFMag', 10, 2000, design('a', '#4fb0ff'), [], [],
-      {referenceLines: {zeroDb: '#123456', minus3Db: '#abcdef'}}).value!;
+      {referenceLines: {zeroDb: '#123456', minus3Db: '#abcdef', airSpeedLimit: '#ff6b6b'}}).value!;
     assert.deepEqual(out.series.filter(s => s.dash).map(s => s.color), ['#123456', '#abcdef']);
   });
 });

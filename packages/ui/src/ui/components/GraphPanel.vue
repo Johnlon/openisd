@@ -287,8 +287,11 @@ const canvasStyles = computed(() => {
   if (colors.xmaxLimit) styles['--chart-pelimit'] = colors.xmaxLimit;
   if (colors.cursor) {
     styles['--chart-cross'] = colors.cursor;
-    styles['--chart-band-line'] = colors.cursor;
-    styles['--chart-band'] = `color-mix(in srgb, ${colors.cursor} 7%, transparent)`;
+  }
+  if (colors.selectedRange) {
+    const range = graph.selectedRangeCss(colors.selectedRange);
+    styles['--chart-band-line'] = range.edge;
+    styles['--chart-band'] = range.fill;
   }
   return styles;
 });

@@ -23,7 +23,7 @@ import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
-import {parseChartId, type PlotParams, referenceLineColors, type ReferenceLineColors, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
+import {DEFAULT_SELECTED_RANGE_COLOR, parseChartId, selectedRangeCss, type PlotParams, referenceLineColors, type ReferenceLineColors, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
 import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 const RAW: Record<string, number> = {
@@ -301,7 +301,7 @@ describe('the 0 dB and −3 dB lines take the Options colours', () => {
 
   for (const id of ['TFMag', 'PRTFMag', 'RearPortGain', 'FrontPortGain'] as const) {
     it(`${id} draws them in the chosen colours`, () => {
-      const lines = {zeroDb: '#123456', minus3Db: '#abcdef'};
+      const lines = referenceLineColors({zeroDb: '#123456', minus3Db: '#abcdef'});
       assert.equal(colourOf(id, '0 dB', lines), '#123456');
       assert.equal(colourOf(id, '−3 dB', lines), '#abcdef');
     });
@@ -313,12 +313,32 @@ describe('the 0 dB and −3 dB lines take the Options colours', () => {
   }
 
   it('FltMag draws its 0 dB line in the chosen colour, and black by default', () => {
-    assert.equal(colourOf('FltMag', '0 dB', {zeroDb: '#123456', minus3Db: '#abcdef'}), '#123456');
+    assert.equal(colourOf('FltMag', '0 dB', referenceLineColors({zeroDb: '#123456', minus3Db: '#abcdef'})), '#123456');
     assert.equal(colourOf('FltMag', '0 dB'), '#000000');
   });
 
   it('a colour not chosen keeps its default', () => {
-    assert.deepEqual(referenceLineColors(undefined), {zeroDb: '#000000', minus3Db: '#808080'});
-    assert.deepEqual(referenceLineColors({minus3Db: '#ff0000'}), {zeroDb: '#000000', minus3Db: '#ff0000'});
+    assert.deepEqual(referenceLineColors(undefined), {zeroDb: '#000000', minus3Db: '#808080', airSpeedLimit: '#ff6b6b'});
+    assert.deepEqual(referenceLineColors({minus3Db: '#ff0000'}), {zeroDb: '#000000', minus3Db: '#ff0000', airSpeedLimit: '#ff6b6b'});
+  });
+
+  // T539: the Options "Air speed limit" colour reaches the vent air speed limit line.
+  for (const id of ['RearPort', 'FrontPort', 'IntraPort'] as const) {
+    it(`${id} draws its air speed limit line in the chosen colour, and the old red by default`, () => {
+      const limit = (lines?: ReferenceLineColors) =>
+        seriesFor(engine, id, DRV, 'vented', { ...PP, portVelocityLimit_m_per_s: 25 }, SW, MX, false, lines)
+          .series.find(s => s.name === '25 m/s')?.color;
+      assert.equal(limit(referenceLineColors({airSpeedLimit: '#123456'})), '#123456');
+      assert.equal(limit(), '#ff6b6b');
+    });
+  }
+});
+
+describe('the selected range shading', () => {
+  it('is faint black by default and takes the chosen colour', () => {
+    assert.equal(DEFAULT_SELECTED_RANGE_COLOR, '#000000');
+    assert.deepEqual(selectedRangeCss(undefined), selectedRangeCss('#000000'));
+    assert.match(selectedRangeCss('#00c000').fill, /#00c000 5%/);
+    assert.match(selectedRangeCss('#00c000').edge, /#00c000 30%/);
   });
 });
