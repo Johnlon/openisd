@@ -257,7 +257,7 @@ for (const size of PHONE_SIZES) {
       await expect(line).toBeVisible();
       await expect(line).toContainText('Version 7.0.952 ·');
       const link = line.getByRole('link', {name: 'Change log'});
-      await expect(link).toHaveAttribute('href', 'https://github.com/Johnlon/openisd/releases');
+      await expect(link).toHaveAttribute('href', 'https://snapshots.openisd.app/v/');
       await expect(link).toHaveAttribute('target', '_blank');
       const order = await page.evaluate(() => {
         const v = document.querySelector('[data-testid="about-version-line"]')?.getBoundingClientRect();

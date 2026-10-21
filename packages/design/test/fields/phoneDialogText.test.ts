@@ -9,6 +9,12 @@ describe('ImportChoiceText', () => {
   });
 });
 
+describe('AboutText.CHANGE_LOG_URL', () => {
+  it("is the app's own release list, which says what each release changed", () => {
+    expect(AboutText.CHANGE_LOG_URL).toBe('https://snapshots.openisd.app/v/');
+  });
+});
+
 describe('AboutText.versionLine', () => {
   it('names a numbered build by version and day', () => {
     expect(AboutText.versionLine('7.0.952', '20261016T0900Z')).toBe('Version 7.0.952 · 16 Oct 2026');

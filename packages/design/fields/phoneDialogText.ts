@@ -123,8 +123,8 @@ export class PhoneDialogHelp {
 /** The words of the About page's new first line: the version, the day, and the change log. */
 export class AboutText {
   static readonly CHANGE_LOG_LABEL = 'Change log';
-  /** Every release with what it changed: the project's GitHub releases. */
-  static readonly CHANGE_LOG_URL = 'https://github.com/Johnlon/openisd/releases';
+  /** Every release with what it changed: the app's own release list. */
+  static readonly CHANGE_LOG_URL = 'https://snapshots.openisd.app/v/';
 
   /** "Version 7.0.952 · 16 Oct 2026" for a build named by its stamp ("20261016T0900Z"); a build with
    *  no public number says "Build" and its day. */
