@@ -198,6 +198,37 @@ test.describe('New Project wizard', () => {
       await expect(page.locator('.projects-list .project-row.selected')).toContainText('My Sub Build');
     });
 
+    // John, 21 Oct 2026: "Please default the project name to the driver and box type".
+    test('the name box starts as "<driver model> <box type>", and a typed name stays through a box type change', async ({ appPage: page }) => {
+      const modal = page.locator('.overlay.open');
+      await openWizard(page);
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();
+      await footerNext(page).click();
+      await modal.getByLabel('Box type').selectOption('vented');
+      await footerNext(page).click();
+      await footerNext(page).click();
+      const name = modal.locator('#np-project-name');
+      await expect(name).toHaveValue('RS225 vented');
+      await footer(page).getByRole('button', { name: 'Create' }).click();
+      expect(await shownProjectName(page)).toBe('RS225 vented');
+
+      await openWizard(page);
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();
+      await footerNext(page).click();
+      await modal.getByLabel('Box type').selectOption('vented');
+      await footerNext(page).click();
+      await footerNext(page).click();
+      await name.fill('Den sub');
+      await footer(page).getByRole('button', { name: 'Back', exact: true }).click();
+      await footer(page).getByRole('button', { name: 'Back', exact: true }).click();
+      await modal.getByLabel('Box type').selectOption('sealed');
+      await footerNext(page).click();
+      await footerNext(page).click();
+      await expect(name).toHaveValue('Den sub');
+    });
+
     test('starts fresh — it discards the previous design (filters, params)', async ({ appPage: page }) => {
       await dirtyFocusedDesign(page);
 

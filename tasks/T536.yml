@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 0b855bd5e5b87d3121394e7de8b73b3e48af3b9b
 goal: land.sh and the other land scripts write every commit subject with the "(auto) " prefix, and read subjects with or without it, so the global commit-msg hook no longer blocks landings.
 done_test: bash scripts/land/test/land-subject.test.sh
 files:

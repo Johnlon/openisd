@@ -44,3 +44,22 @@ test('a new Closed project leaves the earlier Vented project Vented and unchange
   await tapMobileMenuItem(page, 'Projects');
   await expect(page.locator('.mob-project-row', {hasText: 'Project A'}).getByText('Unsaved')).toHaveCount(0);
 });
+
+// John, 21 Oct 2026: "Please default the project name to the driver and box type".
+test('the phone wizard names a new project "<driver model> <box type>" unless one is typed', async ({page}) => {
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await tapMobileMenuItem(page, 'New project');
+  await page.getByText(TEST_DRIVER).click();
+  const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
+  await next.click();
+  await next.click();
+  await page.locator('#np-box-type').selectOption({label: 'Vented'});
+  await next.click();
+  await next.click();
+  await expect(page.getByLabel('Project name')).toHaveValue('W5-1138SMF vented');
+  await page.locator('.mob-np-footer').getByText('Create Project', {exact: true}).click();
+  await expect(page.locator('.mob-np-overlay')).toBeHidden();
+  await tapMobileMenuItem(page, 'Projects');
+  await expect(page.locator('.mob-project-name', {hasText: 'W5-1138SMF vented'})).toHaveCount(1);
+});

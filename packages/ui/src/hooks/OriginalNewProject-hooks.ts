@@ -1,7 +1,7 @@
 import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watch } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
-import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
+import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
 import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
@@ -217,7 +217,14 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
 
-  const projName = ref('');
+  // The name is "<driver model> <box type>" until the person types one (John, 2026-10-21); after
+  // that it is what they typed, whatever driver or box type they pick next.
+  const typedName = ref<string | null>(null);
+  const defaultName = computed(() => defaultProjectName(selectedDriver.value?.model.value ?? '', boxType.value));
+  const projName = computed<string>({
+    get: () => typedName.value ?? defaultName.value,
+    set: (name) => { typedName.value = name; },
+  });
   const projDescription = ref('');
 
   const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
@@ -474,7 +481,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
         case 'abc': return b.abc().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
       }
     }, (made) => {
-      made.name.set(projName.value.trim() || 'Unnamed project');
+      made.name.set(projName.value.trim() || defaultName.value);
       if (projDescription.value.trim()) {
         made.description.set(projDescription.value.trim());
       }
