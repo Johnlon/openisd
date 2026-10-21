@@ -12,7 +12,8 @@ const { state, note, save } = useMobileSaveButton();
       <ToolbarIcon name="save" />
     </button>
     <!-- Hangs under the button, right-aligned: over the panel's title bar or the chart's empty
-         corner, never over a control. -->
+         corner, never over a control. A page whose controls sit right under the button (the Graph
+         page's chart band and its ?) drops it further with --mob-save-note-drop. -->
     <span v-if="note" class="mob-save-note" role="status">{{ note }}</span>
   </span>
 </template>
@@ -43,7 +44,7 @@ const { state, note, save } = useMobileSaveButton();
 .mob-save.lit :deep(svg rect) { fill: var(--acc); }
 .mob-save-note {
   position: absolute;
-  top: calc(100% + 2px);
+  top: calc(100% + 2px + var(--mob-save-note-drop, 0px));
   right: 0;
   z-index: 30;
   max-width: 260px;

@@ -187,7 +187,7 @@ function portVelocityBuild({ meta, sw, pick, P }: CurveCtx, vel: number[]): Curv
   // The project's port air-velocity limit (`OpenISDProject.portVelocityLimit_m_per_s`).
   const limit = P.portVelocityLimit_m_per_s;
   if (limit !== undefined) {
-    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color: REDLINE, name:`${limit} m/s`, dash: true, reference: true });
+    series.push({ xs: sw.fs, ys: sw.fs.map(() => limit), color: REDLINE, name:`${limit} m/s`, lineLabel: `limit ${limit} m/s`, dash: true, reference: true });
   }
   return { series, ymin: 0, ymax: Math.max(20, Math.max(...vel) * 1.1, (limit ?? 0) * 1.1) };
 }

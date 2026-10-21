@@ -14,11 +14,17 @@ import {CHARTS_HIGH_OPTIONS, MOBILE_CHARTS_HIGH} from './chartGrid.js';
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {selectedOption} from '../logic/domEvents.js';
 import type {ChartId} from '@openisd/design/engine';
-import {SheetMode} from '@openisd/design/fields';
+import {ChartPageHelp, ChartPageSizes, SheetMode} from '@openisd/design/fields';
+
+/** One curve of the shared legend. */
+export interface LegendItem {
+  readonly name: string;
+  readonly color: string;
+}
 
 export function useMobileChartView() {
   const {appState, presentation: presentationState} = useApp();
-  const {focusedProject, projectChanged} = appState;
+  const {focusedProject, projectChanged, driverName} = appState;
   const project = useFocusedProject();
   const { engine } = useApp();
   const selection = new ChartSelection(focusedProject, projectChanged, engine.box);
@@ -52,7 +58,17 @@ export function useMobileChartView() {
 
   const traceColour = computed(() => { void projectChanged.value; return traceColor(project.value); });
 
-  return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
+  /** One legend for every chart: the focused design, then each other open project drawn behind it. Listed only
+   *  when there are two or more curves to tell apart. */
+  const legendItems = computed<readonly LegendItem[]>(() => {
+    void projectChanged.value;
+    const own = {name: project.value.name.value || driverName.value, color: traceColour.value, sortIndex: appState.openProjects().indexOf(project.value)};
+    const items = [own, ...overlays.value.filter(d => d.visible !== false).map(d => ({name: d.name ?? '', color: d.color ?? own.color, sortIndex: d.sortIndex ?? 0}))]
+      .sort((a, b) => a.sortIndex - b.sortIndex);
+    return items.length > 1 ? items.map(({name, color}) => ({name, color})) : [];
+  });
+
+  return { openCharts, legendItems, sizeVars: Object.fromEntries(ChartPageSizes.CLASSIC.cssVars()), helpFor: ChartPageHelp.forChart, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
     chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen,
     TUNE: SheetMode.TUNE, WHAT_IF: SheetMode.WHAT_IF };
 }

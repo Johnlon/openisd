@@ -1,18 +1,23 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import type {Page} from '@playwright/test';
+import {ChartPageSizes} from '@openisd/design/fields';
 
 /**
  * The two mobile bottom sheets, Tune and What-if, on every phone size: each keeps one fixed height
  * while open (an edit never resizes it), the chart keeps 120 px, nothing overflows sideways, and
  * on a screen too short for the rows they scroll inside the sheet (never shrunk away, never
- * clipped: every row can be scrolled fully into view and Close stays on screen).
+ * clipped: every row can be scrolled fully into view and Close stays on screen). A sheet stops
+ * growing at ChartPageSizes' cap (250 px, the classic mock) and its rows scroll below that.
  */
 const MIN_CHART_PX = 120;
-/** How far the rows may overflow their box: not at all, unless the chart is held at its 120 px floor. */
+/** How far the rows may overflow their box: not at all, unless the chart is held at its 120 px floor
+ *  or the sheet has reached its cap. */
 async function allowedRowsOverflow(page: Page): Promise<number> {
   const chart = await page.locator('.mob-chart-cell .gpanel').first().evaluate(el => el.getBoundingClientRect().height);
-  return chart > MIN_CHART_PX + 1 ? 0 : Number.POSITIVE_INFINITY;
+  const sheet = await page.locator('.mob-sheet').evaluate(el => el.getBoundingClientRect().height);
+  const capped = sheet >= ChartPageSizes.CLASSIC.values.sheetMaxPx - 1;
+  return chart > MIN_CHART_PX + 1 && !capped ? 0 : Number.POSITIVE_INFINITY;
 }
 async function chartHeight(page: Page): Promise<number> {
   return page.locator('.mob-chart-cell .gpanel').first().evaluate(el => el.getBoundingClientRect().height);

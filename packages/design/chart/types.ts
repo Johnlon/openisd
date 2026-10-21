@@ -18,6 +18,9 @@ export interface Series {
   /** A fixed level drawn for orientation (0 dB, −3 dB, F3, a limit), not a computed curve: the
    *  chart's data table leaves it out. */
   reference?: boolean;
+  /** The words written on the line itself where the chart labels its reference lines (the phone Graph page);
+   *  absent, the line's `name` is written. */
+  lineLabel?: string;
   /** Legend-only entry with no drawn line. */
   phantom?: boolean;
   /** This is the focused project's own trace, not a compare overlay — the legend and the
