@@ -58,3 +58,29 @@ test('System input power spins by its tenths digit a tap: 1 W up is 1.1 W, by ke
   await upBtn.click();
   await expect(pow).toHaveValue('1.00');
 });
+
+// John, 21 Oct 2026 (QO291.c153): the stepped digit is a place value; it moves with the number.
+test('a spin keeps its place as the number gains and loses a digit, by key and by ▲▼', async ({ appPage: page }) => {
+  const pow = rowInput(page, 'Power');
+  await pow.fill('9.5');
+  await pow.blur();
+  await pow.focus();
+  await pow.press('Home');
+  await pow.press('ArrowRight');            // the caret right of the units digit
+  await pow.press('ArrowUp');
+  await expect(pow).toHaveValue(/^10\.5/);
+  await pow.press('ArrowUp');
+  await expect(pow).toHaveValue(/^11\.5/);
+  await pow.fill('10.5');
+  await pow.blur();
+  await pow.focus();
+  await pow.press('Home');                  // the caret left of the tens digit
+  const [upBtn, downBtn] = await page.locator('.mob-ui-field', { hasText: 'Power' })
+    .locator('.num-stepper-btn').all();     // [▲, ▼] order
+  await downBtn.click();
+  await expect(pow).toHaveValue(/^0\.5/);
+  await upBtn.click();
+  await expect(pow).toHaveValue(/^10\.5/);
+  await downBtn.click();
+  await expect(pow).toHaveValue(/^0\.5/);
+});

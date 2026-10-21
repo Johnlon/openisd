@@ -42,8 +42,34 @@ test.describe('Original Signal tab', () => {
     await expect(pow).toHaveValue('0.90');
   });
 
+  // John, 21 Oct 2026 (QO291.c153): the stepped digit is a place value; it moves with the number.
+  test('a spin keeps its place as the number gains and loses a digit, by key and by ▲▼', async ({ appPage: page }) => {
+    const pow = signalInput(page, 'System input power');
+    await fillAndBlur(pow, '9.5');
+    await pow.focus();
+    await pow.press('Home');
+    await pow.press('ArrowRight');          // the caret right of the units digit
+    await pow.press('ArrowUp');
+    await expect(pow).toHaveValue(/^10\.5/);
+    await pow.press('ArrowUp');
+    await expect(pow).toHaveValue(/^11\.5/);
+    await fillAndBlur(pow, '10.5');
+    await pow.focus();
+    await pow.press('Home');                // the caret left of the tens digit
+    await pow.press('ArrowDown');
+    await expect(pow).toHaveValue(/^0\.5/);
+    await pow.press('ArrowUp');
+    await expect(pow).toHaveValue(/^10\.5/);
+    const [upBtn, downBtn] = await page.locator('.field', { hasText: 'System input power' })
+      .locator('.num-stepper-btn').all();   // [▲, ▼] order
+    await downBtn.click();
+    await expect(pow).toHaveValue(/^0\.5/);
+    await upBtn.click();
+    await expect(pow).toHaveValue(/^10\.5/);
+  });
+
   test('System input power is a UIField: label, box, ⚠ slot and unit in one row', async ({ appPage: page }) => {
-    const row = page.locator('.ui-field', { hasText: 'System input power' });
+    const row = page.locator('.field', { hasText: 'System input power' });
     await expect(row.locator('input')).toHaveValue(/\d/);
     await expect(row.locator('.ui-field-unit')).toHaveText('W');
   });

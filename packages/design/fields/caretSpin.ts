@@ -64,9 +64,16 @@ export function caretSpin(text: string, caret: number, dir: SpinDirection, bound
   else if (isDigitAt(caret)) { digitIndex = caret; after = false; }
   else return null;
 
-  const exp = exponentAt(digitIndex, pointIndex);
-  const decimals = fraction.length;
-  const units = Number(`${whole}${fraction}`) * (negative ? -1 : 1);
+  const spun = stepAtPlace(negative, whole, fraction, exponentAt(digitIndex, pointIndex), dir, bounds);
+  return after ? spun : {...spun, caret: spun.mark};
+}
+
+/** `text` (already parsed) stepped by one unit of the place `exp`, with as many decimals as the text
+ *  had, or as `exp` needs when it has fewer. The caret sits just right of the stepped digit; mark and
+ *  caret go to the leading digit when the place no longer exists after the step. */
+function stepAtPlace(negative: boolean, whole: string, fraction: string, exp: number, dir: SpinDirection, bounds: SpinBounds): CaretSpin {
+  const decimals = Math.max(fraction.length, -exp);
+  const units = Number(`${whole}${fraction.padEnd(decimals, '0')}`) * (negative ? -1 : 1);
   const stepped = units + dir * Number(`1e${exp + decimals}`);
   let value = Number(`${stepped}e-${decimals}`);
   if (value < bounds.min) value = bounds.min;
@@ -77,8 +84,32 @@ export function caretSpin(text: string, caret: number, dir: SpinDirection, bound
   const at = indexOfExponent(out, exp);
   const signOut = out.startsWith('-') ? 1 : 0;
   const mark = at < 0 ? signOut : at;
-  const caretOut = at < 0 ? signOut : after ? at + 1 : at;
-  return {text: out, value, caret: caretOut, mark, place: exp, decimals};
+  const caret = at < 0 ? signOut : at + 1;
+  return {text: out, value, caret, mark, place: exp, decimals};
+}
+
+/** The place the last step stepped, and the caret that step left in the box. */
+export interface SteppedPlace {
+  readonly place: number;
+  readonly caret: number | null;
+}
+
+/**
+ * One step of `text` (John, 2026-10-21: "if I was spinning 10s then it needs to move to 100s as the
+ * number grows .. unless human intervenes to move the focus digit"). While the caret is still where
+ * the `last` step left it, the step is at that step's place, even when the number has lost that
+ * digit (10.5 down a ten is 0.5, up a ten is 10.5 again). Otherwise it is at the caret, the tenths
+ * digit by default (`steppingCaret`). `null` when there is no number to step.
+ */
+export function spinStep(text: string, caret: number | null, last: SteppedPlace | null, dir: SpinDirection, bounds: SpinBounds): CaretSpin | null {
+  if (last !== null && last.caret === caret) {
+    const parts = NUMBER_TEXT.exec(text);
+    if (parts !== null && (parts[2] !== '' || (parts[3] ?? '') !== '')) {
+      return stepAtPlace(parts[1] === '-', parts[2], parts[3] ?? '', last.place, dir, bounds);
+    }
+  }
+  return caretSpin(text, steppingCaret(text, caret), dir, bounds)
+    ?? caretSpin(text, tenthsCaret(text), dir, bounds);
 }
 
 /** The caret of a number nobody has put a caret in: just after the tenths digit, so a step is 0.1.

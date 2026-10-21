@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, steppingCaret, tenthsCaret} from '../../fields/caretSpin.js';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, spinStep, steppingCaret, tenthsCaret} from '../../fields/caretSpin.js';
 
 const OPEN = {min: -Infinity, max: undefined};
 
@@ -194,6 +194,47 @@ describe('a remembered caret', () => {
     expect(first).not.toBeNull();
     const second = caretSpin(first?.text ?? '', first?.caret ?? -1, 1, {min: 0, max: undefined});
     expect(second?.text).toBe('6.20');
+  });
+});
+
+// John, 2026-10-21 (QO291.c153): "if I was spinning 10s then it needs to move to 100s as the number
+// grows .. unless human intervenes to move the focus digit". A step after a step steps the same place.
+describe('spinStep: the next step keeps the place until the caret moves', () => {
+  it('with no last step, steps at the caret like caretSpin, and at the tenths with no caret', () => {
+    expect(spinStep('9.5', 1, null, 1, OPEN)?.text).toBe('10.5');
+    expect(spinStep('6.00', null, null, 1, OPEN)?.text).toBe('6.10');
+    expect(spinStep('6.00', 4, null, 1, OPEN)?.text).toBe('6.10');
+  });
+  it('keeps the tens through a lost digit: 10.5 down is 0.5, up again is 10.5', () => {
+    const down = spinStep('10.5', 0, null, -1, OPEN);
+    expect(down?.text).toBe('0.5');
+    expect(down?.place).toBe(1);
+    const up = spinStep(down?.text ?? '', down?.caret ?? null, {place: 1, caret: down?.caret ?? null}, 1, OPEN);
+    expect(up?.text).toBe('10.5');
+    expect(up?.place).toBe(1);
+    expect(up?.mark).toBe(0);
+  });
+  it('keeps the hundreds through 105 down to 5 and back', () => {
+    const last = {place: 2, caret: 0};
+    expect(spinStep('5', 0, last, 1, OPEN)?.text).toBe('105');
+    expect(spinStep('5', 0, last, -1, OPEN)?.text).toBe('-95');
+  });
+  it('keeps the tens as 90 becomes 100 and the tenths as 9.9 becomes 10.0', () => {
+    expect(spinStep('90', 2, {place: 1, caret: 2}, 1, OPEN)?.text).toBe('100');
+    const tenths = spinStep('9.9', 3, {place: -1, caret: 3}, 1, OPEN);
+    expect(tenths?.text).toBe('10.0');
+    expect(tenths?.mark).toBe(3);
+    expect(tenths?.caret).toBe(4);
+  });
+  it('keeps a place the text has too few decimals for, and shows it', () => {
+    expect(spinStep('100', 3, {place: -1, caret: 3}, 1, OPEN)?.text).toBe('100.1');
+  });
+  it('follows the caret once the person has moved it', () => {
+    expect(spinStep('0.5', 1, {place: 1, caret: 0}, 1, OPEN)?.text).toBe('1.5');
+  });
+  it('clamps to the limits at the kept place', () => {
+    expect(spinStep('0.5', 0, {place: 1, caret: 0}, 1, {min: 0, max: 8})?.text).toBe('8.0');
+    expect(spinStep('5', 0, {place: 1, caret: 0}, -1, {min: 0, max: undefined})?.text).toBe('0');
   });
 });
 

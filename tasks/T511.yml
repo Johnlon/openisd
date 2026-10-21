@@ -3,6 +3,7 @@ release_note: The phone New project wizard now follows the new classic design, w
 repo: openisd
 owner: maryu
 status: done
+landed: 345652c7f1339426399536ff407febf906992af2
 goal: Phone classic B12: new project wizard follows the approved classic mock (screen 25)
 done_test: bash scripts/test.sh packages/design/test/fields/phoneWizardText.test.ts
 files:
