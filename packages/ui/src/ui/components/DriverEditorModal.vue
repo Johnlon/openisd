@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {DateField, EnumField, NumberField, TextField} from '@openisd/design/fields';
+import {DateField, EnumField, NumberField, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
 import {computed, nextTick, onBeforeUnmount, ref, watch} from 'vue';
 import type {NumSpecField} from '../../logic/appState.js';
@@ -20,6 +20,8 @@ import {provideCellScope} from './cellScope.js';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
+import MobileKeyStrip from '../shells/mobile/MobileKeyStrip.vue';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo} from '../../logic/provenance.js';
@@ -637,19 +639,21 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
 <template>
   <div class="overlay on">
-    <div class="modal de-modal" :class="skin ? 'de-phone' : 'de-desktop'" :style="skin?.rowVars" ref="modalRootEl">
+    <div class="modal de-modal" :class="skin ? 'de-phone mob-classic' : 'de-desktop'" :style="skin?.rowVars" ref="modalRootEl">
       <h2>{{ editorTitle }}<button class="x" @click="cancel" title="Close without keeping changes">✕</button></h2>
 
       <div class="de-tabs">
         <button v-for="t in TABS" :key="t" class="de-tab" :class="{ on: tab === t }" @click="tab = t">{{ t }}</button>
       </div>
 
+      <MobileKeyStrip v-if="skin" />
+
       <!-- The scroll area: the fields, then what is wrong with them. On the desktop it dissolves into the dialog's own column; on the phone it is the one thing that scrolls. -->
       <div class="de-scroll">
         <div class="body de-body" :class="{ 'labels-left': tab !== 'General' }"
              :style="dockedCardHeight > 0 ? { paddingBottom: `${dockedCardHeight}px`, scrollPaddingBottom: `${dockedCardHeight}px` } : {}" @click="handleBodyClickOrFocus" @focusin="handleBodyClickOrFocus">
           <!-- ============================= General ============================= -->
-          <div v-if="tab === 'General'" class="de-general">
+          <div v-if="tab === 'General'" class="de-general" :style="skin?.generalColumnVars">
             <div v-for="(row, i) in GENERAL_TEXT_ROWS" :key="i" class="de-row2">
               <template v-for="t in row" :key="t.key">
                 <UIPickField v-if="skin" class="de-fld" :class="skin.field" :data-field-key="t.key" :title="t.def.description" :label="t.def.label" :input-id="`de-text-${t.key}`">
@@ -673,7 +677,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <!-- ============================= Parameters ============================= -->
           <div v-if="tab === 'Parameters'" class="de-params">
             <div class="de-group">
-              <div class="de-hdr">Thiele/Small parameters</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THIELE_SMALL" />
+              <div v-else class="de-hdr">Thiele/Small parameters</div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Qes')]" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Qms')]" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
@@ -684,7 +689,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             </div>
 
             <div class="de-group">
-              <div class="de-hdr">Electro-Mechanical parameters</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ELECTRO_MECHANICAL" />
+              <div v-else class="de-hdr">Electro-Mechanical parameters</div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
@@ -703,7 +709,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             </div>
 
             <div class="de-group">
-              <div class="de-hdr">Large-Signal parameters</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_LARGE_SIGNAL" />
+              <div v-else class="de-hdr">Large-Signal parameters</div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Xmax_m')]" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Hc_m')]" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
@@ -716,7 +723,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             </div>
 
             <div class="de-group">
-              <div class="de-hdr">Miscellaneous parameters</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_MISCELLANEOUS" />
+              <div v-else class="de-hdr">Miscellaneous parameters</div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('no')]" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Znom_ohm')]" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
@@ -734,7 +742,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <!-- ============================= Advanced parameters ============================= -->
           <div v-if="tab === 'Advanced'" class="de-params">
             <div class="de-group">
-              <div class="de-hdr">Thermal parameters</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THERMAL" />
+              <div v-else class="de-hdr">Thermal parameters</div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('alfaVC_per_K')]" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('Rt_K_per_W')]" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
@@ -743,7 +752,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             </div>
 
             <div class="de-group">
-              <div class="de-hdr">Figure of merits</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_FIGURE_OF_MERIT" />
+              <div v-else class="de-hdr">Figure of merits</div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('SPLmaxLF_dB')]" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
                 <UIField class="de-fld" :class="[skin?.field, feedsClass('SPLmax_dB')]" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
@@ -759,7 +769,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
             </div>
 
             <div class="de-group">
-              <div class="de-hdr">Environment parameters</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ENVIRONMENT" />
+              <div v-else class="de-hdr">Environment parameters</div>
               <div class="de-cols">
                 <UIFixedField class="de-fld value-c" :class="skin?.field" data-field-key="c_m_per_s" :title="NumberField.C_M_PER_S.description" :field="NumberField.C_M_PER_S" :value="cellVal('c_m_per_s')" readonly />
                 <UIFixedField class="de-fld value-c" :class="skin?.field" data-field-key="roo_kg_per_m3" :title="NumberField.ROO_KG_PER_M3.description" :field="NumberField.ROO_KG_PER_M3" :value="cellVal('roo_kg_per_m3')" readonly />
@@ -770,19 +781,20 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <!-- ============================= Dimensions ============================= -->
           <div v-if="tab === 'Dimensions'" class="de-dims">
             <div class="de-dimlist">
-              <div class="de-hdr">Dimensions</div>
+              <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_DIMENSIONS" />
+              <div v-else class="de-hdr">Dimensions</div>
               <!-- Every length below is stored in METRES and shown in MILLIMETRES (the length unit group),
                    the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                    WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
                    Thick read a metre value under an inches label. -->
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Thick_m" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('Depth_m')]" data-field-key="Depth_m" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('MagDepth_m')]" data-field-key="MagDepth_m" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('Magnet_m')]" data-field-key="Magnet_m" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
-              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
-              <UIField class="de-fld" :class="[skin?.field, feedsClass('DVol_m3')]" data-field-key="DVol_m3" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Thick_m" :label="skin ? PhoneLabels.THICK : undefined" :field="NumberField.THICK_M" :cell="fieldOf('Thick_m')" />
+              <UIField class="de-fld" :class="[skin?.field, feedsClass('Depth_m')]" data-field-key="Depth_m" :label="skin ? PhoneLabels.DEPTH : undefined" :style="getFieldStyle('Depth_m')" :field="NumberField.DEPTH_M" :cell="fieldOf('Depth_m')" />
+              <UIField class="de-fld" :class="[skin?.field, feedsClass('MagDepth_m')]" data-field-key="MagDepth_m" :label="skin ? PhoneLabels.MAG_DEPTH : undefined" :style="getFieldStyle('MagDepth_m')" :field="NumberField.MAGDEPTH_M" :cell="fieldOf('MagDepth_m')" />
+              <UIField class="de-fld" :class="[skin?.field, feedsClass('Magnet_m')]" data-field-key="Magnet_m" :label="skin ? PhoneLabels.MAGNET : undefined" :style="getFieldStyle('Magnet_m')" :field="NumberField.MAGNET_M" :cell="fieldOf('Magnet_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Basket_m" :label="skin ? PhoneLabels.BASKET : undefined" :field="NumberField.BASKET_M" :cell="fieldOf('Basket_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Outer_m" :label="skin ? PhoneLabels.OUTER : undefined" :field="NumberField.OUTER_M" :cell="fieldOf('Outer_m')" />
+              <UIField class="de-fld" :class="skin?.field" data-field-key="Vcd_m" :label="skin ? PhoneLabels.VCD : undefined" :field="NumberField.VCD_M" :cell="fieldOf('Vcd_m')" />
+              <UIField class="de-fld" :class="[skin?.field, feedsClass('DVol_m3')]" data-field-key="DVol_m3" :label="skin ? PhoneLabels.DVOL : undefined" :style="getFieldStyle('DVol_m3')" :field="NumberField.DVOL_M3" :cell="fieldOf('DVol_m3')" />
             </div>
 
             <div class="de-diagram" aria-hidden="true" title="Driver cross-section (reference diagram — dimensions not modelled)">
@@ -842,7 +854,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
       </div>
 
       <div class="de-footer">
-        <div class="de-legend2">
+        <div v-if="!skin" class="de-legend2">
           <span class="de-legend-item"><span class="de-sw value-e"></span>Entered</span>
           <span class="de-legend-item"><span class="de-sw value-c"></span>Calculated</span>
           <span class="de-legend-item"><span class="de-sw value-n"></span>Not entered</span>
@@ -918,7 +930,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
       </div>
       <SaveToLibraryDialog v-if="saveMyDialogOpen" title="Save to My Drivers"
         note="Confirm or update the Brand and Model to save this driver in My Drivers."
-        :fields="saveMyFields" :can-save="!!saveBrand.trim() && !!saveModel.trim()" save-label="Save to My Drivers"
+        :fields="saveMyFields" :can-save="!!saveBrand.trim() && !!saveModel.trim()" save-label="Save to My Drivers" :phone="skin !== undefined"
         @save="confirmSaveToMyDrivers" @cancel="saveMyDialogOpen = false" />
     </div>
     <EquationInspectorModal
@@ -1243,7 +1255,8 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-phone .de-scroll { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; }
 .de-phone .de-body { flex: none; overflow: visible; padding: 0; gap: 0; }
 .de-phone .de-params, .de-phone .de-group, .de-phone .de-cols, .de-phone .de-dimlist, .de-phone .de-row2 { display: block; }
-.de-phone .de-hdr { padding: 6px 0; margin: 0; border-radius: 0; font-size: 13px; }
+/* The first section band of a tab sits flush under the key strip (the classic page rule gives later bands a 12 px gap). */
+.de-phone .de-body > .de-params > .de-group:first-child > .mob-band:first-child, .de-phone .de-dimlist > .mob-band:first-child { margin-top: 0; }
 .de-phone .de-dims { flex-direction: column; align-items: stretch; gap: 0; height: auto; }
 .de-phone .de-diagram { min-width: 0; height: auto; padding: 12px; }
 .de-phone .de-scroll { display: flex; flex-direction: column; }
@@ -1252,7 +1265,10 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-phone .de-general { display: flex !important; flex-direction: column !important; flex: 1 1 auto !important; height: auto !important; }
 .de-phone .de-general .de-fld.de-comment { display: flex; flex-direction: column; flex: 1 1 auto; }
 .de-phone .de-general .de-fld.de-comment > :deep(.ui-field-value) { flex: 1 1 auto; display: flex; align-items: stretch; }
-.de-phone .de-general .de-fld.de-comment textarea { flex: 1 1 auto; width: 100% !important; min-height: 120px !important; font-size: 18px; border-radius: 6px; padding: 8px !important; }
+.de-phone .de-general .de-fld.de-comment.ui-field { display: flex; flex-direction: column; align-items: stretch; height: auto; min-height: var(--mob-row-min); padding-top: 6px; padding-bottom: 8px; }
+.de-phone .de-general .de-fld.de-comment textarea { flex: 1 1 auto; width: 100% !important; min-height: 120px !important; box-sizing: border-box; font-size: 15px; border: 1px solid var(--mob-box-line); border-radius: 4px; padding: 6px var(--mob-col-gutter) !important; resize: none; }
+/* The editor's rows carry no ≠W badge, so the ⚠ sits right beside the unit chip and leaves the middle of the box free to tap. */
+.de-phone.mob-classic :deep(.mob-ui-field.ui-field .ui-field-dq) { margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 8px); }
 .de-phone h2 .x { min-width: var(--mob-touch-min); min-height: var(--mob-touch-min); }
 /* The unit toggle and the ⚠ are buttons: as tall as the row's box, so a finger finds them. */
 .de-phone :deep(.ui-field-unit), .de-phone :deep(.ui-field-dq-btn) { min-height: var(--mob-input-h); display: inline-flex; align-items: center; }

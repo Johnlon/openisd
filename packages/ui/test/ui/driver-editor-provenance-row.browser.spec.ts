@@ -1,4 +1,4 @@
-import {driverEditorField, expect, openAMobileProject, openAProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
+import {driverEditorField, type EditorSkin, expect, openAMobileProject, openAProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {PIXEL_9} from '../fixtures/phoneSizes.js';
 import type {Page} from '@playwright/test';
@@ -40,15 +40,18 @@ async function look(page: Page, label: string): Promise<RowLook> {
   });
 }
 
-async function swatch(page: Page, cls: string): Promise<string> {
-  return page.locator(`.de-legend2 .de-sw.${cls}`).evaluate(el => getComputedStyle(el).backgroundColor);
+/** The Entered colour as the editor's key shows it: the desktop legend swatch, or the phone key strip's ■. */
+async function enteredColour(page: Page, skin: EditorSkin): Promise<string> {
+  return skin === 'phone'
+    ? page.locator('.de-modal .mob-key-strip .mob-key-item.value-e .mob-key-sw').evaluate(el => getComputedStyle(el).color)
+    : page.locator('.de-legend2 .de-sw.value-e').evaluate(el => getComputedStyle(el).backgroundColor);
 }
 
 /** Alpha of an rgb()/rgba() string. */
 const alpha = (c: string) => (c.startsWith('rgba') ? parseFloat(c.split(',')[3]) : c === 'transparent' ? 0 : 1);
 
-async function inspectQts(page: Page): Promise<void> {
-  await seedDriverInEditor(page);
+async function inspectQts(page: Page, skin: EditorSkin): Promise<void> {
+  await seedDriverInEditor(page, skin);
   await page.locator('.de-provenance-chk', {hasText: 'Inspect Provenance'}).locator('input').check();
   await driverEditorField(page, 'Qts').locator('label').click();
   await expect(driverEditorField(page, 'Qes')).toHaveAttribute('style', /background-color/);
@@ -56,8 +59,8 @@ async function inspectQts(page: Page): Promise<void> {
 
 interface Measured { qes: RowLook; re: RowLook; legendValueE: string }
 
-async function measure(page: Page): Promise<Measured> {
-  return {qes: await look(page, 'Qes'), re: await look(page, 'Re'), legendValueE: await swatch(page, 'value-e')};
+async function measure(page: Page, skin: EditorSkin): Promise<Measured> {
+  return {qes: await look(page, 'Qes'), re: await look(page, 'Re'), legendValueE: await enteredColour(page, skin)};
 }
 
 /** The pass condition, as expectations over the measurements. */
@@ -76,8 +79,8 @@ test.describe('Inspect Provenance tints the whole row', () => {
     await page.goto('/');
     await openAProject(page);
     await openDriverEditor(page);
-    await inspectQts(page);
-    const measured = await measure(page);
+    await inspectQts(page, 'desktop');
+    const measured = await measure(page, 'desktop');
     expect(measured.qes.fieldRight).toBeGreaterThan(measured.qes.fieldLeft);
     expectWholeRowTint(measured);
   });
@@ -90,8 +93,8 @@ test.describe('Inspect Provenance tints the whole row', () => {
     await page.locator('.mob-tab', {hasText: 'Driver'}).click();
     await page.getByText('Edit', {exact: true}).click();
     await expect(page.locator('.de-modal')).toBeVisible();
-    await inspectQts(page);
-    const measured = await measure(page);
+    await inspectQts(page, 'phone');
+    const measured = await measure(page, 'phone');
     expect(measured.qes.fieldRight).toBeGreaterThan(measured.qes.fieldLeft);
     expectWholeRowTint(measured);
   });

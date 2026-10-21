@@ -18,25 +18,16 @@ describe('PhoneRowSizes', () => {
     expect(vars.get('--mob-label-gap')).toBe('0px');
   });
 
-  it('compact rows are a half-way house: 40 px rows, 36 px boxes, the label on the row\'s own line', () => {
-    const vars = PhoneRowSizes.COMPACT.cssVars();
-    expect(vars.get('--mob-row-min')).toBe('40px');
-    expect(vars.get('--mob-input-h')).toBe('36px');
-    expect(vars.get('--mob-label-w')).toBe('120px');
-    expect(vars.get('--mob-stepper-w')).toBe('40px');
-    expect(vars.get('--mob-touch-min')).toBe(`${SheetSizes.TOUCH_MIN_PX}px`);
-  });
-
   it('every set gives the one 44 px phone button', () => {
     expect(PhoneRowSizes.BUTTON_PX).toBe(44);
-    for (const set of [PhoneRowSizes.TAB, PhoneRowSizes.CLASSIC, PhoneRowSizes.SHEET, PhoneRowSizes.COMPACT]) {
+    for (const set of [PhoneRowSizes.TAB, PhoneRowSizes.CLASSIC, PhoneRowSizes.SHEET]) {
       expect(set.cssVars().get('--mob-button-h')).toBe('44px');
     }
   });
 
   it('both sets name the same variables', () => {
     expect([...PhoneRowSizes.SHEET.cssVars().keys()]).toEqual([...PhoneRowSizes.TAB.cssVars().keys()]);
-    expect([...PhoneRowSizes.COMPACT.cssVars().keys()]).toEqual([...PhoneRowSizes.TAB.cssVars().keys()]);
+    expect([...PhoneRowSizes.CLASSIC.cssVars().keys()]).toEqual([...PhoneRowSizes.TAB.cssVars().keys()]);
   });
 
   it('classic rows are 40 px with 34 px boxes and a 3 px pad', () => {

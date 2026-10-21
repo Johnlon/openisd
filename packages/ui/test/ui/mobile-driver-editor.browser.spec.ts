@@ -69,11 +69,11 @@ test('at phone width the Driver Editor fits the screen: first tab, legend one ro
     await expect(button).toBeInViewport({ ratio: 1 });
   }
 
-  await expect(page.locator('.de-legend-item')).toHaveCount(3);
-  const items = await page.locator('.de-legend-item').all();
-  const boxes = await Promise.all(items.map(i => i.boundingBox()));
-  for (let i = 1; i < boxes.length; i++) expect(boxes[i]!.y).toBeCloseTo(boxes[0]!.y, 0);
-  const legend = (await page.locator('.de-legend2').boundingBox())!;
+  // The colour key is the strip under the tabs (T530), not the footer's legend.
+  const strip = page.locator('.de-modal .mob-key-strip');
+  await expect(strip).toBeVisible();
+  for (const word of ['Entered', 'Calculated', 'Not Available']) await expect(strip).toContainText(word);
+  const legend = (await strip.boundingBox())!;
   for (const button of await page.locator('.de-btns button').all()) {
     const b = (await button.boundingBox())!;
     expect(b.y).toBeGreaterThanOrEqual(legend.y + legend.height - 1);
@@ -164,17 +164,18 @@ test('the Driver Editor tab titles all fit without scrolling sideways at phone w
 // bugs/BUG_20261018_driver-editor-buttons-tiny.md. The editor is built from the same pieces as the
 // phone tabs: the shared phone field row, and finger-sized buttons, tabs and boxes.
 for (const tabName of ['General', 'Parameters', 'Advanced', 'Dimensions']) {
-  test(`on the phone the Driver Editor ${tabName} tab: compact one-line rows, finger-sized buttons, DQ text inside the scroll, nothing past the edge`, async ({ page }) => {
+  test(`on the phone the Driver Editor ${tabName} tab: classic one-line rows, finger-sized buttons, DQ text inside the scroll, nothing past the edge`, async ({ page }) => {
     await page.setViewportSize(PIXEL_9);
     await page.getByText('Edit', { exact: true }).click();
     await expect(page.locator('.de-modal')).toBeVisible();
     await page.locator('.de-tab', { hasText: tabName }).click();
 
-    // Buttons and tabs are finger-sized; the boxes inside a row are the compact set's.
+    // Buttons and tabs are finger-sized; the boxes inside a row are the classic set's.
     const small = await page.locator('.de-modal').evaluate((root, [touch, box]) => {
       const shown = (el: Element): boolean => el.getClientRects().length > 0;
+      // The band's ? is the classic page's 22 px round help button (PHONE_CLASSIC_BUILD_SPEC §2), not a row control.
       const rowPart = '.num-stepper-btn, .ui-field-dq-btn, .ui-field-unit';
-      const buttons = [...root.querySelectorAll('button, [role=button]')].filter(el => shown(el) && !el.matches(rowPart));
+      const buttons = [...root.querySelectorAll('button, [role=button]')].filter(el => shown(el) && !el.matches(`${rowPart}, .mob-band-help`));
       const parts = [...root.querySelectorAll(`${rowPart}, select, input:not([type=file]):not([type=checkbox])`)].filter(shown);
       const checks = [...root.querySelectorAll('input[type=checkbox]')].filter(shown).map(el => el.closest('label') ?? el);
       const measure = (el: Element, min: number) => ({
@@ -182,22 +183,22 @@ for (const tabName of ['General', 'Parameters', 'Advanced', 'Dimensions']) {
         h: el.getBoundingClientRect().height, min,
       });
       return [...buttons.map(el => measure(el, touch)), ...[...parts, ...checks].map(el => measure(el, box))].filter(c => c.h < c.min);
-    }, [SheetSizes.TOUCH_MIN_PX, PhoneRowSizes.COMPACT.inputMinPx]);
+    }, [SheetSizes.TOUCH_MIN_PX, PhoneRowSizes.CLASSIC.inputMinPx]);
     expect(small, 'controls under their minimum').toEqual([]);
 
     const notPhoneRows = await page.locator('.de-fld.ui-field').evaluateAll(els =>
       els.filter(el => !el.classList.contains('mob-ui-field')).map(el => el.getAttribute('data-field-key')));
     expect(notPhoneRows, 'field rows that are not the shared phone row').toEqual([]);
 
-    // A row is at most 44 px deep, and its label is on the same line as its box (the two overlap vertically).
-    const rows = await page.locator('.de-fld.mob-ui-field-inline').evaluateAll(els => els.map(el => {
+    // A row is 40 px deep, and its label is on the same line as its box (the two overlap vertically).
+    const rows = await page.locator('.de-fld.mob-ui-field:not(.de-comment)').evaluateAll(els => els.map(el => {
       const r = el.getBoundingClientRect();
       const l = el.querySelector('label')!.getBoundingClientRect();
       const b = el.querySelector('input, select')!.getBoundingClientRect();
       return { key: el.getAttribute('data-field-key'), h: r.height, sameLine: l.top < b.bottom && l.bottom > b.top };
     }));
     expect(rows.length, 'inline rows on the tab').toBeGreaterThan(0);
-    expect(rows.filter(r => r.h > 44 || !r.sameLine), 'rows deeper than 44 px or with the label above the box').toEqual([]);
+    expect(rows.filter(r => Math.abs(r.h - PhoneRowSizes.CLASSIC.rowMinPx) > 0.5 || !r.sameLine), 'rows not 40 px deep or with the label above the box').toEqual([]);
 
     expect(await elementsPastScreenEdges(page, '.de-modal')).toEqual([]);
     const scroll = page.locator('.de-scroll');
@@ -311,4 +312,73 @@ test.describe('tab strip at the Pixel 9 pixel density', () => {
     const broken = rows.map((r, y) => ({r, y})).filter(({r}) => r.includes('|'));
     expect(broken, 'every pixel row across the tab\'s face and just below it is one colour').toEqual([]);
   });
+});
+
+// T530, screen 36 (gaps-phone/save-to-library.html): the dialog on the phone has the label above a
+// 36 px box, Cancel left of Save, both 44 px, Save the one blue button; it fits the screen at every size.
+test('on the phone the Save to My Drivers dialog follows the mock: label above 36 px boxes, Cancel then Save at 44 px', async ({ page }) => {
+  await page.setViewportSize(PIXEL_9);
+  await page.getByText('Edit', { exact: true }).click();
+  await page.locator('.de-copy-my').click();
+  const panel = page.getByRole('dialog', { name: 'Save to My Drivers' });
+  await expect(panel).toBeVisible();
+
+  const m = await panel.evaluate(el => {
+    const r = (e: Element) => e.getBoundingClientRect();
+    return {
+      panel: r(el),
+      fields: [...el.querySelectorAll('.save-lib-fld')].map(f => ({label: r(f.querySelector('label')!), input: r(f.querySelector('input')!)})),
+      cancel: r(el.querySelector('.save-cancel-btn')!), save: r(el.querySelector('.save-confirm-btn')!),
+      savePrimary: el.querySelector('.save-confirm-btn')!.classList.contains('mob-btn-primary'),
+      cancelPrimary: el.querySelector('.save-cancel-btn')!.classList.contains('mob-btn-primary'),
+    };
+  });
+  expect(m.fields, 'Brand and Model').toHaveLength(2);
+  for (const f of m.fields) {
+    expect(f.input.height, 'box 36 px').toBeCloseTo(36, 0);
+    expect(f.input.width, 'box is the panel width less its padding').toBeGreaterThan(m.panel.width - 40);
+    expect(f.input.top, 'label text above the box').toBeGreaterThanOrEqual(f.label.top + 10);
+  }
+  expect(m.cancel.height).toBeGreaterThanOrEqual(PhoneRowSizes.BUTTON_PX - 0.5);
+  expect(m.save.height).toBeGreaterThanOrEqual(PhoneRowSizes.BUTTON_PX - 0.5);
+  expect(m.cancel.right, 'Cancel left of Save').toBeLessThanOrEqual(m.save.left + 1);
+  expect(m.savePrimary, 'Save is the blue button').toBe(true);
+  expect(m.cancelPrimary, 'Cancel is the plain button').toBe(false);
+  expect(m.panel.width).toBeLessThanOrEqual(340.5);
+  expect(m.panel.left).toBeGreaterThanOrEqual(0);
+  expect(m.panel.right).toBeLessThanOrEqual(PIXEL_9.width);
+  expect(m.panel.bottom).toBeLessThanOrEqual(PIXEL_9.height);
+});
+
+test('on the phone Cancel in the Save to My Drivers dialog closes it and tells nothing was saved', async ({ page }) => {
+  await page.setViewportSize(PIXEL_9);
+  await page.getByText('Edit', { exact: true }).click();
+  await page.locator('.de-copy-my').click();
+  const panel = page.getByRole('dialog', { name: 'Save to My Drivers' });
+  await panel.locator('.save-cancel-btn').click();
+  await expect(panel).toHaveCount(0);
+  await expect(page.locator('.de-modal')).toBeVisible();
+});
+
+// T530, screen 31 (gaps-phone/equation-inspector.html): the inspector in the editor has a 44 px header
+// with a 44x44 close, and no text under 12 px.
+test('the equation inspector on the phone has a 44 px header and close, and text of 12 px or more', async ({ page }) => {
+  await page.setViewportSize(PIXEL_9);
+  await page.getByText('Edit', { exact: true }).click();
+  await page.locator('.de-tab', { hasText: 'Parameters' }).click();
+  await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
+  await page.locator('.de-fld:has-text("Qts") input').first().click();
+  const card = page.locator('.eq-inspector-card');
+  await expect(card).toBeVisible();
+  const m = await card.evaluate(el => ({
+    header: el.querySelector('.eq-hdr')!.getBoundingClientRect().height,
+    close: (() => { const r = el.querySelector('.eq-x')!.getBoundingClientRect(); return {w: r.width, h: r.height}; })(),
+    smallest: Math.min(...[...el.querySelectorAll('.eq-title, .eq-target, .eq-path-name, .eq-formula, .eq-in-lbl, .eq-in-badge')].map(e => parseFloat(getComputedStyle(e).fontSize))),
+  }));
+  expect(m.header, 'header at least 44 px').toBeGreaterThanOrEqual(SheetSizes.TOUCH_MIN_PX - 0.5);
+  expect(m.close.w).toBeGreaterThanOrEqual(SheetSizes.TOUCH_MIN_PX - 0.5);
+  expect(m.close.h).toBeGreaterThanOrEqual(SheetSizes.TOUCH_MIN_PX - 0.5);
+  expect(m.smallest, 'smallest text').toBeGreaterThanOrEqual(12);
+  await card.locator('.eq-x').click();
+  await expect(card).toHaveCount(0);
 });

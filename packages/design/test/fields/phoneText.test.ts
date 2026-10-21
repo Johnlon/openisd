@@ -19,6 +19,15 @@ describe('phone text', () => {
     for (const row of PhoneHelp.rearChamber('sealed').rows.slice(0, 3)) expect(row.label).toMatch(/^[A-Z][a-z]+ \(/);
   });
 
+  it('every driver editor section band has a one-line help for its ?', () => {
+    const bands = [PhoneHelp.EDITOR_THIELE_SMALL, PhoneHelp.EDITOR_ELECTRO_MECHANICAL, PhoneHelp.EDITOR_LARGE_SIGNAL, PhoneHelp.EDITOR_MISCELLANEOUS,
+      PhoneHelp.EDITOR_THERMAL, PhoneHelp.EDITOR_FIGURE_OF_MERIT, PhoneHelp.EDITOR_ENVIRONMENT, PhoneHelp.EDITOR_DIMENSIONS];
+    for (const band of bands) {
+      expect(band.title).not.toBe('');
+      expect(band.intro, band.title).toMatch(/\.$/);
+    }
+  });
+
   it('chamber rows use WinISD symbols', () => {
     expect(PhoneLabels.VB).toBe('Vb');
     expect(PhoneLabels.FB).toBe('Fb');

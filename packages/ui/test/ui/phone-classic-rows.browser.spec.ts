@@ -420,3 +420,96 @@ test('classic wizard: step 5 has the name and description boxes with their label
   await page.locator('.mob-np-footer').getByText('Create Project').click();
   await expect(page.locator('.mob-np-overlay')).toBeHidden();
 });
+
+/**
+ * B6 (T530): the driver editor's four tabs (screen 8) in classic rows. Rows are CLASSIC deep, the
+ * label column is 82 px (General: 128 px), value boxes share one left edge with a 14 px text gutter,
+ * the key strip sits under the tabs, section bands are 28 px with a ?, and there is one primary button.
+ */
+/** Per tab: the label column and the fewest section bands. General's longer labels get the wide column and it has no bands. */
+const EDITOR_TABS = {
+  General: {labelPx: PhoneRowColumns.WIDE_LABEL.labelPx, minBands: 0},
+  Parameters: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
+  Advanced: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
+  Dimensions: {labelPx: PhoneRowColumns.STANDARD.labelPx, minBands: 1},
+} as const;
+
+for (const size of PHONE_SIZES) {
+  for (const [tabName, tabSpec] of Object.entries(EDITOR_TABS)) {
+    test(`classic rows: driver editor ${tabName} at ${size.width}×${size.height}`, async ({page}) => {
+      await page.setViewportSize(size);
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await openAMobileProject(page);
+      await page.locator('.mob-tab', {hasText: 'Driver'}).first().click();
+      await page.getByText('Edit', {exact: true}).click();
+      const modal = page.locator('.de-modal');
+      await expect(modal).toBeVisible();
+      await modal.locator('.de-tab', {hasText: tabName}).click();
+
+      const rows = modal.locator('.de-fld.ui-field:not(.de-comment)');
+      expect(await rows.count(), 'the tab has field rows').toBeGreaterThan(0);
+      for (const h of await rows.evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) {
+        expect(Math.abs(h - ROW_PX), `row height ${h}`).toBeLessThanOrEqual(TOL);
+      }
+
+      const boxes = await rows.evaluateAll(els => els.flatMap(row => {
+        const input = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value .mob-readonly');
+        if (!input) return [];
+        const box = input.getBoundingClientRect();
+        const chip = row.querySelector<HTMLElement>('.ui-field-unit')?.getBoundingClientRect();
+        return [{
+          left: box.left, gutter: parseFloat(getComputedStyle(input).paddingLeft), isSelect: input.tagName === 'SELECT',
+          labelCol: parseFloat(getComputedStyle(row).gridTemplateColumns.split(' ')[0]),
+          chipInside: chip === undefined || chip.width === 0 || (chip.left >= box.left && chip.right <= box.right + 0.5),
+        }];
+      }));
+      expect(boxes.length).toBeGreaterThan(0);
+      for (const b of boxes) {
+        expect(Math.abs(b.left - boxes[0].left), 'value boxes share one left edge').toBeLessThanOrEqual(TOL);
+        expect(b.labelCol, 'label column').toBeCloseTo(tabSpec.labelPx, 0);
+        expect(b.isSelect || b.gutter === GUTTER_PX, `text gutter ${b.gutter}`).toBe(true);
+        expect(b.chipInside, 'unit chip inside its box').toBe(true);
+      }
+
+      const overflow = await page.evaluate(() => ({
+        page: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        scroll: (() => { const s = document.querySelector('.de-scroll'); return s !== null && s.scrollWidth > s.clientWidth; })(),
+        cut: [...document.querySelectorAll<HTMLElement>('.de-modal .de-fld label, .de-modal .de-fld input, .de-modal button')]
+          .filter(e => e.closest('.de-tabs') === null)
+          .filter(e => e.scrollWidth > e.clientWidth + 1).map(e => `${e.tagName}.${e.className}:${e.textContent?.trim() || e.id}`),
+        outside: [...document.querySelectorAll<HTMLElement>('.de-modal input, .de-modal button')]
+          .filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < 0 || r.right > window.innerWidth + 0.5); }).length,
+      }));
+      expect(overflow.page, 'no horizontal page scroll').toBe(false);
+      expect(overflow.scroll, 'no sideways scroll in the editor').toBe(false);
+      expect(overflow.cut, 'no label, value or button is cut').toEqual([]);
+      expect(overflow.outside, 'no control outside the viewport sideways').toBe(0);
+
+      const strip = modal.locator('.mob-key-strip');
+      await expect(strip, 'key strip in the editor').toBeVisible();
+      for (const word of ['Entered', 'Calculated', 'Not Available']) await expect(strip).toContainText(word);
+      const gap = await page.evaluate(() => {
+        const tabs = document.querySelector('.de-tabs')?.getBoundingClientRect();
+        const s = document.querySelector('.de-modal .mob-key-strip')?.getBoundingClientRect();
+        return tabs && s ? s.top - tabs.bottom : NaN;
+      });
+      expect(Math.abs(gap), 'strip touches the tab bar bottom').toBeLessThanOrEqual(2);
+
+      const bands = await modal.locator('.mob-band').evaluateAll(els => els.map(e => ({
+        h: e.getBoundingClientRect().height, help: e.querySelector('.mob-band-help') !== null,
+      })));
+      expect(bands.length, 'the tab has its section bands').toBeGreaterThanOrEqual(tabSpec.minBands);
+      for (const b of bands) {
+        expect(Math.abs(b.h - BAND_PX), 'band height').toBeLessThanOrEqual(TOL);
+        expect(b.help, 'band has a ?').toBe(true);
+      }
+
+      const buttons = await modal.locator('.de-footer button').evaluateAll(els => els.map(e => ({
+        h: e.getBoundingClientRect().height, primary: e.classList.contains('mob-btn-primary'),
+      })));
+      for (const b of buttons) expect(b.h, 'footer button 44 px').toBeGreaterThanOrEqual(PhoneRowSizes.BUTTON_PX - TOL);
+      expect(buttons.filter(b => b.primary), 'one primary button').toHaveLength(1);
+    });
+  }
+}

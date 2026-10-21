@@ -753,14 +753,22 @@ const SEED_DIMENSIONS: ReadonlyArray<readonly [string, string]> = [
   ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
 ];
 
+/** The same Dimensions rows under the phone editor's short labels (PhoneLabels, T530). */
+const SEED_DIMENSIONS_PHONE: ReadonlyArray<readonly [string, string]> = [
+  ['Depth', '55'], ['MagDpt', '20'], ['Magnet', '60'], ['Vcd', '25'],
+];
+
+/** Which editor layout is on screen: the phone editor labels its Dimensions rows short. */
+export type EditorSkin = 'desktop' | 'phone';
+
 /** In the open Driver Editor, enter a solvable driver so the derived fields carry the CALCULATED mark. */
-export async function seedDriverInEditor(page: Page): Promise<void> {
+export async function seedDriverInEditor(page: Page, skin: EditorSkin = 'desktop'): Promise<void> {
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
   for (const [label, value] of SEED_PARAMETERS) {
     await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
   }
   await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
-  for (const [label, value] of SEED_DIMENSIONS) {
+  for (const [label, value] of skin === 'phone' ? SEED_DIMENSIONS_PHONE : SEED_DIMENSIONS) {
     await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
   }
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();

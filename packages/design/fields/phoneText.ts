@@ -57,6 +57,15 @@ export class PhoneLabels {
   static readonly GPK = 'Gpk';
   static readonly FPK = 'fpk';
   static readonly BW = 'BW';
+  /** The driver editor's Dimensions rows: the short names the drawing uses (the full names do not fit the 82 px label column). */
+  static readonly THICK = 'Thick';
+  static readonly DEPTH = 'Depth';
+  static readonly MAG_DEPTH = 'MagDpt';
+  static readonly MAGNET = 'Magnet';
+  static readonly BASKET = 'Basket';
+  static readonly OUTER = 'Outer';
+  static readonly VCD = 'Vcd';
+  static readonly DVOL = 'DVol';
 }
 
 /** One quick-add chip of the phone Filters tab, in WinISD's Filter Editor order, then the two OpenISD-only shelves. */
@@ -173,6 +182,16 @@ export class PhoneHelp {
     {label: 'Volts', text: 'the amplifier output voltage. Power and Volts set each other.'},
     {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'},
   ]);
+
+  /** The driver editor's section bands (screen 8); each ? opens the section's one-line meaning. */
+  static readonly EDITOR_THIELE_SMALL = new PhoneHelpSection('Thiele/Small parameters', 'The driver figures, measured at low volume, that set how it plays bass.', []);
+  static readonly EDITOR_ELECTRO_MECHANICAL = new PhoneHelpSection('Electro-mechanical parameters', 'The moving parts, the suspension that holds them and the magnet motor that drives them.', []);
+  static readonly EDITOR_LARGE_SIGNAL = new PhoneHelpSection('Large-signal parameters', 'How far the cone can move and how much power the driver can take.', []);
+  static readonly EDITOR_MISCELLANEOUS = new PhoneHelpSection('Miscellaneous parameters', 'Efficiency, loudness, impedance (the load in ohms) and wiring.', []);
+  static readonly EDITOR_THERMAL = new PhoneHelpSection('Thermal parameters', 'How the voice coil heats up.', []);
+  static readonly EDITOR_FIGURE_OF_MERIT = new PhoneHelpSection('Figures of merit', 'Scores worked out from the parameters, for comparing drivers.', []);
+  static readonly EDITOR_ENVIRONMENT = new PhoneHelpSection('Environment parameters', 'The air conditions the parameters were measured in.', []);
+  static readonly EDITOR_DIMENSIONS = new PhoneHelpSection('Dimensions', 'The driver\'s physical sizes, for reference.', []);
 
   static readonly PROJECT_DETAILS = new PhoneHelpSection('Project details', 'The project name and notes.', [
     {label: 'Name', text: 'the name shown in the project list.'},

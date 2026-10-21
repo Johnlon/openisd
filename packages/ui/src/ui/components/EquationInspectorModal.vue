@@ -71,7 +71,12 @@ const emit = defineEmits<{ close: [] }>();
   box-shadow: none;
   animation: none;
 }
-.eq-docked .eq-x { min-width: var(--mob-touch-min); min-height: var(--mob-touch-min); }
+/* The phone's inspector (gaps-phone/equation-inspector.html): a 44 px header with a 44x44 ✕, and nothing
+   under 12 px. */
+.eq-docked .eq-hdr { min-height: var(--mob-touch-min); padding-top: 0; padding-bottom: 0; }
+.eq-docked .eq-x { width: var(--mob-touch-min); height: var(--mob-touch-min); display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size: 18px; }
+.eq-docked .eq-title, .eq-docked .eq-path-name, .eq-docked .eq-formula, .eq-docked .eq-in-lbl, .eq-docked .eq-in-badge, .eq-docked .eq-empty { font-size: 12px; }
+.eq-docked .eq-target { font-size: 13px; }
 .eq-docked .eq-body { max-height: calc(var(--mob-row-min) * 2); }
 
 @keyframes eq-fade {
