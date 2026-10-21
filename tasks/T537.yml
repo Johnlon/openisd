@@ -1,0 +1,17 @@
+id: T537
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Fit Enable WinISD bugs group inside desktop Advanced tab without clipping
+done_test: bash scripts/test.sh packages/ui/test/ui/OriginalShell-advanced-layout.test.ts
+files:
+  - tasks/T537.yml
+  - bugs/BUG_20261019_desktop-advanced-winisd-bugs-group-cut.md
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/OriginalShell-advanced-layout.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+visual:
+  - desktop-tab-advanced

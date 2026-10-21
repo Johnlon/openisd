@@ -690,16 +690,18 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <!-- ===== Advanced tab ===== -->
         <section class="tab-section" :class="{ active: activeTab === 'advanced' }">
           <div class="two-col adv-two-col">
-            <div class="adv-air-fields" style="--label-w:108px;">
-              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
-              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range /></div>
-              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
-              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
-              <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
-              <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
-            </div>
-            <div class="checkbox-col">
-              <AdvancedOptions />
+            <div class="adv-left-col">
+              <div class="adv-air-fields" style="--label-w:108px;">
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
+                <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
+                <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
+              </div>
+              <div class="checkbox-col">
+                <AdvancedOptions />
+              </div>
             </div>
             <div class="sim-options-box">
               <div class="sim-switches">
@@ -1454,8 +1456,16 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label input[type=checkbox] { flex:none; }
 
 .adv-two-col { gap: 8px; align-items: flex-start; }
+.adv-left-col { display: flex; flex-direction: column; gap: 4px; flex: none; }
 /* The standard WinISD options: one line each, as wide as the longest (John, 2026-10-05). */
 .adv-two-col .checkbox-col { margin-left: 0; width: max-content; }
+.adv-two-col .checkbox-col :deep(.adv-options) {
+  display: grid;
+  grid-template-rows: repeat(3, auto);
+  grid-auto-flow: column;
+  column-gap: 16px;
+  row-gap: 0;
+}
 .adv-two-col .checkbox-col :deep(label) { white-space: nowrap; }
 .adv-two-col .side-hint { width: 190px; }
 .adv-two-col .sim-options-box {

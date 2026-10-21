@@ -3,6 +3,7 @@ release_note: On the phone Graph page, Auto Y is now a box in the Tune and What-
 repo: openisd
 owner: maryu
 status: done
+landed: e0ef0b5980fdf0db316769be0576b293c46b4b6c
 goal: Phone Graph: Auto Y moves into the Tune and What-if sheet footer as the accepted QO267 mock draws it, so it no longer covers the first frequency label
 done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
 files:

@@ -575,6 +575,36 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
+    test('BUG_20261019: on the desktop Advanced tab at 1280×800 and 1600×900, every switch in "Enable WinISD bugs" is fully inside the panel without clipping or new scrollbars', async ({ appPage: page }) => {
+      for (const [width, height] of [[1280, 800], [1600, 900]] as const) {
+        await page.setViewportSize({width, height});
+        await showAdvancedOn(page, 'vented');
+        const pane = page.locator('.tab-section.active');
+        const [scrollW, clientW, scrollH, clientH] = await pane.evaluate(el => [el.scrollWidth, el.clientWidth, el.scrollHeight, el.clientHeight]);
+        expect(scrollW, `at ${width}x${height} pane scrolls sideways`).toBeLessThanOrEqual(clientW);
+        expect(scrollH, `at ${width}x${height} pane scrolls vertically`).toBeLessThanOrEqual(clientH);
+        // Every tab shares one panel, as deep as its minimum or the tallest tab: the Advanced tab must not deepen it.
+        const [advancedH, panelFloorH] = await page.locator('.content-panel').evaluate(panel => {
+          const contentH = (section: Element) => Math.max(0, ...[...section.children].map(c => c.getBoundingClientRect().bottom - section.getBoundingClientRect().top));
+          const sections = [...panel.querySelectorAll('.content-tabs > .tab-section')];
+          const isActive = (s: Element) => s.classList.contains('active');
+          const css = getComputedStyle(panel);
+          const minInnerH = parseFloat(css.minHeight) - parseFloat(css.paddingTop) - parseFloat(css.paddingBottom);
+          return [Math.max(...sections.filter(isActive).map(contentH)), Math.max(minInnerH, ...sections.filter(s => !isActive(s)).map(contentH))];
+        });
+        expect(advancedH, `at ${width}x${height} the Advanced tab deepens the shared panel`).toBeLessThanOrEqual(panelFloorH);
+        const paneBox = (await pane.boundingBox())!;
+        const labels = await page.locator('.error-switch-group label[data-field-key]').all();
+        expect(labels.length).toBeGreaterThan(0);
+        for (const label of labels) {
+          const textRight = await label.evaluate(el => {
+            const r = document.createRange(); r.selectNodeContents(el); return r.getBoundingClientRect().right;
+          });
+          expect(textRight, `at ${width}x${height}: ${await label.innerText()}`).toBeLessThanOrEqual(paneBox.x + paneBox.width);
+        }
+      }
+    });
+
     test('the error group fits inside the Compatibility panel', async ({ appPage: page }) => {
       await showAdvancedOn(page, 'abc');
       const panel = page.locator('.sim-options-box');
