@@ -46,7 +46,6 @@ function wdrVCConEntry(
     const raw = cell.value.trim();
     if (raw.length === 0) return undefined;
     const stated = Number(raw);
-    if (!isFinite(stated)) return undefined;
 
     if (stated === 1 || stated === 2) {
         return {
@@ -107,18 +106,20 @@ function readSpecEntryInto(
 ): void {
     const cell = wdr.cell(wdrKey);
     const numValue = Number(cell.value);
-    const shouldImport =
-        cell.state === 'entered'
-        || (cell.state === 'not-available' && isFinite(numValue) && numValue !== 0)
-        || wdrKey === 'VCCon';
-    if (!shouldImport) return;
-    if (!isFinite(numValue) && wdrKey !== 'VCCon') {
+    if (!isFinite(numValue)) {
+        // Text where a number belongs: a .wdr holds only a flag and a number (John, 2026-10-11), so
+        // the cell is left out, and the user is told whatever its ParState mark says.
         warnings.push({
             level: 'warn', field: wdrKey,
             message: `${wdrKey} is "${cell.value}", not a number: left out`,
         });
         return;
     }
+    const shouldImport =
+        cell.state === 'entered'
+        || (cell.state === 'not-available' && numValue !== 0)
+        || wdrKey === 'VCCon';
+    if (!shouldImport) return;
     if (wdrKey === 'VCCon') {
         const entry = wdrVCConEntry(cell, warnings);
         if (entry) entries[schemaKey] = entry;

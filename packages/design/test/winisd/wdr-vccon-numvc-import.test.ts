@@ -85,13 +85,25 @@ describe('.wdr VCCon import', () => {
     assert.equal(warnings[0]!.field, 'VCCon');
   });
 
-  it('VCCon=abc is not a number at all — omitted with no warning, distinct from an out-of-range number', () => {
+  it('VCCon=abc is not a number at all — omitted with a "not a number: left out" warning', () => {
     const wdr = wdrStating('abc', 'E');
     const entry = vcconOf(wdr);
     const warnings = vcconWarningsOf(wdr);
     assert.equal(entry, undefined, 'a non-numeric VCCon is not a value WinISD could have written');
-    assert.equal(warnings.length, 0,
-      'not-a-number is not the same event as out-of-range — nothing to warn about, unlike VCCon=3');
+    assert.equal(warnings.length, 1);
+    assert.equal(warnings[0]!.level, 'warn');
+    assert.equal(warnings[0]!.field, 'VCCon');
+    assert.match(warnings[0]!.message, /not a number: left out/);
+  });
+
+  it('a not-available cell carrying text warns "not a number: left out"; a blank one stays silent', () => {
+    const rows = (qts: string) => ['[Driver]', 'Brand=Acme', 'Model=Widget', `Qts=${qts}`,
+      `ParState=${'N'.repeat(49)}`].join('\r\n') + '\r\n';
+    const withText = winISDDriverToOpenISDDeviceJson(WinISDDriver.fromWdrIni(rows('banana'))).warnings;
+    assert.ok(withText.some(w => w.level === 'warn' && w.field === 'Qts' && /not a number: left out/.test(w.message)),
+      `expected a Qts warning, got: ${JSON.stringify(withText)}`);
+    const blank = winISDDriverToOpenISDDeviceJson(WinISDDriver.fromWdrIni(rows(''))).warnings;
+    assert.equal(blank.filter(w => w.field === 'Qts').length, 0);
   });
 });
 

@@ -1,0 +1,12 @@
+id: T528
+release_note: internal
+repo: openisd
+owner: opus
+status: done
+goal: A .wdr text cell on a not-available field and a non-numeric VCCon each give an import warning; bug file closed.
+done_test: bash scripts/test.sh packages/design/test/winisd/wdr-vccon-numvc-import.test.ts
+files:
+  - bugs/BUG_20261008_non-numeric-reading-is-dropped-or-refused.md
+  - packages/design/domain/winIsdDriverImport.ts
+  - packages/design/test/winisd/wdr-vccon-numvc-import.test.ts
+  - tasks/T528.yml
