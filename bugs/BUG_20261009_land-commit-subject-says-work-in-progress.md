@@ -1,6 +1,7 @@
 # BUG_20261009_land-commit-subject-says-work-in-progress
 
-**Status:** OPEN. Fix is a land.sh task (lots writes the task file), test first.
+**Status:** RESOLVED 21 Oct 2026 (T547, opi). Fixed by T536 (0b855bd5e): land.sh's own commit is
+`(auto) <id>: <goal>`, the goal taken from the task file; main's log shows it on every landing since.
 
 There are two things, the commit a worker makes and the commit land.sh makes. `scripts/land.sh`
 step 1 commits whatever is uncommitted with the fixed subject `<id>: work in progress, committed by

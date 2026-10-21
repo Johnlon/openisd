@@ -1,6 +1,8 @@
 # BUG_20261007_installed-hooks-are-untracked-copies-and-drift
 
-**Status:** OPEN (fix later, not tonight)
+**Status:** RESOLVED 21 Oct 2026 (T547, opi). The third fix in the list is in place: `core.hooksPath` is
+`/home/john/.claude/githooks` (installed by `_agent_files/bin/install_githooks.sh`), whose hooks run the committing
+worktree's own `scripts/hooks-local/<hook>`. There is no copy to drift; the old `.git/hooks` files are no longer run.
 
 ## Symptom
 The commit and push hooks that actually run, `.git/hooks/pre-commit` and `.git/hooks/pre-push`, are plain file

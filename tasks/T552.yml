@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: b54613b1b5f3cf7ff327100eef24cb53e57b4123
 goal: Remove the provisional Chrome launch-outage wait from the browser fixture and close BUG_20261007_browser-processes-die-mid-suite
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
