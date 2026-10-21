@@ -1,6 +1,10 @@
 # BUG_20261007_driver-browser-ok-spec-click-times-out-under-load
 
-**Status:** OPEN (recorded, no fix)
+**Status:** RESOLVED 21 Oct 2026 (T557, opi). Machine load, as the Fix section allows. Opening the project driver
+editor 5 times on the dev server (load 13) gave one long task each of 298 to 724 ms, nowhere near the 20 s the
+click waited; and the spec has not failed in the last 100 GitHub Actions suite runs (17 to 21 Oct), where the full
+suite now runs instead of the loaded laptop. Its last failure was the laptop post-land run of 15 Oct (F31), also
+under load. The spec is left as it is.
 
 ## Symptom
 `packages/ui/test/ui/driver-browser.browser.spec.ts:680` ("OK on the project driver updates the project") failed

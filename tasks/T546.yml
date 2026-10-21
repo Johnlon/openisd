@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: agent
 status: done
+landed: 7661ce8a2fc5973f300235d2feddec959c52772b
 goal: Le and Rms of 0 in a datasheet reading fail the plausibility check, like Qts = 0
 done_test: bash scripts/test.sh packages/design/test/engine/isPhysicallyPlausible.test.ts
 files:
