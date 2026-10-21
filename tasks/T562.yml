@@ -1,0 +1,10 @@
+id: T562
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+goal: Rule: every system option exists on both skins, added in the same task (John QO291.c218/c220)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - .claude/rules/ui.md
+  - tasks/T562.yml

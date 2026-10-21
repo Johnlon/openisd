@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: ec66853762a776ee4cd8624dc65970909e495919
 goal: Pin that a one-coil driver wired Series keeps Series through a .wdr save and reload
 done_test: bash scripts/test.sh packages/design/test/domain/driver-edit.test.ts
 files:
