@@ -157,7 +157,7 @@ onUnmounted(() => {
     <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" :skin="activeSkin === 'mobile' ? PHONE_DRIVER_EDITOR_SKIN : undefined" @close="presentationState.editDriverInfo = false" />
     <OriginalWhatIf v-if="presentationState.editDriver && projectOpen" />
     <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
-    <DriverBrowser />
+    <DriverBrowser :phone="activeSkin === 'mobile'" />
     <!-- The phone shows messages in its own strip above the tab bar (MobileShell). -->
     <Flash v-if="activeSkin !== 'mobile'" />
     <!-- Offers to send a report after an uncaught error. -->
@@ -244,4 +244,10 @@ onUnmounted(() => {
   max-height: none !important;
   border-radius: 0 !important;
 }
+/* T510 (classic phone, screen 6): the picker's title bar is 48 px with a 44 px close, and the library
+   runs edge to edge with no padding round it. */
+.app-root-mobile :deep(.wb-modal) { position: relative !important; }
+.app-root-mobile :deep(.wb-modal h2) { height: 48px; box-sizing: border-box; padding: 0 8px 0 16px !important; font-size: 16px !important; }
+.app-root-mobile :deep(.wb-modal h2 .x) { min-width: 44px; min-height: 44px; display: inline-flex !important; align-items: center; justify-content: center; }
+.app-root-mobile :deep(.wb-modal .body) { padding: 0 !important; gap: 0 !important; }
 </style>

@@ -129,9 +129,11 @@ export class PhoneHelp {
   static readonly CHART = new PhoneHelpSection('Chart', 'Settings for the charts. They do not change the design.', [
     {label: 'Velocity limit', text: 'the air speed above which the charts mark the vent as likely to be noisy.'},
   ]);
-  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design and how the drivers are wired.', [
+  static readonly DRIVER = new PhoneHelpSection('Driver', 'The driver used in this design.', [
     {label: 'Select driver', text: 'picks a driver from the library.'},
     {label: 'Edit', text: 'opens the driver\'s parameters.'},
+  ]);
+  static readonly DRIVER_ARRAY = new PhoneHelpSection('Drivers', 'How many drivers the box has and how they are wired.', [
     {label: 'Drivers', text: 'the number of drivers in the box.'},
     {label: 'Connection', text: 'parallel or series wiring of the drivers. It sets the load in ohms the amplifier drives.'},
   ]);
@@ -142,6 +144,16 @@ export class PhoneHelp {
     {label: 'Re', text: 'the electrical resistance of the voice coil, measured with direct current.'},
     {label: 'Xmax', text: 'how far the cone can move each way before the sound distorts.'},
   ]);
+  static readonly DRIVER_SEARCH = new PhoneHelpSection('Search', 'Find a driver by brand or model. Filters opens the type, Fs, Sd, impedance and favourite filters; the number on it says how many are on.', [
+    {label: 'Search', text: 'type part of a brand or model name.'},
+    {label: 'Type', text: 'show only these driver types. Tap again to hide a type.'},
+    {label: 'Fs', text: 'the range of resonance frequencies to show.'},
+    {label: 'Sd', text: 'the range of cone areas to show.'},
+    {label: 'Z', text: 'show only drivers of this impedance.'},
+    {label: 'Show', text: 'which drivers to list: those bundled with the app, your own, or all. ★ shows only your favourites.'},
+  ]);
+  static readonly DRIVER_LIST_PICK = new PhoneHelpSection('Drivers', 'The drivers that match. Tap one to choose it, then Use driver.', []);
+  static readonly DRIVER_LIST_MANAGE = new PhoneHelpSection('Drivers', 'The drivers that match. Tap one to open it in the driver editor.', []);
   static readonly SIGNAL = new PhoneHelpSection('Signal', 'The drive level from the amplifier.', [
     {label: 'Power', text: 'the amplifier power, measured into the driver\'s rated load in ohms.'},
     {label: 'Volts', text: 'the amplifier output voltage. Power and Volts set each other.'},
@@ -242,5 +254,26 @@ export class PhoneHelp {
       case 'Rear': return PhoneHelp.REAR_VENT;
       case 'Intra': return PhoneHelp.INTRA_VENT;
     }
+  }
+}
+
+/** The words of the phone driver list (picker and Manage drivers): the search box and the Filters button. */
+export class PhoneDriverListText {
+  static readonly SEARCH_PLACEHOLDER = 'Brand or model';
+  static readonly FILTERS = 'Filters';
+  static readonly HIDE_FILTERS = 'Hide filters';
+  static readonly MAKER_PAGE = 'Maker page ↗';
+
+  /** The Filters button: "Filters ▾" shut, "Hide filters ▴" open, with how many filters are on in brackets. */
+  static filtersButton(open: boolean, activeCount: number): string {
+    const count = activeCount > 0 ? ` (${activeCount})` : '';
+    return open ? `${PhoneDriverListText.HIDE_FILTERS}${count} ▴` : `${PhoneDriverListText.FILTERS}${count} ▾`;
+  }
+}
+
+/** The one line under a passive radiator's name in the phone browser: its three datasheet figures. */
+export class PhonePrBrowserText {
+  static specsLine(sd: string, mms: string, cms: string): string {
+    return `Sd = ${sd} · Mms = ${mms} · Cms = ${cms}`;
   }
 }

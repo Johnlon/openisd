@@ -61,11 +61,11 @@ test('with no favourites, Favorites is disabled; a filter that matches nothing o
   const rows = page.locator('.dlist .ditem');
   await expect(rows.first()).toBeVisible();
   const before = await rows.count();
+  await page.locator('.dl-filters-toggle').click(); // the favourites toggle sits behind Filters on the phone
   await expect(page.locator('.fav-filter')).toBeDisabled();
 
   await page.locator('.filter').fill('no driver is called this');
   await expect(page.locator('.dlist')).toContainText('No drivers match');
-  await expect(page.locator('.filters-on-pill')).toHaveText(['"no driver is called this"']);
   const clear = page.locator('.dlist .filters-clear');
   await expect(clear).toBeInViewport();
   await clear.click();

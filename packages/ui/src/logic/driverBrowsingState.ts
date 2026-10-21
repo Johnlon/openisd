@@ -126,6 +126,8 @@ export interface DriverBrowsingState {
   /** Every filter that is on, in words — empty when none is. */
   activeFilters: ComputedRef<readonly string[]>;
   filtersOn: ComputedRef<boolean>;
+  /** How many of the folded filters are on (types, Fs, Sd, Z, scope, Favorites): `activeFilters` less the search words. */
+  foldedFilterCount: ComputedRef<number>;
   /** Clears every filter: search, types, Fs, Sd, Z, scope (back to All) and Favorites. */
   clearAllFilters(): void;
   favorites: Ref<string[]>;
@@ -342,6 +344,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   const activeFilters = computed<readonly string[]>(() => activeFilterLabels(criteria(), driverScope.value));
   const filtersOn = computed<boolean>(() => activeFilters.value.length > 0);
+  const foldedFilterCount = computed<number>(() => activeFilters.value.length - (filterQ.value.trim() ? 1 : 0));
 
   function reloadMyDrivers(): void {
     const read = myDriverRepo.read();
@@ -568,7 +571,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     allDrivers, statusMsg, statusErr, initialized,
     filterQ, typeStates,
     fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
-    toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, clearAllFilters,
+    toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
     // favourites — `clearParamFilters` deliberately leaves favoritesOnly alone: that button
     // says "clear all type and parameter filters", and Favorites is neither.
     favorites, favoritesAvailable, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly, driverId,

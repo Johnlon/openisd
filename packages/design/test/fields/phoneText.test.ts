@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {NumberField, PHONE_FILTER_CHIPS, KeyStripText, PhoneHelp, PhoneLabels} from '../../fields/index.js';
+import {NumberField, PHONE_FILTER_CHIPS, KeyStripText, PhoneDriverListText, PhoneHelp, PhoneLabels, PhonePrBrowserText} from '../../fields/index.js';
 
 describe('phone text', () => {
   it('the key strip says Entered, Calculated, Not Available', () => {
@@ -37,5 +37,19 @@ describe('phone text', () => {
     expect(NumberField.PHONE_FILTER_FC_HZ.format(31.5)).toBe('32');
     expect(NumberField.PHONE_FILTER_FC_HZ.format(100)).toBe('100');
     expect(NumberField.FILTER_FC_HZ.format(31.5), 'the desktop keeps its decimals').not.toBe('32');
+  });
+
+  it('the Filters button counts the filters that are on and flips when open', () => {
+    expect(PhoneDriverListText.filtersButton(false, 0)).toBe('Filters ▾');
+    expect(PhoneDriverListText.filtersButton(false, 2)).toBe('Filters (2) ▾');
+    expect(PhoneDriverListText.filtersButton(true, 1)).toBe('Hide filters (1) ▴');
+  });
+
+  it('the passive radiator specs line names Sd, Mms and Cms', () => {
+    expect(PhonePrBrowserText.specsLine('128 cm²', '30.0 g', '0.85 mm/N')).toBe('Sd = 128 cm² · Mms = 30.0 g · Cms = 0.85 mm/N');
+  });
+
+  it('the driver list help sections are headed Search and Drivers', () => {
+    expect([PhoneHelp.DRIVER_SEARCH.title, PhoneHelp.DRIVER_LIST_PICK.title, PhoneHelp.DRIVER_LIST_MANAGE.title]).toEqual(['Search', 'Drivers', 'Drivers']);
   });
 });

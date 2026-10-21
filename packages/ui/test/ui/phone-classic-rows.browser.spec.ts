@@ -1,6 +1,6 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
-import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import {PHONE_SIZES, PIXEL_9} from '../fixtures/phoneSizes.js';
 import {PhoneRowColumns, PhoneRowSizes} from '@openisd/design/fields';
 
@@ -132,3 +132,133 @@ test.describe('B10 Project sheet rows', () => {
     });
   }
 });
+
+/**
+ * B5 (T510): the driver picker (screen 6), Manage drivers (screen 7) and the passive radiator
+ * browser (screen 35). Filters fold behind one button beside the search; the list gets the screen.
+ */
+const SHEET_BAND_PX = 28;
+const SHEET_ROW_PX = 52;
+const MIN_LIST_ROWS_ON_SCREEN = 5;
+
+type DriverSheet = {readonly name: string; readonly open: (page: Page) => Promise<void>; readonly root: string};
+const DRIVER_SHEETS: readonly DriverSheet[] = [
+  {
+    name: 'Driver picker', root: '.wb-modal',
+    open: async page => {
+      await page.locator('.mob-tab', {hasText: 'Driver'}).first().click();
+      await page.getByText('Select driver').click();
+    },
+  },
+  {
+    name: 'Manage drivers', root: '.mob-dlg',
+    open: async page => { await tapMobileMenuItem(page, 'Manage Drivers'); },
+  },
+];
+
+for (const size of PHONE_SIZES) {
+  for (const sheet of DRIVER_SHEETS) {
+    test(`classic sheet: ${sheet.name} at ${size.width}×${size.height}`, async ({page}) => {
+      await page.setViewportSize(size);
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await openAMobileProject(page);
+      await sheet.open(page);
+      const root = page.locator(sheet.root);
+      const library = root.locator('.driver-library');
+      await expect(library).toBeVisible();
+      await expect(library.locator('.ditem').first()).toBeVisible();
+
+      // Filters are folded: the search sits beside a Filters button; no type chips, no Fs/Sd/Z boxes.
+      const search = library.locator('input.filter');
+      await expect(search).toHaveAttribute('placeholder', 'Brand or model');
+      const toggle = library.locator('.dl-filters-toggle');
+      await expect(toggle).toHaveText(/^Filters/);
+      await expect(library.locator('.type-row')).toBeHidden();
+      await expect(library.locator('.param-row')).toBeHidden();
+      const s = await search.boundingBox();
+      const t = await toggle.boundingBox();
+      expect(Math.abs((s!.y + s!.height / 2) - (t!.y + t!.height / 2)), 'Filters button beside the search').toBeLessThanOrEqual(6);
+
+      // Section bands: 28 px, a ? at the right.
+      const bands = await library.locator('.mob-band').evaluateAll(els => els.map(e => ({
+        title: e.querySelector('.mob-band-title')?.textContent ?? '', h: e.getBoundingClientRect().height, help: e.querySelector('.mob-band-help') !== null,
+      })));
+      expect(bands.map(b => b.title)).toEqual(['Search', 'Drivers']);
+      for (const b of bands) { expect(Math.abs(b.h - SHEET_BAND_PX)).toBeLessThanOrEqual(TOL); expect(b.help).toBe(true); }
+
+      // The list gets the screen: several two-line rows wholly in view, each at least 52 px with a 44 px star.
+      const vp = page.viewportSize()!;
+      const rows = await library.locator('.ditem').evaluateAll(els => els.map(e => {
+        const r = e.getBoundingClientRect();
+        const star = e.querySelector('.fav-btn')?.getBoundingClientRect();
+        return {top: r.top, bottom: r.bottom, h: r.height, starW: star?.width ?? 0, starH: star?.height ?? 0, lines: e.querySelectorAll('.dl-name, .dl-sub').length};
+      }));
+      const inView = rows.filter(r => r.top >= 0 && r.bottom <= vp.height);
+      expect(inView.length, 'every row up to five wholly on screen').toBeGreaterThanOrEqual(Math.min(rows.length, MIN_LIST_ROWS_ON_SCREEN));
+      const listH = (await library.locator('.dlist').boundingBox())!.height;
+      expect(listH, 'the list box has room for five rows (not capped at 42vh)').toBeGreaterThanOrEqual(MIN_LIST_ROWS_ON_SCREEN * SHEET_ROW_PX);
+      for (const r of inView) {
+        expect(r.h).toBeGreaterThanOrEqual(SHEET_ROW_PX - TOL);
+        expect(r.starW).toBeGreaterThanOrEqual(44 - TOL);
+        expect(r.starH).toBeGreaterThanOrEqual(44 - TOL);
+        expect(r.lines, 'name line and links line').toBe(2);
+      }
+
+      // Filters opens the folded rows: chips for the types, no "Type" or "Show" labels.
+      await toggle.click();
+      await expect(toggle).toHaveText(/^Hide filters/);
+      await expect(library.locator('.type-row')).toBeVisible();
+      await expect(library.locator('.param-row')).toBeVisible();
+      await expect(library.locator('.type-row .type-chip').first()).toBeVisible();
+      await expect(library.locator('.plabel', {hasText: /^(Type|Show)$/})).toHaveCount(0);
+
+      const overflow = await page.evaluate(() => ({
+        page: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+        outside: [...document.querySelectorAll<HTMLElement>('.driver-library input, .driver-library button')]
+          .filter(e => { const r = e.getBoundingClientRect(); return r.width > 0 && (r.left < 0 || r.right > window.innerWidth + 0.5); }).length,
+      }));
+      expect(overflow.page, 'no horizontal page scroll').toBe(false);
+      expect(overflow.outside, 'no control outside the viewport sideways').toBe(0);
+      for (const name of [/Add new Driver/, /Load File/]) {
+        const b = await root.getByRole('button', {name}).boundingBox();
+        expect(b!.y + b!.height, String(name)).toBeLessThanOrEqual(vp.height);
+        expect(b!.height, String(name)).toBeGreaterThanOrEqual(44 - TOL);
+      }
+    });
+  }
+
+  test(`classic sheet: Passive radiator browser at ${size.width}×${size.height}`, async ({page}) => {
+    await page.setViewportSize(size);
+    await forceMobileSkin(page);
+    await page.goto('/');
+    await openAMobileProject(page);
+    await page.locator('.mob-tab', {hasText: 'Box'}).first().click();
+    await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+    await page.getByRole('button', {name: 'Select passive radiator'}).click();
+    const modal = page.locator('.overlay.on .modal');
+    await expect(modal.locator('.pr-lib-item').first()).toBeVisible();
+    const vp = page.viewportSize()!;
+
+    const head = await modal.locator('h2').boundingBox();
+    expect(Math.abs(head!.height - 48), 'header 48 px').toBeLessThanOrEqual(TOL);
+    expect((await modal.locator('.pr-filter').boundingBox())!.height, 'filter box 36 px').toBeCloseTo(36, 0);
+
+    const items = await modal.locator('.pr-lib-item').evaluateAll(els => els.map(e => ({
+      h: e.getBoundingClientRect().height, specs: e.querySelector('.pr-lib-specs')?.textContent ?? '',
+      star: e.querySelector('.fav-btn') !== null,
+    })));
+    expect(items.length).toBeGreaterThan(0);
+    for (const i of items) {
+      expect(i.h).toBeGreaterThanOrEqual(44 - TOL);
+      expect(i.specs, 'specs line').toMatch(/^Sd = .+ · Mms = .+ · Cms = .+$/);
+      expect(i.star).toBe(true);
+    }
+    for (const name of [/Define new passive radiator/, 'Done']) {
+      const b = await modal.getByRole('button', {name}).boundingBox();
+      expect(b!.height, String(name)).toBeCloseTo(42, 0);
+      expect(b!.y + b!.height).toBeLessThanOrEqual(vp.height);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
+  });
+}

@@ -2,6 +2,8 @@
 import {onMounted, ref} from 'vue';
 import {useApp} from '../../logic/app.js';
 import {DriverFileFormat} from '../../fileFormat.js';
+import {PhoneDriverListText, PhoneHelp} from '@openisd/design/fields';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
 
 // The WinISD-style driver library body: search, filters, list, one-driver summary and the
 // footer actions. Markup and CSS only (ARCHITECTURE.md §7, "Components decide nothing") —
@@ -18,7 +20,12 @@ import {DriverFileFormat} from '../../fileFormat.js';
 // (the host wizard draws its own Back/Next/Cancel navigation).
 export type DriverListMode = 'manage' | 'pick';
 
-const props = defineProps<{ showName?: boolean; host: DriverListMode }>();
+// `phone`: the classic phone list (PHONE_CLASSIC_BUILD_SPEC screens 6 and 7): filters fold behind a
+// Filters button beside the search, section bands carry a ?, rows are two lines with a 44 px star.
+const props = defineProps<{ showName?: boolean; host: DriverListMode; phone?: boolean }>();
+
+// Whether the folded filters are showing (phone only; the desktop list always shows them).
+const filtersOpen = ref(false);
 
 // The type-help list belongs to this library, so it starts closed whenever a library opens.
 const typeHelpOpen = ref(false);
@@ -34,7 +41,7 @@ const {
   allDrivers, statusMsg, statusErr,
   filterQ, typeStates,
   fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
-  toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, clearAllFilters,
+  toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
   filteredDrivers, displayedDrivers, listTruncated, listedCount,
   filteredMyDrivers, displayNameOf, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
   favoritesAvailable, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly,
@@ -74,10 +81,18 @@ onMounted(openedLibrary);
 </script>
 
 <template>
-  <div class="driver-library">
+  <div class="driver-library" :class="{ 'dl-phone': props.phone }">
         <template v-if="!previewDriver">
-        <input class="filter" v-model="filterQ" placeholder="Search drivers…" autofocus>
-        
+        <template v-if="props.phone">
+          <PhoneBand :section="PhoneHelp.DRIVER_SEARCH" />
+          <div class="dl-searchrow">
+            <input class="filter" v-model="filterQ" :placeholder="PhoneDriverListText.SEARCH_PLACEHOLDER" aria-label="Search drivers" autocomplete="off">
+            <button type="button" class="dl-filters-toggle" :class="{ on: foldedFilterCount > 0 }" :aria-expanded="filtersOpen"
+                    @click="filtersOpen = !filtersOpen">{{ PhoneDriverListText.filtersButton(filtersOpen, foldedFilterCount) }}</button>
+          </div>
+        </template>
+        <input v-else class="filter" v-model="filterQ" placeholder="Search drivers…" autofocus>
+        <template v-if="!props.phone || filtersOpen">
         <div class="type-row">
           <button v-for="t in DRIVER_TYPES" :key="t.value"
                   class="type-chip"
@@ -160,11 +175,15 @@ onMounted(openedLibrary);
                   @click="toggleFavoritesOnly()">★ Favorites</button>
         </div>
 
+        </template><!-- end the folded filters -->
+
+        <PhoneBand v-if="props.phone" :section="props.host === 'manage' ? PhoneHelp.DRIVER_LIST_MANAGE : PhoneHelp.DRIVER_LIST_PICK" />
         <div class="statusrow">
           <span class="status" :class="{ err: statusErr }">{{ statusMsg || `${listedCount} drivers` }}</span>
+          <button v-if="props.phone && filtersOn" type="button" class="dl-clear" @click="clearAllFilters()">Clear filters</button>
         </div>
         <!-- The filters are kept between openings, so the list says which are on (John, 17 Oct 2026). -->
-        <div v-if="filtersOn" class="filters-on">
+        <div v-if="filtersOn && !props.phone" class="filters-on">
           <span class="filters-on-label">Filters on:</span>
           <span v-for="f in activeFilters" :key="f" class="filters-on-pill">{{ f }}</span>
           <button class="filters-clear" title="Clear every filter, including search and Favorites"
@@ -212,6 +231,26 @@ onMounted(openedLibrary);
           <div v-for="d in displayedDrivers" :key="d.uuid"
                class="ditem"
                @click="handleBundledClick(d)">
+            <template v-if="props.phone">
+              <div class="dl-text">
+                <div class="dl-head">
+                  <b class="dl-name">{{ d.name }}</b>
+                  <span v-if="d.dq" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
+                </div>
+                <span class="dl-sub">
+                  <a v-if="d.datasheet" class="dpdf" :href="d.datasheet" target="_blank" rel="noopener"
+                     title="Open manufacturer datasheet (PDF)" @click.stop>PDF</a>
+                  <a v-if="d.productPage" class="dpdf" :href="d.productPage" target="_blank" rel="noopener"
+                     title="Open manufacturer product page" @click.stop>{{ PhoneDriverListText.MAKER_PAGE }}</a>
+                  <a v-if="d.listingPage && d.listingPage !== d.productPage" class="dpdf" :href="d.listingPage" target="_blank" rel="noopener"
+                     title="Open retailer product listing" @click.stop>Listing ↗</a>
+                </span>
+              </div>
+              <button class="fav-btn" :class="{ on: isFavorite(d.uuid) }"
+                      :title="isFavorite(d.uuid) ? 'Remove from favourites' : 'Add to favourites'"
+                      @click.stop="toggleFavorite(d.uuid)">{{ isFavorite(d.uuid) ? '★' : '☆' }}</button>
+            </template>
+            <template v-else>
             <b>{{ d.name }}</b>
             <span v-if="d.dq" class="dq-flag" title="Data quality issues detected — some core fields may be missing or have suspicious values (e.g. Fs=0). Open to review.">⚠</span>
             <span class="dmeta">
@@ -228,6 +267,7 @@ onMounted(openedLibrary);
                       :title="isFavorite(d.uuid) ? 'Remove from favourites' : 'Add to favourites'"
                       @click.stop="toggleFavorite(d.uuid)">{{ isFavorite(d.uuid) ? '★' : '☆' }}</button>
             </span>
+            </template>
           </div>
 
           <div v-if="listTruncated" class="dlist-more">
@@ -979,4 +1019,37 @@ onMounted(openedLibrary);
   background: rgba(0,0,0,0.25);
   z-index: 9999;
 }
+
+/* ── Classic phone list (screens 6 and 7): filters folded behind one button, the list gets the screen ── */
+.driver-library.dl-phone { gap: 0; }
+.driver-library.dl-phone :deep(.mob-band) { flex: none; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 28px; margin-top: 12px; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.driver-library.dl-phone > :deep(.mob-band:first-child) { margin-top: 0; }
+.driver-library.dl-phone :deep(.mob-band-help) { width: 22px; height: 22px; padding: 0; border: 1px solid #999; border-radius: 50%; background: #fff; color: #333; font: inherit; font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer; }
+.driver-library.dl-phone .dl-searchrow { flex: none; display: flex; align-items: center; gap: 8px; padding: 3px 16px; min-height: 46px; box-sizing: border-box; }
+.driver-library.dl-phone .filter { flex: 1; min-width: 0; width: auto; height: 34px; padding: 0 10px !important; font-size: 15px; }
+.driver-library.dl-phone .dl-filters-toggle { flex: none; height: 40px; padding: 0 12px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 14px; font-weight: 500; white-space: nowrap; cursor: pointer; color: #000; }
+.driver-library.dl-phone .dl-filters-toggle.on { background: #e0efff; border-color: #7fb3ff; color: #0b4f9e; font-weight: 600; }
+.driver-library.dl-phone .type-row { flex: none; flex-wrap: wrap; gap: 6px; padding: 6px 16px; }
+.driver-library.dl-phone .type-chip, .driver-library.dl-phone .zchip { height: 30px; padding: 0 10px; border-radius: 15px; font-size: 13px; }
+.driver-library.dl-phone .param-row { flex: none; flex-direction: column; align-items: stretch; gap: 0; }
+.driver-library.dl-phone .pgroup { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; }
+.driver-library.dl-phone .pnum { width: 72px; height: 34px; font-size: 15px; box-sizing: border-box; }
+.driver-library.dl-phone .fav-row { flex: none; padding: 6px 16px; flex-wrap: wrap; gap: 6px; }
+.driver-library.dl-phone .fav-filter { height: 30px; padding: 0 10px; font-size: 13px; }
+.driver-library.dl-phone .statusrow { flex: none; min-height: 36px; padding: 0 16px; border-bottom: 1px solid #e6e6e6; }
+.driver-library.dl-phone .status { font-size: 13px; }
+.driver-library.dl-phone .dl-clear { height: 30px; padding: 0 10px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; cursor: pointer; color: #000; }
+.driver-library.dl-phone .dlist { border: none !important; border-radius: 0 !important; min-height: 0; max-height: none; }
+.driver-library.dl-phone .ditem { display: flex; align-items: center; min-height: 52px; padding: 4px 0 4px 16px; border-bottom: 1px solid #eef0f2; cursor: pointer; }
+.driver-library.dl-phone .dl-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.driver-library.dl-phone .dl-head { display: flex; align-items: center; min-width: 0; }
+.driver-library.dl-phone .dl-name { display: block; min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.driver-library.dl-phone .dl-sub { font-size: 12px; color: #666; min-height: 16px; }
+.driver-library.dl-phone .dl-sub .dpdf { color: #666; text-decoration: none; }
+.driver-library.dl-phone .dl-sub .dpdf + .dpdf::before { content: ' · '; }
+.driver-library.dl-phone .ditem .fav-btn { width: 44px; height: 44px; padding: 0; font-size: 20px; color: #999; }
+.driver-library.dl-phone .ditem .fav-btn.on { color: #f0a500; }
+.driver-library.dl-phone .browser-footer { flex: none; }
+.driver-library.dl-phone .browser-footer > div { gap: 8px; padding: 8px 16px 10px; border-top: 1px solid #ccc; }
+.driver-library.dl-phone .browser-footer button { flex: 1 0 auto; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; color: #000; }
 </style>

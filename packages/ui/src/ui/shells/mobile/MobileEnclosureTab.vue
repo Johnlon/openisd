@@ -72,7 +72,7 @@ const {
     <SaveToLibraryDialog v-if="prSaveOpen" title="Save passive radiator to library"
       note="The name the copy has in your library. The project's passive radiator keeps its own name."
       :fields="prSaveFields" :can-save="prSaveCanSave" save-label="Save" @save="confirmPRSave" @cancel="cancelPRSave" />
-    <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
+    <PRBrowser v-if="prBrowseOpen" phone @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
 
     <UIField class="mob-ui-field" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" stepper />

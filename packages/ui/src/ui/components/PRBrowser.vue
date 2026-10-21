@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {usePRBrowser} from '../../hooks/PRBrowser-hooks.js';
+import {PhonePrBrowserText} from '@openisd/design/fields';
 
 // PR browser — a popup mirroring the driver browser (DriverBrowserMd.vue): two
 // sections, "Saved" (your localStorage PR library) and "Bundled" (passive radiators
@@ -9,6 +10,8 @@ import {usePRBrowser} from '../../hooks/PRBrowser-hooks.js';
 // A row's `id` is all that crosses the boundary: the storage uuid for a saved radiator, the
 // list position for a bundled one. The shell resolves it back to a radiator (A9 — a component
 // carries no domain value).
+// `phone`: the classic phone browser (screen 35): 48 px title bar, 44 px rows with a specs line under the name.
+const props = defineProps<{ phone?: boolean }>();
 const emit = defineEmits<{
   close: [];
   load: [string];
@@ -23,7 +26,7 @@ useEscToClose(() => true, close);
 
 <template>
   <div class="overlay on" @click="onBackdrop">
-    <div class="modal">
+    <div class="modal" :class="{ 'pr-phone': props.phone }">
       <h2>Passive radiator library<button class="x" @click="close" title="Close">✕</button></h2>
       <div class="body">
         <input class="pr-filter" type="text" v-model="filter" placeholder="Filter passive radiators…"
@@ -40,8 +43,11 @@ useEscToClose(() => true, close);
           <div v-for="e in fSaved" :key="e.id" class="pr-lib-item">
             <button class="fav-btn" :class="{ on: isFavorite(e.id) }" :title="isFavorite(e.id) ? 'Remove from favourites' : 'Add to favourites'"
               @click.stop="toggleFavorite(e.id)">{{ isFavorite(e.id) ? '★' : '☆' }}</button>
-            <span class="pr-lib-name" @click="emit('load', e.id)"
-              :title="`Load ${e.name} — Sd=${e.sd} Mms=${e.mms} Cms=${e.cms}`">{{ e.name }}</span>
+            <span class="pr-lib-info">
+              <span class="pr-lib-name" @click="emit('load', e.id)"
+                :title="`Load ${e.name} — Sd=${e.sd} Mms=${e.mms} Cms=${e.cms}`">{{ e.name }}</span>
+              <span v-if="props.phone" class="pr-lib-specs">{{ PhonePrBrowserText.specsLine(e.sd, e.mms, e.cms) }}</span>
+            </span>
             <button class="pr-lib-del" @click="remove(e.id)" title="Remove this passive radiator from your library">✕</button>
           </div>
 
@@ -54,8 +60,11 @@ useEscToClose(() => true, close);
           <div v-for="p in fBundled" :key="p.id" class="pr-lib-item">
             <button class="fav-btn" :class="{ on: isFavorite(p.id) }" :title="isFavorite(p.id) ? 'Remove from favourites' : 'Add to favourites'"
               @click.stop="toggleFavorite(p.id)">{{ isFavorite(p.id) ? '★' : '☆' }}</button>
-            <span class="pr-lib-name" @click="emit('loadBundled', p.id)"
-              :title="'Load ' + p.name + ' — Sd=' + p.sd + ' Mms=' + p.mms + ' Cms=' + p.cms">{{ p.name }}</span>
+            <span class="pr-lib-info">
+              <span class="pr-lib-name" @click="emit('loadBundled', p.id)"
+                :title="'Load ' + p.name + ' — Sd=' + p.sd + ' Mms=' + p.mms + ' Cms=' + p.cms">{{ p.name }}</span>
+              <span v-if="props.phone" class="pr-lib-specs">{{ PhonePrBrowserText.specsLine(p.sd, p.mms, p.cms) }}</span>
+            </span>
             <span v-if="p.dq" class="dq-flag" title="Data quality issues detected — Fs, Sd, or a moving mass / compliance is missing or not positive. Open to review.">⚠</span>
           </div>
         </div>
@@ -79,4 +88,23 @@ useEscToClose(() => true, close);
 .fav-filter { font-size: 11px; padding: 3px 9px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; color: #555; cursor: pointer; white-space: nowrap; }
 .fav-filter:hover { background: #e8e8e8; }
 .fav-filter.active { background: #f0a500; border-color: #c98600; color: #fff; font-weight: 600; }
+
+/* Classic phone browser (screen 35). The desktop popup does not set .pr-phone, so it is unchanged. */
+.pr-lib-info { display: contents; }
+.pr-phone { position: relative; }
+.pr-phone h2 { flex: none; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 48px; margin: 0; padding: 0 8px 0 16px; font-size: 16px; font-weight: 600; }
+.pr-phone h2 .x { min-width: 44px; min-height: 44px; font-size: 18px; }
+.pr-phone .body { padding: 12px 14px; }
+.pr-phone .pr-filter { height: 36px; padding: 0 10px !important; font-size: 14px; margin-bottom: 8px !important; }
+.pr-phone .fav-filter { height: 30px; padding: 4px 10px; font-size: 12px; margin-bottom: 12px !important; }
+.pr-phone .pr-lib { display: flex; flex-direction: column; gap: 4px; border: none; }
+.pr-phone .pr-lib-hdr { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 8px 0 4px; margin-top: 4px; border-bottom: 1px solid #eee; }
+.pr-phone .pr-lib-item { gap: 8px; min-height: 44px; padding: 4px 8px; font-size: 14px; }
+.pr-phone .pr-lib-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pr-phone .pr-lib-name { flex: none; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pr-phone .pr-lib-specs { font-size: 12px; color: var(--mut); }
+.pr-phone .fav-btn { font-size: 18px; padding: 0 2px; }
+.pr-phone .pr-footer { gap: 8px; padding: 10px 14px; }
+.pr-phone .pr-footer button { flex: 1; height: 42px; font-size: 13px; font-weight: 600; }
+.pr-phone .pr-footer button.pri { flex: 0 0 90px; }
 </style>

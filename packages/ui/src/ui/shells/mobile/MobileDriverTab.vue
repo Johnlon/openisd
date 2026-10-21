@@ -20,6 +20,7 @@ const { project, fullName, keyFigures, browseDrivers, editDriver, N_DRIVERS_OPTI
       <button type="button" class="mob-btn mob-btn-primary" @click="browseDrivers">Select driver</button>
       <button type="button" class="mob-btn mob-btn-secondary" @click="editDriver">Edit</button>
     </div>
+    <PhoneBand :section="PhoneHelp.DRIVER_ARRAY" />
     <div class="mob-crow">
       <label class="mob-crow-label" for="mob-n-drivers">{{ PhoneLabels.DRIVERS }}</label>
       <select id="mob-n-drivers" class="mob-cselect" :value="project.nDrivers.value"

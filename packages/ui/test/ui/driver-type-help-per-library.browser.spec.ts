@@ -30,6 +30,7 @@ test('phone: help left open in Manage drivers is closed in the new-project wizar
   await page.goto('/');
   await page.getByRole('button', {name: 'Menu', exact: true}).click();
   await page.getByText('Manage Drivers', {exact: true}).locator('visible=true').first().click();
+  await page.locator('.dl-filters-toggle').click();
   await page.getByTitle('How are driver types classified?').click();
   await expect(page.getByText(HELP)).toBeVisible();
   await page.keyboard.press('Escape');
