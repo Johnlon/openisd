@@ -1,9 +1,13 @@
 <script setup lang="ts">
-// The mobile Project tab — name, creator, created/modified dates, description. Thin: all state
-// and domain reads/writes live in useMobileProjectTab() (src/hooks/MobileProjectTab-hooks.ts).
+// The mobile Project sheet — name, creator, created/modified dates, description, in classic rows
+// under one "Project details" band. Thin: all state and domain reads/writes live in
+// useMobileProjectTab() (src/hooks/MobileProjectTab-hooks.ts).
+import {PhoneHelp} from '@openisd/design/fields';
 import {useApp} from '../../../logic/app.js';
 import {useFocusedProject} from '../../../logic/focusedProjectContext.js';
 import {useMobileProjectTab} from '../../../hooks/MobileProjectTab-hooks.js';
+import PhoneBand from './PhoneBand.vue';
+import PhoneClassicPage from './PhoneClassicPage.vue';
 
 const project = useFocusedProject();
 const { projectChanged } = useApp().appState;
@@ -11,64 +15,41 @@ const { name, creator, created, modified, description, dateCommits } = useMobile
 </script>
 
 <template>
-  <div class="mob-panel">
-    <div class="mob-card">
-      <div class="mob-field">
-        <label for="mob-proj-name">Name</label>
-        <input id="mob-proj-name" type="text" v-model="name">
-      </div>
-      <div class="mob-field">
-        <label for="mob-proj-creator">Creator</label>
-        <input id="mob-proj-creator" type="text" v-model="creator">
-      </div>
-      <div class="mob-field">
-        <label for="mob-proj-created">Created</label>
-        <input id="mob-proj-created" :key="dateCommits" type="text" v-model.lazy="created">
-      </div>
-      <div class="mob-field">
-        <label for="mob-proj-modified">Modified</label>
-        <input id="mob-proj-modified" :key="dateCommits" type="text" v-model.lazy="modified">
-      </div>
-      <div class="mob-field mob-field-stack">
-        <label for="mob-proj-description">Description</label>
-        <textarea id="mob-proj-description" v-model="description"></textarea>
-      </div>
+  <PhoneClassicPage>
+    <PhoneBand :section="PhoneHelp.PROJECT_DETAILS" />
+    <div class="mob-crow">
+      <label class="mob-crow-label" for="mob-proj-name">Name</label>
+      <input id="mob-proj-name" class="mob-ctext" type="text" autocomplete="off" v-model="name">
     </div>
-  </div>
+    <div class="mob-crow">
+      <label class="mob-crow-label" for="mob-proj-creator">Creator</label>
+      <input id="mob-proj-creator" class="mob-ctext" type="text" autocomplete="off" v-model="creator">
+    </div>
+    <div class="mob-crow">
+      <label class="mob-crow-label" for="mob-proj-created">Created</label>
+      <input id="mob-proj-created" class="mob-ctext" :key="dateCommits" type="text" autocomplete="off" v-model.lazy="created">
+    </div>
+    <div class="mob-crow">
+      <label class="mob-crow-label" for="mob-proj-modified">Modified</label>
+      <input id="mob-proj-modified" class="mob-ctext" :key="dateCommits" type="text" autocomplete="off" v-model.lazy="modified">
+    </div>
+    <div class="mob-crow mob-crow-notes">
+      <label class="mob-crow-label" for="mob-proj-description">Description</label>
+      <textarea id="mob-proj-description" class="mob-ctext mob-cnotes" v-model="description"></textarea>
+    </div>
+  </PhoneClassicPage>
 </template>
 
 <style scoped>
-.mob-panel { padding: 12px; }
-.mob-card {
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 4px 12px;
+/* Rows, labels and bands are the shared classic ones (style.css); only the text box and notes box live here. */
+.mob-ctext {
+  flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h);
+  padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px;
+  background: #fff; color: var(--fg); font: inherit; font-size: 15px; text-align: left;
 }
-.mob-field {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--line);
-}
-.mob-field:last-child { border-bottom: none; }
-.mob-field label { color: var(--mut); font-size: 14px; flex-shrink: 0; }
-.mob-field input, .mob-field textarea {
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 8px 10px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-  text-align: right;
-  min-height: 38px;
-}
-.mob-field-stack {
-  flex-direction: column;
-  align-items: stretch;
-}
-.mob-field-stack label { margin-bottom: 6px; }
-.mob-field-stack textarea { text-align: left; height: 90px; resize: vertical; }
+.mob-ctext:focus { outline: none; border: 2px solid var(--acc); padding: 0 calc(var(--mob-col-gutter) - 1px); }
+.mob-crow-notes { flex-direction: column; align-items: stretch; height: auto; gap: 4px; padding-top: 6px; padding-bottom: 8px; }
+.mob-crow-notes .mob-crow-label { width: auto; }
+.mob-cnotes { flex: none; height: 96px; padding: 8px var(--mob-col-gutter); resize: none; }
+.mob-cnotes:focus { padding: 7px calc(var(--mob-col-gutter) - 1px); }
 </style>

@@ -436,11 +436,14 @@ const diagnostics = injectDiagnosticsModal();
   cursor: pointer;
 }
 .mob-menu-export :deep(.export-menu-trigger:disabled) { color: var(--mut); cursor: default; }
-.mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 0; }
-.mob-menu-export :deep(.export-menu-list button) { padding: 7px 28px; font-size: 14px; }
+.mob-menu-export :deep(.export-menu-trigger) { display: flex; align-items: center; justify-content: space-between; }
+.mob-menu-export :deep(.export-menu-trigger)::after { content: "▾"; color: var(--mut); }
+.mob-menu-export:has(.export-menu-list) :deep(.export-menu-trigger)::after { content: "▴"; }
+.mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-radius: 0; margin-top: 0; padding: 0; }
+.mob-menu-export :deep(.export-menu-list button) { display: block; box-sizing: border-box; width: 100%; padding: 5px 16px 5px 26px; font-size: 14px; }
 .mob-menu-sep { height: 1px; background: var(--line); margin: 3px 0; }
-.mob-menu-section { border-top: 2px solid var(--line); padding: 2px 0; }
-.mob-menu-section-head { padding: 2px 18px 0; font-size: 13px; font-weight: 700; color: var(--acc); }
+.mob-menu-section { border-top: 1px solid var(--line); padding: 0 0 2px; }
+.mob-menu-section-head { height: 28px; display: flex; align-items: center; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
 .mob-open-project { display: flex; align-items: center; min-height: 48px; }
 .mob-open-project-show-wrap { flex: none; width: 48px; min-height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .mob-open-project-show { width: 20px; height: 20px; margin: 0; }

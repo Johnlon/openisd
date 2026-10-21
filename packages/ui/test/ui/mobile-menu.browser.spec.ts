@@ -61,7 +61,7 @@ test.describe('MobileMenu', () => {
     test('items sit in a Project section and an App section, each under its own heading', async ({ page }) => {
       await openMobileMenu(page);
       const sections = page.locator('.mob-menu-section');
-      await expect(sections.locator('.mob-menu-section-head')).toHaveText(['Open projects', 'Project', 'App']);
+      await expect(sections.locator('.mob-menu-section-head')).toHaveText([/^open projects$/i, /^project$/i, /^app$/i]);
       const items = (section: string) => page.locator('.mob-menu-section', { has: page.locator('.mob-menu-section-head', { hasText: new RegExp(`^${section}$`) }) })
         .locator('.mob-menu-item').evaluateAll(nodes => nodes.map(n => (n.querySelector('.export-menu-trigger') ?? n).textContent?.trim()));
       expect(await items('Project')).toEqual([

@@ -113,3 +113,22 @@ for (const size of PHONE_SIZES) {
     });
   }
 }
+
+test.describe('B10 Project sheet rows', () => {
+  for (const size of PHONE_SIZES) {
+    test(`classic rows: Project sheet at ${size.width}×${size.height}`, async ({page}) => {
+      await page.setViewportSize(size);
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await openAMobileProject(page);
+      await page.locator('.mob-hamburger').click();
+      await page.getByText('Project details').click();
+      const rows = page.locator('.mob-dlg .mob-crow:not(.mob-crow-notes)');
+      expect(await rows.count()).toBeGreaterThan(0);
+      for (const h of await rows.evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) expect(Math.abs(h - ROW_PX)).toBeLessThanOrEqual(TOL);
+      const bands = await page.locator('.mob-dlg .mob-band').evaluateAll(els => els.map(e => ({h: e.getBoundingClientRect().height, help: e.querySelector('.mob-band-help') !== null})));
+      expect(bands.length).toBeGreaterThan(0);
+      for (const b of bands) { expect(Math.abs(b.h - BAND_PX)).toBeLessThanOrEqual(TOL); expect(b.help).toBe(true); }
+    });
+  }
+});

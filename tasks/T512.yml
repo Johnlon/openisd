@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: cbea1dac011a80d2a836c81d8d9119e10b890248
 goal: B7 phone Filters tab, with the one 44 px PhoneButton (chips and round ‹ › arrows), (screen 10): card per filter (tick, name, fold, ?), buttons on one line, carousel shows more filters exist; the eight filter editors use the standard field control and show the filter frequency in whole hertz
 done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts packages/design/test/fields/phoneRowSizes.test.ts
 files:

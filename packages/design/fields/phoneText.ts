@@ -148,6 +148,14 @@ export class PhoneHelp {
     {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'},
   ]);
 
+  static readonly PROJECT_DETAILS = new PhoneHelpSection('Project details', 'The project name and notes.', [
+    {label: 'Name', text: 'the name shown in the project list.'},
+    {label: 'Creator', text: 'who made the project.'},
+    {label: 'Created', text: 'the day the project was made.'},
+    {label: 'Modified', text: 'the day the project was last changed.'},
+    {label: 'Description', text: 'free-text notes.'},
+  ]);
+
   /** The rear (or only) chamber: its rows follow the box type. */
   static rearChamber(boxType: BoxType): PhoneHelpSection {
     switch (boxType) {
