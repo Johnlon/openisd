@@ -41,7 +41,7 @@ export type {
   ParametricEqFilter, ParametricEqPatch, PeakHighpassFilter, PeakHighpassPatch,
   StaticGainFilter, StaticGainPatch, RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch,
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
-  EnclosureParams, PrParams, SweepParams, SweepResult, WprFilter, WprFilterImport,
+  EnclosureParams, PrParams, SweepParams, SweepResult, SweepPeaks, WprFilter, WprFilterImport,
 } from './types.js';
 export type { BoxEngine, ChartId } from './box/BoxEngine.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';

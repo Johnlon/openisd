@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: f229f1670d726252df7239d651c0e3a9e422f75f
 goal: B10 phone classic: projects pane (☰), Save As/Export, open a file, Project tab built to the accepted mocks (screens 16-19)
 done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
 visual:

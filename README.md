@@ -82,12 +82,12 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Parity state** (2026-10-19; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
-  SB15SFCR-00): 247 of 269 cells in the
+- **Parity state** (2026-10-21; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
+  SB15SFCR-00): 248 of 269 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
   ≤ 1e-12. Every chart exists for every box type.
 - **Remaining gaps:**
-  - not yet compared with WinISD: the readouts sealed Fsc and Qtc, vent length, peak impedance,
+  - not yet compared with WinISD: the readouts sealed Fsc and Qtc, peak impedance,
     bandpass Fr and Ff, and the maximum-power/Xmax crossover.
   - after one typed edit, WinISD and OpenISD differ in these: the number of voice coils (WinISD
     ignores it; sealed box), the driver editor's fLe, KLe, Hc and Hg when the file does not state them

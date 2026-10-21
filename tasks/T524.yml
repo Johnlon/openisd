@@ -1,0 +1,19 @@
+id: T524
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: The engine gives peak vent speed and peak cone excursion from the sweep, and a vented F3/F10 fixture pins rolloffFreq.
+done_test: bash scripts/test.sh packages/design/test/engine/sweep-peaks.test.ts packages/design/test/domain/tune-vent-length.test.ts
+files:
+  - tasks/T524.yml
+  - packages/design/engine/types.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/test/architecture-no-forwards.test.ts
+  - packages/design/test/engine/sweep-peaks.test.ts
+  - packages/design/test/domain/tune-vent-length.test.ts
+  - README.md
+  - docs/research/WINISD_EQUIVALENCE.md
+  - packages/ui/test/visual/SOURCES.sha256

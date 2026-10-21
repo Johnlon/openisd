@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { AirState, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import type { AirState, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
@@ -843,6 +843,12 @@ export class OpenISDProject {
      *  6, and so on. Null when the response never falls that far inside the swept range. */
     rolloffFreq(sw: SweepResult, dropDb: number): number | null {
         return this.#engine.simulation.rolloffFreq(sw, dropDb);
+    }
+
+    /** The largest port air speed and cone excursion in the sweep, with where each happens: what the
+     *  Tune meters read. Speed is null for a box with no port. */
+    peaks(sw: SweepResult): SweepPeaks {
+        return this.#engine.simulation.peaks(sw);
     }
 
     /** A non-finite value anywhere in the response, or null. A sweep that produced NaN is a fault

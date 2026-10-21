@@ -9,7 +9,7 @@ it touches, the same commit, together with the README's parity summary (`.claude
 case: [CHART_REVIEW_WINISD_VS_OPENISD.md](CHART_REVIEW_WINISD_VS_OPENISD.md?html). WinISD's decoded
 formulas: winisd_research [GHIDRA_FINDINGS.md](http://localhost:8000/winisd/winisd_research/GHIDRA_FINDINGS.md?html).
 
-Last updated 2026-10-19.
+Last updated 2026-10-21.
 
 Every cell is either **matched** or a **gap to close**. There are three kinds of gap, and all
 three count against equivalence:
@@ -35,9 +35,9 @@ with the ND140-PR or SB15SFCR-00 radiator).
 | ------------------------------------ | ----: | ------: | ---: | ------------: | --------------: | -----------: |
 | Table 1 — chart × box, base settings | 76    | 76      | 0    | 0             | 0               | 0            |
 | Table 2 — setting × box              | 106   | 106     | 0    | 0             | 0               | 0            |
-| Table 3 — readouts and tools         | 9     | 4       | 5    | 0             | 5               | 0            |
+| Table 3 — readouts and tools         | 9     | 5       | 4    | 0             | 4               | 0            |
 | Table 4 — after edits (T429)         | 78    | 61      | 17   | 15            | 2               | 0            |
-| Total                                | 269   | 247     | 22   | 15            | 7               | 0            |
+| Total                                | 269   | 248     | 21   | 15            | 6               | 0            |
 
 Worst matched deviation anywhere, excluding group delay: ≤ 1e-9 (BP6/ABC transfer function
 magnitude, impedance, and rear/front/intrachamber port velocity — `bp6-w5-1`/`abc-w5-1`, exact
@@ -152,7 +152,7 @@ deviation, or ❔.
 | Air c, ρ (WinISD air model)                       | ✅ ≤ 1e-12 rel at every measured environment                  | `air.test.ts`                                                                                                    |
 | Passive radiator system tuning, Npr > 1           | ✅ 39.45 Hz = WinISD's displayed Fb (2 decimals), ec8d2016    | `pr-tuning-count-winisd.test.ts`; [bug](../../bugs/archive/BUG_20260928_pr-system-tuning-ignores-radiator-count.md?html) |
 | Sealed Fsc, Qtc readouts                          | ❔                                                            | —                                                                                                                |
-| Vented vent length readout                        | ❔ (end-correction default differs: ACCURACY_IMPROVEMENTS #7) | —                                                                                                                |
+| Vented vent length readout                        | ✅ 0.370 m = WinISD's printed length (3 places) at end correction 0.732, `sweep-t429-w5-vented-load-endcorr0732`; also equals the saved 0.370238 m at 6 places | `tune-vent-length.test.ts`; `driver-edit-parity-w5.test.ts` |
 | F3 / F10 on the TF chart (WinISD's -3dB line)     | ✅ crossing ≤ 1e-13 dB, 4 cases; "not reached" where WinISD's curve never meets its line | winisd_research `runs/t408-sealed-lp-a`, `-b`, `-gain`, `-gainneg` |
 | Key stats peak Z                                  | ❔                                                            | —                                                                                                                |
 | Bandpass Fr/Ff readouts                           | ❔                                                            | —                                                                                                                |

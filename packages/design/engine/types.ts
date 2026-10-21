@@ -362,6 +362,16 @@ export interface Solution {
   ZaD: Complex;
 }
 
+/** The largest port air speed and cone excursion in a sweep, and where each happens. A value is
+ *  `null` when the sweep has none to report (no port: speed is zero everywhere; no finite point). */
+export interface SweepPeaks {
+  ventSpeed_m_per_s: number | null;
+  /** Metres (the sweep's `exc` is millimetres). */
+  excursion_m: number | null;
+  atVentSpeed_hz: number | null;
+  atExcursion_hz: number | null;
+}
+
 /** Full frequency-sweep output arrays (one entry per frequency point). */
 export interface SweepResult {
   fs: number[];
