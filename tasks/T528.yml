@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opus
 status: done
+landed: e99b63349ebc7e0e95892ab70319cd9cca0a4638
 goal: A .wdr text cell on a not-available field and a non-numeric VCCon each give an import warning; bug file closed.
 done_test: bash scripts/test.sh packages/design/test/winisd/wdr-vccon-numvc-import.test.ts
 files:

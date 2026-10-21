@@ -1,0 +1,16 @@
+id: T522
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: A number box spin starts at the tenths digit unless the person put the caret on another digit, and Box volume on a Closed box (Box tab and What-if) marks the stepped digit like every other box.
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T522.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261021_sealed-box-volume-no-spin-underline.md
+  - packages/design/fields/caretSpin.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/caret-spin.test.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/ui/box-volume-spin-mark.browser.spec.ts

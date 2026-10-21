@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, tenthsCaret} from '../../fields/caretSpin.js';
+import {CARET_HOLD_START_MS, caretRepeatDelayMs, caretSpin, steppingCaret, tenthsCaret} from '../../fields/caretSpin.js';
 
 const OPEN = {min: -Infinity, max: undefined};
 
@@ -214,5 +214,23 @@ describe('caretRepeatDelayMs — the hold-to-repeat schedule', () => {
       expect(delay).toBeLessThanOrEqual(last);
       last = delay;
     }
+  });
+});
+
+describe('steppingCaret — a step starts at the tenths unless the person moved the digit (John, 21 Oct 2026)', () => {
+  it('uses the tenths digit when no caret was ever set', () => {
+    expect(steppingCaret('20.00', null)).toBe(4);
+  });
+  it('uses the tenths digit when the caret is only at the end, where typing leaves it', () => {
+    expect(steppingCaret('20.00', 5)).toBe(4);
+    expect(steppingCaret('4.8', 3)).toBe(3);
+  });
+  it('keeps a caret the person put on another digit', () => {
+    expect(steppingCaret('20.00', 1)).toBe(1);
+    expect(steppingCaret('20.00', 2)).toBe(2);
+  });
+  it('a number with no decimals steps its units digit', () => {
+    expect(steppingCaret('600', null)).toBe(3);
+    expect(steppingCaret('600', 3)).toBe(3);
   });
 });

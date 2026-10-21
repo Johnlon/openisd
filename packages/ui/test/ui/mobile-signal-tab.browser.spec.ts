@@ -42,19 +42,19 @@ test('editing series resistance persists the typed value', async ({ appPage: pag
   await expect(rsInput).toHaveValue(/0\.5/);
 });
 
-test('System input power spins by about 1 % a tap: 1 W up is 1.01 W, by key and by button', async ({ appPage: page }) => {
+test('System input power spins by its tenths digit a tap: 1 W up is 1.1 W, by key and by button', async ({ appPage: page }) => {
   const pow = rowInput(page, 'Power');
   await pow.fill('1');
   await pow.blur();
   await pow.focus();
   await pow.press('ArrowUp');
-  await expect(pow).toHaveValue('1.01');
+  await expect(pow).toHaveValue('1.10');
   const [upBtn, downBtn] = await page.locator('.mob-ui-field', { hasText: 'Power' })
     .locator('.num-stepper-btn').all();   // [▲, ▼] order
   await downBtn.click();
   await expect(pow).toHaveValue('1.00');
   await downBtn.click();
-  await expect(pow).toHaveValue('0.99');
+  await expect(pow).toHaveValue('0.90');
   await upBtn.click();
   await expect(pow).toHaveValue('1.00');
 });

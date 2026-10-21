@@ -88,6 +88,13 @@ export function tenthsCaret(text: string): number {
   return mark >= 0 && mark + 1 < text.length ? mark + 2 : text.length;
 }
 
+/** Where a step starts: the tenths digit by default (John, 2026-10-21: "by default start the spin at
+ *  the 1/10th unit"). A caret the person put on a digit is kept; no caret, or a caret at the very end
+ *  (where typing leaves it, which is not a chosen digit), means the default. */
+export function steppingCaret(text: string, caret: number | null): number {
+  return caret === null || caret >= text.length ? tenthsCaret(text) : caret;
+}
+
 /** A held ▲▼ waits this long before it repeats. */
 export const CARET_HOLD_START_MS = 400;
 const CARET_HOLD_SLOW_PER_S = 3;
