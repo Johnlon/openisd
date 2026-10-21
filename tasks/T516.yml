@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 38b17deff948559db2dbf2f79df5871a48d04202
 goal: B11 phone classic: Options, About, Cloud sync, Differences, Diagnostics, cloud badge, flash toast, storage history, store gate built to the accepted mocks (screens 20-24, 30, 33, 37, 38)
 done_test: bash scripts/test.sh packages/design/test/fields/phoneDialogText.test.ts
 visual:

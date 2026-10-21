@@ -29,7 +29,7 @@ WRAP
 chmod +x "$SCRATCH/bin/git"
 cat > "$SCRATCH/gh" <<'WRAP'
 #!/usr/bin/env bash
-[ -n "${GH_HANG:-}" ] && exec sleep 60
+[ "${GH_HANG:-}" = "$1 $2" ] && exec sleep 60
 case "$1 $2" in "pr create") echo "https://github.com/o/r/pull/7" ;; esac
 WRAP
 chmod +x "$SCRATCH/gh"
@@ -73,7 +73,8 @@ check() { # check <name> <pattern in output>
 
 setup "";  HANG_ON=fetch land;          check "git fetch" "git fetch.*timed out after 3"
 setup "";  HANG_ON=push-candidate land; check "the candidate push" "git push of the candidate.*timed out after 3"
-setup 1;   GH_HANG=1 land;              check "gh pr create" "gh pr create.*timed out after 3"
+setup 1;   GH_HANG="pr list" land;      check "gh pr list" "gh pr list.*timed out after 3"
+setup 1;   GH_HANG="pr create" land;    check "gh pr create" "gh pr create.*timed out after 3"
 setup "";  HANG_ON=push-main land;      check "the main push" "git push of main.*timed out after 3"
 
 # the lock is free again after a stalled landing (the next landing is not held)

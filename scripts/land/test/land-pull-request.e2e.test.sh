@@ -19,13 +19,19 @@ ORIGIN="$SCRATCH/w/origin.git"
 CALLS="$SCRATCH/gh.calls"
 
 # The gh stand-in: logs its arguments (one call per line, fields joined by |), copies a --body-file, opens #7.
+# GH_OPEN=<n>: pull request #n is already open on the branch (pr list prints it, pr create refuses as GitHub does).
 cat > "$SCRATCH/gh" <<EOF
 #!/usr/bin/env bash
 ( IFS='|'; echo "\$*" ) >> "$CALLS"
 [ -n "\${GH_FAIL:-}" ] && { echo "HTTP 422: no" >&2; exit 1; }
 case "\$1 \$2" in
-  "pr create") while [ \$# -gt 0 ]; do [ "\$1" = --body-file ] && cp "\$2" "$SCRATCH/body.md"; shift; done
+  "pr list") echo "\${GH_OPEN:-}" ;;
+  "pr create") if [ -n "\${GH_OPEN:-}" ]; then
+                 printf 'a pull request for branch "land/T1" into branch "main" already exists:\\nhttps://github.com/o/r/pull/%s\\n' "\$GH_OPEN" >&2; exit 1
+               fi
+               while [ \$# -gt 0 ]; do [ "\$1" = --body-file ] && cp "\$2" "$SCRATCH/body.md"; shift; done
                echo "https://github.com/o/r/pull/7" ;;
+  "pr edit") while [ \$# -gt 0 ]; do [ "\$1" = --body-file ] && cp "\$2" "$SCRATCH/body.md"; shift; done ;;
   "pr view") echo MERGED ;;
 esac
 EOF
@@ -87,6 +93,19 @@ setup false 1; before=$(git -C "$ORIGIN" rev-parse main); land; r=$?
 setup true 1; before=$(git -C "$ORIGIN" rev-parse main); GH_FAIL=1 land; r=$?
 [ $r = 1 ] && grep -q "REFUSED by gate pull-request" "$SCRATCH/out" && grep -q "HTTP 422" "$SCRATCH/out" && [ "$(git -C "$ORIGIN" rev-parse main)" = "$before" ] && ! has_remote land/T1 \
   && ok "no pull request means no landing" || fail "gh failure (r=$r): $(tail -5 "$SCRATCH/out")"
+
+# 5. an open pull request already on land/T1 (left by a run that died or was refused): the run reuses it, says so,
+#    retitles it from this run's task, and lands; no refusal, no second pull request
+setup true 1; GH_OPEN=9 land; r=$?
+[ $r = 0 ] && grep -q "land: pull request #9 was already open on land/T1; this run reuses it" "$SCRATCH/out" \
+  && grep -q "land: pull request #9: https://github.com/o/r/pull/9" "$SCRATCH/out" && ! grep -q '^pr|create' "$CALLS" \
+  && grep -qx 'pr|list|--repo|o/r|--head|land/T1|--state|open|--json|number|--jq|.\[\].number' "$CALLS" \
+  && ok "an open pull request on the branch is reused in the same run, with a logged line" || fail "stale open pull request (r=$r): $(cat "$CALLS" 2>&1; tail -5 "$SCRATCH/out")"
+grep -qx 'pr|edit|9|--repo|o/r|--title|T1: a.txt says hello|--body-file|.*' "$CALLS" && grep -q "Opened by scripts/land.sh" "$SCRATCH/body.md" \
+  && ok "the reused pull request gets this run's title and body" || fail "not retitled: $(cat "$CALLS")"
+setup false 1; GH_OPEN=9 land; r=$?
+[ $r = 1 ] && grep -q '^pr|close|9|--repo|o/r|--comment|Not landed: candidate' "$CALLS" \
+  && ok "a refused run closes the reused pull request with the reason" || fail "reused not closed (r=$r): $(cat "$CALLS")"
 
 # 4. off unless land.conf sets PULL_REQUESTS: gh is never called, and the candidate branch is removed as before
 setup true ""; land; r=$?

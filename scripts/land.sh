@@ -347,6 +347,7 @@ fi
       "${goal:-$ID}" > "$WORK/pr-body.md"
     PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$(pr_title "$ID" "$goal")" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
       || { GATE_OUT="$WORK/pr.out"; PR_NUMBER=""; refuse pull-request "GitHub did not open the pull request for $CANDIDATE_BRANCH"; }
+    sed 's/^/land: /' "$WORK/pr.out"
     echo "land: pull request #$PR_NUMBER: https://github.com/${ACTIONS_REPO:-}/pull/$PR_NUMBER"
   fi
   GATE_DEADLINE_S="${CANDIDATE_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate candidate /dev/null "$CANDIDATE_CMD"
