@@ -1,6 +1,6 @@
 # BUG_20261017_lint-requires-test-red-missing-paths-sh
 
-**Status:** OPEN
+**Status:** FIXED (scratch copy by T328/T497, gate by T400; closed by T544)
 
 ## Symptom
 `scripts/land/test/lint-requires.test.sh` is red on main and on t254. No task's done_test, CI job or
@@ -21,3 +21,9 @@ and add the test to a done_test or the post-land suite so a red is seen.
 
 ## Verification
 The test passes on main, and it runs in some gate.
+
+## Resolution (21 Oct 2026, T544)
+- The scratch copy now takes `scripts/paths.sh` and `scripts/lib/` (T328, T497).
+- Every `scripts/**/test/*.test.sh` runs in the landing's candidate run, job shell, through
+  `scripts/test-shell.sh` (T400), so a red is seen.
+- `bash scripts/land/test/lint-requires.test.sh` on main 436be50c0: both cases ok.

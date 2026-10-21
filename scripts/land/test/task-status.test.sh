@@ -2,7 +2,7 @@
 # Every tasks/T*.yml says the truth about main:
 #  - status is one of: open claimed done superseded backlog blocked abandoned (scripts/abandon.sh writes the last)
 #  - status done has a landed: line whose sha is an ancestor of origin/main, or (not yet filled
-#    by the next landing) main carries its '<id>:' landing commit / does not yet say done
+#    by the next landing) main carries its '<id>:' or '(auto) <id>:' landing commit / does not yet say done
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
@@ -27,7 +27,7 @@ for f in tasks/T*.yml; do
       # task's landing commit, or when main does not yet say done (this file is the one landing).
       id=$(sed -n 's/^id:[[:space:]]*//p' "$f" | head -1)
       on_base=$(git show "$BASE:$f" 2>/dev/null | sed -n 's/^status:[[:space:]]*\([A-Za-z-]*\).*/\1/p' | head -1)
-      if [ "$on_base" = done ] && ! git log "$BASE" --format=%s | grep "^$id:" > /dev/null; then   # not grep -q: it closes the pipe early and pipefail then fails the pipeline
+      if [ "$on_base" = done ] && ! git log "$BASE" --format=%s | grep -E "^(\(auto\) )?$id:" > /dev/null; then   # land.sh writes "(auto) <id>:" since T536; not grep -q: it closes the pipe early and pipefail then fails the pipeline
         echo "FAIL $f: status done without a landed: sha and no '$id:' commit on $BASE"; bad=1
       fi
       continue

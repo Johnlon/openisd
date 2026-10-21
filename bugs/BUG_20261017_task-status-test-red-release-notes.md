@@ -1,6 +1,6 @@
 # BUG_20261017_task-status-test-red-release-notes
 
-**Status:** OPEN
+**Status:** FIXED (T544)
 
 ## Symptom
 `scripts/land/test/task-status.test.sh` is red on main and on t254 with 25 failures. It is the
@@ -23,3 +23,11 @@ landing passes (land.sh, or the post-land suite).
 
 ## Verification
 The test passes on main, and a landing that adds a bad release_note is refused.
+
+## Resolution (21 Oct 2026, T544)
+- The release-note and T262 reds were fixed in the task files since; the test runs on every landing's
+  candidate through `scripts/test-shell.sh` (T400).
+- A new red came on main with T542: since T536, land.sh writes landing subjects as
+  "(auto) <id>: ...", and the test looked only for "<id>:". A done task waiting for the next landing to
+  fill its `landed:` sha was reported red. The test now takes the subject with or without "(auto) ".
+- `bash scripts/land/test/task-status.test.sh` on main 436be50c0: red (T542) before, green after.
