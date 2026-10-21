@@ -466,7 +466,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingField(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, engine, () => availableAir(new FixedAir(engine.environment.solve(engine.environment.defaults()).values)));
+        driver = new OpenISDDriverStandalone(record, engine, () => availableAir(new FixedAir({c: engine.environment.appAir.c(), rho: engine.environment.appAir.rho()})));
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read

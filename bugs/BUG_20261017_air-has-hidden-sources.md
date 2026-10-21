@@ -1,6 +1,6 @@
 # BUG_20261017_air-has-hidden-sources
 
-**Status:** OPEN. Hits 1 and 5 closed by T366; hits 2-4 and 6-10 stay open: the c/ρ E/C fields task, then the air plumbing task (required air, one named source; design held for John).
+**Status:** RESOLVED (T527, 21 Oct 2026). Hits 1 and 5 closed by T366; hits 2-4, 6, 7 and 9 were already gone (T372-T375); hit 8 fixed and hit 10 is the owner; all pinned by `architecture-air-has-no-hidden-source.test.ts`.
 
 ## Symptom
 Air (ρ and c) can come from a place nobody named. A project with its own air, switched to a passive radiator,
@@ -18,15 +18,15 @@ with a constant.
 | # | Where | What it does |
 |---|---|---|
 | 1 | `PrEngine.vas()` and `cmsFromVas()` | `solveEnvironment({})`: factory air. Live caller: `openISDBox.ts` starting radiator Vas. FIXED T366: both take an `Air`; the box passes the project's. Test `air-has-no-hidden-source.test.ts`; gate `architecture-air-has-no-hidden-source.test.ts` |
-| 2 | `engine/air.ts` `airFor()` | fills a missing tempK, humidityPct or pressurePa from `DEFAULT_*_REF_*` |
-| 3 | `SweepParams` tempK, humidityPct, pressurePa optional | `port.ts`, `circuit.ts` (two), `SimulationEngine.ts` run in factory air when a caller leaves them out |
-| 4 | `createEnvironmentAir` `advAir` (`OriginalShell-hooks.ts`) | `value ?? undefined`: a blank project condition shows factory air in the Advanced readouts |
+| 2 | `engine/air.ts` `airFor()` | fills a missing tempK, humidityPct or pressurePa from `DEFAULT_*_REF_*` | **CLOSED (stale): `airFor` takes a full required `AirEnvironment`; no fallback. Gate: no `DEFAULT_*_REF_*` outside `air.ts`, `appSettings.ts`, `index.ts`.** |
+| 3 | `SweepParams` tempK, humidityPct, pressurePa optional | `port.ts`, `circuit.ts` (two), `SimulationEngine.ts` run in factory air when a caller leaves them out | **CLOSED (stale): no optional tempK/humidityPct/pressurePa anywhere in design or ui/src. Gate pins it.** |
+| 4 | `createEnvironmentAir` `advAir` (`OriginalShell-hooks.ts`) | `value ?? undefined`: a blank project condition shows factory air in the Advanced readouts | **CLOSED (stale): `createEnvironmentAir` reads the project's five air fields; no `?? undefined`, no app read.** |
 | 5 | `winisd/winisdProject.ts` | template literals `T 293.15, p 101325, phi 0.3`. CHECKED T366: the converter supplies T, p, phi from the project's air, so the template value is never written for a project export; pinned by a test |
-| 6 | `EnvironmentEngine.defaults` | holds `AppSettings`, publishes `envDefaults` read at call time |
-| 7 | `projectEnvironment.ts` | each project air field falls back to `engine.defaults()` itself |
-| 8 | `openISDDriver.ts` standalone driver | air wired as `() => engine.environment.defaults()` |
-| 9 | `createEnvironmentAir` and three phone hooks | read `appState.envDefaults()` |
-| 10 | `OptionsModal-hooks.ts` | reads `settings.envDefaults()` to fill the editor |
+| 6 | `EnvironmentEngine.defaults` | holds `AppSettings`, publishes `envDefaults` read at call time | **CLOSED (stale): `EnvironmentEngine` hands the project an `AppAir` at construction; `defaults()` is read only by the Options editor and tests.** |
+| 7 | `projectEnvironment.ts` | each project air field falls back to `engine.defaults()` itself | **CLOSED (stale): the project fills a blank field once from `engine.environment.appAir` (copied as E), not from `defaults()`.** |
+| 8 | `openISDDriver.ts` standalone driver | air wired as `() => engine.environment.defaults()` | **CLOSED T527: standalone driver air is `engine.environment.appAir` c and rho (the app's air, per the rule). Gate: no `environment.defaults(` in design source.** |
+| 9 | `createEnvironmentAir` and three phone hooks | read `appState.envDefaults()` | **CLOSED (stale): the phone hooks use `createEnvironmentAir` over the project; none reads `envDefaults`.** |
+| 10 | `OptionsModal-hooks.ts` | reads `settings.envDefaults()` to fill the editor | **CLOSED (owner): the Options editor reads the app setting it edits; that is the setting's owner, not a calculation.** |
 
 ## Open questions for John (relayed by fable)
 Per-field or all-or-nothing project air; live or fixed when Options changes; what the saved file records;

@@ -41,4 +41,29 @@ describe('air has no hidden source', () => {
       .map(file => file.slice(PACKAGES.length + 1));
     assert.deepEqual(offenders, [], 'these solve air for an empty environment, which is factory air: pass the owner\'s air');
   });
+
+  it('no environment field is optional (hits 2, 3, 4: a blank condition cannot fall back to factory air)', () => {
+    const offenders = ROOTS.flatMap(sourcesUnder)
+      .filter(file => /\b(?:tempK|humidityPct|pressurePa)\?\s*:/.test(executableText(readFileSync(file, 'utf8'))))
+      .map(file => file.slice(PACKAGES.length + 1));
+    assert.deepEqual(offenders, [], 'these declare an optional air condition');
+  });
+
+  it('the factory reference constants are used only to initialise the app setting (hits 2, 7)', () => {
+    const allowed = new Set(['design/engine/air.ts', 'design/engine/appSettings.ts', 'design/engine/index.ts']);
+    const offenders = ROOTS.flatMap(sourcesUnder)
+      .map(file => file.slice(PACKAGES.length + 1))
+      .filter(rel => !allowed.has(rel))
+      .filter(rel => /DEFAULT_(?:T|RH|P)_REF_/.test(executableText(readFileSync(join(PACKAGES, rel), 'utf8'))));
+    assert.deepEqual(offenders, [], 'these use a factory air constant');
+  });
+
+  it('only the app setting editor reads the app environment setting; calculations take the AppAir (hit 8)', () => {
+    const offenders = ROOTS.flatMap(sourcesUnder)
+      .map(file => file.slice(PACKAGES.length + 1))
+      .filter(rel => rel !== 'design/engine/environment/EnvironmentEngine.ts' && rel !== 'design/engine/appSettings.ts')
+      .filter(rel => !rel.startsWith('ui/src/'))
+      .filter(rel => /environment\.defaults\(|\.envDefaults\(/.test(executableText(readFileSync(join(PACKAGES, rel), 'utf8'))));
+    assert.deepEqual(offenders, [], 'these read the app setting directly: use engine.environment.appAir');
+  });
 });

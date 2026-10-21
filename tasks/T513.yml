@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 35923cb9a4509e9d960c27423a6396804a04f4f9
 goal: B8 phone Graph tab, Data sheet, Tune sheet, What-if sheet (screens 11-14) as the accepted mock; Auto Y stays where it is (QO278 open)
 done_test: bash scripts/test.sh packages/design/test/fields/chartPage.test.ts packages/design/test/fields/phoneRowSizes.test.ts
 visual:
