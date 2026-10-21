@@ -28,3 +28,6 @@ solve-from-mms-cms". Golden: `packages/design/test/winisd/fixtures/winisd-parity
 
 ## Ruling (John, 2026-10-07, bug walk)
 Acked as a WinISD bug: trigger bug, never copied, no switch. Follow-ups sent to the coordinator: in-app help entry (`WinisdFixedBug`), and a test that loads `solve-from-mms-cms.wpr` and checks every derived value is finite.
+
+## Re-verified
+Re-verified 21 Oct 2026 on main faa577b95: both follow-ups from John's 7 Oct ruling are done. The help entry is `WinisdFixedBug.DRIVER_WITHOUT_FS_VAS_CRASHES` (`packages/design/fields/winisdFixedBug.ts`), and `solve-from-mms-cms-load.test.ts` loads the golden and passes.

@@ -1,0 +1,16 @@
+id: T559
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Re-verify seven 3-5 Oct bug files against main and give the report-upload bug a Status line
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T559.yml
+  - bugs/BUG_20261003_winisd-pr-sd-edit-ignored.md
+  - bugs/BUG_20261004_winisd-pr-vas-box-emptied-crashes.md
+  - bugs/BUG_20261005_bp6-group-delay-noise-above-1k.md
+  - bugs/BUG_20261005_drive-voltage-each-stale-with-driver-count.md
+  - bugs/BUG_20261005_project-selection-lost-on-reload.md
+  - bugs/BUG_20261005_winisd-driver-without-fs-vas-crashes-on-load.md
+  - bugs/BUG_20261018_failed-report-upload-reds-green-run.md

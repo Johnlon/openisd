@@ -43,3 +43,6 @@ a PR Sd edit: add one.
 
 ## T429 U6 (2026-10-19)
 SB15SFCR-00 PR box, Sd 0.0178 typed to 0.0205, then the Volume retyped (which recalculates every other typed edit): WinISD's Cone excursion (PR) is still that of Sd 0.0178 (OpenISD with 0.0178 matches to 8e-16; with 0.0205 it is 0.13 off). Pinned `it.fails` in `packages/design/test/domain/pr-edit-parity-sb15sfcr-00.test.ts`. All other charts match, as Sd does not enter them.
+
+## Re-verified
+Re-verified 21 Oct 2026 on main faa577b95: `pr-edit-parity-sb15sfcr-00.test.ts` passes, with the WinISD Sd case still pinned as its one expected fail.

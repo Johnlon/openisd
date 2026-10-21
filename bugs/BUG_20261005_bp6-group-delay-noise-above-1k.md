@@ -1,6 +1,6 @@
 # BUG_20261005_bp6-group-delay-noise-above-1k
 
-**Status:** FIXED 2026-10-05
+**Status:** RESOLVED (fixed 2026-10-05)
 
 ## Symptom
 OpenISD's own group delay chart is noisy above ~1.2 kHz on the 6th-order bandpass (W5-1138SMF,
@@ -23,3 +23,6 @@ second difference on WinISD's 2086-point grid above 1.2 kHz < 1e-5 ms for BP6, A
 vented and PR. Before: BP6 0.163 ms, others 3e-5 to 1.3e-4 ms. After: BP6 1.8e-7 ms. BP6 at
 1.24 kHz now 0.01776 ms (exact 0.0178). WinISD group delay parity tests unchanged and passing;
 golden-master `gd` arrays regenerated (moved by ≤ 1.6e-3 ms, the old staircase; nothing else moved).
+
+## Re-verified
+Re-verified 21 Oct 2026 on main faa577b95: `group-delay-smooth.test.ts` passes.

@@ -1,6 +1,6 @@
 # BUG_20261005_drive-voltage-each-stale-with-driver-count
 
-**Status:** FIXED 2026-10-05 — John ruled: a stale-update bug copied from WinISD; fix it, no switch.
+**Status:** RESOLVED (fixed 2026-10-05) — John ruled: a stale-update bug copied from WinISD; fix it, no switch.
 
 ## Symptom
 "Driver input voltage (each)" did not follow the driver count. W5-1138SMF, 1 W: 1.87 V with one
@@ -27,3 +27,6 @@ each driver P/N.
 - `packages/design/test/domain/project-signal.test.ts` — readout, entered voltage, count edit, sweep `eg`.
 - `packages/design/test/engine/driver-count-winisd.test.ts` — W5-1138SMF sealed, 4.48 L per driver:
   1 W gives 80.532 → 86.552 dB at 1 kHz (+6.02, WinISD); same volts each gives +12.04 dB (WinISD +12.05).
+
+## Re-verified
+Re-verified 21 Oct 2026 on main faa577b95: `project-signal.test.ts` and `driver-count-winisd.test.ts` pass.
