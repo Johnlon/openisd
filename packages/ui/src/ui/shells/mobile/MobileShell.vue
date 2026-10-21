@@ -93,13 +93,13 @@ const diagnostics = injectDiagnosticsModal();
     </div>
 
     <template v-else>
-      <main ref="contentEl" class="mob-content" @scroll="onContentScroll">
+      <main ref="contentEl" class="mob-content" :class="{ 'mob-content-fixed': destination === 'graph' }" @scroll="onContentScroll">
         <MobileChartView v-if="destination === 'graph'" @menu="toggleMenu" />
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
         <MobileFiltersTab v-else-if="destination === 'filters'" />
-        <div v-if="pinSpacePx > 0" class="mob-pin-space" :style="{ height: pinSpacePx + 'px' }" aria-hidden="true"></div>
+        <div v-if="destination !== 'graph' && pinSpacePx > 0" class="mob-pin-space" :style="{ height: pinSpacePx + 'px' }" aria-hidden="true"></div>
       </main>
       <MobilePaneDialog v-if="pane === 'project'" title="Project" @close="closePane">
         <MobileProjectTab />
@@ -300,6 +300,10 @@ const diagnostics = injectDiagnosticsModal();
   flex-direction: column;
   overflow-y: auto;
   padding-bottom: 4px;
+}
+.mob-content.mob-content-fixed {
+  overflow: hidden;
+  padding-bottom: 0;
 }
 /* Every direct child here is a mounted tab's ROOT (`.mob-panel` blocks, `.mob-hint` paragraphs,
    …) — a flex ITEM with the column-flex default `flex-shrink: 1`. Any `.mob-panel` also sets

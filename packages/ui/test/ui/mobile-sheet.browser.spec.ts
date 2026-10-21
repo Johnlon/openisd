@@ -197,3 +197,49 @@ test('leaving the Graph page with What-if sheet open ends the What-if', async ({
   await expect.poll(() => shownBoxVolume(page)).toBe(initialVolume);
   expect(await focusedIsModified(page)).toBe(false);
 });
+
+test.describe('phone keyboard', () => {
+  test.use({hasTouch: true, viewport: {width: 374, height: 705}});
+
+  test('phone what-if: keyboard dismiss after stepper does not shove view or close sheet', async ({ page }) => {
+    await openGraph(page);
+
+    const whatIfBtn = page.getByRole('button', { name: 'Open What-if' });
+    await whatIfBtn.click();
+
+    const sheet = page.locator('.mob-sheet');
+    await expect(sheet).toBeVisible();
+
+    const driversCell = sheet.locator('.mob-sheet-cell', { hasText: 'Drivers' });
+    const input = driversCell.locator('input');
+    const upBtn = driversCell.locator('.num-stepper-btn').first();
+
+    await input.scrollIntoViewIfNeeded();
+    await input.tap();
+    await expect(input).toHaveValue('1');
+
+    // Keyboard appears (shrinking viewport to soft keyboard height)
+    await page.setViewportSize({ width: 374, height: 380 });
+
+    // Stepper ▲ is tapped
+    await upBtn.tap();
+
+    // Keyboard dismisses (viewport restored to phone height)
+    await page.setViewportSize({ width: 374, height: 705 });
+
+    // Sheet MUST remain open, value incremented to 2, and document/content scroll MUST NOT be shoved up
+    await expect(sheet).toBeVisible();
+    await expect(input).toHaveValue('2');
+
+    const scrollOffsets = await page.evaluate(() => ({
+      windowY: window.scrollY,
+      docY: document.documentElement.scrollTop,
+      bodyY: document.body.scrollTop,
+      contentY: document.querySelector('.mob-content')?.scrollTop ?? 0,
+    }));
+    expect(scrollOffsets.windowY).toBe(0);
+    expect(scrollOffsets.docY).toBe(0);
+    expect(scrollOffsets.bodyY).toBe(0);
+    expect(scrollOffsets.contentY).toBe(0);
+  });
+});

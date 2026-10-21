@@ -86,4 +86,18 @@ describe('StepperPin', () => {
     expect(form.scrolled).toBe(0);
     expect(form.space).toBe(0);
   });
+
+  it('does not scroll or grow when the surface refuses space (e.g. fixed graph view)', () => {
+    class FixedForm extends FakeForm {
+      override setSpacePx(_px: number): void { this.space = 0; }
+      override scrollBy(_dy: number): void { /* no-op */ }
+    }
+    const form = new FixedForm();
+    const pin = new StepperPin(form);
+    pin.pin(() => form.boxTop);
+    expect(form.space).toBe(0);
+    form.boxTop = 900;
+    pin.hold();
+    expect(form.scrolled).toBe(0);
+  });
 });

@@ -1,0 +1,18 @@
+id: T529
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: phone What-if keyboard shoves view and closes
+visual:
+  - mobile-tab-graph
+done_test: bash scripts/test.sh packages/ui/test/logic/stepperPin.test.ts
+files:
+  - tasks/T529.yml
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/logic/stepperPin.test.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+  - bugs/BUG_20261021_phone-whatif-keyboard-shoves-view-and-closes.md

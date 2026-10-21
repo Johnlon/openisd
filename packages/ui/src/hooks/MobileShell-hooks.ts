@@ -440,13 +440,19 @@ export function useMobileShell(): MobileShellApi {
     viewportTopPx.value = visibleViewportTopPx(window);
   }
   // The visible screen changed size (the keyboard): the box being typed in is scrolled into view
-  // inside the form, and a pinned box is held where it was.
+  // inside the form, and a pinned box is held where it was. On the Graph destination, the content
+  // container is full-screen and never scrolls: the chart stack and bottom sheet manage their own
+  // internal scrolling.
   function onVisibleResize(): void {
     updateViewportHeight();
     void nextTick().then(() => {
-      const el = document.activeElement;
-      if (el instanceof HTMLInputElement && contentEl.value?.contains(el)) el.scrollIntoView({block: 'nearest'});
-      stepperPin.hold();
+      if (destination.value !== 'graph') {
+        const el = document.activeElement;
+        if (el instanceof HTMLInputElement && contentEl.value?.contains(el)) el.scrollIntoView({block: 'nearest'});
+        stepperPin.hold();
+      } else if (contentEl.value !== null) {
+        contentEl.value.scrollTop = 0;
+      }
     });
   }
   // DuckDuckGo fires neither a window nor a visualViewport resize when it hides its address bar,
@@ -481,11 +487,16 @@ export function useMobileShell(): MobileShellApi {
   const pinSpacePx = ref(0);
   const stepperPin = new StepperPin({
     screenHeightPx: () => window.screen.height,
-    scrollBy: dy => { if (contentEl.value !== null) contentEl.value.scrollTop += dy; },
-    setSpacePx: px => { pinSpacePx.value = px; },
+    scrollBy: dy => {
+      if (destination.value !== 'graph' && contentEl.value !== null) contentEl.value.scrollTop += dy;
+    },
+    setSpacePx: px => {
+      pinSpacePx.value = destination.value !== 'graph' ? px : 0;
+    },
     belowViewPx: () => {
       const el = contentEl.value;
-      return el === null ? 0 : el.scrollHeight - el.scrollTop - el.clientHeight;
+      if (destination.value === 'graph' || el === null) return 0;
+      return el.scrollHeight - el.scrollTop - el.clientHeight;
     },
     now: () => performance.now(),
     nextFrame: run => { requestAnimationFrame(run); },
