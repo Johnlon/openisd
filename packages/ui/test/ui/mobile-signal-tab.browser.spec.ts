@@ -106,3 +106,8 @@ test('selecting the last digit spins that digit, by key and by ▲▼', async ({
   await pow.press('ArrowUp');
   await expect(pow).toHaveValue('1.08');
 });
+
+test('the series resistance unit reads Ω at 374x705', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  await expect(page.locator('.mob-ui-field', { hasText: 'Rs' }).locator('.ui-field-unit')).toHaveText('Ω');
+});

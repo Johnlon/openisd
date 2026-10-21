@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: faa577b954f6d761f91cd8a55d2582dc67dfeeb0
 goal: Close four infra bugs already fixed or obsolete: hooks drift, main moved under hook, land subject WIP, post-land unit red skips browser
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

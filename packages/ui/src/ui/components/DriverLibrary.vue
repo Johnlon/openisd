@@ -2,8 +2,10 @@
 import {onMounted, ref} from 'vue';
 import {useApp} from '../../logic/app.js';
 import {DriverFileFormat} from '../../fileFormat.js';
-import {PhoneDriverListText, PhoneHelp} from '@openisd/design/fields';
+import {NumberField, PhoneDriverListText, PhoneHelp} from '@openisd/design/fields';
 import PhoneBand from '../shells/mobile/PhoneBand.vue';
+
+const znomUnit = NumberField.ZNOM_OHM.unitLabel();
 
 // The WinISD-style driver library body: search, filters, list, one-driver summary and the
 // footer actions. Markup and CSS only (ARCHITECTURE.md §7, "Components decide nothing") —
@@ -148,8 +150,8 @@ onMounted(openedLibrary);
           <span class="plabel" :class="{ active: selZ.length }">Z</span>
           <button v-for="z in ['4', '8', '16']" :key="z"
                   class="zchip" :class="{ active: selZ.includes(z) }"
-                  :title="`Filter to nominal ${z}Ω impedance — stored as WinISD Znom (derived from Re when not entered; not fed back into the simulation)`"
-                  @click="toggleZ(z)">{{ z }}Ω</button>
+                  :title="`Filter to nominal ${z}${znomUnit} impedance — stored as WinISD Znom (derived from Re when not entered; not fed back into the simulation)`"
+                  @click="toggleZ(z)">{{ z }}{{ znomUnit }}</button>
           </span>
         </div>
 

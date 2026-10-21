@@ -35,7 +35,7 @@ function unitTable() {
  *  quantity with no second unit in `fields/units.ts` — a field landing here that DOES have a
  *  group is a missing toggle, and the test says so rather than passing quietly. */
 const SINGLE_UNIT = new Set([
-  'ohm', 'Tm', 'W', 'dB', '%', 'H·√Hz', 'K/W', 'J/K', 'N/(A·kg)', 'N/√W',
+  'Ω', 'Tm', 'W', 'dB', '%', 'H·√Hz', 'K/W', 'J/K', 'N/(A·kg)', 'N/√W',
 ]);
 
 test.beforeEach(async ({ page }) => {
@@ -124,13 +124,13 @@ test('rotating a unit changes the display only — the stored value round-trips'
 const WINISD_UNITS: Array<{ tab: string; label: string; unit: string }> = [
   { tab: 'Parameters', label: 'Cms', unit: 'mm/N' },
   { tab: 'Parameters', label: 'Rms', unit: 'Ns/m' },
-  { tab: 'Parameters', label: 'Re', unit: 'ohm' },
+  { tab: 'Parameters', label: 'Re', unit: 'Ω' },
   { tab: 'Parameters', label: 'BL', unit: 'Tm' },
   { tab: 'Parameters', label: 'Le', unit: 'mH' },
   { tab: 'Parameters', label: 'KLe', unit: 'H·√Hz' },
   { tab: 'Parameters', label: 'Pe', unit: 'W' },
   { tab: 'Parameters', label: 'η₀', unit: '%' },
-  { tab: 'Parameters', label: 'Znom', unit: 'ohm' },
+  { tab: 'Parameters', label: 'Znom', unit: 'Ω' },
   { tab: 'Advanced', label: 'R(t)', unit: 'K/W' },
   { tab: 'Advanced', label: 'C(t)', unit: 'J/K' },
   { tab: 'Advanced', label: 'Rme', unit: 'Ns/m' },

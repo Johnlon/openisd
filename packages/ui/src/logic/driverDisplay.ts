@@ -182,7 +182,7 @@ export function activeFilterLabels(c: SearchCriteria, scope: DriverScope): strin
   if (fs) labels.push(fs);
   const sd = rangeLabel('Sd', c.sdMin, c.sdMax, NumberField.SD_M2.unitLabel('cm2'));
   if (sd) labels.push(sd);
-  if (c.selZ.length) labels.push(`Z ${c.selZ.map(z => `${z}Ω`).join(' or ')}`);
+  if (c.selZ.length) labels.push(`Z ${c.selZ.map(z => `${z}${NumberField.ZNOM_OHM.unitLabel()}`).join(' or ')}`);
   if (scope !== DriverScope.All) labels.push(`${scope.label} only`);
   if (c.favoritesOnly) labels.push('Favorites');
   return labels;

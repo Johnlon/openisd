@@ -48,6 +48,6 @@ describe('a number field states its display unit once', () => {
   it('a field with a real but never-switched unit (Re, ohms) is fixed to that symbol', () => {
     const re = NumberField.RE_OHM.display;
     if (re.kind !== 'fixed') throw new Error('RE_OHM must be fixed');
-    expect(re.symbol).toBe('ohm');
+    expect(re.symbol).toBe('Ω');
   });
 });

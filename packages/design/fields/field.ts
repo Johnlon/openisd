@@ -519,7 +519,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_RS_OHM = new NumberField({
     value: "signal_Rs_ohm",
     label: "Series resistance",
-    display: {kind: 'fixed', symbol: 'ohm'},
+    display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0, max: 1000},
     precision: 3,
     description: "Series Resistance\nCombined amplifier output impedance, wiring and crossover resistance, in series with the driver.",
@@ -682,7 +682,7 @@ export class NumberField extends Field {
   static readonly RE_OHM = new NumberField({
     value: "Re_ohm",
     label: "Re",
-    display: {kind: 'fixed', symbol: 'ohm'},
+    display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0.01, max: 1000},
     floor: "positive",
     precision: 3,
@@ -1073,7 +1073,7 @@ export class NumberField extends Field {
   static readonly ZNOM_OHM = new NumberField({
     value: "Znom_ohm",
     label: "Znom",
-    display: {kind: 'fixed', symbol: 'ohm'},
+    display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0, max: 64},
     floor: "non-negative",
     precision: 4,
