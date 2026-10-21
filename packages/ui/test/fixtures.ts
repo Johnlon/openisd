@@ -129,7 +129,7 @@ export async function resetApp(page: Page, additions: TestAdditions): Promise<vo
   await clearHash(page);
 }
 
-const OVERLAY_SELECTOR = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, dialog[open]';
+const OVERLAY_SELECTOR = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, .mob-dlg, dialog[open]';
 
 /** Closes whatever a test left open the way a user would: the dialog's own close controls, then Escape. */
 async function dismissOverlays(page: Page): Promise<void> {
@@ -143,7 +143,7 @@ async function dismissOverlays(page: Page): Promise<void> {
     // An open drop-down is closed by clicking outside it, as a user does.
     const scrim = page.locator('.fmt-scrim').filter({ visible: true }).first();
     if (await scrim.count() > 0) { await scrim.click({ position: { x: 1, y: 1 }, timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 600); }); continue; }
-    const close = page.locator('.overlay.on .x, .overlay.open .x, .overlay.on .close-btn, .overlay.open .close-btn, .opt-x, .wd-x, .confirm-dialog-cancel, .confirm-dialog-dismiss, .mob-sheet-close, .mob-menu-close, .mob-x').filter({ visible: true }).first();
+    const close = page.locator('.overlay.on .x, .overlay.open .x, .overlay.on .close-btn, .overlay.open .close-btn, .opt-x, .wd-x, .confirm-dialog-cancel, .confirm-dialog-dismiss, .mob-sheet-close, .mob-menu-close, .mob-x, .mob-dlg-close').filter({ visible: true }).first();
     if (await close.count() > 0) await close.click({ timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 1800); });
     else await page.keyboard.press('Escape');
     // The next try starts once this one has closed something; the check after the loop names what stayed open.

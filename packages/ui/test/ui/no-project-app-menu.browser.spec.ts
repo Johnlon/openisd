@@ -49,9 +49,9 @@ test('mobile: with no project open, the menu reaches every app-level feature', a
   await expect(page.locator('.mob-pane-dialog, [role=dialog]').filter({hasText: 'Manage drivers'}).first()).toBeHidden();
 
   await tapMobileMenuItem(page, 'Options');
-  await expect(page.locator('.opt-modal')).toBeVisible();
+  await expect(page.locator('.mob-dlg[aria-label="Options"]')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.opt-modal')).toBeHidden();
+  await expect(page.locator('.mob-dlg[aria-label="Options"]')).toBeHidden();
 
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-cloud').click();
@@ -60,14 +60,14 @@ test('mobile: with no project open, the menu reaches every app-level feature', a
   await expect(page.locator('.mob-cloud-dialog-body')).toBeHidden();
 
   await tapMobileMenuItem(page, 'OpenISD and WinISD differences');
-  await expect(page.locator('.wd-modal')).toBeVisible();
+  await expect(page.getByRole('dialog', {name: 'OpenISD and WinISD differences'})).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.wd-modal')).toBeHidden();
+  await expect(page.getByRole('dialog', {name: 'OpenISD and WinISD differences'})).toBeHidden();
 
   await tapMobileMenuItem(page, 'Diagnostics');
-  await expect(page.locator('.dg')).toBeVisible();
+  await expect(page.locator('.mob-dlg')).toBeVisible();
   await page.keyboard.press('Escape');
-  await expect(page.locator('.dg')).toBeHidden();
+  await expect(page.locator('.mob-dlg')).toBeHidden();
 
   await tapMobileMenuItem(page, 'About OpenISD');
   await expect(page.locator('.sp')).toBeVisible();

@@ -3,13 +3,17 @@
  * The splash dialog — raised once for a visitor whose stored view is empty, and on demand from
  * the toolbar's Info menu. The words are `SplashContent`'s, shared with the public about page.
  */
+import {computed} from 'vue';
+import {useApp} from '../../logic/app.js';
 import {injectSplashModal} from '../../hooks/SplashModal-hooks.js';
 import {injectAppUpdateUi} from '../../hooks/appUpdateUi.js';
-import {APP_UPDATE_TEXT} from '@openisd/design/fields';
+import {AboutText, APP_UPDATE_TEXT} from '@openisd/design/fields';
 import SplashContent from './SplashContent.vue';
 
 const {open, dismiss, driverCount, passiveRadiatorCount, versions} = injectSplashModal();
 const {forceRefresh} = injectAppUpdateUi();
+const presentation = useApp().presentation;
+const phone = computed(() => presentation.shownSkin() === 'mobile');
 </script>
 
 <template>
@@ -19,6 +23,12 @@ const {forceRefresh} = injectAppUpdateUi();
            reachable the moment the splash appears. -->
       <button class="sp-x" title="Close" aria-label="Close" @click="dismiss">&times;</button>
       <img class="sp-logo" src="/logo-wide.svg" alt="OpenISD — open loudspeaker enclosure simulator">
+
+      <!-- The phone's About opens with the version and the change log (PHONE_CLASSIC_BUILD_SPEC row 21). -->
+      <p v-if="phone && versions !== null && versions.running !== null" class="sp-version-line" data-testid="about-version-line">
+        {{ AboutText.versionLine(versions.running.version, versions.running.stamp) }} ·
+        <a :href="AboutText.CHANGE_LOG_URL" target="_blank" rel="noopener">{{ AboutText.CHANGE_LOG_LABEL }}</a>
+      </p>
 
       <SplashContent :driver-count="driverCount" :passive-radiator-count="passiveRadiatorCount" />
 
@@ -44,6 +54,8 @@ const {forceRefresh} = injectAppUpdateUi();
 .sp-refresh-btn:hover { background: #1b2a3a; }
 .sp-refresh-note { margin: 6px 0 0; font-size: 12px; color: #8a9bab; }
 @media (max-width: 700px) { .sp-refresh-btn { min-height: 44px; } }
+.sp-version-line { margin: -6px 0 18px; font-size: 14px; color: #8a96a3; }
+.sp-version-line a { color: #4aa3ff; }
 .sp-versions h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .sp-heading { margin: 0; font-size: 17px; font-weight: 600; color: #e6edf3; }
 .sp-stamp { margin: 0 0 6px; font-size: 11px; color: #8a9bab; }

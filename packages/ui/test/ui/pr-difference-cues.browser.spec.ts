@@ -37,7 +37,7 @@ for (const skin of ['desktop', 'mobile'] as const) {
       await cueOf(page, /^Fh$/).click();
       const help = page.getByRole('dialog', {name: 'OpenISD and WinISD differences'});
       await expect(help).toBeVisible();
-      await expect(help.locator('.wd-entry.current h4')).toHaveText(FH_TITLE);
+      await expect(help.locator('.wd-entry.current h4, .mob-dcard.current .mob-dcard-title')).toHaveText(FH_TITLE);
     });
 
     test('Mms and Cms on the Passive Radiator tab are typeable and have the cue', async ({appPage: page}) => {
@@ -48,7 +48,7 @@ for (const skin of ['desktop', 'mobile'] as const) {
       }
       await cueOf(page, /^Cms$/).click();
       const help = page.getByRole('dialog', {name: 'OpenISD and WinISD differences'});
-      await expect(help.locator('.wd-entry.current h4')).toHaveText(FIGURES_TITLE);
+      await expect(help.locator('.wd-entry.current h4, .mob-dcard.current .mob-dcard-title')).toHaveText(FIGURES_TITLE);
     });
 
     test('the Box tab of a vented box has no passive radiator cue', async ({appPage: page}) => {

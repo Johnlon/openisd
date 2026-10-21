@@ -13,17 +13,17 @@ test('Your data opens inside the full-screen Options dialog and fits a 360 px ph
   await page.evaluate(() => { localStorage.setItem('openisd_my_drivers', '{"entries":[]}'); });
   await tapMobileMenuItem(page, 'Options');
 
-  await expect(page.locator('.opt-tab')).toHaveText(['General', 'Plot Window', 'Your data']);
-  await page.locator('.opt-tab', {hasText: 'Your data'}).click();
-  await expect(page.locator('.opt-modal legend')).toHaveText(['Storage', 'Backups', 'Export / Import']);
-  const tabsFit = await page.locator('.opt-tabs').evaluate(el => el.scrollWidth <= el.clientWidth);
+  await expect(page.locator('.opt-phone-tabs button')).toHaveText(['General', 'Plot Window', 'Your data']);
+  await page.locator('.opt-phone-tabs button', {hasText: 'Your data'}).click();
+  await expect(page.locator('.mob-dlg .mob-band-title')).toHaveText(['Storage', 'Backups', 'Export / Import']);
+  const tabsFit = await page.locator('.opt-phone-tabs').evaluate(el => el.scrollWidth <= el.clientWidth);
   expect(tabsFit).toBe(true);
   const before = await page.locator('.sh-row').count();
   await page.locator('.sh-backup-now').click();
   await expect(page.locator('.sh-row')).toHaveCount(before + 1);
 
   const shell = (await page.locator('.mobile-root').boundingBox())!;
-  const modal = (await page.locator('.opt-modal').boundingBox())!;
+  const modal = (await page.locator('.mob-dlg[aria-label="Options"]').boundingBox())!;
   expect(modal.width).toBeGreaterThanOrEqual(shell.width - 1);
   expect(modal.height).toBeGreaterThanOrEqual(shell.height - 1);
   const row = (await page.locator('.sh-row').first().boundingBox())!;

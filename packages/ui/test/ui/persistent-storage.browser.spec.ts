@@ -32,7 +32,7 @@ async function refusingBrowser(page: Page, usedMb: number): Promise<void> {
 }
 
 async function yourDataSaysSo(page: Page): Promise<void> {
-  await page.locator('.opt-tab', {hasText: 'Your data'}).click();
+  await page.locator('.opt-tab, .opt-phone-tabs button', {hasText: 'Your data'}).click();
   await expect(page.locator('.su-persist-warning')).toHaveText(WARNING);
   await expect(page.locator('.su-full-warning')).toHaveText(/^Storage is 90% full \(\d+ projects?, [\d.]+ (B|KB|MB) of 5 MB used\)\. Export or delete old projects\.$/);
   await expect(page.locator('.su-site')).toHaveText('This site uses 90.0 MB of the 100.0 MB this browser allows.');
