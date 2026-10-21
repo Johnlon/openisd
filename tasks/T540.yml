@@ -3,6 +3,7 @@ release_note: The New Project wizard's EBP line has a space after the colon.
 repo: openisd
 owner: opi
 status: done
+landed: 920ab1aaae5ae82a6bab0c2f643123055f3828b2
 goal: Desktop wizard step 3 reads 'Efficiency Bandwidth Product (EBP): 78.9' with a space after the colon (BUG_20261019_desktop-wizard-ebp-no-space-after-colon).
 done_test: bash scripts/test.sh packages/ui/test/ui/OriginalNewProject-ebp-line.test.ts
 files:

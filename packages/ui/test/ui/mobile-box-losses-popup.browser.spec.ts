@@ -4,6 +4,7 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {PhoneRowSizes} from '@openisd/design/fields';
 
 test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
@@ -89,5 +90,14 @@ test.describe('MobileBoxLossesPopup', () => {
       sheet = await openFor(page, 'Front');
       await expect(q(sheet, 'Leakage Ql')).toHaveValue(/^7(\.0+)?$/);
     });
+  }
+});
+
+// BUG_20261018_box-advanced-buttons-under-44: the sheet's Reset and OK are the one phone button.
+test('the box losses sheet\'s Reset and OK are PhoneRowSizes.BUTTON_PX tall', async ({ appPage: page }) => {
+  await page.locator('.mob-clink', { hasText: 'Box losses' }).first().click();
+  for (const name of ['Reset', 'OK']) {
+    const b = page.locator('.mob-align-footer').getByRole('button', { name, exact: true });
+    expect((await b.boundingBox())!.height, name).toBeCloseTo(PhoneRowSizes.BUTTON_PX, 0);
   }
 });

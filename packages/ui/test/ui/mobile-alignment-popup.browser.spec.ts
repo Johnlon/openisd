@@ -5,6 +5,7 @@
 import {mobileFieldRow} from '../fixtures/mobileSkin.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {PhoneRowSizes} from '@openisd/design/fields';
 
 test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
@@ -85,3 +86,15 @@ test.describe('MobileAlignmentPopup', () => {
     await expect(volumeField).toHaveValue(/15/);
   });
 });
+
+// BUG_20261018_box-advanced-buttons-under-44: the sheet's Cancel and Accept are the one phone button.
+for (const box of ['sealed', 'vented'] as const) {
+  test(`the ${box} alignment sheet's Cancel and Accept are PhoneRowSizes.BUTTON_PX tall`, async ({ appPage: page }) => {
+    await page.locator('#mob-box-type').selectOption(box);
+    await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
+    for (const name of ['Cancel', 'Accept']) {
+      const b = page.locator('.mob-align-footer').getByRole('button', { name, exact: true });
+      expect((await b.boundingBox())!.height, name).toBeCloseTo(PhoneRowSizes.BUTTON_PX, 0);
+    }
+  });
+}

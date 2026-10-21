@@ -14,6 +14,7 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import PhoneBand from './PhoneBand.vue';
+import PhoneButton from './PhoneButton.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
@@ -110,8 +111,8 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
         <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, sealedAlignmentEbp, '—') }} — {{ sealedAlignmentSuitabilityLabel }}</span>
       </div>
       <div class="mob-align-footer">
-        <button class="mob-btn" @click="sealedAlignmentEditor.cancel">Cancel</button>
-        <button class="mob-btn mob-btn-primary" @click="sealedAlignmentEditor.accept">Accept</button>
+        <PhoneButton @click="sealedAlignmentEditor.cancel()">Cancel</PhoneButton>
+        <PhoneButton primary @click="sealedAlignmentEditor.accept()">Accept</PhoneButton>
       </div>
     </div>
   </div>
@@ -136,8 +137,8 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
         <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, ventedAlignmentEbp, '—') }} — {{ ventedAlignmentSuitabilityLabel }}</span>
       </div>
       <div class="mob-align-footer">
-        <button class="mob-btn" @click="ventedAlignmentEditor.cancel">Cancel</button>
-        <button class="mob-btn mob-btn-primary" @click="ventedAlignmentEditor.accept">Accept</button>
+        <PhoneButton @click="ventedAlignmentEditor.cancel()">Cancel</PhoneButton>
+        <PhoneButton primary @click="ventedAlignmentEditor.accept()">Accept</PhoneButton>
       </div>
     </div>
   </div>
@@ -157,8 +158,8 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
       </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">
-        <button id="mob-box-losses-reset" class="mob-btn" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</button>
-        <button class="mob-btn mob-btn-primary" @click="lossesOpen = null">OK</button>
+        <PhoneButton id="mob-box-losses-reset" title="Back to WinISD's defaults: Ql 10, Qa 100, Qp 100, Qicl 100" @click="resetBoxLosses">Reset</PhoneButton>
+        <PhoneButton primary @click="lossesOpen = null">OK</PhoneButton>
       </div>
     </div>
   </div>
@@ -250,17 +251,6 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
 .mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
 .mob-hint-warn { color: var(--acc2); }
 
-.mob-btn {
-  flex: 1;
-  min-height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-  font-size: 14px;
-}
-.mob-btn-primary { background: var(--acc); border-color: var(--acc); color: #fff; font-weight: 600; }
 
 /* absolute, not fixed: same reasoning as MobileShell.vue's own .mob-menu-overlay — covers
    .mobile-root (its containing block) so the sheet stays within the phone pane. */

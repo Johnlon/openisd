@@ -1,6 +1,6 @@
 # BUG_20261021_provenance-highlight-edge-only
 
-**Status:** OPEN
+**Status:** FIXED (T521, f3c972e4f)
 
 ## Symptom
 With Inspect Provenance ticked in the driver editor, the fields that feed the inspected field are

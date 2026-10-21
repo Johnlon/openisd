@@ -229,10 +229,8 @@ a { color:var(--acc) }
   font-size: 18px;
 }
 
-/* The phone touch button, one for every screen that has none of its own: at least PhoneRowSizes.BUTTON_PX
-   (44 px, --mob-button-h) tall. PhoneButton.vue renders it. `-primary` is the filled call to action, `-secondary` the outlined one;
-   a screen that styles `.mob-btn` itself in a scoped sheet (Box, Advanced) keeps its own look, and
-   weight and cursor live on the two variants so they never reach it. */
+/* The phone touch button, the one for every screen: at least PhoneRowSizes.BUTTON_PX (44 px, --mob-button-h)
+   tall. PhoneButton.vue renders it. `-primary` is the filled call to action, `-secondary` the outlined one. */
 .mob-btn {
   flex: 1;
   min-height: var(--mob-button-h);
