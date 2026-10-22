@@ -86,7 +86,7 @@ test('driver editor: an inconsistent group marks every one of its members, with 
 test('What-if: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
   await openWhatIf(page);
 
-  await expect(page.locator('.what-if-panel .de-dq')).toHaveCount(0);
+  await expect(page.locator('.what-if-panel .ui-field-dq-btn')).toHaveCount(0);
 
   const mms = whatIfField(page, 'Mms').locator('input');
   await mms.click();
@@ -96,27 +96,26 @@ test('What-if: the same mark appears on every member of the group as the driver 
 
   // Fs and Mms are both on this panel and both carry it. (Cms is a member too, but the What-if?
   // panel does not show Cms — a mark can only appear beside a field that is on screen.)
-  await expect(whatIfField(page, 'Fs').locator('.de-dq')).toHaveCount(1);
-  await expect(whatIfField(page, 'Mms').locator('.de-dq')).toHaveCount(1);
-  await expect(whatIfField(page, 'Re').locator('.de-dq')).toHaveCount(0);
+  await expect(whatIfField(page, 'Fs').locator('.ui-field-dq-btn')).toHaveCount(1);
+  await expect(whatIfField(page, 'Mms').locator('.ui-field-dq-btn')).toHaveCount(1);
+  await expect(whatIfField(page, 'Re').locator('.ui-field-dq-btn')).toHaveCount(0);
 
-  const dqIcon = whatIfField(page, 'Mms').locator('.de-dq');
-  const tooltip = page.locator('body > .dq-tooltip-box-Mms_kg');
-  await dqIcon.hover();
-  await expect(tooltip).toBeVisible();
-  const note = await tooltip.textContent();
-  expect(note).toMatch(/disagree by \d/);
+  // The ⚠ opens the reason under the field (the shared field row's note), not a hover popup.
+  const note = whatIfField(page, 'Mms').locator('.ui-field-note');
+  await whatIfField(page, 'Mms').locator('.ui-field-dq-btn').click();
+  await expect(note).toBeVisible();
+  expect(await note.textContent()).toMatch(/disagree by \d/);
 
   // Withdrawing the override hands Mms back to the calculation, and the group reconciles again.
   await mms.click();
   await mms.press('Control+a');
   await mms.press('Delete');
   await mms.blur();
-  await expect(page.locator('.what-if-panel .de-dq')).toHaveCount(0);
+  await expect(page.locator('.what-if-panel .ui-field-dq-btn')).toHaveCount(0);
 });
 
 
-test('What-if: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
+test('What-if: clicking the alert icon shows the reason under the field and clicking it again hides it', async ({ page }) => {
   await openWhatIf(page);
 
   const mms = whatIfField(page, 'Mms').locator('input');
@@ -125,39 +124,25 @@ test('What-if: hovering or clicking the alert icon displays the custom formatted
   await mms.pressSequentially(IMPOSSIBLE_MMS_G);
   await mms.blur();
 
-  const dqIcon = whatIfField(page, 'Mms').locator('.de-dq');
+  const dqIcon = whatIfField(page, 'Mms').locator('.ui-field-dq-btn');
   await expect(dqIcon).toBeVisible();
+  const note = whatIfField(page, 'Mms').locator('.ui-field-note');
+  await expect(note).toBeHidden();
 
-  // Tooltip box should not be visible initially
-  const tooltip = page.locator('body > .dq-tooltip-box-Mms_kg');
-  await expect(tooltip).toBeHidden();
-
-  // Hovering should show the tooltip
-  await dqIcon.hover();
-  await expect(tooltip).toBeVisible();
-  await expect(tooltip).toContainText('disagree by');
-
-  // Verify bounding box is fully visible within viewport boundaries
-  const viewport = page.viewportSize();
-  expect(viewport).not.toBeNull();
-  const box = await tooltip.boundingBox();
-  expect(box).not.toBeNull();
-  expect(box!.x).toBeGreaterThanOrEqual(0);
-  expect(box!.y).toBeGreaterThanOrEqual(0);
-  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
-  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
-
-  // Mouse leave should hide it
-  await page.locator('.what-if-panel .what-if-titlebar').hover(); // Hover elsewhere
-  await expect(tooltip).toBeHidden();
-
-  // Clicking should toggle the tooltip
   await dqIcon.click();
-  await expect(tooltip).toBeVisible();
+  await expect(note).toBeVisible();
+  await expect(note).toContainText('disagree by');
 
-  // Clicking outside should close it
-  await page.locator('.what-if-panel .what-if-titlebar').click();
-  await expect(tooltip).toBeHidden();
+  // The note sits in the panel's own layout: inside the panel, never clipped by it.
+  const inside = await note.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    const p = el.closest('.what-if-panel')!.getBoundingClientRect();
+    return r.left >= p.left && r.right <= p.right && r.top >= p.top && r.bottom <= p.bottom;
+  });
+  expect(inside).toBe(true);
+
+  await dqIcon.click();
+  await expect(note).toBeHidden();
 });
 
 test('chart failure lists the missing circuit values returned by the sweep', async ({ page }) => {

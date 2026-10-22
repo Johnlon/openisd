@@ -3,11 +3,13 @@ import {useApp} from '../logic/app.js';
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassOf} from '../logic/driverCells.js';
-import type {Calculated, Clearable, Entered, Readable, Writable} from '@openisd/design';
+import type {Calculated, Clearable, Entered, Precise, ProvenanceLetter, Readable, Writable} from '@openisd/design';
 import {driverSpecOfSlot} from '@openisd/design';
+import type {DqIssue} from '@openisd/design/engine';
 import {type NumberField, SheetField, SheetMode} from '@openisd/design/fields';
 import type {NumSpecField} from '../logic/appState.js';
 import {createSheetSession} from './sheetSession.js';
+import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
 
 export type NumKey = NumSpecField;
 export type { NumSpecField };
@@ -26,13 +28,34 @@ const SHEET_ROWS: readonly WhatIfDriverRow[] = SheetField.DRIVER_SPEC.flatMap(ro
   return key === null ? [] : [{ key, def: row.field, label: row.label }];
 });
 
+/**
+ * A field row's cell whose every write first starts the What-if layer, so the row writes into the
+ * What-if and never the project. Reads and writes go to the one cell behind it.
+ */
+class WhatIfCell implements ClearableUICell {
+  constructor(private readonly cell: ClearableUICell, private readonly begin: () => void) {}
+  get name(): string { return this.cell.name; }
+  get value(): number | null { return this.cell.value; }
+  get provenance(): ProvenanceLetter { return this.cell.provenance; }
+  get dq(): readonly DqIssue[] { return this.cell.dq; }
+  get mandatoryAndUnsatisfied(): boolean { return this.cell.mandatoryAndUnsatisfied; }
+  get entered(): boolean { return this.cell.entered; }
+  get precision(): number | null { return this.cell.precision; }
+  set(v: number, precision?: number): void { this.begin(); this.cell.set(v, precision); }
+  clear(): void { this.begin(); this.cell.clear(); }
+}
+
 export interface OriginalWhatIfAPI {
   /** The driver rows shared with the phone What-if sheet, in its order. */
   readonly sheetRows: readonly WhatIfDriverRow[];
   readonly ebp: Readonly<Ref<number | null>>;
   readonly vb_m3: Readonly<Ref<number | null>>;
 
-  specField(key: NumSpecField): Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
+  specField(key: NumSpecField): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable;
+  /** The row's cell for a field row: a write or an emptied box lands in the What-if layer. */
+  specCell(key: NumSpecField): ClearableUICell;
+  /** The box volume as a field row's cell. An emptied box leaves the What-if volume blank, never 0. */
+  readonly vbCell: Readonly<Ref<ClearableUICell>>;
   cellClass(key: NumSpecField): string;
   cellVal(key: NumSpecField): number | null;
   dqNote(key: NumSpecField): string | null;
@@ -53,7 +76,7 @@ export function useOriginalWhatIf(): OriginalWhatIfAPI {
 
 
   function specField(key: NumSpecField):
-      Readable<number | null> & Entered & Calculated & Writable<number> & Clearable {
+      Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable {
     return project.value.driver.specField(key);
   }
 
@@ -72,6 +95,16 @@ export function useOriginalWhatIf(): OriginalWhatIfAPI {
     const box = project.value.box;
     return box.volumeOf(box.boxType.value).value;
   });
+
+  const vbCell = computed<ClearableUICell>(() => {
+    void projectChanged.value;
+    const box = project.value.box;
+    return new WhatIfCell(box.volumeOf(box.boxType.value), session.begin);
+  });
+
+  function specCell(key: NumSpecField): ClearableUICell {
+    return new WhatIfCell(specField(key), session.begin);
+  }
 
   function setVb_m3(v: number): void {
     session.begin();
@@ -116,6 +149,8 @@ export function useOriginalWhatIf(): OriginalWhatIfAPI {
     sheetRows: SHEET_ROWS,
     ebp,
     vb_m3,
+    vbCell,
+    specCell,
     specField,
     cellClass,
     cellVal,

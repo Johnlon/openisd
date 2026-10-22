@@ -96,6 +96,7 @@ units, limits, red border, reporting a refusal); `UIField` owns the ⚠.
 
 ## Update 16 Oct 2026
 The component exists: `UIField` / `UIFieldBody` (landed T036, 11 Oct), used on the Box, Enclosure and Signal tabs, the port fields, and parts of the driver editor and Original shell. Still hand-built from NumInput + UnitToggle with their own ⚠: OriginalWhatIf, MobileWhatIfSheet, OptionsModal, OriginalNewProject, MobileNewProject, NewProjectPassiveRadiatorStep, MobileAdvancedTab, the rest of DriverEditorModal and OriginalShell, DriverLibrary, PRBrowser.
+What-if (desktop, OriginalWhatIf) done by T565: every number field is a UIField row; no NumInput, UnitToggle or hand-built ⚠ left in it.
 John, 16 Oct 2026: finish it. Every number field goes onto UIField; no hand-built ⚠ remains; an architecture test pins it (no NumInput or UnitToggle outside UIFieldBody).
 
 ## John's rulings, 16 Oct 2026 (afternoon)

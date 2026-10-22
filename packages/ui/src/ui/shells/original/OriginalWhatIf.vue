@@ -5,40 +5,26 @@
  * Escape) ends the What-if; Reset puts the project's values back. Behaviour in
  * `OriginalWhatIf-hooks.ts`.
  */
-import {onMounted, onUnmounted, reactive, ref} from 'vue';
 import {useApp} from '../../../logic/app.js';
 import type {NumericDriverSpecFieldName} from '@openisd/design';
-import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
+import {NumberField} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
-import {cellClassOf} from '../../../logic/driverCells.js';
-import NumInput from '../../components/NumInput.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
-import {listeningElement} from '../../../logic/domEvents.js';
+import UIField from '../../components/UIField.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
+import {provideCellScope} from '../../components/cellScope.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import {useOriginalWhatIf} from '../../../hooks/OriginalWhatIf-hooks.js';
 const {appState, presentation: presentationState} = useApp();
 const {projectChanged} = appState;
 
+provideCellScope({ revision: projectChanged, written: () => {} });
+
 const whatIf = useOriginalWhatIf();
 
-function specVal(key: NumKey): number | null {
-  void projectChanged.value;
-  return whatIf.specField(key).value;
-}
-
 // WinISD's own field names — the registry keys by these; the driver's spec section carries the
-// SI-suffixed name (`Fs_hz`, `Vas_m3`), so `SPEC` maps the twelve this panel edits to their
-// `Field` on the focused project's driver.
+// SI-suffixed name (`Fs_hz`, `Vas_m3`). Each row's unit, group and display come from the field's
+// own registry entry through `UIField`, never a second string stated here.
 type NumKey = NumericDriverSpecFieldName;
-
-function enterField(key: NumKey, v: number, precision?: number): void { whatIf.enterField(key, v, precision); }
-function clearField(key: NumKey): void { whatIf.clearField(key); }
-// Raw driver values are SI (Vas m³, Sd m², Le H, Xmax m, Mms kg). Whether a field displays and
-// accepts input via the units.ts conversion, and which group/token it uses, comes from the
-// field's OWN `def.display` (`swDisplay` below) — never a second group/token/unit stated here,
-// which could silently disagree with the registry (BUG_20260928, "NumInput's group/base props
-// are a fourth table"). A `fixed` field is already shown in its SI unit (Hz, Ω, W, T·m,
-// dimensionless Q).
 interface PanelField { key: NumKey; def: NumberField; label: string }
 const MAIN: PanelField[] = [
   ...whatIf.sheetRows,
@@ -59,80 +45,8 @@ const DERIVED: PanelField[] = [
   { key: 'Mms_kg', def: NumberField.MMS_KG, label: 'Mms' },
 ];
 
-
-/** The unit text shown beside the field: the registry's own symbol (fixed), or the base token's
- *  label out of `UNIT_GROUPS` (switchable) — never a second string. */
-function unitLabel(f: PanelField): string {
-  return f.def.unitLabel();
-}
-
-// Any two of the Q trio solve the third, so all three are flagged together while fewer than
-// two are usable. The rule itself lives on the field's own `mandatoryAndUnsatisfied` — the
-// driver editor reads the same one, against its own draft model.
-/** Provenance mark + the required-but-missing alert, in the editor's own class vocabulary. */
-function fieldClasses(f: PanelField): Record<string, boolean> {
-  void projectChanged.value;
-  const cell = whatIf.specField(f.key);
-  const mandatory = cell.mandatoryAndUnsatisfied;
-  const isEmp = cell.value == null || cell.value <= 0;
-  return {
-    [cellClassOf(cell)]: true,
-    'de-input-mandatory': mandatory,
-    'de-input-empty': mandatory && isEmp,
-  };
-}
-
-const hoveredTooltip = ref<string | null>(null);
-const pinnedTooltip = ref<string | null>(null);
-const tooltipStyles = reactive<Record<string, { position: 'absolute'; top: string; left: string; bottom: string; right: string; transform: string }>>({});
-
-function updateTooltipPos(key: string, event: Event) {
-  const target = listeningElement(event);
-  if (!target) return;
-  const rect = target.getBoundingClientRect();
-  const top = rect.top + window.scrollY - 6;
-  tooltipStyles[key] = {
-    position: 'absolute',
-    top: `${top}px`,
-    left: `${rect.right + window.scrollX - 240}px`,
-    bottom: 'auto',
-    right: 'auto',
-    transform: 'translateY(-100%)'
-  };
-}
-
-function showTooltip(key: string, event: Event) {
-  updateTooltipPos(key, event);
-  hoveredTooltip.value = key;
-}
-function hideTooltip(key: string) {
-  if (hoveredTooltip.value === key) {
-    hoveredTooltip.value = null;
-  }
-}
-function togglePin(key: string, event: Event) {
-  if (pinnedTooltip.value === key) {
-    pinnedTooltip.value = null;
-  } else {
-    updateTooltipPos(key, event);
-    pinnedTooltip.value = key;
-  }
-}
-function closeAllPins() {
-  pinnedTooltip.value = null;
-}
-onMounted(() => {
-  window.addEventListener('click', closeAllPins);
-});
-onUnmounted(() => {
-  window.removeEventListener('click', closeAllPins);
-});
-
-const dqNote = (key: NumKey): string | null => whatIf.dqNote(key);
 const ebpVal = whatIf.ebp;
-const vb_m3 = whatIf.vb_m3;
-function setVb_m3(v: number): void { whatIf.setVb_m3(v); }
-function fmt(v: number | null, dp: number): string { return formatFixedOrDash(v, dp); }
+const vbCell = whatIf.vbCell;
 
 // Every way out ends the What-if: its values are discarded and the project is as it was.
 function close() { whatIf.close(); presentationState.editDriver = false; }
@@ -151,75 +65,27 @@ useEscToClose(() => presentationState.editDriver, close);
     <p class="what-if-hint">Try values and watch the charts. The design is not changed.</p>
 
     <div class="what-if-grid">
-      <div v-for="f in MAIN" :key="f.key" class="what-if-fld">
-        <label>{{ f.label }}</label>
-        <div class="what-if-unit">
-          <NumInput :field="f.def" :model-value="specVal(f.key)" :precision="f.def.precision" :class="fieldClasses(f)" stepper hide-mark @update:model-value="(v, p) => v === null ? clearField(f.key) : enterField(f.key, v, p)" />
-          <div v-if="dqNote(f.key)" class="dq-tooltip-container">
-            <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
-            <Teleport to="body">
-              <div v-show="hoveredTooltip === f.key || pinnedTooltip === f.key" :class="['dq-tooltip-box', 'dq-tooltip-box-' + f.key]" :style="tooltipStyles[f.key]">
-                {{ dqNote(f.key) }}
-              </div>
-            </Teleport>
-          </div>
-          <span v-if="unitLabel(f)" class="what-if-unit-lbl">{{ unitLabel(f) }}</span>
-        </div>
-      </div>
+      <UIField v-for="f in MAIN" :key="f.key" class="what-if-fld" :field="f.def" :label="f.label" :cell="whatIf.specCell(f.key)" />
     </div>
 
     <div class="what-if-subsect">Box</div>
     <div class="what-if-grid">
-      <div class="what-if-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. Tried here only: the project's box volume is not changed. WinISD: Vb.">
-        <label>Vb</label>
-        <div class="what-if-unit">
-          <NumInput :model-value="vb_m3" @update:model-value="v => setVb_m3(v ?? 0)" :field="NumberField.BOX_VB_L" :precision="4" stepper />
-          <UnitToggle :field="NumberField.BOX_VB_L" />
-        </div>
-      </div>
+      <UIField class="what-if-fld" title="Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. Tried here only: the project's box volume is not changed. WinISD: Vb." :field="NumberField.BOX_VB_L" label="Vb" :cell="vbCell" />
     </div>
 
     <div class="what-if-subsect">Optional</div>
     <div class="what-if-grid">
-      <div v-for="f in OPTIONAL" :key="f.key" class="what-if-fld">
-        <label>{{ f.label }}</label>
-        <div class="what-if-unit">
-          <NumInput :field="f.def" :model-value="specVal(f.key)" :precision="f.def.precision" :class="fieldClasses(f)" stepper hide-mark @update:model-value="(v, p) => v === null ? clearField(f.key) : enterField(f.key, v, p)" />
-          <div v-if="dqNote(f.key)" class="dq-tooltip-container">
-            <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
-            <Teleport to="body">
-              <div v-show="hoveredTooltip === f.key || pinnedTooltip === f.key" :class="['dq-tooltip-box', 'dq-tooltip-box-' + f.key]" :style="tooltipStyles[f.key]">
-                {{ dqNote(f.key) }}
-              </div>
-            </Teleport>
-          </div>
-          <span v-if="unitLabel(f)" class="what-if-unit-lbl">{{ unitLabel(f) }}</span>
-        </div>
-      </div>
+      <UIField v-for="f in OPTIONAL" :key="f.key" class="what-if-fld" :field="f.def" :label="f.label" :cell="whatIf.specCell(f.key)" />
     </div>
 
     <div class="what-if-subsect">Derived</div>
     <div class="what-if-grid">
-      <div v-for="f in DERIVED" :key="f.key" class="what-if-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`">
-        <label>{{ f.label }}</label>
-        <div class="what-if-unit">
-          <NumInput :field="f.def" :model-value="specVal(f.key)" :precision="f.def.precision" :class="fieldClasses(f)" stepper hide-mark @update:model-value="(v, p) => v === null ? clearField(f.key) : enterField(f.key, v, p)" />
-          <div v-if="dqNote(f.key)" class="dq-tooltip-container">
-            <span class="de-dq" role="button" tabindex="0" @mouseenter="showTooltip(f.key, $event)" @mouseleave="hideTooltip(f.key)" @click.stop="togglePin(f.key, $event)" @keydown.enter.stop="togglePin(f.key, $event)">&#9888;</span>
-            <Teleport to="body">
-              <div v-show="hoveredTooltip === f.key || pinnedTooltip === f.key" :class="['dq-tooltip-box', 'dq-tooltip-box-' + f.key]" :style="tooltipStyles[f.key]">
-                {{ dqNote(f.key) }}
-              </div>
-            </Teleport>
-          </div>
-          <span v-if="unitLabel(f)" class="what-if-unit-lbl">{{ unitLabel(f) }}</span>
-        </div>
-      </div>
+      <UIField v-for="f in DERIVED" :key="f.key" class="what-if-fld" :title="`${f.label} is calculated from the parameters above until you type one — then it overrides them. Clear the field to hand it back to the calculation.`" :field="f.def" :label="f.label" :cell="whatIf.specCell(f.key)" />
       <!-- EBP is NOT a driver field: the ADT does not derive it and has no slot to override
            (it is ebp() = Fs/Qes, computed in the engine). Making it editable means choosing
            which of Fs or Qes an entered EBP solves backwards — a decision for the human, not
            an inert box that accepts a number nothing reads. Tracked as an open question. -->
-      <div class="what-if-fld what-if-ro" title="EBP = Fs / Qes — a read-out of the two fields above, not a field of its own."><label>EBP</label><span class="what-if-roval">{{ fmt(ebpVal, 1) }}</span></div>
+      <UIFixedField class="what-if-fld what-if-ro" title="EBP = Fs / Qes — a read-out of the two fields above, not a field of its own." :field="NumberField.EBP_HZ" label="EBP" :value="ebpVal" readonly />
     </div>
 
     <div class="what-if-btns">
@@ -245,34 +111,13 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-hint { color: #777; font-style: italic; font-size: 11.5px; margin-bottom: 8px; }
 .what-if-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
 /* Right-aligned so each label ends against its own input. 34px holds the widest ("Xmax"). */
-.what-if-fld { min-width: 0; display: grid; grid-template-columns: 34px 1fr; align-items: center; gap: 6px; }
-.what-if-fld label { font-size: 11px; color: #555; text-align: right; white-space: nowrap; }
-.what-if-unit { display: flex; align-items: center; gap: 4px; }
-/* Sized to its own content, not to the column. 78px holds the widest value any of these
-   fields shows ("30.0000" at the registry's 4 dp) with room to spare; stretching to 100% of
-   a 190px grid column made every field three times wider than the number in it, which is
-   what WinISD's own narrow, natural-width fields (docs/winisd_screenshots/*.png) never do. */
-.what-if-unit :deep(.num-input-wrap) { flex: 0 0 58px; width: 58px; }
-.what-if-unit :deep(input), .what-if-roval { width: 58px; padding: 3px 5px; border: 1px solid #999; border-radius: 3px; background: #fff; font: inherit; }
-.what-if-roval { text-align: right; color: var(--acc); font-style: italic; display: inline-block; }
-.what-if-unit .what-if-unit-lbl { font-size: 11px; color: #666; white-space: nowrap; }
-.what-if-ro label { opacity: .8; }
+/* Each row is a UIField; its label column is 34px, right-aligned so each label ends against its own box ("Xmax" is the widest). */
+.what-if-panel { --label-w: 34px; }
+.what-if-fld { min-width: 0; }
+.what-if-fld :deep(.ui-field-label) { font-size: 11px; color: #555; text-align: right; }
 .what-if-subsect { color: #7d9fc9; font-weight: 600; font-size: 12px; margin: 10px 0 2px; }
 .what-if-btns { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #ddd; margin-top: 10px; }
 .what-if-btns button { border: 1px solid #999; background: #f0f0f0; border-radius: 3px; padding: 6px 12px; cursor: pointer; }
 .what-if-btns button:hover { background: #dbeaff; border-color: #7fb3ff; }
 .what-if-btns button.footer-buttons-pri { background: #1868d1; color: #fff; border-color: #1868d1; }
-
-.dq-tooltip-container { position: relative; display: inline-flex; align-items: center; }
-.dq-tooltip-box {
-  position: absolute; z-index: 100;
-  width: 240px; background: #2b2b2b; color: #fff; border-radius: 4px;
-  padding: 8px 12px; font-size: 11px; line-height: 1.4;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: none; white-space: normal;
-  font-family: sans-serif; text-align: left;
-}
-.dq-tooltip-box::after {
-  content: ""; position: absolute; top: 100%; right: 8px;
-  border-width: 5px; border-style: solid; border-color: #2b2b2b transparent transparent transparent;
-}
 </style>

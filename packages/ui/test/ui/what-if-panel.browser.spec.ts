@@ -253,12 +253,13 @@ test.describe('What-if panel', () => {
 
     test('numeric fields are narrow and uniform, not stretched to fill the column', async ({ page }) => {
       await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
-      const widths = await page.locator('.what-if-panel .what-if-unit input').evaluateAll(
-        els => els.map(e => Math.round(e.getBoundingClientRect().width)));
+      const named = await page.locator('.what-if-panel .what-if-fld:not(.what-if-ro) input').evaluateAll(
+        els => els.map(e => ({ label: e.closest('.what-if-fld')?.querySelector('label')?.textContent ?? '', width: Math.round(e.getBoundingClientRect().width) })));
+      const widths = named.map(n => n.width);
       expect(widths.length).toBeGreaterThan(8);
       // One width for the whole panel — a field that sizes to its container instead of its content
       // would vary with the column it landed in.
-      expect(new Set(widths).size).toBe(1);
+      expect(new Set(widths).size, JSON.stringify(named)).toBe(1);
       expect(widths[0]).toBeLessThanOrEqual(90);
       // ...and genuinely narrower than the cell holding it, i.e. leftover whitespace exists.
       const cellW = await page.locator('.what-if-panel .what-if-fld').first().evaluate(e => e.getBoundingClientRect().width);
@@ -390,3 +391,22 @@ test('every row fits inside the panel: no unit label runs past its right edge', 
     expect(right, await rows.nth(i).locator('label').innerText()).toBeLessThanOrEqual(panel.right + 0.5);
   }
 });
+
+for (const size of [{ width: 1280, height: 800 }, { width: 1024, height: 700 }]) {
+  test(`the panel does not clip or scroll sideways at ${size.width}x${size.height}`, async ({ page }) => {
+    await page.setViewportSize(size);
+    const whatIf = await openWhatIf(page);
+    const m = await whatIf.evaluate(el => {
+      const r = el.getBoundingClientRect();
+      const rows = [...el.querySelectorAll('.what-if-fld')].map(f => f.getBoundingClientRect());
+      return { scrollX: el.scrollWidth - el.clientWidth, left: r.left, right: r.right, top: r.top, bottom: r.bottom, rowsRight: Math.max(...rows.map(x => x.right)), rowsLeft: Math.min(...rows.map(x => x.left)), width: r.width };
+    });
+    test.info().annotations.push({ type: "layout", description: JSON.stringify(m) });
+    expect(m.scrollX, 'sideways scroll').toBe(0);
+    expect(m.left).toBeGreaterThanOrEqual(0);
+    expect(m.right).toBeLessThanOrEqual(size.width);
+    expect(m.top).toBeGreaterThanOrEqual(0);
+    expect(m.bottom).toBeLessThanOrEqual(size.height);
+    expect(m.rowsRight).toBeLessThanOrEqual(m.right);
+  });
+}
