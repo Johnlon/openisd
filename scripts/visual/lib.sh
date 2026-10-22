@@ -13,6 +13,9 @@ visual_screen_ids() {
   awk '/^visual:/ {on=1; next} on && /^  - / {sub(/^  - /, ""); print; next} on {on=0}' "$1" | sort -u
 }
 
+# visual_note <task.yml>: the plain sentence(s) on what the user sees change; empty when the task has none.
+visual_note() { sed -n 's/^visual_note: *//p' "$1" 2> /dev/null | head -n 1; }
+
 # visual_changed_ids <base> <head>: the screens whose baseline picture differs between the commits.
 visual_changed_ids() {
   git diff --no-renames --name-only "$1" "$2" -- "$VISUAL_SNAPSHOT_DIR" | sed -n 's#.*/\([^/]*\)\.png$#\1#p' | sort -u

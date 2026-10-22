@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 4a4ef36ed5f93d134fcf1fc36bc8a7450edcd722
 goal: release.sh moves the release branch forward with a merge when a hotfix left it off main, and checks that before publishing
 done_test: bash scripts/quiet-test.sh bash scripts/land/test/release.test.sh
 files:

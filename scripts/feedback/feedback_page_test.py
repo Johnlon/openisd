@@ -150,6 +150,20 @@ class MarkDiff(unittest.TestCase):
             subprocess.run(["python3", str(HERE / "mark-diff.py"), "--stamp", str(f)], check=True, capture_output=True)
             self.assertEqual(Image.open(f).text.get("marked"), "1")
 
+    def test_print_box_gives_the_drawn_boxes_as_json(self):
+        import json
+        from PIL import Image, ImageDraw
+        with tempfile.TemporaryDirectory() as d:
+            a = Image.new("RGB", (300, 400), "white"); b = a.copy()
+            ImageDraw.Draw(b).rectangle((40, 100, 200, 140), fill="black")
+            fa, fb = pathlib.Path(d, "a.png"), pathlib.Path(d, "b.png"); a.save(fa); b.save(fb)
+            r = subprocess.run(["python3", str(HERE / "mark-diff.py"), str(fa), str(fb), "--print-box"], capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            boxes = json.loads(r.stdout.strip().splitlines()[-1])
+            self.assertEqual(boxes["before"], [])
+            self.assertEqual(len(boxes["after"]), 1)
+            x, y, w, h = boxes["after"][0]
+            self.assertTrue(x <= 40 and y <= 100 and x + w >= 200 and y + h >= 140)
 
 
 class SharedThreadModule(unittest.TestCase):
@@ -169,6 +183,14 @@ class RuledPictures(unittest.TestCase):
             folder = pathlib.Path(d) / "F"; folder.mkdir()
             page = load().write_page(folder, "QO0", "t")
             done = subprocess.run(["node", str(HERE / "feedback_page_ruled_test.mjs"), str(page)],
+                                  capture_output=True, text=True, cwd="/tmp")
+            self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
+
+    def test_same_change_pictures_fold_and_keep_their_boxes(self):
+        with tempfile.TemporaryDirectory() as d:
+            folder = pathlib.Path(d) / "F"; folder.mkdir()
+            page = load().write_page(folder, "QO0", "t")
+            done = subprocess.run(["node", str(HERE / "feedback_page_group_test.mjs"), str(page)],
                                   capture_output=True, text=True, cwd="/tmp")
             self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
 
