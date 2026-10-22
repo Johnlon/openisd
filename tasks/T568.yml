@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 2a0f9bac837bf165e73b175dc9a3f6156016cfaa
 goal: Visual change page groups pictures that show the same change: one marked pair per group, the rest folded under 'same change in N more pictures'
 done_test: bash scripts/land/test/visual-page.test.sh
 files:
