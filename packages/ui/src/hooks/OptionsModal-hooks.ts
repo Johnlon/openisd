@@ -36,7 +36,8 @@ export interface LimitRow {
   readonly label: string;
   readonly start: number;
   readonly end: number;
-  readonly unit: string;
+  /** The field that bounds, steps and names the unit of this chart's axis start and end. */
+  readonly field: NumberField;
 }
 
 /**
@@ -50,17 +51,17 @@ export interface LimitRow {
  * transfer func mag" is OpenISD's filter-magnitude chart, `FltMag`.
  */
 export const LIMIT_ROWS: readonly LimitRow[] = [
-  { tab: 'TFMag',     label: 'Transfer func. magn.',  start: -30,  end: 6,    unit: NumberField.SPL_DB.unitLabel() },
-  { tab: 'FltMag',    label: 'EQ transfer func mag',  start: -40,  end: 20,   unit: NumberField.SPL_DB.unitLabel() },
-  { tab: 'Phase',     label: 'Transfer func. phase',  start: -180, end: 180,  unit: 'deg' },
-  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 115,  unit: NumberField.SPL_DB.unitLabel() },
-  { tab: 'Excursion', label: 'Cone excursion',        start: 0.0,  end: 30.0, unit: 'mm peak' },
-  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 150,  unit: NumberField.ZNOM_OHM.unitLabel() },
-  { tab: 'Zph',       label: 'Impedance phase',       start: -90,  end: 90,   unit: 'deg' },
-  { tab: 'GD',        label: 'Group delay',           start: 0,    end: 40,   unit: 'ms' },
-  { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  unit: NumberField.POWER_PEAK_W.unitLabel() },
-  { tab: 'RearPort',  label: 'Rear port - Air velocity',  start: 0.00, end: 40.00, unit: 'm/s peak' },
-  { tab: 'FrontPort', label: 'Front port - Air velocity', start: 0.00, end: 40.00, unit: 'm/s peak' },
+  { tab: 'TFMag',     label: 'Transfer func. magn.',  start: -30,  end: 6,    field: NumberField.PLOT_Y_DB },
+  { tab: 'FltMag',    label: 'EQ transfer func mag',  start: -40,  end: 20,   field: NumberField.PLOT_Y_DB },
+  { tab: 'Phase',     label: 'Transfer func. phase',  start: -180, end: 180,  field: NumberField.PLOT_Y_DEG },
+  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 115,  field: NumberField.PLOT_Y_DB },
+  { tab: 'Excursion', label: 'Cone excursion',        start: 0.0,  end: 30.0, field: NumberField.PLOT_Y_MM },
+  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 150,  field: NumberField.PLOT_Y_OHM },
+  { tab: 'Zph',       label: 'Impedance phase',       start: -90,  end: 90,   field: NumberField.PLOT_Y_DEG },
+  { tab: 'GD',        label: 'Group delay',           start: 0,    end: 40,   field: NumberField.PLOT_Y_MS },
+  { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  field: NumberField.PLOT_Y_W },
+  { tab: 'RearPort',  label: 'Rear port - Air velocity',  start: 0.00, end: 40.00, field: NumberField.PLOT_Y_MPS },
+  { tab: 'FrontPort', label: 'Front port - Air velocity', start: 0.00, end: 40.00, field: NumberField.PLOT_Y_MPS },
 ];
 
 export interface OptionsModalAPI {

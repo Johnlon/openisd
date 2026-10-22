@@ -3,6 +3,7 @@ release_note: The desktop What-if panel now uses the same number boxes, step but
 repo: openisd
 owner: maryu
 status: done
+landed: 83b9d501ad2824d69c5952792e591be28c1b9750
 goal: Desktop What-if panel number fields use UIField rows (BUG_20261005 no-common-ui-field-component, What-if site)
 done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-desktop-whatif-uses-field-rows.test.ts
 files:
