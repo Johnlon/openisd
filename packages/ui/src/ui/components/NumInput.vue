@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import {computed, inject, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {CARET_HOLD_START_MS, caretRepeatDelayMs, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type FieldSpin, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, DragSpin, DRAG_SPIN_THRESHOLD_PX, caretRepeatDelayMs, pressedDigit, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type FieldSpin, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
 import {entryRefusal, type EntryBounds} from '../../logic/entryRefusal.js';
 import {STEPPER_PIN} from '../../logic/stepperPin.js';
+import {DRAG_CLOCK, REAL_DRAG_CLOCK} from '../../logic/dragClock.js';
 import {screenTopPx} from '../../logic/visibleViewport.js';
 const presentationState = useApp().presentation;
 const stepperPin = inject(STEPPER_PIN, null);
@@ -97,10 +98,71 @@ function onFocus() {
   display.value = fmt(props.modelValue);
 }
 
-function onBoxPointer() {
+/** A press in the box: a tap or click puts the caret as ever; a drag past the dead zone spins. */
+function onBoxPointer(e: PointerEvent) {
   underlineIndex.value = null;
   lastStep = null;   // a tap or click in the box puts the caret, even where the last step left it
+  const el = inputEl.value;
+  if (el === null || isReadonly.value || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  const pressed = pressedDigitOf(el, e.clientX);
+  dragAbort?.abort();
+  const abort = new AbortController();
+  dragAbort = abort;
+  const press = {x: e.clientX, id: e.pointerId, at: pressed, nowX: e.clientX, since: dragClock.now()};
+  const spin = new DragSpin();
+  let dragging = false;
+  let first = true;
+  let timer: number | undefined;
+  let last = press.since;
+  const tick = () => {
+    const now = dragClock.now();
+    const steps = spin.advance(press.nowX - press.x, now - last);
+    last = now;
+    const dir: SpinDirection = steps < 0 ? -1 : 1;
+    for (let i = 0; i < Math.abs(steps); i++) {
+      stepFrom(first && press.at.kind === 'digit' ? press.at : lastStep?.at ?? caretForStep(), dir);
+      first = false;
+    }
+  };
+  const end = () => {
+    abort.abort();
+    if (timer !== undefined) dragClock.clear(timer);
+    if (dragAbort === abort) dragAbort = null;
+    dragging = false;
+  };
+  document.addEventListener('pointermove', (m: PointerEvent) => {
+    if (m.pointerId !== press.id) return;
+    press.nowX = m.clientX;
+    if (!dragging && DRAG_SPIN_THRESHOLD_PX <= (m.clientX > press.x ? m.clientX - press.x : press.x - m.clientX)) {
+      dragging = true;
+      last = dragClock.now();
+      el.setPointerCapture(press.id);
+      timer = dragClock.every(tick, DRAG_TICK_MS);
+      tick();
+    }
+  }, {signal: abort.signal});
+  document.addEventListener('selectstart', (s: Event) => { if (dragging) s.preventDefault(); }, {signal: abort.signal});
+  document.addEventListener('pointerup', (u: PointerEvent) => { if (u.pointerId === press.id) end(); }, {signal: abort.signal});
+  document.addEventListener('pointercancel', (u: PointerEvent) => { if (u.pointerId === press.id) end(); }, {signal: abort.signal});
 }
+let dragAbort: AbortController | null = null;
+const DRAG_TICK_MS = 40;
+const dragClock = inject(DRAG_CLOCK, REAL_DRAG_CLOCK);
+onBeforeUnmount(() => dragAbort?.abort());
+
+/** The digit under a press at `clientX`, measured in the box's own font. */
+function pressedDigitOf(el: HTMLInputElement, clientX: number): StepAt {
+  const style = getComputedStyle(el);
+  const ctx = measureCanvas.getContext('2d');
+  if (ctx === null) return {kind: 'none'};
+  ctx.font = style.font;
+  const rect = el.getBoundingClientRect();
+  const left = rect.left + el.clientLeft + parseFloat(style.paddingLeft);
+  const content = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const align = style.textAlign === 'right' || style.textAlign === 'end' ? 'right' : style.textAlign === 'center' ? 'center' : 'left';
+  return pressedDigit(el.value, clientX - left + el.scrollLeft, {contentWidth: content, align}, s => ctx.measureText(s).width);
+}
+const measureCanvas = document.createElement('canvas');
 
 /** A number as typed: "," is a decimal mark too. */
 function numberOf(text: string): number {
@@ -432,6 +494,8 @@ const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 
 </template>
 
 <style scoped>
+/* Left/right drags spin the value; vertical swipes still scroll the page. */
+.num-input-wrap > input { touch-action: pan-y; }
 input.inp-bad { border-color: var(--bad); }
 input.de-input-mandatory {
   border-width: 2px !important;
