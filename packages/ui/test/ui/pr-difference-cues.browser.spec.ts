@@ -24,6 +24,9 @@ for (const skin of ['desktop', 'mobile'] as const) {
       await setFocusedBoxType(page, 'box-passive-radiator');
     });
 
+    // The phone Box page keeps Fh as the natural-tuning readout; its typeable target tuning is the Fp row.
+    const tuning = skin === 'mobile' ? /^Fp$/ : /^Fh$/;
+
     const openTab = async (page: Page, tab: 'Box' | 'Passive Radiator'): Promise<void> => {
       if (skin === 'mobile') await page.locator('.mob-tab', {hasText: 'Box'}).click();
       else await page.locator('.project-nav li', {hasText: tab}).first().click();
@@ -31,10 +34,9 @@ for (const skin of ['desktop', 'mobile'] as const) {
 
     test('Fh on the Box tab is typeable and has the cue, which opens its entry', async ({appPage: page}) => {
       await openTab(page, 'Box');
-      const fh = rowOf(page, /^Fh$/);
-      await expect(fh.locator('input').first()).toBeEditable();
-      await expect(cueOf(page, /^Fh$/)).toHaveAttribute('title', `Differs from WinISD: ${FH_TITLE}`);
-      await cueOf(page, /^Fh$/).click();
+      await expect(rowOf(page, tuning).locator('input').first()).toBeEditable();
+      await expect(cueOf(page, tuning)).toHaveAttribute('title', `Differs from WinISD: ${FH_TITLE}`);
+      await cueOf(page, tuning).click();
       const help = page.getByRole('dialog', {name: 'OpenISD and WinISD differences'});
       await expect(help).toBeVisible();
       await expect(help.locator('.wd-entry.current h4, .mob-dcard.current .mob-dcard-title')).toHaveText(FH_TITLE);

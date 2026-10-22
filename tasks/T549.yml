@@ -1,0 +1,29 @@
+id: T549
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Phone Box page matches the accepted classic mock for all six box types (screen 2)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
+files:
+  - tasks/T549.yml
+  - packages/design/fields/phoneText.ts
+  - packages/design/fields/index.ts
+  - packages/design/domain/index.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/ui/src/hooks/MobileBoxTab-hooks.ts
+  - packages/ui/src/hooks/MobileEnclosureTab-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/style.css
+  - packages/ui/test/ui/mobile-box-page-order.browser.spec.ts
+  - packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-pr-radiator-figures.browser.spec.ts
+  - packages/ui/test/ui/pr-difference-cues.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+visual:
+  - mobile-tab-box
+  - mobile-tab-enclosure

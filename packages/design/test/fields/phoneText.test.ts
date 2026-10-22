@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {KeyStripText, NumberField, PHONE_FILTER_CHIPS, PhoneDriverListText, PhoneEditorText, PhoneHelp, PhoneLabels, PhonePrBrowserText, ToggleField, WinisdDeviation, WinisdDifference} from '../../fields/index.js';
+import {KeyStripText, NumberField, PHONE_FILTER_CHIPS, PhoneDriverListText, PhoneBoxText, PhoneEditorText, PhoneHelp, PhoneLabels, PhonePrBrowserText, ToggleField, WinisdDeviation, WinisdDifference} from '../../fields/index.js';
 
 describe('phone text', () => {
   it('the key strip says Entered, Calculated, Not Available', () => {
@@ -31,6 +31,14 @@ describe('phone text', () => {
   it('chamber rows use WinISD symbols', () => {
     expect(PhoneLabels.VB).toBe('Vb');
     expect(PhoneLabels.FB).toBe('Fb');
+  });
+
+  it('the Box page words match the accepted mock', () => {
+    expect(PhoneLabels.PR_FP).toBe('Fp');
+    expect(PhoneBoxText.CHOOSE_ALIGNMENT_LINK).toBe('Choose alignment…');
+    expect(PhoneBoxText.BOX_LOSSES_LINK).toBe('Box losses (Qa, Ql, Qp)…');
+    expect(PhoneBoxText.FP_TIP).toBe('Fp: the box tuning you enter for the passive radiator box. The Fh row shows the natural tuning of the box and radiator with no added mass.');
+    expect(PhoneBoxText.INTRA_VENT_NOTE).toBe('Connects chambers; not open to outside');
   });
 
   it('every filter chip has a help sheet that says what the filter does', () => {
