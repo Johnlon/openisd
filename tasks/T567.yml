@@ -3,6 +3,7 @@ release_note: Number boxes can now be spun by dragging left or right on a digit,
 repo: openisd
 owner: maryu
 status: done
+landed: 8ad9649ee48310030a02f5d6f12b4f6a19fe51fc
 goal: Number boxes drag-to-spin: left/right stretch, pressed digit sets step, mouse and touch, both skins (QO299)
 done_test: bash scripts/test.sh packages/design/test/fields/drag-spin.test.ts
 files:

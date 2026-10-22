@@ -27,7 +27,10 @@ import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
-import {APP_UPDATE_TEXT, NO_PROJECT_OPEN} from '@openisd/design/fields';
+import {APP_UPDATE_TEXT, NO_PROJECT_OPEN, PhoneHeaderSizes} from '@openisd/design/fields';
+
+/** The header's sizes (44 px controls, 14 px project name on two lines) as CSS variables. */
+const headerVars = Object.fromEntries(PhoneHeaderSizes.CLASSIC.cssVars());
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
@@ -55,7 +58,7 @@ const diagnostics = injectDiagnosticsModal();
     <!-- No top bar over the Graph destination — it's deliberately full-screen (see
          MobileChartView.vue); the hamburger stays reachable from the other three tabs,
          and with no project open. -->
-    <div v-if="!projectOpen || destination !== 'graph'" class="mob-topbar" :class="{ 'mob-shadow-below': canScrollUp }">
+    <div v-if="!projectOpen || destination !== 'graph'" class="mob-topbar" :class="{ 'mob-shadow-below': canScrollUp }" :style="headerVars">
       <button type="button" class="mob-hamburger" title="Menu" aria-label="Menu" @click.stop="toggleMenu">
         <span></span><span></span><span></span>
       </button>
@@ -318,7 +321,7 @@ const diagnostics = injectDiagnosticsModal();
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 6px 10px;
+  padding: var(--mob-header-pad-y) 10px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
 }
@@ -326,8 +329,8 @@ const diagnostics = injectDiagnosticsModal();
   box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.3);
 }
 .mob-hamburger {
-  width: 40px;
-  height: 40px;
+  width: var(--mob-header-control);
+  height: var(--mob-header-control);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -344,16 +347,17 @@ const diagnostics = injectDiagnosticsModal();
   all: unset;
   box-sizing: border-box;
   flex: 1; min-width: 0; margin-left: 12px; text-align: right;
-  font-size: 15px; line-height: 1.15; overflow-wrap: anywhere;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+  max-height: var(--mob-header-control);
+  font-size: var(--mob-header-title-px); line-height: var(--mob-header-title-lh); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--mob-header-title-lines); overflow: hidden;
   cursor: pointer;
   color: inherit;
 }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-header-sync {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: var(--mob-header-control);
+  height: var(--mob-header-control);
   margin-left: 6px;
   display: flex;
   align-items: center;
