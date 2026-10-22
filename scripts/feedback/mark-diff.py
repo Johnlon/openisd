@@ -13,11 +13,13 @@ changed, added or removed. Inside a band, only the columns that differ are boxed
 GAP_X are one box). Each picture gets the boxes in its own coordinates. A box over MAX_SHARE of the
 picture is not drawn (it marks nothing): mark by hand with --box. Exit 1 when the pictures are the
 same, 2 when every box was too big to draw.
+--print-box adds a last stdout line of JSON with the boxes drawn (x,y,w,h), for grouping pictures by change.
 """
 from __future__ import annotations
 
 import argparse
 import difflib
+import json
 import sys
 
 import numpy as np
@@ -149,6 +151,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     ap.add_argument("pictures", nargs="+", help="before.png after.png, or one picture with --box")
     ap.add_argument("--stamp", action="store_true", help="only add the marked=1 chunk (marks already drawn)")
+    ap.add_argument("--print-box", action="store_true",
+                    help="two-picture mode: also print one JSON line {\"before\": [[x,y,w,h]…], \"after\": […]} of the boxes drawn")
     ap.add_argument("--box", action="append", default=[], help="X,Y,W,H in px (repeatable)")
     args = ap.parse_args()
 
@@ -181,6 +185,9 @@ def main() -> int:
     _draw_file(after, boxes_b)
     fmt = lambda bs: " ".join(f"{x0},{y0},{x1 - x0},{y1 - y0}" for x0, y0, x1, y1 in bs) or "-"
     print(f"mark-diff: before {fmt(boxes_a)} | after {fmt(boxes_b)}")
+    if args.print_box:
+        xywh = lambda bs: [[x0, y0, x1 - x0, y1 - y0] for x0, y0, x1, y1 in bs]
+        print(json.dumps({"before": xywh(boxes_a), "after": xywh(boxes_b)}))
     return 0
 
 

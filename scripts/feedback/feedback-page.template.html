@@ -34,6 +34,8 @@ a { color:inherit; }
 .lbl { display:block; font-size:12px; color:var(--muted); margin:0 0 2px; }
 
 figure.here { outline:3px solid #c62828; outline-offset:3px; border-radius:4px; }
+details.same { margin:0 0 16px; }
+details.same summary { font-size:15px; padding:8px 0; cursor:pointer; color:var(--muted); }
 details.ruled { margin:8px 0 0; }
 details.ruled summary { font-size:15px; color:var(--muted); padding:8px 0; cursor:pointer; }
 </style>
@@ -42,6 +44,7 @@ details.ruled summary { font-size:15px; color:var(--muted); padding:8px 0; curso
 <body>
 <p class="sub todo"><b>What to do:</b> __TODO__</p>
 <h1>__TITLE__</h1>
+__NOTE__
 <main id="out"><p class="note">Loading…</p></main>
 <script>
 // Reads index.md (the table agents keep) and shows each fix with its pictures inline.
@@ -91,6 +94,7 @@ function cellText(td) {
 function render(html) {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   const rows = [...doc.querySelectorAll('table tbody tr')].map((tr) => [...tr.cells].map(cellText));
+  // Optional 6th cell "Same as": the Fix name of the row this one repeats. Such a row is folded under that row.
   if (!rows.length) { out.innerHTML = '<p class="note">No fixes listed.</p>'; return; }
   // "Look at" cell: "group: text · group: text", or plain text for a fix with one group.
 function lookFor(cell, group) {
@@ -106,7 +110,9 @@ function lookLine(text) {
     : '<p class="look missing"><b>Look at:</b> not written yet. Tell us in the box what is unclear.</p>';
 }
 
-  out.innerHTML = rows.reverse().map(([fix, task, state, cell, look]) => {
+  const sameAs = (r) => (r[5] || '').trim();
+  const foldedUnder = (leader) => rows.filter((r) => sameAs(r) === leader[0]);
+  const section = ([fix, task, state, cell, look]) => {
     const name = (label, group, url) => url ? FOLDER + '/' + url : FOLDER + '/' + task;
     const cls = /^landed/.test(state) ? 'done' : 'wait';
     const groups = pictures(cell || '');
@@ -132,8 +138,14 @@ function lookLine(text) {
         : textItem(name('', '', g.live), lk, g.live);
       return `<div class="group">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}<div class="${g.items.some((i) => i.lone) && !g.items.some((i) => i.before) ? 'pair' : 'items'}">${figs}</div></div>`;
     }).join('');
-    return `<section class="fix"><h2>${esc(fix)}</h2><p class="meta">${esc(task)} · <span class="state ${cls}">${esc(state)}</span></p>${body}</section>`;
-  }).join('');
+    return `<section class="fix"><h2>${esc(fix)}</h2>${task || state ? `<p class="meta">${esc(task)} · <span class="state ${cls}">${esc(state)}</span></p>` : ''}${body}</section>`;
+  };
+  // A group shows its first picture, then every other picture of the same change in a closed fold; each keeps its own comment box.
+  const withFold = (r) => {
+    const rest = foldedUnder(r);
+    return section(r) + (rest.length ? `<details class="same"><summary>Same change in ${rest.length} more picture${rest.length === 1 ? '' : 's'} (show)</summary>${rest.map(section).join('')}</details>` : '');
+  };
+  out.innerHTML = rows.filter((r) => !sameAs(r)).reverse().map(withFold).join('');
 }
 
 // Every comment box, every entry under a picture, the polling and the "is answering" line come from the one thread module.

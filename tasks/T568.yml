@@ -1,0 +1,23 @@
+id: T568
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Visual change page groups pictures that show the same change: one marked pair per group, the rest folded under 'same change in N more pictures'
+done_test: bash scripts/land/test/visual-page.test.sh
+files:
+  - tasks/T568.yml
+  - tasks/T564.yml
+  - scripts/visual/groups.mjs
+  - scripts/visual/screen-names.mjs
+  - scripts/visual/lib.sh
+  - scripts/visual/publish-changes.sh
+  - scripts/visual/check-task.sh
+  - scripts/visual/README.md
+  - scripts/visual/diff-page.mjs
+  - scripts/feedback/mark-diff.py
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_test.py
+  - scripts/feedback/feedback_page_group_test.mjs
+  - scripts/land/test/visual-page.test.sh
+  - scripts/feedback/check-answerable.mjs

@@ -20,5 +20,11 @@ while IFS= read -r id; do
 done <<< "$ids"
 printf ']' >> "$entries"
 out="$VISUAL_PAGES_DIR/${task}-$(git rev-parse --short=10 "$head")"
-node "$VISUAL_SCRIPTS/diff-page.mjs" "$out" "$task: screens whose baseline changed" "$entries" "$task" > /dev/null
+note="$(visual_note "tasks/$task.yml")"
+if [ -n "$note" ]; then title="What changed on screen"
+else
+  title="Screens that look different after this change"
+  echo "visual: warning: tasks/$task.yml has no visual_note: (one or two plain sentences on what the user sees change); the page cannot say what to look at" >&2
+fi
+node "$VISUAL_SCRIPTS/diff-page.mjs" "$out" "$title" "$entries" "$note" > /dev/null
 printf 'visual changes: %s/%s/index.html\n' "$VISUAL_PAGES_URL" "$(basename "$out")"

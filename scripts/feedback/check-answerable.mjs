@@ -32,7 +32,8 @@ function inspect() {
     const allowed = it.hasAttribute('data-pair') ? 2 : 1; // a before and its after are one item
     if (imgs.length > allowed) problems.push(`item shares its comment box between ${imgs.length} pictures: ${label}`);
     const st = it.querySelector('.look,[data-statement]');
-    const text = (st?.innerText || '').replace(/^\s*(look at|what to do|question)\s*:/i, '').trim();
+    const text = (st?.textContent || '')  // textContent: the statement of a picture inside a closed fold still counts
+   .replace(/^\s*(look at|what to do|question)\s*:/i, '').trim();
     if (!text || /not written yet/i.test(text)) problems.push(`item has no clear statement (what to do / look at / question): ${label}`);
     // In a pair, name the picture itself (its link), not the item, which carries the before's name.
     const own = (img) => (imgs.length > 1 && img.closest('a')?.getAttribute('href')) || label;

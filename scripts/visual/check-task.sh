@@ -11,6 +11,9 @@ listed="$(visual_screen_ids "$task")"; changed="$(visual_changed_ids "$base" "$h
 unlisted="$(comm -13 <(printf '%s\n' "$listed") <(printf '%s\n' "$changed") | sed '/^$/d')"
 unchanged="$(comm -23 <(printf '%s\n' "$listed") <(printf '%s\n' "$changed") | sed '/^$/d')"
 status=0
+if [ -n "$changed" ] && [ -z "$(visual_note "$task")" ]; then
+  echo "visual: warning: $task has no visual_note: (one or two plain sentences on what the user sees change); the change page cannot say what to look at"
+fi
 if [ -n "$unlisted" ]; then
   printf 'visual: baselines changed that the task does not list under visual: in its task file:\n%s\n' "$(printf '%s\n' "$unlisted" | sed 's/^/  /')"; status=1
 fi
