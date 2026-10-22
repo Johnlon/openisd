@@ -30,6 +30,11 @@ export class CrashReports {
 
   /** Anything thrown and not caught: record it, send it now, offer the report box. */
   capture(thrown: unknown): void {
+    this.pending.value = this.logOnly(thrown);
+  }
+
+  /** An error the shell handles without a crash screen: send it with its context, offer no report box. */
+  logOnly(thrown: unknown): PendingCrash {
     const context = this.contextProvider.snapshot();
     const event = errorEventOf(thrown, context);
     if (!this.sent.has(event.message)) {
@@ -37,7 +42,7 @@ export class CrashReports {
       this.telemetry.record(event);
       this.telemetry.flush();
     }
-    this.pending.value = {message: event.message, frames: event.frames, context};
+    return {message: event.message, frames: event.frames, context};
   }
 
   /** Send the user's report. Not awaited by anyone; the box closes at once. */

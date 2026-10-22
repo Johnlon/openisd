@@ -436,7 +436,10 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     console.error('[app] uncaught error', err, info, instance);
     // No project open is a state the shell shows, never a crash (John, 16 Oct 2026): the reader that
     // asked is logged above, and the no-project screen stays.
-    if (err instanceof NoFocusedProjectError) return;
+    if (err instanceof NoFocusedProjectError) {
+      crashReports.logOnly(err);
+      return;
+    }
     logging.flash(`Unexpected error: ${err instanceof Error ? err.message : String(err)}`);
     crashReports.capture(err);
   };

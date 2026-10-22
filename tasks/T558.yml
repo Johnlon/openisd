@@ -3,6 +3,7 @@ release_note: On desktop charts, Auto Y now sits in the title row so it no longe
 repo: openisd
 owner: fable
 status: done
+landed: ba6d126c038ac47fa3857e3530281dc9a3886d5a
 goal: Chart Auto Y moves to title row so it does not overlap the first frequency label
 done_test: bash scripts/test.sh packages/design/test/chart/chart-layout.test.ts
 visual:

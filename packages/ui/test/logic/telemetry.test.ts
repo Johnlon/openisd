@@ -209,6 +209,37 @@ describe('CrashReports', () => {
   });
 });
 
+describe('CrashReports.logOnly', () => {
+  it('sends the error with its context but offers no report box', async () => {
+    const r = rig();
+    const actions = new RecentActions();
+    actions.record('close-project');
+    const errorContext = new ErrorContext({
+      screen: () => 'mobile/graph',
+      dialog: () => 'none',
+      projects: () => 0,
+      box: () => 'none',
+      actions,
+      device: () => 'android',
+    });
+    const crashes = new CrashReports(r.telemetry, errorContext, async () => '');
+    crashes.logOnly(new Error('no project is focused'));
+    expect(r.beacon).toHaveBeenCalledTimes(1);
+    expect(crashes.pending.value).toBeNull();
+    expect((await r.bodies())[0]?.[0]).toMatchObject({
+      name: 'error',
+      fields: {
+        message: 'no project is focused',
+        box: 'none',
+        screen: 'mobile/graph',
+        projects: 0,
+        actions: 'close-project',
+        device: 'android',
+      },
+    });
+  });
+});
+
 describe('launch helpers and endpoint', () => {
   it('reads platform and referrer host', () => {
     expect(platformOf('Windows', '')).toBe('Windows');

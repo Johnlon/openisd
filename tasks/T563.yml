@@ -1,0 +1,14 @@
+id: T563
+release_note: internal
+repo: openisd
+owner: worker
+status: done
+goal: Error report carries version context; bug closed
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts
+files:
+  - tasks/T563.yml
+  - packages/ui/src/logic/telemetry/crashReports.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - bugs/BUG_20261016_live-crash-no-project-is-focused.md
+  - packages/ui/test/visual/SOURCES.sha256

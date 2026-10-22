@@ -1,6 +1,6 @@
 # BUG_20261016_live-crash-no-project-is-focused
 
-**Status:** OPEN (the crash is fixed by T226 and the no-project menu by T228; the error context in John's ruling is still to do)
+**Status:** RESOLVED (crash fixed by T226, no-project menu by T228, error context by T229 and T563)
 
 ## Symptom
 Live release v20261015T1542Z (7.0.951) shows the crash screen with "no project is focused". Stats dashboard, 16 Oct 2026: 7 crashes in two browsers (a Chrome-style stack, 2 at 13:42; a Firefox-style stack, 5 at 11:28, hash 44211fa4efe9c4e7af10ffc6). One user sent a crash report for it at 11:07 with no note and no contact.
@@ -55,3 +55,11 @@ stop. It did not reproduce on demand. ⚠ unverified which reader the live crash
 - Privacy text updated on `AboutPage.vue` to describe the anonymous diagnostic fields.
 - Verified by `packages/ui/test/logic/telemetry/errorContext.test.ts` and `packages/ui/test/logic/telemetry.test.ts`.
 
+
+## Resolution (T563)
+- Cause of the gap: a `NoFocusedProjectError` was only written to the console, so the collector never saw
+  which screen, dialog, project count or last actions went with it. Only other errors were sent.
+- Now `CrashReports.logOnly` sends it as an `error` event with the full anonymous context (and the
+  version on the wire event), with no crash screen and no report box. The reader that asks shows in the
+  `frames` and `actions` fields of the next live occurrence.
+- Verified by `packages/ui/test/logic/telemetry.test.ts` ("CrashReports.logOnly"), red before, green after.
