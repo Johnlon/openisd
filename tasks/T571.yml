@@ -1,0 +1,13 @@
+id: T571
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: release.sh moves the release branch forward with a merge when a hotfix left it off main, and checks that before publishing
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/release.test.sh
+files:
+  - tasks/T571.yml
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - bugs/BUG_20261022_release-branch-off-main-after-hotfix.md
+  - RELEASING.md

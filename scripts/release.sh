@@ -12,7 +12,8 @@
 # It runs the UI gallery (scripts/ui-gallery/capture.mjs), snapshot after and current Latest before;
 # a failed capture refuses.
 # It then adds tag v<stamp> on the same commit (the snap- tag stays), turns the pre-release into a
-# release marked Latest, and fast-forwards the read-only branch `release` to that commit.
+# release marked Latest, and moves the read-only branch `release` to it by fast-forward (a merge keeps hotfix commits that
+# are only on `release`). The move is worked out and dry-run checked before anything is published.
 # Editing the release triggers .github/workflows/release.yml (the tag push does not), which
 # redeploys the site.
 set -euo pipefail
@@ -71,20 +72,41 @@ BEFORE=none
 [ -z "$LATEST_TAG" ] || BEFORE="https://snapshots.openisd.app/v/${LATEST_TAG#v}/"
 node scripts/ui-gallery/capture.mjs --after "https://snapshots.openisd.app/snap/$STAMP/" --before "$BEFORE" || refuse "UI gallery capture failed"
 
+# The read-only `release` branch only ever moves forward, and git must accept the move. Work out the
+# move and check the remote will take it BEFORE any outward step (tag push, gh release edit), so a
+# rejected push can never leave a live release with `release` not moved. The push itself comes right
+# after the publish step. Never a force-push.
+#   release already contains $SHA             -> nothing (an older snapshot leaves the branch alone)
+#   release is an ancestor of $SHA            -> push $SHA (fast-forward)
+#   otherwise (a hotfix sits only on release) -> push a merge commit: tree of $SHA, parents the old
+#                                                release tip and $SHA, so the tree is exactly the
+#                                                promoted build and the hotfix history is kept
+git fetch --quiet origin "refs/heads/release:refs/remotes/origin/release" 2> /dev/null || true
+RELEASE_PUSH=''
+if ! git rev-parse -q --verify refs/remotes/origin/release > /dev/null; then
+  RELEASE_PUSH="$SHA"
+else
+  RELEASE_TIP="$(git rev-parse refs/remotes/origin/release)"
+  if git merge-base --is-ancestor "$SHA" "$RELEASE_TIP"; then
+    echo "release: branch release already contains $SHA"
+  elif git merge-base --is-ancestor "$RELEASE_TIP" "$SHA"; then
+    RELEASE_PUSH="$SHA"
+  else
+    RELEASE_PUSH="$(git commit-tree "$SHA^{tree}" -p "$RELEASE_TIP" -p "$SHA" -m "Release $PUBLIC: $STAMP onto release (keeps hotfix history)")"
+    echo "release: branch release holds commits not in $SHA; moving it with merge $RELEASE_PUSH"
+  fi
+fi
+if [ -n "$RELEASE_PUSH" ]; then
+  git push --quiet --dry-run origin "$RELEASE_PUSH:refs/heads/release" || refuse "the release branch would reject the move; nothing was published"
+fi
+
 git tag "$REL" "$SHA"
 git push --quiet origin "refs/tags/$REL"
 NOTES_ARGS=()
 [ -z "$NOTES_FILE" ] || NOTES_ARGS=(--notes-file "$NOTES_FILE")
 gh release edit "$SNAP" --tag "$REL" --title "OpenISD $PUBLIC" --prerelease=false --latest ${NOTES_ARGS[@]+"${NOTES_ARGS[@]}"}
 
-# The read-only `release` branch only ever moves forward. Promoting an older snapshot than the
-# one it already holds leaves it where it is.
-git fetch --quiet origin "refs/heads/release:refs/remotes/origin/release" 2> /dev/null || true
-if git rev-parse -q --verify refs/remotes/origin/release > /dev/null && git merge-base --is-ancestor "$SHA" refs/remotes/origin/release; then
-  echo "release: branch release already contains $SHA"
-else
-  git push --quiet origin "$SHA:refs/heads/release"
-fi
+[ -z "$RELEASE_PUSH" ] || git push --quiet origin "$RELEASE_PUSH:refs/heads/release"
 
 # RELEASES.md: one row per release, newest first. Left in the working tree for the caller to commit.
 DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"

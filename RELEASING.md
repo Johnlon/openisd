@@ -48,3 +48,7 @@
 A task lands as one commit, subject "<id>: <goal>", body the release note; land.sh writes status done and landed.
 
 The site is rebuilt from the GitHub Releases on every deploy. There is no gh-pages branch.
+
+## Hotfix history on `release`
+
+A hotfix cut on `release` lives only there until main gets the same fix as its own commit. When the next main snapshot is promoted, `release.sh` cannot fast-forward, so it pushes a merge commit instead: its tree is exactly the promoted build, its parents are the old `release` tip and the snapshot, so the hotfix commit stays in history. This is worked out and dry-run checked before the release is published. The tag `v<stamp>` stays on the snapshot commit, not the merge.

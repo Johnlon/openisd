@@ -208,6 +208,36 @@ out=$(bash scripts/release.sh --public 7.0.1001 --notes-file "$S/missing.md" 202
 bash scripts/release.sh --public 7.0.1001 20260101T0310Z > /dev/null 2>&1
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$NEW_SHA" ] && ok "promoting an older snapshot leaves the branch where it is" || fail "release branch moved back"
 
+# ---- 6b. hotfix history: release holds a commit not on main; plain ff; already contained; rejected --
+rel_tip() { git ls-remote origin refs/heads/release | cut -f1; }
+add_snap() { # add_snap <stamp> <sha> <iso>: a snapshot tag and pre-release on <sha>
+  mkdir -p "$GH_STATE/assets/snap-$1"; git tag "snap-$1" "$2"; git push -q origin "refs/tags/snap-$1"
+  jq ". + [{tag_name: \"snap-$1\", name: \"Snapshot $1\", prerelease: true, draft: false, created_at: \"$3\", published_at: \"$3\", html_url: \"u\", body: \"x\", latest: false}]" "$GH_STATE/releases.json" > "$GH_STATE/n" && mv "$GH_STATE/n" "$GH_STATE/releases.json"
+}
+# ff: release is an ancestor of the promoted commit
+echo ff > ff.txt; git add ff.txt; git commit -q -m "ff change"; git push -q origin main
+FF_SHA="$(git rev-parse HEAD)"
+add_snap 20260103T0000Z "$FF_SHA" 2026-01-03T00:00:00Z
+out=$(bash scripts/release.sh --public 7.0.1100 20260103T0000Z 2>&1); r=$?
+[ $r = 0 ] && [ "$(rel_tip)" = "$FF_SHA" ] && ok "release an ancestor: plain fast-forward to the commit" || fail "ff case: $r $out"
+# hotfix: a commit only on release (built by plumbing on the old release tip)
+OLD_TIP="$(rel_tip)"
+HOT_SHA="$(git commit-tree "$OLD_TIP^{tree}" -p "$OLD_TIP" -m hotfix)"
+git push -q origin "$HOT_SHA:refs/heads/release"
+echo four > four.txt; git add four.txt; git commit -q -m "fourth change"; git push -q origin main
+MAIN_SHA="$(git rev-parse HEAD)"
+add_snap 20260104T0000Z "$MAIN_SHA" 2026-01-04T00:00:00Z
+out=$(bash scripts/release.sh --public 7.0.1101 20260104T0000Z 2>&1); r=$?
+MERGE="$(rel_tip)"
+[ $r = 0 ] && ok "promote with a hotfix only on release exits 0" || fail "hotfix promote: $r $out"
+[ "$MERGE" != "$MAIN_SHA" ] && [ "$(git rev-parse "$MERGE^{tree}")" = "$(git rev-parse "$MAIN_SHA^{tree}")" ] && ok "release is a merge whose tree is the promoted build" || fail "merge tree: $MERGE"
+[ "$(git rev-parse "$MERGE^1")" = "$HOT_SHA" ] && [ "$(git rev-parse "$MERGE^2")" = "$MAIN_SHA" ] && ok "merge parents: old release tip, then the promoted commit" || fail "merge parents: $(git rev-list --parents -n1 "$MERGE")"
+git merge-base --is-ancestor "$HOT_SHA" "$MERGE" && ok "the hotfix commit stays in release history" || fail "hotfix lost"
+[ "$(git ls-remote origin refs/tags/v20260104T0000Z | cut -f1)" = "$MAIN_SHA" ] && ok "the v<stamp> tag stays on the snapshot commit" || fail "tag moved"
+# already contained: promoting an older commit release holds leaves the branch alone
+add_snap 20260105T0000Z "$FF_SHA" 2026-01-05T00:00:00Z
+out=$(bash scripts/release.sh --public 7.0.1102 20260105T0000Z 2>&1); r=$?
+[ $r = 0 ] && [ "$(rel_tip)" = "$MERGE" ] && grep -q 'already contains' <<< "$out" && ok "release already containing the commit: left alone" || fail "contained case: $r $out"
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?
 [ $r = 0 ] && [ "$(release_json v20260101T0102Z | jq -r .latest)" = true ] && [ "$(release_json v20260102T0000Z | jq -r .latest)" = false ] && ok "--latest makes an older release Latest" || fail "--latest: $r $out"
