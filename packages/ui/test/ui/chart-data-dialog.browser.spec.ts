@@ -11,7 +11,7 @@ test('Original skin: Data shows the chart as a table, and Download CSV saves it 
   await page.goto('/');
   await openAProject(page);
   const panel = page.locator('.chart-cell .gpanel').first();
-  const chart = (await panel.locator('.gtitle').innerText()).replace(/Data$/, '').trim();
+  const chart = (await panel.locator('.gtitle').innerText()).replace(/Data[\s\S]*$/, '').trim();
   await panel.getByRole('button', {name: 'Data'}).click();
   const dialog = page.getByRole('dialog', {name: `${chart} data`});
   await expect(dialog).toBeVisible();

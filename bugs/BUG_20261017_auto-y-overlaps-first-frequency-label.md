@@ -1,20 +1,14 @@
 # BUG_20261017_auto-y-overlaps-first-frequency-label
 
-**Status:** PHONE FIXED by T545 (21 Oct 2026): on the phone, Auto Y is a box in the Tune and What-if sheet footer, as the accepted QO267 Graph mock draws it, and the chart shows none. DESKTOP still waits on QO278.
+**Status:** RESOLVED (Phone fixed by T545; Desktop fixed by T558, 21 Oct 2026)
 
 ## Symptom
-In the same screenshot as the title bug (phone Graph tab, Tune sheet open): the "Auto Y" box in the chart's
-bottom-left corner is drawn over the first frequency label (10).
+The "Auto Y" box in the chart's bottom-left corner is drawn over the first frequency label (10).
 
 ## Cause
-Auto Y is 43 px wide from 2 px in. The first frequency label is centred on the plot's left edge (44 px), so it
-starts at about 39 px.
+Auto Y was positioned absolutely at the chart bottom-left (`left: 2px; bottom: 1px`), overlapping the first frequency label centred on the plot's left edge (44 px).
 
-## Choices
-- Skip the frequency label that would fall under Auto Y (loses "10" while Auto Y shows).
-- Move Auto Y to the title row, after the title (the top-right corner holds the cursor readout).
-- Make the bottom margin tall enough to put Auto Y under the frequency labels (costs about 14 px of plot).
-
-## Question for John (19 Oct 2026, worker E)
-Not fixed in the 19 Oct wave: each of the three choices changes what the chart shows (a lost "10" label, Auto Y moved to the title row, or 14 px less plot). Which one?
-Recommendation: move Auto Y to the title row after the title; nothing is lost and the plot keeps its height.
+## Fix
+- Phone: Auto Y moved into the Tune and What-if sheet footer (T545).
+- Desktop: Auto Y moved to the title row right after the Data button in `.gtitle` (T558, QO278 option b). The first frequency label (10) is clear and unobstructed.
+- Verification: unit test `packages/design/test/chart/chart-layout.test.ts`, browser test `packages/ui/test/ui/original-chart-auto-y.browser.spec.ts` ("Auto Y sits in the title row and does not overlap the first frequency label"), visual regression baselines updated, before/after gallery verified by check-answerable.mjs at http://localhost:8000/winisd/ui-gallery/T558/index.html.

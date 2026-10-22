@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: ecd3f1c20936480d1715602351a23c5b30fb69be
 goal: Desktop filter editors use UIField rows with step buttons instead of native number boxes (BUG_20261005_no-common-ui-field-component)
 done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-desktop-filter-editors-use-field-rows.test.ts
 files:
