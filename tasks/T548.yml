@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 20e02bd8cdd5e70c36d098db118ef4284e717850
 goal: Phone header, key strip, project name and tab bar match the accepted classic mock (screens 1, 27, 28)
 done_test: bash scripts/test.sh packages/design/test/fields/phoneHeaderSizes.test.ts
 files:

@@ -31,7 +31,7 @@ async function chooseBox(page: Page, option: 'bandpass6' | 'abc'): Promise<void>
 const ventPanel = (page: Page, title: string) =>
   page.locator('.mob-csection', {has: page.locator('.mob-band-title', {hasText: title})});
 
-test('bandpass6: the Front chamber panel on the Box tab edits the front chamber tuning', async ({page}) => {
+test('bandpass6: the Ffc row heading the Front vent section edits the front chamber tuning', async ({page}) => {
   await chooseBox(page, 'bandpass6');
   const ventedTuning = async (): Promise<string> => {
     await page.locator('#mob-box-type').selectOption('vented');
@@ -40,7 +40,7 @@ test('bandpass6: the Front chamber panel on the Box tab edits the front chamber 
     return shown;
   };
   const before = await ventedTuning();
-  const tuning = ventPanel(page, 'Front chamber').locator('.ui-field', {hasText: 'Ffc'}).locator('input');
+  const tuning = ventPanel(page, 'Front vent').locator('.ui-field', {hasText: 'Ffc'}).locator('input');
   await tuning.fill('31.5');
   await tuning.blur();
   await expect(tuning).toHaveValue(/^31\.5/);

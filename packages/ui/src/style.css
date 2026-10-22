@@ -318,6 +318,7 @@ a { color:var(--acc) }
 .mob-classic .mob-cpic svg { height: 100%; width: auto; }
 .mob-classic .mob-chint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 18px; }
 .mob-classic .mob-chint-warn { color: var(--acc2); }
+.mob-classic .mob-cnote { margin: 0; padding: 2px 16px 6px; font-size: 12px; line-height: 18px; color: #777; font-style: italic; }
 
 /* Footer buttons (Back, Next, Cancel, OK, Close, Defaults, Reset): one size on every desktop dialog, from DesktopSizes. */
 .modal-footer .footer-buttons button, .opt-footer button, .what-if-btns button {

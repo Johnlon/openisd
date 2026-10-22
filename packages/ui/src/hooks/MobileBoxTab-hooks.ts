@@ -5,7 +5,7 @@
  */
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP} from './ventReadouts.js';
+import {FH_TARGET_TIP} from './ventReadouts.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -19,10 +19,9 @@ export function useMobileBoxTab() {
 
   const { selectedBox, pending, isDual, boxLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
-  const { boxResonance } = createSealedReadouts({ project, selectedBox, projectChanged });
-  const { activeTuning } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
+  const { boxResonance, prNaturalFh } = createSealedReadouts({ project, selectedBox, projectChanged });
   const { boxVolumeCell, sealedFscCell, sealedQtcCell } = createBoxVolume({ project, selectedBox, projectChanged });
-  const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
+  const { frontVolumeCell } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
   const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
 
@@ -57,9 +56,9 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, rearTuningCell,
-    boxResonance, boxVolumeCell, sealedFscCell, sealedQtcCell,
-    activeTuning, FB_TARGET_TIP, FH_TARGET_TIP,
+    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell,
+    boxResonance, prNaturalFh, boxVolumeCell, sealedFscCell, sealedQtcCell,
+    FH_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
     sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,

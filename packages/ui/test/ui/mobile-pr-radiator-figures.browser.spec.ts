@@ -39,7 +39,7 @@ test('the radiator Mms and Cms are rows the user can see and enter', async ({pag
 });
 
 test('a cleared Fp is calculated, never blank, and no message shows a field key', async ({page}) => {
-  const fp = mobileFieldRow(page, 'Target tuning freq (Fp)').locator('input').first();
+  const fp = page.locator('.ui-field').filter({has: page.locator('label', {hasText: /^Fp$/})}).locator('input').first();
   await fillAndCommit(fp, '25');
   await fillAndCommit(fp, '');
   await expect(fp).toHaveValue(/\d/);
