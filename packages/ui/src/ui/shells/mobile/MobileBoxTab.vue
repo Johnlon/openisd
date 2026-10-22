@@ -2,7 +2,7 @@
 // The mobile Box tab — box type, volume, and the calculated resonance/Qtc readout. Thin: all
 // state and domain reads/writes live in useMobileBoxTab() (src/hooks/MobileBoxTab-hooks.ts), which
 // calls the SAME field-wiring factories src/hooks/boxFields.ts exports.
-import {NumberField, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
+import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -20,9 +20,9 @@ import { useMobileBoxTab } from '../../../hooks/MobileBoxTab-hooks.js';
 import { useUnitReadouts } from '../../../hooks/useUnitReadouts.js';
 
 const {
-  project, selectedBox, pending, isDual, frontVolumeCell, rearTuningCell, boxLabel,
-  boxResonance, boxVolumeCell, sealedFscCell, sealedQtcCell,
-  activeTuning, FB_TARGET_TIP, FH_TARGET_TIP,
+  selectedBox, pending, isDual, frontVolumeCell, boxLabel,
+  boxResonance, prNaturalFh, boxVolumeCell, sealedFscCell, sealedQtcCell,
+  FH_TARGET_TIP,
   selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
   sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown, sealedAlignmentOptions, sealedAlignmentSelected,
   sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
@@ -57,15 +57,14 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
     <section class="mob-csection">
     <PhoneBand :section="PhoneHelp.rearChamber(selectedBox)" />
     <UIField class="mob-ui-field" :field="NumberField.BOX_VB_L" :label="PhoneLabels.VB" :cell="boxVolumeCell" stepper />
-    <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="mob-ui-field" :field="NumberField.BOX_FRC_HZ" :label="PhoneLabels.FRC" :cell="rearTuningCell" stepper />
-    <UIField v-else-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :label="PhoneLabels.FSC" :cell="sealedFscCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
-    <UIField v-else-if="selectedBox === 'box-passive-radiator'" class="mob-ui-field" :title="FH_TARGET_TIP" :field="NumberField.BOX_FH_HZ" :label="PhoneLabels.FH" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
-    <UIFixedField v-else-if="selectedBox !== 'vented'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :label="PhoneLabels.FSC" :value="boxResonance" readonly plain />
+    <UIField v-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :label="PhoneLabels.FSC" :cell="sealedFscCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
+    <UIFixedField v-else-if="selectedBox === 'box-passive-radiator'" class="mob-ui-field" :title="FH_TARGET_TIP" :field="NumberField.BOX_FH_HZ" :label="PhoneLabels.FH" :value="prNaturalFh" readonly plain />
+    <UIFixedField v-else-if="selectedBox === 'bandpass4'" class="mob-ui-field" :field="NumberField.BOX_FSC_HZ" :label="PhoneLabels.FSC" :value="boxResonance" readonly plain />
     <UIField v-if="selectedBox === 'sealed'" class="mob-ui-field" :field="NumberField.BOX_QTC_VALUE" :label="PhoneLabels.QTC" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" stepper />
     <div class="mob-clinks">
-      <button v-if="selectedBox === 'sealed'" type="button" class="mob-clink" @click="sealedAlignmentEditor.openEditor">Choose alignment</button>
-      <button v-else-if="selectedBox === 'vented'" type="button" class="mob-clink" @click="ventedAlignmentEditor.openEditor">Choose alignment</button>
-      <button type="button" class="mob-clink mob-clink-end" @click="lossesOpen = isDual ? 'rear' : 'whole'">Box losses (Qa, Ql, Qp)…</button>
+      <button v-if="selectedBox === 'sealed'" type="button" class="mob-clink" @click="sealedAlignmentEditor.openEditor">{{ PhoneBoxText.CHOOSE_ALIGNMENT_LINK }}</button>
+      <button v-else-if="selectedBox === 'vented'" type="button" class="mob-clink" @click="ventedAlignmentEditor.openEditor">{{ PhoneBoxText.CHOOSE_ALIGNMENT_LINK }}</button>
+      <button type="button" class="mob-clink mob-clink-end" @click="lossesOpen = isDual ? 'rear' : 'whole'">{{ PhoneBoxText.BOX_LOSSES_LINK }}</button>
     </div>
 
     </section>
@@ -73,9 +72,8 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
     <section v-if="isDual" class="mob-csection">
       <PhoneBand :section="PhoneHelp.FRONT_CHAMBER" />
       <UIField v-if="frontVolumeCell" class="mob-ui-field" :field="NumberField.BOX_VF_L" :label="PhoneLabels.VF" :cell="frontVolumeCell" stepper />
-      <UIField v-if="selectedBox !== 'bandpass4'" class="mob-ui-field" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :label="PhoneLabels.FFC" :cell="activeTuning" stepper />
       <div class="mob-clinks">
-        <button type="button" class="mob-clink mob-clink-end" @click="lossesOpen = 'front'">Box losses (Qa, Ql, Qp)…</button>
+        <button type="button" class="mob-clink mob-clink-end" @click="lossesOpen = 'front'">{{ PhoneBoxText.BOX_LOSSES_LINK }}</button>
       </div>
     </section>
 

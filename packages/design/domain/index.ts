@@ -24,7 +24,7 @@ export type {
   CoupledSealedLosses,
   CoupledVentedLosses,
 } from './losses.js';
-export type { Box, BoxLossGroup, LossChamber, TuningField } from './box/box.js';
+export type { Box, BoxLossGroup, LossChamber, TuningField, VentPort } from './box/box.js';
 export type { SealedBox } from './box/sealedBox.js';
 export type { VentedBox } from './box/ventedBox.js';
 export type { Bandpass4Box } from './box/bandpass4Box.js';

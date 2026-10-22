@@ -3,7 +3,7 @@
 // vent the box draws, the passive radiator, and the Chart section holding the velocity limit.
 // Thin: all state and domain reads/writes live in useMobileEnclosureTab()
 // (src/hooks/MobileEnclosureTab-hooks.ts). PRBrowser is the app's existing overlay, reused unchanged.
-import {NumberField, PhoneHelp, TextField, WinisdDeviation} from '@openisd/design/fields';
+import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -14,7 +14,7 @@ import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js'
 
 const {
   project, selectedBox,
-  activeTuning, ventSections, tuningLabel, tuningHeadsVents, fbUnreachable, fbUnreachableMsg, tuningField,
+  ventSections,
   prResonanceMassDq, prFsMass_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
@@ -26,7 +26,8 @@ const {
 <template>
   <section v-for="section in ventSections" :key="section.name" class="mob-csection">
     <PhoneBand :section="section.help" />
-    <UIField v-if="tuningHeadsVents" class="mob-ui-field" :title="FB_TARGET_TIP" :field="tuningField" :label="tuningLabel" :cell="activeTuning" stepper />
+    <p v-if="section.name === 'Intra'" class="mob-cnote">{{ PhoneBoxText.INTRA_VENT_NOTE }}</p>
+    <UIField v-if="section.tuning" class="mob-ui-field" :title="FB_TARGET_TIP" :field="section.tuning.field" :label="section.tuning.label" :cell="section.tuning.cell" stepper />
     <div class="mob-crow">
       <label class="mob-crow-label">Number of Vents</label>
       <select class="mob-cselect" :value="section.vent.count.value"
@@ -56,12 +57,13 @@ const {
     <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="section.vent.length_m" stepper />
     <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="section.vent.totalArea_m2()" readonly plain />
     <UIFixedField class="mob-ui-field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="section.portPipeResonance_hz" readonly plain />
-    <p v-if="tuningHeadsVents && fbUnreachable" class="mob-chint mob-chint-warn">{{ fbUnreachableMsg }}</p>
+    <p v-if="section.tuning && section.unreachable" class="mob-chint mob-chint-warn">{{ section.unreachableMsg }}</p>
   </section>
 
   <template v-if="selectedBox === 'box-passive-radiator'">
     <section class="mob-csection">
     <PhoneBand :section="PhoneHelp.PASSIVE_RADIATOR" />
+    <UIField class="mob-ui-field" :title="PhoneBoxText.FP_TIP" :field="NumberField.PR_FP_HZ" :label="PhoneLabels.PR_FP" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
     <div class="mob-crow">
       <input id="mob-pr-name" class="mob-cname" type="text" :aria-label="TextField.PR_NAME.label" :title="TextField.PR_NAME.description" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))">
     </div>
@@ -88,10 +90,9 @@ const {
     <section class="mob-csection">
     <PhoneBand :section="PhoneHelp.USER_OPTIONS" />
     <div class="mob-crow">
-      <label class="mob-crow-label" for="mob-pr-count">Number of passive radiators</label>
+      <label class="mob-crow-label" for="mob-pr-count">{{ NumberField.PR_NUM.label }}</label>
       <select id="mob-pr-count" class="mob-cselect" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
     </div>
-    <UIField class="mob-ui-field" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" stepper />
     <UIFixedField class="mob-ui-field" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly plain />
     </section>

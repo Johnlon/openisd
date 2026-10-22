@@ -38,6 +38,8 @@ export class PhoneLabels {
   static readonly FH = 'Fh';
   static readonly FRC = 'Frc';
   static readonly FFC = 'Ffc';
+  /** The passive radiator's entered target tuning, first row of the Passive radiator section. */
+  static readonly PR_FP = 'Fp';
   static readonly DRIVERS = 'Drivers';
   static readonly CONNECTION = 'Connection';
   static readonly POWER = 'Power';
@@ -66,6 +68,14 @@ export class PhoneLabels {
   static readonly OUTER = 'Outer';
   static readonly VCD = 'Vcd';
   static readonly DVOL = 'DVol';
+}
+
+/** The words of the Box page that are not field labels: the two links under the chamber rows, and the Intra vent note. */
+export class PhoneBoxText {
+  static readonly CHOOSE_ALIGNMENT_LINK = 'Choose alignment…';
+  static readonly BOX_LOSSES_LINK = 'Box losses (Qa, Ql, Qp)…';
+  static readonly FP_TIP = 'Fp: the box tuning you enter for the passive radiator box. The Fh row shows the natural tuning of the box and radiator with no added mass.';
+  static readonly INTRA_VENT_NOTE = 'Connects chambers; not open to outside';
 }
 
 /** One quick-add chip of the phone Filters tab, in WinISD's Filter Editor order, then the two OpenISD-only shelves. */
