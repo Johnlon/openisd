@@ -88,21 +88,13 @@ test.describe('No-project shell', () => {
       const eqTransferMagnitude = opt.locator('tr', { hasText: 'EQ transfer func mag' });
       await expect(eqTransferMagnitude.locator('input').nth(0)).toHaveValue('-40');
       await expect(eqTransferMagnitude.locator('input').nth(1)).toHaveValue('20');
-      const colorColumns = opt.locator('.opt-color-col');
-      await expect(colorColumns).toHaveCount(2);
-      await expect(colorColumns.nth(0)).toContainText('0 dB line');
-      await expect(colorColumns.nth(0)).toContainText('-3dB line');
-      await expect(colorColumns.nth(0)).toContainText('Background');
-      await expect(colorColumns.nth(1)).toContainText('Other lines');
-      await expect(colorColumns.nth(1)).toContainText('Labels');
-      await expect(colorColumns.nth(1)).toContainText('Xmax limit');
-      await expect(colorColumns.nth(0).locator('input[type="color"]').nth(0)).toHaveValue('#000000');
-      await expect(colorColumns.nth(0).locator('input[type="color"]').nth(1)).toHaveValue('#808080');
-      await expect(colorColumns.nth(0).locator('input[type="color"]').nth(2)).toHaveValue('#ffffff');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(0)).toHaveValue('#3a7bd5');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(1)).toHaveValue('#000000');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(2)).toHaveValue('#ff0000');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(3)).toHaveValue('#2e8b57');
+      // The nine colour rows (T555: the phone's list, the two newest last), each at its default colour.
+      const colorRows = opt.locator('.opt-color-row');
+      await expect(colorRows.locator('label')).toHaveText(['0 dB line', '-3dB line', 'Background', 'Other lines', 'Labels', 'Xmax limit', 'Cursor lines', 'Air speed limit', 'Selected range']);
+      const defaults = ['#000000', '#808080', '#ffffff', '#3a7bd5', '#000000', '#ff0000', '#2e8b57', '#ff6b6b', '#000000'];
+      for (const [i, color] of defaults.entries()) {
+        await expect(colorRows.nth(i).locator('input[type="color"]')).toHaveValue(color);
+      }
       await page.keyboard.press('Escape');
       await expect(opt).toBeHidden();
 

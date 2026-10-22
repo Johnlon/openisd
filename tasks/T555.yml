@@ -1,0 +1,17 @@
+id: T555
+release_note: The desktop Options, Plot Window tab now has the Air speed limit and Selected range colour rows the phone already had.
+repo: openisd
+owner: maryu
+status: done
+goal: (held for John's yes on QO291.c187) Desktop Options Plot Window gets the Air speed limit and Selected range colour rows, from one colour-row list in packages/design shared with the phone
+done_test: bash scripts/test.sh packages/design/test/chart/chartColorRows.test.ts
+files:
+  - packages/ui/test/ui/no-project-shell.browser.spec.ts
+  - tasks/T555.yml
+  - packages/design/chart/chartColorRows.ts
+  - packages/design/chart/index.ts
+  - packages/design/test/chart/chartColorRows.test.ts
+  - packages/ui/src/hooks/OptionsModal-hooks.ts
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/test/ui/desktop-options-colour-rows.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

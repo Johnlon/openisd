@@ -14,7 +14,7 @@
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {AirValues, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
 import {NumberField} from '@openisd/design/fields';
-import {DEFAULT_REFERENCE_LINE_COLORS, DEFAULT_SELECTED_RANGE_COLOR, type ReferenceLineColors} from '@openisd/design/chart';
+import {CHART_COLOR_ROWS, chartColorDefault, type ChartColorKey, type ChartColorRow} from '@openisd/design/chart';
 import {FACTORY_ENV_DEFAULTS, FACTORY_VENTED_LIMITS} from '../logic/appState.js';
 import {useApp} from '../logic/app.js';
 
@@ -64,9 +64,10 @@ export const LIMIT_ROWS: readonly LimitRow[] = [
 ];
 
 export interface OptionsModalAPI {
-  /** The 0 dB and -3dB line colours before the user picks one (the Colors group). */
-  readonly referenceLineDefaults: ReferenceLineColors;
-  readonly selectedRangeDefault: string;
+  /** The chart colour rows of Plot Window, the same list on both skins. */
+  readonly colorRows: readonly ChartColorRow[];
+  /** The colour a row shows when the user has chosen none. */
+  colorDefault(key: ChartColorKey): string;
   /** The band being edited, in the units on screen. Editing these writes nothing. */
   readonly minVolume_m3: Ref<number>;
   readonly maxVolume_m3: Ref<number>;
@@ -243,8 +244,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   }
 
   return {
-    referenceLineDefaults: DEFAULT_REFERENCE_LINE_COLORS,
-    selectedRangeDefault: DEFAULT_SELECTED_RANGE_COLOR,
+    colorRows: CHART_COLOR_ROWS, colorDefault: chartColorDefault,
     minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz,
     tempK, humidityPct, pressurePa, differenceCuesShown,
     freqRangeDraft, setFreqRange,
