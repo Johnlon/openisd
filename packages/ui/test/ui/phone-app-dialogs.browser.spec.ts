@@ -350,13 +350,13 @@ for (const size of PHONE_SIZES) {
       await stubGoogleApis(page);
     });
 
-    test('the badge is a 40 px target with a 24 px glyph; the dialog has the Google Drive band, the state, the privacy words and one button', async ({page}) => {
+    test('the badge is a 44 px target with a 24 px glyph; the dialog has the Google Drive band, the state, the privacy words and one button', async ({page}) => {
       await startOnPhone(page, size);
       const badge = page.locator('.mob-header-sync');
       await expect(badge).toBeVisible();
       const b = (await badge.boundingBox())!;
-      expect(Math.abs(b.width - 40)).toBeLessThanOrEqual(TOL);
-      expect(Math.abs(b.height - 40)).toBeLessThanOrEqual(TOL);
+      expect(Math.abs(b.width - 44)).toBeLessThanOrEqual(TOL);
+      expect(Math.abs(b.height - 44)).toBeLessThanOrEqual(TOL);
       const glyph = (await badge.locator('svg').first().boundingBox())!;
       expect(Math.max(glyph.width, glyph.height)).toBeGreaterThanOrEqual(23.5);
       expect(Math.max(glyph.width, glyph.height)).toBeLessThanOrEqual(24.5);
