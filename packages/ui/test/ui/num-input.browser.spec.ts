@@ -133,7 +133,7 @@ test.describe('NumInput', () => {
 
   test('no spinner gains decimal places while spinning (all fields, all box types)', async ({ page }) => {
     // Box tab across every box type — exposes the type-specific spinners (vents, PR, chambers)
-    // as well as the shared Volume/Signal/Advanced fields. Covers NumInput and v-expo-step at once.
+    // as well as the shared Volume/Signal/Advanced fields. Covers NumInput.
     let checked = 0;
     for (const boxType of ['sealed', 'vented', 'box-passive-radiator', 'bandpass4'] as const) {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
@@ -147,7 +147,7 @@ test.describe('NumInput', () => {
         checked += await sweepActiveTab(page, `${boxType}/${name}`);
       }
     }
-    // The docked What-if panel (v-expo-step T/S fields) — the highest-risk fractional-value spinners.
+    // The docked What-if panel (T/S fields) — the highest-risk fractional-value spinners.
     await page.locator('.project-nav li', { hasText: 'Driver' }).click();
     await page.locator('.save-rail .what-if-btn').click();
     const whatIfInputs = await page.locator('.what-if-panel input[data-numinput]').all();

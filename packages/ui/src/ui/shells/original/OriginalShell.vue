@@ -7,8 +7,6 @@
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
 import {APP_UPDATE_TEXT, CompatSwitchGroup, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
-import UnitToggle from '../../components/UnitToggle.vue';
-import NumInput from '../../components/NumInput.vue';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -278,7 +276,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="panel-title">Signal Generator</div>
           <div class="signal-gen-row" title="Play a real sine tone out of the audio output for testing speakers.">
             <label><input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate</label>
-            <input v-expo-step type="number" step="1" v-limits="NumberField.SIGNAL_GENHZ_HZ.limits" v-model.number="genHz"> <span class="unit">{{ NumberField.SIGNAL_GENHZ_HZ.unitLabel() }}</span>
+            <UIFixedField class="signal-gen-field" :field="NumberField.SIGNAL_GENHZ_HZ" label="" :value="genHz" @update:value="v => { genHz = v; }" />
           </div>
         </div>
       </div>
@@ -873,7 +871,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </select>
             <WinisdDeviationCue v-if="sealedAlignmentDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
           </div></div>
-          <div class="field-row"><div class="field"><label>Volume</label><NumInput id="og-sealed-alignment-volume" :model-value="sealedAlignmentVolume_m3" @update:model-value="(v: number | null) => { sealedAlignmentVolume_m3 = v; }" :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" /><UnitToggle :field="NumberField.BOX_VB_L" unit-class="unit" /></div></div>
+          <div class="field-row"><UIFixedField class="field" input-id="og-sealed-alignment-volume" :field="NumberField.BOX_VB_L" label="Volume" :value="sealedAlignmentVolume_m3" @update:value="v => { sealedAlignmentVolume_m3 = v; }" /></div>
           <div class="alignment-readout"><span class="alignment-icon" :class="sealedAlignmentSuitability ?? 'unknown'">●</span>
             <span>EBP {{ ReadoutFormat.EBP.text(sealedAlignmentEbp, '—', unitTokens) }} {{ ReadoutFormat.EBP.unitLabel(unitTokens) }} — {{ sealedAlignmentSuitabilityLabel }}</span>
           </div>
@@ -1231,8 +1229,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .close-actions .btn { width:100%; }
 .close-btn { color:#b02a2a; }
 .close-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
-.signal-gen-row { display:flex; align-items:center; gap:8px; }
-.signal-gen-row input[type=number] { width:70px; }
+.signal-gen-row { display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; }
+.signal-gen-field { grid-template-columns: 0 var(--ui-value-w) auto; column-gap: 2px; }
+.signal-gen-field :deep(.ui-field-unit) { width: auto; }
+.signal-gen-field :deep(.ui-field-dq), .signal-gen-field :deep(.ui-field-dev) { display: none; }
 .project-nav {
   display: flex;
   flex-direction: column;

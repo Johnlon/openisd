@@ -5,7 +5,6 @@ import {createStoreGateSession} from './logic/storeGate.js';
 import StoreGate from './ui/components/StoreGate.vue';
 import {createApp} from 'vue';
 import App from './ui/App.vue';
-import {vExpoStep} from './ui/directives/expoStep.js';
 import {vLimits} from './ui/directives/limits.js';
 import {
     createAppSettingsRepo,
@@ -416,7 +415,6 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   }
 
   const app = createApp(App)
-    .directive('expo-step', vExpoStep)
     .directive('limits', vLimits);
 
   provideCloudSync(app, cloudSync, cloudUi);

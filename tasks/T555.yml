@@ -3,6 +3,7 @@ release_note: The desktop Options, Plot Window tab now has the Air speed limit a
 repo: openisd
 owner: maryu
 status: done
+landed: 7fb00a8a62d7a357ab0d8bcac4b510ddce040116
 goal: (held for John's yes on QO291.c187) Desktop Options Plot Window gets the Air speed limit and Selected range colour rows, from one colour-row list in packages/design shared with the phone
 done_test: bash scripts/test.sh packages/design/test/chart/chartColorRows.test.ts
 files:
