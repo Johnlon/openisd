@@ -14,9 +14,7 @@ const HAND_BUILT_READOUT = /<NumReadout|calculated greyed|mob-field-value mob-re
 /** Hand-built readouts not yet moved, by file and count. Each is a number a ReadoutFormat prints
  *  (its own digits and '—' for no value) or an Options box (step C); a count that no longer matches
  *  fails, so a converted site must be taken off this list and a new one cannot be added. */
-const NOT_YET_MOVED: ReadonlyMap<string, number> = new Map([
-  [join('ui', 'components', 'OptionsModal.vue'), 3],
-]);
+const NOT_YET_MOVED: ReadonlyMap<string, number> = new Map([]);
 
 function vueFilesUnder(dir: string): string[] {
   const out: string[] = [];

@@ -68,12 +68,11 @@ test.describe('No-project shell', () => {
       await expect(opt).toBeVisible();
       await expect(opt.locator('input.opt-input[type="text"]')).toBeEnabled();
       const environment = opt.locator('.opt-group', { hasText: 'Environment' });
-      const environmentInputs = environment.locator('input.opt-num');
+      const environmentInputs = environment.locator('.opt-fld input');
       for (const index of [0, 1, 2]) {
         const input = environmentInputs.nth(index);
-        const before = await input.inputValue();
         await fillAndBlur(input, '');
-        await expect(input).toHaveValue(before);
+        await expect(input).toHaveClass(/inp-bad/);   // the box refuses a blank and says so; nothing is stored
       }
       await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
       // The Frequency-range row edits `presentationState.sweepRange`, which is app-wide and shared
@@ -83,11 +82,11 @@ test.describe('No-project shell', () => {
       await expect(frequencyRange.locator('input').nth(0)).toBeEnabled();
       await expect(frequencyRange.locator('input').nth(1)).toBeEnabled();
       const transferMagnitude = opt.locator('tr', { hasText: 'Transfer func. magn.' });
-      await expect(transferMagnitude.locator('input').nth(0)).toHaveValue('-30');
-      await expect(transferMagnitude.locator('input').nth(1)).toHaveValue('6');
+      await expect(transferMagnitude.locator('input').nth(0)).toHaveValue('-30.00');
+      await expect(transferMagnitude.locator('input').nth(1)).toHaveValue('6.00');
       const eqTransferMagnitude = opt.locator('tr', { hasText: 'EQ transfer func mag' });
-      await expect(eqTransferMagnitude.locator('input').nth(0)).toHaveValue('-40');
-      await expect(eqTransferMagnitude.locator('input').nth(1)).toHaveValue('20');
+      await expect(eqTransferMagnitude.locator('input').nth(0)).toHaveValue('-40.00');
+      await expect(eqTransferMagnitude.locator('input').nth(1)).toHaveValue('20.00');
       // The nine colour rows (T555: the phone's list, the two newest last), each at its default colour.
       const colorRows = opt.locator('.opt-color-row');
       await expect(colorRows.locator('label')).toHaveText(['0 dB line', '-3dB line', 'Background', 'Other lines', 'Labels', 'Xmax limit', 'Cursor lines', 'Air speed limit', 'Selected range']);
@@ -139,8 +138,8 @@ test.describe('No-project shell', () => {
       const opt = page.locator('.opt-modal');
       await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
       const frequency = opt.locator('tr', { hasText: 'Frequency range' });
-      await expect(frequency.locator('input').nth(0)).toHaveValue('10');
-      await expect(frequency.locator('input').nth(1)).toHaveValue('20000');
+      await expect(frequency.locator('input').nth(0)).toHaveValue('10.0');
+      await expect(frequency.locator('input').nth(1)).toHaveValue('20000.0');
     });
 
     test('choosing a driver with no project opens the New Project wizard with that driver', async ({ page }) => {

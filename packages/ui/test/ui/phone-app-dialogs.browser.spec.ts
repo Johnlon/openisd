@@ -161,14 +161,33 @@ for (const size of PHONE_SIZES) {
       for (const h of await heights(dialog.locator('.mob-dcolor-row'))) expect(Math.abs(h - ROW_PX), 'colour row height').toBeLessThanOrEqual(TOL);
       await expect(dialog.locator('.mob-dlim')).toHaveCount(12);
       await expect(dialog.locator('.mob-dlim .mob-crow-label').first()).toHaveText('Frequency range');
-      for (const row of await dialog.locator('.mob-dlim').all()) {
-        await expect(row.locator('input[type=number]')).toHaveCount(2);
+      for (const row of await dialog.locator('.mob-dlim-block').all()) {
+        await expect(row.locator('.ui-field input')).toHaveCount(2);
         await expect(row.locator('.mob-dreset')).toHaveCount(1);
       }
+      await expect(dialog.locator('input[type=number]')).toHaveCount(0);
       await expect(dialog.locator('.mob-dlim').nth(4)).toContainText('SPL');
       await expectFooter(dialog, ['Defaults', 'OK', 'Cancel']);
       await dialog.locator('.mob-dlg-body').evaluate(el => { el.scrollTop = el.scrollHeight; });
       await expectFits(page, dialog);
+    });
+
+    test('Plot Window: the frequency range and chart limits are step-button field rows that fit the screen', async ({page}) => {
+      const dialog = page.locator('.mob-dlg[aria-label="Options"]');
+      await dialog.locator('.opt-phone-tabs button', {hasText: 'Plot Window'}).click();
+      const fmin = dialog.locator('.ui-field').filter({has: page.locator('label', {hasText: 'Frequency range start'})});
+      await expect(fmin.locator('.num-stepper-btn')).toHaveCount(2);
+      const before = await fmin.locator('input').inputValue();
+      await fmin.locator('.num-stepper-btn').first().click();
+      await expect(fmin.locator('input')).not.toHaveValue(before);
+      const spl = dialog.locator('.ui-field').filter({has: page.locator('label', {hasText: 'SPL end'})});
+      await expect(spl.locator('.num-stepper-btn')).toHaveCount(2);
+      const over = await dialog.locator('.mob-dlg-body').evaluate(body => {
+        const right = body.getBoundingClientRect().right;
+        const wide = Array.from(body.querySelectorAll('.ui-field, .mob-dlim')).filter(e => e.getBoundingClientRect().right > right + 0.5);
+        return {scroll: body.scrollWidth - body.clientWidth, wide: wide.length};
+      });
+      expect(over).toEqual({scroll: 0, wide: 0});
     });
 
     test('Your data: Storage, Backups and Export / Import bands, and the two import choices in John\'s words', async ({page}) => {
@@ -238,7 +257,7 @@ test('Options: a bad frequency range shows its reason under the tabs and holds O
   await tapMobileMenuItem(page, 'Options');
   const dialog = page.locator('.mob-dlg[aria-label="Options"]');
   await dialog.locator('.opt-phone-tabs button', {hasText: 'Plot Window'}).click();
-  await dialog.locator('#opt-phone-lim-fmin').fill('30000');
+  await dialog.locator('#opt-phone-lim-fmin').fill('20000');
   await dialog.locator('#opt-phone-lim-fmin').blur();
   await expect(dialog.getByTestId('settings-error')).toBeVisible();
   await expect(dialog.getByRole('button', {name: 'OK'})).toBeDisabled();

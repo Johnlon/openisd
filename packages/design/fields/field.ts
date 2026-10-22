@@ -310,6 +310,64 @@ export class NumberField extends Field {
     description: "Plot End Frequency\nThe highest frequency every chart draws and the sweep computes.",
   });
 
+  // ── Plot window: one chart's Y axis start or end, per unit a chart axis is drawn in ──────────
+  static readonly PLOT_Y_DB = new NumberField({
+    value: "plot_y_db",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'dB'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in decibels.",
+  });
+  static readonly PLOT_Y_DEG = new NumberField({
+    value: "plot_y_deg",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'deg'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in degrees.",
+  });
+  static readonly PLOT_Y_MM = new NumberField({
+    value: "plot_y_mm",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'mm'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in millimetres.",
+  });
+  static readonly PLOT_Y_OHM = new NumberField({
+    value: "plot_y_ohm",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'Ω'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in ohms.",
+  });
+  static readonly PLOT_Y_MS = new NumberField({
+    value: "plot_y_ms",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'ms'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in milliseconds.",
+  });
+  static readonly PLOT_Y_W = new NumberField({
+    value: "plot_y_w",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'W'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in watts.",
+  });
+  static readonly PLOT_Y_MPS = new NumberField({
+    value: "plot_y_mps",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'm/s'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in metres per second.",
+  });
+
   // ── Box ───────────────────────────────────────────────────────────────────────────────────
   static readonly BOX_VB_L = new NumberField({
     value: "box_Vb_l",
