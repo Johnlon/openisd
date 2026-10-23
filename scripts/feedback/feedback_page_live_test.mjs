@@ -139,7 +139,7 @@ try {
   await qf.locator('.answering').waitFor();
   await q.clock.runFor(135000);
   const late = (await qf.locator('.answering').textContent()).trim();
-  if (late !== 'no answer yet; bob will answer') failures.push(`timeout line ${JSON.stringify(late)}`);
+  if (late !== 'no answer yet; sent to bob') failures.push(`timeout line ${JSON.stringify(late)}`);
   if (!(await qf.locator('.c.john', { hasText: 'hello?' }).count())) failures.push('entry gone after timeout');
   // Reload: a John question with no agent entry after it shows the answering line again, counted from its time;
   // a note gets none; an answered question shows its answer (found by `answers`, not by the picture) and no line.

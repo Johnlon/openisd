@@ -1,0 +1,10 @@
+id: T574
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+goal: Feedback page live test expects the board's new late-answer line: no answer yet; sent to bob
+done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T574.yml
+  - scripts/feedback/feedback_page_live_test.mjs

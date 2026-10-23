@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: 3e98a05d055bc21df3741264cd4f8eafc9f8b911
 goal: Phone Box page matches the accepted classic mock for all six box types (screen 2)
 done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
 files:
