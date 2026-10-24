@@ -310,7 +310,7 @@ a { color:var(--acc) }
 .mob-classic .mob-cselect-wide { margin-right: 0; }
 .mob-classic .mob-cname { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4; font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
 .mob-classic .mob-cbtns { display: flex; gap: 8px; box-sizing: border-box; padding: 6px var(--mob-edge); border-bottom: 1px solid #e6e6e6; }
-.mob-classic .mob-cbtns button { flex: 1; min-width: 0; height: 44px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 4px; cursor: pointer; }
+.mob-classic .mob-cbtns button:not(.mob-btn) { flex: 1; min-width: 0; height: 44px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 4px; cursor: pointer; }
 .mob-classic .mob-clinks { display: flex; justify-content: flex-start; gap: 8px; padding: 0 8px; border-bottom: 1px solid #e6e6e6; }
 .mob-classic .mob-clink { height: 32px; padding: 0 8px; border: none; background: none; font: inherit; font-size: 14px; color: var(--mut); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .mob-classic .mob-clink-end { margin-left: auto; }

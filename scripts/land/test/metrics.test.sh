@@ -12,20 +12,24 @@ fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/metrics-test.XXXXXX")"
 trap 'rm -rf "$TMP"' EXIT
 
+# Keep the fixture inside the seven-day reporting window regardless of when this test runs.
+FIXTURE_DATE="$(date -u -d '6 days ago' +%Y-%m-%d)"
+FIXTURE_DATE_COMPACT="${FIXTURE_DATE//-/}"
+
 FIXTURE="$TMP/fixture"
 OUT="$TMP/out"
 mkdir -p "$FIXTURE/test-logs" "$FIXTURE/tasks/fixes" "$FIXTURE/zoo-logs"
 
 # 1. Create fixture test log with ts-log lines
-cat > "$FIXTURE/test-logs/20261016-120000-12345.log" << 'EOF'
-2026-10-16T12:00:00.000Z 12345 START land-T999
-2026-10-16T12:00:01.000Z 12345 START lint
-2026-10-16T12:00:03.000Z 12345 END lint status=0 duration_s=2
-2026-10-16T12:00:04.000Z 12345 START typecheck
-2026-10-16T12:00:07.000Z 12345 END typecheck status=0 duration_s=3
-2026-10-16T12:00:10.000Z 12345 SPEC END packages/design/test/sample.test.ts status=passed duration_ms=1250
-2026-10-16T12:00:12.000Z 12345 waiting for slot: 1 ahead, holder unit run, 15 s
-2026-10-16T12:00:15.000Z 12345 END land-T999 status=0 duration_s=15
+cat > "$FIXTURE/test-logs/${FIXTURE_DATE_COMPACT}-120000-12345.log" << EOF
+${FIXTURE_DATE}T12:00:00.000Z 12345 START land-T999
+${FIXTURE_DATE}T12:00:01.000Z 12345 START lint
+${FIXTURE_DATE}T12:00:03.000Z 12345 END lint status=0 duration_s=2
+${FIXTURE_DATE}T12:00:04.000Z 12345 START typecheck
+${FIXTURE_DATE}T12:00:07.000Z 12345 END typecheck status=0 duration_s=3
+${FIXTURE_DATE}T12:00:10.000Z 12345 SPEC END packages/design/test/sample.test.ts status=passed duration_ms=1250
+${FIXTURE_DATE}T12:00:12.000Z 12345 waiting for slot: 1 ahead, holder unit run, 15 s
+${FIXTURE_DATE}T12:00:15.000Z 12345 END land-T999 status=0 duration_s=15
 EOF
 
 # 2. Create fixture old log without ts-log lines (approximate)
@@ -35,30 +39,30 @@ peak suite 1.25 GB exit 0 seconds 45
 EOF
 
 # 3. Create fixture watchdog.log
-cat > "$FIXTURE/watchdog.log" << 'EOF'
-2026-10-16T12:05:00Z watchdog: post-land run 9999 (abcdef1234) hung: no log growth and under 1 s of CPU in 1200s; killing group 9999
-2026-10-16T12:05:01Z watchdog: housekeeping exit 0: housekeeping: 1 slot(s) freed, 0 live
+cat > "$FIXTURE/watchdog.log" << EOF
+${FIXTURE_DATE}T12:05:00Z watchdog: post-land run 9999 (abcdef1234) hung: no log growth and under 1 s of CPU in 1200s; killing group 9999
+${FIXTURE_DATE}T12:05:01Z watchdog: housekeeping exit 0: housekeeping: 1 slot(s) freed, 0 live
 EOF
 
 # 4. Create fixture housekeeping.log
-cat > "$FIXTURE/housekeeping.log" << 'EOF'
-2026-10-16T12:06:00Z housekeeping: stopped browser run 8888 on port 4101 (owner pid 7777 is dead)
-2026-10-16T12:06:01Z housekeeping: freed slot 00000001 of "sample run" (owner pid 7777 is dead)
+cat > "$FIXTURE/housekeeping.log" << EOF
+${FIXTURE_DATE}T12:06:00Z housekeeping: stopped browser run 8888 on port 4101 (owner pid 7777 is dead)
+${FIXTURE_DATE}T12:06:01Z housekeeping: freed slot 00000001 of "sample run" (owner pid 7777 is dead)
 EOF
 
 # 5. Create fixture post-land.log
-cat > "$FIXTURE/post-land.log" << 'EOF'
-2026-10-16T12:10:00.000Z 5555 START post-land-suite
+cat > "$FIXTURE/post-land.log" << EOF
+${FIXTURE_DATE}T12:10:00.000Z 5555 START post-land-suite
 post-land: running the full suite on abcdef1234
 post-land: green at abcdef1234
-2026-10-16T12:15:00.000Z 5555 END post-land-suite status=0 duration_s=300
+${FIXTURE_DATE}T12:15:00.000Z 5555 END post-land-suite status=0 duration_s=300
 EOF
 
 # 6. Create fixture DELEGATION_LOG.md
-cat > "$FIXTURE/DELEGATION_LOG.md" << 'EOF'
-2026-10-16 11:00:00 | openisd-test-job | agy | gemini-3.8-flash-high | 12 min | done | review rounds: - | quota hits: none
-2026-10-16 11:30:00 | openisd-test-job-r2 | agy | gemini-3.8-flash-high | 8 min | done | review rounds: - | quota hits: none
-2026-10-16 12:00:00 | openisd-failing-job | opencode | nemotron | 25 min | failed | review rounds: - | quota hits: none
+cat > "$FIXTURE/DELEGATION_LOG.md" << EOF
+$FIXTURE_DATE 11:00:00 | openisd-test-job | agy | gemini-3.8-flash-high | 12 min | done | review rounds: - | quota hits: none
+$FIXTURE_DATE 11:30:00 | openisd-test-job-r2 | agy | gemini-3.8-flash-high | 8 min | done | review rounds: - | quota hits: none
+$FIXTURE_DATE 12:00:00 | openisd-failing-job | opencode | nemotron | 25 min | failed | review rounds: - | quota hits: none
 EOF
 
 # 7. Create fixture fixes YAML files
@@ -85,9 +89,9 @@ output: |
 EOF
 
 # 8. Create fixture git.log
-cat > "$FIXTURE/git.log" << 'EOF'
-abcdef1234|1792180000|2026-10-16T12:08:00+00:00|T999: sample landed task
-1234567890|1792170000|2026-10-16T10:00:00+00:00|T998: previous task
+cat > "$FIXTURE/git.log" << EOF
+abcdef1234|$(date -u -d "${FIXTURE_DATE} 12:08:00" +%s)|${FIXTURE_DATE}T12:08:00+00:00|T999: sample landed task
+1234567890|$(date -u -d "${FIXTURE_DATE} 10:00:00" +%s)|${FIXTURE_DATE}T10:00:00+00:00|T998: previous task
 EOF
 
 # Run metrics.sh with fixture

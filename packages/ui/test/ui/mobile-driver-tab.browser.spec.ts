@@ -58,3 +58,14 @@ test('no sideways scroll and nothing cut at 374x705', async ({ appPage: page }) 
   const over = await page.locator('.mob-classic').evaluate(el => el.scrollWidth - el.clientWidth);
   expect(over).toBeLessThanOrEqual(0);
 });
+
+test('the Select driver button text is visible against its background', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  const button = page.getByRole('button', { name: 'Select driver' });
+  await expect(button).toBeVisible();
+  const colours = await button.evaluate(el => {
+    const s = getComputedStyle(el);
+    return { text: s.color, background: s.backgroundColor };
+  });
+  expect(colours.text).not.toBe(colours.background);
+});

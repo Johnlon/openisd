@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: bob
 status: done
+landed: dd067a04fb57c4460192fd1efe4fe93385ab432d
 goal: Feedback page live test expects the board's new late-answer line: no answer yet; sent to bob
 done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
 files:

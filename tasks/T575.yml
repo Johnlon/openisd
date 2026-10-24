@@ -1,0 +1,17 @@
+id: T575
+release_note: internal
+repo: openisd
+owner: drive-label
+status: done
+goal: On the phone Driver tab, the Select driver button shows its label (white text was on a white button)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+visual:
+  - mobile-tab-driver
+files:
+  - tasks/T575.yml
+  - bugs/BUG_20261023_phone-select-driver-button-blank.md
+  - packages/ui/src/style.css
+  - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - scripts/land/test/metrics.test.sh
