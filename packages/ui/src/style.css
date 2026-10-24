@@ -290,6 +290,15 @@ a { color:var(--acc) }
 }
 .mob-classic .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 34px); }
 .mob-classic .mob-ui-field.ui-field .ui-field-note { grid-column: 1 / -1; }
+/* A DQ explanation is a second grid row. Keep the normal classic field at 40 px, but let the
+   affected field grow so its explanation cannot paint over the following control. */
+.mob-classic .mob-ui-field.ui-field.ui-field-note-open {
+  height: auto;
+  min-height: var(--mob-row-min);
+  padding-top: 6px;
+  padding-bottom: 6px;
+  align-items: center;
+}
 
 .mob-classic .mob-band { display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; height: 28px; margin-top: 12px; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
 .mob-classic > .mob-band:first-child, .mob-classic > .mob-csection:first-child > .mob-band:first-child { margin-top: 0; }
