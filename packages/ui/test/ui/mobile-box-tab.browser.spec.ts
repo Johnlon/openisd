@@ -57,6 +57,20 @@ test.describe('MobileBoxTab', () => {
     await expect(page.locator('.ui-field-label', { hasText: 'Vb' }).first()).toBeVisible();
   });
 
+  test('a field DQ explanation expands its row instead of covering the next field', async ({ appPage: page }) => {
+    await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+    const qms = mobileFieldRow(page, 'Qms').first();
+    const next = mobileFieldRow(page, 'Fs').first();
+    await qms.locator('input').fill('-1');
+    await qms.locator('input').blur();
+    const note = qms.locator('.ui-field-note');
+    await expect(note).toBeVisible();
+
+    const noteBox = (await note.boundingBox())!;
+    const nextBox = (await next.boundingBox())!;
+    expect(noteBox.y + noteBox.height > nextBox.y + 1).toBe(false);
+  });
+
   test('editing the volume writes the value through to the field', async ({ appPage: page }) => {
     const input = mobileFieldRow(page, 'Vb').locator('input').first();
     await input.fill('40');

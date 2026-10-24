@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: drive-label
 status: done
+landed: cc24eeacd4516a194223ba3bc2275540acd36dd9
 goal: On the phone Driver tab, the Select driver button shows its label (white text was on a white button)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 visual:
