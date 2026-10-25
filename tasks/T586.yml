@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: Codex
 status: done
+landed: 2ec2bb3953807fb3ea029022a7d4ef5c4b167deb
 goal: Record OpenISD 7.0.954 in RELEASES.md.
 done_test: bash scripts/quiet-test.sh git diff --check -- RELEASES.md
 after: v20261025T1357Z

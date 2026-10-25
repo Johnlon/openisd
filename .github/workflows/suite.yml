@@ -198,6 +198,9 @@ jobs:
           echo "removing: $extra"
           [ -z "$extra" ] || DEBIAN_FRONTEND=noninteractive apt-get remove -y -qq $extra > /dev/null
           fc-cache -f > /dev/null; fc-list | wc -l
+      - name: stale mobile worker recovery
+        if: matrix.shard == 1
+        run: node scripts/hosting/test/legacy-refresh.e2e.mjs
       - name: browser tests
         env:
           OPENISD_TEST_WORKERS: ${{ env.WORKERS }}

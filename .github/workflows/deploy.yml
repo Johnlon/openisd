@@ -10,7 +10,16 @@ name: deploy
 # SNAPSHOTS_SITE_DEPLOY_KEY.
 on:
   workflow_call:
+    inputs:
+      expected_build_id:
+        required: false
+        type: string
   workflow_dispatch:
+    inputs:
+      expected_build_id:
+        description: Production build ID expected after deployment
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -66,3 +75,22 @@ jobs:
       - id: retry
         if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
+      - name: Verify production serves the expected release
+        if: ${{ inputs.expected_build_id != '' }}
+        env:
+          EXPECTED_BUILD_ID: ${{ inputs.expected_build_id }}
+        run: |
+          for attempt in $(seq 1 18); do
+            actual_build_id="$(curl --silent --show-error --fail \
+              --header 'Cache-Control: no-cache' \
+              "https://openisd.app/build-info.json?deploy-check=${GITHUB_RUN_ID}-${attempt}" \
+              | node -e 'let input="";process.stdin.on("data",chunk=>input+=chunk).on("end",()=>{try{process.stdout.write(JSON.parse(input).version ?? "")}catch{process.exitCode=1}})' 2>/dev/null || true)"
+            if [ "$actual_build_id" = "$EXPECTED_BUILD_ID" ]; then
+              echo "Production build $actual_build_id matches the promoted release."
+              exit 0
+            fi
+            echo "Waiting for production build $EXPECTED_BUILD_ID (currently ${actual_build_id:-unavailable}; attempt $attempt/18)."
+            sleep 10
+          done
+          echo "Production did not reach $EXPECTED_BUILD_ID." >&2
+          exit 1
