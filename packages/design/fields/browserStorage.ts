@@ -80,7 +80,7 @@ export function browserNameOf(userAgent: string): BrowserName {
   return 'This browser';
 }
 
-/** What the startup popup holds: nothing to say; the browser cannot promise to keep the data (the
+/** What the startup popup holds: nothing to say; the browser cannot guarantee that it will keep the data (the
  *  `condition` names which, so closing it is remembered for that case only); or storage is nearly
  *  full. The UI shows `title` and `message` and nothing else. */
 export type StoragePopup =
@@ -104,14 +104,16 @@ const BANNER_DISMISSED_BEFORE_POPUP = '1';
 const DRIVE_FIRST = 'Best: turn on Google Drive sync, so your projects live in Drive.';
 
 /** The popup for what the app observed: nearly full wins (and also names the browser when it cannot
- *  promise); else the risk, once per condition; else none. */
+ *  guarantee persistence); else the risk, once per condition; else none. */
 export function storagePopup(input: StoragePopupInput): StoragePopup {
   const risky = input.outcome === 'refused' || input.outcome === 'unsupported';
-  const promise = `${input.browser} has not promised to keep this site's data`;
+  const persistenceMessage = input.outcome === 'unsupported'
+    ? `${input.browser} cannot guarantee that this site's data will be kept`
+    : `${input.browser} has not granted persistent storage for this site`;
   const percent = storageFullPercent(input.use, input.estimate);
   if (percent !== null) {
     const state = `Storage is ${percent}% full (${storageUseLine(input.use)}).`;
-    const browserLine = risky ? ` ${promise}.` : '';
+    const browserLine = risky ? ` ${persistenceMessage}.` : '';
     return {
       kind: 'nearlyFull',
       title: 'Storage is nearly full',
@@ -125,7 +127,7 @@ export function storagePopup(input: StoragePopupInput): StoragePopup {
     kind: 'risk',
     condition,
     title: 'Your projects may not be kept',
-    message: `${promise}, so it could clear your OpenISD projects if your disk gets nearly full. ${DRIVE_FIRST} Otherwise export your projects.`,
+    message: `${persistenceMessage}, so it could clear your OpenISD projects if your disk gets nearly full. ${DRIVE_FIRST} Otherwise export your projects.`,
   };
 }
 

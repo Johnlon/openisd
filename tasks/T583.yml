@@ -1,0 +1,41 @@
+id: T583
+release_note: Storage warnings describe whether the browser granted persistent storage, using a separate message when the API is unsupported.
+repo: openisd
+owner: codex
+status: done
+goal: Use accurate browser persistent-storage permission messages
+done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts packages/ui/test/logic/storagePopup.test.ts
+visual_note: Desktop project size reflects the refreshed driver catalogue data.
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+files:
+  - tasks/T583.yml
+  - bugs/BUG_20261025_browser-storage-persistence-copy.md
+  - packages/design/fields/browserStorage.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/ui/test/logic/storagePopup.test.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png

@@ -8,8 +8,8 @@ import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 const WARNING = /^Nothing is wrong now \(\d+ projects?, [\d.]+ (B|KB|MB) of 5 MB used\): this browser could clear OpenISD's data only if your disk gets nearly full\. OpenISD warns you when its storage is 80% full \(usage is in Options, Your data\); to be safe, use Chrome, turn on Google Drive sync, or export your projects\.$/;
-const RISK = /^\w+( \w+)? has not promised to keep this site's data, so it could clear your OpenISD projects if your disk gets nearly full\. Best: turn on Google Drive sync, so your projects live in Drive\. Otherwise export your projects\.$/;
-const FULL = /^Storage is 90% full \(\d+ projects?, [\d.]+ (B|KB|MB) of 5 MB used\)\. \w+( \w+)? has not promised to keep this site's data\. Best: turn on Google Drive sync, so your projects live in Drive\. Otherwise export your projects or delete old ones\.$/;
+const RISK = /^\w+( \w+)? has not granted persistent storage for this site, so it could clear your OpenISD projects if your disk gets nearly full\. Best: turn on Google Drive sync, so your projects live in Drive\. Otherwise export your projects\.$/;
+const FULL = /^Storage is 90% full \(\d+ projects?, [\d.]+ (B|KB|MB) of 5 MB used\)\. \w+( \w+)? has not granted persistent storage for this site\. Best: turn on Google Drive sync, so your projects live in Drive\. Otherwise export your projects or delete old ones\.$/;
 
 /** The browser refuses to keep the data, and says the site holds `usedMb` of the 100 MB it allows. */
 async function refusingBrowser(page: Page, usedMb: number): Promise<void> {
