@@ -78,6 +78,30 @@ test('vented What-if: a tap opens port fields, an edit moves the area, Close ret
   await expect.poll(async () => Number(await area.inputValue())).toBeGreaterThan(before);
 });
 
+test('port editor: round-to-slot keeps equivalent area and slot edits recalculate length', async ({page}) => {
+  await openSheet(page, 'vented', 'whatIf');
+  const area = cell(page, 'Port area').locator('input');
+  await area.tap();
+  const port = page.getByRole('dialog', {name: 'Port'});
+  const shape = port.locator('select').nth(1);
+  const beforeArea = Number(await area.inputValue());
+  await shape.selectOption('slotted');
+
+  const width = port.locator('.ui-field', {hasText: 'Slot width'}).locator('input');
+  const height = port.locator('.ui-field', {hasText: 'Slot height'}).locator('input');
+  await expect(width).toHaveValue(/^\d+(\.\d+)?$/);
+  await expect(height).toHaveValue(/^\d+(\.\d+)?$/);
+  const slotArea = Number(await width.inputValue()) * Number(await height.inputValue());
+  expect(Math.abs(slotArea - beforeArea)).toBeLessThanOrEqual(1);
+
+  const length = port.locator('.ui-field', {hasText: 'Vent length'}).locator('input');
+  const beforeLength = Number(await length.inputValue());
+  await width.fill('1');
+  await height.fill('1');
+  await expect.poll(async () => Number(await length.inputValue())).toBeGreaterThan(0);
+  expect(Number(await length.inputValue())).not.toBe(beforeLength);
+});
+
 test('6th-order bandpass: rear and front port-area rows each open their own port dialog', async ({page}) => {
   await openSheet(page, 'bandpass6', 'tune');
   await cell(page, 'Rear port area').locator('input').tap();

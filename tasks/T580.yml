@@ -1,0 +1,17 @@
+id: T580
+release_note: Converting a round port to a slot fills close whole-centimetre dimensions, and port edits recalculate vent length immediately.
+repo: openisd
+owner: codex
+status: done
+goal: Round-to-slot conversion keeps equivalent dimensions and port edits update the length immediately
+done_test: bash scripts/test.sh packages/design/test/domain/box-vent-geometry.test.ts
+files:
+  - tasks/T580.yml
+  - bugs/BUG_20261025_round-to-slot-leaves-dimensions-empty-and-length-stale.md
+  - packages/design/domain/box/ventWindow.ts
+  - packages/design/domain/vent.ts
+  - packages/design/test/domain/box-vent-geometry.test.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/hooks/portFieldsView.ts
+  - packages/ui/test/ui/mobile-sheet-port.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

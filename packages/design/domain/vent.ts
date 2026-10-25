@@ -18,6 +18,8 @@ export interface Vent {
    *  slotted case. Null when neither side of the pair is stated, not 0 and not NaN: 0 is a real
    *  (if absurd) port area, and absence is spelled the same way everywhere in this domain. */
   readonly area_m2: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
+  /** Whole-centimetre slotted dimensions whose area best matches the supplied cross-section. */
+  equivalentSlotDimensions_m(area_m2: number): { readonly width_m: number; readonly height_m: number };
   /** The whole opening — `count` ports of `area_m2` each. Null on the same terms. */
   totalArea_m2(): number | null;
   /** Acoustic length, or null when the length or the area it depends on is unset. */

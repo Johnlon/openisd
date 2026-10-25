@@ -103,6 +103,28 @@ export class VentWindow implements Vent {
         return one === null ? null : this.#ports() * one;
     }
 
+    /** A near-square whole-centimetre rectangular opening with approximately the given port area. */
+    equivalentSlotDimensions_m(area_m2: number): { readonly width_m: number; readonly height_m: number } {
+        const area_cm2 = area_m2 * 10_000;
+        const limit = Math.max(1, Math.ceil(Math.sqrt(area_cm2) * 2));
+        const maxAspectRatio = 2;
+        let bestW = Math.max(1, Math.round(Math.sqrt(area_cm2)));
+        let bestH = Math.max(1, Math.round(area_cm2 / bestW));
+        let bestError = Math.abs(bestW * bestH - area_cm2);
+        let bestAspect = Math.abs(bestW - bestH);
+        for (let w = 1; w <= limit; w++) {
+            const h = Math.max(1, Math.round(area_cm2 / w));
+            const aspectRatio = Math.max(w, h) / Math.min(w, h);
+            if (aspectRatio > maxAspectRatio) continue;
+            const error = Math.abs(w * h - area_cm2);
+            const aspect = Math.abs(w - h);
+            if (error < bestError || (error === bestError && aspect < bestAspect)) {
+                bestW = w; bestH = h; bestError = error; bestAspect = aspect;
+            }
+        }
+        return {width_m: bestW / 100, height_m: bestH / 100};
+    }
+
     /** Acoustic length — the physical length plus the end correction, which is what the sweep's
      *  port model actually resonates (`SweepParams.Leff`).
      *

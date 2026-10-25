@@ -114,7 +114,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
     const openRow = portEditor.value;
     if (openRow === null) return null;
     const vent = session.rows.value.find(r => r.field.label === openRow.field.label)?.vent ?? null;
-    return vent === null ? null : portFieldsView(vent);
+    return vent === null ? null : portFieldsView(vent, project.value);
   });
 
   function closePortEditor(): void { portEditor.value = null; }
