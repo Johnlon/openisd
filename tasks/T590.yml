@@ -3,6 +3,7 @@ release_note: The private usage report now includes bundled driver identity on p
 repo: openisd
 owner: Codex
 status: done
+landed: 3fa2b17dc556cf340c0791e637aa73fa930c1be5
 goal: Add bundled-driver identity to project activity telemetry while keeping user-owned driver details private.
 done_test: bash scripts/quiet-test.sh npx vitest run packages/ui/test/logic/projectOpenTelemetry.test.ts packages/ui/test/logic/telemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
 visual: []
