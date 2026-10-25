@@ -61,6 +61,24 @@ test('tapping a key figure opens the driver editor', async ({ appPage: page }) =
   await expect(page.locator('.de-modal')).toBeVisible();
 });
 
+test('dragging a key figure to scroll does not open the driver editor', async ({ appPage: page }) => {
+  await page.setViewportSize({width: 374, height: 400});
+  const row = page.locator('.mob-ui-field', {hasText: 'Qts'});
+  await row.scrollIntoViewIfNeeded();
+  const bounds = (await row.boundingBox())!;
+  const content = page.locator('.mob-content');
+  const top = await content.evaluate(el => el.scrollTop);
+  const cdp = await page.context().newCDPSession(page);
+  const x = bounds.x + bounds.width / 2, y = bounds.y + bounds.height / 2;
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{x, y, id: 1}]});
+  for (let i = 1; i <= 8; i++) {
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchMove', touchPoints: [{x, y: y - 15 * i, id: 1}]});
+  }
+  await expect.poll(() => content.evaluate(el => el.scrollTop)).not.toBe(top);
+  await cdp.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+  await expect(page.locator('.de-modal')).toHaveCount(0);
+});
+
 test('no sideways scroll and nothing cut at 374x705', async ({ appPage: page }) => {
   await page.setViewportSize({ width: 374, height: 705 });
   const over = await page.locator('.mob-classic').evaluate(el => el.scrollWidth - el.clientWidth);

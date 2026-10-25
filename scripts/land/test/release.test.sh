@@ -59,6 +59,7 @@ case "$sub" in
       save "map(if .tag_name == \"$tag\" then .tag_name = \"$newtag\" | .html_url = \"https://example.test/r/$newtag\" else . end)"
       mv "$GH_STATE/assets/$tag" "$GH_STATE/assets/$newtag"
     fi ;;
+  "workflow run") : ;; # release.sh dispatches the production deployment from main
   "release delete")
     tag="$1"; shift
     save "map(select(.tag_name != \"$tag\"))"; rm -rf "$GH_STATE/assets/$tag"
@@ -180,6 +181,9 @@ rel="$(release_json v20260101T0102Z)"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$HEAD_SHA" ] && ok "branch release at the promoted commit" || fail "release branch"
 [ "$(release_json v20260101T0102Z | jq -r .name)" = "OpenISD 7.0.951" ] && ok "the release is titled OpenISD <public number>" || fail "release title: $(release_json v20260101T0102Z)"
 grep -q '^| 7.0.951 | 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://snapshots.openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
+grep -Fq 'gh workflow run deploy.yml --ref main --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
+  && ok "promotion dispatches production deployment from main" \
+  || fail "production deploy dispatch: $(tail -10 "$GH_STATE/calls.log")"
 ! grep -qE 'release (download|create)|npm|vite' "$GH_STATE/calls.log" && ok "downloads nothing, builds nothing, creates nothing" || fail "unexpected calls: $(cat "$GH_STATE/calls.log")"
 grep -q '^node scripts/hosting/test/hosted-copies.e2e.mjs' "$GH_STATE/calls.log" && ok "promotion runs the hosted copies end-to-end test" || fail "no hosted copies run: $(cat "$GH_STATE/calls.log")"
 grep -q '^node scripts/ui-gallery/capture.mjs --after https://snapshots.openisd.app/snap/20260101T0102Z/ --before none$' "$GH_STATE/calls.log" && ok "the gallery shows the snapshot from snapshots.openisd.app" || fail "gallery call: $(grep capture "$GH_STATE/calls.log")"
@@ -241,6 +245,9 @@ out=$(bash scripts/release.sh --public 7.0.1102 20260105T0000Z 2>&1); r=$?
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?
 [ $r = 0 ] && [ "$(release_json v20260101T0102Z | jq -r .latest)" = true ] && [ "$(release_json v20260102T0000Z | jq -r .latest)" = false ] && ok "--latest makes an older release Latest" || fail "--latest: $r $out"
+grep -Fq 'gh workflow run deploy.yml --ref main --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
+  && ok "--latest dispatches production deployment from main" \
+  || fail "--latest production deploy dispatch"
 out=$(bash scripts/release.sh --latest 20990101T0000Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'no release' <<< "$out" && ok "--latest refuses an unknown stamp" || fail "--latest unknown: $r $out"
 snapstamp="$(jq -r '[.[] | select(.prerelease)] | first | .tag_name | sub("snap-"; "")' "$GH_STATE/releases.json")"

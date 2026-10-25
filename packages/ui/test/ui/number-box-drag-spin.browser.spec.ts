@@ -169,6 +169,20 @@ test.describe('phone skin, finger', () => {
     await touchDrag(page, start, {x: start.x, y: start.y - 150}, async () => (await scrollOf()) !== top);
     await expect(box).toHaveValue(before);
   });
+
+  test('a vertical swipe starting on a spinner scrolls without stepping the value', async ({page}) => {
+    await page.locator('.mob-tab', {hasText: 'Box'}).click();
+    const box = page.locator('input[data-numinput]').first();
+    const spinner = box.locator('xpath=../following-sibling::span[contains(@class,"num-stepper")]').locator('.num-stepper-btn').first();
+    await expect(spinner).toBeVisible();
+    const before = await box.inputValue();
+    const scrollOf = () => page.locator('.mob-content').evaluate(el => el.scrollTop);
+    const top = await scrollOf();
+    const bounds = (await spinner.boundingBox())!;
+    await touchDrag(page, {x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2},
+      {x: bounds.x + bounds.width / 2, y: bounds.y - 120}, async () => (await scrollOf()) !== top);
+    await expect(box).toHaveValue(before);
+  });
 });
 
 /**

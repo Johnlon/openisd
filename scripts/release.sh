@@ -38,10 +38,20 @@ STAMP="${1:-}"
 SNAP="snap-$STAMP"
 REL="v$STAMP"
 
+dispatch_production_deploy() {
+  local release_tag="$1"
+  # Pages only permits the main branch in its deployment environment. The caller already has
+  # authenticated gh access to promote this release; dispatch from that allowed branch and have
+  # deploy.yml verify that the public build ID is this release before it reports success.
+  gh workflow run deploy.yml --ref main --field expected_build_id="$release_tag"
+  echo "release: production deploy dispatched from main for $release_tag"
+}
+
 if [ "$LATEST_ONLY" = 1 ]; then
   pre="$(gh release view "$REL" --json isPrerelease --jq .isPrerelease 2> /dev/null)" || refuse "no release $REL"
   [ "$pre" = false ] || refuse "$REL is a pre-release, not a release; promote it first"
   gh release edit "$REL" --latest
+  dispatch_production_deploy "$REL"
   echo "release: $REL is now Latest"
   exit 0
 fi
@@ -117,4 +127,5 @@ if [ ! -f RELEASES.md ]; then
   printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
 fi
 awk -v row="$ROW" '{print} /^\|---/ && !done {print row; done=1}' RELEASES.md > RELEASES.md.new && mv RELEASES.md.new RELEASES.md
+dispatch_production_deploy "$REL"
 echo "release: $REL is Latest at $SHA; RELEASES.md updated, commit it"

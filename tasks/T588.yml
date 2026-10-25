@@ -1,0 +1,15 @@
+id: T588
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+goal: Touch spinner waits for tap intent before stepping
+done_test: bash scripts/quiet-test.sh npm run typecheck:ui
+files:
+  - tasks/T588.yml
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
+  - packages/ui/test/ui/number-box-drag-spin.browser.spec.ts
+  - bugs/archive/BUG_20261025_phone-scroll-gesture-triggers-controls.md
+  - packages/ui/test/visual/SOURCES.sha256
+label: fixes

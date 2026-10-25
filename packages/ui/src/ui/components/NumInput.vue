@@ -355,6 +355,102 @@ function stopRepeat(): void {
   if (repeatTimer !== undefined) { clearTimeout(repeatTimer); repeatTimer = undefined; }
 }
 
+type PendingTouchStep = {
+  pointerId: number;
+  x: number;
+  y: number;
+  dir: SpinDirection;
+  button: HTMLElement;
+  at: StepAt;
+  activated: boolean;
+  timer: ReturnType<typeof setTimeout>;
+};
+let pendingTouchStep: PendingTouchStep | null = null;
+let pendingTouchAbort: AbortController | null = null;
+
+function focusStepper(button: HTMLElement): void {
+  const box = inputEl.value;
+  if (stepperPin !== null && box !== null && document.activeElement === box) {
+    stepperPin.pin(() => screenTopPx(box, window));
+  }
+  button.focus({preventScroll: true});
+}
+
+function clearPendingTouch(): PendingTouchStep | null {
+  const pending = pendingTouchStep;
+  pendingTouchStep = null;
+  if (pending !== null) clearTimeout(pending.timer);
+  pendingTouchAbort?.abort();
+  pendingTouchAbort = null;
+  return pending;
+}
+
+function beginTouchStep(dir: SpinDirection, e: PointerEvent): void {
+  const button = e.currentTarget;
+  if (!(button instanceof HTMLElement)) return;
+  clearPendingTouch();
+  stopRepeat();
+  const pending: PendingTouchStep = {
+    pointerId: e.pointerId,
+    x: e.clientX,
+    y: e.clientY,
+    dir,
+    button,
+    at: caretForStep(),
+    activated: false,
+    timer: setTimeout(() => {
+      if (pendingTouchStep !== pending) return;
+      pending.activated = true;
+      focusStepper(button);
+      heldSince = performance.now();
+      stepFrom(pending.at, dir);
+      repeatTimer = setTimeout(function tick() {
+        stepFrom(caretForStep(), dir);
+        repeatTimer = setTimeout(tick, caretRepeatDelayMs(performance.now() - heldSince));
+      }, CARET_HOLD_START_MS);
+    }, CARET_HOLD_START_MS),
+  };
+  pendingTouchStep = pending;
+  const abort = new AbortController();
+  pendingTouchAbort = abort;
+  document.addEventListener('pointermove', move => {
+    if (move.pointerId !== pending.pointerId || pending.activated) return;
+    const dx = move.clientX - pending.x;
+    const dy = move.clientY - pending.y;
+    if (dx * dx + dy * dy >= 64) clearPendingTouch();
+  }, {signal: abort.signal});
+  document.addEventListener('pointerup', up => {
+    if (up.pointerId !== pending.pointerId) return;
+    const completed = clearPendingTouch();
+    if (completed === null) return;
+    if (completed.activated) {
+      stopRepeat();
+    } else {
+      focusStepper(completed.button);
+      stepFrom(completed.at, completed.dir);
+    }
+  }, {signal: abort.signal});
+  document.addEventListener('pointercancel', cancel => {
+    if (cancel.pointerId === pending.pointerId) {
+      clearPendingTouch();
+      stopRepeat();
+    }
+  }, {signal: abort.signal});
+}
+
+function onStepperPointerDown(dir: SpinDirection, e: PointerEvent): void {
+  if (e.pointerType === 'touch') {
+    beginTouchStep(dir, e);
+  } else {
+    e.preventDefault();
+    startRepeat(dir, e);
+  }
+}
+
+function onStepperLeave(e: PointerEvent): void {
+  if (e.pointerType !== 'touch') stopRepeat();
+}
+
 function onStepperBlur(e: FocusEvent): void {
   const next = e.relatedTarget;
   if (next !== inputEl.value && !(next instanceof HTMLElement && next.classList.contains('num-stepper-btn'))) {
@@ -383,7 +479,7 @@ function startRepeat(dir: SpinDirection, e: PointerEvent): void {
     repeatTimer = setTimeout(tick, caretRepeatDelayMs(performance.now() - heldSince));
   }, CARET_HOLD_START_MS);
 }
-onBeforeUnmount(stopRepeat);
+onBeforeUnmount(() => { stopRepeat(); clearPendingTouch(); });
 
 // Effective SI-space bounds: explicit props win; else the bound field's registry limits
 // (the row's own field def in packages/design — bounds there are in SI/model space); else the
@@ -530,10 +626,10 @@ const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
-      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat"
+      @pointerdown="onStepperPointerDown(1, $event)" @pointerup="stopRepeat" @pointerleave="onStepperLeave" @pointercancel="stopRepeat"
       @blur="onStepperBlur">▲</button>
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Decrease"
-      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat"
+      @pointerdown="onStepperPointerDown(-1, $event)" @pointerup="stopRepeat" @pointerleave="onStepperLeave" @pointercancel="stopRepeat"
       @blur="onStepperBlur">▼</button>
   </span>
 </template>
@@ -592,7 +688,7 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   border: 1px solid var(--line);
   cursor: pointer;
   user-select: none;
-  touch-action: manipulation;
+  touch-action: pan-y;
 }
 .num-stepper-btn + .num-stepper-btn { border-left: none; }
 .num-stepper-btn:first-child { border-radius: 4px 0 0 4px; }

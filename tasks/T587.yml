@@ -1,0 +1,16 @@
+id: T587
+release_note: internal
+repo: openisd
+owner: Codex
+status: done
+landed: 2bb3d126cf3c5933dc4fa91c4df0f67fde47ab39
+goal: Make release.sh dispatch production deployment from main and verify the deployed build ID.
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/release.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/release-deploy-dispatch.test.sh
+files:
+  - .github/workflows/deploy.yml
+  - .github/workflows/release.yml
+  - .github/workflows/suite.yml
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - scripts/land/test/release-deploy-dispatch.test.sh
+  - tasks/T587.yml
