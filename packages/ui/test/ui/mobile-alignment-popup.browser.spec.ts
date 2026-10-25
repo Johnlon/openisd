@@ -21,7 +21,7 @@ test.describe('MobileAlignmentPopup', () => {
     await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
     await expect(page.locator('.mob-align-sheet')).toBeVisible();
 
-    const volumeInput = page.locator('.mob-align-sheet .mob-field-value input');
+    const volumeInput = page.locator('#mob-sealed-alignment-volume');
     await volumeInput.fill('20');
     await expect(page.locator('.mob-align-readout')).toContainText('EBP');
 
@@ -64,7 +64,7 @@ test.describe('MobileAlignmentPopup', () => {
     await volumeField.blur();
 
     await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
-    const sheetVolume = page.locator('.mob-align-sheet .mob-field-value input');
+    const sheetVolume = page.locator('#mob-sealed-alignment-volume');
     await sheetVolume.fill('99');
     await page.locator('.mob-align-footer .mob-btn', { hasText: 'Cancel' }).click();
 
@@ -79,12 +79,34 @@ test.describe('MobileAlignmentPopup', () => {
     await volumeField.blur();
 
     await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
-    await page.locator('.mob-align-sheet .mob-field-value input').fill('99');
+    await page.locator('#mob-sealed-alignment-volume').fill('99');
     await page.keyboard.press('Escape');
 
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
     await expect(volumeField).toHaveValue(/15/);
   });
+});
+
+// BUG_20261005_no-common-ui-field-component: the sealed sheet's Volume is a field row with ▲▼ step buttons.
+test('the sealed sheet Volume has step buttons, ▲ changes it, and the sheet fits the phone', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  await page.locator('#mob-box-type').selectOption('sealed');
+  await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
+  const sheet = page.locator('.mob-align-sheet');
+  const box = page.locator('#mob-sealed-alignment-volume');
+  await expect(sheet.locator('input[type=number]')).toHaveCount(0);
+  await expect(sheet.locator('.ui-field .num-stepper-btn')).toHaveCount(2);
+  const before = await box.inputValue();
+  await sheet.locator('.ui-field .num-stepper-btn').first().click();
+  await expect(box).not.toHaveValue(before);
+  const fit = await sheet.evaluate(el => {
+    const field = el.querySelector('.ui-field')!.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return { sw: el.scrollWidth, cw: el.clientWidth, inside: field.left >= r.left - 1 && field.right <= r.right + 1 };
+  });
+  console.log(`alignment sheet 374x705: scrollWidth ${fit.sw} clientWidth ${fit.cw}`);
+  expect(fit.sw).toBeLessThanOrEqual(fit.cw);
+  expect(fit.inside).toBe(true);
 });
 
 // BUG_20261018_box-advanced-buttons-under-44: the sheet's Cancel and Accept are the one phone button.

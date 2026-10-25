@@ -6,11 +6,9 @@ import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, ReadoutFormat, Winisd
 import {selectedOption} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
-import NumInput from '../../components/NumInput.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import PhoneBand from './PhoneBand.vue';
@@ -94,16 +92,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
         </select>
         <WinisdDeviationCue v-if="sealedAlignmentDeviationShown" :deviation="WinisdDeviation.SEALED_PICKER" />
       </div>
-      <div class="mob-field-row mob-field-entered">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Volume</span>
-          <span class="mob-field-value">
-            <NumInput id="mob-sealed-alignment-volume" :model-value="sealedAlignmentVolume_m3" @update:model-value="(v: number | null) => { sealedAlignmentVolume_m3 = v; }"
-                      :field="NumberField.BOX_VB_L" :precision="NumberField.BOX_VB_L.precision" />
-          </span>
-        </div>
-        <UnitToggle :field="NumberField.BOX_VB_L" unit-class="mob-unit" />
-      </div>
+      <UIFixedField class="mob-ui-field" input-id="mob-sealed-alignment-volume" :field="NumberField.BOX_VB_L" label="Volume" :value="sealedAlignmentVolume_m3" @update:value="v => { sealedAlignmentVolume_m3 = v; }" />
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="sealedAlignmentSuitability ?? 'unknown'"></span>
         <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, sealedAlignmentEbp, '—') }} — {{ sealedAlignmentSuitabilityLabel }}</span>
@@ -202,50 +191,6 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
 }
 .mob-diagram { display: flex; justify-content: center; padding: 8px 12px 16px; }
 
-/* One editable/readonly row = one "instrument control": a left-edge status stripe carrying the
-   SAME provenance colour desktop uses in text (--good entered / --acc calculated), so the value
-   itself stays high-contrast rather than tinted — a phone needs the number legible at arm's
-   length more than it needs the colour ON the digits. */
-.mob-field-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: var(--mob-row-pad-y) 12px var(--mob-row-pad-y) 14px;
-  min-height: var(--mob-row-min);
-  border-left: 3px solid transparent;
-  border-top: 1px solid var(--line);
-}
-.mob-field-row:first-of-type { border-top: none; }
-.mob-field-entered { border-left-color: var(--good); }
-.mob-field-calculated { border-left-color: var(--acc); }
-.mob-field-main { display: flex; flex-direction: column; gap: var(--mob-label-gap); flex: 1; min-width: 0; }
-.mob-field-label { font-size: 13px; line-height: var(--mob-label-lh); color: var(--mut); }
-.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
-.mob-field-value :deep(input) {
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 18px;
-  color: var(--fg);
-  padding: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: var(--mob-input-h);
-}
-/* An editable value looks like an input box; a read-only one stays flat text. */
-.mob-field-value :deep(input:not([readonly])) {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  padding: 2px 8px;
-}
-.mob-field-value :deep(input:not([readonly]):focus) {
-  border-color: var(--acc);
-  outline: none;
-}
-.mob-readonly { color: var(--acc); }
-.mob-unit { font-size: 13px; color: var(--mut); min-width: 30px; flex-shrink: 0; }
 .mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
 .mob-hint-warn { color: var(--acc2); }
 
