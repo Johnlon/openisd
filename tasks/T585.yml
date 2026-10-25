@@ -1,0 +1,17 @@
+id: T585
+release_note: OpenISD now updates stale phone installs automatically and includes a recovery page that preserves projects.
+repo: openisd
+owner: Codex
+status: done
+goal: Make stale OpenISD phone installs migrate to the latest build automatically without losing saved projects.
+done_test: bash scripts/quiet-test.sh npx vitest run packages/ui/test/scripts/vite-config.test.ts packages/ui/test/logic/telemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
+files:
+  - CLAUDE.md
+  - packages/ui/src/logic/telemetry/serviceWorker.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/test/scripts/vite-config.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/public/about/refresh/index.html
+  - scripts/hosting/test/legacy-refresh.e2e.mjs
+  - tasks/T585.yml
+  - vite.config.js

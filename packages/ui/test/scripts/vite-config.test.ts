@@ -44,6 +44,21 @@ describe('vite.config.js', () => {
       'vite.config.js server.allowedHosts must list "lap"; Vite refuses any other host name.'
     );
   });
+
+  it('activates and claims new workers automatically so stale app builds cannot stay pinned', () => {
+    assert.match(viteConfig, /skipWaiting:\s*true/);
+    assert.match(viteConfig, /clientsClaim:\s*true/);
+  });
+
+  it('ships a recovery page on the legacy worker bypass path and clears only app caches', () => {
+    const path = join(ROOT, 'packages/ui/public/about/refresh/index.html');
+    assert.ok(existsSync(path));
+    const html = readFileSync(path, 'utf8');
+    assert.match(html, /getRegistrations/);
+    assert.match(html, /unregister\(\)/);
+    assert.match(html, /caches\.delete/);
+    assert.match(html, /_openisd_refresh=/);
+  });
 });
 
 describe('buildVersion', () => {

@@ -333,7 +333,7 @@ describe('service worker registration', () => {
     const record = vi.fn();
     const register = vi.fn(() => Promise.resolve(undefined));
     await registerServiceWorker({register}, '/sw.js', '/', {record, flush: vi.fn()}, 'Windows');
-    expect(register).toHaveBeenCalledWith('/sw.js', {scope: '/'});
+    expect(register).toHaveBeenCalledWith('/sw.js', {scope: '/', updateViaCache: 'none'});
     expect(record).not.toHaveBeenCalled();
   });
 

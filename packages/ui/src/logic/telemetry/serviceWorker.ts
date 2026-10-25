@@ -3,7 +3,7 @@ import type {Telemetry} from './telemetry.js';
 
 /** The slice of `navigator.serviceWorker` the registration uses. */
 export interface ServiceWorkerHost<Registration> {
-  register(url: string, options: {scope: string}): Promise<Registration>;
+  register(url: string, options: {scope: string; updateViaCache: 'none'}): Promise<Registration>;
 }
 
 /** Registers the service worker and hands back its registration. A browser, extension or in-app
@@ -13,7 +13,7 @@ export async function registerServiceWorker<Registration>(
   host: ServiceWorkerHost<Registration>, url: string, scope: string, telemetry: Telemetry, platform: Platform,
 ): Promise<Registration | null> {
   try {
-    return await host.register(url, {scope});
+    return await host.register(url, {scope, updateViaCache: 'none'});
   } catch {
     telemetry.record({kind: 'sw_blocked', platform});
     return null;
