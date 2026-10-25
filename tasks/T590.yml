@@ -1,0 +1,18 @@
+id: T590
+release_note: The private usage report now includes bundled driver identity on project opens and saves.
+repo: openisd
+owner: Codex
+status: done
+goal: Add bundled-driver identity to project activity telemetry while keeping user-owned driver details private.
+done_test: bash scripts/quiet-test.sh npx vitest run packages/ui/test/logic/projectOpenTelemetry.test.ts packages/ui/test/logic/telemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
+visual: []
+files:
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/projectDriver.ts
+  - packages/ui/test/fixtures/appStateFixture.ts
+  - packages/ui/test/logic/projectOpenTelemetry.test.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T590.yml

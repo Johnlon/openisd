@@ -34,8 +34,22 @@ export interface InstallEvent { readonly kind: 'install' }
 export interface SwBlockedEvent { readonly kind: 'sw_blocked'; readonly platform: Platform }
 /** The page is going away: how long it was open and how many different charts were viewed. */
 export interface SessionEndEvent { readonly kind: 'session_end'; readonly seconds: number; readonly charts: number }
-export interface ProjectOpenEvent { readonly kind: 'project_open'; readonly source: ProjectSource; readonly box: string }
-export interface ProjectSaveEvent { readonly kind: 'project_save'; readonly format: SaveFormat; readonly box: string }
+export interface ProjectOpenEvent {
+  readonly kind: 'project_open';
+  readonly source: ProjectSource;
+  readonly box: string;
+  /** Only bundled drivers are named; user-owned driver identity stays private. */
+  readonly driverId?: string;
+  readonly driverName?: string;
+}
+export interface ProjectSaveEvent {
+  readonly kind: 'project_save';
+  readonly format: SaveFormat;
+  readonly box: string;
+  /** Only bundled drivers are named; user-owned driver identity stays private. */
+  readonly driverId?: string;
+  readonly driverName?: string;
+}
 /** `name` is the catalogue's own name for a bundled driver; empty for a driver the user owns, whose name is theirs. */
 export interface DriverPickEvent { readonly kind: 'driver_pick'; readonly source: DriverSource; readonly id: string; readonly name: string }
 export type FeatureName =
@@ -102,8 +116,16 @@ export function fieldsOf(e: TelemetryEvent): Fields {
     case 'install': return {};
     case 'sw_blocked': return {platform: e.platform};
     case 'session_end': return {seconds: e.seconds, charts: e.charts};
-    case 'project_open': return {source: e.source, box: e.box};
-    case 'project_save': return {format: e.format, box: e.box};
+    case 'project_open': return {
+      source: e.source, box: e.box,
+      ...(e.driverId === undefined ? {} : {driverId: e.driverId}),
+      ...(e.driverName === undefined ? {} : {driverName: e.driverName}),
+    };
+    case 'project_save': return {
+      format: e.format, box: e.box,
+      ...(e.driverId === undefined ? {} : {driverId: e.driverId}),
+      ...(e.driverName === undefined ? {} : {driverName: e.driverName}),
+    };
     case 'driver_pick': return {source: e.source, id: e.id, ...(e.name === '' ? {} : {name: e.name})};
     case 'chart_view': return {chart: e.chart};
     case 'feature': return {name: e.name};

@@ -4,6 +4,7 @@ Newest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates
 
 | Version | Stamp | Date | Commit | Hosted | GitHub | Notes |
 |---|---|---|---|---|---|---|
+| 7.0.955 | 20261025T2026Z | 25 Oct 2026, 20:26 | `9cf116193` | [v/20261025T2026Z](https://snapshots.openisd.app/v/20261025T2026Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261025T2026Z) | Touch scrolling over a number spinner no longer changes its value by accident. Spinner taps and holds continue to adjust the value. |
 | 7.0.954 | 20261025T1357Z | 25 Oct 2026, 13:57 | `faea6d2f8` | [v/20261025T1357Z](https://snapshots.openisd.app/v/20261025T1357Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261025T1357Z) | OpenISD now updates stale phone installs automatically and includes a recovery page that preserves projects. |
 | 7.0.952 | 20261016T1456Z | 16 Oct 2026, 14:56 | `965244774` | [v/20261016T1456Z](https://openisd.app/v/20261016T1456Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261016T1456Z) | Emergency fix on 7.0.951. |
 | 7.0.951 | 20261015T1542Z | 15 Oct 2026, 15:42 | `539cab244` | [v/20261015T1542Z](https://openisd.app/v/20261015T1542Z/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/v20261015T1542Z) | Cloud sync with Google Drive. Sign in once and your projects follow you across devices. Sync runs when you save, open, or return to the app. The sync dialog lists what was sent and received, and Diagnostics keeps the history. |
