@@ -3,6 +3,7 @@ release_note: Storage warnings describe whether the browser granted persistent s
 repo: openisd
 owner: codex
 status: done
+landed: 404e4ee3625e7b0f7f3cd736636a9754b71544da
 goal: Use accurate browser persistent-storage permission messages
 done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts packages/ui/test/logic/storagePopup.test.ts
 visual_note: Storage warning text now distinguishes granted persistent storage from unsupported browser APIs.

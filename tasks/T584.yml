@@ -1,0 +1,13 @@
+id: T584
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+goal: Telemetry sends only from the production OpenISD origin to the production-only collector
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
+visual_note: The test site stops sending telemetry to the production-only collector; the interface is unchanged.
+files:
+  - tasks/T584.yml
+  - packages/ui/src/logic/telemetry/endpoint.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/test/visual/SOURCES.sha256

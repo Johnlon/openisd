@@ -255,7 +255,9 @@ describe('launch helpers and endpoint', () => {
     expect(chooseEndpoint({hostname: '127.0.0.1', mode: 'production', testOptIn: false})).toBeNull();
     expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: false})).toBeNull();
     expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: true})).toBe(TELEMETRY_ENDPOINT);
-    expect(chooseEndpoint({hostname: 'x.github.io', mode: 'production', testOptIn: false})).toBe(TELEMETRY_ENDPOINT);
+    expect(chooseEndpoint({hostname: 'openisd.app', mode: 'production', testOptIn: false})).toBe(TELEMETRY_ENDPOINT);
+    expect(chooseEndpoint({hostname: 'test.openisd.app', mode: 'production', testOptIn: false})).toBeNull();
+    expect(chooseEndpoint({hostname: 'x.github.io', mode: 'production', testOptIn: false})).toBeNull();
   });
 });
 
