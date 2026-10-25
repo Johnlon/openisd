@@ -29,7 +29,7 @@ const { project, fullName, keyFigures, browseDrivers, editDriver, N_DRIVERS_OPTI
     </div>
     <div class="mob-crow">
       <label class="mob-crow-label" for="mob-wiring">{{ PhoneLabels.CONNECTION }}</label>
-      <select id="mob-wiring" class="mob-cselect mob-cselect-wide" :value="project.wiring.value"
+      <select id="mob-wiring" class="mob-cselect" :value="project.wiring.value"
               @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }">
         <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>

@@ -17,7 +17,7 @@ test.beforeEach(async ({ appPage: page }) => {
 });
 
 async function openLibrary(page: Page) {
-  await page.getByRole('button', { name: 'Select passive radiator' }).click();
+  await page.getByRole('button', { name: 'Select PR' }).click();
   await page.locator('.pr-filter').waitFor({ state: 'visible' });
 }
 

@@ -15,13 +15,13 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('MobilePrTab', () => {
-  test('a passive-radiator box shows passive radiator fields and Select passive radiator opens the browser', async ({ page }) => {
+  test('a passive-radiator box shows passive radiator fields and Select PR opens the browser', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     await expect(page.locator('.mob-band-title', {hasText: /^Passive radiator$/})).toHaveCount(1);
     await expect(mobileFieldRow(page, 'Vas')).toBeVisible();
     await expect(mobileFieldRow(page, 'Fpr (with added mass)')).toBeVisible();
 
-    await page.getByText('Select passive radiator', { exact: true }).click();
+    await page.getByText('Select PR', { exact: true }).click();
     await expect(page.getByText('Passive radiator library')).toBeVisible();
     await page.locator('.modal .x').click();
     await expect(page.getByText('Passive radiator library')).toHaveCount(0);
@@ -67,7 +67,7 @@ test.describe('MobilePrTab', () => {
     await expect(dialog).toHaveCount(0);
 
     await expect(page.locator('#mob-pr-name')).toHaveValue('Bench PR');
-    await page.getByText('Select passive radiator', { exact: true }).click();
+    await page.getByText('Select PR', { exact: true }).click();
     await expect(page.locator('.pr-lib-item .pr-lib-name', { hasText: 'Library Bench PR' })).toBeVisible();
   });
 });

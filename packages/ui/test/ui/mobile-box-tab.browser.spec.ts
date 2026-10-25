@@ -244,10 +244,10 @@ test.describe('MobileBoxTab', () => {
 
     test('while the passive radiator section is showing leaves a page that fits the new box', async ({ appPage: page }) => {
       await openTwoProjects(page, { name: 'Vented three', boxType: 'vented' }, { name: 'Radiator three', boxType: 'box-passive-radiator' });
-      await expect(page.getByText('Select passive radiator')).toBeVisible();
+      await expect(page.getByText('Select PR')).toBeVisible();
 
       await switchTo(page, 'Vented three');
-      await expect(page.getByText('Select passive radiator')).toHaveCount(0);
+      await expect(page.getByText('Select PR')).toHaveCount(0);
       await expect(page.locator('.mob-band-title', { hasText: /^Passive radiator$/ })).toHaveCount(0);
     });
 
