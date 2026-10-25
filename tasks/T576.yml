@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: 91b38a993f236ef26323942fd4709ed5e8cf22cc
 goal: On the phone, an open DQ explanation expands its field row instead of overlapping the next field
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

@@ -7,7 +7,8 @@ paths:
 
 - **Scratch/probe specs NEVER live in the tree.** A throwaway probe (`zz-*`) goes in
   `build/tmp/` — git-ignored, so it cannot be committed and can be deleted safely. Run it via
-  the tracked probe config: `npx playwright test -c scripts/playwright.probe.config.mjs build/tmp/<spec>`
+  the tracked probe config: `bash scripts/test-browser.sh -c scripts/playwright.probe.config.mjs build/tmp/<spec>`
+  (test-browser.sh builds the test app first; a bare `npx playwright test -c …` never builds and times out in the webServer)
   (the config itself lives in `scripts/`, not `build/`, so it can't be silently lost — only the
   spec files it runs are scratch). If you are about to create a probe spec under
   `packages/ui/test/`, you are putting scratch in the tree — stop and use `build/tmp/` instead.

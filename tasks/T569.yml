@@ -1,0 +1,16 @@
+id: T569
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Probe specs under build/tmp run again: the documented probe route builds the test app first and matches zz-*.spec.ts
+done_test: bash scripts/test.sh packages/design/test/scripts/probe-config.test.ts
+files:
+  - tasks/T569.yml
+  - packages/design/test/scripts/probe-config.test.ts
+  - bugs/BUG_20261022_probe-route-never-builds-test-app.md
+  - scripts/playwright.probe.config.mjs
+  - .claude/rules/ui-test-fixtures.md
+  - scripts/research/record-driver-editor-frames.spec.ts
+  - scripts/research/record-what-if-panel-shots.spec.ts
+  - docs/handover/HANDOVER_20260927_winisd-chart-parity.md
