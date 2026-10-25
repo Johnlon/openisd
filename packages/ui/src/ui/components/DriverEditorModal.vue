@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {DateField, EnumField, NumberField, PhoneEditorText, PhoneHelp, PhoneLabels, TextField} from '@openisd/design/fields';
 import DriverDimensionsDiagram from './DriverDimensionsDiagram.vue'
-import {computed, nextTick, onBeforeUnmount, ref, watch} from 'vue';
+import {computed, nextTick, onBeforeUnmount, provide, ref, watch} from 'vue';
 import type {NumSpecField} from '../../logic/appState.js';
 import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import {useApp} from '../../logic/app.js';
@@ -26,6 +26,7 @@ import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
 import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
+import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 
 function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calculated {
   return fieldOf(field);
@@ -239,7 +240,12 @@ const autoCalculate = computed({
 });
 
 const inspectProvenance = ref(false);
+const provenanceHintVisible = ref(false);
 const inspectedField = ref<string | null>(null);
+provide(FIELD_EDIT_MODE, {
+  enabled: computed(() => props.skin !== undefined && inspectProvenance.value),
+  disabledAttempt: () => logging.flash('Input is disabled while inspecting provenance — long-press to edit'),
+});
 
 // Guards the popup sitting at a fixed viewport corner (right: 20px, bottom: 20px) regardless of
 // where the editor renders — on a narrower or off-centre viewport it would land on top of the
@@ -301,6 +307,17 @@ function keepInspectedRowAboveCard() {
 watch(inspectedField, (v) => {
   if (v) nextTick(updatePopupPosition);
   else dockedCardHeight.value = 0;
+});
+watch(inspectProvenance, (enabled) => {
+  if (enabled) {
+    if (props.skin !== undefined) {
+      provenanceHintVisible.value = true;
+      if (inspectedField.value === null) inspectedField.value = 'Qes';
+    }
+  } else {
+    provenanceHintVisible.value = false;
+    inspectedField.value = null;
+  }
 });
 window.addEventListener('resize', updatePopupPosition);
 onBeforeUnmount(() => window.removeEventListener('resize', updatePopupPosition));
@@ -378,7 +395,15 @@ function handleBodyClickOrFocus(e: Event) {
   if (!fld) return;
   // The field's own key, read straight off the element — no label→key lookup.
   const key = (fld as HTMLElement).dataset.fieldKey;
-  if (key) inspectedField.value = key;
+  if (key) {
+    provenanceHintVisible.value = false;
+    inspectedField.value = key;
+  }
+}
+
+function closeProvenance(): void {
+  if (props.skin !== undefined) inspectProvenance.value = false;
+  inspectedField.value = null;
 }
 
 // ── Data quality ──────────────────────────────────────────────────────────────
@@ -865,15 +890,16 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
       </div>
       </div>
 
-      <!-- On the phone the card is a band under the body, so it never covers the header, tabs or footer. -->
+      <!-- On the phone the inspector is an overlay; its editing and action controls are hidden. -->
       <EquationInspectorModal
         v-if="skin"
         docked
         :open="inspectProvenance && inspectedField !== null"
         :target-field="inspectedField"
         :provenance-info="provenanceInfo"
+        :show-edit-hint="provenanceHintVisible"
         :input-badge="inputBadge"
-        @close="inspectedField = null"
+        @close="closeProvenance"
       />
 
       <div v-if="skin && inconsistentInputReasons.length" class="de-dq-bar">
@@ -885,7 +911,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
         </ul>
       </div>
 
-      <div class="de-toolbar">
+      <div v-if="!skin || !inspectProvenance" class="de-toolbar">
         <label class="de-provenance-chk" title="Auto-calculate derived/unknown T/S fields when parameters change">
           <input type="checkbox" v-model="autoCalculate" />
           <span>Auto calculate unknowns</span>
@@ -914,18 +940,18 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
               </button>
             </div>
             <div class="de-btn-row">
-              <button class="pri" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+              <button v-if="!skin || !inspectProvenance" class="pri" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
               <button @click="reset" title="Reset fields to the values when the editor was opened">Reset</button>
-              <button @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+              <button v-if="!skin || !inspectProvenance" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
             </div>
           </template>
           <div v-else class="de-btn-row">
-            <button class="pri" :class="[skin.button, skin.buttonPrimary]" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
-            <button :class="[skin.button, skin.buttonSecondary]" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
-            <button class="de-more" :class="[skin.button, skin.buttonSecondary, {on: moreOpen}]" aria-haspopup="menu" :aria-expanded="moreOpen" @click="moreOpen = !moreOpen">{{ PhoneEditorText.MORE }}<i>{{ PhoneEditorText.MORE_MARK }}</i></button>
+            <button v-if="!inspectProvenance" class="pri" :class="[skin.button, skin.buttonPrimary]" @click="close" title="Apply changes and close the editor (updates local browser/project)">OK</button>
+            <button v-if="!inspectProvenance" :class="[skin.button, skin.buttonSecondary]" @click="cancel" title="Discard edits made in this session and close">Cancel</button>
+            <button v-if="!inspectProvenance" class="de-more" :class="[skin.button, skin.buttonSecondary, {on: moreOpen}]" aria-haspopup="menu" :aria-expanded="moreOpen" @click="moreOpen = !moreOpen">{{ PhoneEditorText.MORE }}<i>{{ PhoneEditorText.MORE_MARK }}</i></button>
           </div>
         </div>
-        <template v-if="skin && moreOpen">
+        <template v-if="skin && moreOpen && !inspectProvenance">
           <div class="de-more-scrim" @click="moreOpen = false"></div>
           <div class="de-more-menu" role="menu" aria-label="More actions">
             <button type="button" role="menuitem" class="de-more-item" @click="fromMore(requestExport)" title="Export this driver to a file — choose the format, then where to put it">Export</button>
@@ -999,8 +1025,9 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
       :open="inspectProvenance && inspectedField !== null"
       :target-field="inspectedField"
       :provenance-info="provenanceInfo"
+      :show-edit-hint="provenanceHintVisible"
       :style="popupStyle"
-      @close="inspectedField = null"
+      @close="closeProvenance"
     />
   </div>
 </template>
