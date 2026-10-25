@@ -25,6 +25,14 @@ Every rule lives in exactly one place, and that place is a script that refuses, 
 Prose in CLAUDE.md and skills tells agents what the scripts will do to them; it never asks for
 behaviour.
 
+### Preview isolation measure
+
+Live previews are isolated by task number. The protected, last-green main checkout is served on
+`lap:4000`; a task worktree uses `lap:4XXX`, with `XXX` taken from its task id (for example, T578
+uses `lap:4578`). This prevents WIP from being confused with main or with another task's preview and
+gives every reviewable preview an unambiguous owner. The operational rule is maintained in
+[DEV_PROCESS.md](DEV_PROCESS.md) and the agent-facing version is in [CLAUDE.md](../CLAUDE.md).
+
 ## The six systems
 
 | System | Replaces | Script | SDLC.md solution |

@@ -133,11 +133,15 @@ the Options dialog writes one, the engine reads the other, eliminate the first.
 Repeat of the same failure, same day: told the rule, the agent led with the correct sentence and
 then appended six bullets of file/line evidence nobody asked for.
 
-## Running the app locally — `scripts/preview-4000.sh`
+## Running the app locally — protected and task previews
 
-To build or run the app for John to look at, run `bash scripts/preview-4000.sh`. It restarts the
-openisd-preview systemd user unit (copy in `scripts/systemd/`), which serves the live Vite dev server
-with HMR at http://localhost:4000 from the main checkout. Never hand-roll `npx vite` on another port.
+The protected main checkout and its last-green preview use `bash scripts/preview-4000.sh`, which serves
+the live Vite dev server with HMR at `http://lap:4000`. Do not work in that checkout or use its preview
+script from a task worktree.
+
+A task worktree uses the reserved port `4XXX`, where `XXX` is the task number. For example, T578 is
+previewed at `http://lap:4578` with the dev server started from the T578 worktree. Use the task port,
+not an arbitrary port, so previews cannot be mistaken for main or for another task.
 
 ## Test output — quiet by default
 

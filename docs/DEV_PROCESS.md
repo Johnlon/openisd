@@ -51,6 +51,14 @@ WIP commit and the folder is rebased; edits already on main drop out. When it ca
 commits not on main), `land.sh` exits 4 and the landing agent fixes it at once: in the main folder, rebase onto
 the commit named, resolve, and land what is wanted from a worktree.
 
+### Preview isolation
+
+The protected main checkout is previewed on `lap:4000`. A task worktree that needs a live preview uses the
+reserved port `4XXX`, where `XXX` is the task number: T578 uses `lap:4578`. This keeps an agent's WIP
+isolated from the last-green main preview and makes the task owning a preview unambiguous. Do not use an
+arbitrary port, and do not run the main-checkout preview script from a task worktree; start the dev server
+from the task worktree on its reserved task port.
+
 Every landing is a GitHub pull request (T331, John 17 Oct 2026: "of course it should be pr"): `land.sh` opens one
 from `land/<task>` to main when it pushes the candidate (`scripts/land/pr.sh`; on when `land.conf` sets
 `PULL_REQUESTS=1`). Its checks are the candidate run. On green, `land.sh` still moves main by a fast-forward push
