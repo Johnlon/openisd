@@ -160,7 +160,7 @@ function write(v: number | null, precision?: number): void {
 }
 .ui-field-unit { flex: none; 
   grid-column: 3; width: 34px; box-sizing: border-box;
-  color: var(--mut); white-space: nowrap; text-align: left;
+  white-space: nowrap; text-align: left;
 }
 /* Under the field's own row, in the layout: it takes its own space and never covers the row below. */
 .ui-field-note {

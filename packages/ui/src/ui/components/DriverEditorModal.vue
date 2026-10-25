@@ -1063,7 +1063,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 .de-desktop .de-fld input, .de-desktop .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); }
 /* A unit button wider than two characters ("mm/N", "1000/K", "kg/m³") takes its width from its
    text; 34px is the minimum. bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md */
-.de-body :deep(.unit-toggle) { width: auto; min-width: 34px; }
+.de-body :deep(.unit-label) { width: auto; min-width: 34px; }
 .de-fld.cl-dim input, .de-fld.cl-dim select { background: var(--panel2); color: var(--mut); }
 .de-row2 { display: flex; gap: 16px; }
 .de-row2 .de-fld { flex: 1; width: auto; }
@@ -1287,8 +1287,6 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 
 .de-desktop .de-cols .de-fld > .ui-field-unit,
 .de-desktop .de-dimlist .de-fld > .ui-field-unit,
-.de-desktop .de-cols .de-fld > .u,
-.de-desktop .de-dimlist .de-fld > .u { grid-column: 3 !important; }
 
 .de-desktop .de-cols .de-fld > .ui-field-dq,
 .de-desktop .de-dimlist .de-fld > .ui-field-dq,

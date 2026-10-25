@@ -183,24 +183,11 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
   right: calc(var(--mob-stepper-w) * 2 + 10px + 1px);
   box-sizing: border-box;
   min-width: var(--mob-stepper-w);
-  padding: 0 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  font-size: 13px;
-  white-space: nowrap;
-  color: #888;
-  background: none;
 }
-.mob-sheet-cell :deep(.mob-sheet-unit.unit-toggle) {
-  border-left: 1px solid #cfcfcf;
-  border-radius: 0 3px 3px 0;
-  background: #efefef;
-  font-weight: 600;
-  color: #444;
-  cursor: pointer;
-}
+/* The unit's look (chip) is drawn by UnitToggle, the same for fixed and rotating units. */
 
 .mob-sheet-foot {
   flex: none;

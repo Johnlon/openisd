@@ -17,8 +17,8 @@ const presentationState = useApp().presentation;
 const props = defineProps<{
   /** The field this toggle rotates the display unit of. */
   field: NumberField;
-  /** CSS class for the unit span (e.g. 'ui-field-unit' or 'u'). */
-  unitClass?: string;
+  /** CSS class used only to place the unit span in its caller's layout. */
+  unitClass: string;
 }>();
 
 const currentToken = computed(() => props.field.unitTokenFor(presentationState.ui.unitTokens ?? {}));
@@ -31,20 +31,50 @@ const hasChoice = computed(() => props.field.display.kind === 'switchable' && pr
 function cycle() {
   presentationState.ui.unitTokens = {...props.field.withNextUnit(presentationState.ui.unitTokens ?? {})};
 }
+
+function activate() {
+  if (hasChoice.value) cycle();
+}
 </script>
 
 <template>
-  <span v-if="hasChoice" :class="[unitClass ?? 'u', 'unit-toggle']" role="button" tabindex="0"
-    :title="`Click to change units (${label})`"
-    @click="cycle"
-    @keydown.enter.prevent="cycle"
-    @keydown.space.prevent="cycle">{{ label }}</span>
-  <span v-else :class="unitClass ?? 'u'">{{ label }}</span>
+  <span :class="[unitClass, 'unit-label', {'unit-toggle': hasChoice}]"
+    :role="hasChoice ? 'button' : undefined" :tabindex="hasChoice ? 0 : undefined"
+    :title="hasChoice ? `Click to change units (${label})` : undefined"
+    @click="activate"
+    @keydown.enter.prevent="activate"
+    @keydown.space.prevent="activate">{{ label }}</span>
 </template>
 
 <style scoped>
 /* The cue that a unit label has a tooltip and can be clicked to change units. Owned here so every
    caller, on every skin, shows it whatever class it passes (T373). A plain label has none. */
-.unit-toggle { cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.unit-toggle {
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
 .unit-toggle:hover { color: #1868d1; }
+</style>
+<style>
+/* The phone skin's unit label is a grey chip, bold, with an edge on its left. This is the one place
+   that draws it, so every unit looks the same on every phone page, sheet, and global modal. A
+   rotating one adds the dotted underline above; callers only place and size it. */
+/* span.unit-label: one element more specific than a caller's scoped unit class (e.g. UIFieldBody's
+   .ui-field-unit colour), so the chip wins whatever order the styles load in. */
+.app-root-mobile span.unit-label {
+  box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; color: #888; white-space: nowrap;
+}
+.app-root-mobile span.unit-label.unit-toggle {
+  padding: 0 6px; background: #efefef;
+  border: 1px solid #cfcfcf;
+  border-radius: 0 3px 3px 0;
+  text-decoration: underline solid;
+  text-decoration-color: #1868d1;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+}
+.app-root-mobile span.unit-toggle:hover { color: #1868d1; }
 </style>

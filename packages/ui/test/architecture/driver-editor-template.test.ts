@@ -45,14 +45,14 @@ interface Bound {
   /** `:precision` as bound; absent, NumInput's default — the bound `:field`'s registry
    *  precision, or 2 with no field. */
   precision: number;
-  /** The `<span class="u">` unit label, or '' when the field carries none. */
+  /** The shared `.unit-label` unit label, or '' when the field carries none. */
   unit: string;
   /** The literal `:precision="…"` expression, for asserting it reads the registry. Absent on a
    *  NumInput bound to a `:field`, it is `<Class>.<MEMBER>.precision` of that field — the default
    *  NumInput reads. */
   precisionExpr: string;
   /** True when the field binds `group`/`field`/`base` (a click-to-rotate <UnitToggle>) rather
-   *  than a fixed `:scale` + static `<span class="u">` label. */
+   *  than a fixed `:scale` + static `.unit-label` label. */
   toggleable: boolean;
   /** The registry member the NumInput binds as `:field` (the one it takes min/max from), or
    *  null when the cell binds no such attribute. */
@@ -234,7 +234,7 @@ describe('resistance unit group — Ns/m ↔ kg/s, factor 1 (ledger QO51)', () =
   it('Rms, Rme and Mcost render as click-to-rotate toggles, not a fixed unit span', () => {
     for (const label of ['Rms', 'Rme', 'Mcost']) {
       assert.equal(byLabel(label).toggleable, true,
-        `${label} still binds a fixed :scale + static <span class="u"> — QO51 requires the resistance group's <UnitToggle>`);
+        `${label} still binds a fixed :scale + static .unit-label — QO51 requires the resistance group's <UnitToggle>`);
     }
   });
 

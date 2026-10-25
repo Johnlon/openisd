@@ -191,6 +191,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
 }
 .mob-diagram { display: flex; justify-content: center; padding: 8px 12px 16px; }
 
+.mob-unit { min-width: 30px; flex-shrink: 0; align-self: stretch; }
 .mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
 .mob-hint-warn { color: var(--acc2); }
 
