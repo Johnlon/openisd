@@ -105,6 +105,12 @@ describe('BeaconTelemetry', () => {
 });
 
 describe('fieldsOf usage events', () => {
+  it('includes bundled driver identity on project activity events', () => {
+    const driver = {driverId: 'driver-1', driverName: 'Dayton Audio RS225P-8'};
+    expect(fieldsOf({kind: 'project_open', source: 'file', box: 'vented', ...driver})).toEqual({source: 'file', box: 'vented', ...driver});
+    expect(fieldsOf({kind: 'project_save', format: 'owpr', box: 'vented', ...driver})).toEqual({format: 'owpr', box: 'vented', ...driver});
+  });
+
   it('chart_view carries the chart', () => {
     expect(fieldsOf({kind: 'chart_view', chart: 'SPL'})).toEqual({chart: 'SPL'});
   });

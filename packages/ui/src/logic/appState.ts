@@ -49,6 +49,7 @@ import {assignTraceColor, type PresentationState} from './presentationState.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {ventSolveSuspended} from './ventGroup.js';
 import {notifyPrChanged} from './prGroup.js';
+import {projectDriverTelemetry} from './telemetry/projectDriver.js';
 
 /** The driver spec fields the app's UI reads/writes by name — the schema's own spec keys.
  *  Derived, never a hand-maintained copy. */
@@ -231,8 +232,12 @@ export interface AppState {
 
 export function createAppState(deps: AppStateDeps): AppState {
   const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
-  const recordOpen = (source: ProjectSource, p: OpenISDProject): void =>
-    telemetry.record({kind: 'project_open', source, box: p.box.boxType.value});
+  const recordOpen = (source: ProjectSource, p: OpenISDProject): void => {
+    telemetry.record({
+      kind: 'project_open', source, box: p.box.boxType.value,
+      ...projectDriverTelemetry(p.driver),
+    });
+  };
   // ---- Application settings: what the user set for the APP, not for a project ---------------
   // The band that decides which designed values get a DQ mark is one of these (John 2026-09-22:
   // "we can make the limits application level limit settings in a new settings tab").

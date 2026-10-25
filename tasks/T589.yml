@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: 6a3a5b82911670c3329ed560c3eeb3d9d961d883
 goal: Record OpenISD 7.0.955 in the release ledger
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
