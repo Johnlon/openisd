@@ -1,0 +1,16 @@
+id: T583
+release_note: Storage warnings describe whether the browser granted persistent storage, using a separate message when the API is unsupported.
+repo: openisd
+owner: codex
+status: done
+goal: Use accurate browser persistent-storage permission messages
+done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts packages/ui/test/logic/storagePopup.test.ts
+visual_note: Storage warning text now distinguishes granted persistent storage from unsupported browser APIs.
+files:
+  - tasks/T583.yml
+  - bugs/BUG_20261025_browser-storage-persistence-copy.md
+  - packages/design/fields/browserStorage.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/ui/test/logic/storagePopup.test.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

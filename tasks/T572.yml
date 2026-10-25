@@ -3,6 +3,7 @@ release_note: Mobile unit labels use one component and consistent bold styling; 
 repo: openisd
 owner: maryu
 status: done
+landed: b66b392be39462f5962cf7ff7b547cd2ebb22284
 goal: Every unit label uses one shared component with consistent styling and switch affordance
 done_test: bash scripts/test.sh packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
 visual_note: Unit labels use consistent bold styling across screens; switchable units retain the grey control and blue underline.

@@ -105,15 +105,19 @@ describe('the storage popup', () => {
     expect(storagePopup({...quiet, outcome: null})).toEqual({kind: 'none'});
   });
 
-  it('names the browser as the reason when it refused or cannot promise, and suggests Drive sync first, then export', () => {
+  it('distinguishes refused persistence from unavailable persistence, and suggests Drive sync first, then export', () => {
     const popup = storagePopup({...quiet, outcome: 'refused', browser: 'Firefox'});
     expect(popup).toEqual({
       kind: 'risk',
       condition: 'refused:Firefox',
       title: 'Your projects may not be kept',
-      message: "Firefox has not promised to keep this site's data, so it could clear your OpenISD projects if your disk gets nearly full. Best: turn on Google Drive sync, so your projects live in Drive. Otherwise export your projects.",
+      message: "Firefox has not granted persistent storage for this site, so it could clear your OpenISD projects if your disk gets nearly full. Best: turn on Google Drive sync, so your projects live in Drive. Otherwise export your projects.",
     });
-    expect(storagePopup({...quiet, outcome: 'unsupported', browser: 'Safari'})).toMatchObject({kind: 'risk', condition: 'unsupported:Safari'});
+    expect(storagePopup({...quiet, outcome: 'unsupported', browser: 'Safari'})).toMatchObject({
+      kind: 'risk',
+      condition: 'unsupported:Safari',
+      message: "Safari cannot guarantee that this site's data will be kept, so it could clear your OpenISD projects if your disk gets nearly full. Best: turn on Google Drive sync, so your projects live in Drive. Otherwise export your projects.",
+    });
   });
 
   it('stays quiet once this condition was closed, and shows again when the condition changes', () => {
@@ -147,7 +151,7 @@ describe('the storage popup', () => {
   it('shows nearly full at every start, even when the risk was closed, and then also names the browser', () => {
     const popup = storagePopup({...quiet, use: full, outcome: 'refused', browser: 'Firefox', acknowledgedRisk: 'refused:Firefox'});
     expect(popup).toMatchObject({kind: 'nearlyFull'});
-    expect(popup.kind === 'nearlyFull' ? popup.message : '').toContain("Firefox has not promised to keep this site's data.");
+    expect(popup.kind === 'nearlyFull' ? popup.message : '').toContain('Firefox has not granted persistent storage for this site.');
   });
 });
 

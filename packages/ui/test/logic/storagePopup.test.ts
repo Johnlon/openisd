@@ -40,7 +40,7 @@ describe('showStoragePopup', () => {
     await s.run();
     expect(s.asked).toHaveLength(1);
     expect(s.asked[0]?.title).toBe('Your projects may not be kept');
-    expect(s.asked[0]?.message).toContain("Firefox has not promised to keep this site's data");
+    expect(s.asked[0]?.message).toContain('Firefox has not granted persistent storage for this site');
     expect(s.asked[0]?.confirmLabel).toBe('Close');
     expect(s.asked[0]?.cancelLabel).toBeUndefined();
     expect(s.persistence.acknowledgedRisk()).toBe('refused:Firefox');
