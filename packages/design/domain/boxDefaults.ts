@@ -7,7 +7,7 @@ import type {
     ChamberJson, OpenISDBoxJson,
     RadiatorDeviceJson, SealedLossesJson, VentedLossesJson, VentJson,
 } from './openisdSchema.js';
-import {DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
+import {DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
 
 // Shared const objects, the starting values a brand-new box is built from. Values are WinISD's
 // own defaults for a freshly-created box (packages/design/winisd/winisdProject.ts TEMPLATE:
@@ -19,11 +19,11 @@ import {DEFAULT_NEW_PROJECT_VENTED_QL} from '../fields/defaults.js';
 // copy, never the shared one.
 /** The Box losses dialog's values in WinISD for a new box: Ql 10, Qa 100, Qp 100, Qicl 100 — what
  *  Reset puts back (bugs/BUG_20261005_no-common-ui-field-component.md). */
-export const WINISD_BOX_LOSSES = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100, Qp: 100, Qicl: 100});
+export const WINISD_BOX_LOSSES = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA, Qp: 100, Qicl: 100});
 
-const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100});
+const NO_SEALED_LOSSES: SealedLossesJson = Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA});
 const NO_VENTED_LOSSES: VentedLossesJson =
-    Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: 100, Qp: 100});
+    Object.freeze({Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA, Qp: 100});
 const NO_VENT: VentJson = Object.freeze({
     shape: 'round',
     width_m: null,

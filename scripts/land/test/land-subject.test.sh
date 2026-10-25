@@ -8,6 +8,7 @@ printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/land-subject.XXXXXX")"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
 fails=0
 trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
 ok()   { echo "ok   $1"; }
@@ -19,12 +20,14 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
-    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     printf '#!/usr/bin/env bash\nexit 0\n' > gates/ok.sh; chmod +x gates/ok.sh
     cat > land.conf <<EOF
 LINT_CMD="bash gates/ok.sh"
 TYPECHECK_CMD="bash gates/ok.sh"
 UNIT_CMD="bash gates/ok.sh"
+ARCHITECTURE_CMD="bash gates/ok.sh"
+CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/ok.sh"
 GATE_DEADLINE_S=30
 LAND_LOCK="$SCRATCH/land.lock"
@@ -38,14 +41,14 @@ subjects() { git -C "$SCRATCH/w/origin.git" log --format=%s "$1..main"; }
 setup; base=$(git rev-parse HEAD); echo change > f.txt
 timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
 s=$(subjects "$base")
-if [ $r = 0 ] && [ "$s" = "T9: Make the thing say what it did." ]; then ok "land.sh's commit subject is '<id>: <goal>'"
+if [ $r = 0 ] && [ "$s" = "(auto) T9: Make the thing say what it did." ]; then ok "land.sh's commit subject is '<id>: <goal>'"
 else fail "subject (r=$r): '$s' $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-160)"; fi
 
 # 2. the worker's own commit is squashed under the task subject (T064: one commit per task)
 setup; base=$(git rev-parse HEAD); echo change > f.txt; git add -A; git commit -qm "the worker's own words"
 timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
 s=$(subjects "$base")
-if [ $r = 0 ] && [ "$s" = "T9: Make the thing say what it did." ]; then ok "a worker's commit lands as '<id>: <goal>'"
+if [ $r = 0 ] && [ "$s" = "(auto) T9: Make the thing say what it did." ]; then ok "a worker's commit lands as '<id>: <goal>'"
 else fail "own commit (r=$r): '$s'"; fi
 
 [ $fails = 0 ] && { echo "land-subject: all passed"; exit 0; }

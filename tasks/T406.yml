@@ -1,0 +1,12 @@
+id: T406
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 4c138b5261c899194f425daa93e318d3261884a9
+goal: Find why bp6 group delay differs from WinISD at high frequency (E150HE-44, 2.7 kHz: WinISD 0.13 ms, OpenISD 0.009 ms, single- and dual-coil runs alike) while the WinISD equivalence register marks that cell matched; correct the register cell (and README bullets) if the tolerance hides it, and a bug file plus failing test if OpenISD is wrong
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T406.yml
+  - docs/research/WINISD_EQUIVALENCE.md
+  - bugs/BUG_20261018_dual-coil-wpr-re-halved.md

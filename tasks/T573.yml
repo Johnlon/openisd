@@ -1,0 +1,14 @@
+id: T573
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: 4a06ba80a2a56123205d2b18c0e40173cfd81ac8
+goal: Phone Box page sealed alignment Volume uses a UIField row (BUG_20261005_no-common-ui-field-component)
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-mobile-box-tab-uses-field-rows.test.ts
+files:
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts
+  - packages/ui/test/architecture/architecture-mobile-box-tab-uses-field-rows.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T573.yml

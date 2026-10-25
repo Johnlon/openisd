@@ -1,14 +1,16 @@
 import type {Locator} from '@playwright/test';
-import {curvesSplSum, expect, focusedFilterCount, openAProject, test} from '../fixtures.js';
+import {chartPicture, expect, expectChartDrawn, openAProject, test} from '../fixtures.js';
 import {fillAndBlur} from '../fixtures/numField.js';
 
-/** The `.filter-edit-body` field whose `<label>` starts with `label` — the tab nests the
- *  `<input>`/`<select>` inside the `<label>` itself, so there is exactly one input/select per
- *  matched label. Anchored so "Q" never matches "Qp" and "fc" never matches nothing else. */
+/** The `.filter-edit-body` row whose label starts with `label`: a `UIFixedField` row for a number, or the
+ *  Subtype `<label>` around its select. Anchored so "Q" never matches "Qp". */
+function editorRow(panel: Locator, label: string): Locator {
+  return panel.locator('.filter-edit-body .ui-field, .filter-edit-body > label')
+    .filter({hasText: new RegExp(`^${label}\\b`)});
+}
+
 function editorField(panel: Locator, label: string): Locator {
-  return panel.locator('.filter-edit-body label')
-    .filter({hasText: new RegExp(`^${label}\\b`)})
-    .locator('input, select');
+  return editorRow(panel, label).locator('input, select');
 }
 
 test.beforeEach(async ({page}) => {
@@ -92,23 +94,17 @@ test('switching a lowpass Subtype to Bessel keeps order/fc/Q and updates the cap
   await expect(panel.locator('.filter-summary')).toContainText('Lowpass (Bessel, n=2, fc=50.00 Hz)');
 });
 
-// BUG_20261001_filter-spinners-do-not-update-charts-live: holding a spinner arrow fires `input` on
-// every step but `change` only on release; the filter must take each step while the arrow is held.
-// Headless Chromium runs no spin arrows on a mouse hold, so the step is what Chromium does during
-// one: stepUp() and an `input` event, no `change`. Ten steps, so the move shows in the caption
-// (a step is a tenth of the value's decade).
+// Every filter number has the ▲▼ step buttons; a tap on ▲ applies at once (BUG_20261005_no-common-ui-field-component).
 for (const c of CASES) {
-  test(`${c.badge}: a held ${c.editLabel} spinner applies each step before release`, async ({page}) => {
+  test(`${c.badge}: ${c.editLabel} has step buttons, and a ▲ tap changes the filter`, async ({page}) => {
     const panel = page.locator('.content-panel');
     await panel.locator('.action-btn', {hasText: c.addLabel}).click();
     await expect(panel.locator('.filter-summary')).toContainText(c.initialCaption);
+    await expect(panel.locator('.filter-edit-body input[type=number]')).toHaveCount(0);
 
-    await editorField(panel, c.editLabel).evaluate((el: HTMLInputElement) => {
-      for (let i = 0; i < 10; i++) {
-        el.stepUp();
-        el.dispatchEvent(new Event('input', {bubbles: true}));
-      }
-    });
+    const buttons = editorRow(panel, c.editLabel).locator('.num-stepper-btn');
+    await expect(buttons).toHaveCount(2);
+    for (let i = 0; i < 10; i++) await buttons.first().click();
     await expect(panel.locator('.filter-summary')).not.toContainText(c.initialCaption);
   });
 }
@@ -124,26 +120,22 @@ test('an emptied field waits for the entry instead of snapping to its limit', as
 
 // John, 2026-10-01: spinning a filter value moved the charts only on release. Each held-spinner
 // step (an `input`, no `change`) must reach the swept curves, not just the caption.
-test('a held LP Cutoff spinner moves the swept SPL before release', async ({page}) => {
+test('a LP Cutoff step button moves the swept SPL', async ({page}) => {
   const errors: string[] = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  const splSum = () => curvesSplSum(page);
+  const splPicture = () => chartPicture(page);
 
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();
   await expect(panel.locator('.filter-summary')).toContainText('fc=50.00 Hz');
-  await expect.poll(splSum).not.toBe(0);
-  const before = await splSum();
+  await expectChartDrawn(page);
+  const before = await splPicture();
 
-  for (let step = 0; step < 5; step++) {
-    await editorField(panel, 'Cutoff').evaluate((el: HTMLInputElement) => {
-      el.stepDown();   // a tap is about 1 %: 0.1 Hz at 50 Hz
-      el.dispatchEvent(new Event('input', {bubbles: true}));
-    });
-  }
-  await expect(panel.locator('.filter-summary')).toContainText('fc=49.50 Hz');
-  await expect.poll(splSum).not.toBe(before);
+  const down = editorRow(panel, 'Cutoff').locator('.num-stepper-btn').nth(1);
+  for (let step = 0; step < 5; step++) await down.click();
+  await expect(panel.locator('.filter-summary')).not.toContainText('fc=50.00 Hz');
+  await expect.poll(splPicture).not.toBe(before);
   expect(errors).toEqual([]);
 });
 
@@ -153,9 +145,9 @@ test('the quick-add bar offers every WinISD filter type plus the two shelves, an
   await expect(panel.locator('.filters-quickadd .action-btn')).toHaveCount(10);
 
   await panel.locator('.action-btn', {hasText: '+ HP'}).click();
-  expect(await focusedFilterCount(page)).toBe(1);
+  await expect(panel.locator('.filter-del')).toHaveCount(1);
   await panel.locator('.filter-del').click();
-  expect(await focusedFilterCount(page)).toBe(0);
+  await expect(panel.locator('.filter-del')).toHaveCount(0);
 });
 
 // WinISD deviation cue: a small button next to a control whose result differs from WinISD because
@@ -197,8 +189,6 @@ test('a Linkwitz-Riley takes even orders and shows the WinISD deviation cue at e
   await editorField(panel, 'Subtype').selectOption({label: 'Linkwitz-Riley'});
   const order = editorField(panel, 'Order');
   const cue = panel.locator('.filter-edit-body button.winisd-deviation-cue');
-  await expect(order).toHaveAttribute('step', '2');
-  await expect(order).toHaveAttribute('min', '2');
   // The new low-pass is order 2, so it becomes LR2: WinISD would draw LR4.
   await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=2');
   await expect(cue).toBeVisible();
@@ -212,12 +202,33 @@ test('a Linkwitz-Riley takes even orders and shows the WinISD deviation cue at e
   await expect(page.getByRole('dialog', {name: 'OpenISD and WinISD differences'}).locator('.wd-entry.current')).toContainText('always draws a 4th-order');
 });
 
+test('a Linkwitz-Riley Order steps by 2 with a floor of 2; Butterworth steps by 1', async ({page}) => {
+  const panel = page.locator('.content-panel');
+  await panel.locator('.action-btn', {hasText: '+ LP'}).click();
+  const order = editorField(panel, 'Order');
+  const [up, down] = [0, 1].map(i => editorRow(panel, 'Order').locator('.num-stepper-btn').nth(i));
+  await up.click();
+  await expect(panel.locator('.filter-summary')).toContainText('Butterworth, n=3');
+  await down.click();
+  await editorField(panel, 'Subtype').selectOption({label: 'Linkwitz-Riley'});
+  await fillAndBlur(order, '4');
+  await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=4');
+  await up.click();
+  await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=6');
+  await down.click();
+  await down.click();
+  await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=2');
+  await down.click();
+  await expect(panel.locator('.filter-summary')).toContainText('Linkwitz-Riley, n=2');
+  await expect(order).toHaveValue('2');
+});
+
 test('a User SOS Order box is greyed out: a second-order section is order 2', async ({page}) => {
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ HP'}).click();
   await editorField(panel, 'Subtype').selectOption({label: 'SOS, User specified fc and Q'});
-  await expect(editorField(panel, 'Order')).toBeDisabled();
-  await expect(panel.locator('.filter-edit-body label').filter({hasText: /^Order\b/})).toHaveAttribute('title', /second-order section/);
+  await expect(editorField(panel, 'Order')).toHaveAttribute('readonly', '');
+  await expect(editorRow(panel, 'Order')).toHaveAttribute('title', /second-order section/);
 });
 
 test('a Bessel high-pass shows the WinISD deviation cue by its Subtype', async ({page}) => {
@@ -230,3 +241,22 @@ test('a Bessel high-pass shows the WinISD deviation cue by its Subtype', async (
   await cue.click();
   await expect(page.getByRole('dialog', {name: 'OpenISD and WinISD differences'}).locator('.wd-entry.current')).toContainText('"Bessel high-pass"');
 });
+
+// UI layout safety: all ten editors open at once never push a scrollbar or clip a control in the panel.
+for (const size of [{width: 1280, height: 800}, {width: 1880, height: 1000}]) {
+  test(`the filter editors fit the panel without a scrollbar at ${size.width}x${size.height}`, async ({page}) => {
+    await page.setViewportSize(size);
+    const panel = page.locator('.content-panel');
+    for (const label of ['+ LP', '+ AP', '+ LT', '+ PEQ', '+ Peak HP', '+ Gain', '+ DLP', '+ LS']) {
+      await panel.locator('.action-btn', {hasText: label}).click();
+    }
+    const fit = await panel.evaluate(el => {
+      const box = el.getBoundingClientRect();
+      const outside = [...el.querySelectorAll('.filter-edit-body .ui-field')].filter(f => f.getBoundingClientRect().right > box.right + 0.5).length;
+      return {scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, outside};
+    });
+    console.log(`filters panel ${size.width}x${size.height}: scrollWidth ${fit.scrollWidth}, clientWidth ${fit.clientWidth}, rows past the right edge ${fit.outside}`);
+    expect(fit.scrollWidth).toBeLessThanOrEqual(fit.clientWidth);
+    expect(fit.outside).toBe(0);
+  });
+}

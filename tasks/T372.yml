@@ -1,0 +1,15 @@
+id: T372
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 4c5c6e76887d0d95ff4f20fcb808831ec42028cd
+goal: The air solver works out c and rho from temperature, humidity and pressure, and back-solves a cleared temperature, humidity or pressure from a typed c or rho
+done_test: bash scripts/test.sh packages/design/test/engine/air-solver.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T372.yml
+  - packages/design/engine/air.ts
+  - packages/design/engine/environment/airSolver.ts
+  - packages/design/engine/environment/EnvironmentEngine.ts
+  - packages/design/test/engine/air-solver.test.ts

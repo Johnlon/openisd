@@ -9,11 +9,12 @@
  * field registry (`ToggleField`, `@openisd/design/fields`); the tooltips below are the
  * short form of the same text. Design: PLAN_ADVANCED_SIM_OPTIONS.md.
  */
-import {ToggleField} from '@openisd/design/fields';
+import {ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import {useAdvancedOptions} from '../../hooks/AdvancedOptions-hooks.js';
 import ToggleLabel from './ToggleLabel.vue';
+import WinisdDeviationCue from './WinisdDeviationCue.vue';
 
-const {project, hasVent, simVcInductance, inputChecked} = useAdvancedOptions();
+const {project, hasVent, tlPortDeviationShown, simVcInductance, inputChecked} = useAdvancedOptions();
 </script>
 
 <template>
@@ -26,7 +27,7 @@ const {project, hasVent, simVcInductance, inputChecked} = useAdvancedOptions();
     </label>
     <label data-field-key="tlPortModel" :title="ToggleField.ADV_TLPORTMODEL.description"
       :class="{ 'na': !hasVent }">
-      <input type="checkbox" :checked="project.useTransmissionLinePortModel.value" @change="e => project.useTransmissionLinePortModel.set(inputChecked(e))" :disabled="!hasVent"> <ToggleLabel :field="ToggleField.ADV_TLPORTMODEL" />
+      <input type="checkbox" :checked="project.useTransmissionLinePortModel.value" @change="e => project.useTransmissionLinePortModel.set(inputChecked(e))" :disabled="!hasVent"> <ToggleLabel :field="ToggleField.ADV_TLPORTMODEL"><WinisdDeviationCue v-if="tlPortDeviationShown" :deviation="WinisdDeviation.TL_PORT_END_CORRECTION" /></ToggleLabel>
     </label>
     <label data-field-key="rgAtDriverSide" :title="ToggleField.ADV_RGATDRIVERSIDE.description">
       <input type="checkbox" :checked="project.rgAtDriverSide.value" @change="e => project.rgAtDriverSide.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_RGATDRIVERSIDE" />
@@ -42,4 +43,6 @@ const {project, hasVent, simVcInductance, inputChecked} = useAdvancedOptions();
 .adv-options label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 /* Not-applicable (no vent in this box type) — still readable, visibly inactive. */
 .adv-options label.na { opacity: 0.45; cursor: default; }
+/* The ≠W cue sits after the label's last line. */
+.adv-options :deep(.toggle-label .winisd-deviation-cue) { margin-left: 4px; }
 </style>

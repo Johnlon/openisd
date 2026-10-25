@@ -1,0 +1,21 @@
+id: T391
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 8f90ea6e2b69e77053af8cd9dddc4d51e0304c54
+goal: Options > Graph '0 dB line' and '-3dB line' colour pickers colour the 0 dB and -3 dB reference lines on every chart that draws them (TFMag, PR TF, port gain, rear port gain); today the lines are a fixed orange and the pickers do nothing. Colours and defaults live in packages/design. Bug: bugs/BUG_20261018_options-0db-3db-colour-pickers-do-nothing.md. John 18 Oct 2026: 'BUG - DISPATCH A FIX'.
+done_test: bash scripts/test.sh packages/design/test/chart/chart-types.test.ts packages/design/test/chart/build-plot-data.test.ts
+files:
+  - bugs/BUG_20261018_options-0db-3db-colour-pickers-do-nothing.md
+  - packages/design/chart/index.ts
+  - packages/design/chart/series.ts
+  - packages/design/test/chart/build-plot-data.test.ts
+  - packages/design/test/chart/chart-types.test.ts
+  - packages/ui/src/hooks/GraphPanel-hooks.ts
+  - packages/ui/src/hooks/OptionsModal-hooks.ts
+  - packages/ui/src/logic/presentationState.ts
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/test/ui/reference-line-colours.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T391.yml

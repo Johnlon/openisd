@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type ConflictCopy,
   DeviceId,
+  type DocId,
   ProjectId,
   type SyncActivity,
   withActivity,
@@ -121,6 +122,13 @@ class FakeSyncEngine implements SyncEngine {
   async run(): Promise<RunOutcome> {
     return { kind: 'synced', pulled: 0, pushed: 0, conflicts: [], held: 0, left: 0, removedDuplicates: 0, skippedNewer: 0 };
   }
+
+  notOnDrive(): readonly DocId[] {
+
+    return [];
+
+  }
+
 
   pendingLocal(): number {
     return this.pending;

@@ -1,0 +1,15 @@
+id: T380
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: a0637813ca33281ea0dcebfa0ab94913f0d30cfe
+goal: A UI gallery tool (scripts/ui-gallery) captures every app screen on phone and desktop for the released build and the current build, measures clipped buttons and horizontal overflow, and writes a before/after index page per run under ../ui-gallery/<stamp>_<sha>/; the persist-banner bug file carries John's addendum on an occasional usage notice (T379).
+done_test: bash scripts/quiet-test.sh npm run lint -- scripts/ui-gallery
+files:
+  - scripts/ui-gallery/README.md
+  - scripts/ui-gallery/capture.mjs
+  - scripts/ui-gallery/measure.mjs
+  - scripts/ui-gallery/screens.mjs
+  - bugs/BUG_20261017_persist-warning-is-scary.md
+  - tasks/T380.yml

@@ -8,7 +8,8 @@ import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
 import {NumberField} from '@openisd/design/fields';
 import type {OpenISDProject} from '@openisd/design';
-import type {BoxType, EnvironmentEngine, VentEngine} from '@openisd/design/engine';
+import {airIfAvailable} from '@openisd/design/engine';
+import type {BoxType, VentEngine} from '@openisd/design/engine';
 
 /** A presentation fact with no domain counterpart: these three box types draw two chambers. */
 import {DUAL_CHAMBER} from './boxFields.js';
@@ -17,7 +18,6 @@ export interface VentReadoutsDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
   selectedBox: Ref<BoxType>;
-  air: ComputedRef<ReturnType<EnvironmentEngine['solve']>['values']>;
   vent: VentEngine;
 }
 
@@ -29,7 +29,7 @@ export const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, n
  *  slotted. Width is always an input, never derived. */
 export const VENT_GEOMETRY_TIP = 'Cross area is solved from the vent\'s own dimension: diameter for a '
   + 'round vent, height for a slotted one. Width is always an input, never derived. Enter '
-  + 'either the dimension or the area and the other is calculated from it.';
+  + 'either the dimension or the area and the other is calculated from it. The Cross area box adds up all the ports.';
 /** Fh (Helmholtz Frequency) tooltip explaining meaning and calculation. */
 export const FH_TARGET_TIP = 'Fh (Helmholtz Frequency):\n'
   + 'The system tuning frequency of the passive radiator enclosure.\n'
@@ -37,7 +37,7 @@ export const FH_TARGET_TIP = 'Fh (Helmholtz Frequency):\n'
   + 'Formula: Fh = Fs_pr · √(1 + Vas_pr / Vb)';
 
 
-export function createVentReadouts({ project, projectChanged: changed, selectedBox, air, vent }: VentReadoutsDeps) {
+export function createVentReadouts({ project, projectChanged: changed, selectedBox, vent }: VentReadoutsDeps) {
   const activeVent = computed(() => {
     void changed.value;
     void project.value;
@@ -51,12 +51,13 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     return project.value.box.ventGroupOf(selectedBox.value).tuning_goal_hz;
   });
   // The formula itself lives on VentEngine (UI is display-only) — this just feeds it the
-  // currently-active vent's length and the resolved air.
+  // currently-active vent's length and the project's air.
   const portPipeResonance_hz = computed<number | null>(() => {
     void project.value;
     const L = activeVent.value.length_m.value;
-    if (L == null) return null;
-    return vent.firstResonance_hz(L, air.value);
+    const air = airIfAvailable(project.value.air);
+    if (L == null || air === null) return null;
+    return vent.firstResonance_hz(L, air);
   });
   /** The vent's own dq — a `target-unreachable` mark means the entered tuning has no positive
    *  port length in this volume/area; the solver already wrote `length_m` null. */
@@ -81,10 +82,11 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
     void project.value;
     return project.value.box.ventPortsOf(selectedBox.value).map(port => {
       const L = port.vent.length_m.value;
+      const air = airIfAvailable(project.value.air);
       const issue = port.vent.length_m.dq.find(i => i.kind === 'target-unreachable') ?? null;
       return {
         ...port,
-        portPipeResonance_hz: L == null ? null : vent.firstResonance_hz(L, air.value),
+        portPipeResonance_hz: L == null || air === null ? null : vent.firstResonance_hz(L, air),
         unreachable: issue !== null,
         unreachableMsg: issue === null ? '' : issue.text,
       };

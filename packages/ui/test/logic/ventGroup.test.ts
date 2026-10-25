@@ -123,10 +123,10 @@ describe('ventGroup', () => {
         `d=7cm → ${len7cm?.toFixed(4)} m, WinISD shows 0.318`);
     });
 
-    it('clearing both of the pair leaves both N — one equation cannot solve two unknowns', () => {
+    it('clearing the entered tuning when the length cannot be calculated leaves both N — one equation cannot solve two unknowns', () => {
       const p = ventedProject();
+      p.box.vented.volume_m3.clear();
       tuning(p).clear();
-      ventLength(p).clear();
       assert.equal(tuning(p).provenance, 'N');
       assert.equal(ventLength(p).provenance, 'N');
     });
@@ -204,9 +204,9 @@ describe('ventGroup', () => {
     });
   });
 
-  // John, 2026-10-01: clearing the entered side of the pair must not leave both blank
-  // ("unrecoverable"): it falls back to the starting alignment a fresh box gets.
-  describe('clearing the entered side of the tuning/length pair falls back to the starting alignment', () => {
+  // John, 2026-10-16: clearing the entered side of the pair makes the partner E at the value it has;
+  // the cleared side becomes C. No starting alignment is written.
+  describe('clearing the entered side of the tuning/length pair keeps the partner as E', () => {
     function projectWithDriver() {
       const p = ProjectBuilder.empty(createEngine());
       p.driver.specs.Fs_hz.set(40);
@@ -219,30 +219,26 @@ describe('ventGroup', () => {
       p.box.vented.vent.endCorrection_m.set(0.6);
       return p;
     }
-    function startingAlignment(): {Vb: number | null; Fb: number | null} {
-      const ref = projectWithDriver();
-      ref.box.resetVentedAlignment();
-      return {Vb: ref.box.vented.volume_m3.value, Fb: ref.box.vented.tuning_goal_hz.value};
-    }
 
-    it('clearing an entered tuning restores the alignment tuning and volume as entered', () => {
-      const want = startingAlignment();
+    it('clearing an entered tuning makes the length E at its value, the tuning C', () => {
       const p = projectWithDriver();
-      tuning(p).set(77.777);
-      p.box.vented.volume_m3.set(0.123456);
+      p.box.vented.volume_m3.set(0.03);
+      tuning(p).set(40);
+      const length = ventLength(p).value;
+      assert.ok(length !== null, 'precondition: the length is calculated');
       tuning(p).clear();
-      assert.equal(p.box.vented.tuning_goal_hz.value, want.Fb);
-      assert.equal(p.box.vented.volume_m3.value, want.Vb);
-      assert.equal(tuning(p).provenance, 'E');
-      assert.equal(ventLength(p).provenance, 'C');
+      assert.equal(ventLength(p).value, length);
+      assert.equal(ventLength(p).provenance, 'E');
+      assert.equal(tuning(p).provenance, 'C');
+      assert.equal(p.box.vented.volume_m3.value, 0.03);
     });
 
-    it('clearing an entered length restores the alignment the same way', () => {
-      const want = startingAlignment();
+    it('clearing an entered length makes the tuning E at its value, the length C', () => {
       const p = projectWithDriver();
       ventLength(p).set(0.222222);
+      const tuned = tuning(p).value;
       ventLength(p).clear();
-      assert.equal(p.box.vented.tuning_goal_hz.value, want.Fb);
+      assert.equal(tuning(p).value, tuned);
       assert.equal(tuning(p).provenance, 'E');
       assert.equal(ventLength(p).provenance, 'C');
     });

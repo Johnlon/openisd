@@ -2,20 +2,21 @@
 // The mobile shell — routes between the Design tabs and the full-screen Graph destination.
 // Holds NO logic: every ref/computed/write lives in `useMobileShell()`
 // (src/hooks/MobileShell-hooks.ts), mirroring OriginalShell.vue's own 1-to-1 hook rule.
+import MobileSaveButton from './MobileSaveButton.vue';
 import MobileTabBar from './MobileTabBar.vue';
-import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
+import MobileKeyStrip from './MobileKeyStrip.vue';
 import MobileBoxTab from './MobileBoxTab.vue';
 import MobileDriverTab from './MobileDriverTab.vue';
 import MobileSignalTab from './MobileSignalTab.vue';
 import MobileChartView from './MobileChartView.vue';
 import MobileProjectTab from './MobileProjectTab.vue';
 import MobileFiltersTab from './MobileFiltersTab.vue';
-import MobileEnclosureTab from './MobileEnclosureTab.vue';
 import MobileAdvancedTab from './MobileAdvancedTab.vue';
 import MobileManageDriversTab from './MobileManageDriversTab.vue';
 import ExportMenu from '../../components/ExportMenu.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import MobilePaneDialog from './MobilePaneDialog.vue';
+import MobileProjectsPane from './MobileProjectsPane.vue';
 import OptionsModal from '../../components/OptionsModal.vue';
 import CloudSyncBadge from '../../components/CloudSyncBadge.vue';
 import CloudSyncDialog from '../../components/CloudSyncDialog.vue';
@@ -26,16 +27,19 @@ import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
-import {NO_PROJECT_OPEN} from '@openisd/design/fields';
+import {APP_UPDATE_TEXT, NO_PROJECT_OPEN, PhoneHeaderSizes} from '@openisd/design/fields';
+
+/** The header's sizes (44 px controls, 14 px project name on two lines) as CSS variables. */
+const headerVars = Object.fromEntries(PhoneHeaderSizes.CLASSIC.cssVars());
 
 const {
-  projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
-  menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, projectTitle,
-  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx,
-  showEnclosureTab, enclosureNavLabel, contentEl, canScrollUp, canScrollDown, updateScrollEdges,
-  username, appVersion, openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel, openProjectDialog, openStoredProject,
+  projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
+  menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
+  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
+  contentEl, canScrollUp, canScrollDown,
+  username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
+  setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
-  openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
   openCloudSync, reconnectCloud, openConflictNotice, turnOnHint, dismissHint, connectCloud, syncNowCloud,
   disconnectCloud, openConflict,
@@ -48,8 +52,34 @@ const diagnostics = injectDiagnosticsModal();
 </script>
 
 <template>
-  <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined }">
+  <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }">
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
+
+    <!-- No top bar over the Graph destination — it's deliberately full-screen (see
+         MobileChartView.vue); the hamburger stays reachable from the other three tabs,
+         and with no project open. -->
+    <div v-if="!projectOpen || destination !== 'graph'" class="mob-topbar" :class="{ 'mob-shadow-below': canScrollUp }" :style="headerVars">
+      <button type="button" class="mob-hamburger" title="Menu" aria-label="Menu" @click.stop="toggleMenu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="mob-brand">
+        <img src="/icon.svg" alt="" aria-hidden="true">
+        <span>OpenISD</span>
+      </div>
+      <button v-if="projectTitle" type="button" class="mob-project-title" :title="projectTitle" @click="openProjectsPane">{{ projectTitle }}</button>
+      <CloudSyncBadge
+        v-if="cloudEnabled"
+        class="mob-header-sync"
+        :display="cloudSyncDisplay"
+        @tap="handleSyncTap"
+        @pointerdown="onSyncPointerDown"
+        @pointerup="onSyncPointerUp"
+        @pointercancel="onSyncPointerCancel"
+      />
+      <MobileSaveButton v-if="projectOpen" />
+    </div>
+
+    <MobileKeyStrip v-if="projectOpen && destination !== 'graph'" />
 
     <div v-if="!projectOpen" class="mob-empty">
       <div class="mob-empty-brand">
@@ -59,72 +89,39 @@ const diagnostics = injectDiagnosticsModal();
       <p class="mob-empty-title">{{ NO_PROJECT_OPEN }}</p>
       <!-- Same three actions, words and icons as desktop's empty chart (OriginalShell.vue). -->
       <button type="button" class="mob-cta" @click="openNewProject"><ToolbarIcon name="new" /> <span>New project</span></button>
-      <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectDialog"><ToolbarIcon name="open" /> <span>Open project</span></button>
+      <button type="button" class="mob-cta mob-cta-secondary" @click="openProjectsPane"><ToolbarIcon name="open" /> <span>Open project</span></button>
       <button type="button" class="mob-cta mob-cta-secondary" @click="fileInput?.click()"><ToolbarIcon name="import" /> <span>Import project</span></button>
       <button type="button" class="mob-link" @click="switchToDesktop">Switch to Desktop view</button>
+      <button v-if="!skinIsAutomatic" type="button" class="mob-link" @click="useAutomaticSkin">Automatic view</button>
     </div>
 
     <template v-else>
-      <!-- No top bar over the Graph destination — it's deliberately full-screen (see
-           MobileChartView.vue); the hamburger stays reachable from the other three tabs. -->
-      <div v-if="destination !== 'graph'" class="mob-topbar" :class="{ 'mob-shadow-below': canScrollUp }">
-        <button type="button" class="mob-hamburger" title="Menu" aria-label="Menu" @click.stop="toggleMenu">
-          <span></span><span></span><span></span>
-        </button>
-        <div class="mob-brand">
-          <img src="/icon.svg" alt="" aria-hidden="true">
-          <span>OpenISD</span>
-        </div>
-        <div v-if="projectTitle" class="mob-project-title" :title="projectTitle">{{ projectTitle }}</div>
-        <CloudSyncBadge
-          v-if="cloudEnabled"
-          class="mob-header-sync"
-          :display="cloudSyncDisplay"
-          @tap="handleSyncTap"
-          @pointerdown="onSyncPointerDown"
-          @pointerup="onSyncPointerUp"
-          @pointercancel="onSyncPointerCancel"
-        />
-      </div>
-
-      <main ref="contentEl" class="mob-content" @scroll="updateScrollEdges">
+      <main ref="contentEl" class="mob-content" :class="{ 'mob-content-fixed': destination === 'graph' }" @scroll="onContentScroll">
         <MobileChartView v-if="destination === 'graph'" @menu="toggleMenu" />
         <MobileBoxTab v-else-if="destination === 'box'" />
         <MobileDriverTab v-else-if="destination === 'driver'" />
         <MobileSignalTab v-else-if="destination === 'signal'" />
         <MobileFiltersTab v-else-if="destination === 'filters'" />
-        <MobileEnclosureTab v-else-if="destination === 'enclosure'" />
+        <div v-if="destination !== 'graph' && pinSpacePx > 0" class="mob-pin-space" :style="{ height: pinSpacePx + 'px' }" aria-hidden="true"></div>
       </main>
-      <ProvenanceLegend v-if="destination === 'box' || destination === 'signal' || destination === 'enclosure'" />
-      <MobilePaneDialog v-if="pane === 'drivers'" title="Manage drivers" @close="closePane">
-        <MobileManageDriversTab @chosen="destination = 'driver'; closePane()" />
-      </MobilePaneDialog>
-      <MobilePaneDialog v-else-if="pane === 'project'" title="Project" @close="closePane">
+      <MobilePaneDialog v-if="pane === 'project'" title="Project" @close="closePane">
         <MobileProjectTab />
       </MobilePaneDialog>
       <MobilePaneDialog v-else-if="pane === 'advanced'" title="Advanced" @close="closePane">
         <MobileAdvancedTab />
       </MobilePaneDialog>
-      <MobilePaneDialog v-else-if="pane === 'cloudSync'" :title="cloudSyncDisplay.dialog.title" @close="closePane">
-        <div class="mob-cloud-dialog-body">
-          <CloudSyncDialog
-            :model="cloudSyncDisplay.dialog"
-            @connect="connectCloud"
-            @syncNow="syncNowCloud"
-            @reconnect="reconnectCloud"
-            @disconnect="disconnectCloud"
-            @openConflict="openConflict"
-          />
-        </div>
-      </MobilePaneDialog>
-      <div v-if="updateBannerVisible" class="mob-update-banner" role="status">
-        <span>A new version of OpenISD is available.</span>
-        <button type="button" class="mob-update-reload" @click="reloadForUpdate">Reload</button>
-        <button type="button" class="mob-update-later" aria-label="Dismiss" @click="dismissUpdateBanner">&#10005;</button>
+      <div v-if="flashMessage" class="mob-update-banner mob-flash-banner" role="status" data-testid="flash-strip">
+        <span>{{ flashMessage }}</span>
       </div>
-      <div v-else-if="cloudEnabled && cloudSyncDisplay.strip !== null" class="mob-update-banner mob-reconnect-banner" role="status">
+      <div v-else-if="updateBannerVisible" class="mob-update-banner" role="status" data-testid="update-strip">
+        <span>{{ APP_UPDATE_TEXT.offer }}</span>
+        <button type="button" class="mob-update-reload" data-testid="update-reload" @click="reloadForUpdate">{{ APP_UPDATE_TEXT.reload }}</button>
+        <button type="button" class="mob-update-later" data-testid="update-later" @click="dismissUpdateBanner">{{ APP_UPDATE_TEXT.later }}</button>
+      </div>
+      <div v-else-if="cloudEnabled && cloudSyncDisplay.strip !== null" class="mob-update-banner mob-reconnect-banner" role="status" data-testid="reconnect-strip">
         <span>{{ cloudSyncDisplay.strip.text }}</span>
         <button type="button" class="mob-update-reload" @click="reconnectCloud">{{ cloudSyncDisplay.strip.button }}</button>
+        <button type="button" class="mob-update-later" data-testid="reconnect-later" @click="dismissReconnect">{{ cloudSyncDisplay.strip.dismiss }}</button>
       </div>
       <div v-else-if="cloudEnabled && cloudSyncDisplay.conflictNotice !== null" class="mob-update-banner mob-conflict-banner" role="status">
         <span>{{ cloudSyncDisplay.conflictNotice.text }}</span>
@@ -135,109 +132,126 @@ const diagnostics = injectDiagnosticsModal();
         <button type="button" class="mob-update-reload" @click="turnOnHint">{{ cloudSyncDisplay.hint.yes }}</button>
         <button type="button" class="mob-update-later" :aria-label="cloudSyncDisplay.hint.no" :title="cloudSyncDisplay.hint.no" @click="dismissHint">&#10005;</button>
       </div>
-      <MobileTabBar v-model="destination" :show-enclosure="showEnclosureTab" :enclosure-label="enclosureNavLabel"
-        :shadow-above="canScrollDown" />
+      <MobileTabBar v-model="destination" :shadow-above="canScrollDown" />
 
-      <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
-        <div class="mob-menu" @click.stop>
-          <div class="mob-menu-brand">
-            <img src="/icon.svg" alt="" aria-hidden="true">
-            <div class="mob-menu-brand-text">
-              <span class="mob-menu-brand-line">
-                <span class="mob-menu-brand-name">OpenISD</span>
-                <span v-if="appVersion" class="mob-menu-version" data-testid="app-version">{{ appVersion }}</span>
-              </span>
-              <span v-if="username" class="mob-menu-username">{{ username }}</span>
-            </div>
-          </div>
-          <!-- Project: what changes or files the open projects. App: the app and its library. -->
-          <section class="mob-menu-section" aria-labelledby="mob-menu-head-project">
-            <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
-            <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
-            <button type="button" class="mob-menu-item" @click="openProjectDialog">Open project…</button>
-            <button type="button" class="mob-menu-item" @click="openFromDisk">Open a file</button>
-            <div class="mob-menu-sep"></div>
-            <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
-            <button type="button" class="mob-menu-item" :class="{ dirty: anyUnsaved }" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
-            <ExportMenu class="mob-menu-item mob-menu-export">Save As / Export</ExportMenu>
-            <div class="mob-menu-sep"></div>
-            <button type="button" class="mob-menu-item" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
-            <div class="mob-menu-sep"></div>
-            <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
-            <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
-            <div class="mob-menu-sep"></div>
-            <div class="mob-menu-heading">Open projects</div>
-            <div v-for="(row, i) in openProjectRows" :key="i" class="mob-open-project" :class="{ focused: row.focused }">
-              <input type="checkbox" class="mob-open-project-show" :checked="row.traceVisible"
-                     :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
-                     @change="setOpenProjectTraceVisible(row, inputChecked($event))">
-              <button type="button" class="mob-open-project-colour" :style="{ background: row.colour }"
-                      :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
-                      @click="cycleOpenProjectColour(row)"></button>
-              <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
-                <span v-if="row.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span>{{ row.name }}
-              </button>
-              <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
-            </div>
-          </section>
-          <section class="mob-menu-section" aria-labelledby="mob-menu-head-app">
-            <div id="mob-menu-head-app" class="mob-menu-section-head">App</div>
-            <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
-            <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
-            <button v-if="cloudEnabled" type="button" class="mob-menu-item mob-menu-cloud" @click="openCloudSync">
-              <span>{{ cloudSyncDisplay.dialog.title }}</span>
-              <span class="mob-menu-cloud-status">
-                <span>{{ cloudSyncDisplay.shortText }}</span>
-                <ToolbarIcon :name="cloudSyncDisplay.glyph" />
-              </span>
-            </button>
-            <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
-            <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
-            <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
-            <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
-          </section>
-        </div>
-      </div>
     </template>
 
-    <!-- Outside the project template: the empty state opens it too. -->
-    <MobilePaneDialog v-if="openDialogOpen" class="mob-open-project-sheet" title="Open project" @close="openDialogOpen = false">
-      <template v-if="!binOpen">
-        <div class="mob-project-tools">
-          <input class="mob-project-search" type="search" v-model="projectQuery" placeholder="Search projects" aria-label="Search projects">
-          <div class="mob-project-sort" role="group" aria-label="Sort projects">
-            <button v-for="o in projectOrders" :key="o.label" type="button" :class="{on: projectOrder === o}" @click="projectOrder = o">{{ o.label }}</button>
-          </div>
-        </div>
-        <p v-if="storedProjects.length === 0" class="mob-hint">No saved project yet.</p>
-        <p v-else-if="shownProjects.length === 0" class="mob-hint">No project matches.</p>
-        <div v-for="p in shownProjects" :key="p.id" class="mob-stored-project-item">
-          <button type="button" class="mob-stored-project-row" @click="openStoredProject(p.id)">
-            <span class="mob-stored-project-name">{{ p.name }}</span>
-            <span class="mob-stored-project-summary">{{ p.summary }}</span>
-            <span class="mob-stored-project-modified">{{ p.modified }}</span>
-          </button>
-          <button type="button" class="mob-stored-project-bin" :aria-label="`Move ${p.name} to the Bin`" :title="`Move ${p.name} to the Bin`" @click="moveToBin(p)"><ToolbarIcon name="bin" /></button>
-        </div>
-      </template>
-      <template v-else>
-        <p v-if="binRows.length === 0" class="mob-hint">The Bin is empty.</p>
-        <div v-for="b in binRows" :key="b.id" class="mob-bin-row">
-          <span class="mob-stored-project-name">{{ b.name }}</span>
-          <span class="mob-stored-project-summary">{{ b.binnedAt }} · {{ b.device }} · {{ b.size }}</span>
-          <div class="mob-bin-actions">
-            <button type="button" class="mob-bin-restore" @click="restoreFromBin(b)">Restore</button>
-            <button type="button" class="mob-bin-delete-forever" @click="deleteForever(b)">Delete forever</button>
-          </div>
-        </div>
-        <button v-if="binRows.length > 0" type="button" class="mob-cta mob-cta-secondary mob-bin-empty" @click="emptyBin">Empty Bin ({{ binTotal }})</button>
-      </template>
-      <div class="mob-project-actions">
-        <button type="button" class="mob-project-action mob-export-projects" @click="exportProjectsArchive">Export all projects</button>
-        <button type="button" class="mob-project-action mob-bin-toggle" @click="binOpen = !binOpen"><template v-if="binOpen">Back to projects</template><template v-else><ToolbarIcon name="bin" /> {{ binLabel }}</template></button>
-      </div>
-      <p class="store-label mob-store-label">{{ storeLabel }}</p>
+    <!-- App-level: reachable with no project open too (John, 16 Oct 2026). -->
+    <MobilePaneDialog v-if="pane === 'drivers'" title="Manage drivers" @close="closePane">
+      <MobileManageDriversTab @chosen="destination = 'driver'; closePane()" />
     </MobilePaneDialog>
+    <MobilePaneDialog v-else-if="pane === 'cloudSync'" :title="cloudSyncDisplay.dialog.title" @close="closePane">
+      <div class="mob-cloud-dialog-body">
+        <CloudSyncDialog
+          :model="cloudSyncDisplay.dialog"
+          @connect="connectCloud"
+          @syncNow="syncNowCloud"
+          @reconnect="reconnectCloud"
+          @disconnect="disconnectCloud"
+          @openConflict="openConflict"
+        />
+      </div>
+    </MobilePaneDialog>
+
+    <div v-if="menuOpen" class="mob-menu-overlay" @click="closeMenu">
+      <div class="mob-menu" @click.stop>
+        <div class="mob-menu-brand">
+          <img src="/icon.svg" alt="" aria-hidden="true">
+          <div class="mob-menu-brand-text">
+            <span class="mob-menu-brand-line">
+              <span class="mob-menu-brand-name">OpenISD</span>
+              <span v-if="appVersion" class="mob-menu-version" data-testid="app-version">{{ appVersion }}</span>
+            </span>
+            <span v-if="username" class="mob-menu-username">{{ username }}</span>
+          </div>
+        </div>
+        <!-- The open projects, one tap away: show on the graphs, colour, switch to, close. -->
+        <section v-if="projectOpen" class="mob-menu-section" aria-labelledby="mob-menu-head-open">
+          <div id="mob-menu-head-open" class="mob-menu-section-head">Open projects</div>
+          <div v-for="row in openProjectRows" :key="row.key" class="mob-open-project" :class="{ focused: row.open.kind === 'open' && row.open.active }">
+            <template v-if="row.open.kind === 'open'">
+              <label class="mob-open-project-show-wrap">
+                <input type="checkbox" class="mob-open-project-show" :checked="row.open.shown"
+                       :aria-label="'Show ' + row.name + ' on the graphs'" title="Show/hide this project's trace on the graphs"
+                       @change="setProjectTraceVisible(row, inputChecked($event))">
+              </label>
+              <button type="button" class="mob-open-project-colour-wrap" :aria-label="'Change the colour of ' + row.name" title="Tap to change this project's curve colour"
+                      @click="cycleProjectColour(row)"><span class="mob-open-project-colour" :style="{ background: row.open.colour ?? undefined }"></span></button>
+              <button type="button" class="mob-open-project-name" :title="row.name" @click="selectOpenProject(row)">
+                <span v-if="row.open.unsaved" class="mob-open-project-dot" title="Unsaved changes"></span><span class="mob-open-project-name-text">{{ row.name }}</span>
+              </button>
+            </template>
+            <button type="button" class="mob-open-project-close" :aria-label="'Close ' + row.name" @click="closeOpenProject(row)">&#10005;</button>
+          </div>
+        </section>
+        <!-- Project: what changes or files the open projects. App: the app and its library. -->
+        <section class="mob-menu-section" aria-labelledby="mob-menu-head-project">
+          <div id="mob-menu-head-project" class="mob-menu-section-head">Project</div>
+          <button type="button" class="mob-menu-item" @click="openProjectsPane">Projects</button>
+          <button type="button" class="mob-menu-item" @click="openNewProject">New project</button>
+          <button type="button" class="mob-menu-item" :class="{ gap: projectOpen }" @click="openFromDisk">Open a file</button>
+          <!-- Project-level items: only with a project open (John, 16 Oct 2026). -->
+          <template v-if="projectOpen">
+            <button type="button" class="mob-menu-item" :class="{ dirty: isModified }" @click="saveProject(); closeMenu()">Save</button>
+            <button type="button" class="mob-menu-item" :class="{ dirty: anyUnsaved }" :disabled="!anyUnsaved" @click="saveAllProjects(); closeMenu()">Save all</button>
+            <ExportMenu class="mob-menu-item mob-menu-export" @chosen="closeMenu">Save As / Export</ExportMenu>
+            <button type="button" class="mob-menu-item gap" :disabled="!isModified" @click="revertProject">Revert unsaved changes</button>
+            <button type="button" class="mob-menu-item" @click="goToProject">Project details</button>
+            <button type="button" class="mob-menu-item" @click="goToAdvanced">Advanced</button>
+          </template>
+        </section>
+        <section class="mob-menu-section" aria-labelledby="mob-menu-head-app">
+          <div id="mob-menu-head-app" class="mob-menu-section-head">App</div>
+          <button type="button" class="mob-menu-item" @click="browseDrivers">Manage Drivers</button>
+          <button type="button" class="mob-menu-item" @click="openOptions">Options</button>
+          <button v-if="cloudEnabled" type="button" class="mob-menu-item mob-menu-cloud" @click="openCloudSync">
+            <span>{{ cloudSyncDisplay.dialog.title }}</span>
+            <span class="mob-menu-cloud-status">
+              <span>{{ cloudSyncDisplay.shortText }}</span>
+              <ToolbarIcon :name="cloudSyncDisplay.glyph" />
+            </span>
+          </button>
+          <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
+          <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
+          <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+          <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
+          <button v-if="!skinIsAutomatic" type="button" class="mob-menu-item" @click="useAutomaticSkin">Automatic view</button>
+        </section>
+      </div>
+    </div>
+
+    <!-- Full-screen Projects pane: lists every project, saved or open. -->
+    <MobileProjectsPane
+      v-if="projectsPaneOpen"
+      v-model:query="projectQuery"
+      v-model:order="projectOrder"
+      v-model:binOpen="binOpen"
+      :project-rows="projectRows"
+      :shown-projects="shownProjects"
+      :projects-footer="projectsFooter"
+      :search-offered="searchOffered"
+      :project-orders="projectOrders"
+      :bin-rows="binRows"
+      :bin-total="binTotal"
+      :bin-label="binLabel"
+      :store-label="storeLabel"
+      :choose-project="chooseProject"
+      :set-project-trace-visible="setProjectTraceVisible"
+      :cycle-project-colour="cycleProjectColour"
+      :close-project-row="closeProjectRow"
+      :duplicate-project-row="duplicateProjectRow"
+      :export-project-row="exportProjectRow"
+      :rename-project-row="renameProjectRow"
+      :resolve-project-row="resolveProjectRow"
+      :move-to-bin="moveToBin"
+      :restore-from-bin="restoreFromBin"
+      :delete-forever="deleteForever"
+      :empty-bin="emptyBin"
+      :export-projects-archive="exportProjectsArchive"
+      :open-new-project="openNewProject"
+      :open-from-disk="openFromDisk"
+      @close="closeProjectsPane"
+    />
 
     <OptionsModal v-if="optionsOpen" class="mob-options" @close="optionsOpen = false" />
   </div>
@@ -285,7 +299,11 @@ const diagnostics = injectDiagnosticsModal();
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
+}
+.mob-content.mob-content-fixed {
+  overflow: hidden;
+  padding-bottom: 0;
 }
 /* Every direct child here is a mounted tab's ROOT (`.mob-panel` blocks, `.mob-hint` paragraphs,
    …) — a flex ITEM with the column-flex default `flex-shrink: 1`. Any `.mob-panel` also sets
@@ -303,7 +321,7 @@ const diagnostics = injectDiagnosticsModal();
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  padding: 6px 10px;
+  padding: var(--mob-header-pad-y) 10px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
 }
@@ -311,8 +329,8 @@ const diagnostics = injectDiagnosticsModal();
   box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.3);
 }
 .mob-hamburger {
-  width: 40px;
-  height: 40px;
+  width: var(--mob-header-control);
+  height: var(--mob-header-control);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -324,16 +342,22 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-brand { display: flex; align-items: center; gap: 8px; margin-left: 4px; font-weight: 600; font-size: 17px; }
 .mob-brand img { width: 24px; height: 24px; display: block; }
-/* The focused project's name: takes the rest of the bar, cut with an ellipsis when long. */
+/* The focused project's name: takes the rest of the bar and wraps to two lines (ellipsis only past two). */
 .mob-project-title {
+  all: unset;
+  box-sizing: border-box;
   flex: 1; min-width: 0; margin-left: 12px; text-align: right;
-  font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-height: var(--mob-header-control);
+  font-size: var(--mob-header-title-px); line-height: var(--mob-header-title-lh); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--mob-header-title-lines); overflow: hidden;
+  cursor: pointer;
+  color: inherit;
 }
 .mob-hamburger span { display: block; width: 20px; height: 2px; background: var(--fg); border-radius: 1px; }
 .mob-header-sync {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: var(--mob-header-control);
+  height: var(--mob-header-control);
   margin-left: 6px;
   display: flex;
   align-items: center;
@@ -380,13 +404,19 @@ const diagnostics = injectDiagnosticsModal();
 .mob-menu-item {
   all: unset;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
   width: 100%;
-  padding: 5px 18px;
+  height: 31px;
+  padding: 0 16px;
+  border-bottom: 1px solid transparent;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--fg);
   cursor: pointer;
 }
+/* The last row of a group carries the rule under it, as the accepted mock's .mi.gap. */
+.mob-menu-item.gap { border-bottom-color: var(--line); }
 .mob-menu-item:disabled { color: var(--mut); cursor: default; }
 .mob-menu-item.dirty { color: var(--acc2); font-weight: 600; }
 .mob-menu-cloud {
@@ -404,38 +434,46 @@ const diagnostics = injectDiagnosticsModal();
 /* .mob-menu-item's own padding lands on THIS element too (its class list includes both) — zero
    it here so the trigger button below isn't double-indented (12px+12px) relative to every plain
    `<button class="mob-menu-item">` sibling. */
-.mob-menu-export { padding: 0; }
+.mob-menu-export { display: block; height: auto; padding: 0; border-bottom: none; }
 .mob-menu-export :deep(.export-menu-trigger) {
   all: unset;
   box-sizing: border-box;
   width: 100%;
+  height: 31px;
   display: block;
-  padding: 5px 18px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line);
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--fg);
   cursor: pointer;
 }
+.mob-menu-export:has(.export-menu-list) :deep(.export-menu-trigger) { border-bottom-color: transparent; }
 .mob-menu-export :deep(.export-menu-trigger:disabled) { color: var(--mut); cursor: default; }
-.mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-top: 1px solid var(--line); border-radius: 0; margin-top: 0; }
-.mob-menu-export :deep(.export-menu-list button) { padding: 7px 28px; font-size: 14px; }
-.mob-menu-sep { height: 1px; background: var(--line); margin: 3px 0; }
-.mob-menu-section { border-top: 2px solid var(--line); padding: 2px 0; }
-.mob-menu-section-head { padding: 2px 18px 0; font-size: 13px; font-weight: 700; color: var(--acc); }
-.mob-menu-heading { padding: 2px 18px; font-size: 12px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.04em; }
-.mob-open-project { display: flex; align-items: center; }
-.mob-open-project-show { flex: none; margin: 0 0 0 18px; width: 18px; height: 18px; }
-.mob-open-project-colour { all: unset; box-sizing: border-box; flex: none; width: 18px; height: 18px; margin-left: 10px; border-radius: 4px; border: 1px solid var(--line); cursor: pointer; }
+.mob-menu-export :deep(.export-menu-trigger) { display: flex; align-items: center; justify-content: space-between; }
+.mob-menu-export :deep(.export-menu-trigger)::after { content: "▾"; color: var(--mut); }
+.mob-menu-export:has(.export-menu-list) :deep(.export-menu-trigger)::after { content: "▴"; }
+.mob-menu-export :deep(.export-menu-list) { position: static; box-shadow: none; border: none; border-radius: 0; margin-top: 0; padding: 0; }
+.mob-menu-export :deep(.export-menu-list button) { display: flex; align-items: center; box-sizing: border-box; width: 100%; height: 31px; padding: 0 16px 0 26px; border-bottom: 1px solid transparent; font-size: 14px; }
+.mob-menu-export :deep(.export-menu-list button:last-child) { border-bottom-color: var(--line); }
+.mob-menu-section { border-top: 1px solid var(--line); padding: 0 0 2px; }
+.mob-menu-section-head { height: 28px; display: flex; align-items: center; padding: 0 16px; background: #ececec; color: #333; font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+.mob-open-project { display: flex; align-items: center; min-height: 48px; }
+.mob-open-project-show-wrap { flex: none; width: 48px; min-height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.mob-open-project-show { width: 20px; height: 20px; margin: 0; }
+.mob-open-project-colour-wrap { all: unset; box-sizing: border-box; flex: none; width: 40px; min-height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+.mob-open-project-colour { width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--line); display: block; }
 .mob-open-project.focused { background: var(--panel2); }
 .mob-open-project-name {
   all: unset;
   box-sizing: border-box;
   flex: 1;
   min-width: 0;
+  min-height: 48px;
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 4px 6px 10px;
+  padding: 0 4px 0 6px;
   font-size: 14px;
   color: var(--fg);
   cursor: pointer;
@@ -444,42 +482,10 @@ const diagnostics = injectDiagnosticsModal();
   white-space: nowrap;
 }
 .mob-open-project.focused .mob-open-project-name { font-weight: 600; }
+/* A long name wraps onto more lines; the whole name always shows (John, 20 Oct 2026). */
+.mob-open-project-name-text { flex: 0 1 auto; min-width: 0; display: block; padding: 6px 0; line-height: 1.25; white-space: normal; overflow-wrap: anywhere; }
 .mob-open-project-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--acc2); }
-.mob-open-project-close { all: unset; box-sizing: border-box; flex: none; padding: 6px 14px; font-size: 13px; color: var(--mut); cursor: pointer; }
-
-.mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
-.mob-stored-project-row {
-  all: unset;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-  padding: 10px 16px;
-  cursor: pointer;
-}
-.mob-stored-project-item { display: flex; align-items: center; border-top: 1px solid var(--line); }
-.mob-stored-project-item:first-of-type { border-top: none; }
-.mob-stored-project-bin { all: unset; box-sizing: border-box; flex: none; display: inline-flex; align-items: center; padding: 10px 16px; font-size: 13px; color: var(--mut); cursor: pointer; }
-.mob-project-tools { display: flex; flex-direction: column; gap: 8px; padding: 8px 16px; }
-.mob-project-search { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 12px; font: inherit; font-size: 15px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel); color: var(--fg); }
-.mob-project-sort { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
-.mob-project-sort button { all: unset; box-sizing: border-box; flex: 1; min-height: 40px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--mut); border-right: 1px solid var(--line); cursor: pointer; }
-.mob-project-sort button:last-child { border-right: 0; }
-.mob-project-sort button.on { background: var(--panel2); color: var(--fg); font-weight: 600; }
-.mob-project-actions { display: flex; justify-content: space-between; gap: 8px; margin: 8px 8px 0; border-top: 1px solid var(--line); padding-top: 4px; }
-.mob-project-action { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 8px; font-size: 14px; color: var(--acc); cursor: pointer; }
-.mob-store-label { margin: 12px 16px; font-size: 11px; color: var(--mut); }
-.mob-bin-toggle { margin-top: 0; }
-.mob-bin-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; border-top: 1px solid var(--line); }
-.mob-bin-row:first-of-type { border-top: none; }
-.mob-bin-actions { display: flex; gap: 16px; margin-top: 4px; }
-.mob-bin-restore, .mob-bin-delete-forever { all: unset; box-sizing: border-box; padding: 6px 0; font-size: 13px; cursor: pointer; color: var(--acc); }
-.mob-bin-delete-forever { color: var(--bad); }
-.mob-stored-project-name { font-size: 15px; color: var(--fg); }
-.mob-stored-project-summary { font-size: 13px; color: var(--mut); }
-.mob-stored-project-modified { font-size: 12px; color: var(--mut); }
+.mob-open-project-close { all: unset; box-sizing: border-box; flex: none; min-width: 48px; min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--mut); cursor: pointer; }
 
 .mob-empty {
   flex: 1;
@@ -550,8 +556,8 @@ const diagnostics = injectDiagnosticsModal();
 }
 .mob-update-banner { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #e8f1fb; border-top: 1px solid #b8d4f8; color: #224466; font-size: 14px; }
 .mob-update-banner span { flex: 1; }
-.mob-update-reload { min-height: 40px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
-.mob-update-later { min-height: 40px; min-width: 40px; border: none; background: none; color: #224466; font-size: 16px; cursor: pointer; }
+.mob-update-reload { min-height: 44px; padding: 0 16px; border: 1px solid var(--acc); border-radius: 4px; background: var(--acc); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+.mob-update-later { min-height: 44px; min-width: 44px; padding: 0 8px; border: none; background: none; color: #224466; font: inherit; cursor: pointer; }
 .mob-cloud-dialog-body { padding: 16px; }
 .mob-reconnect-banner {
   background: color-mix(in srgb, var(--acc2, #b8790f) 15%, var(--panel, #f9faf9));

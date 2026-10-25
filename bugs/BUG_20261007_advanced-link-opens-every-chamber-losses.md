@@ -1,6 +1,6 @@
 # BUG_20261007_advanced-link-opens-every-chamber-losses
 
-**Status:** OPEN
+**Status:** RESOLVED (16 Oct 2026): desktop links set lossesOpen to rear or front, mobile has one Box losses button per chamber panel; pinned by mobile-box-losses-popup.browser.spec.ts
 
 ## Symptom
 On a two-chamber box (4th-order bandpass, 6th-order bandpass, ABC), each chamber panel's "Advanced->"

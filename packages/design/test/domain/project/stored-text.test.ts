@@ -46,6 +46,18 @@ describe('OpenISDProject.toStoredText', () => {
     expect(withoutDq(back.toOwprText())).toEqual(withoutDq(original.toOwprText()));
   });
 
+  it('is the same length every time the same project is stored, whatever id the driver is read with', () => {
+    const original = project();
+    const sizes = new Set<number>();
+    let text = original.toStoredText();
+    for (let round = 0; round < 5; round++) {
+      sizes.add(new TextEncoder().encode(text).length);
+      text = loaded(text).toStoredText();
+      sizes.add(new TextEncoder().encode(project().toStoredText()).length);
+    }
+    expect([...sizes]).toHaveLength(1);
+  });
+
   it('keeps the edited state', () => {
     const p = project();
     p.name.set('renamed');

@@ -8,6 +8,8 @@
 // in-memory map is another, which is what lets My Drivers, favourites and the PR repo be
 // exercised without a DOM.
 
+import type {StoragePrefix} from './storagePrefix.js';
+
 export interface KeyValueStorage {
   get(key: string): string | null;
   set(key: string, value: string): void;
@@ -25,22 +27,33 @@ export interface ListableStorage extends KeyValueStorage {
 }
 
 /**
- * The browser's own storage. Every call is guarded: storage can be disabled by the user or
+ * The browser's own storage, under `prefix`. Every call is guarded: storage can be disabled by the user or
  * full, and neither is a reason for the app to stop — a preference that cannot be written is
  * a preference that does not persist, not a crash.
  */
-export function createLocalStorage(): ListableStorage {
+export function createLocalStorage(prefix: StoragePrefix): ListableStorage {
+  return createWebStorage(() => localStorage, prefix);
+}
+
+/** This tab's own storage, under `prefix`: it lasts while the tab is open, and no other tab sees
+ *  it. Guarded as `createLocalStorage` is. */
+export function createSessionStorage(prefix: StoragePrefix): ListableStorage {
+  return createWebStorage(() => sessionStorage, prefix);
+}
+
+/** `area` is read inside every guard: merely touching a disabled browser store throws. */
+function createWebStorage(area: () => Storage, prefix: StoragePrefix): ListableStorage {
   return {
     keys() {
-      try { return Object.keys(localStorage); } catch { return []; }
+      try { return Object.keys(area()).flatMap(stored => prefix.own(stored) ?? []); } catch { return []; }
     },
-    get(key) { try { return localStorage.getItem(key); } catch { return null; } },
-    set(key, value) { try { localStorage.setItem(key, value); } catch { /* disabled or full */ } },
-    remove(key) { try { localStorage.removeItem(key); } catch { /* disabled */ } },
+    get(key) { try { return area().getItem(prefix.stored(key)); } catch { return null; } },
+    set(key, value) { try { area().setItem(prefix.stored(key), value); } catch { /* disabled or full */ } },
+    remove(key) { try { area().removeItem(prefix.stored(key)); } catch { /* disabled */ } },
     watch(key, onChange) {
       // The browser raises `storage` in every OTHER tab of the origin, and only when the value
       // actually changed. A null key is a whole-storage clear.
-      const listener = (event: StorageEvent) => { if (event.key === key || event.key === null) onChange(); };
+      const listener = (event: StorageEvent) => { if (event.key === prefix.stored(key) || event.key === null) onChange(); };
       window.addEventListener('storage', listener);
       return () => window.removeEventListener('storage', listener);
     },

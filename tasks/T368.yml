@@ -1,0 +1,17 @@
+id: T368
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 965d0a9b0713295f6cf363b2d1ff78981162e57f
+goal: The visual and What-if Close specs record the chart fonts (font loads, canvas text font, downloads), so a red picture shows which font the chart drew in; the What-if Close bug stays open.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T368.yml
+  - bugs/BUG_20261017_what-if-close-curve-not-restored.md
+  - eslint.config.js
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/chartFonts.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

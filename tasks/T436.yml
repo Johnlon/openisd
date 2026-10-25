@@ -1,0 +1,12 @@
+id: T436
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: e709848e8b13986f1479c2913ccee9c0cd76ec87
+goal: Record the bug that number fields cannot be changed by dragging on them (bugs/BUG_20261019_number-fields-no-drag-to-spin.md). Doc only, no code.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T436.yml
+  - bugs/BUG_20261019_number-fields-no-drag-to-spin.md
+visual: []

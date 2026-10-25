@@ -1,6 +1,5 @@
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
-import {NumberField} from '@openisd/design/fields';
 import type {DriverEngine, EbpSuitability, VentedAlignment} from '@openisd/design/engine';
 import {DEFAULT_VENTED_ALIGNMENT, type SelectorOption, VENTED_ALIGNMENT_OPTIONS} from '@openisd/design/fields';
 
@@ -8,7 +7,7 @@ export interface VentedAlignmentEditorAPI {
   readonly open: Readonly<Ref<boolean>>;
   readonly options: readonly SelectorOption<VentedAlignment>[];
   readonly selectedAlignment: Ref<VentedAlignment>;
-  readonly volume_L: ComputedRef<number | null>;
+  readonly volume_m3: ComputedRef<number | null>;
   readonly tuning_hz: ComputedRef<number | null>;
   readonly ebp: ComputedRef<number | null>;
   readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
@@ -35,7 +34,7 @@ export class VentedAlignmentEditor implements VentedAlignmentEditorAPI {
   readonly open = ref(false);
   readonly options = VENTED_ALIGNMENT_OPTIONS;
   readonly selectedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
-  readonly volume_L: ComputedRef<number | null>;
+  readonly volume_m3: ComputedRef<number | null>;
   readonly tuning_hz: ComputedRef<number | null>;
   readonly ebp: ComputedRef<number | null>;
   readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
@@ -55,7 +54,7 @@ export class VentedAlignmentEditor implements VentedAlignmentEditorAPI {
       const ts = project.value.driver.specs;
       return { Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value };
     });
-    this.volume_L = computed(() => (this.#draftVb_m3.value == null ? null : NumberField.BOX_VB_L.toDisplay(this.#draftVb_m3.value)));
+    this.volume_m3 = computed(() => this.#draftVb_m3.value);
     this.tuning_hz = computed(() => this.#draftFb_hz.value);
     this.ebp = computed(() => {
       const { Fs_hz, Qes } = this.#driverValues.value;

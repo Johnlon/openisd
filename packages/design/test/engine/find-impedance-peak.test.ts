@@ -2,6 +2,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {sweepDriver} from './testSolver.js';
 
@@ -60,14 +61,15 @@ describe('findImpedancePeak', () => {
         fmin: 10,
         fmax: 200,
         N: 2000,
+        air: REFERENCE_AIR,
       };
       const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', P).values!;
       const peak = engine.driver.findImpedancePeak(result, drv.Re_ohm!);
       assert.ok(peak !== null);
-      // Assert peak frequency is near 54.81 Hz
-      assert.ok(Math.abs(peak.Fsc - 54.81) < 0.1, `Expected Fsc near 54.81 Hz, got ${peak.Fsc}`);
-      // Assert Qtc is near 0.481
-      assert.ok(Math.abs(peak.Qtc - 0.481) < 0.01, `Expected Qtc near 0.481, got ${peak.Qtc}`);
+      // The circuit runs on Vas (10 L), not the stated Cms 0.0006 (which implies a stiffer driver): Fsc 56.66 Hz.
+      assert.ok(Math.abs(peak.Fsc - 56.66) < 0.1, `Expected Fsc near 56.66 Hz, got ${peak.Fsc}`);
+      // Qtc follows the same T/S-driven circuit: 0.429.
+      assert.ok(Math.abs(peak.Qtc - 0.429) < 0.01, `Expected Qtc near 0.429, got ${peak.Qtc}`);
     });
 
     it('returns null when there is no sweep result to search', () => {
@@ -93,7 +95,7 @@ describe('findImpedancePeak', () => {
       };
       const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', {
         Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
-        wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200,
+        wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200, air: REFERENCE_AIR,
       }).values!;
       // Every real impedance sample sits above 0 Ω — a Re past the actual peak means the sweep
       // "never rises above Re", so there is no resonance bump for this function to characterise.
@@ -126,7 +128,7 @@ describe('findImpedancePeak', () => {
       };
       const result = engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', {
         Vb: 0.010, Ql: 10, Qa: 100, Qp: 100, eg: 2.83, Rs: 0,
-        wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200,
+        wiring: 'parallel' as const, nDrivers: 1, fmin: 10, fmax: 200, N: 200, air: REFERENCE_AIR,
       }).values!;
       // Force the peak to be the curve's first sample by making it artificially the largest.
       const rigged = { ...result, zmag: [...result.zmag] };

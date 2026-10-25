@@ -1,24 +1,6 @@
 import type {Page} from '@playwright/test';
 import {expect, openAProject, test} from '../fixtures.js';
-
-async function enableCloudSync(page: Page) {
-  await page.route('**/*main*', async route => {
-    const url = route.request().url();
-    if (!url.endsWith('.js') && !url.endsWith('.ts') && !url.includes('/assets/main-')) {
-      await route.continue();
-      return;
-    }
-    const response = await route.fetch();
-    let text = await response.text();
-    if (text.includes('clientId:null')) {
-      text = text.replace('clientId:null', 'clientId:"stubbed-client-id"');
-    }
-    await route.fulfill({
-      response,
-      body: text,
-    });
-  });
-}
+import {enableCloudSync} from './fixtures/cloudSyncStubs.js';
 
 async function stubGoogleApis(page: Page) {
   await page.route('**/accounts.google.com/**', async route => {
@@ -141,7 +123,7 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
     await expect(modal).toHaveCount(0);
   });
 
-  test('dialog renders correct buttons and headline for status off and reconnect', async ({ page }) => {
+  test('dialog renders correct buttons and headline for status off', async ({ page }) => {
     await enableCloudSync(page);
     await stubGoogleApis(page);
     await page.goto('/');
@@ -155,16 +137,22 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
     await expect(modal.locator('.cloud-sync-explainer a', { hasText: 'Privacy' })).toHaveAttribute('href', 'https://openisd.app/about/#privacy');
     await expect(modal.locator('.cloud-sync-explainer a')).toHaveAttribute('target', '_blank');
     await modal.locator('.cloud-modal-close-btn').click();
+  });
 
-    // Now set reconnect status
-    await page.evaluate(() => {
+  test('dialog renders correct buttons and headline for status reconnect', async ({ page }) => {
+    await enableCloudSync(page);
+    await stubGoogleApis(page);
+    await page.addInitScript(() => {
       localStorage.setItem('openisd_cloud_auth', JSON.stringify({
         kind: 'reconnect',
         account: 'john@gmail.com',
       }));
     });
-    await page.reload();
+    await page.goto('/');
+    await openAProject(page);
+
     await page.locator('.cloud-sync-badge').click();
+    const modal = page.locator('.cloud-modal');
     await expect(modal.locator('.cloud-sync-headline')).toContainText('Google needs you to connect again');
     await expect(modal.locator('button', { hasText: 'Reconnect' })).toBeVisible();
     await expect(modal.locator('button', { hasText: 'Disconnect' })).toBeVisible();

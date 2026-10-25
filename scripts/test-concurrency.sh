@@ -20,6 +20,8 @@
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
 . "$(dirname "${BASH_SOURCE[0]}")/paths.sh"
+# shellcheck source=./browser-runs.sh
+. "$(dirname "${BASH_SOURCE[0]}")/browser-runs.sh"
 mkdir -p "$OPENISD_RESERVATION_DIR"
 OPENISD_PORT_POOL_START=4100
 OPENISD_PORT_POOL_SIZE=90   # 4100-4189; never reaches 4000 (John's preview) or the 4200+ ad-hoc range
@@ -30,13 +32,9 @@ OPENISD_MEM_PER_WORKER_GB="0.7"
 OPENISD_RESERVE_GB="2"
 OPENISD_MAX_WORKERS=2
 
-# True when something is already listening on the port (any process, reserved by us or not).
-port_is_listening() {
-  ss -ltnH "sport = :$1" 2>/dev/null | grep -q .
-}
-
 reserve_test_slot() {
   local f pid w p mem_avail_gb reserved_gb nproc_val cpu_cap my_workers my_port i port_ok
+  local OPENISD_PORT_FD
 
   exec 9>"$OPENISD_RESERVATION_LOCK"
   flock 9   # blocks here if another run is mid-accounting; critical section starts now
@@ -53,13 +51,11 @@ reserve_test_slot() {
   done
 
   reserved_gb=0
-  local used_ports=""
   for f in "$OPENISD_RESERVATION_DIR"/*; do
     [ -e "$f" ] || continue
     w="$(grep '^WORKERS=' "$f" 2>/dev/null | cut -d= -f2)"
     p="$(grep '^PORT=' "$f" 2>/dev/null | cut -d= -f2)"
     reserved_gb="$(awk -v a="$reserved_gb" -v w="${w:-0}" -v m="$OPENISD_MEM_PER_WORKER_GB" 'BEGIN { print a + w * m }')"
-    used_ports="$used_ports $p"
   done
 
   if [ -r /proc/meminfo ]; then
@@ -80,24 +76,30 @@ reserve_test_slot() {
     print w
   }')"
   [ "$my_workers" -gt "$cpu_cap" ] && my_workers="$cpu_cap"
+  # The post-land suite runs a fixed worker count (scripts/budget.conf), costed in its own pool.
+  [ -z "${OPENISD_FIXED_WORKERS:-}" ] || my_workers="$OPENISD_FIXED_WORKERS"
 
-  my_port="$OPENISD_PORT_POOL_START"
+  # A port is owned by holding a flock on its lock file for the life of the run: the kernel frees it when the
+  # run dies, so a dead run's port is reusable at once and a live run's port is never handed out twice.
+  # A listener on a port nobody owns is a leftover; the run's own kill-http.sh clears it.
+  port_ok=0; my_port=""
   for ((i = 0; i < OPENISD_PORT_POOL_SIZE; i++)); do
     my_port=$((OPENISD_PORT_POOL_START + i))
-    port_ok=1
-    for p in $used_ports; do
-      if [ "$p" = "$my_port" ]; then port_ok=0; break; fi
-    done
-    port_is_listening "$my_port" && port_ok=0
-    [ "$port_ok" -eq 1 ] && break
+    exec {OPENISD_PORT_FD}>"$OPENISD_RESERVATION_DIR.port-$my_port.lock"
+    if flock -n "$OPENISD_PORT_FD"; then port_ok=1; break; fi
+    exec {OPENISD_PORT_FD}>&-
   done
   if [ "$port_ok" -ne 1 ]; then
-    echo "WARNING: all $OPENISD_PORT_POOL_SIZE test ports in use by other concurrent runs — reusing $my_port, expect a collision" >&2
+    echo "ERROR: all $OPENISD_PORT_POOL_SIZE test ports (${OPENISD_PORT_POOL_START}-$((OPENISD_PORT_POOL_START + OPENISD_PORT_POOL_SIZE - 1))) are owned by live runs" >&2
+    exec 9>&-; return 1
   fi
 
+  # GROUP_START and OWNER: scripts/browser-runs.sh (what lets the housekeeper stop a run whose owner is gone).
   {
     echo "WORKERS=$my_workers"
     echo "PORT=$my_port"
+    echo "GROUP_START=$(admit_starttime $$)"
+    echo "OWNER=${OPENISD_BROWSER_OWNER:-}"
   } > "$OPENISD_RESERVATION_DIR/$$"
 
   exec 9>&-   # release the lock — critical section ends; the actual test run below overlaps freely

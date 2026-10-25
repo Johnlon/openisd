@@ -5,7 +5,7 @@
  *
  * Run it from the repo root through the tracked probe config, which serves specs from build/tmp:
  *   cp scripts/research/record-driver-editor-frames.spec.ts build/tmp/record-driver-editor-frames.browser.spec.ts
- *   npx playwright test -c scripts/playwright.probe.config.mjs build/tmp/record-driver-editor-frames.browser.spec.ts
+ *   bash scripts/test-browser.sh -c scripts/playwright.probe.config.mjs build/tmp/record-driver-editor-frames.browser.spec.ts
  * (build/tmp and scripts/research sit at the same depth, so its relative imports work from both.)
  */
 import {fileURLToPath} from 'node:url';

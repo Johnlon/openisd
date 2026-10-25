@@ -1,0 +1,21 @@
+id: T192
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 285bed5f298267c4ab579c541c42e6e5dce9f58d
+goal: NumInput is a text box with inputmode decimal and steps at the caret: ArrowUp/Down, wheel and its own up/down buttons; specs find number boxes by data-numinput
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T192.yml
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/test/fixtures/numField.ts
+  - packages/ui/test/ui/num-input-caret.browser.spec.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-provenance.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-solver.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-num-stepper.browser.spec.ts

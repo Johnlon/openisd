@@ -1,0 +1,15 @@
+id: T291
+release_note: internal
+repo: openisd
+owner: maryu
+label: fixes
+status: done
+landed: 6f24d0e85599b70ffcea2d9ee765521ab625e036
+goal: The watchdog runs origin/main's scripts from a snapshot and reads Fs from origin/main, never the main checkout's files
+done_test: bash scripts/land/test/watchdog.test.sh && bash scripts/land/test/post-land-actions.e2e.test.sh
+files:
+  - tasks/T291.yml
+  - scripts/land/watchdog.sh
+  - scripts/land/test/watchdog.test.sh
+  - bugs/BUG_20261017_watchdog-runs-the-main-checkout.md
+  - tasks/fixes/F51.yml

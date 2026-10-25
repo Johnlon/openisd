@@ -1,0 +1,61 @@
+id: F35
+owner: Johnlon
+status: done
+sha: f2d59b6a57f4df5ce3538744916666f2b0a440da
+goal: main is red at f2d59b6a57; make the full suite pass again
+commits: |
+  f2d59b6a57 T212: 'F34: the 11 spec files red at 38da5b1b63 pass alone, 110 of 110 in 1.1
+  9aa8f476c9 F34: the full suite is red at 38da5b1b63
+  38da5b1b63 Bug rulings 16 Oct: chamber losses and WSL churn resolved, chart click and localhost drivers closed, clear-to-blank and driver identity ruled, UIField adoption to finish
+  1bec056677 QO180 closed: branch t164 deleted; a driver file saves the slim form the app uses
+  752606df8d T203: 'F33: the port-fields overlay took the domain port as a prop (A9 gate re
+  0edf148e13 F33: the full suite is red at 336dc2168e
+  336dc2168e T202: 'Mobile What-if: Port area (any shape) replaces Port diameter; tapping i
+failing: |
+    ✘   28 packages/ui/test/ui/cloud-sync-activity.browser.spec.ts:45:1 › mobile: the Cloud sync dialog lists each project sent and received, newest first (21.4s)
+    ✘   29 packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:96:5 › Mobile Cloud Sync (T129 / P1-13b) › Default test build without client ID (ADDENDUM) › renders nothing cloud-related when client id is null (1.1m)
+    ✘   30 packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:180:5 › Mobile Cloud Sync (T129 / P1-13b) › Mobile Cloud UI enabled › reconnect banner and update banner never both show at 320x568 and 390x844 (2.4m)
+    ✘   31 packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:122:5 › Mobile Cloud Sync (T129 / P1-13b) › Mobile Cloud UI enabled › header sync icon is visible, long press shows tooltip as Flash line, and tap opens dialog in MobilePaneDialog (47.5s)
+    ✘   36 packages/ui/test/ui/cloudSync.original.browser.spec.ts:35:3 › Original shell cloud sync — configured build (Plan P1-13a) › at 1024px the brand text and every toolbar button are inside the viewport and document.documentElement.scrollWidth <= innerWidth (1.2m)
+    ✘   33 packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:163:5 › Mobile Cloud Sync (T129 / P1-13b) › Mobile Cloud UI enabled › menu row "Cloud sync" opens the Cloud sync pane (6ms)
+output: |
+        199 |
+      > 200 |         await page.goto(cloudBaseUrl + '/');
+            |                    ^
+        201 |         await openAMobileProject(page);
+        202 |
+        203 |         // When update banner is shown, reconnect banner MUST NOT show
+          at /home/john/work/winisd/.postland/1108112-f2d59b6a57/packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:200:20
+  
+      Error Context: test-results/ui-cloudSync.mobile.browse-9b496-show-at-320x568-and-390x844/error-context.md
+  
+      Error Context: test-results/ui-cloudSync.mobile.browse-9b496-show-at-320x568-and-390x844/error-context.md
+  
+    6) packages/ui/test/ui/cloudSync.original.browser.spec.ts:35:3 › Original shell cloud sync — configured build (Plan P1-13a) › at 1024px the brand text and every toolbar button are inside the viewport and document.documentElement.scrollWidth <= innerWidth 
+  
+      TimeoutError: page.goto: Timeout 60000ms exceeded.
+      Call log:
+        - navigating to "http://localhost:4100/", waiting until "load"
+  
+  
+        38 |     await stubGoogleApis(page);
+        39 |     await page.setViewportSize({ width, height: 768 });
+      > 40 |     await page.goto('/');
+           |                ^
+        41 |     await openAProject(page);
+        42 |
+        43 |     // Verify no horizontal overflow
+          at /home/john/work/winisd/.postland/1108112-f2d59b6a57/packages/ui/test/ui/cloudSync.original.browser.spec.ts:40:16
+  
+      Error Context: test-results/ui-cloudSync.original.brow-c9f4a-ment-scrollWidth-innerWidth/error-context.md
+  
+    6 failed
+      packages/ui/test/ui/cloud-sync-activity.browser.spec.ts:45:1 › mobile: the Cloud sync dialog lists each project sent and received, newest first 
+      packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:96:5 › Mobile Cloud Sync (T129 / P1-13b) › Default test build without client ID (ADDENDUM) › renders nothing cloud-related when client id is null 
+      packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:122:5 › Mobile Cloud Sync (T129 / P1-13b) › Mobile Cloud UI enabled › header sync icon is visible, long press shows tooltip as Flash line, and tap opens dialog in MobilePaneDialog 
+      packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:163:5 › Mobile Cloud Sync (T129 / P1-13b) › Mobile Cloud UI enabled › menu row "Cloud sync" opens the Cloud sync pane 
+      packages/ui/test/ui/cloudSync.mobile.browser.spec.ts:180:5 › Mobile Cloud Sync (T129 / P1-13b) › Mobile Cloud UI enabled › reconnect banner and update banner never both show at 320x568 and 390x844 
+      packages/ui/test/ui/cloudSync.original.browser.spec.ts:35:3 › Original shell cloud sync — configured build (Plan P1-13a) › at 1024px the brand text and every toolbar button are inside the viewport and document.documentElement.scrollWidth <= innerWidth 
+    703 passed (20.5m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1108112-f2d59b6a57 finished: FAILED (exit 1) after 22m47s

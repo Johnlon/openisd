@@ -1,0 +1,26 @@
+id: T263
+release_note: The Project tab shows Created and Modified as "16 Oct 2026", like every other date.
+repo: openisd
+owner: maryu
+status: done
+landed: 9a5062a2da42c5e7887fed240db62561ed36e94b
+goal: Project tab Created and Modified show dates as 16 Oct 2026, through the one design formatter
+done_test: bash scripts/test.sh packages/design/test/fields/format-date.test.ts
+visual:
+  - desktop-tab-project
+files:
+  - tasks/T263.yml
+  - bugs/BUG_20261017_project-dates-not-in-date-style.md
+  - packages/design/fields/format.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/format-date.test.ts
+  - packages/ui/src/hooks/MobileProjectTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/logic/dateDisplay.ts
+  - packages/ui/test/logic/dateDisplay.test.ts
+  - packages/ui/src/ui/shells/mobile/MobileProjectTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/mobile-project-tab.browser.spec.ts
+  - packages/ui/test/ui/original-project-dates.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png

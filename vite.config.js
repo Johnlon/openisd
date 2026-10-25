@@ -29,9 +29,11 @@ const base = resolveBase();
 
 // The build's own version (scripts/version-info.mjs writes it before every build), baked into the
 // bundle so a running app can tell when a newer build is published. '' when the file is absent.
-// In dev mode ('serve') the check is off per ReleaseWatch, so return '' to avoid false mismatches.
-export function buildVersion(command) {
+// In dev mode ('serve') it is '', so a dev server shows no version. OPENISD_BUILD_VERSION names the
+// build outright: the app-update end-to-end test builds twice and tells the two builds apart by it.
+export function buildVersion(command, env = process.env) {
   if (command === 'serve') return '';
+  if (typeof env.OPENISD_BUILD_VERSION === 'string' && env.OPENISD_BUILD_VERSION !== '') return env.OPENISD_BUILD_VERSION;
   try {
     const info = JSON.parse(readFileSync(join(fileURLToPath(import.meta.url), '..', 'packages', 'ui', 'public', 'build-info.json'), 'utf8'));
     return typeof info.version === 'string' ? info.version : '';
@@ -165,7 +167,11 @@ function createServeDevVersion(command) {
 export default defineConfig(({ command, mode }) => ({
   root: UI_ROOT,
   base,
-  define: { 'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion(command)) },
+  define: {
+    'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion(command)),
+    // The app registers its own service worker (so a refusal is caught), in builds that ship one.
+    'import.meta.env.VITE_SERVICE_WORKER': JSON.stringify(ELECTRON || command === 'serve' || mode === 'test' ? 'off' : 'on'),
+  },
   server: {
     // Host names the dev server answers to besides localhost and IP addresses; Vite refuses any other.
     allowedHosts: ['lap'],
@@ -214,6 +220,7 @@ export default defineConfig(({ command, mode }) => ({
     // asset at registration on every spec's page and cache across a run.
     ...(ELECTRON || command === 'serve' || mode === 'test' ? [] : [VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false,
       base,
       manifest: {
         name: 'OpenISD',
@@ -238,12 +245,15 @@ export default defineConfig(({ command, mode }) => ({
         // registerType 'autoUpdate' reloads open pages onto a new build.
         globPatterns: ['**/*.{js,css,html,svg,ico}'],
         globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
-        // about/ and install/ are pages of their own: without this an installed app answers
-        // them with the app shell. They are precached, so they still open offline. v/ and snap/
-        // are the hosted copies: the root worker's scope covers them, and it must not answer a
-        // copy's address with the ROOT build's shell. Not anchored to the origin root, because a
-        // copy's own worker sees /v/<stamp>/about/ too.
-        navigateFallbackDenylist: [/\/(about|install|v|snap)(\/|$)/],
+        // No navigation fallback: the worker answers a page only when it has that exact page
+        // precached (the copy's own index.html, about/ and install/, a directory address reaching
+        // its index.html). Every other address in its scope goes to the network. The root
+        // worker's scope covers the hosted copies v/, snap/ and test/, and a fallback answered them
+        // with the root build's page, whose assets do not exist under the copy's path, so the
+        // page never started (BUG_20261018_test-build-hangs-on-loading-screen). A deny-list of
+        // copies missed test/; the build is deployed at relative paths, so no build-time pattern
+        // can name its own page instead.
+        navigateFallback: null,
         // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
         // this file's variables would not exist.
         runtimeCaching: [{

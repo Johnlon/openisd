@@ -14,7 +14,7 @@ import type {ConfirmPort} from '../../src/logic/confirmPort.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
-import {backupRepoOn, projectRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
+import {backupRepoOn, projectRepoOn, exportedFilesOn, storageUsageOn} from '../fixtures/repoOn.js';
 
 let appState: AppState;
 let presentationState: PresentationState;
@@ -105,7 +105,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       const engine = createEngine();
       const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
-      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
       // A DIFFERENT project is open before the import — these exact values must all be gone
       // after. The app starts with NO project (QO121), so this opens the one it then dirties.
@@ -177,7 +177,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
       const engine = createEngine();
       const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
       const logging = createLogging();
-      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+      const io = createApplicationIO({ engine,  logging, fileStorage: createFileStorage(), fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
       // Not a project at all — every required top-level member is missing — so there is nothing a
       // field-level repair can keep (a project with bad fields loads repaired instead; John,
@@ -213,7 +213,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     };
     const engine = createEngine();
     const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
-    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
     appState.newProject();
     appState.requireFocusedProject().name.set('Saved from toolbar');
@@ -237,7 +237,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     const engine = createEngine();
     const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
     const declinesExport: ConfirmPort = { ask: async () => false };
-    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: declinesExport, appState, presentation: presentationState });
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: declinesExport, appState, presentation: presentationState });
 
     appState.newProject();
     const project = appState.requireFocusedProject();
@@ -258,7 +258,7 @@ describe('.wpr import syncs state.project from the file, and export round-trips 
     };
     const engine = createEngine();
     const repo = projectRepoOn(engine, fileStorage, storage, 'http://localhost');
-    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+    const io = createApplicationIO({ engine,  logging: createLogging(), fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
 
     appState.newProject();
     appState.requireFocusedProject().name.set('First of two');
@@ -281,7 +281,7 @@ describe('openFromDisk — one named filter, fallback to the file input', () => 
     const fileOpen: FileOpen = { pickFile: async (filter) => { filters.push(filter); return pick; } };
     const engine = createEngine();
     const repo = projectRepoOn(engine, createFileStorage(), createMemoryStorage(), 'http://localhost');
-    return createApplicationIO({ engine,  logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+    return createApplicationIO({ engine,  logging: createLogging(), fileStorage: createFileStorage(), fileOpen, projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
   }
 
   it('asks the dialog for all four formats under one filter, and imports the picked file', async () => {
@@ -380,7 +380,7 @@ describe('every import and export says what it did', () => {
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const engine = createEngine();
     const repo = projectRepoOn(engine, fileStorage, createMemoryStorage(), 'http://localhost');
-    const io = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, confirmPort: fakeConfirmPort, appState, presentation: presentationState });
+    const io = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo: repo, files: new DesignFiles(engine, repo, exportedFilesOn()), backup, storageUsage: storageUsageOn(createMemoryStorage()), confirmPort: fakeConfirmPort, appState, presentation: presentationState });
     return { io, flash: logging.flash };
   }
 
@@ -445,6 +445,38 @@ describe('every import and export says what it did', () => {
     } finally { vi.restoreAllMocks(); restoreGlobals(); }
   });
 
+  it('Share link shows the link in a message when the clipboard refuses, never a prompt dialog', async () => {
+    appState.newProject();
+    const promptSpy = vi.fn();
+    vi.stubGlobal('prompt', promptSpy);
+    vi.stubGlobal('location', { origin: 'https://openisd.test', pathname: '/' });
+    vi.stubGlobal('history', { replaceState: () => {} });
+    vi.stubGlobal('navigator', { clipboard: { writeText: () => Promise.reject(new Error('refused')) } });
+    try {
+      const { io, flash } = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+      await io.shareLink();
+      await settle();
+      expect(flash).toHaveBeenCalledWith(expect.stringMatching(/^Could not copy the share link\. Copy it from here: https:\/\/openisd\.test/));
+      expect(promptSpy).not.toHaveBeenCalled();
+    } finally { restoreGlobals(); }
+  });
+
+  it('Save As download says the project stays unsaved only when it has unsaved changes', async () => {
+    appState.newProject();
+    appState.requireFocusedProject().name.set('MyBox');
+    appState.requireFocusedProject().save();
+    expect(appState.isModified.value).toBe(false);
+    const clean = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await clean.io.saveProjectAs();
+    expect(clean.flash).toHaveBeenCalledWith('Project downloaded as MyBox.owpr');
+
+    appState.requireFocusedProject().name.set('MyBox2');
+    expect(appState.isModified.value).toBe(true);
+    const dirty = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
+    await dirty.io.saveProjectAs();
+    expect(dirty.flash).toHaveBeenCalledWith('Project downloaded as MyBox2.owpr. It stays marked unsaved.');
+  });
+
   it('Save As names the file written, or says the download is unconfirmed', async () => {
     appState.newProject();
     appState.requireFocusedProject().name.set('MyBox');
@@ -454,7 +486,7 @@ describe('every import and export says what it did', () => {
 
     const downloaded = ioWith(fakeFileStorage({ name: null, cancelled: false, written: false }));
     await downloaded.io.saveProjectAs();
-    expect(downloaded.flash).toHaveBeenCalledWith('Project downloaded as MyBox.owpr. It stays marked unsaved.');
+    expect(downloaded.flash).toHaveBeenCalledWith(expect.stringMatching(/^Project downloaded as MyBox\.owpr/));
 
     const cancelled = ioWith(fakeFileStorage({ name: null, cancelled: true, written: false }));
     await cancelled.io.saveProjectAs();

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Kill all processes on the specified port(s).
+# Kill the process LISTENING on the specified port(s); clients connected to it (browsers, curl) are never touched.
 # Usage: scripts/kill-http.sh <port> [port ...]
 # Escalation chain per port:
 #   1. tskill <winpid>  — most reliable: Terminal Services kill, works on orphaned PPID=0 processes
@@ -14,6 +14,12 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.." || exit 1
 
+# Port 4000 is the openisd-preview systemd unit (Restart=always): killing its server only makes systemd
+# restart it. Restart it with scripts/preview-4000.sh instead.
+for p in "$@"; do
+  [ "$p" != 4000 ] || { echo "ERROR: port 4000 is the openisd-preview unit; use bash scripts/preview-4000.sh" >&2; exit 1; }
+done
+
 if [ $# -eq 0 ]; then
   echo "ERROR: kill-http.sh requires at least one port argument" >&2
   exit 1
@@ -23,12 +29,30 @@ ports=("$@")
 # On WSL/Linux the dev server is a native Linux process; the Windows kill chain
 # (tskill/taskkill/ps -W) cannot see it. Use POSIX lsof + kill and exit early.
 if [ -z "${MSYSTEM:-}" ]; then
+  # A listener tagged with another browser run's owner (OPENISD_BROWSER_OWNER="<pid> <start>") whose owner
+  # is alive is that run's live test server: never killed. 17 Oct 2026: a unit test ran this script from a
+  # scratch copy, which saw port 4100 as free, and killed a live suite's server mid-run. Untagged
+  # listeners, this run's own, and those of dead owners are killed as before.
+  live_other_run() { # live_other_run <pid>: prints the owner when the pid serves another live run
+    local tag opid ostart now
+    tag=$(tr '\0' '\n' < "/proc/$1/environ" 2> /dev/null | sed -n 's/^OPENISD_BROWSER_OWNER=//p')
+    [ -n "$tag" ] && [ "$tag" != "${OPENISD_BROWSER_OWNER:-}" ] || return 1
+    read -r opid ostart <<< "$tag"
+    now=$(awk '{print $22}' "/proc/$opid/stat" 2> /dev/null) || return 1
+    [ -n "$now" ] && [ "$now" = "$ostart" ] && echo "$opid"
+  }
   for port in "${ports[@]}"; do
+    for pid in $(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true); do
+      if owner=$(live_other_run "$pid"); then
+        echo "port $port: ERROR — PID $pid is the test server of another live run (owner pid $owner); not killed" >&2
+        exit 1
+      fi
+    done
     # Loop until the port is genuinely free, exactly as the Windows branch below does.
     # Killing once and assuming it worked is what let an orphan survive into the next
     # run: `lsof` reporting a PID is not proof the socket is released a moment later.
     for attempt in $(seq 1 10); do
-      pids=$(lsof -ti :"$port" 2>/dev/null || true)
+      pids=$(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true)
       [ -z "$pids" ] && break
       echo "port $port: [attempt $attempt] killing PID(s) $pids"
       # SIGTERM once so a server can close its sockets; SIGKILL from then on, because a
@@ -40,7 +64,7 @@ if [ -z "${MSYSTEM:-}" ]; then
       fi
       sleep 1
     done
-    if [ -n "$(lsof -ti :"$port" 2>/dev/null || true)" ]; then
+    if [ -n "$(lsof -ti :"$port" -sTCP:LISTEN 2>/dev/null || true)" ]; then
       echo "port $port: ERROR — still occupied after 10 attempts, aborting" >&2; exit 1
     fi
   done

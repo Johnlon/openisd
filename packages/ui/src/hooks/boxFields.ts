@@ -95,7 +95,10 @@ export const DUAL_CHAMBER = new Set<BoxType>(['bandpass4', 'bandpass6', 'abc']);
 // The cell itself, for a `UIField`: it reads the value, the ⚠ and blank-ness, and writes or clears.
 export function createBoxVolume({ project, selectedBox }: BoxVolumeDeps) {
   const boxVolumeCell = computed(() => project.value.box.volumeOf(selectedBox.value));
-  return { boxVolumeCell };
+  // A closed box's Fsc and Qtc: enterable like its volume, each fixing the other two.
+  const sealedFscCell = computed(() => project.value.box.sealed.resonance_hz);
+  const sealedQtcCell = computed(() => project.value.box.sealed.q_tc);
+  return { boxVolumeCell, sealedFscCell, sealedQtcCell };
 }
 
 // Front-chamber volume (WinISD "Vf") and rear-chamber tuning (WinISD "Frc"): which field each box

@@ -37,13 +37,29 @@ describe('OpenISDDriver design queries', () => {
     expect(zero.ebp()).toBeNull();
   });
 
-  it('sealedQtc(volume) and sealedVolumeForQtc(target) match the engine', () => {
+  it('sealedFsc(volume, Rs, losses) is the Fsc of the same sealed resonance as sealedQtc, and null without a volume or specs', () => {
     const d = driver();
-    expect(d.sealedQtc(0.03)).toBe(engine.sealed.qtcFromVolume(Qts, 0.02, 0.03));
-    expect(d.sealedVolumeForQtc(0.707)).toBe(engine.sealed.volumeForQtc(Qts, 0.02, 0.707));
-    expect(d.sealedQtc(0)).toBeNull();
-    expect(OpenISDDriver.empty(createEngine()).sealedQtc(0.03)).toBeNull();
-    expect(OpenISDDriver.empty(createEngine()).sealedVolumeForQtc(0.707)).toBeNull();
+    const losses = {Ql: 10, Qa: 100};
+    const loaded = d.sourceLoadedQts(0.1)!;
+    expect(d.sealedFsc(0.03, 0.1, losses)).toBe(engine.sealed.resonance({Fs: 40, Vas: 0.02, Qts: loaded, Vb: 0.03, ...losses}).Fsc);
+    expect(d.sealedFsc(0, 0.1, losses)).toBeNull();
+    expect(OpenISDDriver.empty(createEngine()).sealedFsc(0.03, 0.1, losses)).toBeNull();
+  });
+
+  it('sealedQtc(volume, Rs, losses) is the lossy Qtc of the source-loaded driver, and sealedVolumeForQtc inverts it', () => {
+    const d = driver();
+    const losses = {Ql: 10, Qa: 100};
+    const loaded = d.sourceLoadedQts(0.1)!;
+    expect(d.sealedQtc(0.03, 0.1, losses)).toBe(engine.sealed.resonance({Fs: 40, Vas: 0.02, Qts: loaded, Vb: 0.03, ...losses}).Qtc);
+    for (const target of [0.5, 0.707, 1]) {
+      const vb = d.sealedVolumeForQtc(target, 0.1, losses);
+      expect(vb, `Qtc ${target}`).not.toBeNull();
+      expect(d.sealedQtc(vb!, 0.1, losses)).toBeCloseTo(target, 6);
+    }
+    expect(d.sealedQtc(0, 0.1, losses)).toBeNull();
+    expect(d.sealedVolumeForQtc(Qts, 0.1, losses)).toBeNull();
+    expect(OpenISDDriver.empty(createEngine()).sealedQtc(0.03, 0.1, losses)).toBeNull();
+    expect(OpenISDDriver.empty(createEngine()).sealedVolumeForQtc(0.707, 0.1, losses)).toBeNull();
   });
 
   it('ventedDesign(alignment, Rs, Ql) designs for the source-loaded Qts', () => {

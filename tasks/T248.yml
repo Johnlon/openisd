@@ -1,0 +1,14 @@
+id: T248
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 48c4f466af4a34b50927176ba47c77cb1be85cde
+goal: Mobile steppers: focus stays on the pressed button, step the digit at the caret, mark the digit
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T248.yml
+  - tasks/fixes/F45.yml
+  - bugs/BUG_20261016_mobile-vent-stepper-jumps-focus-ignores-caret-no-digit-marker.md
+  - packages/ui/test/ui/number-stepper.browser.spec.ts
+label: fixes

@@ -8,12 +8,12 @@ import {expect, openAProject, test} from '../fixtures.js';
 
 const PAGE = {name: 'OpenISD and WinISD differences'};
 
-test.beforeEach(async ({page}) => {
+test.beforeEach(async ({ appPage: page }) => {
   await page.goto('/');
   await openAProject(page);
 });
 
-test('the Info menu opens the page, with its three sections; Close shuts it', async ({page}) => {
+test('the Info menu opens the page, with its three sections; Close shuts it', async ({ appPage: page }) => {
   await page.locator('.tb-btn[title="Info"]').click();
   await page.locator('.menu-item', {hasText: 'OpenISD and WinISD differences'}).click();
   const help = page.getByRole('dialog', PAGE);
@@ -27,7 +27,7 @@ test('the Info menu opens the page, with its three sections; Close shuts it', as
   await expect(help).toHaveCount(0);
 });
 
-test('the "Enable WinISD-style" group heading\'s help link opens the page at the Options section', async ({page}) => {
+test('the "Enable WinISD-style" group heading\'s help link opens the page at the Options section', async ({ appPage: page }) => {
   await page.locator('.project-nav li', {hasText: 'Advanced'}).click();
   await page.locator('.option-switch-group .compat-help-link').click();
   const help = page.getByRole('dialog', PAGE);
@@ -38,7 +38,7 @@ test('the "Enable WinISD-style" group heading\'s help link opens the page at the
 
 // John, 2026-10-05: a popup beside the cue made the page scroll. The cue opens the help page
 // itself, centred in the window at the cue's entry, and opening it never changes the page's scroll size.
-test('a ≠W cue opens the page centred in the window at that cue\'s entry, without scrolling the page', async ({page}) => {
+test('a ≠W cue opens the page centred in the window at that cue\'s entry, without scrolling the page', async ({ appPage: page }) => {
   await page.locator('.project-nav li', {hasText: 'Filters'}).click();
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();

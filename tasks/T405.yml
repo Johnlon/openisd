@@ -1,0 +1,13 @@
+id: T405
+release_note: internal
+repo: openisd
+owner: tools
+status: done
+landed: 1ea34dca0f6dd7ea6b420b895aeb2fa063b15507
+goal: A failed report upload in .github/workflows/suite.yml (GitHub 'server is busy' on actions/upload-artifact, run 39142054368) no longer turns a run with every test passing red; the test steps alone decide the verdict and a failed upload shows as a named warning in the run summary; bug file in bugs/ and a test that pins it
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T405.yml
+  - .github/workflows/suite.yml
+  - scripts/land/test/suite-upload-verdict.test.sh
+  - bugs/BUG_20261018_failed-report-upload-reds-green-run.md

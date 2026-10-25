@@ -1,0 +1,12 @@
+id: T386
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: aef85d2743715d889beab94b67dee2fbfba23730
+goal: We know what WinISD's option 'Use transmission line model for port simulation' does: probed under wine (skill winisd-wine-probing, debugger logging, exe unmodified) and decompiled, with the maths written up in docs/research and a WinISD parity entry; OpenISD's support for it decided from that (research only, no app code).
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - docs/research/TL_PORT_MODEL.md
+  - docs/research/WINISD_PARITY.md
+  - tasks/T386.yml

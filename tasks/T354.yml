@@ -1,0 +1,11 @@
+id: T354
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 61342c31c4a4bb46b2357ea1b11aeb1ee66603e7
+goal: Record WinISD's sealed picker formula (0x45c140: Rg 0.1 and Qa 100 folded in, Ql ignored; 41 captures to 4e-15) and the WinISD vs OpenISD picker volume table in the bug file
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T354.yml
+  - bugs/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md

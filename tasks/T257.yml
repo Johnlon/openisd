@@ -1,0 +1,13 @@
+id: T257
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: e2212d47bc82f487c414bce817a71e8f34f17a44
+goal: F46: the phone box/tuning tabs may scroll; the depth spec keeps the 40 px row and pinned tab bar checks
+done_test: bash scripts/test.sh packages/design/test/domain/cell.test.ts
+label: fixes
+files:
+  - tasks/T257.yml
+  - packages/ui/test/ui/mobile-row-depth.browser.spec.ts
+  - tasks/fixes/F46.yml

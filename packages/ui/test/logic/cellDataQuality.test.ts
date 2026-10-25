@@ -43,7 +43,7 @@ describe('cellDataQuality', () => {
     it('pre: Re none — P N, V 1 C | trigger: Re 8 | post: P 1 E, V √8 C', () => {
       const {project} = createCompleteProject();
       expect(dqOfCell(project.powerDrive_W).dqState).toBe('N');
-      expect(dqOfCell(project.powerDrive_W).dq[0]).toMatch(/Re_ohm/);
+      expect(dqOfCell(project.powerDrive_W).dq[0]).toMatch(/coil resistance \(Re\)/);
       expect(dqOfCell(project.driveVoltage_V)).toEqual({dq: [], dqState: 'C'});
 
       project.driver.specs.Re_ohm.set(8);

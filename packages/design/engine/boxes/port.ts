@@ -5,7 +5,6 @@
  * both names unchanged, so an existing import of `portImpedance`/`portLoss` from `circuit.js`
  * still resolves).
  */
-import {solveEnvironment} from '../air.js';
 import {cAdd, cDiv, cMul, cScale, cTanh, cx} from '../complex.js';
 import type {Complex, SweepParams} from '../types.js';
 
@@ -39,7 +38,7 @@ export function portLoss(w: number, Map: number, P: Pick<SweepParams, 'Qp'>): nu
  */
 export function portImpedance(w: number, P: SweepParams): Complex {
   const Sp = P.Sp!, Leff = P.Leff!;
-  const { rho, c } = solveEnvironment(P).values;
+  const rho = P.air.rho(), c = P.air.c();
 
   const Map = rho * Leff / Sp, Rap = portLoss(w, Map, P);
   if (!P.tlPortModel) return cAdd(cx(Rap, 0), cx(0, w * Map));
@@ -63,4 +62,13 @@ export function portImpedance(w: number, P: SweepParams): Complex {
 export function winisdLinePortReactance(w: number, Map: number, Sp: number, endCorrection_m: number, rho: number, c: number): number {
   const L = Map * Sp / rho - endCorrection_m;
   return rho * c / Sp * Math.tan(w * L / c);
+}
+
+/**
+ * The end correction the transmission-line port pipe drops: WinISD's own pipe is Map·S/ρ less the
+ * end correction, so the box tunes above Fb (`winisdTlPortNoEndCorrection` on); with it off the
+ * pipe keeps the end correction, is Map·S/ρ long and tunes at Fb.
+ */
+export function droppedEndCorrection_m(endCorrection_m: number | undefined, winisdTlPortNoEndCorrection: boolean | undefined): number {
+  return winisdTlPortNoEndCorrection === true ? endCorrection_m ?? NaN : 0;
 }

@@ -5,69 +5,118 @@
 import {mobileFieldRow} from '../fixtures/mobileSkin.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {PhoneRowSizes} from '@openisd/design/fields';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
 test.describe('MobileAlignmentPopup', () => {
-  test('the sealed sheet picks an alignment and writes its volume on Accept', async ({ page }) => {
+  test('the sealed sheet picks an alignment and writes its volume on Accept', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('sealed');
-    await expect(page.locator('.mob-btn', { hasText: 'Choose alignment' })).toBeVisible();
+    await expect(page.locator('.mob-clink', { hasText: 'Choose alignment' })).toBeVisible();
 
-    await page.locator('.mob-btn', { hasText: 'Choose alignment' }).click();
+    await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
     await expect(page.locator('.mob-align-sheet')).toBeVisible();
 
-    const volumeInput = page.locator('.mob-align-sheet .mob-field-value input');
+    const volumeInput = page.locator('#mob-sealed-alignment-volume');
     await volumeInput.fill('20');
     await expect(page.locator('.mob-align-readout')).toContainText('EBP');
 
     await page.locator('.mob-align-footer .mob-btn-primary', { hasText: 'Accept' }).click();
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
 
-    const volumeField = mobileFieldRow(page, 'Volume').locator('input').first();
+    const volumeField = mobileFieldRow(page, 'Vb').locator('input').first();
     await expect(volumeField).toHaveValue(/20/);
   });
 
-  test('the vented sheet picks an alignment and writes volume + tuning on Accept', async ({ page }) => {
+  test('the vented sheet picks an alignment and writes volume + tuning on Accept', async ({ appPage: page }) => {
     // The default sample project has no T/S params, so ventedDesign() has nothing to compute from
     // (recalculate() would silently no-op) — needs COMPLETE_DRIVER_PROJECT_OWPR's real Fs/Qes/Vas.
     await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
     await page.locator('#mob-box-type').selectOption('vented');
-    await expect(page.locator('.mob-btn', { hasText: 'Choose alignment' })).toBeVisible();
+    await expect(page.locator('.mob-clink', { hasText: 'Choose alignment' })).toBeVisible();
 
-    await page.locator('.mob-btn', { hasText: 'Choose alignment' }).click();
+    await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
     await expect(page.locator('.mob-align-sheet')).toBeVisible();
 
     // Vented has no volume/tuning reverse lookup (VentedEngine has no closestAlignment), so the
     // sheet's Volume + Tuning freq are read-only readouts driven by the alignment <select>, unlike
     // sealed's directly-editable field.
     await page.locator('.mob-align-sheet .mob-select').selectOption('bb4');
-    await expect(page.locator('.mob-align-sheet .mob-field-label', { hasText: 'Tuning freq' })).toBeVisible();
+    await expect(page.locator('.mob-align-sheet').getByText('Tuning freq (Fb)')).toBeVisible();
     await expect(page.locator('.mob-align-readout')).toContainText('EBP');
 
     await page.locator('.mob-align-footer .mob-btn-primary', { hasText: 'Accept' }).click();
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
 
-    const volumeField = mobileFieldRow(page, 'Volume').locator('input').first();
+    const volumeField = mobileFieldRow(page, 'Vb').locator('input').first();
     await expect(volumeField).not.toHaveValue('0.00');
     await expect(volumeField).not.toHaveValue('');
   });
 
-  test('Cancel discards the sheet\'s draft without touching the volume field', async ({ page }) => {
+  test('Cancel discards the sheet\'s draft without touching the volume field', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('sealed');
-    const volumeField = mobileFieldRow(page, 'Volume').locator('input').first();
+    const volumeField = mobileFieldRow(page, 'Vb').locator('input').first();
     await volumeField.fill('15');
     await volumeField.blur();
 
-    await page.locator('.mob-btn', { hasText: 'Choose alignment' }).click();
-    const sheetVolume = page.locator('.mob-align-sheet .mob-field-value input');
+    await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
+    const sheetVolume = page.locator('#mob-sealed-alignment-volume');
     await sheetVolume.fill('99');
     await page.locator('.mob-align-footer .mob-btn', { hasText: 'Cancel' }).click();
 
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
     await expect(volumeField).toHaveValue(/15/);
   });
+
+  test('Escape closes the sheet like Cancel', async ({ appPage: page }) => {
+    await page.locator('#mob-box-type').selectOption('sealed');
+    const volumeField = mobileFieldRow(page, 'Vb').locator('input').first();
+    await volumeField.fill('15');
+    await volumeField.blur();
+
+    await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
+    await page.locator('#mob-sealed-alignment-volume').fill('99');
+    await page.keyboard.press('Escape');
+
+    await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+    await expect(volumeField).toHaveValue(/15/);
+  });
 });
+
+// BUG_20261005_no-common-ui-field-component: the sealed sheet's Volume is a field row with ▲▼ step buttons.
+test('the sealed sheet Volume has step buttons, ▲ changes it, and the sheet fits the phone', async ({ appPage: page }) => {
+  await page.setViewportSize({ width: 374, height: 705 });
+  await page.locator('#mob-box-type').selectOption('sealed');
+  await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
+  const sheet = page.locator('.mob-align-sheet');
+  const box = page.locator('#mob-sealed-alignment-volume');
+  await expect(sheet.locator('input[type=number]')).toHaveCount(0);
+  await expect(sheet.locator('.ui-field .num-stepper-btn')).toHaveCount(2);
+  const before = await box.inputValue();
+  await sheet.locator('.ui-field .num-stepper-btn').first().click();
+  await expect(box).not.toHaveValue(before);
+  const fit = await sheet.evaluate(el => {
+    const field = el.querySelector('.ui-field')!.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return { sw: el.scrollWidth, cw: el.clientWidth, inside: field.left >= r.left - 1 && field.right <= r.right + 1 };
+  });
+  console.log(`alignment sheet 374x705: scrollWidth ${fit.sw} clientWidth ${fit.cw}`);
+  expect(fit.sw).toBeLessThanOrEqual(fit.cw);
+  expect(fit.inside).toBe(true);
+});
+
+// BUG_20261018_box-advanced-buttons-under-44: the sheet's Cancel and Accept are the one phone button.
+for (const box of ['sealed', 'vented'] as const) {
+  test(`the ${box} alignment sheet's Cancel and Accept are PhoneRowSizes.BUTTON_PX tall`, async ({ appPage: page }) => {
+    await page.locator('#mob-box-type').selectOption(box);
+    await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
+    for (const name of ['Cancel', 'Accept']) {
+      const b = page.locator('.mob-align-footer').getByRole('button', { name, exact: true });
+      expect((await b.boundingBox())!.height, name).toBeCloseTo(PhoneRowSizes.BUTTON_PX, 0);
+    }
+  });
+}

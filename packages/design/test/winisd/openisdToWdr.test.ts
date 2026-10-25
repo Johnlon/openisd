@@ -385,7 +385,7 @@ describe('openisd.json → winisd.wdr — DQ marks travel into Comment= ', () =>
     // range check has nothing to add and this stays a two-field, three-mark fixture.
     assert.equal(comment,
       "a driver\n[DQ] Qts=1.5: Qts=1.5 above max 0.8\n"
-      + "[DQ] Qts=1.5: Qts cannot be calculated yet - state Qts = Qes·Qms/(Qes+Qms) (needs Qes, Qms).\n"
+      + "[DQ] Qts=1.5: Only Qts is stated, so Qes and Qms are taken as twice Qts, as WinISD does. The charts are approximate - state Qes and Qms for accurate ones.\n"
       + "[DQ] Vas_m3=0.14: Vas=140 above max 60 L");
   });
 });

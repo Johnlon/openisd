@@ -1,0 +1,14 @@
+id: T531
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 1199a4f908179839f9b4f04893736a7e3e7cfb09
+goal: Picture feedback pages: comments newest first, reply box under every comment, picture box above its comments
+done_test: NODE_PATH=/home/john/work/winisd/openisd/node_modules python3 scripts/feedback/feedback_page_test.py
+files:
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_ruled_test.mjs
+  - scripts/feedback/feedback_page_test.py
+  - scripts/feedback/feedback_page_live_test.mjs
+  - tasks/T531.yml

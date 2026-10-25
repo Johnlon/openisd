@@ -1,0 +1,13 @@
+id: T307
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 0cbc5eb3ba4d3a44cf04e26ca21e5461b68822de
+goal: F54: mobile menu spec lists the Automatic view entry
+done_test: bash scripts/test.sh packages/ui/test/logic/presentationState-skin.test.ts
+files:
+  - tasks/T307.yml
+  - tasks/fixes/F54.yml
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+label: fixes

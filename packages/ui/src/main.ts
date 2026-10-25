@@ -1,11 +1,10 @@
-import {ReleaseWatch, type Logger} from './logic/releaseWatch.js';
-import {createBrowserReleasePort, type SessionStorageLike} from './logic/browserReleasePort.js';
+import {AppUpdate} from './logic/appUpdate.js';
+import {ScriptedUpdateHost} from './logic/scriptedUpdateHost.js';
 import {createLoadingOverlay, type LoadingOverlay} from './logic/loadingOverlay.js';
 import {createStoreGateSession} from './logic/storeGate.js';
 import StoreGate from './ui/components/StoreGate.vue';
 import {createApp} from 'vue';
 import App from './ui/App.vue';
-import {vExpoStep} from './ui/directives/expoStep.js';
 import {vLimits} from './ui/directives/limits.js';
 import {
     createAppSettingsRepo,
@@ -20,7 +19,7 @@ import {
     createStorageHistory,
     createStorageUsage,
     preRepairCopyText,
-    createLocalStorage,
+    createLocalStorage, createStoragePrefix,
     createMemoryStorage,
     LAYOUT_STEPS,
     STORAGE_LAYOUT,
@@ -45,6 +44,10 @@ import {
     createSyncLedger,
     createCloudUiStore,
     createSaveSignal,
+    createBrowserStoragePort,
+    createPersistenceStatus,
+    createSessionStorage,
+    createUsageNoticeTab,
 } from '@openisd/persistence';
 import {DeviceName, cloudSyncReportLines, cloudSyncSummary, isOAuthFragment, type OAuthConfig} from '@openisd/design/cloud';
 import {createBrowserTimer, createCloudSyncWiring, createDefaultRunLock} from './logic/cloudSyncWiring.js';
@@ -52,6 +55,8 @@ import {followPulledProjects} from './logic/pulledProjects.js';
 import {provideCloudSync} from './hooks/CloudSync-hooks.js';
 import {handleOAuthBoot} from './logic/boot.js';
 import {createLogging} from './logging/flash.js';
+import {flashStartupUse} from './logic/startupUsageNotice.js';
+import {storedUseOf} from './logic/storedUse.js';
 import {createFaultLog} from './diagnostics/faultLog.js';
 import {createDriverSelection} from './logic/driverSelection.js';
 import {createDriverBrowsingState} from './logic/driverBrowsingState.js';
@@ -59,6 +64,7 @@ import {createApplicationIO} from './logic/applicationIO.js';
 import {DesignFiles} from './logic/fileImportExport.js';
 import {DriverDrafts} from './logic/driverDraft.js';
 import {createConfirmPort} from './logic/confirmPort.js';
+import {createExportNotice} from './logic/exportNotice.js';
 import {provideApp} from './logic/app.js';
 import {createAppState, NoFocusedProjectError} from './logic/appState.js';
 import {createPresentationState} from './logic/presentationState.js';
@@ -68,21 +74,32 @@ import {startVersionIndex} from './logic/versionIndex.js';
 import {BeaconTelemetry, NoTelemetry, type Telemetry} from './logic/telemetry/telemetry.js';
 import {chooseEndpoint} from './logic/telemetry/endpoint.js';
 import {CrashReports} from './logic/telemetry/crashReports.js';
+import {createErrorContextReaders, ErrorContext, RecentActions} from './logic/telemetry/errorContext.js';
 import {crashHash} from './logic/telemetry/crashHash.js';
-import {LaunchReporter, platformHintOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
+import {LaunchReporter, platformHintOf, platformOf, type LaunchEnvironment} from './logic/telemetry/launch.js';
+import {InstallMarker} from './logic/telemetry/install.js';
+import {browserIdOf} from './logic/telemetry/browserId.js';
+import {SessionEnd} from './logic/telemetry/sessionEnd.js';
+import {registerServiceWorker} from './logic/telemetry/serviceWorker.js';
 import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
 import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
 import {newUuid} from '@openisd/design';
-import {trailOfPathname} from '@openisd/design/fields';
+import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
-import {basicUtc, formatDateTime} from '@openisd/design/fields';
+import {basicUtc, browserNameOf, formatDateTime, persistenceLine} from '@openisd/design/fields';
 import {announceLostKeys} from './logic/lostKeyNotice.js';
 import '@fontsource/inter/400.css';
 import '@fontsource/inter/600.css';
 import '@fontsource/inter/700.css';
 import './style.css';
+
+/** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */
+const storagePrefix = createStoragePrefix(location.pathname);
+const localStore = createLocalStorage(storagePrefix);
+/** This tab's own storage, under the same prefix: what is remembered once per tab. */
+const tabStore = createSessionStorage(storagePrefix);
 
 const REDIRECT_PROJECT_KEY = 'openisd_redirect_project';
 
@@ -97,7 +114,7 @@ const randomBytes = (): Uint8Array => crypto.getRandomValues(new Uint8Array(16))
 
 /** Restore, reset and repair replace stored data wholesale: the sync record is then stale. */
 const forgetCloudSyncRecord = (): void => {
-  createSyncLedger({storage: createLocalStorage(), random: randomBytes}).forgetAll();
+  createSyncLedger({storage: localStore, random: randomBytes}).forgetAll();
 };
 
 const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -124,6 +141,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // --- services: arguments in, data out, no app state ---
   // FIRST: a fault that fires while the rest of this file runs must still be caught.
   // A repair's backup is a file download: the user keeps it outside the browser.
+  // Whether the browser keeps OpenISD's data: asked once, below, once the fault log is up.
+  const browserStorage = createBrowserStoragePort('storage' in navigator ? navigator.storage : undefined, browserNameOf(navigator.userAgent));
+  const persistence = createPersistenceStatus(browserStorage, localStore);
   const faultLog = createFaultLog((fileName, text) => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -136,8 +156,12 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
       lines: () => cloudSyncReportLines(cloudSync === null ? null : cloudSync.diagnostics()),
       summary: () => cloudSyncSummary(cloudSync === null ? null : cloudSync.diagnostics()),
     },
-    key => { const held = storage.get(key); return held === null ? null : preRepairCopyText(held); });
+    {lines: () => [persistenceLine(persistence.outcome())]},
+    key => { const held = storage.get(key); return held === null ? null : preRepairCopyText(held); },
+    () => localStore.keys().filter(k => k.startsWith('openisd_'))
+      .map(k => `${k}: ${(localStore.get(k) ?? '').length} bytes`).join('\n  '));
   faultLog.install();
+  void persistence.ask();
 
   // TELEMETRY: anonymous usage events, fire-and-forget. Built here and handed to what records them.
   // A dev server and the browser suite get `NoTelemetry` (the suite opts one spec in).
@@ -148,6 +172,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     mode: import.meta.env.MODE,
     testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
   });
+  const telemetryStorage = localStore;
   const telemetry: Telemetry = telemetryEndpoint === null
     ? new NoTelemetry()
     : new BeaconTelemetry({
@@ -157,8 +182,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
         online: () => navigator.onLine,
         now: () => Date.now(),
         sessionId: newUuid(),
+        browserId: browserIdOf(telemetryStorage, newUuid),
       });
-
+  const installMarker = new InstallMarker(telemetry, telemetryStorage);
   // STORAGE (port): the browser's key-value storage, opened by the load rules in main.ts: stamped with
   // this build's layout, kept in step with the storage log, and with ONE whole-store backup that every
   // destructive write goes through first.
@@ -194,7 +220,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const driverFileStorage = createFileStorage();
 
   // --- application layer: the app's state and what it does next ---
-  const featureUse = new FeatureUse(telemetry);
+  const recentActions = new RecentActions();
+  const featureUse = new FeatureUse(telemetry, recentActions);
   const selection = createDriverSelection({ appState, presentation, driverPicked: driverPickRecorder(telemetry, driverRepo) });
   // Stored projects written by earlier builds are indented and carry dq_calculated: rewritten once,
   // behind the whole-store backup, and Cloud sync follows it so it sees no edit. A read-only view of a backup is never written.
@@ -212,48 +239,41 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: confirmPort.port, appState, presentation,
+    confirmReset: confirmPort.port, exportNotice: createExportNotice(confirmPort.port), appState, presentation,
   });
   const viewStateRepo = createViewStateRepo(storage, storageBackup, forgetCloudSyncRecord);
 
   const backup = createBackupRepo(storage, storageBackup, Date.now, layoutRules, forgetCloudSyncRecord);
   const storageHistory = createStorageHistory(storageBackup, backup, layoutRules, projectRepo);
   const storageUsage = createStorageUsage(storage, projectBin);
-  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse });
-
-  // sessionStorage wrapper for release watch (survives page reload, not browser restart)
-  const releaseSessionStorage: SessionStorageLike = {
-    getItem: (key: string) => {
-      try { return sessionStorage.getItem(key); } catch { return null; }
-    },
-    setItem: (key: string, value: string) => {
-      try { sessionStorage.setItem(key, value); } catch { /* ignore: private browsing, quota */ }
-    },
-  };
-
-  // Logger for release watch (avoids direct console in logic)
-  const releaseLogger: Logger = {
-    // eslint-disable-next-line no-console
-    log: (msg: string) => console.info(msg),
-  };
+  const designIO = createApplicationIO({ engine, logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, storageUsage, confirmPort: confirmPort.port, appState, presentation, telemetry, featureUse, actions: recentActions });
 
   // The running build's version is baked in at build time; a dev server has none, which turns the
   // check off. Narrowed, not cast: the env value is untyped.
   const bakedVersion: unknown = buildVersion;
   const isDev = import.meta.env.DEV;
-  // The browser suite's seam into the app; a no-op in every build but `--mode test` (testHooks.ts).
-  installTestHooks({appState, presentationState: presentation}, import.meta.env.MODE);
-  const releases = new ReleaseWatch(
-    typeof bakedVersion === 'string' ? bakedVersion : '',
-    createBrowserReleasePort({
-      baseUrl: import.meta.env.BASE_URL,
-      fetch,
-      serviceWorker: navigator.serviceWorker,
-      location,
-      sessionStorage: releaseSessionStorage,
-    }),
-    releaseLogger,
-  );
+  // Keeps the running build in step with the deployed one. The browser suite's build has no service
+  // worker, so there a scripted host stands in (scriptedUpdateHost.ts).
+  const updateHost = new ScriptedUpdateHost(location.origin + import.meta.env.BASE_URL);
+  const testBuild = import.meta.env.MODE === 'test';
+  const appUpdate = new AppUpdate({
+    container: testBuild ? updateHost : navigator.serviceWorker,
+    visibility: {onVisible: listener => document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') listener(); })},
+    timer: {every: (ms, listener) => { setInterval(listener, ms); }},
+    anyUnsaved: () => appState.openProjects().some(p => appState.projectHasUnsavedChanges(p)),
+    reload: () => location.reload(),
+    caches: {keys: () => globalThis.caches.keys(), delete: name => globalThis.caches.delete(name)},
+  });
+  // The scripted update host, for the browser suite; a no-op in every build but `--mode test` (testHooks.ts).
+  installTestHooks({updateHost}, import.meta.env.MODE);
+  if (testBuild) void appUpdate.attach(updateHost);
+  // The service worker is registered here, not by an injected script, so a refusal is caught.
+  if (import.meta.env.VITE_SERVICE_WORKER === 'on' && 'serviceWorker' in navigator) {
+    const registerSw = () => void registerServiceWorker(
+      navigator.serviceWorker, `${import.meta.env.BASE_URL}sw.js`, import.meta.env.BASE_URL, telemetry,
+      platformOf(platformHintOf(navigator), navigator.userAgent)).then(registration => registration === null ? undefined : appUpdate.attach(registration));
+    if (document.readyState === 'complete') registerSw(); else window.addEventListener('load', registerSw);
+  }
 
   // Hot update source: on dev server (where import.meta.hot exists), re-fetch version on vite:afterUpdate.
   const hotUpdateSource: HotUpdateSource = {
@@ -264,14 +284,27 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
 
   // App version port: in dev mode fetch from /dev-version.json, in production use baked version.
   const devPort = isDev ? createDevVersionPort(import.meta.env.BASE_URL, fetch) : null;
-  const appVersion = createAppVersionPort(isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, trailOfPathname(location.pathname), hotUpdateSource);
+  // The hosted builds, read once now (nothing is stored): they name the running release's number.
+  const versionIndex = startVersionIndex(appVersionText, fetch);
+  const appVersion = createAppVersionPort(
+    isDev, typeof bakedVersion === 'string' ? bakedVersion : '', devPort, trailOfLocation(location), hotUpdateSource,
+    versionIndex.view().then(view => view.running?.version ?? ''),
+  );
 
-  // Every hosted build, read once now (nothing is stored); About lists them.
-  const versionIndex = startVersionIndex(appVersionText, fetch, new URL('./', location.href).href);
+  const {readScreen, readDialog} = createErrorContextReaders(presentation);
+
+  const errorContext = new ErrorContext({
+    screen: readScreen,
+    dialog: readDialog,
+    projects: () => appState.openProjects().length,
+    box: () => appState.focusedProject()?.box.boxType.value ?? 'none',
+    actions: recentActions,
+    device: () => platformOf(platformHintOf(navigator), navigator.userAgent).toLowerCase(),
+  });
 
   const crashReports = new CrashReports(
     telemetry,
-    () => appState.focusedProject()?.box.boxType.value ?? '',
+    errorContext,
     (message, frames) => crashHash(appVersionText, message, frames),
   );
   const launchEnvironment = (): LaunchEnvironment => ({
@@ -292,9 +325,11 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     visibility: () => document.visibilityState,
     telemetry,
     onUncaught: thrown => crashReports.capture(thrown),
+    install: installMarker,
+    session: new SessionEnd(telemetry, featureUse, () => Date.now(), Date.now()),
   });
 
-  const cloudUi = createCloudUiStore(createLocalStorage());
+  const cloudUi = createCloudUiStore(localStore);
 
   let cloudSync: CloudSync | null = null;
   if (!store.readOnly && oauthConfig.clientId !== null) {
@@ -306,10 +341,10 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     };
     const flushPendingSaves = (): void => {
       const focused = appState.focusedProject();
+      const open = appState.openProjects();
       if (focused !== null) {
         projectRepo.saveToStorage(focused);
       }
-      const open = appState.openProjects();
       projectRepo.saveOpenProjects(open, focused, appState.hiddenTraces(open));
       viewStateRepo.save(appState.currentViewSnapshot());
     };
@@ -380,15 +415,14 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   }
 
   const app = createApp(App)
-    .directive('expo-step', vExpoStep)
     .directive('limits', vLimits);
 
   provideCloudSync(app, cloudSync, cloudUi);
-  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer), featureUse});
+  provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
     bundledPassiveRadiators: bundledPRs, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, releases, appVersion, versionIndex,
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory, storageUsage, browserStorage, persistence, saves, appUpdate, appVersion, versionIndex,
     confirmPort, appState, presentation,
     recordedProjectId: recordedProjectIdStore.get,
     cloudSync,
@@ -400,19 +434,29 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     console.error('[app] uncaught error', err, info, instance);
     // No project open is a state the shell shows, never a crash (John, 16 Oct 2026): the reader that
     // asked is logged above, and the no-project screen stays.
-    if (err instanceof NoFocusedProjectError) return;
+    if (err instanceof NoFocusedProjectError) {
+      crashReports.logOnly(err);
+      return;
+    }
     logging.flash(`Unexpected error: ${err instanceof Error ? err.message : String(err)}`);
     crashReports.capture(err);
   };
 
+  for (const [name, value] of DesktopSizes.cssVars()) document.documentElement.style.setProperty(name, value);
+  for (const [name, value] of PhoneRowSizes.TAB.cssVars()) document.documentElement.style.setProperty(name, value);
   app.mount('#app');
   overlay?.onAppMounted();
+  flashStartupUse(storedUseOf(projectRepo, storageUsage), createUsageNoticeTab(tabStore), logging.flash);
   if (store.readOnly) logging.flash('Showing a backup read-only. Nothing you change is saved.');
   // A key that was here at the last start and is gone now: say so, and wait for a click.
   void announceLostKeys(store.lostKeys, {
     confirm: confirmPort.port,
     formatTime: formatDateTime,
-    exportLog: () => createFileSave().download(`openisd-storage-log-${basicUtc(Date.now())}.json`, store.log.exportText(), 'application/json'),
+    exportLog: () => {
+      const fileName = `openisd-storage-log-${basicUtc(Date.now())}.json`;
+      createFileSave().download(fileName, store.log.exportText(), 'application/json');
+      createExportNotice(confirmPort.port).exported({kind: 'storageLog'}, fileName);
+    },
   });
 }
 
@@ -441,7 +485,7 @@ if (typeof window !== 'undefined' && isOAuthFragment(window.location.hash)) {
     get hash() { return window.location.hash; },
     replaceState(url: string) { window.history.replaceState(null, '', url); },
   };
-  const bootTokenStore = createTokenStore(createLocalStorage());
+  const bootTokenStore = createTokenStore(localStore);
   const bootSession = createImplicitSession({
     config: oauthConfig,
     store: bootTokenStore,
@@ -463,7 +507,7 @@ if (typeof window !== 'undefined' && isOAuthFragment(window.location.hash)) {
 const layoutRules = { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS };
 const exportedFiles = createExportedFiles(layoutRules);
 const baked: unknown = import.meta.env.VITE_BUILD_VERSION;
-const opening = createStoreOpening(createLocalStorage(), {
+const opening = createStoreOpening(localStore, {
   build: createBuildStamp(typeof baked === 'string' ? baked : ''),
   now: Date.now,
   rules: layoutRules,
@@ -485,13 +529,15 @@ const recordedProjectIdStore: RecordedProjectIdStore = {
 if (opening.kind === 'ready') {
   startApp(opening, loadingOverlay, recordedProjectIdStore);
 } else {
+  const gateConfirm = createConfirmPort();
   const session = createStoreGateSession(opening, {
     formatTime: formatDateTime,
     download: (fileName, text) => createFileSave().download(fileName, text, 'application/json'),
     now: Date.now,
+    exportNotice: createExportNotice(gateConfirm.port),
     onReady: (open) => { gate.unmount(); startApp(open, loadingOverlay, recordedProjectIdStore); },
   });
-  const gate = createApp(StoreGate, {session});
+  const gate = createApp(StoreGate, {session, confirmState: gateConfirm.state});
   gate.mount('#app');
   loadingOverlay?.onAppMounted();
 }

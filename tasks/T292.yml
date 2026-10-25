@@ -1,0 +1,13 @@
+id: T292
+release_note: internal
+label: process
+repo: openisd
+owner: maryu
+status: done
+landed: 80fbb514b2adb1b2fceb6aa0818980b878490864
+goal: the ts-log wrapper leaves no grace-timer process behind when it gets TERM, so ts-log-kill.test.sh passes every run
+done_test: bash scripts/land/test/ts-log-kill.test.sh
+files:
+  - tasks/T292.yml
+  - scripts/lib/ts-log.sh
+  - bugs/BUG_20261017_ts-log-kill-flaky.md

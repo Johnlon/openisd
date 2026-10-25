@@ -1,0 +1,13 @@
+id: T461
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: e3b016f0af53be6dd17777c647fff5a81f9021c9
+goal: Record two desktop bugs seen on the QO269 prod capture (bugs/BUG_20261019_desktop-advanced-winisd-bugs-group-cut.md, bugs/BUG_20261019_desktop-wizard-ebp-no-space-after-colon.md). Doc only, no code.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T461.yml
+  - bugs/BUG_20261019_desktop-advanced-winisd-bugs-group-cut.md
+  - bugs/BUG_20261019_desktop-wizard-ebp-no-space-after-colon.md
+visual: []

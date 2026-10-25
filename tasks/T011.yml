@@ -9,7 +9,7 @@ goal: Every heavy job on this machine, from any repo, hook or shell, runs only w
 done_test: timeout 600 bash scripts/land/test/admit.e2e.test.sh
 locked:
   - path: scripts/land/test/admit.e2e.test.sh
-    sha256: a36d542bf5875d2a76620c4f7f670b1089a40b708824dd323c7a1fa7379eca0a
+    sha256: 94a871cc42b52cfdb2ca304e6d0bcc361b75f9985edf65fc127efe6e29935ed9
 # admit.e2e asserts:
 #  - a second heavy start blocks FIFO and prints the job it waits behind
 #  - a slot whose owner pid (plus start time) is dead is freed by the housekeeper, and the waiter runs

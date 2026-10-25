@@ -45,34 +45,38 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.systemTuning_hz.dq.length).toBeGreaterThan(0);
   });
 
-  it('clearing the entered tuning goal leaves the added mass entered at 0, tuning calculated', () => {
+  it('clearing the entered tuning goal keeps the added mass at its value, entered; tuning calculated (John, 2026-10-16)', () => {
     const p = project();
     p.box.boxType.set('box-passive-radiator');
     const pr = p.box.passiveRadiator;
     pr.tuning_goal_hz.set(25);
     expect(pr.tuning_goal_hz.entered).toBe(true);
+    const mass = pr.addedMass_kg.value;
+    expect(mass).not.toBe(null);
 
     pr.tuning_goal_hz.clear();
 
     expect(pr.addedMass_kg.entered).toBe(true);
-    expect(pr.addedMass_kg.value).toBe(0);
+    expect(pr.addedMass_kg.value).toBe(mass);
     expect(pr.tuning_goal_hz.entered).toBe(false);
     expect(pr.tuning_goal_hz.value).not.toBe(null);
   });
 
-  it('clearing the entered added mass makes it entered 0, tuning calculated', () => {
+  it('clearing the entered added mass keeps the tuning at its value, entered; the mass is calculated (John, 2026-10-16)', () => {
     const p = project();
     p.box.boxType.set('box-passive-radiator');
     const pr = p.box.passiveRadiator;
     pr.addedMass_kg.set(0.05);
     expect(pr.addedMass_kg.entered).toBe(true);
+    const tuning = pr.tuning_goal_hz.value;
+    expect(tuning).not.toBe(null);
 
     pr.addedMass_kg.clear();
 
-    expect(pr.addedMass_kg.entered).toBe(true);
-    expect(pr.addedMass_kg.value).toBe(0);
-    expect(pr.tuning_goal_hz.entered).toBe(false);
-    expect(pr.tuning_goal_hz.value).not.toBe(null);
+    expect(pr.tuning_goal_hz.entered).toBe(true);
+    expect(pr.tuning_goal_hz.value).toBe(tuning);
+    expect(pr.addedMass_kg.entered).toBe(false);
+    expect(pr.addedMass_kg.value).not.toBe(null);
   });
 
   it('brand/model metadata is never solver-derived — setCalculated()/setDq() are no-ops, as for a radiator T/S spec', () => {

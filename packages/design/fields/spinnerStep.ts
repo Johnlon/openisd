@@ -12,11 +12,11 @@
  * Signed values step on |v|: away from zero grows, towards zero shrinks, and the last step
  * towards zero lands on 0; from 0 the step is `10^finestExp`.
  *
- * `integer`: a count; every press is 1 at either speed, and is already round.
+ * `integer`: a count or an order; every press is `step` (1, or 2 for an even-only order) at either speed, and is already round.
  */
 export type SpinRule =
   | {readonly kind: 'proportional'; readonly finestExp: number}
-  | {readonly kind: 'integer'};
+  | {readonly kind: 'integer'; readonly step: number};
 
 /** How far one press moves: `fine` for a tap or short hold, `fast` once a hold has run on. */
 export type SpinSpeed = 'fine' | 'fast';
@@ -85,7 +85,7 @@ function clamp(v: number, bounds: SpinBounds): number {
 /** The value one spinner press in direction `dir` takes the input showing `shown` to. */
 export function spinValue(shown: string, dir: SpinDirection, rule: SpinRule, bounds: SpinBounds, speed: SpinSpeed = 'fine'): number {
   const v = parseShown(shown);
-  if (rule.kind === 'integer') return clamp(Math.round(v) + dir, bounds);
+  if (rule.kind === 'integer') return clamp(Math.round(v) + dir * rule.step, bounds);
   if (v === 0) return clamp(dir * Number(`1e${rule.finestExp}`), bounds);
   const grow = (v > 0) === (dir > 0);
   const next = Math.sign(v) * stepMagnitude(Math.abs(v), grow, speed, rule.finestExp);
@@ -127,7 +127,7 @@ export function holdStage(heldMs: number): HoldStage {
  *  replaces the browser's value with `spinValue`'s, taking only the direction from it. `shown` is
  *  unused now that the step no longer depends on the value; kept so callers need not change. */
 export function spinStepAttr(_shown: string, rule: SpinRule): string {
-  return rule.kind === 'integer' ? '1' : String(Number(`1e${rule.finestExp}`));
+  return rule.kind === 'integer' ? String(rule.step) : String(Number(`1e${rule.finestExp}`));
 }
 
 /** The rule for an input with no field: proportional steps, never finer than the decimals in `shown`. */

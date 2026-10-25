@@ -1,0 +1,11 @@
+id: T395
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 2c53a9ad59013edf6f962d9fae5cc402e187bac4
+goal: The 7.0.953 announcement lists the chart Data button with Copy and CSV (T394), the 0 dB / -3 dB line colour pickers (T391), slot vents in WinISD projects (T392) and the "TL port without end correction" bug switch (T390).
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - docs/ANNOUNCEMENT_7.0.953.md
+  - tasks/T395.yml

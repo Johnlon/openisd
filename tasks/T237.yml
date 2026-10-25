@@ -1,0 +1,12 @@
+id: T237
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 159ae7f4ae3a04f93705935f6af398e545c32514
+goal: F41: close as not reproducible, a test-server load failure
+done_test: bash scripts/land/test/visual.e2e.test.sh
+files:
+  - tasks/T237.yml
+  - tasks/fixes/F41.yml
+label: fixes

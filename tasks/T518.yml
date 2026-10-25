@@ -1,0 +1,12 @@
+id: T518
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: ae359d26cc370eed955392b453da275f19cb86a4
+goal: Driver types Bass and Bass-midrange exist (both carry the Woofer chip) and Midrange no longer carries the Woofer chip, per QT102.
+done_test: bash scripts/test.sh packages/design/test/filter/driverType.test.ts packages/ui/test/architecture/no-raw-driver-type-literals.test.ts
+files:
+  - packages/design/filter/driverType.ts
+  - packages/design/test/filter/driverType.test.ts
+  - tasks/T518.yml

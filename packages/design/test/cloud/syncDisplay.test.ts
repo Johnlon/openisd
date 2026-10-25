@@ -36,6 +36,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
     hintDismissed: false,
     launches: 1,
     updateBannerShown: false,
+    reconnectDismissed: false,
     configured,
   });
 
@@ -355,6 +356,7 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       expect(display.strip).toEqual({
         text: '⚠ Google needs you to connect again. 3 changes not synced.',
         button: 'Reconnect',
+        dismiss: 'Not now',
       });
       expect(display.dialog).toEqual({
         title: 'Cloud sync',
@@ -556,6 +558,12 @@ describe('syncDisplayOf — Drive sync plan P1-2 (sections 2.3, 6.1, 6.2)', () =
       });
       expect(displayWithoutUpdateBanner.strip).not.toBeNull();
       expect(displayWithoutUpdateBanner.strip?.button).toBe('Reconnect');
+    });
+
+    it('Not now hides the reconnect strip; the strip offers Not now', () => {
+      const reconnecting = defaultInputs({kind: 'reconnect', account: 'john@gmail.com', changes: 0});
+      expect(syncDisplayOf(reconnecting).strip?.dismiss).toBe('Not now');
+      expect(syncDisplayOf({...reconnecting, reconnectDismissed: true}).strip).toBeNull();
     });
 
     it('hint only when launches >= 2, status off, and not dismissed', () => {

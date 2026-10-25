@@ -8,6 +8,7 @@ set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/land-gitconfig.XXXXXX")"
 printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\tdefaultBranch = main\n' > "$GITCFG"
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
+export POST_LAND_QUIET_S=0   # the quiet period is tested in post-land-queue.test.sh
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 
@@ -36,8 +37,9 @@ setup_repo() {
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
     cp "$REPO/scripts/land.sh" scripts/
-    cp -r "$REPO/scripts/land" scripts/
+    cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     cp "$REPO/scripts/paths.sh" scripts/
+    cp "$REPO/scripts/browser-runs.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/
     cat > gates/lint.sh <<'EOF'
 #!/usr/bin/env bash
 echo "lint_start" >> "$LANDING_LOG/seq"
@@ -59,6 +61,8 @@ echo "attribution_start" >> "$LANDING_LOG/seq"
 ! grep -qi '^co-authored-by:.*claude'
 echo "attribution_end" >> "$LANDING_LOG/seq"
 EOF
+    # land.sh refuses a repo with no UNIT_CMD; this gate logs nothing, so the sequence checks stay as they were.
+    printf '#!/usr/bin/env bash\nexit 0\n' > gates/unit.sh
     chmod +x gates/*.sh
     if [ "$with_suite" = "true" ]; then
         suite_line='FULL_SUITE_CMD="bash suite.sh"'
@@ -68,11 +72,15 @@ EOF
     cat > land.conf <<EOF
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
+UNIT_CMD="bash gates/unit.sh"
+ARCHITECTURE_CMD="true"
+CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=5
 LAND_LOCK="$OPENISD_RUNTIME_DIR/land.lock"
 $suite_line
 POST_LAND_LOCK="$OPENISD_RUNTIME_DIR/post-land.lock"
+POST_LAND_RECORD="$OPENISD_RUNTIME_DIR/post-land.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 EOF
     if [ "$with_suite" = "true" ]; then
@@ -144,7 +152,7 @@ wait $p2; r2=$?
 origin_log=$(git -C "$SCRATCH/w/origin.git" log --format=%s main)
 
 # Verify both succeeded
-if [ $r1 = 0 ] && [ $r2 = 0 ] && echo "$origin_log" | grep -qF "w1 change" && echo "$origin_log" | grep -qF "w2 change"; then
+if [ $r1 = 0 ] && [ $r2 = 0 ] && echo "$origin_log" | grep -qF "T1: " && echo "$origin_log" | grep -qF "T2: "; then
     ok "two concurrent land.sh runs both land"
 else
     fail "concurrent landings (r1=$r1 r2=$r2)"

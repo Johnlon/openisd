@@ -1,8 +1,12 @@
 import {expect, openAProject, test} from '../fixtures.js';
+import {emulateDriveServer} from './fixtures/driveConnected.js';
+import {enableCloudSync} from './fixtures/cloudSyncStubs.js';
 
 test.describe('Redirect round trip', () => {
   test('redirect round trip preserves unsaved edit and strips OAuth fragment', async ({ page }) => {
     let googleIntercepted = false;
+    // After the redirect the app is signed in and syncs; Google's Drive server is emulated, never the real one.
+    await emulateDriveServer(page);
 
     await page.route('**/accounts.google.com/**', async route => {
       googleIntercepted = true;
@@ -18,22 +22,7 @@ test.describe('Redirect round trip', () => {
       });
     });
 
-    await page.route('**/*main*', async route => {
-      const url = route.request().url();
-      if (!url.endsWith('.js') && !url.endsWith('.ts') && !url.includes('/assets/main-')) {
-        await route.continue();
-        return;
-      }
-      const response = await route.fetch();
-      let text = await response.text();
-      if (text.includes('clientId:null')) {
-        text = text.replace('clientId:null', 'clientId:"stubbed-client-id"');
-      }
-      await route.fulfill({
-        response,
-        body: text,
-      });
-    });
+    await enableCloudSync(page);
 
     await page.goto('/');
     await openAProject(page);

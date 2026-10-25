@@ -359,6 +359,12 @@ export default [
     rules: { 'vue/no-restricted-syntax': ['error', ...LOCALE_FORMAT_SELECTORS] },
   },
 
+  // ── A fixture whose addInitScript/evaluate callbacks run in the page: browser globals too ──
+  {
+    files: ['packages/ui/test/fixtures/chartFonts.ts'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser, ...globals.es2022 } },
+  },
+
   // ── Playwright tests: packages/ui/test/*.browser.spec.ts ─────────────────
   {
     ...pluginPlaywright.configs['flat/recommended'],

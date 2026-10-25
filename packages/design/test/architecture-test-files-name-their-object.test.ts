@@ -34,7 +34,9 @@ import {fileURLToPath} from 'node:url';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const TEST_ROOTS = ['packages/design/test', 'packages/persistence/test', 'packages/ui/test'];
 const TEST_FILE = /\.(test|browser\.spec)\.ts$/;
-const UI_FOLDERS = ['architecture', 'diagnostics', 'fixtures', 'hooks', 'logic', 'scripts', 'ui'];
+const UI_FOLDERS = ['architecture', 'diagnostics', 'fixtures', 'hooks', 'logic', 'scripts', 'ui', 'visual'];
+/** Browser specs: behaviour in ui/; the committed screen pictures (T230, scripts/visual/) in visual/. */
+const BROWSER_SPEC_FOLDERS = ['packages/ui/test/ui/', 'packages/ui/test/visual/'];
 /** Words that name a ticket, a bug, a layer or a grab-bag — never an object under test. */
 const NOT_AN_OBJECT = /(^|[-_.])(app|stubs?|hardening|misc|characteri[sz]ation|bugs?|qo\d+|regression)\.(test|browser\.spec)\.ts$|^(original|mobile)-skin\.|(^|[-_.])(bug|qo\d+|regression)[-_.]/i;
 
@@ -50,8 +52,8 @@ function testFilesUnder(dir: string): string[] {
 export function placementOffences(path: string): string[] {
   const offences: string[] = [];
   const name = path.slice(path.lastIndexOf('/') + 1);
-  if (name.endsWith('.browser.spec.ts') && !path.startsWith('packages/ui/test/ui/')) {
-    offences.push(`${path}: a browser spec belongs in packages/ui/test/ui/`);
+  if (name.endsWith('.browser.spec.ts') && !BROWSER_SPEC_FOLDERS.some(folder => path.startsWith(folder))) {
+    offences.push(`${path}: a browser spec belongs in ${BROWSER_SPEC_FOLDERS.join(' or ')}`);
   }
   if (path.startsWith('packages/design/test/') && !path.slice('packages/design/test/'.length).includes('/')
       && !name.startsWith('architecture-')) {

@@ -1,0 +1,14 @@
+id: T236
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: f19a2d195c4420623a811fea291d716b46c26420
+goal: Visual sources: add the design engine files
+done_test: bash scripts/land/test/visual.e2e.test.sh
+files:
+  - tasks/T236.yml
+  - scripts/visual/sources.txt
+  - scripts/land/test/visual.e2e.test.sh
+  - docs/design/VISUAL_BASELINES.md
+  - packages/ui/test/visual/SOURCES.sha256

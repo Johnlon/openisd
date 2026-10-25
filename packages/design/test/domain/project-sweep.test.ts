@@ -3,6 +3,7 @@ import {type Engine, createEngine} from '@openisd/design/engine';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {driverFromSpec, radiatorFromSpec} from '../fixtures/recordBuilders.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 /**
  * THE DOMAIN CALLING THE ENGINE — every group, driven through the published surface only.
@@ -47,11 +48,12 @@ describe('OpenISDProject sweep', () => {
     const mine = project.sweep(P).values;
     expect(mine).not.toBeNull();
     const theirs = engine.simulation.sweep(
-      project.driver.specs.sweepDriver(), project.driver.specs.Le_H.value!, 'sealed',
+      // "Two-BL driver" is unticked: one BL, so the typed BL is not handed to the engine.
+      {...project.driver.specs.sweepDriver(), winisdBL_Tm: null}, project.driver.specs.Le_H.value!, 'sealed',
       {
         Vb: 0.03, eg: project.driveVoltage_V.value!, fmin: 10, fmax: 1000, N: 100,
         Ql: project.box.sealed.losses.Ql.value, Qa: project.box.sealed.losses.Qa.value,
-        Rs: project.Rs_ohm.value,
+        Rs: project.Rs_ohm.value, air: REFERENCE_AIR,
       },
     ).values!;
     expect(mine!.spl).toEqual(theirs.spl);
@@ -71,20 +73,6 @@ describe('OpenISDProject sweep', () => {
     const project = new ProjectBuilder(driverFromSpec(engine, { Fs_hz: 30 }), engine).sealed().volume_m3(0.03).build();
 
     expect(project.sweep({}).values).toBeNull();
-  });
-
-  it('sweep() is null for a box with a chamber volume missing, and NOT for a stated one', () => {
-    const engine = createEngine();
-    const project = drivenSealed(engine, 0.03);
-    const P: FrequencyGrid = { fmin: 10, fmax: 1000, N: 50 };
-
-    expect(project.sweep(P).values).not.toBeNull();
-
-    // A new bandpass6 states its starting volumes; with the rear one retracted there is nothing to simulate.
-    project.box.boxType.set('bandpass6');
-    expect(project.sweep(P).values).not.toBeNull();
-    project.box.bandpass6.chambers.rear.volume_m3.clear();
-    expect(project.sweep(P).values).toBeNull();
   });
 
   it('a passive-radiator box simulates, under the ONE box vocabulary', () => {

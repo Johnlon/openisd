@@ -7,7 +7,7 @@
  * so one user action produces one solve (and a wholesale restore is adopted verbatim,
  * byte-identical — docs/design/STATE_MODEL.md rule 3).
  */
-import type {OpenISDProject} from '@openisd/design';
+import type {OpenISDProject, Vent} from '@openisd/design';
 import type {ProvenanceLetter} from '@openisd/design';
 
 /** A thin passthrough onto the domain's own reactivity ping (`prGroup.ts`'s
@@ -38,6 +38,12 @@ function act(p: OpenISDProject, write: () => void): void {
       p.notifyVentChanged();
     });
   });
+}
+
+/** Enter one port's cross-sectional area: the port's diameter (or height, for a slotted one) and,
+ *  where the tuning is held, its length follow in the same solve. */
+export function enterVentArea(p: OpenISDProject, vent: Vent, area_m2: number): void {
+  act(p, () => vent.area_m2.set(area_m2));
 }
 
 /** A vent-group member the user can enter — held until cleared. */

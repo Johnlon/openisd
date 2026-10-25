@@ -1,4 +1,5 @@
 import type {Engine} from '../../engine/Engine.js';
+import {FixedAir, availableAir} from '../../engine/index.js';
 import {driverFromSpec} from './recordBuilders.js';
 import {RECORD_FIELDS, SOLVED_FIELDS} from './driverSolverCases.js';
 import type {RecordField, SolvedField, SolverCase} from './driverSolverCases.js';
@@ -17,7 +18,7 @@ export interface RecordFieldOutcome {
 /** One issue, reduced to its kind, the fields it names and what it states. Numbers are absent where
  *  the kind carries none. */
 export interface IssueOutcome {
-  readonly kind: 'missing-dependencies' | 'inconsistent-inputs' | 'out-of-range';
+  readonly kind: 'missing-dependencies' | 'inconsistent-inputs' | 'approximate-charts' | 'out-of-range';
   readonly fields: readonly string[];
   readonly text: string;
   readonly expected?: number;
@@ -39,6 +40,7 @@ type DriverIssue = ReturnType<ReturnType<typeof driverFromSpec>['issues']>[numbe
 function outcomeOfIssue(issue: DriverIssue): IssueOutcome {
   switch (issue.kind) {
     case 'missing-dependencies':
+    case 'approximate-charts':
       return {kind: issue.kind, fields: issue.fields, text: issue.text};
     case 'inconsistent-inputs':
       return {
@@ -52,8 +54,8 @@ function outcomeOfIssue(issue: DriverIssue): IssueOutcome {
 
 export function runCase(engine: Engine, testCase: SolverCase): CaseOutcome {
   // No project: the project's delegate, the app's environment defaults (John, 2026-10-05).
-  const air = engine.environment.solve(engine.environment.defaults()).values;
-  const solved = engine.driver.solveValues(testCase.stated, air);
+  const air = new FixedAir(engine.environment.solve(engine.environment.defaults()).values);
+  const solved = engine.driver.solveValues(testCase.stated, availableAir(air));
   const values: ValueOutcome[] = [];
   for (const field of SOLVED_FIELDS) {
     const value = solved[field];

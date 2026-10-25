@@ -22,6 +22,8 @@ export interface WinisdDifferencesModalAPI {
   show(): void;
   /** A WinISD Compatibility group heading's help link: the page at the group's section. */
   showGroup(g: CompatSwitchGroup): void;
+  /** A phone help line's "More in Differences": the page at that entry. */
+  showEntry(e: WinisdDifference): void;
   /** A ≠W cue: the page at the cue's entry. */
   showDeviation(d: WinisdDeviation): void;
   close(): void;
@@ -52,6 +54,7 @@ export function useWinisdDifferencesModal(
     target,
     show: () => openAt(null),
     showGroup: g => openAt(WinisdDifferenceSection.forGroup(g)),
+    showEntry: e => openAt(e),
     showDeviation: d => openAt(WinisdDifference.forDeviation(d)),
     close: () => { open.value = false; target.value = null; },
     cuesShown: computed(() => deps.differenceCuesShown()),

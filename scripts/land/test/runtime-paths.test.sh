@@ -28,7 +28,7 @@ export XDG_RUNTIME_DIR="$SCRATCH/xdg"
 mkdir -p "$XDG_RUNTIME_DIR"
 
 # Test land lock (LAND_LOCK)
-export OPENISD_RUNTIME_DIR="$SCRATCH/runtime"
+export OPENISD_RUNTIME_DIR="$SCRATCH/runtime" OPENISD_STATE_DIR="$SCRATCH/state"
 mkdir -p "$OPENISD_RUNTIME_DIR"
 
 # Start first land lock holder

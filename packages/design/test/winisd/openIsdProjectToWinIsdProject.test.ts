@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject, ProjectBuilder} from '@openisd/design';
+import {at, isRecord} from '../fixtures/domainBuilders.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {WinISDProject} from '../../winisd/winisdProject.js';
@@ -106,6 +107,22 @@ function driverFromCapture(engine: Engine): OpenISDDriver {
 function aCaptureProject(box: (p: ProjectBuilder) => OpenISDProject): OpenISDProject {
   const engine = createEngine();
   return box(new ProjectBuilder(driverFromCapture(engine), engine));
+}
+
+/** The project reloaded from its own record with the entries at the given box paths removed. */
+function withoutEntries(project: OpenISDProject, paths: readonly (readonly string[])[]): OpenISDProject {
+  const session: unknown = JSON.parse(project.toOwprText());
+  for (const half of ['saved', 'edited']) {
+    if (!isRecord(session) || !isRecord(session[half])) continue;
+    for (const path of paths) {
+      const parent = at(session, half, 'box', ...path.slice(0, -1));
+      if (!isRecord(parent)) throw new Error(`no record at ${path.join('.')}`);
+      delete parent[path[path.length - 1] ?? ''];
+    }
+  }
+  const loaded = OpenISDProject.fromOwprText(JSON.stringify(session), createEngine());
+  if (Array.isArray(loaded)) throw new Error(`the edited record does not load: ${loaded.join(', ')}`);
+  return loaded;
 }
 
 describe('openIsdProjectToWinIsdProject', () => {
@@ -382,12 +399,12 @@ describe('openIsdProjectToWinIsdProject', () => {
     });
 
     it('vented [Box]/[VentRear] Fr/Fb fall back to 0 once tuning_goal_hz is cleared', () => {
-      // A driver with a design falls back to the starting alignment on clear (John, 2026-10-01);
-      // a driver that states nothing has none, so the tuning stays cleared.
+      // Clearing the tuning keeps a length that has a value (John, 2026-10-16), so a record with
+      // neither the tuning nor the length stated is what is loaded.
       const engine = createEngine();
-      const project = new ProjectBuilder(OpenISDDriver.empty(engine), engine).vented().volume_m3(0.03).tuning_goal_hz(40).build();
-      project.driver.specs.Re_ohm.set(6);
-      project.box.vented.tuning_goal_hz.clear();
+      const built = new ProjectBuilder(OpenISDDriver.empty(engine), engine).vented().volume_m3(0.03).tuning_goal_hz(40).build();
+      built.driver.specs.Re_ohm.set(6);
+      const project = withoutEntries(built, [['vented', 'chamber', 'tuning_goal_hz'], ['vented', 'vent', 'length_m']]);
 
       const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
       assert.equal(errors.length, 0, JSON.stringify(errors));
@@ -401,9 +418,9 @@ describe('openIsdProjectToWinIsdProject', () => {
     });
 
     it('bandpass4 [Box]/[VentFront] Ff/Fb fall back to 0 once the front tuning is cleared', () => {
-      const project = aProject((p) => p.bandpass4()
+      const built = aProject((p) => p.bandpass4()
         .rearVolume_m3(0.01).frontVolume_m3(0.02).frontTuning_hz(60).build());
-      project.box.bandpass4.chambers.front.tuning_goal_hz.clear();
+      const project = withoutEntries(built, [['bandpass4', 'front', 'tuning_goal_hz'], ['bandpass4', 'frontVent', 'length_m']]);
 
       const { value: wpr, errors } = new WinIsdProjectConverter(createEngine()).openIsdProjectToWinIsdProject(project);
       assert.equal(errors.length, 0, JSON.stringify(errors));
@@ -445,11 +462,7 @@ describe('openIsdProjectToWinIsdProject', () => {
       assert.ok(ventBlock![1].includes('len=0.15'), '[VentRear] len is present once length_m is stated');
     });
 
-    it('[VentRear] does not throw and takes WinISD\'s own template default Shape once the vent is slotted', () => {
-      // `WinISDProject`'s own template also defaults Shape to '1' (winisdProject.ts TEMPLATE), the
-      // same code this bridge writes for round — so a slotted vent's output is not distinguishable
-      // from round's here (the file's own comment at this line already flags slotted's real WinISD
-      // code as unconfirmed). This proves the branch runs cleanly, not a distinguishable output.
+    it('[VentRear] a slotted vent writes Shape=2 (docs/research/WPR_VENT_SHAPES.md)', () => {
       const project = aProject((p) => p.vented().volume_m3(0.03).tuning_goal_hz(40).build());
       project.box.vented.vent.shape.set('slotted');
 
@@ -458,7 +471,7 @@ describe('openIsdProjectToWinIsdProject', () => {
       if (!wpr) throw new Error('expected a WinISDProject');
       const text = wpr.toWpr().replace(/\r\n/g, '\n');
       const ventBlock = text.match(/\[VentRear\]\n([\s\S]*?)(?=\n\[|$)/);
-      assert.ok(ventBlock && ventBlock[1].includes('Shape=1'));
+      assert.ok(ventBlock && ventBlock[1].includes('Shape=2'));
     });
 
     it('passive-radiator [Box] reports Fr once the system tuning is computable', () => {

@@ -1,286 +1,105 @@
 <script setup lang="ts">
-// The mobile Enclosure tab — vent (port) fields for vented/bandpass4, one vent panel per port for
-// bandpass6/abc, and passive-radiator fields for box-passive-radiator. Thin: all state and domain reads/writes
-// live in useMobileEnclosureTab() (src/hooks/MobileEnclosureTab-hooks.ts), which calls the SAME
-// field-wiring factories OriginalShell-hooks.ts exports. PRBrowser is the app's
-// existing global-style overlay, reused unchanged (not duplicated per skin) — position:fixed
-// descendants of .app-root-mobile are already contained to the phone pane (App.vue's own fix).
-import {NumberField, TextField} from '@openisd/design/fields';
+// The vent and passive-radiator sections of the Box page (after the chambers): one vent section per
+// vent the box draws, the passive radiator, and the Chart section holding the velocity limit.
+// Thin: all state and domain reads/writes live in useMobileEnclosureTab()
+// (src/hooks/MobileEnclosureTab-hooks.ts). PRBrowser is the app's existing overlay, reused unchanged.
+import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, TextField, WinisdDeviation} from '@openisd/design/fields';
 import {inputValue, selectedOption} from '../../../logic/domEvents.js';
 import UIField from '../../components/UIField.vue';
-import NumInput from '../../components/NumInput.vue';
-import NumReadout from '../../components/NumReadout.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import PRBrowser from '../../components/PRBrowser.vue';
 import SaveToLibraryDialog from '../../components/SaveToLibraryDialog.vue';
+import PhoneBand from './PhoneBand.vue';
 import {useMobileEnclosureTab} from '../../../hooks/MobileEnclosureTab-hooks.js';
-import {useUnitReadouts} from '../../../hooks/useUnitReadouts.js';
 
 const {
   project, selectedBox,
-  activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg, tuningField,
+  ventSections, tuningNoteShown,
   prResonanceMassDq, prFsMass_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
 } = useMobileEnclosureTab();
-const {fieldWithUnit} = useUnitReadouts();
 </script>
 
 <template>
-  <div v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'" class="mob-panel">
-    <div class="mob-panel-head">Vents</div>
-
-    <div class="mob-row">
-      <label class="mob-row-label">Number of Vents</label>
-      <select class="mob-select" :value="activeVent.count.value"
-              @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) activeVent.count.set(n); }">
+  <section v-for="section in ventSections" :key="section.name" class="mob-csection">
+    <PhoneBand :section="section.help" />
+    <p v-if="section.name === 'Intra'" class="mob-cnote">{{ PhoneBoxText.INTRA_VENT_NOTE }}</p>
+    <UIField v-if="section.tuning" class="mob-ui-field" :title="FB_TARGET_TIP" :field="section.tuning.field" :label="section.tuning.label" :cell="section.tuning.cell" stepper />
+    <div class="mob-crow">
+      <label class="mob-crow-label">Number of Vents</label>
+      <select class="mob-cselect" :value="section.vent.count.value"
+              @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) section.vent.count.set(n); }">
         <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
     </div>
-    <div class="mob-row">
-      <label class="mob-row-label">Shape</label>
-      <select class="mob-select" :value="activeVent.shape.value"
-              @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) activeVent.shape.set(shape); }">
+    <div class="mob-crow">
+      <label class="mob-crow-label">Shape</label>
+      <select class="mob-cselect" :value="section.vent.shape.value"
+              @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) section.vent.shape.set(shape); }">
         <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
       </select>
     </div>
-    <div class="mob-row">
-      <label class="mob-row-label">End Correction</label>
-      <select class="mob-select" :value="activeVent.endCorrection_m.value"
-              @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) activeVent.endCorrection_m.set(k); }">
+    <div class="mob-crow">
+      <label class="mob-crow-label">End Correction</label>
+      <select class="mob-cselect" :value="section.vent.endCorrection_m.value"
+              @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) section.vent.endCorrection_m.set(k); }">
         <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
       </select>
     </div>
-
-    <template v-if="activeVent.shape.value === 'slotted'">
-      <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="activeVent.width_m" stepper />
-      <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="activeVent.height_m" stepper />
+    <template v-if="section.vent.shape.value === 'slotted'">
+      <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="section.vent.width_m" stepper />
+      <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="section.vent.height_m" stepper />
     </template>
-    <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="activeVent.diameter_m" stepper />
+    <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="section.vent.diameter_m" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="section.vent.length_m" stepper />
+    <UIFixedField class="mob-ui-field" :field="NumberField.VENT_CROSSAREA_M2" :value="section.vent.totalArea_m2()" readonly plain />
+    <UIFixedField class="mob-ui-field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="section.portPipeResonance_hz" readonly plain />
+    <p v-if="tuningNoteShown && section.tuning && section.unreachable" class="mob-chint mob-chint-warn">{{ section.unreachableMsg }}</p>
+  </section>
 
-    <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="activeVent.length_m" stepper />
-    <UIField class="mob-ui-field" :title="FB_TARGET_TIP" :field="tuningField" :cell="activeTuning" stepper />
-
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Cross area</span>
-        <span class="mob-field-value mob-readonly"><NumReadout :value="activeVent.area_m2.value" :field="NumberField.VENT_CROSSAREA_M2" :precision="NumberField.VENT_CROSSAREA_M2.precision" /></span>
-      </div>
-      <UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="mob-unit" />
+  <template v-if="selectedBox === 'box-passive-radiator'">
+    <section class="mob-csection">
+    <PhoneBand :section="PhoneHelp.PASSIVE_RADIATOR" />
+    <UIField class="mob-ui-field" :title="PhoneBoxText.FP_TIP" :field="NumberField.PR_FP_HZ" :label="PhoneLabels.PR_FP" :cell="project.box.passiveRadiator.tuning_goal_hz" :deviation="WinisdDeviation.PR_BOX_TUNING" stepper />
+    <div class="mob-crow">
+      <input id="mob-pr-name" class="mob-cname" type="text" :aria-label="TextField.PR_NAME.label" :title="TextField.PR_NAME.description" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))">
     </div>
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main">
-        <span class="mob-field-label">1st port resonance</span>
-        <span class="mob-field-value mob-readonly"><NumReadout :value="portPipeResonance_hz" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :precision="NumberField.VENT_1STPORTRESONANCE_HZ.precision" /></span>
-      </div>
-      <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main">
-        <span class="mob-field-label">Port velocity limit</span>
-        <span class="mob-field-value" :title="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.description">
-          <NumInput id="mob-vent-velocity-limit" :model-value="project.portVelocityLimit_m_per_s.value"
-                    @update:model-value="(v: number | null) => { if (v != null) project.portVelocityLimit_m_per_s.set(v); }"
-                    :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :precision="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S.precision" stepper />
-        </span>
-      </div>
-      <UnitToggle :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" unit-class="mob-unit" />
-    </div>
-    <p v-if="fbUnreachable" class="mob-hint mob-hint-warn">{{ fbUnreachableMsg }}</p>
-  </div>
-
-  <div v-else-if="selectedBox === 'box-passive-radiator'" class="mob-panel">
-    <div class="mob-panel-head">Passive radiator</div>
-    <div class="mob-row">
-      <div class="mob-pr-id">
-        <label class="mob-pr-label" for="mob-pr-name">{{ TextField.PR_NAME.label }}</label>
-        <input id="mob-pr-name" class="mob-pr-name" type="text" :title="TextField.PR_NAME.description" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))">
-      </div>
-    </div>
-    <div class="mob-row mob-pr-actions">
-      <button class="mob-btn" @click="prBrowseOpen = true">Select passive radiator</button>
-      <button class="mob-btn mob-btn-secondary" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
+    <div class="mob-cbtns">
+      <button type="button" class="mob-btn mob-btn-primary" @click="prBrowseOpen = true">Select PR</button>
+      <button type="button" class="mob-btn mob-btn-secondary" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
     </div>
     <SaveToLibraryDialog v-if="prSaveOpen" title="Save passive radiator to library"
       note="The name the copy has in your library. The project's passive radiator keeps its own name."
-      :fields="prSaveFields" :can-save="prSaveCanSave" save-label="Save" @save="confirmPRSave" @cancel="cancelPRSave" />
-    <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
+      :fields="prSaveFields" :can-save="prSaveCanSave" save-label="Save" phone @save="confirmPRSave" @cancel="cancelPRSave" />
+    <PRBrowser v-if="prBrowseOpen" phone @close="prBrowseOpen = false"
       @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
 
     <UIField class="mob-ui-field" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_SD_CM2" :cell="project.box.passiveRadiator.radiator.spec.Sd_m2" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
 
-    <div class="mob-panel-head mob-panel-head-sub">User options</div>
-    <div class="mob-field-row mob-field-entered">
-      <div class="mob-field-main"><span class="mob-field-label">Number of passive radiators</span>
-        <span class="mob-field-value"><select id="mob-pr-count" class="mob-select" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select></span>
-      </div>
+    </section>
+
+    <section class="mob-csection">
+    <PhoneBand :section="PhoneHelp.USER_OPTIONS" />
+    <div class="mob-crow">
+      <label class="mob-crow-label" for="mob-pr-count">{{ NumberField.PR_NUM.label }}</label>
+      <select id="mob-pr-count" class="mob-cselect" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
     </div>
-    <UIField class="mob-ui-field" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" stepper />
-    <div class="mob-field-row mob-field-calculated" :class="{ 'mob-field-dq': prResonanceMassDq.dq.length > 0 }" :title="prResonanceMassDq.dq.length > 0 ? prResonanceMassDq.dq.join('; ') : ''">
-      <div class="mob-field-main"><span class="mob-field-label">Fpr (with added mass)</span>
-        <span class="mob-field-value mob-readonly">{{ fieldWithUnit(NumberField.PR_FSMASS_HZ, prFsMass_hz, '—') }}</span>
-      </div>
-    </div>
-  </div>
-
-  <template v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'">
-    <div v-for="port in ventPorts" :key="port.name" class="mob-panel">
-      <div class="mob-panel-head">{{ port.name }} vent</div>
-      <div v-if="port.name === 'Intra'" class="mob-hint">Connects the chambers — not open to the outside.</div>
-      <div class="mob-row">
-        <label class="mob-row-label">Number of Vents</label>
-        <select class="mob-select" :value="port.vent.count.value"
-                @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
-          <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-        </select>
-      </div>
-      <div class="mob-row">
-        <label class="mob-row-label">Shape</label>
-        <select class="mob-select" :value="port.vent.shape.value"
-                @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) port.vent.shape.set(shape); }">
-          <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-        </select>
-      </div>
-      <div class="mob-row">
-        <label class="mob-row-label">End Correction</label>
-        <select class="mob-select" :value="port.vent.endCorrection_m.value"
-                @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) port.vent.endCorrection_m.set(k); }">
-          <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
-        </select>
-      </div>
-      <template v-if="port.vent.shape.value === 'slotted'">
-        <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="port.vent.width_m" stepper />
-        <UIField class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="port.vent.height_m" stepper />
-      </template>
-      <UIField v-else class="mob-ui-field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" stepper />
-      <UIField class="mob-ui-field" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" stepper />
-      <div class="mob-field-row mob-field-calculated">
-        <div class="mob-field-main">
-          <span class="mob-field-label">Cross area</span>
-          <span class="mob-field-value mob-readonly"><NumReadout :value="port.vent.area_m2.value" :field="NumberField.VENT_CROSSAREA_M2" :precision="NumberField.VENT_CROSSAREA_M2.precision" /></span>
-        </div>
-        <UnitToggle :field="NumberField.VENT_CROSSAREA_M2" unit-class="mob-unit" />
-      </div>
-      <div class="mob-field-row mob-field-calculated">
-        <div class="mob-field-main">
-          <span class="mob-field-label">1st port resonance</span>
-          <span class="mob-field-value mob-readonly"><NumReadout :value="port.portPipeResonance_hz" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :precision="NumberField.VENT_1STPORTRESONANCE_HZ.precision" /></span>
-        </div>
-        <UnitToggle :field="NumberField.VENT_1STPORTRESONANCE_HZ" unit-class="mob-unit" />
-      </div>
-      <p v-if="port.unreachable" class="mob-hint mob-hint-warn">{{ port.unreachableMsg }}</p>
-    </div>
+    <UIFixedField class="mob-ui-field" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly plain />
+    </section>
   </template>
+
+  <section v-if="ventSections.length > 0" class="mob-csection">
+    <PhoneBand :section="PhoneHelp.CHART" />
+    <UIFixedField class="mob-ui-field" input-id="mob-vent-velocity-limit" label="Velocity limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :defaulted="false" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" />
+  </section>
 </template>
-
-<style scoped>
-.mob-panel {
-  margin: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.mob-panel-head {
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mut);
-  border-bottom: 1px solid var(--line);
-  background: var(--panel2);
-}
-.mob-panel-head-sub { border-top: 1px solid var(--line); }
-.mob-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px;
-  min-height: 48px;
-  border-top: 1px solid var(--line);
-}
-.mob-panel > .mob-row:first-of-type,
-.mob-panel > .mob-field-row:first-of-type { border-top: none; }
-.mob-row-label { font-size: 14px; color: var(--fg); }
-.mob-select {
-  flex: 1;
-  max-width: 60%;
-  min-height: 40px;
-  padding: 6px 8px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-  font-size: 14px;
-}
-.mob-pr-id { display: flex; flex-direction: column; gap: 2px; }
-.mob-pr-label { font-size: 13px; color: var(--mut); }
-.mob-pr-name { font-size: 17px; font-weight: 600; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; }
-.mob-pr-actions { gap: 12px; }
-.mob-btn {
-  flex: 1;
-  min-height: 44px;
-  border: 1px solid var(--acc);
-  border-radius: 4px;
-  background: var(--acc);
-  color: #fff;
-  font: inherit;
-  font-weight: 600;
-  cursor: pointer;
-}
-.mob-btn-secondary { background: var(--panel); color: var(--acc); }
-
-.mob-field-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 12px 10px 14px;
-  min-height: 48px;
-  border-left: 3px solid transparent;
-  border-top: 1px solid var(--line);
-}
-.mob-field-entered { border-left-color: var(--good); }
-/* A UIField as a phone row: same padding, divider and height as `.mob-field-row`; the label
-   column takes the slack so the box, ⚠ and unit line up at the right edge. */
-.mob-field-calculated { border-left-color: var(--acc); }
-.mob-field-dq { border-left-color: var(--acc2); }
-.mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.mob-field-label { font-size: 13px; color: var(--mut); }
-.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
-.mob-field-value :deep(input) {
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 18px;
-  color: var(--fg);
-  padding: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 32px;
-}
-/* An editable value looks like an input box; a read-only one stays flat text. */
-.mob-field-value :deep(input:not([readonly])) {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  padding: 2px 8px;
-}
-.mob-field-value :deep(input:not([readonly]):focus) {
-  border-color: var(--acc);
-  outline: none;
-}
-.mob-readonly { color: var(--acc); }
-.mob-impossible { color: #a11; }
-.mob-unit { font-size: 13px; color: var(--mut); min-width: 30px; flex-shrink: 0; }
-.mob-hint { margin: 8px 16px; font-size: 12.5px; color: var(--mut); line-height: 1.4; }
-.mob-hint-warn { color: var(--acc2); }
-</style>

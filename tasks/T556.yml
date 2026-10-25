@@ -1,0 +1,12 @@
+id: T556
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 9520b384274f7b9e77d0ae2f6f0314666414d582
+goal: Phone What-if Close sometimes leaves the chart on the What-if picture: find the race, make mobile-sheet spec fail deterministically, fix at the source
+done_test: bash scripts/test.sh packages/ui/test/hooks/MobileSheet-hooks.test.ts
+files:
+  - tasks/T556.yml
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - bugs/BUG_20261021_phone-whatif-close-chart-not-restored-sometimes.md

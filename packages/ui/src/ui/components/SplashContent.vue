@@ -79,7 +79,7 @@ const libraryLine = computed(() => {
         <li><strong>No division-by-zero results and no crashes</strong> — an incomplete design says what is missing instead of producing a NaN or a blank window.</li>
         <li><strong>Modern cursor</strong> — hover, right-click to snap to a peak or trough, lock it, or type a frequency.</li>
         <li><strong>Data-quality marks</strong> — the app says when a driver's own stated parameters contradict each other, and which ones.</li>
-        <li><strong>What-if?</strong> — change a driver's Thiele/Small parameters and see what each one does to the curves. It never saves: close it and your design is untouched.</li>
+        <li><strong>What-if</strong> — change a driver's Thiele/Small parameters and see what each does. It never saves: close it and your design is untouched.</li>
         <li><strong>Solvers that run in every direction</strong> — enter what you know, at either end, and it works out the rest.</li>
         <li><strong>Error messages that teach</strong> — what is wrong, which physics says so, and what to change.</li>
         <li><strong>Visible calculation provenance</strong> — trace any number back to the values and the formula it came from.</li>

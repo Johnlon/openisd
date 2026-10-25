@@ -11,7 +11,7 @@
 // — this is its read-only twin, not a second implementation.
 import {computed} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {formatFixed, type NumberField} from '@openisd/design/fields';
+import {formatFixed, type NumberField, type ReadoutFormat} from '@openisd/design/fields';
 const presentationState = useApp().presentation;
 
 const props = withDefaults(defineProps<{
@@ -22,6 +22,9 @@ const props = withDefaults(defineProps<{
    *  (same field) rotates it. Omit it for a value with no field — the SI value is shown
    *  unconverted. */
   field?: NumberField;
+  /** The readout's own decimals where the bound `field`'s precision is not the wanted one; the unit
+   *  still follows the field's rotation. */
+  format?: ReadoutFormat;
   /** Decimals in the base unit. Defaults to the bound `field`'s own registry precision. */
   precision?: number;
   /** The value's own half-width in SI — typed, or inherited from what it was calculated from.
@@ -45,6 +48,7 @@ const activeToken = computed(() => props.field?.unitTokenFor(presentationState.u
 const text = computed(() => {
   const si = props.value;
   if (si == null || !isFinite(si)) return props.placeholder;
+  if (props.format) return props.format.textSI(si, props.placeholder, presentationState.ui.unitTokens ?? {});
   if (props.field) {
     return props.field.format(si, props.halfWidth, activeToken.value);
   }

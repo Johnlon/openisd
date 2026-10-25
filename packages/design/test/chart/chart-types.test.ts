@@ -23,7 +23,8 @@ import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
-import {parseChartId, type PlotParams, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
+import {DEFAULT_SELECTED_RANGE_COLOR, parseChartId, selectedRangeCss, type PlotParams, referenceLineColors, type ReferenceLineColors, seriesFor, TAB_META, TABS} from '@openisd/design/chart';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 const RAW: Record<string, number> = {
   Fs: 37, Qts: 0.378, Qes: 0.40, Qms: 7.0, Vas: 0.0300,
@@ -45,7 +46,7 @@ const LE_H = 0.70e-3;
 // Fb: the tuning this Vb/Sp/Leff already amounts to (Helmholtz, inverted) — winisd-lossy's own
 // Map comes from Fb directly (circuit.ts, BUG_20260927_vented-box-losses-not-winisd-form.md).
 const SP_VB = 0.030, SP_SP = Math.PI * (0.05 / 2) ** 2, SP_LEFF = 0.30 + 0.732 * 0.05;
-const {c: SP_C} = engine.environment.solve({}).values;
+const SP_C = REFERENCE_AIR_VALUES.c;
 // The one PlotParams the sweeps below share — fmin/fmax is all seriesFor() reads off it, and
 // every SweepParams literal in this file states the same range, so it's built once here rather
 // than narrowed out of each SweepParams (whose fmin/fmax are optional, so cast-free narrowing
@@ -56,6 +57,7 @@ const SP: SweepParams = {
   Vb: SP_VB, eg: 2.83, Sp: SP_SP, Leff: SP_LEFF, Fb: SP_C * Math.sqrt(SP_SP / (SP_LEFF * SP_VB)) / (2 * Math.PI),
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+  air: REFERENCE_AIR,
 };
 const PP = PLOT_RANGE;
 const SW = engine.simulation.sweep(DRV, LE_H, 'vented', SP).values;
@@ -72,11 +74,12 @@ const PR_ENGINE = createEngine();
 const PR_VB = 0.010;
 const PR_BOX = { prSd: 0.0095, prNum: 1, prMmd: 0.010, prMadd: 0, prCms: 0.0018, prRms: 1.0 };
 const PR_FR = PR_ENGINE.pr.tuning({ Vb: PR_VB, prMmd: PR_BOX.prMmd, prMadd: PR_BOX.prMadd, prSd: PR_BOX.prSd, prCms: PR_BOX.prCms, prNum: PR_BOX.prNum },
-  PR_ENGINE.environment.solve({}).values);
+  REFERENCE_AIR);
 const SP_PR: SweepParams = {
   Vb: PR_VB, eg: 2.83, ...PR_BOX, Fr: PR_FR, Ql: 7, Qa: 30,
   fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+  air: REFERENCE_AIR,
 };
 const PP_PR = PLOT_RANGE;
 const SW_PR = PR_ENGINE.simulation.sweep(DRV, LE_H, 'box-passive-radiator', SP_PR).values;
@@ -91,6 +94,7 @@ const SP_BP4: SweepParams = {
   Vb: 0.010, Vf: 0.005, Ff: 60, Qlr: 7, Qar: 30, Qiclfr: 20, Qlf: 9, Qaf: 40, Qpf: 15,
   eg: 2.83, fmin: 10, fmax: 2000, N: 200,
   filters: [{ type: 'peaking', fc: 60, Q: 3, gain: 6, enabled: true }],
+  air: REFERENCE_AIR,
 };
 const PP_BP4 = PLOT_RANGE;
 const SW_BP4 = BP4_ENGINE.simulation.sweep(DRV, LE_H, 'bandpass4', SP_BP4).values;
@@ -100,11 +104,11 @@ assert.ok(MX_BP4, 'reference bandpass4 max curves produced nothing');
 
 const PR_IDS = new Set<ChartId>(['PRTFMag', 'PRTFPhase', 'PRExcursion']);
 const BP4_IDS = new Set<ChartId>(['FrontPortGain']);
-const build = (id: ChartId) => PR_IDS.has(id)
-  ? seriesFor(engine, id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR)
+const build = (id: ChartId, lines?: ReferenceLineColors) => PR_IDS.has(id)
+  ? seriesFor(engine, id, DRV, 'box-passive-radiator', PP_PR, SW_PR, MX_PR, false, lines)
   : BP4_IDS.has(id)
-  ? seriesFor(engine, id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4)
-  : seriesFor(engine, id, DRV, 'vented', PP, SW, MX);
+  ? seriesFor(engine, id, DRV, 'bandpass4', PP_BP4, SW_BP4, MX_BP4, false, lines)
+  : seriesFor(engine, id, DRV, 'vented', PP, SW, MX, false, lines);
 
 const ALL_IDS = TABS.map(t => t.id);
 
@@ -286,5 +290,55 @@ describe('port velocity charts draw the design\'s own velocity limit', () => {
 
   it('a design with no limit draws no limit line', () => {
     assert.equal(limitLine(seriesFor(engine, 'RearPort', DRV, 'vented', PP, SW, MX)), undefined);
+  });
+});
+
+// BUG_20261018_options-0db-3db-colour-pickers-do-nothing: the Options "0 dB line" and "-3dB line"
+// colours reach every chart that draws those lines.
+describe('the 0 dB and −3 dB lines take the Options colours', () => {
+  const colourOf = (id: ChartId, name: string, lines?: ReferenceLineColors) =>
+    build(id, lines).series.find(s => s.name === name)?.color;
+
+  for (const id of ['TFMag', 'PRTFMag', 'RearPortGain', 'FrontPortGain'] as const) {
+    it(`${id} draws them in the chosen colours`, () => {
+      const lines = referenceLineColors({zeroDb: '#123456', minus3Db: '#abcdef'});
+      assert.equal(colourOf(id, '0 dB', lines), '#123456');
+      assert.equal(colourOf(id, '−3 dB', lines), '#abcdef');
+    });
+
+    it(`${id} draws them in WinISD's defaults, black and grey, when none is chosen`, () => {
+      assert.equal(colourOf(id, '0 dB'), '#000000');
+      assert.equal(colourOf(id, '−3 dB'), '#808080');
+    });
+  }
+
+  it('FltMag draws its 0 dB line in the chosen colour, and black by default', () => {
+    assert.equal(colourOf('FltMag', '0 dB', referenceLineColors({zeroDb: '#123456', minus3Db: '#abcdef'})), '#123456');
+    assert.equal(colourOf('FltMag', '0 dB'), '#000000');
+  });
+
+  it('a colour not chosen keeps its default', () => {
+    assert.deepEqual(referenceLineColors(undefined), {zeroDb: '#000000', minus3Db: '#808080', airSpeedLimit: '#ff6b6b'});
+    assert.deepEqual(referenceLineColors({minus3Db: '#ff0000'}), {zeroDb: '#000000', minus3Db: '#ff0000', airSpeedLimit: '#ff6b6b'});
+  });
+
+  // T539: the Options "Air speed limit" colour reaches the vent air speed limit line.
+  for (const id of ['RearPort', 'FrontPort', 'IntraPort'] as const) {
+    it(`${id} draws its air speed limit line in the chosen colour, and the old red by default`, () => {
+      const limit = (lines?: ReferenceLineColors) =>
+        seriesFor(engine, id, DRV, 'vented', { ...PP, portVelocityLimit_m_per_s: 25 }, SW, MX, false, lines)
+          .series.find(s => s.name === '25 m/s')?.color;
+      assert.equal(limit(referenceLineColors({airSpeedLimit: '#123456'})), '#123456');
+      assert.equal(limit(), '#ff6b6b');
+    });
+  }
+});
+
+describe('the selected range shading', () => {
+  it('is faint black by default and takes the chosen colour', () => {
+    assert.equal(DEFAULT_SELECTED_RANGE_COLOR, '#000000');
+    assert.deepEqual(selectedRangeCss(undefined), selectedRangeCss('#000000'));
+    assert.match(selectedRangeCss('#00c000').fill, /#00c000 5%/);
+    assert.match(selectedRangeCss('#00c000').edge, /#00c000 30%/);
   });
 });

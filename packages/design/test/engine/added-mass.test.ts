@@ -9,6 +9,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams, SweepResult} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.5e-3;
@@ -29,7 +30,7 @@ function drv() {
 describe('driverAddedMass — driver-side cone mass', () => {
   it('through sweep(): added mass slides the impedance-magnitude peak DOWN; Madd=0 is byte-identical', () => {
     const d = drv();
-    const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 500, N: 400 };
+    const P: SweepParams = { Vb: 0.03, eg: 2.83, fmin: 10, fmax: 500, N: 400, air: REFERENCE_AIR };
     const peakF = (r: SweepResult) => r.fs[r.zmag.indexOf(Math.max(...r.zmag))];
     const base  = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', P).values!;
     const heavy = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', { ...P, driverAddedMass: 0.05 }).values!;

@@ -1,11 +1,11 @@
 import {describe, expect, it, vi} from 'vitest';
 import {
-  describeVersions, fetchVersionIndex, parseVersionIndex, startVersionIndex, VERSION_INDEX_PATH, type BuildEntry,
+  describeVersions, fetchVersionIndex, parseVersionIndex, startVersionIndex, type BuildEntry,
 } from '../../src/logic/versionIndex.js';
 
 function entry(stamp: string, kind: 'release' | 'snap', over: Partial<BuildEntry> = {}): BuildEntry {
   return {
-    stamp, kind, tag: kind === 'release' ? `v${stamp}` : `snap-${stamp}`,
+    stamp, kind, version: '', tag: kind === 'release' ? `v${stamp}` : `snap-${stamp}`,
     url: `https://github.com/Johnlon/openisd/releases/tag/${stamp}`,
     published: `${stamp.slice(0, 13)}00Z`, subject: 'a change', latest: false, ...over,
   };
@@ -37,10 +37,10 @@ describe('parseVersionIndex', () => {
 });
 
 describe('fetchVersionIndex', () => {
-  it('reads /v/index.json uncached', async () => {
+  it('reads the list from snapshots.openisd.app, uncached', async () => {
     const fetchFn = vi.fn(() => Promise.resolve(response([R1])));
     expect(await fetchVersionIndex(fetchFn)).toEqual([R1]);
-    expect(fetchFn).toHaveBeenCalledWith(VERSION_INDEX_PATH, {cache: 'no-store'});
+    expect(fetchFn).toHaveBeenCalledWith('https://snapshots.openisd.app/v/index.json', {cache: 'no-store'});
   });
 
   it('is null on a missing list, a network failure and unparseable text', async () => {
@@ -50,85 +50,54 @@ describe('fetchVersionIndex', () => {
   });
 });
 
-const RUNNING_FROM = 'https://openisd.app/snap/20260101T0102Z/';
-
 describe('describeVersions', () => {
-  it('carries the directory the app runs from', () => {
-    expect(describeVersions('', null, RUNNING_FROM).runningFrom).toBe(RUNNING_FROM);
-  });
-
   const entries = [S1, R1, S2, R2];
 
-  it('a release build lists releases only, newest first, and links to the releases page', () => {
-    const view = describeVersions('v20260201T1000Z', entries, RUNNING_FROM);
-    expect(view.rows.map(r => r.stamp)).toEqual(['20260201T1000Z', '20260101T0102Z']);
-    expect(view.releasesPath).toBe('/v/');
-    expect(view.snapshotsPath).toBeNull();
+  it('names the running build alone: no list of builds (John, 16 Oct 2026)', () => {
+    expect(Object.keys(describeVersions('v20260201T1000Z', entries))).toEqual(['running']);
   });
 
-  it('a snapshot build lists releases first, then snapshots, each newest first, and links to both pages', () => {
-    const view = describeVersions('v20260210T0900Z', entries, RUNNING_FROM);
-    expect(view.rows.map(r => r.stamp)).toEqual(['20260201T1000Z', '20260101T0102Z', '20260211T0900Z', '20260210T0900Z']);
-    expect(view.rows.map(r => r.kind)).toEqual(['release', 'release', 'snap', 'snap']);
-    expect(view.snapshotsPath).toBe('/snap/');
+  it('a snapshot build shows its own stamp', () => {
+    expect(describeVersions('v20260210T0900Z', entries).running).toMatchObject({version: '', stamp: '20260210T0900Z'});
   });
 
-  it('the dev server, which has no version, lists both kinds', () => {
-    const view = describeVersions('', entries, RUNNING_FROM);
-    expect(view.rows).toHaveLength(4);
-    expect(view.snapshotsPath).toBe('/snap/');
-  });
-
-  it('marks the running build and no other', () => {
-    const view = describeVersions('v20260210T0900Z', entries, RUNNING_FROM);
-    expect(view.rows.filter(r => r.current).map(r => r.stamp)).toEqual(['20260210T0900Z']);
-  });
-
-  it('shows the date as "1 Jan 2026, 01:02" through the design formatter, in local time', () => {
-    const view = describeVersions('v20260101T0102Z', [R1], RUNNING_FROM);
-    const expected = new Date(Date.UTC(2026, 0, 1, 1, 2));
-    const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][expected.getMonth()];
-    const hh = String(expected.getHours()).padStart(2, '0');
-    const mm = String(expected.getMinutes()).padStart(2, '0');
-    expect(view.rows[0]?.date).toBe(`${expected.getDate()} ${month} 2026, ${hh}:${mm}`);
-  });
-
-  it('links each build to its hosted copy and its GitHub page', () => {
-    const view = describeVersions('v20260210T0900Z', [R1, S1], RUNNING_FROM); // running a snapshot, so both are listed
-    expect(view.rows[0]).toMatchObject({hostedPath: '/v/20260101T0102Z/', githubUrl: R1.url});
-    expect(view.rows[1]).toMatchObject({hostedPath: '/snap/20260210T0900Z/', githubUrl: S1.url});
-  });
-
-  it('says what the latest release is when the running build is older than it', () => {
-    const view = describeVersions('v20260101T0102Z', entries, RUNNING_FROM);
-    expect(view.staleNotice).toMatch(/^latest release is \d{1,2} \w{3} 2026, \d{2}:\d{2}$/);
-  });
-
-  it('says nothing when the running build is the latest release or newer', () => {
-    expect(describeVersions('v20260201T1000Z', entries, RUNNING_FROM).staleNotice).toBeNull();
-    expect(describeVersions('v20260211T0900Z', entries, RUNNING_FROM).staleNotice).toBeNull();
-  });
-
-  it('shows the running build alone, without links, when the list could not be read', () => {
-    const view = describeVersions('v20260101T0102Z', null, RUNNING_FROM);
-    expect(view.rows).toHaveLength(1);
-    expect(view.rows[0]).toMatchObject({stamp: '20260101T0102Z', current: true, hostedPath: null, githubUrl: null});
-    expect(view.staleNotice).toBeNull();
+  it('shows the running build when the list could not be read', () => {
+    expect(describeVersions('v20260101T0102Z', null).running).toMatchObject({version: '', stamp: '20260101T0102Z'});
   });
 
   it('shows nothing on a dev server, which has no version', () => {
-    expect(describeVersions('', null, RUNNING_FROM)).toEqual({rows: [], staleNotice: null, releasesPath: '/v/', snapshotsPath: null, runningFrom: RUNNING_FROM});
-    expect(describeVersions('', entries, RUNNING_FROM).staleNotice).toBeNull();
+    expect(describeVersions('', entries)).toEqual({running: null});
+  });
+});
+
+describe('the public version number', () => {
+  const R3 = entry('20260301T1200Z', 'release', {version: '7.0.951', latest: true});
+
+  it('is read from the list, and defaults to none for an older list that has no field', () => {
+    expect(parseVersionIndex([R3])).toEqual([R3]);
+    const {version: _ignored, ...old} = R3;
+    expect(parseVersionIndex([old])).toEqual([{...R3, version: ''}]);
+  });
+
+  it('leads About with the running build\'s number and day, and keeps the stamp for beneath', () => {
+    const view = describeVersions('v20260301T1200Z', [R1, R3]);
+    expect(view.running?.version).toBe('7.0.951');
+    expect(view.running?.stamp).toBe('20260301T1200Z');
+    expect(view.running?.heading).toMatch(/^OpenISD 7\.0\.951 · \d{1,2} Mar 2026$/);
+  });
+
+  it('leads with the day alone when the running build has no number', () => {
+    expect(describeVersions('v20260101T0102Z', [R1, R3]).running?.heading).toMatch(/^OpenISD · \d{1,2} Jan 2026$/);
   });
 });
 
 describe('startVersionIndex', () => {
   it('fetches once at start and describes on demand', async () => {
     const fetchFn = vi.fn(() => Promise.resolve(response([R1, R2])));
-    const index = startVersionIndex('v20260101T0102Z', fetchFn, RUNNING_FROM);
+    const index = startVersionIndex('v20260101T0102Z', fetchFn);
     await index.view();
     await index.view();
     expect(fetchFn).toHaveBeenCalledTimes(1);
-    expect((await index.view()).staleNotice).not.toBeNull();
+    expect((await index.view()).running?.stamp).toBe('20260101T0102Z');
   });
 });

@@ -1,7 +1,15 @@
-import {driverEditorField, expect, forEachEditorTab, openAProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
+import {driverEditorField, expect, forEachEditorTab, openAProject, openAMobileProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
 import {ALL_FIELDS} from '@openisd/design/fields';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+
+async function startProvenance(page: Page): Promise<void> {
+  await page.getByRole('checkbox', {name: 'Inspect Provenance'}).evaluate(element => {
+    if (!(element instanceof HTMLInputElement)) throw new Error('Inspect Provenance control is not an input');
+    element.click();
+  });
+}
 
 /**
  * The Driver Editor's provenance: every field takes its E/C/N class, a field the provenance map
@@ -17,7 +25,7 @@ import {ALL_FIELDS} from '@openisd/design/fields';
 
 /** Every input on the open tab. */
 const editorInputs = (page: Page) =>
-  page.locator('.de-body input[type="text"], .de-body input[type="number"]');
+  page.locator('.de-body input[type="text"], .de-body input[data-numinput], .de-body input[type="number"]');
 
 /**
  * The inputs on the open tab that carry NO provenance class, one entry per offender so a
@@ -29,7 +37,7 @@ const editorInputs = (page: Page) =>
  * nothing left to branch on.
  */
 async function unclassified(page: Page): Promise<string[]> {
-  return page.locator('.de-body input[type="text"]:visible, .de-body input[type="number"]:visible')
+  return page.locator('.de-body input[type="text"]:visible, .de-body input[data-numinput]:visible, .de-body input[type="number"]:visible')
     .evaluateAll(els => els
       .filter(el => {
         const target = el.closest('.value-e, .value-c, .value-n') ?? el;
@@ -78,6 +86,17 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
     await page.locator('.edit-btn', { hasText: 'Edit' }).click();
 
     await page.locator('.de-body').waitFor({ state: 'visible' });
+  });
+
+  test('The Connection select wears the colour of its provenance class, the same as a number box of that class', async ({ page }) => {
+    await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+    const select = page.locator('.de-conn-sel');
+    const cls = await select.evaluate(el => ['value-e', 'value-c', 'value-n'].find(c => el.classList.contains(c)) ?? '');
+    expect(cls, 'Connection carries a provenance class').not.toBe('');
+    const colourOf = (l: import('@playwright/test').Locator) => l.evaluate(el => getComputedStyle(el).color);
+    const sameClassBox = page.locator(`.de-body input.${cls}`).first();
+    await expect(sameClassBox).toBeVisible();
+    expect(await colourOf(select)).toBe(await colourOf(sameClassBox));
   });
 
   test('All input fields on Parameters tab render valid E/C/N provenance classes (value-e, value-c, or value-n)', async ({ page }) => {
@@ -140,6 +159,77 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
   });
 });
 
+test('Inspect Provenance disables typing, keeps the spinner active, and allows a long-press edit', async ({ page }) => {
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+  await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+  await page.getByText('Edit', {exact: true}).click();
+  await expect(page.locator('.de-body')).toBeVisible();
+  await startProvenance(page);
+  await expect(page.getByText(/Long-press a value to edit it/i)).toBeVisible();
+  await expect(page.locator('.eq-inspector-card')).toHaveCSS('position', 'fixed');
+  await expect(page.getByRole('button', {name: 'OK', exact: true})).toHaveCount(0);
+  await expect(page.getByRole('button', {name: 'Cancel', exact: true})).toHaveCount(0);
+  await expect(page.locator('.de-toolbar')).toHaveCount(0);
+  await expect(page.getByRole('button', {name: /More/})).toHaveCount(0);
+  const body = page.locator('.eq-docked .eq-body');
+  expect((await body.boundingBox())!.height).toBeLessThanOrEqual(300);
+  await page.setViewportSize({width: 390, height: 600});
+  const shortViewportCard = await page.locator('.eq-docked').boundingBox();
+  expect(shortViewportCard!.y).toBeGreaterThanOrEqual(0);
+  expect(shortViewportCard!.y + shortViewportCard!.height).toBeLessThanOrEqual(600);
+
+  await page.locator('.eq-x').click();
+  await expect(page.locator('.de-toolbar')).toBeVisible();
+  await expect(page.getByRole('button', {name: 'OK', exact: true})).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Cancel', exact: true})).toBeVisible();
+  await expect(page.getByRole('button', {name: /More/})).toBeVisible();
+  await startProvenance(page);
+
+  const field = page.locator('.de-body .de-fld', {has: page.locator('label:text-is("Qes")')}).first();
+  const input = field.locator('input[data-numinput]');
+  await expect(input).toHaveAttribute('readonly');
+  await input.click();
+  await expect(page.getByText(/Long-press a value to edit it/i)).toHaveCount(0);
+  await expect(page.getByText(/Input is disabled while inspecting provenance/i)).toBeVisible();
+  await expect(input).not.toBeFocused();
+
+  const before = Number(await input.inputValue());
+  await field.locator('.num-stepper-btn').first().click();
+  await expect(input).not.toHaveValue(String(before));
+
+  await input.hover();
+  await page.mouse.down();
+  await expect.poll(() => input.getAttribute('readonly'), {timeout: 20_000}).toBeNull();
+  await page.mouse.up();
+  await expect(input).not.toHaveAttribute('readonly');
+  await expect(input).toBeFocused();
+
+});
+
+test('Inspect Provenance leaves desktop numeric fields editable', async ({ page }) => {
+  await page.goto('/');
+  await openAProject(page);
+  await openDriverEditor(page);
+  await startProvenance(page);
+  await expect(page.locator('.de-toolbar')).toBeVisible();
+  await expect(page.getByRole('button', {name: 'OK', exact: true})).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Cancel', exact: true})).toBeVisible();
+  await expect(page.locator('.eq-inspector-card')).toHaveCount(0);
+
+  const field = page.locator('.de-body .de-fld', {has: page.locator('label:text-is("Qes")')}).first();
+  const input = field.locator('input[data-numinput]');
+  await expect(input).not.toHaveAttribute('readonly');
+  await input.click();
+  await expect(input).toBeFocused();
+  await expect(page.locator('.eq-inspector-card')).toBeVisible();
+  await page.locator('.eq-x').click();
+  await expect(page.locator('.eq-inspector-card')).toHaveCount(0);
+  await expect(page.locator('.de-toolbar')).toBeVisible();
+  await expect(page.getByRole('checkbox', {name: 'Inspect Provenance'})).toBeChecked();
+});
+
 test.describe('Driver Editor provenance map and field boxes', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
@@ -179,7 +269,7 @@ test.describe('Driver Editor provenance map and field boxes', () => {
   test('every field the provenance map explains takes the inspected highlight', async ({ page }) => {
     await openDriverEditor(page);
     const { explained } = provenanceTables();
-    await page.locator('.de-provenance-chk', { hasText: 'Inspect Provenance' }).locator('input').check();
+    await startProvenance(page);
 
     const dark: string[] = [];
     await forEachEditorTab(page, async (tab, labels) => {
@@ -197,13 +287,13 @@ test.describe('Driver Editor provenance map and field boxes', () => {
   test('inspecting a field also colours the inputs its formula names', async ({ page }) => {
     await openDriverEditor(page);
     await seedDriverInEditor(page);
-    await page.locator('.de-provenance-chk', { hasText: 'Inspect Provenance' }).locator('input').check();
+    await startProvenance(page);
 
     // Qts = (Qes × Qms) / (Qes + Qms) — one path, two inputs, all three on this tab.
     await driverEditorField(page, 'Qts').locator('label').click();
     await expect(driverEditorField(page, 'Qts')).toHaveAttribute('style', /outline/);
     for (const input of ['Qes', 'Qms']) {
-      await expect(driverEditorField(page, input), `${input} feeds Qts`).toHaveAttribute('style', /border-color/);
+      await expect(driverEditorField(page, input), `${input} feeds Qts`).toHaveAttribute('style', /background-color/);
     }
   });
 

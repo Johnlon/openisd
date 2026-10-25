@@ -1,0 +1,72 @@
+id: F34
+owner: Johnlon
+status: done
+sha: 38da5b1b637cfa3db844fe50272d001dc11c0213
+goal: main is red at 38da5b1b63; make the full suite pass again
+commits: |
+  38da5b1b63 Bug rulings 16 Oct: chamber losses and WSL churn resolved, chart click and localhost drivers closed, clear-to-blank and driver identity ruled, UIField adoption to finish
+  1bec056677 QO180 closed: branch t164 deleted; a driver file saves the slim form the app uses
+  752606df8d T203: 'F33: the port-fields overlay took the domain port as a prop (A9 gate re
+  0edf148e13 F33: the full suite is red at 336dc2168e
+  336dc2168e T202: 'Mobile What-if: Port area (any shape) replaces Port diameter; tapping i
+failing: |
+    ✘    9 packages/ui/test/ui/backups-restore-project.browser.spec.ts:40:1 › mobile: Restore one project adds the project from a backup under a restored name (29.8s)
+    ✘   11 packages/ui/test/ui/box-losses-popup.browser.spec.ts:39:3 › Box losses popup › an emptied Ql is refused with a ⚠, never stored as 0; Esc restores it (27.4s)
+    ✘  121 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:394:1 › the tab titles fit their row without a scrollbar on a narrow desktop window (26.7s)
+    ✘  122 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:17:1 › brand and model fields are mandatory, have bold borders, and turn red when empty without losing focus (26.6s)
+    ✘  123 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:99:1 › a sku-bearing driver: clearing Model empties it and sku is untouched (31.2s)
+    ✘  124 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:142:1 › OK, Export and Copy stay live on an incomplete driver, and it commits (31.9s)
+    ✘  224 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:20:1 › one chart fills the screen, with a chart picker (1.2m)
+    ✘  225 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:28:1 › ticking charts stacks them in a list that scrolls up and down (1.9m)
+    ✘  226 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:43:1 › the per-screen number sizes each stacked chart to a whole fraction of the screen (10ms)
+    ✘  270 packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:47:1 › the header close (✕) still cancels the whole wizard from step 1 (26.1s)
+    ✘  276 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:27:1 › a step button click moves the value by the exact same amount as an ArrowUp keypress (28.0s)
+    ✘  274 packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:34:1 › a tap focuses the button, steps the digit the caret last sat on, and the row does not move (33.4s)
+    ✘  373 packages/ui/test/ui/new-project-wizard.browser.spec.ts:118:5 › New Project wizard › with a project open › Back returns to the previous step with its values kept (26.3s)
+    ✘  376 packages/ui/test/ui/new-project-wizard.browser.spec.ts:145:5 › New Project wizard › with a project open › the last step's green lead is Create, and it creates the project (21ms)
+    ✘  375 packages/ui/test/ui/new-project-wizard.browser.spec.ts:165:5 › New Project wizard › with a project open › walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar (3.0m)
+    ✘  603 packages/ui/test/ui/original-shell-layout.browser.spec.ts:192:5 › Original shell layout › box type changes › the bottom panel keeps ONE height across box types (no wobble from the tab count) (27.5s)
+    ✘  604 packages/ui/test/ui/original-shell-layout.browser.spec.ts:285:5 › Original shell layout › short window › bottom panels at a short window height never get scrollbars and contents do not overflow (27.3s)
+    ✘  653 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:6:3 › Projects across addresses › the store address is shown in the open dialog, and projects can be exported (1.1m)
+    ✘  654 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:30:3 › Projects across addresses › export then import into fresh storage restores every project (1.1m)
+output: |
+  
+      TimeoutError: page.goto: Timeout 60000ms exceeded.
+      Call log:
+        - navigating to "http://localhost:4100/", waiting until "load"
+  
+  
+        29 |   
+        30 |   test('export then import into fresh storage restores every project', async ({ page }) => {
+      > 31 |     await page.goto("/");
+           |                ^
+        32 |     await openAProject(page, SAMPLE_PROJECT_OWPR);
+        33 |     await duplicateFocusedProject(page, 'Exported Project 2');
+        34 |     
+          at /home/john/work/winisd/.postland/1026280-38da5b1b63/packages/ui/test/ui/projects-across-addresses.browser.spec.ts:31:16
+  
+      Error Context: test-results/ui-projects-across-address-9153d-rage-restores-every-project/error-context.md
+  
+    19 failed
+      packages/ui/test/ui/backups-restore-project.browser.spec.ts:40:1 › mobile: Restore one project adds the project from a backup under a restored name 
+      packages/ui/test/ui/box-losses-popup.browser.spec.ts:39:3 › Box losses popup › an emptied Ql is refused with a ⚠, never stored as 0; Esc restores it 
+      packages/ui/test/ui/driver-editor-layout.browser.spec.ts:394:1 › the tab titles fit their row without a scrollbar on a narrow desktop window 
+      packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:17:1 › brand and model fields are mandatory, have bold borders, and turn red when empty without losing focus 
+      packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:99:1 › a sku-bearing driver: clearing Model empties it and sku is untouched 
+      packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:142:1 › OK, Export and Copy stay live on an incomplete driver, and it commits 
+      packages/ui/test/ui/mobile-chart-view.browser.spec.ts:20:1 › one chart fills the screen, with a chart picker 
+      packages/ui/test/ui/mobile-chart-view.browser.spec.ts:28:1 › ticking charts stacks them in a list that scrolls up and down 
+      packages/ui/test/ui/mobile-chart-view.browser.spec.ts:43:1 › the per-screen number sizes each stacked chart to a whole fraction of the screen 
+      packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:47:1 › the header close (✕) still cancels the whole wizard from step 1 
+      packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:34:1 › a tap focuses the button, steps the digit the caret last sat on, and the row does not move 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:27:1 › a step button click moves the value by the exact same amount as an ArrowUp keypress 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:118:5 › New Project wizard › with a project open › Back returns to the previous step with its values kept 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:145:5 › New Project wizard › with a project open › the last step's green lead is Create, and it creates the project 
+      packages/ui/test/ui/new-project-wizard.browser.spec.ts:165:5 › New Project wizard › with a project open › walks driver → num/placement → box type → alignment → name, and the name shows in the titlebar 
+      packages/ui/test/ui/original-shell-layout.browser.spec.ts:192:5 › Original shell layout › box type changes › the bottom panel keeps ONE height across box types (no wobble from the tab count) 
+      packages/ui/test/ui/original-shell-layout.browser.spec.ts:285:5 › Original shell layout › short window › bottom panels at a short window height never get scrollbars and contents do not overflow 
+      packages/ui/test/ui/projects-across-addresses.browser.spec.ts:6:3 › Projects across addresses › the store address is shown in the open dialog, and projects can be exported 
+      packages/ui/test/ui/projects-across-addresses.browser.spec.ts:30:3 › Projects across addresses › export then import into fresh storage restores every project 
+    690 passed (34.1m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1026280-38da5b1b63 finished: FAILED (exit 1) after 37m12s

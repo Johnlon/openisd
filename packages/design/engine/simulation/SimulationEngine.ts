@@ -14,20 +14,20 @@
  */
 
 import {FLAT_MAX_BOOST_DB, P0} from '../constants.js';
-import type {EnvironmentIssue} from '../air.js';
-import {solveEnvironment} from '../air.js';
+import type {AirIssue} from '../environment/airSolver.js';
 import type {Complex} from '../types.js';
 import {cAbs, cArg, cDiv, cMul, cScale, cx} from '../complex.js';
 import type {CircuitQuantities} from '../circuit.js';
 import {hfAsymptotePressure_Pa, solve} from '../circuit.js';
 import {missingDependencies} from '../consistency.js';
-import type {DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
+import {createDriverEngine} from '../driver/DriverEngine.js';
+import type {DriverEngine, DriverIssue, DriverPrerequisite, DriverQuantityName} from '../driver/DriverEngine.js';
 import type {PrIssue} from '../pr/PrEngine.js';
 import type {VentIssue} from '../vent/VentEngine.js';
 import {hotRe, isobarikPair, terminalBL_Tm, withAddedMass} from '../solvers/driverQuantities.js';
 import {applyFilters} from '../filters.js';
 import {driveFromVoltage} from '../signal/SignalEngine.js';
-import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepResult, WinisdFilterErrors} from '../types.js';
+import type {BoxType, DriverError, EnclosureParams, MaxCurvesResult, SweepParams, SweepPeaks, SweepResult, WinisdFilterErrors} from '../types.js';
 import type {DriverValues, SweepDriver} from '../solverTypes.js';
 import type {BoxParamsIssue, BoxParamsQuantityName, BoxParamsSolveResult} from '../params.js';
 import {requiredParamsFor} from '../params.js';
@@ -48,7 +48,7 @@ import type {SignalIssue} from '../signal/SignalEngine.js';
  *  instead). Never a sweep-own quantity: `sweep()` computes nothing a caller enters, so it has
  *  no target of its own to report an issue about. */
 export type SweepIssue =
-  | DriverIssue | EnvironmentIssue | BoxParamsIssue
+  | DriverIssue | AirIssue | BoxParamsIssue
   | VentIssue | PrIssue | SignalIssue;
 
 /** The unified sweep result: the curves (or null if nothing could be derived), and why. */
@@ -355,6 +355,9 @@ export interface SimulationEngine {
   silentCurve(n: number): number[];
   /** Where the response has fallen by `dropDb`, or null if it never does. */
   rolloffFreq(sw: SweepResult, dropDb: number): number | null;
+  /** The largest port air speed (m/s) and cone excursion (m) over the finite points of the sweep, with the
+   *  frequency of each. Speed is null when the box has no port (zero everywhere). */
+  peaks(sw: SweepResult): SweepPeaks;
   /** A response carrying a non-finite value — a fault, not a curve. */
   classifyFinite(sw: SweepResult): DriverError | null;
   /** Finiteness issues split by plotted output, for a chart that needs one specific cause. */
@@ -367,11 +370,24 @@ export interface SimulationEngine {
 
 /** The simulation area alone, for a thread that only sweeps. It reads no app setting, so it takes none;
  *  the whole engine comes from `createEngine`. */
+/** The largest finite value of `values` times `scale`, and the frequency it sits at (the first, on a tie). */
+function peakOf(fs: readonly number[], values: readonly number[], scale: number): {value: number; at_hz: number} | null {
+  let best: {value: number; at_hz: number} | null = null;
+  for (let i = 0; i < values.length; i++) {
+    const v = values[i]! * scale;
+    if (Number.isFinite(v) && (best === null || v > best.value)) best = {value: v, at_hz: fs[i]!};
+  }
+  return best;
+}
+
 export function createSimulationEngine(): SimulationEngine {
-  return new SimulationEngineImpl();
+  return new SimulationEngineImpl(createDriverEngine());
 }
 
 export class SimulationEngineImpl implements SimulationEngine {
+  /** `driver` turns the stated T/S values into the ones the circuit runs on (`circuitValues`). */
+  constructor(private readonly driver: DriverEngine) {}
+
   /**
    * The passband reference level of an SPL curve, in dB — the peak of the real curve,
    * ignoring the silence sentinel so a single dead point can't define the reference.
@@ -403,6 +419,17 @@ export class SimulationEngineImpl implements SimulationEngine {
       if (sw.spl[i] >= ref - dropDb) return sw.fs[i];
     }
     return null;
+  }
+
+  peaks(sw: SweepResult): SweepPeaks {
+    const speed = peakOf(sw.fs, sw.pv, 1);
+    const excursion = peakOf(sw.fs, sw.exc, 1 / 1000);
+    return {
+      ventSpeed_m_per_s: speed === null || speed.value <= 0 ? null : speed.value,
+      excursion_m: excursion === null ? null : excursion.value,
+      atVentSpeed_hz: speed === null || speed.value <= 0 ? null : speed.at_hz,
+      atExcursion_hz: excursion === null ? null : excursion.at_hz,
+    };
   }
 
   /** The one enclosure-parameter result: `values` is `P` unchanged when every field the circuit
@@ -447,14 +474,13 @@ export class SimulationEngineImpl implements SimulationEngine {
     }
     // Driver-side added mass (docs/research/WINISD_PARITY.md) shifts Mms/Fs/Q's before the circuit sees it.
     // 0/absent → withAddedMass returns the driver unchanged, so goldens are byte-identical.
-    const single = withAddedMass(driverValues(drv.values), P.driverAddedMass ?? 0);
+    // The circuit runs on Fs, Vas, Qes, Qms, Re, Sd, BL and Le as WinISD's does; the stated Cms, Mms and Rms are not read.
+    const single = withAddedMass(driverValues(this.driver.circuitValues(drv.values, P.air)), P.driverAddedMass ?? 0);
     const d = P.loading === 'isobaric' ? isobarikPair(single) : single;
     const circuit = circuitQuantities(d, Le_H, drv.winisdBL_Tm);
     if (circuit.value === null) return { values: null, issues: circuit.issues };
     const cq = circuit.value;
-    const env = solveEnvironment(P);
-    if (env.issues.length > 0) return { values: null, issues: env.issues };
-    const { rho } = env.values;
+    const rho = P.air.rho();
     const f0 = P.fmin || 10, f1 = P.fmax || 1000, N = P.N || 400, r = 1;
     const fs: number[] = [], H = [], spl = [], exc = [], excPR = [], pv = [], zmag = [], zph = [], phase = [];
     const va: number[] = [];

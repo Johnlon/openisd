@@ -1,0 +1,11 @@
+id: T340
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 6f43388a70972959f07920e464d510d032bdc2dd
+goal: Landings open a GitHub pull request: land.conf sets PULL_REQUESTS=1 (T331 live)
+done_test: bash scripts/land/test/land-pull-request.e2e.test.sh
+files:
+  - tasks/T340.yml
+  - land.conf

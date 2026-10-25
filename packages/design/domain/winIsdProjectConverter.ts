@@ -26,7 +26,6 @@ import {OpenISDDriver} from './driver/openISDDriver.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
 import {ProjectBuilder} from './openisdTransforms.js';
-import type {EnvironmentField} from './project/environmentFields.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
 
@@ -159,11 +158,11 @@ function boxSectionValues(
   }
 }
 
-/** `[VentFront]`/`[VentRear]` values for box types that have a single port whose geometry this
- *  bridge can read directly. `crosscalc`'s meaning and `Shape`'s non-round codes are not
- *  documented anywhere in this repo (confirmed: no `docs/design/WINISD_SCHEMA.md`) — ⚠ UNVERIFIED
- *  beyond `Shape=1` (round), which every sampled golden uses; `WinISDProject.TEMPLATE`'s own
- *  defaults are left in place for everything this function does not explicitly state. */
+/** `[VentFront]`/`[VentRear]`/`[VentIntra]` values for box types that have a single port whose
+ *  geometry this bridge can read directly. WinISD's `Shape` is 1 (round, `dia1` = diameter) or 2
+ *  (rectangle, `dia1` = width and `dia2` = height here); see `docs/research/WPR_VENT_SHAPES.md`.
+ *  `crosscalc` changes nothing in WinISD, so `WinISDProject.TEMPLATE`'s own default is left in
+ *  place, as for everything this function does not explicitly state. */
 function ventSectionValues(
   box: Box, boxType: Box['boxType']['value'],
 ): Record<string, Record<string, string | number>> {
@@ -174,9 +173,15 @@ function ventSectionValues(
     // entry — so null reaches here only from an unresolved one, and writes the same default.
     v.Num = vent.count.value;
     if (vent.shape.value === 'round') {
-      v.Shape = 1; // ⚠ unverified: slotted's own code is not confirmed
+      v.Shape = 1;
       const diameter = vent.diameter_m.value;
       if (diameter != null) v.dia1 = diameter;
+    } else {
+      v.Shape = 2;
+      const width = vent.width_m.value;
+      if (width != null) v.dia1 = width;
+      const height = vent.height_m.value;
+      if (height != null) v.dia2 = height;
     }
     if (fb_hz != null) v.Fb = fb_hz;
     const area = vent.area_m2.value;
@@ -203,33 +208,39 @@ function ventSectionValues(
   return out;
 }
 
-/** One `[VentRear]`/`[VentFront]` block's `dia1`/`endcorrection` -> a `VentWindow`'s
- *  `diameter_m`/`endCorrection_m`. `endcorrection` is a coefficient (×D) in the file and in
- *  `endCorrection_m` alike, so it carries over unchanged whatever the shape. `dia1` only applies
- *  to a round vent (`Shape=1`) — WinISD's own non-round codes are not confirmed anywhere in this
- *  repo (`ventSectionValues`'s own doc comment), so any other stated `Shape` skips the diameter
- *  with a warn rather than guessing what its geometry keys mean. A missing or non-numeric key
- *  leaves the vent's own default in place (older files omit keys) — never an error. Called
- *  BEFORE `vent.count.set(Num)`: `diameter_m`'s write is what the vent's own length ends up
- *  computed from, so it must land first. */
 /** The one message for a `BType` this importer does not read — absent, or a code WinISD writes
  *  that has no OpenISD topology yet. */
 function unsupportedBType(bType: number | null | undefined): string {
   return `Unsupported or missing box type (BType=${String(bType)}): WinISD import supports sealed (0), vented (1), 4th-order bandpass (2), passive radiator (4), 6th-order bandpass (3) and ABC (5) boxes.`;
 }
 
+/** One `[VentRear]`/`[VentFront]`/`[VentIntra]` block's `Shape`/`dia1`/`dia2`/`endcorrection` -> a
+ *  `VentWindow`'s shape, sizes and `endCorrection_m` (`docs/research/WPR_VENT_SHAPES.md`).
+ *  `Shape=1` is round: `dia1` is the diameter, `dia2` is stale and ignored. `Shape=2` is a
+ *  rectangle: `dia1` is the width and `dia2` the height. Any other stated `Shape` is a warn and
+ *  leaves the geometry alone (WinISD calculates nothing for it). `endcorrection` is a coefficient
+ *  (×D) in the file and in `endCorrection_m` alike. A missing or non-numeric key leaves the
+ *  vent's own default in place (older files omit keys) — never an error. Called BEFORE
+ *  `vent.count.set(Num)`: the geometry write is what the vent's own length ends up computed
+ *  from, so it must land first. */
 function importVentGeometry(
   wpr: WinISDProject, section: string, vent: Vent, errors: DriverError[],
 ): void {
   const shapeRaw = wpr.number(section, 'Shape');
-  if (shapeRaw != null && shapeRaw !== 1) {
-    errors.push({
-      level: 'warn', field: `${section} Shape`,
-      message: `vent shape ${shapeRaw} not imported: only round vents are read`,
-    });
-  } else {
+  if (shapeRaw == null || shapeRaw === 1) {
     const dia1 = wpr.number(section, 'dia1');
     if (dia1 != null) vent.diameter_m.set(dia1);
+  } else if (shapeRaw === 2) {
+    vent.shape.set('slotted');
+    const dia1 = wpr.number(section, 'dia1');
+    if (dia1 != null) vent.width_m.set(dia1);
+    const dia2 = wpr.number(section, 'dia2');
+    if (dia2 != null) vent.height_m.set(dia2);
+  } else {
+    errors.push({
+      level: 'warn', field: `${section} Shape`,
+      message: `vent shape ${shapeRaw} not imported: WinISD knows only round (1) and rectangular (2) vents`,
+    });
   }
   const endcorrection = wpr.number(section, 'endcorrection');
   if (endcorrection != null) vent.endCorrection_m.set(endcorrection);
@@ -269,6 +280,9 @@ export class WinIsdProjectConverter {
     }
 
     const nowStamp = dateStamp(new Date());
+    const tempK = project.envTempK.value;
+    const pressurePa = project.envPressurePa.value;
+    const humidityPct = project.envHumidityPct.value;
 
     const values: WprValues = {
       ProjectInfo: {
@@ -279,9 +293,10 @@ export class WinIsdProjectConverter {
       },
       Box: {
         ...boxValues,
-        T: project.envTempK.value,
-        p: project.envPressurePa.value,
-        phi: project.envHumidityPct.value / 100,
+        // The current air; a quantity with no value is left to the template's own.
+        ...(tempK === null ? {} : {T: tempK}),
+        ...(pressurePa === null ? {} : {p: pressurePa}),
+        ...(humidityPct === null ? {} : {phi: humidityPct / 100}),
         // The coil's temperature coefficient and its modelled rise. Left out, the template writes
         // WinISD's own defaults over whatever the design states (BUG_20260817 F3).
         alfaVC: project.alfaVC_per_K.value,
@@ -367,7 +382,7 @@ export class WinIsdProjectConverter {
       case 0: {
         const Vr = wpr.number('Box', 'Vr');
         if (Vr == null) {
-          errors.push({level: 'error', field: 'Vr', message: 'sealed box: [Box] Vr is missing or not numeric'});
+          errors.push({level: 'error', field: 'Vr', message: 'Closed box: [Box] Vr is missing or not numeric'});
           return {value: null, errors};
         }
         project = builder.sealed().volume_m3(Vr).build();
@@ -383,7 +398,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Fr == null) {
           errors.push({
             level: 'error', field: 'Vr/Fr',
-            message: 'vented box: [Box] Vr and/or Fr is missing or not numeric',
+            message: 'Vented box: [Box] Vr and/or Fr is missing or not numeric',
           });
           return {value: null, errors};
         }
@@ -408,7 +423,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Vf == null || Ff == null) {
           errors.push({
             level: 'error', field: 'Vr/Vf/Ff',
-            message: 'bandpass4 box: [Box] Vr, Vf and/or Ff is missing or not numeric',
+            message: '4th Order Bandpass box: [Box] Vr, Vf and/or Ff is missing or not numeric',
           });
           return {value: null, errors};
         }
@@ -445,7 +460,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Fr == null) {
           errors.push({
             level: 'error', field: 'Vr/Fr',
-            message: 'passive-radiator box: [Box] Vr and/or Fr is missing or not numeric',
+            message: 'Passive Radiator box: [Box] Vr and/or Fr is missing or not numeric',
           });
           return {value: null, errors};
         }
@@ -455,7 +470,7 @@ export class WinIsdProjectConverter {
           brand: {value: 'WinISD import'}, model: {value: 'passive-radiator'},
           manufacturer: {value: 'WinISD import'}, driver_type: {value: ['passive-radiator']},
           uuid: {value: '00000000-0000-4000-8000-000000000002'},
-          sku: {value: 'WPR-IMPORT', grounds: [{origin: 'manual', reading: 'WPR-IMPORT'}]},
+          sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
           data_sources: {value: {}},
           quality: {
             confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
@@ -497,7 +512,7 @@ export class WinIsdProjectConverter {
         if (Vr == null || Fr == null || Vf == null || Ff == null) {
           errors.push({
             level: 'error', field: 'Vr/Fr/Vf/Ff',
-            message: 'bandpass6 box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
+            message: '6th Order Bandpass box: [Box] Vr, Fr, Vf and/or Ff is missing or not numeric',
           });
           return {value: null, errors};
         }
@@ -568,14 +583,10 @@ export class WinIsdProjectConverter {
     const T = wpr.number('Box', 'T');
     const p = wpr.number('Box', 'p');
     const phi = wpr.number('Box', 'phi');
-    // A file value equal to the project's current default (the app's Options → Environment C) was
-    // most likely never typed; leave it unset so it stays C rather than becoming an E.
-    const enterUnlessDefault = (field: EnvironmentField, value: number): void => {
-      if (!(field.calculated && Math.abs(field.value - value) < 1e-9)) field.set(value);
-    };
-    if (T != null) enterUnlessDefault(project.envTempK, T);
-    if (p != null) enterUnlessDefault(project.envPressurePa, p);
-    if (phi != null) enterUnlessDefault(project.envHumidityPct, phi * 100); // phi is a FRACTION in the file
+    // The file's own T, p and phi are what the project's air is entered as. phi is a FRACTION in the file.
+    if (T != null) project.envTempK.set(T);
+    if (p != null) project.envPressurePa.set(p);
+    if (phi != null) project.envHumidityPct.set(phi * 100);
 
     const Rg = wpr.number('SignalSource', 'Rg');
     if (Rg != null) project.Rs_ohm.set(Rg);

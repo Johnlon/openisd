@@ -4,7 +4,7 @@
  * https://aes.org/e-lib/browse.cfm?elib=2149
  */
 import {cAdd, cDiv, cMul, cPar, cSub, cx} from '../complex.js';
-import {portImpedance, winisdLinePortReactance} from './port.js';
+import {portImpedance, winisdLinePortReactance, droppedEndCorrection_m} from './port.js';
 import type {SweepParams} from '../types.js';
 import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
 
@@ -55,7 +55,7 @@ export class VentedBox implements BoxModel {
         const RaaSeries = cx(wb * Map / Qa, 0);
         const RapSeries = cx(wb * Map / Qp, 0);
         const CabBranch = cAdd(RaaSeries, Zc);
-        const PortBranch = cAdd(RapSeries, cx(0, P.tlPortModel ? winisdLinePortReactance(w, Map, P.Sp ?? NaN, P.portEndCorrection_m ?? NaN, rho, c) : w * Map));
+        const PortBranch = cAdd(RapSeries, cx(0, P.tlPortModel ? winisdLinePortReactance(w, Map, P.Sp ?? NaN, droppedEndCorrection_m(P.portEndCorrection_m, P.winisdTlPortNoEndCorrection), rho, c) : w * Map));
         const Zbox = cPar(RalConst, CabBranch, PortBranch);
         const UD = cDiv(pg, cAdd(cAdd(ZaE, ZaD), Zbox));
         const UP = cMul(UD, cDiv(Zbox, PortBranch));

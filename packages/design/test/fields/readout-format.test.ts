@@ -20,6 +20,20 @@ describe('ReadoutFormat', () => {
     });
   });
 
+  describe('ReadoutFormat — a value held in SI', () => {
+    it('textSI converts to the base unit, then shows the member\'s decimals', () => {
+      expect(ReadoutFormat.ALIGNMENT_VOLUME_L.textSI(0.012345, '')).toBe('12.35');
+      expect(ReadoutFormat.TUNING_HZ.textSI(34.56, '—')).toBe('34.6');
+      expect(ReadoutFormat.QTC.textSI(null, '--')).toBe('--');
+    });
+
+    it('textSI follows the unit rotation like text', () => {
+      const rotated = NumberField.BOX_VB_L.withNextUnit({});
+      expect(ReadoutFormat.ALIGNMENT_VOLUME_L.textSI(0.02831685, '', rotated)).toBe(ReadoutFormat.ALIGNMENT_VOLUME_L.text(28.31685, '', rotated));
+      expect(ReadoutFormat.ALIGNMENT_VOLUME_L.textSI(0.02831685, '', rotated)).not.toBe('28.32');
+    });
+  });
+
   describe('ReadoutFormat — the unit shown beside a readout follows the unit rotation', () => {
     it('default tokens show the base unit and the same digits as text()', () => {
       expect(ReadoutFormat.TUNING_HZ.textWithUnit(34.56, '—', {})).toBe('34.6 Hz');

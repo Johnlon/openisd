@@ -65,7 +65,9 @@ export class DriverType {
 
   static readonly Woofer          = new DriverType('woofer',           'Woofer',           [Chip.Woofer, Chip.Bass]);
   static readonly Subwoofer       = new DriverType('subwoofer',        'Subwoofer',        [Chip.Sub, Chip.Woofer, Chip.Bass]);
-  static readonly Midrange        = new DriverType('midrange',         'Midrange',         [Chip.Mid, Chip.Woofer]);
+  static readonly Midrange        = new DriverType('midrange',         'Midrange',         [Chip.Mid]);
+  static readonly Bass            = new DriverType('bass',             'Bass',             [Chip.Bass, Chip.Woofer]);
+  static readonly BassMidrange    = new DriverType('bass-midrange',    'Bass-midrange',    [Chip.Bass, Chip.Mid, Chip.Woofer]);
   static readonly MidBass         = new DriverType('mid-bass',         'Mid-bass',         [Chip.Woofer, Chip.Mid, Chip.Bass]);
   static readonly MidWoofer       = new DriverType('mid-woofer',       'Mid-woofer',       [Chip.Woofer, Chip.Mid, Chip.Bass]);
   static readonly FullRange       = new DriverType('full-range',       'Full-range',       [Chip.Woofer, Chip.Mid, Chip.Tweet, Chip.Bass, Chip.FullRange]);
@@ -83,6 +85,14 @@ export class DriverType {
    *  class body — static fields initialise in source order. */
   static readonly ALL: readonly DriverType[] =
     Object.values(DriverType).filter((v): v is DriverType => v instanceof DriverType);
+
+  /** The help popup's rows: each type's display text and its chip labels, comma-joined. Types
+   *  with no chip (Unclassified) are left out. */
+  static helpRows(): readonly { type: string; chips: string }[] {
+    return DriverType.ALL
+      .filter((d) => d.chips.length > 0)
+      .map((d) => ({ type: d.display, chips: d.chips.map((c) => c.label).join(', ') }));
+  }
 
   /**
    * The one string → member boundary, mirroring Python's `DriverType(s)`.

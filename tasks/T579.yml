@@ -1,0 +1,14 @@
+id: T579
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+landed: 12b5eaab1121ddb8385a526d20f89c634efe7da8
+goal: Task previews use a reserved port derived from the task number
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/preview-isolation-docs.test.sh
+files:
+  - tasks/T579.yml
+  - CLAUDE.md
+  - docs/DEV_PROCESS.md
+  - docs/SDLC_DESIGN.md
+  - scripts/land/test/preview-isolation-docs.test.sh

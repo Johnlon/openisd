@@ -10,9 +10,9 @@ import type {AppSettings} from './appSettings.js';
 import type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
 import {EnvironmentEngineImpl} from './environment/EnvironmentEngine.js';
 import type {DriverEngine} from './driver/DriverEngine.js';
-import {DriverEngineImpl} from './driver/DriverEngine.js';
+import {createDriverEngine} from './driver/DriverEngine.js';
 import {
-  ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, RADIATOR_RELATIONS, RADIATOR_ROUTES, RouteGroup,
+  ConsistencyCheck, RADIATOR_RELATIONS, RADIATOR_ROUTES, RouteGroup,
 } from './driver/routes/index.js';
 import type {SignalEngine} from './signal/SignalEngine.js';
 import {SignalEngineImpl} from './signal/SignalEngine.js';
@@ -61,8 +61,7 @@ export interface Engine {
 
 class EngineImpl implements Engine {
   readonly environment: EnvironmentEngine;
-  readonly driver: DriverEngine = new DriverEngineImpl(
-    new RouteGroup(DRIVER_ROUTES), new ConsistencyCheck(DRIVER_RELATIONS));
+  readonly driver: DriverEngine = createDriverEngine();
   readonly signal: SignalEngine = new SignalEngineImpl();
   readonly issues: IssueEngine = new IssueEngineImpl();
   readonly sealed: SealedEngine = new SealedEngineImpl();
@@ -71,7 +70,7 @@ class EngineImpl implements Engine {
   readonly pr: PrEngine = new PrEngineImpl(
     new RouteGroup(RADIATOR_ROUTES), new ConsistencyCheck(RADIATOR_RELATIONS));
   readonly filters: FilterEngine = new FilterEngineImpl();
-  readonly simulation: SimulationEngine = new SimulationEngineImpl();
+  readonly simulation: SimulationEngine = new SimulationEngineImpl(this.driver);
   readonly box: BoxEngine = new BoxEngineImpl();
 
   constructor(settings: AppSettings) {

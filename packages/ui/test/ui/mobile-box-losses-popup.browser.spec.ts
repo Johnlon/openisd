@@ -4,17 +4,18 @@
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+import {PhoneRowSizes} from '@openisd/design/fields';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
 test.describe('MobileBoxLossesPopup', () => {
-  test('edits Ql/Qa, and Qp only for a vented box', async ({ page }) => {
+  test('edits Ql/Qa, and Qp only for a vented box', async ({ appPage: page }) => {
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
-    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
     await expect(page.locator('.ui-field-label', { hasText: 'Leakage Ql' })).toBeVisible();
     await expect(page.locator('.ui-field-label', { hasText: 'Absorption Qa' })).toBeVisible();
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toBeVisible();
@@ -28,12 +29,19 @@ test.describe('MobileBoxLossesPopup', () => {
     await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
 
     await page.locator('#mob-box-type').selectOption('sealed');
-    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
     await expect(page.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(0);
   });
 
-  test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ page }) => {
-    await page.locator('.mob-btn', { hasText: 'Box losses' }).click();
+  test('Escape closes the sheet', async ({ appPage: page }) => {
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
+    await expect(page.locator('.mob-align-sheet')).toHaveCount(1);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.mob-align-sheet')).toHaveCount(0);
+  });
+
+  test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ appPage: page }) => {
+    await page.locator('.mob-clink', { hasText: 'Box losses' }).click();
     const q = (label: string) => page.locator('.mob-ui-field', { hasText: label }).locator('input');
     await q('Leakage Ql').fill('7'); await q('Leakage Ql').blur();
     await q('Absorption Qa').fill('20'); await q('Absorption Qa').blur();
@@ -47,12 +55,12 @@ test.describe('MobileBoxLossesPopup', () => {
   // "Box losses" button per chamber panel, each opening that chamber's set only.
   for (const [type, rearPorts] of [['bandpass4', 0], ['bandpass6', 1], ['abc', 1]] as const) {
     const openFor = async (page: Page, chamber: 'Rear' | 'Front') => {
-      await page.locator('.mob-panel', { has: page.locator('.mob-panel-head', { hasText: `${chamber} chamber` }) })
-        .locator('.mob-btn', { hasText: 'Box losses' }).click();
+      await page.locator('.mob-csection', { has: page.locator('.mob-band-title', { hasText: `${chamber} chamber` }) })
+        .locator('.mob-clink', { hasText: 'Box losses' }).click();
       return page.locator('.mob-align-sheet');
     };
 
-    test(`${type}: each chamber panel's button opens only that chamber's set`, async ({ page }) => {
+    test(`${type}: each chamber panel's button opens only that chamber's set`, async ({ appPage: page }) => {
       await page.locator('#mob-box-type').selectOption(type);
       const rear = await openFor(page, 'Rear');
       await expect(rear.locator('.mob-panel-head', { hasText: 'chamber' })).toHaveText(['Rear chamber']);
@@ -64,7 +72,7 @@ test.describe('MobileBoxLossesPopup', () => {
       await expect(front.locator('.ui-field-label', { hasText: 'Port Qp' })).toHaveCount(1);
     });
 
-    test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ page }) => {
+    test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ appPage: page }) => {
       await page.locator('#mob-box-type').selectOption(type);
       const q = (sheet: Locator, label: string) =>
         sheet.locator('.mob-ui-field', { hasText: label }).locator('input');
@@ -82,5 +90,14 @@ test.describe('MobileBoxLossesPopup', () => {
       sheet = await openFor(page, 'Front');
       await expect(q(sheet, 'Leakage Ql')).toHaveValue(/^7(\.0+)?$/);
     });
+  }
+});
+
+// BUG_20261018_box-advanced-buttons-under-44: the sheet's Reset and OK are the one phone button.
+test('the box losses sheet\'s Reset and OK are PhoneRowSizes.BUTTON_PX tall', async ({ appPage: page }) => {
+  await page.locator('.mob-clink', { hasText: 'Box losses' }).first().click();
+  for (const name of ['Reset', 'OK']) {
+    const b = page.locator('.mob-align-footer').getByRole('button', { name, exact: true });
+    expect((await b.boundingBox())!.height, name).toBeCloseTo(PhoneRowSizes.BUTTON_PX, 0);
   }
 });

@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import type {ConflictCopy, SyncDialogAction, SyncDialogModel, SyncTone} from '@openisd/design/cloud';
+import {computed} from 'vue';
+import {PhoneDialogHelp} from '@openisd/design/fields';
 import {createConfirmPort} from '../../logic/confirmPort.js';
+import {useApp} from '../../logic/app.js';
 import ConfirmDialog from './ConfirmDialog.vue';
+import PhoneDialogPage from './PhoneDialogPage.vue';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
 import {PRIVACY_URL} from '../siteLinks.js';
 
 const props = defineProps<{
@@ -17,6 +22,9 @@ const emit = defineEmits<{
 }>();
 
 const {port: confirmPort, state: confirmState} = createConfirmPort();
+/** The phone draws this as a classic dialog body (PHONE_CLASSIC_BUILD_SPEC row 22); the desktop is unchanged. */
+const presentation = useApp().presentation;
+const phone = computed(() => presentation.shownSkin() === 'mobile');
 
 const TONE_VARS: Record<SyncTone, string> = {
   muted: 'var(--mut)',
@@ -49,6 +57,40 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
 
 <template>
   <div class="cloud-sync-dialog">
+    <PhoneDialogPage v-if="phone">
+      <PhoneBand :section="PhoneDialogHelp.SYNC_GOOGLE_DRIVE" />
+      <div class="mob-dstate cloud-sync-headline">
+        <i class="cloud-sync-tone-dot" :style="{ backgroundColor: TONE_VARS[model.tone] }"></i>
+        <span>{{ model.headline }}</span>
+      </div>
+      <p v-if="model.account" class="mob-dhint cloud-sync-account">{{ model.account }}</p>
+      <p v-if="model.pendingLine" class="mob-dhint cloud-sync-pending">{{ model.pendingLine }}</p>
+      <div v-if="model.privacy" class="mob-dhint cloud-sync-explainer">
+        <p v-for="line in model.privacy.lines" :key="line">{{ line }}</p>
+        <a class="mob-dlink" :href="PRIVACY_URL" target="_blank" rel="noopener">{{ model.privacy.linkLabel }}</a>
+      </div>
+      <p v-if="model.notConfiguredLine" class="mob-dhint cloud-sync-not-configured">{{ model.notConfiguredLine }}</p>
+      <div class="mob-cbtns mob-dbtns-one cloud-sync-buttons">
+        <button v-for="btn in model.buttons" :key="btn.action" type="button" :disabled="!btn.enabled" :class="{ pri: btn.primary }" @click="handleAction(btn.action)">{{ btn.label }}</button>
+      </div>
+      <template v-if="model.activity.length > 0">
+        <PhoneBand :section="PhoneDialogHelp.syncActivity(model.activityHeading)" />
+        <ol class="mob-dpre cloud-sync-activity">
+          <li v-for="(line, i) in model.activity" :key="i" class="cloud-sync-activity-line">{{ line }}</li>
+        </ol>
+      </template>
+      <template v-if="model.conflicts.length > 0">
+        <PhoneBand :section="PhoneDialogHelp.syncConflicts(model.conflictsHeading)" />
+        <div v-for="c in model.conflicts" :key="c.id.text" class="mob-dkv cloud-sync-conflict-row">
+          <div class="cloud-sync-conflict-info">
+            <div class="cloud-sync-conflict-title">{{ c.title }}</div>
+            <div class="cloud-sync-conflict-sub">{{ c.sub }}</div>
+          </div>
+          <button type="button" class="cloud-sync-conflict-open-btn" @click="emit('openConflict', c.id)">{{ model.conflictOpenLabel }}</button>
+        </div>
+      </template>
+    </PhoneDialogPage>
+    <template v-else>
     <div class="cloud-sync-heading">{{ model.providerHeading }}</div>
     <div class="cloud-sync-headline">
       <span
@@ -105,6 +147,7 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
         >{{ model.conflictOpenLabel }}</button>
       </div>
     </div>
+    </template>
 
     <ConfirmDialog :state="confirmState" />
   </div>
@@ -261,4 +304,10 @@ async function handleAction(action: SyncDialogAction): Promise<void> {
   color: var(--fg);
   cursor: pointer;
 }
+
+/* The phone's list lines (accepted mock, Cloud sync): activity as report text, conflicts as rows with an Open button. */
+.cloud-sync-dialog .mob-dpre.cloud-sync-activity { list-style: none; max-height: none; }
+.cloud-sync-dialog .cloud-sync-conflict-row { min-height: 48px; padding-top: 4px; padding-bottom: 4px; }
+.cloud-sync-dialog .cloud-sync-conflict-open-btn { min-height: 44px; min-width: 44px; padding: 0 12px; }
+.cloud-sync-dialog .mob-cbtns button.pri { background: var(--acc); border-color: var(--acc); color: #fff; }
 </style>

@@ -1,10 +1,10 @@
-import {existsSync, readFileSync, statSync, writeFileSync} from 'node:fs';
-import {tmpdir} from 'node:os';
-import {basename, join} from 'node:path';
-import {type Browser, expect, type Locator, type Page, test as base} from '@playwright/test';
-import {NumberField} from '@openisd/design/fields';
-import {CHROME_OUTAGE_POLICY, CHROME_STABLE_MS, type OutageClock, waitOutOutage} from './fixtures/chromeOutage.js';
+import {readFileSync} from 'node:fs';
+import {basename} from 'node:path';
+import {type BrowserContext, type Disposable, expect, type Locator, type Page, test as base} from '@playwright/test';
+import {createHash} from 'node:crypto';
+import {z} from 'zod';
 import {fillAndBlur} from './fixtures/numField.js';
+import {standInForSnapshotsSite} from './fixtures/snapshotsSite.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} from './fixtures/sampleProject.js';
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
@@ -40,74 +40,241 @@ export interface BrowserLog {
   pageErrors: string[];
   networkErrors: string[];
   reset: () => void;
+  _attach?: (page: Page) => () => void;
 }
 
 /**
- * Written by the first worker whose launch wait ran out; the other workers of the same run (children
- * of the same runner process) then fail fast instead of each waiting out the full time again, which
- * for a Chrome that is really broken would take hours across 180 failing tests.
+ * What a test adds to the shared worker page itself and Playwright keeps until told otherwise: init
+ * scripts, event listeners (dialog handlers included), cookies, extra headers and media emulation.
+ * `removeAll` undoes them. App state is not here: a value the app carries from one test to the next
+ * is an app bug, not something to reset.
  */
-const GAVE_UP_STAMP = join(tmpdir(), `openisd-chrome-gave-up-${process.ppid}`);
-const GAVE_UP_STAMP_MAX_AGE_MS = 30 * 60 * 1000;
+/** The page events a test can attach a handler to (Playwright's own plumbing does not use them). */
+const PAGE_EVENTS = [
+  'close', 'console', 'crash', 'dialog', 'domcontentloaded', 'download', 'filechooser', 'frameattached',
+  'framedetached', 'framenavigated', 'load', 'pageerror', 'popup', 'request', 'requestfailed',
+  'requestfinished', 'response', 'websocket', 'worker',
+] as const;
 
-function someWorkerGaveUp(): boolean {
-  return existsSync(GAVE_UP_STAMP) && Date.now() - statSync(GAVE_UP_STAMP).mtimeMs < GAVE_UP_STAMP_MAX_AGE_MS;
+export class TestAdditions {
+  readonly #page: Page;
+  readonly #scripts: Disposable[] = [];
+
+  constructor(page: Page) {
+    this.#page = page;
+    const addPageScript = page.addInitScript.bind(page);
+    page.addInitScript = async (...args: Parameters<Page['addInitScript']>) => {
+      const added = await addPageScript(...args);
+      this.#scripts.push(added);
+      return added;
+    };
+    const context = page.context();
+    const addContextScript = context.addInitScript.bind(context);
+    context.addInitScript = async (...args: Parameters<BrowserContext['addInitScript']>) => {
+      const added = await addContextScript(...args);
+      this.#scripts.push(added);
+      return added;
+    };
+  }
+
+  async removeAll(): Promise<void> {
+    for (const script of this.#scripts.splice(0)) await script.dispose().catch(() => {});
+    for (const event of PAGE_EVENTS) this.#page.removeAllListeners(event);
+    await this.#page.context().clearCookies();
+    await this.#page.setExtraHTTPHeaders({});
+    await this.#page.emulateMedia({colorScheme: null, media: null, reducedMotion: null, forcedColors: null});
+  }
 }
 
-const REAL_CLOCK: OutageClock = {
-  now: () => Date.now(),
-  sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
-};
+/**
+ * Resets the open worker app back to a clean initial state:
+ * - clears route stubs (page.unrouteAll), then puts back the snapshots-site stand-in
+ * - resets viewport to default desktop (1280x720)
+ * - clears active element focus
+ * - clears storage back to splashSeen / persist_warning_dismissed baseline
+ * - closes all open projects and resets focused project to null
+ * - resets application settings (difference cues, vented limits, env defaults)
+ * - closes all dialogs / modals and clears presentation state (unit tokens, skin override, zoom)
+ */
+export async function resetApp(page: Page, additions: TestAdditions): Promise<void> {
+  await additions.removeAll();
+  await page.context().unrouteAll({ behavior: 'ignoreErrors' });
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  // The stand-in is the app's, not the test's: a reload after this reset still reads it.
+  await standInForSnapshotsSite(page.context());
+  await page.setViewportSize({ width: 1280, height: 720 });
 
-export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }>({
-  // Replaces Playwright's own `browser` so a Chrome launch outage is waited out here instead of
-  // failing tests in milliseconds (bugs/BUG_20261007_browser-processes-die-mid-suite.md). A launch
-  // counts only once Chrome has stayed up for a few seconds and loaded two throwaway pages: a burst
-  // flips between launched and dead every 1-3 s.
-  // After a failed test Playwright starts a new worker, which waits here too, so a burst fails at
-  // most the tests already running in it. Test bodies are never retried.
-  browser: [async ({ playwright, browserName, headless, channel, launchOptions }, use) => {
-    const launchAndProbe = async (): Promise<Browser> => {
-      const launched = await playwright[browserName].launch({ ...launchOptions, headless, channel, handleSIGINT: false });
-      const loadBlankPage = async (): Promise<void> => {
-        const context = await launched.newContext();
-        await (await context.newPage()).goto('about:blank');
-        await context.close();
-      };
-      try {
-        await loadBlankPage();
-        await REAL_CLOCK.sleep(CHROME_STABLE_MS);
-        if (!launched.isConnected()) throw new Error(`Chrome died within ${CHROME_STABLE_MS / 1000} s of launch`);
-        await loadBlankPage();
-      } catch (error) {
-        await launched.close().catch(() => { /* already dead: the original error is the one to report */ });
-        throw error;
-      }
-      return launched;
-    };
-    const policy = someWorkerGaveUp() ? { ...CHROME_OUTAGE_POLICY, timeoutMs: 0 } : CHROME_OUTAGE_POLICY;
-    const browser = await waitOutOutage(launchAndProbe, policy, REAL_CLOCK, line => console.error(line)).catch((error: unknown) => {
-      writeFileSync(GAVE_UP_STAMP, String(Date.now()));
-      throw error;
-    });
-    await use(browser);
-    await browser.close();
-  }, { scope: 'worker', timeout: CHROME_OUTAGE_POLICY.timeoutMs + 30_000 }],
+  await dismissOverlays(page);
+  await closeAllProjects(page);
+  await restoreOptions(page);
+  await clearHash(page);
+}
 
-  browserLog: [async ({ page }, use, testInfo) => {
-    // Every browser test arrives with empty storage, which is exactly what makes the splash
-    // raise itself — an overlay across the whole app before any test's first click. Seed the
-    // view-state key so the suite starts past it. The splash's OWN spec
-    // (`splash.browser.spec.ts`) uses Playwright's base `test`, so it still sees the real
-    // first-visit behaviour.
+const OVERLAY_SELECTOR = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, .mob-dlg, dialog[open]';
+
+/** Closes whatever a test left open the way a user would: the dialog's own close controls, then Escape. */
+async function dismissOverlays(page: Page): Promise<void> {
+  let lastClickError = '';
+  for (let i = 0; i < 4; i++) {
+    const open = await page.locator(OVERLAY_SELECTOR).count();
+    if (open === 0) return;
+    // The non-modal Equation Inspector card floats over the dialogs; the user closes it first.
+    const card = page.locator('.eq-x').filter({ visible: true }).first();
+    if (await card.count() > 0) { await card.click({ timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 600); }); continue; }
+    // An open drop-down is closed by clicking outside it, as a user does.
+    const scrim = page.locator('.fmt-scrim').filter({ visible: true }).first();
+    if (await scrim.count() > 0) { await scrim.click({ position: { x: 1, y: 1 }, timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 600); }); continue; }
+    const close = page.locator('.overlay.on .x, .overlay.open .x, .overlay.on .close-btn, .overlay.open .close-btn, .opt-x, .wd-x, .confirm-dialog-cancel, .confirm-dialog-dismiss, .mob-sheet-close, .mob-menu-close, .mob-x, .mob-dlg-close').filter({ visible: true }).first();
+    if (await close.count() > 0) await close.click({ timeout: 2000 }).catch((e: unknown) => { lastClickError = String(e).slice(0, 1800); });
+    else await page.keyboard.press('Escape');
+    // The next try starts once this one has closed something; the check after the loop names what stayed open.
+    await expect.poll(() => page.locator(OVERLAY_SELECTOR).count(), { timeout: 2000 }).toBeLessThan(open).catch(() => {});
+  }
+  const left = await page.locator(OVERLAY_SELECTOR).evaluateAll(els => els.map(el => `${el.className}: ${(el.textContent ?? '').replace(/\s+/g, ' ').slice(0, 120)}`));
+  if (left.length > 0) throw new Error(`resetApp: overlays still open: ${left.join(' | ')} (last close click: ${lastClickError})`);
+}
+
+/** Clears the project list through each row's own menu (Close for an open project, unsaved changes
+ *  discarded; Move to Bin for a saved one), then deletes what is in the Bin forever. */
+async function closeAllProjects(page: Page): Promise<void> {
+  const rows = page.locator('.original-root .project-row');
+  for (let guard = 0; guard < 80; guard++) {
+    const count = await rows.count();
+    let acted = false;
+    for (let i = 0; i < count && !acted; i++) {
+      await rows.nth(i).locator('.row-menu-btn').click();
+      const close = page.locator('.row-menu-item.menu-action-close');
+      const remove = page.locator('.row-menu-item.menu-action-delete');
+      if (await close.count() > 0) {
+        await close.first().click();
+        const discard = page.locator('.close-actions button', { hasText: 'Close without saving' });
+        if (await discard.isVisible()) await discard.click();
+      } else if (await remove.count() > 0) {
+        await remove.first().click();
+        await page.locator('.confirm-dialog-confirm').click();
+      } else { await page.keyboard.press('Escape'); continue; }
+      acted = true;
+    }
+    if (!acted) break;
+  }
+  await emptyBin(page);
+}
+
+async function emptyBin(page: Page): Promise<void> {
+  const toggle = page.locator('.projects-panel-footer .bin-toggle');
+  if (await toggle.count() === 0 || /Bin \(0\)/.test(await toggle.innerText())) return;
+  const back = page.getByRole('button', { name: 'Back to projects' });
+  if (!await back.isVisible()) await toggle.click();
+  const binRows = page.locator('.bin-row');
+  for (let guard = 0; guard < 80 && await binRows.count() > 0; guard++) {
+    await page.locator('.bin-delete-forever').first().click();
+    await page.locator('.confirm-dialog-confirm').click();
+  }
+  await page.getByRole('button', { name: 'Back to projects' }).click();
+}
+
+/** Puts Options back to the app's defaults through the Options dialog's own controls. */
+async function restoreOptions(page: Page): Promise<void> {
+  await page.locator('.tb-btn[title^="Options"]').click();
+  const modal = page.locator('.options-modal, .opt-modal');
+  await modal.waitFor({ state: 'visible' });
+  for (const id of ['env-reset', 'settings-reset']) {
+    const reset = modal.getByTestId(id);
+    if (await reset.isEnabled()) await reset.click();
+  }
+  await modal.getByTestId('difference-cues').getByRole('checkbox').check();
+  await modal.getByRole('button', { name: /Reset to Metric/ }).click();
+  await modal.getByTestId('settings-apply').click();
+  await modal.waitFor({ state: 'hidden' });
+}
+
+async function clearHash(page: Page): Promise<void> {
+  if (!page.url().includes('#') && !page.url().includes('?')) return;
+  await page.evaluate(() => {
+    globalThis.location.hash = '';
+    globalThis.history.replaceState(null, '', '/');
+  });
+}
+
+export const test = base.extend<
+  { browserLog: BrowserLog; context: BrowserContext; page: Page; appPage: Page },
+  { workerAppPage: Page; testAdditions: TestAdditions }
+>({
+  workerAppPage: [async ({ browser }, use) => {
+    const port = process.env.OPENISD_TEST_PORT;
+    const baseURL = port ? `http://localhost:${port}` : 'http://localhost:4100';
+    const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 720 } });
+    await standInForSnapshotsSite(context);
+    const page = await context.newPage();
     await page.addInitScript(() => {
-      // Only when nothing is stored yet: a test that has already saved view state (unit
-      // tokens, chart colours) reloads with that state, and overwriting it here would
-      // silently undo what the test set up.
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
-      catch { /* storage disabled — the splash then shows, and that test will say so */ }
+      catch { /* storage disabled */ }
+      try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
+      catch { /* storage disabled */ }
+      // The suite starts each tab with the startup storage notice already shown, as it does the
+      // persist warning dismissed; storage-notice.browser.spec.ts opens a fresh tab to see it.
+      try { if (sessionStorage.getItem('openisd_usage_notice_shown') === null) sessionStorage.setItem('openisd_usage_notice_shown', '1'); }
+      catch { /* storage disabled */ }
     });
+    await page.goto('/');
+    await page.locator('.original-root, .mobile-root').first().waitFor({ state: 'visible' });
 
+    // Avoid full page reloads when tests call page.goto('/') on the already-loaded worker app page.
+    const rawGoto = page.goto.bind(page);
+    page.goto = async (url: string, options?: Parameters<Page['goto']>[1]) => {
+      if (url === '/' || url === '' || url === baseURL || url === `${baseURL}/`) {
+        return null;
+      }
+      return rawGoto(url, options);
+    };
+
+    await use(page);
+    await context.close().catch(() => {});
+  }, { scope: 'worker' }],
+
+  context: async ({ context }, use) => {
+    await standInForSnapshotsSite(context);
+    await use(context);
+  },
+
+  page: async ({ page, browserLog }, use) => {
+    await page.addInitScript(() => {
+      try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
+      catch { /* storage disabled */ }
+      try { if (localStorage.getItem('openisd_persist_warning_dismissed') === null) localStorage.setItem('openisd_persist_warning_dismissed', '1'); }
+      catch { /* storage disabled */ }
+      // The suite starts each tab with the startup storage notice already shown, as it does the
+      // persist warning dismissed; storage-notice.browser.spec.ts opens a fresh tab to see it.
+      try { if (sessionStorage.getItem('openisd_usage_notice_shown') === null) sessionStorage.setItem('openisd_usage_notice_shown', '1'); }
+      catch { /* storage disabled */ }
+    });
+    const detach = browserLog._attach?.(page);
+    try {
+      await use(page);
+    } finally {
+      // Straight after the test body, while the page is still open (F41): a route handler still inside
+      // route.fetch() when the page closes throws "Test ended" into the result.
+      await page.unrouteAll({ behavior: 'ignoreErrors' });
+      detach?.();
+    }
+  },
+
+  testAdditions: [async ({ workerAppPage }, use) => {
+    await use(new TestAdditions(workerAppPage));
+  }, { scope: 'worker' }],
+
+  appPage: async ({ workerAppPage, testAdditions, browserLog }, use) => {
+    await resetApp(workerAppPage, testAdditions);
+    const detach = browserLog._attach?.(workerAppPage);
+    try {
+      await use(workerAppPage);
+    } finally {
+      detach?.();
+      await resetApp(workerAppPage, testAdditions);
+    }
+  },
+
+  browserLog: [async ({}, use, testInfo) => {
     const log: BrowserLog = {
       consoleErrors: [], consoleWarnings: [], pageErrors: [], networkErrors: [],
       reset: () => {
@@ -115,28 +282,44 @@ export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }
       },
     };
 
-    page.on('console', m => {
-      // A spec that blocks the telemetry collector (telemetry.browser.spec.ts) makes the browser
-      // log the refused beacon; that is the point of the spec, not an app fault.
-      if (m.location().url.startsWith(TELEMETRY_COLLECTOR_ORIGIN)) return;
-      if (m.type() === 'error') log.consoleErrors.push(m.text());
-      else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
-    });
-    page.on('pageerror', e => log.pageErrors.push(e.message));
-    page.on('requestfailed', r => {
-      // external federated sources (github.com) may be unreachable in CI — not our bug
-      if (r.url().includes('localhost')) {
-        const err = r.failure()?.errorText;
-        if (err !== 'net::ERR_ABORTED') {
-          log.networkErrors.push(`FAILED ${r.url()} — ${err}`);
+    const pageRef: { page: Page | null; detach: (() => void) | null } = { page: null, detach: null };
+
+    log._attach = (p: Page) => {
+      pageRef.page = p;
+      const onConsole = (m: import('@playwright/test').ConsoleMessage) => {
+        if (m.location().url.startsWith(TELEMETRY_COLLECTOR_ORIGIN)) return;
+        if (m.type() === 'error') log.consoleErrors.push(m.text());
+        else if (m.type() === 'warning') log.consoleWarnings.push(m.text());
+      };
+      const onPageError = (e: Error) => log.pageErrors.push(e.message);
+      const onRequestFailed = (r: import('@playwright/test').Request) => {
+        if (r.url().includes('localhost')) {
+          const err = r.failure()?.errorText;
+          if (err !== 'net::ERR_ABORTED') {
+            log.networkErrors.push(`FAILED ${r.url()} — ${err}`);
+          }
         }
-      }
-    });
-    page.on('response', r => {
-      if (r.url().includes('localhost') && r.status() >= 400) log.networkErrors.push(`${r.status()} ${r.url()}`);
-    });
+      };
+      const onResponse = (r: import('@playwright/test').Response) => {
+        if (r.url().includes('localhost') && r.status() >= 400) log.networkErrors.push(`${r.status()} ${r.url()}`);
+      };
+
+      p.on('console', onConsole);
+      p.on('pageerror', onPageError);
+      p.on('requestfailed', onRequestFailed);
+      p.on('response', onResponse);
+
+      pageRef.detach = () => {
+        p.off('console', onConsole);
+        p.off('pageerror', onPageError);
+        p.off('requestfailed', onRequestFailed);
+        p.off('response', onResponse);
+      };
+      return pageRef.detach;
+    };
 
     await use(log);
+    pageRef.detach?.();
 
     const dump = {
       consoleErrors: log.consoleErrors,
@@ -211,6 +394,8 @@ export async function openAProject(page: Page, owprPath: string = SAMPLE_PROJECT
     buffer: readFileSync(owprPath),
   });
   await page.locator('.original-root').waitFor({ state: 'visible' });
+  // The window keeps the tab the last project was left on; a user starts a project on the Box tab.
+  await page.locator('.project-nav li', { hasText: /^Box$/ }).click();
 }
 
 /**
@@ -253,115 +438,43 @@ export async function editorTab(page: Page, tab: EditorTab): Promise<void> {
 
 export type EditorTab = 'General' | 'Parameters' | 'Advanced' | 'Dimensions';
 
-/** The focused project's main (box) volume, read through the app's own state module, which the
- *  dev server serves — the app ships no debug handle for this. */
-export async function focusedBoxVolume(page: Page): Promise<number> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    const v = box.volumeOf(box.boxType.value).value;
-    if (v === null) throw new Error('the focused project\'s box volume is blank');
-    return v;
-  }, 'appState');
+/** The Volume input on the Box tab, in either skin. */
+function boxVolumeInput(page: Page): Locator {
+  return page.locator('#og-box-volume, .mob-field-row:has(.mob-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Volume")) input, .ui-field:has(.ui-field-label:text-is("Vb")) input').first();
 }
 
+/** The Box tab's Volume as the screen shows it, in the unit shown (litres until a user rotates it). */
+export async function shownBoxVolume(page: Page): Promise<number> {
+  await openBoxTab(page);
+  return Number(await boxVolumeInput(page).inputValue());
+}
 /** Write the focused project's main (box) volume, so its design differs from its saved one. */
 export async function setFocusedBoxVolume(page: Page, volume_m3: number): Promise<void> {
-  await page.evaluate(async ({path, v}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    box.volumeOf(box.boxType.value).set(v);
-  }, {path: 'appState', v: volume_m3});
+  await openBoxTab(page);
+  const litres = String(Number((volume_m3 * 1000).toPrecision(12)));
+  await fillAndBlur(boxVolumeInput(page), litres);
 }
 
-/** The drive group's committed state (power, voltage, driver Re, series Rs), read live from the
- *  focused project's domain object. */
-export interface DriveGroupState {
-  P: number | null;
-  V: number | null;
-  Re: number | null;
-  Rs: number | null;
-}
-
-export async function focusedDriveGroup(page: Page): Promise<DriveGroupState> {
-  return page.evaluate(async (path): Promise<DriveGroupState> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    return { P: p.powerDrive_W.value, V: p.driveVoltage_V.value, Re: p.driver.specs.Re_ohm.value, Rs: p.Rs_ohm.value };
-  }, 'appState');
-}
-
-/** Number of points in the latest computed SPL curve (0 until the first sweep lands). */
-export async function curvesSplLength(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'curvesData' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.curvesData.value?.spl?.length ?? 0;
-  }, 'appState');
-}
-
-/** The focused project's box type, as the domain holds it. */
-export async function focusedBoxType(page: Page): Promise<string> {
-  return page.evaluate(async (path): Promise<string> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().box.boxType.value;
-  }, 'appState');
+/** Waits until the first chart has drawn a curve: its panel then states a level range. */
+export async function expectChartDrawn(page: Page): Promise<void> {
+  await expect(page.locator('.gpanel').first()).not.toHaveAttribute('data-y-range', '');
 }
 
 /** Switch the focused project's box type through the domain, as a file load would. */
 export type BoxTypeName = 'sealed' | 'vented' | 'bandpass4' | 'bandpass6' | 'abc' | 'box-passive-radiator';
 
 export async function setFocusedBoxType(page: Page, boxType: BoxTypeName): Promise<void> {
-  await page.evaluate(async ({path, value}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.requireFocusedProject().box.boxType.set(value);
-  }, {path: 'appState', value: boxType});
+  await openBoxTab(page);
+  await page.locator('#og-box-type, #mob-box-type').selectOption(boxType);
 }
 
 /** Drop the focused project's own temperature, humidity and pressure, as a freshly built project
  *  has none, so the Advanced tab falls back to the Options environment. */
 export async function clearFocusedEnvironment(page: Page): Promise<void> {
-  await page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    p.envTempK.clear();
-    p.envHumidityPct.clear();
-    p.envPressurePa.clear();
-  }, 'appState');
+  await openTab(page, 'Advanced');
+  for (const label of ['Temperature', 'Relative humidity', 'Air pressure']) {
+    await fillAndBlur(page.locator('.field', { has: page.locator('label', { hasText: new RegExp(`^${label}`) }) }).locator('input').first(), '');
+  }
 }
 
 /** Driver parameters a test may set on the focused project's driver; `null` clears the entry so
@@ -371,382 +484,193 @@ export type DriverSpecEntries = Partial<Record<'Fs_hz' | 'Qes' | 'Qms' | 'Qts' |
 /** Set (or clear) driver parameters on the focused project through the domain, as typing them in
  *  the What-if? panel would. */
 export async function setFocusedDriverSpecs(page: Page, entries: DriverSpecEntries): Promise<void> {
-  await page.evaluate(async ({path, values}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const specs = m.requireFocusedProject().driver.specs;
-    for (const key of ['Fs_hz', 'Qes', 'Qms', 'Qts', 'Vas_m3', 'Re_ohm'] as const) {
-      const v = values[key];
-      if (v === undefined) continue;
-      if (v === null) specs[key].clear(); else specs[key].set(v);
-    }
-  }, {path: 'appState', values: entries});
+  await openDriverEditor(page);
+  await page.getByRole('button', { name: 'Parameters', exact: true }).click();
+  const fields: ReadonlyArray<readonly [keyof DriverSpecEntries, string, number]> = [
+    ['Fs_hz', 'Fs', 1], ['Qes', 'Qes', 1], ['Qms', 'Qms', 1], ['Qts', 'Qts', 1], ['Vas_m3', 'Vas', 1000], ['Re_ohm', 'Re', 1],
+  ];
+  for (const [key, label, scale] of fields) {
+    const v = entries[key];
+    if (v === undefined) continue;
+    const text = v === null ? '' : String(Number((v * scale).toPrecision(12)));
+    await fillAndBlur(driverEditorField(page, label).locator('input').first(), text);
+  }
+  await page.locator('.de-footer button.pri', { hasText: 'OK' }).click();
+  await page.locator('.de-body').waitFor({ state: 'hidden' });
 }
 
 /** Set the focused project's series source resistance Rs (ohm), as the Signal tab does. */
 export async function setFocusedSeriesResistance(page: Page, ohm: number): Promise<void> {
-  await page.evaluate(async ({path, v}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.requireFocusedProject().Rs_ohm.set(v);
-  }, {path: 'appState', v: ohm});
+  await openTab(page, 'Signal');
+  await fillAndBlur(page.locator('.field, .mob-field-row, .ui-field', { has: page.locator('label, .mob-field-label, .ui-field-label', { hasText: /^Series resistance$/ }) }).locator('input').first(), String(ohm));
 }
 
 /** Set the leakage Ql and absorption Qa losses of the focused project's `sealed` box, as the Box
  *  losses popup does. */
 export async function setFocusedSealedLosses(page: Page, losses: {Ql: number; Qa: number}): Promise<void> {
-  await page.evaluate(async ({path, values}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const [sealed] = m.requireFocusedProject().box.lossGroupsOf('sealed');
-    if (!sealed) throw new Error('a sealed box has losses');
-    sealed.Ql.set(values.Ql);
-    sealed.Qa.set(values.Qa);
-  }, {path: 'appState', values: losses});
-}
-
-/** The focused sealed box's resonance Fsc and Qtc as the domain holds them. */
-export async function focusedSealedReadouts(page: Page): Promise<{fsc: number | null; qtc: number | null}> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const sealed = m.requireFocusedProject().box.sealed;
-    return {fsc: sealed.resonance_hz.value, qtc: sealed.q_tc.value};
-  }, 'appState');
-}
-
-/** The focused vented box's vent length target-unreachable flag and DQ issue count. */
-export async function focusedVentLengthDq(page: Page): Promise<{unreachable: boolean; dqCount: number}> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const dq = m.requireFocusedProject().box.vented.vent.length_m.dq;
-    return {unreachable: dq.some(issue => issue.kind === 'target-unreachable'), dqCount: dq.length};
-  }, 'appState');
+  await openBoxTab(page);
+  await page.locator('.box-fields-col .link-btn', { hasText: 'Advanced' }).click();
+  const popup = page.locator('.overlay.open', { hasText: 'Box losses' });
+  await fillAndBlur(popup.locator('.field', { has: page.locator('label', { hasText: /Ql/ }) }).locator('input').first(), String(losses.Ql));
+  await fillAndBlur(popup.locator('.field', { has: page.locator('label', { hasText: /Qa/ }) }).locator('input').first(), String(losses.Qa));
+  await popup.locator('.ok-btn', { hasText: 'OK' }).click();
 }
 
 /** Give the focused vented box a real vent (volume, tuning goal, port diameter) through the same
  *  domain seam the typing drives, so the solver produces a vent length. */
 export async function setFocusedVentedDesign(page: Page, design: {volume_m3: number; tuning_hz: number; diameter_m: number}): Promise<void> {
-  await page.evaluate(async ({path, d}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    p.box.vented.volume_m3.set(d.volume_m3);
-    p.box.vented.tuning_goal_hz.set(d.tuning_hz);
-    p.box.vented.vent.diameter_m.set(d.diameter_m);
-  }, {path: 'appState', d: design});
+  await setFocusedBoxVolume(page, design.volume_m3);
+  await fillAndBlur(page.locator('#og-fb-target'), String(design.tuning_hz));
+  await page.locator('.project-nav li').nth(2).click(); // the box's own tab: the vents
+  await fillAndBlur(page.locator('.field', { has: page.locator('label', { hasText: /^Vent diameter$/ }) }).locator('input').filter({ visible: true }).first(), String(Number((design.diameter_m * 100).toPrecision(12))));
 }
 
-/** The focused bandpass6 rear chamber's tuning goal (Hz). */
-export async function focusedBandpass6RearTuning(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const value = m.requireFocusedProject().box.bandpass6.chambers.rear.tuning_goal_hz.value;
-    if (value === null) throw new Error('tuning_goal_hz has no value');
-    return value;
-  }, 'appState');
+/** One Parameters-tab value of the focused project's driver as the Driver Editor shows it (display
+ *  unit and rounding); the editor is opened and cancelled. */
+export async function shownDriverSpec(page: Page, label: string): Promise<string> {
+  await openDriverEditor(page);
+  await editorTab(page, 'Parameters');
+  const value = await driverEditorField(page, label).locator('input').first().inputValue();
+  await page.locator('.de-footer button', { hasText: 'Cancel' }).click();
+  await page.locator('.de-body').waitFor({ state: 'hidden' });
+  return value;
 }
-
-/** The focused bandpass6 front chamber's tuning goal (Hz) and the vented box's tuning goal (Hz, null when blank). */
-export async function focusedBandpass6Tunings(page: Page): Promise<{front: number | null; vented: number | null}> {
-  return page.evaluate(async (path): Promise<{front: number | null; vented: number | null}> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    return {front: box.bandpass6.chambers.front.tuning_goal_hz.value, vented: box.vented.tuning_goal_hz.value};
-  }, 'appState');
-}
-
-/** The focused bandpass6 or ABC project's vent diameters and lengths (SI, null when blank), by port. */
-export interface FocusedPortVents {
-  rear: {diameter: number | null; length: number | null};
-  front: {diameter: number | null; length: number | null};
-  intra: {diameter: number | null; length: number | null} | null;
-}
-
-export async function focusedPortVents(page: Page): Promise<FocusedPortVents> {
-  return page.evaluate(async (path): Promise<FocusedPortVents> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const box = m.requireFocusedProject().box;
-    const abc = box.boxType.value === 'abc';
-    const vents = abc ? box.abc.vents : box.bandpass6.vents;
-    const read = (v: typeof vents.rear) => ({diameter: v.diameter_m.value, length: v.length_m.value});
-    return {rear: read(vents.rear), front: read(vents.front), intra: abc ? read(box.abc.vents.intra) : null};
-  }, 'appState');
-}
-
-/** The focused project's passive radiator: its name, count and spec cells (SI units). */
-export interface FocusedPassiveRadiatorSpec {
-  name: string;
-  count: number;
-  vas_m3: number | null;
-  qms: number | null;
-  fs_hz: number | null;
-  sd_m2: number | null;
-  xmax_m: number | null;
-}
-
-export async function focusedPassiveRadiatorSpec(page: Page): Promise<FocusedPassiveRadiatorSpec> {
-  return page.evaluate(async (path) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const pr = m.requireFocusedProject().box.passiveRadiator;
-    const spec = pr.radiator.spec;
-    return {
-      name: pr.radiator.model.value, count: pr.count.value,
-      vas_m3: spec.Vas_m3.value, qms: spec.Qms.value, fs_hz: spec.Fs_hz.value,
-      sd_m2: spec.Sd_m2.value, xmax_m: spec.Xmax_m.value,
-    };
-  }, 'appState');
-}
-
-/** The focused project's port air-velocity limit (m/s). */
-export async function focusedPortVelocityLimit(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().portVelocityLimit_m_per_s.value;
-  }, 'appState');
-}
-
-/** One driver spec value of the focused project's driver (SI units); fails when it has no value. */
-export async function focusedDriverSpec(page: Page, field: 'Fs_hz' | 'Mms_kg'): Promise<number> {
-  return page.evaluate(async ({path, f}): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const value = m.requireFocusedProject().driver.specs[f].value;
-    if (value === null) throw new Error(`driver.specs.${f} has no value`);
-    return value;
-  }, {path: 'appState', f: field});
-}
-
 /** Open a second, independent project as a copy of the focused one, and focus it — the domain
  *  call behind the project list's "＋ Copy". */
 export async function duplicateFocusedProject(page: Page, newName: string): Promise<void> {
-  await page.evaluate(async ({path, name}) => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'duplicateFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    m.duplicateFocusedProject(name);
-  }, {path: 'appState', name: newName});
+  if (await page.locator('.mobile-root').count() > 0) {
+    await closeMobileMenu(page);
+    await page.locator('.mob-hamburger').click();
+    await page.locator('.mob-menu-item', { hasText: /^Projects$/ }).click();
+    await page.locator('.mob-project-row.active .mob-project-menu-btn').click();
+    await page.locator('.mob-action-sheet-item.mob-action-duplicate').click();
+    await page.locator('.mob-projects-pane .mob-dlg-ok').click();
+    await renameFocusedProject(page, newName);
+    return;
+  }
+  const row = page.locator('.project-row.selected');
+  await row.locator('.row-menu-btn').click();
+  await page.locator('.row-menu-item.menu-action-duplicate').click();
+  const copy = page.locator('.project-row.selected');
+  await copy.locator('.row-menu-btn').click();
+  await page.locator('.row-menu-item.menu-action-rename').click();
+  const name = page.locator('input[aria-label="Rename project"]');
+  await name.fill(newName);
+  await name.press('Enter');
 }
 
-/** The Options environment temperature (K) as the application settings hold it. */
-export async function appEnvDefaultsTempK(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'envDefaults' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.envDefaults().tempK;
-  }, 'appState');
+/** The first chart's picture once the sweep has landed and the picture has stopped changing. */
+export async function settledChartPicture(page: Page): Promise<string> {
+  await expectChartDrawn(page);
+  let last = '';
+  await expect.poll(async () => {
+    const now = await chartPicture(page);
+    const unchanged = now === last;
+    last = now;
+    return unchanged;
+  }).toBe(true);
+  return last;
 }
 
-/** The user name saved by the Options dialog. */
-export async function savedUsername(page: Page): Promise<string | undefined> {
-  return page.evaluate(async (path): Promise<string | undefined> => {
-    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
-    function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    return m.ui.username;
-  }, 'presentationState');
+/** The first chart as drawn, as a PNG. */
+export async function chartPng(page: Page): Promise<Buffer> {
+  return page.locator('.gpanel canvas').first().screenshot();
 }
 
-/** The persisted display-unit token for the box volume field (`NumberField.BOX_VB_L`). */
-export async function boxVolumeUnitToken(page: Page): Promise<string | undefined> {
-  const rotation = await page.evaluate(async (path): Promise<Record<string, string>> => {
-    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
-    function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    return {...m.ui.unitTokens};
-  }, 'presentationState');
-  return NumberField.BOX_VB_L.unitTokenFor(rotation);
+/** The first chart as drawn: a fingerprint of its picture, equal while the curve is the same. */
+export async function chartPicture(page: Page): Promise<string> {
+  return createHash('sha1').update(await chartPng(page)).digest('hex');
 }
 
-/** Set the app-wide chart frequency sweep range, as a drag-zoom does. */
-export async function setSweepRange(page: Page, range: {min: number; max: number}): Promise<void> {
-  await page.evaluate(async ({path, r}) => {
-    type PresentationState = import('../src/logic/presentationState.js').PresentationState;
-    function isPresentationState(m: unknown): m is PresentationState {
-      return typeof m === 'object' && m !== null && 'narrowViewport' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isPresentationState(m)) throw new Error('presentationState module shape mismatch');
-    m.sweepRange = r;
-  }, {path: 'presentationState', r: range});
+/** Number of filters the Filters tab lists. */
+export async function shownFilterCount(page: Page): Promise<number> {
+  await openTab(page, 'Filters');
+  return page.locator('.content-panel .filter-del').count();
 }
 
-/** Sum of the latest computed SPL curve — changes whenever the swept response changes. */
-export async function curvesSplSum(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'curvesData' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return (m.curvesData.value?.spl ?? []).reduce((a, b) => a + b, 0);
-  }, 'appState');
+/** The System input power the Signal tab shows (W). */
+export async function shownDrivePower(page: Page): Promise<number> {
+  await openTab(page, 'Signal');
+  return Number(await page.locator('.field, .ui-field', { has: page.locator('label, .ui-field-label', { hasText: /^System input power$/ }) }).locator('input').first().inputValue());
 }
 
-/** Number of filters in the focused project's filter chain. */
-export async function focusedFilterCount(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().filters.value.length;
-  }, 'appState');
+/** The focused project's name as the Project tab (the phone: the Project details dialog) shows it. */
+export async function shownProjectName(page: Page): Promise<string> {
+  if (await page.locator('.mobile-root').count() === 0) {
+    await openTab(page, 'Project');
+    return page.locator('.tab-section.active .field', { has: page.locator('label', { hasText: /^Name/ }) }).locator('input').first().inputValue();
+  }
+  await closeMobileMenu(page);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();
+  const name = await page.locator('#mob-proj-name').inputValue();
+  await page.locator('.mob-dlg[aria-label="Project"] .mob-dlg-ok').click();
+  return name;
 }
 
-/** The focused project's drive power (W) — the one stored drive fact; voltage derives from it. */
-export async function focusedPowerDrive_W(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const value = m.requireFocusedProject().powerDrive_W.value;
-    if (value === null) throw new Error('powerDrive_W has no value');
-    return value;
-  }, 'appState');
-}
-
-/** Whether the focused project has unsaved changes — the flag behind every unsaved marker. */
+/** Whether the screen marks the focused project as having unsaved changes: the Unsaved changes label
+ *  on the desktop; on the phone the Save item of the menu, which lights up. The phone's Graph page has
+ *  no top bar, so it is read from the Box page and the user goes back to Graph. */
 export async function focusedIsModified(page: Page): Promise<boolean> {
-  return page.evaluate(async (path): Promise<boolean> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().isModified();
-  }, 'appState');
-}
-
-/** The focused project's name. */
-export async function focusedProjectName(page: Page): Promise<string> {
-  return page.evaluate(async (path): Promise<string> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().name.value;
-  }, 'appState');
+  if (await page.locator('.mobile-root').count() === 0) return (await page.locator('.unsaved-label').count()) > 0;
+  const hamburger = page.locator('.mob-hamburger');
+  const onGraph = !(await hamburger.isVisible());
+  if (onGraph) await page.locator('.mob-tab', { hasText: 'Box' }).click();
+  await hamburger.click();
+  const dirty = await page.locator('.mob-menu-item', { hasText: /^Save$/ }).evaluate(el => el.classList.contains('dirty'));
+  await closeMobileMenu(page);
+  if (onGraph) await page.locator('.mob-tab', { hasText: 'Graph' }).click();
+  return dirty;
 }
 
 /** Dirty the focused design: add a highpass filter and move the drive power off its 1 W reference. */
 export async function dirtyFocusedDesign(page: Page): Promise<void> {
-  await page.evaluate(async (path): Promise<void> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const project = m.requireFocusedProject();
-    project.filters.set([...project.filters.value, { type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 30, Q: 0.7 }]);
-    project.powerDrive_W.set(250);
-  }, 'appState');
+  await setFocusedBoxVolume(page, 0.0555);
 }
 
-/** The focused project serialised as `.owpr` JSON, saved first so the saved layer holds the design. */
-export async function focusedProjectOwpr(page: Page): Promise<unknown> {
-  return page.evaluate(async (path): Promise<unknown> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    const p = m.requireFocusedProject();
-    // `saved` is the project baseline (empty) until the wizard's choices are committed.
-    p.save();
-    return JSON.parse(p.toOwprText());
-  }, 'appState');
+/** The focused project as an `.owpr` file: saved with the toolbar, then Export all, whose downloaded archive
+ *  holds each project's `.owpr` text; the archive's last project is read back. */
+export async function exportedProjectOwpr(page: Page): Promise<unknown> {
+  await page.locator('.tb-btn[title^="Save - "]').click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export all' }).click();
+  const path = await (await download).path();
+  const popup = page.getByRole('alertdialog');
+  await popup.getByRole('button', { name: 'OK' }).click();
+  const archive = z.object({ projects: z.array(z.object({ text: z.string() })) }).parse(JSON.parse(readFileSync(path, 'utf-8')));
+  const last = archive.projects.at(-1);
+  if (last === undefined) throw new Error('the exported archive holds no project');
+  const owpr: unknown = JSON.parse(last.text);
+  return owpr;
 }
 
-/** The focused project's driver added cone mass (kg). */
-export async function focusedAddedMass_kg(page: Page): Promise<number> {
-  return page.evaluate(async (path): Promise<number> => {
-    type AppState = import('../src/logic/appState.js').AppState;
-    function isAppState(m: unknown): m is AppState {
-      return typeof m === 'object' && m !== null && 'requireFocusedProject' in m;
-    }
-    const m: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, path) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppState(m)) throw new Error('appState module shape mismatch');
-    return m.requireFocusedProject().driverAddedMass_kg.value;
-  }, 'appState');
+/** Renames the focused project from the phone's Project tab, as a user does. */
+export async function renameFocusedProject(page: Page, name: string): Promise<void> {
+  await closeMobileMenu(page);
+  await page.locator('.mob-hamburger').click();
+  await page.locator('.mob-menu-item', { hasText: 'Project details' }).click();
+  await fillAndBlur(page.locator('#mob-proj-name'), name);
+  await page.locator('.mob-dlg[aria-label="Project"] .mob-dlg-ok').click();
+}
+
+/** Taps beside the phone's open menu, as a user does to dismiss it; does nothing when it is closed. */
+async function closeMobileMenu(page: Page): Promise<void> {
+  const menu = page.locator('.mob-menu-overlay');
+  if (await menu.count() === 0) return;
+  const area = (await menu.boundingBox())!;
+  await menu.click({ position: { x: area.width - 2, y: area.height - 2 } });
+}
+
+/** Opens a project tab the way a user does, in whichever skin is showing. */
+export async function openTab(page: Page, tab: string): Promise<void> {
+  await closeMobileMenu(page);
+  const mobileTab = page.locator('.mob-tab', { hasText: new RegExp(`^${tab}$`) });
+  if (await mobileTab.count() > 0) await mobileTab.click();
+  else await page.locator('.project-nav li', { hasText: new RegExp(`^${tab}$`) }).click();
+}
+
+export async function openBoxTab(page: Page): Promise<void> {
+  await openTab(page, 'Box');
 }
 
 /** Open the Driver Editor the way a user does: Driver tab, Edit, wait for the body. */
@@ -776,14 +700,22 @@ const SEED_DIMENSIONS: ReadonlyArray<readonly [string, string]> = [
   ['Magnet Diameter (Magnet)', '60'], ['Voice Coil Dia (Vcd)', '25'],
 ];
 
+/** The same Dimensions rows under the phone editor's short labels (PhoneLabels, T530). */
+const SEED_DIMENSIONS_PHONE: ReadonlyArray<readonly [string, string]> = [
+  ['Depth', '55'], ['MagDpt', '20'], ['Magnet', '60'], ['Vcd', '25'],
+];
+
+/** Which editor layout is on screen: the phone editor labels its Dimensions rows short. */
+export type EditorSkin = 'desktop' | 'phone';
+
 /** In the open Driver Editor, enter a solvable driver so the derived fields carry the CALCULATED mark. */
-export async function seedDriverInEditor(page: Page): Promise<void> {
+export async function seedDriverInEditor(page: Page, skin: EditorSkin = 'desktop'): Promise<void> {
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();
   for (const [label, value] of SEED_PARAMETERS) {
     await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
   }
   await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
-  for (const [label, value] of SEED_DIMENSIONS) {
+  for (const [label, value] of skin === 'phone' ? SEED_DIMENSIONS_PHONE : SEED_DIMENSIONS) {
     await fillAndBlur(driverEditorField(page, label).locator('input').first(), value);
   }
   await page.getByRole('button', { name: 'Parameters', exact: true }).click();

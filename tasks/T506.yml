@@ -1,0 +1,12 @@
+id: T506
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: d6030349f67a670ed691fdc2e49f088e8413e1bd
+goal: Pictures page shows an agent answer under the picture of the question it answers (answers link), live and on load
+done_test: python3 -m pytest -q scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T506.yml
+  - scripts/feedback/feedback-page.template.html
+  - scripts/feedback/feedback_page_live_test.mjs

@@ -1,0 +1,40 @@
+id: T254
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 5ec22ae54d482c77901474a38ff410b3f1691df7
+goal: 'Every test run and suite logs start/end times and a timestamp on every line; metrics script reads logs into metrics page'
+done_test: bash scripts/test.sh scripts/land/test/ts-log.test.sh
+files:
+  - tasks/T254.yml
+  - tasks/T001.yml
+  - tasks/T003.yml
+  - scripts/budget.sh
+  - scripts/land/test/**
+  - packages/ui/test/scripts/full-gate-stage.test.ts
+  - bugs/BUG_20261017_lint-requires-test-red-missing-paths-sh.md
+  - bugs/BUG_20261017_task-status-test-red-release-notes.md
+  - scripts/lib/ts-log.sh
+  - scripts/land/test/ts-log.test.sh
+  - scripts/metrics.sh
+  - scripts/lib/metrics.py
+  - scripts/land/test/metrics.test.sh
+  - scripts/test-reporters/timing-vitest.ts
+  - scripts/test-reporters/timing-playwright.mjs
+  - scripts/test.sh
+  - scripts/quiet-test.sh
+  - scripts/test-browser.sh
+  - scripts/browser-runs.sh
+  - scripts/housekeeping.sh
+  - scripts/budget-enter.sh
+  - scripts/admit.sh
+  - scripts/land.sh
+  - scripts/land/lint-changed.sh
+  - scripts/land/unit-changed.sh
+  - scripts/land/core/gate.sh
+  - scripts/land/post-land/run.sh
+  - scripts/land/post-land/suite.sh
+  - scripts/land/watchdog.sh
+  - vitest.config.ts
+  - playwright.config.js

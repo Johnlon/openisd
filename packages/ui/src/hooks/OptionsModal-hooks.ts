@@ -12,8 +12,9 @@
  * repo stores m³ and hertz. This hook is that boundary.
  */
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
-import type {Air, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
+import type {AirValues, ChartId, EnvDefaults, EnvironmentEngine, VentedDesignLimits} from '@openisd/design/engine';
 import {NumberField} from '@openisd/design/fields';
+import {CHART_COLOR_ROWS, chartColorDefault, type ChartColorKey, type ChartColorRow} from '@openisd/design/chart';
 import {FACTORY_ENV_DEFAULTS, FACTORY_VENTED_LIMITS} from '../logic/appState.js';
 import {useApp} from '../logic/app.js';
 
@@ -35,7 +36,8 @@ export interface LimitRow {
   readonly label: string;
   readonly start: number;
   readonly end: number;
-  readonly unit: string;
+  /** The field that bounds, steps and names the unit of this chart's axis start and end. */
+  readonly field: NumberField;
 }
 
 /**
@@ -49,20 +51,24 @@ export interface LimitRow {
  * transfer func mag" is OpenISD's filter-magnitude chart, `FltMag`.
  */
 export const LIMIT_ROWS: readonly LimitRow[] = [
-  { tab: 'TFMag',     label: 'Transfer func. magn.',  start: -30,  end: 6,    unit: NumberField.SPL_DB.unitLabel() },
-  { tab: 'FltMag',    label: 'EQ transfer func mag',  start: -40,  end: 20,   unit: NumberField.SPL_DB.unitLabel() },
-  { tab: 'Phase',     label: 'Transfer func. phase',  start: -180, end: 180,  unit: 'deg' },
-  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 115,  unit: NumberField.SPL_DB.unitLabel() },
-  { tab: 'Excursion', label: 'Cone excursion',        start: 0.0,  end: 30.0, unit: 'mm peak' },
-  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 150,  unit: NumberField.ZNOM_OHM.unitLabel() },
-  { tab: 'Zph',       label: 'Impedance phase',       start: -90,  end: 90,   unit: 'deg' },
-  { tab: 'GD',        label: 'Group delay',           start: 0,    end: 40,   unit: 'ms' },
-  { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  unit: NumberField.POWER_PEAK_W.unitLabel() },
-  { tab: 'RearPort',  label: 'Rear port - Air velocity',  start: 0.00, end: 40.00, unit: 'm/s peak' },
-  { tab: 'FrontPort', label: 'Front port - Air velocity', start: 0.00, end: 40.00, unit: 'm/s peak' },
+  { tab: 'TFMag',     label: 'Transfer func. magn.',  start: -30,  end: 6,    field: NumberField.PLOT_Y_DB },
+  { tab: 'FltMag',    label: 'EQ transfer func mag',  start: -40,  end: 20,   field: NumberField.PLOT_Y_DB },
+  { tab: 'Phase',     label: 'Transfer func. phase',  start: -180, end: 180,  field: NumberField.PLOT_Y_DEG },
+  { tab: 'SPL',       label: 'SPL',                   start: 40,   end: 115,  field: NumberField.PLOT_Y_DB },
+  { tab: 'Excursion', label: 'Cone excursion',        start: 0.0,  end: 30.0, field: NumberField.PLOT_Y_MM },
+  { tab: 'Zmag',      label: 'Impedance',             start: 0,    end: 150,  field: NumberField.PLOT_Y_OHM },
+  { tab: 'Zph',       label: 'Impedance phase',       start: -90,  end: 90,   field: NumberField.PLOT_Y_DEG },
+  { tab: 'GD',        label: 'Group delay',           start: 0,    end: 40,   field: NumberField.PLOT_Y_MS },
+  { tab: 'MaxPwr',    label: 'Maximum power',         start: 0,    end: 500,  field: NumberField.PLOT_Y_W },
+  { tab: 'RearPort',  label: 'Rear port - Air velocity',  start: 0.00, end: 40.00, field: NumberField.PLOT_Y_MPS },
+  { tab: 'FrontPort', label: 'Front port - Air velocity', start: 0.00, end: 40.00, field: NumberField.PLOT_Y_MPS },
 ];
 
 export interface OptionsModalAPI {
+  /** The chart colour rows of Plot Window, the same list on both skins. */
+  readonly colorRows: readonly ChartColorRow[];
+  /** The colour a row shows when the user has chosen none. */
+  colorDefault(key: ChartColorKey): string;
   /** The band being edited, in the units on screen. Editing these writes nothing. */
   readonly minVolume_m3: Ref<number>;
   readonly maxVolume_m3: Ref<number>;
@@ -88,7 +94,7 @@ export interface OptionsModalAPI {
   /** Whether the edited environment is the factory one — what greys out its reset. */
   readonly envIsFactory: ComputedRef<boolean>;
   /** Sound velocity and air density of the edited environment, physical model. */
-  readonly defaultAir: ComputedRef<Air>;
+  readonly defaultAir: ComputedRef<AirValues>;
   /** Put the factory band in the draft. Writes nothing. */
   resetLimits(): void;
   /** Put the factory environment in the draft. Writes nothing. */
@@ -212,7 +218,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
       && e.pressurePa === FACTORY_ENV_DEFAULTS.pressurePa;
   });
 
-  const defaultAir = computed<Air>(() => settings.environment.solve(editedEnv.value).values);
+  const defaultAir = computed<AirValues>(() => settings.environment.solve(editedEnv.value).values);
 
   function resetLimits(): void {
     minVolume_m3.value = FACTORY_VENTED_LIMITS.minVb_m3;
@@ -239,6 +245,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   }
 
   return {
+    colorRows: CHART_COLOR_ROWS, colorDefault: chartColorDefault,
     minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz,
     tempK, humidityPct, pressurePa, differenceCuesShown,
     freqRangeDraft, setFreqRange,

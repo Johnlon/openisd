@@ -2,6 +2,18 @@ import {NumberField} from '@openisd/design/fields';
 import type {FrequencyAxis, PlotData} from '@openisd/design/chart';
 import type {DragRange, Geo} from '../types.js';
 
+/** How a chart is dressed. The phone Graph page shows its legend once above the charts and writes
+ *  each reference line's words on the line, so its charts draw neither a legend nor a key. */
+export interface DrawStyle {
+  /** The named series listed in a key inside the plot. */
+  readonly keyInPlot: boolean;
+  /** Each reference line (0 dB, −3 dB, the air speed limit) carries its words on the line. */
+  readonly labelReferenceLines: boolean;
+}
+
+export const DESKTOP_DRAW_STYLE: DrawStyle = {keyInPlot: true, labelReferenceLines: false};
+export const PHONE_DRAW_STYLE: DrawStyle = {keyInPlot: false, labelReferenceLines: true};
+
 // Returns geo so the caller can map pixel → frequency for crosshair.
 export function drawOne(
   canvas: HTMLCanvasElement | null,
@@ -9,6 +21,7 @@ export function drawOne(
   cursorF: number | null,
   readEl: HTMLElement | null,
   dragRange: DragRange | null,
+  style: DrawStyle = DESKTOP_DRAW_STYLE,
 ): Geo | null {
   if (!canvas || !plotData) return null;
   const ctx = canvas.getContext('2d')!;
@@ -44,7 +57,8 @@ export function drawOne(
   };
   if (COL.bg) { ctx.fillStyle = COL.bg; ctx.fillRect(0, 0, W, H); }
 
-  const m = { l:44, r:10, t:18, b:20 };
+  const { layout } = plotData;
+  const m = { ...layout.margin };
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   const { freqAxis, levelAxis } = plotData;
   const hz = NumberField.PLOT_FMIN_HZ.unitLabel();
@@ -52,12 +66,16 @@ export function drawOne(
   const Y = (v: number) => m.t + (1 - levelAxis.fraction(v)) * ph;
 
   // frequency grid
-  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = '9px Inter'; ctx.lineWidth = 1;
+  ctx.strokeStyle = COL.grid; ctx.fillStyle = COL.text; ctx.font = layout.font(layout.tickFontPx); ctx.lineWidth = 1;
+  const freqLabels: { text: string; x: number }[] = [];
   for (const line of freqAxis.gridLines()) {
     const x = X(line.f); ctx.globalAlpha = line.major ? 0.85 : 0.28;
     ctx.beginPath(); ctx.moveTo(x, m.t); ctx.lineTo(x, m.t + ph); ctx.stroke();
-    if (line.labelled) { ctx.globalAlpha = 1; ctx.textAlign = 'center'; ctx.fillText(freqAxis.tickLabel(line.f), x, m.t + ph + 11); }
+    if (line.labelled) freqLabels.push({ text: freqAxis.tickLabel(line.f), x });
   }
+  const labelXs = layout.freqLabelCentres(freqLabels.map(l => l.x), freqLabels.map(l => ctx.measureText(l.text).width), W);
+  ctx.globalAlpha = 1; ctx.textAlign = 'center';
+  freqLabels.forEach((l, i) => ctx.fillText(l.text, labelXs[i], m.t + ph + 11));
   ctx.globalAlpha = 1;
 
   // y grid
@@ -78,7 +96,7 @@ export function drawOne(
 
     if (tick.labelled) {
       ctx.globalAlpha = isMajor ? 1.0 : 0.45;
-      ctx.fillText(levelAxis.tickLabel(tick.value), m.l - 5, y + 3);
+      ctx.fillText(levelAxis.tickLabel(tick.value), m.l - 5, y + layout.levelLabelBaselinePx);
     }
   }
   ctx.globalAlpha = 1;
@@ -122,10 +140,27 @@ export function drawOne(
   }
   ctx.setLineDash([]);
 
+  if (style.labelReferenceLines) {
+    // The words sit just above their line, right-aligned in the plot, on a halo of the panel's colour; a
+    // label that would touch the one above goes under its own line instead.
+    const halo = getComputedStyle(canvas.parentElement ?? canvas).backgroundColor;
+    ctx.font = layout.font(layout.tickFontPx, true); ctx.textAlign = 'right'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+    let lastY = Number.NEGATIVE_INFINITY;
+    for (const s of plotData.series) {
+      if (!s.reference || s.phantom || s.ys.length === 0) continue;
+      const y = Y(s.ys[0]);
+      if (!isFinite(y) || y < m.t || y > m.t + ph) continue;
+      const ty = y - 5 - lastY < 14 ? y + 15 : y - 5; lastY = ty;
+      ctx.strokeStyle = halo; ctx.strokeText(s.lineLabel ?? s.name, m.l + pw - 4, ty);
+      ctx.fillStyle = s.color; ctx.fillText(s.lineLabel ?? s.name, m.l + pw - 4, ty);
+    }
+    ctx.lineWidth = 1; ctx.textAlign = 'left';
+  }
+
   // legend — only when there are multiple named series
   const namedSeries = plotData.series.filter(s => s.name);
-  if (namedSeries.length > 1) {
-    ctx.font = '9px Inter'; ctx.textAlign = 'left';
+  if (style.keyInPlot && namedSeries.length > 1) {
+    ctx.font = layout.font(layout.tickFontPx); ctx.textAlign = 'left';
     const lh = 13, lx = m.l + 6;
     let ly = m.t + 6;
     for (const s of namedSeries) {
@@ -133,7 +168,7 @@ export function drawOne(
       if (s.dash) ctx.setLineDash([4, 3]); else ctx.setLineDash([]);
       ctx.beginPath(); ctx.moveTo(lx, ly + 3); ctx.lineTo(lx + 14, ly + 3); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.font = s.current ? 'bold 9px Inter' : '9px Inter';
+      ctx.font = layout.font(layout.tickFontPx, s.current);
       ctx.fillStyle = s.color; ctx.fillText(s.name, lx + 17, ly + 6);
       ly += lh;
     }

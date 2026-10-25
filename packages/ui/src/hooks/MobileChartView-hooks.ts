@@ -4,6 +4,7 @@
  * that opens and closes them. Mobile only renders this destination once a project is open.
  */
 import {computed, ref, watch} from 'vue';
+import type {ComponentPublicInstance} from 'vue';
 import {useFeatureUse} from './telemetryContext.js';
 import {traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
@@ -14,10 +15,23 @@ import {CHARTS_HIGH_OPTIONS, MOBILE_CHARTS_HIGH} from './chartGrid.js';
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {selectedOption} from '../logic/domEvents.js';
 import type {ChartId} from '@openisd/design/engine';
+import {ChartPageHelp, ChartPageSizes, SheetMode} from '@openisd/design/fields';
+
+/** One curve of the shared legend. */
+export interface LegendItem {
+  readonly name: string;
+  readonly color: string;
+}
+
+/** What a chart panel exposes to its page: the setter of its Auto Y state. */
+interface SetsAutoY { setAutoY(on: boolean): void }
+function isSetsAutoY(v: Element | ComponentPublicInstance | null): v is ComponentPublicInstance & SetsAutoY {
+  return v !== null && 'setAutoY' in v && typeof v.setAutoY === 'function';
+}
 
 export function useMobileChartView() {
   const {appState, presentation: presentationState} = useApp();
-  const {focusedProject, projectChanged} = appState;
+  const {focusedProject, projectChanged, driverName} = appState;
   const project = useFocusedProject();
   const { engine } = useApp();
   const selection = new ChartSelection(focusedProject, projectChanged, engine.box);
@@ -43,12 +57,37 @@ export function useMobileChartView() {
   });
   const { el: stackEl, style: stackStyle } = useChartStack(computed(() => openCharts.value.length), chartsHigh, () => 1);
 
-  /** Whether the What-if? sheet is open. The chart's Auto Y box shows only then: without a
-   *  What-if there is nothing to rescale for (John, 2026-10-05). */
+  /** Whether a bottom sheet (Tune or What-if, one at a time) is open. The Auto Y box lives in its footer (QO267 mock),
+   *  never over the chart; without a sheet there is nothing to rescale for (John, 2026-10-05). */
+  const tuneOpen = ref(false);
   const whatIfOpen = ref(false);
+  const sheetOpen = computed(() => tuneOpen.value || whatIfOpen.value);
+
+  /** Each open chart's Auto Y setter, handed up by its GraphPanel; the sheet footer's one Auto Y box drives them all. */
+  const yScalers = new Map<ChartId, SetsAutoY>();
+  function collectChart(id: ChartId, panel: Element | ComponentPublicInstance | null): void {
+    if (isSetsAutoY(panel)) yScalers.set(id, panel); else yScalers.delete(id);
+  }
+  /** Ticked while no open chart has a fixed Y range (the same state the chart's own box showed). */
+  const autoY = computed(() => openCharts.value.every(id => presentationState.yRanges[id] == null));
+  function setAutoY(on: boolean): void {
+    for (const id of openCharts.value) yScalers.get(id)?.setAutoY(on);
+  }
 
   const traceColour = computed(() => { void projectChanged.value; return traceColor(project.value); });
 
-  return { openCharts, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
-    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, whatIfOpen };
+  /** One legend for every chart: the focused design, then each other open project drawn behind it. Listed only
+   *  when there are two or more curves to tell apart. */
+  const legendItems = computed<readonly LegendItem[]>(() => {
+    void projectChanged.value;
+    const own = {name: project.value.name.value || driverName.value, color: traceColour.value, sortIndex: appState.openProjects().indexOf(project.value)};
+    const items = [own, ...overlays.value.filter(d => d.visible !== false).map(d => ({name: d.name ?? '', color: d.color ?? own.color, sortIndex: d.sortIndex ?? 0}))]
+      .sort((a, b) => a.sortIndex - b.sortIndex);
+    return items.length > 1 ? items.map(({name, color}) => ({name, color})) : [];
+  });
+
+  return { openCharts, legendItems, sizeVars: Object.fromEntries(ChartPageSizes.CLASSIC.cssVars()), helpFor: ChartPageHelp.forChart, chartItems, chartLabel, pickerOpen, togglePicker, closePicker, showOnly, toggle,
+    chartsHigh, CHARTS_HIGH_OPTIONS, selectedOption, stackEl, stackStyle, traceColour, overlays, sheetOpen, tuneOpen, whatIfOpen, autoY, setAutoY, collectChart,
+    TUNE: SheetMode.TUNE, WHAT_IF: SheetMode.WHAT_IF };
 }
+

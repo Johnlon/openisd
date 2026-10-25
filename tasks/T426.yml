@@ -1,0 +1,12 @@
+id: T426
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 383c9ea2c9730f17e6d439607f47009c1a2e1ddf
+goal: Phone: creating a new project with the wizard must not change another project's box type. Seen in QO247 review: after creating project 'Sub' (Closed), 'Floorstander' flips Vented/Closed and turns Unsaved. Reproduce as a user in a failing browser spec, find the cause, fix it; bug file bugs/BUG_20261018_new-project-changes-other-project-box-type.md.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T426.yml
+  - bugs/BUG_20261018_new-project-changes-other-project-box-type.md
+  - packages/ui/test/ui/mobile-new-project-keeps-other-box-type.browser.spec.ts

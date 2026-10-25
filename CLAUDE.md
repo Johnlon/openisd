@@ -67,6 +67,12 @@ Three kinds of WinISD difference, handled differently:
   are other tests and signals. It also means OpenISD may already have copied such a bug while
   chasing parity: look for it, and remove it.
 - When it is unclear which kind a WinISD behaviour is, ask John.
+- **The ≠W Difference cue is for significant differences only** (John, 2026-10-19, QO279: "the
+  diff thing is for significant diffs not trivial stuff like this"). It goes by a control or chart
+  where OpenISD gives a different result from WinISD that a user would notice and care about: a
+  chart, a calculated value, an input WinISD ignores, a field WinISD does not let you type. A
+  trivial difference gets no cue and no question to John: keep OpenISD's way and record it in the
+  bug file. Example: a value the file never gave is blank in OpenISD and an entered 0 in WinISD.
 
 - Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
   is at driver side").
@@ -74,7 +80,7 @@ Three kinds of WinISD difference, handled differently:
   Compatibility panel. The native control stays as WinISD has it.
 - Group headings name the kind (John, 2026-10-05): the bug switches sit under the "Enable WinISD
   bugs" heading and are named by the bug (e.g. "Re without Rg"); the plain WinISD-vs-OpenISD
-  choices sit under "Enable WinISD-style" and are named by the calculation (e.g. "Phase
+  choices sit under "Enable WinISD-style …" and are named by the calculation (e.g. "Phase
   wrapping"). Titles and tooltips live in `packages/design`
   (`ToggleField`, listed by `CompatSwitch`); each tooltip says in plain words what ticked and
   unticked do.
@@ -83,6 +89,21 @@ Three kinds of WinISD difference, handled differently:
   (WinISD's way). Ignored-input bugs have no switch.
 
 (John, 2026-09-26; switch titles and no reset 2026-10-05.)
+
+## Communication — UI issues come with before and after screenshots
+
+John, 2026-10-16: "any time you tell [me] a UI layout issue be prepared with before and after and
+be clear what the problem is"; "the before and after is because I need to understand the issue".
+
+- The pictures are how John understands the issue. Pick them so the problem is obvious at a
+  glance: the same screen, the same size, before and after side by side.
+- Before raising any UI layout issue with John, have the screenshots in hand: before (what he last
+  saw, or the last good build) and after (now), at the sizes involved. Name the build each one is
+  from. Send them so they open on his phone.
+- Lead with one plain sentence on what is visibly wrong on screen. Never pixels, spec names or
+  rulings first.
+- Failure this came from: F46 was raised as "rows 8 px taller, depth spec fails" with no
+  screenshots. John had not seen the change and did not recognise the problem.
 
 ## Communication — plain bug statements
 
@@ -112,12 +133,15 @@ the Options dialog writes one, the engine reads the other, eliminate the first.
 Repeat of the same failure, same day: told the rule, the agent led with the correct sentence and
 then appended six bullets of file/line evidence nobody asked for.
 
-## Running the app locally — `scripts/preview-4000.sh`
+## Running the app locally — protected and task previews
 
-To build or run the app for John to look at, run `bash scripts/preview-4000.sh` from the repo root
-(background it). It kills whatever holds port 4000, then starts the live Vite dev server with HMR at
-http://localhost:4000. Never hand-roll `npx vite` on another port, and never run the script from
-inside `scripts/`: Vite then finds no config and serves 404 on every page.
+The protected main checkout and its last-green preview use `bash scripts/preview-4000.sh`, which serves
+the live Vite dev server with HMR at `http://lap:4000`. Do not work in that checkout or use its preview
+script from a task worktree.
+
+A task worktree uses the reserved port `4XXX`, where `XXX` is the task number. For example, T578 is
+previewed at `http://lap:4578` with the dev server started from the T578 worktree. Use the task port,
+not an arbitrary port, so previews cannot be mistaken for main or for another task.
 
 ## Test output — quiet by default
 
@@ -129,6 +153,11 @@ run immediately without queueing. Only untargeted/heavy Chromium sweeps queue fo
 ## UI Layout Safety — No clipped controls or unwanted scrollbars
 
 All agent changes to UI components, shells, and dialogs MUST be verified to ensure controls NEVER disappear or get clipped off the bottom or sides of the screen, NOR cause unwanted horizontal or vertical scrollbars to appear.
+
+## General rules — always
+
+`.claude/rules/general.md`: no workarounds for unexpected issues, no backdoor in UI testing, no
+reload in tests unless testing reload, and in the app every button shows a visible result.
 
 ## Loaded on demand
 

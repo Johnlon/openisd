@@ -24,26 +24,37 @@ export type {
   CoupledSealedLosses,
   CoupledVentedLosses,
 } from './losses.js';
-export type { Box, BoxLossGroup, LossChamber, TuningField } from './box/box.js';
+export type { Box, BoxLossGroup, LossChamber, TuningField, VentPort } from './box/box.js';
 export type { SealedBox } from './box/sealedBox.js';
 export type { VentedBox } from './box/ventedBox.js';
 export type { Bandpass4Box } from './box/bandpass4Box.js';
 export type { Bandpass6Box } from './box/bandpass6Box.js';
 export { startingChambersOf, takesChamberTunings } from './box/startingChambers.js';
+export { WizardPlan, WizardStep } from './wizard/wizardPlan.js';
 export type { StartingChambers } from './box/startingChambers.js';
 export type { AbcBox } from './box/abcBox.js';
 export type { PassiveRadiatorBox } from './box/passiveRadiatorBox.js';
 export type { OpenIsdPassiveRadiatorSpec } from './passiveRadiator/openIsdPassiveRadiatorSpec.js';
 export type { CoupledVentedChamber, VentedChamber } from './box/ventedChamber.js';
 export type { FrequencyGrid } from './box/frequencyGrid.js';
-export type { SweepJob, SweepPlan } from './project/projectSweep.js';
+export type { SweepJob, SweepJobParams, SweepPlan } from './project/projectSweep.js';
+export { runMaxCurvesJob, runSweepJob } from './project/projectSweep.js';
 export type { ErrorSwitchState, ErrorSwitchStates } from './project/errorSwitches.js';
+export {
+    ExcursionLimit_mm, F3Limit_hz, Limit, LimitKind, LimitState, TuneLimits, TuneStates, VentDiameterLimit_cm,
+    VentLengthLimit_cm, VentSpeedLimit_m_per_s, VolumeLimit_L, limitState, parseLimit,
+} from './project/tuneLimits.js';
+export type { LimitDirection, LimitParse, LimitStateCases, TuneReading } from './project/tuneLimits.js';
+export { tuneViewOf } from './project/tuneView.js';
+export type { TuneAvailable, TuneCurve, TunePoint, TuneUnavailable, TuneView } from './project/tuneView.js';
 export { CompatSwitch } from './project/compatSwitch.js';
+export { driverSpecOfSlot, readSheetSlot, ventOfSlot, writeSheetSlot } from './project/sheetSlots.js';
 export { withMovedChamberQicl } from './project/movedChamberQicl.js';
 export { buildProjectsArchive, parseProjectsArchive, type ArchiveParseResult } from './project/projectsArchive.js';
 export type { CompatSwitchKind } from './project/compatSwitch.js';
 // We export these strictly as types to ensure encapsulation. Consumers can annotate variables with these types, but must construct them via factory functions instead of calling the class constructors directly.
 export { OpenISDDriver, OpenISDDriverStandalone } from './driver/openISDDriver.js';
+export type { SealedBoxLosses } from './driver/openISDDriver.js';
 export type { DqReason } from './driver/openISDDriver.js';
 
 // Also NOT exported (consumers cannot construct these directly):
@@ -71,6 +82,7 @@ export { OpenISDProject } from './project/openISDProject.js';
 export { compactedStoredText } from './project/projectSerialization.js';
 export { ProjectBuilder } from './openisdTransforms.js';
 export { ProjectSummary, type SummaryVolume } from './project/projectSummary.js';
+export { defaultProjectName } from './project/defaultProjectName.js';
 export type { BoxProjectBuilder } from './openisdTransforms.js';
 export { WinIsdDriverConverter } from './winIsdDriverConverter.js';
 export { WinIsdProjectConverter } from './winIsdProjectConverter.js';

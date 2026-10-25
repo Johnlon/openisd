@@ -1,0 +1,16 @@
+id: T370
+release_note: On the phone, Escape now closes the Box tab sheets (Choose alignment, Box losses).
+repo: openisd
+owner: bob
+status: done
+landed: 4fb7f333f0a31858b51bf4809880ab9736d8bd47
+goal: Escape closes the phone Box tab sheets (alignment, Box losses); the test teardown closes a phone sheet by its own close button and waits until it is gone
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T370.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261017_phone-box-sheets-ignore-escape.md
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts

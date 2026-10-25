@@ -1,0 +1,29 @@
+id: T510
+release_note: The driver picker, Manage drivers and the passive radiator library on the phone fold their filters behind one button, so the list gets the screen.
+repo: openisd
+owner: maryu
+status: done
+landed: 7f66191dee2c6cea8e20a0d53e942fccbd63f59f
+goal: Phone classic B5: driver picker, Manage drivers and passive radiator browser follow the approved classic mocks (screens 6, 7, 35)
+visual:
+  - mobile-tab-driver
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
+files:
+  - tasks/T510.yml
+  - packages/design/fields/phoneText.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/src/ui/components/DriverBrowser.vue
+  - packages/ui/src/ui/components/PRBrowser.vue
+  - packages/ui/src/ui/shells/mobile/MobileManageDriversTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/App.vue
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/ui/driver-type-help-per-library.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png

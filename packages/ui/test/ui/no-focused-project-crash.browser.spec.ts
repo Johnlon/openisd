@@ -4,6 +4,14 @@ import type {Page} from '@playwright/test';
 /** bugs/BUG_20261016_live-crash-no-project-is-focused.md: with no project open, nothing reads the
  *  focused project, so no flow ends on the crash screen with "no project is focused". */
 
+/** Desktop: close the focused project from its row menu, discarding any unsaved change. */
+async function closeFocusedOnDesktop(page: Page): Promise<void> {
+  await page.locator('.project-row.selected .row-menu-btn').click();
+  await page.locator('.row-menu-item:has-text("Close")').click();
+  const discard = page.locator('.close-actions button:has-text("Close without saving")');
+  if (await discard.isVisible()) await discard.click();
+}
+
 async function noCrash(page: Page, pageErrors: readonly string[]): Promise<void> {
   await expect(page.getByTestId('crash-screen')).toHaveCount(0);
   expect(pageErrors.filter(e => e.includes('no project is focused'))).toEqual([]);
@@ -12,7 +20,7 @@ async function noCrash(page: Page, pageErrors: readonly string[]): Promise<void>
 test('desktop: closing the only open project leaves the empty shell, no crash', async ({page, browserLog}) => {
   await page.goto('/');
   await openAProject(page);
-  await page.locator('.close-btn', {hasText: 'Close'}).first().click();
+  await closeFocusedOnDesktop(page);
   await expect(page.locator('.graph-empty-h')).toBeVisible();
   await noCrash(page, browserLog.pageErrors);
 });
@@ -22,7 +30,11 @@ test('mobile: closing the only open project leaves the empty screen, no crash', 
   await page.goto('/');
   await openAMobileProject(page);
   await page.locator('.mob-hamburger').click();
-  await page.locator('.mob-open-project-close').first().click();
+  await page.locator('.mob-menu-item', {hasText: 'Projects'}).click();
+  const pane = page.locator('.mob-projects-pane');
+  await pane.locator('.mob-project-menu-btn').first().click();
+  await page.locator('.mob-action-sheet .mob-action-close').click();
+  await pane.locator('.mob-dlg-close').click();
   await expect(page.locator('.mob-empty')).toBeVisible();
   await noCrash(page, browserLog.pageErrors);
 });
@@ -39,7 +51,7 @@ for (const tab of ['Driver', 'Box', 'Vented', 'Filters', 'Signal', 'Advanced', '
     await page.goto('/');
     await openAProject(page);
     await page.locator('.project-nav li', {hasText: tab}).first().click();
-    await page.locator('.close-btn', {hasText: 'Close'}).first().click();
+    await closeFocusedOnDesktop(page);
     await expect(page.locator('.graph-empty-h')).toBeVisible();
     await noCrash(page, browserLog.pageErrors);
   });
@@ -51,7 +63,7 @@ test('desktop: closing the only project after the driver editor leaves the empty
   await page.locator('.project-nav li', {hasText: 'Driver'}).first().click();
   await page.locator('.edit-btn').filter({hasText: /Edit/}).first().click();
   await page.keyboard.press('Escape');
-  await page.locator('.close-btn', {hasText: 'Close'}).first().click();
+  await closeFocusedOnDesktop(page);
   await expect(page.locator('.graph-empty-h')).toBeVisible();
   await noCrash(page, browserLog.pageErrors);
 });

@@ -128,6 +128,18 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.ok(commentLine !== undefined && commentLine.includes('Xlim_m: manufacturer_datasheet banana — no-numeric-value'), `comment contains Xlim_m: manufacturer_datasheet banana — no-numeric-value, got: ${commentLine}`);
     });
 
+    it('a reading rejected as unit-not-recognised keeps its printed text in the comment, with no unknown-reason warning (John, 2026-10-20)', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Xlim_m = {readings: {manufacturer_datasheet: {actual_reading: '0.06 ft.³', rejected: 'unit-not-recognised'}}};
+      const { wdr, errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(wdr !== null, `wdr produced; errors: ${JSON.stringify(errors)}`);
+      assert.deepEqual(errors.filter(e => e.message.includes('unrecognised rejection reason')), []);
+      const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
+      assert.ok(commentLine?.includes('Xlim_m: manufacturer_datasheet 0.06 ft.³ — unit-not-recognised'), `got: ${commentLine}`);
+    });
+
     it('writing a rejected reading on a numeric field writes value 0, state N, and printed text in comment', () => {
       const record: unknown = parse(daytonDriverYml());
       const woofer = at(record, 'specs', 'woofer');

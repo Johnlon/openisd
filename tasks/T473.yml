@@ -1,0 +1,12 @@
+id: T473
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: f6cb8dac4959c21a0792a95fcd4d46ab0876888c
+goal: Docs: state the purpose of the ≠W Difference cue (significant differences only, not trivial ones), per John on QO279.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T473.yml
+  - CLAUDE.md
+  - docs/research/WINISD_PARITY.md

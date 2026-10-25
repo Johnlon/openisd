@@ -26,6 +26,9 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(git rev-parse --show-toplevel)" || exit 2
 cd "$ROOT"
+# shellcheck source=/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/lib/main-folder.sh"
+refuse_in_main_folder integrate
 if [ -d "$HERE/core" ]; then CORE="$HERE/core"; else CORE="$HERE/land/core"; fi
 if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.conf"; fi
 [ -f "$CONF" ] || { echo "integrate: no land.conf next to integrate.sh or in $ROOT" >&2; exit 2; }
@@ -167,8 +170,8 @@ mapfile -t changed < <(git diff --name-only --diff-filter=ACMR origin/main HEAD)
 for required in ${LINT_REQUIRES:-}; do
   [ -e "$required" ] || { GATE_OUT=/dev/null; refuse lint "$required is missing in $WT"; }
 done
-gate lint /dev/null "$LINT_CMD" "${changed[@]}"
-gate typecheck /dev/null "$TYPECHECK_CMD"
+GATE_DEADLINE_S="${LINT_DEADLINE_S:-$GATE_DEADLINE_S}" gate lint /dev/null "$LINT_CMD" "${changed[@]}"
+GATE_DEADLINE_S="${TYPECHECK_DEADLINE_S:-$GATE_DEADLINE_S}" gate typecheck /dev/null "$TYPECHECK_CMD"
 [ -n "${UNIT_CMD:-}" ] || { GATE_OUT=/dev/null; refuse unit "UNIT_CMD is not set in land.conf"; }
 GATE_DEADLINE_S="${UNIT_DEADLINE_S:-$GATE_DEADLINE_S}" gate unit /dev/null "$UNIT_CMD" "${changed[@]}"
 
@@ -188,7 +191,7 @@ if [ -f "$TASK" ]; then
   sed -i '/^landed:/d' "$TASK"
   printf 'landed: %s\n' "$(git rev-parse --short=10 HEAD)" >> "$TASK"
   git add "$TASK"
-  git commit -q -m "$ID: landed $(git rev-parse --short=10 HEAD)" || { GATE_OUT=/dev/null; refuse commit "task commit failed"; }
+  git commit -q -m "(auto) $ID: landed $(git rev-parse --short=10 HEAD)" || { GATE_OUT=/dev/null; refuse commit "task commit failed"; }
 fi
 git push -q origin HEAD:main > "$WORK/push.out" 2>&1 || { GATE_OUT="$WORK/push.out"; refuse push "origin rejected the push"; }
 pushed="$(git rev-parse HEAD)"

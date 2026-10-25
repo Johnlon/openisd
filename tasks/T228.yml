@@ -1,0 +1,14 @@
+id: T228
+release_note: 'Phone view: with no project open, the menu still opens, with New project, Open project, Manage Drivers, Options, Cloud sync, Diagnostics and About.'
+repo: openisd
+owner: maryu
+status: done
+landed: 402e6d7ecd969a81239d801df678107865e1f1da
+goal: No project open: every app-level feature stays reachable from the menu, both skins
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T228.yml
+  - bugs/BUG_20261016_live-crash-no-project-is-focused.md
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/no-project-app-menu.browser.spec.ts

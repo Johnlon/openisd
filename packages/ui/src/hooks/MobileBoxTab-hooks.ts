@@ -5,26 +5,23 @@
  */
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {createEnvironmentAir} from './OriginalShell-hooks.js';
-import {createVentReadouts, FB_TARGET_TIP} from './ventReadouts.js';
+import {FH_TARGET_TIP} from './ventReadouts.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {BOX_TYPE_OPTIONS} from '@openisd/design/fields';
 
 export function useMobileBoxTab() {
-  const {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, envDefaults, focusedProject, projectChanged} = useApp().appState;
+  const {IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, focusedProject, projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const { engine } = useApp();
   const isSimulatable = boxTypeIsSimulatable;
 
   const { selectedBox, pending, isDual, boxLabel } =
     createSelectedBox({ focusedProject, projectChanged, isSimulatable });
-  const { boxResonance, rearQtc } = createSealedReadouts({ project, selectedBox, projectChanged });
-  const { advAir } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
-  const { activeTuning } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
-  const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
-  const { frontVolumeCell, rearTuningCell } = createChamberFields({ project, selectedBox, projectChanged });
+  const { boxResonance, prNaturalFh } = createSealedReadouts({ project, selectedBox, projectChanged });
+  const { boxVolumeCell, sealedFscCell, sealedQtcCell } = createBoxVolume({ project, selectedBox, projectChanged });
+  const { frontVolumeCell } = createChamberFields({ project, selectedBox, projectChanged });
   // Box losses popup: one row set per chamber, the same hook the desktop shell uses.
   const { lossesOpen, openLossGroups, resetBoxLosses } = createBoxLosses({ project, selectedBox, projectChanged, focusedProject });
 
@@ -33,6 +30,7 @@ export function useMobileBoxTab() {
   // aggregate.
   const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
+  const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
   const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
@@ -46,7 +44,7 @@ export function useMobileBoxTab() {
   const ventedAlignmentOpen = ventedAlignmentEditor.open;
   const ventedAlignmentOptions = ventedAlignmentEditor.options;
   const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
-  const ventedAlignmentVolume_L = ventedAlignmentEditor.volume_L;
+  const ventedAlignmentVolume_m3 = ventedAlignmentEditor.volume_m3;
   const ventedAlignmentTuning_hz = ventedAlignmentEditor.tuning_hz;
   const ventedAlignmentEbp = ventedAlignmentEditor.ebp;
   const ventedAlignmentSuitability = ventedAlignmentEditor.ebpSuitability;
@@ -58,14 +56,14 @@ export function useMobileBoxTab() {
   }
 
   return {
-    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell, rearTuningCell,
-    boxResonance, rearQtc, boxVolumeCell,
-    activeTuning, FB_TARGET_TIP,
+    project, selectedBox, pending, isDual, boxLabel, frontVolumeCell,
+    boxResonance, prNaturalFh, boxVolumeCell, sealedFscCell, sealedQtcCell,
+    FH_TARGET_TIP,
     selectBoxType, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES,
-    sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentOptions, sealedAlignmentSelected,
+    sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown, sealedAlignmentOptions, sealedAlignmentSelected,
     sealedAlignmentVolume_m3, sealedAlignmentEbp, sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel,
     ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
-    ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+    ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
     ventedAlignmentSuitabilityLabel,
     lossesOpen, openLossGroups, resetBoxLosses,
   };

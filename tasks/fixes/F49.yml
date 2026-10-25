@@ -1,0 +1,256 @@
+id: F49
+owner: Johnlon
+status: done
+sha: 9a5062a2da42c5e7887fed240db62561ed36e94b
+tested: 9a5062a2da42c5e7887fed240db62561ed36e94b
+last_green: a78dcbb7b83285176f08d9dfbbe1559c613976c3
+range: a78dcbb7b83285176f08d9dfbbe1559c613976c3..9a5062a2da42c5e7887fed240db62561ed36e94b
+goal: main is red at 9a5062a2da; make the full suite pass again
+commits: |
+  9a5062a2da T263: Project tab Created and Modified show dates as 16 Oct 2026, through the
+failing: |
+    ✘  129 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:345:1 › Dimensions: the rows are not spaced out (235ms)
+    ✘  128 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:322:3 › General: the Comment box fills the bottom of the panel › the General tab does not scroll (1.5s)
+    ✘  130 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:377:1 › the colour legend is one row above the buttons: file actions left, OK Reset Cancel right (256ms)
+    ✘  131 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:361:1 › no tab of the driver editor scrolls sideways, and the modal fits its window (275ms)
+    ✘  132 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:17:1 › brand and model fields are mandatory, have bold borders, and turn red when empty without losing focus (233ms)
+    ✘  133 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:394:1 › the tab titles fit their row without a scrollbar on a narrow desktop window (257ms)
+    ✘  134 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:99:1 › a sku-bearing driver: clearing Model empties it and sku is untouched (214ms)
+    ✘  135 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:142:1 › OK, Export and Copy stay live on an incomplete driver, and it commits (258ms)
+    ✘  136 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:159:1 › a missing Brand pops a message instead of a dead button, and lands the caret on it (202ms)
+    ✘  137 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:177:1 › Copy to My Drivers and Export are gated the same way (208ms)
+    ✘  138 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:200:1 › a missing Brand raises the IDENTITY strip only, and blanks no chart (181ms)
+    ✘  139 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:219:1 › a missing Fs raises the CHART strip only, and the driver can still be filed (205ms)
+    ✘  140 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:237:1 › stated values that disagree raise the CONSISTENCY strip, and no chart strip (180ms)
+    ✘  141 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:255:1 › each strip says BECAUSE, matching the present-tense facts it lists (200ms)
+    ✘  142 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:270:1 › an incomplete driver is flagged in the editor, naming what is missing (184ms)
+    ✘  143 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:281:1 › two of Qts/Qes/Qms are needed to simulate — the trio is flagged as a GROUP (214ms)
+    ✘  145 packages/ui/test/ui/driver-editor-precision.browser.spec.ts:34:1 › η₀ typed as 0.0754 shows 0.0754 after commit (196ms)
+    ✘  144 packages/ui/test/ui/driver-editor-mandatory.browser.spec.ts:291:1 › an entered zero for Fs is out of range — red on the field, kept until Esc (QO11.5) (1.2s)
+    ✘  146 packages/ui/test/ui/driver-editor-precision.browser.spec.ts:41:1 › an entered value typed to more decimals than the field shows keeps them (189ms)
+    ✘  147 packages/ui/test/ui/driver-editor-precision.browser.spec.ts:48:1 › Qts calculated from 5-decimal Qes and Qms shows the decimals they support (225ms)
+    ✘  148 packages/ui/test/ui/driver-editor-precision.browser.spec.ts:57:1 › a typed Vas and Sd show the registry 2 decimals (1.2s)
+    ✘  149 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:83:3 › Driver Editor E/C/N Provenance Class Audit › All input fields on Parameters tab render valid E/C/N provenance classes (value-e, value-c, or value-n) (1.2s)
+    ✘  151 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:99:3 › Driver Editor E/C/N Provenance Class Audit › All input fields on Dimensions tab render valid E/C/N provenance classes (208ms)
+    ✘  150 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:91:3 › Driver Editor E/C/N Provenance Class Audit › All input fields on Advanced tab render valid E/C/N provenance classes (1.2s)
+    ✘  153 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:117:3 › Driver Editor E/C/N Provenance Class Audit › Deriving a calculated field applies value-c (Calculated) (225ms)
+    ✘  152 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:107:3 › Driver Editor E/C/N Provenance Class Audit › Typing into a field transitions its class to value-e (Entered) (244ms)
+    ✘  154 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:132:3 › Driver Editor E/C/N Provenance Class Audit › Clearing an uncalculated field transitions its class to value-n (Not Entered) (288ms)
+    ✘  155 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:155:3 › Driver Editor provenance map and field boxes › every rendered simulation field is bound to a registry id whose label it renders (307ms)
+    ✘  156 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:179:3 › Driver Editor provenance map and field boxes › every field the provenance map explains takes the inspected highlight (258ms)
+    ✘  157 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:197:3 › Driver Editor provenance map and field boxes › inspecting a field also colours the inputs its formula names (270ms)
+    ✘  158 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:214:3 › Driver Editor provenance map and field boxes › every field the solver calculated has a provenance formula (273ms)
+    ✘  159 packages/ui/test/ui/driver-editor-provenance.browser.spec.ts:233:3 › Driver Editor provenance map and field boxes › every field box encloses its own label, input and unit (274ms)
+    ✘  160 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:39:3 › Driver Editor — solver wiring › UI derives Qts from Qes and Qms (273ms)
+    ✘  161 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:54:3 › Driver Editor — solver wiring › UI un-calculates downstream derived fields back to state N when an anchor is cleared (229ms)
+    ✘  163 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:94:3 › Driver Editor — solver wiring › UI Reset button reverts edits back to initial modal opening state (262ms)
+    ✘  162 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:78:3 › Driver Editor — solver wiring › UI preserves solver state across Parameters and Advanced tab switches (1.2s)
+    ✘  165 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:122:3 › Driver Editor — solver wiring › UI OK button commits draft solver edits into project driver state (189ms)
+    ✘  164 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:111:3 › Driver Editor — solver wiring › UI Cancel button discards all edits and leaves project driver un-mutated (1.2s)
+    ✘  166 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:133:3 › Driver Editor — solver wiring › UI refuses non-numeric literal text ("banana", "<script>"): shown red, never stored, Esc puts the value back (200ms)
+    ✘  167 packages/ui/test/ui/driver-editor-solver.browser.spec.ts:154:3 › Driver Editor — solver wiring › UI flags unphysical negative parameters (Re = -8.0 Ohm, Fs = -35.0 Hz) with Data Quality (DQ) warning (223ms)
+    ✘  168 packages/ui/test/ui/driver-editor-units.browser.spec.ts:46:1 › every unit with alternates is a working toggle, and every other unit is a plain label (194ms)
+    ✘  169 packages/ui/test/ui/driver-editor-units.browser.spec.ts:96:1 › rotating a unit changes the display only — the stored value round-trips (255ms)
+    ✘  170 packages/ui/test/ui/driver-editor-units.browser.spec.ts:144:3 › Parameters: each field carries WinISD's own unit (201ms)
+    ✘  171 packages/ui/test/ui/driver-editor-units.browser.spec.ts:144:3 › Advanced: each field carries WinISD's own unit (221ms)
+    ✘  172 packages/ui/test/ui/driver-editor-units.browser.spec.ts:172:3 › Rms: the resistance unit toggle rotates the label and never the value (183ms)
+    ✘  173 packages/ui/test/ui/driver-editor-units.browser.spec.ts:172:3 › Rme: the resistance unit toggle rotates the label and never the value (196ms)
+    ✘  174 packages/ui/test/ui/driver-editor-units.browser.spec.ts:172:3 › Mcost: the resistance unit toggle rotates the label and never the value (180ms)
+    ✘  175 packages/ui/test/ui/driver-editor-units.browser.spec.ts:192:1 › every unit label occupies the same width, whatever it says (199ms)
+    ✘  176 packages/ui/test/ui/driver-filter-row.browser.spec.ts:10:3 › mobile New project step 1: each filter group stays on one line at 360 px (206ms)
+    ✘  177 packages/ui/test/ui/driver-filter-row.browser.spec.ts:10:3 › mobile New project step 1: each filter group stays on one line at 390 px (244ms)
+    ✘  178 packages/ui/test/ui/driver-tab-fixed-fields.browser.spec.ts:17:3 › Voice coil temp rise: an emptied box is refused with a ⚠ and Esc restores the stored value (193ms)
+    ✘  179 packages/ui/test/ui/driver-tab-fixed-fields.browser.spec.ts:17:3 › Added mass to cone: an emptied box is refused with a ⚠ and Esc restores the stored value (258ms)
+    ✘  181 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:29:3 › Equation inspector popup › Toggling Inspect Provenance on and clicking Qts highlights feeding fields and pops up non-modal Equation Inspector (191ms)
+    ✘  180 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:23:3 › Equation inspector popup › Inspect Provenance checkbox is present in Driver Editor header (1.2s)
+    ✘  182 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:48:3 › Equation inspector popup › Inspecting a multi-formula field (Qes) displays multiple derivation paths and distinct color swatches (194ms)
+    ✘  183 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:69:3 › Equation inspector popup › Closing Equation Inspector via ✕ button dismisses the non-modal overlay while keeping Driver Editor open (220ms)
+    ✘  184 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:87:3 › Equation inspector popup › the popup never overlaps the editor, even on a narrow viewport (197ms)
+    ✘  185 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:102:3 › Equation inspector popup › the popup is visible on screen at a normal window height (227ms)
+    ✘  187 packages/ui/test/ui/file-import-export-message.browser.spec.ts:10:3 › import and export messages › desktop: opening a project and exporting it as .wpr each say so (203ms)
+    ✘  186 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:118:3 › Equation inspector popup › the popup shows no "Live:" substitution line (1.2s)
+    ✘  188 packages/ui/test/ui/file-import-export-message.browser.spec.ts:23:3 › import and export messages › mobile: opening a project and exporting it as .wpr each say so (196ms)
+    ✘  189 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:25:1 › shows the environment fields, calculated readouts, and WinISD-compat controls (219ms)
+    ✘  190 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:42:1 › editing the temperature writes through and clearing it falls back to the app default (223ms)
+    ✘  191 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:52:1 › toggling the "Force flat response" checkbox writes through to the project (244ms)
+    ✘  192 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:59:1 › the bug switches carry the warning class under a "Enable WinISD bugs" heading (192ms)
+    ✘  193 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:73:1 › the "Enable WinISD-style" group has every WinISD option the desktop has, and each one writes through (225ms)
+    ✘  194 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:85:1 › the compatibility panel has no preset or reset buttons, only switches and a help link per group (182ms)
+    ✘  195 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:99:1 › scrolls to its last control instead of clipping it (228ms)
+    ✘  197 packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts:34:3 › MobileAlignmentPopup › the vented sheet picks an alignment and writes volume + tuning on Accept (199ms)
+    ✘  196 packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts:16:3 › MobileAlignmentPopup › the sealed sheet picks an alignment and writes its volume on Accept (1.2s)
+    ✘  198 packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts:59:3 › MobileAlignmentPopup › Cancel discards the sheet's draft without touching the volume field (193ms)
+    ✘  199 packages/ui/test/ui/mobile-backups.browser.spec.ts:8:1 › Your data opens inside the full-screen Options dialog and fits a 360 px phone (1.2s)
+    ✘  200 packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts:23:1 › bandpass6: the Front chamber panel on the Box tab edits the front chamber tuning (207ms)
+    ✘  201 packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts:34:1 › bandpass6: one vent panel per port, no pending note, a diameter edit reaches only that vent (240ms)
+    ✘  202 packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts:48:1 › abc: Rear, Front and Intra vent panels; the Intra length is editable (1.2s)
+    ✘  203 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:15:3 › MobileBoxLossesPopup › edits Ql/Qa, and Qp only for a vented box (223ms)
+    ✘  204 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:35:3 › MobileBoxLossesPopup › Reset puts Ql, Qa and Qp back to WinISD's defaults (173ms)
+    ✘  205 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › bandpass4: each chamber panel's button opens only that chamber's set (221ms)
+    ✘  206 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › bandpass4: Reset puts only the open chamber back; the Qicl is one value for both (181ms)
+    ✘  207 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › bandpass6: each chamber panel's button opens only that chamber's set (210ms)
+    ✘  208 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › bandpass6: Reset puts only the open chamber back; the Qicl is one value for both (190ms)
+    ✘  209 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › abc: each chamber panel's button opens only that chamber's set (216ms)
+    ✘  210 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › abc: Reset puts only the open chamber back; the Qicl is one value for both (205ms)
+    ✘  211 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:32:3 › MobileBoxTab › the Volume row lines up with the Target tuning row below it (236ms)
+    ✘  212 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:45:3 › MobileBoxTab › emptying the box volume settles it to the alignment volume (187ms)
+    ✘  213 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:55:3 › MobileBoxTab › shows the box-type select, the enclosure diagram, and a volume field (250ms)
+    ✘  214 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:61:3 › MobileBoxTab › editing the volume writes the value through to the field (1.2s)
+    ✘  215 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:68:3 › MobileBoxTab › the Qtc row shows only for a sealed box (206ms)
+    ✘  217 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:89:5 › MobileBoxTab › bandpass4: the Box tab has a Front chamber volume that steps (229ms)
+    ✘  216 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:80:3 › MobileBoxTab › scrolls to its last button (Box losses) instead of clipping it (264ms)
+    ✘  218 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:89:5 › MobileBoxTab › abc: the Box tab has a Front chamber volume that steps (246ms)
+    ✘  219 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:89:5 › MobileBoxTab › bandpass6: the Box tab has a Front chamber volume that steps (1.2s)
+    ✘  220 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:146:5 › MobileBoxTab › switching box type › from sealed, switching to vented then passive radiator both work immediately (192ms)
+    ✘  221 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:153:5 › MobileBoxTab › switching box type › from vented, switching to sealed then passive radiator both work immediately (248ms)
+    ✘  222 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:160:5 › MobileBoxTab › switching box type › from passive radiator, switching to sealed then vented both work immediately (188ms)
+    ✘  223 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:191:5 › MobileBoxTab › switching project › between a vented and a passive radiator project repaints the tabs and the Box tab (250ms)
+    ✘  224 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:207:5 › MobileBoxTab › switching project › while the Box tab is showing repaints it and the tab bar (184ms)
+    ✘  225 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:222:5 › MobileBoxTab › switching project › while the Passive Radiator tab is showing leaves a tab that fits the new box (266ms)
+    ✘  226 packages/ui/test/ui/mobile-box-tab.browser.spec.ts:233:5 › MobileBoxTab › switching project › from a vented project to a sealed one on the Box tab repaints it (184ms)
+    ✘  227 packages/ui/test/ui/mobile-box-type-names.browser.spec.ts:7:1 › the box picker lists ABC, and picking it names the tab ABC (333ms)
+    ✘  228 packages/ui/test/ui/mobile-chart-auto-y.browser.spec.ts:10:1 › the mobile Graph page draws charts without an Auto Y switch while Learn is closed (195ms)
+    ✘  229 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:100:3 › mobile stacked charts — axis strip drag › vertical touch drag on Y-axis strip top zone zooms top — stack does not scroll (20.2s)
+    ✘  230 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:121:3 › mobile stacked charts — axis strip drag › vertical touch drag on Y-axis strip middle zone pans — stack does not scroll (20.1s)
+    ✘  231 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:142:3 › mobile stacked charts — axis strip drag › vertical touch drag on Y-axis strip bottom zone zooms bottom — stack does not scroll (20.2s)
+    ✘  232 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:163:3 › mobile stacked charts — axis strip drag › vertical drag on X-axis strip does not scroll stack (20.2s)
+    ✘  234 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:196:3 › mobile single chart — axis strip drag still works › vertical drag on Y-axis strip top zone zooms top (305ms)
+    ✘  235 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:215:3 › mobile single chart — axis strip drag still works › vertical drag on Y-axis strip middle zone pans (266ms)
+    ✘  236 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:234:3 › mobile single chart — axis strip drag still works › vertical drag on Y-axis strip bottom zone zooms bottom (194ms)
+    ✘  237 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:20:1 › one chart fills the screen, with a chart picker (192ms)
+    ✘  233 packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts:179:3 › mobile stacked charts — axis strip drag › vertical swipe on plot body scrolls the stack (20.3s)
+    ✘  238 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:28:1 › ticking charts stacks them in a list that scrolls up and down (189ms)
+    ✘  239 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:43:1 › the per-screen number sizes each stacked chart to a whole fraction of the screen (1.2s)
+    ✘  240 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:61:1 › tapping outside the open list closes it and changes nothing (1.2s)
+    ✘  241 packages/ui/test/ui/mobile-chart-view.browser.spec.ts:75:1 › tapping a chart name shows it alone, and the choice survives switching tabs (219ms)
+    ✘  242 packages/ui/test/ui/mobile-driver-browser.browser.spec.ts:22:1 › the driver picker fills the short viewport instead of clamping to a fixed height (198ms)
+    ✘  243 packages/ui/test/ui/mobile-driver-browser.browser.spec.ts:33:1 › Cancel and Use stay inside the visible viewport, not clipped off the bottom (212ms)
+    ✘  244 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:27:1 › the Driver Editor field rows stack without overlapping at phone width (198ms)
+    ✘  245 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:58:1 › at phone width the Driver Editor fits the screen: first tab, legend one row, every footer button below it (204ms)
+    ✘  246 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:85:1 › at phone width the Driver Editor footer rows are Export, Import, Copy to My Drivers then OK, Reset, Cancel (200ms)
+    ✘  247 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:105:1 › at phone width the Save to My Drivers dialog sits on screen with its boxes inside it (1.2s)
+    ✘  248 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:127:3 › touch › tapping a field's ⚠ shows the reason and leaves the unit alone; the box keeps one width in every unit (209ms)
+    ✘  249 packages/ui/test/ui/mobile-driver-editor.browser.spec.ts:149:1 › the Driver Editor tab titles all fit without scrolling sideways at phone widths (180ms)
+    ✘  250 packages/ui/test/ui/mobile-driver-tab.browser.spec.ts:17:1 › shows the driver identity and the Select/Edit actions (225ms)
+    ✘  251 packages/ui/test/ui/mobile-driver-tab.browser.spec.ts:23:1 › Edit opens the driver editor modal (232ms)
+    ✘  252 packages/ui/test/ui/mobile-driver-tab.browser.spec.ts:28:1 › changing the number of drivers and the wiring writes the project (216ms)
+    ✘  253 packages/ui/test/ui/mobile-enclosure-tab.browser.spec.ts:16:3 › MobileEnclosureTab › a sealed box drops the enclosure destination from the tab bar (198ms)
+    ✘  254 packages/ui/test/ui/mobile-enclosure-tab.browser.spec.ts:25:3 › MobileEnclosureTab › a 4th-order bandpass keeps its front-chamber tuning and vent diameter, and solves the vent length (209ms)
+    ✘  255 packages/ui/test/ui/mobile-enclosure-tab.browser.spec.ts:42:3 › MobileEnclosureTab › an emptied vent diameter settles to the starting port instead of becoming 0 (213ms)
+    ✘  256 packages/ui/test/ui/mobile-file-open.browser.spec.ts:12:3 › Mobile file-open dialog and diagnostics › file-open dialog shows the file list without diagnostics; diagnostics opens only from explicit menu action (209ms)
+    ✘  257 packages/ui/test/ui/mobile-filters-tab.browser.spec.ts:17:1 › shows the quick-add row and an empty list with no filters yet (195ms)
+    ✘  258 packages/ui/test/ui/mobile-filters-tab.browser.spec.ts:22:1 › adding a filter opens its editor immediately, and it survives switching tabs (227ms)
+    ✘  259 packages/ui/test/ui/mobile-filters-tab.browser.spec.ts:31:1 › removing a filter clears the list back to empty (214ms)
+    ✘  260 packages/ui/test/ui/mobile-filters-tab.browser.spec.ts:39:1 › an order-4 allpass shows the WinISD deviation cue, and it opens the differences page at its entry, within the phone width (208ms)
+    ✘  261 packages/ui/test/ui/mobile-filters-tab.browser.spec.ts:57:1 › Options "Show WinISD difference markers (≠W)" hides the cue, and ticking it brings it back (196ms)
+    ✘  262 packages/ui/test/ui/mobile-menu.browser.spec.ts:46:5 › MobileMenu › layout › brand shows the version for the running environment (216ms)
+    ✘  263 packages/ui/test/ui/mobile-menu.browser.spec.ts:61:5 › MobileMenu › layout › items sit in a Project section and an App section, each under its own heading (199ms)
+    ✘  264 packages/ui/test/ui/mobile-menu.browser.spec.ts:79:5 › MobileMenu › layout › Save, Save all and Save As sit together; Revert follows in its own section (195ms)
+    ✘  265 packages/ui/test/ui/mobile-menu.browser.spec.ts:89:5 › MobileMenu › layout › the whole menu, open projects included, fits a phone screen without scrolling (1.2s)
+    ✘  266 packages/ui/test/ui/mobile-menu.browser.spec.ts:96:5 › MobileMenu › layout › the Graph page has its own menu button (248ms)
+    ✘  267 packages/ui/test/ui/mobile-menu.browser.spec.ts:109:5 › MobileMenu › Projects › before anything is saved it lists only the open project, marked not saved (188ms)
+    ✘  268 packages/ui/test/ui/mobile-menu.browser.spec.ts:117:5 › MobileMenu › Projects › Save, then "Projects" lists it and reopens it (258ms)
+    ✘  269 packages/ui/test/ui/mobile-menu.browser.spec.ts:137:5 › MobileMenu › Projects › Save and Save all are highlighted while there are unsaved changes (194ms)
+    ✘  270 packages/ui/test/ui/mobile-menu.browser.spec.ts:157:5 › MobileMenu › Projects › each saved project shows its driver, box type and volume under its name (1.2s)
+    ✘  271 packages/ui/test/ui/mobile-menu.browser.spec.ts:182:5 › MobileMenu › Projects › the sheet fills the whole screen (193ms)
+    ✘  272 packages/ui/test/ui/mobile-menu.browser.spec.ts:197:5 › MobileMenu › panes › Manage Drivers opens as a full pane, not the DriverBrowser overlay (204ms)
+    ✘  273 packages/ui/test/ui/mobile-menu.browser.spec.ts:206:5 › MobileMenu › panes › picking a driver from Manage Drivers embeds it and returns to the Driver tab (250ms)
+    ✘  274 packages/ui/test/ui/mobile-menu.browser.spec.ts:216:5 › MobileMenu › panes › Options fills the phone screen edge-to-edge instead of floating as a small popup (1.2s)
+    ✘  275 packages/ui/test/ui/mobile-menu.browser.spec.ts:233:7 › MobileMenu › pane dialogs › Manage Drivers is a dialog with a title, a top-right ✕ and closes back to the Box tab (240ms)
+    ✘  276 packages/ui/test/ui/mobile-menu.browser.spec.ts:233:7 › MobileMenu › pane dialogs › Project details is a dialog with a title, a top-right ✕ and closes back to the Box tab (220ms)
+    ✘  277 packages/ui/test/ui/mobile-menu.browser.spec.ts:233:7 › MobileMenu › pane dialogs › Advanced is a dialog with a title, a top-right ✕ and closes back to the Box tab (243ms)
+    ✘  278 packages/ui/test/ui/mobile-menu.browser.spec.ts:249:5 › MobileMenu › pane dialogs › every pane dialog has a Close button in the footer (210ms)
+    ✘  279 packages/ui/test/ui/mobile-menu.browser.spec.ts:257:5 › MobileMenu › pane dialogs › turning Favourites on does not change the Manage drivers dialog size (286ms)
+    ✘  280 packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:22:1 › step 1 has one footer, in the list and in the driver preview: Next and Cancel, no Use (1.2s)
+    ✘  281 packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:33:1 › Next chooses the driver being read and advances to step 2 with the footer intact (276ms)
+    ✘  282 packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:40:1 › Next is green (237ms)
+    ✘  283 packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:47:1 › the header close (✕) still cancels the whole wizard from step 1 (264ms)
+    ✘  284 packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:52:1 › New project from the empty state opens the phone-width wizard, not the desktop modal (247ms)
+    ✘  285 packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:34:1 › a tap focuses the button, steps the digit the caret last sat on, and the row does not move (1.3s)
+    ✘  286 packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:55:1 › a box that never had a caret steps 0.1, and nothing in the box is focused or selected (217ms)
+    ✘  287 packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:69:1 › pressing into the text box afterwards gives the keyboard's box back as normal (322ms)
+    ✘  288 packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:77:1 › a hold keeps focus on the button and steps the same digit throughout (244ms)
+    ✘  289 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:27:1 › a step button click moves the value by the exact same amount as an ArrowUp keypress (286ms)
+    ✘  290 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:50:1 › the down button undoes the up button exactly — same step size, opposite direction (228ms)
+    ✘  291 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:66:1 › a long hold on ▲ takes 10 % steps and lands on a round value when released (327ms)
+    ✘  292 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:85:1 › the stepper buttons meet a touch-sized minimum at phone width (196ms)
+    ✘  293 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:102:1 › holding the button repeats the step, not just one click's worth of movement (311ms)
+    ✘  294 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:131:1 › pressing a step button focuses the button, not the field (289ms)
+    ✘  295 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:146:1 › a unitless row's step buttons line up with a row that has a unit (422ms)
+    ✘  296 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:165:1 › an editable value is drawn as an input box; a read-only one is not (342ms)
+    ✘  297 packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:186:1 › a step button on a field holding zero steps up instead of throwing (333ms)
+    ✘  298 packages/ui/test/ui/mobile-number-field-letters.browser.spec.ts:6:1 › Mobile: a number field refuses letters typed or pasted and takes the number from a paste (381ms)
+    ✘  299 packages/ui/test/ui/mobile-pr-tab.browser.spec.ts:17:3 › MobilePrTab › a passive-radiator box shows passive radiator fields and Select passive radiator opens the browser (488ms)
+    ✘  300 packages/ui/test/ui/mobile-pr-tab.browser.spec.ts:31:3 › MobilePrTab › the PR page has no Edit button and edits every passive radiator field in place (374ms)
+    ✘  301 packages/ui/test/ui/mobile-pr-tab.browser.spec.ts:58:3 › MobilePrTab › Save to library asks for a name, prefilled, and saves a copy under the typed name (315ms)
+    ✘  302 packages/ui/test/ui/mobile-project-list.browser.spec.ts:30:3 › MobileProjectList › the Projects pane lists the open project, though it was never saved (257ms)
+    ✘  303 packages/ui/test/ui/mobile-project-list.browser.spec.ts:37:3 › MobileProjectList › an open project has a show-on-graphs checkbox, ticked by default (310ms)
+    ✘  304 packages/ui/test/ui/mobile-project-list.browser.spec.ts:44:3 › MobileProjectList › opening the same project twice leaves one row (252ms)
+    ✘  305 packages/ui/test/ui/mobile-project-list.browser.spec.ts:52:3 › MobileProjectList › a second open project gets its own row, and a tap on it focuses it (281ms)
+    ✘  306 packages/ui/test/ui/mobile-project-list.browser.spec.ts:67:3 › MobileProjectList › a hidden project is still hidden after a reload, and the chart still leaves its trace out (241ms)
+    ✘  307 packages/ui/test/ui/mobile-project-list.browser.spec.ts:92:3 › MobileProjectList › tapping a project's colour swatch changes its colour (379ms)
+    ✘  308 packages/ui/test/ui/mobile-project-tab.browser.spec.ts:16:1 › shows the project's name, creator, dates and description (9ms)
+output: |
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:233:7 › MobileMenu › pane dialogs › Manage Drivers is a dialog with a title, a top-right ✕ and closes back to the Box tab 
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:233:7 › MobileMenu › pane dialogs › Project details is a dialog with a title, a top-right ✕ and closes back to the Box tab 
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:233:7 › MobileMenu › pane dialogs › Advanced is a dialog with a title, a top-right ✕ and closes back to the Box tab 
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:249:5 › MobileMenu › pane dialogs › every pane dialog has a Close button in the footer 
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:257:5 › MobileMenu › pane dialogs › turning Favourites on does not change the Manage drivers dialog size 
+      packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:22:1 › step 1 has one footer, in the list and in the driver preview: Next and Cancel, no Use 
+      packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:33:1 › Next chooses the driver being read and advances to step 2 with the footer intact 
+      packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:40:1 › Next is green ─────────────
+      packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:47:1 › the header close (✕) still cancels the whole wizard from step 1 
+      packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts:52:1 › New project from the empty state opens the phone-width wizard, not the desktop modal 
+      packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:34:1 › a tap focuses the button, steps the digit the caret last sat on, and the row does not move 
+      packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:55:1 › a box that never had a caret steps 0.1, and nothing in the box is focused or selected 
+      packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:69:1 › pressing into the text box afterwards gives the keyboard's box back as normal 
+      packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts:77:1 › a hold keeps focus on the button and steps the same digit throughout 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:27:1 › a step button click moves the value by the exact same amount as an ArrowUp keypress 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:50:1 › the down button undoes the up button exactly — same step size, opposite direction 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:66:1 › a long hold on ▲ takes 10 % steps and lands on a round value when released 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:85:1 › the stepper buttons meet a touch-sized minimum at phone width 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:102:1 › holding the button repeats the step, not just one click's worth of movement 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:131:1 › pressing a step button focuses the button, not the field 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:146:1 › a unitless row's step buttons line up with a row that has a unit 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:165:1 › an editable value is drawn as an input box; a read-only one is not 
+      packages/ui/test/ui/mobile-num-stepper.browser.spec.ts:186:1 › a step button on a field holding zero steps up instead of throwing 
+      packages/ui/test/ui/mobile-number-field-letters.browser.spec.ts:6:1 › Mobile: a number field refuses letters typed or pasted and takes the number from a paste 
+      packages/ui/test/ui/mobile-pr-tab.browser.spec.ts:17:3 › MobilePrTab › a passive-radiator box shows passive radiator fields and Select passive radiator opens the browser 
+      packages/ui/test/ui/mobile-pr-tab.browser.spec.ts:31:3 › MobilePrTab › the PR page has no Edit button and edits every passive radiator field in place 
+      packages/ui/test/ui/mobile-pr-tab.browser.spec.ts:58:3 › MobilePrTab › Save to library asks for a name, prefilled, and saves a copy under the typed name 
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:30:3 › MobileProjectList › the Projects pane lists the open project, though it was never saved 
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:37:3 › MobileProjectList › an open project has a show-on-graphs checkbox, ticked by default 
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:44:3 › MobileProjectList › opening the same project twice leaves one row 
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:52:3 › MobileProjectList › a second open project gets its own row, and a tap on it focuses it 
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:67:3 › MobileProjectList › a hidden project is still hidden after a reload, and the chart still leaves its trace out 
+      packages/ui/test/ui/mobile-project-list.browser.spec.ts:92:3 › MobileProjectList › tapping a project's colour swatch changes its colour 
+    1 interrupted
+      packages/ui/test/ui/mobile-project-tab.browser.spec.ts:16:1 › shows the project's name, creator, dates and description 
+    529 did not run
+    127 passed (10.4m)
+    1 error was not a part of any test, see above for details
+  suite: unit exit 0, browser exit 1
+  post-land suite 3819364-9a5062a2da finished: FAILED (exit 1) after 16m26s
+also_red:
+  - sha: 788a5c4ea371a5637d6e1ed79ca60e09b37ffeee
+    tested: 788a5c4ea371a5637d6e1ed79ca60e09b37ffeee
+    last_green: a78dcbb7b83285176f08d9dfbbe1559c613976c3
+    range: a78dcbb7b83285176f08d9dfbbe1559c613976c3..788a5c4ea371a5637d6e1ed79ca60e09b37ffeee
+    failing: |
+        ✘  814 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop wizard-bandpass4-step4 (26.1s)
+        ✘  813 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop wizard-bandpass4-step3 (26.5s)
+        ✘  820 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-driver (26.2s)
+        ✘  819 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-box (26.3s)
+        ✘  822 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-filters (39.2s)
+        ✘  821 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-signal (34.6s)
+        ✘  824 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-project (7ms)
+        ✘  823 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-advanced (9ms)
+        ✘  825 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-box (6ms)
+        ✘  826 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-driver (5ms)
+closed_note: |
+  A laptop-only red. GitHub Actions ran the full suite green on both shas: 9a5062a2da (run 38991195452)
+  and 788a5c4ea3 (run 38992333880), and on every main commit since a78dcbb7. On the laptop, 9a5062a2da's
+  test server died mid-run (driver-editor specs failing in about 200 ms, 529 not run), and 788a5c4ea3's
+  run was killed by a signal while it waited for the browser lock. Both laptop faults are open bugs owned
+  by maryu: BUG_20261017_laptop-suite-server-dies-mid-run and BUG_20261017_post-land-killed-by-worktree-removal.
+  Closed by T266, which makes the GitHub Actions run the gate (John, 17 Oct 2026).

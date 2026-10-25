@@ -41,6 +41,7 @@
 import {NumberField} from '../fields/field.js';
 import {missingDependencies} from './consistency.js';
 import type {CalculationIssue} from './consistency.js';
+import type {AirIssue} from './environment/airSolver.js';
 
 /** Ratio of specific heats for air — DPC `air.htm`: "For dry air gamma = 1.40 is a good estimate". */
 export const GAMMA = 1.4;
@@ -60,35 +61,104 @@ export const DEFAULT_P_REF_PA  = 101325;
 export const MIN_SUPPORTED_TEMP_K = NumberField.ADV_TEMP_K.limits.min;
 export const MAX_SUPPORTED_TEMP_K = NumberField.ADV_TEMP_K.limits.max;
 
-/** The air a simulation runs in. */
+/** The air a calculation runs in, as its CALLER states it: the project's c and ρ (or the standalone
+ *  driver's), each entered or calculated. An engine API that uses air takes one of these and never
+ *  sees temperature, humidity or pressure (John, 17 Oct 2026: "provided by caller to any API that
+ *  uses air, specifically c and roo"). */
 export interface Air {
+  /** Speed of sound, m/s. */
+  c(): number;
+  /** Density, kg/m³. */
+  rho(): number;
+}
+
+/**
+ * The app's own air: the Options constants a project COPIES in, as E, when one of its air fields is
+ * filled (a new project, an old file with no air, a cleared field the solver cannot give). Handed
+ * to a project once, at construction, by the composition root. Read only at the moment of a fill:
+ * it is never a live link, and no solver sees it.
+ */
+export interface AppAir {
+  /** Speed of sound at the app's constants, m/s. */
+  c(): number;
+  /** Density at the app's constants, kg/m³. */
+  rho(): number;
+  /** The app's temperature, K. */
+  temperature(): number;
+  /** The app's relative humidity, percent. */
+  humidity(): number;
+  /** The app's pressure, Pa. */
+  pressure(): number;
+}
+
+/** The app's air over its three Options constants: c and ρ are the air model's answer for them.
+ *  Read at call time, so a changed Options value is seen by the next fill. */
+export function appAirOf(constants: () => AirEnvironment): AppAir {
+  const values = (): AirValues => winisdAir(constants().tempK, constants().humidityPct, constants().pressurePa);
+  return {
+    c: () => values().c,
+    rho: () => values().rho,
+    temperature: () => constants().tempK,
+    humidity: () => constants().humidityPct,
+    pressure: () => constants().pressurePa,
+  };
+}
+
+/** The names the working sets and the vent and radiator solves give to c and ρ. */
+export type AirWorkingName = 'c_m_per_s' | 'roo_kg_per_m3';
+/** Both air names, in the order an issue lists them. */
+export const AIR_WORKING_NAMES: readonly AirWorkingName[] = Object.freeze<AirWorkingName[]>(['c_m_per_s', 'roo_kg_per_m3']);
+
+/**
+ * The air a solver that WRITES calculated values is given: either c and ρ are there, or they are
+ * not available and `issues` say why. A solver given `notAvailable` still runs every route that
+ * needs no air, and leaves each air-dependent value it was not given not available.
+ */
+export type AirState =
+  | {readonly kind: 'available'; readonly air: Air}
+  | {readonly kind: 'notAvailable'; readonly issues: readonly AirIssue[]};
+
+/** The air of an `AirState` that has one, else null. */
+export function airIfAvailable(state: AirState): Air | null {
+  switch (state.kind) {
+    case 'available': return state.air;
+    case 'notAvailable': return null;
+  }
+}
+
+/** The `AirState` of an air that is there. */
+export function availableAir(air: Air): AirState {
+  return {kind: 'available', air};
+}
+
+/** c and ρ as plain numbers: what the air solver produces and what a stored c or ρ field holds. */
+export interface AirValues {
   /** Density, kg/m³. */
   readonly rho: number;
   /** Speed of sound, m/s. */
   readonly c: number;
 }
 
-/**
- * Ambient conditions a driver or project may hold, structurally compatible with `AirEnvironment`.
- * `airFor(provider ?? {})` accepts one directly.
- */
-export interface AirConstantProvider {
-  tempK?: number;
-  humidityPct?: number;
-  pressurePa?: number;
+/** An `Air` whose c and ρ are the two numbers it was made with. */
+export class FixedAir implements Air {
+  constructor(private readonly values: AirValues) {}
+
+  c(): number { return this.values.c; }
+
+  rho(): number { return this.values.rho; }
 }
 
 /**
- * The environment fields a caller may supply. `SweepParams` satisfies this structurally, so
- * the sweep and the circuit pass themselves straight to `airFor`.
+ * The three conditions the air solver turns into c and ρ. Every one is required: a caller that
+ * has no value for one has no air to ask about. Only the air solver reads these.
  */
 export interface AirEnvironment {
-  /** Ambient temperature, K. Absent → `T_REF_K`. */
-  tempK?: number;
-  /** Relative humidity, PERCENT (0–100). Absent → `RH_REF_PCT`. The `.wpr` fraction is converted at that boundary. */
-  humidityPct?: number;
-  /** Static air pressure, Pa. Absent → `P_REF_PA`. */
-  pressurePa?: number;
+  /** Ambient temperature, K. */
+  tempK: number;
+  /** Relative humidity, PERCENT (0–100). The `.wpr` fraction is converted at that boundary. */
+  humidityPct: number;
+  /** Static air pressure, Pa. */
+  pressurePa: number;
 }
 
 export type EnvironmentQuantityName = keyof AirEnvironment;
@@ -102,9 +172,8 @@ export type EnvironmentIssue = CalculationIssue<EnvironmentQuantityName>;
  * separately from `Air`, not bundled with it, so a caller that only wants `{ rho, c }` is not
  * forced to also destructure an issues array that is empty in the overwhelming common case.
  */
-function environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
-  const { tempK } = env;
-  if (tempK == null || (tempK >= MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K)) return [];
+export function temperatureIssues(tempK: number): readonly EnvironmentIssue[] {
+  if (tempK >= MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K) return [];
   return [missingDependencies('tempK', [{
     formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
     required: ['tempK'], missing: ['tempK'],
@@ -112,7 +181,7 @@ function environmentIssues(env: AirEnvironment): readonly EnvironmentIssue[] {
 }
 
 export interface EnvironmentSolveResult {
-  readonly values: Air;
+  readonly values: AirValues;
   readonly issues: readonly EnvironmentIssue[];
 }
 
@@ -121,7 +190,7 @@ export interface EnvironmentSolveResult {
  *  calling `airFor` and `environmentIssues`, which could be handed different arguments and so
  *  describe two different environments. */
 export function solveEnvironment(env: AirEnvironment): EnvironmentSolveResult {
-  return { values: airFor(env), issues: environmentIssues(env) };
+  return { values: airFor(env), issues: temperatureIssues(env.tempK) };
 }
 
 /** Molar mass of dry air, kg/mol — DPC `air.htm`: "ML = 28.965 is the molar mass for dry air". */
@@ -155,7 +224,7 @@ function hylandWexlerVapourPressure(tempK: number): number {
 }
 
 /** WinISD's air: `c` from the moist-air molar mass, then `ρ = γ·p/c²` (see the module docstring). */
-function winisdAir(tempK: number, humidityPct: number, pressurePa: number): Air {
+function winisdAir(tempK: number, humidityPct: number, pressurePa: number): AirValues {
   // No enhancement factor: WinISD's mole fraction is the bare ratio.
   const xv = (humidityPct / 100) * hylandWexlerVapourPressure(tempK) / pressurePa;
   const molarMass = M_DRY_DPC + xv * (M_WATER_DPC - M_DRY_DPC);
@@ -163,11 +232,12 @@ function winisdAir(tempK: number, humidityPct: number, pressurePa: number): Air 
   return { rho: GAMMA * pressurePa / (c * c), c };
 }
 
-/** The air for an environment. Absent fields take the reference conditions. */
-function airFor(env: AirEnvironment): Air {
-  return winisdAir(
-    env.tempK ?? DEFAULT_T_REF_K,
-    env.humidityPct ?? DEFAULT_RH_REF_PCT,
-    env.pressurePa ?? DEFAULT_P_REF_PA,
-  );
+/** The speed of sound, m/s, at three stated conditions: relation R1 of the air solver. */
+export function soundSpeedAt(tempK: number, humidityPct: number, pressurePa: number): number {
+  return winisdAir(tempK, humidityPct, pressurePa).c;
+}
+
+/** The air for an environment: c and ρ from its three conditions, all stated. */
+function airFor(env: AirEnvironment): AirValues {
+  return winisdAir(env.tempK, env.humidityPct, env.pressurePa);
 }

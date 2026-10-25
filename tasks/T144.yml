@@ -1,5 +1,5 @@
 id: T144
-release_note: The Releases and Snapshot builds pages link to /test/, the newest snapshot at a fixed URL
+release_note: The Releases and Snapshot builds pages link to /test/, the newest snapshot at a fixed URL.
 repo: openisd
 owner: fable
 status: done

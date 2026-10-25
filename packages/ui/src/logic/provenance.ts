@@ -53,7 +53,7 @@ Fs_hz: {
       { formulaText: 'Fs_hz = 1 / (2π × √(Cms_m_per_N × Mms_kg))', inputs: ['Cms_m_per_N', 'Mms_kg'] },
       { formulaText: 'Fs_hz = (Rme_kg_per_s × Qes) / (2π × Mms_kg)', inputs: ['Rme_kg_per_s', 'Qes', 'Mms_kg'] },
       { formulaText: 'Fs_hz = (Qes × BL²) / (2π × Mms_kg × Re_ohm)', inputs: ['Qes', 'BL_Tm', 'Mms_kg', 'Re_ohm'] },
-      { formulaText: 'Fs_hz = ∛(no × Qes / (CONST_NO × Vas_m3))', inputs: ['no', 'Qes', 'Vas_m3'] },
+      { formulaText: 'Fs_hz = ∛(no × Qes / (CONST_NO × Vas_m3))', inputs: ['no', 'Qes', 'Vas_m3', 'c_m_per_s'] },
       { formulaText: 'Fs_hz = EBP_hz × Qes', inputs: ['EBP_hz', 'Qes'] }
     ]
   },

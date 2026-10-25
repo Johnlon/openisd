@@ -1,0 +1,45 @@
+id: T243
+release_note: A new version now reaches an open app by itself, or is offered when you have unsaved changes. About has a Force refresh button.
+repo: openisd
+owner: maryu
+status: done
+landed: 2a9d82898bad934bd26cd0de6bd23c47e105823d
+goal: App update: a new build reaches open and resumed apps; Force refresh in About; dismissable update and reconnect prompts
+done_test: bash scripts/test.sh packages/ui/test/logic/appUpdate.test.ts
+visual: []
+files:
+  - bugs/BUG_20261016_new-build-never-reaches-open-app.md
+  - packages/design/cloud/syncDisplay.ts
+  - packages/design/fields/appUpdateText.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/cloud/syncDisplay.test.ts
+  - packages/ui/src/hooks/CloudSync-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/appUpdateUi.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/logic/appUpdate.ts
+  - packages/ui/src/logic/browserReleasePort.ts
+  - packages/ui/src/logic/releaseWatch.ts
+  - packages/ui/src/logic/scriptedUpdateHost.ts
+  - packages/ui/src/logic/telemetry/serviceWorker.ts
+  - packages/ui/src/logic/testHooks.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/SplashModal.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/fixtures/updateHost.ts
+  - packages/ui/test/hooks/appUpdateUi.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/appUpdate.test.ts
+  - packages/ui/test/logic/browserReleasePort.test.ts
+  - packages/ui/test/logic/releaseWatch.test.ts
+  - packages/ui/test/scripts/vite-config.test.ts
+  - packages/ui/test/ui/app-update.browser.spec.ts
+  - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
+  - packages/ui/test/ui/cloudSync.original.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - scripts/hosting/test/app-update.e2e.mjs
+  - tasks/T243.yml
+  - vite.config.js

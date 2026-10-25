@@ -1,0 +1,16 @@
+id: T195
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 3489a448ab09f5d78c911259cad5bf2e2be8699d
+goal: 'Phone ▲▼: a tap focuses the button and keeps it, never the text box; steps the remembered caret digit (0.1 if none); the hold repeats at 3 a second easing up to 12 (John, 15 Oct 2026)'
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T195.yml
+  - packages/design/fields/caretSpin.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/caret-spin.test.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts
+  - packages/ui/test/ui/mobile-num-stepper.browser.spec.ts

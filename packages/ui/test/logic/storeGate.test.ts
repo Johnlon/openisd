@@ -1,4 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
+import type {ExportNotice} from '../../src/logic/exportNotice.js';
 import {
   createBuildStamp, createMemoryStorage, createStoreOpening, LAYOUT_STEPS, STORAGE_LAYOUT, OPENISD_BACKUP_PREFIX, OPENISD_PROJECTS_KEY,
   OPENISD_STORAGE_LAYOUT_KEY, type OpenStore, type StoreOpening,
@@ -27,8 +28,9 @@ function blockedOpening() {
 function session(opening: Exclude<StoreOpening, {kind: 'ready'}>) {
   const download = vi.fn();
   const onReady = vi.fn<(open: OpenStore) => void>();
-  const gate = createStoreGateSession(opening, {formatTime: at => at.toISOString(), download, now: () => NOW, onReady});
-  return {gate, download, onReady};
+  const exported = vi.fn<ExportNotice['exported']>();
+  const gate = createStoreGateSession(opening, {formatTime: at => at.toISOString(), download, now: () => NOW, exportNotice: {exported}, onReady});
+  return {gate, download, onReady, exported};
 }
 
 describe('the store gate screen', () => {
@@ -42,8 +44,9 @@ describe('the store gate screen', () => {
   });
 
   it('offers a raw export of everything, named with a basic UTC time', () => {
-    const {gate, download} = session(blockedOpening().opening);
+    const {gate, download, exported} = session(blockedOpening().opening);
     gate.exportEverything();
+    expect(exported).toHaveBeenCalledWith({kind: 'everything'}, 'openisd-everything-20260301T040506Z.json');
     expect(download).toHaveBeenCalledTimes(1);
     expect(download.mock.calls[0][0]).toBe('openisd-everything-20260301T040506Z.json');
     expect(download.mock.calls[0][1]).toContain('projects from the future');

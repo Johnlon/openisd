@@ -1,0 +1,22 @@
+id: T214
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 394bfb62bb7ec30875a6da750f1d8aaebc9f9751
+goal: 'Post-land process: a TERM with no newer run is a red that says killed by signal, not superseded; the watchdog starts a run when main holds an untested commit and none is alive; the full suite takes the browser lock exclusive and agent browser specs take it shared (F34, F35 load reds, OOM kills)'
+done_test: bash -c 'bash scripts/land/test/post-land-signal.test.sh && bash scripts/land/test/suite-lock.test.sh'
+files:
+  - tasks/T214.yml
+  - scripts/land/post-land/run.sh
+  - scripts/land/post-land/suite.sh
+  - scripts/land/watchdog.sh
+  - scripts/suite-lock.sh
+  - scripts/paths.sh
+  - scripts/test.sh
+  - .claude/rules/verify.md
+  - scripts/land/test/post-land-signal.test.sh
+  - scripts/land/test/suite-lock.test.sh
+  - scripts/land/test/watchdog.test.sh
+  - scripts/land/test/suite-admit.test.sh
+  - scripts/land/test/suite-both-halves.test.sh

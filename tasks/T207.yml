@@ -1,0 +1,20 @@
+id: T207
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 8349312d46aef500472e494ebca107c72e39e834
+goal: 'The /test/ build keeps its own browser store: StoragePrefix resolved once from the page path, applied by the storage port; root app keys unchanged'
+done_test: bash scripts/test.sh packages/persistence/test/storagePrefix.test.ts
+files:
+  - tasks/T207.yml
+  - docs/design/BROWSER_STORAGE_KEYS.md
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/storage/keyValueStorage.ts
+  - packages/persistence/src/storage/storagePrefix.ts
+  - packages/persistence/test/storagePrefix.test.ts
+  - packages/ui/src/diagnostics/faultLog.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/diagnostics/faultOrigin.test.ts
+  - packages/ui/test/hooks/DiagnosticsModal-hooks.test.ts
+  - packages/ui/test/hooks/testAppLogic.ts

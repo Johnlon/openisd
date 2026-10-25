@@ -4,7 +4,8 @@ export interface ConfirmRequest {
   title: string;
   message: string;
   confirmLabel: string;
-  cancelLabel: string;
+  /** Omitted: the dialog is a notice with only the confirm button (OK). */
+  cancelLabel?: string;
   /** `buttonsOnly`: Esc and a click outside the dialog do nothing; only a button answers. Default `any`. */
   dismissal?: 'any' | 'buttonsOnly';
 }

@@ -78,15 +78,17 @@ export type ValueFloor = 'positive' | 'non-negative' | 'none';
  *   decimals shown.
  * - `proportionalFloored` — the same, never finer than `10^finestExp` in the field's fixed unit: a
  *   signed level that passes through 0 (gain in dB steps 0 → ±0.1).
- * - `integer` — a count or an order: every press is 1.
+ * - `integer` — a count or an order: every press is `step` (1; 2 for an even-only order).
  */
 export type FieldSpin =
   | {readonly kind: 'proportional'}
   | {readonly kind: 'proportionalFloored'; readonly finestExp: number}
-  | {readonly kind: 'integer'};
+  | {readonly kind: 'integer'; readonly step: number};
 
 const PROPORTIONAL_SPIN: FieldSpin = Object.freeze({kind: 'proportional'});
-const INTEGER_SPIN: FieldSpin = Object.freeze({kind: 'integer'});
+/** A count or an order that moves `step` a press. */
+export function integerSpin(step: number): FieldSpin { return Object.freeze({kind: 'integer', step}); }
+const INTEGER_SPIN: FieldSpin = integerSpin(1);
 
 interface FieldSpec {
   readonly value: string;
@@ -125,6 +127,7 @@ interface NumberFieldSpec extends FieldSpec {
   readonly plausible?: FieldLimits;
   readonly floor?: ValueFloor;
   readonly spin?: FieldSpin;
+  readonly allowedEmpty?: boolean;
 }
 
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
@@ -149,6 +152,8 @@ export class NumberField extends Field {
   readonly floor: ValueFloor;
   /** How a spinner press moves the value. */
   readonly spin: FieldSpin;
+  /** Whether this field is allowed to stay empty when cleared (e.g. filter fields). */
+  readonly allowedEmpty: boolean;
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
@@ -159,6 +164,12 @@ export class NumberField extends Field {
     this.plausible = Object.freeze(spec.plausible ?? spec.limits);
     this.floor = spec.floor ?? 'none';
     this.spin = spec.spin ?? PROPORTIONAL_SPIN;
+    this.allowedEmpty = spec.allowedEmpty ?? false;
+  }
+
+  /** Whether this field is empty while it is allowed to stay empty. */
+  emptyAndAllowed(value: number | null): boolean {
+    return this.allowedEmpty && value === null;
   }
 
   /** Authoritative unit resolution for this field. */
@@ -217,10 +228,9 @@ export class NumberField extends Field {
   }
 
   /** The spinner rule for this field shown in unit `token`. */
-  spinRule(token?: string): SpinRule {
-    const spin = this.spin;
+  spinRule(token?: string, spin: FieldSpin = this.spin): SpinRule {
     switch (spin.kind) {
-      case 'integer': return {kind: 'integer'};
+      case 'integer': return {kind: 'integer', step: spin.step};
       case 'proportional': return {kind: 'proportional', finestExp: 0 - decimalsIn(this.unitFor(token), this.precision)};
       case 'proportionalFloored':
         return {kind: 'proportional', finestExp: Math.max(spin.finestExp, 0 - decimalsIn(this.unitFor(token), this.precision))};
@@ -300,6 +310,64 @@ export class NumberField extends Field {
     description: "Plot End Frequency\nThe highest frequency every chart draws and the sweep computes.",
   });
 
+  // ── Plot window: one chart's Y axis start or end, per unit a chart axis is drawn in ──────────
+  static readonly PLOT_Y_DB = new NumberField({
+    value: "plot_y_db",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'dB'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in decibels.",
+  });
+  static readonly PLOT_Y_DEG = new NumberField({
+    value: "plot_y_deg",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'deg'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in degrees.",
+  });
+  static readonly PLOT_Y_MM = new NumberField({
+    value: "plot_y_mm",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'mm'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in millimetres.",
+  });
+  static readonly PLOT_Y_OHM = new NumberField({
+    value: "plot_y_ohm",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'Ω'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in ohms.",
+  });
+  static readonly PLOT_Y_MS = new NumberField({
+    value: "plot_y_ms",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'ms'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in milliseconds.",
+  });
+  static readonly PLOT_Y_W = new NumberField({
+    value: "plot_y_w",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'W'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in watts.",
+  });
+  static readonly PLOT_Y_MPS = new NumberField({
+    value: "plot_y_mps",
+    label: "Axis limit",
+    display: {kind: 'fixed', symbol: 'm/s'},
+    limits: {min: -10000, max: 100000},
+    precision: 2,
+    description: "Chart Axis Limit\nThe start or end of a chart's vertical axis, in metres per second.",
+  });
+
   // ── Box ───────────────────────────────────────────────────────────────────────────────────
   static readonly BOX_VB_L = new NumberField({
     value: "box_Vb_l",
@@ -311,7 +379,7 @@ export class NumberField extends Field {
   });
   static readonly BOX_VF_L = new NumberField({
     value: "box_Vf_l",
-    label: "Front volume",
+    label: "Volume",
     display: {kind: 'switchable', group: 'volume', base: 'L'},
     limits: {min: 0.0001, max: 100},
     precision: 2,
@@ -319,22 +387,22 @@ export class NumberField extends Field {
   });
   static readonly BOX_FB_HZ = new NumberField({
     value: "box_Fb_hz",
-    label: "Target Tuning Freq (Fb)",
+    label: "Tuning freq (Fb)",
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume.",
+    description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume. The tuning is a goal; the box may not reach it.",
   });
 
   static readonly BOX_FFC_HZ = new NumberField({
     value: "box_Ffc_hz",
-    label: "Target Tuning Freq (Ffc)",
+    label: "Tuning freq (Ffc)",
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume.",
+    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume. The tuning is a goal; the box may not reach it.",
   });
 
   // ── Vent ──────────────────────────────────────────────────────────────────────────────────
@@ -510,7 +578,7 @@ export class NumberField extends Field {
   static readonly SIGNAL_RS_OHM = new NumberField({
     value: "signal_Rs_ohm",
     label: "Series resistance",
-    display: {kind: 'fixed', symbol: 'ohm'},
+    display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0, max: 1000},
     precision: 3,
     description: "Series Resistance\nCombined amplifier output impedance, wiring and crossover resistance, in series with the driver.",
@@ -673,7 +741,7 @@ export class NumberField extends Field {
   static readonly RE_OHM = new NumberField({
     value: "Re_ohm",
     label: "Re",
-    display: {kind: 'fixed', symbol: 'ohm'},
+    display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0.01, max: 1000},
     floor: "positive",
     precision: 3,
@@ -687,7 +755,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 0.1},
     floor: "non-negative",
     precision: 3,
-    plausible: {min: 0.0, max: 0.1},
+    plausible: {min: 1e-06, max: 0.1},
     description: "Voice Coil Inductance (Le)\nSelf-inductance of the coil — raises electrical impedance at high frequency.",
   });
   static readonly MMS_KG = new NumberField({
@@ -769,7 +837,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 5,
-    plausible: {min: 0.0, max: 200.0},
+    plausible: {min: 0.01, max: 200.0},
     formula: "Rms = 2π·Fs·Mms/Qms",
     description: "Mechanical Resistance (Rms)\nFriction loss in the driver's suspension.",
   });
@@ -1064,7 +1132,7 @@ export class NumberField extends Field {
   static readonly ZNOM_OHM = new NumberField({
     value: "Znom_ohm",
     label: "Znom",
-    display: {kind: 'fixed', symbol: 'ohm'},
+    display: {kind: 'fixed', symbol: 'Ω'},
     limits: {min: 0, max: 64},
     floor: "non-negative",
     precision: 4,
@@ -1101,6 +1169,32 @@ export class NumberField extends Field {
     precision: 2,
     description: "System Resonance Frequency (Fsc / Fh)\nThe driver's resonance once coupled to the enclosure.",
   });
+  static readonly BOX_FH_HZ = new NumberField({
+    value: "box_Fh_hz",
+    label: "Fh",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
+    limits: {min: 1, max: 1000},
+    precision: 2,
+    description: "Passive Radiator System Tuning (Fh)\nHelmholtz tuning frequency the passive radiator and the box volume achieve together. The same value as the Fp on the Passive Radiator tab.",
+  });
+  static readonly BOX_FSC_HZ = new NumberField({
+    value: "box_Fsc_hz",
+    label: "Fsc",
+    display: {kind: 'switchable', group: 'freq', base: 'Hz'},
+    limits: {min: 0, max: 20000},
+    floor: "positive",
+    precision: 2,
+    description: "System Resonance Frequency (Fsc)\nThe driver's resonance once coupled to the closed box. Volume, Fsc and Qtc each fix the other two: enter one and the other two are calculated.",
+  });
+  static readonly BOX_QTC_VALUE = new NumberField({
+    value: "box_Qtc_value",
+    label: "Qtc",
+    display: {kind: 'fixed', symbol: ''},
+    limits: {min: 0, max: 5},
+    floor: "positive",
+    precision: 3,
+    description: "System Q (Qtc)\nThe closed box's total system Q. Volume, Fsc and Qtc each fix the other two: enter one and the other two are calculated.",
+  });
   static readonly BOX_REARRESONANCE_HZ = new NumberField({
     value: "box_RearResonance_hz",
     label: "Frc",
@@ -1115,7 +1209,7 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     precision: 2,
-    description: "Rear Chamber Tuning Frequency (Frc)\nTarget Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box.",
+    description: "Rear Chamber Tuning Frequency (Frc)\nTarget Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box. The tuning is a goal; the box may not reach it.",
   });
 
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
@@ -1153,6 +1247,18 @@ export class NumberField extends Field {
     limits: FILTER_FC_LIMITS,
     precision: 3,
     description: "Cutoff / Center Frequency\nCutoff or center frequency of the active filter.",
+    allowedEmpty: true,
+  });
+  /** The same frequency on the phone's Filters cards, shown in whole hertz (the accepted classic phone
+   *  mock, screen 10). The desktop keeps FILTER_FC_HZ's decimals and fine spinner steps. */
+  static readonly PHONE_FILTER_FC_HZ = new NumberField({
+    value: "phone_Filter_Fc_hz",
+    label: "Cutoff / Center freq",
+    display: {kind: 'fixed', symbol: 'Hz'},
+    limits: FILTER_FC_LIMITS,
+    precision: 0,
+    description: "Cutoff / Center Frequency\nCutoff or center frequency of the active filter.",
+    allowedEmpty: true,
   });
   static readonly FILTER_Q = new NumberField({
     value: "filter_Q",
@@ -1161,6 +1267,7 @@ export class NumberField extends Field {
     limits: FILTER_Q_LIMITS,
     precision: 3,
     description: "Filter Quality Factor (Q)\nHow sharp the filter's resonance peak or its damping is.",
+    allowedEmpty: true,
   });
   static readonly FILTER_GAIN_DB = new NumberField({
     value: "filter_Gain_dB",
@@ -1170,6 +1277,7 @@ export class NumberField extends Field {
     spin: {kind: 'proportionalFloored', finestExp: -1},
     precision: 3,
     description: "Filter Gain\nBoost or cut applied by the filter or equalizer, in dB.",
+    allowedEmpty: true,
   });
   static readonly FILTER_ORDER = new NumberField({
     value: "filter_Order",
@@ -1177,8 +1285,9 @@ export class NumberField extends Field {
     display: {kind: 'fixed', symbol: ''},
     limits: FILTER_ORDER_LIMITS,
     spin: INTEGER_SPIN,
-    precision: 3,
+    precision: 0,
     description: "Filter Order\nFilter steepness: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct. Up to 20.\nWinISD stops at order 10 (above that it hits a floating-point overflow error); a project with a higher order shows that error in WinISD.",
+    allowedEmpty: true,
   });
   static readonly FILTER_T_S = new NumberField({
     value: "filter_T_s",
@@ -1187,6 +1296,7 @@ export class NumberField extends Field {
     limits: FILTER_T_LIMITS,
     precision: 4,
     description: "Allpass Delay Time\nGroup-delay time constant of an allpass filter section.",
+    allowedEmpty: true,
   });
   static readonly FILTER_BW_OCT = new NumberField({
     value: "filter_BW_oct",
@@ -1195,6 +1305,7 @@ export class NumberField extends Field {
     limits: FILTER_BW_LIMITS,
     precision: 3,
     description: "DLP Raised-Cosine Bandwidth\nWidth of the raised-cosine transition band, in octaves.",
+    allowedEmpty: true,
   });
 
   static readonly ALL: readonly NumberField[] =
@@ -1381,8 +1492,8 @@ export class ToggleField extends Field {
   static readonly ADV_WINISDDRIVERMODEL = new ToggleField({
     value: "adv_WinisdDriverModel",
     label: "Two-BL driver",
-    description: "Two-BL driver: WinISD mixes the entered BL with the BL that Fs, Qes and Vas imply. We count this as a WinISD bug.\nTicked: OpenISD uses two BLs, as WinISD does. The damping comes from Cms worked out from Vas, then Mms, Rms and BL worked out from Fs, Qms and Qes. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off.\nUnticked (default): OpenISD uses the entered datasheet values, with one BL throughout.",
-  }, "every chart, only when the entered driver values disagree with Fs, Vas, Qes and Qms. W5-1138SMF (entered BL 7.17, implied 7.384): the SPL chart differs by 0.26 dB in the passband, the Impedance chart peak is about 1.2 Ω (8 %) high, and the Transfer function magnitude chart differs by 0.51 dB.");
+    description: "Two-BL driver: WinISD uses two BLs. The BL that Re, Fs, Qes and Vas imply sets the damping, and the entered BL sets the loudness. We count this as a WinISD bug.\nTicked: OpenISD does the same. The entered BL sets the loudness and, with voice coil inductance on, the inductance roll-off.\nUnticked (default): OpenISD uses one BL, the one that Re, Fs, Qes and Vas imply, for the loudness and the damping. An entered BL that disagrees with them is marked and does not change the charts.",
+  }, "every chart, only when the entered BL disagrees with the one that Re, Fs, Qes and Vas imply. W5-1138SMF (entered BL 7.17, implied 7.384): the SPL chart differs by 0.26 dB in the passband, the Impedance chart peak is about 1.2 Ω (8 %) high, and the Transfer function magnitude chart differs by 0.51 dB.");
   static readonly ADV_WINISDVAMODEL = new ToggleField({
     value: "adv_WinisdVaModel",
     label: "Re without Rg",
@@ -1393,6 +1504,11 @@ export class ToggleField extends Field {
     label: "PR Npr resonance",
     description: "PR Npr resonance: WinISD works out the passive radiator box's losses at a frequency Npr times too low.\nTicked: OpenISD takes the box's leak and absorption at WinISD's frequency, 1/√(Npr·Map·(Cab ∥ Npr·Cap)). WinISD multiplies the radiator mass by Npr where the tuning divides by it.\nUnticked (default): OpenISD takes the same losses at the true tuning, 1/√((Map/Npr)·(Cab ∥ Npr·Cap)).",
   }, "passive radiator boxes with more than one radiator (Npr > 1), with WinISD's lossy model. No change at Npr = 1. Npr 2, W5 in 10 L, radiator Fs 30 Hz and Vas 4.8 L (WinISD 21 Hz, tuning 42 Hz): the Impedance chart differs by up to 1 Ω, the Transfer function magnitude chart by up to 2 dB.");
+  static readonly ADV_WINISDSEALEDPICKER = new ToggleField({
+    value: "adv_WinisdSealedPicker",
+    label: "Sealed picker volume",
+    description: "Sealed picker volume: WinISD's sealed alignment picker gives a box volume whose Qtc on the Box tab is not the Qtc you picked.\nTicked: OpenISD works as WinISD does. The picker leaves out the box's leakage losses (Ql) and the project's own Rg and Qa. It adds a fixed Rg of 0.1 Ω to Qes and a fixed Qa of 100: Qt = 1/(1/Qts′ + 1/100), with Qts′ using Qes·(Re + 0.1)/Re. Vb = Vas/((Qtc/Qt)² − 1).\nUnticked (default): OpenISD gives the volume at which the Box tab shows the picked Qtc. It counts the project's Rg and every box loss.\nQtc: the picked total Q. Qts′: the driver's Qts with Rg in it. Vas: the driver's equivalent air volume.",
+  }, "the sealed alignment picker in the New Project wizard and on the Box tab. W5-1138SMF (Qts 0.49, Vas 4.85 L), Ql 10: Qtc 0.800 picked gives 3.13 L, and the Box tab shows 0.787. OpenISD gives 2.96 L, and the Box tab shows 0.800.");
   static readonly ADV_WINISDBESSELHIGHPASS = new ToggleField({
     value: "adv_WinisdBesselHighpass",
     label: "Bessel high-pass",
@@ -1403,6 +1519,11 @@ export class ToggleField extends Field {
     label: "ABC group delay",
     description: "ABC group delay: WinISD's ABC group delay leaves the driver out.\nTicked: OpenISD works as WinISD does. It steps the box to f ± 1e-10 Hz but keeps the driver at the chart frequency f, so the driver's own phase slope is missing. The result disagrees with WinISD's own phase chart.\nUnticked (default): the group delay is −dφ/dω of the plotted phase.",
   }, "the Group Delay chart of an ABC box only. W5-1138SMF ABC: −41.0 ms against −33.9 ms at 1 Hz, −3.3 ms against +3.6 ms at 10.75 Hz.");
+  static readonly ADV_WINISDTLPORTNOENDCORRECTION = new ToggleField({
+    value: "adv_WinisdTlPortNoEndCorrection",
+    label: "TL port without end correction",
+    description: "TL port without end correction: with the transmission line model on, WinISD builds the port pipe without the port's end correction, so the box tunes above the Fb on the Box tab.\nTicked: OpenISD works as WinISD does. The pipe is the Fb port length less the end correction. On the W5-1138SMF at Fb 38 Hz, the impedance minimum is 40.3 Hz, against 38.7 Hz unticked.\nUnticked (default): the pipe keeps the end correction and the box tunes where the Box tab says.\nOnly where \"Use transmission line model\" is ticked on a vented, bandpass or ABC box.",
+  }, "the Impedance, SPL and Transfer function charts of vented, bandpass and ABC boxes with the transmission line model on. W5-1138SMF, Fb 38 Hz: impedance minimum 40.3 Hz in WinISD against 38.7 Hz with the end correction.");
 
   static readonly ADV_WINISDDRIVERCOUNTMODEL = new ToggleField({
     value: "adv_WinisdDriverCountModel",

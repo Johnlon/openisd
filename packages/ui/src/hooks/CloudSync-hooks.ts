@@ -11,7 +11,8 @@ import {
   shallowRef,
 } from 'vue';
 import type { SyncStatus, CloudUiState, ConflictCopy, SyncActivity, SyncDisplay, SyncTap } from '@openisd/design/cloud';
-import { syncDisplayOf } from '@openisd/design/cloud';
+import { ProjectId, syncDisplayOf } from '@openisd/design/cloud';
+import type { ProjectCloudMarks } from './projectBinView.js';
 import type { CloudSync, CloudUiStore } from '@openisd/persistence';
 
 export interface CloudSyncAPI {
@@ -19,8 +20,13 @@ export interface CloudSyncAPI {
   readonly status: Readonly<Ref<SyncStatus>>;
   readonly conflicts: Readonly<Ref<readonly ConflictCopy[]>>;
   readonly activity: Readonly<Ref<readonly SyncActivity[]>>;
+  /** The ids of the saved projects Drive does not have as they are now. */
+  readonly projectsNotOnDrive: Readonly<Ref<ReadonlySet<string>>>;
   readonly ui: Readonly<Ref<CloudUiState>>;
+  /** The user chose Not now on the reconnect strip; true until the next launch. */
+  readonly reconnectDismissed: Readonly<Ref<boolean>>;
   dismissHint(): void;
+  dismissReconnect(): void;
   setConflictsSeen(count: number): void;
 }
 
@@ -31,17 +37,24 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
   // shallowRef: a deep ref would unwrap the branded id classes into plain objects.
   const conflicts = shallowRef<readonly ConflictCopy[]>(sync ? sync.conflicts() : []);
   const activity = shallowRef<readonly SyncActivity[]>(sync ? sync.activity() : []);
+  const projectsNotOnDrive = shallowRef<ReadonlySet<string>>(sync ? sync.projectsNotOnDrive() : new Set());
   const ui = ref<CloudUiState>(uiStore.read());
+  const reconnectDismissed = ref(false);
 
   if (sync) {
     const unwatch = sync.watch(() => {
       status.value = sync.status();
       conflicts.value = sync.conflicts();
       activity.value = sync.activity();
+      projectsNotOnDrive.value = sync.projectsNotOnDrive();
     });
     if (getCurrentScope()) {
       onScopeDispose(unwatch);
     }
+  }
+
+  function dismissReconnect(): void {
+    reconnectDismissed.value = true;
   }
 
   function dismissHint(): void {
@@ -58,8 +71,11 @@ export function createCloudSyncAPI(sync: CloudSync | null, uiStore: CloudUiStore
     status: readonly(status),
     conflicts: computed(() => conflicts.value),
     activity: computed(() => activity.value),
+    projectsNotOnDrive: computed(() => projectsNotOnDrive.value),
     ui: readonly(ui),
+    reconnectDismissed: readonly(reconnectDismissed),
     dismissHint,
+    dismissReconnect,
     setConflictsSeen,
   };
 }
@@ -84,6 +100,8 @@ export interface CloudSyncUiAPI {
   connect(): void;
   syncNow(): void;
   reconnect(): void;
+  /** Not now on the reconnect strip. */
+  dismissReconnect(): void;
   disconnect(): Promise<void>;
   openConflict(id: ConflictCopy['id']): void;
   viewConflicts(): void;
@@ -112,6 +130,7 @@ export function useCloudSyncUi(
       hintDismissed: ui.hintDismissed,
       launches: ui.launches,
       updateBannerShown: updateBannerShown.value,
+      reconnectDismissed: cloudSyncAPI.reconnectDismissed.value,
       configured: available.value,
     });
   });
@@ -164,11 +183,23 @@ export function useCloudSyncUi(
     connect,
     syncNow,
     reconnect,
+    dismissReconnect: cloudSyncAPI.dismissReconnect,
     disconnect,
     openConflict,
     viewConflicts,
     hintTurnOn,
     hintDismiss,
     tap,
+  };
+}
+
+/** What cloud sync says about the saved projects, for the Projects list's marks. */
+export function projectCloudMarks(api: CloudSyncAPI): ProjectCloudMarks {
+  const status = api.status.value;
+  return {
+    cloudOn: api.sync !== null && status.kind !== 'off',
+    running: status.kind === 'syncing',
+    notOnDrive: api.projectsNotOnDrive.value,
+    conflictCopies: new Set(api.conflicts.value.flatMap(c => c.id instanceof ProjectId ? [c.id.text] : [])),
   };
 }

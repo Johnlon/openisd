@@ -13,15 +13,15 @@ import {createEnvironmentAir} from './OriginalShell-hooks.js';
 import {createErrorSwitches} from './errorSwitches.js';
 
 export function useMobileAdvancedTab() {
-  const {envDefaults, projectChanged} = useApp().appState;
+  const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
-  const { engine } = useApp();
 
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
+  } = createEnvironmentAir({ project, projectChanged });
 
 
   const errorSwitches = createErrorSwitches({project, projectChanged});
@@ -34,7 +34,8 @@ export function useMobileAdvancedTab() {
   return {
     project,
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
     abcVelocityApplies, errorSwitches,
   };

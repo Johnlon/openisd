@@ -27,11 +27,15 @@ const TRACE_PALETTE = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#
 /** A user-chosen colour override for one chart element; absent key = default colour
  *  (`OptionsModal.vue`'s "Plot Window" tab). */
 export interface ChartColors {
+  zeroDb?: string;
+  minus3Db?: string;
   background?: string;
   otherLines?: string;
   labels?: string;
   xmaxLimit?: string;
   cursor?: string;
+  airSpeedLimit?: string;
+  selectedRange?: string;
   [key: string]: string | undefined;
 }
 
@@ -80,6 +84,18 @@ export interface PresentationState {
    *  device that used to be narrow must not stay "mobile" after `viewStateRepo` replays an old
    *  session on a different, wider screen. */
   narrowViewport: boolean;
+  /** The Options modal is open. */
+  optionsOpen: boolean;
+  /** The Open Project dialog is open. */
+  openDialogOpen: boolean;
+  /** The full-screen Projects pane (mobile) is open. */
+  projectsPaneOpen: boolean;
+  /** Counts the requests to bring up the projects list (the phone Projects page, the desktop panel). */
+  projectsRequests: number;
+  /** The active mobile pane, or null when closed. */
+  mobilePane: string | null;
+  /** The active mobile destination. */
+  mobileDestination: string;
   ui: UiState;
   /** Reset every field's display unit back to its own default (undoes all unit toggling app-wide
    *  — cm/L/g/Hz/K/Pa etc., whatever each field's `base` prop is), in one action. Does not touch
@@ -89,6 +105,8 @@ export interface PresentationState {
    *  storing a literal `null`, so a cleared override round-trips through `viewStateRepo` as
    *  "absent" — the same state a visitor who never touched the toggle is in. */
   setSkinOverride(skin: 'original' | 'mobile' | null): void;
+  /** The skin on screen: the manual override when set, otherwise the one the window width picks. */
+  shownSkin(): 'original' | 'mobile';
 }
 
 /** A fresh presentation state. Built once per app by the composition root, once per test. */
@@ -98,6 +116,12 @@ export function createPresentationState(): PresentationState {
     browseOpen: false,
     editDriver: false,
     editDriverInfo: false,
+    optionsOpen: false,
+    openDialogOpen: false,
+    projectsRequests: 0,
+    projectsPaneOpen: false,
+    mobilePane: null,
+    mobileDestination: 'box',
     yRanges: {},
     sweepRange: {min: 10, max: 20000},
     narrowViewport: false,
@@ -110,6 +134,9 @@ export function createPresentationState(): PresentationState {
     setSkinOverride(skin: 'original' | 'mobile' | null): void {
       if (skin === null) delete s.ui.skinOverride;
       else s.ui.skinOverride = skin;
+    },
+    shownSkin(): 'original' | 'mobile' {
+      return s.ui.skinOverride ?? (s.narrowViewport ? 'mobile' : 'original');
     },
   });
   return s;

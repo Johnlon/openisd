@@ -35,7 +35,7 @@ drivers:
 
 .PHONY: start-4000
 start-4000:
-	SKIP_HEALTH_CHECKS=1 npm_config_ignore_scripts=true bash scripts/start-http.sh 4000
+	bash scripts/preview-4000.sh
 
 fast: start
 
@@ -57,7 +57,7 @@ build-only: start
 
 # Stop the dev server on port 4000
 stop:
-	bash scripts/stop-http.sh 4000
+	systemctl --user stop openisd-preview
 
 # Build the app and serve it via Vite preview on port 4000
 preview:

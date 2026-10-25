@@ -15,7 +15,9 @@
  * bugs/BUG_20261005_no-common-ui-field-component.md
  */
 import {computed, ref, useId} from 'vue';
+import {PhoneRowColumns} from '@openisd/design/fields';
 import NumInput from './NumInput.vue';
+import NumReadout from './NumReadout.vue';
 import UnitToggle from './UnitToggle.vue';
 import WinisdDeviationCue from './WinisdDeviationCue.vue';
 import {useCellScope} from './cellScope.js';
@@ -26,15 +28,25 @@ import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
 const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), {
   required: false,
   inputId: undefined,
+  min: undefined,
   max: undefined,
-  stepper: false,
+  columns: () => PhoneRowColumns.STANDARD,
+  stepper: true,
+  spin: undefined,
   readonly: false,
+  plain: false,
+  label: undefined,
   deviation: undefined,
   dq: undefined,
+  dqState: undefined,
+  allowOutOfRange: false,
+  defaulted: undefined,
 });
 
 const scope = useCellScope();
 const generatedId = useId();
+/** The row's column widths as CSS variables, from the design constant. */
+const columnVars = computed(() => Object.fromEntries(props.columns.cssVars()));
 const id = computed(() => props.inputId ?? generatedId);
 
 /** The cell read once per change of the hosting view: Vue cannot see the cell itself change. */
@@ -42,11 +54,14 @@ const view = computed(() => {
   void scope.revision.value;
   const binding = props.binding;
   switch (binding.kind) {
-    case 'fixed': {
-      const hasDq = props.dq && props.dq.length > 0;
+    case 'fixed':
+    case 'settling': {
+      const dq = props.dq ?? [];
+      const hasDq = dq.length > 0;
       return {
-        value: binding.cell.value, precision: null, provenanceClass: CellClass.Entered, mandatory: false, reason: hasDq ? props.dq!.join('; ') : '',
-        dqClasses: {'dq-flag': hasDq || false, 'dq-root': false, 'dq-symptom': false},
+        value: binding.cell.value, precision: null, provenanceClass: props.defaulted === true ? CellClass.Calculated : CellClass.Entered, mandatory: false,
+        reason: hasDq ? dqReason({dq, dqState: props.dqState ?? 'N'}) : '',
+        dqClasses: {'dq-flag': hasDq, 'dq-root': hasDq && props.dqState === 'E', 'dq-symptom': hasDq && props.dqState === 'C'},
       };
     }
     case 'clearable': {
@@ -86,6 +101,9 @@ function write(v: number | null, precision?: number): void {
     case 'clearable':
       if (v === null) binding.cell.clear(); else binding.cell.set(v, precision);
       break;
+    case 'settling':
+      if (v === null) binding.cell.clear(); else binding.cell.set(v);
+      break;
     default: { const unhandled: never = binding; return unhandled; }
   }
   scope.written();
@@ -93,12 +111,13 @@ function write(v: number | null, precision?: number): void {
 </script>
 
 <template>
-  <div class="ui-field">
-    <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ field.label }}</label>
+  <div :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false, 'ui-field-note-open': (reasonOpen || refusal !== '') && reason}]">
+    <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
     <span class="ui-field-value">
       <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">
-        <NumInput :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-          :half-width="view.precision" :mandatory="view.mandatory" :max="max" :stepper="stepper" :readonly="readonly" :blank-refused="binding.kind === 'fixed'" hide-mark
+        <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses, {'mob-readonly': plain}]" :value="view.value" :field="field" :format="format" :as-input="!plain" />
+        <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
+          :half-width="view.precision" :mandatory="view.mandatory" :min="min" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :spin="spin" :blank-refused="binding.kind === 'fixed'" hide-mark
           @update:model-value="write" @refusal="text => refusal = text" />
       </slot>
     </span>
@@ -116,17 +135,23 @@ function write(v: number | null, precision?: number): void {
 
 <style scoped>
 .ui-field {
+  /* The box, its gap and the ▲▼ pair. */
+  --stepper-w: var(--ctl-stepper-w, 14px);
+  --stepper-h: var(--ctl-h, 20px);
+  --ui-value-w: calc(90px + 2px + 2 * var(--stepper-w));
   display: grid;
-  grid-template-columns: var(--label-w, 150px) 90px 34px 16px 16px;
+  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) 34px 16px 16px;
   column-gap: 4px;
   align-items: baseline;
   position: relative; flex: none;
 }
+.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) 90px 34px 16px 16px; }
+.ui-field-readout .ui-field-value { width: 90px; }
 .ui-field > label { grid-column: 1; white-space: nowrap; }
-.ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: 90px; flex: none; grid-column: 2; }
+.ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: var(--ui-value-w); flex: none; grid-column: 2; }
 /* FIXED width, the same in every unit: the box never resizes when its unit is cycled. Wide
    enough for the longest value any field shows in any unit (a Vas in cu in, a Vd in cu ft). */
-.ui-field-value :deep(input) { width: 90px; box-sizing: border-box; }
+.ui-field-value :deep(input) { width: 90px; height: var(--ctl-h); box-sizing: border-box; }
 .ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }
 .ui-field-dev { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 5; }
 .ui-field-dq-btn {
@@ -135,14 +160,13 @@ function write(v: number | null, precision?: number): void {
 }
 .ui-field-unit { flex: none; 
   grid-column: 3; width: 34px; box-sizing: border-box;
-  color: var(--mut); white-space: nowrap; text-align: left;
+  white-space: nowrap; text-align: left;
 }
-/* Under the whole field row, not under the ⚠, so on a phone it never runs off the left edge. */
+/* Under the field's own row, in the layout: it takes its own space and never covers the row below. */
 .ui-field-note {
-  position: absolute; z-index: 20; top: 100%; left: 0; right: 0; margin-top: 2px;
+  grid-column: 1 / -1; margin-top: 2px;
   white-space: normal; overflow-wrap: anywhere;
   padding: 4px 6px; border: 1px solid var(--bad); border-radius: 4px;
   background: var(--panel); color: var(--fg); font-size: 11px; line-height: 1.3;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
 }
 </style>

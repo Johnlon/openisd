@@ -1,0 +1,28 @@
+id: T229
+release_note: "Errors and crash reports include anonymous context (screen, dialog, open projects, box type, last 10 actions, device type) for diagnosing failures without user data."
+repo: openisd
+owner: maryu
+status: done
+landed: 76ceb0b2489f65cfc15ca143ab179ee383207bc8
+goal: Every error and crash report carries anonymous context: screen, dialog, open projects, box type, last actions, version, device
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry/errorContext.test.ts
+files:
+  - tasks/T229.yml
+  - bugs/BUG_20261016_live-crash-no-project-is-focused.md
+  - packages/ui/about/AboutPage.vue
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/telemetryContext.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/presentationState.ts
+  - packages/ui/src/logic/telemetry/crashReports.ts
+  - packages/ui/src/logic/telemetry/errorContext.ts
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/featureUse.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/test/hooks/MobileSheet-hooks.test.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/test/logic/telemetry/errorContext.test.ts
+  - packages/ui/test/ui/about-page.browser.spec.ts

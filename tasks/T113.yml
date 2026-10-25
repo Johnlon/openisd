@@ -1,5 +1,5 @@
 id: T113
-release_note: The version label shows the build time in UTC with a Z suffix
+release_note: The version label shows the build time in UTC with a Z suffix.
 repo: openisd
 owner: fable
 status: done

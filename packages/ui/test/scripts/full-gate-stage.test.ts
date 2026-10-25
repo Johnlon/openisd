@@ -37,7 +37,7 @@ describe('scripts/test.sh full gate', () => {
     writeFileSync(join(dir, 'scripts', 'quiet-test.sh'), `#!/usr/bin/env bash\necho "quiet $*" >> '${events}'\n`);
     writeFileSync(join(dir, 'scripts', 'test-browser.sh'), `#!/usr/bin/env bash\necho "browser" >> '${events}'\nexit 3\n`);
     const done = spawnSync('bash', [join(dir, 'scripts', 'test.sh')], {
-      cwd: dir, env: {...process.env, OPENISD_FULL_GATE: '1'}, encoding: 'utf8',
+      cwd: dir, env: {...process.env, OPENISD_FULL_GATE: '1', OPENISD_RUNTIME_DIR: join(dir, 'runtime')}, encoding: 'utf8',
     });
     assert.equal(done.status, 1, done.stderr);
     assert.deepEqual(lines(events), ['quiet npx vitest run', 'browser']);
@@ -49,11 +49,19 @@ describe('scripts/test-browser.sh', () => {
     const dir = tempDir();
     const events = join(dir, 'events');
     const bin = join(dir, 'bin');
-    mkdirSync(join(dir, 'scripts'), {recursive: true});
+    mkdirSync(join(dir, 'scripts', 'admit'), {recursive: true});
+    mkdirSync(join(dir, 'scripts', 'lib'), {recursive: true});
     mkdirSync(bin);
-    for (const name of ['test-browser.sh', 'test-concurrency.sh', 'kill-http.sh', 'paths.sh']) {
+    copyFileSync(join(ROOT, 'scripts', 'admit', 'record.sh'), join(dir, 'scripts', 'admit', 'record.sh'));
+    copyFileSync(join(ROOT, 'scripts', 'lib', 'ts-log.sh'), join(dir, 'scripts', 'lib', 'ts-log.sh'));
+    for (const name of ['test-browser.sh', 'test-concurrency.sh', 'browser-runs.sh', 'paths.sh']) {
       copyFileSync(join(ROOT, 'scripts', name), join(dir, 'scripts', name));
     }
+    // Never the real kill-http.sh: this copy's port reservation is a scratch one, so the port it is given
+    // can be a live run's (4100), and the real script killed that run's server mid-suite (17 Oct 2026).
+    writeFileSync(join(dir, 'scripts', 'kill-http.sh'), `#!/usr/bin/env bash\necho "kill-http $*" >> '${events}'\n`);
+    // The build before Playwright (T489) is recorded, not run: the real one is a full vite build.
+    writeFileSync(join(dir, 'scripts', 'build-test-app.sh'), `#!/usr/bin/env bash\necho "build-test-app" >> '${events}'\n`);
     writeFileSync(join(bin, 'npx'), [
       '#!/usr/bin/env bash',
       'case "$*" in',
@@ -65,12 +73,14 @@ describe('scripts/test-browser.sh', () => {
     chmodSync(join(bin, 'npx'), 0o755);
     const done = spawnSync('bash', [join(dir, 'scripts', 'test-browser.sh')], {
       cwd: dir,
-      env: {...process.env, PATH: `${bin}:${process.env.PATH}`, OPENISD_RESERVATION_DIR: join(dir, 'reservations')},
+      env: {...process.env, PATH: `${bin}:${process.env.PATH}`, OPENISD_RUNTIME_DIR: join(dir, 'runtime'), OPENISD_RESERVATION_DIR: join(dir, 'reservations')},
       encoding: 'utf8',
     });
     const runs = lines(events);
     assert.equal(done.status, 3);
-    assert.equal(runs.length, 1);
-    assert.match(runs[0], /^playwright test/);
+    assert.equal(runs.length, 3);
+    assert.match(runs[0], /^kill-http 41\d\d$/);
+    assert.equal(runs[1], 'build-test-app');
+    assert.match(runs[2], /^playwright test/);
   });
 });

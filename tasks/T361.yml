@@ -1,0 +1,19 @@
+id: T361
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: d3dcc245c760370059f1e4a4be44200b3af5d77b
+goal: Advanced tab Sound velocity and Air density are readonly UIFixedField rows (greyed box, unit in the unit column, like every row); arch test catches hand-built readouts
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-numreadout-outside-uifield.test.ts
+files:
+  - tasks/T361.yml
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/architecture/no-numreadout-outside-uifield.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+visual:
+  - desktop-tab-advanced
+  - mobile-tab-advanced

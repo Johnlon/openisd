@@ -1,0 +1,70 @@
+id: F48
+owner: Johnlon
+status: done
+sha: 7f0989b90061d23466ead3174ace4c7dd82d9566
+goal: main is red at 7f0989b900; make the full suite pass again
+commits: |
+  7f0989b900 T259: F47: bandpass6 Frc clear shows the calculated value; field type combinat
+  200b38b8d0 F47: the full suite is red at 6f5e110c2e
+  6f5e110c2e T245: Clearing a linked pair member keeps the partner as E
+  2ad11c79a6 T256: 'Rule: a UI layout issue goes to John with before and after screenshots
+failing: |
+    ✘  816 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-project (2.4s)
+visual: |
+  visual screens: desktop-tab-project
+  visual page: http://lap:8000/winisd/visual-pages/red-7f0989b900/index.html
+output: |
+  
+      Call log:
+        - Expect "toHaveScreenshot(desktop-tab-project.png)" with timeout 20000ms
+          - verifying given screenshot expectation
+        - taking page screenshot
+          - disabled all CSS animations
+        - waiting for fonts to load...
+        - fonts loaded
+        - 74 pixels (ratio 0.01 of all image pixels) are different.
+        - waiting 100ms before taking screenshot
+        - taking page screenshot
+          - disabled all CSS animations
+        - waiting for fonts to load...
+        - fonts loaded
+        - captured a stable screenshot
+        - 74 pixels (ratio 0.01 of all image pixels) are different.
+  
+  
+        10 |     await screen.open(page);
+        11 |     // The build stamp differs on every build: it is masked, nothing else is.
+      > 12 |     await expect(page).toHaveScreenshot(`${screen.skin.name}-${screen.name}.png`, {mask: [page.getByTestId('app-version')]});
+           |                        ^
+        13 |   });
+        14 | }
+        15 |
+          at /home/john/work/winisd/.postland/3304878-7f0989b900/packages/ui/test/visual/visual.browser.spec.ts:12:24
+  
+      attachment #1: desktop-tab-project (image/png) ─────────────────────────────────────────────────
+      Expected: packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+      Received: test-results/visual-visual.browser-visual-desktop-tab-project/desktop-tab-project-actual.png
+      Diff:     test-results/visual-visual.browser-visual-desktop-tab-project/desktop-tab-project-diff.png
+      ────────────────────────────────────────────────────────────────────────────────────────────────
+  
+      Error Context: test-results/visual-visual.browser-visual-desktop-tab-project/error-context.md
+  
+    1 failed
+      packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-project ────────────────
+    828 passed (9.5m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 3304878-7f0989b900 finished: FAILED (exit 1) after 12m04s
+also_red:
+  - sha: 5a8d8eb62e18cd125e904b1d38f0a4ac18e35246
+    failing: |
+        ✘  816 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop tab-project (2.3s)
+    visual: |
+      visual screens: desktop-tab-project
+      visual page: http://lap:8000/winisd/visual-pages/red-5a8d8eb62e/index.html
+closed_note: |
+  The visual screens depended on the date. The Project tab's Created and Modified boxes showed the
+  day of the run: Modified from the page's clock, Created from the machine's clock when the sample
+  project was generated. The baseline was shot on 16 Oct, the runs were on 17 Oct. Both now use one
+  fixed date (FIXTURE_DATE, 16 Oct 2026 midday UTC): the generator dates the sample with it and the
+  visual screens run on it. No baseline was re-shot and no box is masked. All 53 visual screens pass
+  on 17 Oct. Bug: BUG_20261017_visual-screens-depend-on-the-date.

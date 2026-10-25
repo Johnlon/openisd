@@ -37,3 +37,6 @@ a bad value when a field is cleared.
 
 ## Ruling (John, 2026-10-07, bug walk)
 Acked as recorded: trigger bug, no switch. OpenISD keeps an emptied PR Vas box blank with a warning (ruling 2026-10-06).
+
+## Re-verified
+Re-verified 21 Oct 2026 on main faa577b95: `pr-spec-resolve.test.ts` passes (a zero PR Fs, Qms, Vas or Sd stays finite or blank); help entry in `winisdFixedBug.ts`.

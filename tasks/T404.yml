@@ -1,0 +1,11 @@
+id: T404
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 74fd90012350696e1e9cfbea423dc2f7870de5a4
+goal: PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md gets a §5a 'Test cases from live faults' listing the three 18 Oct scraper faults (GF180-4 liters read as mm; CE4876-16 product-page Vas not mapped; single-source value never used); only that file changes
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T404.yml
+  - docs/plans/PLAN_20261010_HIGH_FIDELITY_EXTRACTION.md

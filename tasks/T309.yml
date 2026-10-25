@@ -1,0 +1,19 @@
+id: T309
+release_note: The driver list says which filters are on and has a Clear filters button; Favorites is greyed out until a driver is starred.
+repo: openisd
+owner: maryu
+status: done
+landed: 16cb0afcd68200b37db2e6e6c3fb51096b085aec
+goal: Driver list keeps its filters but shows which are on; Favorites disabled with no favourites; "No drivers match" with Clear filters
+done_test: bash scripts/test.sh packages/ui/test/logic/driverFilters.test.ts
+files:
+  - tasks/T309.yml
+  - bugs/BUG_20261017_driver-list-empty-with-no-hint.md
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/test/logic/driverFilters.test.ts
+  - packages/ui/test/ui/driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

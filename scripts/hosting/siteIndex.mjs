@@ -12,6 +12,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 const TAG = /^(snap-|v)(\d{8}T\d{4}Z)$/;
+const PUBLIC_TITLE = /^OpenISD (\d+\.\d+\.\d+)$/;
 const BASIC_FROM_ISO = /[-:]|\.\d+(?=Z$)/g;
 
 /** ISO 8601 extended ("2026-01-01T01:02:03Z") to basic ("20260101T010203Z"). */
@@ -26,6 +27,12 @@ export function subjectOf(body) {
   return lines.find(l => l !== '' && !l.startsWith('#')) ?? '';
 }
 
+/** The public number in a release title, "OpenISD 7.0.951" → "7.0.951"; '' for any other title. */
+export function publicVersionOf(title) {
+  const m = PUBLIC_TITLE.exec(title ?? '');
+  return m === null ? '' : m[1];
+}
+
 /** One hosted build from a GitHub release, or null when it is not one of ours. */
 export function entryOf(release, latestTag) {
   if (release.draft) return null;
@@ -35,6 +42,7 @@ export function entryOf(release, latestTag) {
   if ((kind === 'snap') !== (m[1] === 'snap-')) return null;
   return {
     stamp: m[2],
+    version: publicVersionOf(release.name),
     kind,
     tag: release.tag_name,
     url: release.html_url,
@@ -78,8 +86,9 @@ const PAGES = {
 /** One row. The Launch link is stretched over the whole row; the GitHub link sits above it. */
 function rowHtml(e) {
   const latest = e.latest ? ' <span class="tag">Latest</span>' : '';
+  const version = e.version === '' ? '' : `<strong class="ver">${esc(e.version)}</strong> `;
   return `    <li class="row"><time class="when" datetime="${esc(e.stamp)}" data-stamp="${esc(e.stamp)}">${esc(e.stamp)}</time>` +
-    `<span class="subject">${esc(e.subject)}${latest}</span>` +
+    `<span class="subject">${version}${esc(e.subject)}${latest}</span>` +
     `<a class="launch" href="${esc(e.stamp)}/">Launch</a>` +
     `<a class="gh" href="${esc(e.url)}">GitHub</a></li>`;
 }
@@ -108,6 +117,7 @@ export function pageHtml(kind, entries) {
          padding: 12px 8px; border-top: 1px solid #2b3a49; }
   .row:hover { background: #1b2230; }
   .when { color: #e6edf3; }
+  .ver { color: #e6edf3; margin-right: 4px; }
   .tag { font-size: 11px; color: #4fb0ff; border: 1px solid #4fb0ff; border-radius: 3px; padding: 0 5px; margin-left: 6px; }
   .launch::after { content: ""; position: absolute; inset: 0; }
   .gh { position: relative; z-index: 1; }
@@ -118,7 +128,7 @@ export function pageHtml(kind, entries) {
 <main>
   <h1>${p.title}</h1>
   <p>${p.lead}</p>
-${p.warn ? `  <p class="warn">${p.warn}</p>\n` : ''}  <p><a href="${p.other.href}">${p.other.text}</a> · <a href="../test/">Newest snapshot (/test/)</a> · <a href="../">OpenISD</a></p>
+${p.warn ? `  <p class="warn">${p.warn}</p>\n` : ''}  <p><a href="${p.other.href}">${p.other.text}</a> · <a href="https://test.openisd.app/">Newest snapshot (test.openisd.app)</a> · <a href="https://openisd.app/">OpenISD</a></p>
 ${list}
 </main>
 <script src="../dates.js"></script>

@@ -5,6 +5,8 @@
 set -uo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.." || exit 1
+# Memory admission: the job starts when its measured cost fits its pool (scripts/budget.conf), else it waits.
+BUDGET_SELF="${BASH_SOURCE[0]}" . scripts/budget-enter.sh "$@"
 
 # A gate takes no heavy lane (T044): enter heavy.slice directly so ~/bin/npx skips the lane queue.
 case "$(cat /proc/self/cgroup 2>/dev/null)" in
@@ -19,4 +21,9 @@ for f in "$@"; do
   esac
 done
 [ "${#files[@]}" -gt 0 ] || { echo "lint: no lintable file changed"; exit 0; }
-exec node_modules/.bin/eslint --max-warnings 0 --no-warn-ignored "${files[@]}"
+. scripts/lib/ts-log.sh
+run_start "lint-changed"
+rc=0
+node_modules/.bin/eslint --max-warnings 0 --no-warn-ignored "${files[@]}" || rc=$?
+run_end "lint-changed" "$rc"
+exit "$rc"

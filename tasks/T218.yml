@@ -1,0 +1,31 @@
+id: T218
+label: fixes
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 3433a3a0f8631068a148e482fb7d6f68778957b2
+goal: 'Tune sheet task 2: sheet session and hooks (no template changes). Also F37 architecture failure: StoragePrefix gets a createStoragePrefix factory'
+done_test: bash scripts/test.sh packages/ui/test/hooks/sheetSession.test.ts packages/ui/test/hooks/MobileSheet-hooks.test.ts packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
+files:
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/storage/storagePrefix.ts
+  - packages/persistence/test/storagePrefix.test.ts
+  - packages/ui/src/main.ts
+  - docs/design/BROWSER_STORAGE_KEYS.md
+  - packages/ui/src/hooks/MobileChartView-hooks.ts
+  - packages/ui/src/hooks/MobileWhatIfSheet-hooks.ts
+  - packages/ui/src/hooks/whatIfSession.ts
+  - packages/ui/test/hooks/MobileWhatIfSheet-hooks.test.ts
+  - packages/ui/test/hooks/whatIfSession.test.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/hooks/OriginalWhatIf-hooks.ts
+  - packages/ui/src/hooks/sheetSession.ts
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/src/ui/shells/mobile/MobileWhatIfSheet.vue
+  - packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
+  - packages/ui/test/hooks/MobileSheet-hooks.test.ts
+  - packages/ui/test/hooks/runHook.ts
+  - packages/ui/test/hooks/sheetSession.test.ts
+  - tasks/T218.yml

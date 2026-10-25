@@ -37,15 +37,31 @@ test('editing the description writes the project', async ({ page }) => {
   await expect(page.locator('#mob-proj-description')).toHaveValue('A test description.');
 });
 
-// Bug (John, live on his phone, 2026-09-29): "dates should be yyyy-mm-dd" — Created/Modified
-// showed the raw WinISD-parity storage string (YYYYMMDD, no separators). Display-only fix
-// (logic/dateDisplay.ts); the stored format itself is untouched (pinned by .wpr round-trip
-// goldens) — confirmed by typing the displayed format back in and reading the same value out.
-test('Created and Modified show as yyyy-mm-dd, not the raw YYYYMMDD storage string', async ({ page }) => {
+// John, 17 Oct 2026: Created and Modified follow the date rule ("16 Oct 2026"), through the one
+// design formatter (formatDateStamp / dateStampFrom in packages/design/fields/format.ts). The stored
+// stamp stays WinISD's YYYYMMDD, pinned by the .wpr round-trip goldens. Replaces yyyy-mm-dd (29 Sep).
+test('Created and Modified show as "16 Oct 2026", and a typed date reads back in that form', async ({ page }) => {
   const created = page.locator('#mob-proj-created');
-  await expect(created).toHaveValue(/^\d{4}-\d{2}-\d{2}$/);
+  await expect(created).toHaveValue(/^\d{1,2} [A-Z][a-z]{2} \d{4}$/);
+  await expect(page.locator('#mob-proj-modified')).toHaveValue(/^\d{1,2} [A-Z][a-z]{2} \d{4}$/);
 
-  await created.fill('2026-01-02');
+  await created.fill('2 Jan 2026');
   await created.blur();
-  await expect(created).toHaveValue('2026-01-02');
+  await expect(created).toHaveValue('2 Jan 2026');
 });
+
+// v-model writes on every key. A half-typed date that is already a real day ("2026-10-1") must not
+// redraw the box under the typist; the text stays as typed until the date is complete.
+for (const typed of ['2026-10-16', '16 Oct 2026']) {
+  test(`typing "${typed}" key by key keeps the typed text, and the date is stored`, async ({ page }) => {
+    const created = page.locator('#mob-proj-created');
+    await created.fill('');
+    await created.pressSequentially(typed);
+    await expect(created).toHaveValue(typed);
+    await created.blur();
+    await page.locator('.mob-dlg-close').click();
+    await page.locator('.mob-hamburger').click();
+    await page.getByText('Project details').click();
+    await expect(page.locator('#mob-proj-created')).toHaveValue('16 Oct 2026');
+  });
+}

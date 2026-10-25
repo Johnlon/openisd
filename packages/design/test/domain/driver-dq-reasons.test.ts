@@ -31,10 +31,10 @@ describe('OpenISDDriver.chartBlockingReasons', () => {
     const driver = OpenISDDriver.empty(createEngine());
     driver.specs.Fs_hz.set(40);
     const reasons = driver.chartBlockingReasons();
-    expect(reasons).toContainEqual({subject: 'Vas_m3', text: 'is not set'});
-    expect(reasons).toContainEqual({subject: 'Re_ohm', text: 'is not set'});
-    expect(reasons).toContainEqual({subject: 'Sd_m2', text: 'is not set'});
-    expect(reasons.some(r => r.subject === 'Fs_hz')).toBe(false);
+    expect(reasons).toContainEqual({subject: 'equivalent volume (Vas)', text: 'is not set'});
+    expect(reasons).toContainEqual({subject: 'coil resistance (Re)', text: 'is not set'});
+    expect(reasons).toContainEqual({subject: 'cone area (Sd)', text: 'is not set'});
+    expect(reasons.some(r => r.subject === 'resonance (Fs)')).toBe(false);
   });
 
   it('describes a quantity the solver cannot derive by what it still needs', () => {

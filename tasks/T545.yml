@@ -1,0 +1,21 @@
+id: T545
+release_note: On the phone Graph page, Auto Y is now a box in the Tune and What-if sheet footer, so it no longer covers the first frequency label.
+repo: openisd
+owner: maryu
+status: done
+landed: e0ef0b5980fdf0db316769be0576b293c46b4b6c
+goal: Phone Graph: Auto Y moves into the Tune and What-if sheet footer as the accepted QO267 mock draws it, so it no longer covers the first frequency label
+done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
+files:
+  - tasks/T545.yml
+  - packages/design/fields/sheetMode.ts
+  - packages/design/test/fields/sheetMode.test.ts
+  - packages/ui/src/hooks/MobileChartView-hooks.ts
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/test/ui/mobile-sheet-auto-y.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/test/ui/mobile-graph-classic.browser.spec.ts
+  - packages/ui/test/ui/mobile-chart-auto-y.browser.spec.ts
+  - bugs/BUG_20261017_auto-y-overlaps-first-frequency-label.md

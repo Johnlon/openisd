@@ -1,0 +1,15 @@
+id: T333
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 4978f2dab53568969d1defcf02b6d20434c7c3fb
+goal: Agent inbox: watchdog alerts reach agents through the Claude Code gate hook, never tmux or ASK.md
+done_test: bash scripts/land/test/watchdog.test.sh
+files:
+  - tasks/T333.yml
+  - scripts/land/watchdog.sh
+  - scripts/land/test/watchdog.test.sh
+  - scripts/land/sync-main-folder.sh
+  - scripts/land/test/sync-main-folder.e2e.test.sh
+  - bugs/BUG_20261017_watchdog-alerts-reach-no-agent.md

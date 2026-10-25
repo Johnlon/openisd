@@ -1,4 +1,4 @@
-import {editorTab, expect, focusedBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
+import {editorTab, expect, shownBoxVolume, openAProject, setFocusedBoxVolume, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {z} from 'zod';
 
@@ -9,11 +9,12 @@ test.describe('Open sessions', () => {
     // bugs/archive/BUG_20260926_tabs-overwrite-each-others-open-projects.md
 
     const rowNames = (page: Page) =>
-      page.locator('.project-row span').evaluateAll(els => els.map(e => e.textContent?.trim() ?? ''));
+      page.locator('.project-row .project-name').evaluateAll(els => els.map(e => e.textContent?.trim() ?? ''));
 
     async function copyFocused(page: Page): Promise<void> {
       const before = await page.locator('.project-row').count();
-      await page.locator('.proj-actions button:has-text("Copy")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Duplicate")').click();
       await expect(page.locator('.project-row')).toHaveCount(before + 1);
     }
 
@@ -34,7 +35,7 @@ test.describe('Open sessions', () => {
       }).toBe(true);
     });
 
-    test('a project closed in one tab disappears from the other', async ({ page, context }) => {
+    test('a project closed in one tab is closed in the other, and stays in its list', async ({ page, context }) => {
       await page.goto('/');
       await openAProject(page);
       await copyFocused(page);
@@ -42,13 +43,16 @@ test.describe('Open sessions', () => {
       await other.goto('/');
       await expect(other.locator('.project-row')).toHaveCount(2);
 
-      await page.locator('.proj-actions button:has-text("Close")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Close")').click();
       const discard = page.locator('.close-actions button:has-text("Close without saving")');
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (await discard.isVisible()) await discard.click();
-      await expect(page.locator('.project-row')).toHaveCount(1);
+      await expect(page.locator('.project-row')).toHaveCount(2);
+      await expect(page.locator('.project-row.is-closed')).toHaveCount(1);
 
-      await expect(other.locator('.project-row')).toHaveCount(1);
+      await expect(other.locator('.project-row')).toHaveCount(2);
+      await expect(other.locator('.project-row.is-closed')).toHaveCount(1);
     });
 
     test('an edit made in one tab shows in the other', async ({ page, context }) => {
@@ -60,7 +64,7 @@ test.describe('Open sessions', () => {
 
       await setFocusedBoxVolume(other, 0.0111111);
 
-      await expect.poll(() => focusedBoxVolume(page)).toBeCloseTo(0.0111111, 9);
+      await expect.poll(() => shownBoxVolume(page)).toBeCloseTo(11.11, 2);
     });
 
     test('a fresh tab opens on the session every tab shares', async ({ page, context }) => {
@@ -122,8 +126,6 @@ test.describe('Open sessions', () => {
       await expect(other.locator('.de-modal')).toBeVisible();
 
       await setFocusedBoxVolume(page, 0.0111111);
-      await expect.poll(() => focusedBoxVolume(other)).toBeCloseTo(0.0111111, 9);
-
       await editorTab(other, 'General');
       await other.locator('.de-fld', { has: other.locator('label', { hasText: 'Model' }) }).locator('input').fill('Model 111111');
       await other.locator('.de-modal .de-footer button:has-text("OK")').click();
@@ -131,7 +133,7 @@ test.describe('Open sessions', () => {
 
       const model = (p: Page) => p.locator('.driver-id-row input').nth(1);
       await expect(model(other)).toHaveValue('Model 111111');
-      expect(await focusedBoxVolume(other)).toBeCloseTo(0.0111111, 9);
+      await expect.poll(() => shownBoxVolume(other)).toBeCloseTo(11.11, 2);
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       await expect(model(page)).toHaveValue('Model 111111');
     });
@@ -239,11 +241,10 @@ test.describe('Open sessions', () => {
     // John 2026-10-05: "if I close the last project then I see the init screen, but if I refresh
     // then the last project comes back". Closing empties the open list; the saved copy stays.
     async function closeFocused(page: Page): Promise<void> {
-      const before = await page.locator('.project-row').count();
-      await page.locator('.proj-actions button:has-text("Close")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Close")').click();
       const discard = page.locator('.close-actions button:has-text("Close without saving")');
       if (await discard.isVisible()) await discard.click();
-      await expect(page.locator('.project-row')).toHaveCount(before - 1);
     }
 
     test('closing the last project stays closed after a reload, and Open project still lists it', async ({ page }) => {
@@ -257,21 +258,26 @@ test.describe('Open sessions', () => {
       const emptyState = page.locator('.graph-empty');
       await expect(emptyState.getByRole('button', { name: 'New project' })).toBeVisible();
       await expect(emptyState.getByRole('button', { name: 'Import project' })).toBeVisible();
-      await expect(page.locator('.project-row')).toHaveCount(0);
+      await expect(page.locator('.project-show-cbx')).toHaveCount(0);
+      const row = page.locator('.project-row');
+      await expect(row).toHaveCount(1);
+      await expect(row).toHaveClass(/is-closed/);
       await emptyState.getByRole('button', { name: 'Open project' }).click();
-      await expect(page.locator('.open-project-dialog .stored-project-row')).toHaveCount(1);
+      await expect(page.locator('.projects-list')).toBeFocused();
     });
 
     test('closing one of two projects leaves one open after a reload', async ({ page }) => {
       await page.goto('/');
       await openAProject(page);
-      await page.locator('.proj-actions button:has-text("Copy")').click();
+      await page.locator('.project-row.selected .row-menu-btn').click();
+      await page.locator('.row-menu-item:has-text("Duplicate")').click();
       await expect(page.locator('.project-row')).toHaveCount(2);
       await closeFocused(page);
 
       await page.reload();
 
-      await expect(page.locator('.project-row')).toHaveCount(1);
+      await expect(page.locator('.project-row')).toHaveCount(2);
+      await expect(page.locator('.project-row.is-closed')).toHaveCount(1);
     });
   });
 });

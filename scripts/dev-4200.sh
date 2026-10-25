@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Start the agent's vite dev server on port 4200.
-# Runs all health checks (lint, unit, golden, DQ), then starts Vite dev.
+# Runs no checks; starts Vite dev.
 # Use stop-http.sh 4200 to stop it.
 set -euo pipefail
 # Must run in Git Bash on Windows (MSYSTEM set) or WSL (microsoft in /proc/version).

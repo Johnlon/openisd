@@ -19,6 +19,21 @@ declaring string literals. `packages/ui/src/diagnostics/faultLog.ts` declares it
 | `openisd_refused_<UTC stamp>[_<nn>]` | A project that would not load, kept whole. JSON `{at, reason, name, text}`; `text` is the stored project text verbatim; `reason` is `wouldNotLoad`. Written by `StorageBackup.refuse`, listed by `refusedCopies`, read by `readRefused`, removed only by `discardRefused`. Outside whole-store backups; nothing drops it for room except a whole-store backup, and an identical text is kept once |
 | `openisd_backup_<build>_<time>` | Whole-store backup, taken before any destructive write |
 
+## One store per deployment
+
+`localStorage` is shared by every page of an origin, so a deployment that sits beside the released
+app would read and overwrite its projects. The /test/ build therefore keeps a store of its own:
+every key it holds is stored as `test/<key>` (`test/openisd_projects`, `test/openisd_backup_…`).
+The root app, the `/v/<stamp>/` releases and the `/snap/<stamp>/` snapshots keep the plain
+`openisd_` keys as they always were; there is no migration.
+
+`StoragePrefix` (`packages/persistence/src/storage/storagePrefix.ts`) is resolved once at start-up
+from the page's path (`createStoragePrefix(location.pathname)`) and handed to
+`createLocalStorage`. Everything above the storage port keeps using the plain key names above: the
+port adds the prefix on the way in, lists only its own keys, and watches only its own keys. The list
+of prefixed deployments is `PREFIXED_DEPLOYMENTS` in that file. `sessionStorage` is per tab and is
+not prefixed.
+
 All keys use the `openisd_` prefix, lowercase words, and underscores. There are no dotted-key
 aliases and no migration from earlier names. A developer clearing browser storage is expected to
 lose records under the old names.

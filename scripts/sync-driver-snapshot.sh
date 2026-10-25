@@ -33,6 +33,9 @@ for f in "${FIXTURES[@]}"; do mkdir -p "$SNAP/$(dirname "$f")"; cp "$DATASHEETS/
 progress 1 "copied ${#FIXTURES[@]} fixtures"
 
 cd "$ROOT"
+# shellcheck source=/dev/null
+. "$(dirname "${BASH_SOURCE[0]}")/lib/main-folder.sh"
+refuse_in_main_folder sync-driver-snapshot
 if [ -n "${SYNC_BUNDLE_CMD:-}" ]; then "$SYNC_BUNDLE_CMD" --corpus "$DATASHEETS" --force
 else npx tsx scripts/bundle-drivers.mjs --corpus "$DATASHEETS" --force; fi
 progress 2 "bundle regenerated"

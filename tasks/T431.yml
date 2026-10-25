@@ -1,0 +1,27 @@
+id: T431
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: aa63d4ff5620e758cbec939f8921013e53fc2111
+goal: The OpenISD driver record carries the driver's short code (the db sku, e.g. e150he-44) as a stored field; imported and db drivers get it, typed drivers have none; the phone Projects page row line 2 shows it upper-cased before box and volume (E150HE-44 · Closed · 3.5 L) and falls back to the model text when absent (QO259, John 18 Oct 2026: 'yes it's better than that full name'). Follows T428. Data-model change approved on QO259.
+done_test: bash scripts/test.sh packages/design/test/domain/project-summary.test.ts packages/design/test/fields/projectRows.test.ts
+files:
+  - tasks/T431.yml
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/domain/project/withoutImportSku.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/winIsdDriverImport.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/test/domain/driver-sku-from-winisd.test.ts
+  - packages/design/test/domain/project-air-migration.test.ts
+  - packages/design/domain/project/projectSummary.ts
+  - packages/design/fields/projectRows.ts
+  - packages/design/test/domain/project-summary.test.ts
+  - packages/design/test/fields/projectRows.test.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/test/winisd/wdr-parstate-load-table.test.ts
+visual: []

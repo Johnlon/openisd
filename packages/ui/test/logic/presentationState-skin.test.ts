@@ -36,6 +36,31 @@ describe('setSkinOverride', () => {
   });
 });
 
+describe('shownSkin', () => {
+  it('follows the window width when there is no override', () => {
+    presentationState.narrowViewport = false;
+    assert.equal(presentationState.shownSkin(), 'original');
+    presentationState.narrowViewport = true;
+    assert.equal(presentationState.shownSkin(), 'mobile');
+  });
+
+  it('is the override when one is set, whatever the window width', () => {
+    presentationState.narrowViewport = true;
+    presentationState.setSkinOverride('original');
+    assert.equal(presentationState.shownSkin(), 'original');
+    presentationState.narrowViewport = false;
+    presentationState.setSkinOverride('mobile');
+    assert.equal(presentationState.shownSkin(), 'mobile');
+  });
+
+  it('follows the window width again once the override is cleared', () => {
+    presentationState.narrowViewport = true;
+    presentationState.setSkinOverride('original');
+    presentationState.setSkinOverride(null);
+    assert.equal(presentationState.shownSkin(), 'mobile');
+  });
+});
+
 describe('presentationState.narrowViewport', () => {
   it('defaults to false and is never persisted (it is not part of .ui)', () => {
     assert.equal(presentationState.narrowViewport, false);

@@ -1,0 +1,12 @@
+id: T213
+release_note: internal
+label: fixes
+repo: openisd
+owner: maryu
+status: done
+landed: 8166dc90988379390cb5a9f296d16636d841ada4
+goal: 'F35: the 3 cloud-sync spec files red at f2d59b6a57 pass alone, 15 of 15 in 31 s at load 3.6 (the red run timed out in page.goto at 60 s); machine load, no code change'
+done_test: bash scripts/test.sh packages/design/test/fields/format.test.ts
+files:
+  - tasks/T213.yml
+  - tasks/fixes/F35.yml

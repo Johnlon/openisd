@@ -1,9 +1,10 @@
 import {expect, test, openAProject, setFocusedBoxVolume, duplicateFocusedProject} from '../fixtures.js';
 import {SAMPLE_PROJECT_OWPR} from '../fixtures/sampleProject.js';
+import {standInForSnapshotsSite} from '../fixtures/snapshotsSite.js';
 import '../fixtures/generateSample.js';
 
 test.describe('Projects across addresses', () => {
-  test('the store address is shown in the open dialog, and projects can be exported', async ({ page }) => {
+  test('the store address is shown in the Bin view, and projects can be exported', async ({ page }) => {
     // Open a project to get the app running
     await page.goto("/");
     await openAProject(page, SAMPLE_PROJECT_OWPR);
@@ -11,52 +12,51 @@ test.describe('Projects across addresses', () => {
     // Create a second project so we have something to export
     await duplicateFocusedProject(page, 'Second Project');
 
-    // Open the open project dialog
-    await page.locator('.tb-btn[title^="Open project"]').click();
-    
-    // Check for the store address
+    // Check for the store address in the Bin view
+    await page.locator('.projects-panel-footer .bin-toggle').click();
     const storeLabel = page.locator('.store-label');
     await expect(storeLabel).toBeVisible();
     await expect(storeLabel).toContainText('Projects saved in this browser at http://localhost');
+    await page.getByRole('button', {name: 'Back to projects'}).click();
 
-    // Click Export all projects
+    // Click Export all
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.export-projects').click();
+    await page.locator('.export-all-btn').click();
     const download = await downloadPromise;
     
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
   });
   
-  test('export then import into fresh storage restores every project', async ({ page }) => {
+  test('export then import into fresh storage restores every project', async ({ page, browser }, testInfo) => {
     await page.goto("/");
     await openAProject(page, SAMPLE_PROJECT_OWPR);
     await duplicateFocusedProject(page, 'Exported Project 2');
     
     // Export
-    await page.locator('.tb-btn[title^="Open project"]').click();
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.export-projects').click();
+    await page.locator('.export-all-btn').click();
     const download = await downloadPromise;
     const path = await download.path();
     
-    // Clear storage to simulate fresh storage
-    await page.evaluate(() => localStorage.clear());
-    await page.reload();
+    // Fresh storage is a browser context that has never seen the app: its first load.
+    const freshContext = await browser.newContext({ baseURL: testInfo.project.use.baseURL });
+    await standInForSnapshotsSite(freshContext);
+    const fresh = await freshContext.newPage();
+    await fresh.addInitScript(() => {
+      localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } }));
+    });
+    await fresh.goto('/');
     
     // Import the file using the hidden input
-    await page.locator('.tb-btn[title^="Open project"]').click();
-    await page.locator('.original-root input[type=file]').setInputFiles(path!);
+    await fresh.locator('.original-root input[type=file]').setInputFiles(path!);
     
-    // Close the dialog and re-open it so it refreshes the list
-    await page.locator('.open-project-dialog .close-btn').click();
-    await page.locator('.tb-btn[title^="Open project"]').click();
-    
-    // Verify projects are imported and the dialog shows them
-    const projectRows = page.locator('.stored-project-row');
+    // Verify projects are imported and the projects panel shows them
+    const projectRows = fresh.locator('.projects-list .project-row');
     await expect(projectRows).toHaveCount(2);
     const text = await projectRows.allTextContents();
     expect(text.join(' ')).toContain('sample-project');
     expect(text.join(' ')).toContain('Exported Project 2');
+    await freshContext.close();
   });
 
   test('a forced setItem quota error on save shows the message and the export offer', async ({ page }) => {
@@ -86,9 +86,12 @@ test.describe('Projects across addresses', () => {
     await expect(page.locator('.confirm-modal')).toContainText('Browser storage is full');
     const downloadPromise = page.waitForEvent('download');
     await page.locator('.confirm-dialog-confirm').click(); // Export
-    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
 
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toMatch(/^openisd-projects-.*\.json$/);
+    // The export then says what it did (T268), and OK closes that popup.
+    await expect(page.locator('.confirm-modal')).toContainText('Exported 1 project to openisd-projects-');
+    await page.locator('.confirm-dialog-confirm').click();
+    await expect(page.locator('.confirm-overlay')).toHaveCount(0);
   });
 });

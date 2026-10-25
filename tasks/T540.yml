@@ -1,0 +1,28 @@
+id: T540
+release_note: The New Project wizard's EBP line has a space after the colon.
+repo: openisd
+owner: opi
+status: done
+landed: 920ab1aaae5ae82a6bab0c2f643123055f3828b2
+goal: Desktop wizard step 3 reads 'Efficiency Bandwidth Product (EBP): 78.9' with a space after the colon (BUG_20261019_desktop-wizard-ebp-no-space-after-colon).
+done_test: bash scripts/test.sh packages/ui/test/ui/OriginalNewProject-ebp-line.test.ts
+files:
+  - tasks/T540.yml
+  - bugs/BUG_20261019_desktop-wizard-ebp-no-space-after-colon.md
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/OriginalNewProject-ebp-line.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
+visual:
+  - desktop-wizard-abc-step3
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-vented-step3

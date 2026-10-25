@@ -1,0 +1,34 @@
+id: T416
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: c9c988ee45b195d8569a2f118cbb387a3bf761ad
+goal: The storage banner is gone from both shells. When the browser refused or cannot promise to keep OpenISD's data, the app shows a popup dialog (the app's existing shared dialog component, Close footer, same on phone and desktop) stating the browser's condition in plain words and the advice (Chrome, Drive sync, export); it opens once per browser until the user closes it, and again only if the condition changes or storage reaches 80% full. Nothing shows when there is no reason to be concerned (persistence granted and storage not near full). The words and the trigger rule stay in packages/design (browserStorage.ts); UI only displays. The Options / Your data line stays as is. John, QO244, 18 Oct 2026. The app decides the risk from what it observes at startup (browser type parsed once from the user agent in packages/design or the persistence package, never in UI; persistence refused or unavailable; storage usage); the user is not asked to judge the browser. The popup makes the user aware of the risk in plain short words, naming the browser only as the reason ("Firefox has not promised to keep this site's data"), and suggests connected mode (Google Drive sync) first, then export. No popup when there is no risk (John, 18 Oct 2026: "if there are initial observations on the browser type then IT can make them aware of these risks and suggest connected mode for instance"). Second reason, same one dialog (John, 18 Oct 2026: "and if size is getting tight?"): when storage reaches 80% (the existing storageFullWarning rule) the popup says storage is N% full (M projects, X of 5 MB) and suggests connected mode (Drive sync) so projects live in Drive, else export or delete old projects; shown once per crossing and again at every start while above 80%. Both reasons' text comes from packages/design.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T416.yml
+  - bugs/BUG_20261016_storage-banner-covers-chart.md
+  - packages/design/fields/browserStorage.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/persistence/src/index.ts
+  - packages/persistence/src/storage/browserStorage.ts
+  - packages/persistence/test/browserStorage.test.ts
+  - packages/ui/src/hooks/PersistenceBanner-hooks.ts
+  - packages/ui/src/logic/app.ts
+  - packages/ui/src/logic/storagePopup.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/PersistenceBanner.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/storagePopup.test.ts
+  - packages/ui/test/ui/persistence-banner-layout.browser.spec.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - packages/ui/test/ui/storage-popup-layout.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - scripts/ci/spec-durations.json
+  - scripts/ui-gallery/README.md
+  - scripts/ui-gallery/screens.mjs

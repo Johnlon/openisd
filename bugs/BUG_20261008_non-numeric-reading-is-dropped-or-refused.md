@@ -1,6 +1,19 @@
 # BUG_20261008_non-numeric-reading-is-dropped-or-refused
 
-**Status:** OPEN. Fix is a land.sh task after the admission slot and the decoupling, test first.
+**Status:** RESOLVED (T528, 2026-10-21).
+
+## Outcome
+- Claim 1 (schema cannot store a Rejected reading): already fixed. `openisdSchema.ts` has Usable,
+  RejectedParsed and RejectedUnparsed readings (plus unrecognised-reason variants); the printed text
+  is kept in `actual_reading`.
+- Claim 4 (converter drops rejected readings): already fixed. They are kept and written to the .wdr
+  comment (`winIsdDriverConverter.ts`, `driverYmlToOpenisdAndWdr.test.ts`).
+- Claims 2 and 3 (.wdr text cell, non-finite VCCon): follow John's 2026-10-11 ruling, which is later
+  than this bug: a .wdr holds only a flag and a number, so loading one never makes a Rejected reading.
+  The cell is left out and the import warns "<key> is "<text>", not a number: left out", for an
+  entered cell, a not-available cell with text, and a non-numeric VCCon. A blank cell stays silent.
+  Tests: `wdr-vccon-numvc-import.test.ts`.
+- No UI code reads readings, so there is no UI display to change.
 
 ## John's rule (2026-10-08)
 A reading's `actual_reading` is the text exactly as printed, whatever it is ("N/A", "banana").

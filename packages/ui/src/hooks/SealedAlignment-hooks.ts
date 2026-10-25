@@ -1,5 +1,6 @@
 import {computed, type ComputedRef, ref, type Ref} from 'vue';
-import type {OpenISDProject} from '@openisd/design';
+import type {OpenISDProject, SealedBoxLosses} from '@openisd/design';
+import {WinisdDeviation} from '@openisd/design/fields';
 import type {DriverEngine, EbpSuitability, SealedAlignmentOption, SealedEngine} from '@openisd/design/engine';
 
 export interface SealedAlignmentEditorAPI {
@@ -12,6 +13,8 @@ export interface SealedAlignmentEditorAPI {
   readonly ebp: ComputedRef<number | null>;
   readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
   readonly ebpSuitabilityLabel: ComputedRef<string>;
+  /** The ≠W cue by the picker shows: WinISD's picker volume is not what the picker gives. */
+  readonly deviationShown: ComputedRef<boolean>;
   openEditor(): void;
   selectQtc(qtc: number): void;
   accept(): void;
@@ -30,13 +33,14 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
   readonly ebp: ComputedRef<number | null>;
   readonly ebpSuitability: ComputedRef<EbpSuitability | null>;
   readonly ebpSuitabilityLabel: ComputedRef<string>;
+  readonly deviationShown: ComputedRef<boolean>;
 
   readonly #driverValues: ComputedRef<{Qts: number | null; Vas_m3: number | null; Fs_hz: number | null; Qes: number | null}>;
 
   constructor(
     private readonly project: ComputedRef<OpenISDProject>,
     changed: Ref<number>,
-    private readonly sealed: SealedEngine,
+    sealed: SealedEngine,
     driver: DriverEngine,
   ) {
     this.#driverValues = computed(() => {
@@ -45,12 +49,17 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
       return {Qts: ts.Qts.value, Vas_m3: ts.Vas_m3.value, Fs_hz: ts.Fs_hz.value, Qes: ts.Qes.value};
     });
     this.options = computed(() => sealed.alignmentOptions());
+    this.deviationShown = computed(() => {
+      void changed.value;
+      return WinisdDeviation.SEALED_PICKER.cueShown(project.value.errorSwitches);
+    });
+    // The Qtc the draft volume gives on the Box tab: the same lossy figure, under the project's own source
+    // resistance and box losses.
     this.qtc = computed(() => {
-      const {Qts, Vas_m3} = this.#driverValues.value;
+      void changed.value;
+      const p = project.value;
       const volume = this.volume_m3.value;
-      return volume == null || Qts == null || Vas_m3 == null
-        ? null
-        : sealed.qtcFromVolume(Qts, Vas_m3, volume);
+      return volume == null ? null : p.driver.sealedQtc(volume, p.Rs_ohm.value, this.#losses());
     });
     this.selectedOption = computed(() => this.qtc.value == null ? null : sealed.closestAlignment(this.qtc.value));
     this.ebp = computed(() => {
@@ -68,18 +77,26 @@ export class SealedAlignmentEditor implements SealedAlignmentEditorAPI {
     });
   }
 
+  /** The project's box losses for the closed box. */
+  #losses(): SealedBoxLosses {
+    const losses = this.project.value.box.sealed.losses;
+    return {Ql: losses.Ql.value, Qa: losses.Qa.value};
+  }
+
   openEditor(): void {
     this.volume_m3.value = this.project.value.box.sealed.volume_m3.value;
     this.open.value = true;
   }
 
   selectQtc(targetQtc: number): void {
-    const {Qts, Vas_m3} = this.#driverValues.value;
-    this.volume_m3.value = Qts == null || Vas_m3 == null
-      ? null
-      : this.sealed.volumeForQtc(Qts, Vas_m3, targetQtc);
+    const p = this.project.value;
+    const winisdPicker = p.winisdSealedPicker.value;
+    const volume = p.driver.sealedPickerVolume(targetQtc, p.Rs_ohm.value, this.#losses(), winisdPicker);
+    this.volume_m3.value = volume;
   }
 
+  /** The accepted volume is kept as the box's entered volume, picked or typed: Qtc is then calculated, and a
+   *  driver edit leaves the volume alone, as in WinISD (John, 20 Oct 2026, QO274 "keep the vol"). */
   accept(): void {
     const v = this.volume_m3.value;
     if (v != null && v > 0) this.project.value.box.sealed.volume_m3.set(v);

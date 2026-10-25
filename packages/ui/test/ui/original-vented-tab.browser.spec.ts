@@ -1,4 +1,4 @@
-import {expect, focusedPortVelocityLimit, focusedVentLengthDq, openAProject, setFocusedBoxType, setFocusedVentedDesign, test} from '../fixtures.js';
+import {expect, openAProject, setFocusedBoxType, setFocusedVentedDesign, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur, fillAndCommit, numInputByLabel, PageOps, setNumField} from '../fixtures/numField.js';
 
@@ -8,7 +8,7 @@ import {fillAndBlur, fillAndCommit, numInputByLabel, PageOps, setNumField} from 
  * 1st port resonance readout and the port velocity limit. Box-type selection is the Box tab's.
  */
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await page.goto('/');
   await openAProject(page);
   await setFocusedBoxType(page, 'vented');
@@ -22,14 +22,14 @@ async function openVentedTab(page: Page): Promise<void> {
 
 test.describe('Original Vented tab', () => {
   test.describe('vent count', () => {
-    test('Number of Vents shows one port by default and offers the registry\'s 1..4', async ({ page }) => {
+    test('Number of Vents shows one port by default and offers the registry\'s 1..4', async ({ appPage: page }) => {
       await openVentedTab(page);
       const count = page.locator('select#vent-count');
       await expect(count).toHaveValue('1');
       await expect(count.locator('option')).toHaveCount(4);
     });
 
-    test('picking two vents makes the solved port length longer than with one', async ({ page }) => {
+    test('picking two vents makes the solved port length longer than with one', async ({ appPage: page }) => {
       await openVentedTab(page);
       const length = page.locator('#og-vent-length');
       await expect(length).not.toHaveValue(/^[—\s]*$/);
@@ -39,17 +39,27 @@ test.describe('Original Vented tab', () => {
       await page.locator('select#vent-count').selectOption('2');
       await expect.poll(async () => parseFloat(await length.inputValue())).toBeGreaterThan(one);
     });
+
+    // WinISD's Cross area box reads all ports together (bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md).
+    test('picking two vents makes the Cross area box show twice the one-port area', async ({ appPage: page }) => {
+      await openVentedTab(page);
+      const area = page.locator('.field', { hasText: 'Cross area' }).locator('input');
+      const one = parseFloat(await area.inputValue());
+      expect(one).toBeGreaterThan(0);
+      await page.locator('select#vent-count').selectOption('2');
+      await expect.poll(async () => parseFloat(await area.inputValue()) / one).toBeCloseTo(2, 2);
+    });
   });
 
   test.describe('vent shape and end correction', () => {
-    test('the port end correction shows Two free ends by default, not blank', async ({ page }) => {
+    test('the port end correction shows Two free ends by default, not blank', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const endSel = page.locator('.field', { hasText: 'End Correction' }).locator('select');
       await expect(endSel).toHaveValue(/0\.613/);
       await expect(endSel.locator('option:checked')).toContainText('Two free ends');
     });
 
-    test('the vent shape offers slotted, and slotted inputs are reachable', async ({ page }) => {
+    test('the vent shape offers slotted, and slotted inputs are reachable', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const shape = page.locator('.field', { hasText: 'Shape' }).locator('select');
       await expect(shape.locator('option[value="slotted"]')).toHaveCount(1);
@@ -63,13 +73,17 @@ test.describe('Original Vented tab', () => {
     });
 
     // bugs/BUG_20261005_no-common-ui-field-component.md: an emptied box clears the value, never
-    // stores 0. A cleared port dimension settles to the starting port (John, 2026-10-09): the
-    // diameter to the 50 mm round default, the slot width to the driver's Dd.
-    test('emptied vent dimensions settle to the starting port instead of becoming 0', async ({ page }) => {
+    // stores 0. A cleared diameter keeps the cross area as entered and is calculated from it
+    // (John, 2026-10-16); the slot width goes back to the driver's Dd (John, 2026-10-09).
+    test('emptied vent dimensions keep the partner or settle instead of becoming 0', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
+      const area = page.locator('.field', { hasText: 'Cross area' }).locator('input');
+      const areaBefore = await area.inputValue();
       await fillAndBlur(diameter, '');
       await expect(diameter).toHaveValue(/^5(\.0+)?$/);
+      await expect(diameter).toHaveClass(/value-c/);
+      await expect(area).toHaveValue(areaBefore);
       await page.locator('.field', { hasText: 'Shape' }).locator('select').selectOption('slotted');
       const width = page.locator('.ui-field', { hasText: 'Slot width' }).locator('input');
       await fillAndBlur(width, '7');
@@ -81,13 +95,13 @@ test.describe('Original Vented tab', () => {
   });
 
   test.describe('target tuning', () => {
-    test('the vented box calls Fb the TARGET, and says what it drives', async ({ page }) => {
+    test('the vented box calls Fb the TARGET, and says what it drives', async ({ appPage: page }) => {
       const field = page.locator('#og-fb-target-field');
-      await expect(field.locator('label')).toHaveText('Target Tuning Freq (Fb)');
+      await expect(field.locator('label')).toHaveText('Tuning freq (Fb)');
       await expect(field).toHaveAttribute('title', /port dimension/i);
     });
 
-    test('a target the port cannot reach is reported, and the length shows as unbuildable', async ({ page }) => {
+    test('a target the port cannot reach is reported, and the length shows as unbuildable', async ({ appPage: page }) => {
       const pageOps = new PageOps(page);
 
       // 40 Hz in the fixture's 7 L box with its 5 cm vent is reachable — no warning.
@@ -109,43 +123,37 @@ test.describe('Original Vented tab', () => {
       await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn')).toBeVisible();
       // The mark sits on the field the solve FAILED to produce — the vent's own length — not on
       // the target that was asked for.
-      const dq = await focusedVentLengthDq(page);
-      expect(dq.unreachable).toBe(true);   // the DQ aggregation is on, not just the visual
-      expect(dq.dqCount).toBeGreaterThan(0);
+      await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn'))
+        .toHaveAttribute('title', /This port can't reach that tuning/);
     });
 
-    // Bug (John, live on his phone, 2026-10-01): clearing an entered Target Tuning Freq left BOTH
-    // it and Vent length stuck on the read-only "nothing entered" branch — the template only ever
-    // rendered an input for the 'E' state, so once a clear drove both to 'N' there was no element
-    // left to type into. "Unrecoverable" (his word) without reloading the project from disk.
-    //
-    // Fixed two ways: the template now allows typing into the 'N' state (a driver with no T/S specs
-    // still falls back to this — there is nothing to compute an alignment from). But where the
-    // driver DOES resolve, John's own follow-up ("clear ... should probably default to ... an
-    // alignment") is the better recovery: `clearVentField` now calls `Box.resetVentedAlignment()`,
-    // so the pair comes back ALIVE with a real design (QB3) instead of merely blank-but-typeable.
-    test('clearing Target Tuning Freq re-derives a QB3 design, not a dead blank', async ({ page }) => {
+    // John, 2026-10-16: clearing the entered target tuning keeps the vent length at its value as
+    // entered, and the tuning shows what that length gives, calculated. The box volume is never
+    // overwritten, and nothing goes blank (the 2026-10-01 blank-pair bug stays fixed).
+    test('clearing Tuning freq keeps the vent length and the volume; the tuning is calculated', async ({ appPage: page }) => {
       const pageOps = new PageOps(page);
       await pageOps.setNum('#og-fb-target', '40');
       await expect(page.locator('#og-fb-target')).toHaveValue('40.00');
+      await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+      const length = page.locator('#og-vent-length');
+      const lengthBefore = await length.inputValue();
+      await page.locator('.project-nav li', { hasText: 'Box' }).click();
+      const volumeBefore = await page.locator('#og-box-volume').inputValue();
 
       await fillAndCommit(page.locator('#og-fb-target'), '');
-      // Still the live entered input (not the readonly `#og-fb-target-field > input` branch with no
-      // id) — AND non-empty: the default alignment re-derived a real tuning, not a dead blank.
-      await expect(page.locator('#og-fb-target')).toBeVisible();
-      const fb = Number(await page.locator('#og-fb-target').inputValue());
-      expect(fb).toBeGreaterThan(0);
-      expect(fb, 'a different design, not the stale 40 surviving the clear').not.toBeCloseTo(40, 1);
 
-      // Vent length is the pair's now-calculated side — a real length, not the blank ⚠ mark.
+      await expect(page.locator('#og-fb-target')).toHaveClass(/value-c/);
+      await expect(page.locator('#og-fb-target')).toHaveValue('40.00');
+      await expect(page.locator('#og-box-volume')).toHaveValue(volumeBefore);
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
-      await expect(page.locator('#og-vent-length')).not.toHaveValue('');
-      await expect(page.locator('.ui-field', { has: page.locator('#og-vent-length') }).locator('.ui-field-dq-btn')).toHaveCount(0);
+      await expect(length).toHaveClass(/value-e/);
+      await expect(length).toHaveValue(lengthBefore);
+      await expect(page.locator('.ui-field', { has: length }).locator('.ui-field-dq-btn')).toHaveCount(0);
     });
 
     // John, 2026-10-06: "vent length should be editable". Typing a length while the target tuning
     // is entered makes the length the entered side and the tuning the calculated one.
-    test('vent length is editable while the target tuning is entered, and moves the tuning', async ({ page }) => {
+    test('vent length is editable while the target tuning is entered, and moves the tuning', async ({ appPage: page }) => {
       const pageOps = new PageOps(page);
       await pageOps.setNum('#og-fb-target', '40');
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
@@ -162,7 +170,7 @@ test.describe('Original Vented tab', () => {
     // John, 2026-10-06: "target freq and vent len editable, relative to each other with fixed dim
     // port". Whichever was typed last is entered; the other is recalculated; the port's
     // cross-section never moves.
-    test('target tuning and vent length each recalculate the other, the port size fixed', async ({ page }) => {
+    test('target tuning and vent length each recalculate the other, the port size fixed', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const fb = page.locator('#og-vent-fb-target'), len = page.locator('#og-vent-length');
       const area = async () => page.locator('.field', { hasText: 'Cross area' }).locator('input').inputValue();
@@ -183,13 +191,13 @@ test.describe('Original Vented tab', () => {
     // Vents pane as well as the Box tab — the user sizing a vent must see, and be able to change,
     // the target those dimensions were solved for. WinISD shows it only on its Box screen; this is
     // a deliberate OpenISD addition. One stored `P.Fb`, two places to see and edit it.
-    test('the Vents pane carries the SAME editable target tuning as the Box tab', async ({ page }) => {
+    test('the Vents pane carries the SAME editable target tuning as the Box tab', async ({ appPage: page }) => {
       const pageOps = new PageOps(page);
       await pageOps.setNum('#og-fb-target', '42');
 
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const ventField = page.locator('#og-vent-fb-target-field');
-      await expect(ventField.locator('label')).toHaveText('Target Tuning Freq (Fb)');
+      await expect(ventField.locator('label')).toHaveText('Tuning freq (Fb)');
       await expect(page.locator('#og-vent-fb-target')).toHaveValue('42.00');
 
       // Vents → Box: editing here must move the Box tab's field AND re-solve the vent length.
@@ -209,7 +217,7 @@ test.describe('Original Vented tab', () => {
   });
 
   test.describe('port solve and readouts', () => {
-    test('a 30L box with a 5cm bore tuned to Fb=37.9Hz solves a 10.6cm port, and the target is one value on two tabs', async ({ page }) => {
+    test('a 30L box with a 5cm bore tuned to Fb=37.9Hz solves a 10.6cm port, and the target is one value on two tabs', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       // Volume: multiple "Volume" labels exist (tune + enclosure panes)
       await fillAndCommit(numInputByLabel(page, 'Volume').first(), '30');  // scale=1000: 30 → stores 0.030 m³
@@ -242,7 +250,7 @@ test.describe('Original Vented tab', () => {
       expect(restored).toBeCloseTo(10.6, 1);
     });
 
-    test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning', async ({ page }) => {
+    test('the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning', async ({ appPage: page }) => {
       // Build a real vent through the same domain seam the UI typing drives: the solver produces
       // ventL, making the resonance readout a real number.
       await setFocusedVentedDesign(page, { volume_m3: 0.06, tuning_hz: 40, diameter_m: 0.1 });
@@ -255,17 +263,20 @@ test.describe('Original Vented tab', () => {
       expect(v).toBeGreaterThan(500);
     });
 
-    test('the port velocity limit is a per-project setting, 17 m/s by default', async ({ page }) => {
+    test('the port velocity limit is a per-project setting, 17 m/s by default', async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const field = page.locator('#og-vent-velocity-limit');
       await expect(field).toHaveValue(/^17(\.0+)?$/);
       await fillAndBlur(field, '25');
-      await expect.poll(() => focusedPortVelocityLimit(page)).toBe(25);
+      // Leaving the tab and coming back shows the limit the project holds.
+      await page.locator('.project-nav li', { hasText: 'Box' }).click();
+      await page.locator('.project-nav li', { hasText: 'Vented' }).click();
+      await expect(field).toHaveValue(/^25(\.0+)?$/);
     });
   });
 
   test.describe('layout', () => {
-    test('the vented enclosure tab has no box-type selector', async ({page}) => {
+    test('the vented enclosure tab has no box-type selector', async ({ appPage: page }) => {
       await page.locator('.project-nav li', {hasText: 'Vented'}).click();
       await expect(page.locator('#vent-count')).toBeVisible();          // we are on the vents pane
       await expect(page.locator('#og-box-type-enclosure')).toHaveCount(0);

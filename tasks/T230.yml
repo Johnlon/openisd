@@ -1,0 +1,74 @@
+id: T230
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: d5c3259e01bd5f39889773b4d3229f91e09c0850
+goal: 'Visual baselines: a committed picture of every screen in both skins (53 screens), checked in the post-land run; a red names the screens and links a before/after page; land.sh refuses a task whose visual: list differs from its changed baselines and publishes a before/after page when baselines change'
+done_test: bash scripts/land/test/visual.e2e.test.sh
+files:
+  - tasks/T230.yml
+  - playwright.config.js
+  - docs/design/VISUAL_BASELINES.md
+  - scripts/land.sh
+  - scripts/land/post-land/run.sh
+  - scripts/land/test/land.e2e.test.sh
+  - scripts/land/test/post-land.e2e.test.sh
+  - scripts/land/test/visual.e2e.test.sh
+  - scripts/visual/*
+  - packages/ui/test/visual/*
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/*.png
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-empty
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step4
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5
+  - mobile-empty
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-graph
+  - mobile-tab-signal
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-sealed-step5
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
+  - mobile-wizard-vented-step5

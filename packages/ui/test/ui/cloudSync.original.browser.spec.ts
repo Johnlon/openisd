@@ -106,7 +106,7 @@ test.describe('Original shell cloud sync — configured build (Plan P1-13a)', ()
     await expect(badge.locator('.icon-cloudOff')).toBeVisible();
   });
 
-  test('status reconnect renders reconnect strip with no close button', async ({ page }) => {
+  test('status reconnect renders reconnect strip with Reconnect and Not now', async ({ page }) => {
     await enableCloudSync(page);
     await stubGoogleApis(page);
 
@@ -129,20 +129,22 @@ test.describe('Original shell cloud sync — configured build (Plan P1-13a)', ()
     await expect(strip).toBeVisible();
     await expect(strip).toContainText('Google needs you to connect again');
 
-    // The strip has no close button — only Reconnect button
+    // Reconnect, and Not now (hides the strip for this session)
     const buttons = strip.locator('button');
-    await expect(buttons).toHaveCount(1);
+    await expect(buttons).toHaveCount(2);
     await expect(buttons.first()).toHaveText('Reconnect');
+    await expect(buttons.nth(1)).toHaveText('Not now');
+    await buttons.nth(1).click();
+    await expect(strip).toHaveCount(0);
   });
 
   test('the hint\'s Turn on opens the Cloud sync dialog', async ({ page }) => {
     await enableCloudSync(page);
     await stubGoogleApis(page);
-    await page.goto('/');
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       localStorage.setItem('openisd_cloud_ui', JSON.stringify({launches: 1, hintDismissed: false, conflictsSeen: 0}));
     });
-    await page.reload();
+    await page.goto('/');
     await page.locator('.cloud-hint button', { hasText: 'Turn on' }).click();
     await expect(page.getByRole('dialog', { name: 'Cloud sync' })).toBeVisible();
     await expect(page.locator('.cloud-hint')).toHaveCount(0);

@@ -1,4 +1,4 @@
-import {appEnvDefaultsTempK, clearFocusedEnvironment, expect, openAProject, savedUsername, setSweepRange, test} from '../fixtures.js';
+import {clearFocusedEnvironment, expect, openAProject, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 
@@ -9,10 +9,10 @@ import {fillAndBlur} from '../fixtures/numField.js';
  */
 
 const freqRow = (page: Page) =>
-  page.locator('.opt-limits tr', { hasText: 'Frequency range' }).locator('input.opt-num');
+  page.locator('.opt-limits tr', { hasText: 'Frequency range' }).locator('input');
 
 const splRow = (page: Page) =>
-  page.locator('.opt-limits tr', { hasText: /^SPL/ }).locator('input.opt-num');
+  page.locator('.opt-limits tr', { hasText: /^SPL/ }).locator('input');
 
 const okButton = (page: Page) =>
   page.locator('.opt-modal').getByRole('button', { name: 'OK' });
@@ -48,7 +48,7 @@ async function wizardToVentedAlignment(page: import('playwright').Page) {
   await modal.locator('.dlist .ditem').first().click();
   await modal.locator('.modal-footer button', { hasText: 'Next' }).click();   // Next chooses the driver: step 2
   await modal.locator('button', { hasText: 'Next' }).click();   // step 3: box type
-  await modal.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('vented');
+  await modal.getByLabel('Box type').selectOption('vented');
   await modal.locator('button', { hasText: 'Next' }).click();   // step 4: vented alignment
   await expect(modal).toContainText('Tuning frequency');
   return modal;
@@ -77,31 +77,28 @@ test.describe('Options dialog', () => {
         expect(box).toBeTruthy();
       });
 
-      test('Options modal input boxes are 50% wider and do not show spinners', async ({ page }) => {
+      test('Options number boxes are field rows: no native number input on either tab', async ({ page }) => {
         await page.locator('.tb-btn[title="Options"]').click();
-        const modal = page.locator('.opt-modal');
-        await expect(modal).toBeVisible();
-
-        // General tab: Environment input boxes should be 150px wide
-        const envInput = page.locator('.opt-env-grid .opt-num').first();
-        const envInputWidth = await envInput.evaluate(el => window.getComputedStyle(el).width);
-        expect(envInputWidth).toBe('80px');
-
-        // Verify no spinners (appearance: none / textfield)
-        const appearance = await envInput.evaluate(el => window.getComputedStyle(el).webkitAppearance);
-        expect(appearance).toBe('none');
-
-        // Plot Window tab: Limit input boxes stay compact at 70px wide
+        await expect(page.locator('.opt-modal')).toBeVisible();
+        await expect(page.locator('.opt-modal input[type="number"]')).toHaveCount(0);
         await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
-        const limitInput = page.locator('.opt-limits .opt-num').first();
-        const limitInputWidth = await limitInput.evaluate(el => window.getComputedStyle(el).width);
-        expect(limitInputWidth).toBe('70px');
+        await expect(page.locator('.opt-modal input[type="number"]')).toHaveCount(0);
       });
     });
 
+    /** What the Options dialog holds: opened, read, and cancelled. */
+    async function shownOptions(page: Page): Promise<{ tempK: number; username: string }> {
+      await page.locator('.tb-btn[title="Options"]').click();
+      const tempK = Number(await page.locator('.opt-fld', { hasText: 'Temperature' }).locator('input').inputValue());
+      const username = await page.locator('.opt-input').inputValue();
+      await page.locator('.opt-footer button', { hasText: 'Cancel' }).click();
+      await expect(page.locator('.opt-modal')).toBeHidden();
+      return { tempK, username };
+    }
+
     test.describe('draft, OK, Cancel and reset', () => {
       test('Options dialog edits are draft-only and discard on Cancel, apply on OK, and reset on Defaults', async ({ page }) => {
-        const getStoreTemp = () => appEnvDefaultsTempK(page);
+        const getStoreTemp = async () => (await shownOptions(page)).tempK;
 
         // Initially it is default 293.15
         expect(await getStoreTemp()).toBe(293.15);
@@ -142,7 +139,7 @@ test.describe('Options dialog', () => {
       });
 
       test('Environment fieldset has its own reset button that resets envDefaults without touching other draft fields', async ({ page }) => {
-        const getStore = async () => ({ tempK: await appEnvDefaultsTempK(page), username: await savedUsername(page) });
+        const getStore = () => shownOptions(page);
 
         // 1. Open options, set a username and change Temperature away from defaults, apply with OK
         await page.locator('.tb-btn[title="Options"]').click();
@@ -176,13 +173,12 @@ test.describe('Options dialog', () => {
 
         await page.locator('.tb-btn[title="Options"]').click();
         await expect(page.locator('.opt-modal')).toBeVisible();
-        const envTemp = page.locator('.opt-modal .opt-fld', { hasText: 'Temperature' }).locator('input[type="number"]');
+        const envTemp = page.locator('.opt-modal .opt-fld', { hasText: 'Temperature' }).locator('input[data-numinput], input[type="number"]');
         await envTemp.fill('300');
         await envTemp.dispatchEvent('input');
         await envTemp.blur();
         await page.locator('.opt-modal .opt-ok').click();
 
-        await page.reload();
         await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
         const advTemp = page.locator('.tab-section.active .field', { hasText: 'Temperature' }).locator('input');
         await expect(advTemp).toHaveValue('300.00');
@@ -195,7 +191,7 @@ test.describe('Options dialog', () => {
         await page.locator('.tb-btn[title="Options"]').click();
         const modal = page.locator('.opt-modal');
         await expect(modal).toBeVisible();
-        const hum = modal.locator('.opt-fld', { hasText: 'Relative humidity' }).locator('input.opt-num');
+        const hum = modal.locator('.opt-fld', { hasText: 'Relative humidity' }).locator('input');
         await expect(hum).toHaveValue(/30/);
       });
 
@@ -240,80 +236,137 @@ test.describe('Options dialog', () => {
       });
     });
 
+    test.describe('number boxes are field rows with step buttons', () => {
+      const fieldRow = (page: Page, label: string) =>
+        page.locator('.opt-modal .ui-field').filter({ has: page.locator('label', { hasText: label }) });
+
+      test('air temperature has the up and down buttons and the up button changes it', async ({ page }) => {
+        await page.locator('.tb-btn[title="Options"]').click();
+        const row = fieldRow(page, 'Temperature');
+        await expect(row.locator('.num-stepper-btn')).toHaveCount(2);
+        const before = await row.locator('input').inputValue();
+        await row.locator('.num-stepper-btn').first().click();
+        await expect(row.locator('input')).not.toHaveValue(before);
+      });
+
+      test('the sound velocity and air density readouts are read-only field rows', async ({ page }) => {
+        await page.locator('.tb-btn[title="Options"]').click();
+        for (const label of ['Sound velocity', 'Air density']) {
+          await expect(fieldRow(page, label).locator('input')).toHaveAttribute('readonly', '');
+          await expect(fieldRow(page, label).locator('.num-stepper-btn')).toHaveCount(0);
+        }
+      });
+
+      test('the frequency range start has the up and down buttons and the up button changes it', async ({ page }) => {
+        await openPlotWindow(page);
+        const row = fieldRow(page, 'Frequency range start');
+        await expect(row.locator('.num-stepper-btn')).toHaveCount(2);
+        const before = await row.locator('input').inputValue();
+        await row.locator('.num-stepper-btn').first().click();
+        await expect(row.locator('input')).not.toHaveValue(before);
+      });
+
+      test('a chart limit row has the up and down buttons, and the chart axis follows after OK', async ({ page }) => {
+        await openPlotWindow(page);
+        const row = fieldRow(page, 'SPL start');
+        await expect(row.locator('.num-stepper-btn')).toHaveCount(2);
+        const axisBefore = await page.locator('.gpanel').first().getAttribute('data-y-range');
+        const before = await row.locator('input').inputValue();
+        for (let i = 0; i < 5; i++) await row.locator('.num-stepper-btn').first().click();
+        await expect(row.locator('input')).not.toHaveValue(before);
+        await okButton(page).click();
+        await expect(page.locator('.gpanel').first()).not.toHaveAttribute('data-y-range', axisBefore ?? '');
+      });
+
+      test('the dialog and every row fit inside the dialog width on both tabs', async ({ page }) => {
+        for (const [tabName, size] of [['General', { width: 1280, height: 800 }], ['Plot Window', { width: 1280, height: 800 }], ['General', { width: 1880, height: 1000 }], ['Plot Window', { width: 1880, height: 1000 }]] as const) {
+          await page.setViewportSize(size);
+          await page.locator('.tb-btn[title="Options"]').click();
+          await page.locator('.opt-tab', { hasText: tabName }).click();
+          const over = await page.evaluate(() => {
+            const modal = document.querySelector('.opt-modal')!;
+            const body = document.querySelector('.opt-body')!;
+            const right = modal.getBoundingClientRect().right;
+            const wide = Array.from(body.querySelectorAll('.ui-field, tr')).filter(e => e.getBoundingClientRect().right > right + 0.5);
+            return { scroll: body.scrollWidth - body.clientWidth, wide: wide.length };
+          });
+          expect(over, `${tabName} at ${size.width}`).toEqual({ scroll: 0, wide: 0 });
+          await page.locator('.opt-modal').getByRole('button', { name: 'Cancel' }).click();
+        }
+      });
+    });
+
     test.describe('Plot Window', () => {
       test('the frequency range set in Options survives a reload', async ({ page }) => {
         await openPlotWindow(page);
-        await freqRow(page).nth(0).fill('3');
-        await freqRow(page).nth(1).fill('4444');
+        await fillAndBlur(freqRow(page).nth(0), '3');
+        await fillAndBlur(freqRow(page).nth(1), '4444');
         await page.locator('.opt-modal').getByRole('button', { name: 'OK' }).click();
 
         await page.reload();
         await openPlotWindow(page);
 
-        await expect(freqRow(page).nth(0)).toHaveValue('3');
-        await expect(freqRow(page).nth(1)).toHaveValue('4444');
+        await expect(freqRow(page).nth(0)).toHaveValue('3.0');
+        await expect(freqRow(page).nth(1)).toHaveValue('4444.0');
       });
 
       test('a chart Y range set in Options survives a reload', async ({ page }) => {
         await openPlotWindow(page);
-        await splRow(page).nth(0).fill('11');
-        await splRow(page).nth(0).dispatchEvent('change');
-        await splRow(page).nth(1).fill('111');
-        await splRow(page).nth(1).dispatchEvent('change');
+        await fillAndBlur(splRow(page).nth(0), '11');
+        await fillAndBlur(splRow(page).nth(1), '111');
         await page.locator('.opt-modal').getByRole('button', { name: 'OK' }).click();
 
         await page.reload();
         await openPlotWindow(page);
 
-        await expect(splRow(page).nth(0)).toHaveValue('11');
-        await expect(splRow(page).nth(1)).toHaveValue('111');
+        await expect(splRow(page).nth(0)).toHaveValue('11.00');
+        await expect(splRow(page).nth(1)).toHaveValue('111.00');
       });
 
       // John, 2026-10-01: a drag-zoomed range (stored as e.g. 13.478123 Hz) showed in Options to every
       // digit. The dialog shows it at the field's precision.
       test('Options shows a drag-zoomed frequency range at one decimal', async ({ page }) => {
-        await setSweepRange(page, { min: 13.478123, max: 19987.34567 });
+        const box = (await page.locator('.graph-wrap canvas').boundingBox())!;
+        // Drag along the X-axis strip: the window's ends land on whatever frequencies the pixels mean.
+        await page.mouse.move(box.x + box.width * 0.37, box.y + box.height - 6);
+        await page.mouse.down();
+        await page.mouse.move(box.x + box.width * 0.58, box.y + box.height - 6, { steps: 7 });
+        await page.mouse.up();
         await openPlotWindow(page);
-        await expect(freqRow(page).nth(0)).toHaveValue('13.5');
-        await expect(freqRow(page).nth(1)).toHaveValue('19987.3');
+        await expect(freqRow(page).nth(0)).not.toHaveValue('1');
+        await expect(freqRow(page).nth(1)).not.toHaveValue('20000');
+        await expect(freqRow(page).nth(0)).toHaveValue(/^\d+(\.\d)?$/);
+        await expect(freqRow(page).nth(1)).toHaveValue(/^\d+(\.\d)?$/);
       });
 
       test('editing only a chart row End applies it against the row placeholder Start', async ({ page }) => {
         await openPlotWindow(page);
 
         // SPL's row placeholder Start is 40 (LIMIT_ROWS). Touch ONLY the End.
-        await splRow(page).nth(1).fill('100');
-        await splRow(page).nth(1).dispatchEvent('change');
+        await fillAndBlur(splRow(page).nth(1), '100');
         await okButton(page).click();
 
         await page.reload();
         await openPlotWindow(page);
 
         // Before the fix: Start persisted as empty/NaN — the chart ignored the whole override.
-        await expect(splRow(page).nth(0)).toHaveValue('40');
-        await expect(splRow(page).nth(1)).toHaveValue('100');
+        await expect(splRow(page).nth(0)).toHaveValue('40.00');
+        await expect(splRow(page).nth(1)).toHaveValue('100.00');
       });
 
-      test('OK refuses a cleared frequency-range field and keeps the dialog open with the error', async ({ page }) => {
+      test('a cleared frequency-range box is refused and marked, nothing is stored, OK is not held back', async ({ page }) => {
         await openPlotWindow(page);
+        await fillAndBlur(freqRow(page).nth(0), '');
 
-        await freqRow(page).nth(0).fill('');
-        await freqRow(page).nth(0).dispatchEvent('change');
-
-        await expect(okButton(page)).toBeDisabled();
-        await expect(page.getByTestId('settings-error')).toBeVisible();
-
-        // The dialog stays open — nothing is written behind the user's back.
-        await expect(page.locator('.opt-modal')).toBeVisible();
+        await expect(freqRow(page).nth(0)).toHaveClass(/inp-bad/);
+        await expect(okButton(page)).toBeEnabled();
       });
 
       test('OK refuses an inverted frequency range', async ({ page }) => {
         await openPlotWindow(page);
 
-        await freqRow(page).nth(0).fill('30000');
-        await freqRow(page).nth(0).dispatchEvent('change');
-        await freqRow(page).nth(1).fill('20');
-        await freqRow(page).nth(1).dispatchEvent('change');
+        await fillAndBlur(freqRow(page).nth(0), '20000');
+        await fillAndBlur(freqRow(page).nth(1), '20');
 
         await expect(okButton(page)).toBeDisabled();
         await expect(page.getByTestId('settings-error')).toBeVisible();
@@ -326,8 +379,8 @@ test.describe('Options dialog', () => {
       test('Options opens with no project and shows the factory band', async ({ page }) => {
         await openOptions(page);
 
-        // No project was ever opened — the project tabs say so, the dialog edits regardless.
-        await expect(page.locator('.projects-list')).toContainText('No projects open');
+        // No project was ever opened — the Projects panel says so, the dialog edits regardless.
+        await expect(page.locator('.projects-list')).toContainText('No projects yet.');
         await expect(page.locator('.opt-modal')).toContainText('Vented design limits');
 
         // DEFAULT_VENTED_DESIGN_LIMITS in the units on screen: 1 L … 1000 L, 10 Hz … 150 Hz.

@@ -1,0 +1,15 @@
+id: T378
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 4462947f863dfc1de577a39ffc09df5b8b2e2f7d
+goal: The persist banner says nothing is wrong now, when data could be lost, that OpenISD warns at 80% full with usage in Diagnostics, and keeps the Chrome / Drive sync / export advice (bugs/BUG_20261017_persist-warning-is-scary.md).
+done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts
+files:
+  - bugs/BUG_20261017_persist-warning-is-scary.md
+  - packages/design/fields/browserStorage.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/ui/test/ui/persistent-storage.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T378.yml

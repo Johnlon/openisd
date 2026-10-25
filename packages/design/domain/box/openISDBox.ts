@@ -1,6 +1,6 @@
-import {type Engine} from '../../engine/index.js';
-import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
-import { CalculatedFieldImpl, absentCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, simpleField } from '../cell.js';
+import {type Engine, airIfAvailable} from '../../engine/index.js';
+import type { AirState, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
+import { CalculatedFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
@@ -55,16 +55,14 @@ const STARTING = Object.freeze({
 } as const);
 
 /** A chamber's tuning target and its vent's length as the pair they are: entering one writes it
- *  and clears the other in `commit`'s single record write, so no resolve runs between. Used where
- *  retracting a member leaves the pair blank (`noStartingAlignment`); the vented box adds its own
- *  fallback instead. */
+ *  and clears the other in `commit`'s single record write, so no resolve runs between. Clearing the
+ *  entered member keeps the other at its value as E (John, 2026-10-16). */
 function ventTuningPair(
     commit: (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined) => void,
     tuningEntry: TuningField, lengthEntry: TuningField,
 ): {readonly tuning: TuningField; readonly length: TuningField} {
-    const settle = (): void => {};
-    const tuning: TuningField = pairedField((entry) => commit(entry, undefined), tuningEntry, { siblingEmpty: () => length.value === null, settle });
-    const length: TuningField = pairedField((entry) => commit(undefined, entry), lengthEntry, { siblingEmpty: () => tuning.value === null, settle });
+    const tuning: TuningField = pairedField((entry) => commit(entry, undefined), tuningEntry, () => length);
+    const length: TuningField = pairedField((entry) => commit(undefined, entry), lengthEntry, () => tuning);
     return {tuning, length};
 }
 
@@ -112,9 +110,9 @@ function isStated(volume_m3: number | null): volume_m3 is number {
 /** The Box losses popup of a two-chamber box: one set per chamber, as WinISD gives each chamber
  *  panel its own Advanced-> losses. Both sets carry the box's one Qiclfr. */
 function chamberLossGroups(
-    rear: SealedLosses, rearQp: SimpleField<number> | null,
-    front: SealedLosses, frontQp: SimpleField<number>,
-    Qicl: SimpleField<number>,
+    rear: SealedLosses, rearQp: (SimpleField<number> & Clearable) | null,
+    front: SealedLosses, frontQp: SimpleField<number> & Clearable,
+    Qicl: SimpleField<number> & Clearable,
 ): readonly BoxLossGroup[] {
     return [
         {chamber: 'rear', heading: 'Rear chamber', Ql: rear.Ql, Qa: rear.Qa, Qp: rearQp, Qicl},
@@ -142,6 +140,8 @@ export class OpenISDBox implements Box {
      *  same reason `OpenISDProject.sourceLoadedQts` treats `Rs` as one: the record hear has no
      *  home for it (it lives on the project's driverEmbedding, which the box does not own). */
     readonly #rs: () => number;
+    /** The project's own resolved air, injected: the starting radiator's Vas is worked out in it. */
+    readonly #air: () => AirState;
 
     private constructor(
         lens: SimpleField<OpenISDBoxJson>,
@@ -150,11 +150,12 @@ export class OpenISDBox implements Box {
         rs: () => number,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
-        air: () => Air,
+        air: () => AirState,
     ) {
         this.#driver = driver;
         this.#engine = engine;
         this.#rs = rs;
+        this.#air = air;
         const boxType = focus(lens, 'boxType');
         this.boxType = simpleField(() => boxType.value, (type) => {
             boxType.set(type);
@@ -174,17 +175,89 @@ export class OpenISDBox implements Box {
         };
 
         const sealedLens = focus(lens, 'sealed');
-        const sealedVolume = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v, 'alignment'));
+        const sealedVolumeStored = nullableField(sealedLens, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v, 'alignment'));
         const sealedLosses = new SealedLossesWindow(focus(sealedLens, 'losses'));
+        const sealedQtcEntry = entryField(focus(sealedLens, 'Qtc'), 'q_tc', () => groupDq(issues().sealed));
+        const sealedFscEntry = entryField(focus(sealedLens, 'Fsc'), 'resonance_hz');
+        // Vb, Fsc and Qtc each fix the other two for a driver, so exactly one of them is entered (E) and the
+        // other two are calculated (C). The entered one is stored; Vb is calculated from an entered Qtc or Fsc
+        // when none is stated. Entering one drops the others' entries. Clearing the entered Qtc or Fsc makes
+        // Vb E at its current value; clearing the entered Vb makes Qtc E at its current value
+        // (docs/design/FIELD_CLEAR_RULE.md, John 16 Oct 2026, "ok E").
+        const sealedVolume = new DualWriteFieldImpl<number>(
+            () => {
+                const stated = sealedVolumeStored.value;
+                if (stated === null) {
+                    const calc = this.#sealedVolumeFromQtcOrFsc(sealedQtcEntry, sealedFscEntry, sealedLosses);
+                    if (calc !== null) return calculatedCell<number | null>('volume_m3', calc);
+                }
+                const issue = engine.issues.requiredPositiveIssue('Box volume', stated, 'alignment');
+                return stated === null
+                    ? absentCell<number>('volume_m3', issue ? [issue] : undefined)
+                    : enteredCell<number | null>('volume_m3', stated, issue ? [issue] : undefined, sealedVolumeStored.precision);
+            },
+            {
+                entered: (v: number) => {
+                    sealedQtcEntry.clear();
+                    sealedFscEntry.clear();
+                    sealedVolumeStored.set(v);
+                },
+                clear: () => {
+                    const qtc = sealedQtcEntry.value;
+                    if (sealedVolumeStored.value !== null && qtc !== null) sealedQtcEntry.set(qtc);
+                    sealedFscEntry.clear();
+                    sealedVolumeStored.clear();
+                },
+                calculated: () => undefined,
+                dq: () => undefined,
+            },
+        );
+        // Clearing the entered Qtc or Fsc hands the entry to Vb, at the value Vb has now.
+        const handEntryToVolume = (entry: {readonly entered: boolean; clear(): void}): void => {
+            const vb = sealedVolume.value;
+            if (entry.entered && vb !== null) sealedVolumeStored.set(vb);
+            entry.clear();
+        };
+        class SealedQtcField extends DualWriteFieldImpl<number> {
+            override set(v: number, precision?: number): void {
+                sealedVolumeStored.clear();
+                sealedFscEntry.clear();
+                sealedQtcEntry.set(v, precision);
+            }
+            override clear(): void { handEntryToVolume(sealedQtcEntry); }
+        }
+        const sealedQtc = new SealedQtcField(() => sealedQtcEntry, {
+            entered: (v, precision) => sealedQtcEntry.set(v, precision),
+            clear: () => sealedQtcEntry.clear(),
+            calculated: (v, precision) => sealedQtcEntry.setCalculated(v, undefined, precision),
+            dq: (list) => sealedQtcEntry.setDq(list),
+            notAvailable: () => sealedQtcEntry.setNotAvailable(),
+        });
+        class SealedFscField extends DualWriteFieldImpl<number> {
+            override set(v: number, precision?: number): void {
+                sealedVolumeStored.clear();
+                sealedQtcEntry.clear();
+                sealedFscEntry.set(v, precision);
+            }
+            override clear(): void { handEntryToVolume(sealedFscEntry); }
+        }
+        const sealedFsc = new SealedFscField(
+            () => {
+                if (sealedFscEntry.entered) return sealedFscEntry;
+                const v = this.#sealedResonance(sealedVolume.value, sealedLosses, 'lossy')?.Fsc ?? null;
+                return v === null ? absentCell<number>('resonance_hz') : calculatedCell<number | null>('resonance_hz', v);
+            },
+            {
+                entered: (v, precision) => sealedFscEntry.set(v, precision),
+                clear: () => sealedFscEntry.clear(),
+                calculated: () => undefined,
+                dq: () => undefined,
+            },
+        );
         this.sealed = {
             volume_m3: sealedVolume,
-            resonance_hz: new CalculatedFieldImpl<number | null>(() => {
-                const v = this.#sealedResonance(sealedVolume.value, sealedLosses, 'lossy')?.Fsc ?? null;
-                return v === null
-                    ? absentCell<number>('resonance_hz')
-                    : calculatedCell<number | null>('resonance_hz', v);
-            }),
-            q_tc: entryField(focus(sealedLens, 'Qtc'), 'q_tc', () => groupDq(issues().sealed)),
+            resonance_hz: sealedFsc,
+            q_tc: sealedQtc,
             losses: sealedLosses,
         };
 
@@ -205,9 +278,8 @@ export class OpenISDBox implements Box {
                 vent: { ...cur.vent, length_m: length },
             });
         };
-        const settleVentedPair = (): void => this.resetVentedAlignment();
-        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, { siblingEmpty: () => ventedLengthField.value === null, settle: settleVentedPair });
-        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, { siblingEmpty: () => ventedTuningField.value === null, settle: settleVentedPair });
+        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, () => ventedLengthField);
+        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, () => ventedTuningField);
         // A cleared port dimension settles to the starting port (John, 2026-10-09).
         const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField, ventStart);
         this.vented = {
@@ -215,7 +287,7 @@ export class OpenISDBox implements Box {
             // has no `setDq` for a resolve to write through, and the band it is judged against is an
             // application setting the user can change under an already-open project. Reading it
             // now is what makes a Settings edit land without the record being rewritten.
-            volume_m3: nullableField(ventedChamber, 'volume_m3', (v) => {
+            volume_m3: settlingNullableField(ventedChamber, 'volume_m3', () => this.#ventedAlignmentVolume(), (v) => {
                 // Only the ACTIVE box type has a design to judge. Every other box's record sits
                 // at its schema default (a 0 m³ vented chamber under a sealed project), which is
                 // not an implausible design — it is no design. The resolve cascade draws the
@@ -251,7 +323,7 @@ export class OpenISDBox implements Box {
                 // rear is SEALED — no port, so no `vents.rear`, and a read-only calculated
                 // `resonance_hz()` (WinISD's "Frc") stands in for the tuning it cannot be given.
                 rear: {
-                    volume_m3: nullableField(bp4Rear, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Rear chamber volume', v)),
+                    volume_m3: settlingNullableField(bp4Rear, 'volume_m3', () => startingChambersOf('bandpass4').rearVolume_m3, (v) => engine.issues.requiredPositiveIssue('Rear chamber volume', v)),
                     // LOSSLESS here, unlike the plain sealed box above, because that is what
                     // WinISD itself writes for a bandpass4 rear chamber. Two goldens written by
                     // the same winisd.exe 89 seconds apart with the identical driver, identical
@@ -278,13 +350,13 @@ export class OpenISDBox implements Box {
                 },
                 // front's volume is a Field, consistent with the rear chamber.
                 front: {
-                    volume_m3: nullableField(bp4Front, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Front chamber volume', v)),
+                    volume_m3: settlingNullableField(bp4Front, 'volume_m3', () => startingChambersOf('bandpass4').frontVolume_m3, (v) => engine.issues.requiredPositiveIssue('Front chamber volume', v)),
                     tuning_goal_hz: bp4FrontPair.tuning,
                     losses: new VentedLossesWindow(focus(bp4Front, 'losses')),
                 },
             },
             vents: {front: bp4FrontVent},
-            Qiclfr: focus(bp4, 'Qiclfr'),
+            Qiclfr: defaultedField(focus(bp4, 'Qiclfr'), WINISD_BOX_LOSSES.Qicl),
         };
 
         const bp6 = focus(lens, 'bandpass6');
@@ -302,14 +374,14 @@ export class OpenISDBox implements Box {
             entryField(focus(bp6FrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.bandpass6 = {
             chambers: {
-                rear: new VentedChamberWindow(bp6Rear, bp6RearPair.tuning, 'Rear chamber volume', engine.issues),
-                front: new VentedChamberWindow(bp6Front, bp6FrontPair.tuning, 'Front chamber volume', engine.issues),
+                rear: new VentedChamberWindow(bp6Rear, bp6RearPair.tuning, 'Rear chamber volume', engine.issues, () => startingChambersOf('bandpass6').rearVolume_m3),
+                front: new VentedChamberWindow(bp6Front, bp6FrontPair.tuning, 'Front chamber volume', engine.issues, () => startingChambersOf('bandpass6').frontVolume_m3),
             },
             vents: {
                 rear: new VentWindow(bp6RearVent, engine.vent, air, bp6RearPair.length, ventStart),
                 front: new VentWindow(bp6FrontVent, engine.vent, air, bp6FrontPair.length, ventStart),
             },
-            Qiclfr: focus(bp6, 'Qiclfr'),
+            Qiclfr: defaultedField(focus(bp6, 'Qiclfr'), WINISD_BOX_LOSSES.Qicl),
         };
 
         const abc = focus(lens, 'abc');
@@ -327,8 +399,8 @@ export class OpenISDBox implements Box {
             entryField(focus(abcFrontVent, 'length_m'), 'length_m', () => groupDq(issues().vent)));
         this.abc = {
             chambers: {
-                rear: new VentedChamberWindow(abcRear, abcRearPair.tuning, 'Rear chamber volume', engine.issues),
-                front: new VentedChamberWindow(abcFront, abcFrontPair.tuning, 'Front chamber volume', engine.issues),
+                rear: new VentedChamberWindow(abcRear, abcRearPair.tuning, 'Rear chamber volume', engine.issues, () => startingChambersOf('abc').rearVolume_m3),
+                front: new VentedChamberWindow(abcFront, abcFrontPair.tuning, 'Front chamber volume', engine.issues, () => startingChambersOf('abc').frontVolume_m3),
             },
             // Three ports, flat siblings: rear's and front's own ports to outside air, plus the
             // connecting port between the chambers — owned by neither, which is why it sits here and
@@ -338,7 +410,7 @@ export class OpenISDBox implements Box {
                 front: new VentWindow(abcFrontVent, engine.vent, air, abcFrontPair.length, ventStart),
                 intra: new VentWindow(focus(abc, 'intraVent'), engine.vent, air, undefined, ventStart),
             },
-            Qiclfr: focus(abc, 'Qiclfr'),
+            Qiclfr: defaultedField(focus(abc, 'Qiclfr'), WINISD_BOX_LOSSES.Qicl),
         };
 
         const pr = focus(lens, 'passiveRadiator');
@@ -346,21 +418,22 @@ export class OpenISDBox implements Box {
         const getRadiator = (): OpenISDPassiveRadiatorEmbedded => {
             return new OpenISDPassiveRadiatorEmbedded(prSlot, () => issues().radiator);
         };
-        const prVolume = nullableField(pr, 'volume_m3', (v) => engine.issues.requiredPositiveIssue('Box volume', v));
+        const prVolume = settlingNullableField(pr, 'volume_m3', () => STARTING_SHARED_VOLUME_M3, (v) => engine.issues.requiredPositiveIssue('Box volume', v));
         const prAddedMassEntry = entryField(focus(pr, 'addedMass_kg'), 'addedMass_kg', () => groupDq(issues().pr));
         const prTuningEntry = entryField(focus(pr, 'tuning_goal_hz'), 'tuning_goal_hz', () => groupDq(issues().pr));
-        // A cleared pair never stays blank: the added mass falls back to 0 (John, 2026-10-09), and
-        // the tuning is calculated from it.
-        const settlePr = (): void => prAddedMassField.set(0);
+        // A cleared member keeps the other as entered; with nothing to calculate from, both are N
+        // (John, 2026-10-16).
         const prTuningField: ReturnType<typeof pairedField> = pairedField(
             (entry) => pr.set({ ...pr.value, tuning_goal_hz: entry, addedMass_kg: undefined }),
             prTuningEntry,
-            { siblingEmpty: () => prAddedMassField.value === null, settle: settlePr },
+            () => prAddedMassField,
+            // No added mass stated is none added: the tuning is then the natural one, calculated.
+            0,
         );
         const prAddedMassField: ReturnType<typeof pairedField> = pairedField(
             (entry) => pr.set({ ...pr.value, addedMass_kg: entry, tuning_goal_hz: undefined }),
             prAddedMassEntry,
-            { siblingEmpty: () => prTuningField.value === null, settle: settlePr },
+            () => prTuningField,
         );
         this.passiveRadiator = {
             volume_m3: prVolume,
@@ -389,12 +462,13 @@ export class OpenISDBox implements Box {
                 const mech = {Mms_kg: r.spec.Mms_kg.value, Cms_m_per_N: r.spec.Cms_m_per_N.value};
                 const prSd = r.spec.Sd_m2.value;
                 const prNum = this.passiveRadiator.count.value || 1;
-                if (!(Vb != null && Vb > 0 && mech.Mms_kg !== null && mech.Mms_kg > 0 && prSd !== null && prSd > 0
+                const nowAir = airIfAvailable(air());
+                if (!(nowAir !== null && Vb != null && Vb > 0 && mech.Mms_kg !== null && mech.Mms_kg > 0 && prSd !== null && prSd > 0
                     && mech.Cms_m_per_N !== null && mech.Cms_m_per_N > 0 && prNum > 0)) {
                     return absentCell<number>('naturalTuning_hz');
                 }
                 return calculatedCell<number | null>('naturalTuning_hz',
-                    this.#engine.pr.tuning({ Vb, prMmd: mech.Mms_kg, prMadd: 0, prSd, prCms: mech.Cms_m_per_N, prNum }, air()));
+                    this.#engine.pr.tuning({ Vb, prMmd: mech.Mms_kg, prMadd: 0, prSd, prCms: mech.Cms_m_per_N, prNum }, nowAir));
             }),
             /** A read-only WHAT-IF query, independent of the stored pair and its cascade — never
              *  writes back, so it stays a pure computation over `PrEngine.massForFp` rather than a
@@ -409,14 +483,15 @@ export class OpenISDBox implements Box {
                 const prSd = r.spec.Sd_m2.value;
                 const prCms = r.spec.Cms_m_per_N.value;
                 const prNum = this.passiveRadiator.count.value || 1;
-                if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
+                const nowAir = airIfAvailable(air());
+                if (!(nowAir !== null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
                     return absentCell<number>('addedMassForTuning_kg');
                 }
-                const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, fp_hz, air());
+                const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, fp_hz, nowAir);
                 const addedMass = totalMass - prMmd;
                 const dq: DqIssue[] | undefined = addedMass < 0 ? [this.#engine.issues.targetUnreachable(
                     'addedMassForTuning_kg',
-                    this.#engine.pr.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, air()),
+                    this.#engine.pr.tuning({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, nowAir),
                 )] : undefined;
                 return calculatedCell<number | null>('addedMassForTuning_kg', addedMass, dq);
             }),
@@ -546,7 +621,8 @@ export class OpenISDBox implements Box {
         switch (this.boxType.value) {
             case 'sealed': {
                 if (isStated(this.sealed.volume_m3.value)) return;
-                const Vb = this.#driver.sealedVolumeForQtc(STARTING.sealedQtc);
+                const losses = this.sealed.losses;
+                const Vb = this.#driver.sealedVolumeForQtc(STARTING.sealedQtc, this.#rs(), {Ql: losses.Ql.value, Qa: losses.Qa.value});
                 if (Vb !== null && Vb > 0) this.sealed.volume_m3.set(Vb);
                 return;
             }
@@ -579,8 +655,9 @@ export class OpenISDBox implements Box {
                 if (spec.Fs_hz.value === null && startSd !== null) {
                     spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
                 }
-                if (spec.Vas_m3.value === null && startSd !== null) {
-                    spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, startSd));
+                const startAir = airIfAvailable(this.#air());
+                if (spec.Vas_m3.value === null && startSd !== null && startAir !== null) {
+                    spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, startSd, startAir));
                 }
                 return;
             }
@@ -613,6 +690,14 @@ export class OpenISDBox implements Box {
         }
     }
 
+    /** The volume the vented box's current alignment gives — what a cleared vented volume
+     *  settles to (John, 2026-10-16), the same figure `resetVentedAlignment` writes. Null when
+     *  the driver has no design to give, where a clear leaves the box blank as before. */
+    #ventedAlignmentVolume(): number | null {
+        const design = this.#driver.ventedDesign(STARTING.ventedAlignment, this.#rs(), this.vented.losses.Ql.value);
+        return design?.Vb ?? null;
+    }
+
     /** See `Box.resetVentedAlignment` (box.ts) for why this exists separately from
      *  `applyStartingValues`: it must overwrite, not merely fill a gap. */
     resetVentedAlignment(alignment: VentedAlignment = STARTING.ventedAlignment): void {
@@ -643,9 +728,29 @@ export class OpenISDBox implements Box {
         rs: () => number,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
-        air: () => Air,
+        air: () => AirState,
     ): OpenISDBox {
         return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air);
+    }
+
+    /** The sealed volume an entered Qtc or an entered Fsc gives; null with neither entered or when no box reaches it. */
+    #sealedVolumeFromQtcOrFsc(
+        qtc: Readable<number | null> & Entered, fsc: Readable<number | null> & Entered, losses: SealedLosses,
+    ): number | null {
+        const entered = qtc.entered && qtc.value !== null ? {kind: 'Qtc', value: qtc.value} as const
+            : fsc.entered && fsc.value !== null ? {kind: 'Fsc', value: fsc.value} as const : null;
+        if (entered === null) return null;
+        if (entered.kind === 'Qtc') {
+            return this.#driver.sealedVolumeForQtc(entered.value, this.#rs(), {Ql: losses.Ql.value, Qa: losses.Qa.value});
+        }
+        const ts = this.#driver.specs;
+        const Fs = ts.Fs_hz.value;
+        const Vas = ts.Vas_m3.value;
+        const Qts = this.#driver.sourceLoadedQts(this.#rs());
+        if (Fs === null || Vas === null || Qts === null) return null;
+        // The same lossy model the Box tab reads Fsc from, so the volume gives back the value typed.
+        const feed = {Fs, Vas, Qts, Ql: losses.Ql.value, Qa: losses.Qa.value};
+        return this.#engine.sealed.volumeForResonance(feed, entered.value);
     }
 
     /**

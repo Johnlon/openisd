@@ -1,0 +1,24 @@
+id: T487
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: fcee4c424e8aa63c01f4630a1fac3dbaa81c67d0
+goal: One machine-wide heavy-job admission by memory AND CPU: budget.sh gains a CPU pool (tokens = cores) any repo can call, the idle suite pool goes, the landing typecheck is admitted, and a gate's deadline starts only after admission.
+done_test: bash scripts/land/test/budget-conf.test.sh && bash scripts/land/test/budget.e2e.test.sh && bash scripts/land/test/budget-cpu.test.sh && bash scripts/land/test/budget-gate.test.sh && bash scripts/land/test/suite-admit.test.sh
+files:
+  - scripts/lib/metrics.py
+  - tasks/T487.yml
+  - bugs/BUG_20261020_admission-counts-memory-only.md
+  - land.conf
+  - scripts/budget.sh
+  - scripts/budget.conf
+  - scripts/budget-cost.sh
+  - scripts/budget-enter.sh
+  - scripts/land/core/gate.sh
+  - scripts/land/test/budget-conf.test.sh
+  - scripts/land/test/budget.e2e.test.sh
+  - scripts/land/test/budget-cpu.test.sh
+  - scripts/land/test/budget-gate.test.sh
+  - scripts/land/test/admit.e2e.test.sh
+  - tasks/T011.yml

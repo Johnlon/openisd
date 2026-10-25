@@ -115,7 +115,12 @@ export class ProjectSignal {
                     if (!(v >= MIN_DRIVE_VOLTAGE_V)) throw new RangeError(`driveVoltage_V ${v} V is below the 10 mV minimum.`);
                     signal.set({...signal.value, voltage_V: enteredEntry(v), power_W: undefined});
                 },
-                clear: () => signal.set({...signal.value, voltage_V: undefined, power_W: undefined}),
+                // With Re known, the power stays as it reads and becomes the entered one.
+                clear: () => {
+                    const {power_W} = signal.value;
+                    const keepPower = this.#usableRe() !== null && power_W !== undefined;
+                    signal.set({...signal.value, voltage_V: undefined, power_W: keepPower ? enteredEntry(power_W.value) : undefined});
+                },
                 calculated: (v: number) => signal.set({...signal.value, voltage_V: calculatedEntry(v)}),
                 dq: (list) => writeEntryDq(focus(signal, 'voltage_V'), list),
             },

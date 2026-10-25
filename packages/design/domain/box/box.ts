@@ -54,7 +54,7 @@ export interface Box {
     applyStartingValues(): void;
     /** Re-derive the vented box's volume and tuning from a named alignment (the same QB3-style
      *  design `applyStartingValues` gives a fresh box, unless `alignment` is given), UNLIKE
-     *  `applyStartingValues` overwriting unconditionally. Used when clearing Target Tuning Freq
+     *  `applyStartingValues` overwriting unconditionally. Used when clearing Tuning freq
      *  (or Vent length) leaves nothing entered on either side of the Helmholtz pair: falling
      *  back to a real alignment instead of leaving both blank and unrecoverable (QO142). A no-op
      *  if the driver has no design to give (Fs/Qts/Vas unresolved). */
@@ -84,10 +84,11 @@ export interface BoxLossGroup {
     readonly chamber: LossChamber;
     /** The chamber the set belongs to, shown above its rows; null when the type has one set. */
     readonly heading: string | null;
-    readonly Ql: SimpleField<number>;
-    readonly Qa: SimpleField<number>;
-    readonly Qp: SimpleField<number> | null;
+    /** Each loss settles to the WinISD default when cleared (T211). */
+    readonly Ql: SimpleField<number> & Clearable;
+    readonly Qa: SimpleField<number> & Clearable;
+    readonly Qp: (SimpleField<number> & Clearable) | null;
     /** The interchamber Qicl, one value shared by every set of a two-chamber type; null where the
      *  type has one chamber. */
-    readonly Qicl: SimpleField<number> | null;
+    readonly Qicl: (SimpleField<number> & Clearable) | null;
 }

@@ -1,0 +1,14 @@
+id: T190
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: ce19c130635c5da9ed98ced046008ab82d3fd13d
+goal: release.yml runs once per release trigger and the Pages deploy retries once on a conflict
+done_test: bash scripts/test.sh packages/ui/test/scripts/release-workflows.test.ts
+files:
+  - tasks/T190.yml
+  - .github/workflows/release.yml
+  - .github/workflows/deploy.yml
+  - scripts/release.sh
+  - packages/ui/test/scripts/release-workflows.test.ts

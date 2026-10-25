@@ -3,12 +3,12 @@ import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
 test.describe('In-app confirm dialog', () => {
   test.describe('Original skin', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ appPage: page }) => {
       await page.goto('/');
       await expect(page.locator('.original-root')).toBeVisible();
     });
 
-    test('Revert prompt shows in-app dialog with Discard/Keep buttons', async ({ page }) => {
+    test('Revert prompt shows in-app dialog with Discard/Keep buttons', async ({ appPage: page }) => {
       // Open a project and modify it
       await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
 
@@ -63,13 +63,13 @@ test.describe('In-app confirm dialog', () => {
   });
 
   test.describe('Mobile skin', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ appPage: page }) => {
       await forceMobileSkin(page);
       await page.goto('/');
       await expect(page.locator('.mobile-root')).toBeVisible();
     });
 
-    test('Revert prompt shows in-app dialog with Discard/Keep buttons', async ({ page }) => {
+    test('Revert prompt shows in-app dialog with Discard/Keep buttons', async ({ appPage: page }) => {
       // Open a project and modify it
       await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
 

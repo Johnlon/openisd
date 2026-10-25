@@ -1,0 +1,25 @@
+id: T530
+release_note: The driver editor on the phone uses the same rows, section bands and colour key as the other pages, and its Save to My Drivers dialog and Provenance card are sized for a finger.
+repo: openisd
+owner: maryu
+status: done
+landed: 826989549999147ff6054edbd9ab8f015b896850
+goal: Phone classic B6: driver editor follows the round-3 mock in classic rows (screen 8), save-to-library dialog (36), equation inspector (31)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
+files:
+  - packages/ui/test/ui/driver-editor-provenance-row.browser.spec.ts
+  - packages/ui/test/fixtures.ts
+  - tasks/T530.yml
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/fields/phoneText.ts
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/EquationInspectorModal.vue
+  - packages/ui/src/ui/components/SaveToLibraryDialog.vue
+  - packages/ui/src/ui/components/driverEditorSkin.ts
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/test/ui/mobile-driver-editor.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

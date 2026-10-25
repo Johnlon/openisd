@@ -22,6 +22,13 @@ export function openStoredProject(appState: AppState, repo: ProjectRepo, id: str
   const identity: StoredProjectIdentity = {kind: 'stored', id};
   const existing = openProjectByIdentity(identity);
   if (existing) return {kind: 'opened', project: openProjectOnce(existing, identity)};
+  // A project opened from a file holds the store's id too once it is stored (it is stored the
+  // moment it opens): it is open already, and is never loaded a second time.
+  const stored = appState.openProjects().find(project => repo.storedIdOf(project) === id);
+  if (stored) {
+    appState.focusProject(appState.openProjects().indexOf(stored));
+    return {kind: 'opened', project: stored};
+  }
   const loaded = repo.loadStoredProject(id);
   if (Array.isArray(loaded)) return {kind: 'refused', errors: loaded};
   return {kind: 'opened', project: openProjectOnce(loaded, identity)};

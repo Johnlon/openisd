@@ -1,0 +1,13 @@
+id: T221
+label: fixes
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 332be43322ef90b6e2d15a91d88eb1db050faedd
+goal: 'The watchdog starts the post-land run as a transient user service (systemd-run --user), not as a child of its own tick: systemd killed the tick cgroup at tick end, so every run it started died at once and was recorded red (F37 still-red commits at f765dba1, 60afa525, 6cba7225)'
+done_test: bash scripts/land/test/watchdog.test.sh
+files:
+  - tasks/T221.yml
+  - scripts/land/watchdog.sh
+  - scripts/land/test/watchdog.test.sh

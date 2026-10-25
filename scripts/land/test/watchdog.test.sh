@@ -1,26 +1,47 @@
 #!/usr/bin/env bash
 # Acceptance test for scripts/land/watchdog.sh. Scratch runtime dir, scratch repo with a bare origin,
 # fake tmux on PATH that logs its arguments. Time is driven with WATCHDOG_NOW where a check needs
-# minutes to pass. Every process started here is killed by pid in the EXIT trap.
+# minutes to pass. Every process started here is killed by session, group and pid on every exit but KILL.
 set -uo pipefail
 REPO_SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 W="$REPO_SRC/scripts/land/watchdog.sh"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/watchdog-test.XXXXXX")"
 PIDS=(); fails=0
-cleanup() { for p in "${PIDS[@]}"; do kill -KILL -- "-$p" 2> /dev/null; kill -KILL "$p" 2> /dev/null; done; rm -rf "$SCRATCH"; }
+# Each started process is a session leader (setsid) or a plain child: kill its session, its group and
+# itself. The session also holds the job-control groups a `set -m` child makes, which a group kill misses.
+cleanup() {
+  for p in "${PIDS[@]}"; do pkill -KILL -s "$p" 2> /dev/null; kill -KILL -- "-$p" 2> /dev/null; kill -KILL "$p" 2> /dev/null; done
+  rm -rf "$SCRATCH"
+}
 trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
-export OPENISD_RUNTIME_DIR="$SCRATCH/rt"; mkdir -p "$OPENISD_RUNTIME_DIR"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"
 export ADMIT_DIR="$SCRATCH/admit"
-export WATCHDOG_STATE="$SCRATCH/rt/watchdog" WATCHDOG_LOG="$SCRATCH/logs/watchdog.log"
+export WATCHDOG_STATE="$SCRATCH/rt/watchdog" WATCHDOG_LOG="$SCRATCH/logs/watchdog.log" HOUSEKEEPING_LOG="$SCRATCH/logs/housekeeping.log"
 export WORKSPACE="$SCRATCH/ws"; mkdir -p "$WORKSPACE/zoo/state/jobs"
 export WATCHDOG_HOLDER="$SCRATCH/rt/post.holder" WATCHDOG_POST_LAND_LOG="$SCRATCH/post-land.log"
 export WATCHDOG_REFUSALS="$SCRATCH/rt/land-refusals.log"
-export WATCHDOG_HUNG_S=100 WATCHDOG_GRACE_S=2 WATCHDOG_WT_MIN_AGE_S=0 WATCHDOG_LEADER=lots
+export WATCHDOG_HUNG_S=100 WATCHDOG_GRACE_S=2 WATCHDOG_LEADER=lots
 export WATCHDOG_REPO="$SCRATCH/repo"
+# The tree under test, not a snapshot of the scratch repo's origin/main (case 8 tests the snapshot).
+export WATCHDOG_TOOLS="$REPO_SRC"
+mkdir -p "$OPENISD_STATE_DIR"
+export POST_LAND_LOCK="$SCRATCH/rt/post.lock" POST_LAND_RECORD="$OPENISD_STATE_DIR/post-land" WATCHDOG_RUN_SH="$SCRATCH/fake-run.sh" FAKE_RUN_LOG="$SCRATCH/run.log"
+printf '#!/usr/bin/env bash\necho "$*" >> "$FAKE_RUN_LOG"\n' > "$SCRATCH/fake-run.sh"
 ASK="$WORKSPACE/zoo/ASK.md"; : > "$ASK"
+# Alerts are files the gate hook shows to agents (T333); tmux is never used, so the fake below must stay unused.
+export WATCHDOG_ALERTS="$SCRATCH/rt/agent-alerts" SYNC_LOG="$SCRATCH/logs/sync-main-folder.log" TIDY_LOG="$SCRATCH/logs/tidy.log"
+export WATCHDOG_SESSIONS="$SCRATCH/no-sessions"   # absent: owners are not tracked (case 10 makes one)
+al() { cat "$WATCHDOG_ALERTS/$1.alert" 2> /dev/null; }
+# alerted <key> <regex>: does the alert's file match? grep reads the file itself. Never `al <key> | grep -q`: under
+# pipefail grep -q quits at its first match, and the cat still writing gets SIGPIPE, which fails the pipeline about
+# 2 times in 100 (BUG_20261020_watchdog-test-flaky).
+alerted() { grep -q -- "$2" "$WATCHDOG_ALERTS/$1.alert" 2> /dev/null; }
 
 # fake tmux: list-windows prints $FAKE_WINDOWS, everything is logged
 mkdir -p "$SCRATCH/bin"
@@ -31,6 +52,16 @@ echo "$*" >> "$FAKE_TMUX_LOG"
 exit 0
 T
 chmod +x "$SCRATCH/bin/tmux"
+# fake systemd-run: logs its arguments, then runs the command after `--` (the real one starts it in the
+# user manager, outside the caller's cgroup)
+cat > "$SCRATCH/bin/systemd-run" <<'EOF2'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$FAKE_SYSTEMD_LOG"
+while [ "$1" != "--" ]; do shift; done; shift
+exec "$@"
+EOF2
+chmod +x "$SCRATCH/bin/systemd-run"
+export FAKE_SYSTEMD_LOG="$SCRATCH/systemd-run.log"
 export PATH="$SCRATCH/bin:$PATH" FAKE_TMUX_LOG="$SCRATCH/tmux.log" FAKE_WINDOWS="$SCRATCH/windows"
 : > "$FAKE_TMUX_LOG"; echo bob > "$FAKE_WINDOWS"
 
@@ -47,12 +78,12 @@ WATCHDOG_NOW=1000 tick > /dev/null
 WATCHDOG_NOW=1050 tick > /dev/null
 dead "$HP" && fail "killed before the threshold" || ok "not killed at 50 s of 100 s"
 WATCHDOG_NOW=1200 tick > /dev/null
-wait "$HP" 2> /dev/null
+dead "$HP" && wait "$HP" 2> /dev/null  # reap only a dead pid: a missed kill fails, never hangs
 dead "$HP" && ok "hung run killed" || fail "hung run still alive"
 [ ! -e "$WATCHDOG_HOLDER" ] && ok "holder removed" || fail "holder kept"
 grep -q 'hung: no log growth' "$WATCHDOG_LOG" && ok "kill logged" || fail "kill not logged"
 grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+Z watchdog: ' "$WATCHDOG_LOG" && ok "UTC timestamps" || fail "log format"
-grep -q 'send-keys -t agents:lots' "$FAKE_TMUX_LOG" || grep -q 'post-land run for deadbeef01' "$ASK" && ok "leader told" || fail "leader not told"
+grep -q '^for lots: post-land run for deadbeef01' "$WATCHDOG_ALERTS"/hung-deadbeef01.alert 2> /dev/null && ok "leader told (agent alert)" || fail "leader not told: $(ls "$WATCHDOG_ALERTS" 2>&1)"
 
 # 2. live run with a growing log is left alone, even past the threshold
 setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
@@ -87,48 +118,146 @@ git clone -q "$SCRATCH/origin.git" "$WATCHDOG_REPO" 2> /dev/null
 ( cd "$WATCHDOG_REPO" && git config user.email t@t && git config user.name t && git symbolic-ref HEAD refs/heads/main \
   && mkdir -p tasks/fixes && printf 'id: F0\nstatus: closed\n' > tasks/fixes/F0.yml && git add . \
   && git commit -qm base && git push -q origin main ) || fail "scratch repo setup"
-mk_f() { printf 'id: %s\nowner: %s\nstatus: open\ngoal: x\n' "$1" "$2" > "$WATCHDOG_REPO/tasks/fixes/$1.yml"; }
-mk_f F1 bob; mk_f F2 bob; mk_f F3 ""
-touch -d '2 hours ago' "$WATCHDOG_REPO/tasks/fixes/F1.yml" "$WATCHDOG_REPO/tasks/fixes/F3.yml"
+# Fs as origin/main has them; an F's age is the time of the last commit that touched it.
+mk_f() { printf 'id: %s\nowner: %s\nstatus: open\ngoal: x\n' "$1" "$2" > "$WATCHDOG_REPO/tasks/fixes/$1.yml"
+  ( cd "$WATCHDOG_REPO" && git add "tasks/fixes/$1.yml" && GIT_COMMITTER_DATE="$3" git commit -qm "$1" && git push -q origin main ); }
+mk_f F1 bob "$(date -d '2 hours ago' +%s) +0000"; mk_f F3 "" "$(date -d '2 hours ago' +%s) +0000"; mk_f F2 bob "$(date +%s) +0000"
+# An F only in the main checkout (not on origin/main) is not an open F
+printf 'id: F9\nowner: bob\nstatus: open\ngoal: x\n' > "$WATCHDOG_REPO/tasks/fixes/F9.yml"; touch -d '2 hours ago' "$WATCHDOG_REPO/tasks/fixes/F9.yml"
 out=$(tick)
-grep -q 'send-keys -t agents:bob WATCHDOG: F1: open' "$FAKE_TMUX_LOG" && ok "old F alerts its owner's window" || fail "no alert for F1: $(cat "$FAKE_TMUX_LOG")"
-grep -q 'F2' "$FAKE_TMUX_LOG" "$ASK" && fail "fresh F2 alerted" || ok "fresh F gets no alert"
-grep -q 'no window lots: WATCHDOG: F3' "$ASK" && ok "ownerless F goes to the leader, no window -> ASK.md" || fail "F3 not in ASK.md"
-n=$(grep -c 'F1: open' "$FAKE_TMUX_LOG"); tick > /dev/null
-[ "$(grep -c 'F1: open' "$FAKE_TMUX_LOG")" = "$n" ] && ok "no repeat inside the re-alert window" || fail "F1 alerted twice"
+alerted F-F1 '^for bob: F1: open' && ok "old F alerts its owner" || fail "no alert for F1: $(ls "$WATCHDOG_ALERTS" 2>&1)"
+[ -z "$(al F-F2)" ] && ok "fresh F gets no alert" || fail "fresh F2 alerted"
+[ -z "$(al F-F9)" ] && ok "Fs are read from origin/main, not the main checkout" || fail "an F only in the main checkout alerted"
+rm -f "$WATCHDOG_REPO/tasks/fixes/F9.yml"
+alerted F-F3 '^for lots: F3' && ok "ownerless F goes to the leader" || fail "F3 not alerted to the leader"
+touch -d '1 hour ago' "$WATCHDOG_ALERTS/F-F1.alert"; n=$(grep -c 'alert F-F1 ' "$WATCHDOG_LOG"); tick > /dev/null
+[ "$(stat -c %Y "$WATCHDOG_ALERTS/F-F1.alert")" -gt "$(date -d '10 min ago' +%s)" ] && [ "$(grep -c 'alert F-F1 ' "$WATCHDOG_LOG")" = "$n" ] \
+  && ok "an open F's alert is re-written every tick, and logged only when its text changes" || fail "F1 alert not refreshed, or logged again"
 
 # 5. unacknowledged zoo-run result
 printf '2026-10-11 11:34:14 | j1: result for carol NOT DELIVERED (no send path); text in /x; after relaying run: zoo-run.sh ack j1\n' >> "$ASK"
 printf '2026-10-11 11:35:14 | j2: result for dave NOT DELIVERED (no send path); text in /y; after relaying run: zoo-run.sh ack j2\n' >> "$ASK"
 printf 'job=j2\ndelivered=yes\n' > "$WORKSPACE/zoo/state/jobs/j2.env"
 tick > /dev/null
-grep -q 'no window carol: WATCHDOG: zoo result j1 is unread' "$ASK" && ok "unacked result alerts its owner" || fail "no alert for j1"
-grep -q 'dave' <(grep watchdog "$ASK") && fail "acked result alerted" || ok "acked result is quiet"
+alerted result-j1 '^for carol: zoo result j1 is unread' && ok "unacked result alerts its owner" || fail "no alert for j1"
+[ -z "$(al result-j2)" ] && ok "acked result is quiet" || fail "acked result alerted"
+printf 'job=j1\ndelivered=yes\n' > "$WORKSPACE/zoo/state/jobs/j1.env"
+tick > /dev/null
+[ ! -e "$WATCHDOG_ALERTS/result-j1.alert" ] && ok "acking a result removes its standing alert" || fail "alert for acked j1 still on disk"
 
 # 6. gate refused twice in an hour -> one infra F
 now=$(date +%s)
 printf '%s lint T1\n%s lint T2\n%s unit T3\n' "$((now - 600))" "$((now - 60))" "$now" > "$WATCHDOG_REFUSALS"
 tick > /dev/null; tick > /dev/null
-infra=$(grep -l 'label: infra' "$WATCHDOG_REPO"/tasks/fixes/*.yml 2> /dev/null)
+infra=$(grep -l 'label: infra' "$WATCHDOG_STATE"/infra/*.yml 2> /dev/null)
+[ -z "$(cd "$WATCHDOG_REPO" && git status --porcelain tasks/fixes)" ] && ok "infra F not written into the main checkout" || fail "infra F in the main checkout"
 [ "$(echo "$infra" | grep -c .)" = 1 ] && ok "one infra F written" || fail "infra Fs: $infra"
 grep -q '^gate: lint' $infra 2> /dev/null && grep -q '^status: open' $infra && grep -q '^owner: lots' $infra && ok "infra F names gate, open, owner leader" || fail "infra F content"
 [ "$(basename "$infra")" = F4.yml ] && ok "next F number" || fail "F number: $infra"
 
-# 7. worktrees: merged clean removed; dirty and unmerged kept
-( cd "$WATCHDOG_REPO" && git worktree add -q "$SCRATCH/wt-clean" -b clean && git worktree add -q "$SCRATCH/wt-dirty" -b dirty \
-  && git worktree add -q "$SCRATCH/wt-ahead" -b ahead ) || fail "worktree setup"
-echo x > "$SCRATCH/wt-dirty/untracked.txt"
-( cd "$SCRATCH/wt-ahead" && git config user.email t@t && git config user.name t && echo y > y && git add y && git commit -qm ahead )
+# 7. worktrees beside the repo (tidy-branches.sh; its own e2e covers the cases): landed clean removed with its
+#    branch; dirty and unlanded kept
+W7="$WORKSPACE/repo"
+( cd "$WATCHDOG_REPO" && git worktree add -q "$W7-t1" -b t1 && git worktree add -q "$W7-t2" -b t2 \
+  && git worktree add -q "$W7-t3" -b t3 ) || fail "worktree setup"
+echo x > "$W7-t2/untracked.txt"
+( cd "$W7-t3" && git config user.email t@t && git config user.name t && echo y > y && git add y && git commit -qm ahead )
 tick > /dev/null
-[ ! -d "$SCRATCH/wt-clean" ] && ok "merged clean worktree removed" || fail "clean worktree kept"
-git -C "$WATCHDOG_REPO" rev-parse --verify -q refs/heads/clean > /dev/null && fail "branch clean kept" || ok "its branch deleted"
-[ -d "$SCRATCH/wt-dirty" ] && ok "dirty worktree kept" || fail "dirty worktree removed"
-[ -d "$SCRATCH/wt-ahead" ] && ok "unmerged worktree kept" || fail "unmerged worktree removed"
-grep -q 'removed merged clean worktree' "$WATCHDOG_LOG" && ok "removal logged" || fail "removal not logged"
+[ ! -d "$W7-t1" ] && ok "landed clean worktree removed" || fail "clean worktree kept: $(tail -3 "$SCRATCH/logs/tidy.log" 2>&1)"
+git -C "$WATCHDOG_REPO" rev-parse --verify -q refs/heads/t1 > /dev/null && fail "branch t1 kept" || ok "its branch deleted"
+[ -d "$W7-t2" ] && ok "dirty worktree kept" || fail "dirty worktree removed"
+[ -d "$W7-t3" ] && ok "unlanded worktree kept" || fail "unlanded worktree removed"
+grep -q "removed worktree $W7-t1" "$SCRATCH/logs/tidy.log" && ok "removal logged" || fail "removal not logged"
 
 # 8. overlapping ticks: a held lock makes the second exit quietly
 ( exec 7> "$WATCHDOG_STATE/watchdog.lock"; flock -x 7; exec sleep 300 ) & PIDS+=("$!"); sleep 0.3
 out=$(tick); grep -q 'another tick is running' <<< "$out" && ok "overlap refused" || fail "overlap: $out"
+kill -KILL "${PIDS[-1]}" 2> /dev/null; wait "${PIDS[-1]}" 2> /dev/null
+
+# 8b. a run waiting for the browser lock is not hung; after three thresholds it is
+export SUITE_RUN_LOCK="$SCRATCH/rt/suite-run.lock"
+echo "line" > "$WATCHDOG_POST_LAND_LOG"
+setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
+hold "$HP"
+setsid sleep 300 & WP=$!; PIDS+=("$WP"); sleep 0.3
+printf '%s %s\n' "$WP" "$(starttime "$WP")" > "$SUITE_RUN_LOCK.waiting"
+touch -d @1000 "$SUITE_RUN_LOCK.waiting"
+WATCHDOG_NOW=1000 tick > /dev/null
+WATCHDOG_NOW=1250 tick > /dev/null
+dead "$HP" && fail "a run waiting for the browser lock was killed" || ok "a run waiting for the browser lock is left alone"
+grep -q 'waiting for browser runs to end' "$WATCHDOG_LOG" && ok "the wait is logged" || fail "wait not logged"
+WATCHDOG_NOW=1500 tick > /dev/null
+dead "$HP" && wait "$HP" 2> /dev/null  # the tick kills before it returns; reap only a dead pid, so a missed kill fails, never hangs
+dead "$HP" && ok "a wait past three thresholds is a hang" || fail "an endless wait was never killed"
+kill -KILL -- "-$WP" 2> /dev/null; rm -f "$SUITE_RUN_LOCK.waiting" "$WATCHDOG_HOLDER"
+
+# 9. main has an untested commit and no run is alive: a run is started (once old enough)
+main_sha=$(git -C "$WATCHDOG_REPO" rev-parse origin/main)
+rm -f "$FAKE_RUN_LOG" "$WATCHDOG_HOLDER" "$POST_LAND_RECORD.tested"
+tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a young untested main is left to land.sh's own run" || fail "started a run on a young commit"
+WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
+[ "$(cat "$FAKE_RUN_LOG" 2> /dev/null)" = "$main_sha" ] && ok "an old untested main with no run alive starts one on origin/main" || fail "run not started: $(cat "$FAKE_RUN_LOG" 2> /dev/null)"
+grep -q "main ${main_sha:0:10} is untested.*starting one" "$WATCHDOG_LOG" && ok "start logged" || fail "start not logged"
+grep -q -- "--user .*--collect .*-- bash .* $main_sha" "$FAKE_SYSTEMD_LOG" 2> /dev/null && ok "the run starts as a transient user service, outside the tick's cgroup" || fail "run not started through systemd-run: $(cat "$FAKE_SYSTEMD_LOG" 2> /dev/null)"
+grep -q -- "--slice=heavy.slice" "$FAKE_SYSTEMD_LOG" 2> /dev/null && ok "T486 row 8: the post-land run starts in heavy.slice" || fail "no --slice=heavy.slice: $(cat "$FAKE_SYSTEMD_LOG" 2> /dev/null)"
+rm -f "$FAKE_RUN_LOG"
+setsid sleep 300 & HP=$!; PIDS+=("$HP"); sleep 0.3
+hold "$HP"
+WATCHDOG_STALL_S=0 WATCHDOG_HUNG_S=100000 tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a live holder means no second run" || fail "started over a live run"
+kill -KILL -- "-$HP" 2> /dev/null; wait "$HP" 2> /dev/null; rm -f "$WATCHDOG_HOLDER"
+( exec 9> "$POST_LAND_LOCK"; flock -x 9; exec sleep 300 ) & PIDS+=("$!"); sleep 0.3
+WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a held post-land lock means no second run" || fail "started over a held lock"
+kill -KILL "$!" 2> /dev/null
+printf '%s\n' "$main_sha" > "$POST_LAND_RECORD.tested"
+WATCHDOG_STALL_S=0 tick > /dev/null; sleep 0.5
+[ ! -e "$FAKE_RUN_LOG" ] && ok "a tested main starts nothing" || fail "started a run on a tested main"
+
+# 8. no WATCHDOG_TOOLS: the tick runs origin/main's scripts from a snapshot, not the main checkout's
+#    (here the main checkout's copies are broken and uncommitted), and removes the snapshot
+SNAP_REPO="$SCRATCH/snap"; git init -q --bare "$SCRATCH/snap-origin.git"
+git clone -q "$SCRATCH/snap-origin.git" "$SNAP_REPO" 2> /dev/null
+( cd "$SNAP_REPO" && git config user.email t@t && git config user.name t && git symbolic-ref HEAD refs/heads/main \
+  && cp -r "$REPO_SRC/scripts" "$REPO_SRC/land.conf" "$REPO_SRC/.gitattributes" . && mkdir -p tasks/fixes && printf 'id: F0\nstatus: closed\n' > tasks/fixes/F0.yml \
+  && git add . && git commit -qm base && git push -q origin main ) || fail "snapshot repo setup"
+echo 'exit 7' > "$SNAP_REPO/scripts/land/watchdog.sh.broken"; echo 'echo BROKEN; exit 7' > "$SNAP_REPO/scripts/admit/record.sh"
+# The tick's snapshot goes into a private TMPDIR: counting /tmp counted the real watchdog timer's snapshot and
+# other test runs' (BUG_20261020_watchdog-test-flaky).
+SNAP_TMP="$SCRATCH/snap-tmp"; mkdir -p "$SNAP_TMP"
+before=$(ls -d "$SNAP_TMP"/watchdog-tools.* 2> /dev/null | wc -l)
+( unset WATCHDOG_TOOLS; TMPDIR="$SNAP_TMP" WATCHDOG_REPO="$SNAP_REPO" WATCHDOG_STALL_S=999999 timeout 60 bash "$SNAP_REPO/scripts/land/watchdog.sh" > "$SCRATCH/snap.out" 2>&1 ); r=$?
+after=$(ls -d "$SNAP_TMP"/watchdog-tools.* 2> /dev/null | wc -l)
+[ $r = 0 ] && ! grep -q BROKEN "$SCRATCH/snap.out" && grep -q 'tick done' "$WATCHDOG_LOG" && ok "a broken main checkout: the tick runs origin/main's scripts" || fail "snapshot tick (r=$r): $(tail -3 "$SCRATCH/snap.out")"
+[ "$after" = "$before" ] && ok "the snapshot is removed after the tick" || fail "snapshot left behind ($before -> $after)"
+
+# 9. a stray edit in the main folder no longer holds it (T476): it is kept on a stray/ branch, the folder moves to main,
+#    no main-folder alert
+git -C "$WATCHDOG_REPO" rev-parse origin/main > "$POST_LAND_RECORD.green"
+echo stray >> "$WATCHDOG_REPO/tasks/fixes/F0.yml"   # a tracked edit (untracked files are left alone, T485)
+rm -f "$WATCHDOG_ALERTS/main-folder.alert"   # earlier ticks had no passed commit; that alert is over
+SYNC_SYSTEMCTL=false tick > /dev/null
+[ -z "$(al main-folder)" ] && [ -z "$(git -C "$WATCHDOG_REPO" status --porcelain --untracked-files=no)" ] \
+  && grep -q "^stray$" <<< "$(git -C "$WATCHDOG_REPO" show "$(git -C "$WATCHDOG_REPO" branch --list 'stray/*' --format='%(refname:short)' | head -1):tasks/fixes/F0.yml" 2> /dev/null)" \
+  && ok "a stray edit is kept on a stray branch; the main folder is not held and raises no alert" \
+  || fail "stray edit: alert=$(al main-folder) $(tail -4 "$SYNC_LOG")"
+
+# 10. an alert whose named owner has no live session goes to the coordinator (T476); a live owner keeps it
+mk_f F4 carol "$(date -d '2 hours ago' +%s) +0000"
+SESS="$SCRATCH/sessions"; mkdir -p "$SESS"
+SP=$$   # this shell is bob's live Claude Code process; carol has only a file for a dead pid
+printf '{"name":"bob","pid":%s,"procStart":"%s"}\n' "$SP" "$(starttime "$SP")" > "$SESS/$SP.json"
+printf '{"name":"carol","pid":999999,"procStart":"1"}\n' > "$SESS/999999.json"
+WATCHDOG_SESSIONS="$SESS" WATCHDOG_COORDINATOR=fable tick > /dev/null
+alerted F-F1 '^for bob: F1: open' && ok "a live owner still gets the alert" || fail "bob's alert: $(al F-F1)"
+alerted F-F4 '^for fable: F4: open.*(owner carol has no live session)' && ok "a dead owner's alert goes to the coordinator" || fail "carol's alert: $(al F-F4)"
+printf '{"name":"bob","pid":%s,"procStart":"1"}\n' "$SP" > "$SESS/$SP.json"   # right pid, wrong start time: the pid was reused
+WATCHDOG_SESSIONS="$SESS" tick > /dev/null
+alerted F-F1 '^for fable: F1' && ok "a reused pid is not a live session" || fail "reused pid: $(al F-F1)"
+
+[ ! -s "$FAKE_TMUX_LOG" ] && ok "tmux is never used" || fail "tmux was called: $(head -3 "$FAKE_TMUX_LOG")"
+! grep -q 'watchdog' "$ASK" && ok "nothing is written to ASK.md" || fail "ASK.md written: $(grep watchdog "$ASK" | head -2)"
 
 [ $fails = 0 ] && echo "ALL OK" || echo "$fails FAILED"
 exit $((fails > 0))

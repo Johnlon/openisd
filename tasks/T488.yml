@@ -1,0 +1,18 @@
+id: T488
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 8af7e32bc2ca975e9a8d4f7cde101547f1a2410b
+goal: A killed test wrapper takes its whole run with it: test-browser.sh and admit.sh kill their job's process group, and quiet-test never idle-kills lint or typecheck and polls the tree cheaply.
+done_test: bash scripts/land/test/test-browser-kill.test.sh && bash scripts/land/test/admit-job-group.test.sh && bash scripts/land/test/admit-term-group.test.sh && bash scripts/land/test/quiet-test-idle-lint.test.sh && bash scripts/land/test/quiet-test.test.sh
+files:
+  - tasks/T488.yml
+  - bugs/BUG_20261020_killed-wrapper-leaves-its-run-alive.md
+  - scripts/test-browser.sh
+  - scripts/admit.sh
+  - scripts/quiet-test.sh
+  - scripts/land/test/test-browser-kill.test.sh
+  - scripts/land/test/admit-job-group.test.sh
+  - scripts/land/test/admit-term-group.test.sh
+  - scripts/land/test/quiet-test-idle-lint.test.sh

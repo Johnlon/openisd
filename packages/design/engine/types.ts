@@ -68,6 +68,7 @@ export type SimulatableBoxType =
   | 'abc';
 
 import type {SelectorOption} from '../fields/index.js';
+import type {Air} from './air.js';
 
 /** One of WinISD's sealed-box target-Q choices from the New Project wizard: `value` IS the Qtc. */
 export type SealedAlignmentOption = SelectorOption<number>;
@@ -214,6 +215,9 @@ export interface SweepParams {
    *  f, the driver's own phase slope left out (true), or −dφ/dω of the plotted phase (false/absent).
    *  ABC only. */
   winisdAbcGroupDelay?: boolean;
+  /** With `tlPortModel`: the port pipe as WinISD builds it, its length less the end correction, so
+   *  the box tunes above Fb (true), or with the end correction kept, tuned at Fb (false/absent). */
+  winisdTlPortNoEndCorrection?: boolean;
   // Box losses
   Ql?: number;
   Qa?: number;
@@ -299,16 +303,9 @@ export interface SweepParams {
   SpIntra?: number;
   // Signal chain
   filters?: Filter[];
-  // ---- Environment (per project — WinISD keeps T/p/phi in the .wpr [Box] section) --------
-  /** Ambient temperature, K. Absent → `T_REF_K` (293.15). */
-  tempK?: number;
-  /**
-   * Relative humidity, PERCENT (0–100). Absent → `RH_REF_PCT` (30). WinISD's `.wpr` `phi` is
-   * a FRACTION; the one conversion between the two lives in the `.wpr` writer.
-   */
-  humidityPct?: number;
-  /** Static air pressure, Pa. Absent → `P_REF_PA` (101325). */
-  pressurePa?: number;
+  // ---- Air (per project — the caller's c and ρ; the engine never sees T/RH/p) ------------
+  /** The air the sweep runs in. */
+  air: Air;
   // Driver-side added mass to cone (kg) — raises Mms, lowers Fs. 0/absent = no-op. docs/research/WINISD_PARITY.md.
   driverAddedMass?: number;
   // Thermal power compression: coil temp rise ΔT (K) × alfaVC (SI /K) → hot Re. 0/absent = no-op.
@@ -363,6 +360,16 @@ export interface Solution {
   Zbox: Complex;
   Zel: Complex;
   ZaD: Complex;
+}
+
+/** The largest port air speed and cone excursion in a sweep, and where each happens. A value is
+ *  `null` when the sweep has none to report (no port: speed is zero everywhere; no finite point). */
+export interface SweepPeaks {
+  ventSpeed_m_per_s: number | null;
+  /** Metres (the sweep's `exc` is millimetres). */
+  excursion_m: number | null;
+  atVentSpeed_hz: number | null;
+  atExcursion_hz: number | null;
 }
 
 /** Full frequency-sweep output arrays (one entry per frequency point). */

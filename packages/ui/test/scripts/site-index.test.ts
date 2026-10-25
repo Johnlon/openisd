@@ -46,7 +46,7 @@ describe('toBasic / subjectOf', () => {
 describe('entryOf / entriesOf', () => {
   it('describes a release and a snapshot build', () => {
     assert.deepEqual(entryOf(R1, 'v20260101T0102Z'), {
-      stamp: '20260101T0102Z', kind: 'release', tag: 'v20260101T0102Z',
+      stamp: '20260101T0102Z', version: '', kind: 'release', tag: 'v20260101T0102Z',
       url: 'https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z',
       published: '20260101T010259Z', subject: 'Fix the thing', latest: true,
     });
@@ -84,9 +84,23 @@ describe('pageHtml', () => {
     assert.ok(rel.includes('data-stamp="20260201T1000Z"') && !rel.includes('data-stamp="20260211T0900Z"'));
   });
 
+  it('carries the public number from the release title, and shows it in the row', () => {
+    const numbered = release('v20260301T1200Z', {name: 'OpenISD 7.0.951'});
+    assert.equal(entryOf(numbered, '')?.version, '7.0.951');
+    assert.equal(entryOf(R1, '')?.version, '');
+    assert.equal(entryOf(release('v20260301T1201Z', {name: 'Release 20260301T1201Z'}), '')?.version, '');
+    assert.match(pageHtml('release', [entryOf(numbered, '')!]), /<span class="subject"><strong class="ver">7\.0\.951<\/strong> /);
+  });
+
   it('puts the ISO stamp in the row, for the browser to turn into a date', () => {
     assert.match(pageHtml('snap', entries), /<time class="when" datetime="20260211T0900Z" data-stamp="20260211T0900Z">20260211T0900Z<\/time>/);
     assert.ok(pageHtml('snap', entries).includes('<script src="../dates.js"></script>'));
+  });
+
+  it('links the newest snapshot to test.openisd.app and OpenISD to openisd.app', () => {
+    const html = pageHtml('release', entries);
+    assert.ok(html.includes('<a href="https://test.openisd.app/">Newest snapshot (test.openisd.app)</a>'));
+    assert.ok(html.includes('<a href="https://openisd.app/">OpenISD</a>'));
   });
 
   it('links Launch to the build folder and GitHub to the release page; the Launch link covers the row', () => {

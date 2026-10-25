@@ -1,9 +1,9 @@
 {
-  "winisd_drivers_commit": "59cde7f24a4999416ecd100dc8debb994f3f2845",
+  "winisd_drivers_commit": "dc08001554f1f65a916f0a4997b818e8ce201e4a",
   "fixtures": {
     "accuton/bd90-6-727/driver.json": "b9829503bf33f8b8b0397051bc8216f5bf9771920afa67cf05d75b287881e0b8",
     "accuton/bd90-6-727/openisd.json": "90a77e497ad400208390d8880eb5b3f4520636e779aff49e15d4177357e66a19",
-    "dayton-audio/da215-8/openisd.json": "fa16c55ac3b755d3ee8820cab3a3fe2385a60f2a6fe6c8f73dd3530b9013cab1"
+    "dayton-audio/da215-8/openisd.json": "5d588f5614f55e72c16522359c2fc97c383ee5437e9e52f9b8c8b02da907e1da"
   },
-  "bundle_sha256": "0036d28c648f3573e1eb67603acf9962039f5c1346b4e19876d8923cbaa6736c"
+  "bundle_sha256": "48f73ab846fbe7211d3e643b3273543c6141c0a461eda7155d50ee06cb801d04"
 }

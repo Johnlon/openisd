@@ -2,22 +2,30 @@
 import type {ProvenanceInfo} from '../../logic/provenance.js';
 
 defineProps<{
+  /** In the flow of the dialog that hosts it, under its body (the phone), not floating beside it. */
+  docked?: boolean;
   open: boolean;
   targetField: string | null;
   provenanceInfo: ProvenanceInfo | null;
+  showEditHint?: boolean;
+  /** Phone: the text of an input's badge, with the input's current value ("Qes = 0.420"). Absent: the badge names the input only. */
+  inputBadge?: (key: string) => string;
 }>();
 
 const emit = defineEmits<{ close: [] }>();
 </script>
 
 <template>
-  <div v-if="open && targetField && provenanceInfo" class="eq-inspector-card" title="Non-modal Equation Inspector — live formula provenance">
+  <div v-if="open && targetField && provenanceInfo" class="eq-inspector-card" :class="{'eq-docked': docked}" title="Non-modal Equation Inspector — live formula provenance">
     <div class="eq-hdr">
-      <span class="eq-title">🔍 Provenance: <strong class="eq-target">{{ targetField }}</strong></span>
+      <span class="eq-title">Provenance: <strong class="eq-target">{{ targetField }}</strong></span>
       <button class="eq-x" @click="emit('close')" title="Close Equation Inspector">✕</button>
     </div>
 
     <div class="eq-body">
+      <div v-if="docked && showEditHint" class="eq-edit-hint">
+        Editing is disabled while inspecting provenance. Long-press a value to edit it.
+      </div>
       <div v-if="provenanceInfo.paths.length === 0" class="eq-empty">
         No calculation formula maps to <em>{{ targetField }}</em> (direct user entry or constant).
       </div>
@@ -31,7 +39,7 @@ const emit = defineEmits<{ close: [] }>();
         <div class="eq-inputs">
           <span class="eq-in-lbl">Participating fields:</span>
           <span v-for="k in path.inputs" :key="k" class="eq-in-badge" :style="{ borderColor: path.color, color: path.color }">
-            {{ k }}
+            {{ inputBadge ? inputBadge(k) : k }}
           </span>
         </div>
       </div>
@@ -56,6 +64,31 @@ const emit = defineEmits<{ close: [] }>();
   pointer-events: auto;
   animation: eq-fade 0.15s ease-out;
 }
+
+/* Phone: the provenance inspector is a popup overlay. It covers the editor while active; the
+   editor hides its toolbar and actions so the popup owns the interaction surface. */
+.eq-inspector-card.eq-docked {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  max-width: none;
+  border-radius: 0;
+  max-height: 60vh;
+  border-width: 1px 0 0;
+  box-shadow: none;
+  animation: none;
+  z-index: 1200;
+}
+/* The phone's inspector (gaps-phone/equation-inspector.html): a 44 px header with a 44x44 ✕, and nothing
+   under 12 px. */
+.eq-docked .eq-hdr { min-height: var(--mob-touch-min); padding-top: 0; padding-bottom: 0; }
+.eq-docked .eq-x { width: var(--mob-touch-min); height: var(--mob-touch-min); display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size: 18px; }
+.eq-docked .eq-title, .eq-docked .eq-path-name, .eq-docked .eq-formula, .eq-docked .eq-in-lbl, .eq-docked .eq-in-badge, .eq-docked .eq-empty { font-size: 12px; }
+.eq-docked .eq-target { font-size: 13px; }
+/* Keep the popup to roughly two long equation cards; shorter screens shrink the scrolling area. */
+.eq-docked .eq-body { box-sizing: border-box; max-height: min(300px, calc(60vh - 64px)); }
 
 @keyframes eq-fade {
   from { opacity: 0; transform: translateY(10px); }
@@ -106,6 +139,7 @@ const emit = defineEmits<{ close: [] }>();
   gap: 8px;
   max-height: 320px;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .eq-empty {
@@ -115,9 +149,16 @@ const emit = defineEmits<{ close: [] }>();
   padding: 8px 0;
 }
 
+.eq-edit-hint {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--mut, #94a3b8);
+  padding: 4px 0;
+}
+
 .eq-path-card {
   border-left: 3px solid #3b82f6;
-  background: color-mix(in srgb, var(--panel, #161c28) 95%, transparent);
+  background: var(--panel2, #1d2535);
   border-radius: 4px;
   padding: 8px;
   display: flex;

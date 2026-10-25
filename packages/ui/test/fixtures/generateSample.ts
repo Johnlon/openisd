@@ -1,10 +1,10 @@
-import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
 import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
-import {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, FIXTURE_DATE, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
 // Only the fields this fixture generator mutates directly; `fromConformingRecord` re-validates
 // the whole record against the real schema, so this schema stays loose (`z.looseObject`) rather
@@ -14,6 +14,16 @@ const driverRecordSchema = z.looseObject({
   model: z.looseObject({value: z.string()}),
   specs: z.looseObject({woofer: z.unknown().optional()}),
 });
+
+/** Writes `text` to `path` whole or not at all. Every browser worker of a fresh checkout generates
+ *  these files at once, and a plain write empties the file first: a worker reading it then got
+ *  partial JSON ("Could not read sample-project.owpr: not valid JSON", GitHub Actions suite, T258).
+ *  A rename within one folder is atomic, so a reader sees the old file or the new one. */
+function writeWhole(path: string, text: string): void {
+  const partial = `${path}.${process.pid}.partial`;
+  writeFileSync(partial, text);
+  renameSync(partial, path);
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,6 +48,10 @@ const qtsLoaded = engine.driver.sourceLoadedQts(
 const c4 = engine.vented.alignment('c4', driver.specs.Fs_hz.value!, qtsLoaded, driver.specs.Vas_m3.value!, 10);
 const project = builder.vented().volume_m3(c4.Vb).tuning_goal_hz(c4.Fb).build();
 project.name.set("W5-1138SMF Fixture");
+// The fixture is dated FIXTURE_DATE, never the day it was generated (F48). YYYYMMDD, as .wpr stores it.
+const fixtureStamp = FIXTURE_DATE.toISOString().slice(0, 10).replaceAll('-', '');
+project.created.set(fixtureStamp);
+project.modified.set(fixtureStamp);
 project.box.vented.vent.diameter_m.set(0.05);
 project.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
 project.envTempK.set(293.15);
@@ -47,7 +61,7 @@ project.envHumidityPct.set(50);
 project.save();
 const owprText = project.toOwprText();
 mkdirSync(dirname(SAMPLE_PROJECT_OWPR), { recursive: true });
-writeFileSync(SAMPLE_PROJECT_OWPR, owprText);
+writeWhole(SAMPLE_PROJECT_OWPR, owprText);
 console.log(`Generated ${SAMPLE_PROJECT_OWPR}`);
 
 // Generate complete driver project with zero consistency issues
@@ -86,6 +100,8 @@ if (Array.isArray(completeDriver)) {
 const completeBuilder = new ProjectBuilder(completeDriver, engine);
 const completeProject = completeBuilder.vented().volume_m3(0.03).tuning_goal_hz(35).build();
 completeProject.name.set("Complete Fixture Project");
+completeProject.created.set(fixtureStamp);
+completeProject.modified.set(fixtureStamp);
 completeProject.box.vented.vent.diameter_m.set(0.05);
 completeProject.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
 completeProject.envTempK.set(293.15);
@@ -94,5 +110,5 @@ completeProject.envHumidityPct.set(50);
 
 completeProject.save();
 const completeOwprText = completeProject.toOwprText();
-writeFileSync(COMPLETE_DRIVER_PROJECT_OWPR, completeOwprText);
+writeWhole(COMPLETE_DRIVER_PROJECT_OWPR, completeOwprText);
 console.log(`Generated ${COMPLETE_DRIVER_PROJECT_OWPR}`);

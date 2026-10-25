@@ -1,0 +1,30 @@
+id: T581
+release_note: Mobile Connection and End Correction selects match the other control widths; the passive-radiator button reads “Select PR”.
+repo: openisd
+owner: codex
+status: done
+landed: 25b4673182d965bdb66e21c4019273004e763696
+goal: Mobile Driver and Box controls use consistent widths and the passive-radiator button reads Select PR
+visual_note: On mobile Driver and Box pages, dropdowns align with the standard field width and the passive-radiator button reads Select PR.
+visual:
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-box
+  - mobile-menu
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T581.yml
+  - bugs/BUG_20261025_mobile-select-widths-inconsistent.md
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-enclosure-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/test/ui/mobile-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-pr-library-buttons.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png

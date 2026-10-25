@@ -1,0 +1,13 @@
+id: T435
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 71f796863c999b3e8acbaa0be017a3e2f1d95491
+goal: Record two bugs from the 19 Oct phone button sweep: the menu open-projects row cuts a long project name mid-word with no ellipsis (bugs/BUG_20261019_phone-menu-project-row-cut-mid-word.md), and the driver editor unit buttons mm/N, 1000/K, kg/m³ overflow their 34 px box (bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md). Doc only, no code.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T435.yml
+  - bugs/BUG_20261019_phone-menu-project-row-cut-mid-word.md
+  - bugs/BUG_20261019_driver-editor-unit-buttons-overflow.md
+visual: []

@@ -1,8 +1,9 @@
 id: T226
-release_note: 'Closing the last project no longer shows the crash screen. With no project open, both views say "No project open. Create or open a project."'
+release_note: 'Closing the last project no longer shows the crash screen; with no project open, both views now say that no project is open.'
 repo: openisd
 owner: maryu
 status: done
+landed: 4a82c28f8070118e466737eacb6e95e183316884
 goal: Live crash: no project is focused
 done_test: bash scripts/test.sh packages/ui/test/logic/focusedProjectContext.test.ts
 files:

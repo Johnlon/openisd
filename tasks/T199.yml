@@ -1,0 +1,13 @@
+id: T199
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: d7e33bcb3b3a74501875d83e200b6b5f04adb94a
+goal: 'Mobile What-if sheet: rows at the tuning-tab phone row metrics (label left, box + stepper + unit right), sheet as tall as its rows need so every field shows without scrolling (John, 15 Oct 2026)'
+done_test: bash scripts/test.sh packages/ui/test/hooks/MobileWhatIfSheet-hooks.test.ts
+files:
+  - tasks/T199.yml
+  - packages/ui/src/ui/shells/mobile/MobileWhatIfSheet.vue
+  - packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts
+  - packages/ui/test/ui/mobile-what-if-grid.browser.spec.ts

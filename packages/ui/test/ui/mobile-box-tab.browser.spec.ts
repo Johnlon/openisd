@@ -11,84 +11,110 @@
  * The alignment sheet and the box-losses sheet opened from this tab are `mobile-alignment-popup`
  * and `mobile-box-losses-popup`.
  */
-import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '../fixtures.js';
+import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, renameFocusedProject, setFocusedBoxType, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
-import {renameFocusedProject, setFocusedBoxType} from '../fixtures/focusedProjectSeam.js';
-import {forceMobileSkin, mobileFieldRow, openMobileMenu} from '../fixtures/mobileSkin.js';
+import {forceMobileSkin, mobileFieldRow, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
 function volumeInput(page: Page) {
-  return mobileFieldRow(page, 'Volume').locator('input').first();
+  return mobileFieldRow(page, 'Vb').locator('input').first();
 }
 
 test.describe('MobileBoxTab', () => {
-  // John, 2026-10-06: "does it line up on the screen". A UIField row (Volume) and an older row
-  // (Target tuning) put the box, ▲▼ and unit at the same x.
-  test('the Volume row lines up with the Target tuning row below it', async ({ page }) => {
+  // John, 2026-10-06: "does it line up on the screen". The Vb row and the Fb row put the box, ▲▼
+  // and unit at the same x.
+  test('the Vb row lines up with the Fb row below it', async ({ appPage: page }) => {
     const edges = async (label: string) => {
       const row = page.locator('.mob-ui-field, .mob-field-row').filter({ hasText: label }).first();
       const box = async (sel: string) => (await row.locator(sel).first().boundingBox()) ?? { x: NaN, width: NaN };
       const input = await box('input'), up = await box('button:has-text("▲")'), unit = await box('.ui-field-unit, .mob-unit');
       return [input.x, input.x + input.width, up.x, unit.x].map(Math.round);
     };
-    expect(await edges('Volume')).toEqual(await edges('Target tuning'));
+    expect(await edges('Vb')).toEqual(await edges('Fb'));
   });
 
-  // bugs/BUG_20261005_no-common-ui-field-component.md: "just show errors" + "yes press alignment".
-  test('emptying the box volume leaves it blank with a ⚠ that names the Alignment button', async ({ page }) => {
-    const row = mobileFieldRow(page, 'Volume').first();
-    await row.locator('input').fill('');
-    await row.locator('input').blur();
-    await expect(row.locator('input')).toHaveValue('');
-    await row.locator('.ui-field-dq-btn').click();
-    await expect(row.locator('.ui-field-note')).toContainText('Box volume is blank');
-    await expect(row.locator('.ui-field-note')).toContainText('Alignment');
+  // T211 (John, 16 Oct 2026, clear-to-blank ruling): an emptied vented volume settles to the volume
+  // the current alignment gives (10.69 L for the sample's driver; the project itself was saved at
+  // 10.70 L), never blank and never 0.
+  test('emptying the box volume settles it to the alignment volume', async ({ appPage: page }) => {
+    const input = mobileFieldRow(page, 'Vb').first().locator('input');
+    await input.fill('40');
+    await input.blur();
+    await expect(input).toHaveValue(/^40/);
+    await input.fill('');
+    await input.blur();
+    await expect(input).toHaveValue('10.69');
   });
 
-  test('shows the box-type select, the enclosure diagram, and a volume field', async ({ page }) => {
+  test('shows the box-type select, the enclosure diagram, and a volume field', async ({ appPage: page }) => {
     await expect(page.locator('#mob-box-type')).toBeVisible();
-    await expect(page.locator('.mob-diagram')).toBeVisible();
-    await expect(page.locator('.ui-field-label', { hasText: 'Volume' }).first()).toBeVisible();
+    await expect(page.locator('.mob-cpic')).toBeVisible();
+    await expect(page.locator('.ui-field-label', { hasText: 'Vb' }).first()).toBeVisible();
   });
 
-  test('editing the volume writes the value through to the field', async ({ page }) => {
-    const input = mobileFieldRow(page, 'Volume').locator('input').first();
+  test('a field DQ explanation expands its row instead of covering the next field', async ({ appPage: page }) => {
+    await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+    const qms = mobileFieldRow(page, 'Qms').first();
+    const next = qms.locator('xpath=following-sibling::*[contains(concat(" ", normalize-space(@class), " "), " mob-ui-field ")][1]');
+    await qms.locator('input').fill('-1');
+    await qms.locator('input').blur();
+    const note = qms.locator('.ui-field-note');
+    await expect(note).toBeVisible();
+
+    const noteBox = await note.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, height: r.height}; });
+    const nextBox = await next.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, height: r.height}; });
+    expect(noteBox.y + noteBox.height > nextBox.y + 1).toBe(false);
+  });
+
+  test('editing the volume writes the value through to the field', async ({ appPage: page }) => {
+    const input = mobileFieldRow(page, 'Vb').locator('input').first();
     await input.fill('40');
     await input.blur();
     await expect(input).toHaveValue(/40/);
   });
 
-  test('the Qtc row shows only for a sealed box', async ({ page }) => {
+  test('the Qtc row shows only for a sealed box', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('sealed');
-    await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toBeVisible();
-    await expect(page.locator('.mob-field-label', { hasText: 'Fsc' })).toBeVisible();
+    await expect(mobileFieldRow(page, 'Qtc')).toBeVisible();
+    await expect(mobileFieldRow(page, 'Fsc')).toBeVisible();
 
     await page.locator('#mob-box-type').selectOption('vented');
-    await expect(page.locator('.mob-field-label', { hasText: 'Qtc' })).toHaveCount(0);
+    await expect(mobileFieldRow(page, 'Qtc')).toHaveCount(0);
     // T074: the line pointing to the Vented tab is gone; the tab bar already shows that tab.
     await expect(page.locator('.mob-hint', { hasText: '"Vented" tab' })).toHaveCount(0);
   });
 
+  // BUG_20261016_box-tab-tuning-input-missing-for-bandpass4-and-pr: every two-chamber box has an
+  // enterable front-chamber tuning on the Box tab, the 4th-order bandpass included.
+  test('a 4th-order bandpass Box tab takes the front chamber tuning', async ({ appPage: page }) => {
+    await setFocusedBoxType(page, 'bandpass4');
+    const tuning = mobileFieldRow(page, 'Ffc').locator('input').first();
+    await expect(tuning).toBeEditable();
+    await tuning.fill('42');
+    await tuning.blur();
+    await expect(tuning).toHaveValue(/^42/);
+  });
+
   // Same flex-shrink clipping bug as the Advanced tab's scroll test (see mobile-advanced-tab).
-  test('scrolls to its last button (Box losses) instead of clipping it', async ({ page }) => {
+  test('scrolls to its last button (Box losses) instead of clipping it', async ({ appPage: page }) => {
     await page.setViewportSize({ width: 412, height: 700 });
-    const lastControl = page.locator('.mob-btn', { hasText: 'Box losses' });
+    const lastControl = page.locator('.mob-clink', { hasText: 'Box losses' });
     await lastControl.scrollIntoViewIfNeeded();
     await expect(lastControl).toBeVisible();
   });
 
   // John, 2026-10-02: 6th-order and ABC boxes showed one chamber with volume 0 on mobile.
   for (const boxType of ['bandpass4', 'bandpass6', 'abc']) {
-    test(`${boxType}: the Box tab has a Front chamber volume that steps`, async ({ page }) => {
+    test(`${boxType}: the Box tab has a Front chamber volume that steps`, async ({ appPage: page }) => {
       await page.locator('#mob-box-type').selectOption(boxType);
-      const panel = page.locator('.mob-panel', { has: page.locator('.mob-panel-head', { hasText: 'Front chamber' }) });
-      // The 6th-order and ABC front chamber also carries its tuning row, below the volume.
-      await expect(panel.locator('input')).toHaveCount(boxType === 'bandpass4' ? 1 : 2);
+      const panel = page.locator('.mob-csection', { has: page.locator('.mob-band-title', { hasText: 'Front chamber' }) });
+      // The chamber holds its volume only; the tuning row heads the Front vent section.
+      await expect(panel.locator('input')).toHaveCount(1);
       const input = panel.locator('input').first();
       const before = Number(await input.inputValue());
       await panel.locator('.num-stepper-btn').first().click();
@@ -123,8 +149,7 @@ test.describe('MobileBoxTab', () => {
       await page.locator('.mob-tab', { hasText: 'Box' }).click();
       await page.locator('#mob-box-type').selectOption('vented');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
-      await page.locator('.mob-tab', { hasText: 'Vented' }).click();
-      const targetTuning = mobileFieldRow(page, 'Target Tuning Freq').locator('input');
+      const targetTuning = mobileFieldRow(page, 'Fb').locator('input');
       await expect(targetTuning).not.toHaveValue('');
       await expect(targetTuning).not.toHaveValue('0.00');
       await expect(mobileFieldRow(page, 'Vent diameter').locator('input')).not.toHaveValue('0.00');
@@ -134,28 +159,27 @@ test.describe('MobileBoxTab', () => {
       await page.locator('.mob-tab', { hasText: 'Box' }).click();
       await page.locator('#mob-box-type').selectOption('box-passive-radiator');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
-      await page.locator('.mob-tab', { hasText: 'Passive Radiator' }).click();
       // The PR name is an editable box since 1b15a8f9, so it is a value, not page text.
       await expect(page.locator('#mob-pr-name')).toHaveValue('ReplaceMe');
       await expect(mobileFieldRow(page, 'Sd').locator('input')).not.toHaveValue('0.00');
     }
 
     // eslint-disable-next-line playwright/expect-expect -- assertions live in the shared expect*Ready() helpers above
-    test('from sealed, switching to vented then passive radiator both work immediately', async ({ page }) => {
+    test('from sealed, switching to vented then passive radiator both work immediately', async ({ appPage: page }) => {
       await startAs(page, 'sealed');
       await expectVentedReady(page);
       await expectPassiveRadiatorReady(page);
     });
 
     // eslint-disable-next-line playwright/expect-expect -- assertions live in the shared expect*Ready() helpers above
-    test('from vented, switching to sealed then passive radiator both work immediately', async ({ page }) => {
+    test('from vented, switching to sealed then passive radiator both work immediately', async ({ appPage: page }) => {
       await startAs(page, 'vented');
       await expectSealedReady(page);
       await expectPassiveRadiatorReady(page);
     });
 
     // eslint-disable-next-line playwright/expect-expect -- assertions live in the shared expect*Ready() helpers above
-    test('from passive radiator, switching to sealed then vented both work immediately', async ({ page }) => {
+    test('from passive radiator, switching to sealed then vented both work immediately', async ({ appPage: page }) => {
       await startAs(page, 'box-passive-radiator');
       await expectSealedReady(page);
       await expectVentedReady(page);
@@ -182,27 +206,28 @@ test.describe('MobileBoxTab', () => {
     }
 
     async function switchTo(page: Page, name: string): Promise<void> {
-      await openMobileMenu(page);
-      await page.locator('.mob-open-project-name', { hasText: name }).click();
+      await tapMobileMenuItem(page, 'Projects');
+      await page.locator('.mob-project-name', { hasText: name }).click();
     }
 
-    test('between a vented and a passive radiator project repaints the tabs and the Box tab', async ({ page }) => {
+    test('between a vented and a passive radiator project repaints the tabs and the Box tab', async ({ appPage: page }) => {
       await openTwoProjects(page, { name: 'Vented one', boxType: 'vented' }, { name: 'Radiator one', boxType: 'box-passive-radiator' });
       const tabs = page.locator('.mob-tab');
-      await expect(tabs.filter({ hasText: 'Passive Radiator' })).toHaveCount(1);
+      const sections = page.locator('.mob-band-title');
+      await expect(sections.filter({ hasText: /^Passive radiator$/ })).toHaveCount(1);
 
       await switchTo(page, 'Vented one');
-      await expect(tabs.filter({ hasText: 'Passive Radiator' })).toHaveCount(0);
-      await expect(tabs.filter({ hasText: 'Vented' })).toHaveCount(1);
+      await expect(sections.filter({ hasText: /^Passive radiator$/ })).toHaveCount(0);
+      await expect(sections.filter({ hasText: /^Vents$/ })).toHaveCount(1);
       await tabs.filter({ hasText: 'Box' }).click();
       await expect(page.locator('#mob-box-type')).toHaveValue('vented');
 
       await switchTo(page, 'Radiator one');
-      await expect(tabs.filter({ hasText: 'Passive Radiator' })).toHaveCount(1);
+      await expect(sections.filter({ hasText: /^Passive radiator$/ })).toHaveCount(1);
       await expect(page.locator('#mob-box-type')).toHaveValue('box-passive-radiator');
     });
 
-    test('while the Box tab is showing repaints it and the tab bar', async ({ page }) => {
+    test('while the Box tab is showing repaints it and the tab bar', async ({ appPage: page }) => {
       await openTwoProjects(page, { name: 'Vented two', boxType: 'vented' }, { name: 'Radiator two', boxType: 'box-passive-radiator' });
       const tabs = page.locator('.mob-tab');
       await tabs.filter({ hasText: 'Box' }).click();
@@ -210,25 +235,23 @@ test.describe('MobileBoxTab', () => {
 
       await switchTo(page, 'Vented two');
       await expect(page.locator('#mob-box-type')).toHaveValue('vented');
-      await expect(tabs.filter({ hasText: 'Passive Radiator' })).toHaveCount(0);
+      await expect(page.locator('.mob-band-title', { hasText: /^Passive radiator$/ })).toHaveCount(0);
 
       await switchTo(page, 'Radiator two');
       await expect(page.locator('#mob-box-type')).toHaveValue('box-passive-radiator');
-      await expect(tabs.filter({ hasText: 'Passive Radiator' })).toHaveCount(1);
+      await expect(page.locator('.mob-band-title', { hasText: /^Passive radiator$/ })).toHaveCount(1);
     });
 
-    test('while the Passive Radiator tab is showing leaves a tab that fits the new box', async ({ page }) => {
+    test('while the passive radiator section is showing leaves a page that fits the new box', async ({ appPage: page }) => {
       await openTwoProjects(page, { name: 'Vented three', boxType: 'vented' }, { name: 'Radiator three', boxType: 'box-passive-radiator' });
-      const tabs = page.locator('.mob-tab');
-      await tabs.filter({ hasText: 'Passive Radiator' }).click();
-      await expect(page.getByText('Select passive radiator')).toBeVisible();
+      await expect(page.getByText('Select PR')).toBeVisible();
 
       await switchTo(page, 'Vented three');
-      await expect(page.getByText('Select passive radiator')).toHaveCount(0);
-      await expect(tabs.filter({ hasText: 'Passive Radiator' })).toHaveCount(0);
+      await expect(page.getByText('Select PR')).toHaveCount(0);
+      await expect(page.locator('.mob-band-title', { hasText: /^Passive radiator$/ })).toHaveCount(0);
     });
 
-    test('from a vented project to a sealed one on the Box tab repaints it', async ({ page }) => {
+    test('from a vented project to a sealed one on the Box tab repaints it', async ({ appPage: page }) => {
       await openTwoProjects(page, { name: 'w5 sealed', boxType: 'sealed' }, { name: 'w5 vented', boxType: 'vented' });
       const tabs = page.locator('.mob-tab');
       await tabs.filter({ hasText: 'Box' }).click();
@@ -236,11 +259,11 @@ test.describe('MobileBoxTab', () => {
 
       await switchTo(page, 'w5 sealed');
       await expect(page.locator('#mob-box-type')).toHaveValue('sealed');
-      await expect(tabs.filter({ hasText: 'Vented' })).toHaveCount(0);
+      await expect(page.locator('.mob-band-title', { hasText: /^Vents$/ })).toHaveCount(0);
 
       await switchTo(page, 'w5 vented');
       await expect(page.locator('#mob-box-type')).toHaveValue('vented');
-      await expect(tabs.filter({ hasText: 'Vented' })).toHaveCount(1);
+      await expect(page.locator('.mob-band-title', { hasText: /^Vents$/ })).toHaveCount(1);
     });
   });
 });

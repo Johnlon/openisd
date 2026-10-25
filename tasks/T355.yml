@@ -1,0 +1,15 @@
+id: T355
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: aa00aa56fdedbd72daf19085cd2a92295ccafdee
+goal: abandon.sh lands nothing on main and keeps no dropped code: it deletes the task's worktree (uncommitted work included) and branch, local and origin, and logs who, why and the tip; no 'Record that Tnnn is abandoned' commit (John, 17 Oct 2026: don't commit abandoned, both)
+done_test: bash scripts/land/test/tidy-branches.e2e.test.sh
+files:
+  - tasks/T355.yml
+  - scripts/abandon.sh
+  - scripts/land/tidy-branches.sh
+  - scripts/land/watchdog.sh
+  - scripts/land/test/tidy-branches.e2e.test.sh
+  - docs/DEV_PROCESS.md

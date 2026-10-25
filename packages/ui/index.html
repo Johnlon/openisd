@@ -20,6 +20,22 @@
       width: 96px;
       height: 96px;
     }
+    #boot-failed {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      background: #11151c;
+      color: #e6e9ef;
+      font: 14px/1.5 system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #boot-failed > div { max-width: 420px; }
+    #boot-failed h1 { font-size: 18px; margin: 0 0 8px; }
+    #boot-failed p { margin: 0 0 8px; }
+    #boot-failed button { font: inherit; margin: 8px 8px 0 0; padding: 6px 14px; border-radius: 5px; border: 1px solid #4a5568; background: #1d2430; color: inherit; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -27,6 +43,57 @@
     <img src="/icon.svg" alt="OpenISD">
   </div>
   <div id="app"></div>
+  <script>
+    // The app's code did not arrive, or threw before the app showed: say so instead of leaving the
+    // loading screen up for ever, and offer the data this browser holds and a reload. Plain inline
+    // code, because the app's own code is what failed (BUG_20261018_test-build-hangs-on-loading-screen).
+    (function () {
+      function started() {
+        var app = document.getElementById('app');
+        return app !== null && app.childElementCount > 0;
+      }
+      function stamp() {
+        return new Date().toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+      }
+      function downloadData(said) {
+        var data = {};
+        for (var i = 0; i < localStorage.length; i++) {
+          var key = localStorage.key(i);
+          if (key !== null && key.indexOf('openisd_') === 0) data[key] = localStorage.getItem(key);
+        }
+        var name = 'openisd-data-' + stamp() + '.json';
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(new Blob([JSON.stringify({exportedAt: stamp(), data: data}, null, 2)], {type: 'application/json'}));
+        link.download = name;
+        link.click();
+        said.textContent = 'Saved ' + name + '. It holds everything OpenISD stored in this browser.';
+      }
+      function failed(why) {
+        if (started() || document.getElementById('boot-failed')) return;
+        var screen = document.createElement('div');
+        screen.id = 'boot-failed';
+        screen.setAttribute('role', 'alertdialog');
+        screen.setAttribute('aria-labelledby', 'boot-failed-title');
+        screen.innerHTML = '<div><h1 id="boot-failed-title">OpenISD could not start</h1><p class="why"></p>'
+          + '<p>Your projects and settings are still stored in this browser.</p>'
+          + '<button type="button" class="save">Download your data</button><button type="button" class="reload">Reload</button>'
+          + '<p class="said"></p></div>';
+        screen.querySelector('.why').textContent = why;
+        var said = screen.querySelector('.said');
+        screen.querySelector('.save').addEventListener('click', function () { downloadData(said); });
+        screen.querySelector('.reload').addEventListener('click', function () { location.reload(); });
+        document.body.appendChild(screen);
+      }
+      window.addEventListener('error', function (event) {
+        var target = event.target;
+        if (target instanceof HTMLScriptElement) failed('A file of the app did not load: ' + target.src);
+        else if (target === window) failed('The app stopped with an error: ' + event.message);
+      }, true);
+      window.addEventListener('unhandledrejection', function (event) {
+        failed('The app stopped with an error: ' + (event.reason instanceof Error ? event.reason.message : String(event.reason)));
+      });
+    })();
+  </script>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

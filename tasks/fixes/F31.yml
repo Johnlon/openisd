@@ -1,0 +1,59 @@
+id: F31
+owner: Johnlon
+status: done
+sha: 285bed5f298267c4ab579c541c42e6e5dce9f58d
+goal: main is red at 285bed5f29; make the full suite pass again
+commits: |
+  285bed5f29 T192: NumInput is a text box with inputmode decimal and steps at the caret: Ar
+  d62d53ea86 T193: 'F30: the one spec red at 2f847b2889 (driver-browser, single click opens
+  cc00e5f24c F30: the full suite is red at 2f847b2889
+  2f847b2889 T191: 'The caret step is a pure design function (digit at the caret, carries,
+failing: |
+    ✘   81 packages/ui/test/ui/driver-browser.browser.spec.ts:680:5 › Driver browser › selecting a driver › OK on the project driver updates the project — it is left edited, nothing is saved (54.8s)
+    ✘   82 packages/ui/test/ui/driver-browser.browser.spec.ts:699:5 › Driver browser › selecting a driver › Copy to My Drivers writes the edited driver into the saved list (1.8m)
+    ✘  195 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › bandpass6: Reset puts only the open chamber back; the Qicl is one value for both (14.2m)
+    ✘  196 packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › abc: each chamber panel's button opens only that chamber's set (14.2m)
+    ✘  618 packages/ui/test/ui/original-winisd-differences.browser.spec.ts:16:1 › the Info menu opens the page, with its three sections; Close shuts it (26.3s)
+    ✘  621 packages/ui/test/ui/original-winisd-differences.browser.spec.ts:41:1 › a ≠W cue opens the page centred in the window at that cue's entry, without scrolling the page (5ms)
+    ✘  620 packages/ui/test/ui/pr-browser.browser.spec.ts:50:1 › a starred passive radiator stays starred after a reload, and Favorites shows only it (24.7m)
+output: |
+          at attempt (/home/john/work/winisd/.postland/395075-285bed5f29/packages/ui/test/fixtures.ts:71:54)
+          at waitOutOutage (/home/john/work/winisd/.postland/395075-285bed5f29/packages/ui/test/fixtures/chromeOutage.ts:45:28)
+          at Object.base.extend.browser.scope (/home/john/work/winisd/.postland/395075-285bed5f29/packages/ui/test/fixtures.ts:89:27)
+  
+      Error Context: test-results/ui-original-winisd-differe-0272b--without-scrolling-the-page/error-context.md
+  
+    7) packages/ui/test/ui/pr-browser.browser.spec.ts:50:1 › a starred passive radiator stays starred after a reload, and Favorites shows only it 
+  
+      TimeoutError: locator.selectOption: Timeout 20000ms exceeded.
+      Call log:
+        - waiting for locator('select#og-box-type')
+          - locator resolved to <select value="vented" id="og-box-type" data-v-4ff24d95="">…</select>
+        - attempting select option action
+          - waiting for element to be visible and enabled
+  
+  
+        44 |   await page.goto('/');
+        45 |   await openAProject(page);
+      > 46 |   await page.locator('select#og-box-type').selectOption('box-passive-radiator');
+           |                                            ^
+        47 |   await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
+        48 | });
+        49 |
+          at /home/john/work/winisd/.postland/395075-285bed5f29/packages/ui/test/ui/pr-browser.browser.spec.ts:46:44
+  
+      Error Context: test-results/ui-pr-browser.browser-a-st-63712-and-Favorites-shows-only-it/error-context.md
+  
+    Slow test file: packages/ui/test/ui/pr-browser.browser.spec.ts (24.7m)
+    Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+    7 failed
+      packages/ui/test/ui/driver-browser.browser.spec.ts:680:5 › Driver browser › selecting a driver › OK on the project driver updates the project — it is left edited, nothing is saved 
+      packages/ui/test/ui/driver-browser.browser.spec.ts:699:5 › Driver browser › selecting a driver › Copy to My Drivers writes the edited driver into the saved list 
+      packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:67:5 › MobileBoxLossesPopup › bandpass6: Reset puts only the open chamber back; the Qicl is one value for both 
+      packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts:55:5 › MobileBoxLossesPopup › abc: each chamber panel's button opens only that chamber's set 
+      packages/ui/test/ui/original-winisd-differences.browser.spec.ts:16:1 › the Info menu opens the page, with its three sections; Close shuts it 
+      packages/ui/test/ui/original-winisd-differences.browser.spec.ts:41:1 › a ≠W cue opens the page centred in the window at that cue's entry, without scrolling the page 
+      packages/ui/test/ui/pr-browser.browser.spec.ts:50:1 › a starred passive radiator stays starred after a reload, and Favorites shows only it 
+    675 passed (47.7m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 395075-285bed5f29 finished: FAILED (exit 1) after 50m00s

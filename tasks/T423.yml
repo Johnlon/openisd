@@ -1,0 +1,18 @@
+id: T423
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 7eb96af377fd83581af88ad80a8fe26e15867f1e
+goal: A user who closed the old storage banner (stored mark '1') sees the storage popup when the browser's storage situation changes: on the first start after T416 the app records the current condition as already seen in place of '1' (John, QO251, 18 Oct 2026: 'they see it if the storage situation changes'). CLAUDE.md's preview-4000.sh line says the script restarts the openisd-preview systemd unit (John, QO252, 18 Oct 2026: 'yes').
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T423.yml
+  - packages/design/fields/browserStorage.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/browserStorage.test.ts
+  - packages/ui/src/logic/storagePopup.ts
+  - packages/ui/test/logic/storagePopup.test.ts
+  - CLAUDE.md
+  - packages/ui/test/visual/SOURCES.sha256
+visual: []

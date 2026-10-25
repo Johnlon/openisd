@@ -1,0 +1,51 @@
+id: T564
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: 3463b569dea83724096e0789bf46b057861d996c
+goal: Desktop Original shell signal generator Hz and sealed alignment Volume use UIField rows (BUG_20261005_no-common-ui-field-component)
+visual_note: The Signal Generator frequency box on the left panel now has ▲▼ buttons to step it. The row is a little taller, so the chart's frequency labels move up a few pixels.
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-original-shell-uses-field-rows.test.ts
+files:
+  - tasks/T564.yml
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/directives/expoStep.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/architecture/architecture-original-shell-uses-field-rows.test.ts
+  - packages/ui/test/ui/original-shell-number-rows.browser.spec.ts
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-empty
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step4
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5

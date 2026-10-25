@@ -1,6 +1,8 @@
 # BUG_20261009_post-land-unit-red-skips-browser-specs
 
-**Status:** OPEN. Rides T017 (lots writes the task file), test first.
+**Status:** RESOLVED 21 Oct 2026 (T547, opi). Fixed in 9b9ccd1bf: `scripts/land/post-land/suite.sh` runs both
+halves whichever fails, tested by `scripts/land/test/suite-both-halves.test.sh`. The full suite now runs on GitHub
+Actions (`.github/workflows/suite.yml`), where the unit and browser jobs do not depend on each other.
 
 There are two halves of the post-land suite, unit (`npx vitest run`) and browser
 (`bash scripts/test-browser.sh`), run one after the other by `scripts/land/post-land/suite.sh`

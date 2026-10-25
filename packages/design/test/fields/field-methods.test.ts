@@ -53,4 +53,16 @@ describe('NumberField', () => {
       expect(rho.fixed(1.20412)).toBe((1.20412).toFixed(rho.precision));
     });
   });
+
+  describe('NumberField.emptyAndAllowed', () => {
+    it('a filter field (e.g. FILTER_Q) is empty-and-allowed for null and not for 0.7', () => {
+      expect(NumberField.FILTER_Q.emptyAndAllowed(null)).toBe(true);
+      expect(NumberField.FILTER_Q.emptyAndAllowed(0.7)).toBe(false);
+    });
+
+    it('a non-filter field (e.g. a driver Fs) is never empty-and-allowed, even for null', () => {
+      expect(NumberField.FS_HZ.emptyAndAllowed(null)).toBe(false);
+      expect(NumberField.FS_HZ.emptyAndAllowed(45)).toBe(false);
+    });
+  });
 });

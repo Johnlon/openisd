@@ -1,0 +1,54 @@
+id: F29
+owner: Johnlon
+status: done
+sha: 82d6a5c97d7c5f7b38e0ebf79bf637705d5c760b
+goal: main is red at 82d6a5c97d; make the full suite pass again
+commits: |
+  82d6a5c97d T188: Release v20261015T1542Z: RELEASES.md row and the release test plan
+failing: |
+    ✘  177 packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:42:1 › editing the temperature writes through and clearing it falls back to the app default (27.0s)
+    ✘  589 packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1280px wide, with every chart open and cloud sync on, and the chart menu is 180px (27.9s)
+    ✘  590 packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1439px wide, with every chart open and cloud sync on, and the chart menu is 180px (27.2s)
+    ✘  668 packages/ui/test/ui/what-if-panel.browser.spec.ts:179:5 › What-if? panel › on the sample project › What-if? keeps the Vb typed into it when the field loses focus (26.6s)
+    ✘  669 packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › What-if? panel › on the sample project › switching focus to a different open project closes an open What-if? panel (26.2s)
+output: |
+        180 |       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
+      > 181 |       await page.locator('button.edit-btn', { hasText: 'What-if' }).click();
+            |                                                                     ^
+        182 |       await expect(page.locator('.what-if-panel')).toBeVisible();
+        183 |
+        184 |       const vb = page.locator('.what-if-panel .what-if-fld', { hasText: 'Vb' }).locator('input');
+          at /home/john/work/winisd/.postland/230999-82d6a5c97d/packages/ui/test/ui/what-if-panel.browser.spec.ts:181:69
+  
+      Error Context: test-results/ui-what-if-panel.browser-W-4c3db--when-the-field-loses-focus/error-context.md
+  
+    5) packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › What-if? panel › on the sample project › switching focus to a different open project closes an open What-if? panel 
+  
+      TimeoutError: locator.waitFor: Timeout 20000ms exceeded.
+      Call log:
+        - waiting for locator('.original-root') to be visible
+  
+  
+         at fixtures.ts:213
+  
+        211 |     buffer: readFileSync(owprPath),
+        212 |   });
+      > 213 |   await page.locator('.original-root').waitFor({ state: 'visible' });
+            |                                        ^
+        214 | }
+        215 |
+        216 | /**
+          at openAProject (/home/john/work/winisd/.postland/230999-82d6a5c97d/packages/ui/test/fixtures.ts:213:40)
+          at /home/john/work/winisd/.postland/230999-82d6a5c97d/packages/ui/test/ui/what-if-panel.browser.spec.ts:30:7
+  
+      Error Context: test-results/ui-what-if-panel.browser-W-4e2cd-loses-an-open-What-if-panel/error-context.md
+  
+    5 failed
+      packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts:42:1 › editing the temperature writes through and clearing it falls back to the app default 
+      packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1280px wide, with every chart open and cloud sync on, and the chart menu is 180px 
+      packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1439px wide, with every chart open and cloud sync on, and the chart menu is 180px 
+      packages/ui/test/ui/what-if-panel.browser.spec.ts:179:5 › What-if? panel › on the sample project › What-if? keeps the Vb typed into it when the field loses focus 
+      packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › What-if? panel › on the sample project › switching focus to a different open project closes an open What-if? panel 
+    672 passed (9.4m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 230999-82d6a5c97d finished: FAILED (exit 1) after 11m14s

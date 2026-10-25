@@ -55,11 +55,9 @@ const FORWARDS_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.notifyPrChanged",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.notifyVentChanged",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.passbandRef",
+  "packages/design/domain/project/openISDProject.ts#OpenISDProject.peaks",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.recalc",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.rolloffFreq",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvHumidityPct",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvPressurePa",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.setEnvTempK",
   "packages/design/domain/project/projectListeners.ts#ProjectListeners.add",
   "packages/design/domain/project/projectListeners.ts#ProjectListeners.delete",
 ]);

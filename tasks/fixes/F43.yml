@@ -1,0 +1,94 @@
+id: F43
+owner: Johnlon
+status: done
+sha: d350857381b5a704a4c01d156624086292914aaf
+goal: main is red at d350857381; make the full suite pass again
+commits: |
+  d350857381 T222: x
+failing: |
+    ✘    7 packages/ui/test/ui/alignment-popup.browser.spec.ts:48:3 › Alignment popup › vented Box tab opens and cancels the Alignment editor (20.7s)
+    ✘  120 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:361:1 › no tab of the driver editor scrolls sideways, and the modal fits its window (1.0s)
+    ✘  334 packages/ui/test/ui/mobile-sheet.browser.spec.ts:121:1 › Learn: stepping a field changes charts but not the project; Close puts curve back (20.6s)
+    ✘  335 packages/ui/test/ui/mobile-sheet.browser.spec.ts:154:1 › switching Learn to Tune discards the What-if changes (20.5s)
+    ✘  336 packages/ui/test/ui/mobile-sheet.browser.spec.ts:176:1 › dragging the mobile sheet down closes it and ends Learn What-if (20.5s)
+    ✘  337 packages/ui/test/ui/mobile-sheet.browser.spec.ts:197:1 › leaving the Graph page with Learn sheet open ends the What-if (20.5s)
+    ✘  430 packages/ui/test/ui/num-input-caret.browser.spec.ts:27:3 › Original skin › ArrowUp steps the digit left of the caret, carries, and the caret stays on its digit (773ms)
+    ✘  434 packages/ui/test/ui/num-input-caret.browser.spec.ts:80:3 › Mobile skin › a focused box steps at the caret; the ▲ button, with no caret, steps as before (541ms)
+          44 × locator resolved to 0 elements
+          2 × waiting for element to be visible, enabled and stable
+          2 × waiting for element to be visible, enabled and stable
+          39 × waiting for element to be visible, enabled and stable
+          2 × waiting for element to be visible, enabled and stable
+          2 × waiting for element to be visible, enabled and stable
+          39 × waiting for element to be visible, enabled and stable
+          2 × waiting for element to be visible, enabled and stable
+          2 × waiting for element to be visible, enabled and stable
+          39 × waiting for element to be visible, enabled and stable
+          2 × waiting for element to be visible, enabled and stable
+          2 × waiting for element to be visible, enabled and stable
+          39 × waiting for element to be visible, enabled and stable
+output: |
+        31 |     await expect(box).toHaveValue('20.00');
+      > 32 |     expect(await caretOf(box)).toBe(4);
+           |                                ^
+        33 |
+        34 |     await setTextAndCaret(box, '19.90', 2);
+        35 |     await box.press('ArrowUp');
+          at /home/john/work/winisd/.postland/1819341-d350857381/packages/ui/test/ui/num-input-caret.browser.spec.ts:32:32
+  
+      Error Context: test-results/ui-num-input-caret.browser-664ba-he-caret-stays-on-its-digit/error-context.md
+  
+    8) packages/ui/test/ui/num-input-caret.browser.spec.ts:80:3 › Mobile skin › a focused box steps at the caret; the ▲ button, with no caret, steps as before 
+  
+      Error: expect(received).toBe(expected) // Object.is equality
+  
+      Expected: 4
+      Received: 3
+  
+        85 |     await box.press('ArrowUp');
+        86 |     await expect(box).toHaveValue('1.01');
+      > 87 |     expect(await caretOf(box)).toBe(4);
+           |                                ^
+        88 |
+        89 |     await box.blur();
+        90 |     const before = Number(await box.inputValue());
+          at /home/john/work/winisd/.postland/1819341-d350857381/packages/ui/test/ui/num-input-caret.browser.spec.ts:87:32
+  
+      Error Context: test-results/ui-num-input-caret.browser-4eed8-th-no-caret-steps-as-before/error-context.md
+  
+    8 failed
+      packages/ui/test/ui/alignment-popup.browser.spec.ts:48:3 › Alignment popup › vented Box tab opens and cancels the Alignment editor 
+      packages/ui/test/ui/driver-editor-layout.browser.spec.ts:361:1 › no tab of the driver editor scrolls sideways, and the modal fits its window 
+      packages/ui/test/ui/mobile-sheet.browser.spec.ts:121:1 › Learn: stepping a field changes charts but not the project; Close puts curve back 
+      packages/ui/test/ui/mobile-sheet.browser.spec.ts:154:1 › switching Learn to Tune discards the What-if changes 
+      packages/ui/test/ui/mobile-sheet.browser.spec.ts:176:1 › dragging the mobile sheet down closes it and ends Learn What-if 
+      packages/ui/test/ui/mobile-sheet.browser.spec.ts:197:1 › leaving the Graph page with Learn sheet open ends the What-if 
+      packages/ui/test/ui/num-input-caret.browser.spec.ts:27:3 › Original skin › ArrowUp steps the digit left of the caret, carries, and the caret stays on its digit 
+      packages/ui/test/ui/num-input-caret.browser.spec.ts:80:3 › Mobile skin › a focused box steps at the caret; the ▲ button, with no caret, steps as before 
+    796 passed (7.4m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1819341-d350857381 finished: FAILED (exit 1) after 8m54s
+also_red:
+  - sha: 20d18cc1b624588225c7a47ffacc7a57c72c8378
+    failing: |
+        ✘    7 packages/ui/test/ui/alignment-popup.browser.spec.ts:48:3 › Alignment popup › vented Box tab opens and cancels the Alignment editor (20.6s)
+        ✘  120 packages/ui/test/ui/driver-editor-layout.browser.spec.ts:361:1 › no tab of the driver editor scrolls sideways, and the modal fits its window (1.0s)
+        ✘  334 packages/ui/test/ui/mobile-sheet.browser.spec.ts:121:1 › Learn: stepping a field changes charts but not the project; Close puts curve back (20.6s)
+        ✘  335 packages/ui/test/ui/mobile-sheet.browser.spec.ts:154:1 › switching Learn to Tune discards the What-if changes (20.6s)
+        ✘  336 packages/ui/test/ui/mobile-sheet.browser.spec.ts:176:1 › dragging the mobile sheet down closes it and ends Learn What-if (20.5s)
+        ✘  337 packages/ui/test/ui/mobile-sheet.browser.spec.ts:197:1 › leaving the Graph page with Learn sheet open ends the What-if (20.5s)
+        ✘  430 packages/ui/test/ui/num-input-caret.browser.spec.ts:27:3 › Original skin › ArrowUp steps the digit left of the caret, carries, and the caret stays on its digit (798ms)
+        ✘  433 packages/ui/test/ui/num-input-caret.browser.spec.ts:80:3 › Mobile skin › a focused box steps at the caret; the ▲ button, with no caret, steps as before (649ms)
+              44 × locator resolved to 0 elements
+              2 × waiting for element to be visible, enabled and stable
+              2 × waiting for element to be visible, enabled and stable
+              39 × waiting for element to be visible, enabled and stable
+              2 × waiting for element to be visible, enabled and stable
+              2 × waiting for element to be visible, enabled and stable
+              39 × waiting for element to be visible, enabled and stable
+              2 × waiting for element to be visible, enabled and stable
+              2 × waiting for element to be visible, enabled and stable
+              39 × waiting for element to be visible, enabled and stable
+              2 × waiting for element to be visible, enabled and stable
+              2 × waiting for element to be visible, enabled and stable
+              39 × waiting for element to be visible, enabled and stable

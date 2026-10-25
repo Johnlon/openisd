@@ -1,0 +1,15 @@
+id: T491
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: e904fc619f3897cacaaf6f9d1750d48e356c3058
+goal: On the phone chart the 10.0k and 20.0k frequency labels keep a clear gap
+done_test: bash scripts/test.sh packages/design/test/chart/chart-layout.test.ts
+files:
+  - tasks/T491.yml
+  - bugs/BUG_20261020_phone-10k-20k-labels-nearly-touch.md
+  - packages/design/chart/layout.ts
+  - packages/design/test/chart/chart-layout.test.ts
+  - packages/ui/src/ui/canvas.ts
+  - packages/ui/test/visual/SOURCES.sha256

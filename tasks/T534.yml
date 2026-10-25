@@ -1,0 +1,17 @@
+id: T534
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: e65912dc29a8e17bebdefe3f3484002089553d3b
+goal: A number box spin keeps stepping the same place value (tens stays tens as 90 becomes 100, and 10.5 down a ten is 0.5, up a ten is 10.5 again) when the number gains or loses a digit, until the person moves the caret (QO291.c153). No layout change, so no before/after picture page.
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T534.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/fields/caretSpin.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/caret-spin.test.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/ui/mobile-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/original-signal-tab.browser.spec.ts

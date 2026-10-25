@@ -1,0 +1,10 @@
+id: T527
+release_note: internal
+repo: openisd
+owner: air
+status: done
+landed: bc3aea0c4ac1d0ec8df8c2c162bbd4deb040d84a
+goal: Every air read comes from the project or the app setting, never a factory value
+done_test: bash scripts/test.sh packages/design/test/architecture-air-has-no-hidden-source.test.ts
+files:
+  - tasks/T527.yml

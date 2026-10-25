@@ -1,5 +1,5 @@
 id: T084
-release_note: The Transfer function magnitude chart readout shows F3 and F10, and the chart popup can jump the cursor to either.
+release_note: The Transfer function magnitude chart readout shows the -3 dB and -10 dB frequencies, and the chart popup can jump the cursor to either.
 repo: openisd
 owner: bob
 status: done

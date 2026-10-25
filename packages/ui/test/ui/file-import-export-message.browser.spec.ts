@@ -24,7 +24,7 @@ test.describe('import and export messages', () => {
     await forceMobileSkin(page);
     await page.goto('/');
     await openAMobileProject(page);
-    await expect(page.locator('.flash')).toHaveText('Project imported from sample-project.owpr');
+    await expect(page.getByTestId('flash-strip')).toHaveText('Project imported from sample-project.owpr');
 
     await openMobileMenu(page);
     await page.locator('.mob-menu-export .export-menu-trigger').click();
@@ -32,6 +32,6 @@ test.describe('import and export messages', () => {
       page.waitForEvent('download'),
       page.locator('.export-menu-list button', { hasText: 'Save As WinISD project (.wpr)' }).click(),
     ]);
-    await expect(page.locator('.flash')).toHaveText(`Project exported as ${download.suggestedFilename()}`);
+    await expect(page.getByTestId('flash-strip')).toHaveText(`Project exported as ${download.suggestedFilename()}`);
   });
 });

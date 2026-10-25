@@ -1,0 +1,46 @@
+id: T421
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: e82721ce69e41b9ea7d6b67d60314e024298fc58
+goal: T365 fallout fixed: phone wizard dropdowns lose the 18 px font, desktop wizard select widths and the uneven Back/Next/Cancel buttons return to 7.0.951; T365's button sizes stay (review REVIEW_20261018_UI_CHANGES_SINCE_7.0.951 row 15).
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T421.yml
+  - packages/design/fields/desktopSizes.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/desktopSizes.test.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue
+  - packages/ui/src/ui/components/UIPickField.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/ui/new-project-wizard-selects.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+visual:
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5
+  - mobile-wizard-abc-step3
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4

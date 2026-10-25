@@ -1,0 +1,12 @@
+id: T356
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: e4fe56b1626c0464bae51a1ae55378ac93bd0258
+goal: Visual screenshots are the same on every run: the library size text (e.g. 5.8 KB) no longer varies between runs (BUG_20261017_visual-library-size-text-varies)
+done_test: bash scripts/test.sh packages/design/test/domain/project/stored-text.test.ts
+files:
+  - tasks/T356.yml
+  - bugs/BUG_20261017_visual-library-size-text-varies.md
+  - packages/design/test/domain/project/stored-text.test.ts

@@ -1,0 +1,14 @@
+id: T371
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 337b288a4b8770fa95f82e4ff50088fc9cde7901
+goal: The chart redraws its text when a font finishes loading, so its labels never stay in the fallback font
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T371.yml
+  - packages/ui/test/ui/chart-font-load.browser.spec.ts
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261017_what-if-close-curve-not-restored.md

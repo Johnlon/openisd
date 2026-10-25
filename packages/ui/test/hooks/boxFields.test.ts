@@ -126,14 +126,19 @@ describe('boxFields', () => {
       expect(cell.dq).toEqual([]);
     });
 
-    // bugs/BUG_20261005_no-common-ui-field-component.md, "just show errors".
-    it('a cleared volume stays blank, with a ⚠ that marks it mandatory', () => {
-      const {engine, project} = createCompleteProject();
+    // docs/design/FIELD_CLEAR_RULE.md: a cleared sealed volume swaps with Qtc. Qtc keeps its value
+    // as entered and the volume is calculated from it, so it is never blank.
+    it('a cleared volume is calculated from Qtc, which keeps its value as entered', () => {
+      const {project} = createCompleteProject();
       const cell = volumeOf(project, 'sealed');
+      const qtc = project.box.sealed.q_tc.value;
       cell.clear();
-      expect(cell.value).toBeNull();
-      expect(cell.dq).toEqual([engine.issues.requiredPositiveIssue('Box volume', null, 'alignment')]);
-      expect(cell.mandatoryAndUnsatisfied).toBe(true);
+      expect(cell.value).not.toBeNull();
+      expect(project.box.sealed.volume_m3.calculated).toBe(true);
+      expect(cell.entered).toBe(false);
+      expect(project.box.sealed.q_tc.entered).toBe(true);
+      expect(project.box.sealed.q_tc.value).toBe(qtc);
+      expect(cell.mandatoryAndUnsatisfied).toBe(false);
     });
   });
 

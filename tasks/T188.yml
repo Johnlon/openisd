@@ -1,0 +1,12 @@
+id: T188
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 82d6a5c97d7c5f7b38e0ebf79bf637705d5c760b
+goal: Release v20261015T1542Z: RELEASES.md row and the release test plan
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T188.yml
+  - RELEASES.md
+  - docs/test-plans/MANUAL_TEST_PLAN_20261014.md

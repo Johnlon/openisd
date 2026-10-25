@@ -1,0 +1,20 @@
+id: F36
+owner: Johnlon
+status: done
+sha: b04259b1be3bf462b99bd1765c95243b34e0cc20
+goal: main is red at b04259b1be; make the full suite pass again
+commits: |
+  b04259b1be T205: 'Lint and typecheck gates run without a deadline: both finish on their o
+  c878fbab55 T204: Project view 1: one design-side ProjectRow model merging saved and open
+  394bfb62bb T214: 'Post-land process: a TERM with no newer run is a red that says killed b
+  3d4e247915 T206: Ask the browser for persistent storage at startup; Your data shows stora
+failing: |
+
+output: |
+  post-land suite 1231821-b04259b1be starting (run 1232464-1792120581-5235)
+  suite-lock: waiting: browser runs are in progress; the suite starts when they end
+  post-land: killed by signal at b04259b1be, not superseded
+also_red:
+  - sha: 1385c4d8172dc52df50d0e3dda3f6ce17d931368
+    failing: |
+    

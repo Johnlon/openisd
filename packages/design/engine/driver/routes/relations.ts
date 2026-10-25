@@ -10,6 +10,13 @@ export const RMS_FROM_Q = Object.freeze(new Relation('Rms = 2π·Fs·Mms/Qms', '
   (v) => TAU * v.Fs_hz! * v.Mms_kg! / v.Qms!));
 export const QES_FROM_MOTOR = Object.freeze(new Relation('Qes = 2π·Fs·Mms·Re/Bl²', 'Qes', Object.freeze(['Qes', 'Fs_hz', 'Mms_kg', 'Re_ohm', 'BL_Tm']),
   (v) => TAU * v.Fs_hz! * v.Mms_kg! * v.Re_ohm! / (v.BL_Tm! * v.BL_Tm!)));
+/** A compliance read from Vas, Sd and the air is a few percent off the one the motor was built with; BL goes as its
+ *  inverse square root, so 5% of BL is a datasheet's own scatter (the W5-1138SMF's typed BL sits 1.8% under it). */
+const BL_FROM_QES_TOLERANCE = 0.05;
+/** The BL the circuit's damping runs on: the one Fs, Qes, Re and the compliance imply, so a typed BL that
+ *  disagrees with them is marked beside the Qes it contradicts. */
+export const BL_FROM_QES = Object.freeze(new Relation('Bl = √(Re/(2π·Fs·Qes·Cms))', 'BL_Tm', Object.freeze(['BL_Tm', 'Re_ohm', 'Fs_hz', 'Qes', 'Cms_m_per_N']),
+  (v) => Math.sqrt(v.Re_ohm! / (TAU * v.Fs_hz! * v.Qes! * v.Cms_m_per_N!)), BL_FROM_QES_TOLERANCE, true));
 export const RME_FROM_MOTOR = Object.freeze(new Relation('Rme = Bl²/Re', 'Rme_kg_per_s', Object.freeze(['Rme_kg_per_s', 'BL_Tm', 'Re_ohm']),
   (v) => v.BL_Tm! * v.BL_Tm! / v.Re_ohm!));
 export const RME_FROM_MOTIONAL = Object.freeze(new Relation('Rme = 2π·Fs·Mms/Qes', 'Rme_kg_per_s', Object.freeze(['Rme_kg_per_s', 'Fs_hz', 'Mms_kg', 'Qes']),
@@ -41,6 +48,7 @@ export const DRIVER_RELATIONS: readonly Relation[] = Object.freeze([
   FS_FROM_MASS_AND_COMPLIANCE,
   RMS_FROM_Q,
   QES_FROM_MOTOR,
+  BL_FROM_QES,
   RME_FROM_MOTOR,
   RME_FROM_MOTIONAL,
   DD_FROM_SD,

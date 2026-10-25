@@ -17,12 +17,15 @@ import type {
     ProjectRepo,
     StorageHistory,
     StorageUsage,
-    ViewStateRepo
+    ViewStateRepo,
+    BrowserStoragePort,
+    PersistenceStatus,
+    SaveSignal
 } from '@openisd/persistence';
 import type {Logging} from '../logging/flash.js';
 import type {FaultLog} from '../diagnostics/faultLog.js';
 import type {Engine} from '@openisd/design/engine';
-import type {ReleaseWatch} from './releaseWatch.js';
+import type {AppUpdate} from './appUpdate.js';
 import type {AppVersionPort} from './appVersion.js';
 import type {VersionIndex} from './versionIndex.js';
 import type {AppState} from './appState.js';
@@ -66,8 +69,15 @@ export interface AppLogic {
   storageHistory: StorageHistory;
   /** What each kind of data takes in this browser: the Options "Your data" Storage group. */
   storageUsage: StorageUsage;
+  /** What the browser holds for this site and allows: the "Your data" Storage group. */
+  browserStorage: BrowserStoragePort;
+  /** Whether the browser keeps OpenISD's data. */
+  persistence: PersistenceStatus;
+  /** Tells when anything was written to storage: the storage popup re-checks fullness then. */
+  saves: SaveSignal;
   faultLog: FaultLog;
-  releases: ReleaseWatch;
+  /** Keeps the running build in step with the deployed one. */
+  appUpdate: AppUpdate;
   appVersion: AppVersionPort;
   /** Every hosted build, read once at start; About lists them. */
   versionIndex: VersionIndex;

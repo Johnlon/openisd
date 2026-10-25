@@ -199,9 +199,11 @@ const usableReadingJsonSchema = z.strictObject({
     read_precision: z.number().optional(),
     ...readingTailShape,
 });
-/** Why a reading has NO number: the source printed no numeric value. One list per variant; add a
- *  reason here and every exhaustive match sees it. */
-export const UNPARSED_REJECTION_REASONS = ['no-numeric-value'] as const;
+/** Why a reading has NO number: the source printed no numeric value, or printed no unit the field's
+ *  conversion table knows (Mms "327.7" with no unit). The printed text is kept either way
+ *  (John, 2026-10-20: "the scraper collects facts it read"). One list per variant; add a reason
+ *  here and every exhaustive match sees it. */
+export const UNPARSED_REJECTION_REASONS = ['no-numeric-value', 'unit-not-recognised'] as const;
 /** Why a number WAS read but is refused. */
 export const PARSED_REJECTION_REASONS = ['ohm-glyph-merged-as-digit'] as const;
 export type UnparsedRejectionReason = typeof UNPARSED_REJECTION_REASONS[number];
@@ -535,10 +537,12 @@ export const openISDDeviceJsonSchema = z.strictObject({
         // them must keep parsing beside a new one that has neither.
         confirmed_fields: z.string().array().optional(),
         fields_with_issues: z.string().array().optional(),
-        missing: z.string().array(),
+        // Optional (T433): today's scraper record carries neither, and an absent one stays absent —
+        // no default is invented for it. An older record still carrying them parses beside it.
+        missing: z.string().array().optional(),
         invalid: z.string().array(),
         parse_errors: z.string().array(),
-        cross_source_only: z.unknown().array(),
+        cross_source_only: z.unknown().array().optional(),
     }),
     manufacturer: textField,
     brand: textField,
@@ -552,6 +556,10 @@ export const openISDDeviceJsonSchema = z.strictObject({
         manufacturer_datasheet: z.string().optional(),
         manufacturer_product_page: z.string().optional(),
         manufacturer_listing_page: z.string().optional(),
+        // Backup sources when the maker publishes no datasheet (QO282, John 2026-10-19).
+        distributor_datasheet: z.string().optional(),
+        distributor_product_page: z.string().optional(),
+        distributor_listing_page: z.string().optional(),
     })),
     // Retired (John, 2026-10-04): the app picks a reading's origin itself (selectOrigin.ts). Older
     // records still carry it, so it parses; nothing reads it and OpenISD never writes it.
@@ -712,6 +720,8 @@ const openISDBoxJsonSchema = z.strictObject({
         // A solver-set slot (S7-a) — see `ventJsonSchema.length_m`'s note; a slot for the
         // sealed-alignment solve to write, wired up in S2-7d.
         Qtc: specEntryJsonSchema.optional(),
+        // The sealed box's entered or calculated system resonance Fsc, a third way to state the box.
+        Fsc: specEntryJsonSchema.optional(),
     }),
     vented: z.strictObject({ chamber: ventedChamberJsonSchema, vent: ventJsonSchema }),
     bandpass4: z.strictObject({
@@ -743,11 +753,11 @@ const openISDBoxJsonSchema = z.strictObject({
 export type OpenISDBoxJson = z.infer<typeof openISDBoxJsonSchema>;
 
 /**
- * The air the design sits in. Entry-shaped like every spec quantity: 'E' where the user stated
- * the condition, 'C' where the project's resolve stored the app's Options → Environment value,
- * absent only in a record no resolve has reached. The reference constants themselves stay in
- * `@openisd/engine` (`air.ts`'s `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) — a second copy here would
- * drift from them silently.
+ * The air the design sits in: five entries, temperature, humidity, pressure, c and ρ, each 'E'
+ * where the user stated it and 'C' where the air solver worked it out (from the other entered
+ * ones, else from the app's Options value). A value the record lacks loads empty and the solver
+ * fills it. The reference constants themselves stay in `@openisd/engine` (`air.ts`'s
+ * `T_REF_K`/`RH_REF_PCT`/`P_REF_PA`) — a second copy here would drift from them silently.
  */
 /** Projects saved before 2026-10-05 carry `useWinisdAirModel`, the switch for the removed
  *  CIPM-2007 air model. WinISD's air model is now the only one, so the value is dropped. */
@@ -756,15 +766,43 @@ function dropLegacyUseWinisdAirModel(value: unknown): unknown {
     const {useWinisdAirModel: _dropped, ...rest} = value;
     return rest;
 }
-const openISDEnvironmentJsonSchema = z.preprocess(dropLegacyUseWinisdAirModel, z.strictObject({
-    temperature_K: specEntryJsonSchema.optional(),
-    humidity_pct: specEntryJsonSchema.optional(),
-    pressure_Pa: specEntryJsonSchema.optional(),
-}));
+
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/** A record saved before c and ρ were stored (it has neither key) holds its temperature, humidity
+ *  and pressure as 'C' entries: every resolve then wrote the app's Options value there. They are
+ *  the file's own values, so they load as 'E'. A record that has c or ρ is the current layout,
+ *  where a 'C' temperature, humidity or pressure really was calculated, and is left alone. */
+function oldAirLoadsAsEntered(value: unknown): unknown {
+    if (!isRecord(value) || 'c_m_per_s' in value || 'roo_kg_per_m3' in value) return value;
+    const entered = (entry: unknown): unknown => {
+        if (!isRecord(entry) || entry.state !== 'C') return entry;
+        const {state: _state, dq_calculated: _dq, ...rest} = entry;
+        return {state: 'E', ...rest};
+    };
+    return {
+        ...value,
+        temperature_K: entered(value.temperature_K),
+        humidity_pct: entered(value.humidity_pct),
+        pressure_Pa: entered(value.pressure_Pa),
+    };
+}
+
+const openISDEnvironmentJsonSchema = z.preprocess(
+    value => oldAirLoadsAsEntered(dropLegacyUseWinisdAirModel(value)),
+    z.strictObject({
+        temperature_K: specEntryJsonSchema.optional(),
+        humidity_pct: specEntryJsonSchema.optional(),
+        pressure_Pa: specEntryJsonSchema.optional(),
+        c_m_per_s: specEntryJsonSchema.optional(),
+        roo_kg_per_m3: specEntryJsonSchema.optional(),
+    }));
 export type OpenISDEnvironmentJson = z.infer<typeof openISDEnvironmentJsonSchema>;
 
-/** The three air conditions a project states, each an entry like any spec quantity. */
-export type EnvironmentCondition = 'temperature_K' | 'humidity_pct' | 'pressure_Pa';
+/** The keys of a project's air entries, one per air quantity. */
+export type AirKey = 'temperature_K' | 'humidity_pct' | 'pressure_Pa' | 'c_m_per_s' | 'roo_kg_per_m3';
 
 const signalEntryJsonSchema = z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema]);
 export type SignalEntryJson = z.infer<typeof signalEntryJsonSchema>;
@@ -878,11 +916,17 @@ const openISDAdvancedJsonSchema = z.preprocess(renameLegacyWinisdDriverModel, z.
     // Bug switch "ABC group delay": the ABC group delay as WinISD computes it, the
     // driver part held at the chart frequency while the box is stepped. Absent parses to OFF.
     winisdAbcGroupDelay: z.boolean().optional(),
+    // Bug switch "TL port without end correction": with the transmission-line port model on, the port pipe
+    // as WinISD builds it, without the end correction, so the tuning rises. Absent parses to OFF.
+    winisdTlPortNoEndCorrection: z.boolean().optional(),
     // "Phase wrapping": wraps phase curves to [-180°, +180°]. Optional: absent parses to ON.
     winisdWrapPhase: z.boolean().optional(),
     // Bug switch "Per-driver impedance": N drivers as WinISD simulates them, each in Vb/N fed P/N; off, the N
     // coils wired into one terminal impedance. Absent parses to OFF.
     winisdDriverCountModel: z.boolean().optional(),
+    // Bug switch "Sealed picker volume": the sealed alignment picker gives WinISD's volume (Rg 0.1 and
+    // Qa 100 fixed, Ql ignored), not the volume at which the Box tab shows the picked Qtc. Absent parses to OFF.
+    winisdSealedPicker: z.boolean().optional(),
     // "Uncapped flat response": force flat as WinISD does it, every point to the TF 0 dB, uncapped;
     // off, boost only to the passband reference, capped. Optional: absent parses to ON.
     winisdFlatModel: z.boolean().optional(),

@@ -1,0 +1,56 @@
+id: F44
+owner: Johnlon
+status: done
+sha: 69de181294c8195f03616a254627a431c7b1311a
+goal: main is red at 69de181294; make the full suite pass again
+commits: |
+  69de181294 T242: F43: the stepper change broke 8 specs
+  e32a300c1c F43: still red at 20d18cc1b6
+  96648ed303 Vent bug: length becomes E when the target tuning is cleared
+  f95d214a00 Vent bug: John's ruling, cleared tuning becomes the actual tuning, calculated
+  31d1c1427e Bug: ABC rear vent, cleared tuning blanks length; raw key in message; message covers a row
+  20d18cc1b6 F43: the full suite is red at d350857381
+  d350857381 T222: x
+failing: |
+    ✘  174 packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:87:3 › Equation inspector popup › the popup never overlaps the editor, even on a narrow viewport (944ms)
+output: |
+    ✓  792 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-box (538ms)
+    ✓  793 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-driver (530ms)
+    ✓  794 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-signal (511ms)
+    ✓  795 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-filters (492ms)
+    ✓  796 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-graph (522ms)
+    ✓  797 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-enclosure (569ms)
+    ✓  798 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile menu (512ms)
+    ✓  800 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-vented (751ms)
+    ✓  799 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-sealed (854ms)
+    ✓  801 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-box-passive-radiator (904ms)
+    ✓  802 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-bandpass4 (876ms)
+    ✓  803 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-bandpass6 (856ms)
+    ✓  804 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual desktop box-abc (933ms)
+  
+  
+    1) packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:87:3 › Equation inspector popup › the popup never overlaps the editor, even on a narrow viewport 
+  
+      Error: popup {"x":1088,"y":108.60208129882812,"width":200,"height":357.84375} overlaps modal {"x":175,"y":101.84375,"width":950,"height":696.296875}
+  
+      expect(received).toBe(expected) // Object.is equality
+  
+      Expected: false
+      Received: true
+  
+         97 |     const cardBox = await card.boundingBox();
+         98 |     expect(overlaps(cardBox!, modalBox!), `popup ${JSON.stringify(cardBox)} overlaps modal ${JSON.stringify(modalBox)}`)
+      >  99 |       .toBe(false);
+            |        ^
+        100 |   });
+        101 |
+        102 |   test('the popup is visible on screen at a normal window height', async ({ page }) => {
+          at /home/john/work/winisd/.postland/2036085-69de181294/packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:99:8
+  
+      Error Context: test-results/ui-equation-inspector-popu-aee6b-r-even-on-a-narrow-viewport/error-context.md
+  
+    1 failed
+      packages/ui/test/ui/equation-inspector-popup.browser.spec.ts:87:3 › Equation inspector popup › the popup never overlaps the editor, even on a narrow viewport 
+    803 passed (6.4m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 2036085-69de181294 finished: FAILED (exit 1) after 8m36s

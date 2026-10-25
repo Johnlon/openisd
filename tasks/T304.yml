@@ -1,0 +1,15 @@
+id: T304
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 51ce03be7a9c0dd2f30236d5cb04bd4144c1237c
+goal: The watchdog unit runs origin/main's watchdog through an installed boot script, never the main checkout's file
+done_test: bash scripts/land/test/watchdog-boot.test.sh && bash scripts/land/test/watchdog.test.sh
+files:
+  - tasks/T304.yml
+  - scripts/land/watchdog-boot.sh
+  - scripts/land/watchdog.service
+  - scripts/land/watchdog-install.sh
+  - scripts/land/test/watchdog-boot.test.sh
+  - bugs/BUG_20261017_watchdog-unit-runs-the-checkout.md

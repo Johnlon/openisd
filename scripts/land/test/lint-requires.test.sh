@@ -8,6 +8,8 @@ printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/lint-requires.XXXXXX")"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
+export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/pages"
 fails=0
 trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
 ok()   { echo "ok   $1"; }
@@ -18,10 +20,13 @@ setup() {
     git init -q --bare -b main origin.git
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
-    cp "$REPO/scripts/land.sh" scripts/; cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/
     cat > land.conf <<CONF
 LINT_CMD="true"
 TYPECHECK_CMD="true"
+UNIT_CMD="true"
+ARCHITECTURE_CMD="true"
+CANDIDATE_CMD="true"
 ATTRIBUTION_CMD="true"
 GATE_DEADLINE_S=5
 LAND_LOCK="$SCRATCH/land.lock"

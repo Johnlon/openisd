@@ -64,6 +64,21 @@ describe('OriginalWhatIf-hooks', () => {
     expect(project.isModified()).toBe(false);
   });
 
+  it('emptying Vb hands it back to the calculation, never stores 0, and leaves the project unchanged', async () => {
+    const project = createProject();
+    project.save();
+    const api = await renderHook(project);
+
+    api.vbCell.value.clear();
+
+    expect(project.isWhatIfActive()).toBe(true);
+    expect(api.vbCell.value.entered).toBe(false);
+    expect(api.vb_m3.value).not.toBe(0);
+    expect(project.isModified()).toBe(false);
+    api.close();
+    expect(project.box.sealed.volume_m3.value).toBe(0.012);
+  });
+
   it('close ends the What-if: the project values are as before and not modified', async () => {
     const project = createProject();
     project.save();

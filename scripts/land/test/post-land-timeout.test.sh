@@ -6,6 +6,7 @@ set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/land-gitconfig.XXXXXX")"
 printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\tdefaultBranch = main\n' > "$GITCFG"
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
+export POST_LAND_QUIET_S=0   # the quiet period is tested in post-land-queue.test.sh
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/post-land-timeout.XXXXXX")"
 fails=0
@@ -18,7 +19,7 @@ git init -q --bare -b main origin.git
 git clone -q origin.git c 2>/dev/null; cd c || exit 2
 git config user.email t@t; git config user.name t
 mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
-cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/paths.sh" scripts/
+cp -r "$REPO/scripts/land" "$REPO/scripts/lib" scripts/; cp "$REPO/scripts/paths.sh" scripts/
 cat > suite.sh <<EOF2
 #!/usr/bin/env bash
 sleep 60 &
@@ -29,6 +30,7 @@ EOF2
 cat > land.conf <<EOF2
 FULL_SUITE_CMD="bash suite.sh"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 POST_LAND_DEADLINE_S=2
 EOF2

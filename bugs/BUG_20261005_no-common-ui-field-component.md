@@ -93,3 +93,13 @@ units, limits, red border, reporting a refusal); `UIField` owns the ⚠.
 - Browser spec on `UIField` in the editor: tap ⚠ shows the reason, the unit is untouched, the width is the
   same in every unit, and an empty box clears.
 - Every migrated view's existing specs pass.
+
+## Update 16 Oct 2026
+The component exists: `UIField` / `UIFieldBody` (landed T036, 11 Oct), used on the Box, Enclosure and Signal tabs, the port fields, and parts of the driver editor and Original shell. Still hand-built from NumInput + UnitToggle with their own ⚠: OriginalWhatIf, MobileWhatIfSheet, OptionsModal, OriginalNewProject, MobileNewProject, NewProjectPassiveRadiatorStep, MobileAdvancedTab, the rest of DriverEditorModal and OriginalShell, DriverLibrary, PRBrowser.
+What-if (desktop, OriginalWhatIf) done by T565: every number field is a UIField row; no NumInput, UnitToggle or hand-built ⚠ left in it.
+John, 16 Oct 2026: finish it. Every number field goes onto UIField; no hand-built ⚠ remains; an architecture test pins it (no NumInput or UnitToggle outside UIFieldBody).
+
+## John's rulings, 16 Oct 2026 (afternoon)
+- Desktop What-if fields are native `type="number"` boxes with browser arrows; Box tab and driver editor fields are NumInput with none. Inconsistent.
+- Ruling: every desktop number field shows the ▲▼ step buttons (NumInput `stepper`), same step rule as mobile (digit at the remembered caret, tenths if none). The What-if panel moves onto NumInput/UIField, no native number inputs left.
+- While stepping, the stepped digit is marked: desktop keeps focus in the box and selects that digit; mobile (button holds focus, keyboard down) draws an underline under that digit. The mark follows place value (tenths stays tenths across 9.9 → 10.0), not character index.

@@ -1,0 +1,24 @@
+id: T472
+release_note: The Vents tab cross area now shows the area of all ports together, as WinISD does.
+repo: openisd
+owner: unassigned
+status: done
+landed: 192f8bb2424d7a92f2789a32969f0db4b83f091f
+goal: The Vents tab cross-area box shows the area of all ports together, as WinISD's does (bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md). The per-port figure sits behind a WinISD-style option whose tooltip names the case. No stored-field change. Needs John's word on any layout or option change. Remove the two it.fails markers for "Vents tab: cross area" in driver-edit-parity-w5.test.ts and driver-edit-parity-e150he-44.test.ts.
+done_test: bash scripts/test.sh packages/design/test/domain/driver-edit-parity-w5.test.ts packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
+files:
+  - tasks/T472.yml
+  - bugs/BUG_20261019_openisd-vents-tab-cross-area-is-one-port-winisd-shows-all-ports.md
+  - packages/design/test/domain/driver-edit-parity-w5.test.ts
+  - packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
+  - packages/design/test/fixtures/winisdEditRuns.ts
+  - packages/design/test/fixtures/winisdEditCapture.ts
+  - bugs/BUG_20261019_winisd-editor-shows-unstated-fle-kle-hc-hg-as-entered-zero.md
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/hooks/ventReadouts.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/original-bandpass-vents.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+visual: []

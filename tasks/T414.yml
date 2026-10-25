@@ -1,0 +1,14 @@
+id: T414
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 8523371e3528b00811dc29ff7f5930a64b861b6c
+goal: Desktop What-if fits its rows (no unit label past the right edge), and the Le, Pe and Xmax labels look like every other label, not grey italic; the Optional heading already says they are optional (John, 18 Oct 2026).
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T414.yml
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - bugs/BUG_20261018_desktop-what-if-right-units-clipped.md
+  - packages/ui/test/visual/SOURCES.sha256

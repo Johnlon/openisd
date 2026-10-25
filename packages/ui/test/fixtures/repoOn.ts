@@ -2,7 +2,7 @@
  *  composition root builds them. */
 import {
   createAppSettingsRepo, createBackupRepo, createExportedFiles, createStorageHistory, createMyDriverRepo, createMyPassiveRadiatorRepo, createProjectRepo,
-  createStorageBackup, createViewStateRepo, LAYOUT_STEPS, STORAGE_LAYOUT,
+  createStorageBackup, createStorageUsage, createViewStateRepo, LAYOUT_STEPS, STORAGE_LAYOUT,
   type FileStorage, type ListableStorage, type ProjectRepairReport, type ProjectRepo, type StorageBackup, type StoredDataFault,
 } from '@openisd/persistence';
 import type {Engine} from '@openisd/design/engine';
@@ -37,3 +37,6 @@ export const storageHistoryOn = (storage: ListableStorage, projects: Pick<Projec
 
 export const backupRepoOn = (storage: ListableStorage) =>
   createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS }, () => undefined);
+
+/** Storage usage over a storage with an empty Bin. */
+export const storageUsageOn = (storage: ListableStorage) => createStorageUsage(storage, {binned: () => []});

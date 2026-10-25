@@ -1,0 +1,53 @@
+id: T415
+release_note: Phone - field rows on the Box, Driver, Signal, Advanced and Filters tabs are back to their 7.0.951 height; the Tune and What-if sheets keep their tight rows.
+repo: openisd
+owner: maryu
+status: done
+landed: 4bf2ec77f5a51f6f87b570e990d4ef2cd2f0d39d
+goal: Phone tabs Box, Driver, Signal, Advanced and Filters: field rows are back to the 7.0.951 height and padding (48 px, 10 px), while the Tune and What-if sheets on the phone Graph tab keep their tight rows (2 px padding); two row metrics in packages/design, tab and sheet; T240's label clearance stays.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+visual:
+  - mobile-menu
+  - mobile-tab-advanced
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-signal
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
+files:
+  - tasks/T415.yml
+  - bugs/BUG_20261018_advanced-c-rho-readonly.md
+  - bugs/BUG_20261018_driver-editor-buttons-tiny.md
+  - docs/reviews/REVIEW_20261018_UI_CHANGES_SINCE_7.0.951.md
+  - packages/design/fields/index.ts
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileFiltersTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileSignalTab.vue
+  - packages/ui/test/ui/mobile-project-list.browser.spec.ts
+  - packages/ui/test/ui/mobile-row-depth.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-touch.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

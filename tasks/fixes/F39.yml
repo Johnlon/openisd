@@ -1,0 +1,59 @@
+id: F39
+owner: Johnlon
+status: done
+sha: ff8d066792ee99c35bedbe309f94d54949063982
+goal: main is red at ff8d066792; make the full suite pass again
+commits: |
+  ff8d066792 T211: A cleared box volume settles to the alignment volume, a cleared Ql/Qa/Qp
+  d5c3259e01 T230: 'Visual baselines: a committed picture of every screen in both skins (53
+  ed7ec804a2 T223: 'Tune sheet task 3: mobile sheet UI'
+  dd71356a3a RELEASES.md: 7.0.952 emergency hotfix (20261016T1456Z)
+failing: |
+       × every test file in the repo passes 45ms
+   FAIL  |design-architecture| test/architecture-test-files-name-their-object.test.ts > test files name their object and sit in its layer folder > every test file in the repo passes
+    ✘  735 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile empty (848ms)
+    ✘  779 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-graph (940ms)
+visual: |
+  visual screens: mobile-empty, mobile-tab-graph
+  visual page: http://lap:8000/winisd/visual-pages/red-ff8d066792/index.html
+output: |
+      Call log:
+        - Expect "toHaveScreenshot(mobile-tab-graph.png)" with timeout 20000ms
+          - verifying given screenshot expectation
+        - taking page screenshot
+          - disabled all CSS animations
+        - waiting for fonts to load...
+        - fonts loaded
+        - 278 pixels (ratio 0.01 of all image pixels) are different.
+        - waiting 100ms before taking screenshot
+        - taking page screenshot
+          - disabled all CSS animations
+        - waiting for fonts to load...
+        - fonts loaded
+        - captured a stable screenshot
+        - 278 pixels (ratio 0.01 of all image pixels) are different.
+  
+  
+        10 |     await screen.open(page);
+        11 |     // The build stamp differs on every build: it is masked, nothing else is.
+      > 12 |     await expect(page).toHaveScreenshot(`${screen.skin.name}-${screen.name}.png`, {mask: [page.getByTestId('app-version')]});
+           |                        ^
+        13 |   });
+        14 | }
+        15 |
+          at /home/john/work/winisd/.postland/807147-ff8d066792/packages/ui/test/visual/visual.browser.spec.ts:12:24
+  
+      attachment #1: mobile-tab-graph (image/png) ────────────────────────────────────────────────────
+      Expected: packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+      Received: test-results/visual-visual.browser-visual-mobile-tab-graph/mobile-tab-graph-actual.png
+      Diff:     test-results/visual-visual.browser-visual-mobile-tab-graph/mobile-tab-graph-diff.png
+      ────────────────────────────────────────────────────────────────────────────────────────────────
+  
+      Error Context: test-results/visual-visual.browser-visual-mobile-tab-graph/error-context.md
+  
+    2 failed
+      packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile empty ───────────────────────
+      packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile tab-graph ───────────────────
+    785 passed (7.4m)
+  suite: unit exit 1, browser exit 1
+  post-land suite 807147-ff8d066792 finished: FAILED (exit 1) after 9m47s

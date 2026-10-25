@@ -9,6 +9,12 @@ describe('OpenISDBox vent geometry', () => {
     driverFromSpec(engine, { Fs_hz: 30, Qes: 0.4, Qms: 4, Sd_m2: 0.02, Cms_m_per_N: 0.0005 }), engine)
     .vented().volume_m3(0.03).tuning_goal_hz(30).build();
 
+  it('round-port area chooses the nearest whole-centimetre slot dimensions', () => {
+    const p = project(createEngine());
+    const area = Math.PI * 0.05 ** 2;
+    expect(p.box.vented.vent.equivalentSlotDimensions_m(area)).toEqual({width_m: 0.08, height_m: 0.1});
+  });
+
   it('effectiveLength_m() is longer than the port measures, by the engine\'s end correction', () => {
     const engine = createEngine();
     const p = project(engine);

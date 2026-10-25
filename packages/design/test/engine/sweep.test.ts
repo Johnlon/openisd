@@ -3,6 +3,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
@@ -46,7 +47,7 @@ describe('sweep', () => {
      + 'verifies P.fmin||10, P.fmax||1000, P.N||400 fallbacks', () => {
       // Call sweep without fmin, fmax, or N.  The returned fs array must span 10–1000 Hz
       // with 401 points (steps 0…400 inclusive).
-      const { fs } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD }).values!;
+      const { fs } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, air: REFERENCE_AIR }).values!;
 
       // N+1 = 401 points
       assert.equal(fs.length, DEFAULT_N + 1,
@@ -67,7 +68,7 @@ describe('sweep', () => {
       // With eg=0: pg = cx(0·Bl, 0) = cx(0,0) → UD = 0 → U0 = 0 → pm = |Hc| = 0.
       // The guard `pm > 0 ? 20·log10(pm/P0) : -200` takes the -200 branch.
       const SPL_SILENCE_DB = -200;  // sentinel value for zero-excitation, defined in sweep.js
-      const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
+      const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0, air: REFERENCE_AIR }).values!;
       assert(spl.length > 0, 'spl array must be non-empty');
       for (let i = 0; i < spl.length; i++) {
         assert.equal(spl[i], SPL_SILENCE_DB,
@@ -84,7 +85,7 @@ describe('sweep', () => {
    */
   describe('sweep — a NaN pressure is reported, never drawn as -200 dB silence', () => {
     it('eg=NaN poisons the acoustic pressure; spl carries NaN, not the -200 dB sentinel', () => {
-      const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
+      const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN, air: REFERENCE_AIR }).values!;
       assert.ok(spl.length > 0, 'spl array must be non-empty');
       for (let i = 0; i < spl.length; i++) {
         assert.ok(Number.isNaN(spl[i]), `spl[${i}] must be NaN (not -200) when the drive voltage is NaN, got ${spl[i]}`);
@@ -92,14 +93,14 @@ describe('sweep', () => {
     });
 
     it('classifyFinite names SPL specifically — before the fix only the OTHER poisoned arrays named it', () => {
-      const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN }).values!;
+      const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: NaN, air: REFERENCE_AIR }).values!;
       const issue = engine.simulation.classifyFinite(sw);
       assert.ok(issue, 'a NaN pressure must never pass classifyFinite silently');
       assert.match(issue.message, /SPL/, `classifyFinite's message must name SPL; got: ${issue.message}`);
     });
 
     it('exact zero pressure (eg=0) is unaffected by the NaN fix — still the -200 dB sentinel', () => {
-      const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0 }).values!;
+      const { spl } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0, air: REFERENCE_AIR }).values!;
       assert.ok(spl.every(v => v === -200), 'pm === 0 exactly must still take the -200 dB branch');
     });
   });
@@ -111,7 +112,7 @@ describe('sweep', () => {
   describe('fltMag — a NaN filter-chain magnitude is reported, never drawn as -200 dB silence', () => {
     it('a NaN filter gain poisons |H|; fltMag carries NaN, not the -200 dB sentinel', () => {
       const P: SweepParams = {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2, air: REFERENCE_AIR,
         filters: [{ type: 'staticGain', enabled: true, gain: NaN }],
       };
       const { fltMag } = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
@@ -128,10 +129,10 @@ describe('sweep', () => {
     it('a sweep collapsed onto 100 Hz reports the same, non-zero group delay as a normal sweep does at 100 Hz', () => {
       const FREQ_HZ = 100;
       const collapsed = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ, N: 5,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ, N: 5, air: REFERENCE_AIR,
       }).values!;
       const single = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ * 1.5, N: 1,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: FREQ_HZ, fmax: FREQ_HZ * 1.5, N: 1, air: REFERENCE_AIR,
       }).values!;
       assert.ok(single.gd[0] > 0, `group delay at ${FREQ_HZ} Hz must be positive, got ${single.gd[0]}`);
       for (let i = 0; i < collapsed.gd.length; i++) {
@@ -144,7 +145,7 @@ describe('sweep', () => {
     it('reports one missing-dependencies issue per missing circuit quantity, each naming exactly '
      + 'that field — never a combined message or a cross-field substitution suggestion', () => {
       const result = engine.simulation.sweep(sweepDriver({ Fs_hz: 111111 }), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, air: REFERENCE_AIR,
       });
 
       assert.equal(result.values, null);
@@ -162,10 +163,10 @@ describe('sweep', () => {
 
     it('maxCurves() passes through the same null values and issues as sweep() when the circuit is missing fields', () => {
       const swept = engine.simulation.sweep(sweepDriver({ Fs_hz: 111111 }), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, air: REFERENCE_AIR,
       });
       const mx = engine.simulation.maxCurves(sweepDriver({ Fs_hz: 111111 }), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, air: REFERENCE_AIR,
       });
       assert.equal(mx.values, null);
       assert.deepEqual(mx.issues, swept.issues);
@@ -184,7 +185,7 @@ describe('sweep', () => {
         Cms_m_per_N: 0.0008, Mms_kg: 0.012, Rms_kg_per_s: 1.5,
         Xmax_m: 0.005, Pe_W: 60,
       });
-      const sw = engine.simulation.sweep(circuitOnly, undefined, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 20000, N: 50 }).values!;
+      const sw = engine.simulation.sweep(circuitOnly, undefined, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 20000, N: 50, air: REFERENCE_AIR }).values!;
       assert.ok(Math.abs(sw.tfMag[sw.tfMag.length - 1]) < 1e-3, `tfMag at 20 kHz is ${sw.tfMag[sw.tfMag.length - 1]} dB`);
     });
   });
@@ -203,7 +204,7 @@ describe('sweep', () => {
       // not 0 — that filter can no longer stand in for "exact zero" once the sentinel guard
       // distinguishes NaN from zero, BUG_20260927_spl-maps-nan-to-silence).
       const P: SweepParams = {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 10, fmax: 1000, N: 2, air: REFERENCE_AIR,
         filters: [{ type: 'staticGain', enabled: true, gain: -Infinity }],
       };
       const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
@@ -219,7 +220,7 @@ describe('sweep', () => {
   describe('sweep — driverAddedMass > 0 on a driver missing a mass-shift input leaves the driver unchanged', () => {
     it('a driver missing Cms_m_per_N still reports Cms_m_per_N missing, not a mass-shifted circuit', () => {
       const partial = sweepDriver({ Fs_hz: 37, Re_ohm: 5.6, BL_Tm: 6, Mms_kg: 0.012, Rms_kg_per_s: 1.2 });
-      const result = engine.simulation.sweep(partial, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, driverAddedMass: 0.01 });
+      const result = engine.simulation.sweep(partial, LE_H, BOX, { Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, driverAddedMass: 0.01, air: REFERENCE_AIR });
       assert.equal(result.values, null, 'the circuit cannot be built without Cms_m_per_N');
       assert.ok(
         result.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'Cms_m_per_N'),

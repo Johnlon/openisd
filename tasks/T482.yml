@@ -1,0 +1,15 @@
+id: T482
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: 16cb35849ae9fe5921c45415debdf5abcc3afc78
+goal: Driver files whose data came from a distributor (data_sources keys distributor_datasheet, distributor_product_page, distributor_listing_page) load in OpenISD instead of being refused.
+done_test: bash scripts/test.sh packages/design/test/domain/data-sources-schema.test.ts
+files:
+  - scripts/schemagen/out/driver_model.py
+  - bugs/BUG_20261020_distributor-sourced-driver-files-refused.md
+  - tasks/T482.yml
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/test/domain/data-sources-schema.test.ts
+  - packages/design/test/fixtures/corpus/dayton-cfc100-4.distributor.driver.json

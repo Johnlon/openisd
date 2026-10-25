@@ -1,0 +1,20 @@
+id: T266
+release_note: internal
+label: fixes
+repo: openisd
+owner: maryu
+status: done
+landed: 2947ff6a12a013d238409ed24c7e3c6a2e88b131
+goal: The full-suite gate is the GitHub Actions run; post-land waits for it and opens the F on a red
+done_test: bash scripts/land/test/post-land-actions.e2e.test.sh && bash scripts/land/test/post-land.e2e.test.sh && bash scripts/land/test/post-land-queue.test.sh
+files:
+  - tasks/T266.yml
+  - land.conf
+  - scripts/land.sh
+  - scripts/land/post-land/actions.sh
+  - scripts/land/test/post-land-actions.e2e.test.sh
+  - docs/DEV_PROCESS.md
+  - .claude/rules/verify.md
+  - tasks/fixes/F49.yml
+  - bugs/BUG_20261017_laptop-suite-server-dies-mid-run.md
+  - bugs/BUG_20261017_post-land-killed-by-worktree-removal.md

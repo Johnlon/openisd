@@ -1,4 +1,4 @@
-import {decimal, pct} from './issueText.js';
+import {decimal, pct, plainNames} from './issueText.js';
 import type {MaxCurvesResult, SweepResult} from './types.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
 
@@ -11,9 +11,9 @@ export interface SolveRoute<Q extends string> {
 }
 
 /**
- * One calculation's diagnostic: either a target that could not be derived (naming every route
- * that was tried and what each one is still missing), or a target whose entered value
- * contradicts what the OTHER entered values imply for it.
+ * One calculation's diagnostic: a target that could not be derived (naming every route
+ * that was tried and what each one is still missing), a target whose entered value
+ * contradicts what the OTHER entered values imply for it, or a result drawn from a fallback.
  */
 export type CalculationIssue<Q extends string> =
   | {
@@ -33,6 +33,12 @@ export type CalculationIssue<Q extends string> =
       readonly expected: number;
       readonly actual: number;
       readonly relative: number;
+      readonly text: string;
+    }
+  | {
+      readonly kind: 'approximate-charts';
+      readonly target: Q;
+      readonly fields: readonly Q[];
       readonly text: string;
     };
 
@@ -128,7 +134,7 @@ export function missingDependencies<Q extends string>(
     target,
     routes,
     fields: [target, ...routes.flatMap(r => [...r.required, ...r.missing])],
-    text: `${target} cannot be calculated yet - state ${blocked}.`,
+    text: plainNames(`${target} cannot be calculated yet - state ${blocked}.`),
   };
 }
 
@@ -139,9 +145,14 @@ export function inconsistentInputs<Q extends string>(
 ): CalculationIssue<Q> {
   return {
     kind: 'inconsistent-inputs', target, fields, formula, expected, actual, relative,
-    text: `${fields.join(', ')} disagree by ${pct(relative)}: ${formula}. Every field in the `
-      + 'group is marked - correct one of them, or clear one to let it be calculated.',
+    text: plainNames(`${fields.join(', ')} disagree by ${pct(relative)}: ${formula}. Every field in the `
+      + 'group is marked - correct one of them, or clear one to let it be calculated.'),
   };
+}
+
+/** The charts are drawn, but from a fallback standing in for values the driver does not state. */
+export function approximateCharts<Q extends string>(target: Q, fields: readonly Q[], text: string): CalculationIssue<Q> {
+  return {kind: 'approximate-charts', target, fields, text};
 }
 
 /** A driver field outside its physically possible band (D14). */
@@ -150,7 +161,7 @@ export function outOfRange(
 ): OutOfRangeIssue {
   return {
     kind: 'out-of-range', field, value, limit, side,
-    text: `${field} ${decimal(value)} is ${side} the physical limit ${decimal(limit)}.`,
+    text: plainNames(`${field} ${decimal(value)} is ${side} the physical limit ${decimal(limit)}.`),
   };
 }
 
@@ -159,7 +170,7 @@ export function targetUnreachable(target: string, maxReachable_hz: number): Targ
   const isPR = target === 'addedMass_kg';
   const text = isPR
     ? `Target tuning frequency (Fh) cannot be higher than the natural box tuning of ${decimal(maxReachable_hz)} Hz (with 0 added mass). Adding mass can only lower the tuning frequency.`
-    : `${target} cannot reach this target - the maximum this geometry can reach is ${decimal(maxReachable_hz)} Hz.`;
+    : `This port can't reach that tuning. The highest it can reach is ${decimal(maxReachable_hz)} Hz.`;
   return {
     kind: 'target-unreachable', target, maxReachable_hz, text,
   };
@@ -204,7 +215,11 @@ export function negativeValue(value: number): NegativeValueIssue {
  *  blocked route's formula joined for `missing-dependencies`, since more than one route can be
  *  the reason a target is unavailable. */
 export function issueFormula<Q extends string>(issue: CalculationIssue<Q>): string {
-  if (issue.kind === 'inconsistent-inputs') return issue.formula;
+  switch (issue.kind) {
+    case 'inconsistent-inputs': return issue.formula;
+    case 'approximate-charts': return issue.text;
+    case 'missing-dependencies': break;
+  }
   return issue.routes.map(r => r.formula).join('; or ');
 }
 

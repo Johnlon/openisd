@@ -1,0 +1,32 @@
+id: T548
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 20e02bd8cdd5e70c36d098db118ef4284e717850
+goal: Phone header, key strip, project name and tab bar match the accepted classic mock (screens 1, 27, 28)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneHeaderSizes.test.ts
+files:
+  - tasks/T548.yml
+  - packages/design/fields/index.ts
+  - packages/design/fields/phoneHeaderSizes.ts
+  - packages/design/test/fields/phoneHeaderSizes.test.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/mobile-header-classic.browser.spec.ts
+  - packages/ui/test/ui/phone-app-dialogs.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+visual:
+  - mobile-empty
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-signal

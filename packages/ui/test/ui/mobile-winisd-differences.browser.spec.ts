@@ -9,13 +9,13 @@ import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 const PAGE = {name: 'OpenISD and WinISD differences'};
 
-test.beforeEach(async ({page}) => {
+test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
-test('the menu opens the page full screen; Close shuts it', async ({page}) => {
+test('the menu opens the page full screen; Close shuts it', async ({ appPage: page }) => {
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-item', {hasText: 'OpenISD and WinISD differences'}).click();
   const help = page.getByRole('dialog', PAGE);
@@ -24,27 +24,28 @@ test('the menu opens the page full screen; Close shuts it', async ({page}) => {
   const box = (await help.boundingBox())!;
   const app = (await page.locator('.app-root-mobile').boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(app.width - 1);
-  await help.locator('.wd-footer button', {hasText: 'Close'}).click();
+  await help.locator('.mob-dlg-footer button', {hasText: 'Close'}).click();
   await expect(help).toHaveCount(0);
 });
 
-test('the "Enable WinISD bugs" heading\'s help link opens the page at the bug-switch section', async ({page}) => {
+test('a line of the "Enable WinISD bugs" help sheet opens the page at that bug\'s entry', async ({ appPage: page }) => {
   await page.locator('.mob-hamburger').click();
   await page.locator('.mob-menu-item', {hasText: 'Advanced'}).click();
-  await page.locator('.error-switch-group .compat-help-link').click();
-  const section = page.getByRole('dialog', PAGE).locator('#winisd-diff-bugs');
-  await expect(section).toHaveClass(/current/);
-  await expect(section).toBeInViewport();
+  await page.getByRole('button', {name: 'Help: Enable WinISD bugs'}).click();
+  await page.getByRole('dialog', {name: 'Help: Enable WinISD bugs'}).getByRole('button', {name: 'More in Differences ›'}).first().click();
+  const entry = page.getByRole('dialog', PAGE).locator('.mob-dcard.current');
+  await expect(entry.locator('.mob-dcard-title')).toContainText('WinISD mixes two BL values');
+  await expect(entry).toBeInViewport();
 });
 
-test('a ≠W cue opens the page at that cue\'s entry', async ({page}) => {
+test('a ≠W cue opens the page at that cue\'s entry', async ({ appPage: page }) => {
   await page.locator('.mob-tab', {hasText: 'Filters'}).click();
   await page.getByText('+ AP', {exact: true}).click();
-  const order = page.locator('.filter-edit-body label').filter({hasText: /^Order\b/}).locator('input');
+  const order = page.locator('.mob-fcard .ui-field', {has: page.locator('.ui-field-label', {hasText: /^Order$/})}).locator('input');
   await order.fill('4');
   await order.blur();
   await page.locator('button.winisd-deviation-cue').click();
-  const entry = page.getByRole('dialog', PAGE).locator('.wd-entry.current');
-  await expect(entry.locator('h4')).toHaveText('WinISD ignores allpass orders above 2');
+  const entry = page.getByRole('dialog', PAGE).locator('.mob-dcard.current');
+  await expect(entry.locator('.mob-dcard-title')).toContainText('WinISD ignores allpass orders above 2');
   await expect(entry).toBeInViewport();
 });

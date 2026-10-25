@@ -1,6 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import {spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, type SpinRule} from '../../fields/spinnerStep.js';
-import {NumberField} from '../../fields/field.js';
+import {NumberField, integerSpin} from '../../fields/field.js';
+import {spinStep} from '../../fields/caretSpin.js';
 
 const UP = 1;
 const DOWN = -1;
@@ -53,10 +54,10 @@ describe('spinValue fine — one unit of the 3rd significant digit, never finer 
     expect(spinValue('30', UP, f.spinRule(), OPEN)).toBe(31);
     expect(spinValue('3', DOWN, f.spinRule(), OPEN)).toBe(2);
     expect(spinValue('3', UP, f.spinRule(), OPEN, 'fast')).toBe(4);
-    expect(NumberField.FILTER_ORDER.spinRule()).toEqual({kind: 'integer'});
-    expect(NumberField.VENT_COUNT.spinRule()).toEqual({kind: 'integer'});
-    expect(NumberField.PR_NUM.spinRule()).toEqual({kind: 'integer'});
-    expect(NumberField.NUMVC.spinRule()).toEqual({kind: 'integer'});
+    expect(NumberField.FILTER_ORDER.spinRule()).toEqual({kind: 'integer', step: 1});
+    expect(NumberField.VENT_COUNT.spinRule()).toEqual({kind: 'integer', step: 1});
+    expect(NumberField.PR_NUM.spinRule()).toEqual({kind: 'integer', step: 1});
+    expect(NumberField.NUMVC.spinRule()).toEqual({kind: 'integer', step: 1});
   });
 
   it('a signed gain steps on |v|, never finer than 0.1 dB, through 0', () => {
@@ -117,7 +118,7 @@ describe('roundSpun — where a long spin lands on release', () => {
   });
 
   it('leaves a count and 0 alone', () => {
-    expect(roundSpun(17, {kind: 'integer'}, OPEN)).toBe(17);
+    expect(roundSpun(17, {kind: 'integer', step: 1}, OPEN)).toBe(17);
     expect(roundSpun(0, r, OPEN)).toBe(0);
   });
 });
@@ -158,12 +159,34 @@ describe('spinStepAttr — the native step attribute: the finest step, never "an
     expect(spinStepAttr('1.00', r)).toBe('0.01');
     expect(spinStepAttr('0.05', r)).toBe('0.01');
     expect(spinStepAttr('', r)).toBe('0.01');
-    expect(spinStepAttr('3', {kind: 'integer'})).toBe('1');
+    expect(spinStepAttr('3', {kind: 'integer', step: 1})).toBe('1');
   });
 
   // BUG_20261003_chart-tick-and-spinner-step-edge-cases: 10 ** -4 is 0.00009999999999999999.
   it('a step below 0.001 is a clean decimal, with no float tail', () => {
     expect(spinStepAttr('0.0045', {kind: 'proportional', finestExp: -4})).toBe('0.0001');
     expect(spinStepAttr('0.00045', {kind: 'proportional', finestExp: -5})).toBe('0.00001');
+  });
+});
+
+describe('integer spin steps', () => {
+  const bounds = {min: 2, max: 20};
+  it('moves by its step and stops at the limits', () => {
+    expect(spinValue('4', 1, {kind: 'integer', step: 2}, bounds)).toBe(6);
+    expect(spinValue('4', -1, {kind: 'integer', step: 2}, bounds)).toBe(2);
+    expect(spinValue('2', -1, {kind: 'integer', step: 2}, bounds)).toBe(2);
+    expect(spinValue('20', 1, {kind: 'integer', step: 2}, bounds)).toBe(20);
+    expect(spinValue('4', 1, {kind: 'integer', step: 1}, bounds)).toBe(5);
+    expect(spinValue('2', -1, {kind: 'integer', step: 1}, bounds)).toBe(2);
+  });
+  it('steps a caret spin of an integer rule by whole numbers', () => {
+    expect(spinStep('2.000', {kind: 'none'}, null, 1, bounds, {kind: 'integer', step: 1})?.text).toBe('3');
+    expect(spinStep('4', {kind: 'none'}, null, 1, bounds, {kind: 'integer', step: 2})?.value).toBe(6);
+  });
+  it('a field row can override the field rule', () => {
+    expect(NumberField.FILTER_ORDER.spinRule(undefined, integerSpin(2))).toEqual({kind: 'integer', step: 2});
+  });
+  it('FILTER_ORDER shows whole numbers', () => {
+    expect(NumberField.FILTER_ORDER.precision).toBe(0);
   });
 });

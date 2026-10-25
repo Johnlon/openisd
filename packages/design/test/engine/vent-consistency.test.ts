@@ -1,11 +1,13 @@
 import {describe, expect, it} from 'vitest';
 import type {SolverField} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
+import {availableAir} from '../../engine/index.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {checkVentConsistency, fakeSolverField, solveVentConsistencyGroup} from './testSolver.js';
 
 const engine = createEngine();
 
-const AIR = engine.environment.solve({}).values;
+const AIR = REFERENCE_AIR;
 
 describe('vent consistency', () => {
   describe('checkVentConsistency (a test-only bag wrapper over Engine.solveVent) — missing-dependencies', () => {
@@ -59,14 +61,14 @@ describe('vent consistency', () => {
     it('two ports need a longer port than one for the same tuning — the count reaches the solve', () => {
       const one = params({ tuning_goal_hz: 35, Vb_m3: 0.03, area_m2: 0.002, count: 1 });
       const two = params({ tuning_goal_hz: 35, Vb_m3: 0.03, area_m2: 0.002, count: 2 });
-      engine.vent.solve(one, AIR);
-      engine.vent.solve(two, AIR);
+      engine.vent.solve(one, availableAir(AIR));
+      engine.vent.solve(two, availableAir(AIR));
       expect(two.length_m.value).toBeGreaterThan(one.length_m.value ?? Infinity);
     });
 
     it('writes the derived length onto its handle when tuning is stated and the geometry is complete', () => {
       const p = params({ tuning_goal_hz: 35, Vb_m3: 0.03, area_m2: 0.002 });
-      const issues = engine.vent.solve(p, AIR);
+      const issues = engine.vent.solve(p, availableAir(AIR));
       expect(p.length_m.value).toBeGreaterThan(0);
       expect(p.length_m.calculated).toBe(true);
       expect(issues).toEqual([]);
@@ -74,7 +76,7 @@ describe('vent consistency', () => {
 
     it('writes the derived tuning onto its handle when length is stated', () => {
       const p = params({ length_m: 0.1, Vb_m3: 0.03, area_m2: 0.002 });
-      const issues = engine.vent.solve(p, AIR);
+      const issues = engine.vent.solve(p, availableAir(AIR));
       expect(p.tuning_goal_hz.value).toBeGreaterThan(0);
       expect(p.tuning_goal_hz.calculated).toBe(true);
       expect(issues).toEqual([]);
@@ -82,7 +84,7 @@ describe('vent consistency', () => {
 
     it('never overwrites a stated value, even when the other member is also stated', () => {
       const p = params({ tuning_goal_hz: 35, length_m: 111111, Vb_m3: 0.03, area_m2: 0.002 });
-      const issues = engine.vent.solve(p, AIR);
+      const issues = engine.vent.solve(p, availableAir(AIR));
       expect(p.length_m.value).toBe(111111);
       expect(p.length_m.entered).toBe(true);
       expect(issues).toEqual([]);
@@ -90,7 +92,7 @@ describe('vent consistency', () => {
 
     it('leaves the blocked target not-available and reports the missing geometry', () => {
       const p = params({ tuning_goal_hz: 35 });
-      const issues = engine.vent.solve(p, AIR);
+      const issues = engine.vent.solve(p, availableAir(AIR));
       expect(p.length_m.value).toBeNull();
       expect(issues).toHaveLength(1);
       expect(issues[0]).toMatchObject({ kind: 'missing-dependencies', target: 'length_m' });
@@ -98,7 +100,7 @@ describe('vent consistency', () => {
 
     it('reports no issue when no target is stated — no target chosen yet', () => {
       const p = params({ Vb_m3: 0.03, area_m2: 0.002 });
-      const issues = engine.vent.solve(p, AIR);
+      const issues = engine.vent.solve(p, availableAir(AIR));
       expect(p.length_m.value).toBeNull();
       expect(p.tuning_goal_hz.value).toBeNull();
       expect(issues).toEqual([]);

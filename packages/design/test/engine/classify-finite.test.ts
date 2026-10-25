@@ -5,6 +5,7 @@ import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
@@ -39,7 +40,7 @@ const RAW_COMPLETE = {
   Vas: 0.030, Sd: 0.0133, Re: 5.6, Le: 0.7e-3, Xmax: 0.005, Pe: 60, Znom: 8,
 };
 
-const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 50 };
+const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR };
 
 const validDriver = () => sweepDriver(solveConsistencyGroup({
   Fs_hz: RAW_COMPLETE.Fs, Qts: RAW_COMPLETE.Qts, Qes: RAW_COMPLETE.Qes, Qms: RAW_COMPLETE.Qms,
@@ -54,7 +55,7 @@ describe('classifyFinite', () => {
   // warn (the curve still draws with a gap); an entirely non-finite primary curve
   // → error (nothing usable). Sentinels like -200 dB are finite and never flagged.
   describe('classifyFinite — non-finite sweep results are surfaced, never silently blank', () => {
-    const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50 };
+    const P: SweepParams = { Vb: VB_M3, Ql: QL_LOSSLESS, eg: 2.83, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR };
 
     it('returns null for an all-finite sweep', () => {
       const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, P).values!;
@@ -112,36 +113,6 @@ describe('classifyFinite', () => {
       const issue = engine.simulation.classifyFiniteIssues(sw).find(error => error.field === 'sweep:transfer magnitude');
       assert.ok(issue && issue.level === 'warn', 'a partial failure is a warn, not a block');
       assert.match(issue.message, /3 non-finite transfer magnitude values;/, 'more than one bad value must read plural');
-    });
-
-    it('reports a tempK missing-dependencies issue for a temperature beyond the supported range', () => {
-      const result = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, tempK: 5000 });
-      assert.equal(result.values, null);
-      assert.equal(result.issues.length, 1);
-      const [issue] = result.issues;
-      assert.equal(issue.kind, 'missing-dependencies');
-      if (issue.kind !== 'missing-dependencies') return;
-      assert.equal(issue.target, 'tempK');
-      assert.match(issue.routes[0].formula, /173\.15.*373\.15/);
-    });
-
-    it('rejects a temperature beyond the supported range even if the formula stays finite', () => {
-      const result = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, tempK: 500 });
-      assert.equal(result.values, null);
-      assert.equal(result.issues.length, 1);
-      const [issue] = result.issues;
-      assert.equal(issue.kind, 'missing-dependencies');
-      if (issue.kind !== 'missing-dependencies') return;
-      assert.equal(issue.target, 'tempK');
-    });
-
-    it('rejects absolute zero with an exclusive lower-bound formula', () => {
-      const result = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, { ...P, tempK: 1 });
-      assert.equal(result.values, null);
-      const [issue] = result.issues;
-      assert.equal(issue.kind, 'missing-dependencies');
-      if (issue.kind !== 'missing-dependencies') return;
-      assert.match(issue.routes[0].formula, /173\.15/);
     });
 
     it('names multiple isolated singularities in ascending frequency order, past and below 100 Hz, with a "+more" count past 3', () => {
@@ -320,12 +291,15 @@ describe('classifyFinite', () => {
       p.box.vented.vent.diameter_m.set(0.05);
       // The builder requires an initial tuning_goal_hz to construct at all — cleared right back off so
       // NEITHER tuning_goal_hz nor vent.length_m is stated, same as domain/project-sweep-guards.test.ts's fixture.
-      // With a driver that has a design, clearing falls back to the starting alignment (John,
-      // 2026-10-01), so the driver states no Qts while the tuning is cleared.
+      // Clearing the entered tuning keeps the vent length when the length has a value (John,
+      // 2026-10-16); with the volume cleared first the length has none, so both stay unstated.
+      const Vb = p.box.vented.volume_m3.value;
       const Qts = p.driver.specs.Qts.value;
       p.driver.specs.Qts.clear();
+      p.box.vented.volume_m3.clear();
       p.box.vented.tuning_goal_hz.clear();
       if (Qts !== null) p.driver.specs.Qts.set(Qts);
+      if (Vb !== null) p.box.vented.volume_m3.set(Vb);
 
       const result = p.sweep({ fmin: 10, fmax: 100, N: 10 });
       assert.equal(result.values, null, 'precondition: nothing to classify — the guard must have blocked it');

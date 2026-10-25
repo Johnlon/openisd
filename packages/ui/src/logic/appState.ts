@@ -170,9 +170,9 @@ export interface AppState {
   ventedLimits(): VentedDesignLimits;
   /** Change the band, then recall every open project so its marks match the new one. */
   setVentedLimits(limits: VentedDesignLimits): void;
-  /** The environment a project reads for any of temperature/humidity/pressure it has not entered. */
+  /** The app's air constants (Options → General → Environment): copied into a new project as entered, and used for any air value a project cannot calculate. */
   envDefaults(): EnvDefaults;
-  /** Change the environment, then recall every open project so its calculated air repaints. */
+  /** Change the environment, then recall every open project so the air values it calculated from the app's constants repaint. An entered value never moves. */
   setEnvDefaults(defaults: EnvDefaults): void;
   readonly engine: Engine;
   /** The domain's ambient facts, with `platformUser` reading the app's Username setting. */
@@ -209,7 +209,8 @@ export interface AppState {
   readonly IMPLEMENTED_BOX_TYPES: readonly BoxType[];
   newProjectBoxTypeOptions(): readonly SelectorOption<BoxType>[];
   definePassiveRadiator(): void;
-  createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder): OpenISDProject;
+  /** `details` names and describes the project before it opens: opening is when it is stored. */
+  createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder, details: (project: OpenISDProject) => void): OpenISDProject;
   openProjectFromDriver(driver: OpenISDDriver, name: string): void;
   readonly newProjectDriver: ShallowRef<OpenISDDriver | null>;
   copyProjectName(taken: readonly string[]): string;
@@ -293,14 +294,14 @@ export function createAppState(deps: AppStateDeps): AppState {
   }
 
 
-  /** The environment a project reads for any of temperature/humidity/pressure it has not entered
-   *  (Options → General → Environment). */
+  /** The app's air constants (Options → General → Environment). */
   function envDefaults(): EnvDefaults {
     return appSettings.envDefaults();
   }
 
-  /** Change the environment, then recall EVERY open project so its calculated air repaints —
-   *  the same recall as `setVentedLimits`, for the same reason. */
+  /** Change the environment, then recall EVERY open project so the air it calculated from the
+   *  app's constants repaints — the same recall as `setVentedLimits`, for the same reason. A value
+   *  a project holds as entered never moves. */
   function setEnvDefaults(defaults: EnvDefaults): void {
     appSettings.setEnvDefaults(defaults);
     for (const project of projects.value) project.appSettingsChanged();
@@ -454,9 +455,10 @@ export function createAppState(deps: AppStateDeps): AppState {
     if (Array.isArray(loaded)) {
       throw new Error(`duplicateFocusedProject: round trip refused its own project: ${loaded.join('; ')}`);
     }
-    addProject(loaded);
+    // Named and committed before it opens: opening is when it is stored.
     loaded.name.set(newName);
     loaded.save();
+    addProject(loaded);
   }
 
   // The one Vue bridge onto WHICHEVER project is currently focused. Re-subscribes on every
@@ -622,7 +624,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       // the reason the chart is blank (S3/T4, QO145). Named here instead of in the domain: the
       // domain's null already IS the correct "not yet implemented" answer for those types: it is
       // this presentation-layer channel that was dropping it on the floor.
-      showNoCurves([{level: 'error', field: 'boxType', message: `Not yet implemented — ${boxType}`}]);
+      showNoCurves([{level: 'error', field: 'boxType', message: `Not yet implemented — ${BOX_TYPE_OPTIONS.find(o => o.value === boxType)?.label ?? boxType}`}]);
       return;
     }
     // The chart axis and the sweep read one range: the project's, or WinISD's 10 Hz–20 kHz Plot
@@ -771,13 +773,15 @@ export function createAppState(deps: AppStateDeps): AppState {
    *  and File → Open's way in. `box` picks the builder for the type and states what the user
    *  chose; everything unstated gets the type's starting values (`OpenISDBox.applyStartingValues`).
    *  Registered and focused, like `newProject()`. */
-  function createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder): OpenISDProject {
-    return buildProject('wizard', driver, box);
+  function createProject(driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder, details: (project: OpenISDProject) => void): OpenISDProject {
+    return buildProject('wizard', driver, box, details);
   }
 
-  function buildProject(source: ProjectSource, driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder): OpenISDProject {
+  function buildProject(source: ProjectSource, driver: OpenISDDriver, box: (b: ProjectBuilder) => BoxProjectBuilder, details: (project: OpenISDProject) => void): OpenISDProject {
     presentation.yRanges = {};
     const p = box(new ProjectBuilder(driver, engine, appContext)).build();
+    details(p);
+    p.save();
     addProject(p);
     recordOpen(source, p);
     return p;
@@ -787,8 +791,7 @@ export function createAppState(deps: AppStateDeps): AppState {
    *  `driver`, focused, with `name` for the tab. Used by File → Open when no project is focused;
    *  when one IS focused the caller swaps the driver in place instead (`loadDriver`). */
   function openProjectFromDriver(driver: OpenISDDriver, name: string): void {
-    const p = buildProject('driver', driver, (b) => b.sealed().volume_m3(NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L)));
-    p.name.set(name);
+    buildProject('driver', driver, (b) => b.sealed().volume_m3(NumberField.BOX_VB_L.toSI(DEFAULT_SEALED_VOLUME_L)), p => p.name.set(name));
   }
 
   // A driver pre-loaded into the New Project wizard — a `.wdr`/`.owdr` opened from disk when no

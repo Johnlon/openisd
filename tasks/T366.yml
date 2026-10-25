@@ -1,0 +1,17 @@
+id: T366
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: a6e4d3e73fe0bc578e31cf6325572baa829f04c4
+goal: The starting passive radiator Vas is worked out in the project air, PrEngine.vas and cmsFromVas take an Air, the .wpr export carries the project air, and a gate forbids solving an empty environment
+done_test: bash scripts/test.sh packages/design/test/domain/air-has-no-hidden-source.test.ts packages/design/test/architecture-air-has-no-hidden-source.test.ts
+files:
+  - tasks/T366.yml
+  - bugs/BUG_20261017_air-has-hidden-sources.md
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/test/architecture-air-has-no-hidden-source.test.ts
+  - packages/design/test/domain/air-has-no-hidden-source.test.ts
+  - packages/design/test/engine/formulas.test.ts
+  - packages/ui/test/visual/SOURCES.sha256

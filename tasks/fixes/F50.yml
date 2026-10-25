@@ -1,0 +1,241 @@
+id: F50
+owner: Johnlon
+status: done
+sha: 96acf25250a2c5a973c301b67af16ebd9ba7dc08
+goal: main is red at 96acf25250; make the full suite pass again
+commits: |
+  96acf25250 F49: still red at 788a5c4ea3
+  f3dbc27c3c F49: the full suite is red at 9a5062a2da
+  788a5c4ea3 T264: "Every push to main builds a snapshot and deploys it to /test/ at once;
+  b3fac4ca40 T267: "General rules, always loaded: no workarounds, no backdoor in UI testing
+  9a5062a2da T263: Project tab Created and Modified show dates as 16 Oct 2026, through the
+failing: |
+    ✘  583 packages/ui/test/ui/original-chart-view.browser.spec.ts:96:3 › Original chart view › the Transfer function magnitude readout shows F3 and F10, and the right-click menu jumps the cursor to either (264ms)
+    ✘  582 packages/ui/test/ui/original-chart-view.browser.spec.ts:66:3 › Original chart view › chart-menu checkboxes stack charts that share one cursor; ✕ removes one; a label shows it alone (1.7s)
+    ✘  584 packages/ui/test/ui/original-chart-view.browser.spec.ts:118:3 › Original chart view › "Charts high" stacks that many charts in the height; more open charts add columns (136ms)
+    ✘  585 packages/ui/test/ui/original-chart-view.browser.spec.ts:134:3 › Original chart view › the chart menu lists only the charts that apply to the current box (154ms)
+    ✘  586 packages/ui/test/ui/original-chart-view.browser.spec.ts:181:3 › Original chart view › the Amplifier apparent load power (VA) chart reads out in VA at the cursor (160ms)
+    ✘  587 packages/ui/test/ui/original-chart-view.browser.spec.ts:190:3 › Original chart view › the ◄ and ► nudge buttons step the cursor frequency down and up by 2 % (207ms)
+    ✘  588 packages/ui/test/ui/original-chart-view.browser.spec.ts:204:3 › Original chart view › a click on the chart locks the cursor: moving the pointer afterwards leaves it put (199ms)
+    ✘  589 packages/ui/test/ui/original-chart-view.browser.spec.ts:219:3 › Original chart view › the chart drop-down is a fixed narrow width; a long chart name is cut short on one line and named in full by its tooltip (213ms)
+    ✘  590 packages/ui/test/ui/original-chart-view.browser.spec.ts:233:3 › Original chart view › chart maximise fills the main area, keeps the toolbar, and restores (162ms)
+    ✘  591 packages/ui/test/ui/original-chart-view.browser.spec.ts:249:3 › Original chart view › hovering the chart draws ONE horizontal level line where the cursor crosses the curve (160ms)
+    ✘  592 packages/ui/test/ui/original-chart-view.browser.spec.ts:257:3 › Original chart view › a drag-select draws a horizontal level line for BOTH selection cursors (143ms)
+    ✘  593 packages/ui/test/ui/original-chart-view.browser.spec.ts:275:3 › Original chart view › the Color button cycles the current design trace colour (and wraps) (158ms)
+    ✘  594 packages/ui/test/ui/original-chart-view.browser.spec.ts:286:3 › Original chart view › the trace colour chosen with the Color button survives a reload (saved in the project) (144ms)
+    ✘  595 packages/ui/test/ui/original-chart-view.browser.spec.ts:300:3 › Original chart view with no project open › the chart area with no project open offers icon links for New, Open, and Import (166ms)
+    ✘  596 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits LP (132ms)
+    ✘  597 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits HP (163ms)
+    ✘  598 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits AP (167ms)
+    ✘  599 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits LT (193ms)
+    ✘  600 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits PEQ (117ms)
+    ✘  601 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits PHP (157ms)
+    ✘  602 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits GAIN (172ms)
+    ✘  603 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits DLP (189ms)
+    ✘  604 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits LS (151ms)
+    ✘  605 packages/ui/test/ui/original-filters-tab.browser.spec.ts:69:3 › Filters tab quick-adds, shows and edits HS (163ms)
+    ✘  606 packages/ui/test/ui/original-filters-tab.browser.spec.ts:85:1 › switching a lowpass Subtype to Bessel keeps order/fc/Q and updates the caption (146ms)
+    ✘  607 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › LP: a held Cutoff spinner applies each step before release (173ms)
+    ✘  608 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › HP: a held Cutoff spinner applies each step before release (121ms)
+    ✘  609 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › AP: a held t spinner applies each step before release (152ms)
+    ✘  610 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › LT: a held f0 spinner applies each step before release (125ms)
+    ✘  611 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › PEQ: a held Gain spinner applies each step before release (200ms)
+    ✘  612 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › PHP: a held fpk spinner applies each step before release (138ms)
+    ✘  613 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › GAIN: a held Gain spinner applies each step before release (183ms)
+    ✘  614 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › DLP: a held BW spinner applies each step before release (131ms)
+    ✘  615 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › LS: a held Gain spinner applies each step before release (177ms)
+    ✘  616 packages/ui/test/ui/original-filters-tab.browser.spec.ts:101:3 › HS: a held fc spinner applies each step before release (130ms)
+    ✘  617 packages/ui/test/ui/original-filters-tab.browser.spec.ts:116:1 › an emptied field waits for the entry instead of snapping to its limit (161ms)
+    ✘  618 packages/ui/test/ui/original-filters-tab.browser.spec.ts:127:1 › a held LP Cutoff spinner moves the swept SPL before release (122ms)
+    ✘  619 packages/ui/test/ui/original-filters-tab.browser.spec.ts:150:1 › the quick-add bar offers every WinISD filter type plus the two shelves, and a quick-add reaches the project (191ms)
+    ✘  620 packages/ui/test/ui/original-filters-tab.browser.spec.ts:166:1 › an allpass shows the WinISD deviation cue at any order; WinISD ignores orders above 2, so there is no switch (128ms)
+    ✘  621 packages/ui/test/ui/original-filters-tab.browser.spec.ts:194:1 › a Linkwitz-Riley takes even orders and shows the WinISD deviation cue at every order, 4 included (141ms)
+    ✘  622 packages/ui/test/ui/original-filters-tab.browser.spec.ts:215:1 › a User SOS Order box is greyed out: a second-order section is order 2 (128ms)
+    ✘  623 packages/ui/test/ui/original-filters-tab.browser.spec.ts:223:1 › a Bessel high-pass shows the WinISD deviation cue by its Subtype (136ms)
+    ✘  624 packages/ui/test/ui/original-number-field-letters.browser.spec.ts:5:1 › Original: a number field refuses letters typed or pasted and takes the number from a paste (126ms)
+    ✘  625 packages/ui/test/ui/original-pr-tab.browser.spec.ts:18:5 › Original Passive Radiator tab › the bundled ND140-PR › passive radiator: 30L box + bundled ND140-PR, Fp=30Hz — box readout shows the solved system tuning (162ms)
+    ✘  626 packages/ui/test/ui/original-pr-tab.browser.spec.ts:58:5 › Original Passive Radiator tab › the bundled ND140-PR › a PR box's Fh tracks the PR's own added mass, so it is the PR tuning not the sealed Fc (139ms)
+    ✘  627 packages/ui/test/ui/original-pr-tab.browser.spec.ts:93:5 › Original Passive Radiator tab › the bundled ND140-PR › the PR pane labels the radiator's own resonance Fpr, not Fs (178ms)
+    ✘  628 packages/ui/test/ui/original-pr-tab.browser.spec.ts:113:5 › Original Passive Radiator tab › fields › the passive radiator tab has no box-type selector (130ms)
+    ✘  629 packages/ui/test/ui/original-pr-tab.browser.spec.ts:120:5 › Original Passive Radiator tab › fields › the PR tab edits Vas and Qms in place, without the editor popup (146ms)
+    ✘  630 packages/ui/test/ui/original-pr-tab.browser.spec.ts:140:5 › Original Passive Radiator tab › fields › the PR page has no Edit button and edits every passive radiator field in place (124ms)
+    ✘  631 packages/ui/test/ui/original-pr-tab.browser.spec.ts:168:5 › Original Passive Radiator tab › fields › emptying a PR box clears its field rather than storing 0 (122ms)
+    ✘  632 packages/ui/test/ui/original-pr-tab.browser.spec.ts:189:5 › Original Passive Radiator tab › fields › emptying the PR Vas flags it with a reason that names what to state (120ms)
+    ✘  633 packages/ui/test/ui/original-pr-tab.browser.spec.ts:202:5 › Original Passive Radiator tab › fields › a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve (121ms)
+    ✘  634 packages/ui/test/ui/original-pr-tab.browser.spec.ts:239:5 › Original Passive Radiator tab › fields › Save to library asks for a name, prefilled, and saves a copy under the typed name (129ms)
+    ✘  635 packages/ui/test/ui/original-pr-tab.browser.spec.ts:312:3 › Original Passive Radiator tab data quality › an unreachable PR target flags the entered Fp as the cause and the derived outputs as symptoms (123ms)
+    ✘  636 packages/ui/test/ui/original-pr-tab.browser.spec.ts:362:3 › Original Passive Radiator tab data quality › a reachable target shows no DQ anywhere (123ms)
+    ✘  637 packages/ui/test/ui/original-project-dates.browser.spec.ts:20:1 › Created and Modified show as "16 Oct 2026" (124ms)
+    ✘  638 packages/ui/test/ui/original-project-dates.browser.spec.ts:26:3 › typing "2026-10-16" key by key keeps the typed text, then shows "16 Oct 2026" (126ms)
+    ✘  639 packages/ui/test/ui/original-project-dates.browser.spec.ts:26:3 › typing "16 Oct 2026" key by key keeps the typed text, then shows "16 Oct 2026" (120ms)
+    ✘  640 packages/ui/test/ui/original-project-dates.browser.spec.ts:36:1 › text that is not a date leaves the stored date as it was (120ms)
+    ✘  641 packages/ui/test/ui/original-project-list.browser.spec.ts:49:3 › Original project list › the project name keeps its room at the default window size (125ms)
+    ✘  642 packages/ui/test/ui/original-project-list.browser.spec.ts:60:3 › Original project list › a saved project that is not open is listed and a click opens it (127ms)
+    ✘  643 packages/ui/test/ui/original-project-list.browser.spec.ts:78:3 › Original project list › ⋯ → Hide unticks the show box (127ms)
+    ✘  644 packages/ui/test/ui/original-project-list.browser.spec.ts:91:3 › Original project list › ⋯ → Close closes it (132ms)
+    ✘  645 packages/ui/test/ui/original-project-list.browser.spec.ts:105:3 › Original project list › ⋯ → Move to Bin moves it to the Bin (127ms)
+    ✘  646 packages/ui/test/ui/original-project-list.browser.spec.ts:123:3 › Original project list › the toolbar Open focuses the search box when there are 9 or more projects (119ms)
+    ✘  647 packages/ui/test/ui/original-project-list.browser.spec.ts:142:3 › Original project list › no page overflow at 1024x768 (127ms)
+    ✘  648 packages/ui/test/ui/original-project-list.browser.spec.ts:160:3 › Original project list › every project row keeps its own show/hide state, including the active one (119ms)
+    ✘  649 packages/ui/test/ui/original-project-list.browser.spec.ts:174:3 › Original project list › hiding a project removes its trace from the chart, and showing it brings it back (123ms)
+    ✘  650 packages/ui/test/ui/original-project-list.browser.spec.ts:194:3 › Original project list › a hidden project is still hidden after a reload, and the chart still leaves its trace out (123ms)
+    ✘  651 packages/ui/test/ui/original-project-list.browser.spec.ts:212:3 › Original project list › open projects are never written into the active design (nothing to leak into its file) (125ms)
+    ✘  652 packages/ui/test/ui/original-project-list.browser.spec.ts:231:3 › Original project list › closing an unsaved project asks first, and offers all three outcomes by name (128ms)
+    ✘  653 packages/ui/test/ui/original-project-list.browser.spec.ts:252:3 › Original project list › the last project can be closed too — the app lands on an empty workspace (126ms)
+    ✘  654 packages/ui/test/ui/original-project-list.browser.spec.ts:266:3 › Original project list › the projects checkbox hides that project's trace without removing the project (122ms)
+    ✘  655 packages/ui/test/ui/original-project-list.browser.spec.ts:281:3 › Original project list › opening a second project: edits land on the correct one, and the Project tab reflects whichever is focused (125ms)
+    ✘  656 packages/ui/test/ui/original-project-list.browser.spec.ts:310:3 › Original project list › closing the last open project keeps the shell and exposes recovery actions (135ms)
+    ✘  657 packages/ui/test/ui/original-project-list.browser.spec.ts:326:3 › Original project list › the unsaved mark stays on a project row after another project takes focus (126ms)
+    ✘  658 packages/ui/test/ui/original-project-list.browser.spec.ts:346:3 › Original project list › rename from the row menu changes the project name shown in the row and in the title (119ms)
+    ✘  659 packages/ui/test/ui/original-shell-layout.browser.spec.ts:53:5 › Original shell layout › frame › choosing Original swaps to the ported WinISD shell (titlebar, projects, graph) (123ms)
+    ✘  660 packages/ui/test/ui/original-shell-layout.browser.spec.ts:59:5 › Original shell layout › frame › all seven project tabs render their ported content (122ms)
+    ✘  661 packages/ui/test/ui/original-shell-layout.browser.spec.ts:81:5 › Original shell layout › frame › Learn is below the right-edge legend, not in the Driver row (122ms)
+    ✘  662 packages/ui/test/ui/original-shell-layout.browser.spec.ts:94:5 › Original shell layout › frame › Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed) (126ms)
+    ✘  663 packages/ui/test/ui/original-shell-layout.browser.spec.ts:108:5 › Original shell layout › frame › the Driver tab Model box is three times its old width, and the row fits at 1280 (125ms)
+    ✘  664 packages/ui/test/ui/original-shell-layout.browser.spec.ts:127:5 › Original shell layout › frame › Original skin buttons have readable dark text on their light fill (123ms)
+    ✘  665 packages/ui/test/ui/original-shell-layout.browser.spec.ts:140:5 › Original shell layout › splitters › the left panel collapses and expands via the splitter toggle (128ms)
+    ✘  666 packages/ui/test/ui/original-shell-layout.browser.spec.ts:148:5 › Original shell layout › splitters › the left panel resizes by dragging the vertical splitter (123ms)
+    ✘  667 packages/ui/test/ui/original-shell-layout.browser.spec.ts:159:5 › Original shell layout › splitters › the bottom section collapses (chart grows) and expands via the splitter toggle (128ms)
+    ✘  668 packages/ui/test/ui/original-shell-layout.browser.spec.ts:169:5 › Original shell layout › splitters › the bottom section cannot be dragged deeper, and a stored taller height is ignored (128ms)
+    ✘  669 packages/ui/test/ui/original-shell-layout.browser.spec.ts:186:7 › Original shell layout › narrow window › no pane overlaps its own controls at 1280px wide (128ms)
+    ✘  670 packages/ui/test/ui/original-shell-layout.browser.spec.ts:186:7 › Original shell layout › narrow window › no pane overlaps its own controls at 1024px wide (126ms)
+    ✘  671 packages/ui/test/ui/original-shell-layout.browser.spec.ts:186:7 › Original shell layout › narrow window › no pane overlaps its own controls at 900px wide (128ms)
+    ✘  672 packages/ui/test/ui/original-shell-layout.browser.spec.ts:186:7 › Original shell layout › narrow window › no pane overlaps its own controls at 780px wide (133ms)
+    ✘  673 packages/ui/test/ui/original-shell-layout.browser.spec.ts:200:5 › Original shell layout › narrow window › a too-narrow content pane scrolls horizontally instead of squeezing its columns (121ms)
+    ✘  674 packages/ui/test/ui/original-shell-layout.browser.spec.ts:211:5 › Original shell layout › box type changes › the bottom panel keeps ONE height across box types (no wobble from the tab count) (122ms)
+    ✘  675 packages/ui/test/ui/original-shell-layout.browser.spec.ts:304:5 › Original shell layout › short window › bottom panels at a short window height never get scrollbars and contents do not overflow (123ms)
+    ✘  676 packages/ui/test/ui/original-signal-tab.browser.spec.ts:24:3 › Original Signal tab › System input power spins by about 1 % a tap: 1 W up is 1.01 W, down is 0.99 W (131ms)
+    ✘  677 packages/ui/test/ui/original-signal-tab.browser.spec.ts:36:3 › Original Signal tab › System input power is a UIField: label, box, ⚠ slot and unit in one row (121ms)
+    ✘  678 packages/ui/test/ui/original-signal-tab.browser.spec.ts:43:5 › Original Signal tab › series resistance › shows WinISD 3-dp precision (0.100 ohm) (128ms)
+    ✘  679 packages/ui/test/ui/original-signal-tab.browser.spec.ts:47:5 › Original Signal tab › series resistance › holds a typed value instead of resetting to 0 (139ms)
+    ✘  680 packages/ui/test/ui/original-signal-tab.browser.spec.ts:57:5 › Original Signal tab › UIField rows (bugs/BUG_20261005_no-common-ui-field-component.md) › series resistance: an emptied box is refused with a ⚠ and Esc restores the stored value (131ms)
+    ✘  681 packages/ui/test/ui/original-signal-tab.browser.spec.ts:68:5 › Original Signal tab › UIField rows (bugs/BUG_20261005_no-common-ui-field-component.md) › driver input voltage is a UIField row; emptied, it goes back to a calculated value (147ms)
+    ✘  682 packages/ui/test/ui/original-signal-tab.browser.spec.ts:78:5 › Original Signal tab › power and voltage pair › both cells are filled from the stored 1 W reference and explain their law (123ms)
+    ✘  683 packages/ui/test/ui/original-signal-tab.browser.spec.ts:89:5 › Original Signal tab › power and voltage pair › moving the power moves the voltage, and the entered power survives its own blur (125ms)
+    ✘  684 packages/ui/test/ui/original-signal-tab.browser.spec.ts:107:5 › Original Signal tab › power and voltage pair › entering a voltage derives the power V²/(Re+Rs) on blur and keeps it (129ms)
+    ✘  685 packages/ui/test/ui/original-signal-tab.browser.spec.ts:121:5 › Original Signal tab › power and voltage pair › clearing V returns the pair to the 1 W reference — neither end is left blank (128ms)
+    ✘  686 packages/ui/test/ui/original-signal-tab.browser.spec.ts:139:5 › Original Signal tab › power and voltage pair › clearing P keeps the voltage, which becomes the entered end of the pair (137ms)
+    ✘  687 packages/ui/test/ui/original-signal-tab.browser.spec.ts:159:3 › Original Signal tab with a complete driver › a complete driver stores the 1 W reference and draws a chart without a drive data-quality note (133ms)
+    ✘  688 packages/ui/test/ui/original-toolbar.browser.spec.ts:8:3 › Original toolbar › the toolbar carries the brand, no version, and its groups sit in one row (121ms)
+    ✘  689 packages/ui/test/ui/original-toolbar.browser.spec.ts:34:3 › Original toolbar › the toolbar carries WinISD's icon buttons + chart-select (127ms)
+    ✘  690 packages/ui/test/ui/original-toolbar.browser.spec.ts:43:3 › Original toolbar › Revert is disabled until the project is modified, then restores the saved state (126ms)
+    ✘  691 packages/ui/test/ui/original-toolbar.browser.spec.ts:70:3 › Original toolbar › a reload keeps unsaved edits unsaved, and Revert still restores the saved value (123ms)
+    ✘  692 packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1280px wide, with every chart open and cloud sync on, and the chart menu is 180px (139ms)
+    ✘  693 packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1439px wide, with every chart open and cloud sync on, and the chart menu is 180px (141ms)
+    ✘  694 packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1440px wide, with every chart open and cloud sync on, and the chart menu is 270px (143ms)
+    ✘  695 packages/ui/test/ui/original-toolbar.browser.spec.ts:97:5 › Original toolbar › the toolbar never overflows at 1880px wide, with every chart open and cloud sync on, and the chart menu is 270px (152ms)
+    ✘  696 packages/ui/test/ui/original-toolbar.browser.spec.ts:127:7 › Original toolbar › window widths › the toolbar's icons, brand and cursor readout never overlap at 1400px wide (145ms)
+    ✘  697 packages/ui/test/ui/original-toolbar.browser.spec.ts:127:7 › Original toolbar › window widths › the toolbar's icons, brand and cursor readout never overlap at 1280px wide (136ms)
+    ✘  698 packages/ui/test/ui/original-toolbar.browser.spec.ts:127:7 › Original toolbar › window widths › the toolbar's icons, brand and cursor readout never overlap at 1024px wide (126ms)
+    ✘  699 packages/ui/test/ui/original-toolbar.browser.spec.ts:127:7 › Original toolbar › window widths › the toolbar's icons, brand and cursor readout never overlap at 900px wide (123ms)
+    ✘  700 packages/ui/test/ui/original-toolbar.browser.spec.ts:127:7 › Original toolbar › window widths › the toolbar's icons, brand and cursor readout never overlap at 780px wide (124ms)
+    ✘  701 packages/ui/test/ui/original-vented-tab.browser.spec.ts:25:5 › Original Vented tab › vent count › Number of Vents shows one port by default and offers the registry's 1..4 (125ms)
+    ✘  702 packages/ui/test/ui/original-vented-tab.browser.spec.ts:32:5 › Original Vented tab › vent count › picking two vents makes the solved port length longer than with one (121ms)
+    ✘  703 packages/ui/test/ui/original-vented-tab.browser.spec.ts:45:5 › Original Vented tab › vent shape and end correction › the port end correction shows Two free ends by default, not blank (123ms)
+    ✘  704 packages/ui/test/ui/original-vented-tab.browser.spec.ts:52:5 › Original Vented tab › vent shape and end correction › the vent shape offers slotted, and slotted inputs are reachable (121ms)
+    ✘  705 packages/ui/test/ui/original-vented-tab.browser.spec.ts:68:5 › Original Vented tab › vent shape and end correction › emptied vent dimensions keep the partner or settle instead of becoming 0 (124ms)
+    ✘  706 packages/ui/test/ui/original-vented-tab.browser.spec.ts:88:5 › Original Vented tab › target tuning › the vented box calls Fb the TARGET, and says what it drives (124ms)
+    ✘  707 packages/ui/test/ui/original-vented-tab.browser.spec.ts:94:5 › Original Vented tab › target tuning › a target the port cannot reach is reported, and the length shows as unbuildable (129ms)
+    ✘  708 packages/ui/test/ui/original-vented-tab.browser.spec.ts:124:5 › Original Vented tab › target tuning › clearing Target Tuning Freq keeps the vent length and the volume; the tuning is calculated (125ms)
+    ✘  709 packages/ui/test/ui/original-vented-tab.browser.spec.ts:147:5 › Original Vented tab › target tuning › vent length is editable while the target tuning is entered, and moves the tuning (159ms)
+    ✘  710 packages/ui/test/ui/original-vented-tab.browser.spec.ts:164:5 › Original Vented tab › target tuning › target tuning and vent length each recalculate the other, the port size fixed (122ms)
+    ✘  711 packages/ui/test/ui/original-vented-tab.browser.spec.ts:185:5 › Original Vented tab › target tuning › the Vents pane carries the SAME editable target tuning as the Box tab (122ms)
+    ✘  712 packages/ui/test/ui/original-vented-tab.browser.spec.ts:211:5 › Original Vented tab › port solve and readouts › a 30L box with a 5cm bore tuned to Fb=37.9Hz solves a 10.6cm port, and the target is one value on two tabs (125ms)
+    ✘  713 packages/ui/test/ui/original-vented-tab.browser.spec.ts:244:5 › Original Vented tab › port solve and readouts › the Vented "1st port resonance" shows the vent pipe resonance c/(2·ventL), not the box tuning (125ms)
+    ✘  714 packages/ui/test/ui/original-vented-tab.browser.spec.ts:257:5 › Original Vented tab › port solve and readouts › the port velocity limit is a per-project setting, 17 m/s by default (121ms)
+    ✘  715 packages/ui/test/ui/original-vented-tab.browser.spec.ts:267:5 › Original Vented tab › layout › the vented enclosure tab has no box-type selector (124ms)
+    ✘  716 packages/ui/test/ui/original-winisd-differences.browser.spec.ts:16:1 › the Info menu opens the page, with its three sections; Close shuts it (121ms)
+    ✘  717 packages/ui/test/ui/original-winisd-differences.browser.spec.ts:30:1 › the "Enable WinISD-style" group heading's help link opens the page at the Options section (124ms)
+    ✘  718 packages/ui/test/ui/original-winisd-differences.browser.spec.ts:41:1 › a ≠W cue opens the page centred in the window at that cue's entry, without scrolling the page (139ms)
+    ✘  719 packages/ui/test/ui/persistence-banner-layout.browser.spec.ts:59:1 › desktop: the storage banner covers nothing and the screen below it fits (126ms)
+    ✘  720 packages/ui/test/ui/persistence-banner-layout.browser.spec.ts:71:1 › mobile: the storage banner covers nothing and the screen below it fits (143ms)
+    ✘  721 packages/ui/test/ui/persistent-storage.browser.spec.ts:39:1 › desktop: a refused browser is warned about at startup until dismissed, and always on Your data (150ms)
+    ✘  722 packages/ui/test/ui/persistent-storage.browser.spec.ts:54:1 › mobile: a refused browser is warned about at startup until dismissed, and always on Your data (129ms)
+    ✘  723 packages/ui/test/ui/pr-browser.browser.spec.ts:50:1 › a starred passive radiator stays starred after a reload, and Favorites shows only it (148ms)
+    ✘  724 packages/ui/test/ui/project-bin.browser.spec.ts:12:1 › desktop: Move to Bin, Restore, then Delete forever (121ms)
+    ✘  725 packages/ui/test/ui/project-bin.browser.spec.ts:46:1 › mobile: Bin a project, see it in the Bin, then Empty Bin (126ms)
+    ✘  726 packages/ui/test/ui/project-bin.browser.spec.ts:72:1 › desktop: the Bin toggle is in the footer with an icon, and the projects list has no horizontal scroll (136ms)
+    ✘  727 packages/ui/test/ui/project-bin.browser.spec.ts:91:1 › mobile at 360px: the Bin button is an icon and the Open project sheet has no horizontal scroll (169ms)
+    ✘  728 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:6:3 › Projects across addresses › the store address is shown in the Bin view, and projects can be exported (153ms)
+    ✘  729 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:29:3 › Projects across addresses › export then import into fresh storage restores every project (179ms)
+    ✘  730 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:55:3 › Projects across addresses › a forced setItem quota error on save shows the message and the export offer (283ms)
+    ✘  731 packages/ui/test/ui/provenance-legend.browser.spec.ts:21:1 › the desktop project screen has the legend as one thin row at its bottom (290ms)
+    ✘  732 packages/ui/test/ui/provenance-legend.browser.spec.ts:31:1 › the Learn panel has the legend as one thin row at its bottom (306ms)
+    ✘  733 packages/ui/test/ui/provenance-legend.browser.spec.ts:40:1 › the phone Box, Signal and Enclosure tabs have the legend between their content and the tab bar (277ms)
+    ✘  734 packages/ui/test/ui/redirectRoundTrip.browser.spec.ts:4:3 › Redirect round trip › redirect round trip preserves unsaved edit and strips OAuth fragment (227ms)
+    ✘  735 packages/ui/test/ui/sample-project-fixture.browser.spec.ts:98:3 › sample project fixture › sample-project.owpr is a faithful representation of a wizard-created project (353ms)
+    ✘  736 packages/ui/test/ui/share-link.browser.spec.ts:11:3 › Share link › the Export menu Share link writes the design into the address bar (148ms)
+    ✘  737 packages/ui/test/ui/share-link.browser.spec.ts:18:3 › Share link › a pinned graph cursor does NOT survive the share link (the cursor is session-only, never saved) (256ms)
+    ✘  738 packages/ui/test/ui/share-link.browser.spec.ts:48:3 › Share link › a dragged frequency band selection does NOT survive the share link (the cursor is session-only, never saved) (242ms)
+    ✘  739 packages/ui/test/ui/skin-selection.browser.spec.ts:12:1 › the default (wide) viewport renders the desktop shell, with no mobile root in the DOM (278ms)
+    ✘  740 packages/ui/test/ui/skin-selection.browser.spec.ts:18:1 › a phone-width viewport auto-detects into the mobile shell, with no desktop root in the DOM (247ms)
+    ✘  741 packages/ui/test/ui/skin-selection.browser.spec.ts:25:1 › a viewport right at the breakpoint boundary: 600px is mobile, 601px is desktop (325ms)
+    ✘  742 packages/ui/test/ui/skin-selection.browser.spec.ts:35:1 › the Info menu's "Switch to Mobile view" overrides a wide viewport, and the choice survives a reload (233ms)
+    ✘  743 packages/ui/test/ui/skin-selection.browser.spec.ts:49:1 › the mobile shell's "Switch to Desktop view" overrides a narrow viewport, and the choice survives a reload (316ms)
+    ✘  744 packages/ui/test/ui/splash.browser.spec.ts:21:1 › a first visitor gets the splash, and it credits WinISD and links to the project (247ms)
+    ✘  745 packages/ui/test/ui/splash.browser.spec.ts:35:1 › it states how many devices the bundled catalogue holds (258ms)
+    ✘  746 packages/ui/test/ui/splash.browser.spec.ts:43:1 › dismissing it keeps it shut across a reload (239ms)
+    ✘  747 packages/ui/test/ui/splash.browser.spec.ts:53:1 › the close button at the top dismisses it too — the text is long enough that the bottom one is a scroll away (286ms)
+    ✘  748 packages/ui/test/ui/splash.browser.spec.ts:63:1 › Info -> About OpenISD reopens it (187ms)
+    ✘  749 packages/ui/test/ui/splash.browser.spec.ts:73:1 › it says there are desktop and mobile versions, both offline, and links to how to install (214ms)
+    ✘  750 packages/ui/test/ui/splash.browser.spec.ts:82:1 › the Info menu links to how to add the app to the desktop (297ms)
+    ✘  751 packages/ui/test/ui/storage-guard.browser.spec.ts:20:1 › a saved-drivers key that was here at the last start and is gone now is said, and waits for a click (333ms)
+    ✘  752 packages/ui/test/ui/storage-guard.browser.spec.ts:43:1 › Esc and a click outside the lost-key notice do not answer it; only a button does (290ms)
+    ✘  753 packages/ui/test/ui/storage-guard.browser.spec.ts:60:1 › Export log hands the user the storage log (286ms)
+    ✘  754 packages/ui/test/ui/storage-guard.browser.spec.ts:74:1 › a store written by a newer layout is not opened: the user is offered the data back, and nothing is changed (218ms)
+    ✘  755 packages/ui/test/ui/storage-guard.browser.spec.ts:119:1 › Backups: Back up now adds a row with build, layout, projects and size; Export, Delete and Restore act on it (287ms)
+    ✘  756 packages/ui/test/ui/storage-guard.browser.spec.ts:142:1 › Backups: Restore asks first, backs the live store up, then reloads (237ms)
+    ✘  757 packages/ui/test/ui/storage-guard.browser.spec.ts:163:1 › Backups lists a copy kept before a repair with its size; Delete removes it (276ms)
+    ✘  758 packages/ui/test/ui/telemetry.browser.spec.ts:10:1 › the app boots and renders with the collector blocked (243ms)
+    ✘  759 packages/ui/test/ui/telemetry.browser.spec.ts:17:1 › an uncaught error offers the report box and the report is sent with sendBeacon (296ms)
+    ✘  760 packages/ui/test/ui/ui-field-refusal.browser.spec.ts:20:1 › typing 0 into a positive field is refused, explained, kept on leaving, and Esc restores (226ms)
+    ✘  761 packages/ui/test/ui/unit-toggle.browser.spec.ts:16:3 › Unit toggle › clicking an entered field's unit label rescales the DISPLAY and keeps the model SI (286ms)
+    ✘  762 packages/ui/test/ui/unit-toggle.browser.spec.ts:39:3 › Unit toggle › a calculated readout also rescales when its unit is rotated (Hz → kHz) (4ms)
+output: |
+      packages/ui/test/ui/projects-across-addresses.browser.spec.ts:29:3 › Projects across addresses › export then import into fresh storage restores every project 
+      packages/ui/test/ui/projects-across-addresses.browser.spec.ts:55:3 › Projects across addresses › a forced setItem quota error on save shows the message and the export offer 
+      packages/ui/test/ui/provenance-legend.browser.spec.ts:21:1 › the desktop project screen has the legend as one thin row at its bottom 
+      packages/ui/test/ui/provenance-legend.browser.spec.ts:31:1 › the Learn panel has the legend as one thin row at its bottom 
+      packages/ui/test/ui/provenance-legend.browser.spec.ts:40:1 › the phone Box, Signal and Enclosure tabs have the legend between their content and the tab bar 
+      packages/ui/test/ui/redirectRoundTrip.browser.spec.ts:4:3 › Redirect round trip › redirect round trip preserves unsaved edit and strips OAuth fragment 
+      packages/ui/test/ui/sample-project-fixture.browser.spec.ts:98:3 › sample project fixture › sample-project.owpr is a faithful representation of a wizard-created project 
+      packages/ui/test/ui/share-link.browser.spec.ts:11:3 › Share link › the Export menu Share link writes the design into the address bar 
+      packages/ui/test/ui/share-link.browser.spec.ts:18:3 › Share link › a pinned graph cursor does NOT survive the share link (the cursor is session-only, never saved) 
+      packages/ui/test/ui/share-link.browser.spec.ts:48:3 › Share link › a dragged frequency band selection does NOT survive the share link (the cursor is session-only, never saved) 
+      packages/ui/test/ui/skin-selection.browser.spec.ts:12:1 › the default (wide) viewport renders the desktop shell, with no mobile root in the DOM 
+      packages/ui/test/ui/skin-selection.browser.spec.ts:18:1 › a phone-width viewport auto-detects into the mobile shell, with no desktop root in the DOM 
+      packages/ui/test/ui/skin-selection.browser.spec.ts:25:1 › a viewport right at the breakpoint boundary: 600px is mobile, 601px is desktop 
+      packages/ui/test/ui/skin-selection.browser.spec.ts:35:1 › the Info menu's "Switch to Mobile view" overrides a wide viewport, and the choice survives a reload 
+      packages/ui/test/ui/skin-selection.browser.spec.ts:49:1 › the mobile shell's "Switch to Desktop view" overrides a narrow viewport, and the choice survives a reload 
+      packages/ui/test/ui/splash.browser.spec.ts:21:1 › a first visitor gets the splash, and it credits WinISD and links to the project 
+      packages/ui/test/ui/splash.browser.spec.ts:35:1 › it states how many devices the bundled catalogue holds 
+      packages/ui/test/ui/splash.browser.spec.ts:43:1 › dismissing it keeps it shut across a reload ──
+      packages/ui/test/ui/splash.browser.spec.ts:53:1 › the close button at the top dismisses it too — the text is long enough that the bottom one is a scroll away 
+      packages/ui/test/ui/splash.browser.spec.ts:63:1 › Info -> About OpenISD reopens it ─────────────
+      packages/ui/test/ui/splash.browser.spec.ts:73:1 › it says there are desktop and mobile versions, both offline, and links to how to install 
+      packages/ui/test/ui/splash.browser.spec.ts:82:1 › the Info menu links to how to add the app to the desktop 
+      packages/ui/test/ui/storage-guard.browser.spec.ts:20:1 › a saved-drivers key that was here at the last start and is gone now is said, and waits for a click 
+      packages/ui/test/ui/storage-guard.browser.spec.ts:43:1 › Esc and a click outside the lost-key notice do not answer it; only a button does 
+      packages/ui/test/ui/storage-guard.browser.spec.ts:60:1 › Export log hands the user the storage log 
+      packages/ui/test/ui/storage-guard.browser.spec.ts:74:1 › a store written by a newer layout is not opened: the user is offered the data back, and nothing is changed 
+      packages/ui/test/ui/storage-guard.browser.spec.ts:119:1 › Backups: Back up now adds a row with build, layout, projects and size; Export, Delete and Restore act on it 
+      packages/ui/test/ui/storage-guard.browser.spec.ts:142:1 › Backups: Restore asks first, backs the live store up, then reloads 
+      packages/ui/test/ui/storage-guard.browser.spec.ts:163:1 › Backups lists a copy kept before a repair with its size; Delete removes it 
+      packages/ui/test/ui/telemetry.browser.spec.ts:10:1 › the app boots and renders with the collector blocked 
+      packages/ui/test/ui/telemetry.browser.spec.ts:17:1 › an uncaught error offers the report box and the report is sent with sendBeacon 
+      packages/ui/test/ui/ui-field-refusal.browser.spec.ts:20:1 › typing 0 into a positive field is refused, explained, kept on leaving, and Esc restores 
+      packages/ui/test/ui/unit-toggle.browser.spec.ts:16:3 › Unit toggle › clicking an entered field's unit label rescales the DISPLAY and keeps the model SI 
+    1 interrupted
+      packages/ui/test/ui/unit-toggle.browser.spec.ts:39:3 › Unit toggle › a calculated readout also rescales when its unit is rotated (Hz → kHz) 
+    75 did not run
+    581 passed (14.6m)
+    1 error was not a part of any test, see above for details
+  suite: unit exit 0, browser exit 1
+  post-land suite 4041284-96acf25250 finished: FAILED (exit 1) after 1h04m27s
+closed_note: |
+  A laptop-only red, the same fault as F49: the laptop's test server died mid-run and the specs then
+  failed in about 150 ms each; heavy.slice went over MemoryHigh during the run. GitHub Actions ran the
+  full suite green on 96acf25250 (run on push) and on every later main commit; the Actions-backed
+  post-land run is green at 2947ff6a12. This was the last laptop full run: since T266, post-land and the
+  watchdog's runs wait for the Actions run instead (land.conf FULL_SUITE_CMD). The server death stays
+  open in BUG_20261017_laptop-suite-server-dies-mid-run (owner maryu), now being reproduced.

@@ -1,0 +1,17 @@
+id: T314
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 8bf07f60affd9baa9a609979847ab1a7a146e1b5
+goal: Back door removal 4: remove the test hook except the update host and architecture test
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-back-door-into-app-state.test.ts
+files:
+  - tasks/T314.yml
+  - questions.yml
+  - bugs/BUG_20261017_browser-specs-use-a-test-back-door-into-app-state.md
+  - packages/ui/src/logic/testHooks.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/logic/scriptedUpdateHost.ts
+  - packages/ui/test/architecture/no-back-door-into-app-state.test.ts
+  - packages/ui/test/visual/SOURCES.sha256

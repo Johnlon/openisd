@@ -1,0 +1,12 @@
+id: T252
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: ccdf3ec4707154c809e025a9e9f46ce6f745102f
+goal: Actions suite: build the test app once, shards serve it; shard and worker counts as inputs
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T252.yml
+  - .github/workflows/suite.yml
+  - playwright.config.js

@@ -1,0 +1,67 @@
+id: F46
+owner: Johnlon
+status: done
+sha: ccdf3ec4707154c809e025a9e9f46ce6f745102f
+goal: main is red at ccdf3ec470; make the full suite pass again
+commits: |
+  ccdf3ec470 T252: Actions suite: build the test app once, shards serve it; shard and worke
+  a6a4f1ecf7 T253: 'Rule: every test run has start and end times, and every suite timestamp
+  fce7d5af51 T251: Prototype: the full suite on GitHub Actions (10 browser shards + unit/ty
+  b01974aba8 T240: Mobile field labels clear of the row border, and the storage banner take
+failing: |
+    ✘  321 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 390×844 (982ms)
+    ✘  322 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › Passive Radiator: every row fits without scrolling at 390×844 (1.0s)
+    ✘  325 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 412×915 (1.2s)
+output: |
+      Received:    738
+  
+        30 |       const content = page.locator('.mob-content');
+        31 |       const {scroll, client} = await content.evaluate(el => ({scroll: el.scrollHeight, client: el.clientHeight}));
+      > 32 |       expect(scroll, `${tab} needs ${scroll - client} px more than the screen has`).toBeLessThanOrEqual(client);
+           |                                                                                     ^
+        33 |
+        34 |       const rowHeights = await page.locator('.mob-content .mob-row, .mob-content .mob-field-row, .mob-content .mob-ui-field')
+        35 |         .evaluateAll(rows => rows.map(r => r.getBoundingClientRect().height));
+          at /home/john/work/winisd/.postland/2799042-ccdf3ec470/packages/ui/test/ui/mobile-row-depth.browser.spec.ts:32:85
+  
+      Error Context: test-results/ui-mobile-row-depth.browse-a0aea-ithout-scrolling-at-390×844/error-context.md
+  
+    3) packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 412×915 
+  
+      Error: 6th Order Bandpass needs 14 px more than the screen has
+  
+      expect(received).toBeLessThanOrEqual(expected)
+  
+      Expected: <= 785
+      Received:    799
+  
+        30 |       const content = page.locator('.mob-content');
+        31 |       const {scroll, client} = await content.evaluate(el => ({scroll: el.scrollHeight, client: el.clientHeight}));
+      > 32 |       expect(scroll, `${tab} needs ${scroll - client} px more than the screen has`).toBeLessThanOrEqual(client);
+           |                                                                                     ^
+        33 |
+        34 |       const rowHeights = await page.locator('.mob-content .mob-row, .mob-content .mob-field-row, .mob-content .mob-ui-field')
+        35 |         .evaluateAll(rows => rows.map(r => r.getBoundingClientRect().height));
+          at /home/john/work/winisd/.postland/2799042-ccdf3ec470/packages/ui/test/ui/mobile-row-depth.browser.spec.ts:32:85
+  
+      Error Context: test-results/ui-mobile-row-depth.browse-593a4-ithout-scrolling-at-412×915/error-context.md
+  
+    3 failed
+      packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 390×844 
+      packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › Passive Radiator: every row fits without scrolling at 390×844 
+      packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 412×915 
+    821 passed (8.3m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 2799042-ccdf3ec470 finished: FAILED (exit 1) after 10m44s
+also_red:
+  - sha: 1c88c255725051350dfba9b35c22aa213951b799
+    failing: |
+        ✘  321 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 390×844 (736ms)
+        ✘  322 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › Passive Radiator: every row fits without scrolling at 390×844 (724ms)
+        ✘  325 packages/ui/test/ui/mobile-row-depth.browser.spec.ts:21:5 › 6th Order Bandpass: every row fits without scrolling at 412×915 (906ms)
+closed_note: |
+  Caused by T240 (b01974ab): phone rows 8 px taller each, so the 6th Order Bandpass and Passive
+  Radiator tabs no longer fit above the bottom bar. John ruled (16 Oct 2026): scrolling is fine on
+  those views; T240 stays. mobile-row-depth.browser.spec.ts no longer asserts "no scroll"; it keeps
+  the 40 px row minimum and now checks the tab bar stays pinned and the last row can be scrolled into
+  view, at 360x740, 390x844 and 412x915.

@@ -4,6 +4,9 @@ import {useEscToClose} from '../../logic/useEscToClose.js';
 import {useApp} from '../../logic/app.js';
 import DriverLibrary from './DriverLibrary.vue';
 
+// The phone skin draws the library as the classic phone list; the desktop overlay is unchanged.
+defineProps<{ phone?: boolean }>();
+
 const { driverBrowsing, presentation: presentationState } = useApp();
 
 // The driver library as an OVERLAY: this file is the window (title bar, close, scrim); the
@@ -74,7 +77,7 @@ watch(() => presentationState.browseOpen, val => { if (!val) pickDriver(null); }
         <span class="x" @click="close" title="Close the driver library browser">✕</span>
       </h2>
       <div class="body">
-        <DriverLibrary host="manage" />
+        <DriverLibrary host="manage" :phone="phone" />
       </div>
     </div>
   </div>

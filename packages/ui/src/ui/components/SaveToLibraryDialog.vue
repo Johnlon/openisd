@@ -13,6 +13,8 @@ const props = defineProps<{
   fields: readonly SaveNameField[];
   canSave: boolean;
   saveLabel: string;
+  /** On the phone: label above each box, 36 px boxes, Cancel then Save as 44 px buttons (Save the one blue one). */
+  phone?: boolean;
 }>();
 const emit = defineEmits<{ save: []; cancel: [] }>();
 
@@ -24,7 +26,7 @@ useEscToClose(() => true, () => emit('cancel'));
 
 <template>
   <div class="save-lib-scrim" @click.self="emit('cancel')">
-    <div class="save-lib-panel" role="dialog" :aria-label="title">
+    <div class="save-lib-panel" :class="{'save-lib-phone': phone}" role="dialog" :aria-label="title">
       <h3>{{ title }}</h3>
       <p class="save-lib-note">{{ note }}</p>
       <div v-for="f in fields" :key="f.label" class="save-lib-fld">
@@ -34,8 +36,8 @@ useEscToClose(() => true, () => emit('cancel'));
         </label>
       </div>
       <div class="save-lib-foot">
-        <button type="button" class="pri save-confirm-btn" :disabled="!canSave" @click="emit('save')">{{ saveLabel }}</button>
-        <button type="button" class="save-cancel-btn" @click="emit('cancel')">Cancel</button>
+        <button type="button" class="pri save-confirm-btn" :class="phone ? 'mob-btn mob-btn-primary' : undefined" :disabled="!canSave" @click="emit('save')">{{ saveLabel }}</button>
+        <button type="button" class="save-cancel-btn" :class="phone ? 'mob-btn mob-btn-plain' : undefined" @click="emit('cancel')">Cancel</button>
       </div>
     </div>
   </div>
@@ -65,4 +67,14 @@ useEscToClose(() => true, () => emit('cancel'));
 .save-lib-foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 6px; }
 .save-lib-foot .pri { background: var(--acc); color: #fff; border-color: var(--acc); }
 .save-lib-foot button:disabled { opacity: .5; cursor: default; }
+/* The phone's (gaps-phone/save-to-library.html): the label above a 36 px box, Cancel left of Save. */
+.save-lib-scrim:has(.save-lib-phone) { padding: 16px; box-sizing: border-box; }
+.save-lib-panel.save-lib-phone { width: min(340px, 100%); max-width: 100%; padding: 16px; border-radius: 8px; gap: 10px; }
+.save-lib-phone h3 { margin: 0; font-size: 16px; color: var(--fg); }
+.save-lib-phone .save-lib-note { font-size: 12px; }
+.save-lib-phone .save-lib-fld label { flex-direction: column; align-items: stretch; gap: 4px; }
+.save-lib-phone .save-lib-fld input { flex: none; width: 100%; height: 36px; padding: 0 10px; font-size: 14px; }
+.save-lib-phone .save-lib-foot { flex-wrap: nowrap; gap: 8px; }
+.save-lib-phone .save-lib-foot button { flex: 1 1 0; min-width: 0; padding: 0 8px; white-space: nowrap; }
+.save-lib-phone .save-cancel-btn { order: -1; }
 </style>

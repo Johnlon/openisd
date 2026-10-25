@@ -27,5 +27,6 @@ export interface Bandpass4Box {
     readonly vents: {
         readonly front: Vent;
     };
-    readonly Qiclfr: SimpleField<number>;
+    /** The interchamber Qicl; a clear settles it to the WinISD default (John, 2026-10-16). */
+    readonly Qiclfr: SimpleField<number> & Clearable;
 }

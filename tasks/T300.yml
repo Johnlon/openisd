@@ -1,0 +1,18 @@
+id: T300
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 6b70e04448652ce142c61c802d2010f00784f0d5
+label: fixes
+goal: F53: plainNames is reached through the engine's issues area, its name table is not module state, and two specs follow the new clear rule
+done_test: bash scripts/test.sh packages/design/test/architecture-no-globals.test.ts packages/design/test/architecture-engine-boundary.test.ts
+files:
+  - tasks/T300.yml
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/issueText.ts
+  - packages/design/engine/issues/IssueEngine.ts
+  - packages/ui/test/ui/mobile-driver-editor.browser.spec.ts
+  - packages/ui/test/ui/original-signal-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

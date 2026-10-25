@@ -1,0 +1,13 @@
+id: T544
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: 9ccdbffc7f4cf85b652d4757c52542fa849a40d0
+goal: task-status.test.sh finds a task's landing commit with or without the "(auto) " subject prefix, so a done task waiting for its landed: sha is not red (BUG_20261017_task-status-test-red-release-notes).
+done_test: bash scripts/land/test/task-status.test.sh
+files:
+  - tasks/T544.yml
+  - scripts/land/test/task-status.test.sh
+  - bugs/BUG_20261017_task-status-test-red-release-notes.md
+  - bugs/BUG_20261017_lint-requires-test-red-missing-paths-sh.md

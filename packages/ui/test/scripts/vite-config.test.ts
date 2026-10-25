@@ -17,7 +17,7 @@ const ROOT = join(fileURLToPath(import.meta.url), '..', '..', '..', '..', '..');
 // Import buildVersion directly for unit testing its logic
 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
 const {buildVersion, stripPwaFromSubpages} = (await import(join(ROOT, 'vite.config.js'))) as {
-  buildVersion: (command?: string) => string;
+  buildVersion: (command?: string, env?: Record<string, string>) => string;
   stripPwaFromSubpages: (html: string, path: string) => string;
 };
 
@@ -55,6 +55,19 @@ describe('buildVersion', () => {
     // This test assumes build-info.json exists with a version field
     const version = buildVersion('build');
     assert.ok(typeof version === 'string');
+  });
+
+  it('OPENISD_BUILD_VERSION names the build, except on the dev server', () => {
+    assert.equal(buildVersion('build', {OPENISD_BUILD_VERSION: 'v-e2e-b'}), 'v-e2e-b');
+    assert.equal(buildVersion('serve', {OPENISD_BUILD_VERSION: 'v-e2e-b'}), '');
+  });
+
+  // BUG_20261018_test-build-hangs-on-loading-screen: the root worker answered /test/ with the root
+  // build's page, whose assets do not exist under /test/, so the page never started.
+  it('the worker has no navigation fallback, so it never answers another copy\'s address with its own page', () => {
+    const config = readFileSync(join(ROOT, 'vite.config.js'), 'utf8');
+    assert.match(config, /navigateFallback: null,/);
+    assert.doesNotMatch(config, /navigateFallback(Denylist|Allowlist)/);
   });
 
   it('returns empty string when build-info.json is missing or invalid', () => {

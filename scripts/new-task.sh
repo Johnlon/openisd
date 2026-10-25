@@ -66,7 +66,7 @@ done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/$id.yml
 YAML
-if ! { git -C "$dest" add "tasks/$id.yml" && git -C "$dest" commit -q -m "$id: task file"; }; then
+if ! { git -C "$dest" add "tasks/$id.yml" && git -C "$dest" commit -q -m "(auto) $id: task file"; }; then
   echo "new-task: claimed $id at $dest but the task file did not commit" >&2; exit 1
 fi
 echo "$id $dest"

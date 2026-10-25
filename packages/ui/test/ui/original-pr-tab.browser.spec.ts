@@ -1,6 +1,7 @@
 import type {Page} from '@playwright/test';
-import {curvesSplSum, expect, focusedPassiveRadiatorSpec, openAProject, setFocusedBoxType, test} from '../fixtures.js';
+import {chartPicture, expect, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import {fillAndCommit, numInputByLabel, PageOps} from '../fixtures/numField.js';
+import {shownPassiveRadiator} from '../fixtures/passiveRadiatorScreen.js';
 
 /**
  * The Original shell's Passive Radiator tab (the dynamic enclosure tab of a passive-radiator
@@ -9,13 +10,13 @@ import {fillAndCommit, numInputByLabel, PageOps} from '../fixtures/numField.js';
  */
 
 test.describe('Original Passive Radiator tab', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
   });
 
   test.describe('the bundled ND140-PR', () => {
-    test('passive radiator: 30L box + bundled ND140-PR, Fp=30Hz — box readout shows the solved system tuning', async ({ page }) => {
+    test('passive radiator: 30L box + bundled ND140-PR, Fp=30Hz — box readout shows the solved system tuning', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await fillAndCommit(numInputByLabel(page, 'Volume').first(), '30');  // scale=1000: 30 → 0.030 m³
@@ -55,7 +56,7 @@ test.describe('Original Passive Radiator tab', () => {
       expect(fh).toBeCloseTo(30, 1);
     });
 
-    test('a PR box\'s Fh tracks the PR\'s own added mass, so it is the PR tuning not the sealed Fc', async ({ page }) => {
+    test('a PR box\'s Fh tracks the PR\'s own added mass, so it is the PR tuning not the sealed Fc', async ({ appPage: page }) => {
       const pageOps = new PageOps(page);
       // A PR box needs a real radiator and volume before Fh can resolve (the sample has neither).
       await setFocusedBoxType(page, 'box-passive-radiator');
@@ -90,7 +91,7 @@ test.describe('Original Passive Radiator tab', () => {
     // passive-radiator-tab.png: Fs 30.00 Hz), which collides with the DRIVER's Fs. The human
     // ruled Fpr, for consistency with the other F* symbols. This is the PR's own resonance — NOT
     // the system tuning, which is the Box tab's Fh (box-tab.png: 40.25 Hz on the same project).
-    test('the PR pane labels the radiator\'s own resonance Fpr, not Fs', async ({ page }) => {
+    test('the PR pane labels the radiator\'s own resonance Fpr, not Fs', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
 
@@ -110,14 +111,14 @@ test.describe('Original Passive Radiator tab', () => {
   });
 
   test.describe('fields', () => {
-    test('the passive radiator tab has no box-type selector', async ({page}) => {
+    test('the passive radiator tab has no box-type selector', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
       await expect(page.locator('#og-pr-fs')).toBeVisible();            // we are on the PR pane
       await expect(page.locator('#og-box-type-enclosure')).toHaveCount(0);
     });
 
-    test('the PR tab edits Vas and Qms in place, without the editor popup', async ({page}) => {
+    test('the PR tab edits Vas and Qms in place, without the editor popup', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
 
@@ -131,13 +132,13 @@ test.describe('Original Passive Radiator tab', () => {
       await qms.fill('12.25');
       await qms.dispatchEvent('input');
 
-      const stored = await focusedPassiveRadiatorSpec(page);
-      expect(stored.vas_m3).toBeCloseTo(0.0075, 6);   // the field shows litres
-      expect(stored.qms).toBeCloseTo(12.25, 3);
+      const stored = await shownPassiveRadiator(page);
+      expect(stored.vas_L).toBeCloseTo(7.5, 2);
+      expect(stored.qms).toBeCloseTo(12.25, 2);
     });
 
     // John, 2026-10-05: every PR field is editable on the page, so the page has no Edit button.
-    test('the PR page has no Edit button and edits every passive radiator field in place', async ({page}) => {
+    test('the PR page has no Edit button and edits every passive radiator field in place', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
       const pane = page.locator('.two-col').filter({ has: page.locator('#og-pr-fs') });
@@ -153,19 +154,19 @@ test.describe('Original Passive Radiator tab', () => {
       await fillAndCommit(numInputByLabel(page, 'Xmax', pane).first(), '12');
       await page.locator('#og-pr-count').selectOption('2');
 
-      const stored = await focusedPassiveRadiatorSpec(page);
+      const stored = await shownPassiveRadiator(page);
       expect(stored.name).toBe('Bench PR 12');
-      expect(stored.vas_m3).toBeCloseTo(0.0075, 6);   // litres on screen
-      expect(stored.qms).toBeCloseTo(12.25, 3);
-      expect(stored.fs_hz).toBeCloseTo(21.5, 3);
-      expect(stored.sd_m2).toBeCloseTo(0.03, 6);      // cm² on screen
-      expect(stored.xmax_m).toBeCloseTo(0.012, 6);    // mm on screen
+      expect(stored.vas_L).toBeCloseTo(7.5, 2);
+      expect(stored.qms).toBeCloseTo(12.25, 2);
+      expect(stored.fs_hz).toBeCloseTo(21.5, 2);
+      expect(stored.sd_cm2).toBeCloseTo(300, 1);
+      expect(stored.xmax_mm).toBeCloseTo(12, 1);
       expect(stored.count).toBe(2);
     });
 
     // John, 2026-10-05: emptying PR Vas, Fpr, Sd, Xmax or the target tuning wrote 0 into the project
     // (BUG_20261005_cleared-pr-field-saved-as-zero). A cleared box clears the field.
-    test('emptying a PR box clears its field rather than storing 0', async ({page}) => {
+    test('emptying a PR box clears its field rather than storing 0', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
       const pane = page.locator('.two-col').filter({ has: page.locator('#og-pr-fs') });
@@ -180,13 +181,13 @@ test.describe('Original Passive Radiator tab', () => {
         await expect(box).not.toHaveValue(/^0(\.0*)?$/);
       }
 
-      const stored = await focusedPassiveRadiatorSpec(page);
-      for (const v of [stored.vas_m3, stored.qms, stored.fs_hz, stored.sd_m2, stored.xmax_m]) expect(v).not.toBe(0);
+      const stored = await shownPassiveRadiator(page);
+      for (const v of [stored.vas_L, stored.qms, stored.fs_hz, stored.sd_cm2, stored.xmax_mm]) expect(v).not.toBe(0);
     });
 
     // John, 2026-10-06: "blanking vas on pr screen gives no dq". An emptied Vas is flagged, and
     // the ⚠ opens its reason on a click (BUG_20261005_pr-spec-fields-show-no-dq).
-    test('emptying the PR Vas flags it with a reason that names what to state', async ({page}) => {
+    test('emptying the PR Vas flags it with a reason that names what to state', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
       const vas = page.locator('#og-pr-vas');
@@ -194,19 +195,19 @@ test.describe('Original Passive Radiator tab', () => {
       await fillAndCommit(vas, '');
       await expect(vas).toHaveClass(/dq-flag/);
       await field.locator('.ui-field-dq-btn').click();
-      await expect(field.locator('.ui-field-note')).toHaveText(/cannot be calculated yet.*needs Vas_m3/);
+      await expect(field.locator('.ui-field-note')).toHaveText(/cannot be calculated yet.*needs equivalent volume \(Vas\)/);
     });
 
     // John, 2026-10-05: "PR Vas is disconnected" — a project made by the New Project wizard with
     // the ND140-PR kept the radiator's catalogue Mms and Cms, so a Vas typed on the page moved nothing.
-    test('a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve', async ({page}) => {
+    test('a Vas typed on the PR page of a wizard-made ND140-PR project moves Fpr with mass, Fh and the SPL curve', async ({ appPage: page }) => {
       await page.locator('.tb-btn[title*="New project"]').click();
       const wizard = page.locator('.overlay.open');
       const next = wizard.locator('.modal-footer button.ok-btn');   // the green lead: Next, then Create
       await wizard.locator('.dlist .ditem').first().click();
       await next.click();                                        // driver chosen: step 2
       await next.click();                                        // step 3: box type
-      await wizard.locator('.field', { hasText: 'Box type' }).locator('select').selectOption('box-passive-radiator');
+      await wizard.getByLabel('Box type').selectOption('box-passive-radiator');
       await next.click();                                        // step 4: the radiator
       await wizard.locator('#np-pr-select').click();
       await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
@@ -225,18 +226,18 @@ test.describe('Original Passive Radiator tab', () => {
       };
       const fhBefore = await readFh();
       const fprBefore = await page.locator('#og-pr-fs-mass').inputValue();
-      const splBefore = await curvesSplSum(page);
+      const splBefore = await chartPicture(page);
 
       await fillAndCommit(page.locator('#og-pr-vas'), '20');
 
       await expect(page.locator('#og-pr-fs-mass')).not.toHaveValue(fprBefore);
-      await expect.poll(() => curvesSplSum(page)).not.toBe(splBefore);
+      await expect.poll(() => chartPicture(page)).not.toBe(splBefore);
       expect(await readFh()).not.toBeCloseTo(fhBefore, 2);
     });
 
     // John, 2026-10-05: "Save PR to library needs to ask for a name confirmation dialog." The
     // name typed there names the library copy only; the project's radiator keeps its own name.
-    test('Save to library asks for a name, prefilled, and saves a copy under the typed name', async ({page}) => {
+    test('Save to library asks for a name, prefilled, and saves a copy under the typed name', async ({ appPage: page }) => {
       await setFocusedBoxType(page, 'box-passive-radiator');
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
 
@@ -299,17 +300,20 @@ test.describe('Original Passive Radiator tab data quality', () => {
   }
 
   /** The Box tab's rear-chamber Volume input (the PR box stores it on `passiveRadiator.volume_m3`). */
-  const VOLUME_INPUT = '.box-fields-col .field:has(label:text("Volume")) input[type=number]';
+  const VOLUME_INPUT = '.box-fields-col .field:has(label:text("Volume")) input[data-numinput]';
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ appPage: page }) => {
     await page.addInitScript(([key, json]) => {
       localStorage.setItem(key, json);
     }, [PR_KEY, JSON.stringify({ schema: 1, entries: [{ uuid: PR_UUID, record: passiveRadiatorRecord() }] })] as const);
+    await page.evaluate(([key, json]) => {
+      localStorage.setItem(key, json);
+    }, [PR_KEY, JSON.stringify({ schema: 1, entries: [{ uuid: PR_UUID, record: passiveRadiatorRecord() }] })] as const).catch(() => {});
     await page.goto('/');
     await openAProject(page);
   });
 
-  test('an unreachable PR target flags the entered Fp as the cause and the derived outputs as symptoms', async ({ page }) => {
+  test('an unreachable PR target flags the entered Fp as the cause and the derived outputs as symptoms', async ({ appPage: page }) => {
     const pageOps = new PageOps(page);
     await setFocusedBoxType(page, 'box-passive-radiator');
     await pageOps.setNum(VOLUME_INPUT, '30');
@@ -355,11 +359,42 @@ test.describe('Original Passive Radiator tab data quality', () => {
     await expect(page.locator('#og-pr-fs-mass').locator('xpath=ancestor::div[contains(@class,"field")][1]'))
       .toHaveClass(/dq-flag/);
     await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
-    await expect(page.locator('#og-box-resonance').locator('xpath=ancestor::div[contains(@class,"field")][1]'))
-      .toHaveClass(/dq-flag/);
+    // The Box tab's Fh is the same field as the Fp above, so it carries the same cause mark.
+    await expect(page.locator('#og-box-resonance')).toHaveClass(/dq-root/);
   });
 
-  test('a reachable target shows no DQ anywhere', async ({ page }) => {
+  test('Fh typed on the Box tab is the Fp on the Passive Radiator tab, and the added mass follows', async ({ appPage: page }) => {
+    const pageOps = new PageOps(page);
+    await setFocusedBoxType(page, 'box-passive-radiator');
+    await pageOps.setNum(VOLUME_INPUT, '30');
+    await configureRadiator(page);
+    await pageOps.setNum('#og-pr-madd', '0');
+    await page.locator('.project-nav li', { hasText: 'Box' }).first().click();
+    const ceiling = Number(await page.locator('#og-box-resonance').inputValue());
+
+    const target = (ceiling * 0.9).toFixed(2);
+    await pageOps.setNum('#og-box-resonance', target);
+    await expect(page.locator('#og-box-resonance')).toHaveValue(target);
+
+    await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).click();
+    await expect(page.locator('#og-pr-fp')).toHaveValue(target);
+    expect(Number(await page.locator('#og-pr-madd').inputValue())).toBeGreaterThan(0);
+  });
+
+  test('Mms and Cms are on the Passive Radiator tab: Mms typed is kept, and Cms is still shown', async ({ appPage: page }) => {
+    const pageOps = new PageOps(page);
+    await setFocusedBoxType(page, 'box-passive-radiator');
+    await configureRadiator(page);
+    const mms = page.locator('#og-pr-mms');
+    const cms = page.locator('#og-pr-cms');
+    await expect(mms).toHaveValue(/\d/);
+    await expect(cms).toHaveValue(/\d/);
+    await pageOps.setNum('#og-pr-mms', '45');
+    await expect(mms).toHaveValue(/^45/);
+    await expect(cms).toHaveValue(/\d/);
+  });
+
+  test('a reachable target shows no DQ anywhere', async ({ appPage: page }) => {
     const pageOps = new PageOps(page);
     await setFocusedBoxType(page, 'box-passive-radiator');
     await pageOps.setNum(VOLUME_INPUT, '30');

@@ -38,10 +38,10 @@ class RootQuality(Strict):
     issue: str = None
     confirmed_fields: list[str] = None
     fields_with_issues: list[str] = None
-    missing: list[str]
+    missing: list[str] = None
     invalid: list[str]
     parse_errors: list[str]
-    cross_source_only: list[object]
+    cross_source_only: list[object] = None
 
 class TextFieldDqScraper(Strict):
     kind: str
@@ -112,6 +112,9 @@ class RootDataSourcesValue(Strict):
     manufacturer_datasheet: str = None
     manufacturer_product_page: str = None
     manufacturer_listing_page: str = None
+    distributor_datasheet: str = None
+    distributor_product_page: str = None
+    distributor_listing_page: str = None
 
 class RootDataSources(Strict):
     value: RootDataSourcesValue
@@ -163,7 +166,7 @@ class RejectedUnparsedReading(Strict):
     actual_reading: str = None
     conformed_reading: str = None
     conformed_by: str = None
-    rejected: Literal["no-numeric-value"]
+    rejected: Literal["no-numeric-value", "unit-not-recognised"]
     note: str = None
     reads: UsableReadingReads = None
 
@@ -171,7 +174,7 @@ _union_reading_json_schema_3_member_2 = TypeAdapter(RejectedUnparsedReading)
 def _union_reading_json_schema_3_finish_2(out):
     return out.model_dump(by_alias=True, exclude_unset=True)
 def _rejected_unrecognised_parsed_reading_rejected_5(reason):
-    if not (not (any((known == reason) for known in [*["no-numeric-value"], *["ohm-glyph-merged-as-digit"]]))):
+    if not (not (any((known == reason) for known in [*["no-numeric-value", "unit-not-recognised"], *["ohm-glyph-merged-as-digit"]]))):
         raise ValueError("a recognised rejection reason belongs to its own variant")
     return reason
 

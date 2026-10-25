@@ -1,0 +1,39 @@
+id: T533
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: ce4c18c3c1c81d2763749e84da81066bcd3beac4
+goal: A new project's name starts as "<driver model> <box type>" (e.g. "W5-1138SMF vented") in the wizard in both skins, stays editable, and a typed name is kept; imported files keep their own name.
+done_test: bash scripts/test.sh packages/design/test/domain/defaultProjectName.test.ts
+files:
+  - packages/design/domain/index.ts
+  - packages/design/domain/project/defaultProjectName.ts
+  - packages/design/test/domain/defaultProjectName.test.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/test/ui/mobile-new-project-keeps-other-box-type.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step5.png
+  - tasks/T533.yml
+visual:
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step5
+  - mobile-wizard-abc-step5
+  - mobile-wizard-bandpass4-step5
+  - mobile-wizard-bandpass6-step5
+  - mobile-wizard-sealed-step5
+  - mobile-wizard-vented-step5

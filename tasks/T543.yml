@@ -1,0 +1,14 @@
+id: T543
+release_note: The About page's Change log link opens OpenISD's own release list.
+repo: openisd
+owner: bob
+status: done
+landed: 62d087ada76731dab25612f6c52c414570e619f0
+goal: The phone About page's Change log link opens the app's own release list (snapshots.openisd.app/v/), which lists every release with what it changed, instead of GitHub.
+done_test: bash scripts/test.sh packages/design/test/fields/phoneDialogText.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T543.yml
+  - packages/design/fields/phoneDialogText.ts
+  - packages/design/test/fields/phoneDialogText.test.ts
+  - packages/ui/test/ui/phone-app-dialogs.browser.spec.ts

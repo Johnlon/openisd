@@ -14,8 +14,11 @@ import {
 } from '../consistency.js';
 import type {VentedDesignQuantity, VentedPlausibilityIssue} from '../plausibility.js';
 import {nonPhysicalQuantity, quantityOutOfBand} from '../plausibility.js';
+import {plainNames} from '../issueText.js';
 
 export interface IssueEngine {
+  /** A sentence with every internal field key replaced by the name a person reads. */
+  plainNames(text: string): string;
   /** A target no route can reach yet, naming every blocked route and what it still needs. */
   missingDependencies<Q extends string>(target: Q, routes: readonly SolveRoute<Q>[]): CalculationIssue<Q>;
   /** Stated values that contradict the formula relating them — every field in the group is marked. */
@@ -49,6 +52,7 @@ export interface IssueEngine {
 }
 
 export class IssueEngineImpl implements IssueEngine {
+  readonly plainNames = plainNames;
   readonly missingDependencies = missingDependencies;
   readonly inconsistentInputs = inconsistentInputs;
   readonly outOfRange = outOfRange;

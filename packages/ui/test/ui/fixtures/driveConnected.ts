@@ -27,14 +27,20 @@ export function iPhoneEdit(body: string): string {
   return JSON.stringify(parsed);
 }
 
-/** Signed in to Drive, with every Drive request answered by the emulator. */
-export async function connectedToDrive(page: Page): Promise<DriveEmulator> {
+/** Every www.googleapis.com request answered by a Drive emulator, as Google's server would. */
+export async function emulateDriveServer(page: Page): Promise<DriveEmulator> {
   const drive = new DriveEmulator();
   await page.route('**/www.googleapis.com/**', async route => {
     const request = route.request();
     const reply = await drive.fetch(request.url(), {method: request.method(), headers: request.headers(), body: request.postData() ?? undefined});
     await route.fulfill({status: reply.status, contentType: reply.headers.get('content-type') ?? 'application/json', body: await reply.text()});
   });
+  return drive;
+}
+
+/** Signed in to Drive, with every Drive request answered by the emulator. */
+export async function connectedToDrive(page: Page): Promise<DriveEmulator> {
+  const drive = await emulateDriveServer(page);
   await enableCloudSync(page);
   await page.addInitScript(() => {
     localStorage.setItem('openisd_storage_layout', '2');

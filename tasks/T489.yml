@@ -1,0 +1,24 @@
+id: T489
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 0998c508747d6100472dd25cdfe09496ecbf39d6
+goal: Landing network calls (fetch, push, gh pr create) are bounded so a stall cannot hold the landing lock, the browser-run build has no deadline, and each browser run serves its own test bundle.
+done_test: bash scripts/land/test/land-network-bound.e2e.test.sh && bash scripts/land/test/land-pull-request.e2e.test.sh && bash scripts/land/test/land.e2e.test.sh && bash scripts/test.sh packages/ui/test/scripts/test-bundle-per-port.test.ts
+files:
+  - tasks/T489.yml
+  - bugs/BUG_20261020_land-network-calls-unbounded.md
+  - scripts/land.sh
+  - scripts/land/pr.sh
+  - scripts/land/test/land-network-bound.e2e.test.sh
+  - playwright.config.js
+  - .github/workflows/suite.yml
+  - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
+  - packages/ui/test/scripts/test-bundle-per-port.test.ts
+  - scripts/build-test-app.sh
+  - scripts/test-browser.sh
+  - scripts/run-ui-telemetry.sh
+  - packages/ui/test/scripts/full-gate-stage.test.ts
+  - scripts/land/test/test-browser-kill.test.sh
+  - scripts/land/test/services-load.test.sh

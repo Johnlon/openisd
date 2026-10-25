@@ -5,12 +5,12 @@ import {fillAndBlur} from '../fixtures/numField.js';
 /** The Box losses popup (leakage Ql, absorption Qa) opened from the Box tab. */
 
 test.describe('Box losses popup', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ appPage: page }) => {
     await page.goto('/');
     await openAProject(page);
   });
 
-  test('the Box losses popup opens from the Box tab Advanced link and closes with OK', async ({ page }) => {
+  test('the Box losses popup opens from the Box tab Advanced link and closes with OK', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('.link-btn', { hasText: 'Advanced' }).click();
     await expect(page.locator('.overlay.open')).toContainText('Box losses');
@@ -20,7 +20,7 @@ test.describe('Box losses popup', () => {
   });
 
   // bugs/BUG_20261005_no-common-ui-field-component.md: the losses popup gets a Reset button.
-  test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ page }) => {
+  test('Reset puts Ql, Qa and Qp back to WinISD\'s defaults', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('.link-btn', { hasText: 'Advanced' }).first().click();
     const box = page.locator('.overlay.open');
@@ -34,19 +34,15 @@ test.describe('Box losses popup', () => {
     await expect(q('Port Qp')).toHaveValue(/^100(\.0+)?$/);
   });
 
-  // bugs/BUG_20261005_no-common-ui-field-component.md: a loss can never be blank. The emptied box
-  // is refused (kept as typed, red, with the ⚠); nothing is stored, and Esc restores the stored value.
-  test('an emptied Ql is refused with a ⚠, never stored as 0; Esc restores it', async ({ page }) => {
+  // T211 (John, 16 Oct 2026: "why would we want blank"): a loss can never be blank. Clearing Ql
+  // settles it to WinISD's default, 10, never to 0.
+  test('a cleared Ql settles to the WinISD default, never stored as 0', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('.link-btn', { hasText: 'Advanced' }).first().click();
-    const row = page.locator('.overlay.open .ui-field', { hasText: 'Leakage Ql' });
-    const ql = row.locator('input');
+    const ql = page.locator('.overlay.open .ui-field', { hasText: 'Leakage Ql' }).locator('input');
     await fillAndBlur(ql, '7');
-    await ql.fill('');
-    await expect(ql).toHaveValue('');
-    await expect(row.locator('.ui-field-dq-btn')).toBeVisible();
-    await ql.press('Escape');
-    await expect(ql).toHaveValue(/^7(\.0+)?$/);
+    await fillAndBlur(ql, '');
+    await expect(ql).toHaveValue(/^10(\.0+)?$/);
   });
 
   // bugs/BUG_20261007_advanced-link-opens-every-chamber-losses.md: each chamber panel's Advanced->
@@ -58,7 +54,7 @@ test.describe('Box losses popup', () => {
       return page.locator('.overlay.open');
     };
 
-    test(`${type}: the rear link shows only the Rear chamber set, the front link only the Front set`, async ({ page }) => {
+    test(`${type}: the rear link shows only the Rear chamber set, the front link only the Front set`, async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await page.locator('select#og-box-type').selectOption(type);
       const rear = await openFor(page, 'Rear');
@@ -72,7 +68,7 @@ test.describe('Box losses popup', () => {
       await expect(front.locator('.ui-field', { hasText: 'Interchamber Qicl' })).toHaveCount(1);
     });
 
-    test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ page }) => {
+    test(`${type}: Reset puts only the open chamber back; the Qicl is one value for both`, async ({ appPage: page }) => {
       await page.locator('.project-nav li', { hasText: 'Box' }).click();
       await page.locator('select#og-box-type').selectOption(type);
       const q = (box: Locator, label: string) => box.locator('.ui-field', { hasText: label }).locator('input');

@@ -15,6 +15,7 @@ import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {type Engine, createEngine} from '../../engine/Engine.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 import {reproduceWinisdBugs} from '../fixtures/domainBuilders.js';
+import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 
 describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', () => {
   // The probe driver. Fs/Cms imply Mms = 0.04346 kg, not the 0.060 entered; Fs/Qms/Mms imply
@@ -84,7 +85,18 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     });
   });
 
-  it('clear: the entered Mms, BL and Rms are what the sweep uses', () => {
+  it('clear: one BL — a typed BL moves no chart, the BL Re, Fs, Qes and Vas imply drives push and damping alike', () => {
+    const engine = createEngine();
+    const a = projectOn(engine, {...SHARED, BL_Tm: 7.17});
+    const b = projectOn(engine, {...SHARED, BL_Tm: 5.0});
+    a.winisdDriverModel.set(false);
+    b.winisdDriverModel.set(false);
+    const sa = a.sweep(P).values!, sb = b.sweep(P).values!;
+    sa.spl.forEach((db, i) => expect(sb.spl[i]).toBeCloseTo(db, 9));
+    sa.zmag.forEach((z, i) => expect(sb.zmag[i]).toBeCloseTo(z, 9));
+  });
+
+  it('clear: the entered Mms, BL and Rms are not read — the contradictory driver sweeps as the consistent one', () => {
     const engine = createEngine();
     const entered = projectOn(engine, {...SHARED, ...CONTRADICTORY});
     entered.winisdDriverModel.set(false);
@@ -93,8 +105,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
 
     const mine = entered.sweep(P).values!;
     const theirs = winisd.sweep(P).values!;
-    const differs = mine.spl.some((db, i) => Math.abs(db - theirs.spl[i]) > 0.01);
-    expect(differs).toBe(true);
+    mine.spl.forEach((db, i) => expect(db).toBeCloseTo(theirs.spl[i], 9));
   });
 
   it('set: Vas, not the entered Cms, is what the compliance comes from', () => {
@@ -103,7 +114,7 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     // sweep. Driver B states the Cms that Vas implies at the project's own air, reached here by
     // asking the engine for it rather than by writing a number this test would have to maintain.
     const engine = createEngine();
-    const air = engine.environment.solve({}).values;
+    const air = REFERENCE_AIR_VALUES;
     const Vas_m3 = SHARED.Vas_m3 * 1.2;
     const cmsFromVas = Vas_m3 / (air.rho * air.c * air.c * SHARED.Sd_m2 * SHARED.Sd_m2);
 
@@ -114,11 +125,11 @@ describe('winisdDriverModel — the whole WinISD parameter set, not Mms alone', 
     const theirs = byCms.sweep(P).values!;
     mine.spl.forEach((db, i) => expect(db).toBeCloseTo(theirs.spl[i], 6));
 
-    // ...and the two drivers really are different drivers: cleared, they sweep apart.
+    // ...and cleared they still sweep alike: the circuit never reads the entered Cms, whichever way the switch is.
     byVas.winisdDriverModel.set(false);
     byCms.winisdDriverModel.set(false);
     const a = byVas.sweep(P).values!, b = byCms.sweep(P).values!;
-    expect(a.spl.some((db, i) => Math.abs(db - b.spl[i]) > 0.01)).toBe(true);
+    a.spl.forEach((db, i) => expect(db).toBeCloseTo(b.spl[i], 6));
   });
 
   it('defaults off — a new project has WinISD\'s two-BL bug fixed (John, 2026-10-04)', () => {

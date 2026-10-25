@@ -9,7 +9,7 @@ import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 const RESTORED = /^sample-project \(restored \d{1,2} [A-Z][a-z]{2} \d{4}\)$/;
 
 async function restoreOneFromNewBackup(page: Page): Promise<void> {
-  await page.locator('.opt-tab', {hasText: 'Your data'}).click();
+  await page.locator('.opt-tab, .opt-phone-tabs button', {hasText: 'Your data'}).click();
   await expect(page.locator('.sh-page')).toContainText('The newest 3 are kept, plus the last one made before an app update');
   await page.locator('.sh-backup-now').click();
   const row = page.locator('.sh-row').filter({has: page.locator('.sh-reason', {hasText: 'Back up now'})});
@@ -31,8 +31,8 @@ test('desktop: Restore one project adds the project from a backup under a restor
   await restoreOneFromNewBackup(page);
   await page.keyboard.press('Escape');
 
-  await page.getByTitle('Open project', {exact: true}).click();
-  const names = page.locator('.open-project-dialog .stored-project-name');
+  // T217: the Projects panel lists every saved project; the restored one joins it.
+  const names = page.locator('.projects-list .project-name');
   await expect(names).toHaveCount(2);
   await expect(names.filter({hasText: RESTORED})).toHaveCount(1);
 });
@@ -47,10 +47,10 @@ test('mobile: Restore one project adds the project from a backup under a restore
   const shell = (await page.locator('.mobile-root').boundingBox())!;
   const picker = (await page.locator('.sh-row').first().boundingBox())!;
   expect(picker.x + picker.width).toBeLessThanOrEqual(shell.x + shell.width + 1);
-  await page.locator('.opt-modal').getByRole('button', {name: /^(Close|OK)$/}).last().click();
+  await page.locator('.mob-dlg[aria-label="Options"]').getByRole('button', {name: /^(Close|OK)$/}).last().click();
 
-  await tapMobileMenuItem(page, 'Open project…');
-  const names = page.locator('.mob-open-project-sheet .mob-stored-project-name');
+  await tapMobileMenuItem(page, 'Projects');
+  const names = page.locator('.mob-projects-pane .mob-project-name');
   await expect(names).toHaveCount(2);
   await expect(names.filter({hasText: RESTORED})).toHaveCount(1);
 });

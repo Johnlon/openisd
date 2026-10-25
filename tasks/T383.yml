@@ -1,0 +1,15 @@
+id: T383
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 8fe8a92a1eff2d5d3f6bfaa1ac892dd662c6dd08
+goal: Desktop toolbar icons are real buttons with an accessible name: each tb-btn in OriginalShell.vue is a button (or role=button, tabbable, Enter/Space activate) named by its label, so screen readers and keyboard users can reach them (bugs/BUG_20261017_ui-toolbar-icons-no-accessible-name.md).
+done_test: bash scripts/test.sh packages/ui/test/architecture/toolbar-icons-are-buttons.test.ts
+files:
+  - bugs/BUG_20261017_ui-toolbar-icons-no-accessible-name.md
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/architecture/toolbar-icons-are-buttons.test.ts
+  - packages/ui/test/ui/toolbar-buttons.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T383.yml

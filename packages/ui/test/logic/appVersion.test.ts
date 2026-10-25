@@ -177,6 +177,23 @@ describe('createAppVersionPort', () => {
     expect(await port.getVersionLabel()).toBe('Oct 09 23:41Z');
   });
 
+  it('shows the public number on a release once the hosted list gives it, and the date until then', async () => {
+    const port = createAppVersionPort(false, 'v20261009T234100Z', null, 'release', null, Promise.resolve('7.0.951'));
+    expect(port.label.value).toBe('Oct 09 23:41Z');
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(port.label.value).toBe('7.0.951');
+  });
+
+  it('keeps the date when the hosted list has no number, and keeps the stamp on snapshot and test builds', async () => {
+    const none = createAppVersionPort(false, 'v20261009T234100Z', null, 'release', null, Promise.resolve(''));
+    const snap = createAppVersionPort(false, 'v20261009T234100Z', null, 'snap', null, Promise.resolve('7.0.951'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(none.label.value).toBe('Oct 09 23:41Z');
+    expect(snap.label.value).toBe('snap · Oct 09 23:41Z');
+  });
+
   it('returns unparseable version verbatim in getVersionLabel', async () => {
     const port = createAppVersionPort(false, 'custom-version', null, 'release');
     expect(await port.getVersionLabel()).toBe('custom-version');

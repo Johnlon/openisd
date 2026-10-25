@@ -1,0 +1,11 @@
+id: T385
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: ec6066d405df18e27427c5f9bce99b474bc84566
+goal: The draft release announcement for 7.0.953 (docs/ANNOUNCEMENT_7.0.953.md, fable's, John reviewing the wording) is on main, so the main folder updates again.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - docs/ANNOUNCEMENT_7.0.953.md
+  - tasks/T385.yml

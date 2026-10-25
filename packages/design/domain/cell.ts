@@ -451,6 +451,8 @@ function issueMark(issue: DqIssue, detail: string): DqMark {
         };
       }
       return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
+    case 'approximate-charts':
+      return { kind: 'calc', severity: 'warn', rule: 'approximate-charts', params: { fields: [...issue.fields] }, detail };
     case 'non-physical':
     case 'target-unreachable':
     case 'invalid-value':
@@ -506,6 +508,9 @@ export function inputOf<T>(read: () => T | null): SolverInput<T> {
   };
 }
 
+/** The other member of a solved pair, read lazily (the two members are built one after the other). */
+export type PairPartner = () => Readable<number | null> & Entered & Writable<number>;
+
 /** Builds one half of a solved pair (vent `tuning_goal_hz` ↔ `length_m`, PR `addedMass_kg` ↔
  *  `tuning_goal_hz`) — entering or explicitly clearing this member atomically clears the sibling
  *  too, in the same write (S2-7d2). One write, not two: writing this member then separately
@@ -534,17 +539,23 @@ export function inputOf<T>(read: () => T | null): SolverInput<T> {
 export function pairedField(
   commitPair: (entry: SpecEntryJson | undefined) => void,
   ownEntry: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable,
-  /** A pair that must not stay blank: when the sibling holds no value, a retraction runs
-   *  `settle` after the pair is cleared (the vented box falls back to its starting alignment,
-   *  John 2026-10-01). */
-  whenEmpty?: { readonly siblingEmpty: () => boolean; readonly settle: () => void },
+  /** The other member of the pair. Retracting this member's stated value re-states the partner at
+   *  its current value (E), so this member is the group's one calculated (C) value (John,
+   *  2026-10-16). Where the partner holds no value there is nothing to calculate from: both go to
+   *  N, with no starting value written. */
+  partner: PairPartner,
+  /** What the partner is entered as when it holds no value, so this member is calculated from it
+   *  rather than blank: a passive radiator's added mass is 0 when none is stated. Absent: both go
+   *  to N. */
+  partnerDefault: number | null = null,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
   class PairedField extends DualWriteFieldImpl<number> {
     override clear(): void {
-      if (this.entered || whenEmpty?.siblingEmpty()) {
-        commitPair(undefined);
-        whenEmpty?.settle();
-      } else ownEntry.clear();
+      const other = partner();
+      if (other.value !== null && this.entered) other.set(other.value);
+      else if (other.value === null && this.entered && partnerDefault !== null) other.set(partnerDefault);
+      else if (this.entered || other.value === null) commitPair(undefined);
+      else ownEntry.clear();
     }
   }
   return new PairedField(() => ownEntry, {

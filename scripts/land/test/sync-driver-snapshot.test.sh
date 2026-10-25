@@ -11,6 +11,7 @@ fails=0; ok() { echo "ok   $1"; }; fail() { echo "FAIL $1"; fails=$((fails + 1))
 R="$SCRATCH/repo"; C="$SCRATCH/corpus"
 mkdir -p "$R/scripts" "$R/packages/design/test/fixtures" "$SCRATCH/bin"
 cp "$REPO/scripts/sync-driver-snapshot.sh" "$REPO/scripts/driverSnapshotPin.mjs" "$R/scripts/"
+mkdir -p "$R/scripts/lib"; cp "$REPO/scripts/lib/main-folder.sh" "$R/scripts/lib/"
 cat > "$SCRATCH/bin/fake-bundle" <<'EOS'
 #!/usr/bin/env bash
 mkdir -p packages/ui/public/drivers/a

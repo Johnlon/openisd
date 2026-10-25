@@ -113,6 +113,13 @@ export class WinisdDifference {
     ...WinisdFixedBug.ALL.map(bug => new WinisdDifference({kind: 'fixedBug', bug})),
   ]);
 
+  /** The entry that explains the switch under "Enable WinISD-style" `o` stands for. */
+  static forOption(o: WinisdOption): WinisdDifference {
+    const hit = WinisdDifference.ALL.find(e => e.#source.kind === 'option' && e.#source.option === o);
+    if (hit === undefined) throw new Error(`WinisdDifference: no entry for the option "${o.title}"`);
+    return hit;
+  }
+
   /** The entry a ≠W cue's "More…" opens. */
   static forDeviation(d: WinisdDeviation): WinisdDifference {
     const hit = WinisdDifference.ALL.find(e => e.explains(d));

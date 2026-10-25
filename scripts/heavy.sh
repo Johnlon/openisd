@@ -30,11 +30,11 @@ if [ "$1" = "--slow" ]; then slow=1; shift; [ $# -gt 0 ] || usage; fi
 
 
 if [ "$slow" = 0 ]; then
-  exec systemd-run --user --scope --quiet --collect --slice="$SLICE" -- "$@"
+  exec systemd-run --user --scope --quiet --collect --slice="$SLICE" -- bash "$HERE/yield-to-suite.sh" "$@"
 fi
 
 ADMIT="${HEAVY_ADMIT:-$HERE/admit.sh}"
 [ -n "${HEAVY_ADMIT:-}" ] || [ -r "$ADMIT" ] || ADMIT=/home/john/work/winisd/openisd/scripts/admit.sh
 # No admission, no heavy run: starting it unadmitted is what kills the machine.
 [ -r "$ADMIT" ] || { echo "heavy: --slow needs the admission script at ${HEAVY_ADMIT:-$HERE/admit.sh} — not starting" >&2; exit 2; }
-exec bash "$ADMIT" "heavy.sh $*" -- systemd-run --user --scope --quiet --collect --slice="$SLICE" -- "$@"
+exec bash "$ADMIT" "heavy.sh $*" -- systemd-run --user --scope --quiet --collect --slice="$SLICE" -- bash "$HERE/yield-to-suite.sh" "$@"

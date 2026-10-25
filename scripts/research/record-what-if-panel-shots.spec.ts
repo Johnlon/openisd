@@ -7,7 +7,7 @@
  *
  * Run it from the repo root through the tracked probe config, which serves specs from build/tmp:
  *   cp scripts/research/record-what-if-panel-shots.spec.ts build/tmp/record-what-if-panel-shots.browser.spec.ts
- *   npx playwright test -c scripts/playwright.probe.config.mjs build/tmp/record-what-if-panel-shots.browser.spec.ts
+ *   bash scripts/test-browser.sh -c scripts/playwright.probe.config.mjs build/tmp/record-what-if-panel-shots.browser.spec.ts
  */
 import {expect, openAProject, test} from '../../packages/ui/test/fixtures.js';
 import type {Page} from '@playwright/test';

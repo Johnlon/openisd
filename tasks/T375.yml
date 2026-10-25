@@ -1,0 +1,79 @@
+id: T375
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 3b5bafe6172444317efd5cc0cf1cd7d7f1aad3a5
+goal: The project holds five air fields (temperature, humidity, pressure, c, rho), each entered or calculated through the air solver; a new or old project copies the app air in as entered, an emptied air value is refilled from the app air as entered, and the project air never follows Options afterwards
+done_test: bash scripts/test.sh packages/design/test/domain/project-air-migration.test.ts
+files:
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/openisdTransforms.ts
+  - packages/design/domain/project/environmentFields.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectAir.ts
+  - packages/design/domain/project/projectEnvironment.ts
+  - packages/design/domain/project/projectIssues.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/engine/air.ts
+  - packages/design/engine/environment/EnvironmentEngine.ts
+  - packages/design/engine/environment/airSolver.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/simulation/SimulationEngine.ts
+  - packages/design/test/architecture-no-forwards.test.ts
+  - packages/design/test/domain/box-alignments.test.ts
+  - packages/design/test/domain/project-air-migration.test.ts
+  - packages/design/test/domain/project-air.test.ts
+  - packages/design/test/domain/project-environment.test.ts
+  - packages/design/test/engine/air-solver.test.ts
+  - packages/design/test/fixtures/air-migration/golden-main.json
+  - packages/design/test/fixtures/air-migration/golden-t375-in-main.json
+  - packages/design/test/fixtures/air-migration/main-air-c-sealed.owpr
+  - packages/design/test/fixtures/air-migration/main-air-c-vented.owpr
+  - packages/design/test/fixtures/air-migration/main-no-air-sealed.owpr
+  - packages/design/test/fixtures/air-migration/main-no-air-vented.owpr
+  - packages/design/test/fixtures/air-migration/sample-project.owpr
+  - packages/design/test/fixtures/air-migration/sample_project_vented.wpr
+  - packages/design/test/fixtures/air-migration/saved-by-t375-main-air-c-sealed.owpr
+  - packages/design/test/fixtures/air-migration/saved-by-t375-main-air-c-vented.owpr
+  - packages/design/test/fixtures/air-migration/saved-by-t375-main-no-air-sealed.owpr
+  - packages/design/test/fixtures/air-migration/saved-by-t375-main-no-air-vented.owpr
+  - packages/design/test/fixtures/air-migration/saved-by-t375-sample-project.owpr
+  - packages/design/test/fixtures/air-migration/saved-by-t375-sample_project_vented.owpr
+  - packages/design/test/winisd/winIsdProjectToOpenIsdProject.test.ts
+  - packages/ui/src/hooks/MobileAdvancedTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/ventReadouts.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts
+  - packages/ui/test/logic/appSettings.test.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - tasks/T375.yml
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal

@@ -12,7 +12,7 @@
  * here — this module is pure physics with no file-format concern (ARCHITECTURE.md §2).
  */
 
-import type {Air} from '../air.js';
+import type {Air, AirState} from '../air.js';
 import {
     referenceEfficiency,
     splFromEfficiency
@@ -23,17 +23,21 @@ import type {
     SolverField,
     SolverInput,
 } from '../solverTypes.js';
-import {missingDependencies} from '../consistency.js';
-import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue} from '../consistency.js';
+import {approximateCharts, missingDependencies} from '../consistency.js';
+import type {CalculationIssue, CalculationPrerequisite, OutOfRangeIssue, SolveRoute} from '../consistency.js';
 import {checkRange, isPhysicallyPlausible, rangeIssue} from '../physicalRange.js';
 import type {DriverWorkingSet} from '../solvers/driverQuantities.js';
-import {hotRe, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
+import {hotRe, perCoilBL_Tm, perCoilRe_ohm, terminalBL_Tm, terminalRe_ohm} from '../solvers/driverQuantities.js';
 import type {EbpSuitability, SweepResult, Wiring} from '../types.js';
 import {
-  CMS_FROM_VAS_SD_ROUTE, type ConsistencyCheck, MMS_FROM_FS_CMS_ROUTE,
+  CMS_FROM_VAS_SD_ROUTE, ConsistencyCheck, DRIVER_RELATIONS, DRIVER_ROUTES, MMS_FROM_FS_CMS_ROUTE,
   RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
 import type {DriverRoute} from './routes/index.js';
+
+/** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
+ *  both Q's are twice Qts, which makes the total Q equal Qts. */
+const WINISD_Q_FALLBACK_FACTOR = 2;
 
 export type DriverQuantityName = keyof DriverSolverParams;
 export type DriverIssue = CalculationIssue<DriverQuantityName> | OutOfRangeIssue;
@@ -78,6 +82,20 @@ function enteredDriverValue(field: SolverInput): number | undefined {
 
 /** Write `value` onto a non-entered handle: derived, with the width its entered inputs give
  *  it, when present; `not-available` when not. An entered handle is never touched. */
+/** c or rho of `air` as the working set holds it: the value, or absent. */
+function airQuantity(air: AirState, of: (air: Air) => number): number | undefined {
+  switch (air.kind) {
+    case 'available': return of(air.air);
+    case 'notAvailable': return undefined;
+  }
+}
+
+/** Write the air's c or rho onto its handle as calculated, or not available. */
+function writeAirBack(field: SolverField, air: AirState, of: (air: Air) => number): void {
+  const value = airQuantity(air, of);
+  if (value === undefined) field.setNotAvailable(); else field.setCalculated(value);
+}
+
 function writeDriverBack(field: SolverField, value: number | undefined, width: number | undefined): void {
   if (field.entered) return;
   if (value != null) field.setCalculated(value, undefined, width); else field.setNotAvailable();
@@ -101,19 +119,23 @@ export interface DriverEngine {
    *  values — including `wiring` — are never overwritten. `air` is the project's resolved
    *  `{ rho, c }` (or, with no project, the app's environment defaults): every calculation uses
    *  it, and `c_m_per_s`/`roo_kg_per_m3` are written back as `'C'` showing it, an entered pair
-   *  included — a driver record's own c and roo feed no calculation (John, 2026-10-05). */
-  solve(params: DriverSolverParams, air: Air): DriverIssue[];
+   *  included — a driver record's own c and roo feed no calculation (John, 2026-10-05). When
+   *  `air` is not available, c and rho are written back not available, every route that needs no
+   *  air still runs, and each value that only air could give stays not available with a
+   *  `missing-dependencies` issue naming `c_m_per_s` and `roo_kg_per_m3`. */
+  solve(params: DriverSolverParams, air: AirState): DriverIssue[];
   /** The consistency relations over plain values, in `air`: every quantity derivable from the
    *  stated ones, returned with the stated ones. A stated value is never overwritten, except a
    *  stated `c_m_per_s`/`roo_kg_per_m3`, which come back as `air`'s. The handle solve above runs
    *  this same group. */
-  solveValues(stated: DriverWorkingSet, air: Air): DriverWorkingSet;
-  /** `values` as WinISD's own circuit takes them (the "Two-BL driver" switch):
+  solveValues(stated: DriverWorkingSet, air: AirState): DriverWorkingSet;
+  /** `values` as the circuit takes them, the way WinISD builds its simulation (decompile `fr_45e090`):
    *  Cms from Vas and Sd, Mms from Fs and that Cms, Rms from Fs, that Mms and Qms, and the
-   *  terminal BL from Re, Fs, Qes and that Cms. Each is replaced only where its own inputs are
-   *  positive and the result is positive; otherwise the entered value stands. `air` is the
-   *  project's. */
-  winisdCircuitValues(values: DriverValues, air: Air): DriverValues;
+   *  terminal BL from Re, Fs, Qes and that Cms. The entered Cms, Mms and Rms are not read.
+   *  A driver with a Qts but neither Qes nor Qms gets WinISD's fallback, Qes = Qms = 2·Qts.
+   *  Each is replaced only where its own inputs are positive and the result is positive;
+   *  otherwise the stated value stands. `air` is the project's. */
+  circuitValues(values: DriverValues, air: Air): DriverValues;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -144,6 +166,16 @@ export interface DriverEngine {
   findImpedancePeak(result: SweepResult | null, Re: number): { Fsc: number; Qtc: number } | null;
 }
 
+/** `p` with `Re_ohm` and `BL_Tm` (stored per coil) replaced by what the amplifier sees, given the
+ *  set's own coil count and wiring. */
+function toTerminalSpace(p: DriverWorkingSet): DriverWorkingSet {
+  return {
+    ...p,
+    ...(p.Re_ohm == null ? {} : {Re_ohm: terminalRe_ohm(p.Re_ohm, p.numVC, p.wiring)}),
+    ...(p.BL_Tm == null ? {} : {BL_Tm: terminalBL_Tm(p.BL_Tm, p.numVC, p.wiring)}),
+  };
+}
+
 export class DriverEngineImpl implements DriverEngine {
   constructor(
     private readonly routes: RouteGroup,
@@ -159,15 +191,18 @@ export class DriverEngineImpl implements DriverEngine {
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
 
-  winisdCircuitValues(values: DriverValues, air: Air): DriverValues {
+  circuitValues(values: DriverValues, air: Air): DriverValues {
     const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
-    const {Fs_hz, Qms, Qes, Vas_m3, Sd_m2} = values;
+    const {Fs_hz, Vas_m3, Sd_m2, Qts} = values;
+    const fallback = !positive(values.Qes) && !positive(values.Qms) && positive(Qts) ? WINISD_Q_FALLBACK_FACTOR * Qts : null;
+    const Qes = fallback ?? values.Qes;
+    const Qms = fallback ?? values.Qms;
     const routeValue = (route: DriverRoute, working: DriverWorkingSet): number | null => {
-      const v = route.value(working, air);
+      const v = route.value(working);
       return positive(v) ? v : null;
     };
-    const Cms = positive(air.c) && positive(air.rho) && positive(Vas_m3) && positive(Sd_m2)
-      ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c, roo_kg_per_m3: air.rho}) : null;
+    const Cms = positive(air.c()) && positive(air.rho()) && positive(Vas_m3) && positive(Sd_m2)
+      ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
     const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
     const Mms = positive(Fs_hz) && positive(Cms_m_per_N)
       ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
@@ -178,7 +213,7 @@ export class DriverEngineImpl implements DriverEngine {
     const BL = positive(Re_terminal_ohm) && positive(Fs_hz) && positive(Qes) && positive(Cms_m_per_N)
       ? Math.sqrt(Re_terminal_ohm / (2 * Math.PI * Fs_hz * Qes * Cms_m_per_N)) : null;
     return {
-      ...values, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
+      ...values, Qes, Qms, Cms_m_per_N, Mms_kg, Rms_kg_per_s: Rms ?? values.Rms_kg_per_s,
       BL_terminal_Tm: positive(BL) ? BL : values.BL_terminal_Tm,
     };
   }
@@ -190,7 +225,7 @@ export class DriverEngineImpl implements DriverEngine {
    *  it is read but never written back. `air` is the air every calculation uses (matching
    *  `VentEngine.solve`/`PrEngine.solve`'s own `air` parameter); `c_m_per_s`/`roo_kg_per_m3` write
    *  back as `'C'` showing it, an entered pair included. */
-  solve(params: DriverSolverParams, air: Air): DriverIssue[] {
+  solve(params: DriverSolverParams, air: AirState): DriverIssue[] {
     const working: DriverWorkingSet = {
       Fs_hz: enteredDriverValue(params.Fs_hz), Re_ohm: enteredDriverValue(params.Re_ohm),
       Znom_ohm: enteredDriverValue(params.Znom_ohm), Le_H: enteredDriverValue(params.Le_H),
@@ -208,14 +243,16 @@ export class DriverEngineImpl implements DriverEngine {
       gamma_m_per_s2_A: enteredDriverValue(params.gamma_m_per_s2_A), Gloss: enteredDriverValue(params.Gloss),
       Vcd_m: enteredDriverValue(params.Vcd_m), Depth_m: enteredDriverValue(params.Depth_m), MagDepth_m: enteredDriverValue(params.MagDepth_m),
       Magnet_m: enteredDriverValue(params.Magnet_m), DVol_m3: enteredDriverValue(params.DVol_m3),
-      c_m_per_s: air.c, roo_kg_per_m3: air.rho,
+      c_m_per_s: airQuantity(air, a => a.c()), roo_kg_per_m3: airQuantity(air, a => a.rho()),
       Re_terminal_ohm: enteredDriverValue(params.Re_terminal_ohm),
       BL_terminal_Tm: enteredDriverValue(params.BL_terminal_Tm), numVC: enteredDriverValue(params.numVC),
       wiring: params.wiring.value ?? undefined,
     };
 
     const solved = this.solveValues(working, air);
-    const issues: DriverIssue[] = [...this.checkConsistency(working, params, air), ...checkRange(params)];
+    const issues: DriverIssue[] = [
+      ...this.checkConsistency(working, params, air), ...checkRange(params), ...this.airBlockedIssues(solved, air),
+    ];
     const widths = this.calculatedWidths(working, solved, air, field => params[field].precision ?? 0);
 
     writeDriverBack(params.Fs_hz, solved.Fs_hz, widths.Fs_hz); writeDriverBack(params.Re_ohm, solved.Re_ohm, widths.Re_ohm);
@@ -235,8 +272,8 @@ export class DriverEngineImpl implements DriverEngine {
     writeDriverBack(params.Vcd_m, solved.Vcd_m, widths.Vcd_m); writeDriverBack(params.Depth_m, solved.Depth_m, widths.Depth_m); writeDriverBack(params.MagDepth_m, solved.MagDepth_m, widths.MagDepth_m);
     writeDriverBack(params.Magnet_m, solved.Magnet_m, widths.Magnet_m); writeDriverBack(params.DVol_m3, solved.DVol_m3, widths.DVol_m3); writeDriverBack(params.Re_terminal_ohm, solved.Re_terminal_ohm, widths.Re_terminal_ohm);
     writeDriverBack(params.BL_terminal_Tm, solved.BL_terminal_Tm, widths.BL_terminal_Tm);
-    params.c_m_per_s.setCalculated(air.c);
-    params.roo_kg_per_m3.setCalculated(air.rho);
+    writeAirBack(params.c_m_per_s, air, a => a.c());
+    writeAirBack(params.roo_kg_per_m3, air, a => a.rho());
 
     return issues;
   }
@@ -255,7 +292,33 @@ export class DriverEngineImpl implements DriverEngine {
    * solver derived. `numVC` and `wiring` ride along untouched: the solver READS them, to finish the
    * terminal values below, and never consumes them; dropping them would make re-solving lossy.
    */
-  solveValues(p: DriverWorkingSet, air: Air): DriverWorkingSet {
+  solveValues(p: DriverWorkingSet, air: AirState): DriverWorkingSet {
+    // THE RELATIONS RUN ON TERMINAL Re AND BL. A `.wdr`'s Qes, Rme and Mpow describe the driver the
+    // amplifier sees, and a multi-coil driver's wiring changes both Re and BL. The record keeps them
+    // per coil, so they are converted in here and back at the end; callers see per-coil values.
+    const r = this.solveTerminal(toTerminalSpace(p), air);
+
+    // THE TERMINAL VALUES, LAST. Not a relation - nothing else in the group constrains them, and
+    // they answer a question about the WIRING rather than about the driver's parameters. `r.Re_ohm`
+    // and `r.BL_Tm` ARE terminal here, so they are the terminal values.
+    //
+    // Here rather than at the caller because `sweep` REQUIRES this pair. A solver that stopped short
+    // of it left every caller to finish the job, and a caller that forgot got a driver the engine
+    // refused with a message naming a field it had never been able to supply.
+    if (r.Re_terminal_ohm == null && r.Re_ohm != null) r.Re_terminal_ohm = r.Re_ohm;
+    if (r.BL_terminal_Tm == null && r.BL_Tm != null) r.BL_terminal_Tm = r.BL_Tm;
+
+    // Back to per coil. A value the caller stated is returned exactly as stated, never as a
+    // terminal round trip of it.
+    if (r.Re_ohm != null) r.Re_ohm = p.Re_ohm ?? perCoilRe_ohm(r.Re_ohm, r.numVC, r.wiring);
+    if (r.BL_Tm != null) r.BL_Tm = p.BL_Tm ?? perCoilBL_Tm(r.BL_Tm, r.numVC, r.wiring);
+
+    return r;
+  }
+
+  /** The consistency group over a set whose `Re_ohm` and `BL_Tm` are TERMINAL values; the result's
+   *  are terminal too. The relations are written for the driver the amplifier sees. */
+  private solveTerminal(p: DriverWorkingSet, air: AirState): DriverWorkingSet {
     // `run` puts `air` into the working set's c/roo, so the result shows the air used.
     const r = this.routes.run(p, air);
 
@@ -264,22 +327,6 @@ export class DriverEngineImpl implements DriverEngine {
     // never recomputed ad hoc downstream.
     if (r.EBP_hz == null && r.Fs_hz != null && r.Qes != null && r.Qes > 0) {
       r.EBP_hz = ebp(r.Fs_hz, r.Qes);
-    }
-
-    // THE TERMINAL VALUES, LAST. Not a relation — nothing else in the group constrains them, and
-    // they answer a question about the WIRING rather than about the driver's parameters. So they
-    // are computed once, after the fixpoint, from whatever `Re_ohm` and `BL_Tm` finally are:
-    // `Re_ohm` is itself derivable, so computing these earlier would fix them to a value the solve
-    // then moved.
-    //
-    // Here rather than at the caller because `sweep` REQUIRES this pair. A solver that stopped short
-    // of it left every caller to finish the job, and a caller that forgot got a driver the engine
-    // refused with a message naming a field it had never been able to supply.
-    if (r.Re_terminal_ohm == null && r.Re_ohm != null) {
-      r.Re_terminal_ohm = terminalRe_ohm(r.Re_ohm, r.numVC, r.wiring);
-    }
-    if (r.BL_terminal_Tm == null && r.BL_Tm != null) {
-      r.BL_terminal_Tm = terminalBL_Tm(r.BL_Tm, r.numVC, r.wiring);
     }
 
     return r;
@@ -294,7 +341,7 @@ export class DriverEngineImpl implements DriverEngine {
   private calculatedWidths(
     entered: DriverWorkingSet,
     resolved: DriverWorkingSet,
-    air: Air,
+    air: AirState,
     widthOf: (field: NumericDriverQuantityName) => number,
   ): Partial<Record<NumericDriverQuantityName, number>> {
     const widths: Partial<Record<NumericDriverQuantityName, number>> = {};
@@ -326,9 +373,16 @@ export class DriverEngineImpl implements DriverEngine {
    * decimal it was typed to) — the source of truth for how wide that field's own rounding
    * interval is, never recomputed from the resolved number here.
    */
-  private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams, air: Air): DriverIssue[] {
+  private checkConsistency(entered: DriverWorkingSet, params: DriverSolverParams, air: AirState): DriverIssue[] {
+    // Checked in terminal space, where the relations hold. A half-width scales like its value.
+    const terminalPrecision = (field: NumericDriverQuantityName): number => {
+      const width = params[field].precision ?? 0;
+      if (field === 'Re_ohm') return terminalRe_ohm(width, entered.numVC, entered.wiring);
+      if (field === 'BL_Tm') return terminalBL_Tm(width, entered.numVC, entered.wiring);
+      return width;
+    };
     const issues: DriverIssue[] = this.consistency.check(
-      entered, stated => this.solveValues(stated, air), field => params[field].precision ?? 0);
+      toTerminalSpace(entered), stated => this.solveTerminal(stated, air), terminalPrecision);
 
     // Qts has no route besides Qes+Qms (WinISD has no third input to this triple) — a driver
     // stating fewer than two of the three cannot solve it, and the caller needs to know exactly
@@ -338,13 +392,35 @@ export class DriverEngineImpl implements DriverEngine {
     // Qts ALONE pass as consistent — the group structurally still has no independent route to
     // confirm it (S9a Cluster 6).
     const enteredTrioCount = (['Qts', 'Qes', 'Qms'] as const).filter(f => entered[f] != null).length;
-    if (enteredTrioCount < 2) {
+    if (entered.Qts != null && entered.Qes == null && entered.Qms == null) {
+      // WinISD still draws the charts, from Qes = Qms = 2·Qts (`circuitValues`); they are approximate.
+      issues.push(approximateCharts('Qts', ['Qts', 'Qes', 'Qms'],
+        'Only Qts is stated, so Qes and Qms are taken as twice Qts, as WinISD does. The charts are approximate - state Qes and Qms for accurate ones.'));
+    } else if (enteredTrioCount < 2) {
       const missing: NumericDriverQuantityName[] = (['Qes', 'Qms'] as const).filter(f => entered[f] == null);
       issues.push(missingDependencies('Qts',
         [{ formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing }]));
     }
 
     return issues;
+  }
+
+  /** A `missing-dependencies` issue for each value only c and rho stand between us and: not
+   *  entered, no air-free route gave it, and some route has every input but the air. Nothing when
+   *  the air is available. */
+  private airBlockedIssues(solved: DriverWorkingSet, air: AirState): DriverIssue[] {
+    switch (air.kind) {
+      case 'available': return [];
+      case 'notAvailable': break;
+    }
+    const byTarget = new Map<NumericDriverQuantityName, SolveRoute<DriverQuantityName>[]>();
+    for (const route of this.routes.blockedOnAir(solved)) {
+      const target = route.target;
+      const routes = byTarget.get(target) ?? [];
+      routes.push({formula: `${target} from ${route.inputs.join(', ')}`, required: route.inputs, missing: route.missing});
+      byTarget.set(target, routes);
+    }
+    return [...byTarget].map(([target, routes]) => missingDependencies(target, routes));
   }
 
   ebpSuitability(EBP_hz: number): EbpSuitability {
@@ -354,11 +430,11 @@ export class DriverEngineImpl implements DriverEngine {
   }
 
   referenceEfficiency(Fs: number, Vas: number, Qes: number, air: Air): number {
-    return referenceEfficiency(Fs, Vas, Qes, air.c);
+    return referenceEfficiency(Fs, Vas, Qes, air.c());
   }
 
   splFromEfficiency(no: number, air: Air): number {
-    return splFromEfficiency(no, air.rho, air.c);
+    return splFromEfficiency(no, air.rho(), air.c());
   }
 
   /**
@@ -445,4 +521,9 @@ export class DriverEngineImpl implements DriverEngine {
 
     return { Fsc: peakFreq, Qtc };
   }
+}
+
+/** The driver area alone: its routes and consistency relations, which read no app setting. */
+export function createDriverEngine(): DriverEngine {
+  return new DriverEngineImpl(new RouteGroup(DRIVER_ROUTES), new ConsistencyCheck(DRIVER_RELATIONS));
 }

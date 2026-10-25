@@ -8,8 +8,11 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
+/** An explicit air for the tests: WinISD's reference conditions, stated here, not defaulted by a calc. */
+const air = REFERENCE_AIR;
 
 /** Free-air resonance with no added mass — the zero-Madd case of `prFsWithMass`. */
 const prFs = (prMmd: number, prCms: number) => engine.pr.fsWithMass(prMmd, 0, prCms);
@@ -28,7 +31,7 @@ describe('formulas — passive radiator derivations', () => {
   it('prVas ≈ 0.0200714 m³ for Cms=0.0008, Sd=0.0133 (hand-computed)', () => {
     // The same hand-computed figure as ever — 20.0714 litres — stated in the SI unit the
     // function now returns, with the tolerance converted alongside it (0.01 l = 1e-5 m³).
-    assert.ok(Math.abs(engine.pr.vas(Cms, Sd) - 0.0200714) < 1e-5, `got ${engine.pr.vas(Cms, Sd)}`);
+    assert.ok(Math.abs(engine.pr.vas(Cms, Sd, air) - 0.0200714) < 1e-5, `got ${engine.pr.vas(Cms, Sd, air)}`);
   });
   it('prFs ≈ 56.27 Hz for Mmd=0.010, Cms=0.0008 (hand-computed)', () => {
     assert.ok(Math.abs(prFs(Mmd, Cms) - 56.271) < 0.01, `got ${prFs(Mmd, Cms)}`);
@@ -53,13 +56,13 @@ describe('formulas — passive radiator derivations', () => {
 describe('formulas — passive radiator inverses round-trip through their forward functions', () => {
   const Cms = 111111e-8, Sd = 222222e-6, Mmd = 333333e-6, Rms = 444444e-4;
 
-  it('prCmsFromVas inverts prVas: prCmsFromVas(engine.pr.vas(Cms, Sd), Sd) === Cms', () => {
-    const vas_m3 = engine.pr.vas(Cms, Sd);
-    assert.ok(Math.abs(engine.pr.cmsFromVas(vas_m3, Sd) - Cms) / Cms < 1e-9,
-      `got ${engine.pr.cmsFromVas(vas_m3, Sd)}, want ${Cms}`);
+  it('prCmsFromVas inverts prVas: prCmsFromVas(engine.pr.vas(Cms, Sd, air), Sd) === Cms', () => {
+    const vas_m3 = engine.pr.vas(Cms, Sd, air);
+    assert.ok(Math.abs(engine.pr.cmsFromVas(vas_m3, Sd, air) - Cms) / Cms < 1e-9,
+      `got ${engine.pr.cmsFromVas(vas_m3, Sd, air)}, want ${Cms}`);
   });
   it('prCmsFromVas returns 0 when Sd is non-positive', () => {
-    assert.equal(engine.pr.cmsFromVas(999999, 0), 0);
+    assert.equal(engine.pr.cmsFromVas(999999, 0, air), 0);
   });
 
   it('prMmdFromFs inverts prFs: prMmdFromFs(prFs(Mmd, Cms), Cms) === Mmd', () => {

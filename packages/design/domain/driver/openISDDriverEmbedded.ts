@@ -1,5 +1,5 @@
 import {type Engine} from '../../engine/index.js';
-import type { AirEnvironment, DriverIssue } from '../../engine/index.js';
+import type { AirState, DriverIssue } from '../../engine/index.js';
 import type { SimpleField } from '../cell.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
 import { OpenISDDriver } from './openISDDriver.js';
@@ -12,7 +12,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
     private constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirEnvironment,
+        airProvider: () => AirState,
         durableIssues: () => readonly DriverIssue[],
     ) {
         super(record, engine, airProvider, durableIssues);
@@ -24,7 +24,7 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
     static wrap(
         slot: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirEnvironment,
+        airProvider: () => AirState,
         /** The PROJECT's cached driver issues. This object does not outlive one access, so the
          *  dq a resolve wrote into its fields is gone before anything reads it; the project's
          *  cache is what survives. */
@@ -37,7 +37,8 @@ export class OpenISDDriverEmbedded extends OpenISDDriver {
      *  positive finite number, else null. The coefficient and the rise are the project's, not the
      *  driver record's (bugs/archive/BUG_20260928_vc-temperature-drive-uses-hot-re.md). */
     hotRe_ohm(alfaVC_per_K: number, dT_K: number): number | null {
-        const Re_ohm = this.specs.Re_ohm.value;
+        // The Re the amplifier sees: a multi-coil driver's wiring changes it.
+        const Re_ohm = this.specs.solverParams().Re_terminal_ohm.value;
         return Re_ohm !== null && Number.isFinite(Re_ohm) && Re_ohm > 0 ? this.engine.driver.hotRe(Re_ohm, alfaVC_per_K, dT_K) : null;
     }
 }

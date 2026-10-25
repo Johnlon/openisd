@@ -19,16 +19,19 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
-    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     printf '#!/usr/bin/env bash\nexit 0\n' > gates/ok.sh; chmod +x gates/ok.sh
     cat > land.conf <<CONF
 LINT_CMD="bash gates/ok.sh"
 TYPECHECK_CMD="bash gates/ok.sh"
 UNIT_CMD="bash gates/ok.sh"
+ARCHITECTURE_CMD="bash gates/ok.sh"
+CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/ok.sh"
 GATE_DEADLINE_S=30
 LAND_LOCK="$SCRATCH/land.lock"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 CONF
     printf 'id: T9\nowner: t\nstatus: claimed\nrelease_note: internal\ngoal: Do the thing.\ndone_test: true\nfiles:\n  - f.txt\n%s' "${1:-}" > tasks/T9.yml
     git add -A; git commit -qm base; git push -q origin main

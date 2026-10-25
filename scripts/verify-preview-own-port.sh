@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR/.."
 # shellcheck source=./test-concurrency.sh
 source "$SCRIPT_DIR/test-concurrency.sh"
-reserve_test_slot
+reserve_test_slot || exit 1
 VITE_PID=""
 cleanup() {
   [ -n "$VITE_PID" ] && kill "$VITE_PID" 2>/dev/null || true

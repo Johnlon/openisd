@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {DriverType} from '@openisd/design/filter';
+import {Chip, DriverType} from '@openisd/design/filter';
 
 describe('DriverType — the wire value a record states', () => {
   it('parses the canonical wire string to the member itself, not a copy', () => {
@@ -18,11 +18,11 @@ describe('DriverType — the wire value a record states', () => {
     expect(DriverType.parse(undefined)).toBeNull();
   });
 
-  it('declares exactly the eleven values the cross-repo contract fixes', () => {
+  it('declares exactly the values the cross-repo contract fixes', () => {
     // Must stay identical to the Python DriverType in winisd_tools
     // (scrapers/scrapers/lib/driver_type.py) — changing one REQUIRES changing the other.
     expect(DriverType.ALL.map((d) => d.value)).toEqual([
-      'woofer', 'subwoofer', 'midrange', 'mid-bass', 'mid-woofer', 'full-range',
+      'woofer', 'subwoofer', 'midrange', 'bass', 'bass-midrange', 'mid-bass', 'mid-woofer', 'full-range',
       'bmr', 'coaxial', 'tweeter', 'amt', 'passive-radiator', 'unclassified',
     ]);
   });
@@ -33,6 +33,18 @@ describe('DriverType — the wire value a record states', () => {
 
   it('projects a subwoofer onto the bass chips, so a bass search returns it', () => {
     expect(DriverType.parse('subwoofer')?.chips.map((c) => c.value)).toEqual(['sub', 'woofer', 'bass']);
+  });
+
+  it('parses bass and bass-midrange to their members, both carrying the Woofer chip', () => {
+    expect(DriverType.parse('bass')).toBe(DriverType.Bass);
+    expect(DriverType.parse('bass-midrange')).toBe(DriverType.BassMidrange);
+    expect(DriverType.Bass.chips).toContain(Chip.Woofer);
+    expect(DriverType.BassMidrange.chips).toContain(Chip.Woofer);
+    expect(DriverType.BassMidrange.chips).toContain(Chip.Mid);
+  });
+
+  it('does not make a midrange a woofer', () => {
+    expect(DriverType.Midrange.chips).not.toContain(Chip.Woofer);
   });
 
   it('gives Unclassified no chips at all — it is the absence of a verdict', () => {
@@ -51,10 +63,31 @@ describe('DriverType — a record with several roles', () => {
   });
 
   it('chipValuesOf is the union of the roles chips, each once', () => {
-    expect(DriverType.chipValuesOf([DriverType.Midrange, DriverType.Tweeter])).toEqual(['mid', 'woofer', 'tweet']);
+    expect(DriverType.chipValuesOf([DriverType.Midrange, DriverType.Tweeter])).toEqual(['mid', 'tweet']);
   });
 
   it('displayOf joins the role labels', () => {
     expect(DriverType.displayOf([DriverType.Midrange, DriverType.Tweeter])).toBe('Midrange / Tweeter');
+  });
+});
+
+describe('DriverType — the help popup rows', () => {
+  const chipsOf = (display: string) => DriverType.helpRows().find((r) => r.type === display)?.chips;
+
+  it('Bass counts under Bass and Woofer', () => {
+    expect(chipsOf('Bass')).toBe('Bass, Woofer');
+  });
+
+  it('Bass-midrange counts under Bass, Mid and Woofer', () => {
+    expect(chipsOf('Bass-midrange')).toBe('Bass, Mid, Woofer');
+  });
+
+  it('Midrange counts under Mid only, so it is not a woofer', () => {
+    expect(chipsOf('Midrange')).toBe('Mid');
+  });
+
+  it('lists every type but Unclassified, which carries no chip', () => {
+    expect(DriverType.helpRows()).toHaveLength(DriverType.ALL.length - 1);
+    expect(chipsOf('Unclassified')).toBeUndefined();
   });
 });

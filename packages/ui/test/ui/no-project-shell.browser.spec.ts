@@ -33,7 +33,7 @@ test.describe('No-project shell', () => {
       // plainly that no project is open.
       await expect(page.locator('.graph-empty-h')).toHaveText('No project open. Create or open a project.');
       await expect(page.locator('.content-panel')).toContainText('No projects open');
-      await expect(page.locator('.projects-list')).toContainText('No projects open');
+      await expect(page.locator('.projects-list')).toContainText('No projects yet.');
     });
 
     test('the empty chart shows the app logo and name above the open-project buttons', async ({ page }) => {
@@ -68,12 +68,11 @@ test.describe('No-project shell', () => {
       await expect(opt).toBeVisible();
       await expect(opt.locator('input.opt-input[type="text"]')).toBeEnabled();
       const environment = opt.locator('.opt-group', { hasText: 'Environment' });
-      const environmentInputs = environment.locator('input.opt-num');
+      const environmentInputs = environment.locator('.opt-fld input');
       for (const index of [0, 1, 2]) {
         const input = environmentInputs.nth(index);
-        const before = await input.inputValue();
         await fillAndBlur(input, '');
-        await expect(input).toHaveValue(before);
+        await expect(input).toHaveClass(/inp-bad/);   // the box refuses a blank and says so; nothing is stored
       }
       await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
       // The Frequency-range row edits `presentationState.sweepRange`, which is app-wide and shared
@@ -83,26 +82,18 @@ test.describe('No-project shell', () => {
       await expect(frequencyRange.locator('input').nth(0)).toBeEnabled();
       await expect(frequencyRange.locator('input').nth(1)).toBeEnabled();
       const transferMagnitude = opt.locator('tr', { hasText: 'Transfer func. magn.' });
-      await expect(transferMagnitude.locator('input').nth(0)).toHaveValue('-30');
-      await expect(transferMagnitude.locator('input').nth(1)).toHaveValue('6');
+      await expect(transferMagnitude.locator('input').nth(0)).toHaveValue('-30.00');
+      await expect(transferMagnitude.locator('input').nth(1)).toHaveValue('6.00');
       const eqTransferMagnitude = opt.locator('tr', { hasText: 'EQ transfer func mag' });
-      await expect(eqTransferMagnitude.locator('input').nth(0)).toHaveValue('-40');
-      await expect(eqTransferMagnitude.locator('input').nth(1)).toHaveValue('20');
-      const colorColumns = opt.locator('.opt-color-col');
-      await expect(colorColumns).toHaveCount(2);
-      await expect(colorColumns.nth(0)).toContainText('0 dB line');
-      await expect(colorColumns.nth(0)).toContainText('-3dB line');
-      await expect(colorColumns.nth(0)).toContainText('Background');
-      await expect(colorColumns.nth(1)).toContainText('Other lines');
-      await expect(colorColumns.nth(1)).toContainText('Labels');
-      await expect(colorColumns.nth(1)).toContainText('Xmax limit');
-      await expect(colorColumns.nth(0).locator('input[type="color"]').nth(0)).toHaveValue('#000000');
-      await expect(colorColumns.nth(0).locator('input[type="color"]').nth(1)).toHaveValue('#808080');
-      await expect(colorColumns.nth(0).locator('input[type="color"]').nth(2)).toHaveValue('#ffffff');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(0)).toHaveValue('#3a7bd5');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(1)).toHaveValue('#000000');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(2)).toHaveValue('#ff0000');
-      await expect(colorColumns.nth(1).locator('input[type="color"]').nth(3)).toHaveValue('#2e8b57');
+      await expect(eqTransferMagnitude.locator('input').nth(0)).toHaveValue('-40.00');
+      await expect(eqTransferMagnitude.locator('input').nth(1)).toHaveValue('20.00');
+      // The nine colour rows (T555: the phone's list, the two newest last), each at its default colour.
+      const colorRows = opt.locator('.opt-color-row');
+      await expect(colorRows.locator('label')).toHaveText(['0 dB line', '-3dB line', 'Background', 'Other lines', 'Labels', 'Xmax limit', 'Cursor lines', 'Air speed limit', 'Selected range']);
+      const defaults = ['#000000', '#808080', '#ffffff', '#3a7bd5', '#000000', '#ff0000', '#2e8b57', '#ff6b6b', '#000000'];
+      for (const [i, color] of defaults.entries()) {
+        await expect(colorRows.nth(i).locator('input[type="color"]')).toHaveValue(color);
+      }
       await page.keyboard.press('Escape');
       await expect(opt).toBeHidden();
 
@@ -147,8 +138,8 @@ test.describe('No-project shell', () => {
       const opt = page.locator('.opt-modal');
       await page.locator('.opt-tab', { hasText: 'Plot Window' }).click();
       const frequency = opt.locator('tr', { hasText: 'Frequency range' });
-      await expect(frequency.locator('input').nth(0)).toHaveValue('10');
-      await expect(frequency.locator('input').nth(1)).toHaveValue('20000');
+      await expect(frequency.locator('input').nth(0)).toHaveValue('10.0');
+      await expect(frequency.locator('input').nth(1)).toHaveValue('20000.0');
     });
 
     test('choosing a driver with no project opens the New Project wizard with that driver', async ({ page }) => {
@@ -190,14 +181,14 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.projects-list')).toContainText('sample-project');
     });
 
-    test('Open shows saved browser projects, with Import project in the footer', async ({ page }) => {
+    test('Projects panel shows saved browser projects, with Import project in empty state and header', async ({ page }) => {
       await page.goto('/');
 
       await page.getByTitle('Open project', {exact: true}).click();
-      const dialog = page.locator('.open-project-dialog');
-      await expect(dialog).toBeVisible();
-      await expect(dialog.locator('.open-project-footer').getByRole('button', {name: 'Import project'})).toBeVisible();
-      await expect(dialog.locator('.open-project-list')).toContainText('No saved project yet');
+      const list = page.locator('.projects-list');
+      await expect(list).toBeVisible();
+      await expect(list.getByRole('button', {name: 'Import'})).toBeVisible();
+      await expect(list).toContainText('No projects yet.');
     });
 
     // bugs/archive/BUG_20260929_file-open-dialog-seeded-to-winisd.md — Import project opens the system
@@ -213,8 +204,7 @@ test.describe('No-project shell', () => {
       }, readFileSync(OWPR, 'utf8'));
       await page.goto('/');
 
-      await page.getByTitle('Open project', {exact: true}).click();
-      await page.locator('.open-project-dialog').getByRole('button', { name: 'Import project' }).click();
+      await page.locator('.quad-projects-wrap').getByRole('button', { name: 'Import' }).first().click();
 
       await expect(page.locator('.projects-list')).toContainText('picked-design');
       const options: unknown = JSON.parse(await page.locator('html').getAttribute('data-picker-options') ?? 'null');
@@ -253,7 +243,7 @@ test.describe('No-project shell', () => {
       await expect(page.locator('.original-root')).toBeVisible();
     }
 
-    test('a stored open What-if? panel does not reopen when no project is open', async ({page}) => {
+    test('a stored open What-if panel does not reopen when no project is open', async ({page}) => {
       await bootWith(page, 'originalWhatIfOpen');
       await expect(page.locator('.what-if-panel')).toHaveCount(0);
     });

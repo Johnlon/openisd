@@ -1,0 +1,13 @@
+id: T332
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 14d398fbba855268051489507c0a48b02c9c86f2
+goal: openisd's inbox moves out of the repo into the one inbox in the winisd folder
+done_test: bash scripts/quiet-test.sh python3 -m pytest -q -p no:cacheprovider /home/john/.claude/bin/inbox_test.py
+files:
+  - tasks/T332.yml
+  - questions.yml
+  - DOCUMENTATION.md
+  - bugs/BUG_20261017_inbox-inside-the-repo.md

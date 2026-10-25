@@ -32,11 +32,9 @@
 //                              so this customizes the Pe-limited tint, not literally "Xmax").
 //               Cursor lines→ --chart-cross + --chart-band-line (the crosshair/level cursor and
 //                              the drag-selection band edges).
-//             "0 dB line" / "-3dB line" are shown disabled: WinISD draws them on its separate
-//             0 dB-normalized "Transfer function magnitude" chart (docs/winisd_screenshots/info/
-//             view_3_ported.md), which OpenISD does not have — OpenISD's 'SPL' tab plots
-//             absolute dB SPL, not a normalized transfer function, so there is no chart these
-//             two colors could correctly apply to yet. Tracked in BACKLOG.md, not fabricated.
+//             "0 dB line" / "-3dB line" colour the 0 dB and -3 dB lines of every chart that
+//             draws them (transfer function, PR transfer function, port gains; 0 dB also on the
+//             filter chain). The chart builder reads them (packages/design/chart/series.ts).
 //   Limits  — WinISD's per-chart-type Start/End/Unit table. "Frequency range" binds directly to
 //             the existing global sweep fmin/fmax (already a real, always-populated field —
 //             this is just another entry point onto it, matching WinISD's own single global
@@ -45,16 +43,19 @@
 //             literally "set this chart's persisted default view", not a parallel concept, and
 //             an untouched row still auto-scales exactly as it does today. The rows are
 //             `LIMIT_ROWS` in OptionsModal-hooks.ts, keyed by `ChartId`.
-import {formatFixedOrDash, NumberField} from '@openisd/design/fields';
-import {reactive, ref} from 'vue';
+import {ImportChoiceText, NumberField, PhoneDialogHelp, PhoneRowColumns} from '@openisd/design/fields';
+import {computed, reactive, ref} from 'vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
-import {LIMIT_ROWS, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
+import {LIMIT_ROWS, type LimitRow, useOptionsModal} from '../../hooks/OptionsModal-hooks.js';
 import {useBackupSettings} from '../../hooks/useBackupSettings.js';
 import {useApp} from '../../logic/app.js';
 import type {ChartId} from '@openisd/design/engine';
-import NumInput from './NumInput.vue';
+import type {ChartColorKey} from '@openisd/design/chart';
+import PhoneDialogPage from './PhoneDialogPage.vue';
 import StorageHistory from './StorageHistory.vue';
-import UnitToggle from './UnitToggle.vue';
+import UIFixedField from './UIFixedField.vue';
+import MobilePaneDialog from '../shells/mobile/MobilePaneDialog.vue';
+import PhoneBand from '../shells/mobile/PhoneBand.vue';
 import {inputValue} from '../../logic/domEvents.js';
 
 const emit = defineEmits<{ close: [] }>();
@@ -63,6 +64,10 @@ function onBackdrop(e: MouseEvent) { if (e.target === e.currentTarget) close(); 
 useEscToClose(() => true, close);
 
 const { confirmPort, presentation: presentationState } = useApp();
+/** The phone draws this dialog as a classic full-screen dialog (PHONE_CLASSIC_BUILD_SPEC row 20); the desktop is unchanged. */
+/** The label column the dialogs' rows use (their labels are longer than a project page's). */
+const DIALOG_COLUMNS = PhoneRowColumns.WIDE_LABEL;
+const phone = computed(() => presentationState.shownSkin() === 'mobile');
 const { resetUnitTokens } = presentationState;
 const { downloadBackup, restoreFromFile } = useBackupSettings();
 const backupFileInput = ref<HTMLInputElement | null>(null);
@@ -102,6 +107,7 @@ const {
   minVolume_m3, maxVolume_m3, minTuning_hz, maxTuning_hz, error: limitsError, limitsAreFactory, resetLimits,
   setFreqRange,
   canApply, apply: applyAppSettings,
+  colorRows, colorDefault,
 } = useOptionsModal();
 
 type Tab = 'General' | 'Plot Window' | 'Your data';
@@ -160,42 +166,18 @@ function saveAndClose() {
   close();
 }
 
-function fmt(n: number | null | undefined, dp: number): string {
-  return formatFixedOrDash(n ?? null, dp);
+function colorValue(key: ChartColorKey): string {
+  return draft.chartColors?.[key] ?? colorDefault(key);
 }
-
-type ColorKey = 'zeroDb' | 'minus3Db' | 'background' | 'otherLines' | 'labels' | 'xmaxLimit' | 'cursor';
-const COLOR_ROWS: { key: ColorKey; label: string }[] = [
-  { key: 'background', label: 'Background' },
-  { key: 'otherLines',  label: 'Other lines' },
-  { key: 'labels',      label: 'Labels' },
-  { key: 'xmaxLimit',   label: 'Xmax limit' },
-  { key: 'cursor',      label: 'Cursor lines' },
-];
-function colorValue(key: ColorKey): string {
-  return draft.chartColors?.[key] ?? defaultColor(key);
-}
-function defaultColor(key: ColorKey): string {
-  switch (key) {
-    case 'zeroDb': return '#000000';
-    case 'minus3Db': return '#808080';
-    case 'background': return '#ffffff';
-    case 'otherLines': return '#3a7bd5';
-    case 'labels': return '#000000';
-    case 'xmaxLimit': return '#ff0000';
-    case 'cursor': return '#2e8b57';
-  }
-}
-function setColor(key: ColorKey, e: Event) {
+function setColor(key: ChartColorKey, e: Event) {
   const v = inputValue(e);
   draft.chartColors[key] = v;
 }
-function clearColor(key: ColorKey) {
+function clearColor(key: ChartColorKey) {
   delete draft.chartColors[key];
 }
 
-function setLimit(chartId: ChartId, key: 'min' | 'max', e: Event) {
-  const v = parseFloat(inputValue(e));
+function setLimit(chartId: ChartId, key: 'min' | 'max', v: number) {
   const cur = draft.yRanges[chartId] ?? { min: NaN, max: NaN };
   draft.yRanges[chartId] = { ...cur, [key]: v };
   // BUG_20261001 options-chart-y-limit-partial-edit-silently-drops: an untouched half was
@@ -217,17 +199,124 @@ function setLimit(chartId: ChartId, key: 'min' | 'max', e: Event) {
 }
 function resetLimit(chartId: ChartId) { delete draft.yRanges[chartId]; }
 function resetFreqRange() { draft.P = { fmin: 10, fmax: 20000 }; onFreqChange(); }
-// A number input's `:value` must never be literally NaN (an unset half of a partial edit) —
-// the DOM emits a console warning ("value 'NaN' cannot be parsed") for that. undefined renders
-// as an empty field instead, so the placeholder (WinISD's default) shows through as intended.
-function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
-  const v = draft.yRanges[chartId]?.[key];
-  return v != null && isFinite(v) ? v : undefined;
+// The number a limit box shows: the draft when it has one, else the row's own default (what an
+// untouched row promises). Never NaN, so the box is never blank.
+function limitShown(row: LimitRow, key: 'min' | 'max'): number {
+  const v = draft.yRanges[row.tab]?.[key];
+  return v != null && isFinite(v) ? v : key === 'min' ? row.start : row.end;
 }
 </script>
 
 <template>
-  <div class="opt-overlay" @click="onBackdrop">
+  <MobilePaneDialog v-if="phone" title="Options" class="opt-phone" @close="close">
+    <template #sub>
+      <div class="opt-phone-tabs" role="tablist">
+        <button v-for="t in (['General', 'Plot Window', 'Your data'] as const)" :key="t" type="button" role="tab" :aria-selected="tab.v === t" :class="{ on: tab.v === t }" @click="tab.v = t">{{ t }}</button>
+      </div>
+      <div v-if="!canApply" class="opt-error opt-phone-error" data-testid="settings-error">{{ limitsError ?? 'The frequency range needs both a start and an end, with the start below the end.' }}</div>
+    </template>
+    <PhoneDialogPage>
+      <template v-if="tab.v === 'General'">
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_USER" />
+        <div class="mob-crow">
+          <label class="mob-crow-label" for="opt-phone-username">Username</label>
+          <input id="opt-phone-username" class="mob-dtext" type="text" v-model="draft.username" placeholder="johnl" autocomplete="off" />
+        </div>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_ENVIRONMENT" />
+        <p class="mob-dhint">The air a project uses for any of these it has not set on its own Advanced tab.</p>
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_TEMP_K" :value="tempK" stepper @update:value="v => tempK = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_HUMIDITY_PCT" :value="humidityPct" stepper @update:value="v => humidityPct = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_PRESSURE_KPA" :value="pressurePa" stepper @update:value="v => pressurePa = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="defaultAir.c" readonly plain />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="defaultAir.rho" readonly plain />
+        <div class="mob-cbtns mob-dbtns-one">
+          <button type="button" data-testid="env-reset" :disabled="envIsFactory" @click="resetEnv">Reset to defaults</button>
+        </div>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_VENTED_LIMITS" />
+        <p class="mob-dhint">
+          A vented design outside these limits is marked. Its numbers are never changed.
+          <button type="button" class="mob-dlink" data-testid="limits-more" :aria-expanded="limitsMoreOpen" @click="limitsMoreOpen = !limitsMoreOpen">More info</button>
+        </p>
+        <div v-if="limitsMoreOpen" class="mob-dhint" role="note" data-testid="limits-more-popup">
+          <p>WinISD does not limit its vented alignments, so it will design a box of any size or tuning.</p>
+          <p>OpenISD gives the same answer, so its results match WinISD.</p>
+          <p>If a design falls outside the limits below, OpenISD shows it exactly as designed and marks it.</p>
+        </div>
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" stepper @update:value="v => minVolume_m3 = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" stepper @update:value="v => minTuning_hz = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" stepper @update:value="v => maxVolume_m3 = v" />
+        <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" label="Max tuning" :field="NumberField.BOX_FB_HZ" :value="maxTuning_hz" stepper @update:value="v => maxTuning_hz = v" />
+        <div class="mob-cbtns mob-dbtns-one">
+          <button type="button" data-testid="settings-reset" :disabled="limitsAreFactory" @click="resetLimits">Reset to defaults</button>
+        </div>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_WINISD_DIFFERENCES" />
+        <label class="mob-dcheck" data-testid="difference-cues">
+          <input type="checkbox" v-model="differenceCuesShown" />
+          <span>Show WinISD difference markers (≠W)</span>
+        </label>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_UNITS" />
+        <div class="mob-cbtns mob-dbtns-one">
+          <button type="button" @click="resetUnitsDraft">Reset to Metric (l, mm, …)</button>
+        </div>
+      </template>
+
+      <template v-else-if="tab.v === 'Plot Window'">
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_COLORS" />
+        <div v-for="row in colorRows" :key="row.key" class="mob-crow mob-dcolor-row">
+          <label class="mob-crow-label" :for="'opt-phone-color-' + row.key">{{ row.label }}</label>
+          <input :id="'opt-phone-color-' + row.key" class="mob-dcolor" type="color" :value="colorValue(row.key)" :aria-label="row.label + ' colour'" @input="setColor(row.key, $event)" />
+          <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" :title="'Back to ' + row.resetWord" @click="clearColor(row.key)">↺</button>
+        </div>
+        <p class="mob-dhint">Each project's curve colour is its coloured square in the ☰ menu.</p>
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_LIMITS" />
+        <div class="mob-dlim-block" role="group" aria-label="Frequency range">
+          <div class="mob-dlim">
+            <span class="mob-crow-label">Frequency range</span>
+            <button type="button" class="mob-dreset" aria-label="Reset Frequency range" title="Back to the default" @click="resetFreqRange()">↺</button>
+          </div>
+          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" input-id="opt-phone-lim-fmin" :field="NumberField.PLOT_FMIN_HZ" :value="draft.P.fmin" stepper @update:value="v => { draft.P.fmin = v; onFreqChange(); }" />
+          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" input-id="opt-phone-lim-fmax" :field="NumberField.PLOT_FMAX_HZ" :value="draft.P.fmax" stepper @update:value="v => { draft.P.fmax = v; onFreqChange(); }" />
+        </div>
+        <div v-for="row in LIMIT_ROWS" :key="row.tab" class="mob-dlim-block" role="group" :aria-label="row.label">
+          <div class="mob-dlim">
+            <span class="mob-crow-label">{{ row.label }}</span>
+            <button type="button" class="mob-dreset" :aria-label="'Reset ' + row.label" title="Back to auto-scale" @click="resetLimit(row.tab)">↺</button>
+          </div>
+          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :input-id="'opt-phone-lim-' + row.tab" :label="row.label + ' start'" :field="row.field" :value="limitShown(row, 'min')" stepper @update:value="v => setLimit(row.tab, 'min', v)" />
+          <UIFixedField class="mob-ui-field" :columns="DIALOG_COLUMNS" :input-id="'opt-phone-lim-' + row.tab + '-max'" :label="row.label + ' end'" :field="row.field" :value="limitShown(row, 'max')" stepper @update:value="v => setLimit(row.tab, 'max', v)" />
+        </div>
+      </template>
+
+      <template v-else>
+        <StorageHistory />
+        <PhoneBand :section="PhoneDialogHelp.OPTIONS_EXPORT_IMPORT" />
+        <p class="mob-dhint">Everything in this browser as one file: projects, My Drivers, My Passive Radiators and settings. The built-in driver catalogue is not included.</p>
+        <div class="mob-cbtns">
+          <button type="button" @click="downloadBackup">Export everything</button>
+          <button type="button" @click="pickBackupFile">Import file…</button>
+        </div>
+        <p class="mob-dhint"><b>{{ ImportChoiceText.LEAD }}</b></p>
+        <label class="mob-dcheck">
+          <input type="radio" name="opt-import-choice" :checked="!replaceEverything" @change="replaceEverything = false" />
+          <span>{{ ImportChoiceText.ADD_LABEL }}</span>
+        </label>
+        <p class="mob-dhint">{{ ImportChoiceText.ADD_LINE }}</p>
+        <label class="mob-dcheck">
+          <input type="radio" name="opt-import-choice" :checked="replaceEverything" @change="replaceEverything = true" />
+          <span>{{ ImportChoiceText.REPLACE_LABEL }}</span>
+        </label>
+        <p class="mob-dhint">{{ ImportChoiceText.REPLACE_LINE }}</p>
+        <input ref="backupFileInput" type="file" accept="application/json,.json" style="display:none" @change="onBackupFile">
+      </template>
+    </PhoneDialogPage>
+    <template #footer>
+      <button type="button" class="mob-dlg-btn" @click="restoreDefaults">Defaults</button>
+      <span class="mob-dlg-spacer"></span>
+      <button type="button" class="mob-dlg-btn pri" data-testid="settings-apply" :disabled="!canApply" :title="canApply ? 'Apply and close' : 'Resolve the error before applying'" @click="saveAndClose">OK</button>
+      <button type="button" class="mob-dlg-btn" @click="close">Cancel</button>
+    </template>
+  </MobilePaneDialog>
+  <div v-else class="opt-overlay" @click="onBackdrop">
     <div class="opt-modal">
       <h2 class="opt-h2">Options<button class="opt-x" @click="close" title="Close">✕</button></h2>
 
@@ -248,35 +337,11 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
             <legend>Environment</legend>
             <p class="opt-help">The air a project uses for any of these it has not set on its own Advanced tab.</p>
             <div class="opt-env-grid">
-              <div class="opt-env-col">
-                <div class="opt-fld">
-                  <label>Temperature</label>
-                  <NumInput class="opt-num" :model-value="tempK" @update:model-value="(v: number | null) => { if (v !== null) tempK = v; }" :field="NumberField.ADV_TEMP_K" :precision="2" />
-                  <UnitToggle :field="NumberField.ADV_TEMP_K" unit-class="opt-unit" />
-                </div>
-                <div class="opt-fld">
-                  <label>Relative humidity</label>
-                  <NumInput class="opt-num" :model-value="humidityPct" @update:model-value="(v: number | null) => { if (v !== null) humidityPct = v; }" :field="NumberField.ADV_HUMIDITY_PCT" :precision="2" />
-                  <UnitToggle :field="NumberField.ADV_HUMIDITY_PCT" unit-class="opt-unit" />
-                </div>
-                <div class="opt-fld">
-                  <label>Air pressure</label>
-                  <NumInput class="opt-num" :model-value="pressurePa" @update:model-value="(v: number | null) => { if (v !== null) pressurePa = v; }" :field="NumberField.ADV_PRESSURE_KPA" :precision="1" />
-                  <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-class="opt-unit" />
-                </div>
-              </div>
-              <div class="opt-env-col opt-env-calculated-col">
-                <div class="opt-fld">
-                  <label>Sound velocity</label>
-                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.c, NumberField.ADV_SOUNDVELOCITY_M_PER_S.precision)" readonly disabled aria-label="Sound velocity, calculated" />
-                  <UnitToggle :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" unit-class="opt-unit" />
-                </div>
-                <div class="opt-fld">
-                  <label>Air density</label>
-                  <input class="opt-num opt-greyed" type="text" :value="fmt(defaultAir.rho, NumberField.ADV_AIRDENSITY_KG_PER_M3.precision)" readonly disabled aria-label="Air density, calculated" />
-                  <UnitToggle :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" unit-class="opt-unit" />
-                </div>
-              </div>
+              <div class="opt-fld"><UIFixedField label="Temperature" :field="NumberField.ADV_TEMP_K" :value="tempK" @update:value="v => tempK = v" /></div>
+              <div class="opt-fld"><UIFixedField label="Relative humidity" :field="NumberField.ADV_HUMIDITY_PCT" :value="humidityPct" @update:value="v => humidityPct = v" /></div>
+              <div class="opt-fld"><UIFixedField label="Air pressure" :field="NumberField.ADV_PRESSURE_KPA" :value="pressurePa" @update:value="v => pressurePa = v" /></div>
+              <div class="opt-fld"><UIFixedField label="Sound velocity" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="defaultAir.c" readonly /></div>
+              <div class="opt-fld"><UIFixedField label="Air density" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="defaultAir.rho" readonly /></div>
             </div>
             <div class="opt-group-actions">
               <button class="opt-reset-btn" data-testid="env-reset" :disabled="envIsFactory" title="Back to the built-in environment: 293.15 K, 30 %, 101325 Pa. Only this fieldset is affected." @click="resetEnv">Reset to defaults</button>
@@ -296,30 +361,10 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
               <button type="button" class="opt-more-btn" @click="limitsMoreOpen = false">Close</button>
             </div>
             <div class="opt-env-grid">
-              <div class="opt-env-col">
-                <div class="opt-fld">
-                  <label>Min box volume</label>
-                  <NumInput id="set-min-volume" class="opt-num" :model-value="minVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) minVolume_m3 = v; }" :field="NumberField.BOX_VB_L" />
-                  <UnitToggle :field="NumberField.BOX_VB_L" unit-class="opt-unit" />
-                </div>
-                <div class="opt-fld">
-                  <label>Min tuning</label>
-                  <NumInput id="set-min-tuning" class="opt-num" :model-value="minTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) minTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" />
-                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="opt-unit" />
-                </div>
-              </div>
-              <div class="opt-env-col">
-                <div class="opt-fld">
-                  <label>Max box volume</label>
-                  <NumInput id="set-max-volume" class="opt-num" :model-value="maxVolume_m3" @update:model-value="(v: number | null) => { if (v !== null) maxVolume_m3 = v; }" :field="NumberField.BOX_VB_L" />
-                  <UnitToggle :field="NumberField.BOX_VB_L" unit-class="opt-unit" />
-                </div>
-                <div class="opt-fld">
-                  <label>Max tuning</label>
-                  <NumInput id="set-max-tuning" class="opt-num" :model-value="maxTuning_hz" @update:model-value="(v: number | null) => { if (v !== null) maxTuning_hz = v; }" :field="NumberField.BOX_FB_HZ" />
-                  <UnitToggle :field="NumberField.BOX_FB_HZ" unit-class="opt-unit" />
-                </div>
-              </div>
+              <div class="opt-fld"><UIFixedField input-id="set-min-volume" label="Min box volume" :field="NumberField.BOX_VB_L" :value="minVolume_m3" @update:value="v => minVolume_m3 = v" /></div>
+              <div class="opt-fld"><UIFixedField input-id="set-min-tuning" label="Min tuning" :field="NumberField.BOX_FB_HZ" :value="minTuning_hz" @update:value="v => minTuning_hz = v" /></div>
+              <div class="opt-fld"><UIFixedField input-id="set-max-volume" label="Max box volume" :field="NumberField.BOX_VB_L" :value="maxVolume_m3" @update:value="v => maxVolume_m3 = v" /></div>
+              <div class="opt-fld"><UIFixedField input-id="set-max-tuning" label="Max tuning" :field="NumberField.BOX_FB_HZ" :value="maxTuning_hz" @update:value="v => maxTuning_hz = v" /></div>
             </div>
             <div v-if="limitsError" class="opt-error">{{ limitsError }}</div>
             <div class="opt-group-actions">
@@ -371,29 +416,10 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
           <fieldset class="opt-group">
             <legend>Colors</legend>
             <div class="opt-color-grid">
-              <div class="opt-color-col">
-                <div class="opt-color-row" title="WinISD's normalized transfer-function zero line; OpenISD has no separate normalized transfer-function chart yet.">
-                  <label>0 dB line</label>
-                  <input type="color" :value="colorValue('zeroDb')" @input="setColor('zeroDb', $event)" />
-                  <button class="opt-clear-btn" title="Reset to black" @click="clearColor('zeroDb')">↺</button>
-                </div>
-                <div class="opt-color-row" title="WinISD's normalized transfer-function -3 dB line; OpenISD has no separate normalized transfer-function chart yet.">
-                  <label>-3dB line</label>
-                  <input type="color" :value="colorValue('minus3Db')" @input="setColor('minus3Db', $event)" />
-                  <button class="opt-clear-btn" title="Reset to grey" @click="clearColor('minus3Db')">↺</button>
-                </div>
-                <div class="opt-color-row" v-for="row in COLOR_ROWS.filter(row => row.key === 'background')" :key="row.key">
-                  <label>{{ row.label }}</label>
-                  <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
-                  <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
-                </div>
-              </div>
-              <div class="opt-color-col">
-                <div class="opt-color-row" v-for="row in COLOR_ROWS.filter(row => row.key !== 'background')" :key="row.key">
-                  <label>{{ row.label }}</label>
-                  <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
-                  <button class="opt-clear-btn" title="Revert to the app's own color" @click="clearColor(row.key)">↺</button>
-                </div>
+              <div class="opt-color-row" v-for="row in colorRows" :key="row.key" :title="row.hint">
+                <label>{{ row.label }}</label>
+                <input type="color" :value="colorValue(row.key)" @input="setColor(row.key, $event)" />
+                <button class="opt-clear-btn" :title="row.hint ? 'Reset to ' + row.resetWord : 'Revert to the app\'s own color'" @click="clearColor(row.key)">↺</button>
               </div>
             </div>
           </fieldset>
@@ -401,20 +427,18 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
           <fieldset class="opt-group">
             <legend>Limits</legend>
             <table class="opt-limits">
-              <thead><tr><th></th><th>Start</th><th>End</th><th>Unit</th><th></th></tr></thead>
+              <thead><tr><th></th><th>Start</th><th>End</th><th></th></tr></thead>
               <tbody>
                 <tr>
                   <td>Frequency range</td>
-                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMIN_HZ.limits" v-model.number="draft.P.fmin" @change="onFreqChange" /></td>
-                  <td><input class="opt-num" type="number" v-limits="NumberField.PLOT_FMAX_HZ.limits" v-model.number="draft.P.fmax" @change="onFreqChange" /></td>
-                  <td>Hz</td>
+                  <td><UIFixedField class="opt-lim-field" label="Frequency range start" :field="NumberField.PLOT_FMIN_HZ" :value="draft.P.fmin" @update:value="v => { draft.P.fmin = v; onFreqChange(); }" /></td>
+                  <td><UIFixedField class="opt-lim-field" label="Frequency range end" :field="NumberField.PLOT_FMAX_HZ" :value="draft.P.fmax" @update:value="v => { draft.P.fmax = v; onFreqChange(); }" /></td>
                   <td><button class="opt-clear-btn" title="Reset to default" @click="resetFreqRange()">↺</button></td>
                 </tr>
                 <tr v-for="row in LIMIT_ROWS" :key="row.tab">
                   <td>{{ row.label }}</td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :value="limitVal(row.tab, 'min') ?? row.start" @change="setLimit(row.tab, 'min', $event)" /></td>
-                  <td><input class="opt-num" type="number" v-limits="{ min: -10000, max: 100000 }" :value="limitVal(row.tab, 'max') ?? row.end" @change="setLimit(row.tab, 'max', $event)" /></td>
-                  <td>{{ row.unit }}</td>
+                  <td><UIFixedField class="opt-lim-field" :label="row.label + ' start'" :field="row.field" :value="limitShown(row, 'min')" @update:value="v => setLimit(row.tab, 'min', v)" /></td>
+                  <td><UIFixedField class="opt-lim-field" :label="row.label + ' end'" :field="row.field" :value="limitShown(row, 'max')" @update:value="v => setLimit(row.tab, 'max', v)" /></td>
                   <td><button class="opt-clear-btn" title="Reset to auto-scale" @click="resetLimit(row.tab)">↺</button></td>
                 </tr>
               </tbody>
@@ -443,7 +467,7 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
    those same class names here would leak the shell's positioning/sizing onto this modal. */
 .opt-overlay { position: fixed; inset: 0; background: rgba(4, 8, 14, 0.66); display: flex;
   align-items: center; justify-content: center; z-index: 200; }
- .opt-modal { width: min(520px, 92vw); max-height: 94vh; display: flex; flex-direction: column;
+ .opt-modal { width: min(560px, 92vw); max-height: 94vh; display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: 9px; overflow: hidden;
   color: var(--fg); }
 .opt-h2 { margin: 0; font-size: 14px; padding: 11px 14px; border-bottom: 1px solid var(--line);
@@ -484,47 +508,37 @@ function limitVal(chartId: ChartId, key: 'min' | 'max'): number | undefined {
 .opt-row label { flex: 0 0 90px; color: var(--mut); }
 .opt-input { flex: 1; padding: 4px 6px; }
 
-/* Two equal columns; every row is label | input | unit with the same widths in both columns, so
-   the inputs and units line up across the whole fieldset. */
-.opt-env-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 12px; }
-.opt-env-col { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.opt-fld { display: grid; grid-template-columns: 100px 80px 1fr; align-items: center; column-gap: 4px;
-  font-size: 12px; min-width: 0; }
-.opt-fld label { color: var(--mut); white-space: nowrap; }
+/* One column of field rows: the three editable and two calculated environment values, or the four
+   vented limits. A field row is wider than the old two-column pair could hold in this dialog. */
+.opt-env-grid { display: flex; flex-direction: column; gap: 6px; }
+.opt-fld { font-size: 12px; min-width: 0; }
 .opt-checkbox-row { grid-column: 1 / -1; }
 .opt-check-label { display: flex; align-items: center; gap: 6px; color: var(--mut); }
-.opt-num,
-.opt-body :deep(.opt-num) { width: 150px; padding: 3px 5px; box-sizing: border-box; }
-.opt-env-grid .opt-num,
-.opt-env-grid :deep(.opt-num) { width: 80px; }
-.opt-greyed { color: var(--mut); }
-.opt-unit { font-size: 11px; color: var(--mut); white-space: nowrap; }
-.opt-fld :deep(.opt-unit) { justify-self: start; }
 
-/* Hide number spinners for environment and limit inputs */
-.opt-body :deep(input::-webkit-outer-spin-button),
-.opt-body :deep(input::-webkit-inner-spin-button) {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.opt-body :deep(input[type="number"]) {
-  -webkit-appearance: none;
-  -moz-appearance: textfield;
-  appearance: none;
-}
-
-.opt-color-grid { display: grid; grid-template-columns: max-content max-content; gap: 14px 30px; }
+.opt-color-grid { display: grid; grid-template-rows: repeat(3, auto); grid-auto-flow: column; grid-auto-columns: max-content; gap: 2px 6px; }
 .opt-color-col { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.opt-color-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.opt-color-row label { flex: 0 0 88px; color: var(--mut); }
-.opt-color-row input[type="color"] { width: 32px; height: 22px; padding: 0; border: 1px solid var(--line); cursor: pointer; }
+.opt-color-row { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+.opt-color-row label { flex: 0 0 84px; white-space: nowrap; color: var(--mut); }
+.opt-color-row input[type="color"] { width: 36px; height: 26px; padding: 0; border: 1px solid var(--line); cursor: pointer; }
 .opt-color-row.opt-disabled input[type="color"] { cursor: not-allowed; opacity: 0.5; }
 .opt-clear-btn { border: 1px solid var(--line); background: var(--panel2); color: var(--mut);
-  cursor: pointer; font-size: 12px; width: 22px; height: 22px; line-height: 1; }
+  cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; }
 
 .opt-limits { width: auto; border-collapse: collapse; font-size: 11px; }
 .opt-limits th, .opt-limits td { padding: 3px 4px; text-align: left; }
+.opt-limits td:first-child { white-space: nowrap; }
 .opt-limits th { color: var(--mut); font-weight: 500; border-bottom: 1px solid var(--line); }
-.opt-limits .opt-num,
-.opt-limits :deep(.opt-num) { width: 70px; }
+/* A chart limit's start or end: the box and ▲▼ and unit only. Its label stays for screen readers
+   but takes no room, and the ⚠ and ≠W slots (never used here) are dropped so a pair fits a row. */
+.opt-limits .opt-lim-field.ui-field { grid-template-columns: 0 var(--ui-value-w) 34px; }
+.opt-lim-field.ui-field { --ctl-h: 20px; column-gap: 0; }
+.opt-lim-field :deep(.ui-field-label) { overflow: hidden; width: 0; }
+.opt-lim-field :deep(.ui-field-dq),
+.opt-lim-field :deep(.ui-field-dev) { display: none; }
+
+/* The phone's tab strip under the title (accepted mock, Options): three equal tabs, 40 px. */
+.opt-phone-tabs { flex: none; display: flex; border-bottom: 1px solid var(--line); background: var(--panel); }
+.opt-phone-tabs button { flex: 1; min-width: 0; height: 40px; border: none; border-bottom: 3px solid transparent; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--mut); white-space: nowrap; cursor: pointer; }
+.opt-phone-tabs button.on { color: var(--acc); border-bottom-color: var(--acc); }
+.opt-phone-error { margin: 0; border-radius: 0; font-size: 13px; padding: 6px 16px; }
 </style>

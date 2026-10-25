@@ -15,6 +15,7 @@ const BELOW_LAST_ROW = 11;
 
 const heights = new Set<number>();
 let tallest = 0;
+const needs: string[] = [];
 
 test.describe.configure({mode: 'serial'});
 
@@ -46,11 +47,12 @@ for (const box of BOX_TYPES) {
       expect(m.down, `${box} tab ${i} scrolls down`).toBe(false);
       heights.add(m.panel);
       tallest = Math.max(tallest, m.need);
+      needs.push(`${box} tab ${i}: ${m.need}`);
     }
   });
 }
 
 test('one height across every box type, no deeper than the tallest tab plus its padding', () => {
   expect([...heights]).toHaveLength(1);
-  expect([...heights][0]).toBeLessThanOrEqual(tallest + BELOW_LAST_ROW);
+  expect([...heights][0], `tallest tabs: ${needs.filter(n => n.endsWith(`: ${tallest}`)).join('; ')}`).toBeLessThanOrEqual(tallest + BELOW_LAST_ROW);
 });

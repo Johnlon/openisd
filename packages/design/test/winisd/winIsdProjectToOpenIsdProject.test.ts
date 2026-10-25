@@ -137,7 +137,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr');
-      assert.equal(errors[0].message, 'sealed box: [Box] Vr is missing or not numeric');
+      assert.equal(errors[0].message, 'Closed box: [Box] Vr is missing or not numeric');
     });
 
     it('reports a clean error when a vented box is missing Vr/Fr', () => {
@@ -147,7 +147,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr/Fr');
-      assert.equal(errors[0].message, 'vented box: [Box] Vr and/or Fr is missing or not numeric');
+      assert.equal(errors[0].message, 'Vented box: [Box] Vr and/or Fr is missing or not numeric');
     });
 
     it('bandpass4 golden imports to a project whose chamber volumes/tuning match the file, [VentFront] Num carries the port count', () => {
@@ -183,7 +183,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr/Vf/Ff');
-      assert.equal(errors[0].message, 'bandpass4 box: [Box] Vr, Vf and/or Ff is missing or not numeric');
+      assert.equal(errors[0].message, '4th Order Bandpass box: [Box] Vr, Vf and/or Ff is missing or not numeric');
     });
 
     it('passive-radiator golden imports to a project whose radiator T/S values match the file', () => {
@@ -216,7 +216,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project, null);
       assert.equal(errors.length, 1);
       assert.equal(errors[0].field, 'Vr/Fr');
-      assert.equal(errors[0].message, 'passive-radiator box: [Box] Vr and/or Fr is missing or not numeric');
+      assert.equal(errors[0].message, 'Passive Radiator box: [Box] Vr and/or Fr is missing or not numeric');
     });
 
     it('imports [Box] T/p/phi into the project\'s environment, entered', () => {
@@ -232,16 +232,17 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project.envHumidityPct.value, 50); // phi is a fraction in the file: 0.5 -> 50%
     });
 
-    it('a file with no [Box] T/p/phi leaves the project\'s environment calculated, at the app default', () => {
+    it('a file with no [Box] T/p/phi leaves the project\'s environment as a new project has it: the app\'s values, entered', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n[Box]\nBType=0\nVr=0.02\n';
       const engine = createEngine();
       const { value: project, errors } = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
       assert.equal(errors.length, 0, JSON.stringify(errors));
       if (!project) throw new Error('expected a project');
-      assert.equal(project.envTempK.calculated, true);
+      assert.equal(project.envTempK.entered, true);
+      assert.equal(project.envTempK.value, engine.environment.appAir.temperature());
     });
 
-    it('a [Box] T/p/phi equal to the app default stays calculated; a differing one is entered', () => {
+    it('a [Box] T/p/phi is entered whether or not it equals the app default', () => {
       const engine = createEngine();
       const {tempK, pressurePa, humidityPct} = engine.environment.defaults();
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
@@ -249,8 +250,8 @@ describe('winIsdProjectToOpenIsdProject', () => {
       const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
       assert.equal(errors.length, 0, JSON.stringify(errors));
       if (!project) throw new Error('expected a project');
-      assert.equal(project.envTempK.calculated, true);
-      assert.equal(project.envHumidityPct.calculated, true);
+      assert.equal(project.envTempK.entered, true);
+      assert.equal(project.envHumidityPct.entered, true);
       assert.equal(project.envPressurePa.entered, true);
       assert.equal(project.envPressurePa.value, pressurePa + 100);
     });
@@ -272,7 +273,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
   });
 
   describe('winIsdProjectToOpenIsdProject — box losses, vent geometry and Rg', () => {
-    it('sealed box: [Box] Qlr/Qar and [SignalSource] Rg import into losses.Ql/Qa and Rs_ohm', () => {
+    it('Closed box: [Box] Qlr/Qar and [SignalSource] Rg import into losses.Ql/Qa and Rs_ohm', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
         + '[Box]\nBType=0\nVr=0.02\nQlr=7\nQar=55\n[SignalSource]\nRg=0.25\n';
       const engine = createEngine();
@@ -298,7 +299,7 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project.Rs_ohm.value, 0.1);
     });
 
-    it('bandpass4 box: rear/front losses, [VentFront] dia1/endcorrection and Rg import exactly', () => {
+    it('4th Order Bandpass box: rear/front losses, [VentFront] dia1/endcorrection and Rg import exactly', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
         + '[Box]\nBType=2\nVr=0.01\nVf=0.02\nFf=60\nQlr=6\nQar=66\nQiclfr=44\nQlf=9\nQaf=88\nQpf=77\n'
         + '[VentFront]\nShape=1\ndia1=0.06\nendcorrection=0.55\n[SignalSource]\nRg=0.33\n';
@@ -344,15 +345,15 @@ describe('winIsdProjectToOpenIsdProject', () => {
       assert.equal(project.Rs_ohm.value, 0.1); // default, Rg absent
     });
 
-    it('[VentRear] Shape other than round: diameter is skipped with a warn, endcorrection still imports', () => {
+    it('[VentRear] Shape neither round nor rectangle: diameter is skipped with a warn, endcorrection still imports', () => {
       const text = '[ProjectInfo]\n[Driver]\nBrand=Test\nModel=Driver\n'
-        + '[Box]\nBType=1\nVr=0.03\nFr=40\n[VentRear]\nShape=2\ndia1=0.09\nendcorrection=0.4\n';
+        + '[Box]\nBType=1\nVr=0.03\nFr=40\n[VentRear]\nShape=3\ndia1=0.09\nendcorrection=0.4\n';
       const engine = createEngine();
       const {value: project, errors} = new WinIsdProjectConverter(engine).winIsdProjectToOpenIsdProject(text);
       if (!project) throw new Error('expected a project: ' + JSON.stringify(errors));
       assert.equal(project.box.vented.vent.endCorrection_m.value, 0.4);
       assert.ok(errors.some((e) => e.level === 'warn' && e.field === 'VentRear Shape'
-        && e.message === 'vent shape 2 not imported: only round vents are read'));
+        && e.message === 'vent shape 3 not imported: WinISD knows only round (1) and rectangular (2) vents'));
     });
 
     it('round-trips a vented project\'s losses, vent diameter/end correction and Rs through .wpr text', () => {

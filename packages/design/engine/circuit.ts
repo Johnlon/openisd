@@ -27,7 +27,6 @@
  */
 
 
-import {solveEnvironment} from './air.js';
 import {hotRe} from './solvers/driverQuantities.js';
 import {cAdd, cDiv, cInv, cMul, cScale, cx} from './complex.js';
 import type {BoxType, Complex, Solution, SweepParams} from './types.js';
@@ -93,7 +92,7 @@ export function hfAsymptotePressure_Pa(drv: CircuitQuantities, P: SweepParams, r
   const BlPush = series ? drv.BL_entered_Tm * n : drv.BL_entered_Tm;
   const pg = P.eg * BlPush / (drv.Sd_m2 * n * Rac);
   const Mas = drv.Mms_kg / (drv.Sd_m2 * drv.Sd_m2) / n;
-  const {rho} = solveEnvironment(P).values;
+  const rho = P.air.rho();
   return rho * pg / (2 * Math.PI * r_m * Mas);
 }
 
@@ -108,7 +107,7 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const eg     = P.eg;
   const Sdt    = drv.Sd_m2 * n;
 
-  const { rho, c } = solveEnvironment(P).values;
+  const rho = P.air.rho(), c = P.air.c();
 
   // Voice coil impedance:
   //   ZcoilAC: resistive only (Re+Rs, Le excluded)
@@ -180,7 +179,12 @@ export function solve(f: number, drv: CircuitQuantities, box: BoxType, P: SweepP
   const Ral = cx(Ql / (w * Cab), 0);
   const Raa = cx(Qa / (w * Cab), 0);
 
-  const loss: BoxLoss = (Ql >= LOSSLESS_LIMIT && Qa >= LOSSLESS_LIMIT) ? 'lossless' : 'winisd-lossy';
+  // WinISD uses one fixed-resistance port form with or without losses, so a vented box with the
+  // transmission-line port model takes the 'winisd-lossy' form even at Ql = Qa = 1e6
+  // (runs/vented-w5-tlports-lossless, 1e-11; bugs/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md).
+  // The other port boxes' lossless branches have no TL capture: they keep today's path.
+  const noLosses = Ql >= LOSSLESS_LIMIT && Qa >= LOSSLESS_LIMIT;
+  const loss: BoxLoss = (noLosses && !(box === 'vented' && P.tlPortModel)) ? 'lossless' : 'winisd-lossy';
 
   // The one place a `BoxType` becomes a topology's own circuit (`./boxes/`, mirroring
   // `../filters/index.ts`'s `filterModel()`).

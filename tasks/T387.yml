@@ -1,0 +1,11 @@
+id: T387
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: dbd487c5478322e963c19e9dd44db91297d773ad
+goal: The 7.0.953 announcement's "More boxes" section says every WinISD box type is supported (John, 18 Oct 2026, "All WinISD boxes supported") instead of presenting 6th-order bandpass and ABC as new; the transmission-line port option is left out until T386 reports.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - docs/ANNOUNCEMENT_7.0.953.md
+  - tasks/T387.yml

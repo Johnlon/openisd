@@ -87,7 +87,7 @@ describe('driveSignal', () => {
       expect(project.powerDrive_W.value).toBeCloseTo((12 * 12) / 6.1, 6);
     });
 
-    it('pre: Re 6, P 10 E, V √61 C | trigger: commit V 9, then commit blank V | post: P 81/6.1 C, V 9 E; then P 1 E, V √6.1 C', () => {
+    it('pre: Re 6, P 10 E, V √61 C | trigger: commit V 9, then commit blank V | post: P 81/6.1 C, V 9 E; then P 81/6.1 E, V 9 C', () => {
       const {project} = createCompleteProject();
       project.driver.specs.Re_ohm.set(6);
       project.powerDrive_W.set(10);
@@ -98,9 +98,9 @@ describe('driveSignal', () => {
       expect(project.driveVoltage_V.entered).toBe(true);
 
       project.driveVoltage_V.clear();
-      expect(project.powerDrive_W.value).toBe(1);
+      expect(project.powerDrive_W.value).toBeCloseTo((9 * 9) / 6.1, 6);
       expect(project.powerDrive_W.entered).toBe(true);
-      expect(project.driveVoltage_V.value).toBeCloseTo(Math.sqrt(6.1), 6);
+      expect(project.driveVoltage_V.value).toBeCloseTo(9, 6);
       expect(project.driveVoltage_V.calculated).toBe(true);
     });
   });

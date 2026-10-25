@@ -1,0 +1,36 @@
+id: T347
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 7b24b9ed1aeea0272e5679767ecd2794230f6e5b
+goal: Sealed alignment picker: the picked Qtc is the entered value, the lossy inverse gives the volume (T329 redone on current main)
+done_test: bash scripts/test.sh packages/ui/test/hooks/SealedAlignment-hooks.test.ts packages/design/test/domain/driver-design-queries.test.ts
+files:
+  - tasks/T347.yml
+  - bugs/BUG_20261016_sealed-alignment-picker-qtc-disagrees-with-box-tab-qtc.md
+  - bugs/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/boxDefaults.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/index.ts
+  - packages/design/domain/openisdTransforms.ts
+  - packages/design/fields/defaults.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/domain/box-starting-values.test.ts
+  - packages/design/test/domain/driver-design-queries.test.ts
+  - packages/design/test/domain/project-builder-starting-values.test.ts
+  - packages/design/test/domain/sealed-triple.test.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/hooks/SealedAlignment-hooks.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/test/hooks/SealedAlignment-hooks.test.ts
+  - packages/ui/test/ui/alignment-popup.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+visual:
+  - desktop-box-sealed
+  - desktop-wizard-sealed-step4
+  - mobile-wizard-sealed-step4

@@ -54,9 +54,22 @@ onMounted(async () => {
         The app does send anonymous usage counts (launches with device type and screen size, which
         charts and features are used, box types opened and saved, which catalogue drivers are picked,
         and errors) to a stats collector. They carry no project data, no account and no raw address.
+        An error also carries which screen and dialog were open, how many projects were open, the box
+        type, the names of your last few actions, the app version and the device type; never project
+        data or values.
         An error report you choose to send also carries the note and contact you type.
       </p>
+      <p>
+        The app sends an anonymous random id with each usage event so we can count returning users.
+        It is not linked to you or your Google account.
+      </p>
       <p>Questions: <a :href="`${REPO_URL}/issues`">open an issue on GitHub</a>.</p>
+    </section>
+    <section id="terms" class="about-terms">
+      <h3>Terms</h3>
+      <p>
+        OpenISD is free to use, as it is, with no warranty. Driver data in the library is collected from makers' and sellers' pages and may be wrong, out of date or mis-read. It is a design aid: check every driver value and any build against the maker's own datasheet before you cut wood. Your projects and drivers are yours and stay on your device or in your own Google Drive. The source is under the <a :href="`${REPO_URL}/blob/main/LICENSE`">MIT licence</a>. We may change or stop the service at any time.
+      </p>
     </section>
     <p class="about-cta about-cta-end">
       <a class="about-open" :href="SITE_URL">Start designing</a>
@@ -84,4 +97,8 @@ onMounted(async () => {
 .about-privacy h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
 .about-privacy p { margin: 0 0 8px; }
 .about-privacy a { color: #4fb0ff; }
+.about-terms { font-size: 13px; line-height: 1.55; color: #c7d3df; }
+.about-terms h3 { font-size: 13px; color: #4fb0ff; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.about-terms p { margin: 0 0 8px; }
+.about-terms a { color: #4fb0ff; }
 </style>

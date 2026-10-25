@@ -18,6 +18,9 @@ import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {MAX_SUPPORTED_TEMP_K, MIN_SUPPORTED_TEMP_K} from '../../engine/air.js';
 import {createEngine} from '../../engine/Engine.js';
+import {FixedAir} from '../../engine/index.js';
+import type {AirValues} from '../../engine/index.js';
+import {REFERENCE_AIR, REFERENCE_CONDITIONS, airOfConditions} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = undefined;
@@ -39,51 +42,44 @@ const ppm = (got: number, expected: number) => Math.abs((got - expected) / expec
 
 /** K, the additive constant of `SPL = K + 10·log₁₀(η₀)`: at η₀ = 1 the log term is 0, so the
  *  engine's own SPL conversion reports K itself. */
-const kDb = (air: { rho: number; c: number }) => engine.driver.splFromEfficiency(1, air);
+const kDb = (air: AirValues) => engine.driver.splFromEfficiency(1, new FixedAir(air));
 
 describe('moist air — ρ and c from T, RH, p', () => {
   it('reproduces WinISD\'s stored c and ρ at 293.15 K / 30 % / 101325 Pa', () => {
-    const { rho, c } = engine.environment.solve({ tempK: T0, humidityPct: RH0, pressurePa: P_ATM }).values;
+    const { rho, c } = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: T0, humidityPct: RH0, pressurePa: P_ATM }).values;
     assert.ok(ppm(c,   WINISD_C)   < 1e-6, `c is ${c} — ${ppm(c, WINISD_C).toFixed(4)} ppm from WinISD's ${WINISD_C}`);
     assert.ok(ppm(rho, WINISD_RHO) < 1e-6, `ρ is ${rho} — ${ppm(rho, WINISD_RHO).toFixed(4)} ppm from WinISD's ${WINISD_RHO}`);
   });
 
   it('satisfies ρ·c² = γ·p exactly — the relation WinISD\'s own files hold to 1.2e-15', () => {
     for (const [T, rh, p] of [[T0, RH0, P_ATM], [303.15, 80, 90000], [278.15, 0, 105000]]) {
-      const { rho, c } = engine.environment.solve({ tempK: T, humidityPct: rh, pressurePa: p }).values;
+      const { rho, c } = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: T, humidityPct: rh, pressurePa: p }).values;
       assert.ok(Math.abs(rho * c * c / (GAMMA * p!) - 1) < 1e-14, `ρc²/γp at ${T} K ${rh} % ${p} Pa`);
     }
   });
 
   it('drier and higher-pressure air is denser; humidity raises c', () => {
-    const dry    = engine.environment.solve({ tempK: T0, humidityPct: 0,   pressurePa: P_ATM }).values;
-    const wet    = engine.environment.solve({ tempK: T0, humidityPct: 100, pressurePa: P_ATM }).values;
-    const high   = engine.environment.solve({ tempK: T0, humidityPct: RH0, pressurePa: 105000 }).values;
-    const low    = engine.environment.solve({ tempK: T0, humidityPct: RH0, pressurePa: 90000 }).values;
+    const dry    = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: T0, humidityPct: 0,   pressurePa: P_ATM }).values;
+    const wet    = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: T0, humidityPct: 100, pressurePa: P_ATM }).values;
+    const high   = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: T0, humidityPct: RH0, pressurePa: 105000 }).values;
+    const low    = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: T0, humidityPct: RH0, pressurePa: 90000 }).values;
     assert.ok(dry.rho > wet.rho);
     assert.ok(high.rho > low.rho);
     assert.ok(wet.c > dry.c);
   });
 
   it('20 °C → 30 °C at 30 % RH moves the SPL constant K by about 0.077 dB', () => {
-    const dK = kDb(engine.environment.solve({ tempK: 303.15, humidityPct: RH0, pressurePa: P_ATM }).values)
-             - kDb(engine.environment.solve({ tempK: T0,     humidityPct: RH0, pressurePa: P_ATM }).values);
+    const dK = kDb(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 303.15, humidityPct: RH0, pressurePa: P_ATM }).values)
+             - kDb(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: T0,     humidityPct: RH0, pressurePa: P_ATM }).values);
     assert.ok(Math.abs(dK) > 0.06 && Math.abs(dK) < 0.09, `ΔK = ${dK} dB — expected the ~0.073 dB order recorded in CALC_FINDINGS`);
   });
 });
 
 describe('airFor — the single entry every sweep and circuit call goes through', () => {
-  it('absent env fields mean 293.15 K / 30 % / 101325 Pa', () => {
-    const a = engine.environment.solve({}).values;
-    const stated = engine.environment.solve({ tempK: T0, humidityPct: RH0, pressurePa: P_ATM }).values;
-    assert.equal(a.rho, stated.rho);
-    assert.equal(a.c,   stated.c);
-  });
-
   it('honours humidity and pressure', () => {
-    const dry  = engine.environment.solve({ humidityPct: 0,   pressurePa: P_ATM }).values;
-    const wet  = engine.environment.solve({ humidityPct: 100, pressurePa: P_ATM }).values;
-    const low  = engine.environment.solve({ humidityPct: RH0, pressurePa: 90000 }).values;
+    const dry  = engine.environment.solve({ ...REFERENCE_CONDITIONS, humidityPct: 0,   pressurePa: P_ATM }).values;
+    const wet  = engine.environment.solve({ ...REFERENCE_CONDITIONS, humidityPct: 100, pressurePa: P_ATM }).values;
+    const low  = engine.environment.solve({ ...REFERENCE_CONDITIONS, humidityPct: RH0, pressurePa: 90000 }).values;
     assert.ok(dry.rho > wet.rho, 'humidity must change ρ');
     assert.ok(low.rho < dry.rho, 'pressure must change ρ');
   });
@@ -136,11 +132,11 @@ describe('airFor — the single entry every sweep and circuit call goes through'
   });
 
   it('varies with humidity, pressure and temperature away from the reference conditions — the engine computes from whatever environment the caller supplies', () => {
-    const atRef = engine.environment.solve({}).values;
-    const humid = engine.environment.solve({ humidityPct: 95, pressurePa: 88000 }).values;
+    const atRef = engine.environment.solve(REFERENCE_CONDITIONS).values;
+    const humid = engine.environment.solve({ ...REFERENCE_CONDITIONS, humidityPct: 95, pressurePa: 88000 }).values;
     assert.notEqual(humid.rho, atRef.rho, 'humidity/pressure must move the result away from the reference conditions');
     assert.notEqual(humid.c,   atRef.c);
-    const hot = engine.environment.solve({ tempK: 303.15 }).values;
+    const hot = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 303.15 }).values;
     assert.ok(hot.rho < atRef.rho && hot.c > atRef.c);
   });
 });
@@ -150,26 +146,26 @@ describe('the sweep actually consumes humidity and pressure', () => {
     Fs_hz: 37, Qts: 0.38, Qes: 0.40, Qms: 7.0, Vas_m3: 0.030, Sd_m2: 0.0133,
     Re_ohm: 5.6, Xmax_m: 0.005, Pe_W: 60,
   };
-  const BASE: SweepParams = { Vb: 0.020, Ql: 7, eg: 2.83, fmin: 20, fmax: 200, N: 40 };
+  const BASE: SweepParams = { Vb: 0.020, Ql: 7, eg: 2.83, fmin: 20, fmax: 200, N: 40, air: REFERENCE_AIR };
   const drv = solveConsistencyGroup(RAW);
   const splAt = (P: SweepParams) => engine.simulation.sweep(sweepDriver(drv), LE_H, 'sealed', P).values!.spl;
   const maxAbsDelta = (a: number[], b: number[]) => Math.max(...a.map((v, i) => Math.abs(v - b[i]!)));
 
   it('changing relative humidity changes SPL — the input is not inert', () => {
-    const d = maxAbsDelta(splAt({ ...BASE, humidityPct: 0 }), splAt({ ...BASE, humidityPct: 100 }));
+    const d = maxAbsDelta(splAt({ ...BASE, air: airOfConditions({ ...REFERENCE_CONDITIONS, humidityPct: 0 }) }), splAt({ ...BASE, air: airOfConditions({ ...REFERENCE_CONDITIONS, humidityPct: 100 }) }));
     assert.ok(d > 1e-4, `humidity moved SPL by ${d} dB — an inert input moves it by 0`);
   });
 
-  it('changing air pressure changes SPL — the input is not inert', () => {
-    const d = maxAbsDelta(splAt({ ...BASE, pressurePa: 90000 }), splAt({ ...BASE, pressurePa: 105000 }));
-    assert.ok(d > 0.1, `pressure moved SPL by ${d} dB`);
+  it('pressure moves SPL only a little: the driver runs on Vas, so box and driver compliance both scale with ρc² and SPL follows c alone', () => {
+    const d = maxAbsDelta(splAt({ ...BASE, air: airOfConditions({ ...REFERENCE_CONDITIONS, pressurePa: 90000 }) }), splAt({ ...BASE, air: airOfConditions({ ...REFERENCE_CONDITIONS, pressurePa: 105000 }) }));
+    assert.ok(d > 1e-4 && d < 0.05, `pressure moved SPL by ${d} dB; expected a small, non-zero move (about 0.004 dB)`);
   });
 });
 
 describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)', () => {
   it('resolves the air and reports no issues in one call', () => {
     const engine = createEngine();
-    const { values, issues } = engine.environment.solve({});
+    const { values, issues } = engine.environment.solve(REFERENCE_CONDITIONS);
     assert.ok(values.rho > 0);
     assert.ok(values.c > 0);
     assert.deepEqual(issues, []);
@@ -177,7 +173,7 @@ describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)'
 
   it('resolves the air and reports the issues together, honouring an entered out-of-range temperature', () => {
     const engine = createEngine();
-    const { values, issues } = engine.environment.solve({ tempK: 100 });
+    const { values, issues } = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 100 });
     assert.ok(values.rho > 0);
     assert.equal(issues.length, 1);
     assert.deepEqual(issues[0].target, 'tempK');
@@ -187,17 +183,17 @@ describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)'
 describe('environmentIssues — out-of-range entered air inputs', () => {
   it('returns no issues for a default-only environment', () => {
     const engine = createEngine();
-    assert.deepEqual(engine.environment.solve({}).issues, []);
+    assert.deepEqual(engine.environment.solve(REFERENCE_CONDITIONS).issues, []);
   });
 
   it('returns no issues for an entered temperature inside the supported range', () => {
     const engine = createEngine();
-    assert.deepEqual(engine.environment.solve({ tempK: 293.15 }).issues, []);
+    assert.deepEqual(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 293.15 }).issues, []);
   });
 
   it('reports a missing-dependencies issue for an entered temperature below the supported range', () => {
     const engine = createEngine();
-    const issues = engine.environment.solve({ tempK: 100 }).issues;
+    const issues = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 100 }).issues;
     assert.equal(issues.length, 1);
     assert.deepEqual(issues[0], engine.issues.missingDependencies('tempK', [{
       formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
@@ -207,7 +203,7 @@ describe('environmentIssues — out-of-range entered air inputs', () => {
 
   it('reports the same shape for an entered temperature above the supported range', () => {
     const engine = createEngine();
-    const issues = engine.environment.solve({ tempK: 500 }).issues;
+    const issues = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 500 }).issues;
     assert.equal(issues.length, 1);
     assert.equal(issues[0].target, 'tempK');
   });

@@ -16,7 +16,7 @@ ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
 W="$SCRATCH/w"
-export OPENISD_RUNTIME_DIR="$SCRATCH/runtime" INTEGRATE_DIR="$SCRATCH/integrate" GATE_LOG="$SCRATCH/gatelog"
+export OPENISD_RUNTIME_DIR="$SCRATCH/runtime" OPENISD_STATE_DIR="$SCRATCH/state" INTEGRATE_DIR="$SCRATCH/integrate" GATE_LOG="$SCRATCH/gatelog"
 
 setup() {
     rm -rf "$W" "$INTEGRATE_DIR" "$GATE_LOG"; mkdir -p "$W" "$GATE_LOG"; cd "$W" || exit 2
@@ -24,7 +24,7 @@ setup() {
     git clone -q origin.git seed 2>/dev/null; cd seed || exit 2
     mkdir -p scripts tasks/fixes gates tests packages/persistence/src
     cp "$REPO/scripts/integrate.sh" "$REPO/scripts/paths.sh" scripts/
-    cp -r "$REPO/scripts/land" scripts/
+    cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     for g in lint typecheck unit; do printf '#!/usr/bin/env bash\nexit 0\n' > "gates/$g.sh"; done
     cat > gates/attribution.sh <<'STUB'
 #!/usr/bin/env bash
@@ -40,6 +40,8 @@ STUB
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
 UNIT_CMD="bash gates/unit.sh"
+ARCHITECTURE_CMD="true"
+CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=20
 LAND_LOCK="$SCRATCH/land.lock"

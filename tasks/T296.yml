@@ -1,0 +1,14 @@
+id: T296
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 85b5e42e9757ca95fa1cbf949db84b2fc6d339a9
+goal: F52: browser fixture closes route handlers on a page that is still open
+done_test: bash scripts/test.sh packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
+files:
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
+  - tasks/fixes/F52.yml
+  - tasks/T296.yml
+label: fixes

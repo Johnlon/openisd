@@ -1,0 +1,46 @@
+id: T211
+release_note: 'Clearing a box volume or a loss Q puts back a sensible value; an empty filter box is marked red.'
+repo: openisd
+owner: maryu
+status: done
+landed: ff8d066792ee99c35bedbe309f94d54949063982
+goal: A cleared box volume settles to the alignment volume, a cleared Ql/Qa/Qp/Qicl to the WinISD default; boxes allowed to stay empty are marked red while empty
+done_test: bash scripts/test.sh packages/design/test/domain/box-clear-settles.test.ts
+files:
+  - bugs/BUG_20261009_pr-added-mass-can-be-cleared-to-blank.md
+  - packages/design/domain/box/abcBox.ts
+  - packages/design/domain/box/bandpass4Box.ts
+  - packages/design/domain/box/bandpass6Box.ts
+  - packages/design/domain/box/box.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/sealedLossesWindow.ts
+  - packages/design/domain/box/ventedChamberWindow.ts
+  - packages/design/domain/box/ventedLossesWindow.ts
+  - packages/design/domain/losses.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/domain/box-clear-settles.test.ts
+  - packages/design/test/fields/field-methods.test.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/filters/AllpassEditor.vue
+  - packages/ui/src/ui/shells/original/filters/LinkwitzTransformEditor.vue
+  - packages/ui/src/ui/shells/original/filters/ParametricEqEditor.vue
+  - packages/ui/src/ui/shells/original/filters/PassFilterEditor.vue
+  - packages/ui/src/ui/shells/original/filters/PeakHighpassEditor.vue
+  - packages/ui/src/ui/shells/original/filters/RaisedCosineEditor.vue
+  - packages/ui/src/ui/shells/original/filters/ShelfEditor.vue
+  - packages/ui/src/ui/shells/original/filters/StaticGainEditor.vue
+  - packages/ui/test/ui/box-losses-popup.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - tasks/T211.yml
+  - packages/ui/test/logic/sweepCache.test.ts
+  - packages/design/test/domain/project-sweep-plan.test.ts
+  - packages/design/test/domain/project-sweep.test.ts

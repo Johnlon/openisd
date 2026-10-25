@@ -18,6 +18,7 @@ import {
   FILTER_BW_LIMITS, FILTER_FC_LIMITS, FILTER_GAIN_LIMITS, FILTER_ORDER_LIMITS, FILTER_Q_LIMITS,
   FILTER_T_LIMITS, LINKWITZ_RILEY_ORDER_LIMITS, type FieldLimits,
 } from '../../fields/filterLimits.js';
+import {integerSpin, type FieldSpin} from '../../fields/field.js';
 import {clamp, roundClamp} from './limits.js';
 import {LinkwitzRileyFamily} from './passFamilies/LinkwitzRileyFamily.js';
 
@@ -25,8 +26,8 @@ import {LinkwitzRileyFamily} from './passFamilies/LinkwitzRileyFamily.js';
 export interface PassOrderEntry {
   /** The entry range. */
   readonly limits: FieldLimits;
-  /** The spinner step. */
-  readonly step: number;
+  /** The spinner rule: whole numbers, 2 at a time for even-only orders. */
+  readonly spin: FieldSpin;
   /** False where the family has one order only (User SOS); the box is shown greyed out. */
   readonly editable: boolean;
   /** The box's tooltip. */
@@ -34,15 +35,15 @@ export interface PassOrderEntry {
 }
 
 const ORDER_ANY: PassOrderEntry = Object.freeze({
-  limits: FILTER_ORDER_LIMITS, step: 1, editable: true,
+  limits: FILTER_ORDER_LIMITS, spin: integerSpin(1), editable: true,
   title: 'Filter order: 1st order = 6 dB/oct, 2nd = 12 dB/oct, 4th = 24 dB/oct. Up to 20.',
 });
 const ORDER_LINKWITZ_RILEY: PassOrderEntry = Object.freeze({
-  limits: LINKWITZ_RILEY_ORDER_LIMITS, step: 2, editable: true,
+  limits: LINKWITZ_RILEY_ORDER_LIMITS, spin: integerSpin(2), editable: true,
   title: 'Linkwitz-Riley order: even orders only, 2 to 20 (Butterworth of half the order, squared).',
 });
 const ORDER_SOS: PassOrderEntry = Object.freeze({
-  limits: FILTER_ORDER_LIMITS, step: 1, editable: false,
+  limits: FILTER_ORDER_LIMITS, spin: integerSpin(1), editable: false,
   title: 'A user second-order section is order 2 by definition; its order is not used.',
 });
 

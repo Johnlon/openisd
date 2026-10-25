@@ -16,6 +16,8 @@ export interface IgnoredInputFix {
   readonly kind: 'ignoredInput';
   /** The charts and readouts the ignored input shows in. */
   readonly seenIn: string;
+  /** What to do to see WinISD's result, in plain words. */
+  readonly remedy: string;
 }
 
 export type WinisdDeviationFix = ErrorSwitchFix | IgnoredInputFix;
@@ -137,12 +139,57 @@ export class WinisdDeviation {
     charts: ['GD'],
   });
 
+  static readonly TL_PORT_END_CORRECTION = new WinisdDeviation({
+    title: 'WinISD\'s transmission line port tunes the box higher',
+    winisd: 'With "Use transmission line model" ticked, WinISD builds the port as a pipe without the port\'s end correction. The pipe is lighter than the Fb mass, so the bass tuning rises, while the Box tab still says Fb. The option also shows the port\'s own pipe notes, peaks and dips a few hundred Hz up. Use it to check that a long port does not put a note in the midrange.',
+    openisd: 'OpenISD keeps the end correction, so the pipe tunes at the Fb on the Box tab. The pipe notes are still shown.',
+    size: 'W5-1138SMF, Fb 38 Hz: the impedance minimum is 40.3 Hz in WinISD, 38.7 Hz in OpenISD, and 39.1 Hz with the option off.',
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDTLPORTNOENDCORRECTION, switchOf: s => s.tlPortEndCorrection},
+    charts: [],
+  });
+
   static readonly DRIVER_COUNT = new WinisdDeviation({
     title: 'WinISD shows one driver\'s impedance',
     winisd: 'With more than one driver, WinISD\'s impedance chart shows the impedance of one driver, not of all the drivers the amplifier drives. Its SPL, VA and maximum power charts do show all the drivers.',
     openisd: 'OpenISD shows the impedance of all the drivers, wired in series or parallel as the project says.',
     size: 'W5-1138SMF, sealed, 4 drivers: WinISD peaks at 18.6 Ω, the same as one driver. Wired in parallel, the amplifier sees 4.65 Ω.',
     fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDDRIVERCOUNTMODEL, switchOf: s => s.driverCount},
+    charts: [],
+  });
+
+  static readonly SEALED_PICKER = new WinisdDeviation({
+    title: 'WinISD\'s sealed picker gives a different volume',
+    winisd: 'WinISD picks a different volume here: it leaves out box leakage and uses a fixed Rg of 0.1 Ω and Qa of 100, so its Box tab then shows a Qtc a little off the one you picked.',
+    openisd: 'OpenISD gives the volume at which the Box tab shows the Qtc you picked. It counts the project\'s Rg and every box loss.',
+    size: 'W5-1138SMF (Qts 0.49, Vas 4.85 L), Ql 10: Qtc 0.800 picked gives 3.13 L in WinISD, and its Box tab shows 0.787. OpenISD gives 2.96 L, and the Box tab shows 0.800.',
+    fix: {kind: 'errorSwitch', switchField: ToggleField.ADV_WINISDSEALEDPICKER, switchOf: s => s.sealedPicker},
+    charts: [],
+  });
+
+  static readonly CLOSED_BOX_TYPING = new WinisdDeviation({
+    title: 'WinISD lets you type only the volume of a closed box',
+    winisd: 'On a closed box, WinISD lets you type only the volume. Fsc is greyed out and Qtc is a plain readout, both worked out from the volume.',
+    openisd: 'OpenISD lets you type Fsc or Qtc as well. What you type is kept as typed, and the volume and the other value are worked out from it.',
+    size: 'No chart differs: the same box gives the same curves. Only what you can type differs.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Fsc and Qtc fields on the Box tab of a closed box.', remedy: 'WinISD has no way to type these, so OpenISD has no switch to copy it. Type the volume to work the way WinISD does.'},
+    charts: [],
+  });
+
+  static readonly PR_BOX_TUNING = new WinisdDeviation({
+    title: 'WinISD lets you type the passive radiator tuning only on the Passive Radiator tab',
+    winisd: 'On the Box tab of a passive radiator box, WinISD greys out Fh. You set the tuning by adding mass on the Passive Radiator tab.',
+    openisd: 'OpenISD lets you type the tuning on the Box tab as well. It is the same value as the tuning on the Passive Radiator tab, and the added mass is worked out from it.',
+    size: 'No chart differs: the same box gives the same curves. Only what you can type differs.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Fh field on the Box tab of a passive radiator box.', remedy: 'WinISD has no way to type this, so OpenISD has no switch to copy it. Type the added mass on the Passive Radiator tab to work the way WinISD does.'},
+    charts: [],
+  });
+
+  static readonly PR_MMS_CMS_TYPING = new WinisdDeviation({
+    title: 'WinISD has no Mms or Cms on the Passive Radiator tab',
+    winisd: 'WinISD takes the passive radiator as Vas, Fs, Qms, Sd and Xmax. It works Mms and Cms out from them and shows neither.',
+    openisd: 'OpenISD shows Mms and Cms, and lets you type them, as a datasheet gives them. Vas and Fs are then worked out from them.',
+    size: 'No chart differs: the same radiator gives the same curves. Only what you can type differs.',
+    fix: {kind: 'ignoredInput', seenIn: 'the Mms and Cms fields on the Passive Radiator tab.', remedy: 'WinISD has no way to type these, so OpenISD has no switch to copy it. Type Vas and Fs to work the way WinISD does.'},
     charts: [],
   });
 
@@ -165,7 +212,7 @@ function seenInOf(fix: WinisdDeviationFix): string {
 function remedyOf(fix: WinisdDeviationFix): string {
   switch (fix.kind) {
     case 'errorSwitch': return `Tick "${fix.switchField.label}" under Enable WinISD bugs (Advanced) to bring WinISD's behaviour back.`;
-    case 'ignoredInput': return 'WinISD ignores this input, so OpenISD has no switch to copy it. Set the value WinISD draws to see WinISD\'s result.';
+    case 'ignoredInput': return fix.remedy;
   }
 }
 
@@ -188,7 +235,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     winisd: 'WinISD draws an allpass filter of order 3 or more exactly as order 2: one 2nd-order section with ω0 = 2/t and a delay of t/Q.',
     openisd: 'OpenISD uses the order you set. Above order 2 it draws a Bessel allpass of that order with a delay of t. The delay stays flat to a higher frequency as the order rises. Q is not used there. Orders 1 and 2 are the same as in WinISD.',
     size: 't 3 ms, Q 0.6, order 4: WinISD delays 5.0 ms (as order 2), OpenISD 3.0 ms.',
-    fix: {kind: 'ignoredInput', seenIn: 'allpass filters of order 3 or more in the EQ/Filter chain. The EQ/Filter phase and group delay charts change, and so do the phase and group delay of every chart the filter feeds. The magnitude is flat either way.'},
+    fix: {kind: 'ignoredInput', seenIn: 'allpass filters of order 3 or more in the EQ/Filter chain. The EQ/Filter phase and group delay charts change, and so do the phase and group delay of every chart the filter feeds. The magnitude is flat either way.', remedy: 'WinISD ignores this input, so OpenISD has no switch to copy it. Set the value WinISD draws to see WinISD\'s result.'},
     charts: [],
     concerns: f => f.type === 'allpass',
   });
@@ -198,7 +245,7 @@ export class WinisdFilterDeviation extends WinisdDeviation {
     winisd: 'WinISD always draws a 4th-order Linkwitz-Riley filter, whatever the Order box says. A typed 2 or 6 reopens as 4.',
     openisd: 'OpenISD uses the order you set. A Linkwitz-Riley filter of even order n is two Butterworth filters of order n/2 in a row.',
     size: 'Low-pass, one octave above fc: LR2 −7.0 dB, LR4 (WinISD) −24.6 dB. Phase at fc: −90° against −180°.',
-    fix: {kind: 'ignoredInput', seenIn: 'Linkwitz-Riley low-pass and high-pass filters whose order is not 4. The three EQ/Filter charts change, and so does every chart the filter feeds (SPL, Cone excursion, port velocities).'},
+    fix: {kind: 'ignoredInput', seenIn: 'Linkwitz-Riley low-pass and high-pass filters whose order is not 4. The three EQ/Filter charts change, and so does every chart the filter feeds (SPL, Cone excursion, port velocities).', remedy: 'WinISD ignores this input, so OpenISD has no switch to copy it. Set the value WinISD draws to see WinISD\'s result.'},
     charts: [],
     concerns: f => (f.type === 'lowpass' || f.type === 'highpass') && f.family === 'linkwitzRiley',
   });

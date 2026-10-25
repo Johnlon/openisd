@@ -1,0 +1,14 @@
+id: T538
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: 3336b07844431589ee702a5b3e2805878ae83adf
+goal: land.sh carries on in the same run when an open pull request is already on its land/<task> branch (left by a run that died or was refused): pr.sh reuses it, with a logged line, instead of refusing.
+done_test: bash scripts/land/test/land-pull-request.e2e.test.sh
+files:
+  - tasks/T538.yml
+  - scripts/land.sh
+  - scripts/land/pr.sh
+  - scripts/land/test/land-pull-request.e2e.test.sh
+  - scripts/land/test/land-network-bound.e2e.test.sh

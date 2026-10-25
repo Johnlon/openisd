@@ -9,6 +9,7 @@ import type {OpenISDDriver, OpenISDPassiveRadiatorStandalone, Readable} from '@o
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 import {Chip, DriverType} from '@openisd/design/filter';
 import {NumberField} from '@openisd/design/fields';
+import {DriverScope} from '../driverScope.js';
 
 /** One row of the preview pane's spec table. `value` is already formatted for display. */
 export interface PreviewSpec { label: string; value: string | null; unit?: string }
@@ -151,6 +152,40 @@ export function matchesCriteria(subject: SearchSubject, c: SearchCriteria): bool
 
   if (c.favoritesOnly && !c.favorites.includes(subject.id)) return false;
   return true;
+}
+
+/** A min–max box pair in words: "Fs 20–40 Hz", "Fs ≥ 20 Hz", "Fs ≤ 40 Hz", or null when both are empty. */
+function rangeLabel(name: string, min: string, max: string, unit: string): string | null {
+  const lo = min.trim(), hi = max.trim();
+  if (lo && hi) return `${name} ${lo}–${hi} ${unit}`;
+  if (lo) return `${name} ≥ ${lo} ${unit}`;
+  if (hi) return `${name} ≤ ${hi} ${unit}`;
+  return null;
+}
+
+/**
+ * Every filter that is on, in words, in the order the filter bar shows them. The list keeps its filters
+ * between openings, so it must say which are on: an empty list with no hint is the bug this answers
+ * (John, 17 Oct 2026). The scope counts when it is not All, since it narrows the list like any filter.
+ */
+export function activeFilterLabels(c: SearchCriteria, scope: DriverScope): string[] {
+  const labels: string[] = [];
+  const query = c.query.trim();
+  if (query) labels.push(`"${query}"`);
+  for (const chip of Chip.ALL) {
+    const state = c.typeStates[chip.value];
+    if (state === 'include') labels.push(chip.label);
+    else if (state === 'exclude') labels.push(`not ${chip.label}`);
+  }
+  // The filter boxes take Fs in its base unit (Hz) and Sd in cm² (`matchesCriteria`); the labels name those units.
+  const fs = rangeLabel('Fs', c.fsMin, c.fsMax, NumberField.FS_HZ.unitLabel());
+  if (fs) labels.push(fs);
+  const sd = rangeLabel('Sd', c.sdMin, c.sdMax, NumberField.SD_M2.unitLabel('cm2'));
+  if (sd) labels.push(sd);
+  if (c.selZ.length) labels.push(`Z ${c.selZ.map(z => `${z}${NumberField.ZNOM_OHM.unitLabel()}`).join(' or ')}`);
+  if (scope !== DriverScope.All) labels.push(`${scope.label} only`);
+  if (c.favoritesOnly) labels.push('Favorites');
+  return labels;
 }
 
 /** Whether a driver has missing core T/S fields or non-positive values that indicate DQ issues. */

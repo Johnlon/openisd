@@ -17,11 +17,10 @@
 import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
-import {createProjectBinView} from './projectBinView.js';
+import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
 import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
-import {formatDateStamp, parseDateStamp} from '../logic/dateDisplay.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, FrequencyAxis, interpolatedY, TAB_META} from '@openisd/design/chart';
 import {ChartSelection, type ChartItem} from './chartSelection.js';
@@ -29,32 +28,36 @@ import {chartColumnsFit, CHARTS_HIGH_OPTIONS, ORIGINAL_CHARTS_HIGH} from './char
 import {offeredChartsHigh, useChartStack} from './chartStack.js';
 import {createToneGenerator, type ToneGenerator} from '../logic/toneGenerator.js';
 import {useApp} from '../logic/app.js';
-import {useFeatureUse} from './telemetryContext.js';
+import {useFeatureUse, useRecentActions} from './telemetryContext.js';
+import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, END_CORRECTION_OPTIONS, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
+import {createAppUpdateUi} from './appUpdateUi.js';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
-import type {Calculated, Clearable, Entered, OpenISDProject, Readable, Writable} from '@openisd/design';
+import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
 import type {DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
 import {createErrorSwitches} from './errorSwitches.js';
-import type {ChartId, EnvDefaults, EnvironmentEngine} from '@openisd/design/engine';
+import type {ChartId} from '@openisd/design/engine';
 import {useCompareOverlays} from './compareOverlays.js';
-import {useCloudSyncUi} from './CloudSync-hooks.js';
+import {projectCloudMarks, useCloudSync, useCloudSyncUi} from './CloudSync-hooks.js';
 import type {ConflictCopy} from '@openisd/design/cloud';
 import {CLOUD_SYNC_MENU_LABEL, DriverId, ProjectId} from '@openisd/design/cloud';
 
-export type AirField = 'temperature' | 'humidity' | 'pressure';
+export type AirField = 'temperature' | 'humidity' | 'pressure' | 'soundVelocity' | 'airDensity';
 
 const AIR_FIELD_LIMITS: Readonly<Record<AirField, { min: number; max: number; label: string }>> = {
   temperature: { min: 0, max: 400, label: 'Temperature' },
   humidity: { min: 0, max: 100, label: 'Relative humidity' },
   pressure: { min: 1000, max: 200000, label: 'Air pressure' },
+  soundVelocity: { min: 0, max: 1000, label: 'Sound velocity' },
+  airDensity: { min: 0, max: 10, label: 'Air density' },
 };
 
 export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
@@ -87,20 +90,18 @@ export function fillBlankMeta(p: OpenISDProject, username: string | null, today:
 }
 
 // ---- Advanced tab: environment ------------------------------------------------
-// The app default flows through whenever the project has no value of its own. The FIELD then
-// presents as a CALCULATED value (blue, `calculated`) — never as green "entered" and never as
-// blank; typing a value turns it green "entered", and deleting it drops the stored value back
-// to that calculated default. The `*Stored` flags drive the two presentations.
+// A value the project has no way to calculate from the others takes the app's value, and the
+// FIELD then presents as a CALCULATED value (blue, `calculated`) — never as green "entered" and
+// never as blank; typing a value turns it green "entered", and deleting it just empties it, for
+// the air solver to fill again. The `*Stored` flags drive the two presentations.
 export interface EnvironmentAirDeps {
   project: ComputedRef<OpenISDProject>;
   projectChanged: Ref<number>;
-  envDefaults: () => EnvDefaults;
-  environment: EnvironmentEngine;
 }
 
 type EnvField = Readable<number | null> & Entered & Calculated & Writable<number> & Clearable;
 
-export function createEnvironmentAir({ project, projectChanged: changed, envDefaults, environment }: EnvironmentAirDeps) {
+export function createEnvironmentAir({ project, projectChanged: changed }: EnvironmentAirDeps) {
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
@@ -123,32 +124,46 @@ export function createEnvironmentAir({ project, projectChanged: changed, envDefa
   const advTemp = entryOf(temp);
   const advHumidity = entryOf(humidity);
   const advPressure = entryOf(pressure);
+  const soundVelocity = () => project.value.envC_m_per_s;
+  const airDensity = () => project.value.envRoo_kg_per_m3;
+  const advSoundVelocity = entryOf(soundVelocity);
+  const advAirDensity = entryOf(airDensity);
+  /** Empties all five air fields: the air solver fills each from the app's levels again. */
   function resetAirToAppDefaults(): void {
-    const defaults = envDefaults();
-    temp().set(defaults.tempK);
-    humidity().set(defaults.humidityPct);
-    pressure().set(defaults.pressurePa);
+    project.value.clearAir();
   }
   /** The air the sweep is actually running in — one call, both readouts. */
   const advAir = computed(() => {
     void project.value;
     void changed.value;
-    return environment.solve({
-      tempK: advTemp.value ?? undefined, humidityPct: advHumidity.value ?? undefined, pressurePa: advPressure.value ?? undefined,
-    }).values;
+    const {envC_m_per_s, envRoo_kg_per_m3} = project.value;
+    return {c: envC_m_per_s.value, rho: envRoo_kg_per_m3.value};
   });
   return {
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
+    envSoundVelocityStored: storedOf(soundVelocity), envAirDensityStored: storedOf(airDensity),
     envTempDq: dqOf('temperature', temp), envHumidityDq: dqOf('humidity', humidity), envPressureDq: dqOf('pressure', pressure),
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityDq: dqOf('soundVelocity', soundVelocity), envAirDensityDq: dqOf('airDensity', airDensity),
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
   };
 }
 
+const TAB_ACTIONS: Record<TabId, ActionName> = {
+  box: 'tab:box',
+  driver: 'tab:driver',
+  enclosure: 'tab:enclosure',
+  filters: 'tab:filters',
+  signal: 'tab:signal',
+  advanced: 'tab:advanced',
+  project: 'tab:project',
+};
+
 // ---- The shell's one hook -----------------------------------------------------
 export function useOriginalShell(options?: { sealedReadouts?: typeof createSealedReadouts }) {
+  const recentActions = useRecentActions();
   const { appState, presentation: presentationState } = useApp();
-  const { definePassiveRadiator, isTraceVisible, setTraceVisible, allIssues, IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, copyProjectName, curvesData, driverName, duplicateFocusedProject, envDefaults, focusedProject, focusProject, isModified, markProjectSaved, maxData, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround, syncedP } = appState;
+  const { definePassiveRadiator, isTraceVisible, setTraceVisible, allIssues, IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, copyProjectName, curvesData, driverName, duplicateFocusedProject, focusedProject, focusProject, isModified, markProjectSaved, maxData, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround, syncedP } = appState;
   const { setSkinOverride } = presentationState;
   const sealedReadouts = options?.sealedReadouts ?? createSealedReadouts;
 
@@ -158,13 +173,16 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // sourced from `appState.ts`'s own focus-aware `live` bridge.
   const project = useFocusedProject();
 
-  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort } = useApp();
-  const { saveProject, saveAllProjects, importFile } = designIO;
+  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort, appUpdate } = useApp();
+  const { saveProject, saveAllProjects, saveProjectAs, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
   // `App.vue`'s `activeSkin` (`presentationState.narrowViewport`), which this override beats.
   function switchToMobile(): void { setSkinOverride('mobile'); }
+  // Back to choosing the skin from the window width, as at first start.
+  function useAutomaticSkin(): void { setSkinOverride(null); }
+  const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);
   const { projectRepo, projectBin } = useApp();
   const { editProjectDriver } = selection;
 
@@ -207,6 +225,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const sealedAlignmentEditor = new SealedAlignmentEditor(project, projectChanged, engine.sealed, engine.driver);
   const originalFilters = new OriginalFilters(project, projectChanged, engine.filters);
   const sealedAlignmentOpen = sealedAlignmentEditor.open;
+  const sealedAlignmentDeviationShown = sealedAlignmentEditor.deviationShown;
   const sealedAlignmentOptions = sealedAlignmentEditor.options;
   const sealedAlignmentSelected = sealedAlignmentEditor.selectedOption;
   const sealedAlignmentVolume_m3 = sealedAlignmentEditor.volume_m3;
@@ -220,7 +239,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const ventedAlignmentOpen = ventedAlignmentEditor.open;
   const ventedAlignmentOptions = ventedAlignmentEditor.options;
   const ventedAlignmentSelected = ventedAlignmentEditor.selectedAlignment;
-  const ventedAlignmentVolume_L = ventedAlignmentEditor.volume_L;
+  const ventedAlignmentVolume_m3 = ventedAlignmentEditor.volume_m3;
   const ventedAlignmentTuning_hz = ventedAlignmentEditor.tuning_hz;
   const ventedAlignmentEbp = ventedAlignmentEditor.ebp;
   const ventedAlignmentSuitability = ventedAlignmentEditor.ebpSuitability;
@@ -228,7 +247,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // Box-type-generic rear-chamber volume (WinISD "Vb") — the Box tab's single "Volume" field
   // dispatches through the unit-tested `createBoxVolume` (`boxFields.ts`).
-  const { boxVolumeCell } = createBoxVolume({ project, selectedBox, projectChanged });
+  const { boxVolumeCell, sealedFscCell, sealedQtcCell } = createBoxVolume({ project, selectedBox, projectChanged });
   // Front-chamber volume (WinISD "Vf"), rear-chamber tuning (WinISD "Frc") and the box-level
   // losses: which field each box type has is the box's own knowledge (`Box.frontVolumeOf`,
   // `rearTuningOf`, `lossGroupsOf`); this reads and writes whatever it hands back.
@@ -242,9 +261,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       cancelLabel: 'Keep',
     });
   }
-  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, so the call sits
-  // just after `createEnvironmentAir` below, but the destructured names read the same everywhere
-  // this file used to declare them inline.
+  // Delegated to the unit-tested `createVentReadouts` above; the call sits with the Enclosure tab
+  // hooks below.
 
   // ---- Chart selector ------------------------------------------------------------
   // Clicking a menu label shows that chart alone and closes the menu; its checkbox opens or
@@ -293,26 +311,39 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }, { immediate: true });
 
   // ---- Document-level click: any click outside a menu closes the open dropdown ----
-  onMounted(() => document.addEventListener('click', onDocClick));
+  onMounted(() => {
+    document.addEventListener('click', onDocClick);
+    binView.refresh();
+  });
   onUnmounted(() => document.removeEventListener('click', onDocClick));
 
   // toolbar file input (Open…)
   const fileInput = ref<HTMLInputElement | null>(null);
-  const openDialogOpen = ref(false);
+  const openDialogOpen = computed<boolean>({
+    get: () => presentationState.openDialogOpen,
+    set: (v: boolean) => { presentationState.openDialogOpen = v; },
+  });
+  const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
     appState, projectRepo, projectBin, confirm: confirmPort.port,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
+    cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
-  const {storedProjects, shownProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
+  const projectListRef = ref<{ focusSearchOrList(): void } | null>(null);
   function openClick() {
-    binView.refresh();
+    recentActions.record('dialog:open-project');
+    navCollapsed.value = false;
     binOpen.value = false;
-    openDialogOpen.value = true;
+    binView.refresh();
+    projectListRef.value?.focusSearchOrList();
   }
+  watch(() => presentationState.projectsRequests, openClick);
   function openFromDisk() {
+    recentActions.record('open-project');
     openDialogOpen.value = false;
-    void designIO.openFromDisk(() => fileInput.value?.click());
+    void designIO.openFromDisk(() => fileInput.value?.click()).then(() => binView.refresh());
   }
   function openStoredProject(id: string) {
     const result = openStoredProjectFromStore(appState, projectRepo, id);
@@ -322,11 +353,64 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     }
     openDialogOpen.value = false;
   }
+  /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
+  function chooseProject(row: ProjectListRow): void {
+    recentActions.record('open-project');
+    openStoredProject(row.handle.id);
+  }
+  function duplicateProject(row: ProjectListRow): void {
+    chooseProject(row);
+    copyCurrentProject();
+  }
+  function exportProject(row: ProjectListRow): void {
+    chooseProject(row);
+    void saveProjectAs();
+  }
+  function cycleProjectColor(p: OpenISDProject): void {
+    cycleTraceColor(p);
+  }
+  function renameProject(row: ProjectListRow, newName: string): void {
+    const trimmed = newName.trim();
+    if (trimmed === '') return;
+    const handle = row.handle;
+    let proj: OpenISDProject | null = null;
+    if (handle.open !== null) {
+      proj = handle.open;
+    } else {
+      const result = openStoredProjectFromStore(appState, projectRepo, handle.id);
+      if (result.kind === 'refused') {
+        alert('Could not open the saved project: ' + result.errors.join('; '));
+        return;
+      }
+      proj = appState.focusedProject();
+    }
+    if (proj !== null) {
+      proj.name.set(trimmed);
+      const idx = appState.openProjects().indexOf(proj);
+      if (idx >= 0 && appState.focusedProject() !== proj) {
+        appState.focusProject(idx);
+      }
+    }
+  }
+  async function handleSaveProject(): Promise<boolean> {
+    const ok = await saveProject();
+    if (ok) binView.refresh();
+    return ok;
+  }
+  async function handleSaveAllProjects(): Promise<number> {
+    const n = await saveAllProjects();
+    if (n > 0) binView.refresh();
+    return n;
+  }
   function onFile(e: Event) {
     const input = inputFrom(e);
     if (input === null) return;
     const f = input.files?.[0];
-    if (f) importFile(f);
+    if (f) {
+      recentActions.record('open-project');
+      // The import writes to the store after reading the file: list it once that is done (F42).
+      void importFile(f).then(() => binView.refresh());
+    }
     input.value = '';
   }
 
@@ -443,6 +527,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     set: (v: TabId) => { presentationState.ui.originalProjectTab = v; },
   });
   watch(activeTab, tab => {
+    recentActions.record(TAB_ACTIONS[tab]);
     if (tab === 'filters') featureUse.feature('filters');
     if (tab === 'enclosure') featureUse.feature('vents');
   }, { immediate: true });
@@ -472,18 +557,19 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   function requestCloseProject(p: OpenISDProject | null) {
     if (!p) return;
-    if (isModified.value) { closeChallenge.value = p; return; }
+    if (projectHasUnsavedChanges(p)) { selectProject(p); closeChallenge.value = p; return; }
     closeProject(p);
   }
 
   async function saveThenClose(p: OpenISDProject) {
     closeChallenge.value = null;
-    const saved = await saveProject();
+    const saved = await handleSaveProject();
     if (saved === false) return;    // the user backed out of the file dialog — keep the project
     closeProject(p);
   }
 
   function closeProject(p: OpenISDProject) {
+    recentActions.record('close-project');
     closeChallenge.value = null;
     const idx = projectList.value.indexOf(p);
     if (idx >= 0) removeProject(idx);
@@ -526,12 +612,20 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
       set: write,
     });
   }
+  // Counts the date boxes' commits. The boxes are keyed on it, so each commit redraws them in the shown
+  // form, even one that stores the same day ("2026-10-16" typed over 16 Oct 2026 changes no value, so
+  // nothing else would redraw the box).
+  const dateCommits = ref(0);
+  function dateField(field: () => SimpleField<string>) {
+    return computed<string>({
+      get: () => { void projectChanged.value; return formatDateStamp(field().value); },
+      set: v => { field().set(dateStampFrom(v, field().value)); dateCommits.value++; },
+    });
+  }
   const projectName = metaField(() => project.value.name.value, (v) => project.value.name.set(v));
   const projectCreator = metaField(() => project.value.creator.value, (v) => project.value.creator.set(v));
-  const projectCreated = metaField(
-    () => formatDateStamp(project.value.created.value), (v) => project.value.created.set(parseDateStamp(v)));
-  const projectModified = metaField(
-    () => formatDateStamp(project.value.modified.value), (v) => project.value.modified.set(parseDateStamp(v)));
+  const projectCreated = dateField(() => project.value.created);
+  const projectModified = dateField(() => project.value.modified);
   const projectDescription = metaField(() => project.value.description.value, (v) => project.value.description.set(v));
 
   // ---- Signal Generator (real audio-out tone) ------------------------------------
@@ -550,26 +644,39 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Delegated to the unit-tested `createEnvironmentAir` above.
   const {
     envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-    advTemp, advHumidity, advPressure,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+    advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
-  } = createEnvironmentAir({ project, projectChanged, envDefaults, environment: engine.environment });
+  } = createEnvironmentAir({ project, projectChanged });
 
   // ---- Enclosure tab: vent (port) readouts ---------------------------------------
-  // Delegated to the unit-tested `createVentReadouts` above — needs `advAir`, hence placed here.
+  // Delegated to the unit-tested `createVentReadouts` above.
   const {
     activeVent, activeTuning, ventPorts, portPipeResonance_hz, fbUnreachable, fbUnreachableMsg,
-  } = createVentReadouts({ project, projectChanged, selectedBox, air: advAir, vent: engine.vent });
+  } = createVentReadouts({ project, projectChanged, selectedBox, vent: engine.vent });
 
   const placement = ref<'standard' | 'iso'>('standard');
 
   // ---- Box losses (real: Ql/Qa/Qp) + docked/modal editors ------------------------
-  const optionsOpen = ref(false);
-  watch(optionsOpen, open => { if (open) featureUse.feature('options'); });
+  const optionsOpen = computed<boolean>({
+    get: () => presentationState.optionsOpen,
+    set: (v: boolean) => { presentationState.optionsOpen = v; },
+  });
+  watch(optionsOpen, open => {
+    if (open) {
+      recentActions.record('dialog:options');
+      featureUse.feature('options');
+    } else {
+      // Your data can restore or delete saved projects: list the store again on close (F42).
+      binView.refresh();
+    }
+  });
   watch(() => presentationState.browseOpen, open => { if (open) featureUse.feature('driver_db'); });
 
   // What-if? opens the project's What-if layer. The project's own values stay underneath it,
   // untouched; closing the panel discards the What-if.
   function startWhatIf() {
+    recentActions.record('dialog:whatif');
     featureUse.feature('whatif');
     project.value.beginWhatIf();
     presentationState.editDriver = true;
@@ -580,7 +687,10 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave } =
     createPassiveRadiatorActions({ project, myPassiveRadiators, bundledPassiveRadiators, definePassiveRadiator });
-  function startEdit() { editProjectDriver(); }
+  function startEdit() {
+    recentActions.record('dialog:driver-editor');
+    editProjectDriver();
+  }
 
   // R1 refresh fidelity — RECORD an open What-if? panel / Driver Editor so a reload can restore it.
   // Restoring is the boot's own phase (`logic/boot.ts`), which runs it after the project and
@@ -617,21 +727,23 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function closeCloudDialog(): void { cloudDialogOpen.value = false; }
   useEscToClose(() => cloudDialogOpen.value, closeCloudDialog);
 
-  // The Original skin has no update banner, so the cloud strip never gives way to one.
-  const updateBannerShown = computed(() => false);
+  // The update prompt (a newer build waits and edits are unsaved) takes the cloud strip's place.
+  const updateUi = createAppUpdateUi(appUpdate, () => anyUnsaved.value, confirmPort.port);
+  const { offered: updateOffered, reload: reloadForUpdate, dismiss: dismissUpdate } = updateUi;
   const {
     available: cloudAvailable,
     display: cloudDisplay,
     connect: handleCloudConnect,
     syncNow: handleCloudSyncNow,
     reconnect: handleCloudReconnect,
+    dismissReconnect: handleCloudDismissReconnect,
     disconnect: handleCloudDisconnect,
     openConflict: handleCloudOpenConflictShared,
     viewConflicts: handleViewConflicts,
     hintTurnOn: handleHintTurnOn,
     hintDismiss: handleHintDismiss,
     tap: handleCloudTap,
-  } = useCloudSyncUi(updateBannerShown, openCloudDialog);
+  } = useCloudSyncUi(updateOffered, openCloudDialog);
 
   // Shell-specific conflict handling: after marking the conflict seen, open the project or driver browser.
   function handleCloudOpenConflict(id: ConflictCopy['id']): void {
@@ -646,13 +758,15 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   return {
     cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
-    handleCloudTap, handleCloudConnect, handleCloudSyncNow, handleCloudReconnect,
+    handleCloudTap, handleCloudConnect, handleCloudSyncNow, handleCloudReconnect, handleCloudDismissReconnect,
+    updateOffered, reloadForUpdate, dismissUpdate,
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, openStoredProject, switchToMobile,
+    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
+    projectListRef, duplicateProject, exportProject, cycleProjectColor, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
-    saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
+    saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
     hzInputText, inputValue, onHzInputFocus, onHzInputBlur, onHzKeydown, onHzWheel,
     startNudge, stopNudge, cursorHz, cursorVal, cursorHzText, unitTokens, chartMeta, inputChecked, selectValue, selectedOption,
@@ -664,11 +778,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel,
     selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
-     boxVolumeCell, sealedAlignmentEditor, sealedAlignmentOpen,
+     boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
      ventedAlignmentEditor, ventedAlignmentOpen, ventedAlignmentOptions, ventedAlignmentSelected,
-     ventedAlignmentVolume_L, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
+     ventedAlignmentVolume_m3, ventedAlignmentTuning_hz, ventedAlignmentEbp, ventedAlignmentSuitability,
      ventedAlignmentSuitabilityLabel,
     FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP,
     boxResonance, rearQtc, prSystemTuningDq,
@@ -680,11 +794,12 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,
     fmt,
-    advTemp, advHumidity, advPressure, advAir,
+    advTemp, advHumidity, advPressure, advAir, advSoundVelocity, advAirDensity,
     envTempDq, envHumidityDq, envPressureDq, resetAirToAppDefaults,
     envTempStored, envHumidityStored, envPressureStored,
+    envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
     powerLocked, rsOhm,
-    projectName, projectCreator, projectCreated, projectModified, projectDescription,
+    projectName, projectCreator, projectCreated, projectModified, projectDateCommits: dateCommits, projectDescription,
     lossesOpen, openLossGroups, resetBoxLosses,
     onFile, fileInput,
   };

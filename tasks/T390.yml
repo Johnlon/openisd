@@ -1,0 +1,47 @@
+id: T390
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: ddce9abb464c3f040cbe24a10f8af14e0fb249d3
+goal: With 'Use transmission line model for port simulation' ticked, OpenISD keeps the port end correction, so the bass tuning stays where the Box tab says (WinISD drops it: Fb 38 -> impedance min ~40 Hz). New yellow bug switch under 'Enable WinISD bugs' (off by default) brings WinISD's shift back for 100% compat; a Difference cue by the TL tickbox says what WinISD does while it is off. Record as a WinISD bug: bugs/BUG_*_winisd-*.md, ACCURACY_IMPROVEMENTS fixed-by-default row, WINISD_PARITY row. John 18 Oct 2026: 'ok implement the TL switch AND include a bug switch to make it 100% WimIsd compat'. Help: the 'OpenISD and WinISD differences' page gets one entry (packages/design/fields/winisdDifference.ts) that explains the TL option in plain words (what it shows: the port's pipe notes; when to use it), WinISD's tuning shift, and the new yellow switch; the ≠W cue by the TL tickbox opens that entry on desktop and phone. John 18 Oct 2026: 'do it'.
+done_test: bash scripts/test.sh packages/design/test/engine/tl-port-end-correction.test.ts packages/design/test/engine/tl-port-model-winisd.test.ts
+visual:
+  - desktop-tab-advanced
+  - mobile-tab-advanced
+files:
+  - tasks/T390.yml
+  - bugs/BUG_20261018_winisd-tl-port-no-end-correction.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - docs/research/WINISD_PARITY.md
+  - docs/research/WINISD_EQUIVALENCE.md
+  - docs/research/TL_PORT_MODEL.md
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/project/compatSwitch.ts
+  - packages/design/domain/project/errorSwitches.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectAdvanced.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/engine/types.ts
+  - packages/design/engine/boxes/port.ts
+  - packages/design/engine/boxes/AbcBox.ts
+  - packages/design/engine/boxes/Bandpass4Box.ts
+  - packages/design/engine/boxes/Bandpass6Box.ts
+  - packages/design/engine/boxes/VentedBox.ts
+  - packages/design/fields/field.ts
+  - packages/design/fields/winisdDeviation.ts
+  - packages/design/test/engine/tl-port-end-correction.test.ts
+  - packages/design/test/engine/tl-port-model-winisd.test.ts
+  - packages/design/test/domain/compat-switch.test.ts
+  - packages/design/test/domain/error-switches.test.ts
+  - packages/ui/src/hooks/AdvancedOptions-hooks.ts
+  - packages/ui/src/ui/components/AdvancedOptions.vue
+  - packages/ui/src/ui/shells/mobile/MobileAdvancedTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-advanced-tab.browser.spec.ts
+  - packages/ui/src/ui/components/ToggleLabel.vue
+  - packages/ui/test/ui/tl-port-difference-cue.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png

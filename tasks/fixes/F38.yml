@@ -1,0 +1,95 @@
+id: F38
+owner: Johnlon
+status: done
+sha: 3433a3a0f8631068a148e482fb7d6f68778957b2
+goal: main is red at 3433a3a0f8; make the full suite pass again
+commits: |
+  3433a3a0f8 T218: 'Tune sheet task 2: sheet session and hooks (no template changes).
+  fe0c1ac5da T210: About page has a Terms section at /about/#terms
+  0d8ccc0063 T219: 'A browser run whose owner is gone is stopped: each run records its owne
+  0caa5dad8b T220: 'F37 closed: the architecture factory rule failed on T207 storagePrefix.
+  f79098a355 F37: still red at 6cba722557
+  6cba722557 F37: still red at 60afa52569
+  60afa52569 F37: still red at f765dba1ab
+  f765dba1ab F37: the full suite is red at ea13f9d1d1
+  376ca2f522 T047 done: watchdog timer landed 12 Oct as 8a717043, task file never flipped
+  ea13f9d1d1 T209: 'Tune sheet task 1: WhatIfField becomes SheetField with short labels; Sh
+  b97e4c9318 T208: 'Close BUG_20261011_wizard-step1-edit-clone-buttons: T040 already remove
+  8349312d46 T207: 'The /test/ build keeps its own browser store: StoragePrefix resolved on
+  a311f6e43b T215: 'F36: the watchdog killed post-land runs that were only waiting for the
+  16bce9f79e F36: still red at 1385c4d817
+  1385c4d817 F36: the full suite is red at b04259b1be
+  b04259b1be T205: 'Lint and typecheck gates run without a deadline: both finish on their o
+  c878fbab55 T204: Project view 1: one design-side ProjectRow model merging saved and open
+  394bfb62bb T214: 'Post-land process: a TERM with no newer run is a red that says killed b
+  3d4e247915 T206: Ask the browser for persistent storage at startup; Your data shows stora
+  8166dc9098 T213: 'F35: the 3 cloud-sync spec files red at f2d59b6a57 pass alone, 15 of 15
+failing: |
+       × finds no cast anywhere in shipped source 279ms
+       × runs a failing playwright suite once and returns its exit code 65ms
+   FAIL  |design-architecture| test/architecture-no-casts.test.ts > no casts — the compiler is the only thing trusted > finds no cast anywhere in shipped source
+   FAIL  |ui| test/scripts/full-gate-stage.test.ts > scripts/test-browser.sh > runs a failing playwright suite once and returns its exit code
+    ✘  324 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Vented What-if: every field fits without scrolling at 390×844 (20.9s)
+    ✘  325 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 4th Order Bandpass What-if: every field fits without scrolling at 390×844 (21.0s)
+    ✘  326 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 6th Order Bandpass What-if: every field fits without scrolling at 390×844 (21.3s)
+    ✘  327 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › ABC What-if: every field fits without scrolling at 390×844 (21.3s)
+    ✘  329 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Vented What-if: every field fits without scrolling at 412×915 (21.3s)
+    ✘  328 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Passive Radiator What-if: every field fits without scrolling at 390×844 (21.4s)
+    ✘  330 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 4th Order Bandpass What-if: every field fits without scrolling at 412×915 (21.3s)
+    ✘  331 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 6th Order Bandpass What-if: every field fits without scrolling at 412×915 (21.2s)
+    ✘  332 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › ABC What-if: every field fits without scrolling at 412×915 (21.4s)
+    ✘  333 packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Passive Radiator What-if: every field fits without scrolling at 412×915 (21.4s)
+    ✘  338 packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:43:1 › the mobile What-if? sheet changes the charts but never the project; Close puts the curve back (943ms)
+    ✘  339 packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:71:1 › dragging the mobile What-if? sheet down closes it and ends the What-if (20.2s)
+    ✘  340 packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:85:1 › leaving the Graph page with the mobile What-if? sheet open ends the What-if (20.3s)
+          43 × locator resolved to 5 elements
+          43 × locator resolved to 6 elements
+          43 × locator resolved to 7 elements
+          43 × locator resolved to 8 elements
+          43 × locator resolved to 5 elements
+          43 × locator resolved to 5 elements
+          43 × locator resolved to 6 elements
+          43 × locator resolved to 7 elements
+          43 × locator resolved to 8 elements
+          43 × locator resolved to 5 elements
+output: |
+      Error Context: test-results/ui-mobile-what-if-sheet.br-fe8d8-ses-it-and-ends-the-What-if/error-context.md
+  
+    13) packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:85:1 › leaving the Graph page with the mobile What-if? sheet open ends the What-if 
+  
+      Error: expect(received).toBe(expected) // Object.is equality
+  
+      Expected: 0.010696589384336395
+      Received: 0.0108
+  
+      Call Log:
+      - Timeout 20000ms exceeded while waiting on the predicate
+  
+        90 |
+        91 |   await page.locator('.mob-tab', { hasText: 'Box' }).click();
+      > 92 |   await expect.poll(() => focusedBoxVolume(page)).toBe(volume);
+           |                                                   ^
+        93 |   expect(await focusedIsModified(page)).toBe(false);
+        94 | });
+        95 |
+          at /home/john/work/winisd/.postland/55129-3433a3a0f8/packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:92:51
+  
+      Error Context: test-results/ui-mobile-what-if-sheet.br-96c1f-sheet-open-ends-the-What-if/error-context.md
+  
+    13 failed
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Vented What-if: every field fits without scrolling at 390×844 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 4th Order Bandpass What-if: every field fits without scrolling at 390×844 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 6th Order Bandpass What-if: every field fits without scrolling at 390×844 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › ABC What-if: every field fits without scrolling at 390×844 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Passive Radiator What-if: every field fits without scrolling at 390×844 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Vented What-if: every field fits without scrolling at 412×915 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 4th Order Bandpass What-if: every field fits without scrolling at 412×915 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › 6th Order Bandpass What-if: every field fits without scrolling at 412×915 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › ABC What-if: every field fits without scrolling at 412×915 
+      packages/ui/test/ui/mobile-what-if-fit.browser.spec.ts:29:3 › Passive Radiator What-if: every field fits without scrolling at 412×915 
+      packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:43:1 › the mobile What-if? sheet changes the charts but never the project; Close puts the curve back 
+      packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:71:1 › dragging the mobile What-if? sheet down closes it and ends the What-if 
+      packages/ui/test/ui/mobile-what-if-sheet.browser.spec.ts:85:1 › leaving the Graph page with the mobile What-if? sheet open ends the What-if 
+    699 passed (10.7m)
+  suite: unit exit 1, browser exit 1
+  post-land suite 55129-3433a3a0f8 finished: FAILED (exit 1) after 14m08s

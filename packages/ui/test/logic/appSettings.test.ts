@@ -185,8 +185,12 @@ describe('appState — the environment defaults, Options → General → Environ
     assert.deepEqual(appSettingsRepoOn(storage).envDefaults(), ARCTIC);
   });
 
-  it("a project with no environment of its own reads the new default as calculated — nothing rebuilt", () => {
+  it("an air value the project left blank reads the new default as calculated — nothing rebuilt", () => {
     const project = opened(implausibleVentedProject());
+    assert.equal(project.envTempK.entered, true, 'a new project copies the app air in as entered');
+    project.envTempK.clear();
+    project.envHumidityPct.clear();
+    project.envPressurePa.clear();
     assert.equal(project.envTempK.entered, false);
     assert.equal(project.envTempK.value, DEFAULT_ENV_DEFAULTS.tempK);
 
@@ -198,14 +202,17 @@ describe('appState — the environment defaults, Options → General → Environ
     assert.equal(project.envPressurePa.value, ARCTIC.pressurePa);
   });
 
-  it("a project's own entered environment is untouched by the app default changing", () => {
+  it("a project's entered environment is untouched by the app default changing, the copy it was given included", () => {
     const project = opened(implausibleVentedProject());
+    assert.equal(project.envHumidityPct.value, DEFAULT_ENV_DEFAULTS.humidityPct);
     project.envTempK.set(300);
 
     appState.setEnvDefaults(ARCTIC);
 
     assert.equal(project.envTempK.value, 300);
     assert.equal(project.envTempK.entered, true);
+    assert.equal(project.envHumidityPct.value, DEFAULT_ENV_DEFAULTS.humidityPct);
+    assert.equal(project.envHumidityPct.entered, true);
   });
 
   it('notifies EVERY open project so its readouts repaint, not only the focused one', () => {

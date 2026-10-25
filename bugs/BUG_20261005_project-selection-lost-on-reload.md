@@ -1,6 +1,6 @@
 # BUG_20261005_project-selection-lost-on-reload
 
-**Status:** FIXED 2026-10-05
+**Status:** RESOLVED (fixed 2026-10-05)
 
 ## Symptom
 John: "if I unselect certain projects then refresh, they all reselect." A project whose
@@ -30,3 +30,6 @@ saved on every change stored each project's record but not whether its trace was
   [original-project-list.browser.spec.ts](http://localhost:8000/winisd/openisd/packages/ui/test/ui/original-project-list.browser.spec.ts),
   [mobile-project-list.browser.spec.ts](http://localhost:8000/winisd/openisd/packages/ui/test/ui/mobile-project-list.browser.spec.ts):
   hide one of two projects, reload, its box is still unticked and the chart draws only the shown trace.
+
+## Re-verified
+Re-verified 21 Oct 2026 on main faa577b95: `projectRepo.test.ts`, `boot.test.ts`, `sessionSync.test.ts`, `mobile-project-list.browser.spec.ts` and `original-project-list.browser.spec.ts` pass (30 browser tests).

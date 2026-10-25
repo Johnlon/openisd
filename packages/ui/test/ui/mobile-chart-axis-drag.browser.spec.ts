@@ -40,20 +40,10 @@ async function getYRangeReadout(page: Page, chartIndex: number): Promise<string>
   return attr ?? '';
 }
 
-async function getYRangeState(page: Page, chartIndex: number): Promise<{ min: number; max: number } | null> {
-  return page.evaluate(({ idx }) => {
-    type TestHooks = import('../../src/logic/testHooks.js').TestHooks;
-    function isHooks(h: unknown): h is TestHooks {
-      return typeof h === 'object' && h !== null && 'appState' in h && 'presentationState' in h;
-    }
-    const h: unknown = Reflect.get(globalThis, 'openisdTestHooks');
-    if (!isHooks(h)) return null;
-    const project = h.appState.requireFocusedProject();
-    const chartId = project.openCharts.value[idx];
-    if (!chartId) return null;
-    const r = h.presentationState.yRanges[chartId];
-    return r ? { min: r.min, max: r.max } : null;
-  }, { idx: chartIndex });
+/** Whether the chart's Y range was set by hand: its panel then leaves Auto Y. */
+async function yRangeIsManual(page: Page, chartIndex: number): Promise<boolean> {
+  const panel = page.locator('.mob-chart-cell').nth(chartIndex).locator('.gpanel');
+  return (await panel.getAttribute('class') ?? '').split(' ').includes('y-manual');
 }
 
 /**
@@ -111,11 +101,11 @@ test.describe('mobile stacked charts — axis strip drag', () => {
     await touchDrag(page, startX, startY, startX, endY, 10);
 
     await expect.poll(async () => getYRangeReadout(page, 1)).not.toBe(beforeReadout);
-    const afterState = await getYRangeState(page, 1);
+    const afterManual = await yRangeIsManual(page, 1);
     const afterScroll = await getStackScrollTop(page);
 
     expect(afterScroll).toBe(beforeScroll);
-    expect(afterState).not.toBeNull();
+    expect(afterManual, 'the Y range is now set by hand').toBe(true);
   });
 
   test('vertical touch drag on Y-axis strip middle zone pans — stack does not scroll', async ({ page }) => {
@@ -132,11 +122,11 @@ test.describe('mobile stacked charts — axis strip drag', () => {
     await touchDrag(page, startX, startY, startX, endY, 10);
 
     await expect.poll(async () => getYRangeReadout(page, 1)).not.toBe(beforeReadout);
-    const afterState = await getYRangeState(page, 1);
+    const afterManual = await yRangeIsManual(page, 1);
     const afterScroll = await getStackScrollTop(page);
 
     expect(afterScroll).toBe(beforeScroll);
-    expect(afterState).not.toBeNull();
+    expect(afterManual, 'the Y range is now set by hand').toBe(true);
   });
 
   test('vertical touch drag on Y-axis strip bottom zone zooms bottom — stack does not scroll', async ({ page }) => {
@@ -153,11 +143,11 @@ test.describe('mobile stacked charts — axis strip drag', () => {
     await touchDrag(page, startX, startY, startX, endY, 10);
 
     await expect.poll(async () => getYRangeReadout(page, 1)).not.toBe(beforeReadout);
-    const afterState = await getYRangeState(page, 1);
+    const afterManual = await yRangeIsManual(page, 1);
     const afterScroll = await getStackScrollTop(page);
 
     expect(afterScroll).toBe(beforeScroll);
-    expect(afterState).not.toBeNull();
+    expect(afterManual, 'the Y range is now set by hand').toBe(true);
   });
 
   test('vertical drag on X-axis strip does not scroll stack', async ({ page }) => {
@@ -207,9 +197,9 @@ test.describe('mobile single chart — axis strip drag still works', () => {
     await touchDrag(page, startX, startY, startX, endY, 10);
 
     await expect.poll(async () => getYRangeReadout(page, 0)).not.toBe(beforeReadout);
-    const afterState = await getYRangeState(page, 0);
+    const afterManual = await yRangeIsManual(page, 0);
 
-    expect(afterState).not.toBeNull();
+    expect(afterManual, 'the Y range is now set by hand').toBe(true);
   });
 
   test('vertical drag on Y-axis strip middle zone pans', async ({ page }) => {
@@ -226,9 +216,9 @@ test.describe('mobile single chart — axis strip drag still works', () => {
     await touchDrag(page, startX, startY, startX, endY, 10);
 
     await expect.poll(async () => getYRangeReadout(page, 0)).not.toBe(beforeReadout);
-    const afterState = await getYRangeState(page, 0);
+    const afterManual = await yRangeIsManual(page, 0);
 
-    expect(afterState).not.toBeNull();
+    expect(afterManual, 'the Y range is now set by hand').toBe(true);
   });
 
   test('vertical drag on Y-axis strip bottom zone zooms bottom', async ({ page }) => {
@@ -245,8 +235,8 @@ test.describe('mobile single chart — axis strip drag still works', () => {
     await touchDrag(page, startX, startY, startX, endY, 10);
 
     await expect.poll(async () => getYRangeReadout(page, 0)).not.toBe(beforeReadout);
-    const afterState = await getYRangeState(page, 0);
+    const afterManual = await yRangeIsManual(page, 0);
 
-    expect(afterState).not.toBeNull();
+    expect(afterManual, 'the Y range is now set by hand').toBe(true);
   });
 });

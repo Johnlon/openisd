@@ -83,6 +83,8 @@ export function withoutDriverId(session: OpenISDProjectSessionJson): OpenISDProj
     return {...session, saved: strip(session.saved), edited: session.edited === null ? null : strip(session.edited)};
 }
 
+import {withoutImportSku} from './withoutImportSku.js';
+
 export function parseOwprSessionRepairing(text: string): Repaired<OpenISDProjectSessionJson> | string[] {
     let parsed: unknown;
     try {
@@ -94,5 +96,6 @@ export function parseOwprSessionRepairing(text: string): Repaired<OpenISDProject
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
     const paired = singleEnteredVentPairs(retired.session);
-    return {value: paired.session, repaired: [...repaired.repaired, ...retired.repaired, ...paired.repaired]};
+    const unstated = withoutImportSku(paired.session);
+    return {value: unstated.session, repaired: [...repaired.repaired, ...retired.repaired, ...paired.repaired, ...unstated.repaired]};
 }

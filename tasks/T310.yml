@@ -1,0 +1,35 @@
+id: T310
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 2a826662b49acfe278f75f5fbfb2764ec2099932
+goal: Back door removal 3: browser specs read the screen, not the app hook
+done_test: bash scripts/test.sh packages/ui/test/architecture/browser-fixture-settles-routes.test.ts
+files:
+  - bugs/BUG_20261017_phone-graph-page-shows-no-unsaved-mark.md
+  - tasks/T310.yml
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/fixtures/passiveRadiatorScreen.ts
+  - packages/ui/test/ui/alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/app-update.browser.spec.ts
+  - packages/ui/test/ui/cloud-pull-open-project.browser.spec.ts
+  - packages/ui/test/ui/mobile-bandpass-vents.browser.spec.ts
+  - packages/ui/test/ui/mobile-chart-axis-drag.browser.spec.ts
+  - packages/ui/test/ui/mobile-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-port.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/open-sessions.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/original-bandpass-vents.browser.spec.ts
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - packages/ui/test/ui/original-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/original-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/original-toolbar.browser.spec.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/sample-project-fixture.browser.spec.ts
+  - packages/ui/test/ui/unit-toggle.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts

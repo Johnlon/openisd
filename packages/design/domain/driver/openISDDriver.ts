@@ -1,5 +1,5 @@
-import {type Engine} from '../../engine/index.js';
-import type { Air, AirEnvironment, DriverError, DriverIssue, EbpSuitability, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import {type Engine, FixedAir, availableAir} from '../../engine/index.js';
+import type { AirState, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -8,6 +8,7 @@ import { openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
+import { deviceWithoutImportSku } from '../project/withoutImportSku.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import { blankDeviceRecord } from './blankDeviceRecord.js';
 import { OpenISDDevice } from './openISDDevice.js';
@@ -50,7 +51,8 @@ export abstract class OpenISDDriver extends OpenISDDevice {
 
         const driver = asDriverDevice(conformed.json);
         if (driver === null) return [NOT_A_DRIVER];
-        return OpenISDDriverStandalone.wrap(driver, engine);
+        // A library driver saved from a WinISD import holds the model text as its short code; it opens with none (QO259).
+        return OpenISDDriverStandalone.wrap(deviceWithoutImportSku(driver), engine);
     }
 
     /** A driver stating nothing — what the editor opens on "create a new driver from scratch".
@@ -102,7 +104,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  2026-10-05). An embedded driver's is the project's live environment
      *  (`OpenISDDriverEmbedded.wrap()`); a standalone driver's is the app's environment defaults.
      *  `resolve()` reads it fresh on every call. */
-    protected readonly airProvider: () => AirEnvironment;
+    protected readonly airProvider: () => AirState;
 
     /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a driver reports
      *  derived figures, and every one of them comes from here and nowhere else. */
@@ -111,7 +113,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     protected constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirEnvironment,
+        airProvider: () => AirState,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
     ) {
@@ -119,14 +121,13 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
-        const air = (): Air => engine.environment.solve(airProvider()).values;
-        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, air, durableIssues);
+        this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues);
     }
 
     /** T11/S2-7c: resolve this driver's spec — write every derivable quantity back
      *  into the record as a `'C'` entry, cache the issues, and return them. */
     resolve(): readonly DriverIssue[] {
-        return this.specs.resolve(this.engine.environment.solve(this.airProvider()).values);
+        return this.specs.resolve(this.airProvider());
     }
 
     // ── DERIVED FIGURES — every one from the injected engine, none computed here ──────────────
@@ -163,15 +164,16 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             // silently joining this list.
             switch (issue.kind) {
                 case 'missing-dependencies':
-                    return [{subject: issue.target, text: `cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`}];
+                    return [{subject: this.engine.issues.plainNames(issue.target), text: this.engine.issues.plainNames(`cannot be calculated yet — needs ${issue.routes.map(r => r.missing.join(', ')).join(' or ')}`)}];
                 case 'inconsistent-inputs':
+                case 'approximate-charts':
                 case 'out-of-range':
                     return [];
             }
         });
         const mandatoryFields: readonly NumericDriverSpecFieldName[] = ['Fs_hz', 'Vas_m3', 'Re_ohm', 'Sd_m2'];
         for (const field of mandatoryFields) {
-            if (this.specs[field].value === null) reasons.push({subject: field, text: 'is not set'});
+            if (this.specs[field].value === null) reasons.push({subject: this.engine.issues.plainNames(field), text: 'is not set'});
         }
         return reasons;
     }
@@ -184,7 +186,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         const Qts = ts.Qts.value;
         if (Qts === null) return null;
         return this.engine.driver.sourceLoadedQts(
-            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.Re_ohm.value ?? NaN, Rs_ohm, Qts);
+            ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN, Rs_ohm, Qts);
     }
 
     /** Efficiency bandwidth product, Fs/Qes. Null without Fs or Qes, or for Qes = 0. */
@@ -199,18 +201,43 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return ebp !== null ? this.engine.driver.ebpSuitability(ebp) : null;
     }
 
-    /** The Qtc a sealed box of `volume_m3` gives this driver. Null without Qts/Vas or for a
-     *  non-positive volume. */
-    sealedQtc(volume_m3: number): number | null {
-        const Qts = this.specs.Qts.value, Vas_m3 = this.specs.Vas_m3.value;
-        return Qts !== null && Vas_m3 !== null && volume_m3 > 0
-            ? this.engine.sealed.qtcFromVolume(Qts, Vas_m3, volume_m3) : null;
+    /** The Qtc a sealed box of `volume_m3` gives this driver as driven through `Rs_ohm` with box losses
+     *  `losses`: the lossy figure the Box tab shows. Null without Fs/Qts/Vas or for a non-positive volume. */
+    sealedQtc(volume_m3: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(Rs_ohm, losses);
+        return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Qtc;
     }
 
-    /** The sealed volume that gives this driver `targetQtc`. Null without Qts/Vas. */
-    sealedVolumeForQtc(targetQtc: number): number | null {
-        const Qts = this.specs.Qts.value, Vas_m3 = this.specs.Vas_m3.value;
-        return Qts !== null && Vas_m3 !== null ? this.engine.sealed.volumeForQtc(Qts, Vas_m3, targetQtc) : null;
+    /** The sealed box resonance Fsc (Hz) of this driver in `volume_m3`, on the same footing as `sealedQtc`. */
+    sealedFsc(volume_m3: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(Rs_ohm, losses);
+        return feed === null || !(volume_m3 > 0) ? null : this.engine.sealed.resonance({...feed, Vb: volume_m3}).Fsc;
+    }
+
+    /** The sealed volume that gives this driver `targetQtc` on the Box tab, as driven through `Rs_ohm`
+     *  with box losses `losses`. Null without Fs/Qts/Vas, or when no volume reaches it. */
+    sealedVolumeForQtc(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses): number | null {
+        const feed = this.#sealedFeed(Rs_ohm, losses);
+        return feed === null ? null : this.engine.sealed.volumeForLossyQtc(feed, targetQtc);
+    }
+
+    /** The volume the sealed alignment picker gives for `targetQtc`. `winisdPicker` off (the "Sealed picker
+     *  volume" bug switch unticked): the volume at which the Box tab shows `targetQtc`, as `sealedVolumeForQtc`.
+     *  On: WinISD's picker volume, which ignores `Rs_ohm` and `losses` for its own fixed Rg 0.1 and Qa 100. */
+    sealedPickerVolume(targetQtc: number, Rs_ohm: number, losses: SealedBoxLosses, winisdPicker: boolean): number | null {
+        if (!winisdPicker) return this.sealedVolumeForQtc(targetQtc, Rs_ohm, losses);
+        const {Vas_m3, Qes, Qms} = this.specs;
+        // The Re the amplifier sees: the picker loads Qes with Rg against it.
+        const [Vas, qes, qms, Re] = [Vas_m3.value, Qes.value, Qms.value, this.specs.solverParams().Re_terminal_ohm.value];
+        return Vas === null || qes === null || qms === null || Re === null
+            ? null
+            : this.engine.sealed.winisdPickerVolume({Vas, Qes: qes, Qms: qms, Re}, targetQtc);
+    }
+
+    /** What the sealed-box engine takes of this driver, or null while Fs, Vas or Qts is unresolved. */
+    #sealedFeed(Rs_ohm: number, losses: SealedBoxLosses): Omit<SealedParams, 'Vb'> | null {
+        const Fs = this.specs.Fs_hz.value, Vas = this.specs.Vas_m3.value, Qts = this.sourceLoadedQts(Rs_ohm);
+        return Fs === null || Vas === null || Qts === null ? null : {Fs, Vas, Qts, Ql: losses.Ql, Qa: losses.Qa};
     }
 
     /** The vented box `alignment` designs for this driver as driven through `Rs_ohm` with box
@@ -232,6 +259,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'inconsistent-inputs':
                     return [{subject: issue.target, text: `${issue.formula} — stated as ${issue.actual}, the others imply ${issue.expected}`}];
                 case 'missing-dependencies':
+                case 'approximate-charts':
                 case 'out-of-range':
                     return [];
             }
@@ -248,6 +276,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
                 case 'out-of-range':
                     return [{level: 'warn', field: issue.field, message: issue.text}];
                 case 'inconsistent-inputs':
+                case 'approximate-charts':
                     return [{level: 'warn', field: issue.target, message: issue.text}];
                 case 'missing-dependencies':
                     return [];
@@ -394,6 +423,12 @@ export interface DqReason {
     readonly text: string;
 }
 
+/** The box losses a sealed box is judged under: leakage `Ql` and absorption `Qa`. */
+export interface SealedBoxLosses {
+    readonly Ql: number;
+    readonly Qa: number;
+}
+
 export class OpenISDDriverStandalone extends OpenISDDriver {
     /** ON: every write derives, as `resolve()` always did before this flag existed. OFF: a
      *  write still lands (`entered`/`clear` on the record), but `resolve()` stops deriving —
@@ -437,7 +472,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingField(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, engine, () => engine.environment.defaults());
+        driver = new OpenISDDriverStandalone(record, engine, () => availableAir(new FixedAir({c: engine.environment.appAir.c(), rho: engine.environment.appAir.rho()})));
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read

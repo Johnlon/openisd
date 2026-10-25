@@ -53,3 +53,22 @@ test('Cancel and Use stay inside the visible viewport, not clipped off the botto
   await cancelBtn.click();
   await expect(page.locator('.use-btn')).toHaveCount(0);
 });
+
+// John, 17 Oct 2026: "empty wizard driver list with no hint"; "the list is empty but the favourite button is
+// selected visible". The phone skin shares the list, so the same answers hold here.
+test('with no favourites, Favorites is disabled; a filter that matches nothing offers Clear filters', async ({ page }) => {
+  await page.getByText('Select driver').click();
+  const rows = page.locator('.dlist .ditem');
+  await expect(rows.first()).toBeVisible();
+  const before = await rows.count();
+  await page.locator('.dl-filters-toggle').click(); // the favourites toggle sits behind Filters on the phone
+  await expect(page.locator('.fav-filter')).toBeDisabled();
+
+  await page.locator('.filter').fill('no driver is called this');
+  await expect(page.locator('.dlist')).toContainText('No drivers match');
+  const clear = page.locator('.dlist .filters-clear');
+  await expect(clear).toBeInViewport();
+  await clear.click();
+  await expect(rows).toHaveCount(before);
+  await expect(page.locator('.filters-on')).toHaveCount(0);
+});

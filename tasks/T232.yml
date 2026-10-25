@@ -1,0 +1,19 @@
+id: T232
+label: fixes
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 30b09204042544b443c51879bb2db572a1841b6b
+goal: 'F39: main red at ff8d066792. The test-file placement rule admits packages/ui/test/visual/ (T230 put the screen-picture spec there); the mobile empty-screen baseline shows the T228 top bar, and the mobile graph baseline the T223 Tune button. scripts/visual/update.sh matches screen ids that hold a dash. Close F39'
+done_test: bash scripts/test.sh packages/design/test/architecture-test-files-name-their-object.test.ts
+visual:
+  - mobile-empty
+  - mobile-tab-graph
+files:
+  - tasks/T232.yml
+  - tasks/fixes/F39.yml
+  - packages/design/test/architecture-test-files-name-their-object.test.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+  - scripts/visual/update.sh

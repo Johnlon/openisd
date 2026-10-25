@@ -158,10 +158,14 @@ describe('the store unions every hardening layer into one issue list', () => {
     driver.Sd_m2.clear();
     await awaitSweep(() => hasIssue('Mms_kg'), 'the broken circuit reports its missing fields');
 
-    for (const field of ['Sd_m2', 'Re_terminal_ohm', 'BL_terminal_Tm', 'Cms_m_per_N', 'Mms_kg', 'Rms_kg_per_s']) {
+    const plain: readonly (readonly [string, RegExp])[] = [
+      ['Sd_m2', /cone area \(Sd\)/], ['Re_terminal_ohm', /coil resistance at the terminals \(Re\)/], ['BL_terminal_Tm', /force factor at the terminals \(BL\)/],
+      ['Cms_m_per_N', /compliance \(Cms\)/], ['Mms_kg', /moving mass \(Mms\)/], ['Rms_kg_per_s', /mechanical resistance \(Rms\)/],
+    ];
+    for (const [field, words] of plain) {
       const failure = appState.allIssues.value.find(issue => issue.field === field);
       assert.ok(failure, `the sweep failure for ${field} must reach appState.allIssues; got: ${appState.allIssues.value.map(e => e.field).join(', ')}`);
-      assert.match(failure.message, new RegExp(field));
+      assert.match(failure.message, words);
     }
   });
 

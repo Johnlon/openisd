@@ -31,6 +31,13 @@ describe('parseRepairing', () => {
         expect(result.repaired).toEqual([['filters', 1, 'fc'], ['filters', 1]]);
     });
 
+    it('drops a key this build does not know without naming it', () => {
+        const result = parseRepairing(schema, {name: 'a', laterKey: 1, vent: {diameter_m: 0.1, length_m: 0.2, flare: true}, filters: []});
+        if (Array.isArray(result)) throw new Error(result.join('; '));
+        expect(result.value).toEqual({name: 'a', vent: {diameter_m: 0.1, length_m: 0.2}, filters: []});
+        expect(result.repaired).toEqual([]);
+    });
+
     it('leaves the input untouched', () => {
         const input = {name: 'a', limit: 'x', filters: []};
         parseRepairing(schema, input);

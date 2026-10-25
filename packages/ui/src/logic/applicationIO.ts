@@ -1,6 +1,10 @@
 
 import type { Engine } from '@openisd/design/engine';
+import type { ChartData } from '@openisd/design/chart';
 import { buildProjectsArchive, parseProjectsArchive, type OpenISDProject } from '@openisd/design';
+import { savedNotice } from '@openisd/design/fields';
+import { createExportNotice } from './exportNotice.js';
+import { storedUseOf } from './storedUse.js';
 import {
   type DesignFiles,
   driverToWdrBytes,
@@ -44,7 +48,8 @@ import {
   type ProjectRepo,
   type HistoryFile,
   type RestoreOptions,
-  type RestoreResult
+  type RestoreResult,
+  type StorageUsage
 } from '@openisd/persistence';
 import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
 import type {SaveFormat} from './telemetry/events.js';
@@ -54,12 +59,15 @@ import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
 import {displayNameOf} from './driverDisplay.js';
 import {DriverFileFormat, formatOf, OpenableFiles, ProjectFileFormat, sniff} from '../fileFormat.js';
+import type {RecentActions} from './telemetry/errorContext.js';
 
 function sanitizeFilename(name: string | undefined): string {
   return (name || 'design').replace(/[^\w.-]+/g, '_');
 }
 
 export interface DesignIO {
+  /** Tells the user a new project was not made because browser storage is full, and offers the projects list. */
+  reportStorageFull(): Promise<void>;
   saveProject(): Promise<boolean>;
   /** Save every open project that has unsaved edits to browser storage, the unfocused ones
    *  too. Resolves with how many were saved. */
@@ -69,7 +77,8 @@ export interface DesignIO {
   exportWdr(): void;
   exportWpr(): void;
   exportOwdr(): void;
-  importFile(f: File): void;
+  /** Settles once the file is read and imported (or the failure shown); it never rejects. */
+  importFile(f: File): Promise<void>;
   /** File > Open: the system open dialog with one "OpenISD and WinISD files" filter; the picked
    *  file goes to `importFile`. Where the browser has no such dialog, calls `fallback` (the
    *  shell's own file input, whose `change` reaches `importFile`). */
@@ -80,6 +89,10 @@ export interface DesignIO {
    *  `download` rather than a second `FileSave` instance. */
   exportProjectsArchive(): void;
   exportBackup(): void;
+  /** A chart's data table as a CSV file named after the focused project and the chart; a popup says what was saved. */
+  downloadChartData(data: ChartData): void;
+  /** A chart's data table onto the clipboard, tab separated; a message says it was copied or why not. */
+  copyChartData(data: ChartData): Promise<void>;
   /** Save a stored backup (`StorageHistory.exportFile`) as a file. */
   saveStoredBackup(file: HistoryFile): void;
   /** Restore every persisted key from a previously-downloaded backup file. Pure pass-through to
@@ -96,12 +109,27 @@ export interface DesignIO {
  * Access API does not persist handles across a page load.
  */
 function isRec(v: unknown): v is Record<string, unknown> { return typeof v === 'object' && v !== null && !Array.isArray(v); }
-export function createApplicationIO(deps: { engine: Engine; logging: Logging; fileStorage: FileStorage; fileOpen: FileOpen; projectRepo: ProjectRepo; files: DesignFiles; backup: BackupRepo; confirmPort: ConfirmPort; appState: AppState; presentation: PresentationState; telemetry?: Telemetry; featureUse?: FeatureUse }): DesignIO {
+export function createApplicationIO(deps: {
+  engine: Engine;
+  logging: Logging;
+  fileStorage: FileStorage;
+  fileOpen: FileOpen;
+  projectRepo: ProjectRepo;
+  files: DesignFiles;
+  backup: BackupRepo;
+  storageUsage: StorageUsage;
+  confirmPort: ConfirmPort;
+  appState: AppState;
+  presentation: PresentationState;
+  telemetry?: Telemetry;
+  featureUse?: FeatureUse;
+  actions?: RecentActions;
+}): DesignIO {
   const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
-  const featureUse = deps.featureUse ?? new FeatureUse(telemetry);
+  const featureUse = deps.featureUse ?? new FeatureUse(telemetry, deps.actions);
   const recordSave = (format: SaveFormat, project: OpenISDProject | null): void =>
     telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? ''});
-  const { currentViewSnapshot, driverName, focusedProject, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
+  const { currentViewSnapshot, driverName, focusedProject, isModified, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
   const presentationState = deps.presentation;
   // Save/export/share operate on committed project state. An open What-if? is transient, so
   // these boundaries cancel it before reading or promoting anything.
@@ -110,6 +138,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     presentationState.editDriver = false;
   }
   const flash = (msg: string) => deps.logging.flash(msg);
+  const exportNotice = createExportNotice(deps.confirmPort);
   const { download } = createFileSave();
 
   // Renaming the project retargets the file. Browsers cannot rename a file on disk, so the
@@ -135,24 +164,26 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   function exportProjectsArchive(): void {
     featureUse.feature('export');
     const fileName = `openisd-projects-${new Date().toISOString().slice(0, 10)}.json`;
-    const projects = deps.projectRepo.listStoredProjects()
-      .map(p => deps.projectRepo.loadStoredProject(p.id))
-      .filter((p): p is OpenISDProject => !Array.isArray(p));
-    
-    // add currently open projects not yet saved
+    // Every stored project, and for one that is open, the open project as it is now (its unsaved
+    // changes too), never both.
     const open = openProjects();
-    const all = [...projects];
-    for (const p of open) {
-      if (!all.some(a => a.uuid() === p.uuid() || a.name.value === p.name.value)) {
-        all.push(p);
-      }
+    const all: OpenISDProject[] = [];
+    for (const stored of deps.projectRepo.listStoredProjects()) {
+      const holder = open.find(p => deps.projectRepo.storedIdOf(p) === stored.id);
+      const project = holder ?? deps.projectRepo.loadStoredProject(stored.id);
+      if (!Array.isArray(project)) all.push(project);
     }
-    
+    for (const p of open) {
+      if (deps.projectRepo.storedIdOf(p) === null && !all.includes(p)) all.push(p);
+    }
+
     download(fileName, buildProjectsArchive(all), 'application/json');
     recordSave('archive', null);
-    flash(`Projects exported as ${fileName}`);
+    exportNotice.exported({kind: 'projects', count: all.length}, fileName);
   }
 
+  /** A save the store refused: the project keeps its stored version and its unsaved changes,
+   *  and the user is told, with an offer to export every project. */
   async function handleSaveFailure(): Promise<void> {
     const confirmed = await deps.confirmPort.ask({
       title: 'Could not save',
@@ -167,8 +198,20 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     }
   }
 
+  /** A new project the store would not take was not made: say so, and offer the projects list. */
+  async function reportStorageFull(): Promise<void> {
+    const show = await deps.confirmPort.ask({
+      title: 'Browser storage is full',
+      message: 'The new project was not made. Delete old projects to make room, then try again.',
+      confirmLabel: 'Show projects',
+      cancelLabel: 'Close',
+    });
+    if (show) deps.presentation.projectsRequests++;
+  }
+
   /** Save — commit the edited project and refresh the browser-storage copy. */
   async function saveProject(): Promise<boolean> {
+    deps.actions?.record('save-project');
     endWhatIfBeforeIO();
     const project = requireFocusedProject();
     // Storage first: a refused write must leave the project showing its unsaved changes.
@@ -185,6 +228,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
 
   /** Save all — Save for every open project with unsaved edits, not only the focused one. */
   async function saveAllProjects(): Promise<number> {
+    deps.actions?.record('save-all-projects');
     endWhatIfBeforeIO();
     const dirty = openProjects().filter(p => p.isModified());
     let savedCount = 0;
@@ -199,7 +243,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
       savedCount++;
       recordSave('stored', project);
     }
-    flash(savedCount === 0 ? 'Nothing to save' : `Saved projects: ${savedCount}`);
+    flash(savedNotice(savedCount, storedUseOf(deps.projectRepo, deps.storageUsage)));
     return savedCount;
   }
 
@@ -219,7 +263,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     adoptFileName(result.name, suggested);
     const fileName = result.name ?? suggested;
     if (!result.written) {
-      flash(`Project downloaded as ${fileName}. It stays marked unsaved.`);
+      flash(isModified.value ? `Project downloaded as ${fileName}. It stays marked unsaved.` : `Project downloaded as ${fileName}`);
       return;
     }
     markProjectSaved();
@@ -236,11 +280,10 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     featureUse.feature('share_link');
     const url = await deps.projectRepo.stateToUrl(requireFocusedProject(), currentViewSnapshot());
     setShareUrl(url);
+    const showLink = (): void => flash(`Could not copy the share link. Copy it from here: ${url}`);
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(url).then(
-        () => flash('Share link copied to clipboard'),
-        () => prompt('Copy this share link:', url));
-    } else { prompt('Copy this share link:', url); }
+      navigator.clipboard.writeText(url).then(() => flash('Share link copied to clipboard'), showLink);
+    } else { showLink(); }
   }
 
   function exportWdr(): void {
@@ -276,10 +319,10 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   }
 
   /** Load a driver/design from a picked File. */
-  function importFile(f: File): void {
+  function importFile(f: File): Promise<void> {
     featureUse.feature('import');
     const failed = (reason: string) => flash(`Could not import ${f.name}: ${reason}`);
-    void readDriverFileText(f).then(({ text }) => {
+    return readDriverFileText(f).then(({ text }) => {
       try {
         const format = formatOf(f.name) ?? sniff(new TextEncoder().encode(text));
 
@@ -356,7 +399,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   async function openFromDisk(fallback: () => void): Promise<void> {
     const pick = await deps.fileOpen.pickFile(OpenableFiles.PICKER_FILTER);
     switch (pick.kind) {
-      case 'picked': importFile(pick.file); return;
+      case 'picked': await importFile(pick.file); return;
       case 'unsupported': fallback(); return;
       case 'cancelled': return;
     }
@@ -366,6 +409,21 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
     const fileName = `openisd-backup-${new Date().toISOString().slice(0, 10)}.json`;
     download(fileName, deps.backup.exportAll(), 'application/json');
     flash(`Backup downloaded as ${fileName}`);
+  }
+
+  function downloadChartData(data: ChartData): void {
+    const fileName = data.fileName(requireFocusedProject().name.value);
+    download(fileName, data.csv(), 'text/csv');
+    exportNotice.exported({kind: 'chartData', chart: data.chartName}, fileName);
+  }
+
+  async function copyChartData(data: ChartData): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(data.text());
+      flash(`Copied the ${data.chartName} chart data`);
+    } catch {
+      flash(`Could not copy the ${data.chartName} chart data: the browser refused the clipboard`);
+    }
   }
 
   function saveStoredBackup(file: HistoryFile): void {
@@ -378,7 +436,7 @@ export function createApplicationIO(deps: { engine: Engine; logging: Logging; fi
   }
 
   return {
-    saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
-    exportBackup, saveStoredBackup, importBackup,
+    reportStorageFull, saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
+    exportBackup, downloadChartData, copyChartData, saveStoredBackup, importBackup,
   };
 }

@@ -1,0 +1,15 @@
+id: T481
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: a192390da023287ef8152e6e891a756aba84b16f
+goal: Phone driver editor: the docked Provenance card is see-through and sits over the field rows (looks like a double exposure); make it an opaque sheet that does not cover the rows being read.
+done_test: bash scripts/test.sh packages/ui/test/architecture/driver-editor-template.test.ts
+files:
+  - tasks/T481.yml
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/EquationInspectorModal.vue
+  - packages/ui/test/ui/driver-editor-phone-fixes.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261020_phone-provenance-card-see-through-over-fields.md

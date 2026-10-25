@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import type { TestSolverQuantities } from './testSolver.js';
 import { sweepDriver, solveConsistencyGroup } from './testSolver.js';
 import {createEngine} from '../../engine/Engine.js';
-import {readGoldenFixture} from '../fixtures/goldenFixture.js';
+import {readGoldenFixture, sweepParamsOf} from '../fixtures/goldenFixture.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const fixturesDir = join(here, '..', 'fixtures', 'golden');
@@ -40,8 +40,8 @@ for (const name of NAMES) {
     BL_terminal_Tm: solved.BL_Tm === undefined ? undefined
       : engine.driver.terminalBL_Tm(solved.BL_Tm!, solved.numVC, solved.wiring),
   };
-  const sw = engine.simulation.sweep(sweepDriver(drv), driverRaw.Le, box, P).values;
-  const mx = engine.simulation.maxCurves(sweepDriver(drv), driverRaw.Le, box, P).values;
+  const sw = engine.simulation.sweep(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
+  const mx = engine.simulation.maxCurves(sweepDriver(drv), driverRaw.Le, box, sweepParamsOf(P)).values;
 
   if (!sw || !mx) {
     throw new Error(`Engine refused fixture ${name}`);

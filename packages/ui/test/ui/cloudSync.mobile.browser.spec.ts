@@ -2,8 +2,9 @@ import {execSync, spawn, type ChildProcess} from 'node:child_process';
 import {existsSync, mkdirSync, rmSync} from 'node:fs';
 import net from 'node:net';
 import {join} from 'node:path';
-import {expect, openAMobileProject, test} from '../fixtures.js';
+import {dirtyFocusedDesign, expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
+import {deliverWaitingBuild} from '../fixtures/updateHost.js';
 
 const REPO_ROOT = join(process.cwd());
 const CLOUD_DIST = join(REPO_ROOT, 'build', `test-dist-cloud-mobile-${process.pid}`);
@@ -46,7 +47,9 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
   test.beforeAll(async () => {
     mkdirSync(SCREENSHOT_DIR, { recursive: true });
     cloudPort = await getFreePort();
-    cloudBaseUrl = `http://localhost:${cloudPort}`;
+    // 127.0.0.1, not localhost: in an Ubuntu 26.04 container vite resolves localhost to ::1 and listens
+    // there only, while Node's fetch resolves it to 127.0.0.1 and is refused (GitHub Actions suite, T258).
+    cloudBaseUrl = `http://127.0.0.1:${cloudPort}`;
 
     execSync(
       `node_modules/.bin/vite build --mode test --outDir ${CLOUD_DIST} --emptyOutDir`,
@@ -64,6 +67,8 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
       'node_modules/.bin/vite',
       [
         'preview',
+        '--host',
+        '127.0.0.1',
         '--outDir',
         CLOUD_DIST,
         '--port',
@@ -74,13 +79,18 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
         cwd: REPO_ROOT,
         env: {
           ...process.env,
-          OPENISD_DRIVERS_BUNDLE_DIR: 'build/test-bundle',
+          OPENISD_DRIVERS_BUNDLE_DIR: `build/test-bundle-${process.env.OPENISD_TEST_PORT}`,
         },
         stdio: 'pipe',
       },
     );
 
-    await waitForServer(cloudBaseUrl);
+    const previewLog: string[] = [];
+    previewProcess.stdout?.on('data', (chunk: Buffer) => previewLog.push(chunk.toString()));
+    previewProcess.stderr?.on('data', (chunk: Buffer) => previewLog.push(chunk.toString()));
+    await waitForServer(cloudBaseUrl).catch((e: unknown) => {
+      throw new Error(`${e instanceof Error ? e.message : String(e)}\npreview server said:\n${previewLog.join('')}`);
+    });
   });
 
   test.afterAll(async () => {
@@ -137,7 +147,7 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
       await new Promise(r => setTimeout(r, 600));
       await syncBadge.dispatchEvent('pointerup');
 
-      const flash = page.locator('.flash');
+      const flash = page.getByTestId('flash-strip');
       await expect(flash).toBeVisible();
       await expect(flash).toContainText('Google Drive');
 
@@ -181,7 +191,7 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
       for (const viewport of [{ width: 320, height: 568 }, { width: 390, height: 844 }]) {
         await page.setViewportSize(viewport);
 
-        // Seed reconnect status and new build info
+        // Seed reconnect status; a new build waits and edits are unsaved
         await page.addInitScript(() => {
           localStorage.setItem('openisd_cloud_auth', JSON.stringify({
             kind: 'reconnect',
@@ -189,19 +199,13 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
           }));
         });
 
-        await page.route('**/build-info.json', route => {
-          void route.fulfill({
-            status: 200,
-            contentType: 'application/json',
-            body: JSON.stringify({ version: 'v99999999T9999Z' }),
-          });
-        });
-
         await page.goto(cloudBaseUrl + '/');
         await openAMobileProject(page);
+        await dirtyFocusedDesign(page);
+        await deliverWaitingBuild(page);
 
         // When update banner is shown, reconnect banner MUST NOT show
-        const updateBanner = page.locator('.mob-update-banner').filter({ hasText: 'A new version of OpenISD is available.' });
+        const updateBanner = page.locator('.mob-update-banner').filter({ hasText: 'New version available' });
         await expect(updateBanner).toBeVisible();
         await expect(page.locator('.mob-reconnect-banner')).toHaveCount(0);
 
@@ -214,7 +218,6 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
         await expect(reconnectBanner.locator('.mob-update-reload')).toHaveText('Reconnect');
 
         // Clean up routes and storage for next viewport
-        await page.unroute('**/build-info.json');
         await page.evaluate(() => {
           localStorage.removeItem('openisd_cloud_auth');
           sessionStorage.clear();

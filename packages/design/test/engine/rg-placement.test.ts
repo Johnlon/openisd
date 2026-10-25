@@ -3,6 +3,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.70e-3;
@@ -29,7 +30,7 @@ const DRV = derive(RAW);
 describe('Rg placement', () => {
   describe("Rg placement — 'Rg is at driver side' (WinISD Advanced)", () => {
     const base = (over: Partial<SweepParams>): SweepParams =>
-      ({ Vb: 0.030, eg: 2.83, Rs: 1.0, fmin: 20, fmax: 200, N: 16, ...over });
+      ({ Vb: 0.030, eg: 2.83, Rs: 1.0, fmin: 20, fmax: 200, N: 16, air: REFERENCE_AIR, ...over });
 
     it('leaves SPL unchanged for a single driver — one Rg in series is one Rg in series', () => {
       const atDriver = engine.simulation.sweep(DRV, LE_H, 'sealed', base({ nDrivers: 1, rgAtDriverSide: true })).values!;

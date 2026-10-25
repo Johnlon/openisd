@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type {SimulatableBoxType, SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
 import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 /**
  * `boxModel()` (engine/boxes/index.ts) — the exhaustive factory that gives each
@@ -21,7 +22,7 @@ describe('boxModel — one class per simulatable box type', () => {
 
   // Lossless (Ql and Qa at the limit) so every branch reads geometry (Sp/Leff, prMmd/prCms/prSd)
   // rather than a fixed-tuning `Fb`/`Fr` — no need to hand-tune a resonance for a dispatch-only test.
-  const P_SEALED: SweepParams = {Vb: 0.030, eg: 2.83, Ql: 1e6, Qa: 1e6, fmin: 30, fmax: 300, N: 5};
+  const P_SEALED: SweepParams = {Vb: 0.030, eg: 2.83, Ql: 1e6, Qa: 1e6, fmin: 30, fmax: 300, N: 5, air: REFERENCE_AIR};
   const P_VENTED: SweepParams = {...P_SEALED, Sp: Math.PI * 0.025 ** 2, Leff: 0.1366};
   const P_PR: SweepParams = {...P_SEALED, prSd: 0.0133, prNum: 1, prMmd: 0.030, prMadd: 0, prCms: 0.0008, prRms: 1.0};
   const P_BP4: SweepParams = {...P_VENTED, Vf: 0.020};

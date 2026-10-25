@@ -3,6 +3,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR, REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
@@ -60,11 +61,11 @@ const LEFF = 0.30 + 0.732 * 0.05;                // 300 mm cut length + one-flan
 // about, rather than being left absent (BUG_20260927_vented-box-losses-not-winisd-form.md).
 const VB = 0.030;
 
-const {c: refC} = engine.environment.solve({}).values;
+const {c: refC} = REFERENCE_AIR_VALUES;
 
 const FB = refC * Math.sqrt(SP / (LEFF * VB)) / (2 * Math.PI);
 
-const VENTED: SweepParams = { Vb: VB, eg: 2.83, Sp: SP, Leff: LEFF, Fb: FB, fmin: 10, fmax: 2000, N: 400 };
+const VENTED: SweepParams = { Vb: VB, eg: 2.83, Sp: SP, Leff: LEFF, Fb: FB, fmin: 10, fmax: 2000, N: 400, air: REFERENCE_AIR };
 
 describe('force-flat response', () => {
   /**
@@ -78,7 +79,7 @@ describe('force-flat response', () => {
       // fmin itself is 100 Hz and a highpass filter at 300 Hz still rolls off heavily there,
       // so the very first (lowest, and only >=100 Hz) point needs far more than the 6 dB clamp.
       const P: SweepParams = {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 100, fmax: 2000, N: 50,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: EG_STANDARD, fmin: 100, fmax: 2000, N: 50, air: REFERENCE_AIR,
         forceFlatResponse: true, winisdFlatModel: false, flatMaxBoostDb: 6,
         filters: [{ type: 'highpass', family: 'sos', order: 2, enabled: true, fc: 300, Q: Math.SQRT1_2 }],
       };
@@ -98,7 +99,7 @@ describe('force-flat response', () => {
   describe('force-flat response — silent (-200 dB) points are never resurrected by the EQ', () => {
     it('an all-silent sweep (eg=0) stays all-silent under forceFlatResponse — no clamp, no gain applied', () => {
       const sw = engine.simulation.sweep(sweepDriver(DRV), LE_H, BOX, {
-        Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0, fmin: 10, fmax: 1000, N: 50, forceFlatResponse: true,
+        Vb: VB_M3, Ql: QL_LOSSLESS, eg: 0, fmin: 10, fmax: 1000, N: 50, forceFlatResponse: true, air: REFERENCE_AIR,
       }).values!;
       assert.ok(sw.spl.every(v => v === -200), 'silence must not be boosted just because force-flat is on');
       assert.equal(sw.flatClamped, null, 'a curve with nothing to flatten never binds the clamp');

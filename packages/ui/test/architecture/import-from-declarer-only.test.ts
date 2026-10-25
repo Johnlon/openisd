@@ -211,9 +211,13 @@ describe('an import names the module that declares the symbol (A9)', () => {
 
   it('every first-party import in the tree resolves to its declaring module', () => {
     const offences: string[] = [];
-    for (const f of SRC_ROOTS.flatMap(filesUnder)) {
+    // Every file is added BEFORE any is analysed. Adding a file invalidates the type checker, so
+    // adding one then asking about it, 262 times over, rebuilt the program 262 times: 29 s alone
+    // and past the limit on a loaded box (T492). Added first, it is built once.
+    const sources = SRC_ROOTS.flatMap(filesUnder).map(sourceFileOf);
+    for (const source of sources) {
       offences.push(...importsFromNonDeclarer(
-        sourceFileOf(f),
+        source,
         isFirstPartySource,
         p => ENTRY_POINTS.has(p),
         p => relative(REPO_ROOT, p),

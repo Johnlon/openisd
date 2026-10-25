@@ -1,0 +1,233 @@
+name: suite
+
+# Prototype (T251, T252, T258): the full suite of the laptop post-land run (scripts/land/post-land/suite.sh)
+# on GitHub's runners. It gates nothing yet. Same rules as post-land: no retries, a flake is a red.
+# One job builds the suite's app; the browser shards download it and serve it (built by
+# scripts/build-test-app.sh). The unit tests run in two halves and typecheck in its own job.
+on:
+  push:
+    # land/<task>: the candidate of a landing; land.sh pushes main only when this run is green (T301), and main
+    # then holds that same commit, so main has no run of its own (T322): post-land reads the candidate's.
+    branches: ['land/**']
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit to test (default the head of main)
+        required: false
+        type: string
+      shards:
+        description: Browser shards
+        required: false
+        default: '10'
+        type: string
+      workers:
+        description: Playwright workers per shard
+        required: false
+        default: '4'
+        type: string
+
+permissions:
+  contents: read
+
+# A run is never cancelled: each run is its own group.
+concurrency:
+  group: suite-${{ inputs.sha || github.sha }}-${{ github.run_id }}
+  cancel-in-progress: false
+
+env:
+  SHA: ${{ inputs.sha || github.sha }}
+  SHARDS: ${{ inputs.shards || '10' }}
+  WORKERS: ${{ inputs.workers || '4' }}
+  # One port everywhere, so the build's folder name (build/test-dist-<port>) matches what the shards serve.
+  OPENISD_TEST_PORT: '4300'
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.list.outputs.shards }}
+    steps:
+      - id: list
+        run: echo "shards=$(seq -s, 1 "$SHARDS" | sed 's/^/[/;s/$/]/')" >> "$GITHUB_OUTPUT"
+
+  # The unit tests in two halves: one job alone was the longest of the run.
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        half: [1, 2]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: unit tests
+        run: node_modules/.bin/vitest run --shard=${{ matrix.half }}/2 2>&1 | tee unit.log; exit "${PIPESTATUS[0]}"
+      # Uploads below are diagnosis, not verdict: a failed one warns (next step) and does not fail the job.
+      - uses: actions/upload-artifact@v4
+        id: upload_unit_log
+        continue-on-error: true
+        if: ${{ !cancelled() }}
+        with:
+          name: unit-log-${{ matrix.half }}
+          path: unit.log
+      - name: warn that the upload_unit_log upload failed
+        if: ${{ !cancelled() && steps.upload_unit_log.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::unit-log-${{ matrix.half }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact unit-log-${{ matrix.half }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
+
+  typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  # Every shell test under scripts/**/test/ (T400): nothing else runs them, and a red one sat unseen. Red refuses the landing.
+  shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+          fetch-depth: 0
+      - name: git identity for the tests' scratch repos
+        run: |
+          git config --global user.email ci@example.invalid
+          git config --global user.name ci
+          git config --global init.defaultBranch main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Pillow and numpy for the feedback-page tools
+        run: python3 -m pip install pillow==10.4.0 numpy==2.1.3
+      - name: shell tests
+        run: bash scripts/test-shell.sh
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: build the suite's app
+        run: bash -c "$(node --input-type=module -e "import('./playwright.config.js').then(m => process.stdout.write(m.BUILD_TEST_APP))")"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test-app
+          path: |
+            build/test-dist-${{ env.OPENISD_TEST_PORT }}
+            build/test-bundle-${{ env.OPENISD_TEST_PORT }}
+            packages/ui/public/build-info.json
+          retention-days: 1
+
+  browser:
+    needs: [plan, build]
+    runs-on: ubuntu-latest
+    # The laptop's distribution and fonts, so the screen pictures and row heights match its baselines.
+    container:
+      image: ubuntu:26.04
+      options: --ipc=host
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - name: the laptop's packages
+        run: |
+          apt-get update -qq
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq git ca-certificates curl xz-utils fontconfig \
+            fonts-dejavu-core fonts-dejavu-extra fonts-dejavu-mono fonts-droid-fallback fonts-font-awesome fonts-lato \
+            fonts-liberation fonts-liberation-sans-narrow fonts-noto-mono fonts-ubuntu fonts-urw-base35 > /dev/null
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SHA }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-app
+          path: .
+      - id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        id: pw-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-ubuntu2604-${{ steps.pw.outputs.version }}
+      - name: install chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - name: install chromium system deps
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+      # Playwright's dependency install adds fonts the laptop lacks (one draws the ⛶ glyph the laptop
+      # shows as a box); the baselines are the laptop's, so only its font packages stay.
+      - name: only the laptop's fonts
+        shell: bash
+        run: |
+          keep='fonts-dejavu-core fonts-dejavu-extra fonts-dejavu-mono fonts-droid-fallback fonts-font-awesome fonts-lato fonts-liberation fonts-liberation-sans-narrow fonts-noto-mono fonts-ubuntu fonts-urw-base35'
+          extra=$(dpkg-query -W -f='${Package}\n' 'fonts-*' 'xfonts-*' 2>/dev/null | grep -vxF -f <(tr ' ' '\n' <<< "$keep") || true)
+          echo "removing: $extra"
+          [ -z "$extra" ] || DEBIAN_FRONTEND=noninteractive apt-get remove -y -qq $extra > /dev/null
+          fc-cache -f > /dev/null; fc-list | wc -l
+      - name: browser tests
+        env:
+          OPENISD_TEST_WORKERS: ${{ env.WORKERS }}
+        # The shard's spec files, split by measured time (scripts/ci/shard-specs.mjs), not Playwright's
+        # --shard, which split by count and left one shard twice as long as another.
+        run: npx playwright test $(node scripts/ci/shard-specs.mjs ${{ matrix.shard }} ${{ env.SHARDS }}) --retries=0
+      - name: name the report by shard
+        if: ${{ !cancelled() }}
+        run: mv build/pw-report.json build/pw-report-${{ matrix.shard }}.json || true
+      - uses: actions/upload-artifact@v4
+        id: upload_report
+        continue-on-error: true
+        if: ${{ !cancelled() }}
+        with:
+          name: report-${{ matrix.shard }}
+          path: build/pw-report-${{ matrix.shard }}.json
+      - name: warn that the upload_report upload failed
+        if: ${{ !cancelled() && steps.upload_report.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::report-${{ matrix.shard }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact report-${{ matrix.shard }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        id: upload_failures
+        continue-on-error: true
+        if: ${{ failure() }}
+        with:
+          name: failures-${{ matrix.shard }}
+          path: test-results/
+      - name: warn that the upload_failures upload failed
+        if: ${{ !cancelled() && steps.upload_failures.outcome == 'failure' }}
+        run: |
+          echo "::warning title=artifact upload failed::failures-${{ matrix.shard }} did not upload; the verdict is unchanged"
+          echo "- upload of artifact failures-${{ matrix.shard }} failed (verdict unchanged)" >> "$GITHUB_STEP_SUMMARY"

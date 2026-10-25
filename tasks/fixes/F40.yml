@@ -1,0 +1,61 @@
+id: F40
+owner: Johnlon
+status: done
+sha: 61c3b2f585c2eeeb871c05813615f3d4bc42c891
+goal: main is red at 61c3b2f585; make the full suite pass again
+commits: |
+  61c3b2f585 T233: Concurrent-landings e2e: give the scratch repo a UNIT_CMD
+  9f31fd0512 T216: Projects 3: Mobile Projects pane
+failing: |
+    ✘  787 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile menu (790ms)
+visual: |
+  visual screens: mobile-menu
+  visual page: http://lap:8000/winisd/visual-pages/red-61c3b2f585/index.html
+output: |
+  
+      Call log:
+        - Expect "toHaveScreenshot(mobile-menu.png)" with timeout 20000ms
+          - verifying given screenshot expectation
+        - taking page screenshot
+          - disabled all CSS animations
+        - waiting for fonts to load...
+        - fonts loaded
+        - 5429 pixels (ratio 0.02 of all image pixels) are different.
+        - waiting 100ms before taking screenshot
+        - taking page screenshot
+          - disabled all CSS animations
+        - waiting for fonts to load...
+        - fonts loaded
+        - captured a stable screenshot
+        - 5429 pixels (ratio 0.02 of all image pixels) are different.
+  
+  
+        10 |     await screen.open(page);
+        11 |     // The build stamp differs on every build: it is masked, nothing else is.
+      > 12 |     await expect(page).toHaveScreenshot(`${screen.skin.name}-${screen.name}.png`, {mask: [page.getByTestId('app-version')]});
+           |                        ^
+        13 |   });
+        14 | }
+        15 |
+          at /home/john/work/winisd/.postland/945866-61c3b2f585/packages/ui/test/visual/visual.browser.spec.ts:12:24
+  
+      attachment #1: mobile-menu (image/png) ─────────────────────────────────────────────────────────
+      Expected: packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+      Received: test-results/visual-visual.browser-visual-mobile-menu/mobile-menu-actual.png
+      Diff:     test-results/visual-visual.browser-visual-mobile-menu/mobile-menu-diff.png
+      ────────────────────────────────────────────────────────────────────────────────────────────────
+  
+      Error Context: test-results/visual-visual.browser-visual-mobile-menu/error-context.md
+  
+    1 failed
+      packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile menu ────────────────────────
+    792 passed (6.3m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 945866-61c3b2f585 finished: FAILED (exit 1) after 8m48s
+also_red:
+  - sha: dd2584bf3c7067eb442c9299680ba127e213b2fe
+    failing: |
+        ✘  787 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile menu (837ms)
+    visual: |
+      visual screens: mobile-menu
+      visual page: http://lap:8000/winisd/visual-pages/red-dd2584bf3c/index.html

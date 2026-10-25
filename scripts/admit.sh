@@ -7,6 +7,7 @@ set -uo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/admit/record.sh"
 source "$HERE/lib/progress.sh"
+source "$HERE/lib/ts-log.sh"
 
 die() { echo "admit: $*" >&2; exit 1; }
 
@@ -31,10 +32,31 @@ else
 fi
 holds=0
 
+# The job runs in its own session (setsid), so its pid is its group id. Stop the whole group: TERM,
+# wait for the leader (a 10 s KILL timer backs it), then KILL whatever is left. No polling.
+job_group=""
+stop_job_group() {
+  [ -n "$job_group" ] || return 0
+  if kill -0 -- "-$job_group" 2> /dev/null; then
+    kill -TERM -- "-$job_group" 2> /dev/null
+    if [ -n "$child" ]; then
+      # The timer is a bare sleep this shell reaps: killing a `( sleep; kill )` subshell left its sleep
+      # alive in admit.sh's group for up to 10 s.
+      sleep 10 &
+      local timer=$! gone=""
+      wait -n -p gone "$child" "$timer" 2> /dev/null
+      kill "$timer" 2> /dev/null
+      wait "$timer" 2> /dev/null
+    fi
+    kill -KILL -- "-$job_group" 2> /dev/null
+  fi
+  job_group=""
+}
+
 # Runs on every exit: stop the job if a signal arrived mid-run, then free the slot.
 # The record is removed while fd 9 is still open, so the slot never looks held-but-unlisted.
 cleanup() {
-  [ -z "$child" ] || kill "$child" 2> /dev/null
+  stop_job_group
   [ "$holds" = 0 ] || [ "$(admit_field "$holder" pid)" != "$$" ] || rm -f "$holder"
   [ -z "$rec" ] || rm -f "$rec"
 }
@@ -115,17 +137,23 @@ wait_for_turn() {
 }
 
 take_ticket
+run_start "admit-wait-$label"
 wait_for_turn
+run_end "admit-wait-$label" 0
 
 export ADMIT_TOKEN="$rec"
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 echo "$label starting (run $OPENISD_RUN_ID)" >&2
 began=$SECONDS
 # Background + wait so a signal reaches our trap at once; <&0 keeps stdin; 9>&- hides the lock.
-"$@" 9>&- <&0 &
+# setsid (not a fork here, we are not a group leader) gives the job its own group for stop_job_group.
+setsid "$@" 9>&- <&0 &
 child=$!
+job_group=$child
 wait "$child"
 status=$?
 child=""
+stop_job_group
+run_end "admit-job-$label" "$status"
 progress_end_line "$label" "$status" $((SECONDS - began)) >&2
 exit "$status"

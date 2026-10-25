@@ -9,7 +9,8 @@
  * naming the group and the size of the disagreement, a consistent driver has none, and it
  * blocks nothing.
  */
-import {expect, openAProject, test} from '../fixtures.js';
+import {expect, openAProject, openDriverEditor, test} from '../fixtures.js';
+import {owdrText} from '../fixtures/seedMyDrivers.js';
 import type {Page} from '@playwright/test';
 import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject} from '../fixtures/sampleProject.js';
 
@@ -67,9 +68,9 @@ test('driver editor: an inconsistent group marks every one of its members, with 
 
   // The tooltip names the group and how far out it is; "inconsistent" alone is not actionable.
   const note = await editorField(page, 'Fs').locator('.ui-field-dq-btn').getAttribute('title');
-  expect(note).toContain('Fs_hz');
-  expect(note).toContain('Mms_kg');
-  expect(note).toContain('Cms_m_per_N');
+  expect(note).toContain('resonance (Fs)');
+  expect(note).toContain('moving mass (Mms)');
+  expect(note).toContain('compliance (Cms)');
   expect(note).toMatch(/disagree by \d/);
   expect(note).toContain('Fs = 1/(2π·√(Mms·Cms))');
 
@@ -81,11 +82,11 @@ test('driver editor: an inconsistent group marks every one of its members, with 
   await expect(page.locator('.de-modal .de-footer').getByRole('button', { name: 'Export', exact: true })).toBeEnabled();
 });
 
-// ── The Original skin's docked What-If panel ──────────────────────────────────────────────
-test('What-if?: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
+// ── The Original skin's docked What-if panel ──────────────────────────────────────────────
+test('What-if: the same mark appears on every member of the group as the driver is scrubbed', async ({ page }) => {
   await openWhatIf(page);
 
-  await expect(page.locator('.what-if-panel .de-dq')).toHaveCount(0);
+  await expect(page.locator('.what-if-panel .ui-field-dq-btn')).toHaveCount(0);
 
   const mms = whatIfField(page, 'Mms').locator('input');
   await mms.click();
@@ -95,27 +96,26 @@ test('What-if?: the same mark appears on every member of the group as the driver
 
   // Fs and Mms are both on this panel and both carry it. (Cms is a member too, but the What-if?
   // panel does not show Cms — a mark can only appear beside a field that is on screen.)
-  await expect(whatIfField(page, 'Fs').locator('.de-dq')).toHaveCount(1);
-  await expect(whatIfField(page, 'Mms').locator('.de-dq')).toHaveCount(1);
-  await expect(whatIfField(page, 'Re').locator('.de-dq')).toHaveCount(0);
+  await expect(whatIfField(page, 'Fs').locator('.ui-field-dq-btn')).toHaveCount(1);
+  await expect(whatIfField(page, 'Mms').locator('.ui-field-dq-btn')).toHaveCount(1);
+  await expect(whatIfField(page, 'Re').locator('.ui-field-dq-btn')).toHaveCount(0);
 
-  const dqIcon = whatIfField(page, 'Mms').locator('.de-dq');
-  const tooltip = page.locator('body > .dq-tooltip-box-Mms_kg');
-  await dqIcon.hover();
-  await expect(tooltip).toBeVisible();
-  const note = await tooltip.textContent();
-  expect(note).toMatch(/disagree by \d/);
+  // The ⚠ opens the reason under the field (the shared field row's note), not a hover popup.
+  const note = whatIfField(page, 'Mms').locator('.ui-field-note');
+  await whatIfField(page, 'Mms').locator('.ui-field-dq-btn').click();
+  await expect(note).toBeVisible();
+  expect(await note.textContent()).toMatch(/disagree by \d/);
 
   // Withdrawing the override hands Mms back to the calculation, and the group reconciles again.
   await mms.click();
   await mms.press('Control+a');
   await mms.press('Delete');
   await mms.blur();
-  await expect(page.locator('.what-if-panel .de-dq')).toHaveCount(0);
+  await expect(page.locator('.what-if-panel .ui-field-dq-btn')).toHaveCount(0);
 });
 
 
-test('What-if?: hovering or clicking the alert icon displays the custom formatted tooltip', async ({ page }) => {
+test('What-if: clicking the alert icon shows the reason under the field and clicking it again hides it', async ({ page }) => {
   await openWhatIf(page);
 
   const mms = whatIfField(page, 'Mms').locator('input');
@@ -124,79 +124,47 @@ test('What-if?: hovering or clicking the alert icon displays the custom formatte
   await mms.pressSequentially(IMPOSSIBLE_MMS_G);
   await mms.blur();
 
-  const dqIcon = whatIfField(page, 'Mms').locator('.de-dq');
+  const dqIcon = whatIfField(page, 'Mms').locator('.ui-field-dq-btn');
   await expect(dqIcon).toBeVisible();
+  const note = whatIfField(page, 'Mms').locator('.ui-field-note');
+  await expect(note).toBeHidden();
 
-  // Tooltip box should not be visible initially
-  const tooltip = page.locator('body > .dq-tooltip-box-Mms_kg');
-  await expect(tooltip).toBeHidden();
-
-  // Hovering should show the tooltip
-  await dqIcon.hover();
-  await expect(tooltip).toBeVisible();
-  await expect(tooltip).toContainText('disagree by');
-
-  // Verify bounding box is fully visible within viewport boundaries
-  const viewport = page.viewportSize();
-  expect(viewport).not.toBeNull();
-  const box = await tooltip.boundingBox();
-  expect(box).not.toBeNull();
-  expect(box!.x).toBeGreaterThanOrEqual(0);
-  expect(box!.y).toBeGreaterThanOrEqual(0);
-  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport!.width);
-  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport!.height);
-
-  // Mouse leave should hide it
-  await page.locator('.what-if-panel .what-if-titlebar').hover(); // Hover elsewhere
-  await expect(tooltip).toBeHidden();
-
-  // Clicking should toggle the tooltip
   await dqIcon.click();
-  await expect(tooltip).toBeVisible();
+  await expect(note).toBeVisible();
+  await expect(note).toContainText('disagree by');
 
-  // Clicking outside should close it
-  await page.locator('.what-if-panel .what-if-titlebar').click();
-  await expect(tooltip).toBeHidden();
+  // The note sits in the panel's own layout: inside the panel, never clipped by it.
+  const inside = await note.evaluate(el => {
+    const r = el.getBoundingClientRect();
+    const p = el.closest('.what-if-panel')!.getBoundingClientRect();
+    return r.left >= p.left && r.right <= p.right && r.top >= p.top && r.bottom <= p.bottom;
+  });
+  expect(inside).toBe(true);
+
+  await dqIcon.click();
+  await expect(note).toBeHidden();
 });
 
 test('chart failure lists the missing circuit values returned by the sweep', async ({ page }) => {
   await page.goto('/');
   await openAProject(page, COMPLETE_OWPR);
 
-  await page.evaluate(async () => {
-    function isAppStateModule(m: unknown): m is import('../../src/logic/appState.js').AppState {
-      return typeof m === 'object' && m !== null
-        && 'requireFocusedProject' in m && typeof m.requireFocusedProject === 'function';
-    }
-    const modPath = 'appState';
-    const mod: unknown = ((h: unknown): unknown => typeof h === 'object' && h !== null ? Reflect.get(h, modPath) : undefined)(Reflect.get(globalThis, 'openisdTestHooks'));
-    if (!isAppStateModule(mod)) throw new Error('appState module did not load as expected');
-    const project = mod.requireFocusedProject();
-    const spec = project.driver.specs;
-    spec.Fs_hz.clear();
-    spec.Re_ohm.clear();
-    spec.Qts.clear();
-    spec.Qes.clear();
-    spec.Qms.clear();
-    spec.Vas_m3.clear();
-    spec.Sd_m2.clear();
-    spec.Dd_m.clear();
-    spec.BL_Tm.clear();
-    spec.Mms_kg.clear();
-    spec.Cms_m_per_N.clear();
-    spec.Rms_kg_per_s.clear();
-    spec.EBP_hz.clear();
-    spec.no.clear();
-    spec.Rme_kg_per_s.clear();
+  // The user swaps in a driver file that carries no electrical or mechanical values.
+  await openDriverEditor(page);
+  await page.locator('.de-modal input[type=file]').setInputFiles({
+    name: 'blank.owdr', mimeType: 'application/x-openisd-driver',
+    buffer: Buffer.from(owdrText({ brand: 'Blank', model: 'Driver', specs: {} }, '00000000-0000-4000-8000-0000000000b1')),
   });
+  await page.locator('.de-footer button.pri', { hasText: 'OK' }).click();
+  await page.locator('.de-body').waitFor({ state: 'hidden' });
 
   const chartMessage = page.locator('.gmsg');
   await expect(chartMessage).toBeVisible();
-  await expect(chartMessage).toContainText('Sd_m2');
-  await expect(chartMessage).toContainText('Re_terminal_ohm');
-  await expect(chartMessage).toContainText('BL_terminal_Tm');
-  await expect(chartMessage).toContainText('Cms_m_per_N');
-  await expect(chartMessage).toContainText('Mms_kg');
-  await expect(chartMessage).toContainText('Rms_kg_per_s');
+  await expect(chartMessage).toContainText('cone area (Sd)');
+  await expect(chartMessage).toContainText('coil resistance at the terminals (Re)');
+  await expect(chartMessage).toContainText('force factor at the terminals (BL)');
+  await expect(chartMessage).toContainText('compliance (Cms)');
+  await expect(chartMessage).toContainText('moving mass (Mms)');
+  await expect(chartMessage).toContainText('mechanical resistance (Rms)');
   await expect(chartMessage).not.toContainText('Simulation produced no usable values');
 });

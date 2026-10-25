@@ -1,3 +1,4 @@
+import {APP_UPDATE_TEXT} from '../fields/appUpdateText.js';
 import {formatCountOf, formatDateTime, formatTime} from '../fields/format.js';
 import {type ConflictCopy, type SyncStatus, conflictKeptText, conflictKindWord} from './syncStatus.js';
 import {cloudFaultText} from './cloudTypes.js';
@@ -16,6 +17,8 @@ export interface SyncDisplayInputs {
   readonly hintDismissed: boolean;
   readonly launches: number;
   readonly updateBannerShown: boolean;
+  /** The user chose Not now on the reconnect strip, this session. */
+  readonly reconnectDismissed: boolean;
   readonly configured: boolean;
 }
 
@@ -27,7 +30,7 @@ export interface SyncDisplay {
   readonly text: string;
   readonly tooltip: string;
   readonly tap: SyncTap;
-  readonly strip: { readonly text: string; readonly button: string } | null;
+  readonly strip: { readonly text: string; readonly button: string; readonly dismiss: string } | null;
   readonly hint: { readonly text: string; readonly yes: string; readonly no: string } | null;
   readonly conflictNotice: { readonly text: string; readonly button: string } | null;
   readonly dialog: SyncDialogModel;
@@ -286,12 +289,13 @@ export function syncDisplayOf(inputs: SyncDisplayInputs): SyncDisplay {
     }
   }
 
-  const strip = inputs.configured && status.kind === 'reconnect' && !inputs.updateBannerShown
+  const strip = inputs.configured && status.kind === 'reconnect' && !inputs.updateBannerShown && !inputs.reconnectDismissed
     ? {
         text: status.changes > 0
           ? `⚠ Google needs you to connect again. ${formatCountOf(status.changes, 'change')} not synced.`
           : '⚠ Google needs you to connect again.',
         button: 'Reconnect',
+        dismiss: APP_UPDATE_TEXT.later,
       }
     : null;
 

@@ -1,0 +1,11 @@
+id: T350
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 2937cd357558661d452a1fc217315539b73d2bea
+goal: Record that T329 is abandoned: superseded by T347 (bob redid it on current main after rebase conflicts with T336 baselines)
+done_test: grep -qx 'status: abandoned' tasks/T329.yml
+files:
+  - tasks/T350.yml
+  - tasks/T329.yml

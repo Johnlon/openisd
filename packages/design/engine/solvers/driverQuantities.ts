@@ -87,7 +87,10 @@ export function withAddedMass(drv: Readonly<DriverWorkingSet>, MaddKg: number): 
   const Mms = drv.Mms_kg + MaddKg;
   const ws  = 1 / Math.sqrt(Mms * Cms_m_per_N);      // ωs = 1/√(Mms·Cms)
   const Qms = ws * Mms / Rms_kg_per_s;               // ωs·Mms/Rms
-  const Qes = ws * Mms * Re_ohm / (BL_Tm * BL_Tm);   // ωs·Mms·Re/Bl²
+  // Qes runs on the TERMINAL Re and BL (a multi-coil driver's wiring changes both).
+  const Re_t = terminalRe_ohm(Re_ohm, drv.numVC, drv.wiring);
+  const BL_t = terminalBL_Tm(BL_Tm, drv.numVC, drv.wiring);
+  const Qes = ws * Mms * Re_t / (BL_t * BL_t);       // ωs·Mms·Re/Bl², terminal Re and Bl
   out.Mms_kg = Mms;
   out.Fs_hz  = ws / (2 * Math.PI);
   out.Qms    = Qms;
@@ -131,4 +134,16 @@ export function terminalRe_ohm(Re_ohm: number, numVC: number | undefined, wiring
 export function terminalBL_Tm(BL_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
   const coils = numVC != null && numVC >= 1 ? numVC : 1;
   return wiring === 'series' ? BL_Tm * coils : BL_Tm;
+}
+
+/** The per-coil Re behind a terminal Re: the inverse of `terminalRe_ohm`. */
+export function perCoilRe_ohm(Re_terminal_ohm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
+  const coils = numVC != null && numVC >= 1 ? numVC : 1;
+  return wiring === 'series' ? Re_terminal_ohm / coils : Re_terminal_ohm * coils;
+}
+
+/** The per-coil BL behind a terminal BL: the inverse of `terminalBL_Tm`. */
+export function perCoilBL_Tm(BL_terminal_Tm: number, numVC: number | undefined, wiring: Wiring | undefined): number {
+  const coils = numVC != null && numVC >= 1 ? numVC : 1;
+  return wiring === 'series' ? BL_terminal_Tm / coils : BL_terminal_Tm;
 }

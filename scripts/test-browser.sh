@@ -23,12 +23,41 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # script, and a group-kill would either miss descendants or hit unrelated processes.
 if [ -z "${OPENISD_IN_OWN_GROUP:-}" ]; then
   export OPENISD_IN_OWN_GROUP=1
-  exec setsid --fork --wait bash "$0" "$@"
+  # The run this one belongs to, recorded before setsid takes it out of its caller's group: the
+  # housekeeper stops it when that owner is gone (scripts/browser-runs.sh). post-land/run.sh sets its own.
+  [ -n "${OPENISD_BROWSER_OWNER:-}" ] \
+    || export OPENISD_BROWSER_OWNER="$PPID $(awk '{print $22}' "/proc/$PPID/stat" 2> /dev/null)"
+  # The run starts in a new session as a background child (setsid execs in place, so $! is the
+  # session and group leader). Any exit or TERM/INT/HUP of this wrapper stops that whole group:
+  # TERM, a short grace, KILL, then reap. A bare `exec setsid --wait` forwarded nothing, so a
+  # killed wrapper left playwright, vite and chrome running.
+  setsid bash "$0" "$@" &
+  RUN_LEADER=$!
+  stop_run() {
+    trap '' TERM INT HUP
+    if kill -0 -- "-$RUN_LEADER" 2>/dev/null; then
+      kill -TERM -- "-$RUN_LEADER" 2>/dev/null
+      sleep 1
+      kill -KILL -- "-$RUN_LEADER" 2>/dev/null
+    fi
+    wait "$RUN_LEADER" 2>/dev/null
+  }
+  trap 'stop_run; exit 143' TERM
+  trap 'stop_run; exit 130' INT
+  trap 'stop_run; exit 129' HUP
+  trap 'stop_run' EXIT
+  wait "$RUN_LEADER"
+  RUN_STATUS=$?
+  trap - EXIT
+  stop_run
+  exit "$RUN_STATUS"
 fi
 
 # shellcheck source=./test-concurrency.sh
+source "$SCRIPT_DIR/lib/ts-log.sh"
+export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 source "$SCRIPT_DIR/test-concurrency.sh"
-reserve_test_slot   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
+reserve_test_slot || exit 1   # sets OPENISD_TEST_WORKERS, OPENISD_TEST_PORT — see that file for why this
                      # is a locked critical section rather than each run reading memory alone.
 
 # Every process in this run's group EXCEPT this shell. After the setsid re-exec above, $$ is
@@ -74,9 +103,14 @@ if ! printf '%s' "$LIST_OUT" | grep -qE '^Total: [1-9][0-9]* test'; then
   exit 1
 fi
 
+# The deterministic build runs here, before Playwright, with no deadline (Playwright's webServer limit cannot be 0).
+bash "$SCRIPT_DIR/build-test-app.sh"
+
 set +e
+run_start "browser-test"
 npx playwright test "$@"
 STATUS=$?
 set -e
+run_end "browser-test" "$STATUS"
 
 exit $STATUS

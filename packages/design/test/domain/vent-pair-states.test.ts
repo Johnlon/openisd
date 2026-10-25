@@ -103,7 +103,6 @@ const PORTS: readonly Port[] = [
 
 const letter = (c: Cell): 'E' | 'C' | 'N' => (c.value === null ? 'N' : c.entered ? 'E' : 'C');
 const state = (port: Port, p: OpenISDProject): string => `${letter(port.tuning(p))}/${letter(port.length(p))}`;
-const isVented = (port: Port): boolean => port.name === 'vented';
 
 function near(a: number | null, b: number | null, what: string): void {
   assert.ok(a !== null && b !== null, `${what}: ${a} vs ${b}`);
@@ -163,31 +162,27 @@ for (const port of PORTS) {
   });
 
   describe(`${port.name}: clears`, () => {
-    it('clearing the entered tuning', () => {
+    it('clearing the entered tuning keeps the length at its value as E; the tuning becomes C (John, 16 Oct 2026)', () => {
       const p = tuningEntered(port, 41);
       const volumeBefore = port.volume(p).value;
+      const lengthBefore = port.length(p).value;
       port.tuning(p).clear();
-      if (isVented(port)) {
-        // The vented box may not stay blank: it falls back to its starting alignment, which
-        // enters a tuning (and overwrites the volume).
-        assert.equal(state(port, p), 'E/C');
-        assert.notEqual(port.volume(p).value, volumeBefore);
-      } else {
-        assert.equal(state(port, p), 'N/N');
-        blockedWithNamedIssue(p);
-      }
+      assert.equal(state(port, p), 'C/E');
+      assert.equal(port.length(p).value, lengthBefore);
+      assert.equal(port.volume(p).value, volumeBefore, 'the box volume is never overwritten');
+      near(port.tuning(p).value, 41, 'the tuning the kept length gives');
     });
 
-    it('clearing the entered length', () => {
+    it('clearing the entered length keeps the tuning at its value as E; the length becomes C', () => {
       const p = port.build();
       port.length(p).set(0.28);
+      const tuningBefore = port.tuning(p).value;
+      const volumeBefore = port.volume(p).value;
       port.length(p).clear();
-      if (isVented(port)) {
-        assert.equal(state(port, p), 'E/C');
-      } else {
-        assert.equal(state(port, p), 'N/N');
-        blockedWithNamedIssue(p);
-      }
+      assert.equal(state(port, p), 'E/C');
+      assert.equal(port.tuning(p).value, tuningBefore);
+      assert.equal(port.volume(p).value, volumeBefore);
+      near(port.length(p).value, 0.28, 'the length the kept tuning gives');
     });
 
     it('clearing the calculated side changes nothing: the solver puts it straight back', () => {
@@ -199,13 +194,13 @@ for (const port of PORTS) {
       near(port.length(p).value, len, 'length re-solved');
     });
 
-    it('clearing from N/N again is harmless', () => {
-      if (isVented(port)) return; // never reaches N/N
+    it('clearing again flips the entered side and never blanks the pair', () => {
       const p = tuningEntered(port, 41);
       port.tuning(p).clear();
-      port.tuning(p).clear();
       port.length(p).clear();
-      assert.equal(state(port, p), 'N/N');
+      assert.equal(state(port, p), 'E/C');
+      port.tuning(p).clear();
+      assert.equal(state(port, p), 'C/E');
     });
   });
 
@@ -253,10 +248,8 @@ for (const port of PORTS) {
       near(port.length(p).value, len0, 'length after a round trip of the volume');
     });
 
-    it('N/N: a volume change invents nothing', () => {
-      if (isVented(port)) return; // never reaches N/N
-      const p = tuningEntered(port, 41);
-      port.tuning(p).clear();
+    it('N/N (a loaded record with neither side): a volume change invents nothing', () => {
+      const p = load(editedText(port.build(), port, {tuning: 'remove', length: 'remove'}));
       port.volume(p).set(NEW_VOLUME);
       assert.equal(state(port, p), 'N/N');
       blockedWithNamedIssue(p);

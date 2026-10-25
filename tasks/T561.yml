@@ -1,0 +1,34 @@
+id: T561
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: ecd3f1c20936480d1715602351a23c5b30fb69be
+goal: Desktop filter editors use UIField rows with step buttons instead of native number boxes (BUG_20261005_no-common-ui-field-component)
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-desktop-filter-editors-use-field-rows.test.ts
+files:
+  - tasks/T561.yml
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - packages/ui/src/ui/shells/original/filters/AllpassEditor.vue
+  - packages/ui/src/ui/shells/original/filters/LinkwitzTransformEditor.vue
+  - packages/ui/src/ui/shells/original/filters/ParametricEqEditor.vue
+  - packages/ui/src/ui/shells/original/filters/PassFilterEditor.vue
+  - packages/ui/src/ui/shells/original/filters/PeakHighpassEditor.vue
+  - packages/ui/src/ui/shells/original/filters/RaisedCosineEditor.vue
+  - packages/ui/src/ui/shells/original/filters/ShelfEditor.vue
+  - packages/ui/src/ui/shells/original/filters/StaticGainEditor.vue
+  - packages/ui/src/ui/shells/original/filters/numericInput.ts
+  - packages/ui/test/ui/original-filters-tab.browser.spec.ts
+  - packages/ui/test/architecture/architecture-desktop-filter-editors-use-field-rows.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/fields/caretSpin.ts
+  - packages/design/fields/index.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/test/hooks/OriginalFilters-hooks.test.ts
+  - packages/design/test/fields/spinner-step.test.ts
+  - packages/design/test/engine/filter-update.test.ts
+  - packages/design/engine/filters/FilterEngine.ts

@@ -18,6 +18,7 @@ set -uo pipefail
 GITCFG="$(mktemp "${TMPDIR:-/tmp}/land-gitconfig.XXXXXX")"
 printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\tdefaultBranch = main\n' > "$GITCFG"
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
+export POST_LAND_QUIET_S=0   # the quiet period is tested in post-land-queue.test.sh
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/post-land-e2e.XXXXXX")"
@@ -34,10 +35,16 @@ setup() {
     mkdir -p scripts tasks/fixes; touch tasks/fixes/.keep
     cp -r "$REPO/scripts/land" scripts/; cp "$REPO/scripts/land.sh" scripts/ 2>/dev/null
     cp "$REPO/scripts/paths.sh" scripts/
+    cp -r "$REPO/scripts/lib" scripts/
+    cp "$REPO/scripts/browser-runs.sh" scripts/; cp -r "$REPO/scripts/admit" scripts/; cp -r "$REPO/scripts/visual" "$REPO/scripts/feedback" scripts/; cp "$REPO/scripts/slice-events.sh" scripts/
     # suite: fails if FAIL exists; with ONCE it fails the first time only (a flake)
     cat > suite.sh <<'EOF'
 #!/usr/bin/env bash
 pwd > "$SUITE_LOG/cwd.$$"; echo start >> "$SUITE_LOG/seq"; trap 'echo end >> "$SUITE_LOG/seq"' EXIT
+if [ -f VISUALFAIL ]; then
+  mkdir -p test-results/visual-mobile-a; for k in expected actual diff; do printf "$k" > "test-results/visual-mobile-a/mobile-a-$k.png"; done
+  echo "  ✘  7 packages/ui/test/visual/visual.browser.spec.ts:9:3 › visual mobile a (1.0s)"; exit 1
+fi
 [ -f FAIL ] && { echo "stderr | test/noisy.test.ts > a passing test that logs"; echo "spec broken.spec.ts failed"; exit 1; }
 if [ -f ONCE ] && [ ! -f "$SUITE_LOG/once.done" ]; then touch "$SUITE_LOG/once.done"; echo "spec flaky.spec.ts failed"; exit 1; fi
 if [ -f SLOW ]; then [ -p "$SUITE_LOG/entered.fifo" ] && echo up > "$SUITE_LOG/entered.fifo"; sleep 3; fi
@@ -46,6 +53,7 @@ EOF
     cat > land.conf <<EOF
 FULL_SUITE_CMD="bash suite.sh"
 POST_LAND_LOCK="$SCRATCH/post.lock"
+POST_LAND_RECORD="$SCRATCH/post.lock"
 POST_LAND_DIR="$SCRATCH/copies"
 EOF
     git add -A; git commit -qm base; git push -q origin main; git push -q origin main:release
@@ -68,6 +76,14 @@ git -C "$SCRATCH/w/c" pull -q origin main
 f=$(grep -l "sha: $s" "$SCRATCH"/w/c/tasks/fixes/F*.yml 2>/dev/null | head -1)
 if [ $r = 1 ] && [ "$(release)" = "$before" ] && [ -n "$f" ] && grep -q '^status: open' "$f" && grep -q broken.spec.ts "$f" && ! sed -n '/^failing:/,/^output:/p' "$f" | grep -q noisy.test.ts; then
     ok "red opens fixes task, release unmoved"; else fail "red (r=$r f=$f)"; fi
+
+# 2b. a red caused by a screenshot differing names the screen and links the before/after page (scripts/visual/)
+export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/pages"
+setup; s=$(commit_push vis VISUALFAIL); post "$s" a; r=$?
+git -C "$SCRATCH/w/c" pull -q origin main
+f=$(grep -l "sha: $s" "$SCRATCH"/w/c/tasks/fixes/F*.yml 2>/dev/null | head -1)
+if [ $r = 1 ] && [ -n "$f" ] && grep -q '^visual: |' "$f" && grep -q 'visual screens: mobile-a' "$f" && grep -q "visual page: http://example.test/pages/red-${s:0:10}/index.html" "$f" && [ -e "$VISUAL_PAGES_DIR/red-${s:0:10}/mobile-a.diff.png" ]; then
+    ok "a screenshot red names the screen and links its page"; else fail "visual red (r=$r f=$f): $(cat "$f" 2>/dev/null | head -20)"; fi
 
 # 3. a flake (fails once, passes on retry) is a red: no rerun
 setup; before=$(release); s=$(commit_push three ONCE); post "$s" a; r=$?

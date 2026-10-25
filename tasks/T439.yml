@@ -1,0 +1,20 @@
+id: T439
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: 641216a68e53fb1cbf7ff8ba3dde8eddcc142283
+goal: Phone: tapping a number box's up/down button with the keyboard up keeps the box where it is on screen (bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md)
+done_test: bash scripts/test.sh packages/ui/test/logic/stepperPin.test.ts packages/ui/test/logic/visibleViewport.test.ts
+files:
+  - tasks/T439.yml
+  - bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md
+  - packages/ui/src/logic/stepperPin.ts
+  - packages/ui/src/logic/visibleViewport.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/logic/stepperPin.test.ts
+  - packages/ui/test/logic/visibleViewport.test.ts
+  - packages/ui/test/ui/mobile-stepper-keyboard-pin.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

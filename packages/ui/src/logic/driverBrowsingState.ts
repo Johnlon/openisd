@@ -1,12 +1,13 @@
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
 import type {OpenISDDriver} from '@openisd/design';
-import {Chip} from '@openisd/design/filter';
+import {Chip, DriverType} from '@openisd/design/filter';
 import type {PresentationState} from './presentationState.js';
 import {readDriverFileText} from './driverFileText.js';
 import {DriverFileFormat, sniff} from '../fileFormat.js';
 import {DriverScope} from '../driverScope.js';
 import type {Logging} from '../logging/flash.js';
 import {flashIfNoRoom} from './backupRefusal.js';
+import type {ExportNotice} from './exportNotice.js';
 import type {ConfirmPort} from './confirmPort.js';
 import type {
     BrokenEntry,
@@ -18,6 +19,7 @@ import type {
 } from '@openisd/persistence';
 import {
     displayNameOf,
+    activeFilterLabels,
     driverHasDqIssues,
     matchesCriteria,
     type PreviewSpec,
@@ -95,12 +97,16 @@ export const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kick
 // the DriverType member (`DriverType.Subwoofer.chips`). Nothing is duplicated here.
 export const DRIVER_TYPES = Chip.ALL;
 
+// The type-help popup's rows: each driver type and the chips it answers to, from the DriverType enum.
+export const DRIVER_TYPE_HELP_ROWS = DriverType.helpRows();
+
 // The scope control's segments, in the order it renders them — which IS the click cycle,
 // because `DriverScope.next` walks this same array.
 export const DRIVER_SCOPES = DriverScope.ALL;
 
 export interface DriverBrowsingState {
   DRIVER_TYPES: typeof DRIVER_TYPES;
+  DRIVER_TYPE_HELP_ROWS: typeof DRIVER_TYPE_HELP_ROWS;
   DRIVER_SCOPES: typeof DRIVER_SCOPES;
   DISPLAY_LIMIT: number;
   /** The bundled pool: the catalogue index, fetched when the picker first opens. */
@@ -109,7 +115,6 @@ export interface DriverBrowsingState {
   statusErr: Ref<boolean>;
   initialized: Ref<boolean>;
   filterQ: Ref<string>;
-  typeHelpOpen: Ref<boolean>;
   typeStates: Ref<Record<string, string>>;
   fsMin: Ref<string>; fsMax: Ref<string>;
   sdMin: Ref<string>; sdMax: Ref<string>;
@@ -118,7 +123,16 @@ export interface DriverBrowsingState {
   toggleType(id: string): void;
   toggleZ(z: string): void;
   clearParamFilters(): void;
+  /** Every filter that is on, in words — empty when none is. */
+  activeFilters: ComputedRef<readonly string[]>;
+  filtersOn: ComputedRef<boolean>;
+  /** How many of the folded filters are on (types, Fs, Sd, Z, scope, Favorites): `activeFilters` less the search words. */
+  foldedFilterCount: ComputedRef<number>;
+  /** Clears every filter: search, types, Fs, Sd, Z, scope (back to All) and Favorites. */
+  clearAllFilters(): void;
   favorites: Ref<string[]>;
+  /** False with no favourites: Favorites would only empty the list, so it cannot be switched on. */
+  favoritesAvailable: ComputedRef<boolean>;
   favoritesOnly: Ref<boolean>;
   /** Favourites key on the record uuid — `row.uuid` for a bundled row, `driverId(d)` for a
    *  domain object. */
@@ -173,6 +187,8 @@ export interface DriverBrowsingStateDeps {
   files: DesignFiles;
   /** Asks the user to confirm a destructive action. The injected confirm port. */
   confirmReset: ConfirmPort;
+  /** Says what an export did. */
+  exportNotice: ExportNotice;
   appState: AppState;
   presentation: PresentationState;
 }
@@ -191,7 +207,6 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const statusMsg = ref('');
   const statusErr = ref(false);
   const initialized = ref(false);
-  const typeHelpOpen = ref(false);
   const typeStates = ref<Record<string, string>>({});   // id → 'include' | 'exclude'
   const fsMin = ref('');
   const fsMax = ref('');
@@ -255,9 +270,14 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       : [...favorites.value, key];
     favorites.value = next;
     prefs.setFavorites(next);
+    // Un-starring the last favourite switches Favorites off: left on, it would hold an empty list behind a
+    // disabled button.
+    if (next.length === 0) favoritesOnly.value = false;
   }
 
+  const favoritesAvailable = computed<boolean>(() => favorites.value.length > 0);
   function toggleFavoritesOnly(): void {
+    if (!favoritesOnly.value && !favoritesAvailable.value) return;
     favoritesOnly.value = !favoritesOnly.value;
     displayLimit.value = DISPLAY_LIMIT;
   }
@@ -272,6 +292,13 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     typeStates.value = {}; fsMin.value = ''; fsMax.value = '';
     sdMin.value = ''; sdMax.value = ''; selZ.value = [];
     displayLimit.value = DISPLAY_LIMIT;
+  }
+
+  function clearAllFilters(): void {
+    clearParamFilters();
+    filterQ.value = '';
+    favoritesOnly.value = false;
+    driverScopeValue.value = DriverScope.All.value;
   }
 
   /** The filter bar as one question, over a driver. */
@@ -315,6 +342,10 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
    */
   const listedCount = computed<number>(() => filteredDrivers.value.length + filteredMyDrivers.value.length);
 
+  const activeFilters = computed<readonly string[]>(() => activeFilterLabels(criteria(), driverScope.value));
+  const filtersOn = computed<boolean>(() => activeFilters.value.length > 0);
+  const foldedFilterCount = computed<number>(() => activeFilters.value.length - (filterQ.value.trim() ? 1 : 0));
+
   function reloadMyDrivers(): void {
     const read = myDriverRepo.read();
     myDriversRead.value = read;
@@ -326,25 +357,29 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   function exportMyDriversRaw(): void {
     const raw = myDriverRepo.exportRaw();
     if (raw == null) return;
+    const fileName = 'my-drivers-export.json';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
-    a.download = 'my-drivers-export.json';
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     exportedThisSession.value = true;
+    deps.exportNotice.exported({kind: 'myDrivers'}, fileName);
   }
 
   function exportBrokenEntry(entry: BrokenEntry): void {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([entry.raw], { type: 'application/json' }));
-    a.download = `my-driver-${entry.key}.json`;
+    const fileName = `my-driver-${entry.key}.json`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     exportedThisSession.value = true;
+    deps.exportNotice.exported({kind: 'brokenDriver'}, fileName);
   }
 
   function deleteAllMyDrivers(): void {
@@ -532,14 +567,14 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   watch(() => presentationState.editDriverInfo, open => { if (!open && presentationState.browseOpen) reloadMyDrivers(); });
 
   return {
-    DRIVER_TYPES, DRIVER_SCOPES, DISPLAY_LIMIT,
+    DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES, DISPLAY_LIMIT,
     allDrivers, statusMsg, statusErr, initialized,
-    filterQ, typeHelpOpen, typeStates,
+    filterQ, typeStates,
     fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
-    toggleType, toggleZ, clearParamFilters,
+    toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
     // favourites — `clearParamFilters` deliberately leaves favoritesOnly alone: that button
     // says "clear all type and parameter filters", and Favorites is neither.
-    favorites, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly, driverId,
+    favorites, favoritesAvailable, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly, driverId,
     // scope — orthogonal to favourites and to the type/param filters.
     driverScope, cycleDriverScope,
     // list

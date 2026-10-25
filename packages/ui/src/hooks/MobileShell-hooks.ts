@@ -3,17 +3,20 @@
  * destination, plus the manual skin switch and the no-project empty state. One hook, one
  * component (`.claude/rules/ui.md`); every ref/computed/write lives here.
  */
-import {type Ref, computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue';
+import {type Ref, computed, nextTick, onMounted, onUnmounted, provide, ref, watch} from 'vue';
 import type {OpenISDProject} from '@openisd/design';
-import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
+import {cycleTraceColor} from '../logic/presentationState.js';
 import {useApp} from '../logic/app.js';
-import {useFeatureUse} from './telemetryContext.js';
+import {useFeatureUse, useRecentActions} from './telemetryContext.js';
+import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {inputFrom} from '../logic/domEvents.js';
-import {visibleViewportHeightPx} from '../logic/visibleViewport.js';
+import {visibleViewportHeightPx, visibleViewportTopPx} from '../logic/visibleViewport.js';
+import {STEPPER_PIN, StepperPin} from '../logic/stepperPin.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
+import {createAppUpdateUi} from './appUpdateUi.js';
 import type {TabId} from '../logic/tabId.js';
-import {createSelectedBox} from './boxFields.js';
-import type {BinRow, StoredProjectRow} from './storedProjectRows.js';
+import type {BinRow} from './binRows.js';
+import type {ProjectListRow} from './projectBinView.js';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 import {createProjectBinView} from './projectBinView.js';
 import {
@@ -24,6 +27,8 @@ import {
   ProjectId,
 } from '@openisd/design/cloud';
 import {
+  projectCloudMarks,
+  useCloudSync,
   useCloudSyncUi,
 } from './CloudSync-hooks.js';
 
@@ -32,10 +37,25 @@ import {
  *  — a destination that has no desktop counterpart, because `GraphPanel`'s canvas sets
  *  `touch-action: none` (custom pointer pan/zoom) and would trap vertical scroll if it sat
  *  inline in a form column instead of owning the whole screen. */
-export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters' | 'enclosure'> | 'graph';
+export type MobileDestination = Extract<TabId, 'box' | 'driver' | 'signal' | 'filters'> | 'graph';
 
 /** The panes the hamburger menu opens as full-screen dialogs over the current destination. */
 export type MobilePane = 'project' | 'advanced' | 'drivers' | 'cloudSync';
+
+const DEST_ACTIONS: Record<MobileDestination, ActionName> = {
+  box: 'tab:box',
+  driver: 'tab:driver',
+  filters: 'tab:filters',
+  signal: 'tab:signal',
+  graph: 'tab:graph',
+};
+
+const PANE_ACTIONS: Record<MobilePane, ActionName> = {
+  project: 'pane:project',
+  advanced: 'pane:advanced',
+  drivers: 'pane:drivers',
+  cloudSync: 'pane:cloudSync',
+};
 
 export interface MobileShellApi {
   storeLabel: string;
@@ -47,6 +67,8 @@ export interface MobileShellApi {
   openImportedFile: (e: Event) => void;
   openNewProject: () => void;
   switchToDesktop: () => void;
+  useAutomaticSkin: () => void;
+  skinIsAutomatic: import('vue').ComputedRef<boolean>;
   menuOpen: import('vue').Ref<boolean>;
   toggleMenu: () => void;
   closeMenu: () => void;
@@ -58,12 +80,14 @@ export interface MobileShellApi {
   saveAllProjects: () => Promise<number>;
   /** Some open project, focused or not, has unsaved edits — Save all has work to do. */
   anyUnsaved: import('vue').ComputedRef<boolean>;
-  /** A newer build is published and the user has not dismissed the notice for it. */
+  /** A newer build waits and edits are unsaved, so the user is asked. */
   updateBannerVisible: import('vue').ComputedRef<boolean>;
-  /** Reload onto the newer build. */
+  /** The app's one-line message (flash); the phone shows it in a strip above the tab bar, never over a control. */
+  flashMessage: import('vue').Ref<string>;
+  /** Reload onto the newer build (asks first when edits are unsaved). */
   reloadForUpdate: () => Promise<void>;
-  /** Hide the notice until the next visit. */
-  dismissUpdateBanner: () => Promise<void>;
+  /** Not now: hide the notice until a newer build waits or the next launch. */
+  dismissUpdateBanner: () => void;
   revertProject: () => void;
   browseDrivers: () => void;
   optionsOpen: import('vue').Ref<boolean>;
@@ -75,11 +99,12 @@ export interface MobileShellApi {
   goToAdvanced: () => void;
   /** The real, currently-visible viewport height in px — see the field's own comment. */
   viewportHeightPx: import('vue').Ref<number>;
-  /** Mirrors desktop's own nav gate: sealed has no Enclosure destination (Volume + Fsc live only
-   *  on the Box tab). */
-  showEnclosureTab: import('vue').ComputedRef<boolean>;
-  /** The Enclosure tab bar label, matching desktop's `enclosureNavLabel`. */
-  enclosureNavLabel: import('vue').ComputedRef<string>;
+  /** How far the browser has panned the page (the keyboard): the shell is moved down by it. */
+  viewportTopPx: import('vue').Ref<number>;
+  /** The space below the form that keeps a box in place when ▲▼ closes the keyboard (`StepperPin`). */
+  pinSpacePx: import('vue').Ref<number>;
+  /** Bound to `.mob-content`'s `scroll`: the scroll edges, and the pin. */
+  onContentScroll: () => void;
   /** Bound to `.mob-content` so its scroll position/height can be read. */
   contentEl: import('vue').Ref<HTMLElement | null>;
   /** True while there is unscrolled content ABOVE the current view — shows as a shadow under
@@ -97,33 +122,42 @@ export interface MobileShellApi {
   username: import('vue').ComputedRef<string | null>;
   /** The version of the running build, shown in the menu; '' on a dev server. */
   appVersion: import('vue').Ref<string>;
-  /** The "Open project" sheet — previously-SAVED projects (browser storage), distinct from
-   *  "Open a file" (`openFromDisk`, a disk import). Desktop's own `openDialogOpen`/
-   *  `storedProjects`/`openStoredProject` (OriginalShell-hooks.ts), mobile had no equivalent
-   *  (John, 2026-10-02: "the file menu offer no way to save and reopen projects"). */
-  openDialogOpen: import('vue').Ref<boolean>;
-  storedProjects: import('vue').Ref<StoredProjectRow[]>;
-  shownProjects: import('vue').ComputedRef<StoredProjectRow[]>;
+  /** Full-screen Projects pane. */
+  projectsPaneOpen: import('vue').Ref<boolean>;
+  openProjectsPane: () => void;
+  closeProjectsPane: () => void;
+  projectRows: import('vue').ComputedRef<ProjectListRow[]>;
+  /** The open projects in tab order, for the menu's "Open projects" rows. */
+  openProjectRows: import('vue').ComputedRef<ProjectListRow[]>;
+  selectOpenProject: (row: ProjectListRow) => void;
+  closeOpenProject: (row: ProjectListRow) => Promise<void>;
+  shownProjects: import('vue').ComputedRef<ProjectListRow[]>;
+  /** "35 projects · 770 KB · 2 open". */
+  projectsFooter: import('vue').ComputedRef<string>;
+  searchOffered: import('vue').ComputedRef<boolean>;
   projectQuery: import('vue').Ref<string>;
-  projectOrder: import('vue').Ref<import('@openisd/design/fields').ProjectListOrder>;
-  projectOrders: readonly import('@openisd/design/fields').ProjectListOrder[];
-  openProjectDialog: () => void;
-  openStoredProject: (id: string) => void;
-  /** The Bin view inside the Open project sheet (projectBinView.ts). */
+  projectOrder: import('vue').Ref<import('@openisd/design/fields').ProjectRowOrder>;
+  projectOrders: readonly import('@openisd/design/fields').ProjectRowOrder[];
+  /** Opens a saved project, or makes an open one active. */
+  chooseProject: (row: ProjectListRow) => void;
+  setProjectTraceVisible: (row: ProjectListRow, visible: boolean) => void;
+  cycleProjectColour: (row: ProjectListRow) => void;
+  closeProjectRow: (row: ProjectListRow) => Promise<void>;
+  duplicateProjectRow: (row: ProjectListRow) => void;
+  exportProjectRow: (row: ProjectListRow) => Promise<void>;
+  /** Makes the row's project active and opens the Project pane, whose Name field renames it. */
+  renameProjectRow: (row: ProjectListRow) => void;
+  /** A conflict copy: the Cloud sync pane, which lists the conflicts. */
+  resolveProjectRow: (row: ProjectListRow) => void;
+  /** The Bin view inside the Projects pane (projectBinView.ts). */
   binRows: import('vue').Ref<BinRow[]>;
   binTotal: import('vue').Ref<string>;
   binOpen: import('vue').Ref<boolean>;
   binLabel: import('vue').ComputedRef<string>;
-  moveToBin: (row: StoredProjectRow) => Promise<void>;
+  moveToBin: (row: ProjectListRow) => Promise<void>;
   restoreFromBin: (row: BinRow) => void;
   deleteForever: (row: BinRow) => Promise<void>;
   emptyBin: () => Promise<void>;
-  /** Every open project, saved or not — the same registry as desktop's Projects panel. */
-  openProjectRows: import('vue').ComputedRef<OpenProjectRow[]>;
-  selectOpenProject: (row: OpenProjectRow) => void;
-  setOpenProjectTraceVisible: (row: OpenProjectRow, visible: boolean) => void;
-  cycleOpenProjectColour: (row: OpenProjectRow) => void;
-  closeOpenProject: (row: OpenProjectRow) => void;
   cloudEnabled: Readonly<Ref<boolean>>;
   cloudSyncDisplay: Readonly<Ref<SyncDisplay>>;
   handleSyncTap: (action: SyncTap) => void;
@@ -132,6 +166,8 @@ export interface MobileShellApi {
   onSyncPointerCancel: () => void;
   openCloudSync: () => void;
   reconnectCloud: () => void;
+  /** Not now on the reconnect strip. */
+  dismissReconnect: () => void;
   openConflictNotice: () => void;
   turnOnHint: () => void;
   dismissHint: () => void;
@@ -141,23 +177,12 @@ export interface MobileShellApi {
   openConflict: (id: ConflictCopy['id']) => void;
 }
 
-/** One open project in the menu's "Open projects" list. */
-export interface OpenProjectRow {
-  readonly project: OpenISDProject;
-  readonly name: string;
-  readonly unsaved: boolean;
-  readonly focused: boolean;
-  /** Whether this project's trace is drawn on the graphs. */
-  readonly traceVisible: boolean;
-  /** The colour this project's curves are drawn in. */
-  readonly colour: string;
-}
-
 export function useMobileShell(): MobileShellApi {
+  const recentActions = useRecentActions();
   const { appState, presentation: presentationState } = useApp();
-  const { isTraceVisible, setTraceVisible, traceVisibilityRevision, boxTypeIsSimulatable, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
+  const { setTraceVisible, focusedProject, focusProject, isModified, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround } = appState;
   const { setSkinOverride } = presentationState;
-  const { designIO, projectRepo, projectBin, releases, appVersion, confirmPort, logging } = useApp();
+  const { designIO, projectRepo, projectBin, appUpdate, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
   const { show: about } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
@@ -166,20 +191,24 @@ export function useMobileShell(): MobileShellApi {
   const pane = ref<MobilePane | null>(null);
   const featureUse = useFeatureUse();
   watch(destination, d => {
+    presentationState.mobileDestination = d;
+    recentActions.record(DEST_ACTIONS[d]);
     if (d === 'filters') featureUse.feature('filters');
-    if (d === 'enclosure') featureUse.feature('vents');
   }, { immediate: true });
-  watch(pane, p => { if (p === 'drivers') featureUse.feature('driver_db'); });
+  watch(pane, p => {
+    presentationState.mobilePane = p;
+    if (p) {
+      recentActions.record(PANE_ACTIONS[p]);
+      if (p === 'drivers') featureUse.feature('driver_db');
+    }
+  });
   watch(() => presentationState.browseOpen, open => { if (open) featureUse.feature('driver_db'); });
   // The menu drawer's own identity line (John, 2026-10-02: "get my name in there somewhere") —
   // the same free-text app-level preference the Options dialog's "Username" field edits
   // (OptionsModal.vue), not a new setting of its own.
   const username = computed(() => presentationState.ui.username || null);
 
-  // Mirrors desktop's own nav gate (OriginalShell-hooks.ts) — its own selectedBox instance, kept
-  // synced to the project the same way (see createSelectedBox's own comment).
-  const { showEnclosureTab, enclosureNavLabel } =
-    createSelectedBox({ focusedProject, projectChanged, isSimulatable: boxTypeIsSimulatable });
+
 
 
 
@@ -188,33 +217,46 @@ export function useMobileShell(): MobileShellApi {
     const input = inputFrom(e);
     if (input === null) return;
     const f = input.files?.[0];
-    if (f) designIO.importFile(f);
+    if (f) {
+      recentActions.record('open-project');
+      void designIO.importFile(f).then(() => binView.refresh());
+    }
     input.value = '';
   }
   function openNewProject(): void {
+    recentActions.record('dialog:new-project');
     presentationState.newProjectOpen = true;
     closeMenu();
   }
   function openFromDisk(): void {
-    void designIO.openFromDisk(() => fileInput.value?.click());
+    recentActions.record('open-project');
+    void designIO.openFromDisk(() => fileInput.value?.click()).then(() => binView.refresh());
     closeMenu();
   }
 
-  // "Open project" — previously-SAVED projects (browser storage), not a disk import. Desktop's
-  // own openDialogOpen/storedProjects/openStoredProject (OriginalShell-hooks.ts); mobile had no
-  // equivalent (John, 2026-10-02: "the file menu offer no way to save and reopen projects").
-  const openDialogOpen = ref(false);
+  // Projects pane — previously-SAVED projects (browser storage) and open projects.
+  const projectsPaneOpen = ref(false);
+  watch(projectsPaneOpen, open => {
+    presentationState.projectsPaneOpen = open;
+  }, { immediate: true });
+  const cloudSyncForProjects = useCloudSync();
   const binView = createProjectBinView({
     appState, projectRepo, projectBin, confirm: confirmPort.port,
     unitTokens: () => presentationState.ui.unitTokens ?? {}, alert: text => alert(text),
+    cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
-  const {storedProjects, shownProjects, binRows, binTotal, binOpen, binLabel} = binView;
+  const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
   const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
-  function openProjectDialog(): void {
+  function openProjectsPane(): void {
+    recentActions.record('dialog:projects');
     binView.refresh();
     binOpen.value = false;
-    openDialogOpen.value = true;
+    projectsPaneOpen.value = true;
     closeMenu();
+  }
+  watch(() => presentationState.projectsRequests, openProjectsPane);
+  function closeProjectsPane(): void {
+    projectsPaneOpen.value = false;
   }
   function openStoredProject(id: string): void {
     const result = openStoredProjectFromStore(appState, projectRepo, id);
@@ -222,64 +264,116 @@ export function useMobileShell(): MobileShellApi {
       alert('Could not open the saved project: ' + result.errors.join('; '));
       return;
     }
-    openDialogOpen.value = false;
+    projectsPaneOpen.value = false;
+  }
+  /** A saved project opens (or, when open, becomes active); an open one never saved becomes active. */
+  function chooseProject(row: ProjectListRow): void {
+    recentActions.record('open-project');
+    openStoredProject(row.handle.id);
   }
 
-  // "Open projects" — the registry desktop's Projects panel lists (OriginalShell-hooks.ts), so a
-  // project that is open but never saved is reachable here too.
-  const openProjectRows = computed<OpenProjectRow[]>(() => {
-    const focused = focusedProject();
-    void traceVisibilityRevision.value;
-    return openProjects().map(project => ({
-      project,
-      name: projectDisplayName(project),
-      unsaved: projectHasUnsavedChanges(project),
-      focused: project === focused,
-      traceVisible: isTraceVisible(project),
-      colour: traceColor(project),
-    }));
-  });
-  // New-version notice: checked on start, whenever the app comes back to the foreground, and every
-  // few minutes while it stays open.
-  const updateBannerVisible = computed(() => releases.newVersionAvailable.value);
-  const reloadForUpdate = (): Promise<void> => releases.reload();
-  const dismissUpdateBanner = (): Promise<void> => releases.dismiss();
-  const UPDATE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
-  let updateTimer: ReturnType<typeof setInterval> | undefined;
-  function checkForUpdate(): void { if (document.visibilityState === 'visible') void releases.check(); }
-  onMounted(() => {
-    checkForUpdate();
-    document.addEventListener('visibilitychange', checkForUpdate);
-    updateTimer = setInterval(checkForUpdate, UPDATE_CHECK_INTERVAL_MS);
-  });
-  onUnmounted(() => {
-    document.removeEventListener('visibilitychange', checkForUpdate);
-    clearInterval(updateTimer);
+  function projectOfRow(row: ProjectListRow): OpenISDProject | null {
+    return row.handle.open;
+  }
+
+  /** The open projects, in tab order: the menu's "Open projects" rows. */
+  const openProjectRows = computed<ProjectListRow[]>(() => {
+    const open = openProjects();
+    const place = (row: ProjectListRow): number => {
+      const project = projectOfRow(row);
+      return project === null ? -1 : open.indexOf(project);
+    };
+    return projectRows.value.filter(row => place(row) >= 0).sort((a, b) => place(a) - place(b));
   });
 
-  const anyUnsaved = computed(() => openProjectRows.value.some(row => row.unsaved));
-  function selectOpenProject(row: OpenProjectRow): void {
-    const index = openProjects().indexOf(row.project);
+  /** A tap on an open project in the menu: it becomes the active one and the menu closes. */
+  function selectOpenProject(row: ProjectListRow): void {
+    const project = projectOfRow(row);
+    const index = project === null ? -1 : openProjects().indexOf(project);
     if (index >= 0) focusProject(index);
     closeMenu();
   }
-  function setOpenProjectTraceVisible(row: OpenProjectRow, visible: boolean): void {
-    setTraceVisible(row.project, visible);
+
+  /** The menu's close button: as the page's, and the menu goes too once no project is left. */
+  async function closeOpenProject(row: ProjectListRow): Promise<void> {
+    await closeProjectRow(row);
+    if (openProjects().length === 0) closeMenu();
   }
-  function cycleOpenProjectColour(row: OpenProjectRow): void { cycleTraceColor(row.project); }
-  async function closeOpenProject(row: OpenProjectRow): Promise<void> {
-    if (row.unsaved) {
+
+  function setProjectTraceVisible(row: ProjectListRow, visible: boolean): void {
+    const project = projectOfRow(row);
+    if (project !== null) setTraceVisible(project, visible);
+  }
+
+  function cycleProjectColour(row: ProjectListRow): void {
+    const project = projectOfRow(row);
+    if (project !== null) cycleTraceColor(project);
+  }
+
+  async function closeProjectRow(row: ProjectListRow): Promise<void> {
+    const project = projectOfRow(row);
+    if (project === null) return;
+    if (projectHasUnsavedChanges(project)) {
+      const name = projectDisplayName(project);
       const confirmed = await confirmPort.port.ask({
         title: 'Close project?',
-        message: `"${row.name}" has unsaved changes. Close it without saving?`,
+        message: `"${name}" has unsaved changes. Close it without saving?`,
         confirmLabel: 'Close',
         cancelLabel: 'Cancel',
       });
       if (!confirmed) return;
     }
-    const index = openProjects().indexOf(row.project);
+    const index = openProjects().indexOf(project);
     if (index >= 0) removeProject(index);
   }
+
+  /** Makes the row's project the focused one, opening it first if it is only saved. False when it
+   *  could not be opened (the user was told). */
+  function focusRow(row: ProjectListRow): boolean {
+    const project = projectOfRow(row);
+    if (project !== null) {
+      const index = openProjects().indexOf(project);
+      if (index >= 0) focusProject(index);
+      return true;
+    }
+    if (row.handle.kind !== 'saved') return false;
+    const result = openStoredProjectFromStore(appState, projectRepo, row.handle.id);
+    if (result.kind === 'refused') {
+      alert('Could not open the saved project: ' + result.errors.join('; '));
+      return false;
+    }
+    return true;
+  }
+
+  function duplicateProjectRow(row: ProjectListRow): void {
+    if (!focusRow(row)) return;
+    const taken = openProjects().map(projectDisplayName);
+    appState.duplicateFocusedProject(appState.copyProjectName(taken));
+  }
+
+  function renameProjectRow(row: ProjectListRow): void {
+    if (!focusRow(row)) return;
+    projectsPaneOpen.value = false;
+    goToProject();
+  }
+
+  function resolveProjectRow(_row: ProjectListRow): void {
+    projectsPaneOpen.value = false;
+    openCloudSync();
+  }
+
+  async function exportProjectRow(row: ProjectListRow): Promise<void> {
+    if (!focusRow(row)) return;
+    await designIO.saveProjectAs();
+  }
+
+  const anyUnsaved = computed(() => openProjects().some(p => projectHasUnsavedChanges(p)));
+
+
+  const updateUi = createAppUpdateUi(appUpdate, () => anyUnsaved.value, confirmPort.port);
+  const updateBannerVisible = updateUi.offered;
+  const reloadForUpdate = updateUi.reload;
+  const dismissUpdateBanner = updateUi.dismiss;
 
   async function confirmDiscard(): Promise<boolean> {
     return confirmPort.port.ask({
@@ -303,8 +397,16 @@ export function useMobileShell(): MobileShellApi {
     closeMenu();
   }
 
-  const optionsOpen = ref(false);
-  watch(optionsOpen, open => { if (open) featureUse.feature('options'); });
+  const optionsOpen = computed<boolean>({
+    get: () => presentationState.optionsOpen,
+    set: (v: boolean) => { presentationState.optionsOpen = v; },
+  });
+  watch(optionsOpen, open => {
+    if (open) {
+      recentActions.record('dialog:options');
+      featureUse.feature('options');
+    }
+  });
   function openOptions(): void { optionsOpen.value = true; closeMenu(); }
   function goToProject(): void { pane.value = 'project'; closeMenu(); }
   function goToAdvanced(): void { pane.value = 'advanced'; closeMenu(); }
@@ -322,6 +424,9 @@ export function useMobileShell(): MobileShellApi {
   // `activeSkin` (`presentationState.narrowViewport`), which this override beats. Symmetric with
   // `OriginalShell-hooks.ts`'s `switchToMobile`.
   function switchToDesktop(): void { setSkinOverride('original'); closeMenu(); }
+  // Back to choosing the skin from the window width, as at first start.
+  function useAutomaticSkin(): void { setSkinOverride(null); closeMenu(); }
+  const skinIsAutomatic = computed(() => presentationState.ui.skinOverride === undefined);
 
   // CSS `100vh`/`100dvh` is not enough on its own: real browsers vary in whether/when they
   // shrink it for their own chrome (a mobile address bar, a download shelf, any other bar a
@@ -329,15 +434,35 @@ export function useMobileShell(): MobileShellApi {
   // `visibleViewportHeightPx` says which number and why — re-read on every event any browser
   // fires when such a bar appears or disappears.
   const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : visibleViewportHeightPx(window));
-  function updateViewportHeight(): void { viewportHeightPx.value = visibleViewportHeightPx(window); }
+  const viewportTopPx = ref(0);
+  function updateViewportHeight(): void {
+    viewportHeightPx.value = visibleViewportHeightPx(window);
+    viewportTopPx.value = visibleViewportTopPx(window);
+  }
+  // The visible screen changed size (the keyboard): the box being typed in is scrolled into view
+  // inside the form, and a pinned box is held where it was. On the Graph destination, the content
+  // container is full-screen and never scrolls: the chart stack and bottom sheet manage their own
+  // internal scrolling.
+  function onVisibleResize(): void {
+    updateViewportHeight();
+    void nextTick().then(() => {
+      if (destination.value !== 'graph') {
+        const el = document.activeElement;
+        if (el instanceof HTMLInputElement && contentEl.value?.contains(el)) el.scrollIntoView({block: 'nearest'});
+        stepperPin.hold();
+      } else if (contentEl.value !== null) {
+        contentEl.value.scrollTop = 0;
+      }
+    });
+  }
   // DuckDuckGo fires neither a window nor a visualViewport resize when it hides its address bar,
   // and the bar's animation ends after the touch does: these events re-measure now and once more
   // on the next frame.
   function remeasureSoon(): void { updateViewportHeight(); requestAnimationFrame(updateViewportHeight); }
   onMounted(() => {
     window.addEventListener('resize', updateViewportHeight);
-    window.visualViewport?.addEventListener('resize', updateViewportHeight);
-    window.visualViewport?.addEventListener('scroll', updateViewportHeight);
+    window.visualViewport?.addEventListener('resize', onVisibleResize);
+    window.visualViewport?.addEventListener('scroll', onVisibleResize);
     window.addEventListener('scroll', remeasureSoon);
     window.addEventListener('touchend', remeasureSoon);
     window.addEventListener('orientationchange', remeasureSoon);
@@ -345,8 +470,8 @@ export function useMobileShell(): MobileShellApi {
   });
   onUnmounted(() => {
     window.removeEventListener('resize', updateViewportHeight);
-    window.visualViewport?.removeEventListener('resize', updateViewportHeight);
-    window.visualViewport?.removeEventListener('scroll', updateViewportHeight);
+    window.visualViewport?.removeEventListener('resize', onVisibleResize);
+    window.visualViewport?.removeEventListener('scroll', onVisibleResize);
     window.removeEventListener('scroll', remeasureSoon);
     window.removeEventListener('touchend', remeasureSoon);
     window.removeEventListener('orientationchange', remeasureSoon);
@@ -359,6 +484,24 @@ export function useMobileShell(): MobileShellApi {
   // indicator on `.mob-content` itself would sit entirely behind them and never be seen — the
   // shadow has to live on the ALWAYS-VISIBLE, never-covered top/tab bars instead.
   const contentEl = ref<HTMLElement | null>(null);
+  const pinSpacePx = ref(0);
+  const stepperPin = new StepperPin({
+    screenHeightPx: () => window.screen.height,
+    scrollBy: dy => {
+      if (destination.value !== 'graph' && contentEl.value !== null) contentEl.value.scrollTop += dy;
+    },
+    setSpacePx: px => {
+      pinSpacePx.value = destination.value !== 'graph' ? px : 0;
+    },
+    belowViewPx: () => {
+      const el = contentEl.value;
+      if (destination.value === 'graph' || el === null) return 0;
+      return el.scrollHeight - el.scrollTop - el.clientHeight;
+    },
+    now: () => performance.now(),
+    nextFrame: run => { requestAnimationFrame(run); },
+  });
+  provide(STEPPER_PIN, stepperPin);
   const canScrollUp = ref(false);
   const canScrollDown = ref(false);
   function updateScrollEdges(): void {
@@ -366,6 +509,10 @@ export function useMobileShell(): MobileShellApi {
     if (el === null) { canScrollUp.value = false; canScrollDown.value = false; return; }
     canScrollUp.value = el.scrollTop > 1;
     canScrollDown.value = el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+  }
+  function onContentScroll(): void {
+    updateScrollEdges();
+    stepperPin.onScroll();
   }
   // Catches content height changes the user didn't cause by scrolling (switching box type,
   // editing a field that shows/hides a hint row, …) without a per-field wiring: watches the
@@ -446,17 +593,19 @@ export function useMobileShell(): MobileShellApi {
   }
 
   return {
-    projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop,
+    projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
-    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label,
-    goToAdvanced, pane, closePane, viewportHeightPx, showEnclosureTab, enclosureNavLabel,
-    openDialogOpen, storedProjects, shownProjects, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, openProjectDialog, openStoredProject,
+    contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
+    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
+    projectsPaneOpen, openProjectsPane, closeProjectsPane,
+    projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
+    openProjectRows, selectOpenProject, closeOpenProject,
+    setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
-    openProjectRows, selectOpenProject, setOpenProjectTraceVisible, cycleOpenProjectColour, closeOpenProject,
     cloudEnabled: cloudSyncUi.available, cloudSyncDisplay: cloudSyncUi.display, handleSyncTap,
     onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel, openCloudSync,
-    reconnectCloud: cloudSyncUi.reconnect, openConflictNotice: cloudSyncUi.viewConflicts,
+    reconnectCloud: cloudSyncUi.reconnect, dismissReconnect: cloudSyncUi.dismissReconnect, openConflictNotice: cloudSyncUi.viewConflicts,
     turnOnHint: cloudSyncUi.hintTurnOn, dismissHint: cloudSyncUi.hintDismiss, connectCloud: cloudSyncUi.connect,
     syncNowCloud: cloudSyncUi.syncNow, disconnectCloud: cloudSyncUi.disconnect, openConflict,
   };

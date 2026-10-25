@@ -1,0 +1,32 @@
+id: T327
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 4b8e3ee73a7549e48957f6408e137a46e9c89697
+goal: Sealed box: Fsc, Qtc and Vb all enterable with the clear rule; Box tab tuning input for bandpass 4
+done_test: bash scripts/test.sh packages/design/test/domain/sealed-triple.test.ts
+files:
+  - tasks/T327.yml
+  - bugs/BUG_20261016_box-tab-tuning-input-missing-for-bandpass4-and-pr.md
+  - bugs/BUG_20261017_box-tab-has-no-pr-tuning-input.md
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/sealedBox.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/engine/sealed/SealedEngine.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/domain/sealed-triple.test.ts
+  - packages/design/test/engine/sealed-volume-for-resonance.test.ts
+  - packages/ui/src/hooks/MobileBoxTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/boxFields.ts
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-num-stepper.browser.spec.ts
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - packages/ui/test/ui/sealed-triple.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+visual:
+  - desktop-box-sealed

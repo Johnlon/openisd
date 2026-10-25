@@ -15,6 +15,9 @@ import {
   isStoredDataFault,
   createProjectBin, createStorageUsage,
   createProjectBinMarks,
+  createBrowserStoragePort,
+  createPersistenceStatus,
+  createSaveSignal,
 } from '@openisd/persistence';
 import {createLogging} from '../../src/logging/flash.js';
 import {createFaultLog} from '../../src/diagnostics/faultLog.js';
@@ -26,7 +29,7 @@ import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {createConfirmPort, type ConfirmPort} from '../../src/logic/confirmPort.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppLogic} from '../../src/logic/app.js';
-import {ReleaseWatch} from '../../src/logic/releaseWatch.js';
+import {AppUpdate} from '../../src/logic/appUpdate.js';
 import {createAppVersionPort} from '../../src/logic/appVersion.js';
 import {appSettingsRepoOn, backupOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn, exportedFilesOn, storageHistoryOn} from '../fixtures/repoOn.js';
 
@@ -44,7 +47,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const storage = createMemoryStorage();
   const faultLog = createFaultLog(() => undefined, () => ({
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
-  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {lines: () => [], summary: () => null}, () => null);
+  }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {lines: () => [], summary: () => null}, {lines: () => []}, () => null, () => '');
   const driverRepo = createBundledDriverRepo({
     fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });
@@ -68,26 +71,28 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
   const confirmPort = createConfirmPort();
   const driverBrowsing = createDriverBrowsingState({
     driverRepo, myDriverRepo, prefs, logging, selection, files: designFiles,
-    confirmReset: fakeConfirmPort, appState, presentation,
+    confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined}, appState, presentation,
   });
   const viewStateRepo = viewStateRepoOn(storage);
   const backup = backupRepoOn(storage);
-  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, confirmPort: fakeConfirmPort, appState, presentation });
+  const storageUsage = createStorageUsage(storage, projectBin);
+  const designIO = createApplicationIO({ engine,  logging, fileStorage, fileOpen: createFileOpen(), projectRepo, files: designFiles, backup, storageUsage, confirmPort: fakeConfirmPort, appState, presentation });
 
   const base: AppLogic = {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts,
     myPassiveRadiators, prefs, bundledPassiveRadiators, bundledDrivers: driverRepo, myDrivers: myDriverRepo,
-    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage: createStorageUsage(storage, projectBin),
-    releases: new ReleaseWatch('', {
-      latestVersion: () => Promise.resolve(null),
-      reloadOntoLatest: () => Promise.resolve(),
-      getRecordedReloadedVersion: () => null,
-      recordReloadedVersion: () => {},
-      getDismissedVersion: () => null,
-      recordDismissedVersion: () => {},
-    }, { log: () => {} }),
+    driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage,
+    browserStorage: createBrowserStoragePort(undefined, 'This browser'), persistence: createPersistenceStatus(createBrowserStoragePort(undefined, 'This browser'), storage), saves: createSaveSignal(),
+    appUpdate: new AppUpdate({
+      container: {addEventListener: () => {}},
+      visibility: {onVisible: () => {}},
+      timer: {every: () => {}},
+      anyUnsaved: () => false,
+      reload: () => {},
+      caches: {keys: () => Promise.resolve([]), delete: () => Promise.resolve(true)},
+    }),
     appVersion: createAppVersionPort(false, '', null, 'release'),
-    versionIndex: new VersionIndex('', Promise.resolve(null), 'http://localhost/'),
+    versionIndex: new VersionIndex('', Promise.resolve(null)),
     confirmPort, appState, presentation,
     recordedProjectId: () => null,
     cloudSync: null,

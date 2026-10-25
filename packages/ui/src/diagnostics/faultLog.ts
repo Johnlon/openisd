@@ -61,6 +61,11 @@ export interface CloudSyncText {
   summary(): string | null;
 }
 
+/** The browser storage line, built where the storage port lives. */
+export interface StorageText {
+  lines(): readonly string[];
+}
+
 export interface Fault {
   /** Monotonic id so the UI can key a list without an index. */
   id: number;
@@ -188,6 +193,8 @@ export interface FaultLog {
   report: () => string;
   /** The Cloud sync block: the connection, the last attempt and the last error in full. */
   cloudSyncLines: () => readonly string[];
+  /** "Persistent storage: granted". */
+  storageLines: () => readonly string[];
   /** The summary line when cloud sync holds an error, else null. */
   cloudSyncSummary: () => string | null;
   /** Start listening. Idempotent. */
@@ -203,7 +210,8 @@ export interface FaultLog {
 /** `keptCopy` reads the record text a repair kept under `key`, or null when none is held. */
 export function createFaultLog(
   saveBackup: SaveBackup, records: () => ResettableRecords, storeOf: StoreOfFault, cloudSync: CloudSyncText,
-  keptCopy: (key: string) => string | null,
+  storage: StorageText, keptCopy: (key: string) => string | null,
+  storedSizes: () => string,
 ): FaultLog {
   function ladder(): readonly QuickFix[] {
     try { return repairLadder(records()); } catch { return []; }
@@ -252,13 +260,11 @@ export function createFaultLog(
       .filter(f => { try { return f.probe(); } catch { return false; } })
       .slice().sort((a, b) => a.impact - b.impact),
     cloudSyncLines: () => cloudSync.lines(),
+    storageLines: () => storage.lines(),
     cloudSyncSummary: () => cloudSync.summary(),
     report: () => {
       const stored = (() => {
-        try {
-          return Object.keys(localStorage).filter(k => k.startsWith('openisd_'))
-            .map(k => `${k}: ${(localStorage.getItem(k) ?? '').length} bytes`).join('\n  ');
-        } catch { return '(localStorage unavailable)'; }
+        try { return storedSizes(); } catch { return '(localStorage unavailable)'; }
       })();
       return [
         `OpenISD diagnostics — ${new Date().toISOString()}`,
@@ -269,6 +275,8 @@ export function createFaultLog(
         ...faults.map(f => `  [${f.kind}] origin: ${originLabel(f.origin)} ×${f.count} ${f.message}\n${f.stack ? '    ' + f.stack.split('\n').slice(0, 6).join('\n    ') : ''}`),
         '',
         ...cloudSync.lines(),
+        '',
+        ...storage.lines(),
         '',
         'stored keys:',
         `  ${stored || '(none)'}`].join('\n');

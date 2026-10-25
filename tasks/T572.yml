@@ -1,0 +1,90 @@
+id: T572
+release_note: Mobile unit labels use one component and consistent bold styling; switchable units alone show a grey control chip and blue underline.
+repo: openisd
+owner: maryu
+status: done
+landed: b66b392be39462f5962cf7ff7b547cd2ebb22284
+goal: Every unit label uses one shared component with consistent styling and switch affordance
+done_test: bash scripts/test.sh packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
+visual_note: Unit labels use consistent bold styling across screens; switchable units retain the grey control and blue underline.
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-empty
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step4
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-vented-step4
+  - mobile-menu
+  - mobile-tab-advanced
+  - mobile-tab-driver
+  - mobile-tab-box
+  - mobile-tab-enclosure
+  - mobile-tab-signal
+  - mobile-wizard-abc-step4
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-vented-step4
+  - mobile-menu
+files:
+  - tasks/T572.yml
+  - bugs/BUG_20261023_phone-unit-buttons-differ.md
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/UnitToggle.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/test/ui/mobile-unit-buttons.browser.spec.ts
+  - packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
+  - packages/ui/test/architecture/driver-editor-template.test.ts
+  - packages/ui/test/ui/driver-editor-layout.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-units.browser.spec.ts
+  - packages/ui/test/ui/unit-label-underline.browser.spec.ts
+  - packages/ui/test/fixtures/sampleProject.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step4.png

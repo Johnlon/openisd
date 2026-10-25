@@ -46,7 +46,6 @@ function wdrVCConEntry(
     const raw = cell.value.trim();
     if (raw.length === 0) return undefined;
     const stated = Number(raw);
-    if (!isFinite(stated)) return undefined;
 
     if (stated === 1 || stated === 2) {
         return {
@@ -107,18 +106,20 @@ function readSpecEntryInto(
 ): void {
     const cell = wdr.cell(wdrKey);
     const numValue = Number(cell.value);
-    const shouldImport =
-        cell.state === 'entered'
-        || (cell.state === 'not-available' && isFinite(numValue) && numValue !== 0)
-        || wdrKey === 'VCCon';
-    if (!shouldImport) return;
-    if (!isFinite(numValue) && wdrKey !== 'VCCon') {
+    if (!isFinite(numValue)) {
+        // Text where a number belongs: a .wdr holds only a flag and a number (John, 2026-10-11), so
+        // the cell is left out, and the user is told whatever its ParState mark says.
         warnings.push({
             level: 'warn', field: wdrKey,
             message: `${wdrKey} is "${cell.value}", not a number: left out`,
         });
         return;
     }
+    const shouldImport =
+        cell.state === 'entered'
+        || (cell.state === 'not-available' && numValue !== 0)
+        || wdrKey === 'VCCon';
+    if (!shouldImport) return;
     if (wdrKey === 'VCCon') {
         const entry = wdrVCConEntry(cell, warnings);
         if (entry) entries[schemaKey] = entry;
@@ -131,6 +132,35 @@ function readSpecEntryInto(
             readings: {manual: {actual_reading: cell.value, read_value: numValue}},
         };
     }
+}
+
+/** The file's own coil count and wiring (`VCCon` 2 is series, anything else parallel). */
+function wdrWiring(entries: Readonly<Record<string, SpecEntryJson>>): {coils: number; series: boolean} {
+    const numVC = entries['numVC'];
+    const vcCon = entries['VCCon'];
+    return {
+        coils: numVC?.state === 'E' && numVC.value >= 1 ? numVC.value : 1,
+        series: vcCon?.state === 'E' && vcCon.value === 2,
+    };
+}
+
+/** Replace an entry's value (and its parsed reading) by `perCoil(value)`, keeping the printed
+ *  literal and the E mark exactly as the file had them. Absent entries stay absent. */
+function perCoilEntryInto(
+    entries: Record<string, SpecEntryJson>,
+    schemaKey: string,
+    perCoil: (terminal: number) => number,
+): void {
+    const entry = entries[schemaKey];
+    if (entry?.state !== 'E') return;
+    const value = perCoil(entry.value);
+    const manual = entry.readings?.manual;
+    entries[schemaKey] = {
+        ...entry,
+        value,
+        ...(entry.readings === undefined || manual === undefined
+            ? {} : {readings: {...entry.readings, manual: {...manual, read_value: value}}}),
+    };
 }
 
 export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
@@ -195,6 +225,13 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     readSpecEntryInto(specEntries, wdr, 'Vcd_m', 'Vcd', warnings);
     readSpecEntryInto(specEntries, wdr, 'DVol_m3', 'DVol', warnings);
 
+    // `Re` and `BL` in a `.wdr` are TERMINAL values; the record stores them PER COIL
+    // (docs/research/WINISD_PARITY.md section 11b, "Reading a .wdr back"). The wiring is the file's
+    // own `VCCon`, trusted as stated: the same factor is applied back on export, so it cancels.
+    const {coils, series} = wdrWiring(specEntries);
+    perCoilEntryInto(specEntries, 'Re_ohm', Re => series ? Re / coils : Re * coils);
+    perCoilEntryInto(specEntries, 'BL_Tm', BL => series ? BL / coils : BL);
+
     // Optional: present only when the header line is non-blank, so a `.wdr` that never states
     // one produces no field — not an empty string standing in for "unstated"
     // (bugs/archive/BUG_20260903_wdr_reader_drops_providedby_comment_dateadded_on_every_round_trip.md).
@@ -218,7 +255,8 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
         manufacturer: {value: manufacturer},
         brand: {value: brand},
         model: {value: model},
-        sku: {value: model, grounds: [{origin: 'manual', reading: model}]},
+        // A WinISD file states no short code (QO259).
+        sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
         driver_type: {value: [...(wdr.driverTypes() ?? ['woofer'])]},
         data_sources: {value: {}},
         ...(providedBy ? {provided_by: providedBy} : {}),

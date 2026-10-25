@@ -1,0 +1,15 @@
+id: T293
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 60ab4b67d0d5697f408d022be313f43cde7f7e82
+goal: A red post-land run keeps its whole output and names it in the F; a lost push race retries with one plain line; pre-push skips an empty ref list
+done_test: bash scripts/land/test/post-land-red-base.test.sh && bash scripts/land/test/post-land-actions.e2e.test.sh
+files:
+  - tasks/T293.yml
+  - scripts/land/post-land/run.sh
+  - scripts/hooks-local/pre-push
+  - scripts/land/test/post-land-red-base.test.sh
+  - bugs/BUG_20261017_post-land-red-step-noise-and-lost-output.md
+  - bugs/BUG_20261017_laptop-suite-server-dies-mid-run.md

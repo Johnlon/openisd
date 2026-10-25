@@ -3,6 +3,7 @@ import {sweepDriver, solveConsistencyGroup} from './testSolver.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** Voice-coil inductance for the fixtures below. Not a solver quantity — nothing
  *  derives it — so it reaches `sweep` on its own, and only the impedance plot reads it. */
 const LE_H = 0.7e-3;
@@ -63,7 +64,7 @@ describe('sealed box simulation', () => {
       const Qtc = d.Qts! * Math.sqrt(1 + d.Vas_m3! / Vb_m3);
       const { fs, spl } = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', {
         Vb: Vb_m3, Ql: 1e6, // Ql -> ∞ = lossless box (isolates acoustic response)
-        eg: 2.83, fmin: 10, fmax: 1000, N: 300}).values!;
+        eg: 2.83, fmin: 10, fmax: 1000, N: 300, air: REFERENCE_AIR}).values!;
       const passbandRef = spl.at(-1)!; // HF asymptote — reference level
       let maxError = 0;
       for (let i = 0; i < fs.length; i++) {
@@ -90,9 +91,9 @@ describe('sealed box simulation', () => {
       const EG    = 2.83; // V — IEC 60268-5 sensitivity reference voltage
       const d = solveConsistencyGroup({ ...REF_DRIVER});
       assert.ok(d);
-      const eta0  = engine.driver.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, engine.environment.solve({}).values);
-      const predicted = engine.driver.splFromEfficiency(eta0, engine.environment.solve({}).values) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
-      const { fs, spl } = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300 }).values!;
+      const eta0  = engine.driver.referenceEfficiency(d.Fs_hz!, d.Vas_m3!, d.Qes!, REFERENCE_AIR);
+      const predicted = engine.driver.splFromEfficiency(eta0, REFERENCE_AIR) + 10 * Math.log10(EG ** 2 / d.Re_ohm!);
+      const { fs, spl } = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', { Vb: Vb_m3, Ql: 1e6, eg: EG, fmin: 10, fmax: 1000, N: 300, air: REFERENCE_AIR }).values!;
       const passbandSPL = spl[idxGe(fs, 300)]; // 300 Hz — well above Fs, in the flat passband
       assert.ok(Math.abs(passbandSPL - predicted) < SPL_FORMULA_TOLERANCE_DB,
         `passband ${passbandSPL.toFixed(2)} dB vs predicted ${predicted.toFixed(2)} dB ` +
@@ -118,7 +119,7 @@ describe('sealed box simulation', () => {
       assert.ok(d);
       const { fs, spl } = engine.simulation.sweep(sweepDriver(d), LE_H, 'sealed', {
         Vb: Vb_m3, Ql: 1e6,  // Ql → ∞: lossless (matches QSpeakers formula)
-        eg: 2.83, fmin: 10, fmax: 1000, N: 300,
+        eg: 2.83, fmin: 10, fmax: 1000, N: 300, air: REFERENCE_AIR,
       }).values!;
       // Use the high-frequency SPL as the passband reference (same method as QSpeakers normalises to 0 dB)
       const passbandRef = spl.at(-1)!;

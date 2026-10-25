@@ -1,0 +1,34 @@
+id: T349
+release_note: Phone - a Save button (floppy disk) in the top row of every project page; it lights up when there are unsaved changes.
+repo: openisd
+owner: sonnet
+status: done
+landed: d6377a59893cd433938c5a4b56a2e311e9f4b9e1
+goal: Phone: a Save button (floppy icon) at the right of the top row on every project page (Box, Driver, Signal, Vented, PR, Filters, Graph); grey when saved, blue when unsaved; a tap saves under the current name and shows a 'Saved <name>' popup. Not in dialog headers or the menu (John, 17 Oct 2026).
+done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts
+files:
+  - tasks/T349.yml
+  - packages/design/fields/index.ts
+  - packages/design/fields/projectRows.ts
+  - packages/design/test/fields/projectRows.test.ts
+  - packages/ui/src/hooks/MobileSaveButton-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileSaveButton.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/test/ui/mobile-save-button.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+visual:
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-filters
+  - mobile-tab-graph
+  - mobile-tab-signal

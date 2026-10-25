@@ -2,7 +2,8 @@ id: F4-fix
 release_note: internal
 repo: openisd
 owner: lots
-status: open
+status: done
+landed: 217ddec3cb9508274ee636957d4c6f87c99d5e64
 label: fixes
 goal: Close F3 and F4: tests open distinct sample projects when expecting multiple open projects, preserving the open-once rule.
 done_test: bash scripts/test.sh packages/ui/test/ui/mobile-project-list.browser.spec.ts

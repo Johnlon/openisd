@@ -1,0 +1,12 @@
+id: T196
+release_note: internal
+label: fixes
+repo: openisd
+owner: sonnet
+status: done
+landed: 19b4c8081d4d9d50185608f95a601a7602cb8ead
+goal: 'F31: the one spec red at 285bed5f29 (driver-browser, OK on the project driver, 54.8 s) passes when its file is rerun alone (42 of 42): machine load. Close F31'
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-whole-test-timeouts.test.ts
+files:
+  - tasks/T196.yml
+  - tasks/fixes/F31.yml

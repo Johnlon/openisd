@@ -11,11 +11,20 @@ only in the post-land run. A bare `npx vitest run`,
 (John, 2026-09-29: "prohibit ad-hoc npx vitest run etc, provide only compliant test scripts and
 mandate their usage" — uncapped runs from several sessions pushed the load average to 26 on 10
 cores and timed the suites out).
+
+PreToolUse / Edit, Write, NotebookEdit, and Bash `sed -i` / `perl -i`: NO EDIT IN THE MAIN FOLDER (T476).
+The main folder is kept at the last green commit by `scripts/land/sync-main-folder.sh`; an edit made there
+is stray work. All work happens in a worktree (`scripts/new-task.sh`). This gate fires only when the
+repo it runs for IS the main folder (git config `openisd.mainFolder`); a worktree never trips it. Ignored
+output (`build/`, `node_modules/`) is allowed. The sync script and `land.sh` are not tool calls, so they are
+never blocked.
 """
 from __future__ import annotations
 
 import json
+import os
 import re
+import subprocess
 import sys
 
 COMPLIANT = re.compile(r"scripts/(test|quiet-test|test-browser)\.sh|\bgit\s+commit\b")
@@ -39,6 +48,70 @@ def command_of(payload: str) -> str:
     return command if isinstance(command, str) else ""
 
 
+EDIT_TOOLS = ("Edit", "Write", "NotebookEdit", "MultiEdit")
+IN_PLACE = re.compile(SEGMENT_START + r"(sed\s+(-\S*\s+)*-\S*i|perl\s+(-\S*\s+)*-\S*i)")
+MAIN_FOLDER_MESSAGE = "Edit in a worktree (scripts/new-task.sh), never in the main folder."
+ALLOWED_TOP = ("build", "node_modules")
+
+
+def main_folder() -> str:
+    """This gate's repo when it is the main folder, else an empty string."""
+    repo = os.path.realpath(os.environ.get("GATES_REPO") or os.path.dirname(os.path.abspath(__file__)))
+    out = subprocess.run(["git", "-C", repo, "config", "--get", "openisd.mainFolder"], capture_output=True, text=True)
+    return repo if out.returncode == 0 and os.path.realpath(out.stdout.strip()) == repo else ""
+
+
+def in_main_folder(path: str, base: str, main: str) -> bool:
+    full = os.path.realpath(path if os.path.isabs(path) else os.path.join(base, path))
+    if full != main and not full.startswith(main + os.sep):
+        return False
+    return full.split(os.sep)[len(main.split(os.sep))] not in ALLOWED_TOP if full != main else True
+
+
+LEADING_CD = re.compile(r"^\s*cd\s+(['\"]?)([^'\"\s;&|]+)\1\s*(&&|;)")
+ABS_PATH = re.compile(r"(?<![\w.])/[^\s'\";&|()<>]+")
+
+
+def bash_edits_main_folder(command: str, cwd: str, main: str) -> bool:
+    """An in-place edit hits the main folder when a path it names is inside it, or, naming no path
+    elsewhere, when it runs there: a leading `cd X &&` sets where it runs, else the session cwd.
+    Paths compare by whole components, so a sibling worktree (openisd-t450) is not the main folder (T478)."""
+    paths = [p for p in ABS_PATH.findall(command) if not p.startswith("/dev/")]
+    if any(in_main_folder(p, cwd, main) for p in paths):
+        return True
+    if paths:
+        return False
+    cd = LEADING_CD.match(command)
+    return in_main_folder(os.path.join(cwd, cd.group(2)) if cd else cwd, cwd, main)
+
+
+def payload_object(payload: str) -> dict:
+    try:
+        data = json.loads(payload)
+    except ValueError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def check_edit(tool: str, payload: str) -> int:
+    main = main_folder()
+    if not main:
+        return 0
+    data = payload_object(payload)
+    tool_input = data.get("tool_input") if isinstance(data.get("tool_input"), dict) else {}
+    cwd = data.get("cwd") if isinstance(data.get("cwd"), str) else main
+    if tool in EDIT_TOOLS:
+        path = tool_input.get("file_path") or tool_input.get("notebook_path")
+        hit = isinstance(path, str) and in_main_folder(path, cwd, main)
+    else:
+        command = tool_input.get("command") if isinstance(tool_input.get("command"), str) else ""
+        hit = bool(IN_PLACE.search(command)) and bash_edits_main_folder(command, cwd, main)
+    if not hit:
+        return 0
+    print("openisd gate: " + MAIN_FOLDER_MESSAGE, file=sys.stderr)
+    return 1
+
+
 def check_bash(command: str) -> int:
     if not BARE_RUNNER.search(command) or COMPLIANT.search(command):
         return 0
@@ -59,7 +132,10 @@ def main() -> int:
     event = sys.argv[1] if len(sys.argv) > 1 else ""
     tool = sys.argv[2] if len(sys.argv) > 2 else ""
     payload = sys.stdin.read() if not sys.stdin.isatty() else ""
-    if event == "PreToolUse" and tool == "Bash":
+    if event == "PreToolUse" and (tool in EDIT_TOOLS or tool == "Bash"):
+        edit = check_edit(tool, payload)
+        if edit or tool != "Bash":
+            return edit
         return check_bash(command_of(payload))
     return 0
 

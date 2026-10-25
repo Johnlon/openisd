@@ -1,0 +1,17 @@
+id: T313
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 1d35ddda1f5527b70215d5cbaf15b5f675972de1
+goal: land.sh resolves a conflict on generated visual baselines by taking main's side and re-taking them
+done_test: bash scripts/land/test/land-visual-conflict.e2e.test.sh
+files:
+  - tasks/T313.yml
+  - scripts/land.sh
+  - land.conf
+  - scripts/land/test/land-visual-conflict.e2e.test.sh
+  - docs/DEV_PROCESS.md
+  - docs/design/VISUAL_BASELINES.md
+  - bugs/BUG_20261017_baseline-conflict-blocks-landing.md
+note: also carries fable's agent's F55 flake fix (packages/ui/test/ui/fixtures/cloudSyncStubs.ts: the stub proxies only main-*.js, not the stylesheet), made in this worktree and swept in by the landing; wanted (fable, 17 Oct 2026).

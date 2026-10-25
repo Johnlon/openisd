@@ -4,7 +4,7 @@
  */
 import {expect, openAProject, test} from '../fixtures.js';
 
-test('Auto Y off holds the Y axis through a box volume edit; on rescales it', async ({ page }) => {
+test('Auto Y off holds the Y axis through a box volume edit; on rescales it', async ({ appPage: page }) => {
   await page.goto('/');
   await openAProject(page);
   const panel = page.locator('.graph-wrap .gpanel').first();
@@ -23,4 +23,19 @@ test('Auto Y off holds the Y axis through a box volume edit; on rescales it', as
 
   await autoY.check();
   await expect(panel).not.toHaveAttribute('data-y-range', before!);
+});
+
+test('Auto Y sits in the title row and does not overlap the first frequency label', async ({ appPage: page }) => {
+  await page.goto('/');
+  await openAProject(page);
+  const panel = page.locator('.graph-wrap .gpanel').first();
+  const title = panel.locator('.gtitle');
+  const autoY = title.locator('.gautoy');
+  await expect(autoY).toBeVisible();
+  const titleBox = await title.boundingBox();
+  const autoYBox = await autoY.boundingBox();
+  expect(titleBox).not.toBeNull();
+  expect(autoYBox).not.toBeNull();
+  expect(autoYBox!.y).toBeGreaterThanOrEqual(titleBox!.y - 2);
+  expect(autoYBox!.y + autoYBox!.height).toBeLessThanOrEqual(titleBox!.y + titleBox!.height + 4);
 });

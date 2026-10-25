@@ -2,14 +2,16 @@ import {describe, expect, it} from 'vitest';
 import type {DriverIssue} from '../../engine/driver/DriverEngine.js';
 import type {DriverSolverParams, SolverField} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
+import {availableAir} from '../../engine/index.js';
 import {checkConsistency, fakeSolverField} from './testSolver.js';
+import {REFERENCE_AIR, airOfConditions} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 
-// Deliberately NOT the reference condition (`engine.environment.solve({}).values`): `solveConsistencyGroup`'s own
+// Deliberately NOT the reference condition (`REFERENCE_AIR`): `solveConsistencyGroup`'s own
 // internal driverC/driverRho fallback already defaults to reference air on its own, so a test
 // using reference air here would pass even if `solveDriver` never threaded `air` through at all.
-const AIR = engine.environment.solve({ tempK: 350 }).values;
+const AIR = airOfConditions({ tempK: 350, humidityPct: 30, pressurePa: 101325 });
 
 function fakeWiringField(value: 'series' | 'parallel' | null): SolverField<'series' | 'parallel'> {
   let current = value;
@@ -102,18 +104,14 @@ describe('Engine.checkConsistency', () => {
       }
     });
 
-    it('reports a missing-dependencies issue for the trio even when Qts ITSELF is entered — the group has no route with fewer than two of three stated (S9a Cluster 6)', () => {
+    it('warns that the charts are approximate when ONLY Qts is entered: WinISD takes Qes = Qms = 2·Qts (John, 18 Oct 2026)', () => {
       const issues = checkConsistency({ Qts: 0.38 });
       expect(issues).toHaveLength(1);
       expect(issues[0]).toMatchObject({
-        kind: 'missing-dependencies',
+        kind: 'approximate-charts',
         target: 'Qts',
+        fields: ['Qts', 'Qes', 'Qms'],
       });
-      if (issues[0].kind === 'missing-dependencies') {
-        expect(issues[0].routes).toEqual([
-          { formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qes', 'Qms'] },
-        ]);
-      }
     });
   });
 
@@ -125,7 +123,7 @@ describe('Engine.checkConsistency', () => {
   // precision — not an auto-derived one — decides the outcome.
   describe('Engine.checkConsistency — precision-derived tolerance, not a fixed allowance', () => {
     function inconsistentInputIssues(p: DriverSolverParams): readonly DriverIssue[] {
-      return engine.driver.solve(p, AIR).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
+      return engine.driver.solve(p, availableAir(AIR)).filter((i): i is DriverIssue => i.kind === 'inconsistent-inputs');
     }
 
     // η₀ = 4π²·Fs³·Vas/(c³·Qes), the scraper's deleted `no` consistency rule
@@ -133,13 +131,13 @@ describe('Engine.checkConsistency', () => {
     // Fs/Vas/Qes are Visaton GF 200's datasheet figures; they imply η₀ ≈ 0.0048.
     it('a stated η₀ that Fs/Vas/Qes contradict is reported against no', () => {
       const p = driverParams({ no: 0.02, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
-      const issues = engine.driver.solve(p, engine.environment.solve({}).values);
+      const issues = engine.driver.solve(p, availableAir(REFERENCE_AIR));
       expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toMatchObject([{ target: 'no' }]);
     });
 
     it('a stated η₀ that Fs/Vas/Qes imply to its printed precision is not reported', () => {
       const p = driverParams({ no: 0.0048, Fs_hz: 30, Vas_m3: 0.068, Qes: 0.37 });
-      const issues = engine.driver.solve(p, engine.environment.solve({}).values);
+      const issues = engine.driver.solve(p, availableAir(REFERENCE_AIR));
       expect(issues.filter(i => i.kind === 'inconsistent-inputs')).toEqual([]);
     });
 

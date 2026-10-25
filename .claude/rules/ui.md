@@ -40,3 +40,13 @@ or from its hook, and calls its methods; `ui/` files import design values only f
 `.toFixed(`, and the literals 1.2041 and 343.2/343.235. `Math.min/max/abs/floor/round/ceil` stay allowed.
 Fix a violation by adding the method to design, never with an `eslint-disable`. The lint sees `<script>`
 blocks, not `<template>` expressions; keep templates free of them too.
+
+# Both skins get the same system options
+
+John, 21 Oct 2026 (QO291.c218, c220): "standing design feature  both skins get sesame [same] system options"; "male it a default".
+
+- Every system option (Options dialog settings: colours, limits, units, air, switches) exists on the phone skin AND the
+  desktop skin. A task that adds or changes one on one skin adds it on the other in the same task.
+- The option's rows (key, label, default) come from one list in `packages/design` that both skins read (e.g.
+  `packages/design/chart/chartColorRows.ts`), never two hand-written lists.
+- This is never a board question to John: it is the default. Only how it is laid out on a skin can be a question.

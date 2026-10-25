@@ -2,10 +2,11 @@ import {describe, it, expect} from 'vitest';
 import assert from 'node:assert/strict';
 import type {SimulatableBoxType, SweepParams} from '../../engine/types.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 /** The engine's one door: every calculation below is a method on this object. */
 const engine = createEngine();
 
-const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 50 };
+const P_SEALED: SweepParams = { Vb: 0.030, eg: 2.83, Ql: 10, fmin: 10, fmax: 1000, N: 50, air: REFERENCE_AIR };
 
 /** Sp/Leff are what the store's `syncedP` computes from a 50 mm × 100 mm vent. */
 const P_VENTED: SweepParams = { ...P_SEALED, Sp: Math.PI * 0.025 ** 2, Leff: 0.1366 };

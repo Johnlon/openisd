@@ -1,0 +1,13 @@
+id: T494
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 98ee2c29569da0caee208036491fd531fa64e2d7
+goal: The gate hook runs only on tool calls the gates check (Bash, Monitor, edit tools), not on every call
+done_test: bash scripts/test.sh packages/design/test/architecture-gate-hook-matcher.test.ts
+files:
+  - tasks/T494.yml
+  - bugs/BUG_20261020_gate-hook-runs-on-every-tool-call.md
+  - packages/design/test/architecture-gate-hook-matcher.test.ts
+  - .claude/settings.json

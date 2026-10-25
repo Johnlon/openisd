@@ -12,7 +12,7 @@ export {
   PASS_FAMILY_OPTIONS,
 } from './options.js';
 
-export { DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM } from './defaults.js';
+export { DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM } from './defaults.js';
 
 export {
   type UnitGroup,
@@ -32,6 +32,8 @@ export {
 
 export { knownDecimals } from './precision.js';
 
+export { type NumberBox, type NumberEdit, NUMBER_TEXT, numberInPaste, pastedEdit, typedEdit } from './numberText.js';
+
 export {
   type FieldLimits,
   FILTER_ORDER_LIMITS,
@@ -50,6 +52,8 @@ export {
   type ValueFloor,
   Field,
   NumberField,
+  integerSpin,
+  type FieldSpin,
   EnumField,
   TextField,
   ToggleField,
@@ -80,14 +84,77 @@ export { LOSSLESS_Q } from './losslessQ.js';
 export { basicUtc } from './basicTime.js';
 export { lostDataSentence } from './lostData.js';
 export { deleteForeverMessage, emptyBinMessage, moveToBinMessage } from './projectBinText.js';
-export {PROJECT_LIST_ORDERS, PROJECT_LIST_ORDER_LIST, viewProjects, type ProjectListItem, type ProjectListOrder} from './projectListView.js';
+export {exportedNotice, type ExportedFile, type ExportedNotice} from './exportedNotice.js';
+export {
+  conflictSuffix,
+  emptyBinLabel,
+  PROJECT_LIST_TEXT,
+  PROJECT_ROW_ORDER_LIST,
+  PROJECT_ROW_ORDERS,
+  PROJECT_SEARCH_FROM_ROWS,
+  projectRow,
+  projectRowsFooter,
+  saveButtonState,
+  savedMessage,
+  type SaveButtonState,
+  projectSyncMark,
+  splitConflictName,
+  viewProjectRows,
+  type ProjectOpenState,
+  type ProjectRow,
+  type ProjectRowAction,
+  type ProjectRowMenuItem,
+  type ProjectRowOrder,
+  type ProjectRowSource,
+  type ProjectRowTag,
+  type ProjectSaved,
+  type ProjectSyncMark,
+} from './projectRows.js';
 export { restoredProjectName, storageUsedLine } from './backupText.js';
-export { formatByteSize, formatCount, formatCountOf, formatDate, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
+export {
+  LOCAL_STORE_LIMIT_BYTES,
+  browserNameOf,
+  persistenceLine,
+  persistenceWarning,
+  savedNotice,
+  startupNotice,
+  siteStorageLine,
+  STORAGE_FULL_FROM,
+  storageFullWarning,
+  acknowledgementInPlaceOfBannerMark,
+  storagePopup,
+  storagePopupAfterSave,
+  storageUseLine,
+  type BrowserName,
+  type StorageLevel,
+  type StoragePopup,
+  type StoragePopupInput,
+  type StoredUse,
+  type PersistOutcome,
+  type StorageEstimate,
+} from './browserStorage.js';
+export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
+export { caretSpin, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';
+export { DragSpin, dragSpinRate, pressedDigit, DRAG_SPIN_THRESHOLD_PX, type TextBox } from './dragSpin.js';
+export { parsePublicVersion, formatPublicVersion, titleOfPublicVersion, publicVersionOfTitle, comparePublicVersion, runningHeading, type PublicVersion } from './publicVersion.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
-export { type AppVersion, type BuildKind, type BuildTrail, formatAppVersion, trailOfPathname, hostedListPathOf, hostedPathOf, stampOfVersion } from './appVersion.js';
+export { type AppVersion, type BuildKind, type BuildTrail, type PageAddress, formatAppVersion, trailOfLocation, stampOfVersion } from './appVersion.js';
 
-/** The What-if? sheet's rows per box type. */
-export { WhatIfField, type WhatIfSlot } from './whatIfField.js';
+/** The bottom sheet's rows per box type and sheet modes (Tune and What-if). */
+export { SheetField, type SheetSlot } from './sheetField.js';
+export { SheetSizes } from './sheetSizes.js';
+export { ChartPageSizes, type ChartPageSizesValues } from './chartPageSizes.js';
+export { ChartPageHelp } from './chartPageText.js';
+export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
+export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
+export { type PhoneHelpRow, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneBoxText, PhoneHelp, PhoneDriverListText, PhonePrBrowserText, PhoneEditorText } from './phoneText.js';
+export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } from './phoneWizardText.js';
+export { DesktopSizes, PickWidth } from './desktopSizes.js';
+export { SheetMode, type SheetEdits } from './sheetMode.js';
 export { NO_PROJECT_OPEN } from './noProject.js';
+export { APP_UPDATE_TEXT, UNSAVED_RELOAD_CONFIRM } from './appUpdateText.js';
+
+export { TuneText } from './tuneText.js';
+export { PhoneDialogHelp, ImportChoiceText, AboutText } from './phoneDialogText.js';

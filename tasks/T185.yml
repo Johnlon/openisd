@@ -1,0 +1,13 @@
+id: T185
+release_note: internal
+repo: openisd
+owner: sonnet
+status: abandoned
+abandoned_by: fable
+abandoned_on: 2026-10-17
+abandoned_why: no live owner; superseded (QO185)
+archived: cdf0f2ed8031ea33d98438d558072d9855201082
+goal: The bottom tab panel is exactly the tallest tab's content plus the tab bar plus at most 8 px, nothing more.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T185.yml

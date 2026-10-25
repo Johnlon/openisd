@@ -4,10 +4,11 @@ import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import type {Design, FrequencyAxis, FrequencyDragMode, LevelAxis, LevelDragMode, SnapDirection, SnapExtremum} from '@openisd/design/chart';
 import type {Geo} from '../../types.js';
 import type {ChartId} from '@openisd/design/engine';
-import {drawOne} from '../canvas.js';
+import {DESKTOP_DRAW_STYLE, drawOne, PHONE_DRAW_STYLE} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 import {useApp} from '../../logic/app.js';
 import {inputChecked} from '../../logic/domEvents.js';
+import ChartDataDialog from './ChartDataDialog.vue';
 
 // `bare`/`primaryColor` are the WinISD chart mode: a clean single trace with no
 // F3/F6/F10 reference lines or legend, coloured to match the shell's Color swatch.
@@ -16,11 +17,16 @@ import {inputChecked} from '../../logic/domEvents.js';
 // never holds another design to get it drawn, so there is no default set to fall back to:
 // no overlays passed means this project is drawn alone.
 // `hideAutoY` drops the Auto Y switch: the caller decides (the mobile Graph page sets it).
-const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: string; overlays?: Design[]; hideAutoY?: boolean }>();
+// `classic` is the classic phone Graph page: the chart's title and Data chip come from the caller's `band` slot
+// above the chart (the panel hands it the title and the Data sheet's opener), the key inside the plot is dropped
+// (the page lists the curves once) and each reference line carries its words, and the Data table is a full-screen sheet.
+const props = defineProps<{ chartId: ChartId; bare?: boolean; primaryColor?: string; overlays?: Design[]; hideAutoY?: boolean; classic?: boolean }>();
 
 const project = useFocusedProject();
 const { appState: { projectChanged }, presentation: presentationState, engine } = useApp();
 const graph = useGraphPanel(props, engine);
+// The caller that owns Auto Y elsewhere (the phone sheet footer) sets it through this.
+defineExpose({ setAutoY: graph.setAutoY });
 
 const canvasEl = ref<HTMLCanvasElement | null>(null);
 const readEl   = ref<HTMLElement | null>(null);
@@ -35,6 +41,8 @@ const viewPlot = graph.viewPlot;
 const autoY = graph.autoY;
 const yRangeLabel = graph.yRangeLabel;
 const rolloffs = graph.rolloffs;
+const chartData = graph.chartData;
+const dataOpen = ref(false);
 // Reset a chart's Y scale to auto (invoked by double-clicking its axis).
 function resetY() { graph.setAutoY(true); }
 
@@ -101,7 +109,8 @@ const localDragRange = computed(() => {
 function redraw() {
   if (!canvasEl.value) return;
   if (blocked.value || !viewPlot.value) { geoRef.value = null; return; }
-  geoRef.value = drawOne(canvasEl.value, viewPlot.value, localDragRange.value ? null : effectiveF.value, readEl.value, localDragRange.value);
+  geoRef.value = drawOne(canvasEl.value, viewPlot.value, localDragRange.value ? null : effectiveF.value, readEl.value, localDragRange.value,
+    props.classic ? PHONE_DRAW_STYLE : DESKTOP_DRAW_STYLE);
 }
 
 function onPointerDown(e: PointerEvent) {
@@ -260,12 +269,13 @@ onMounted(() => {
   ro = new ResizeObserver(() => requestAnimationFrame(redraw));
   ro.observe(canvasEl.value!);
   document.addEventListener('click', onDocClick);
-  // Canvas text is rasterized at draw time — if Inter loads after the first
-  // paint, that paint used a fallback font. Redraw once the real font is in.
-  document.fonts.ready.then(redraw);
+  // Canvas text is rasterized at draw time — a draw made before its font is in used a fallback
+  // font. Redraw whenever a font finishes loading: a draw itself can start a font's download.
+  document.fonts.addEventListener('loadingdone', redraw);
 });
 onUnmounted(() => {
   ro?.disconnect();
+  document.fonts.removeEventListener('loadingdone', redraw);
   document.removeEventListener('click', onDocClick);
 });
 
@@ -279,8 +289,11 @@ const canvasStyles = computed(() => {
   if (colors.xmaxLimit) styles['--chart-pelimit'] = colors.xmaxLimit;
   if (colors.cursor) {
     styles['--chart-cross'] = colors.cursor;
-    styles['--chart-band-line'] = colors.cursor;
-    styles['--chart-band'] = `color-mix(in srgb, ${colors.cursor} 7%, transparent)`;
+  }
+  if (colors.selectedRange) {
+    const range = graph.selectedRangeCss(colors.selectedRange);
+    styles['--chart-band-line'] = range.edge;
+    styles['--chart-band'] = range.fill;
   }
   return styles;
 });
@@ -317,7 +330,8 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
 </script>
 
 <template>
-  <div class="gpanel" :class="{ 'y-manual': !autoY }" :data-y-range="yRangeLabel">
+  <slot name="band" :title="meta.name" :has-data="chartData !== null" :open-data="() => { dataOpen = true; }" />
+  <div class="gpanel" :class="{ 'y-manual': !autoY, classic }" :data-y-range="yRangeLabel">
     <canvas ref="canvasEl"
             :style="canvasStyles"
             @pointerdown="onPointerDown"
@@ -345,12 +359,15 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
          @pointerleave="onPointerLeave"
          @pointercancel="onPointerCancel"
          @dblclick="onDblClick" />
-    <div class="gtitle">{{ meta.name }}</div>
-    <label v-if="!blocked && !hideAutoY" class="gautoy"
-           title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
-      <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
-      <span>Auto Y</span>
-    </label>
+    <div v-if="!classic" class="gtitle">{{ meta.name }}<button v-if="chartData" type="button" class="gdata"
+            title="Show this chart's data as a table, to copy or download as CSV" @click="dataOpen = true">Data</button>
+      <label v-if="!blocked && !hideAutoY" class="gautoy"
+             title="Auto Y: ticked, the Y axis rescales to fit the curves after every edit. Unticked, the Y axis stays at the range shown when you unticked it, and edits never rescale it; the range is this chart's Y-axis limit in Options, where Reset to auto-scale ticks this again.">
+        <input type="checkbox" :checked="autoY" aria-label="Auto Y" @change="graph.setAutoY(inputChecked($event))">
+        <span>Auto Y</span>
+      </label>
+    </div>
+    <ChartDataDialog v-if="dataOpen && chartData" :data="chartData" :phone="classic === true" @close="dataOpen = false" />
     <div v-if="warnings.length && !warningsDismissed" class="gwarn gwarn-pill" :title="warnings.map(w => w.message).join('\n')">
       <span class="gwarn-icon">⚠</span>
       <span class="gwarn-text">{{ warnings[0].message }}</span>
@@ -392,25 +409,51 @@ watch([viewPlot, effectiveF, localDragRange, blocked, canvasStyles], redraw, { f
 canvas { touch-action: none; }
 
 .gpanel { position: relative; }
+/* Classic phone page: no title on the chart, so a warning pill sits at the left edge. */
+.gpanel.classic .gwarn-pill { left: 8px; max-width: calc(100% - 16px); }
 
 .axis-overlay {
   pointer-events: auto;
 }
 
-/* Auto Y switch: the empty corner left of the frequency labels, below the level labels. */
+/* "Data" opens the chart's data table: a small button after the title, inside the title's band. */
+.gdata {
+  pointer-events: auto;
+  position: relative;
+  vertical-align: top; /* keeps the title one 12 px line, inside the title's band */
+  margin-left: 6px;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 9.5px;
+  line-height: 10px;
+  color: var(--chart-text, var(--mut));
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.gdata:hover { color: var(--fg); }
+/* A finger needs a bigger target than the drawn button. */
+@media (pointer: coarse) {
+  .gdata::after { content: ''; position: absolute; inset: -12px -10px; }
+}
+
+/* Auto Y switch: sits in the title row after the chart title and Data tag (QO278 option b). */
 .gautoy {
-  position: absolute;
-  left: 2px;
-  bottom: 1px;
-  z-index: 2;
+  pointer-events: auto;
+  position: relative;
+  vertical-align: top;
+  margin-left: 8px;
   display: inline-flex;
   align-items: center;
   gap: 2px;
   font-size: 9.5px;
+  line-height: 10px;
   color: var(--chart-text, var(--mut));
   cursor: pointer;
   user-select: none;
 }
+.gautoy:hover { color: var(--fg); }
 .gautoy input { margin: 0; width: 11px; height: 11px; cursor: pointer; }
 
 /* Blocking message shown in place of the chart when the driver has no derivable

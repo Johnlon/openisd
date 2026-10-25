@@ -1,0 +1,37 @@
+id: T460
+release_note: "Desktop Box and Vents labels are no longer cut off, and a typed BL that disagrees with the other driver values is now marked."
+repo: openisd
+owner: bugfix-e
+status: done
+landed: 6c6630bc3f667b85cb5a3946cc567427ef8c540d
+goal: Group E bug-fix wave. A typed BL that disagrees with Fs, Qes, Re and Vas gets a dq mark with no Mms typed (5% datasheet tolerance); no Box or Vented tab label is cut at 1280x800; close the new-project wizard bug with evidence; Auto Y question recorded.
+done_test: bash scripts/test.sh packages/design/test/domain/driver-circuit-dq.test.ts packages/design/test/domain/driver-consistency-solver-golden.test.ts packages/persistence/test/storageUpgrade.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - tasks/T460.yml
+  - packages/design/engine/driver/routes/Relation.ts
+  - packages/design/engine/driver/routes/ConsistencyCheck.ts
+  - packages/design/engine/driver/routes/relations.ts
+  - packages/design/test/domain/driver-circuit-dq.test.ts
+  - packages/design/test/fixtures/driverSolverGolden.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  -
+  - bugs/BUG_20261018_typed-bl-conflict-no-dq-mark.md
+  - bugs/BUG_20261017_auto-y-overlaps-first-frequency-label.md
+  - bugs/BUG_20261019_desktop-target-tuning-label-cut.md
+  - bugs/BUG_20261016_new-project-wizard-steps-inconsistent.md
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-box

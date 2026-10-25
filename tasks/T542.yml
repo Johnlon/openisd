@@ -1,0 +1,18 @@
+id: T542
+release_note: On the phone, the Box tab's alignment and box losses sheets have the standard 44 px buttons.
+repo: openisd
+owner: opi
+status: done
+landed: 436be50c0256cdead09a4e9d6c5f75cbc93da9f3
+goal: Phone Box tab sheet buttons (alignment Cancel/Accept, box losses Reset/OK) are the shared 44 px PhoneButton, not a 40 px scoped copy (BUG_20261018_box-advanced-buttons-under-44).
+done_test: bash scripts/test.sh packages/ui/test/ui/MobileBoxTab-buttons.test.ts
+files:
+  - tasks/T542.yml
+  - bugs/BUG_20261018_box-advanced-buttons-under-44.md
+  - bugs/BUG_20261021_provenance-highlight-edge-only.md
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/test/ui/MobileBoxTab-buttons.test.ts
+  - packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-losses-popup.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

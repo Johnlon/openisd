@@ -1,0 +1,15 @@
+id: T576
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+landed: 91b38a993f236ef26323942fd4709ed5e8cf22cc
+goal: On the phone, an open DQ explanation expands its field row instead of overlapping the next field
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T576.yml
+  - bugs/BUG_20261024_mobile-dq-note-overlap.md
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/style.css
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

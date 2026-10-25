@@ -137,7 +137,7 @@ chart review §3.10 (bandpass 4th), §3.7–3.9 (PR transfer, rear and front por
 ## Rules that bit this session
 
 - Vue `:title="..."` attributes: no `"` inside, use `'`.
-- Scratch specs go in `build/tmp/`, run with `-c scripts/playwright.probe.config.mjs`.
+- Scratch specs go in `build/tmp/`, run with `bash scripts/test-browser.sh -c scripts/playwright.probe.config.mjs <spec>`.
 - `getClientRects().length` on a flex item is always 1 — measure height to detect wrapping.
 - `toolbar-version.browser.spec.ts` requires the brand centred: `.tb-icons` must stay `flex:1 1 0`.
 - `.claude/skills/git-actions/commit.sh --prose` pushes as well as commits.

@@ -4,207 +4,120 @@
 // (src/hooks/MobileAdvancedTab-hooks.ts), which calls the SAME field-wiring factory
 // OriginalShell-hooks.ts exports. AdvancedOptions.vue (the simulation-fidelity checkbox column)
 // is reused unchanged — already presentation-only with its own hook.
-import {CompatSwitchGroup, NumberField, ToggleField} from '@openisd/design/fields';
+import {NumberField, PhoneHelp, PhoneRowColumns, ToggleField} from '@openisd/design/fields';
 import {inputChecked} from '../../../logic/domEvents.js';
-import NumInput from '../../components/NumInput.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
+import UISettlingField from '../../components/UISettlingField.vue';
 import AdvancedOptions from '../../components/AdvancedOptions.vue';
 import ErrorSwitch from '../../components/ErrorSwitch.vue';
 import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
-import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
+import PhoneBand from './PhoneBand.vue';
+import PhoneButton from './PhoneButton.vue';
+import PhoneClassicPage from './PhoneClassicPage.vue';
 import ToggleLabel from '../../components/ToggleLabel.vue';
 import {useMobileAdvancedTab} from '../../../hooks/MobileAdvancedTab-hooks.js';
 
 const {
   project,
   envTempStored, envHumidityStored, envPressureStored, envTempDq, envHumidityDq, envPressureDq,
-  advTemp, advHumidity, advPressure,
-  resetAirToAppDefaults, advAir,
+  envSoundVelocityStored, envAirDensityStored, envSoundVelocityDq, envAirDensityDq,
+  advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
+  resetAirToAppDefaults,
   abcVelocityApplies, errorSwitches,
 } = useMobileAdvancedTab();
 </script>
 
 <template>
-  <div class="mob-panel">
-    <div class="mob-panel-head">Environment</div>
-    <div class="mob-field-row" :class="[envTempStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envTempDq.dq.length > 0 }]" :title="envTempDq.dq.join('; ')">
-      <div class="mob-field-main"><span class="mob-field-label">Temperature</span>
-        <span class="mob-field-value"><NumInput v-model="advTemp" :field="NumberField.ADV_TEMP_K" :precision="2" :allow-out-of-range="true" v-bind="envTempDq" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.ADV_TEMP_K" unit-class="mob-unit" />
+  <PhoneClassicPage>
+    <PhoneBand :section="PhoneHelp.ADVANCED_ENVIRONMENT" />
+    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range />
+    <UISettlingField class="mob-ui-field" :columns="PhoneRowColumns.MEDIUM_LABEL" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range />
+    <div class="mob-adv-btns">
+      <PhoneButton @click="resetAirToAppDefaults">Reset to app levels</PhoneButton>
     </div>
-    <div class="mob-field-row" :class="[envHumidityStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envHumidityDq.dq.length > 0 }]" :title="envHumidityDq.dq.join('; ')">
-      <div class="mob-field-main"><span class="mob-field-label">Relative humidity</span>
-        <span class="mob-field-value"><NumInput v-model="advHumidity" :precision="2" :allow-out-of-range="true" v-bind="envHumidityDq" stepper /></span>
-      </div>
-      <span class="mob-unit">{{ NumberField.ADV_HUMIDITY_PCT.unitLabel() }}</span>
-    </div>
-    <div class="mob-field-row" :class="[envPressureStored ? 'mob-field-entered' : 'mob-field-calculated', { 'mob-field-dq': envPressureDq.dq.length > 0 }]" :title="envPressureDq.dq.join('; ')">
-      <div class="mob-field-main"><span class="mob-field-label">Air pressure</span>
-        <span class="mob-field-value"><NumInput v-model="advPressure" :field="NumberField.ADV_PRESSURE_KPA" :precision="1" :allow-out-of-range="true" v-bind="envPressureDq" stepper /></span>
-      </div>
-      <UnitToggle :field="NumberField.ADV_PRESSURE_KPA" unit-class="mob-unit" />
-    </div>
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main"><span class="mob-field-label">Sound velocity</span>
-        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.fixed(advAir.c) }} {{ NumberField.ADV_SOUNDVELOCITY_M_PER_S.unitLabel() }}</span>
-      </div>
-    </div>
-    <div class="mob-field-row mob-field-calculated">
-      <div class="mob-field-main"><span class="mob-field-label">Air density</span>
-        <span class="mob-field-value mob-readonly">{{ NumberField.ADV_AIRDENSITY_KG_PER_M3.fixed(advAir.rho) }} {{ NumberField.ADV_AIRDENSITY_KG_PER_M3.unitLabel() }}</span>
-      </div>
-    </div>
-    <div class="mob-row">
-      <button class="mob-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
-    </div>
-  </div>
 
-  <div class="mob-panel">
-    <div class="mob-panel-head">Simulation options</div>
+    <PhoneBand :section="PhoneHelp.ADVANCED_SIMULATION" />
     <div class="mob-adv-options">
       <AdvancedOptions />
     </div>
-  </div>
 
-  <div class="mob-panel">
-    <div class="mob-panel-head">WinISD compatibility</div>
-    <div class="mob-row mob-group-headrow"><span class="mob-group-head" :title="CompatSwitchGroup.OPTIONS.tooltip">{{ CompatSwitchGroup.OPTIONS.heading }}</span><CompatGroupHelpLink :group="CompatSwitchGroup.OPTIONS" /></div>
-    <div class="mob-row mob-checkbox-row">
+    <PhoneBand :section="PhoneHelp.ADVANCED_WINISD_STYLE" />
+    <div class="mob-switch-row">
       <label data-field-key="winisdWrapPhase" :title="ToggleField.ADV_WINISDWRAPPHASE.description">
         <input type="checkbox" :checked="project.winisdWrapPhase.value" @change="e => project.winisdWrapPhase.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDWRAPPHASE.label }}
       </label>
     </div>
-    <div class="mob-row mob-checkbox-row">
+    <div class="mob-switch-row">
       <label data-field-key="winisdFlatModel" :title="ToggleField.ADV_WINISDFLATMODEL.description">
         <input type="checkbox" :checked="project.winisdFlatModel.value" @change="e => project.winisdFlatModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDFLATMODEL.label }}
       </label>
     </div>
-    <div class="mob-row mob-checkbox-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
+    <div class="mob-switch-row" :class="{ 'mob-row-na': !abcVelocityApplies }">
       <label data-field-key="winisdAbcIntraPortVelocity" :title="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY.description">
         <input type="checkbox" :checked="project.winisdAbcIntraPortVelocity.value" :disabled="!abcVelocityApplies" @change="e => project.winisdAbcIntraPortVelocity.set(inputChecked(e))"> <ToggleLabel :field="ToggleField.ADV_WINISDABCINTRAPORTVELOCITY" />
       </label>
     </div>
     <ErrorSwitchGroup>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="ToggleField.ADV_WINISDDRIVERMODEL.description">
+      <template #head><PhoneBand :section="PhoneHelp.ADVANCED_WINISD_BUGS" /></template>
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdDriverModel" :marked="errorSwitches.driverModel.marked" :applicable="errorSwitches.driverModel.applicable" :reproduces-error="errorSwitches.driverModel.reproducesError" :title="ToggleField.ADV_WINISDDRIVERMODEL.description">
         <input type="checkbox" :checked="project.winisdDriverModel.value" @change="e => project.winisdDriverModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERMODEL.label }}
       </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdVaModel" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="ToggleField.ADV_WINISDVAMODEL.description">
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdVaModel" :marked="errorSwitches.vaModel.marked" :applicable="errorSwitches.vaModel.applicable" :reproduces-error="errorSwitches.vaModel.reproducesError" :title="ToggleField.ADV_WINISDVAMODEL.description">
         <input type="checkbox" :checked="project.winisdVaModel.value" @change="e => project.winisdVaModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDVAMODEL.label }}
       </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdPrNprResonance" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdPrNprResonance" :marked="errorSwitches.prNprResonance.marked" :applicable="errorSwitches.prNprResonance.applicable" :reproduces-error="errorSwitches.prNprResonance.reproducesError" :title="ToggleField.ADV_WINISDPRNPRRESONANCE.description">
         <input type="checkbox" :checked="project.winisdPrNprResonance.value" :disabled="!errorSwitches.prNprResonance.applicable" @change="e => project.winisdPrNprResonance.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDPRNPRRESONANCE.label }}
       </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdBesselHighpass" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdBesselHighpass" :marked="errorSwitches.besselHighpass.marked" :applicable="errorSwitches.besselHighpass.applicable" :reproduces-error="errorSwitches.besselHighpass.reproducesError" :title="ToggleField.ADV_WINISDBESSELHIGHPASS.description">
         <input type="checkbox" :checked="project.winisdBesselHighpass.value" :disabled="!errorSwitches.besselHighpass.applicable" @change="e => project.winisdBesselHighpass.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDBESSELHIGHPASS.label }}
       </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdAbcGroupDelay" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdAbcGroupDelay" :marked="errorSwitches.abcGroupDelay.marked" :applicable="errorSwitches.abcGroupDelay.applicable" :reproduces-error="errorSwitches.abcGroupDelay.reproducesError" :title="ToggleField.ADV_WINISDABCGROUPDELAY.description">
         <input type="checkbox" :checked="project.winisdAbcGroupDelay.value" :disabled="!errorSwitches.abcGroupDelay.applicable" @change="e => project.winisdAbcGroupDelay.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDABCGROUPDELAY.label }}
       </ErrorSwitch>
-      <ErrorSwitch as="label" class="mob-row mob-checkbox-row" field-key="winisdDriverCountModel" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdDriverCountModel" :marked="errorSwitches.driverCount.marked" :applicable="errorSwitches.driverCount.applicable" :reproduces-error="errorSwitches.driverCount.reproducesError" :title="ToggleField.ADV_WINISDDRIVERCOUNTMODEL.description">
         <input type="checkbox" :checked="project.winisdDriverCountModel.value" :disabled="!errorSwitches.driverCount.applicable" @change="e => project.winisdDriverCountModel.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDDRIVERCOUNTMODEL.label }}
       </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdSealedPicker" :marked="errorSwitches.sealedPicker.marked" :applicable="errorSwitches.sealedPicker.applicable" :reproduces-error="errorSwitches.sealedPicker.reproducesError" :title="ToggleField.ADV_WINISDSEALEDPICKER.description">
+        <input type="checkbox" :checked="project.winisdSealedPicker.value" :disabled="!errorSwitches.sealedPicker.applicable" @change="e => project.winisdSealedPicker.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDSEALEDPICKER.label }}
+      </ErrorSwitch>
+      <ErrorSwitch as="label" class="mob-switch-row" field-key="winisdTlPortNoEndCorrection" :marked="errorSwitches.tlPortEndCorrection.marked" :applicable="errorSwitches.tlPortEndCorrection.applicable" :reproduces-error="errorSwitches.tlPortEndCorrection.reproducesError" :title="ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.description">
+        <input type="checkbox" :checked="project.winisdTlPortNoEndCorrection.value" :disabled="!errorSwitches.tlPortEndCorrection.applicable" @change="e => project.winisdTlPortNoEndCorrection.set(inputChecked(e))"> {{ ToggleField.ADV_WINISDTLPORTNOENDCORRECTION.label }}
+      </ErrorSwitch>
     </ErrorSwitchGroup>
-  </div>
+  </PhoneClassicPage>
 </template>
 
 <style scoped>
-.mob-panel {
-  margin: 12px;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.mob-panel-head {
-  padding: 10px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--mut);
-  border-bottom: 1px solid var(--line);
-  background: var(--panel2);
-}
-.mob-row {
+/* A switch row (classic phone page): a tick box, its label, and any ≠W cue; at least the classic row depth. */
+.mob-switch-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px 12px;
-  min-height: 48px;
-  border-top: 1px solid var(--line);
-}
-.mob-panel > .mob-row:first-of-type,
-.mob-panel > .mob-field-row:first-of-type { border-top: none; }
-.mob-row-label { font-size: 14px; color: var(--fg); }
-.mob-select {
-  flex: 1;
-  max-width: 60%;
-  min-height: 40px;
-  padding: 6px 8px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-  font-size: 14px;
-}
-.mob-checkbox-row { justify-content: flex-start; }
-.mob-checkbox-row label { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--fg); cursor: pointer; }
-.mob-btn {
-  flex: 1;
-  min-height: 40px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-  font-size: 14px;
-}
-.mob-group-headrow { min-height: 0; display: flex; align-items: center; gap: 8px; padding: 6px 12px; }
-.mob-group-head { font-size: 12px; font-weight: 600; color: var(--mut); }
-.mob-row-na { opacity: 0.45; }
-.mob-adv-options { padding: 10px 12px; }
-.mob-adv-options :deep(.adv-options) { gap: 12px; }
-.mob-adv-options :deep(.adv-options label) { font-size: 14px; min-height: 32px; }
-
-.mob-field-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 10px;
-  padding: 10px 12px 10px 14px;
-  min-height: 48px;
-  border-left: 3px solid transparent;
-  border-top: 1px solid var(--line);
-}
-.mob-field-entered { border-left-color: var(--good); }
-.mob-field-calculated { border-left-color: var(--acc); }
-.mob-field-dq { border-left-color: var(--acc2); }
-.mob-field-main { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
-.mob-field-label { font-size: 13px; color: var(--mut); }
-.mob-field-value { font-size: 18px; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 6px; }
-.mob-field-value :deep(input) {
-  border: none;
-  background: transparent;
-  font: inherit;
-  font-size: 18px;
+  box-sizing: border-box;
+  min-height: var(--mob-row-min);
+  padding: 4px 16px;
+  border-bottom: 1px solid #e6e6e6;
+  font-size: 15px;
+  line-height: 19px;
   color: var(--fg);
-  padding: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 32px;
+  cursor: pointer;
 }
-/* An editable value looks like an input box; a read-only one stays flat text. */
-.mob-field-value :deep(input:not([readonly])) {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  padding: 2px 8px;
+.mob-switch-row > label { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; min-height: inherit; cursor: inherit; }
+.mob-switch-row input[type=checkbox] { width: 20px; height: 20px; margin: 0; flex: none; }
+.mob-row-na { opacity: 0.45; cursor: default; }
+/* A bug switch is a yellow row; its warning mark sits inside the row, in front of the tick box (the phone has no gutter for a badge on the border). */
+.mob-switch-row.error-switch-marked { border-width: 0 0 1px; border-style: solid; border-color: #e6e6e6; border-radius: 0; background: #fbf3d9; box-shadow: inset 3px 0 0 #d4a514; padding: 4px 16px; gap: 10px; }
+.mob-switch-row.error-switch-marked.error-switch-on { background: #f6e3a1; }
+.mob-switch-row.error-switch-marked :deep(.error-switch-mark) { position: static; transform: none; flex: none; background: none; font-size: 15px; color: #9a6d00; }
+/* The button row under the air rows: one PhoneButton, full width. */
+.mob-adv-btns { display: flex; padding: 6px 16px; border-bottom: 1px solid #e6e6e6; }
+/* The simulation options are the same switch rows, drawn by the shared AdvancedOptions component. */
+.mob-adv-options :deep(.adv-options) { gap: 0; }
+.mob-adv-options :deep(.adv-options label) {
+  box-sizing: border-box; min-height: var(--mob-row-min); padding: 4px 16px; gap: 10px;
+  border-bottom: 1px solid #e6e6e6; font-size: 15px; line-height: 19px; color: var(--fg);
 }
-.mob-field-value :deep(input:not([readonly]):focus) {
-  border-color: var(--acc);
-  outline: none;
-}
-.mob-readonly { color: var(--acc); }
-.mob-unit { font-size: 13px; color: var(--mut); min-width: 30px; flex-shrink: 0; }
+.mob-adv-options :deep(.adv-options input[type=checkbox]) { width: 20px; height: 20px; margin: 0; flex: none; }
 </style>

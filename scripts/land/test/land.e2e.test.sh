@@ -27,6 +27,7 @@ export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/land-e2e.XXXXXX")"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
 PGID_FILE="$SCRATCH/pgids"
 fails=0
 trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
@@ -43,7 +44,9 @@ setup() {
     mkdir -p scripts tasks/fixes gates
     cp "$REPO/scripts/land.sh" scripts/
     cp -r "$REPO/scripts/land" scripts/
+    cp -r "$REPO/scripts/visual" "$REPO/scripts/feedback" scripts/
     cp "$REPO/scripts/paths.sh" scripts/
+    cp -r "$REPO/scripts/lib" scripts/
     cat > gates/lint.sh <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$@" > "$GATE_LOG/lint.args"
@@ -64,11 +67,18 @@ EOF
 printf '%s\n' "$@" > "$GATE_LOG/unit.args"
 [ -f "$GATE_LOG/unit.fail" ] && exit 1; exit 0
 EOF
+    cat > gates/architecture.sh <<'EOF'
+#!/usr/bin/env bash
+printf '%s\n' "$@" > "$GATE_LOG/architecture.args"
+[ -f "$GATE_LOG/architecture.fail" ] && exit 1; exit 0
+EOF
     chmod +x gates/*.sh
     cat > land.conf <<EOF
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
 UNIT_CMD="bash gates/unit.sh"
+ARCHITECTURE_CMD="bash gates/architecture.sh"
+CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/attribution.sh"
 GATE_DEADLINE_S=5
 LAND_LOCK="$SCRATCH/land.lock"
@@ -151,7 +161,7 @@ if [ $r = 3 ] && [ "$(origin_head)" = "$before" ] \
 else fail "conflict (r=$r)"; fi
 
 # 4. each gate failing refuses and names the gate
-for g in lint typecheck unit; do
+for g in lint typecheck unit architecture; do
     setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
     touch "$GATE_LOG/$g.fail"; before=$(origin_head)
     land w1 T1; r=$?
@@ -192,12 +202,55 @@ before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "UNIT_CMD" "$SCRATCH/out.w1"; then
     ok "missing UNIT_CMD refuses"; else fail "missing UNIT_CMD (r=$r)"; fi
 
+# 6b2. the architecture gate is mandatory and runs on a landing that changes no package file
+setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+land w1 T1; r=$?
+if [ $r = 0 ] && [ -f "$GATE_LOG/architecture.args" ]; then
+    ok "architecture gate runs whatever changed"; else fail "architecture gate not run (r=$r)"; fi
+setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+sed -i '/^ARCHITECTURE_CMD=/d' "$SCRATCH/w/w1/land.conf"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "ARCHITECTURE_CMD" "$SCRATCH/out.w1"; then
+    ok "missing ARCHITECTURE_CMD refuses"; else fail "missing ARCHITECTURE_CMD (r=$r)"; fi
+
+# 6b3. the candidate gate is mandatory: a land.conf without CANDIDATE_CMD refuses, main untouched
+setup; task w1 T1 a.txt; edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
+sed -i '/^CANDIDATE_CMD=/d' "$SCRATCH/w/w1/land.conf"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "CANDIDATE_CMD" "$SCRATCH/out.w1"; then
+    ok "missing CANDIDATE_CMD refuses"; else fail "missing CANDIDATE_CMD (r=$r)"; fi
+
 # 6c. a done_test that names a browser spec is refused before it runs (T036, 11 Oct 2026)
 setup; task w1 T1 a.txt "bash scripts/test.sh packages/ui/test/ui/x.browser.spec.ts"
 edit w1 a.txt x; git -C "$SCRATCH/w/w1" commit -qam x
 before=$(origin_head); land w1 T1; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "browser spec" "$SCRATCH/out.w1"; then
     ok "browser spec in done_test refused"; else fail "browser done_test (r=$r)"; fi
+
+# 6d. baselines (scripts/visual/): a task changes exactly the screens it lists under visual:, and a landing leaves a page
+export VISUAL_PAGES_DIR="$SCRATCH/pages" VISUAL_PAGES_URL="http://example.test/pages"
+SNAP=packages/ui/test/visual/visual.browser.spec.ts-snapshots
+setup; mkdir -p "$SCRATCH/w/w1/$SNAP"; printf one > "$SCRATCH/w/w1/$SNAP/mobile-a.png"
+git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "baseline"; git -C "$SCRATCH/w/w1" push -q origin main
+task w1 T1 "*"; printf two > "$SCRATCH/w/w1/$SNAP/mobile-a.png"; git -C "$SCRATCH/w/w1" commit -qam "change a screen"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "visual" "$SCRATCH/out.w1" && grep -q "mobile-a" "$SCRATCH/out.w1"; then
+    ok "a changed baseline the task does not list is refused, naming the screen"; else fail "unlisted baseline (r=$r): $(cat "$SCRATCH/out.w1")"; fi
+printf 'visual:\n  - mobile-a\n' >> "$SCRATCH/w/w1/tasks/T1.yml"; git -C "$SCRATCH/w/w1" commit -qam "list the screen"
+land w1 T1; r=$?
+if [ $r = 0 ] && grep -q "land: visual changes: http://example.test/pages/T1-" "$SCRATCH/out.w1" && ls "$VISUAL_PAGES_DIR"/T1-*/mobile-a.before.png > /dev/null 2>&1; then
+    ok "a listed baseline change lands and publishes its before/after page"; else fail "listed baseline (r=$r): $(cat "$SCRATCH/out.w1")"; fi
+
+# 6e. a task that changes UI sources without re-taking the baselines on them is refused (scripts/visual/check-sources.sh)
+setup; task w1 T1 "*"; mkdir -p "$SCRATCH/w/w1/packages/ui/src"; echo '<template>a</template>' > "$SCRATCH/w/w1/packages/ui/src/A.vue"
+git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "change a source"
+before=$(origin_head); land w1 T1; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && grep -q "visual-sources" "$SCRATCH/out.w1" && grep -q "A.vue" "$SCRATCH/out.w1"; then
+    ok "a UI source change without re-taken baselines is refused, naming the file"; else fail "source change (r=$r): $(cat "$SCRATCH/out.w1")"; fi
+(cd "$SCRATCH/w/w1" && . scripts/visual/lib.sh && visual_sources_hash > "$VISUAL_SOURCES_HASH_FILE" 2>/dev/null; mkdir -p "$(dirname "$VISUAL_SOURCES_HASH_FILE")"; visual_sources_hash > "$VISUAL_SOURCES_HASH_FILE")
+git -C "$SCRATCH/w/w1" add -A; git -C "$SCRATCH/w/w1" commit -qm "re-take"
+land w1 T1; r=$?
+if [ $r = 0 ]; then ok "the same change lands once the hash matches"; else fail "re-taken source change (r=$r): $(cat "$SCRATCH/out.w1")"; fi
 
 # 7. a branch that changed a locked file or its own done_test is refused
 setup; task w1 T1 "*"; edit w1 spec.sh weakened; git -C "$SCRATCH/w/w1" commit -qam weaken

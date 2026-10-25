@@ -136,37 +136,31 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     return null;
   }
 
-  function countPendingLocal(): number {
-    let pending = 0;
-    const seenLocalKeys = new Set<string>();
-
+  /** The local docs whose body Drive does not have yet: never synced, or changed since. */
+  function notOnDrive(): DocId[] {
+    const ids: DocId[] = [];
     for (const bucket of deps.local) {
       const read = bucket.list();
       if (read.kind === 'unreadable') continue;
-
       for (const doc of read.docs) {
-        const key = docIdKey(doc.id);
-        seenLocalKeys.add(key);
         const row = deps.ledger.row(doc.id);
-        if (row === null) {
-          pending++;
-        } else {
-          const hash = bodyHashOf(doc.body);
-          if (hash === null || hash.toString() !== row.hash.toString()) {
-            pending++;
-          }
-        }
+        const hash = row === null ? null : bodyHashOf(doc.body);
+        if (row === null || hash === null || hash.toString() !== row.hash.toString()) ids.push(doc.id);
       }
     }
+    return ids;
+  }
 
-    for (const row of deps.ledger.rows()) {
-      const key = docIdKey(row.id);
-      if (!seenLocalKeys.has(key)) {
-        pending++;
-      }
+  function countPendingLocal(): number {
+    const seenLocalKeys = new Set<string>();
+    for (const bucket of deps.local) {
+      const read = bucket.list();
+      if (read.kind === 'unreadable') continue;
+      for (const doc of read.docs) seenLocalKeys.add(docIdKey(doc.id));
     }
-
-    return pending;
+    // Deleted here, not yet on Drive.
+    const deletions = deps.ledger.rows().filter(row => !seenLocalKeys.has(docIdKey(row.id))).length;
+    return notOnDrive().length + deletions;
   }
 
   async function run(): Promise<RunOutcome> {
@@ -894,5 +888,6 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   return {
     run,
     pendingLocal: countPendingLocal,
+    notOnDrive,
   };
 }

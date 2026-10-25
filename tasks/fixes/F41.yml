@@ -1,0 +1,56 @@
+id: F41
+owner: Johnlon
+status: done
+sha: bd50b9d36f1390aa435b12b7d222d2d70b95448d
+goal: main is red at bd50b9d36f; make the full suite pass again
+commits: |
+  bd50b9d36f T235: Visual gate: a task that changes UI sources must have re-taken the basel
+  76ceb0b248 T229: Every error and crash report carries anonymous context: screen, dialog,
+failing: |
+    ✘   35 packages/ui/test/ui/cloudSync.original.browser.spec.ts:35:3 › Original shell cloud sync — configured build (Plan P1-13a) › at 1024px the brand text and every toolbar button are inside the viewport and document.documentElement.scrollWidth <= innerWidth (211ms)
+output: |
+          - accept-language: en-US
+          - origin: http://localhost:4103
+          - referer: http://localhost:4103/
+          - sec-ch-ua: "Chromium";v="149", "Not)A;Brand";v="24"
+          - sec-ch-ua-mobile: ?0
+          - sec-ch-ua-platform: "Linux"
+  
+  
+         at ui/fixtures/cloudSyncStubs.ts:10
+  
+         8 |       return;
+         9 |     }
+      > 10 |     const response = await route.fetch();
+           |                                  ^
+        11 |     let text = await response.text();
+        12 |     if (text.includes('clientId:null')) {
+        13 |       text = text.replace('clientId:null', 'clientId:"stubbed-client-id"');
+          at /home/john/work/winisd/.postland/1207645-bd50b9d36f/packages/ui/test/ui/fixtures/cloudSyncStubs.ts:10:34
+  
+      Error: page.goto: Test ended.
+      Call log:
+        - navigating to "http://localhost:4103/", waiting until "load"
+  
+  
+        38 |     await stubGoogleApis(page);
+        39 |     await page.setViewportSize({ width, height: 768 });
+      > 40 |     await page.goto('/');
+           |                ^
+        41 |     await openAProject(page);
+        42 |
+        43 |     // Verify no horizontal overflow
+          at /home/john/work/winisd/.postland/1207645-bd50b9d36f/packages/ui/test/ui/cloudSync.original.browser.spec.ts:40:16
+  
+      Error Context: test-results/ui-cloudSync.original.brow-c9f4a-ment-scrollWidth-innerWidth/error-context.md
+  
+    1 failed
+      packages/ui/test/ui/cloudSync.original.browser.spec.ts:35:3 › Original shell cloud sync — configured build (Plan P1-13a) › at 1024px the brand text and every toolbar button are inside the viewport and document.documentElement.scrollWidth <= innerWidth 
+    792 passed (6.3m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1207645-bd50b9d36f finished: FAILED (exit 1) after 8m05s
+closed: |
+  Fixed by T238 (bob, 16 Oct 2026). A route handler still inside route.fetch() when a test ends throws "Test ended"
+  into the result; cloudSyncStubs.ts, cloudSyncDialog and redirectRoundTrip all route.fetch the main script.
+  The shared browserLog fixture now calls page.unrouteAll({behavior: 'ignoreErrors'}) after the test body, for
+  every spec. A scratch spec reproduced the error with a handler fetching at test end and it is gone with the fix.

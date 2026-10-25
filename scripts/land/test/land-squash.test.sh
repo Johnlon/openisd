@@ -8,6 +8,7 @@ printf '[user]\n\tname = t\n\temail = t@t\n[core]\n\tautocrlf = false\n[init]\n\
 export GIT_CONFIG_GLOBAL="$GITCFG" GIT_CONFIG_NOSYSTEM=1
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/land-squash.XXXXXX")"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
 fails=0
 trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
 ok()   { echo "ok   $1"; }
@@ -19,12 +20,14 @@ setup() {
     git clone -q origin.git c 2>/dev/null; cd c || exit 2
     git config user.email t@t; git config user.name t
     mkdir -p scripts tasks/fixes gates
-    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/
+    cp "$REPO/scripts/land.sh" "$REPO/scripts/paths.sh" scripts/; cp -r "$REPO/scripts/land" scripts/; cp -r "$REPO/scripts/lib" scripts/
     printf '#!/usr/bin/env bash\nexit 0\n' > gates/ok.sh; chmod +x gates/ok.sh
     cat > land.conf <<CONF
 LINT_CMD="bash gates/ok.sh"
 TYPECHECK_CMD="bash gates/ok.sh"
 UNIT_CMD="bash gates/ok.sh"
+ARCHITECTURE_CMD="bash gates/ok.sh"
+CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/ok.sh"
 GATE_DEADLINE_S=30
 LAND_LOCK="$SCRATCH/land.lock"
@@ -40,7 +43,7 @@ setup; base=$(git rev-parse HEAD)
 for n in 1 2 3; do echo $n > f.txt; git add -A; git commit -qm "wip $n"; done
 timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
 st=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T9.yml | sed -n 's/^status: //p')
-if [ $r = 0 ] && [ "$(count "$base")" = 1 ] && [ "$(msg %s)" = "T9: Make the thing say what it did." ] \
+if [ $r = 0 ] && [ "$(count "$base")" = 1 ] && [ "$(msg %s)" = "(auto) T9: Make the thing say what it did." ] \
    && [ "$(msg %b | sed '/^$/d')" = "Things now say what they did." ] && [ "$st" = done ]; then ok "three commits land as one, status done"
 else fail "squash (r=$r n=$(count "$base") st=$st): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-200)"; fi
 
@@ -50,6 +53,34 @@ echo 1 > f.txt; git add -A; git commit -qm "T9: mine"; echo 2 > f.txt; git add -
 timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
 if [ $r = 1 ] && grep -q 'REFUSED by gate mixed' "$SCRATCH/out" && grep -q 'T8: other' "$SCRATCH/out" && [ "$(count "$base")" = 0 ]; then ok "mixed commit refuses, nothing pushed"
 else fail "mixed (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-200)"; fi
+
+# b2. the "(auto) " form of another task's commit refuses too
+setup; base=$(git rev-parse HEAD)
+echo 1 > f.txt; git add -A; git commit -qm "(auto) T9: mine"; echo 2 > f.txt; git add -A; git commit -qm "(auto) T8: other"
+timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 1 ] && grep -q 'REFUSED by gate mixed' "$SCRATCH/out" && grep -q 'T8: other' "$SCRATCH/out" && [ "$(count "$base")" = 0 ]; then ok "(auto) mixed commit refuses, nothing pushed"
+else fail "(auto) mixed (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-200)"; fi
+
+# b3. a branch of "(auto) T9:" commits is not mixed
+setup; base=$(git rev-parse HEAD)
+echo 1 > f.txt; git add -A; git commit -qm "(auto) T9: mine"
+timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && [ "$(count "$base")" = 1 ]; then ok "(auto) own commit lands"
+else fail "(auto) own (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-200)"; fi
+
+# b2. the "(auto) " form of another task's commit refuses too
+setup; base=$(git rev-parse HEAD)
+echo 1 > f.txt; git add -A; git commit -qm "(auto) T9: mine"; echo 2 > f.txt; git add -A; git commit -qm "(auto) T8: other"
+timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 1 ] && grep -q 'REFUSED by gate mixed' "$SCRATCH/out" && grep -q 'T8: other' "$SCRATCH/out" && [ "$(count "$base")" = 0 ]; then ok "(auto) mixed commit refuses, nothing pushed"
+else fail "(auto) mixed (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-200)"; fi
+
+# b3. a branch of "(auto) T9:" commits is not mixed
+setup; base=$(git rev-parse HEAD)
+echo 1 > f.txt; git add -A; git commit -qm "(auto) T9: mine"
+timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && [ "$(count "$base")" = 1 ]; then ok "(auto) own commit lands"
+else fail "(auto) own (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-200)"; fi
 
 # c. a done task without landed gets it in the next landing
 setup
@@ -65,7 +96,7 @@ else fail "landed (r=$r got=$got want=$t7)"; fi
 setup; base=$(git rev-parse HEAD); echo 1 > f.txt; git add -A; git commit -qm "single"
 timeout 120 bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
 st=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T9.yml | sed -n 's/^status: //p')
-if [ $r = 0 ] && [ "$(count "$base")" = 1 ] && [ "$(msg %s)" = "T9: Make the thing say what it did." ] && [ "$st" = done ]; then ok "single commit lands with status done"
+if [ $r = 0 ] && [ "$(count "$base")" = 1 ] && [ "$(msg %s)" = "(auto) T9: Make the thing say what it did." ] && [ "$st" = done ]; then ok "single commit lands with status done"
 else fail "single (r=$r st=$st)"; fi
 
 # e. T099: a task still claimed whose "<id>:" commit is on main is marked done and landed by the next landing
@@ -80,6 +111,18 @@ ld8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml | sed -n 's/^landed:
 if [ $r = 0 ] && [ "$st8" = done ] && [ "$ld8" = "$t8sha" ]; then ok "claimed T8 with its commit on main becomes done + landed"
 else fail "stale claim (r=$r st=$st8 landed=$ld8 want=$t8sha)"; fi
 
+# e2. the same with the "(auto) " subject the hook requires
+setup
+printf 'id: T8\nowner: t\nstatus: claimed\nrelease_note: internal\ngoal: Old one.\ndone_test: true\nfiles:\n  - g.txt\n' > tasks/T8.yml
+echo g > g.txt; git add -A; git commit -qm "(auto) T8: Old one."; git push -q origin main
+echo 1 > f.txt; git add -A; git commit -qm "wip"
+bash scripts/land.sh T9 > /dev/null 2>&1; r=$?
+t8sha=$(git -C "$SCRATCH/w/origin.git" log --format='%H %s' main | awk '$2 == "(auto)" && $3 == "T8:" { print $1; exit }')
+st8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml | sed -n 's/^status: //p')
+ld8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml | sed -n 's/^landed: //p')
+if [ $r = 0 ] && [ "$st8" = done ] && [ -n "$t8sha" ] && [ "$ld8" = "$t8sha" ]; then ok "(auto) T8 claimed with its commit on main becomes done + landed"
+else fail "(auto) stale claim (r=$r st=$st8 landed=$ld8 want=$t8sha)"; fi
+
 # f. T117: an open tasks/fixes/F*.yml stays open through a `fixes` landing even though its own
 # "F5:" commit is on main — only the fixing task closes it, never this loop
 setup
@@ -92,6 +135,21 @@ st5=$(git -C "$SCRATCH/w/origin.git" show main:tasks/fixes/F5.yml | sed -n 's/^s
 ld5=$(git -C "$SCRATCH/w/origin.git" show main:tasks/fixes/F5.yml | sed -n 's/^landed: //p')
 if [ $r = 0 ] && [ "$st5" = open ] && [ -z "$ld5" ]; then ok "open F5 is not closed by the next landing"
 else fail "fix task auto-closed (r=$r st=$st5 landed=$ld5)"; fi
+
+# g. T499: a task once blocked by a rebase conflict lands with status done and no blocked_reason; another task
+# still blocked whose "<id>:" commit is on main is marked done and landed by the same landing
+setup
+sed -i 's/^status: claimed$/status: blocked/' tasks/T9.yml; printf 'blocked_reason: rebase onto origin/main conflicts in: f.txt\n' >> tasks/T9.yml
+printf 'id: T8\nowner: t\nstatus: blocked\nrelease_note: internal\ngoal: Old one.\ndone_test: true\nfiles:\n  - g.txt\nblocked_reason: rebase onto origin/main conflicts in: g.txt\n' > tasks/T8.yml
+echo g > g.txt; git add -A; git commit -qm "T8: Old one."; git push -q origin main
+echo 1 > f.txt; git add -A; git commit -qm "wip"
+bash scripts/land.sh T9 > "$SCRATCH/out" 2>&1; r=$?
+t8sha=$(git -C "$SCRATCH/w/origin.git" log --format='%H %s' main | awk '$2 == "T8:" { print $1; exit }')
+t9=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T9.yml); t8=$(git -C "$SCRATCH/w/origin.git" show main:tasks/T8.yml)
+if [ $r = 0 ] && grep -qx 'status: done' <<< "$t9" && ! grep -q blocked_reason <<< "$t9" \
+   && grep -qx 'status: done' <<< "$t8" && grep -qx "landed: $t8sha" <<< "$t8" && ! grep -q blocked_reason <<< "$t8"; then
+  ok "a blocked task that lands is done; a blocked task already on main becomes done + landed"
+else fail "blocked stays blocked (r=$r) T9: $(grep -E '^(status|blocked)' <<< "$t9" | tr '\n' ' ') T8: $(grep -E '^(status|landed|blocked)' <<< "$t8" | tr '\n' ' ')"; fi
 
 [ $fails = 0 ] && { echo "land-squash: all passed"; exit 0; }
 echo "land-squash: $fails failed"; exit 1

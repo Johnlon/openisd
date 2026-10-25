@@ -20,6 +20,12 @@ test('driver editor opens on the Parameters tab', async ({ page }) => {
   await expect(page.locator('.de-params')).toBeVisible();
 });
 
+test('the Connection dropdown keeps its 96 px desktop width', async ({ page }) => {
+  await openEditor(page, 'Parameters');
+  const box = await page.locator('.de-conn-sel').boundingBox();
+  expect(Math.round(box!.width)).toBe(96);
+});
+
 /**
  * Given one section's row widths in visual order, the rows that are full width DESPITE a
  * shorter row already appearing above them.
@@ -226,7 +232,7 @@ test('Dimensions: cycling a unit does not move the columns', async ({ page }) =>
     }));
 
   const before = await geometry();
-  const unit = page.locator('.de-body .ui-field-unit, .de-body .u, .de-body .unit-toggle').first();
+  const unit = page.locator('.de-body .unit-label.unit-toggle').first();
   await expect(unit).toBeVisible();
   const wasText = (await unit.textContent())?.trim();
 

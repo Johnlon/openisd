@@ -1,0 +1,18 @@
+id: T567
+release_note: Number boxes can now be spun by dragging left or right on a digit, with the mouse or a finger. The digit you press sets the step, and holding further out runs faster.
+repo: openisd
+owner: maryu
+status: done
+landed: 8ad9649ee48310030a02f5d6f12b4f6a19fe51fc
+goal: Number boxes drag-to-spin: left/right stretch, pressed digit sets step, mouse and touch, both skins (QO299)
+done_test: bash scripts/test.sh packages/design/test/fields/drag-spin.test.ts
+files:
+  - tasks/T567.yml
+  - bugs/BUG_20261019_number-fields-no-drag-to-spin.md
+  - packages/design/fields/dragSpin.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/drag-spin.test.ts
+  - packages/ui/src/logic/dragClock.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/ui/number-box-drag-spin.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

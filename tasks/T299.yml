@@ -1,0 +1,24 @@
+id: T299
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 1d02b6d56cb4c5b24b16677182416a935990b968
+goal: land.sh runs every architecture unit test on every landing, whatever changed
+done_test: bash scripts/land/test/land.e2e.test.sh
+files:
+  - tasks/T299.yml
+  - land.conf
+  - scripts/land.sh
+  - scripts/land/unit-architecture.sh
+  - scripts/budget-cost.sh
+  - scripts/land/test/land.e2e.test.sh
+  - scripts/land/test/land-squash.test.sh
+  - scripts/land/test/land-health.test.sh
+  - scripts/land/test/land-subject.test.sh
+  - scripts/land/test/integrate.e2e.test.sh
+  - scripts/land/test/runtime-paths-concurrent.e2e.test.sh
+  - docs/DEV_PROCESS.md
+  - .claude/rules/verify.md
+  - bugs/BUG_20261017_landing-skips-architecture-tests.md
+  - tasks/T001.yml

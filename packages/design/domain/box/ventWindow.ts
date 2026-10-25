@@ -1,4 +1,5 @@
-import type { Air, VentEngine } from '../../engine/index.js';
+import {airIfAvailable} from '../../engine/index.js';
+import type { AirState, VentEngine } from '../../engine/index.js';
 import { defaultingEntryField, entryField, focus, pairedField, settlingNullableField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import { calcVentCount } from '../specEntry.js';
@@ -24,7 +25,7 @@ export class VentWindow implements Vent {
      *  `docs/plans/PLAN_DRIVER_SOLVE_AND_SWEEP_DIAGNOSTICS.md`). Sourced from the owning box's
      *  embedded driver, which already resolves `c_m_per_s`/`roo_kg_per_m3` to the project's live
      *  environment unconditionally — no second air-provider plumbing needed. */
-    readonly #air: () => Air;
+    readonly #air: () => AirState;
     readonly shape: SimpleField<VentShape>;
     readonly endCorrection_m: SimpleField<number>;
 
@@ -36,7 +37,7 @@ export class VentWindow implements Vent {
     readonly area_m2: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
 
     constructor(
-        lens: SimpleField<VentJson>, vent: VentEngine, air: () => Air,
+        lens: SimpleField<VentJson>, vent: VentEngine, air: () => AirState,
         /** A pre-built `length_m`, ATOMICALLY paired with a tuning target living OUTSIDE this
          *  vent's own record (a chamber's `tuning_goal_hz` — `vented`'s and `bandpass4.front`'s own
          *  vents have one; bandpass6/ABC's do not, so they pass none). Only the OWNER
@@ -65,17 +66,15 @@ export class VentWindow implements Vent {
         const diameterEntry = entryField(focus(lens, 'diameter_m'), 'diameter_m');
         const heightEntry = entryField(focus(lens, 'height_m'), 'height_m');
         const areaEntry = entryField(focus(lens, 'area_m2'), 'area_m2');
-        const settle = (siblingEmpty: () => boolean): { readonly siblingEmpty: () => boolean; readonly settle: () => void } | undefined =>
-            start === undefined ? undefined : { siblingEmpty, settle: () => start.geometry(this) };
         this.diameter_m = pairedField(
             (entry) => lens.set({ ...lens.value, diameter_m: entry, area_m2: undefined }),
             diameterEntry,
-            settle(() => this.area_m2.value === null),
+            () => this.area_m2,
         );
         this.height_m = pairedField(
             (entry) => lens.set({ ...lens.value, height_m: entry, area_m2: undefined }),
             heightEntry,
-            settle(() => this.area_m2.value === null),
+            () => this.area_m2,
         );
         this.area_m2 = pairedField(
             (entry) => {
@@ -83,7 +82,7 @@ export class VentWindow implements Vent {
                 else lens.set({ ...lens.value, area_m2: entry, height_m: undefined });
             },
             areaEntry,
-            settle(() => (lens.value.shape === 'round' ? this.diameter_m : this.height_m).value === null),
+            () => (lens.value.shape === 'round' ? this.diameter_m : this.height_m),
         );
 
         /** Never N: an empty slot reads `calcVentCount()` as C; `OpenISDProject#resolveVentCount`
@@ -102,6 +101,28 @@ export class VentWindow implements Vent {
     totalArea_m2(): number | null {
         const one = this.area_m2.value;
         return one === null ? null : this.#ports() * one;
+    }
+
+    /** A near-square whole-centimetre rectangular opening with approximately the given port area. */
+    equivalentSlotDimensions_m(area_m2: number): { readonly width_m: number; readonly height_m: number } {
+        const area_cm2 = area_m2 * 10_000;
+        const limit = Math.max(1, Math.ceil(Math.sqrt(area_cm2) * 2));
+        const maxAspectRatio = 2;
+        let bestW = Math.max(1, Math.round(Math.sqrt(area_cm2)));
+        let bestH = Math.max(1, Math.round(area_cm2 / bestW));
+        let bestError = Math.abs(bestW * bestH - area_cm2);
+        let bestAspect = Math.abs(bestW - bestH);
+        for (let w = 1; w <= limit; w++) {
+            const h = Math.max(1, Math.round(area_cm2 / w));
+            const aspectRatio = Math.max(w, h) / Math.min(w, h);
+            if (aspectRatio > maxAspectRatio) continue;
+            const error = Math.abs(w * h - area_cm2);
+            const aspect = Math.abs(w - h);
+            if (error < bestError || (error === bestError && aspect < bestAspect)) {
+                bestW = w; bestH = h; bestError = error; bestAspect = aspect;
+            }
+        }
+        return {width_m: bestW / 100, height_m: bestH / 100};
     }
 
     /** Acoustic length — the physical length plus the end correction, which is what the sweep's
@@ -126,13 +147,15 @@ export class VentWindow implements Vent {
     tuningIn_hz(volume_m3: number | null): number | null {
         const length_m = this.length_m.value;
         const Sp = this.area_m2.value;
-        if (volume_m3 === null || !(volume_m3 > 0) || length_m === null || Sp === null) return null;
-        return this.#vent.tuningFromLength(volume_m3, length_m, Sp, this.#ports(), this.#air(), this.#lens.value.endCorrection_m);
+        const air = airIfAvailable(this.#air());
+        if (air === null || volume_m3 === null || !(volume_m3 > 0) || length_m === null || Sp === null) return null;
+        return this.#vent.tuningFromLength(volume_m3, length_m, Sp, this.#ports(), air, this.#lens.value.endCorrection_m);
     }
 
     lengthForTuning_m(volume_m3: number | null, fb_hz: number): number | null {
         const Sp = this.area_m2.value;
-        if (volume_m3 === null || !(volume_m3 > 0) || !(fb_hz > 0) || Sp === null) return null;
-        return this.#vent.lengthForTuning(volume_m3, fb_hz, Sp, this.#ports(), this.#air(), this.#lens.value.endCorrection_m);
+        const air = airIfAvailable(this.#air());
+        if (air === null || volume_m3 === null || !(volume_m3 > 0) || !(fb_hz > 0) || Sp === null) return null;
+        return this.#vent.lengthForTuning(volume_m3, fb_hz, Sp, this.#ports(), air, this.#lens.value.endCorrection_m);
     }
 }

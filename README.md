@@ -48,7 +48,7 @@ Every curve redraws as you type. There is no Calculate button.
 - **Data-quality marks:**
   - each value shows whether it was entered or calculated;
   - when a driver's own figures contradict each other, the app says which ones.
-- **What-if tuning.** Adjust a driver's parameters and the box, and watch the curves respond.
+- **What-if.** Adjust a driver's parameters and the box, and watch the curves respond.
   Nothing is saved; cancel and the design is exactly as it was.
 - **Driver library.** 1,603 drivers and 79 passive radiators come bundled, with source links,
   alongside your own saved drivers.
@@ -59,7 +59,7 @@ Every curve redraws as you type. There is no Calculate button.
   - share a design as a link;
   - open projects are saved automatically in the browser.
 
-![What-if tuning panel open over the charts](docs/images/app/whatif.png)
+![What-if panel open over the charts](docs/images/app/whatif.png)
 
 ![Driver database with type, Fs, Sd and impedance filters](docs/images/app/driver-library.png)
 
@@ -82,19 +82,18 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Parity state** (2026-10-05, one driver, W5-1138SMF): 152 of 184 cells in the
+- **Parity state** (2026-10-21; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
+  SB15SFCR-00): 248 of 269 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
   ≤ 1e-12. Every chart exists for every box type.
 - **Remaining gaps:**
-  - not yet compared with WinISD:
-    - filters for 6th-order bandpass and ABC;
-    - amplifier load with Rg 1 Ω for vented, 4th-order bandpass and passive radiator;
-    - SPL limited by Xmax, except sealed and vented;
-    - non-default air temperature, pressure and humidity, except sealed and vented;
-    - more than one port, and slot ports;
-    - any driver other than the W5-1138SMF;
-    - readouts: sealed Fsc and Qtc, vent length, key stats, bandpass Fr and Ff, and the
-      maximum-power/Xmax crossover.
+  - not yet compared with WinISD: the readouts sealed Fsc and Qtc, peak impedance,
+    bandpass Fr and Ff, and the maximum-power/Xmax crossover.
+  - after one typed edit, WinISD and OpenISD differ in these: the number of voice coils (WinISD
+    ignores it; sealed box), the driver editor's fLe, KLe, Hc and Hg when the file does not state them
+    (sealed, vented and 6th-order bandpass boxes), the vent cross area after more vents are typed
+    (vented box), and the passive radiator Vas (WinISD rounds it) and Sd (WinISD ignores it).
+  - not yet compared after an edit: a typed vent end correction (vented box).
 
 Details:
 

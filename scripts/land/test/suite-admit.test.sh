@@ -4,6 +4,7 @@
 set -uo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 SCRATCH="$(mktemp -d "${TMPDIR:-/tmp}/suite-admit.XXXXXX")"
+export OPENISD_RUNTIME_DIR="$SCRATCH/rt" OPENISD_STATE_DIR="$SCRATCH/state"; mkdir -p "$OPENISD_RUNTIME_DIR"  # never the machine's own runtime state
 trap 'rm -rf "$SCRATCH"' EXIT
 fails=0; ok() { echo "ok   $1"; }; fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
@@ -14,11 +15,15 @@ cp -r "$REPO/scripts/admit" "$REPO/scripts/lib" "$COPY/scripts/"
 cp "$REPO/scripts/paths.sh" "$COPY/scripts/"   # admit/record.sh sources ../paths.sh
 cp "$REPO/scripts/admit.sh" "$COPY/scripts/"
 cp "$REPO/scripts/land/post-land/suite.sh" "$COPY/scripts/land/post-land/"
+cp "$REPO/scripts/suite-lock.sh" "$REPO/scripts/budget.sh" "$REPO/scripts/budget.conf" "$REPO/scripts/budget-wait.py" "$COPY/scripts/"
+[ -f "$COPY/scripts/paths.sh" ] || cp "$REPO/scripts/paths.sh" "$COPY/scripts/"
+export SUITE_RUN_LOCK="$SCRATCH/suite-run.lock"
 # fake steps record what they saw while they ran
 # suite.sh runs node_modules/.bin/vitest (S9: no npx inside the funnel); the copy hardlinks node_modules from SRC.
 mkdir -p "$SRC/node_modules/.bin"
 printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/%s"\necho "token=${ADMIT_TOKEN:-none}" >> "$SEEN/token"\n' unit > "$SRC/node_modules/.bin/vitest"
 printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/browser"\n' > "$COPY/scripts/test-browser.sh"
+printf '#!/usr/bin/env bash\nls "$ADMIT_DIR/q" | wc -l > "$SEEN/shell"\n' > "$COPY/scripts/test-shell.sh"
 chmod +x "$SRC/node_modules/.bin/vitest"
 export SEEN="$SCRATCH/seen"; mkdir -p "$SEEN"; export PATH="$SCRATCH/bin:$PATH"
 

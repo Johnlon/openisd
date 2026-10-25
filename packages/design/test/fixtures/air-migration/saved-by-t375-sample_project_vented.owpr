@@ -1,0 +1,482 @@
+{
+  "label": "",
+  "saved": {
+    "driverEmbedding": {
+      "device": {
+        "uuid": {
+          "value": "d15c0b43-d332-462d-81fc-087465cfb799"
+        },
+        "quality": {
+          "missing": [],
+          "invalid": [],
+          "parse_errors": [],
+          "cross_source_only": []
+        },
+        "manufacturer": {
+          "value": "n/a"
+        },
+        "brand": {
+          "value": "Beyma"
+        },
+        "model": {
+          "value": "8BR40/N"
+        },
+        "sku": {
+          "value": "8BR40/N",
+          "grounds": [
+            {
+              "origin": "manual",
+              "reading": "8BR40/N"
+            }
+          ]
+        },
+        "driver_type": {
+          "value": [
+            "woofer"
+          ]
+        },
+        "data_sources": {
+          "value": {}
+        },
+        "provided_by": {
+          "value": "loudspeakerdatabase.com"
+        },
+        "comment": {
+          "value": "loudspeakerdatabase.com/Beyma/8BR40_N"
+        },
+        "added": {
+          "value": "20251203"
+        },
+        "specs": {
+          "woofer": {
+            "Fs_hz": {
+              "state": "E",
+              "value": 30
+            },
+            "Le_H": {
+              "state": "E",
+              "value": 0.5
+            },
+            "Znom_ohm": {
+              "state": "E",
+              "value": 8
+            },
+            "Qts": {
+              "state": "E",
+              "value": 0.391
+            },
+            "Qms": {
+              "state": "E",
+              "value": 2.1
+            },
+            "Vas_m3": {
+              "state": "E",
+              "value": 0.00770192009195634
+            },
+            "Sd_m2": {
+              "state": "E",
+              "value": 0.022
+            },
+            "BL_Tm": {
+              "state": "E",
+              "value": 6.8
+            },
+            "Xmax_m": {
+              "state": "E",
+              "value": 0.00700001
+            },
+            "Pe_W": {
+              "state": "E",
+              "value": 100
+            },
+            "Dd_m": {
+              "state": "E",
+              "value": 0.167
+            },
+            "numVC": {
+              "state": "E",
+              "value": 1
+            },
+            "VCCon": {
+              "state": "E",
+              "value": 2
+            },
+            "Dia_m": {
+              "state": "E",
+              "value": 0
+            },
+            "Vd_m3": {
+              "state": "E",
+              "value": 0.0001474
+            },
+            "alfaVC_per_K": {
+              "state": "E",
+              "value": 0.0039
+            },
+            "Mcost_kg_per_s": {
+              "state": "E",
+              "value": 0
+            },
+            "Re_ohm": {
+              "state": "C",
+              "value": 0.4697663848072335,
+              "precision": 0.03938793234098403
+            },
+            "Qes": {
+              "state": "C",
+              "value": 0.4804564072557051,
+              "precision": 0.00337217587498273
+            },
+            "Mms_kg": {
+              "state": "C",
+              "value": 0.2508931216590656,
+              "precision": 0.01976733686265275
+            },
+            "Cms_m_per_N": {
+              "state": "C",
+              "value": 0.00011217833732495934,
+              "precision": 0.000005099015338230089
+            },
+            "Rms_kg_per_s": {
+              "state": "C",
+              "value": 22.520113938295157,
+              "precision": 1.9351699643710418
+            },
+            "EBP_hz": {
+              "state": "C",
+              "value": 62.44062842528316,
+              "precision": 1.4789287228076375
+            },
+            "no": {
+              "state": "C",
+              "value": 0.0004209108476864615,
+              "precision": 0.000023999786276699374
+            },
+            "SPL_dB": {
+              "state": "C",
+              "value": 78.39635439761724,
+              "precision": 0.2476290360391431
+            },
+            "USPL_dB": {
+              "state": "C",
+              "value": 90.71326374177663,
+              "precision": 0.4670018357373351
+            },
+            "SPLmax_dB": {
+              "state": "C",
+              "value": 95.39635439761724,
+              "precision": 0.26934376013798556
+            },
+            "SPLmaxLF_dB": {
+              "state": "C",
+              "value": 83.93436127030155,
+              "precision": 0.00294636689801564
+            },
+            "Rme_kg_per_s": {
+              "state": "C",
+              "value": 98.43190465612896,
+              "precision": 6.805572518928217
+            },
+            "Mpow_N_per_sqrtW": {
+              "state": "C",
+              "value": 9.921285433658735,
+              "precision": 0.3429783652704188
+            },
+            "gamma_m_per_s2_A": {
+              "state": "C",
+              "value": 27.10317427211259,
+              "precision": 2.334689656711575
+            },
+            "Gloss": {
+              "state": "C",
+              "value": 0.03942936373448561,
+              "precision": 0.001314340289007565
+            },
+            "c_m_per_s": {
+              "state": "C",
+              "value": 343.68412096215235
+            },
+            "roo_kg_per_m3": {
+              "state": "C",
+              "value": 1.2009521771468228
+            }
+          }
+        }
+      },
+      "nDrivers": 1,
+      "wiring": "parallel",
+      "vcTempRise_K": 0,
+      "Rs_ohm": 0.1,
+      "driverAddedMass_kg": 0,
+      "alfaVC_per_K": 0.0039,
+      "loading": "standard"
+    },
+    "box": {
+      "boxType": "vented",
+      "sealed": {
+        "volume_m3": 0,
+        "losses": {
+          "Ql": 10,
+          "Qa": 100
+        }
+      },
+      "vented": {
+        "chamber": {
+          "volume_m3": 0.0117763850304564,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100
+          },
+          "tuning_goal_hz": {
+            "state": "E",
+            "value": 26.629370197895
+          }
+        },
+        "vent": {
+          "shape": "round",
+          "width_m": null,
+          "endCorrection_m": 0.732,
+          "count": {
+            "state": "E",
+            "value": 1
+          },
+          "diameter_m": {
+            "state": "E",
+            "value": 0.102
+          },
+          "area_m2": {
+            "state": "C",
+            "value": 0.00817128249198705
+          },
+          "length_m": {
+            "state": "C",
+            "value": 2.8529622700898014
+          }
+        }
+      },
+      "bandpass4": {
+        "rear": {
+          "volume_m3": 0,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100
+          }
+        },
+        "front": {
+          "volume_m3": 0,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100
+          }
+        },
+        "frontVent": {
+          "shape": "round",
+          "width_m": null,
+          "endCorrection_m": 0.613,
+          "count": {
+            "state": "C",
+            "value": 1
+          }
+        },
+        "Qiclfr": 100
+      },
+      "bandpass6": {
+        "rear": {
+          "volume_m3": 0,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100
+          }
+        },
+        "front": {
+          "volume_m3": 0,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100
+          }
+        },
+        "rearVent": {
+          "shape": "round",
+          "width_m": null,
+          "endCorrection_m": 0.732,
+          "count": {
+            "state": "C",
+            "value": 1
+          }
+        },
+        "frontVent": {
+          "shape": "round",
+          "width_m": null,
+          "endCorrection_m": 0.732,
+          "count": {
+            "state": "C",
+            "value": 1
+          }
+        },
+        "Qiclfr": 100
+      },
+      "abc": {
+        "rear": {
+          "volume_m3": 0,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100
+          }
+        },
+        "front": {
+          "volume_m3": 0,
+          "losses": {
+            "Ql": 10,
+            "Qa": 100,
+            "Qp": 100
+          }
+        },
+        "rearVent": {
+          "shape": "round",
+          "width_m": null,
+          "endCorrection_m": 0.732,
+          "count": {
+            "state": "C",
+            "value": 1
+          }
+        },
+        "frontVent": {
+          "shape": "round",
+          "width_m": null,
+          "endCorrection_m": 0.732,
+          "count": {
+            "state": "C",
+            "value": 1
+          }
+        },
+        "intraVent": {
+          "shape": "round",
+          "width_m": null,
+          "endCorrection_m": 0.732,
+          "count": {
+            "state": "C",
+            "value": 1
+          }
+        },
+        "Qiclfr": 100
+      },
+      "passiveRadiator": {
+        "volume_m3": 0,
+        "count": 1,
+        "losses": {
+          "Ql": 10,
+          "Qa": 100
+        },
+        "component": {
+          "uuid": {
+            "value": "e3069e9e-61d4-424d-a4a7-e1c3195f0a6c"
+          },
+          "quality": {
+            "confirmed_fields": [],
+            "fields_with_issues": [],
+            "missing": [],
+            "invalid": [],
+            "parse_errors": [],
+            "cross_source_only": []
+          },
+          "manufacturer": {
+            "value": ""
+          },
+          "brand": {
+            "value": ""
+          },
+          "model": {
+            "value": ""
+          },
+          "sku": {
+            "value": "",
+            "grounds": [
+              {
+                "origin": "manual",
+                "reading": ""
+              }
+            ]
+          },
+          "data_sources": {
+            "value": {}
+          },
+          "driver_type": {
+            "value": [
+              "passive-radiator"
+            ]
+          },
+          "specs": {
+            "passive-radiator": {}
+          },
+          "added": {
+            "value": "20261017",
+            "origin": "entered"
+          }
+        }
+      }
+    },
+    "environment": {
+      "temperature_K": {
+        "state": "E",
+        "value": 293.15
+      },
+      "humidity_pct": {
+        "state": "E",
+        "value": 30
+      },
+      "pressure_Pa": {
+        "state": "E",
+        "value": 101325
+      },
+      "c_m_per_s": {
+        "state": "C",
+        "value": 343.68412096215235,
+        "precision": 0.01058681666773964
+      },
+      "roo_kg_per_m3": {
+        "state": "C",
+        "value": 1.2009521771468228,
+        "precision": 0.00007991087878322922
+      }
+    },
+    "signal": {
+      "power_W": {
+        "state": "E",
+        "value": 1
+      },
+      "voltage_V": {
+        "state": "C",
+        "value": 0.754828712230287
+      }
+    },
+    "meta": {
+      "name": "",
+      "creator": "johnl",
+      "created": "20260805",
+      "modified": "20260805",
+      "description": ""
+    },
+    "filters": {
+      "filters": []
+    },
+    "advanced": {
+      "forceFlatResponse": false,
+      "useTransmissionLinePortModel": false,
+      "rgAtDriverSide": false,
+      "circuitModel": "winisd",
+      "splGraphIsXmaxLimited": false,
+      "winisdDriverModel": false,
+      "winisdVaModel": false,
+      "winisdWrapPhase": true,
+      "winisdDriverCountModel": false,
+      "winisdFlatModel": true
+    },
+    "charts": {}
+  },
+  "edited": null
+}

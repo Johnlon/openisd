@@ -1,5 +1,5 @@
 import type {RoomShortfall} from '../repos/storageBackup.js';
-import type { CloudFault, ConflictCopy, SyncActivity } from '@openisd/design/cloud';
+import type { CloudFault, ConflictCopy, DocId, SyncActivity } from '@openisd/design/cloud';
 
 export type RunOutcome =
   | {
@@ -44,6 +44,8 @@ export type RunOutcome =
 export interface SyncEngine {
   run(): Promise<RunOutcome>;
   pendingLocal(): number;
+  /** The local docs Drive does not have as they are now. */
+  notOnDrive(): readonly DocId[];
 }
 
 /** What a run says while it runs: that it started, and each push as it lands. */

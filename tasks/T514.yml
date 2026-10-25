@@ -1,0 +1,22 @@
+id: T514
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: f229f1670d726252df7239d651c0e3a9e422f75f
+goal: B10 phone classic: projects pane (☰), Save As/Export, open a file, Project tab built to the accepted mocks (screens 16-19)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
+visual:
+  - mobile-menu
+files:
+  - packages/design/test/fields/phoneText.test.ts
+  - tasks/T514.yml
+  - packages/ui/src/ui/shells/mobile/MobileProjectTab.vue
+  - packages/design/fields/phoneText.ts
+  - packages/ui/test/ui/mobile-project-tab-classic.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/ui/mobile-menu-classic.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/ui/mobile-menu.browser.spec.ts

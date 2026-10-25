@@ -21,7 +21,8 @@ export {
   DEFAULT_T_REF_K, DEFAULT_RH_REF_PCT, DEFAULT_P_REF_PA,
   MIN_SUPPORTED_TEMP_K, MAX_SUPPORTED_TEMP_K,
 } from './air.js';
-export type { Air, AirEnvironment, AirConstantProvider, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
+export type { Air, AppAir, AirState, AirWorkingName, AirValues, AirEnvironment, EnvironmentQuantityName, EnvironmentIssue } from './air.js';
+export { FixedAir, availableAir, airIfAvailable } from './air.js';
 export type { CalculationIssue, SolveRoute, DqIssue, TargetUnreachableIssue, OutOfRangeIssue } from './consistency.js';
 // APPLICATION SETTINGS reach a calculation through the collaborator `createEngine(settings)`
 // takes, never a module constant read behind the caller's back. The factory band crosses as a
@@ -40,7 +41,7 @@ export type {
   ParametricEqFilter, ParametricEqPatch, PeakHighpassFilter, PeakHighpassPatch,
   StaticGainFilter, StaticGainPatch, RaisedCosineFilter, RaisedCosinePatch, ShelfFilter, ShelfPatch,
   SealedAlignmentOption, VentedAlignment, VentedDesign, Wiring,
-  EnclosureParams, PrParams, SweepParams, SweepResult, WprFilter, WprFilterImport,
+  EnclosureParams, PrParams, SweepParams, SweepResult, SweepPeaks, WprFilter, WprFilterImport,
 } from './types.js';
 export type { BoxEngine, ChartId } from './box/BoxEngine.js';
 export type { BoxParamsQuantityName, BoxParamsIssue, BoxParamsSolveResult } from './params.js';
@@ -49,6 +50,7 @@ export type { SimulationEngine, SweepIssue, SweepSolveResult, MaxCurvesSolveResu
 export { createSimulationEngine } from './simulation/SimulationEngine.js';
 export type {DriverEngine, DriverQuantityName, DriverIssue, DriverPrerequisite} from './driver/DriverEngine.js';
 export type {EnvironmentEngine} from './environment/EnvironmentEngine.js';
+export type {AirInput, AirInputs, AirIssue, AirQuantityName, AirSolution, AirSolvedValues} from './environment/airSolver.js';
 export type {IssueEngine} from './issues/IssueEngine.js';
 export type {VentEngine, VentQuantityName, VentIssue} from './vent/VentEngine.js';
 export type {PrEngine, PrQuantityName, PrIssue, PrSpecIssue, PrSpecPrecision, PrSpecValues} from './pr/PrEngine.js';

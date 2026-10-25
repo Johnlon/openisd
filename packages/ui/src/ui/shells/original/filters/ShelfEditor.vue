@@ -2,8 +2,8 @@
 /** OpenISD-only low/high shelf editor — one component for both, they share every field.
  *  Display only: every edit is decided by `api.editShelf` (the engine's filters area), not here. */
 import {NumberField} from '@openisd/design/fields';
-import {liveNum, numFrom} from './numericInput.js';
 import type {ShelfFilter} from '@openisd/design/engine';
+import UIFixedField from '../../../components/UIFixedField.vue';
 import type {OriginalFiltersAPI} from '../../../../hooks/OriginalFilters-hooks.js';
 
 const {f, api} = defineProps<{ f: ShelfFilter; api: OriginalFiltersAPI }>();
@@ -11,8 +11,8 @@ const {f, api} = defineProps<{ f: ShelfFilter; api: OriginalFiltersAPI }>();
 
 <template>
   <div class="filter-edit-body">
-    <label>fc <input v-expo-step="NumberField.FILTER_FC_HZ" type="number" v-limits="NumberField.FILTER_FC_HZ.limits" :value="f.fc" @input="liveNum($event, v => api.editShelf(f, {fc: v}))" @change="api.editShelf(f, {fc: numFrom($event)})"> Hz</label>
-    <label>Q <input v-expo-step="NumberField.FILTER_Q" type="number" v-limits="NumberField.FILTER_Q.limits" :value="f.Q" @input="liveNum($event, v => api.editShelf(f, {Q: v}))" @change="api.editShelf(f, {Q: numFrom($event)})"></label>
-    <label>Gain <input v-expo-step="NumberField.FILTER_GAIN_DB" type="number" v-limits="NumberField.FILTER_GAIN_DB.limits" :value="f.gain" @input="liveNum($event, v => api.editShelf(f, {gain: v}))" @change="api.editShelf(f, {gain: numFrom($event)})"> dB</label>
+    <UIFixedField :field="NumberField.FILTER_FC_HZ" label="fc" :value="f.fc" @update:value="v => api.editShelf(f, {fc: v})" />
+    <UIFixedField :field="NumberField.FILTER_Q" label="Q" :value="f.Q" @update:value="v => api.editShelf(f, {Q: v})" />
+    <UIFixedField :field="NumberField.FILTER_GAIN_DB" label="Gain" :value="f.gain" @update:value="v => api.editShelf(f, {gain: v})" />
   </div>
 </template>

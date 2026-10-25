@@ -20,6 +20,8 @@ export interface BeaconTelemetryDeps {
   readonly online: () => boolean;
   readonly now: () => number;
   readonly sessionId: string;
+  /** The anonymous browser id, sent with every event. */
+  readonly browserId: string;
 }
 
 export const MAX_BATCH_EVENTS = 50;
@@ -35,7 +37,7 @@ export class BeaconTelemetry implements Telemetry {
 
   record(event: TelemetryEvent): void {
     const fields: Fields = fieldsOf(event);
-    this.queue.push({name: event.kind, ts: this.deps.now(), version: this.deps.version, session: this.deps.sessionId, fields});
+    this.queue.push({name: event.kind, ts: this.deps.now(), version: this.deps.version, session: this.deps.sessionId, browser_id: this.deps.browserId, fields});
   }
 
   flush(): void {

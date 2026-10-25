@@ -18,7 +18,7 @@ export interface DevVersionPort {
 
 /** Unified port for getting the running app version. */
 export interface AppVersionPort {
-  /** Reactive label for the running app version. */
+  /** Reactive label for the running app version: the public number on a release once the hosted list is read, else the build's date. */
   readonly label: Ref<string>;
   /** Get the version of the running app. */
   getVersion(): Promise<AppVersion>;
@@ -66,6 +66,7 @@ export function createAppVersionPort(
   devPort: DevVersionPort | null,
   trail: BuildTrail,
   hotUpdateSource?: HotUpdateSource | null,
+  publicVersion: Promise<string> = Promise.resolve(''),
 ): AppVersionPort {
   const initialVersion: AppVersion = isDev ? { kind: 'unknown' } : createPublishedVersion(bakedVersion);
   let currentVersion: AppVersion = initialVersion;
@@ -83,6 +84,12 @@ export function createAppVersionPort(
       // Keep previous label on refresh failure
     }
     return label.value;
+  }
+
+  // A release shows its public number ("7.0.951") instead of its date; the number comes from the
+  // hosted list, so it arrives after the first paint. Snapshot and test builds keep their stamps.
+  if (!isDev && trail === 'release') {
+    void publicVersion.then(number => { if (number !== '') label.value = number; }, () => { /* no list, the date stays */ });
   }
 
   if (isDev) {

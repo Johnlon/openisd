@@ -13,33 +13,32 @@ const MONTH_NAMES = [
 ] as const;
 
 /** A build is named by its stamp, "20260101T0102Z". The published version and the release tag
- *  carry one prefix letter in front of it; the hosted copies live in one folder per build kind. */
+ *  carry one prefix letter in front of it. */
 const VERSION_PREFIX = 'v';
 export type BuildKind = 'release' | 'snap';
-const HOSTED_DIR: Readonly<Record<BuildKind, string>> = { release: 'v', snap: 'snap' };
 
 /** "v20260101T0102Z" or "20260101T0102Z" → "20260101T0102Z". */
 export function stampOfVersion(version: string): string {
   return version.startsWith(VERSION_PREFIX) ? version.slice(VERSION_PREFIX.length) : version;
 }
 
-/** Where a build's copy is hosted, root-relative: "/v/<stamp>/" or "/snap/<stamp>/". */
-export function hostedPathOf(kind: BuildKind, stamp: string): string {
-  return `/${HOSTED_DIR[kind]}/${stamp}/`;
-}
-
-/** The hosted list page of one build kind, root-relative: "/v/" (releases) or "/snap/". */
-export function hostedListPathOf(kind: BuildKind): string {
-  return `/${HOSTED_DIR[kind]}/`;
-}
-
-/** Which trail of the site the app runs from: the root release, a /snap/<stamp>/ copy or the /test/ copy. */
+/** Which trail the app runs from: a release (openisd.app, or snapshots.openisd.app/v/<stamp>/), a
+ *  snapshots.openisd.app/snap/<stamp>/ copy, or the test.openisd.app copy of the newest snapshot. */
 export type BuildTrail = 'release' | 'snap' | 'test';
 
-/** "/snap/20261014T1045Z/" → 'snap', "/test/" → 'test', anything else (the root, /v/<stamp>/) → 'release'. */
-export function trailOfPathname(pathname: string): BuildTrail {
-  if (/^\/snap\/[^/]+\//.test(pathname)) return 'snap';
-  if (/^\/test\//.test(pathname)) return 'test';
+/** The site that serves the newest snapshot at its root. */
+export const TEST_HOSTNAME = 'test.openisd.app';
+
+/** The page's address: `location` in the browser, or a `URL`. */
+export interface PageAddress {
+  readonly hostname: string;
+  readonly pathname: string;
+}
+
+/** test.openisd.app → 'test', ".../snap/20261014T1045Z/" → 'snap', anything else → 'release'. */
+export function trailOfLocation(address: PageAddress): BuildTrail {
+  if (address.hostname === TEST_HOSTNAME) return 'test';
+  if (/^\/snap\/[^/]+\//.test(address.pathname)) return 'snap';
   return 'release';
 }
 

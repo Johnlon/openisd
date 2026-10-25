@@ -1,14 +1,15 @@
 import { computed, type ComputedRef, ref, type Ref, shallowRef, triggerRef, watch } from 'vue';
 // Type-only: the store constructs projects (`newProject()`) and owns the engine instance; this
 // hook only names their shapes, so neither import is a layering edge (QO80).
-import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, startingChambersOf, takesChamberTunings } from '@openisd/design';
+import { type OpenISDDriver, type OpenISDProject, OpenISDPassiveRadiatorStandalone, defaultProjectName, startingChambersOf, takesChamberTunings, WizardPlan, WizardStep } from '@openisd/design';
 import type { BundledPassiveRadiatorRepo, MyPassiveRadiatorRepo } from '@openisd/persistence';
 import type { BoxType, EbpSuitability, SealedEngine, VentedAlignment, VentedEngine, Wiring } from '@openisd/design/engine';
-import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, DEFAULT_NEW_PROJECT_QA, DEFAULT_NEW_PROJECT_VENTED_QL, DEFAULT_SOURCE_RESISTANCE_OHM, DEFAULT_VENTED_ALIGNMENT, NumberField, SEALED_ALIGNMENT_OPTIONS, VENTED_ALIGNMENT_OPTIONS, type SelectorOption} from '@openisd/design/fields';
 import {DUAL_CHAMBER} from './boxFields.js';
 import {useApp} from '../logic/app.js';
 import type {AppState} from '../logic/appState.js';
 import { selectedOption } from '../logic/domEvents.js';
+import { useRecentActions } from './telemetryContext.js';
 
 /** The two engine areas the wizard consults; the app facade's by default, substitutes in a test. */
 export interface OriginalNewProjectEngineAreas {
@@ -53,11 +54,16 @@ export interface OriginalNewProjectDeps {
 
 export interface OriginalNewProjectAPI {
   // Navigation & Step state
-  readonly step: Ref<number>;
+  readonly step: Ref<WizardStep>;
   readonly totalSteps: ComputedRef<number>;
   readonly currentStepNumber: ComputedRef<number>;
   readonly stepLabel: ComputedRef<string>;
-  readonly STEP_LABELS: readonly string[];
+  /** Which page the wizard is on; the skins draw one page at a time. */
+  readonly isDriverStep: ComputedRef<boolean>;
+  readonly isCountStep: ComputedRef<boolean>;
+  readonly isBoxTypeStep: ComputedRef<boolean>;
+  readonly isBoxDetailsStep: ComputedRef<boolean>;
+  readonly isProjectInfoStep: ComputedRef<boolean>;
   readonly hadUnsaved: ComputedRef<boolean>;
 
   // Step 1: Driver Selection
@@ -103,9 +109,13 @@ export interface OriginalNewProjectAPI {
   readonly selectedSealedAlignment: ComputedRef<SelectorOption<number> | null>;
   readonly targetQtc: Ref<number>;
   readonly qtc: ComputedRef<number | null>;
+  /** The sealed box resonance Fsc (Hz) at the chosen volume; null without a driver. */
+  readonly sealedFsc_hz: ComputedRef<number | null>;
   /** The sealed box volume, SI: derived from the chosen alignment, editable on step 4. */
   readonly sealedVolume_m3: Ref<number>;
   selectSealedAlignment(qtc: number): void;
+  /** The ≠W cue by the sealed picker shows: the open project's "Sealed picker volume" switch is unticked. */
+  readonly sealedPickerDeviationShown: ComputedRef<boolean>;
   setSealedVolume_m3(volume_m3: number): void;
 
   // Step 4: Vented Alignment — WinISD's five, designed as its wizard does
@@ -113,10 +123,16 @@ export interface OriginalNewProjectAPI {
   readonly VENTED_ALIGNMENT_OPTIONS: readonly SelectorOption<VentedAlignment>[];
   readonly selectedVentedAlignment: Ref<VentedAlignment>;
   selectVentedAlignment(alignment: VentedAlignment): void;
-  /** The alignment's vented box volume, litres — read-only, from the driver and alignment. */
+  /** The vented box volume on show, SI: the alignment's, until one is typed. */
+  readonly ventedVolume_m3: ComputedRef<number>;
+  /** The same volume in litres. */
   readonly ventedVolume_L: ComputedRef<number>;
-  /** The alignment's tuning frequency, Hz — read-only, from the driver and alignment. */
+  /** The tuning frequency on show, Hz: the alignment's, until one is typed. */
   readonly ventedTuning_hz: ComputedRef<number>;
+  /** Types a vented volume, SI; it replaces the alignment's until another alignment is picked. */
+  setVentedVolume_m3(v: number): void;
+  /** Types a vented tuning, Hz; it replaces the alignment's until another alignment is picked. */
+  setVentedTuning_hz(v: number): void;
   /** Why `ventedVolume_L` is implausible, or null when it is not. The value itself is WinISD's
    *  own answer and is never changed — extrapolated designs are marked, not clamped. */
   readonly ventedVolumeWarning: ComputedRef<string | null>;
@@ -161,22 +177,18 @@ export interface OriginalNewProjectAPI {
  *  Re-exported so the test can pin the sharing without a second import path. */
 export const NEW_PROJECT_VENTED_QL = DEFAULT_NEW_PROJECT_VENTED_QL;
 
-const STEP_LABELS = Object.freeze([
-  'Select driver for project',
-  'Number of drivers and placement',
-  'Type of design',
-  'Sealed Alignment',
-  'Project Information',
-]);
+/** The losses a new closed box starts with, the ones the preview's Qtc and volume are worked out under. */
+const NEW_PROJECT_SEALED_LOSSES = {Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA};
 
 export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
-  const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, isModified, newProjectBoxTypeOptions, newProjectDriver } = deps?.appState ?? useApp().appState;
+  const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, focusedProject, isModified, newProjectBoxTypeOptions, newProjectDriver } = deps?.appState ?? useApp().appState;
   const eng: OriginalNewProjectEngineAreas = deps?.areas ?? useApp().engine;
   const prRepos: NewProjectPassiveRadiatorRepos = deps?.passiveRadiators
     ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };
   const initialDriver = deps?.initialDriver ?? newProjectDriver.value ?? null;
+  const recentActions = useRecentActions();
 
-  const step = ref(1);
+  const step = shallowRef<WizardStep>(WizardStep.DRIVER);
   const selectedDriver = shallowRef<OpenISDDriver | null>(initialDriver);
 
   const nDrivers = ref(1);
@@ -205,7 +217,14 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const sealedVolume_m3 = ref(NumberField.BOX_VB_L.toSI(7));
   const selectedVentedAlignment = ref<VentedAlignment>(DEFAULT_VENTED_ALIGNMENT);
 
-  const projName = ref('');
+  // The name is "<driver model> <box type>" until the person types one (John, 2026-10-21); after
+  // that it is what they typed, whatever driver or box type they pick next.
+  const typedName = ref<string | null>(null);
+  const defaultName = computed(() => defaultProjectName(selectedDriver.value?.model.value ?? '', boxType.value));
+  const projName = computed<string>({
+    get: () => typedName.value ?? defaultName.value,
+    set: (name) => { typedName.value = name; },
+  });
   const projDescription = ref('');
 
   const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
@@ -217,22 +236,15 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const isSealed = computed(() => boxType.value === 'sealed');
   const isVented = computed(() => boxType.value === 'vented');
   const isPassiveRadiator = computed(() => boxType.value === 'box-passive-radiator');
-  // Step 4 is the sealed or vented alignment, or the passive radiator; every other box type skips
-  // straight from box-type (3) to project info (5) — no sourced alignment formula for them yet
-  const hasStep4 = computed(() => isSealed.value || isVented.value || isPassiveRadiator.value);
-  const totalSteps = computed(() => (hasStep4.value ? 5 : 4));
-
-  const currentStepNumber = computed(() => {
-    if (step.value <= 3) return step.value;
-    if (step.value === 4) return 4;
-    return hasStep4.value ? 5 : 4;
-  });
-
-  const stepLabel = computed(() => {
-    if (step.value === 4 && isVented.value) return 'Vented Alignment';
-    if (step.value === 4 && isPassiveRadiator.value) return 'Passive Radiator';
-    return STEP_LABELS[step.value - 1];
-  });
+  const plan = computed(() => WizardPlan.of(boxType.value));
+  const totalSteps = computed(() => plan.value.total);
+  const currentStepNumber = computed(() => plan.value.numberOf(step.value) ?? plan.value.total);
+  const stepLabel = computed(() => plan.value.labelOf(step.value));
+  const isDriverStep = computed(() => step.value === WizardStep.DRIVER);
+  const isCountStep = computed(() => step.value === WizardStep.COUNT);
+  const isBoxTypeStep = computed(() => step.value === WizardStep.BOX_TYPE);
+  const isBoxDetailsStep = computed(() => step.value === WizardStep.BOX_DETAILS);
+  const isProjectInfoStep = computed(() => step.value === WizardStep.PROJECT_INFO);
 
   const selectedDriverName = computed<string>(() => {
     if (!selectedDriver.value) return 'No driver selected';
@@ -281,26 +293,42 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const qtc = computed(() => {
     const driver = selectedDriver.value;
     if (!driver) return null;
-    return driver.sealedQtc(sealedVolume_m3.value);
+    return driver.sealedQtc(sealedVolume_m3.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
+  });
+
+  const sealedFsc_hz = computed(() => {
+    const driver = selectedDriver.value;
+    if (!driver) return null;
+    return driver.sealedFsc(sealedVolume_m3.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES);
   });
 
   const selectedSealedAlignment = computed(() => {
     return qtc.value != null ? eng.sealed.closestAlignment(qtc.value) : null;
   });
 
+  /** The "Sealed picker volume" switch of the project open behind the wizard; unticked with none open,
+   *  as in a new project. */
+  const winisdSealedPicker = (): boolean => focusedProject()?.winisdSealedPicker.value ?? false;
+  const sealedPickerDeviationShown = computed(() => !winisdSealedPicker());
+
   /** Re-derive the sealed volume from the current driver and target Qtc; a driver without
    *  Qts/Vas leaves the previous volume standing. */
   function recomputeSealedVolume(driver: OpenISDDriver, target: number): void {
-    const calculated_m3 = driver.sealedVolumeForQtc(target);
+    const winisdPicker = winisdSealedPicker();
+    const calculated_m3 = driver.sealedPickerVolume(target, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_SEALED_LOSSES, winisdPicker);
     // Vb is a 2dp field everywhere else in the app — match that here instead of showing the solver's raw float.
-    if (calculated_m3 != null) sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
+    if (calculated_m3 != null) {
+      sealedVolume_m3.value = NumberField.BOX_VB_L.toSI(Number(NumberField.BOX_VB_L.format(calculated_m3)));
+    }
   }
 
   function selectDriver(driver: OpenISDDriver): void {
     selectedDriver.value = driver;
+    ventedVolumeTyped_m3.value = null;
+    ventedTuningTyped_hz.value = null;
     recomputeSealedVolume(driver, targetQtc.value);
     // "Use" in the step-1 driver picker is the step's whole job — done, move on.
-    if (step.value === 1) next();
+    if (step.value === WizardStep.DRIVER) next();
   }
 
   function selectSealedAlignment(target: number): void {
@@ -312,8 +340,22 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     sealedVolume_m3.value = v;
   }
 
+  /** A volume or tuning typed over the alignment's; null while the alignment's own is on show. */
+  const ventedVolumeTyped_m3 = ref<number | null>(null);
+  const ventedTuningTyped_hz = ref<number | null>(null);
+
   function selectVentedAlignment(alignment: VentedAlignment): void {
     selectedVentedAlignment.value = alignment;
+    ventedVolumeTyped_m3.value = null;
+    ventedTuningTyped_hz.value = null;
+  }
+
+  function setVentedVolume_m3(v: number): void {
+    ventedVolumeTyped_m3.value = v;
+  }
+
+  function setVentedTuning_hz(v: number): void {
+    ventedTuningTyped_hz.value = v;
   }
 
   /** WinISD designs the vented box for the driver AS DRIVEN — Qts with the project's series
@@ -324,25 +366,24 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     return driver.ventedDesign(selectedVentedAlignment.value, DEFAULT_SOURCE_RESISTANCE_OHM, NEW_PROJECT_VENTED_QL);
   });
 
-  const ventedVolume_L = computed(() => (ventedAlignmentResult.value?.Vb != null ? NumberField.BOX_VB_L.toDisplay(ventedAlignmentResult.value.Vb) : 0));
-  const ventedTuning_hz = computed(() => ventedAlignmentResult.value?.Fb ?? 0);
+  const ventedVolume_m3 = computed(() => ventedVolumeTyped_m3.value ?? ventedAlignmentResult.value?.Vb ?? 0);
+  const ventedVolume_L = computed(() => NumberField.BOX_VB_L.toDisplay(ventedVolume_m3.value));
+  const ventedTuning_hz = computed(() => ventedTuningTyped_hz.value ?? ventedAlignmentResult.value?.Fb ?? 0);
 
   // The designed value stays exactly as WinISD designs it; these say when it is implausible.
   // Only meaningful for a vented box — a sealed design has no vented box to judge, and reading
   // the vented preview for one would judge a number the user is not being shown.
   const ventedVolumeWarning = computed<string | null>(() => {
     if (!isVented.value) return null;
-    const design = ventedAlignmentResult.value;
-    if (!design) return null;
-    const issue = eng.vented.volumeIssue(design.Vb);
+    if (!ventedAlignmentResult.value) return null;
+    const issue = eng.vented.volumeIssue(ventedVolume_m3.value);
     return issue === null ? null : issue.text;
   });
 
   const ventedTuningWarning = computed<string | null>(() => {
     if (!isVented.value) return null;
-    const design = ventedAlignmentResult.value;
-    if (!design) return null;
-    const issue = eng.vented.tuningIssue(design.Fb);
+    if (!ventedAlignmentResult.value) return null;
+    const issue = eng.vented.tuningIssue(ventedTuning_hz.value);
     return issue === null ? null : issue.text;
   });
 
@@ -399,54 +440,24 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   };
 
   const canNext = computed(() => {
-    if (step.value === 1) return selectedDriver.value !== null;
-    if (step.value === 4 && isPassiveRadiator.value) return passiveRadiatorView.value !== null;
-    if (step.value >= 2 && step.value <= 4) return true;
-    return false;
+    if (step.value === WizardStep.DRIVER) return selectedDriver.value !== null;
+    if (step.value === WizardStep.BOX_DETAILS && isPassiveRadiator.value) return passiveRadiatorView.value !== null;
+    return plan.value.next(step.value) !== null;
   });
 
-  const canBack = computed(() => step.value > 1);
+  const canBack = computed(() => plan.value.back(step.value) !== null);
 
-  const canCreate = computed(() => step.value === 5 && projName.value.trim() !== '');
+  const canCreate = computed(() => step.value === WizardStep.PROJECT_INFO && projName.value.trim() !== '');
 
   function next(): void {
     if (!canNext.value) return;
-    if (step.value === 1) {
-      step.value = 2;
-      return;
-    }
-    if (step.value === 2) {
-      step.value = 3;
-      return;
-    }
-    if (step.value === 3) {
-      step.value = hasStep4.value ? 4 : 5;
-      return;
-    }
-    if (step.value === 4) {
-      step.value = 5;
-      return;
-    }
+    const to = plan.value.next(step.value);
+    if (to !== null) step.value = to;
   }
 
   function back(): void {
-    if (!canBack.value) return;
-    if (step.value === 5) {
-      step.value = hasStep4.value ? 4 : 3;
-      return;
-    }
-    if (step.value === 4) {
-      step.value = 3;
-      return;
-    }
-    if (step.value === 3) {
-      step.value = 2;
-      return;
-    }
-    if (step.value === 2) {
-      step.value = 1;
-      return;
-    }
+    const to = plan.value.back(step.value);
+    if (to !== null) step.value = to;
   }
 
   function createProject(): OpenISDProject | null {
@@ -458,24 +469,28 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     const p = createProjectInStore(selectedDriver.value, (b) => {
       switch (boxType.value) {
         case 'sealed': return b.sealed().volume_m3(sealedVolume_m3.value);
-        case 'vented': return b.vented().alignment(selectedVentedAlignment.value);
+        case 'vented': return ventedVolumeTyped_m3.value === null && ventedTuningTyped_hz.value === null
+          ? b.vented().alignment(selectedVentedAlignment.value)
+          : b.vented().volume_m3(ventedVolume_m3.value).tuning_goal_hz(ventedTuning_hz.value);
         case 'box-passive-radiator': {
           const pr = b.passiveRadiator().volume_m3(volume_m3.value);
           return passiveRadiator.value === null ? pr : pr.radiator(passiveRadiator.value);
         }
-        case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value);
+        case 'bandpass4': return b.bandpass4().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).frontTuning_hz(frontTuning_hz.value);
         case 'bandpass6': return b.bandpass6().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
         case 'abc': return b.abc().rearVolume_m3(volume_m3.value).frontVolume_m3(frontVolume_m3.value).rearTuning_hz(rearTuning_hz.value).frontTuning_hz(frontTuning_hz.value);
       }
+    }, (made) => {
+      made.name.set(projName.value.trim() || defaultName.value);
+      if (projDescription.value.trim()) {
+        made.description.set(projDescription.value.trim());
+      }
+      made.nDrivers.set(nDrivers.value);
+      made.wiring.set(wiring.value);
     });
-    p.name.set(projName.value.trim() || 'Unnamed project');
-    if (projDescription.value.trim()) {
-      p.description.set(projDescription.value.trim());
-    }
-    p.nDrivers.set(nDrivers.value);
-    p.wiring.set(wiring.value);
 
     newProjectDriver.value = null;
+    recentActions.record('new-project');
     return p;
   }
 
@@ -488,7 +503,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     totalSteps,
     currentStepNumber,
     stepLabel,
-    STEP_LABELS,
+    isDriverStep, isCountStep, isBoxTypeStep, isBoxDetailsStep, isProjectInfoStep,
     hadUnsaved,
 
     selectedDriver,
@@ -522,15 +537,20 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     selectedSealedAlignment,
     targetQtc,
     qtc,
+    sealedFsc_hz,
     sealedVolume_m3,
     selectSealedAlignment,
+    sealedPickerDeviationShown,
     setSealedVolume_m3,
 
     VENTED_ALIGNMENT_OPTIONS,
     selectedVentedAlignment,
     selectVentedAlignment,
+    ventedVolume_m3,
     ventedVolume_L,
     ventedTuning_hz,
+    setVentedVolume_m3,
+    setVentedTuning_hz,
     ventedVolumeWarning,
     ventedTuningWarning,
 

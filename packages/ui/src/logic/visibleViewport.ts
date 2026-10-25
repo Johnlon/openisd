@@ -15,6 +15,8 @@
 export interface VisualViewportLike {
   readonly height: number;
   readonly scale: number;
+  /** How far the browser has panned the page down, e.g. to show a box above the keyboard. */
+  readonly offsetTop: number;
 }
 
 export interface ViewportSource {
@@ -29,4 +31,18 @@ export function visibleViewportHeightPx(w: ViewportSource): number {
   if (vv === null) return w.innerHeight;
   if (Math.abs(vv.scale - 1) > UNZOOMED_TOLERANCE) return w.innerHeight;
   return Math.round(vv.height);
+}
+
+// The keyboard makes the phone pan the page up. The shell, sized to the visible height, is moved
+// down by the same amount so it stays on screen: without it the top bar is off screen and a band
+// of nothing shows above the keyboard (John's Pixel 9, 19 Oct 2026). 0 under pinch-zoom, as above.
+export function visibleViewportTopPx(w: ViewportSource): number {
+  const vv = w.visualViewport;
+  if (vv === null || Math.abs(vv.scale - 1) > UNZOOMED_TOLERANCE) return 0;
+  return Math.round(vv.offsetTop);
+}
+
+/** Where `el` sits on the screen the user sees, in CSS px. */
+export function screenTopPx(el: Element, w: ViewportSource): number {
+  return el.getBoundingClientRect().top - visibleViewportTopPx(w);
 }

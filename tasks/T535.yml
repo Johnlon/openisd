@@ -1,0 +1,18 @@
+id: T535
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: d42a972dc71471a14c26e3fbfb6411afa8fcf0b0
+goal: Selecting a digit in a number box spins that digit's place, even the last digit (the 5 of 1.05 spins hundredths), by key and by ▲▼ in both skins; a bare caret at the end still spins the tenths. No layout change, so no before/after picture page.
+done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
+files:
+  - tasks/T535.yml
+  - bugs/BUG_20261021_last-decimal-digit-cannot-spin.md
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/fields/caretSpin.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/caret-spin.test.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/ui/mobile-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/original-signal-tab.browser.spec.ts

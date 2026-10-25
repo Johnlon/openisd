@@ -1,0 +1,70 @@
+id: T336
+release_note: 'On the phone, Tune and What-if are two separate sheets, each opened from its own tab on the Graph page. What-if is called What-if again, not Learn.'
+repo: openisd
+owner: sonnet
+status: done
+landed: 1ac64ed9cb8e5aebf65d604e72c8ea33414dc258
+goal: Phone Graph tab has two separate sheets, Tune and What-if, each from its own pull-tab, with their own fields; no mode toggle.
+done_test: bash scripts/test.sh packages/design/test/fields/sheetMode.test.ts
+files:
+  - tasks/T336.yml
+  - README.md
+  - bugs/BUG_20261017_phone-tune-and-what-if-share-one-sheet.md
+  - docs/TASK_LIST_FORMAT.md
+  - docs/design/STATE_MODEL.md
+  - packages/design/fields/index.ts
+  - packages/design/fields/sheetField.ts
+  - packages/design/fields/sheetMode.ts
+  - packages/design/test/fields/sheetMode.test.ts
+  - packages/ui/src/hooks/MobileChartView-hooks.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/hooks/OriginalWhatIf-hooks.ts
+  - packages/ui/src/hooks/sheetSession.ts
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/SplashContent.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/architecture/what-if-never-changes-the-project.test.ts
+  - packages/ui/test/hooks/MobileSheet-hooks.test.ts
+  - packages/ui/test/hooks/sheetSession.test.ts
+  - packages/ui/test/logic/projectRegistry.test.ts
+  - packages/ui/test/ui/consistency-dq.browser.spec.ts
+  - packages/ui/test/ui/mobile-chart-auto-y.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-port.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/test/ui/no-project-shell.browser.spec.ts
+  - packages/ui/test/ui/num-input.browser.spec.ts
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - packages/ui/test/ui/provenance-legend.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-tab-graph

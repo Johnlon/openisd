@@ -1,0 +1,73 @@
+id: F42
+owner: Johnlon
+status: done
+closed: |
+  T241 (maryu, 16 Oct 2026). Two specs found real faults from T217: the Projects panel read the store
+  before an import had written to it, and did not read it again after a restore from Options; both now
+  refresh once the write is done. Two specs followed T217's layout: the empty-panel text, and the row
+  sort order (newest first) in the Learn panel focus switch. All four pass.
+sha: 562a2eb995f2ee0a4dcc0e0b9bf07153c5766ca7
+goal: main is red at 562a2eb995; make the full suite pass again
+commits: |
+  562a2eb995 T217: Projects 2: Original Projects panel
+failing: |
+    ✘    9 packages/ui/test/ui/backups-restore-project.browser.spec.ts:23:1 › desktop: Restore one project adds the project from a backup under a restored name (20.9s)
+    ✘  469 packages/ui/test/ui/options-dialog.browser.spec.ts:326:7 › Options dialog › with no project open › vented design limits › Options opens with no project and shows the factory band (20.4s)
+    ✘  691 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:29:3 › Projects across addresses › export then import into fresh storage restores every project (20.8s)
+    ✘  738 packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › Learn panel › on the sample project › switching focus to a different open project closes an open Learn panel (20.9s)
+          44 × locator resolved to 0 elements
+          44 × locator resolved to <div tabindex="-1" data-v-22ee87dc="" class="projects-list">…</div>
+          44 × locator resolved to 0 elements
+          44 × locator resolved to <div data-v-52c149bc="" data-v-f1429ef1="" class="what-if-panel">…</div>
+output: |
+        52 |     expect(text.join(' ')).toContain('Exported Project 2');
+          at /home/john/work/winisd/.postland/1568680-562a2eb995/packages/ui/test/ui/projects-across-addresses.browser.spec.ts:49:31
+  
+      Error Context: test-results/ui-projects-across-address-9153d-rage-restores-every-project/error-context.md
+  
+    4) packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › Learn panel › on the sample project › switching focus to a different open project closes an open Learn panel 
+  
+      Error: expect(locator).toBeHidden() failed
+  
+      Locator:  locator('.what-if-panel')
+      Expected: hidden
+      Received: visible
+      Timeout:  20000ms
+  
+      Call log:
+        - Expect "toBeHidden" with timeout 20000ms
+        - waiting for locator('.what-if-panel')
+          44 × locator resolved to <div data-v-52c149bc="" data-v-f1429ef1="" class="what-if-panel">…</div>
+             - unexpected value "visible"
+  
+  
+        209 |
+        210 |       await projectRows.nth(0).click();
+      > 211 |       await expect(whatIfPanel).toBeHidden();
+            |                                 ^
+        212 |
+        213 |       // The project left behind is as it was: its What-if ended with the panel.
+        214 |       await projectRows.nth(1).click();
+          at /home/john/work/winisd/.postland/1568680-562a2eb995/packages/ui/test/ui/what-if-panel.browser.spec.ts:211:33
+  
+      Error Context: test-results/ui-what-if-panel.browser-L-1c5b8--closes-an-open-Learn-panel/error-context.md
+  
+    4 failed
+      packages/ui/test/ui/backups-restore-project.browser.spec.ts:23:1 › desktop: Restore one project adds the project from a backup under a restored name 
+      packages/ui/test/ui/options-dialog.browser.spec.ts:326:7 › Options dialog › with no project open › vented design limits › Options opens with no project and shows the factory band 
+      packages/ui/test/ui/projects-across-addresses.browser.spec.ts:29:3 › Projects across addresses › export then import into fresh storage restores every project 
+      packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › Learn panel › on the sample project › switching focus to a different open project closes an open Learn panel 
+    795 passed (6.8m)
+  suite: unit exit 0, browser exit 1
+  post-land suite 1568680-562a2eb995 finished: FAILED (exit 1) after 8m27s
+also_red:
+  - sha: 6d628863e0a1fe6bfd79672282ddffe1ca575fdd
+    failing: |
+        ✘    9 packages/ui/test/ui/backups-restore-project.browser.spec.ts:23:1 › desktop: Restore one project adds the project from a backup under a restored name (20.9s)
+        ✘  469 packages/ui/test/ui/options-dialog.browser.spec.ts:326:7 › Options dialog › with no project open › vented design limits › Options opens with no project and shows the factory band (20.4s)
+        ✘  691 packages/ui/test/ui/projects-across-addresses.browser.spec.ts:29:3 › Projects across addresses › export then import into fresh storage restores every project (20.8s)
+        ✘  738 packages/ui/test/ui/what-if-panel.browser.spec.ts:192:5 › Learn panel › on the sample project › switching focus to a different open project closes an open Learn panel (20.8s)
+              44 × locator resolved to 0 elements
+              44 × locator resolved to <div tabindex="-1" data-v-22ee87dc="" class="projects-list">…</div>
+              44 × locator resolved to 0 elements
+              44 × locator resolved to <div data-v-52c149bc="" data-v-f1429ef1="" class="what-if-panel">…</div>

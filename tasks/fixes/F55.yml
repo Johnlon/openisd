@@ -1,0 +1,56 @@
+id: F55
+owner: Johnlon
+status: done
+sha: 1789a508050431fa8837fb2c5e47f434cfb127a9
+tested: 1789a508050431fa8837fb2c5e47f434cfb127a9
+last_green: 16cb0afcd68200b37db2e6e6c3fb51096b085aec
+range: 16cb0afcd68200b37db2e6e6c3fb51096b085aec..1789a508050431fa8837fb2c5e47f434cfb127a9
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-1789a50805.log
+goal: main is red at 1789a50805; make the full suite pass again
+commits: |
+  1789a50805 T271: Projects pages bug fixes, projects stored when made, phone menu with ope
+failing: |
+  browser (9):   ✘   9 packages/ui/test/ui/cloud-sync-activity.browser.spec.ts:32:1 › desktop: the Cloud sync dialog lists each project sent and received, newest first (6.7s)
+output: |
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):         - referer: http://localhost:4300/
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):         - sec-ch-ua: "Chromium";v="149", "Not)A;Brand";v="24"
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):         - sec-ch-ua-mobile: ?0
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):         - sec-ch-ua-platform: "Linux"
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):        at ui/fixtures/cloudSyncStubs.ts:10
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):        8 |       return;
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):        9 |     }
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):     > 10 |     const response = await route.fetch();
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):          |                                  ^
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):       11 |     let text = await response.text();
+  2026-10-17T07:14:46.453Z 2104971-1792220581-17068 browser (9):       12 |     if (text.includes('clientId:null')) {
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):       13 |       text = text.replace('clientId:null', 'clientId:"stubbed-client-id"');
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):         at /__w/openisd/openisd/packages/ui/test/ui/fixtures/cloudSyncStubs.ts:10:34
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):     Error: page.reload: Test ended.
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):     Call log:
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):       - waiting for navigation until "load"
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):         - navigated to "http://localhost:4300/"
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):       24 |   await expect(lines.nth(1)).toHaveText(SENT);
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):       25 |
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):     > 26 |   await page.reload();
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):          |              ^
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):       27 |   lines = (await dialog()).locator('.cloud-sync-activity-line');
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):       28 |   await expect(lines.first()).toContainText(RECEIVED);
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):       29 |   return lines;
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):         at sentThenReceived (/__w/openisd/openisd/packages/ui/test/ui/cloud-sync-activity.browser.spec.ts:26:14)
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):         at /__w/openisd/openisd/packages/ui/test/ui/cloud-sync-activity.browser.spec.ts:37:17
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):     Error Context: test-results/ui-cloud-sync-activity.bro-04105-t-and-received-newest-first/error-context.md
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9): 
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):   1 failed
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):     packages/ui/test/ui/cloud-sync-activity.browser.spec.ts:32:1 › desktop: the Cloud sync dialog lists each project sent and received, newest first 
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9):   83 passed (54.8s)
+  2026-10-17T07:14:46.455Z 2104971-1792220581-17068 browser (9): ##[error]Process completed with exit code 1.
+  2026-10-17T07:14:48.125Z 2104971-1792220581-17068 actions: red at 1789a50805: https://github.com/Johnlon/openisd/actions/runs/39012653887
+closed_note: |
+  Closed by post-land: the full suite is green at 7cf6081ed448e2b2c3a0867f09a0cca23324886c, which holds every red commit listed here.

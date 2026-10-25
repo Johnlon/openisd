@@ -11,7 +11,7 @@ useMobileManageDriversTab(() => emit('chosen'));
 
 <template>
   <div class="mob-drivers-wrap">
-    <DriverLibrary class="mob-drivers-library" show-name host="manage" />
+    <DriverLibrary class="mob-drivers-library" show-name host="manage" phone />
   </div>
 </template>
 
@@ -21,7 +21,7 @@ useMobileManageDriversTab(() => emit('chosen'));
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  padding: 0;
   box-sizing: border-box;
 }
 .mob-drivers-library { flex: 1; min-height: 0; }

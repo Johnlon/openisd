@@ -1,0 +1,11 @@
+id: T477
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+landed: e75d58cb7afb74c0f7848de29d28c5682256a366
+goal: Close BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard: John confirmed on his Pixel the box stays put
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T477.yml
+  - bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md

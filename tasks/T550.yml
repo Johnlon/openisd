@@ -1,0 +1,19 @@
+id: T550
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 2f9b1e669770dd75667d2a62c00d3cebf18990d8
+goal: Phone Driver tab matches the accepted classic mock, with a heading before the driver count (screen 5, QO291.c17)
+done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts
+files:
+  - tasks/T550.yml
+  - packages/design/fields/phoneText.ts
+  - packages/design/test/fields/phoneText.test.ts
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/style.css
+  - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+visual:
+  - mobile-tab-driver

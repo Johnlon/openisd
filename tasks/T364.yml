@@ -1,0 +1,27 @@
+id: T364
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: 618ee13fd4b7ae8c05afef400a7618eec1e9ff06
+goal: UIFixedField readonly takes a typed ReadoutFormat: the vented alignment dialog Volume and Tuning on the phone and the desktop, and the desktop rear-chamber Qtc, move onto it (the phone has no rear-chamber Qtc readout)
+done_test: bash scripts/test.sh packages/design/test/fields/readout-format.test.ts
+files:
+  - packages/design/fields/readoutFormat.ts
+  - packages/design/test/fields/readout-format.test.ts
+  - packages/ui/src/hooks/MobileBoxTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/VentedAlignment-hooks.ts
+  - packages/ui/src/ui/components/NumReadout.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/architecture/no-numreadout-outside-uifield.test.ts
+  - tasks/T364.yml
+  - packages/ui/test/ui/mobile-alignment-popup.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+visual:
+  - desktop-box-bandpass4

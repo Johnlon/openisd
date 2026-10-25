@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import {computed, onBeforeUnmount, ref, useAttrs, watch} from 'vue';
+import {computed, inject, onBeforeUnmount, onMounted, ref, useAttrs, watch} from 'vue';
 import {useApp} from '../../logic/app.js';
-import {decimalsSpinRule, formatFixed, HOLD_START_MS, holdStage, roundSpun, shownSpinRule, spinStepAttr, spinValue, type HoldStage, type NumberField, type SpinDirection, type SpinRule, type SpinSpeed} from '@openisd/design/fields';
+import {CARET_HOLD_START_MS, DragSpin, DRAG_SPIN_THRESHOLD_PX, caretRepeatDelayMs, pressedDigit, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type FieldSpin, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
 import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../../logic/domEvents.js';
 import {dqReason} from '../../logic/cellDataQuality.js';
 import {entryRefusal, type EntryBounds} from '../../logic/entryRefusal.js';
+import {STEPPER_PIN} from '../../logic/stepperPin.js';
+import {DRAG_CLOCK, REAL_DRAG_CLOCK} from '../../logic/dragClock.js';
+import {screenTopPx} from '../../logic/visibleViewport.js';
+import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 const presentationState = useApp().presentation;
+const stepperPin = inject(STEPPER_PIN, null);
+const fieldEditMode = inject(FIELD_EDIT_MODE, null);
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
 // bind them to the INPUT explicitly (never the ⚠ note).
@@ -19,7 +25,6 @@ const props = withDefaults(defineProps<{
   /** The value's own half-width in SI — what it was typed to, or inherited from what it was
    *  calculated from. Shows more decimals than `precision` where it states them. */
   halfWidth?: number | null;
-  step?: string;
   min?: number;
   max?: number;
   field?: NumberField;
@@ -31,17 +36,18 @@ const props = withDefaults(defineProps<{
   dq?: readonly string[];
   dqState?: ProvenanceLetter;
   stepper?: boolean;
+  /** Replaces the field's own spin rule (an even-only Order box moves 2 a press). */
+  spin?: FieldSpin;
   /** The host draws the ⚠ itself (`UIField`), so this box draws no mark of its own. */
   hideMark?: boolean;
 }>(), {
   modelValue: null,
   precision: undefined,
   halfWidth: null,
-  step: 'any',
   mandatory: false,
   blankRefused: false,
   allowOutOfRange: false,
-  stepper: false,
+  stepper: true,
   hideMark: false,
 });
 
@@ -65,7 +71,6 @@ function fmt(v: number | null | undefined): string {
 }
 
 const focused = ref(false);
-const typing = ref(false);
 const badEntry = ref(false);
 const entryValue = ref<number | null | undefined>(props.modelValue);
 const display = ref(fmt(props.modelValue));
@@ -87,7 +92,7 @@ watch(activeToken, (newToken, oldToken) => {
 
 function onFocus() {
   focused.value = true;
-  typing.value = false;   // a step done right after focusing must still reformat
+  underlineIndex.value = null;
   if (refusal.value !== '') return;   // a refused entry stays as typed until fixed or Esc
   badEntry.value = false;
   entryValue.value = props.modelValue;
@@ -95,81 +100,288 @@ function onFocus() {
   display.value = fmt(props.modelValue);
 }
 
-// Text-editing keys mean "typing" → echo raw. Arrow up/down are spinner steps → reformat.
-function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && refusal.value !== '') {
-    // Esc puts the stored value back over a refused entry — and only that: the press does not
-    // also reach a dialog's own Esc-to-close.
-    e.preventDefault();
-    e.stopPropagation();
-    badEntry.value = false;
-    display.value = fmt(props.modelValue);
-    if (e.target instanceof HTMLInputElement) e.target.value = display.value;
+/** A press in the box: a tap or click puts the caret as ever; a drag past the dead zone spins. */
+function onBoxPointer(e: PointerEvent) {
+  underlineIndex.value = null;
+  lastStep = null;   // a tap or click in the box puts the caret, even where the last step left it
+  const el = inputEl.value;
+  if (el === null || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  if (inspectionLocked.value) {
+    startLongPress(e);
     return;
   }
-  typing.value = e.key !== 'ArrowUp' && e.key !== 'ArrowDown';
+  if (isReadonly.value) return;
+  const pressed = pressedDigitOf(el, e.clientX);
+  dragAbort?.abort();
+  const abort = new AbortController();
+  dragAbort = abort;
+  const press = {x: e.clientX, id: e.pointerId, at: pressed, nowX: e.clientX, since: dragClock.now()};
+  const spin = new DragSpin();
+  let dragging = false;
+  let first = true;
+  let timer: number | undefined;
+  let last = press.since;
+  const tick = () => {
+    const now = dragClock.now();
+    const steps = spin.advance(press.nowX - press.x, now - last);
+    last = now;
+    const dir: SpinDirection = steps < 0 ? -1 : 1;
+    for (let i = 0; i < Math.abs(steps); i++) {
+      stepFrom(first && press.at.kind === 'digit' ? press.at : lastStep?.at ?? caretForStep(), dir);
+      first = false;
+    }
+  };
+  const end = () => {
+    abort.abort();
+    if (timer !== undefined) dragClock.clear(timer);
+    if (dragAbort === abort) dragAbort = null;
+    dragging = false;
+  };
+  document.addEventListener('pointermove', (m: PointerEvent) => {
+    if (m.pointerId !== press.id) return;
+    press.nowX = m.clientX;
+    if (!dragging && DRAG_SPIN_THRESHOLD_PX <= (m.clientX > press.x ? m.clientX - press.x : press.x - m.clientX)) {
+      dragging = true;
+      last = dragClock.now();
+      el.setPointerCapture(press.id);
+      timer = dragClock.every(tick, DRAG_TICK_MS);
+      tick();
+    }
+  }, {signal: abort.signal});
+  document.addEventListener('selectstart', (s: Event) => { if (dragging) s.preventDefault(); }, {signal: abort.signal});
+  document.addEventListener('pointerup', (u: PointerEvent) => { if (u.pointerId === press.id) end(); }, {signal: abort.signal});
+  document.addEventListener('pointercancel', (u: PointerEvent) => { if (u.pointerId === press.id) end(); }, {signal: abort.signal});
 }
-function onWheel() { typing.value = false; }   // wheel over the field is a step → reformat
-// A mouse press (incl. on the native ▲▼ spinner buttons) is not typing → reformat on the
-// resulting step. If the press is to place the caret, the next keydown flips typing back on.
-function onPointerDown() { typing.value = false; }
+let dragAbort: AbortController | null = null;
+const DRAG_TICK_MS = 40;
+const dragClock = inject(DRAG_CLOCK, REAL_DRAG_CLOCK);
+let longPressTimer: ReturnType<typeof setTimeout> | undefined;
+let longPressAbort: AbortController | null = null;
+const LONG_PRESS_MS = CARET_HOLD_START_MS;
 
-// `readonly` is never a declared prop — it reaches the native input only through $attrs (see
-// the fragment-root note above) — so the stepper reads it the same way to stay in lockstep
-// with whatever actually makes the field uneditable.
 const attrs = useAttrs();
-const isReadonly = computed(() => attrs.readonly !== undefined && attrs.readonly !== false);
-const showStepper = computed(() => props.stepper && !isReadonly.value);
+const nativeReadonly = computed(() => attrs.readonly !== undefined && attrs.readonly !== false);
+const inspectionLocked = computed(() => fieldEditMode?.enabled.value === true && !longPressEditing.value);
+const longPressEditing = ref(false);
+const isReadonly = computed(() => nativeReadonly.value || inspectionLocked.value);
+const showStepper = computed(() => props.stepper && (!nativeReadonly.value || fieldEditMode?.enabled.value === true));
+
+function stopLongPress(): void {
+  if (longPressTimer !== undefined) { clearTimeout(longPressTimer); longPressTimer = undefined; }
+  longPressAbort?.abort();
+  longPressAbort = null;
+}
+
+function startLongPress(e: PointerEvent): boolean {
+  if (!inspectionLocked.value || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return false;
+  const el = inputEl.value;
+  if (el === null) return false;
+  e.preventDefault();
+  fieldEditMode?.disabledAttempt();
+  stopLongPress();
+  const abort = new AbortController();
+  longPressAbort = abort;
+  const finish = () => {
+    abort.abort();
+    if (longPressAbort === abort) longPressAbort = null;
+    longPressTimer = undefined;
+  };
+  const cancel = () => finish();
+  document.addEventListener('pointerup', cancel, {signal: abort.signal, once: true});
+  document.addEventListener('pointercancel', cancel, {signal: abort.signal, once: true});
+  longPressTimer = setTimeout(() => {
+    if (longPressAbort !== abort) return;
+    longPressEditing.value = true;
+    finish();
+    el.focus({preventScroll: true});
+  }, LONG_PRESS_MS);
+  return true;
+}
+
+onBeforeUnmount(() => { dragAbort?.abort(); stopLongPress(); });
+
+/** The digit under a press at `clientX`, measured in the box's own font. */
+function pressedDigitOf(el: HTMLInputElement, clientX: number): StepAt {
+  const style = getComputedStyle(el);
+  const ctx = measureCanvas.getContext('2d');
+  if (ctx === null) return {kind: 'none'};
+  ctx.font = style.font;
+  const rect = el.getBoundingClientRect();
+  const left = rect.left + el.clientLeft + parseFloat(style.paddingLeft);
+  const content = el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const align = style.textAlign === 'right' || style.textAlign === 'end' ? 'right' : style.textAlign === 'center' ? 'center' : 'left';
+  return pressedDigit(el.value, clientX - left + el.scrollLeft, {contentWidth: content, align}, s => ctx.measureText(s).width);
+}
+const measureCanvas = document.createElement('canvas');
+
+/** A number as typed: "," is a decimal mark too. */
+function numberOf(text: string): number {
+  return parseFloat(text.replace(',', '.'));
+}
+
+/** The box's text and selection, for the design rule. */
+function boxOf(el: HTMLInputElement) {
+  const start = el.selectionStart ?? el.value.length;
+  return {text: el.value, selectionStart: start, selectionEnd: el.selectionEnd ?? start};
+}
+
+/** Put an allowed edit in the box, as an input event so the usual handling follows. */
+function applyEdit(el: HTMLInputElement, edit: NumberEdit) {
+  if (edit.kind === 'refuse') return;
+  el.value = edit.text;
+  el.setSelectionRange(edit.caret, edit.caret);
+  el.dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+/** Letters never go in: the design rule judges the text the edit would leave. */
+function onBeforeInput(e: InputEvent) {
+  const el = inputEl.value;
+  if (!el || isReadonly.value) return;
+  if (e.inputType === 'insertText' || e.inputType === 'insertReplacementText') {
+    if (e.data !== null && typedEdit(boxOf(el), e.data).kind === 'refuse') e.preventDefault();
+  } else if (e.inputType === 'insertFromDrop' && e.dataTransfer) {
+    e.preventDefault();
+    applyEdit(el, pastedEdit(boxOf(el), e.dataTransfer.getData('text')));
+  }
+}
+
+/** A paste becomes the number in the pasted text, or nothing. */
+function onPaste(e: ClipboardEvent) {
+  const el = inputEl.value;
+  if (!el || isReadonly.value || !e.clipboardData) return;
+  e.preventDefault();
+  applyEdit(el, pastedEdit(boxOf(el), e.clipboardData.getData('text')));
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    underlineIndex.value = null;
+    const el = inputEl.value;
+    if (el && el.selectionStart !== null && el.selectionEnd !== null && el.selectionEnd > el.selectionStart) {
+      el.setSelectionRange(el.selectionStart, el.selectionStart);
+    }
+    if (refusal.value !== '') {
+      // Esc puts the stored value back over a refused entry — and only that: the press does not
+      // also reach a dialog's own Esc-to-close.
+      e.preventDefault();
+      e.stopPropagation();
+      badEntry.value = false;
+      display.value = fmt(props.modelValue);
+      if (e.target instanceof HTMLInputElement) e.target.value = display.value;
+      return;
+    }
+  }
+  if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !isReadonly.value) {
+    e.preventDefault();
+    stepAtCaret(e.key === 'ArrowUp' ? 1 : -1);
+  } else if (e.key !== 'Tab' && e.key !== 'Shift' && e.key !== 'Control' && e.key !== 'Alt' && e.key !== 'Meta') {
+    underlineIndex.value = null;
+  }
+}
+// The wheel steps a focused box, as the browser's own number box did; an unfocused one lets the page scroll.
+function onWheel(e: WheelEvent) {
+  if (!focused.value || isReadonly.value || e.deltaY === 0) return;
+  e.preventDefault();
+  stepAtCaret(e.deltaY < 0 ? 1 : -1);
+}
 
 const inputEl = ref<HTMLInputElement | null>(null);
+const underlineIndex = ref<number | null>(null);
 let repeatTimer: ReturnType<typeof setTimeout> | undefined;
 
-// A ▲▼ button drives the same path a real ArrowUp/ArrowDown keypress or the native spinner
-// does: the browser's own stepUp()/stepDown() supplies the direction, and `onInput` replaces the
-// browser's value with the design rule's (`spinValue`). The native `step` is never 'any', so
-// stepUp()/stepDown() never throw.
-// The press size for the step in flight: `onInput` reads it, so keyboard, wheel and native
-// spinner steps (which never set it) stay fine.
-let pressSpeed: SpinSpeed = 'fine';
-function applyStep(dir: SpinDirection, speed: SpinSpeed): void {
+// Where the caret last was in this box, kept after the box loses focus: a ▲▼ button steps that
+// digit (John, 2026-10-15). None until a caret has been set; a step then uses the tenths digit.
+let lastCaret: StepAt = {kind: 'none'};
+function rememberCaret(): void {
   const el = inputEl.value;
-  if (el === null) return;
-  typing.value = false;   // a step always reformats, same as the keyboard/wheel paths
-  pressSpeed = speed;
-  if (dir > 0) el.stepUp(); else el.stepDown();
-  el.dispatchEvent(new Event('input', { bubbles: true }));
-  pressSpeed = 'fine';
+  if (el === null || document.activeElement !== el || el.selectionStart === null) return;
+  lastCaret = el.selectionEnd === el.selectionStart + 1
+    ? {kind: 'digit', at: el.selectionStart}
+    : {kind: 'caret', at: el.selectionStart};
+}
+function onSelectionChange(): void { rememberCaret(); }
+onMounted(() => document.addEventListener('selectionchange', onSelectionChange));
+onBeforeUnmount(() => document.removeEventListener('selectionchange', onSelectionChange));
+
+function caretForStep(): StepAt {
+  const el = inputEl.value;
+  if (el !== null && el.selectionStart !== null && el.selectionEnd !== null) {
+    if (el.selectionEnd === el.selectionStart + 1) {
+      return {kind: 'digit', at: el.selectionStart};
+    }
+    if (document.activeElement === el) {
+      return {kind: 'caret', at: el.selectionStart};
+    }
+  }
+  return lastCaret;
+}
+
+// The place the last step stepped and where it left the box: the next step keeps that place until
+// the caret moves (John, 2026-10-21, QO291.c153).
+let lastStep: SteppedPlace | null = null;
+
+/** One step of the digit at `at` (the tenths digit when there is none). On desktop (the box is
+ *  focused), the stepped digit stays selected at its place value. On mobile (a ▲▼ button holds
+ *  focus), an underline mirror overlay is shown instead and the box is untouched. */
+function stepFrom(at: StepAt, dir: SpinDirection): void {
+  const el = inputEl.value;
+  const bounds = {min: dispMin.value, max: dispMax.value};
+  const rule = props.field === undefined ? undefined : props.field.spinRule(activeToken.value, props.spin);
+  const spun = spinStep(display.value, at, lastStep, dir, bounds, rule);
+  if (spun === null) return;
+  const si = fromDisp(spun.value);
+  display.value = spun.text;
+  lastCaret = {kind: 'digit', at: spun.mark};
+  if (el !== null) {
+    el.value = spun.text;
+    if (document.activeElement === el) {
+      underlineIndex.value = null;
+      el.setSelectionRange(spun.mark, spun.mark + 1);
+    } else {
+      underlineIndex.value = spun.mark;
+    }
+  }
+  lastStep = {place: spun.place, at: caretForStep()};
+  if (valid(si)) emit('update:modelValue', si, typedPrecision(spun.text));
+}
+
+/** A key or wheel step on the focused box: the digit at its caret. */
+function stepAtCaret(dir: SpinDirection): void {
+  stepFrom(caretForStep(), dir);
 }
 
 let heldSince = 0;
-let heldStage: HoldStage | undefined;
 function stopRepeat(): void {
   if (repeatTimer !== undefined) { clearTimeout(repeatTimer); repeatTimer = undefined; }
 }
-// Releasing a long hold lands the value on a round number (John, 2026-10-06).
-function releaseRepeat(): void {
-  const rounds = repeatTimer !== undefined && heldStage?.roundsOnRelease === true;
-  stopRepeat();
-  if (!rounds) return;
-  const v = roundSpun(parseFloat(display.value), spinRule.value, {min: dispMin.value, max: dispMax.value});
-  if (isFinite(v)) commitSpun(v);
+
+function onStepperBlur(e: FocusEvent): void {
+  const next = e.relatedTarget;
+  if (next !== inputEl.value && !(next instanceof HTMLElement && next.classList.contains('num-stepper-btn'))) {
+    underlineIndex.value = null;
+  }
 }
-// Hold-to-repeat: one immediate fine step, then a pause before repeating (so a single tap never
-// double-fires), then the speed ladder of `holdStage` while held.
-// The tapped button takes focus (John, 2026-10-02): the press is `.prevent`ed so the browser
-// never focuses it, and the previously focused field kept focus. Focusing the field instead
-// (2026-10-01) popped the phone keyboard on every tap; the button holds focus without one.
+
+// On desktop, the box keeps focus across ▲▼ clicks and key/wheel steps and selects that digit.
+// On mobile, the button holds focus (keeping keyboard down) and draws an underline under that digit.
 function startRepeat(dir: SpinDirection, e: PointerEvent): void {
   stopRepeat();
-  if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
+  const fromCaret = caretForStep();
+  const isMobile = presentationState.shownSkin() === 'mobile' || e.pointerType === 'touch';
+  if (isMobile) {
+    // The box has the keyboard up: the press closes it, so the pin keeps the box where it is on screen.
+    const box = inputEl.value;
+    if (stepperPin !== null && box !== null && document.activeElement === box) stepperPin.pin(() => screenTopPx(box, window));
+    if (e.currentTarget instanceof HTMLElement) e.currentTarget.focus({ preventScroll: true });
+  } else {
+    inputEl.value?.focus();
+  }
   heldSince = performance.now();
-  heldStage = holdStage(0);
-  applyStep(dir, heldStage.speed);
+  stepFrom(fromCaret, dir);
   repeatTimer = setTimeout(function tick() {
-    heldStage = holdStage(performance.now() - heldSince);
-    applyStep(dir, heldStage.speed);
-    repeatTimer = setTimeout(tick, heldStage.repeatMs);
-  }, HOLD_START_MS);
+    stepFrom(caretForStep(), dir);
+    repeatTimer = setTimeout(tick, caretRepeatDelayMs(performance.now() - heldSince));
+  }, CARET_HOLD_START_MS);
 }
 onBeforeUnmount(stopRepeat);
 
@@ -239,42 +451,25 @@ function typedPrecision(typed: string): number | undefined {
 function onInput(e: Event) {
   const t = inputFrom(e);
   if (t === null) return;
+  display.value = t.value;
+  lastStep = null;
   if (t.value === '') {
-    badEntry.value = t.validity.badInput;
-    display.value = '';
-    if (badEntry.value) return;
+    badEntry.value = false;
     emit('update:modelValue', null);
     return;
   }
-  badEntry.value = false;
-  // A text edit is an InputEvent with an inputType (typing, paste, drop); a spinner step is not.
-  const textEdit = typing.value || (e instanceof InputEvent && e.inputType !== '');
-  const native = parseFloat(t.value);
-  const prev = parseFloat(display.value);
-  // A spinner step: the browser's value gives only the direction; the rule gives the value.
-  const v = !textEdit && isFinite(native) && isFinite(prev) && native !== prev
-    ? spinValue(display.value, native > prev ? 1 : -1, spinRule.value, {min: dispMin.value, max: dispMax.value}, pressSpeed)
-    : native;
-  if (textEdit || !isFinite(v)) {
-    display.value = t.value;
-    const typed = fromDisp(v);
-    if (valid(typed)) emit('update:modelValue', typed, typedPrecision(t.value));
-    return;
-  }
-  commitSpun(v);
-}
-
-/** Shows and stores a stepped value `v` (display units). */
-function commitSpun(v: number): void {
-  const si = fromDisp(v);
-  const s = fmt(si);
-  display.value = s;
-  if (inputEl.value !== null) inputEl.value.value = s;
-  if (valid(si)) emit('update:modelValue', si, typedPrecision(s));
+  badEntry.value = !NUMBER_TEXT.test(t.value);
+  const v = numberOf(t.value);
+  badEntry.value = badEntry.value || !isFinite(v);   // a lone "-" or "." is not a number yet, and says so
+  if (badEntry.value) return;
+  const typed = fromDisp(v);
+  if (valid(typed)) emit('update:modelValue', typed, typedPrecision(t.value.replace(',', '.')));
 }
 
 function onBlur(e: Event) {
   focused.value = false;
+  longPressEditing.value = false;
+  stopLongPress();
   if (refusal.value !== '') {
     // Ruling "b": leaving the box keeps the refused entry and its ⚠; nothing was stored.
     emit('blur');
@@ -296,9 +491,9 @@ const refusal = computed<string>(() => {
   if (props.allowOutOfRange) return '';
   if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
   if (display.value === '' && props.blankRefused) return entryRefusal(bounds.value, { kind: 'not-a-number' });
-  if (display.value === '' || display.value === '-') return '';
+  if (display.value === '' || !isFinite(numberOf(display.value))) return '';
   if (display.value === fmt(props.modelValue)) return '';
-  return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(parseFloat(display.value)) });
+  return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(numberOf(display.value)) });
 });
 watch(refusal, text => emit('refusal', text));
 
@@ -308,6 +503,7 @@ const classes = computed(() => {
     'inp-bad': refusal.value !== '',
     'de-input-mandatory': props.mandatory,
     'de-input-empty': props.mandatory && isEmp,
+    'value-empty': (props.field instanceof NumberField ? props.field.emptyAndAllowed(props.modelValue ?? null) : false),
     'dq-flag': hasDq.value,
     'dq-root': isRootCause.value,
     'dq-symptom': isSymptom.value,
@@ -320,28 +516,31 @@ const isSymptom = computed(() => hasDq.value && props.dqState === 'C');
 const dqTooltip = computed(() => dqReason({ dq: props.dq ?? [], dqState: props.dqState ?? 'N' }));
 const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 
-const spinRule = computed<SpinRule>(() => {
-  if (props.field) return props.field.spinRule(activeToken.value);
-  if (typeof props.precision === 'number') return decimalsSpinRule(props.precision);
-  return shownSpinRule(display.value);
-});
-const stepAttr = computed<string>(() => props.step !== 'any' ? props.step : spinStepAttr(display.value, spinRule.value));
+/** A phone keyboard with a minus where the value can be negative, the decimal pad otherwise. */
+const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 'decimal');
 </script>
 
 <template>
-  <input ref="inputEl" v-bind="$attrs" type="number" :step="stepAttr" :min="dispMin" :max="dispMax" :value="display"
-    :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
-    @focus="onFocus" @keydown="onKeydown" @wheel="onWheel" @pointerdown="onPointerDown" @input="onInput" @blur="onBlur">
+  <span class="num-input-wrap">
+    <input ref="inputEl" v-bind="$attrs" :readonly="isReadonly" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
+      :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
+      @focus="onFocus" @pointerdown="onBoxPointer" @keydown="onKeydown" @beforeinput="onBeforeInput" @paste="onPaste" @wheel="onWheel" @input="onInput" @blur="onBlur">
+    <span v-if="underlineIndex !== null" class="num-mark-overlay" aria-hidden="true"><span class="num-mark-pre">{{ display.slice(0, underlineIndex) }}</span><span class="num-mark-underline">{{ display.slice(underlineIndex, underlineIndex + 1) }}</span><span class="num-mark-post">{{ display.slice(underlineIndex + 1) }}</span></span>
+  </span>
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
   <span v-if="showStepper" class="num-stepper">
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Increase"
-      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="releaseRepeat" @pointerleave="releaseRepeat" @pointercancel="releaseRepeat">▲</button>
+      @pointerdown.prevent="startRepeat(1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat"
+      @blur="onStepperBlur">▲</button>
     <button type="button" class="num-stepper-btn" tabindex="-1" title="Decrease"
-      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="releaseRepeat" @pointerleave="releaseRepeat" @pointercancel="releaseRepeat">▼</button>
+      @pointerdown.prevent="startRepeat(-1, $event)" @pointerup="stopRepeat" @pointerleave="stopRepeat" @pointercancel="stopRepeat"
+      @blur="onStepperBlur">▼</button>
   </span>
 </template>
 
 <style scoped>
+/* Left/right drags spin the value; vertical swipes still scroll the page. */
+.num-input-wrap > input { touch-action: pan-y; }
 input.inp-bad { border-color: var(--bad); }
 input.de-input-mandatory {
   border-width: 2px !important;
@@ -376,7 +575,7 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   display: inline-flex;
   flex-direction: row;
   flex-shrink: 0;
-  margin-left: 6px;
+  margin-left: 2px;
 }
 .num-stepper-btn {
   all: unset;
@@ -384,9 +583,9 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 32px;
-  font-size: 16px;
+  width: var(--stepper-w, 14px);
+  height: var(--stepper-h, 20px);
+  font-size: 12px;
   line-height: 1;
   color: var(--mut);
   background: var(--panel2, #f0f0f0);
@@ -399,4 +598,42 @@ span.dq-note-symptom { color: color-mix(in srgb, var(--bad) 65%, orange); }
 .num-stepper-btn:first-child { border-radius: 4px 0 0 4px; }
 .num-stepper-btn:last-child { border-radius: 0 4px 4px 0; }
 .num-stepper-btn:active { background: var(--acc, #36c); color: #fff; }
+
+.num-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.num-input-wrap > input {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+.num-mark-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  font: inherit;
+  letter-spacing: inherit;
+  white-space: pre;
+  overflow: hidden;
+  user-select: none;
+  box-sizing: border-box;
+  padding: 4px 6px;
+}
+.num-mark-pre,
+.num-mark-post {
+  color: transparent;
+  visibility: hidden;
+}
+.num-mark-underline {
+  color: transparent;
+  text-decoration: underline 2px solid var(--fg, currentColor);
+  text-underline-offset: 3px;
+  border-bottom: 2px solid var(--fg, currentColor);
+  line-height: 1;
+}
 </style>

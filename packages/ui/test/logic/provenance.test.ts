@@ -166,7 +166,7 @@ describe('the provenance panel declares the routes the engine actually has', () 
       'Cms+Mms',         // Fs = 1 / (2π × √(Cms × Mms))
       'EBP+Qes',         // Fs = EBP × Qes
       'Mms+Qes+Rme',     // Fs = (Rme × Qes) / (2π × Mms)
-      'Qes+Vas+no',      // Fs = ∛(no × Qes / (CONST_NO × Vas))
+      'Qes+Vas+c+no',    // Fs = ∛(no × Qes / (CONST_NO × Vas)); CONST_NO holds c
     ];
 
     assert.deepEqual(declared, expected,

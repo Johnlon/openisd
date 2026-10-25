@@ -1,0 +1,12 @@
+id: T382
+release_note: internal
+repo: openisd
+owner: maryu
+status: done
+landed: 78c096d101782c99df14240bf1491dc13051e389
+goal: The UI gallery reaches every screen the same way in the released and current build: screens.mjs opens desktop toolbar items (Info menu, About, differences, Diagnostics, Options, Driver database) by their title text, not by click position, and the phone Projects and About screens by a selector present in both builds; a rerun with --before default shows all six previously missing screens in before.
+done_test: bash scripts/quiet-test.sh npm run lint -- scripts/ui-gallery
+files:
+  - scripts/ui-gallery/screens.mjs
+  - scripts/ui-gallery/README.md
+  - tasks/T382.yml

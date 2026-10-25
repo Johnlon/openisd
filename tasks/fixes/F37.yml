@@ -1,0 +1,79 @@
+id: F37
+owner: Johnlon
+status: done
+sha: ea13f9d1d1b9a258ead206dc8085a9e7f87b4743
+goal: main is red at ea13f9d1d1; make the full suite pass again
+commits: |
+  ea13f9d1d1 T209: 'Tune sheet task 1: WhatIfField becomes SheetField with short labels; Sh
+  b97e4c9318 T208: 'Close BUG_20261011_wizard-step1-edit-clone-buttons: T040 already remove
+  8349312d46 T207: 'The /test/ build keeps its own browser store: StoragePrefix resolved on
+  a311f6e43b T215: 'F36: the watchdog killed post-land runs that were only waiting for the
+  16bce9f79e F36: still red at 1385c4d817
+  1385c4d817 F36: the full suite is red at b04259b1be
+  b04259b1be T205: 'Lint and typecheck gates run without a deadline: both finish on their o
+  c878fbab55 T204: Project view 1: one design-side ProjectRow model merging saved and open
+  394bfb62bb T214: 'Post-land process: a TERM with no newer run is a red that says killed b
+  3d4e247915 T206: Ask the browser for persistent storage at startup; Your data shows stora
+failing: |
+       × every service module offers a create*() factory 33ms
+   FAIL  |ui-architecture| test/architecture/architecture.test.ts > inversion of control — collaborators are injected, never reached for > every service module offers a create*() factory
+    ✘  257 packages/ui/test/ui/mobile-menu.browser.spec.ts:156:5 › MobileMenu › Open project… › each saved project shows its driver, box type and volume under its name (769ms)
+    ✘  254 packages/ui/test/ui/mobile-menu.browser.spec.ts:110:5 › MobileMenu › Open project… › lists nothing yet before anything has been saved (20.6s)
+    ✘  355 packages/ui/test/ui/my-drivers.browser.spec.ts:144:1 › Add new Driver opens a completely blank driver; OK asks for an identity instead of dying (27.1s)
+    ✘  356 packages/ui/test/ui/my-drivers.browser.spec.ts:164:1 › Add new Driver saves the new driver into My Drivers and leaves the project alone (26.7s)
+    ✘  357 packages/ui/test/ui/my-drivers.browser.spec.ts:209:1 › Clone driver copies a LIBRARY driver into My Drivers too (5ms)
+    ✘  358 packages/ui/test/ui/my-drivers.browser.spec.ts:192:1 › Clone driver forks a saved driver into My Drivers as "Copy of …" (13ms)
+          43 × locator resolved to <div role="dialog" data-v-d45e57d6="" data-v-c1ba9338="" aria-label="Open project" class="mob-dlg mob-open-project-sheet">…</div>
+output: |
+         at fixtures.ts:62
+  
+        60 | };
+        61 |
+      > 62 | export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }>({
+           |                          ^
+        63 |   // Replaces Playwright's own `browser` so a Chrome launch outage is waited out here instead of
+        64 |   // failing tests in milliseconds (bugs/BUG_20261007_browser-processes-die-mid-suite.md). A launch
+        65 |   // counts only once Chrome has stayed up for a few seconds and loaded two throwaway pages: a burst
+          at /home/john/work/winisd/.postland/1323481-ea13f9d1d1/packages/ui/test/fixtures.ts:62:26
+  
+      Error Context: test-results/ui-my-drivers.browser-Clon-78469-to-My-Drivers-as-Copy-of-…-/error-context.md
+  
+    6) packages/ui/test/ui/my-drivers.browser.spec.ts:209:1 › Clone driver copies a LIBRARY driver into My Drivers too 
+  
+      Fixture "browser" timeout of 210000ms exceeded during setup.
+  
+         at fixtures.ts:62
+  
+        60 | };
+        61 |
+      > 62 | export const test = base.extend<{ browserLog: BrowserLog }, { browser: Browser }>({
+           |                          ^
+        63 |   // Replaces Playwright's own `browser` so a Chrome launch outage is waited out here instead of
+        64 |   // failing tests in milliseconds (bugs/BUG_20261007_browser-processes-die-mid-suite.md). A launch
+        65 |   // counts only once Chrome has stayed up for a few seconds and loaded two throwaway pages: a burst
+          at /home/john/work/winisd/.postland/1323481-ea13f9d1d1/packages/ui/test/fixtures.ts:62:26
+  
+      Error Context: test-results/ui-my-drivers.browser-Clon-83e9a--driver-into-My-Drivers-too/error-context.md
+  
+    6 failed
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:110:5 › MobileMenu › Open project… › lists nothing yet before anything has been saved 
+      packages/ui/test/ui/mobile-menu.browser.spec.ts:156:5 › MobileMenu › Open project… › each saved project shows its driver, box type and volume under its name 
+      packages/ui/test/ui/my-drivers.browser.spec.ts:144:1 › Add new Driver opens a completely blank driver; OK asks for an identity instead of dying 
+      packages/ui/test/ui/my-drivers.browser.spec.ts:164:1 › Add new Driver saves the new driver into My Drivers and leaves the project alone 
+      packages/ui/test/ui/my-drivers.browser.spec.ts:192:1 › Clone driver forks a saved driver into My Drivers as "Copy of …" 
+      packages/ui/test/ui/my-drivers.browser.spec.ts:209:1 › Clone driver copies a LIBRARY driver into My Drivers too 
+    705 passed (11.4m)
+  suite: unit exit 1, browser exit 1
+  post-land suite 1323481-ea13f9d1d1 finished: FAILED (exit 1) after 36m30s
+also_red:
+  - sha: f765dba1abb2221e22c54348411365d36a95a738
+    failing: |
+    
+also_red:
+  - sha: 60afa52569ceebbc0d74160209a76f203dee48ad
+    failing: |
+    
+also_red:
+  - sha: 6cba72255785dd0e06796f11c5b49d078f7b3b9e
+    failing: |
+    

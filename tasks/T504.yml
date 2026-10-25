@@ -1,0 +1,12 @@
+id: T504
+release_note: internal
+repo: openisd
+owner: bob
+status: done
+landed: d56ff727237951fcc2d829b0cbe626a03a5573b7
+goal: Page check names the unmarked picture itself in a before/after pair
+done_test: python3 scripts/feedback/feedback_page_test.py
+files:
+  - tasks/T504.yml
+  - scripts/feedback/check-answerable.mjs
+  - scripts/feedback/feedback_page_test.py

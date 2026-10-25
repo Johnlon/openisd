@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root { --bg:#fff; --fg:#1a1a1a; --muted:#666; --card:#f4f4f4; --line:#ddd; --done:#1b7f3b; --wait:#a15c00; }
+@media (prefers-color-scheme: dark) { :root { --bg:#121212; --fg:#eee; --muted:#aaa; --card:#1e1e1e; --line:#333; --done:#5fd383; --wait:#f0a64a; } }
+* { box-sizing:border-box; }
+body { margin:0; padding:16px; background:var(--bg); color:var(--fg); font:16px/1.4 system-ui, sans-serif; }
+h1 { font-size:20px; margin:0 0 4px; }
+.sub { color:var(--muted); margin:0 0 16px; font-size:14px; }
+.fix { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; margin:0 0 16px; }
+.fix h2 { font-size:17px; margin:0 0 4px; }
+.meta { font-size:13px; color:var(--muted); margin:0 0 8px; }
+.meta .state.done { color:var(--done); font-weight:600; }
+.meta .state.wait { color:var(--wait); font-weight:600; }
+.group { margin:8px 0 0; }
+.group h3 { font-size:14px; margin:0 0 4px; color:var(--muted); font-weight:600; }
+.pair { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:8px; }
+.pair.ba { grid-template-columns:1fr 1fr; }  /* before | after side by side at every width, never stacked */
+figure { margin:0; }
+img { width:100%; height:auto; border:1px solid var(--line); border-radius:4px; display:block; background:#fff; }
+a { color:inherit; }
+.note { font-size:14px; color:var(--muted); }
+.look { font-size:15px; margin:4px 0 8px; padding:6px 8px; border-left:4px solid #1d5fd0; background:var(--card); }
+.look.missing { border-color:#c62828; color:#c62828; }
+.look .ask { display:block; margin:4px 0 0; }
+.todo { font-size:16px; color:var(--fg); background:var(--card); border:2px solid #1d5fd0; border-radius:8px; padding:10px; margin:0 0 12px; }
+.live { display:inline-block; margin:6px 0 0; padding:10px 14px; border-radius:6px; background:#1d5fd0; color:#fff; font-size:15px; font-weight:600; text-decoration:none; }
+.permalink { float:right; font-size:13px; line-height:1; color:var(--muted); text-decoration:none; padding:2px 4px; }
+.side { min-width:0; }
+.lbl { display:block; font-size:12px; color:var(--muted); margin:0 0 2px; }
+
+figure.here { outline:3px solid #c62828; outline-offset:3px; border-radius:4px; }
+details.same { margin:0 0 16px; }
+details.same summary { font-size:15px; padding:8px 0; cursor:pointer; color:var(--muted); }
+details.ruled { margin:8px 0 0; }
+details.ruled summary { font-size:15px; color:var(--muted); padding:8px 0; cursor:pointer; }
+</style>
+<script src="/board/thread.js"></script>
+</head>
+<body>
+<p class="sub todo"><b>What to do:</b> __TODO__</p>
+<h1>__TITLE__</h1>
+__NOTE__
+<main id="out"><p class="note">Loading…</p></main>
+<script>
+// Reads index.md (the table agents keep) and shows each fix with its pictures inline.
+const out = document.getElementById('out');
+const linkRe = /\[([^\]]+)\]\(([^)]+)\)/g;
+const isLive = (l) => /^live$/i.test(l.label.trim());
+const slug = (n) => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+// A before picture is a still of today's app, never the live mock.
+const isBefore = (label) => /^before$/i.test(label.trim());
+const isAfter = (label) => /^after$/i.test(label.trim());
+const isImg = (u) => /\.(png|jpe?g|gif|webp|svg)$/i.test(u);
+const ITEM = '__ITEM__';
+const FOLDER = '__FOLDER__';  // every comment on this page goes to this board item, prefixed with its picture
+const esc = (s) => s.replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function pictures(cell) {
+  // Groups are separated by " · ". A group may start with "name:" followed by links.
+  const groups = cell.split(' · ').map((g) => {
+    const m = g.match(/^\s*([^\[]+?):\s*(\[.*)$/);
+    const name = m ? m[1] : '';
+    const all = [...(m ? m[2] : g).matchAll(linkRe)].map((x) => ({ label: x[1], url: x[2] }));
+    return { name, links: all.filter((l) => !isLive(l)), live: all.find(isLive)?.url || '' };
+  });
+  // Ungrouped single links (before · after) belong together.
+  const together = groups.every((g) => !g.name && g.links.length <= 1)
+    ? [{ name: '', links: groups.flatMap((g) => g.links), live: groups.map((g) => g.live).find(Boolean) || '' }] : groups;
+  // A side-by-side already holds the before and the after: show it alone, never the same picture twice.
+  return together.map((g) => {
+    const sbs = g.links.filter((l) => /side-by-side/i.test(l.url));
+    if (sbs.length) return { name: g.name, items: sbs.map((l) => ({ lone: l })), live: g.live };
+    // A before and its after are ONE item (compare them side by side); any other link stands alone.
+    const before = g.links.find((l) => isBefore(l.label) && isImg(l.url));
+    const after = g.links.find((l) => isAfter(l.label) && isImg(l.url));
+    const paired = before && after;
+    const items = g.links.filter((l) => !paired || (l !== before && l !== after)).map((l) => ({ lone: l }));
+    if (paired) items.unshift({ before, after });
+    return { name: g.name, items, live: g.live };
+  });
+}
+
+// The server renders index.md as a page; turn its table back into [label](url) text per cell.
+function cellText(td) {
+  return [...td.childNodes].map((n) => n.nodeName === 'A'
+    ? `[${n.textContent}](${n.getAttribute('href')})` : n.textContent).join('').trim();
+}
+
+function render(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const rows = [...doc.querySelectorAll('table tbody tr')].map((tr) => [...tr.cells].map(cellText));
+  // Optional 6th cell "Same as": the Fix name of the row this one repeats. Such a row is folded under that row.
+  if (!rows.length) { out.innerHTML = '<p class="note">No fixes listed.</p>'; return; }
+  // "Look at" cell: "group: text · group: text", or plain text for a fix with one group.
+function lookFor(cell, group) {
+  const parts = (cell || '').split(' · ');
+  const hit = parts.find((p) => group && p.startsWith(group + ':'));
+  if (hit) return hit.slice(group.length + 1).trim();
+  return parts.length === 1 || !group ? (cell || '').trim() : '';
+}
+function lookLine(text) {
+  // A second line, written after ' ¶ ' in the cell, is its own line in the same block.
+  const [first, ...more] = (text || '').split(' ¶ ');
+  return text ? `<p class="look"><b>Look at:</b> ${esc(first)}${more.map((m) => `<span class="ask">${esc(m)}</span>`).join('')}</p>`
+    : '<p class="look missing"><b>Look at:</b> not written yet. Tell us in the box what is unclear.</p>';
+}
+
+  const sameAs = (r) => (r[5] || '').trim();
+  const foldedUnder = (leader) => rows.filter((r) => sameAs(r) === leader[0]);
+  const section = ([fix, task, state, cell, look]) => {
+    const name = (label, group, url) => url ? FOLDER + '/' + url : FOLDER + '/' + task;
+    const cls = /^landed/.test(state) ? 'done' : 'wait';
+    const groups = pictures(cell || '');
+    const rowLive = groups.map((g) => g.live).find(Boolean) || '';
+    const any = groups.some((g) => g.items.length || g.live);
+    const btn = (u) => u ? `<a class="live" href="${esc(u)}">Open live mock</a>` : '';
+    const idOf = (n) => `id="${esc(slug(n))}"`;
+    const link = (n) => `<a class="permalink" href="#${esc(slug(n))}" aria-label="link to this item" title="link to this item">\u{1F517}</a>`;
+    const textItem = (n, lk, u) => `<figure ${idOf(n)} data-item data-kind="item" data-name="${esc(n)}">${link(n)}${lk}${btn(u)}</figure>`;
+    const body = !any ? textItem(name('', '', ''), lookLine(look), '') : groups.map((g) => {
+      const lk = lookLine(lookFor(look, g.name));
+      const u = g.live || rowLive;
+      const pic = (l, lbl) => `<div class="side">${lbl ? `<span class="lbl">${lbl}</span>` : ''}<a href="${esc(l.url)}"><img loading="lazy" src="${esc(l.url)}" alt="${esc(l.label)}"></a></div>`;
+      const figs = g.items.length ? g.items.map((it) => {
+        if (it.lone && !isImg(it.lone.url)) return `<p><a href="${esc(it.lone.url)}">${esc(it.lone.label)}</a></p>`;
+        if (it.lone) {
+          const { label, url } = it.lone, n = name(label, g.name, url);
+          return `<figure ${idOf(n)} data-item data-kind="picture" data-name="${esc(n)}">${link(n)}${lk}${isBefore(label) ? '' : btn(u)}${pic(it.lone, '')}</figure>`;
+        }
+        const n = name('', g.name, it.before.url), other = name('', g.name, it.after.url);
+        return `<figure ${idOf(n)} data-item data-kind="picture" data-pair="pair" data-name="${esc(n)}" data-also="${esc(other)}">${link(n)}${lk}${btn(u)}<div class="pair ba">${pic(it.before, 'before')}${pic(it.after, 'after')}</div></figure>`;
+      }).join('')
+        : textItem(name('', '', g.live), lk, g.live);
+      return `<div class="group">${g.name ? `<h3>${esc(g.name)}</h3>` : ''}<div class="${g.items.some((i) => i.lone) && !g.items.some((i) => i.before) ? 'pair' : 'items'}">${figs}</div></div>`;
+    }).join('');
+    return `<section class="fix"><h2>${esc(fix)}</h2>${task || state ? `<p class="meta">${esc(task)} · <span class="state ${cls}">${esc(state)}</span></p>` : ''}${body}</section>`;
+  };
+  // A group shows its first picture, then every other picture of the same change in a closed fold; each keeps its own comment box.
+  const withFold = (r) => {
+    const rest = foldedUnder(r);
+    return section(r) + (rest.length ? `<details class="same"><summary>Same change in ${rest.length} more picture${rest.length === 1 ? '' : 's'} (show)</summary>${rest.map(section).join('')}</details>` : '');
+  };
+  out.innerHTML = rows.filter((r) => !sameAs(r)).reverse().map(withFold).join('');
+}
+
+// Every comment box, every entry under a picture, the polling and the "is answering" line come from the one thread module.
+const store = BoardThread.store(ITEM);
+
+function commentBoxes() {
+  for (const fig of document.querySelectorAll('figure[data-item]')) {
+    const n = fig.dataset.name, also = fig.dataset.also;  // a pair holds two pictures: comments on either belong to it
+    const topic = { kind: fig.dataset.kind, name: n, also };
+    let first = true;
+    const list = store.list({ topic, order: 'newest', replies: true, onSync: (entries) => {
+      const last = entries[entries.length - 1];
+      if (first) {
+        first = false;
+        // John's comment is the last word on it: he has ruled, so it is folded where it stands until an agent answers.
+        const johnOnBefore = entries.some((t) => BoardThread.isJohn(t.by) && BoardThread.topicOf(t)?.name === n);
+        const waiting = last && BoardThread.isJohn(last.by) && last.kind === 'question';
+        if (last && BoardThread.isJohn(last.by) && !waiting && (!also || johnOnBefore)) fig.dataset.ruled = '1';
+      } else if (last && !BoardThread.isJohn(last.by)) unfold(fig);
+    } });
+    // the picture's own box sits right under the picture, above its comments (newest first), each with its own reply box
+    fig.append(store.compose({ topic, label: 'Comment on ' + n, placeholder: 'Your comment' }), list);
+  }
+}
+
+// Answered pictures stay where they are in the page order, each in its own closed fold.
+function foldRuled() {
+  const ruled = [...document.querySelectorAll('figure[data-item][data-ruled]')];
+  for (const fig of ruled) {
+    const fold = document.createElement('details'); fold.className = 'ruled';
+    fold.innerHTML = '<summary>Answered: tap to show</summary>';
+    fig.before(fold); fold.append(fig);
+  }
+  if (ruled.length && !out.querySelector('figure[data-item]:not([data-ruled])')) out.insertAdjacentHTML('afterbegin', '<p class="note">Nothing new to look at: every picture here has your answer.</p>');
+}
+function unfold(fig) { const d = fig.closest('details.ruled'); if (d) { d.replaceWith(fig); delete fig.dataset.ruled; } }
+
+// Deep link: index.html#<id> opens the answered fold if needed, scrolls to the item and rings it.
+function goToHash() {
+  document.querySelectorAll('figure.here').forEach((f) => f.classList.remove('here'));
+  const id = decodeURIComponent(location.hash.slice(1));
+  const el = id && document.getElementById(id);
+  if (!el) return;
+  const fold = el.closest('details.ruled'); if (fold) fold.open = true;
+  el.classList.add('here');
+  el.scrollIntoView({ block: 'center' });
+}
+addEventListener('hashchange', goToHash);
+
+fetch('index.md?html', { cache: 'no-store' })
+  .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
+  .then(render)
+  .then(() => store.ready).then(commentBoxes).then(foldRuled).then(goToHash)
+  .catch((e) => { out.innerHTML = `<p class="note">Could not read index.md (${esc(String(e))}).</p>`; });
+</script>
+</body>
+</html>
