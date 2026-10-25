@@ -3,6 +3,7 @@ release_note: OpenISD now updates stale phone installs automatically and include
 repo: openisd
 owner: Codex
 status: done
+landed: faea6d2f8404daa6a77157b7bea44fce63c667c5
 goal: Make stale OpenISD phone installs migrate to the latest build automatically without losing saved projects.
 done_test: bash scripts/quiet-test.sh npx vitest run packages/ui/test/scripts/vite-config.test.ts packages/ui/test/logic/telemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
 files:

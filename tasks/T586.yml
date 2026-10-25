@@ -1,0 +1,11 @@
+id: T586
+release_note: internal
+repo: openisd
+owner: Codex
+status: done
+goal: Record OpenISD 7.0.954 in RELEASES.md.
+done_test: bash scripts/quiet-test.sh git diff --check -- RELEASES.md
+after: v20261025T1357Z
+files:
+  - RELEASES.md
+  - tasks/T586.yml
