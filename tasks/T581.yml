@@ -3,6 +3,7 @@ release_note: Mobile Connection and End Correction selects match the other contr
 repo: openisd
 owner: codex
 status: done
+landed: 25b4673182d965bdb66e21c4019273004e763696
 goal: Mobile Driver and Box controls use consistent widths and the passive-radiator button reads Select PR
 visual_note: On mobile Driver and Box pages, dropdowns align with the standard field width and the passive-radiator button reads Select PR.
 visual:
