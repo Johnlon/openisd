@@ -38,6 +38,14 @@ test('changing the number of drivers and the wiring writes the project', async (
   expect(wiringAfter).not.toBe(wiringBefore);
 });
 
+test('the Connection dropdown uses the same value width as the other Driver dropdown', async ({ appPage: page }) => {
+  const widths = await page.evaluate(() => ({
+    drivers: document.querySelector<HTMLElement>('#mob-n-drivers')?.getBoundingClientRect().width ?? 0,
+    connection: document.querySelector<HTMLElement>('#mob-wiring')?.getBoundingClientRect().width ?? 0,
+  }));
+  expect(Math.abs(widths.connection - widths.drivers), 'Connection must not use the full-width select variant').toBeLessThanOrEqual(0.5);
+});
+
 test('page order matches the mock: name, buttons, Driver band, count, wiring, Key figures band, five figures', async ({ appPage: page }) => {
   await page.setViewportSize({ width: 374, height: 705 });
   const kids = await page.locator('.mob-classic').evaluate(root => [...root.children].map(e => ({

@@ -235,7 +235,7 @@ for (const size of PHONE_SIZES) {
     await openAMobileProject(page);
     await page.locator('.mob-tab', {hasText: 'Box'}).first().click();
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
-    await page.getByRole('button', {name: 'Select passive radiator'}).click();
+    await page.getByRole('button', {name: 'Select PR'}).click();
     const modal = page.locator('.overlay.on .modal');
     await expect(modal.locator('.pr-lib-item').first()).toBeVisible();
     const vp = page.viewportSize()!;
