@@ -8,6 +8,7 @@ import {type AppSettingsRepo, createMemoryStorage, type ListableStorage} from '@
 import {type AppState, createAppState} from '../../src/logic/appState.js';
 import {createPresentationState, type PresentationState} from '../../src/logic/presentationState.js';
 import {appSettingsRepoOn} from './repoOn.js';
+import type {Telemetry} from '../../src/logic/telemetry/telemetry.js';
 
 export interface AppStateFixture {
   readonly appState: AppState;
@@ -16,13 +17,13 @@ export interface AppStateFixture {
 }
 
 /** `storage` is where the application settings live; pass one to start from settings already written. */
-export function createAppStateFixture(storage: ListableStorage = createMemoryStorage()): AppStateFixture {
+export function createAppStateFixture(storage: ListableStorage = createMemoryStorage(), telemetry?: Telemetry): AppStateFixture {
   const appSettings = appSettingsRepoOn(storage);
   const engine = createEngine({
     ventedLimits: () => appSettings.ventedLimits(),
     envDefaults: () => appSettings.envDefaults(),
   });
   const presentation = createPresentationState();
-  const appState = createAppState({engine, appSettings, presentation});
+  const appState = createAppState({engine, appSettings, presentation, telemetry});
   return {appState, presentation, appSettings};
 }

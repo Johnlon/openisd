@@ -54,6 +54,7 @@ import {
 import {NoTelemetry, type Telemetry} from './telemetry/telemetry.js';
 import type {SaveFormat} from './telemetry/events.js';
 import {FeatureUse} from './telemetry/featureUse.js';
+import {projectDriverTelemetry} from './telemetry/projectDriver.js';
 import {setShareUrl} from './urlAppState.js';
 import type {Logging} from '../logging/flash.js';
 import {readDriverFileText} from './driverFileText.js';
@@ -128,7 +129,7 @@ export function createApplicationIO(deps: {
   const telemetry: Telemetry = deps.telemetry ?? new NoTelemetry();
   const featureUse = deps.featureUse ?? new FeatureUse(telemetry, deps.actions);
   const recordSave = (format: SaveFormat, project: OpenISDProject | null): void =>
-    telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? ''});
+    telemetry.record({kind: 'project_save', format, box: project?.box.boxType.value ?? '', ...(project ? projectDriverTelemetry(project.driver) : {})});
   const { currentViewSnapshot, driverName, focusedProject, isModified, markProjectSaved, openProjectOnce, openProjects, newProjectDriver, requireFocusedProject } = deps.appState;
   const presentationState = deps.presentation;
   // Save/export/share operate on committed project state. An open What-if? is transient, so
