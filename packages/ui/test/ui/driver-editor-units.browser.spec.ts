@@ -1,6 +1,7 @@
-import {driverEditorField, expect, forEachEditorTab, openAProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
+import {driverEditorField, expect, forEachEditorTab, openAMobileProject, openAProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
+import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {UNIT_GROUPS} from '@openisd/design/fields';
 
 /**
@@ -50,24 +51,38 @@ test('every unit with alternates is a working toggle, and every other unit is a 
 
   const problems: string[] = [];
   await forEachEditorTab(page, async (tab, labels) => {
+    const untagged = await page.locator('.de-body .ui-field:visible').evaluateAll(rows => rows.map(row => {
+      const unit = row.children.item(2);
+      const text = unit?.textContent?.trim() ?? '';
+      return text !== '' && !unit?.classList.contains('unit-label')
+        ? `${row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)'}/${text}` : null;
+    }).filter((x): x is string => x !== null));
+    problems.push(...untagged.map(field => `${tab}/${field}: unit slot is not owned by UnitToggle`));
     for (const label of labels) {
       const fld = driverEditorField(page, label);
-      const unitEl = fld.locator('.ui-field-unit, .u').first();
+      const unitEl = fld.locator('.unit-label').first();
       if (!(await unitEl.count())) continue;                       // no unit — nothing to rotate
       const shownUnit = (await unitEl.innerText()).trim();
       if (shownUnit === '') continue;                              // a unitless field keeps an empty unit slot
       const spec = convertible[shownUnit];
+      const role = await unitEl.getAttribute('role');
+      const decoration = await unitEl.evaluate(el => {
+        const style = getComputedStyle(el);
+        return `${style.textDecorationLine}/${style.textDecorationStyle}`;
+      });
 
       if (!spec) {
         if (!SINGLE_UNIT.has(shownUnit)) problems.push(`${tab}/${label}: unit "${shownUnit}" is in no unit group and is not declared single-unit`);
-        else if ((await unitEl.getAttribute('role')) === 'button') problems.push(`${tab}/${label}: "${shownUnit}" is declared single-unit but is clickable`);
+        else if (role === 'button') problems.push(`${tab}/${label}: "${shownUnit}" is declared single-unit but is clickable`);
+        if (role === 'button' || decoration !== 'none/solid') problems.push(`${tab}/${label}: fixed unit "${shownUnit}" has toggle affordance styling`);
         continue;
       }
 
-      if ((await unitEl.getAttribute('role')) !== 'button') {
+      if (role !== 'button') {
         problems.push(`${tab}/${label}: "${shownUnit}" has alternates but is not a toggle`);
         continue;
       }
+      if (decoration !== 'underline/dotted') problems.push(`${tab}/${label}: toggle unit "${shownUnit}" has ${decoration}, expected underline/dotted`);
 
       const input = fld.locator('input').first();
       if (!(await input.inputValue())) { await input.fill('1'); await input.blur(); }
@@ -93,12 +108,60 @@ test('every unit with alternates is a working toggle, and every other unit is a 
   expect(problems, 'unit-toggle faults').toEqual([]);
 });
 
+test('mobile Driver Editor: every numeric field uses the shared bold unit affordance', async ({page}) => {
+  await forceMobileSkin(page);
+  await page.goto('/');
+  await openAMobileProject(page);
+  await page.locator('.mob-tab', {hasText: 'Driver'}).click();
+  await page.getByRole('button', {name: 'Edit', exact: true}).click();
+  await expect(page.locator('.de-body')).toBeVisible();
+
+  const faults: string[] = [];
+  await forEachEditorTab(page, async (tab, labels) => {
+    const untagged = await page.locator('.de-body .ui-field:visible').evaluateAll(rows => rows.map(row => {
+      const unit = row.children.item(2);
+      const text = unit?.textContent?.trim() ?? '';
+      return text !== '' && !unit?.classList.contains('unit-label')
+        ? `${row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)'}/${text}` : null;
+    }).filter((x): x is string => x !== null));
+    faults.push(...untagged.map(field => `${tab}/${field}: unit slot is not owned by UnitToggle`));
+    for (const label of labels) {
+      const unit = driverEditorField(page, label).locator('.unit-label').first();
+      if (!(await unit.count())) continue;
+      const look = await unit.evaluate(el => {
+        const css = getComputedStyle(el);
+        return {
+          weight: css.fontWeight,
+          toggle: el.classList.contains('unit-toggle'),
+          role: el.getAttribute('role'),
+          background: css.backgroundColor,
+          underline: css.textDecorationLine,
+          underlineStyle: css.textDecorationStyle,
+          underlineOffset: css.textUnderlineOffset,
+          borderBottom: css.borderBottomStyle,
+        };
+      });
+      if (look.weight !== '600') faults.push(`${tab}/${label}: unit weight is ${look.weight}, expected bold 600`);
+      if (look.toggle) {
+        if (look.role !== 'button' || look.background !== 'rgb(239, 239, 239)'
+          || look.underline !== 'underline' || look.underlineStyle !== 'solid'
+          || look.underlineOffset !== '5px' || look.borderBottom !== 'solid') {
+          faults.push(`${tab}/${label}: toggle unit affordance is ${JSON.stringify(look)}`);
+        }
+      } else if (look.role !== null || look.background !== 'rgba(0, 0, 0, 0)' || look.underline !== 'none') {
+        faults.push(`${tab}/${label}: fixed unit affordance is ${JSON.stringify(look)}`);
+      }
+    }
+  });
+  expect(faults, 'mobile Driver Editor unit-affordance faults').toEqual([]);
+});
+
 test('rotating a unit changes the display only — the stored value round-trips', async ({ page }) => {
   await openDriverEditor(page);
   await page.getByRole('button', { name: 'Dimensions', exact: true }).click();
   const fld = driverEditorField(page, 'Basket Diameter (Basket)');
   const input = fld.locator('input').first();
-  const unit = fld.locator('.ui-field-unit, .u').first();
+  const unit = fld.locator('.unit-label').first();
 
   await fillAndBlur(input, '165');            // 165 mm
   await unit.click();                 // mm → in
@@ -149,7 +212,7 @@ for (const tab of ['Parameters', 'Advanced']) {
       for (const wanted of labels) {
         const fld = [...document.querySelectorAll<HTMLElement>('.de-body .de-fld')]
           .find(f => (f.querySelector('label')?.textContent || '').trim() === wanted);
-        out[wanted] = fld ? ((fld.querySelector('.ui-field-unit, .u')?.textContent || '').trim() || null) : null;
+        out[wanted] = fld ? ((fld.querySelector('.unit-label')?.textContent || '').trim() || null) : null;
       }
       return out;
     }, want.map(u => u.label));
@@ -172,7 +235,7 @@ for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
   test(`${label}: the resistance unit toggle rotates the label and never the value`, async ({ page }) => {
     await openEditorOn(page, tab);
     const fld = page.locator('.de-body .de-fld', { has: page.locator('label', { hasText: label }) }).first();
-    const unit = fld.locator('.ui-field-unit, .u').first();
+    const unit = fld.locator('.unit-label').first();
     const input = fld.locator('input').first();
 
     await expect(unit).toHaveText(defaultUnit);
@@ -192,7 +255,7 @@ for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
 test('every unit label occupies the same width, whatever it says', async ({ page }) => {
   await openEditorOn(page, 'Dimensions');
   const widths = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('.de-body .ui-field-unit, .de-body .u, .de-body .unit-toggle')]
+    [...document.querySelectorAll<HTMLElement>('.de-body .unit-label')]
       .map(u => ({ text: (u.textContent || '').trim(), w: Math.round(u.getBoundingClientRect().width) })));
   expect(widths.length, 'the tab must actually render unit labels').toBeGreaterThan(3);
   const distinct = [...new Set(widths.map(w => w.w))];

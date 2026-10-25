@@ -67,7 +67,6 @@ option.not-implemented { color:#999 }
 .row input, .row select { width:96px; background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:4px; padding:3px 5px; font:inherit; text-align:right }
 .row input.inp-bad { border-color:var(--bad); background:rgba(255,107,107,.1); color:var(--bad) }
 .row select { text-align:left; width:auto; flex:1 }
-.row .u { width:34px; color:var(--mut); font-size:11px; text-align:left }
 /* Driver provenance marks — the CellClass values from composables/driverCells.ts, styled
    ONCE so the driver editor and What-if? can never disagree about what
    Entered / Calculated / Not-entered looks like. Two selector shapes: the class lands on the
@@ -193,7 +192,7 @@ a { color:var(--acc) }
 /* The ≠W cue sits on the label's line, at the right, so a row with a cue lines up with one without. */
 .mob-ui-field.ui-field:has(.ui-field-dev) > label { grid-column: 1 / 3; grid-row: 1; }
 .mob-ui-field.ui-field .ui-field-dev { grid-column: 3; grid-row: 1; width: auto; justify-self: end; align-self: center; }
-.mob-ui-field.ui-field .ui-field-unit { grid-column: 3; width: 30px; font-size: 13px; }
+.mob-ui-field.ui-field .ui-field-unit { grid-column: 3; width: 30px; }
 .mob-ui-field.ui-field .ui-field-value .num-input-wrap { flex: 1 1 auto; width: 0; min-width: 0; }
 .mob-ui-field.ui-field .ui-field-value .num-input-wrap > input { width: 100%; }
 .mob-ui-field.ui-field .ui-field-value select { flex: 1 1 auto; width: 100%; min-width: 0; min-height: var(--mob-input-h); font: inherit; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
@@ -281,9 +280,8 @@ a { color:var(--acc) }
 .mob-classic .mob-ui-field.ui-field .ui-field-unit {
   grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box; width: auto; min-width: var(--mob-col-chip-min);
   height: var(--mob-input-h); margin-right: calc(var(--mob-col-stepper) + 1px); display: flex; align-items: center; justify-content: center;
-  padding: 0 6px; font-size: 13px; font-weight: 600; color: #444; background: #efefef; border-left: 1px solid #cfcfcf; border-radius: 0 3px 3px 0; text-decoration: underline dotted; text-underline-offset: 2px;
+  font-size: 13px;
 }
-.mob-classic .mob-ui-field.ui-field .ui-field-unit:not(.unit-toggle) { background: none; border-left: none; font-weight: 400; color: #888; }
 .mob-classic .mob-ui-field.ui-field .ui-field-dev {
   grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; width: auto;
   margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 8px);

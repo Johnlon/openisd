@@ -3,6 +3,7 @@ release_note: The committed driver bundle and snapshot fixtures are regenerated 
 repo: openisd
 owner: codex
 status: done
+landed: 06857324ac3456eeefb29608a713987d1d9dc390
 goal: Embed a fresh driver catalogue snapshot from the latest clean winisd_drivers data
 done_test: bash scripts/quiet-test.sh npm run build
 visual:
