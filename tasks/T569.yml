@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: f0341b857e6d1411fd2f9a818f2c1af107c93427
 goal: Probe specs under build/tmp run again: the documented probe route builds the test app first and matches zz-*.spec.ts
 done_test: bash scripts/test.sh packages/design/test/scripts/probe-config.test.ts
 files:

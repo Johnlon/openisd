@@ -1,0 +1,11 @@
+id: T570
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: Feedback page live thread test passes again: the 'no answer yet; sent to <agent>' line shows after a send
+done_test: bash scripts/quiet-test.sh python3 -m unittest scripts.feedback.feedback_page_test.RuledPictures.test_live_thread_send_order_and_poll
+files:
+  - tasks/T570.yml
+  - scripts/feedback/feedback_page_live_test.mjs
+  - bugs/BUG_20261022_feedback-live-thread-test-timeout.md
