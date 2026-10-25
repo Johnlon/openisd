@@ -1,0 +1,10 @@
+id: T589
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+goal: Record OpenISD 7.0.955 in the release ledger
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T589.yml
+  - RELEASES.md

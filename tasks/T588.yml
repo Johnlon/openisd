@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: 9cf116193279697b5a60e20d7e08f47f9e056db1
 goal: Touch spinner waits for tap intent before stepping
 done_test: bash scripts/quiet-test.sh npm run typecheck:ui
 files:
