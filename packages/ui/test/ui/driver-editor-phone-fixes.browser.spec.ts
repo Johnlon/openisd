@@ -44,19 +44,30 @@ test('the editor tabs, close button and footer buttons are at least 44 px tall',
   await expect(page.locator('.de-footer button').first()).toBeInViewport({ratio: 1});
 });
 
-test('with the Provenance card open the editor tabs, close button and footer stay uncovered and the Advanced tab can be tapped', async ({page}) => {
-  await page.locator('.de-provenance-chk', {hasText: 'Inspect Provenance'}).click();
-  await page.locator('.de-fld[data-field-key="Qts"] input').click();
+test('the provenance overlay hides editor actions, leaves tabs available, and restores actions when dismissed', async ({page}) => {
+  await page.locator('.de-provenance-chk', {hasText: 'Inspect Provenance'}).locator('input').evaluate(el => {
+    if (!(el instanceof HTMLInputElement)) throw new Error('Inspect Provenance control is not an input');
+    el.click();
+  });
   const card = page.locator('.eq-inspector-card');
   await expect(card).toBeVisible();
   const c = (await card.boundingBox())!;
-  for (const sel of ['.de-tabs', '.de-modal h2 .x', '.de-footer']) {
-    const b = (await page.locator(sel).first().boundingBox())!;
-    const apart = c.y + c.height <= b.y + 0.5 || b.y + b.height <= c.y + 0.5;
-    expect(apart, `${sel} is covered by the card`).toBe(true);
-  }
+  expect(c.y + c.height).toBeCloseTo(PIXEL_9.height, 0);
+  await expect(page.locator('.de-toolbar')).toHaveCount(0);
+  await expect(page.locator('.de-footer button')).toHaveCount(0);
+  await expect(page.getByRole('button', {name: 'OK', exact: true})).toHaveCount(0);
+  await expect(page.getByRole('button', {name: 'Cancel', exact: true})).toHaveCount(0);
+  await expect(page.getByRole('button', {name: /More/})).toHaveCount(0);
+  await expect(page.locator('.de-modal h2 .x')).toBeVisible();
   await page.getByRole('button', {name: 'Advanced', exact: true}).click();
   await expect(page.locator('.de-tab.on')).toHaveText('Advanced');
+  await expect(card).toBeVisible();
+  await card.locator('.eq-x').click();
+  await expect(card).toHaveCount(0);
+  await expect(page.locator('.de-toolbar')).toBeVisible();
+  await expect(page.getByRole('button', {name: 'OK', exact: true})).toBeVisible();
+  await expect(page.getByRole('button', {name: 'Cancel', exact: true})).toBeVisible();
+  await expect(page.getByRole('button', {name: /More/})).toBeVisible();
 });
 
 /** bugs/BUG_20261020_phone-provenance-card-see-through-over-fields.md */

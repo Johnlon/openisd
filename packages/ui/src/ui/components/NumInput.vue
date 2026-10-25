@@ -9,8 +9,10 @@ import {entryRefusal, type EntryBounds} from '../../logic/entryRefusal.js';
 import {STEPPER_PIN} from '../../logic/stepperPin.js';
 import {DRAG_CLOCK, REAL_DRAG_CLOCK} from '../../logic/dragClock.js';
 import {screenTopPx} from '../../logic/visibleViewport.js';
+import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
 const presentationState = useApp().presentation;
 const stepperPin = inject(STEPPER_PIN, null);
+const fieldEditMode = inject(FIELD_EDIT_MODE, null);
 
 // The DQ note makes this a fragment root, so attrs (id, class, …) are not auto-inherited —
 // bind them to the INPUT explicitly (never the ⚠ note).
@@ -103,7 +105,12 @@ function onBoxPointer(e: PointerEvent) {
   underlineIndex.value = null;
   lastStep = null;   // a tap or click in the box puts the caret, even where the last step left it
   const el = inputEl.value;
-  if (el === null || isReadonly.value || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  if (el === null || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  if (inspectionLocked.value) {
+    startLongPress(e);
+    return;
+  }
+  if (isReadonly.value) return;
   const pressed = pressedDigitOf(el, e.clientX);
   dragAbort?.abort();
   const abort = new AbortController();
@@ -148,7 +155,50 @@ function onBoxPointer(e: PointerEvent) {
 let dragAbort: AbortController | null = null;
 const DRAG_TICK_MS = 40;
 const dragClock = inject(DRAG_CLOCK, REAL_DRAG_CLOCK);
-onBeforeUnmount(() => dragAbort?.abort());
+let longPressTimer: ReturnType<typeof setTimeout> | undefined;
+let longPressAbort: AbortController | null = null;
+const LONG_PRESS_MS = CARET_HOLD_START_MS;
+
+const attrs = useAttrs();
+const nativeReadonly = computed(() => attrs.readonly !== undefined && attrs.readonly !== false);
+const inspectionLocked = computed(() => fieldEditMode?.enabled.value === true && !longPressEditing.value);
+const longPressEditing = ref(false);
+const isReadonly = computed(() => nativeReadonly.value || inspectionLocked.value);
+const showStepper = computed(() => props.stepper && (!nativeReadonly.value || fieldEditMode?.enabled.value === true));
+
+function stopLongPress(): void {
+  if (longPressTimer !== undefined) { clearTimeout(longPressTimer); longPressTimer = undefined; }
+  longPressAbort?.abort();
+  longPressAbort = null;
+}
+
+function startLongPress(e: PointerEvent): boolean {
+  if (!inspectionLocked.value || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0)) return false;
+  const el = inputEl.value;
+  if (el === null) return false;
+  e.preventDefault();
+  fieldEditMode?.disabledAttempt();
+  stopLongPress();
+  const abort = new AbortController();
+  longPressAbort = abort;
+  const finish = () => {
+    abort.abort();
+    if (longPressAbort === abort) longPressAbort = null;
+    longPressTimer = undefined;
+  };
+  const cancel = () => finish();
+  document.addEventListener('pointerup', cancel, {signal: abort.signal, once: true});
+  document.addEventListener('pointercancel', cancel, {signal: abort.signal, once: true});
+  longPressTimer = setTimeout(() => {
+    if (longPressAbort !== abort) return;
+    longPressEditing.value = true;
+    finish();
+    el.focus({preventScroll: true});
+  }, LONG_PRESS_MS);
+  return true;
+}
+
+onBeforeUnmount(() => { dragAbort?.abort(); stopLongPress(); });
 
 /** The digit under a press at `clientX`, measured in the box's own font. */
 function pressedDigitOf(el: HTMLInputElement, clientX: number): StepAt {
@@ -234,13 +284,6 @@ function onWheel(e: WheelEvent) {
   e.preventDefault();
   stepAtCaret(e.deltaY < 0 ? 1 : -1);
 }
-
-// `readonly` is never a declared prop — it reaches the native input only through $attrs (see
-// the fragment-root note above) — so the stepper reads it the same way to stay in lockstep
-// with whatever actually makes the field uneditable.
-const attrs = useAttrs();
-const isReadonly = computed(() => attrs.readonly !== undefined && attrs.readonly !== false);
-const showStepper = computed(() => props.stepper && !isReadonly.value);
 
 const inputEl = ref<HTMLInputElement | null>(null);
 const underlineIndex = ref<number | null>(null);
@@ -425,6 +468,8 @@ function onInput(e: Event) {
 
 function onBlur(e: Event) {
   focused.value = false;
+  longPressEditing.value = false;
+  stopLongPress();
   if (refusal.value !== '') {
     // Ruling "b": leaving the box keeps the refused entry and its ⚠; nothing was stored.
     emit('blur');
@@ -477,7 +522,7 @@ const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 
 
 <template>
   <span class="num-input-wrap">
-    <input ref="inputEl" v-bind="$attrs" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
+    <input ref="inputEl" v-bind="$attrs" :readonly="isReadonly" data-numinput type="text" :inputmode="keyboard" autocomplete="off" :value="display"
       :class="classes" :title="refusal !== '' ? refusal : hasDq ? `${helpText ?? ''}${helpText ? ' — ' : ''}${dqTooltip}` : helpText"
       @focus="onFocus" @pointerdown="onBoxPointer" @keydown="onKeydown" @beforeinput="onBeforeInput" @paste="onPaste" @wheel="onWheel" @input="onInput" @blur="onBlur">
     <span v-if="underlineIndex !== null" class="num-mark-overlay" aria-hidden="true"><span class="num-mark-pre">{{ display.slice(0, underlineIndex) }}</span><span class="num-mark-underline">{{ display.slice(underlineIndex, underlineIndex + 1) }}</span><span class="num-mark-post">{{ display.slice(underlineIndex + 1) }}</span></span>

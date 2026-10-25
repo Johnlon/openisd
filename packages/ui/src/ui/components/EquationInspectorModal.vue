@@ -7,6 +7,7 @@ defineProps<{
   open: boolean;
   targetField: string | null;
   provenanceInfo: ProvenanceInfo | null;
+  showEditHint?: boolean;
   /** Phone: the text of an input's badge, with the input's current value ("Qes = 0.420"). Absent: the badge names the input only. */
   inputBadge?: (key: string) => string;
 }>();
@@ -22,6 +23,9 @@ const emit = defineEmits<{ close: [] }>();
     </div>
 
     <div class="eq-body">
+      <div v-if="docked && showEditHint" class="eq-edit-hint">
+        Editing is disabled while inspecting provenance. Long-press a value to edit it.
+      </div>
       <div v-if="provenanceInfo.paths.length === 0" class="eq-empty">
         No calculation formula maps to <em>{{ targetField }}</em> (direct user entry or constant).
       </div>
@@ -61,17 +65,21 @@ const emit = defineEmits<{ close: [] }>();
   animation: eq-fade 0.15s ease-out;
 }
 
-/* Docked: a band in the dialog's own column, between its body and its footer, so it covers none of
-   the dialog's controls. Sizes come from the dialog's phone row sizes (`--mob-*`, PhoneRowSizes). */
+/* Phone: the provenance inspector is a popup overlay. It covers the editor while active; the
+   editor hides its toolbar and actions so the popup owns the interaction surface. */
 .eq-inspector-card.eq-docked {
-  position: static;
-  flex: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: auto;
   max-width: none;
   border-radius: 0;
+  max-height: 60vh;
   border-width: 1px 0 0;
   box-shadow: none;
   animation: none;
+  z-index: 1200;
 }
 /* The phone's inspector (gaps-phone/equation-inspector.html): a 44 px header with a 44x44 ✕, and nothing
    under 12 px. */
@@ -79,7 +87,8 @@ const emit = defineEmits<{ close: [] }>();
 .eq-docked .eq-x { width: var(--mob-touch-min); height: var(--mob-touch-min); display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size: 18px; }
 .eq-docked .eq-title, .eq-docked .eq-path-name, .eq-docked .eq-formula, .eq-docked .eq-in-lbl, .eq-docked .eq-in-badge, .eq-docked .eq-empty { font-size: 12px; }
 .eq-docked .eq-target { font-size: 13px; }
-.eq-docked .eq-body { max-height: calc(var(--mob-row-min) * 2); }
+/* Keep the popup to roughly two long equation cards; shorter screens shrink the scrolling area. */
+.eq-docked .eq-body { box-sizing: border-box; max-height: min(300px, calc(60vh - 64px)); }
 
 @keyframes eq-fade {
   from { opacity: 0; transform: translateY(10px); }
@@ -138,6 +147,13 @@ const emit = defineEmits<{ close: [] }>();
   color: var(--mut, #94a3b8);
   font-style: italic;
   padding: 8px 0;
+}
+
+.eq-edit-hint {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--mut, #94a3b8);
+  padding: 4px 0;
 }
 
 .eq-path-card {

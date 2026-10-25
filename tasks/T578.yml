@@ -1,0 +1,19 @@
+id: T578
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+goal: Mobile provenance inspection opens a bounded overlay, explains long-press editing, and restores editor controls on close
+done_test: bash scripts/test.sh packages/ui/test/logic/provenance.test.ts && bash scripts/quiet-test.sh npm run typecheck
+visual_note: Mobile provenance inspection opens a bounded formula overlay, and closing it restores the editor controls.
+files:
+  - tasks/T578.yml
+  - packages/ui/src/logic/fieldEditMode.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/ui/components/EquationInspectorModal.vue
+  - packages/ui/test/ui/driver-editor-provenance.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-phone-fixes.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-provenance-row.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-editor.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256

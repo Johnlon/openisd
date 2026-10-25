@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: 5d1f31eefa89c1529c60e8f34380ebb034910c55
 goal: Telemetry sends only from the production OpenISD origin to the production-only collector
 done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
 visual_note: The test site stops sending telemetry to the production-only collector; the interface is unchanged.

@@ -34,6 +34,17 @@ async function openMore(page: import('@playwright/test').Page) {
   return menu;
 }
 
+/** On a phone, enabling Inspect Provenance immediately opens the overlay and removes its toolbar.
+ *  Use the native click so the action is not coupled to the checkbox remaining mounted afterward. */
+async function startPhoneProvenance(page: import('@playwright/test').Page) {
+  await page.getByRole('checkbox', {name: 'Inspect Provenance'}).evaluate(el => {
+    if (!(el instanceof HTMLInputElement)) throw new Error('Inspect Provenance control is not an input');
+    el.click();
+  });
+  await expect(page.locator('.eq-inspector-card')).toBeVisible();
+  await expect(page.locator('.de-toolbar')).toHaveCount(0);
+}
+
 test('the Driver Editor field rows stack without overlapping at phone width', async ({ page }) => {
   await page.setViewportSize({ width: 412, height: 900 });
   await page.getByText('Edit', { exact: true }).click();
@@ -181,8 +192,8 @@ test.describe('values disagree bar on the phone', () => {
   });
 });
 
-// T532 (equation-inspector.html): with Inspect Provenance on, a row that can be calculated is marked ƒ,
-// tapping it opens the inspector, and the inspector's input badges carry the value ("Qes = 0.420").
+// T532: entering provenance mode opens its overlay immediately; calculable rows carry ƒ marks,
+// and selecting another row updates the formula and its live input badges.
 test.describe('ƒ marks and value badges on the phone', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize(PIXEL_9);
@@ -192,24 +203,27 @@ test.describe('ƒ marks and value badges on the phone', () => {
 
   test('no ƒ marks until Inspect Provenance is ticked; then calculable rows have one and plain rows do not', async ({ page }) => {
     await expect(page.locator('.de-fx')).toHaveCount(0);
-    await page.getByRole('checkbox', {name: 'Inspect Provenance'}).check();
+    await startPhoneProvenance(page);
     await expect(page.locator('.de-fld.de-fx[data-field-key="Qts"]')).toHaveCount(1);
     await expect(page.locator('.de-fld.de-fx[data-field-key="Fs_hz"]')).toHaveCount(1);
     await expect(page.locator('.de-fld.de-fx[data-field-key="Le_H"]')).toHaveCount(0);
     const mark = await page.locator('.de-fld[data-field-key="Qts"]').evaluate(el => getComputedStyle(el, '::before').content);
     expect(mark).toContain('ƒ');
-    await page.getByRole('checkbox', {name: 'Inspect Provenance'}).uncheck();
+    await page.locator('.eq-inspector-card .eq-x').click();
     await expect(page.locator('.de-fx')).toHaveCount(0);
+    await expect(page.locator('.de-toolbar')).toBeVisible();
   });
 
   test('tapping the ƒ row opens the inspector and its badges show the current values', async ({ page }) => {
-    await page.getByRole('checkbox', {name: 'Inspect Provenance'}).check();
     const qes = page.locator('.de-fld[data-field-key="Qes"] input');
     await qes.fill('0.42');
     await qes.press('Tab');
+    await startPhoneProvenance(page);
+    await expect(page.locator('.eq-inspector-card')).toContainText('Provenance: Qes');
     await page.locator('.de-fld[data-field-key="Qts"] label').first().click();
     const card = page.locator('.eq-inspector-card');
     await expect(card).toBeVisible();
+    await expect(card).toContainText('Provenance: Qts');
     await expect(card.locator('.eq-in-badge', {hasText: 'Qes = 0.420'})).toBeVisible();
     for (const b of await card.locator('.eq-in-badge').all()) expect(await b.textContent()).toMatch(/^\s*\S+( = \S+( \S+)?)?\s*$/);
   });
@@ -336,8 +350,7 @@ test.describe('Provenance card on the phone', () => {
     await page.setViewportSize(PIXEL_9);
     await page.getByText('Edit', { exact: true }).click();
     await expect(page.locator('.de-modal')).toBeVisible();
-    await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
-    await page.locator('.de-fld:has-text("Qts") input').first().click();
+    await startPhoneProvenance(page);
     await expect(page.locator('.eq-inspector-card')).toBeVisible();
   });
 
@@ -352,15 +365,20 @@ test.describe('Provenance card on the phone', () => {
     await expect(page.locator('.de-modal')).toHaveCount(0);
   });
 
-  test('the card sits inside the screen and clear of the header, tabs and footer', async ({ page }) => {
+  test('the overlay stays inside the screen below the tabs and hides editor action controls', async ({ page }) => {
     const box = async (sel: string) => (await page.locator(sel).first().boundingBox())!;
     const card = await box('.eq-inspector-card');
+    const header = await box('.de-modal h2');
     const tabs = await box('.de-tabs');
-    const footer = await box('.de-footer');
+    const viewport = await page.evaluate(() => ({width: innerWidth, height: innerHeight}));
+    expect(card.y).toBeGreaterThanOrEqual(header.y + header.height - 1);
     expect(card.y).toBeGreaterThanOrEqual(tabs.y + tabs.height - 1);
-    expect(card.y + card.height).toBeLessThanOrEqual(footer.y + 1);
+    expect(card.y + card.height).toBeLessThanOrEqual(viewport.height + 1);
     expect(card.x).toBeGreaterThanOrEqual(0);
-    expect(card.x + card.width).toBeLessThanOrEqual(PIXEL_9.width + 1);
+    expect(card.x + card.width).toBeLessThanOrEqual(viewport.width + 1);
+    await expect(page.locator('.de-toolbar')).toHaveCount(0);
+    for (const name of ['OK', 'Cancel', 'More']) await expect(page.getByRole('button', {name: new RegExp(`^${name}`)})).toHaveCount(0);
+    await expect(page.locator('.de-footer button')).toHaveCount(0);
   });
 });
 
@@ -478,8 +496,7 @@ test('the equation inspector on the phone has a 44 px header and close, and text
   await page.setViewportSize(PIXEL_9);
   await page.getByText('Edit', { exact: true }).click();
   await page.locator('.de-tab', { hasText: 'Parameters' }).click();
-  await page.getByRole('checkbox', { name: 'Inspect Provenance' }).check();
-  await page.locator('.de-fld:has-text("Qts") input').first().click();
+  await startPhoneProvenance(page);
   const card = page.locator('.eq-inspector-card');
   await expect(card).toBeVisible();
   const m = await card.evaluate(el => ({

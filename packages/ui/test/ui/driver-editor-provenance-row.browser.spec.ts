@@ -52,7 +52,17 @@ const alpha = (c: string) => (c.startsWith('rgba') ? parseFloat(c.split(',')[3])
 
 async function inspectQts(page: Page, skin: EditorSkin): Promise<void> {
   await seedDriverInEditor(page, skin);
-  await page.locator('.de-provenance-chk', {hasText: 'Inspect Provenance'}).locator('input').check();
+  const inspect = page.locator('.de-provenance-chk', {hasText: 'Inspect Provenance'}).locator('input');
+  if (skin === 'phone') {
+    // Enabling provenance immediately opens the overlay and removes the toolbar on phones.
+    await inspect.evaluate(el => {
+      if (!(el instanceof HTMLInputElement)) throw new Error('Inspect Provenance control is not an input');
+      el.click();
+    });
+    await expect(page.locator('.eq-inspector-card')).toBeVisible();
+  } else {
+    await inspect.check();
+  }
   await driverEditorField(page, 'Qts').locator('label').click();
   await expect(driverEditorField(page, 'Qes')).toHaveAttribute('style', /background-color/);
 }
