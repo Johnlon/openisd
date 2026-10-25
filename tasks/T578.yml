@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: 50064c1dda89c47abaeb86cc9e19c60afcd0766a
 goal: Mobile provenance inspection opens a bounded overlay, explains long-press editing, and restores editor controls on close
 done_test: bash scripts/test.sh packages/ui/test/logic/provenance.test.ts && bash scripts/quiet-test.sh npm run typecheck
 visual_note: Mobile provenance inspection opens a bounded formula overlay, and closing it restores the editor controls.

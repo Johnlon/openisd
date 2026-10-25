@@ -238,6 +238,10 @@ export default defineConfig(({ command, mode }) => ({
         ],
       },
       workbox: {
+        // A new worker must replace an old worker without depending on old app code to message it.
+        // Current app code handles controllerchange safely: reload when clean, offer when edited.
+        skipWaiting: true,
+        clientsClaim: true,
         // The catalogue indexes and record files are NOT precached (2000 files, 14 MB): they are
         // cached as they are used, and re-validated in the background on every use, so a
         // republished catalogue reaches an installed app without a reinstall and nothing is

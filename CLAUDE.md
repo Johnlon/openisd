@@ -154,6 +154,25 @@ run immediately without queueing. Only untargeted/heavy Chromium sweeps queue fo
 
 All agent changes to UI components, shells, and dialogs MUST be verified to ensure controls NEVER disappear or get clipped off the bottom or sides of the screen, NOR cause unwanted horizontal or vertical scrollbars to appear.
 
+## PWA updates and announcements — release critical
+
+An installed app must reach the current production build automatically. A user must never need to clear
+site data, uninstall OpenISD, or lose saved projects to update. Every release that changes app code or
+service-worker behavior MUST verify an upgrade from a previously installed worker in a persistent
+mobile browser profile. Keep automatic worker activation and controller takeover enabled; update checks
+must bypass HTTP caches. Reload only when there are no unsaved edits; otherwise offer the update and
+keep the current app usable. Keep /about/refresh/ as the recovery link for older workers, because old
+workers bypass /about/ but may serve their cached app shell for a new top-level path. Never tell users
+to clear all site data: that can delete their projects.
+
+A user-announcements endpoint MUST use a Cloudflare Worker response with Cache-Control: no-store
+(and matching CDN cache headers), never a GitHub Pages static page. Each announcement has a stable
+version. Dismissing one version must not hide later versions; the full announcement list remains
+available for review.
+
+After every release, verify that production's build ID matches the GitHub Latest release. A successful
+deploy workflow alone does not prove users receive that build.
+
 ## General rules — always
 
 `.claude/rules/general.md`: no workarounds for unexpected issues, no backdoor in UI testing, no
