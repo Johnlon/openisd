@@ -21,6 +21,43 @@ test.describe('MobileEnclosureTab', () => {
     await expect(page.locator('.mob-band-title', { hasText: /^Vents$/ })).toHaveCount(0);
   });
 
+  test('passive-radiator chooser uses the short Select PR label', async ({ appPage: page }) => {
+    await page.locator('.mob-tab', { hasText: 'Box' }).click();
+    await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+    await expect(page.getByRole('button', { name: 'Select PR', exact: true })).toBeVisible();
+  });
+
+  test('End Correction matches the other enclosure selects in every box type with vents', async ({ appPage: page }) => {
+    await page.locator('.mob-tab', { hasText: 'Box' }).click();
+    const boxTypes = [
+      { type: 'sealed', ventCount: 0 },
+      { type: 'vented', ventCount: 1 },
+      { type: 'box-passive-radiator', ventCount: 0 },
+      { type: 'bandpass4', ventCount: 1 },
+      { type: 'bandpass6', ventCount: 2 },
+      { type: 'abc', ventCount: 3 },
+    ];
+    for (const { type: boxType, ventCount } of boxTypes) {
+      await page.locator('#mob-box-type').selectOption(boxType);
+      const rows = page.locator('.mob-crow').filter({
+        has: page.locator('.mob-crow-label', { hasText: /^End Correction$/ }),
+      });
+      await expect(rows).toHaveCount(ventCount);
+      for (const row of await rows.all()) {
+        const section = row.locator('xpath=..');
+        const endCorrection = row.locator('select');
+        const shape = section.locator('.mob-crow', {
+          has: page.locator('.mob-crow-label', { hasText: /^Shape$/ }),
+        }).locator('select');
+        const [endWidth, shapeWidth] = await Promise.all([
+          endCorrection.evaluate(el => el.getBoundingClientRect().width),
+          shape.evaluate(el => el.getBoundingClientRect().width),
+        ]);
+        expect(Math.abs(endWidth - shapeWidth), `${boxType} End Correction width`).toBeLessThanOrEqual(0.5);
+      }
+    }
+  });
+
   // BUG_20260918_bandpass4-front-chamber-tuning-writes-vented-cell: on a 4th-order bandpass the
   // Ffc entry and the vent diameter belong to the FRONT chamber; they were written to the vented
   // box's cells, so the diameter re-read empty and the vent length never solved.

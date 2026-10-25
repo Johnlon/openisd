@@ -44,7 +44,7 @@ const {
     </div>
     <div class="mob-crow">
       <label class="mob-crow-label">End Correction</label>
-      <select class="mob-cselect mob-cselect-wide" :value="section.vent.endCorrection_m.value"
+      <select class="mob-cselect" :value="section.vent.endCorrection_m.value"
               @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) section.vent.endCorrection_m.set(k); }">
         <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
       </select>
@@ -68,7 +68,7 @@ const {
       <input id="mob-pr-name" class="mob-cname" type="text" :aria-label="TextField.PR_NAME.label" :title="TextField.PR_NAME.description" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))">
     </div>
     <div class="mob-cbtns">
-      <button type="button" class="mob-btn mob-btn-primary" @click="prBrowseOpen = true">Select passive radiator</button>
+      <button type="button" class="mob-btn mob-btn-primary" @click="prBrowseOpen = true">Select PR</button>
       <button type="button" class="mob-btn mob-btn-secondary" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
     </div>
     <SaveToLibraryDialog v-if="prSaveOpen" title="Save passive radiator to library"
