@@ -280,6 +280,7 @@ function handleCreate() {
 
 <style scoped>
 .np-chambers { display: flex; gap: 32px; align-items: flex-start; }
+.np-chamber { --label-w: 60px; }
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
 .np-chamber .field { margin-bottom: 6px; }
 .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.18); z-index: 100; display: flex; align-items: flex-start; justify-content: center; }

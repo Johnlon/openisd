@@ -1178,10 +1178,11 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    spans the lot. The columns need no negotiation — every field component is the same width. */
 .de-desktop .de-params {
   display: grid !important;
-  /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
+  /* Field-slots per row, 4 tracks each (label/value/unit/alert). A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
+  /* Two field-slots per row: four phone-sized controls (T595) are wider than the modal. */
+  grid-template-columns: repeat(2, max-content max-content minmax(34px, max-content) 16px) !important;
   /* 2px between tracks: 15 gaps across 16 tracks; at 6px the grid was wider than the modal's body in Chromium and wider still in Firefox, so the body scrolled sideways. */
   gap: 3px 0 !important;
   align-items: center !important;
@@ -1298,7 +1299,8 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    columns of them overran the modal and forced a sideways scroll. */
 .de-desktop .de-cols {
   display: grid !important;
-  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
+  /* Two field-slots per row: four phone-sized controls (T595) are wider than the modal. */
+  grid-template-columns: repeat(2, max-content max-content minmax(34px, max-content) 16px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }
