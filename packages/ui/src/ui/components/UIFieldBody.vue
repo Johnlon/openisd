@@ -140,12 +140,12 @@ function write(v: number | null, precision?: number): void {
   --stepper-h: var(--ctl-h, 20px);
   --ui-value-w: calc(90px + 2px + 2 * var(--stepper-w));
   display: grid;
-  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) 34px 16px 16px;
+  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) var(--ui-unit-w, 34px) 16px 16px;
   column-gap: 4px;
   align-items: baseline;
   position: relative; flex: none;
 }
-.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) 90px 34px 16px 16px; }
+.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-readout-w, 90px) var(--ui-unit-w, 34px) 16px 16px; }
 .ui-field-readout .ui-field-value { width: 90px; }
 .ui-field > label { grid-column: 1; white-space: nowrap; }
 .ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: var(--ui-value-w); flex: none; grid-column: 2; }

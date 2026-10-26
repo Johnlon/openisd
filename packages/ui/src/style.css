@@ -66,12 +66,45 @@ option.not-implemented { color:#999 }
 .row label { flex:1; color:var(--mut) }
 .row input, .row select { width:96px; background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:4px; padding:3px 5px; font:inherit; text-align:right }
 /* Desktop number boxes drawn like the phone's classic boxes (.mob-classic below): thin light-grey
-   border, rounded corners, white, left-aligned. Size and text size stay the desktop row's (15px clips long values). */
-:where(body:not(:has(.mobile-root))) .num-input-wrap > input {
-  border: 1px solid #c4c4c4; border-radius: 4px; background: #fff;
-  font-family: inherit; padding: 0 6px; text-align: left; box-sizing: border-box;
+   border, rounded corners, white. :where keeps it below every error mark and container rule. */
+:where(.app-root:not(.app-root-mobile)) .num-input-wrap > input {
+  border: 1px solid #c4c4c4; border-radius: 4px; background: #fff; padding: 0 6px; box-sizing: border-box;
 }
-:where(body:not(:has(.mobile-root))) .num-input-wrap > input:focus { border-color: var(--acc); outline: 1px solid var(--acc); }
+:where(.app-root:not(.app-root-mobile)) .num-input-wrap > input:focus { border-color: var(--acc); outline: 1px solid var(--acc); }
+/* Desktop field rows (UIField) take the whole phone classic control, value for value: a 34 px box
+   with 15 px text, the grey unit chip inside its right edge, and the 40 x 36 ▲▼ pair beside it.
+   The box is 160 px so the longest value (an Fb target such as 35.90024611) fits at 15 px. */
+.app-root:not(.app-root-mobile) .ui-field {
+  --dt-box-w: 160px; --dt-box-h: 34px; --dt-chip-w: 40px; --dt-stepper-w: 90px;
+  /* Column 2 (UIFieldBody's --ui-value-w) holds the box and the ▲▼ pair; each screen keeps its own columns. */
+  --ui-value-w: calc(var(--dt-box-w) + var(--dt-stepper-w)); --ui-readout-w: var(--ui-value-w);
+  /* The unit sits inside the box, so its own column is empty. */
+  --ui-unit-w: 0px;
+  align-items: center; min-height: 40px;
+}
+.app-root:not(.app-root-mobile) .ui-field .ui-field-value, .app-root:not(.app-root-mobile) .ui-field.ui-field-readout .ui-field-value { width: var(--ui-value-w); gap: 0; }
+.app-root:not(.app-root-mobile) .ui-field > label, .app-root:not(.app-root-mobile) .ui-field .ui-field-value,
+.app-root:not(.app-root-mobile) .ui-field .ui-field-dq, .app-root:not(.app-root-mobile) .ui-field .ui-field-dev { grid-row: 1; }
+.app-root:not(.app-root-mobile) .ui-field .ui-field-value input {
+  width: var(--dt-box-w); height: var(--dt-box-h); font-size: 15px; padding: 0 calc(var(--dt-chip-w) + 4px) 0 14px;
+  border: 1px solid #c4c4c4; border-radius: 4px; background: #fff;
+}
+.app-root:not(.app-root-mobile) .ui-field.ui-field-readout .ui-field-value input { background: #f4f4f4; border-color: #c4c4c4; }
+.app-root:not(.app-root-mobile) .ui-field .num-mark-overlay { padding: 0 0 0 15px; font-size: 15px; }
+.app-root:not(.app-root-mobile) .ui-field span.unit-label.ui-field-unit {
+  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1;
+  box-sizing: border-box; width: auto; min-width: var(--dt-chip-w); height: var(--dt-box-h); margin-right: calc(var(--dt-stepper-w) + 1px);
+  display: inline-flex; align-items: center; justify-content: center; font-family: Inter, system-ui, sans-serif; font-size: 13px; font-weight: 600; color: #888; white-space: nowrap;
+}
+.app-root:not(.app-root-mobile) .ui-field span.unit-label.unit-toggle.ui-field-unit {
+  padding: 0 6px; background: #efefef; border: 1px solid #cfcfcf; border-radius: 0 3px 3px 0;
+  text-decoration: underline solid; text-decoration-color: #1868d1; text-decoration-thickness: 1px; text-underline-offset: 5px;
+}
+.app-root:not(.app-root-mobile) .ui-field .num-stepper { display: flex; margin-left: 6px; gap: 4px; flex: none; }
+.app-root:not(.app-root-mobile) .ui-field .num-stepper-btn {
+  width: 40px; height: 36px; padding: 0; font-family: Inter, system-ui, sans-serif; font-size: 18px; color: #222;
+  border: 1px solid #999; border-radius: 6px; background: linear-gradient(#fdfdfd, #e2e2e2); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
 .row input.inp-bad { border-color:var(--bad); background:rgba(255,107,107,.1); color:var(--bad) }
 .row select { text-align:left; width:auto; flex:1 }
 /* Driver provenance marks — the CellClass values from composables/driverCells.ts, styled

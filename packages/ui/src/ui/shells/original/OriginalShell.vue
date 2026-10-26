@@ -359,7 +359,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </div>
 
           <div class="box-layout">
-            <div v-if="!isDual" class="box-fields-col" style="width: 412px; --label-w:150px;">
+            <div v-if="!isDual" class="box-fields-col" style="width: 448px; --label-w:150px;">
               <div class="section-header">Rear chamber</div>
               <div class="field-row">
                 <UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" />
@@ -607,7 +607,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px; gap:8px;">
-                  <UIField class="field" style="--label-w:145px; grid-template-columns: 145px 90px 34px 0px 0px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                  <UIField class="field" style="--label-w:145px; grid-template-columns: 145px var(--ui-value-w) 34px 0px 0px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                   <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:145px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
                 </div>
               </div>
@@ -1171,7 +1171,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
 /* Track sizes come from the inline mainStyle (presentationState.ui.originalNavW,
    0px when a panel is collapsed; the bottom track is always `auto`: the tallest tab, never dragged); these template values are only the no-JS fallback. */
-.main { display:grid; grid-template-columns:175px 7px 1fr; grid-template-rows:1fr 7px auto;
+.main { display:grid; grid-template-columns:270px 7px 1fr; grid-template-rows:1fr 7px auto;
   grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
   flex:1 1 auto; min-height:0; overflow:hidden; }
 .quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
@@ -1330,7 +1330,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
-.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:194px; --box-col-gap:24px; }
+.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:360px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
 .box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
@@ -1392,7 +1392,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .adv-air-fields .field .unit { min-width:auto; }
 .adv-air-fields .field.ui-field { grid-template-columns:108px max-content max-content auto; column-gap:2px; }
 .adv-air-fields .field.ui-field :deep(.ui-field-unit), .adv-air-fields .field.ui-field :deep(.ui-field-dq) { width:auto; }
-.adv-air-fields .field.ui-field :deep(.ui-field-value) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
 .adv-air-fields .field-row { margin-bottom: 4px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }

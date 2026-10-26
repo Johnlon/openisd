@@ -3,7 +3,13 @@ release_note: internal
 repo: openisd
 owner: claude
 status: open
-goal: Desktop (Original skin) number boxes use the same input box style as the phone (Mobile skin); preview branch for John to compare.
-done_test: bash scripts/quiet-test.sh npm run typecheck
+goal: On desktop every field row's number control is the phone's classic control (same box, same grey unit chip inside its right edge, same ▲▼ pair beside it), proven by measuring both skins; ▲▼ step values; nothing cut off, covered or overlapping on any tab, box type or dialog at 1280x800 and 1400x900; the phone unchanged. Preview branch for John (QO302); lands only on his yes.
+done_test: bash scripts/test.sh packages/ui/test/ui/desktop-phone-control.browser.spec.ts
 files:
   - tasks/T595.yml
+  - packages/ui/src/style.css
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/desktop-phone-control.browser.spec.ts
+  - packages/ui/test/ui/desktop-control-sizes.browser.spec.ts
