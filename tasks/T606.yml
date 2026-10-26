@@ -1,0 +1,43 @@
+id: T606
+release_note: Phone Box page: the ≠W badge no longer sits over the Fsc and Qtc values.
+repo: openisd
+owner: nova
+status: done
+goal: The phone's Fsc and Qtc boxes keep their value clear of the ≠W badge: the text never runs under the button, on Chrome and Firefox.
+done_test: bash scripts/test.sh packages/design/test/fields/phoneRowSizes.test.ts packages/ui/test/architecture/mobile-readout-unit-placement.test.ts
+visual:
+  - mobile-tab-advanced
+  - mobile-tab-box
+  - mobile-tab-enclosure
+  - mobile-tab-signal
+  - mobile-wizard-abc-step4
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-vented-step4
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step4.png
+  - tasks/T606.yml
+  - bugs/BUG_20261026_phone-cue-badge-covers-value.md
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/ui/src/style.css
+  - packages/ui/test/ui/closed-box-typing-cue.browser.spec.ts
+  - packages/ui/test/ui/phone-classic-rows.browser.spec.ts
+  - docs/talk/IDEAS.md
+  - packages/ui/test/ui/desktop-field-rows.browser.spec.ts
+  - packages/ui/test/architecture/mobile-readout-unit-placement.test.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - bugs/BUG_20261026_desktop-box-cuts-long-entered-values.md

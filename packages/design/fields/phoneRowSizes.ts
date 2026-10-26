@@ -57,11 +57,11 @@ export class PhoneRowSizes {
 
 /** The widths across a classic phone row: label, ▲▼ area, unit chip, and the text gutter in the box. */
 export class PhoneRowColumns {
-  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 14);
+  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 14, 24, 20, 4);
   /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
-  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 14);
+  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 14, 24, 20, 4);
   /** The driver editor's General tab, whose labels are longer. */
-  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 14);
+  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 14, 24, 20, 4);
 
   private constructor(
     /** The label column. */
@@ -72,6 +72,12 @@ export class PhoneRowColumns {
     readonly chipMinPx: number,
     /** The gap between the box's left edge and its text. */
     readonly textGutterPx: number,
+    /** The ≠W badge's column inside the box, left of the unit chip; the text stops short of it. */
+    readonly cuePx: number,
+    /** The ⚠ button's column inside the box, left of the badge (or the chip); the text stops short of it. */
+    readonly dqPx: number,
+    /** The gap between neighbours inside the box: text | ⚠ | ≠W | chip. */
+    readonly gapPx: number,
   ) {}
 
   /** The widths as CSS custom properties. */
@@ -81,6 +87,9 @@ export class PhoneRowColumns {
       ['--mob-col-stepper', `${this.stepperPx}px`],
       ['--mob-col-chip-min', `${this.chipMinPx}px`],
       ['--mob-col-gutter', `${this.textGutterPx}px`],
+      ['--mob-col-cue', `${this.cuePx}px`],
+      ['--mob-col-dq', `${this.dqPx}px`],
+      ['--mob-col-gap', `${this.gapPx}px`],
     ]);
   }
 }

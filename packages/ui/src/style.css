@@ -258,9 +258,22 @@ a { color:var(--acc) }
 }
 .mob-classic .mob-ui-field.ui-field .ui-field-value { grid-column: 2; grid-row: 1; display: flex; align-items: center; gap: 0; width: auto; min-width: 0; }
 .mob-classic .mob-ui-field.ui-field .ui-field-value .num-input-wrap { flex: 1 1 auto; width: 0; min-width: 0; }
+/* Inside the box, from the right: the ▲▼ tail (empty on a readout) | unit chip | ≠W badge | ⚠ | text.
+   Every inset is derived from the PhoneRowColumns variables and from which overlays the row has, so a
+   value never runs under a badge, a badge never under a chip (John, 26 Oct 2026: "22≠W9" on the phone). */
+.mob-classic .mob-ui-field.ui-field { --mob-tail: calc(var(--mob-col-stepper) + 1px); --mob-pad-cue: 0px; --mob-pad-dq: 0px; }
+.mob-classic .mob-ui-field.ui-field.ui-field-readout { --mob-tail: 1px; }
+.mob-classic .mob-ui-field.ui-field:has(.ui-field-dev) { --mob-pad-cue: calc(var(--mob-col-cue) + var(--mob-col-gap)); }
+.mob-classic .mob-ui-field.ui-field:has(.ui-field-dq-btn) { --mob-pad-dq: calc(var(--mob-col-dq) + var(--mob-col-gap)); }
+/* A row with both a ⚠ and a ≠W keeps the ⚠ left of the box, at the label column's right edge: on a
+   360 px phone the box has no room for text, ⚠, badge and chip together (the PR's Cms was cut). */
+.mob-classic .mob-ui-field.ui-field:has(.ui-field-dq-btn):has(.ui-field-dev) { --mob-pad-dq: 0px; }
+.mob-classic .mob-ui-field.ui-field:has(.ui-field-dq-btn):has(.ui-field-dev) > label { padding-right: calc(var(--mob-col-dq) + 2 * var(--mob-col-gap)); }
+.mob-classic .mob-ui-field.ui-field:has(.ui-field-dq-btn):has(.ui-field-dev) .ui-field-dq { grid-column: 1; margin-right: var(--mob-col-gap); }
 .mob-classic .mob-ui-field.ui-field .ui-field-value input {
   width: 100%; height: var(--mob-input-h); min-height: var(--mob-input-h); box-sizing: border-box; border: 1px solid var(--mob-box-line); border-radius: 4px; background: #fff;
-  font-size: 15px; padding: 0 calc(var(--mob-col-chip-min) + 4px) 0 var(--mob-col-gutter);
+  font-size: 15px; padding: 0 calc(var(--mob-col-chip-min) + var(--mob-col-gap) + var(--mob-pad-cue) + var(--mob-pad-dq)) 0 var(--mob-col-gutter);
+  text-align: left;   /* the phone value starts at the gutter, as every release has shown it; the desktop box right-aligns */
 }
 .mob-classic .mob-ui-field.ui-field .ui-field-value select {
   width: 100%; height: var(--mob-input-h); min-height: var(--mob-input-h); box-sizing: border-box; border: 1px solid var(--mob-box-line); border-radius: 4px; background: #fff;
@@ -268,8 +281,8 @@ a { color:var(--acc) }
 }
 .mob-classic .mob-ui-field.ui-field .num-mark-overlay { padding: 0 0 0 calc(var(--mob-col-gutter) + 1px); font-size: 15px; }
 .mob-classic .mob-ui-field.ui-field .ui-field-value > .mob-readonly {
-  flex: 1 1 auto; width: 0; min-width: 0; margin-right: var(--mob-col-stepper); box-sizing: border-box; height: var(--mob-input-h);
-  display: flex; align-items: center; padding: 0 calc(var(--mob-col-chip-min) + 4px) 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4;
+  flex: 1 1 auto; width: 0; min-width: 0; margin-right: calc(var(--mob-tail) - 1px); box-sizing: border-box; height: var(--mob-input-h);
+  display: flex; align-items: center; padding: 0 calc(var(--mob-col-chip-min) + var(--mob-col-gap) + var(--mob-pad-cue) + var(--mob-pad-dq)) 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4;
   font-size: 15px; color: var(--acc);
 }
 .mob-classic .mob-ui-field.ui-field .num-stepper { margin-left: 6px !important; gap: 4px; width: calc(var(--mob-col-stepper) - 6px); flex: none; }
@@ -278,19 +291,20 @@ a { color:var(--acc) }
   border: 1px solid #999 !important; border-radius: 6px !important; background: linear-gradient(#fdfdfd, #e2e2e2); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .mob-classic .mob-ui-field.ui-field .ui-field-unit {
-  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box; width: auto; min-width: var(--mob-col-chip-min);
-  height: var(--mob-input-h); margin-right: calc(var(--mob-col-stepper) + 1px); display: flex; align-items: center; justify-content: center;
+  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box; width: var(--mob-col-chip-min);
+  height: var(--mob-input-h); margin-right: var(--mob-tail); display: flex; align-items: center; justify-content: center;
   font-size: 13px;
 }
-/* A readout has no ▲▼ pair. Keep its unit chip at the value box's right edge instead of
-   reserving the normal stepper column; otherwise alignment sheets show a blank tail after Hz/L. */
-.mob-classic .mob-ui-field.ui-field.ui-field-readout .ui-field-unit { margin-right: 1px; }
-.mob-classic .mob-ui-field.ui-field.ui-field-readout .ui-field-value > .mob-readonly { margin-right: 0; }
 .mob-classic .mob-ui-field.ui-field .ui-field-dev {
-  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; width: auto;
-  margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 8px);
+  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box;
+  width: var(--mob-col-cue); justify-content: center;
+  margin-right: calc(var(--mob-tail) + var(--mob-col-chip-min) + var(--mob-col-gap));
 }
-.mob-classic .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 34px); }
+.mob-classic .mob-ui-field.ui-field .ui-field-dq {
+  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box;
+  width: var(--mob-col-dq); justify-content: center;
+  margin-right: calc(var(--mob-tail) + var(--mob-col-chip-min) + var(--mob-col-gap) + var(--mob-pad-cue));
+}
 .mob-classic .mob-ui-field.ui-field .ui-field-note { grid-column: 1 / -1; }
 /* A DQ explanation is a second grid row. Keep the normal classic field at 40 px, but let the
    affected field grow so its explanation cannot paint over the following control. */
