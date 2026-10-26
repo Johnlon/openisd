@@ -1236,11 +1236,11 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   grid-template-columns: subgrid !important;
   grid-column: span 4 !important;
   align-items: center !important;
-  gap: 4px !important;
+  gap: 3px !important;
   margin-bottom: 0 !important;
   width: fit-content !important;
   max-width: 100% !important;
-  padding: 1px 4px !important;
+  padding: 1px 3px !important;
   border-radius: 4px !important;
   box-sizing: border-box !important;
   justify-self: start !important;

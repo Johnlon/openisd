@@ -69,7 +69,7 @@ test.describe('MobileMenu', () => {
         'Revert unsaved changes', 'Project details', 'Advanced',
       ]);
       expect(await items('App')).toEqual([
-        'Manage Drivers', 'Options', 'OpenISD and WinISD differences', 'Diagnostics', 'About OpenISD', 'Switch to Desktop view',
+        'Manage Drivers', 'Options', 'OpenISD and WinISD differences', 'Diagnostics', 'About OpenISD', 'Announcements', 'Switch to Desktop view',
         'Automatic view',
       ]);
       // A visible divider sits between the two sections.

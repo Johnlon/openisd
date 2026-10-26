@@ -3,6 +3,7 @@ release_note: Fix mobile alignment readout boxes so unit chips sit at the value 
 repo: openisd
 owner: codex
 status: done
+landed: afffdb076ffab6fbc45f126b54baa544e38dbf0a
 goal: The mobile alignment sheet MUST show Volume and Tuning frequency without an empty stepper-sized gap after their unit chips.
 done_test: bash scripts/test.sh packages/ui/test/architecture/mobile-readout-unit-placement.test.ts
 visual_note: Mobile vented alignment readouts place the switchable unit chips at the right edge of their value boxes.

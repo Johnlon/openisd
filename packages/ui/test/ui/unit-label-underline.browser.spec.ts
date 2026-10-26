@@ -55,36 +55,40 @@ for (const screen of project_screens) {
       const clickable = s.role === 'button';
       const wrongWeight = screen.skin.name === 'mobile' && s.weight !== '600';
       const wrongToggleSemantics = clickable !== s.toggle;
-      const wrongMobileBackground = screen.skin.name === 'mobile'
-        && s.background !== (s.text === '' ? 'rgba(0, 0, 0, 0)' : clickable ? 'rgb(239, 239, 239)' : 'rgb(255, 255, 255)');
+      const expectedBackground = s.text === '' ? 'rgba(0, 0, 0, 0)' : clickable ? 'rgb(239, 239, 239)' : 'rgb(255, 255, 255)';
+      const wrongBackground = s.background !== expectedBackground;
       if (clickable) {
         const expectedStyle = screen.skin.name === 'mobile' ? 'solid' : 'dotted';
-        return wrongWeight || wrongToggleSemantics || wrongMobileBackground || !(s.toggle && s.line.includes('underline') && s.style === expectedStyle && s.cursor === 'pointer'
+        return wrongWeight || wrongToggleSemantics || wrongBackground || !(s.toggle && s.line.includes('underline') && s.style === expectedStyle && s.cursor === 'pointer'
           && (screen.skin.name === 'mobile'
             ? s.bottom === 'solid' && s.decorationColor === 'rgb(24, 104, 209)' && s.decorationThickness === '1px' && s.decorationOffset === '5px'
             : true));
       }
       return wrongWeight || wrongToggleSemantics || s.role !== null || s.line !== 'none' || s.style !== 'solid'
-        || wrongMobileBackground;
+        || wrongBackground;
     });
     expect(bad, `unit-affordance violations on ${screen.skin.name} ${screen.name}`).toEqual([]);
 
   });
 }
 
-// Every mobile screen that renders the classic numeric field layout checks that the unit chip
-// stays inside its value control and warning/WinISD adornments stay in-row without covering it.
-const mobile_screens = project_screens.filter(s => s.skin.name === 'mobile');
-for (const screen of mobile_screens) {
-  test(`phone unit and adornment geometry ${screen.name}`, async ({page}) => {
+// Every visible numeric row on both skins checks that its unit chip joins the value control and
+// warning/WinISD adornments stay in-row without covering the value or unit.
+function fieldRowsSelector(skinName: string): string {
+  return skinName === 'mobile' ? '.mob-classic .ui-field:visible' : '.original-root .ui-field:visible';
+}
+for (const screen of project_screens) {
+  test(`unit and adornment geometry ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
-    const misplaced = await page.locator('.mob-classic .ui-field:visible').evaluateAll(rows => rows.flatMap(row => {
+    const selector = fieldRowsSelector(screen.skin.name);
+    const misplaced = await page.locator(selector).evaluateAll((rows, skinName) => rows.flatMap(row => {
       const label = row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)';
       const numeric = row.querySelector('[data-numinput], input[type=number], .ui-field-value > .calculated');
       if (!numeric) return [];
       const unit = row.querySelector<HTMLElement>('.ui-field-unit');
       const hasUnit = unit !== null && unit.textContent?.trim() !== '';
-      const control = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value .mob-readonly');
+      const control = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value .mob-readonly, .ui-field-value .calculated');
+      const valueBox = row.querySelector<HTMLElement>('.ui-field-value');
       const rr = row.getBoundingClientRect();
       const inside = (r: DOMRect, outer: DOMRect) => r.left >= outer.left - 0.5 && r.top >= outer.top - 0.5
         && r.right <= outer.right + 0.5 && r.bottom <= outer.bottom + 0.5;
@@ -93,13 +97,18 @@ for (const screen of mobile_screens) {
       if (hasUnit && control && unit) {
         const ur = unit.getBoundingClientRect();
         const cr = control.getBoundingClientRect();
-        if (!inside(ur, cr)) problems.push(`${label}: unit is outside its value control`);
-        if (!inside(ur, rr)) problems.push(`${label}: unit is outside its field row`);
+        if (skinName === 'mobile' && !inside(ur, cr)) problems.push(`${label}: unit is outside its value control`);
+        if (skinName === 'desktop' && unit.classList.contains('unit-toggle') && valueBox
+          && Math.abs(ur.left - valueBox.getBoundingClientRect().right) > 0.5) {
+          const delta = ur.left - valueBox.getBoundingClientRect().right;
+          problems.push(`${label}: clickable unit offset ${delta}px from value control; margin ${getComputedStyle(unit).marginLeft}; gap ${getComputedStyle(row).columnGap}`);
+        }
+        if (!inside(ur, rr)) problems.push(`${label}: unit outside field row by ${Math.max(rr.left - ur.left, ur.right - rr.right, 0)}px`);
       }
       for (const cue of row.querySelectorAll<HTMLElement>('.ui-field-dq-btn, .winisd-deviation-cue')) {
         if (!cue.getClientRects().length) continue;
         const qr = cue.getBoundingClientRect();
-        if (!inside(qr, rr)) problems.push(`${label}: ${cue.className} is outside its field row`);
+        if (!inside(qr, rr)) problems.push(`${label}: ${cue.className} outside field row; cue ${qr.left}-${qr.right}, row ${rr.left}-${rr.right}`);
         if (control) {
           // Some readouts deliberately place ≠W inside the value box. Guard the digits/text area,
           // not the whole box: reserved right padding is where the adornment belongs.
@@ -133,7 +142,7 @@ for (const screen of mobile_screens) {
         }
       }
       return problems;
-    }));
-    expect(misplaced, `phone unit/control and warning/WinISD cue placement on ${screen.name}`).toEqual([]);
+    }), screen.skin.name);
+    expect(misplaced, `unit/control and warning/WinISD cue placement on ${screen.skin.name} ${screen.name}`).toEqual([]);
   });
 }
