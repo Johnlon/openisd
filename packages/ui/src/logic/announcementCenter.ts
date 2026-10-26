@@ -37,16 +37,19 @@ export interface AnnouncementEndpoints {
   readonly feedUrl: string;
   readonly archiveUrl: string;
   readonly refreshUrl: string;
+  readonly showLatestOnLoad: boolean;
 }
 
 export function announcementEndpointsForHostname(hostname: string): AnnouncementEndpoints {
-  const production = hostname === 'openisd.app';
+  const production = hostname === 'openisd.app' || hostname === 'snapshots.openisd.app';
+  const archived = hostname === 'snapshots.openisd.app';
   const origin = production ? PRODUCTION_SERVICE_ORIGIN : TEST_SERVICE_ORIGIN;
   const site = production ? '' : '?site=test';
   return {
     feedUrl: `${origin}/announcements`,
     archiveUrl: `${origin}/${site}`,
     refreshUrl: `${origin}/refresh${site}`,
+    showLatestOnLoad: !archived,
   };
 }
 
@@ -120,7 +123,7 @@ export function createAnnouncementCenter(
       if (parsed === null) return;
       items.value = parsed;
       const newest = parsed[0];
-      if (newest && !dismissed.has(newest.id)) {
+      if (endpoints.showLatestOnLoad && newest && !dismissed.has(newest.id)) {
         open.value = true;
         view.value = 'latest';
       }

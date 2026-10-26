@@ -19,11 +19,19 @@ describe('announcement center', () => {
       feedUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/announcements',
       archiveUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/',
       refreshUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/refresh',
+      showLatestOnLoad: true,
     });
     expect(announcementEndpointsForHostname('test.openisd.app')).toEqual({
       feedUrl: ANNOUNCEMENTS_URL,
       archiveUrl: 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/?site=test',
       refreshUrl: 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/refresh?site=test',
+      showLatestOnLoad: true,
+    });
+    expect(announcementEndpointsForHostname('snapshots.openisd.app')).toEqual({
+      feedUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/announcements',
+      archiveUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/',
+      refreshUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/refresh',
+      showLatestOnLoad: false,
     });
     expect(announcementEndpointsForHostname('lap')).toEqual(announcementEndpointsForHostname('test.openisd.app'));
   });
@@ -40,6 +48,21 @@ describe('announcement center', () => {
     expect(center.view.value).toBe('latest');
     expect(center.unreadCount.value).toBe(2);
     expect(center.archiveUrl).toBe('https://openisd-announcements-test.john-lonergan-0e9.workers.dev/?site=test');
+  });
+
+  it('loads announcements on archived builds without interrupting the preview', async () => {
+    const fetchFn: typeof fetch = vi.fn(async () => response([earlier, current]));
+    const center = createAnnouncementCenter(storage(), fetchFn, announcementEndpointsForHostname('snapshots.openisd.app'));
+
+    await center.load();
+
+    expect(center.items.value.map(item => item.id)).toEqual([current.id, earlier.id]);
+    expect(center.open.value).toBe(false);
+    expect(center.view.value).toBe(null);
+    expect(center.unreadCount.value).toBe(2);
+    center.showList();
+    expect(center.open.value).toBe(true);
+    expect(center.view.value).toBe('list');
   });
 
   it('persists dismissal by stable ID and still opens a later announcement', async () => {

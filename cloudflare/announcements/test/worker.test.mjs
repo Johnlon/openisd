@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import test from 'node:test';
 import worker, {ANNOUNCEMENTS} from '../src/index.js';
 
@@ -23,6 +24,22 @@ test('feed preserves versioned announcement records and allows only configured a
   assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://test.openisd.app');
   const rejected = await worker.fetch(new Request(request.url, {headers: {Origin: 'https://attacker.example'}}), env);
   assert.equal(rejected.headers.get('Access-Control-Allow-Origin'), null);
+});
+
+test('production feed allows archived snapshots to fetch the announcement archive', async () => {
+  const config = await readFile(new URL('../wrangler.production.toml', import.meta.url), 'utf8');
+  const match = config.match(/^ALLOWED_ORIGINS\s*=\s*"([^"]*)"/m);
+  assert.ok(match, 'production ALLOWED_ORIGINS must be configured');
+  const origins = match[1].split(',').map(origin => origin.trim());
+  assert.ok(origins.includes('https://openisd.app'));
+  assert.ok(origins.includes('https://snapshots.openisd.app'));
+
+  const productionEnv = {ALLOWED_ORIGINS: match[1]};
+  const request = new Request('https://example.workers.dev/announcements', {
+    headers: {Origin: 'https://snapshots.openisd.app'},
+  });
+  const response = await worker.fetch(request, productionEnv);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://snapshots.openisd.app');
 });
 
 test('refresh links point to the worker-bypassing about recovery path', async () => {
