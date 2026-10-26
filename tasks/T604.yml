@@ -1,0 +1,30 @@
+id: T604
+release_note: Align mobile driver summary and field layouts.
+repo: openisd
+owner: codex
+status: done
+goal: Apply one shared classic-field sizing contract to mobile pages and overlays, keep mobile labels and Box actions inside their rows, and align driver summary values and units across desktop and mobile.
+done_test: bash scripts/test.sh packages/ui/test/architecture/mobile-number-field-sizes-owned-by-shell.test.ts
+visual_note: Mobile classic controls keep their intended sizing, Box actions fit on one line, and driver summary values and units align with a clear gap.
+visual:
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-enclosure
+files:
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/PhoneClassicPage.vue
+  - packages/ui/src/ui/shells/mobile/phoneClassicFieldVars.ts
+  - packages/ui/test/architecture/mobile-number-field-sizes-owned-by-shell.test.ts
+  - packages/ui/test/ui/driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-summary-parity.browser.spec.ts
+  - packages/ui/test/ui/mobile-number-fields.browser.spec.ts
+  - packages/ui/test/ui/mobile-pr-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - tasks/T604.yml

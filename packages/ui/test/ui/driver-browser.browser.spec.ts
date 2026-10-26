@@ -14,6 +14,43 @@ test.describe('Driver browser', () => {
     await expect(preview).toHaveCSS('padding', '12px 16px');
   });
 
+  test('numeric values and unit labels align in each specification column', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.dlist .ditem').first().click();
+    const preview = page.locator('.driver-library .preview');
+    await expect(preview).toBeVisible();
+
+    const alignment = await preview.evaluate(element => {
+      const columns = new Map<number, {values: number[]; units: number[]; gaps: number[]}>();
+      for (const row of element.querySelectorAll<HTMLElement>('.spec-row')) {
+        const key = Math.round(row.getBoundingClientRect().left);
+        const column = columns.get(key) ?? {values: [], units: [], gaps: []};
+        columns.set(key, column);
+        const value = row.querySelector<HTMLElement>('.spec-val b')!;
+        if (Number.isFinite(Number(value.textContent?.trim()))) column.values.push(value.getBoundingClientRect().right);
+        const unit = row.querySelector<HTMLElement>('.spec-unit');
+        if (unit && unit.textContent?.trim()) {
+          column.units.push(unit.getBoundingClientRect().left);
+          column.gaps.push(unit.getBoundingClientRect().left - value.getBoundingClientRect().right);
+        }
+      }
+      const drift = (values: number[]) => values.length ? Math.max(...values) - Math.min(...values) : 0;
+      return [...columns.values()].map(column => ({
+        valueDrift: drift(column.values),
+        unitDrift: drift(column.units),
+        minGap: Math.min(...column.gaps),
+      }));
+    });
+    expect(alignment.length).toBeGreaterThan(0);
+    for (const column of alignment) {
+      expect(column.valueDrift, 'numeric values in a spec column should share a right edge').toBeLessThanOrEqual(1);
+      expect(column.unitDrift, 'units in a spec column should share a left edge').toBeLessThanOrEqual(1);
+      expect(column.minGap, 'values and units should have visible separation').toBeGreaterThanOrEqual(4);
+    }
+  });
+
   test.describe('controls', () => {
     // ui-todo.md "Remove UI Elements" — four controls come out of the driver picker
     // (DriverBrowser.vue).
