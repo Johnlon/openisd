@@ -38,11 +38,19 @@ for (const screen of project_screens) {
     await waitForLabelsWhereExpected(screen.name, labels);
     const fields = await allUnits.evaluateAll(els => els.map(el => {
       const cs = getComputedStyle(el);
+      let surface = 'transparent';
+      for (let parent: Element | null = el; parent !== null; parent = parent.parentElement) {
+        const background = getComputedStyle(parent).backgroundColor;
+        if (background !== 'rgba(0, 0, 0, 0)' && background !== 'transparent') {
+          surface = background;
+          break;
+        }
+      }
       return {
         field: el.closest('.ui-field, .mob-field-row, .field')?.querySelector('label')?.textContent?.trim() ?? '(unlabelled)',
         text: el.textContent?.trim() ?? '', role: el.getAttribute('role'), toggle: el.classList.contains('unit-toggle'),
         line: cs.textDecorationLine, style: cs.textDecorationStyle, cursor: cs.cursor,
-        bottom: cs.borderBottomStyle, background: cs.backgroundColor, weight: cs.fontWeight,
+        bottom: cs.borderBottomStyle, background: cs.backgroundColor, surface, weight: cs.fontWeight,
       };
     }));
     const bad = fields.filter(s => {
@@ -56,8 +64,43 @@ for (const screen of project_screens) {
             : true));
       }
       return wrongWeight || s.toggle || s.role !== null || s.line !== 'none' || s.style !== 'solid'
-        || (screen.skin.name === 'mobile' && s.background !== 'rgba(0, 0, 0, 0)');
+        || (screen.skin.name === 'mobile' && (s.background !== 'rgba(0, 0, 0, 0)' || s.surface !== 'rgb(255, 255, 255)'));
     });
     expect(bad, `unit-affordance violations on ${screen.skin.name} ${screen.name}`).toEqual([]);
+
+  });
+}
+
+// Every mobile screen that renders the classic numeric field layout checks that the unit chip
+// stays inside its value control and warning/WinISD adornments stay in-row without covering it.
+const mobile_screens = project_screens.filter(s => s.skin.name === 'mobile');
+for (const screen of mobile_screens) {
+  test(`phone unit and adornment geometry ${screen.name}`, async ({page}) => {
+    await screen.open(page);
+    const misplaced = await page.locator('.mob-classic .ui-field:visible').evaluateAll(rows => rows.flatMap(row => {
+      const label = row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)';
+      const unit = row.querySelector<HTMLElement>('.ui-field-unit');
+      if (!unit || !unit.textContent?.trim()) return [];
+      const control = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value .mob-readonly');
+      if (!control) return [`${label}: unit has no value control`];
+      const ur = unit.getBoundingClientRect();
+      const cr = control.getBoundingClientRect();
+      const rr = row.getBoundingClientRect();
+      const inside = (r: DOMRect, outer: DOMRect) => r.left >= outer.left - 0.5 && r.top >= outer.top - 0.5
+        && r.right <= outer.right + 0.5 && r.bottom <= outer.bottom + 0.5;
+      const problems: string[] = [];
+      if (!inside(ur, cr)) problems.push(`${label}: unit is outside its value control`);
+      if (!inside(ur, rr)) problems.push(`${label}: unit is outside its field row`);
+      for (const cue of row.querySelectorAll<HTMLElement>('.ui-field-dq-btn, .winisd-deviation-cue')) {
+        if (!cue.getClientRects().length) continue;
+        const qr = cue.getBoundingClientRect();
+        if (!inside(qr, rr)) problems.push(`${label}: ${cue.className} is outside its field row`);
+        if (qr.left < ur.right - 0.5 && qr.right > ur.left + 0.5 && qr.top < ur.bottom - 0.5 && qr.bottom > ur.top + 0.5) {
+          problems.push(`${label}: ${cue.className} overlaps the unit`);
+        }
+      }
+      return problems;
+    }));
+    expect(misplaced, `phone unit/control and warning/WinISD cue placement on ${screen.name}`).toEqual([]);
   });
 }

@@ -79,7 +79,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
   </PhoneClassicPage>
 
   <div v-if="sealedAlignmentOpen" class="mob-align-overlay" @click.self="sealedAlignmentEditor.cancel">
-    <div class="mob-align-sheet">
+    <div class="mob-align-sheet mob-classic">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Choose sealed alignment</span>
         <button class="mob-x" @click="sealedAlignmentEditor.cancel">&#10005;</button>
@@ -105,7 +105,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
   </div>
 
   <div v-if="ventedAlignmentOpen" class="mob-align-overlay" @click.self="ventedAlignmentEditor.cancel">
-    <div class="mob-align-sheet">
+    <div class="mob-align-sheet mob-classic">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Choose vented alignment</span>
         <button class="mob-x" @click="ventedAlignmentEditor.cancel">&#10005;</button>
@@ -117,8 +117,8 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
           <option v-for="o in ventedAlignmentOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
         </select>
       </div>
-      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly plain />
-      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly plain />
+      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly />
+      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly />
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="ventedAlignmentSuitability ?? 'unknown'"></span>
         <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, ventedAlignmentEbp, '—') }} — {{ ventedAlignmentSuitabilityLabel }}</span>

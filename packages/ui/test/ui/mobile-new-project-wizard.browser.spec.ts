@@ -24,6 +24,7 @@ test('step 1 has one footer, in the list and in the driver preview: Next and Can
   await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
   await expect(footer.getByText('Next ▸', {exact: true})).toBeDisabled();   // nothing chosen or being read yet
   await page.getByText(TEST_DRIVER).click();
+  await expect(page.locator('.mob-np-library .preview')).toHaveCSS('padding', '12px 16px');
   await expect(footer.getByText('Cancel', { exact: true })).toBeVisible();
   await expect(footer.getByText('Next ▸', {exact: true})).toBeEnabled();
   await expect(page.locator('.prev-footer')).toHaveCount(0);   // the preview's own Use/Cancel pair is gone

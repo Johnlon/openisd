@@ -40,6 +40,8 @@ export class PhoneLabels {
   static readonly FFC = 'Ffc';
   /** The passive radiator's entered target tuning, first row of the Passive radiator section. */
   static readonly PR_FP = 'Fp';
+  static readonly PR_ADDED_MASS = 'Added mass';
+  static readonly PR_FPR_MASS = 'Fpr with mass';
   static readonly DRIVERS = 'Drivers';
   static readonly CONNECTION = 'Connection';
   static readonly POWER = 'Power';

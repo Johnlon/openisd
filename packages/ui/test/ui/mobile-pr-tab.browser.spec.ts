@@ -19,7 +19,8 @@ test.describe('MobilePrTab', () => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     await expect(page.locator('.mob-band-title', {hasText: /^Passive radiator$/})).toHaveCount(1);
     await expect(mobileFieldRow(page, 'Vas')).toBeVisible();
-    await expect(mobileFieldRow(page, 'Fpr (with added mass)')).toBeVisible();
+    await expect(page.locator('.ui-field-label', {hasText: /^Added mass$/})).toBeVisible();
+    await expect(page.locator('.ui-field-label', {hasText: /^Fpr with mass$/})).toBeVisible();
 
     await page.getByText('Select PR', { exact: true }).click();
     await expect(page.getByText('Passive radiator library')).toBeVisible();
@@ -50,6 +51,46 @@ test.describe('MobilePrTab', () => {
     expect(stored.sd_cm2).toBeCloseTo(300, 1);
     expect(stored.xmax_mm).toBeCloseTo(12, 1);
     expect(stored.count).toBe(2);
+  });
+
+  test('Mms keeps its unit toggle and both cues inside one phone field row', async ({ page }) => {
+    await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+    const field = mobileFieldRow(page, 'Mms').first();
+    const input = field.locator('.ui-field-value input').first();
+    const unit = field.locator('.ui-field-unit.unit-toggle');
+    const deviation = field.locator('.ui-field-dev .winisd-deviation-cue');
+    await expect(input).toBeVisible();
+    await expect(unit).toHaveAttribute('role', 'button');
+    await expect(unit).toHaveCSS('background-color', 'rgb(239, 239, 239)');
+    await expect(deviation).toBeVisible();
+
+    await input.fill('-1');
+    await input.blur();
+    const warning = field.locator('.ui-field-dq-btn');
+    await expect(warning).toBeVisible();
+
+    const boxes = await Promise.all([field, input, unit, deviation, warning].map(locator => locator.boundingBox()));
+    const [rowBox, inputBox, unitBox, deviationBox, warningBox] = boxes;
+    expect(boxes.every(box => box !== null), 'the field and each adornment must have layout geometry').toBe(true);
+    expect(unitBox!.x).toBeGreaterThanOrEqual(inputBox!.x);
+    expect(unitBox!.x + unitBox!.width).toBeLessThanOrEqual(inputBox!.x + inputBox!.width);
+    for (const adornment of [unitBox!, deviationBox!, warningBox!]) {
+      expect(adornment.x).toBeGreaterThanOrEqual(rowBox!.x);
+      expect(adornment.y).toBeGreaterThanOrEqual(rowBox!.y);
+      expect(adornment.x + adornment.width).toBeLessThanOrEqual(rowBox!.x + rowBox!.width);
+      expect(adornment.y + adornment.height).toBeLessThanOrEqual(rowBox!.y + rowBox!.height);
+    }
+    const adornments = [unitBox!, deviationBox!, warningBox!].sort((a, b) => a.x - b.x);
+    for (let index = 1; index < adornments.length; index++) {
+      expect(adornments[index - 1]!.x + adornments[index - 1]!.width)
+        .toBeLessThanOrEqual(adornments[index]!.x + 0.5);
+    }
+
+    const beforeUnit = (await unit.innerText()).trim();
+    const beforeValue = Number(await input.inputValue());
+    await unit.click();
+    await expect(unit).not.toHaveText(beforeUnit);
+    expect(Number(await input.inputValue())).not.toBe(beforeValue);
   });
 
   // John, 2026-10-05: "Save PR to library needs to ask for a name confirmation dialog." The
