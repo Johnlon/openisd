@@ -7,6 +7,8 @@ goal: On desktop every field row's number control is the phone's classic control
 done_test: bash scripts/test.sh packages/ui/test/ui/desktop-phone-control.browser.spec.ts
 files:
   - tasks/T595.yml
+  - HANDOVER_t595_20261026.md
+  - HANDOVER_t595_20261026.rulings.md
   - packages/ui/src/style.css
   - packages/ui/src/hooks/OriginalShell-hooks.ts
   - packages/ui/src/ui/components/UIFieldBody.vue
