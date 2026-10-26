@@ -26,7 +26,7 @@ const current = center.latest;
         <h3>{{ current.title }}</h3>
         <p class="ann-summary">{{ current.summary }}</p>
         <ul><li v-for="line in current.body" :key="line">{{ line }}</li></ul>
-        <a class="ann-review-link" href="https://openisd-announcements-test.john-lonergan-0e9.workers.dev/?site=test" target="_blank" rel="noopener">Review all announcements</a>
+        <a class="ann-review-link" :href="center.archiveUrl" target="_blank" rel="noopener">Review all announcements</a>
       </main>
 
       <main v-else class="ann-body ann-list">

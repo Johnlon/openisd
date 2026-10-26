@@ -22,13 +22,35 @@ export interface AnnouncementCenter {
   readonly view: Readonly<Ref<'latest' | 'list' | null>>;
   readonly latest: ComputedRef<Announcement | null>;
   readonly unreadCount: ComputedRef<number>;
+  readonly archiveUrl: string;
+  readonly refreshUrl: string;
   load(): Promise<void>;
   showList(): void;
   closeList(): void;
   dismissLatest(): void;
 }
 
-export const ANNOUNCEMENTS_URL = 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/announcements';
+const TEST_SERVICE_ORIGIN = 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev';
+const PRODUCTION_SERVICE_ORIGIN = 'https://openisd-announcements.john-lonergan-0e9.workers.dev';
+
+export interface AnnouncementEndpoints {
+  readonly feedUrl: string;
+  readonly archiveUrl: string;
+  readonly refreshUrl: string;
+}
+
+export function announcementEndpointsForHostname(hostname: string): AnnouncementEndpoints {
+  const production = hostname === 'openisd.app';
+  const origin = production ? PRODUCTION_SERVICE_ORIGIN : TEST_SERVICE_ORIGIN;
+  const site = production ? '' : '?site=test';
+  return {
+    feedUrl: `${origin}/announcements`,
+    archiveUrl: `${origin}/${site}`,
+    refreshUrl: `${origin}/refresh${site}`,
+  };
+}
+
+export const ANNOUNCEMENTS_URL = announcementEndpointsForHostname('test.openisd.app').feedUrl;
 const DISMISSED_KEY = 'openisd_announcements_dismissed_v1';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -81,7 +103,7 @@ function readDismissed(storage: AnnouncementStorage): Set<string> {
 export function createAnnouncementCenter(
   storage: AnnouncementStorage,
   fetchFn: typeof fetch,
-  url = ANNOUNCEMENTS_URL,
+  endpoints: AnnouncementEndpoints = announcementEndpointsForHostname('test.openisd.app'),
 ): AnnouncementCenter {
   const items = ref<readonly Announcement[]>([]);
   const open = ref(false);
@@ -92,7 +114,7 @@ export function createAnnouncementCenter(
 
   async function load(): Promise<void> {
     try {
-      const response = await fetchFn(url, {cache: 'no-store', credentials: 'omit'});
+      const response = await fetchFn(endpoints.feedUrl, {cache: 'no-store', credentials: 'omit'});
       if (!response.ok) return;
       const parsed = parseAnnouncementResponse(await response.json());
       if (parsed === null) return;
@@ -126,5 +148,5 @@ export function createAnnouncementCenter(
     closeList();
   }
 
-  return {items, open, view, latest, unreadCount, load, showList, closeList, dismissLatest};
+  return {items, open, view, latest, unreadCount, archiveUrl: endpoints.archiveUrl, refreshUrl: endpoints.refreshUrl, load, showList, closeList, dismissLatest};
 }

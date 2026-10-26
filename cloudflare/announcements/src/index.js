@@ -47,13 +47,12 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function reviewPage(site) {
+function reviewPage(refreshUrl) {
   const cards = ANNOUNCEMENTS.map(item =>
     '<article><p class="date">' + escapeHtml(item.published) + ' | OpenISD ' + escapeHtml(item.version) + '</p>'
     + '<h2>' + escapeHtml(item.title) + '</h2><p>' + escapeHtml(item.summary) + '</p><ul>'
     + item.body.map(line => '<li>' + escapeHtml(line) + '</li>').join('')
     + '</ul></article>').join('');
-  const refreshUrl = site + '/about/refresh/';
   return '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
     + '<meta name="theme-color" content="#11151c"><title>OpenISD announcements</title>'
     + '<style>:root{color-scheme:dark;font:16px/1.55 system-ui,sans-serif;background:#11151c;color:#e6edf3}'
@@ -97,9 +96,10 @@ export default {
     }
 
     if (url.pathname === '/' || url.pathname === '/index.html') {
-      const site = recoverySite(request, url);
+      const testSite = url.searchParams.get('site') === 'test' || request.headers.get('Origin') === 'https://test.openisd.app';
+      const refreshUrl = url.origin + '/refresh' + (testSite ? '?site=test' : '');
       const htmlHeaders = headersFor(request, env, 'text/html; charset=utf-8');
-      return new Response(request.method === 'HEAD' ? null : reviewPage(site), {headers: htmlHeaders});
+      return new Response(request.method === 'HEAD' ? null : reviewPage(refreshUrl), {headers: htmlHeaders});
     }
 
     return new Response('Not found', {status: 404, headers});

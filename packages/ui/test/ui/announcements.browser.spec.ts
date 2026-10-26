@@ -27,6 +27,7 @@ test('announcements can be dismissed by version and the full list stays reviewab
   await feed(page, [first]);
   await start(page);
   await expect(page.getByRole('heading', {name: 'Mobile controls and driver library fixes'})).toBeVisible();
+  await expect(page.getByRole('link', {name: 'Review all announcements'})).toHaveAttribute('href', 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/?site=test');
   await page.getByRole('button', {name: 'All announcements'}).click();
   await expect(page.getByRole('heading', {name: 'OpenISD announcements'})).toBeVisible();
   await expect(page.getByText('All announcements remain here after you dismiss them.')).toBeVisible();
