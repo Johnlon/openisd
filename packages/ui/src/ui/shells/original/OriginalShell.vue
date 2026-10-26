@@ -484,7 +484,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <!-- vented / bandpass4 -->
           <div v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'">
             <div class="section-header">Vents</div>
-            <div class="two-col vent-cols">
+            <div class="two-col">
               <!-- Column 1: Config -->
               <div class="vent-config-col">
                 <div class="field-row">
@@ -580,9 +580,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
               @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
             <div class="two-col" style="gap:12px;">
-              <div style="--label-w:36px;">
+              <div style="--label-w:36px; flex: 0 1 auto; min-width: 0;">
                 <div class="section-header">Passive radiator parameters</div>
-                <div style="display: grid; grid-template-columns: auto auto; column-gap: 26px; row-gap: 0; margin-bottom: 0;">
+                <div style="display: flex; flex-wrap: wrap; column-gap: 26px; row-gap: 0; margin-bottom: 0;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
                   <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
                   <UIField class="field" input-id="og-pr-fs" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" />
@@ -592,7 +592,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
                 </div>
               </div>
-              <div style="--label-w:145px;">
+              <div class="pr-user-options" style="--label-w:145px;">
                 <div class="section-header">User options</div>
                 <div class="field-row" style="margin-bottom:3px;">
                   <UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
@@ -1320,9 +1320,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
    while this one's controls kept their own width, so the two painted on top of each
    other — the exact overlap `original-shell-layout.browser.spec.ts` locks out. */
-.two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
-/* The Vented tab's three columns of phone-sized controls do not fit side by side at 1280 px: the third drops below. */
-.two-col.vent-cols { flex-wrap:wrap; row-gap:8px; }
+/* Columns of phone-sized controls (T595) do not always fit side by side at 1280 px: a column that does not fit drops below. */
+.two-col { display:flex; flex-wrap:wrap; gap:8px 24px; align-items:flex-start; justify-content:flex-start; }
+.two-col > .pr-user-options { flex: 0 1 auto; min-width: 0; }
+.pr-user-options .field-row { flex-wrap: wrap; }
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
 .box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
@@ -1332,7 +1333,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
-.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:360px; --box-col-gap:24px; }
+.box-tab-row { display:flex; flex-wrap:wrap; gap:8px 24px; align-items:flex-start; --box-col-w:360px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
 .box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }

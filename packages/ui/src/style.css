@@ -89,7 +89,8 @@ option.not-implemented { color:#999 }
   width: var(--dt-box-w); height: var(--dt-box-h); font-size: 15px; padding: 0 calc(var(--dt-chip-w) + 4px) 0 14px;
   border: 1px solid #c4c4c4; border-radius: 4px; background: #fff;
 }
-.app-root:not(.app-root-mobile) .ui-field.ui-field-readout .ui-field-value input { background: #f4f4f4; border-color: #c4c4c4; }
+.app-root:not(.app-root-mobile) .ui-field.ui-field-readout .ui-field-value input,
+.app-root:not(.app-root-mobile) .ui-field .ui-field-value input[readonly] { background: #f4f4f4; border-color: #c4c4c4; }
 .app-root:not(.app-root-mobile) .ui-field .num-mark-overlay { padding: 0 0 0 15px; font-size: 15px; }
 .app-root:not(.app-root-mobile) .ui-field span.unit-label.ui-field-unit {
   grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1;
@@ -378,3 +379,13 @@ a { color:var(--acc) }
 .modal-footer .footer-buttons button, .opt-footer button, .what-if-btns button {
   box-sizing: border-box; min-width: var(--ctl-btn-w); height: var(--ctl-btn-h);
 }
+/* The bandpass / ABC vent pane stacks each label above its box (OriginalShell .vent-pane-tight). With
+   the phone control the value column is the control's own width and the unit chip stays inside it. */
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row { grid-template-columns: max-content max-content; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field { grid-template-columns: var(--ui-value-w) 0 16px; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field > label { grid-row: 1; grid-column: 1 / -1; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field .ui-field-value,
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field span.unit-label.ui-field-unit { grid-row: 2; grid-column: 1; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field .ui-field-dq { grid-row: 2; grid-column: 3; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field .ui-field-value input { width: var(--dt-box-w); }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-groups { flex-wrap: wrap; }

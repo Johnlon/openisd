@@ -81,6 +81,8 @@ async function brokenControls(page: Page): Promise<string[]> {
         if (fr.bottom > ar.bottom + 0.5 || fr.top < ar.top - 0.5 || fr.right > ar.right + 0.5) { out.push(`${name}: cut off by its panel`); break; }
       }
     }
+    const tab = document.querySelector('.tab-section.active');
+    if (tab !== null && tab.scrollWidth > tab.clientWidth + 1) out.push(`tab scrolls sideways (${tab.scrollWidth} > ${tab.clientWidth})`);
     if (document.documentElement.scrollWidth > innerWidth) out.push('page scrolls sideways');
     if (document.documentElement.scrollHeight > innerHeight) out.push('page scrolls up and down');
     return out;
@@ -130,7 +132,10 @@ test.describe('desktop number controls are the phone control', () => {
       }
       for (const box of BOX_TYPES) {
         await setFocusedBoxType(page, box);
-        broken.push(...(await brokenControls(page)).map(b => `Box ${box}: ${b}`));
+        for (const tab of await page.locator('.project-nav li').allTextContents()) {
+          await openTab(page, tab.trim());
+          broken.push(...(await brokenControls(page)).map(b => `${box} ${tab.trim()}: ${b}`));
+        }
       }
       expect(broken).toEqual([]);
     });
