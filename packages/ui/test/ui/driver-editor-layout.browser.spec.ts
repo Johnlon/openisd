@@ -30,8 +30,7 @@ test('the Connection dropdown keeps its 96 px desktop width', async ({ page }) =
  * Given one section's row widths in visual order, the rows that are full width DESPITE a
  * shorter row already appearing above them.
  *
- * Only a TRAILING run of rows may be short — the remainder, plus any field deliberately forced
- * onto its own row (Connection, under Voicecoils). A full-width row after a short one means the
+ * Only a TRAILING run of rows may be short — the remainder. A full-width row after a short one means the
  * grid resumed packing once it had already spilled over, which is the shape a stray field in
  * the wrong column produces.
  */

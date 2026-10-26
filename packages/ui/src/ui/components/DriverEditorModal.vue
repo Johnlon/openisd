@@ -1249,9 +1249,10 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 /* A field that feeds the inspected one is tinted across its whole row cell, label through unit,
    not only as wide as its content. The tint is the highlight; there is no border. */
 .de-desktop .de-fld.de-feeds { width: 100% !important; justify-self: stretch !important; }
-/* Connection sits directly UNDER Voicecoils, not beside it: an explicit column-1 start pushes
-   it past Voicecoils' own column-1 slot (already taken) into column 1 of the NEXT row. */
-.de-desktop .de-conn { grid-column: 1 / span 4 !important; }
+/* Connection flows beside Voicecoils: with two fields per row (T595) a forced row of its own
+   left a one-field row above a full one. */
+/* The phone row is as tall as its ▲▼ pair; the shell's 40px field floor would pad the editor out. */
+.de-desktop .de-fld { min-height: 0 !important; }
 /* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
    it read as "Paralle" with the last letter clipped. Widened just for this one field. */
 .de-desktop .de-conn-sel { width: 96px !important; }

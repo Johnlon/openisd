@@ -82,7 +82,8 @@ test('every unit with alternates is a working toggle, and every other unit is a 
         problems.push(`${tab}/${label}: "${shownUnit}" has alternates but is not a toggle`);
         continue;
       }
-      if (decoration !== 'underline/dotted') problems.push(`${tab}/${label}: toggle unit "${shownUnit}" has ${decoration}, expected underline/dotted`);
+      // T595: the desktop unit chip is the phone's, whose toggle underline is solid.
+      if (decoration !== 'underline/solid') problems.push(`${tab}/${label}: toggle unit "${shownUnit}" has ${decoration}, expected underline/solid`);
 
       const input = fld.locator('input').first();
       if (!(await input.inputValue())) { await input.fill('1'); await input.blur(); }
