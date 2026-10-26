@@ -1,0 +1,49 @@
+id: T604
+release_note: Align mobile driver summary and field layouts.
+repo: openisd
+owner: codex
+status: done
+goal: Keep mobile classic field sizing owned by the app shell, keep passive-radiator labels within their rows, and align driver summary values and units across desktop and mobile.
+done_test: bash scripts/test.sh packages/ui/test/architecture/mobile-number-field-sizes-owned-by-shell.test.ts
+visual_note: Mobile classic pages keep consistent field sizing, and the driver summary aligns numeric values and units with clear gaps.
+visual:
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
+files:
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/PhoneClassicPage.vue
+  - packages/ui/test/architecture/mobile-number-field-sizes-owned-by-shell.test.ts
+  - packages/ui/test/ui/driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-browser.browser.spec.ts
+  - packages/ui/test/ui/mobile-driver-summary-parity.browser.spec.ts
+  - packages/ui/test/ui/mobile-number-fields.browser.spec.ts
+  - packages/ui/test/ui/mobile-pr-tab.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-vented-step4.png
+  - tasks/T604.yml

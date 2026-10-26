@@ -15,6 +15,23 @@ test.beforeEach(async ({ page }) => {
 });
 
 test.describe('MobilePrTab', () => {
+  test('mobile field labels stay inside their rows', async ({page}) => {
+    await page.setViewportSize({width: 374, height: 705});
+    await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+    const rows = page.locator('.mob-classic .mob-ui-field.ui-field');
+    const overflow = await rows.evaluateAll(elements => elements.flatMap(row => {
+      const label = row.querySelector<HTMLElement>('.ui-field-label');
+      if (!label) return [];
+      const rowBox = row.getBoundingClientRect();
+      const labelBox = label.getBoundingClientRect();
+      const lineHeight = Number.parseFloat(getComputedStyle(label).lineHeight);
+      const lineCount = Math.round(labelBox.height / lineHeight);
+      return labelBox.top < rowBox.top - 0.5 || labelBox.bottom > rowBox.bottom + 0.5 || lineCount > 2
+        ? [`${label.textContent?.trim() ?? 'unnamed label'} (${lineCount} lines)`] : [];
+    }));
+    expect(overflow, 'field labels must fit within two lines inside their phone rows').toEqual([]);
+  });
+
   test('a passive-radiator box shows passive radiator fields and Select PR opens the browser', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     await expect(page.locator('.mob-band-title', {hasText: /^Passive radiator$/})).toHaveCount(1);

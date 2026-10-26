@@ -28,10 +28,12 @@ import {useApp} from '../../../logic/app.js';
 import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
-import {APP_UPDATE_TEXT, NO_PROJECT_OPEN, PhoneHeaderSizes} from '@openisd/design/fields';
+import {APP_UPDATE_TEXT, NO_PROJECT_OPEN, PhoneHeaderSizes, PhoneRowColumns, PhoneRowSizes} from '@openisd/design/fields';
 
 /** The header's sizes (44 px controls, 14 px project name on two lines) as CSS variables. */
 const headerVars = Object.fromEntries(PhoneHeaderSizes.CLASSIC.cssVars());
+/** Mobile number-field sizing belongs to the app shell so pages and their overlays inherit one contract. */
+const fieldVars = Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.STANDARD.cssVars()]);
 
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
@@ -54,7 +56,7 @@ const diagnostics = injectDiagnosticsModal();
 </script>
 
 <template>
-  <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }">
+  <div class="mobile-root" :style="[fieldVars, { height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }]">
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <!-- No top bar over the Graph destination — it's deliberately full-screen (see

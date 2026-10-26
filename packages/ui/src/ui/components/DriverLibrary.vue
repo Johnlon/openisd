@@ -310,7 +310,10 @@ onMounted(openedLibrary);
             <div class="prev-specs">
               <div v-for="s in previewData.specs" :key="s.label" class="spec-row">
                 <span class="spec-lbl">{{ s.label }}</span>
-                <span class="spec-val"><b>{{ s.value }}</b><span v-if="s.unit" class="spec-unit"> {{ s.unit }}</span></span>
+                <span class="spec-val" :class="{ 'has-unit-slot': Boolean(s.unit) || Number.isFinite(Number(s.value)) }">
+                  <b>{{ s.value }}</b>
+                  <span v-if="s.unit || Number.isFinite(Number(s.value))" class="spec-unit" :aria-hidden="!s.unit">{{ s.unit }}</span>
+                </span>
               </div>
             </div>
             <div v-if="previewData.links.length" class="prev-links">
@@ -567,6 +570,7 @@ onMounted(openedLibrary);
 .driver-library .prev-body {
   flex: 1;
   overflow-y: auto;
+  line-height: 1.4;
 }
 .driver-library .prev-specs {
   display: grid;
@@ -575,20 +579,38 @@ onMounted(openedLibrary);
   margin-bottom: 10px;
 }
 .driver-library .spec-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  align-items: baseline;
   gap: 6px;
   padding: 2px 6px;
   font-size: 11px;
   border-bottom: 1px solid #ececec;
 }
 .driver-library .spec-lbl {
+  min-width: 0;
   color: #666;
 }
 .driver-library .spec-val {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  text-align: right;
   color: #000;
 }
+.driver-library .spec-val.has-unit-slot {
+  grid-template-columns: minmax(0, 1fr) 3.5em;
+  column-gap: 4px;
+}
+.driver-library .spec-val b {
+  min-width: 0;
+  white-space: nowrap;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
 .driver-library .spec-unit {
+  white-space: nowrap;
+  text-align: left;
   color: #888;
 }
 .driver-library .prev-links {

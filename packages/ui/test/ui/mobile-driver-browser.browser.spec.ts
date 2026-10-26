@@ -59,7 +59,28 @@ test('the selected-driver summary has the same clear inner gutter as the wizard 
   await page.locator('.dlist .ditem, .dlist .my-ditem').first().click();
   const preview = page.locator('.driver-library .preview');
   await expect(preview).toBeVisible();
-  await expect(preview).toHaveCSS('padding', '12px 16px');
+  await expect(preview).toHaveCSS('padding-top', '12px');
+  await expect(preview).toHaveCSS('padding-right', '16px');
+  await expect(preview).toHaveCSS('padding-bottom', '12px');
+  await expect(preview).toHaveCSS('padding-left', '16px');
+});
+
+test('the phone driver summary uses the same compact specification layout as the wizard', async ({page}) => {
+  await page.getByText('Select driver').click();
+  await page.locator('.dlist .ditem, .dlist .my-ditem').first().click();
+  const preview = page.locator('.driver-library .preview');
+  await expect(preview).toBeVisible();
+
+  const presentation = await preview.evaluate(element => ({
+    specColumns: getComputedStyle(element.querySelector('.prev-specs')!).gridTemplateColumns.split(' ').length,
+    labelDisplay: getComputedStyle(element.querySelector('.prev-src-lbl')!).display,
+    specFontSize: getComputedStyle(element.querySelector('.spec-row')!).fontSize,
+    metadataFontSize: getComputedStyle(element.querySelector('.prev-textinfo')!).fontSize,
+  }));
+  expect(presentation.specColumns, 'the phone driver summary should match the wizard’s two-column specification layout').toBe(2);
+  expect(presentation.labelDisplay, 'metadata labels should match the wizard’s inline-block presentation').toBe('inline-block');
+  expect(presentation.specFontSize).toBe('11px');
+  expect(presentation.metadataFontSize).toBe('11px');
 });
 
 // John, 17 Oct 2026: "empty wizard driver list with no hint"; "the list is empty but the favourite button is
