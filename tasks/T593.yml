@@ -1,0 +1,16 @@
+id: T593
+release_note: Browser activity reports now include projects restored when OpenISD starts.
+repo: openisd
+owner: codex
+label: fixes
+status: done
+goal: Record restored project opens and bundled driver details in telemetry when the app starts.
+done_test: bash scripts/test.sh packages/ui/test/logic/boot.test.ts packages/ui/test/logic/projectOpenTelemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
+visual: []
+files:
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/logic/boot.ts
+  - packages/ui/test/logic/boot.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T593.yml

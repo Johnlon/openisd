@@ -11,7 +11,7 @@ export type Skin = typeof SKINS[number];
 export type ScreenWidthBand = '<600' | '<1024' | '<1440' | '<1920' | '>=1920';
 export type DisplayMode = 'standalone' | 'browser';
 export type Platform = 'Android' | 'iOS' | 'Windows' | 'macOS' | 'Linux' | 'other';
-export type ProjectSource = 'new' | 'wizard' | 'file' | 'stored' | 'driver';
+export type ProjectSource = 'new' | 'wizard' | 'file' | 'stored' | 'driver' | 'restore';
 export type SaveFormat = 'stored' | 'owpr' | 'wpr' | 'archive';
 export type DriverSource = 'bundled' | 'mine' | 'import';
 

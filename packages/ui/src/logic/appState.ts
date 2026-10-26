@@ -191,6 +191,8 @@ export interface AppState {
   /** Record that `project` is now the stored project `identity` names (it was saved as a copy). */
   setOpenIdentity(project: OpenISDProject, identity: OpenProjectIdentity): void;
   restoreProjects(restored: OpenISDProject[], requestedFocus: number, traceHidden: ReadonlySet<OpenISDProject>): void;
+  /** Report the project state restored by the initial app boot (not cross-tab synchronization). */
+  recordStartupRestoredProjects(): void;
   requireFocusedProject(): OpenISDProject;
   duplicateFocusedProject(newName: string): void;
   readonly driverName: ComputedRef<string>;
@@ -435,6 +437,10 @@ export function createAppState(deps: AppStateDeps): AppState {
     }
     projects.value = restored.slice();
     focusedIndex.value = restored.length === 0 ? 0 : Math.min(Math.max(requestedFocus, 0), restored.length - 1);
+  }
+
+  function recordStartupRestoredProjects(): void {
+    for (const project of projects.value) recordOpen('restore', project);
   }
 
 
@@ -924,7 +930,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     differenceCuesShown, setDifferenceCuesShown, ventedLimits, setVentedLimits, envDefaults, setEnvDefaults,
     engine, appContext,
     openProjects, focusedProject, focusProject, removeProject, addProject, openProjectByIdentity,
-    openProjectOnce, replaceOpenProject, setOpenIdentity, restoreProjects, requireFocusedProject, duplicateFocusedProject,
+    openProjectOnce, replaceOpenProject, setOpenIdentity, restoreProjects, recordStartupRestoredProjects, requireFocusedProject, duplicateFocusedProject,
     driverName, projectDisplayName, projectHasUnsavedChanges, openDriverPicker, syncedP,
     curvesData: curves, maxData: max, paramIssues, allIssues, isModified, markProjectSaved,
     resetProjectToGround, newProject, boxTypeIsSimulatable, IMPLEMENTED_BOX_TYPES,
