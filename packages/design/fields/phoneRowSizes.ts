@@ -57,22 +57,35 @@ export class PhoneRowSizes {
 
 /** The widths across a classic phone row: label, ▲▼ area, unit chip, and the text gutter in the box. */
 export class PhoneRowColumns {
-  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 14);
+  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 56, 14, 24, 20, 4);
   /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
-  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 14);
+  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 56, 14, 24, 20, 4);
   /** The driver editor's General tab, whose labels are longer. */
-  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 14);
+  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 56, 14, 24, 20, 4);
 
   private constructor(
     /** The label column. */
     readonly labelPx: number,
     /** The ▲▼ area; readouts and selects leave it empty. */
     readonly stepperPx: number,
-    /** The smallest width of a unit chip. */
+    /** The unit chip's column: every chip is exactly this wide, so the badge and ⚠ beside it sit where the row says. */
     readonly chipMinPx: number,
+    /** The chip column for a long unit label (`chipIsWide`), such as 1000/K. */
+    readonly chipWidePx: number,
     /** The gap between the box's left edge and its text. */
     readonly textGutterPx: number,
+    /** The ≠W badge's column inside the box, left of the unit chip; the text stops short of it. */
+    readonly cuePx: number,
+    /** The ⚠ button's column inside the box, left of the badge (or the chip); the text stops short of it. */
+    readonly dqPx: number,
+    /** The gap between neighbours inside the box: text | ⚠ | ≠W | chip. */
+    readonly gapPx: number,
   ) {}
+
+  /** A unit label longer than four characters (1000/K, cu ft) needs the wide chip column. */
+  static chipIsWide(label: string): boolean {
+    return label.length > 4;
+  }
 
   /** The widths as CSS custom properties. */
   cssVars(): ReadonlyMap<string, string> {
@@ -80,7 +93,11 @@ export class PhoneRowColumns {
       ['--mob-col-label', `${this.labelPx}px`],
       ['--mob-col-stepper', `${this.stepperPx}px`],
       ['--mob-col-chip-min', `${this.chipMinPx}px`],
+      ['--mob-col-chip-wide', `${this.chipWidePx}px`],
       ['--mob-col-gutter', `${this.textGutterPx}px`],
+      ['--mob-col-cue', `${this.cuePx}px`],
+      ['--mob-col-dq', `${this.dqPx}px`],
+      ['--mob-col-gap', `${this.gapPx}px`],
     ]);
   }
 }

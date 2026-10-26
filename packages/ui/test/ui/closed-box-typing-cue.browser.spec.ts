@@ -40,6 +40,20 @@ for (const skin of ['desktop', 'mobile'] as const) {
       expect(await inputWidth('Qtc')).toBe(await inputWidth(volume));
     });
 
+    test('the cue never covers the value: the box keeps its text clear of the badge', async ({appPage: page}) => {
+      await setFocusedBoxType(page, 'sealed');
+      for (const label of ['Fsc', 'Qtc'] as const) {
+        const row = page.locator('.ui-field', {has: page.locator('label', {hasText: new RegExp(`^${label}$`)})});
+        const input = row.locator('input').first();
+        const box = (await input.boundingBox()) ?? {x: NaN, width: NaN};
+        const cue = (await cueOf(page, label).boundingBox()) ?? {x: NaN};
+        expect(await input.evaluate(el => getComputedStyle(el).textAlign), `${label}: phone values start at the left gutter, desktop values end at the right`).toBe(skin === 'mobile' ? 'left' : 'right');
+        const padRight = await input.evaluate(el => parseFloat(getComputedStyle(el).paddingRight));
+        const textRight = box.x + box.width - padRight;
+        expect(textRight, `${label}: text area ends at ${textRight}, badge starts at ${cue.x}`).toBeLessThanOrEqual(cue.x);
+      }
+    });
+
     test('a vented box has no such field and no cue', async ({appPage: page}) => {
       await setFocusedBoxType(page, 'vented');
       await expect(cueOf(page, 'Fsc')).toHaveCount(0);
