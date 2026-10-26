@@ -1392,18 +1392,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
 .adv-air-fields .field .unit { min-width:auto; }
-.adv-air-fields .field.ui-field { grid-template-columns:108px max-content max-content auto; column-gap:2px; }
+.adv-air-fields .field.ui-field { grid-template-columns:108px var(--ui-value-w) 0px 16px; column-gap:2px; }
 .adv-air-fields .field.ui-field :deep(.ui-field-unit), .adv-air-fields .field.ui-field :deep(.ui-field-dq) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
 .adv-air-fields .field-row { margin-bottom: 4px; }
-.adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
-.adv-air-fields .field-row:nth-child(4),
-.adv-air-fields .field-row:nth-child(5) { grid-column:2; }
-.adv-air-fields .field-row:nth-child(4) { grid-row:1; }
-.adv-air-fields .field-row:nth-child(5) { grid-row:2; }
+/* One column: a phone-sized air field is too wide to pair beside another (T595). */
 .adv-air-fields .field-row:nth-child(4) label,
 .adv-air-fields .field-row:nth-child(5) label { width:92px; margin-right:4px; }
-.adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; margin-top:2px; }
+.adv-air-fields .reset-air-btn { justify-self:start; margin-top:2px; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
