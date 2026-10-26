@@ -579,7 +579,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             </div>
             <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
               @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-            <div class="two-col" style="gap:12px;">
+            <div class="two-col" style="gap:4px 12px;">
               <div style="--label-w:36px; flex: 0 1 auto; min-width: 0;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div style="display: flex; flex-wrap: wrap; column-gap: 26px; row-gap: 0; margin-bottom: 0;">
@@ -1292,7 +1292,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .graph-empty-link:hover { color:#0b4f9e; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; max-height:60vh; min-height:361px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; max-height:60vh; min-height:381px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-start; gap:6px; align-self:stretch; }
 /* Revert sits at the rail's BOTTOM, under whichever tab is showing (John, 2026-09-25: "put it
@@ -1322,8 +1322,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    other — the exact overlap `original-shell-layout.browser.spec.ts` locks out. */
 /* Columns of phone-sized controls (T595) do not always fit side by side at 1280 px: a column that does not fit drops below. */
 .two-col { display:flex; flex-wrap:wrap; gap:8px 24px; align-items:flex-start; justify-content:flex-start; }
-.two-col > .pr-user-options { flex: 0 1 auto; min-width: 0; }
-.pr-user-options .field-row { flex-wrap: wrap; }
+.two-col > .pr-user-options { flex: 0 1 auto; min-width: 0; display: flex; flex-wrap: wrap; column-gap: 16px; }
+.pr-user-options > .section-header { flex-basis: 100%; }
+/* Phone-sized fields flow two to a row instead of one row each, so the tab fits the bottom panel (T595). */
+.pr-user-options > .field-row { display: contents; }
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
 .box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
@@ -1453,10 +1455,10 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label { display:flex; align-items:center; gap:6px; }
 .checkbox-col label input[type=checkbox] { flex:none; }
 
-.adv-two-col { gap: 8px; align-items: flex-start; }
-.adv-left-col { display: flex; flex-direction: column; gap: 4px; flex: none; width: 420px; }
+.adv-two-col { gap: 8px; align-items: flex-start; flex-wrap: nowrap; } /* a narrow pane scrolls sideways (John, 2026-10-05) */
+.adv-left-col { display: flex; flex-direction: column; gap: 4px; flex: none; width: 380px; }
 /* The standard WinISD options: one line each, as wide as the longest (John, 2026-10-05). */
-.adv-two-col .checkbox-col { margin-left: 0; width: max-content; }
+.adv-two-col .checkbox-col { margin-left: 0; width: auto; } /* the left column's 380 px; the transmission-line label may take two lines */
 .adv-two-col .checkbox-col :deep(.adv-options) {
   display: grid;
   grid-template-rows: repeat(3, auto);

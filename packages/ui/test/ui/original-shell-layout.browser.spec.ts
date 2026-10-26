@@ -166,7 +166,11 @@ test.describe('Original shell layout', () => {
 
       await page.evaluate(() => localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, originalBottomH: 300 } })));
       await page.reload();
-      expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
+      const tabs = await page.locator('.content-panel').evaluate(el => [...el.querySelectorAll('.tab-section')].map(t => {
+        const bottom = Math.max(0, ...[...t.querySelectorAll('*')].map(k => k.getBoundingClientRect().bottom));
+        return `${t.querySelector('.section-header, h3, .vent-col-title')?.textContent?.trim() ?? '?'}: ${Math.round(bottom - t.getBoundingClientRect().top)}`;
+      }).join(', '));
+      expect((await page.locator('.content-panel').boundingBox())!.height, tabs).toBe(before.height);
     });
   });
 
@@ -227,9 +231,13 @@ test.describe('Original shell layout', () => {
       // One height for the tallest tab of any box type (John, 2026-10-15).
       expect(distinct, `panel height per box type: ${JSON.stringify(heights)}`).toHaveLength(1);
       expect(maxClip, 'the 7-tab rail must not be clipped by the fixed height').toBeLessThanOrEqual(1);
-      // Natural height, not stretched to fill: the tallest content is ~181px + panel chrome.
-      // A regression that let the row grow toward 45vh (~405px at 900px tall) fails here.
-      expect(distinct[0]).toBeLessThan(240);
+      // Natural height, not stretched to fill: the tallest content is ~360px + panel chrome with
+      // the phone-sized rows (T595). A row stretched to the 60vh cap (432px at 720px tall) fails here.
+      const tallest = await page.locator('.content-panel').evaluate(el => [...el.querySelectorAll('.tab-section')].map(t => {
+        const bottom = Math.max(0, ...[...t.querySelectorAll('*')].map(k => k.getBoundingClientRect().bottom));
+        return `${t.querySelector('.section-header, h3, .vent-col-title')?.textContent?.trim() ?? '?'}: ${Math.round(bottom - t.getBoundingClientRect().top)}`;
+      }).join(', '));
+      expect(distinct[0], tallest).toBeLessThan(400);
     });
   });
 

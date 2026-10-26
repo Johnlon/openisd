@@ -389,3 +389,19 @@ a { color:var(--acc) }
 .app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field .ui-field-dq { grid-row: 2; grid-column: 3; }
 .app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field .ui-field-value input { width: var(--dt-box-w); }
 .app-root:not(.app-root-mobile) .vent-pane-tight .vent-groups { flex-wrap: wrap; }
+/* With the phone control, two fields per port row stack the three ports far taller than the
+   bottom panel. Each port takes the full width instead, with three fields to a row. */
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-col { flex: 1 1 100%; display: grid; grid-template-columns: repeat(3, max-content); column-gap: 8px; align-items: start; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-col > .vent-col-title,
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-col > .vent-col-hint { grid-column: 1 / -1; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-col > .vent-port-row { display: contents; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-groups { row-gap: 4px; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-port-row > .ui-field { min-height: auto; row-gap: 0; }
+.app-root:not(.app-root-mobile) .vent-pane-tight .vent-col > .vent-port-row:nth-child(2) { display: flex; }
+/* Passive radiator user options: label above the box, so three fit to a row and the tab fits the bottom panel. */
+.app-root:not(.app-root-mobile) .pr-user-options .ui-field { grid-template-columns: var(--ui-value-w) 0 16px 16px; min-height: auto; row-gap: 0; }
+.app-root:not(.app-root-mobile) .pr-user-options .ui-field > label { grid-row: 1; grid-column: 1 / -1; width: auto; font-size: 11px; line-height: 12px; }
+.app-root:not(.app-root-mobile) .pr-user-options .ui-field .ui-field-value,
+.app-root:not(.app-root-mobile) .pr-user-options .ui-field span.unit-label.ui-field-unit { grid-row: 2; grid-column: 1; }
+.app-root:not(.app-root-mobile) .pr-user-options .ui-field .ui-field-dq { grid-row: 2; grid-column: 3; }
+.app-root:not(.app-root-mobile) .pr-user-options .ui-field .ui-field-dev { grid-row: 2; grid-column: 4; }

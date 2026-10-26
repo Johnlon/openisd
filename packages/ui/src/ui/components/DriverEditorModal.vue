@@ -1253,7 +1253,13 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    left a one-field row above a full one. */
 /* The phone row is as tall as its ▲▼ pair; the shell's 40px field floor would pad the editor out.
    Never 0: an auto grid row in a height-capped modal shrinks to its fields' floor and they overlap. */
-.de-desktop .de-fld { min-height: 36px !important; }
+.de-desktop .de-fld { min-height: 36px !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+/* Tight rows so Parameters fits a 1280 x 800 window with phone-sized rows (T595). */
+.de-desktop .de-params { row-gap: 1px !important; }
+.de-desktop .de-params .de-hdr { margin-top: 0 !important; }
+.de-desktop .de-body { padding-top: 6px !important; padding-bottom: 6px !important; }
+/* The missing-data list scrolls past three lines, as it already did past seven. */
+.de-desktop .de-incomplete-list { max-height: 4.2em !important; }
 /* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
    it read as "Paralle" with the last letter clipped. Widened just for this one field. */
 .de-desktop .de-conn-sel { width: 96px !important; }
