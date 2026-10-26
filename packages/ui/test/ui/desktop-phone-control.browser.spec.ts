@@ -124,6 +124,22 @@ test.describe('desktop number controls are the phone control', () => {
     await expect(input).toHaveValue('12.50');
   });
 
+  test('an Fb target of 35.90024611 shows whole on the Box and Vented tabs', async ({page}) => {
+    await page.setViewportSize({width: 1280, height: 800});
+    await setFocusedBoxType(page, 'vented');
+    await openTab(page, 'Box');
+    const box = page.locator('#og-fb-target');
+    await typeInto(box, '35.90024611');
+    await box.press('Tab');
+    for (const [tab, id] of [['Box', '#og-fb-target'], ['Vented', '#og-vent-fb-target']] as const) {
+      await openTab(page, tab);
+      const input = page.locator(id);
+      await expect(input).toHaveValue(/^35\.9/);
+      const cut = await input.evaluate((el: HTMLInputElement) => el.scrollWidth > el.clientWidth + 1);
+      expect(cut, `${tab}: Fb target "${await input.inputValue()}" is cut off`).toBe(false);
+    }
+  });
+
   for (const size of [{width: 1280, height: 800}, {width: 1400, height: 900}]) {
     test(`at ${size.width} x ${size.height} no control is cut off, covered or overlapping, on every tab and box type`, async ({page}) => {
       await page.setViewportSize(size);
