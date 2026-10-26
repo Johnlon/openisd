@@ -21,8 +21,12 @@ const project_screens = SCREENS.filter(s => s.name !== 'empty');
 for (const screen of project_screens) {
   test(`unit labels are dotted-underlined ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
+    const unwrappedNumeric = await page.locator('input[data-numinput]:visible, input[type=number]:visible').evaluateAll(inputs => inputs
+      .filter(input => input.closest('.ui-field') === null)
+      .map(input => `${input.getAttribute('aria-label') ?? input.getAttribute('name') ?? '(unlabelled)'}: outside .ui-field`));
+    expect(unwrappedNumeric, `numeric controls outside the shared field component on ${screen.skin.name} ${screen.name}`).toEqual([]);
     const untagged = await page.locator('.ui-field:visible').evaluateAll(rows => rows.filter(row =>
-      row.querySelector('[data-numinput], .ui-field-value > .calculated') !== null,
+      row.querySelector('[data-numinput], input[type=number], .ui-field-value > .calculated') !== null,
     ).map(row => {
       // UIFieldBody's third grid child is the unit slot. Inspect the slot by position so this
       // audit still catches a unit that forgot the UnitToggle/unit-label marker entirely.
@@ -79,24 +83,31 @@ for (const screen of mobile_screens) {
     await screen.open(page);
     const misplaced = await page.locator('.mob-classic .ui-field:visible').evaluateAll(rows => rows.flatMap(row => {
       const label = row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)';
+      const numeric = row.querySelector('[data-numinput], input[type=number], .ui-field-value > .calculated');
+      if (!numeric) return [];
       const unit = row.querySelector<HTMLElement>('.ui-field-unit');
-      if (!unit || !unit.textContent?.trim()) return [];
+      const hasUnit = unit !== null && unit.textContent?.trim() !== '';
       const control = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value .mob-readonly');
-      if (!control) return [`${label}: unit has no value control`];
-      const ur = unit.getBoundingClientRect();
-      const cr = control.getBoundingClientRect();
       const rr = row.getBoundingClientRect();
       const inside = (r: DOMRect, outer: DOMRect) => r.left >= outer.left - 0.5 && r.top >= outer.top - 0.5
         && r.right <= outer.right + 0.5 && r.bottom <= outer.bottom + 0.5;
       const problems: string[] = [];
-      if (!inside(ur, cr)) problems.push(`${label}: unit is outside its value control`);
-      if (!inside(ur, rr)) problems.push(`${label}: unit is outside its field row`);
+      if (hasUnit && !control) problems.push(`${label}: unit has no value control`);
+      if (hasUnit && control && unit) {
+        const ur = unit.getBoundingClientRect();
+        const cr = control.getBoundingClientRect();
+        if (!inside(ur, cr)) problems.push(`${label}: unit is outside its value control`);
+        if (!inside(ur, rr)) problems.push(`${label}: unit is outside its field row`);
+      }
       for (const cue of row.querySelectorAll<HTMLElement>('.ui-field-dq-btn, .winisd-deviation-cue')) {
         if (!cue.getClientRects().length) continue;
         const qr = cue.getBoundingClientRect();
         if (!inside(qr, rr)) problems.push(`${label}: ${cue.className} is outside its field row`);
-        if (qr.left < ur.right - 0.5 && qr.right > ur.left + 0.5 && qr.top < ur.bottom - 0.5 && qr.bottom > ur.top + 0.5) {
-          problems.push(`${label}: ${cue.className} overlaps the unit`);
+        if (hasUnit && unit) {
+          const ur = unit.getBoundingClientRect();
+          if (qr.left < ur.right - 0.5 && qr.right > ur.left + 0.5 && qr.top < ur.bottom - 0.5 && qr.bottom > ur.top + 0.5) {
+            problems.push(`${label}: ${cue.className} overlaps the unit`);
+          }
         }
       }
       return problems;

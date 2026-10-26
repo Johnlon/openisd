@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: b0bbda968d7422edf568259c20cb8f8cc1d7bdba
 goal: Match mobile alignment fields to the standard control, fix driver-summary spacing, shorten PR labels, and lock down unit and adornment consistency.
 done_test: bash scripts/test.sh packages/design/test/fields/phoneText.test.ts && bash scripts/quiet-test.sh npm run typecheck
 visual: []
