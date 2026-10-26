@@ -581,7 +581,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const bottomCollapsed = computed({ get: () => presentationState.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalBottomCollapsed = v; } });
   const chartMax = computed({ get: () => presentationState.ui.originalChartMax ?? false, set: (v: boolean) => { presentationState.ui.originalChartMax = v; } });
   const mainStyle = computed(() => chartMax.value ? {} : {
-    gridTemplateColumns: (navCollapsed.value ? '0px' : Math.max(270, presentationState.ui.originalNavW ?? 270) + 'px') + ' 7px 1fr',
+    gridTemplateColumns: (navCollapsed.value ? '0px' : 'max(270px, ' + (presentationState.ui.originalNavW ?? 270) + 'px)') + ' 7px 1fr',
     gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : 'auto'),
   });
   function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {

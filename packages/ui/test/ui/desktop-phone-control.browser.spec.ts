@@ -40,13 +40,14 @@ async function lookOf(field: Locator): Promise<ControlLook> {
     const buttons = [...f.querySelectorAll('.num-stepper-btn')];
     const ir = input?.getBoundingClientRect(), ur = unit?.getBoundingClientRect();
     const [a, b] = buttons.map(x => x.getBoundingClientRect());
+    const place: Record<string, number | boolean> = ir && ur && a && b ? {
+      unitInsetRight: Math.round(ir.right - ur.right), unitTop: Math.round(ur.top - ir.top),
+      boxToButton: Math.round(a.left - ir.right), buttonGap: Math.round(b.left - a.right),
+      buttonsSideBySide: Math.abs(a.top - b.top) < 0.5, buttonTopFromBox: Math.round(a.top - ir.top),
+    } : {};
     return {
       box: pick(input, keys.box), unit: pick(unit, keys.unit), button: pick(buttons[0] ?? null, keys.button),
-      place: ir && ur && a && b ? {
-        unitInsetRight: Math.round(ir.right - ur.right), unitTop: Math.round(ur.top - ir.top),
-        boxToButton: Math.round(a.left - ir.right), buttonGap: Math.round(b.left - a.right),
-        buttonsSideBySide: Math.abs(a.top - b.top) < 0.5, buttonTopFromBox: Math.round(a.top - ir.top),
-      } : {},
+      place,
     };
   }, {box: Object.keys(PHONE.box), unit: Object.keys(PHONE.unit), button: Object.keys(PHONE.button)});
 }
