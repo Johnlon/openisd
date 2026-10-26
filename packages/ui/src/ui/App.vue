@@ -11,6 +11,7 @@ import {PHONE_DRIVER_EDITOR_SKIN} from './components/driverEditorSkin.js';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import SplashModal from './components/SplashModal.vue';
+import AnnouncementsModal from './components/AnnouncementsModal.vue';
 import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import {bootApplication} from '../logic/boot.js';
@@ -26,12 +27,14 @@ import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hoo
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
+import {useAnnouncementCenter} from '../hooks/Announcements-hooks.js';
 import CrashScreen from './components/CrashScreen.vue';
 
 const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch, actions: recentActions } = useTelemetryUi();
+const announcements = useAnnouncementCenter();
 
 watch(() => presentationState.newProjectOpen, open => { if (open) recentActions.record('dialog:new-project'); });
 watch(() => presentationState.editDriverInfo, open => { if (open) recentActions.record('dialog:driver-editor'); });
@@ -107,6 +110,7 @@ onMounted(async () => {
     presentation: presentationState,
     recordedProjectId,
   });
+  void announcements.load();
   viewStateRepo.save(currentViewSnapshot());
   projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
   stopSessionSync = startSessionSync({ projectRepo, viewStateRepo, appState });
@@ -166,6 +170,8 @@ onUnmounted(() => {
     <DiagnosticsModal />
     <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
     <SplashModal />
+    <!-- Versioned announcements remain available from Info/App menus after dismissal. -->
+    <AnnouncementsModal />
     <!-- Help → "OpenISD and WinISD differences"; also opened by the group headings and ≠W cues. -->
     <WinisdDifferencesModal />
     <!-- In-app confirm dialog, hosted once for both skins. -->

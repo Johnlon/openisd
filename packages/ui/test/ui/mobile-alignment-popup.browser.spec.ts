@@ -7,14 +7,14 @@ import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, test} from '..
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {PhoneRowSizes} from '@openisd/design/fields';
 
-test.beforeEach(async ({ appPage: page }) => {
+test.beforeEach(async ({page}) => {
   await forceMobileSkin(page);
   await page.goto('/');
   await openAMobileProject(page);
 });
 
 test.describe('MobileAlignmentPopup', () => {
-  test('the sealed sheet picks an alignment and writes its volume on Accept', async ({ appPage: page }) => {
+  test('the sealed sheet picks an alignment and writes its volume on Accept', async ({page}) => {
     await page.locator('#mob-box-type').selectOption('sealed');
     await expect(page.locator('.mob-clink', { hasText: 'Choose alignment' })).toBeVisible();
 
@@ -32,7 +32,7 @@ test.describe('MobileAlignmentPopup', () => {
     await expect(volumeField).toHaveValue(/20/);
   });
 
-  test('the vented sheet picks an alignment and writes volume + tuning on Accept', async ({ appPage: page }) => {
+  test('the vented sheet picks an alignment and writes volume + tuning on Accept', async ({page}) => {
     // The default sample project has no T/S params, so ventedDesign() has nothing to compute from
     // (recalculate() would silently no-op) — needs COMPLETE_DRIVER_PROJECT_OWPR's real Fs/Qes/Vas.
     await openAMobileProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
@@ -57,7 +57,7 @@ test.describe('MobileAlignmentPopup', () => {
     await expect(volumeField).not.toHaveValue('');
   });
 
-  test('Cancel discards the sheet\'s draft without touching the volume field', async ({ appPage: page }) => {
+  test('Cancel discards the sheet\'s draft without touching the volume field', async ({page}) => {
     await page.locator('#mob-box-type').selectOption('sealed');
     const volumeField = mobileFieldRow(page, 'Vb').locator('input').first();
     await volumeField.fill('15');
@@ -72,7 +72,7 @@ test.describe('MobileAlignmentPopup', () => {
     await expect(volumeField).toHaveValue(/15/);
   });
 
-  test('Escape closes the sheet like Cancel', async ({ appPage: page }) => {
+  test('Escape closes the sheet like Cancel', async ({page}) => {
     await page.locator('#mob-box-type').selectOption('sealed');
     const volumeField = mobileFieldRow(page, 'Vb').locator('input').first();
     await volumeField.fill('15');
@@ -88,7 +88,7 @@ test.describe('MobileAlignmentPopup', () => {
 });
 
 // BUG_20261005_no-common-ui-field-component: the sealed sheet's Volume is a field row with ▲▼ step buttons.
-test('the sealed sheet Volume has step buttons, ▲ changes it, and the sheet fits the phone', async ({ appPage: page }) => {
+test('the sealed sheet Volume has step buttons, ▲ changes it, and the sheet fits the phone', async ({page}) => {
   await page.setViewportSize({ width: 374, height: 705 });
   await page.locator('#mob-box-type').selectOption('sealed');
   await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
@@ -111,7 +111,7 @@ test('the sealed sheet Volume has step buttons, ▲ changes it, and the sheet fi
 
 // BUG_20261018_box-advanced-buttons-under-44: the sheet's Cancel and Accept are the one phone button.
 for (const box of ['sealed', 'vented'] as const) {
-  test(`the ${box} alignment sheet's Cancel and Accept are PhoneRowSizes.BUTTON_PX tall`, async ({ appPage: page }) => {
+  test(`the ${box} alignment sheet's Cancel and Accept are PhoneRowSizes.BUTTON_PX tall`, async ({page}) => {
     await page.locator('#mob-box-type').selectOption(box);
     await page.locator('.mob-clink', { hasText: 'Choose alignment' }).click();
     for (const name of ['Cancel', 'Accept']) {

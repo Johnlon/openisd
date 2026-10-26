@@ -88,7 +88,7 @@ dispatch_production_deploy() {
   # Pages only permits the main branch in its deployment environment. The caller already has
   # authenticated gh access to promote this release; dispatch from that allowed branch and have
   # deploy.yml verify that the public build ID is this release before it reports success.
-  gh workflow run deploy.yml --ref main --field expected_build_id="$release_tag"
+  gh workflow run deploy.yml --ref main --field publish_production=true --field expected_build_id="$release_tag"
   echo "release: production deploy dispatched from main for $release_tag"
 }
 

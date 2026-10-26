@@ -138,22 +138,26 @@ function write(v: number | null, precision?: number): void {
   /* The box, its gap and the ▲▼ pair. */
   --stepper-w: var(--ctl-stepper-w, 14px);
   --stepper-h: var(--ctl-h, 20px);
+  --ui-field-column-gap: 4px;
   --ui-value-w: calc(90px + 2px + 2 * var(--stepper-w));
   display: grid;
-  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) 34px 16px 16px;
-  column-gap: 4px;
+  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) 34px 16px minmax(16px, max-content);
+  column-gap: var(--ui-field-column-gap);
   align-items: baseline;
   position: relative; flex: none;
 }
-.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) 90px 34px 16px 16px; }
+.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) 90px 34px 16px minmax(16px, max-content); }
 .ui-field-readout .ui-field-value { width: 90px; }
+/* A switchable readout unit is part of the same control, with no white gutter between the value
+   and its unit chip. The unit component owns the grey background and border. */
+.ui-field > :deep(.ui-field-unit.unit-toggle) { margin-left: calc(-1 * var(--ui-field-column-gap)); border-left: 0; }
 .ui-field > label { grid-column: 1; white-space: nowrap; }
 .ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: var(--ui-value-w); flex: none; grid-column: 2; }
 /* FIXED width, the same in every unit: the box never resizes when its unit is cycled. Wide
    enough for the longest value any field shows in any unit (a Vas in cu in, a Vd in cu ft). */
 .ui-field-value :deep(input) { width: 90px; height: var(--ctl-h); box-sizing: border-box; }
 .ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }
-.ui-field-dev { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 5; }
+.ui-field-dev { display: inline-flex; justify-content: center; min-width: 16px; width: auto; flex: none; grid-column: 5; }
 .ui-field-dq-btn {
   border: none; background: none; padding: 0 2px; margin: 0;
   font-family: inherit; font-size: 15px; line-height: 1; color: #d68a00; cursor: help;

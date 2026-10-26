@@ -49,18 +49,19 @@ function activate() {
 <style scoped>
 /* The cue that a unit label has a tooltip and can be clicked to change units. Owned here so every
    caller, on every skin, shows it whatever class it passes (T373). A plain label has none. */
+.unit-label { background: #fff; }
+.unit-label:empty { background: transparent; }
 .unit-toggle {
-  cursor: pointer;
-  text-decoration: underline dotted;
-  text-decoration-thickness: 1px;
+  box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 6px; background: #efefef; color: #555;
+  border: 1px solid #cfcfcf; border-radius: 0 3px 3px 0;
+  cursor: pointer; text-decoration: underline dotted; text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 .unit-toggle:hover { color: #1868d1; }
 </style>
 <style>
-/* On phones every unit label is bold on white; a switchable unit becomes a grey control chip with
-   an edge on its left. This is the one place that draws it, so every unit looks the same on every
-   phone page, sheet, and global modal. A rotating one adds the blue underline above. */
+/* On phones the same switchable-unit chip is bold and aligned to the phone field sizing. */
 /* span.unit-label: one element more specific than a caller's scoped unit class (e.g. UIFieldBody's
    .ui-field-unit colour), so the chip wins whatever order the styles load in. */
 .app-root-mobile span.unit-label {
@@ -70,13 +71,8 @@ function activate() {
 }
 .app-root-mobile span.unit-label:empty { background: transparent; }
 .app-root-mobile span.unit-label.unit-toggle {
-  padding: 0 6px; background: #efefef;
-  border: 1px solid #cfcfcf;
-  border-radius: 0 3px 3px 0;
-  text-decoration: underline solid;
-  text-decoration-color: #1868d1;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 5px;
+  padding: 0 6px; font-weight: 600; background: #efefef; text-decoration: underline solid;
+  text-decoration-color: #1868d1; text-decoration-thickness: 1px; text-underline-offset: 5px;
 }
 .app-root-mobile span.unit-toggle:hover { color: #1868d1; }
 </style>

@@ -85,6 +85,8 @@ import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
 import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
+import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
+import {createAnnouncementCenter} from './logic/announcementCenter.js';
 import {newUuid} from '@openisd/design';
 import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
@@ -418,6 +420,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     .directive('limits', vLimits);
 
   provideCloudSync(app, cloudSync, cloudUi);
+  provideAnnouncementCenter(app, createAnnouncementCenter(window.localStorage, window.fetch.bind(window)));
   provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,

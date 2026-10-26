@@ -160,6 +160,11 @@ export const SCREENS = [
   { key: 'about', label: 'About (splash on demand)', vp: [DESKTOP], covers: ['SplashModal'], act: (p) => infoMenuItem(p, 'About OpenISD') },
   { key: 'differences', label: 'OpenISD and WinISD differences', vp: [DESKTOP], covers: ['WinisdDifferencesModal'], act: (p) => infoMenuItem(p, 'OpenISD and WinISD differences') },
   { key: 'diagnostics', label: 'Diagnostics', vp: [DESKTOP], covers: ['DiagnosticsModal'], act: (p) => infoMenuItem(p, 'Diagnostics') },
+  { key: 'announcements', label: 'Announcements archive', vp: BOTH, covers: ['AnnouncementsModal'], act: async (p) => {
+      if (p.viewportSize().width > 800) await infoMenuItem(p, 'Announcements');
+      else await phoneMenuItem(p, 'Announcements');
+      await p.locator('.ann-modal').waitFor(T);
+    } },
   // phone
   { key: 'menu', label: 'Menu open', vp: [PHONE], covers: ['MobileShell'], act: openPhoneMenu },
   { key: 'tab-driver', label: 'Driver tab', vp: [PHONE], covers: ['MobileDriverTab', 'MobileKeyStrip', 'PhoneBand', 'PhoneClassicPage'], act: (p) => clickBtn(p, 'Driver') },

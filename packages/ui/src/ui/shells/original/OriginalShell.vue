@@ -35,6 +35,7 @@ import OriginalProjectList from './OriginalProjectList.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {INSTALL_URL} from '../../siteLinks.js';
+import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
 
 const {
   cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
@@ -84,6 +85,7 @@ const {
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
 const diagnostics = injectDiagnosticsModal();
+const announcements = useAnnouncementCenter();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
 const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
@@ -133,6 +135,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </button>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
+            <div class="menu-item" @click="announcements.showList(); closeDropdown()">Announcements</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
             <div
               v-if="cloudAvailable"
@@ -1390,7 +1393,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
 .adv-air-fields .field .unit { min-width:auto; }
-.adv-air-fields .field.ui-field { grid-template-columns:108px max-content max-content auto; column-gap:2px; }
+.adv-air-fields .field.ui-field { --ui-field-column-gap:2px; grid-template-columns:108px max-content max-content auto; column-gap:var(--ui-field-column-gap); }
 .adv-air-fields .field.ui-field :deep(.ui-field-unit), .adv-air-fields .field.ui-field :deep(.ui-field-dq) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-value) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
