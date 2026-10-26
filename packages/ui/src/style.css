@@ -65,6 +65,13 @@ option.not-implemented { color:#999 }
 .row { display:flex; align-items:center; gap:6px; margin:3px 0 }
 .row label { flex:1; color:var(--mut) }
 .row input, .row select { width:96px; background:var(--panel2); border:1px solid var(--line); color:var(--fg); border-radius:4px; padding:3px 5px; font:inherit; text-align:right }
+/* Desktop number boxes drawn like the phone's classic boxes (.mob-classic below): thin light-grey
+   border, rounded corners, white, left-aligned. Size and text size stay the desktop row's (15px clips long values). */
+:where(body:not(:has(.mobile-root))) .num-input-wrap > input {
+  border: 1px solid #c4c4c4; border-radius: 4px; background: #fff;
+  font-family: inherit; padding: 0 6px; text-align: left; box-sizing: border-box;
+}
+:where(body:not(:has(.mobile-root))) .num-input-wrap > input:focus { border-color: var(--acc); outline: 1px solid var(--acc); }
 .row input.inp-bad { border-color:var(--bad); background:rgba(255,107,107,.1); color:var(--bad) }
 .row select { text-align:left; width:auto; flex:1 }
 /* Driver provenance marks — the CellClass values from composables/driverCells.ts, styled
