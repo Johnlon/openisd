@@ -70,7 +70,7 @@ async function brokenControls(page: Page): Promise<string[]> {
         const r = el.getBoundingClientRect();
         const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
         if (hit !== null && hit !== el && !el.contains(hit) && !(el === input && f.contains(hit))) out.push(`${name}: ${el === input ? 'box' : 'button'} covered`);
-        if (r.right > innerWidth + 0.5) out.push(`${name}: past the window edge`);
+        if (r.right > innerWidth + 0.5) out.push(`${name}: past the window edge (${Math.round(r.right)} > ${innerWidth})`);
       }
       const fr = f.getBoundingClientRect();
       for (const o of live) if (o !== f && layer(o) === layer(f) && overlap(fr, o.getBoundingClientRect())) out.push(`${name}: overlaps ${o.querySelector('label')?.textContent?.trim()}`);
@@ -110,9 +110,9 @@ test.describe('desktop number controls are the phone control', () => {
     const volume = fieldByLabel(page, /^Volume$/);
     const input = volume.locator('.ui-field-value input');
     const before = await input.inputValue();
-    await volume.getByRole('button', {name: 'Increase'}).click();
+    await volume.locator('.num-stepper-btn[title="Increase"]').click();
     await expect(input).not.toHaveValue(before);
-    await volume.getByRole('button', {name: 'Decrease'}).click();
+    await volume.locator('.num-stepper-btn[title="Decrease"]').click();
     await expect(input).toHaveValue(before);
     await typeInto(input, '12.5');
     await input.press('Tab');

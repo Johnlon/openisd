@@ -100,6 +100,13 @@ option.not-implemented { color:#999 }
   padding: 0 6px; background: #efefef; border: 1px solid #cfcfcf; border-radius: 0 3px 3px 0;
   text-decoration: underline solid; text-decoration-color: #1868d1; text-decoration-thickness: 1px; text-underline-offset: 5px;
 }
+/* Pick lists and text boxes beside them are the phone's classic box too (.mob-classic select), so a
+   row of mixed controls stays one height. */
+.app-root:not(.app-root-mobile) .field select, .app-root:not(.app-root-mobile) .step-content select,
+.app-root:not(.app-root-mobile) .field input[type=text]:not([data-numinput]), .app-root:not(.app-root-mobile) .step-content input[type=text]:not([data-numinput]) {
+  box-sizing: border-box; height: 34px; border: 1px solid #c4c4c4; border-radius: 4px; background-color: #fff;
+  font-size: 15px; padding: 0 0 0 14px;
+}
 .app-root:not(.app-root-mobile) .ui-field .num-stepper { display: flex; margin-left: 6px; gap: 4px; flex: none; }
 .app-root:not(.app-root-mobile) .ui-field .num-stepper-btn {
   width: 40px; height: 36px; padding: 0; font-family: Inter, system-ui, sans-serif; font-size: 18px; color: #222;

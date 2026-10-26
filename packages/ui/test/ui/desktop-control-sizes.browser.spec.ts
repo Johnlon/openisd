@@ -3,7 +3,7 @@ import type {Page} from '@playwright/test';
 import {DesktopSizes} from '@openisd/design/fields';
 
 /**
- * The desktop ▲▼ buttons and footer buttons are one size on every screen: the New project wizard, the
+ * The desktop ▲▼ buttons (the phone's classic pair, T595) and footer buttons are one size on every screen: the New project wizard, the
  * Box tab and Options. The sizes come from `DesktopSizes`; this spec measures what is on screen.
  * (John, 17 Oct 2026: "the buttons are tiny on desktop and completely inconsistent".)
  */
@@ -45,9 +45,10 @@ test('the ▲▼ pair is one size on the wizard and the Box tab (Options joins w
   expect(await coveredArrows(page, '.overlay.open'), 'wizard arrows clipped or covered').toBe(0);
 
   const all = new Set([...boxTab, ...wizard]);
-  expect([...all], `Box tab ${boxTab[0]}, wizard ${wizard[0]}`).toEqual([`${DesktopSizes.STEPPER_W_PX}x${DesktopSizes.CONTROL_H_PX}`]);
+  // T595: the pair is the phone's classic ▲▼ (40 x 36) beside the phone's 34 px box.
+  expect([...all], `Box tab ${boxTab[0]}, wizard ${wizard[0]}`).toEqual(['40x36']);
   const input = await page.locator('#np-vented-volume').boundingBox();
-  expect(Math.round(input?.height ?? 0), 'the arrows are as tall as the number box').toBe(DesktopSizes.CONTROL_H_PX);
+  expect(Math.round(input?.height ?? 0), 'the number box is the phone box height').toBe(34);
 
   const footer = await sizesOf(page, '.overlay.open .footer-buttons button');
   expect(footer, 'the wizard has Back, Next, Cancel').toHaveLength(3);

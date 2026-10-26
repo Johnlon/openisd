@@ -1320,7 +1320,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
    while this one's controls kept their own width, so the two painted on top of each
    other — the exact overlap `original-shell-layout.browser.spec.ts` locks out. */
-.two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
+.two-col { display:flex; flex-wrap:wrap; gap:8px 24px; align-items:flex-start; justify-content:flex-start; }
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
 .box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
