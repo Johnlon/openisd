@@ -1,0 +1,9 @@
+id: T595
+release_note: internal
+repo: openisd
+owner: claude
+status: open
+goal: Desktop (Original skin) number boxes use the same input box style as the phone (Mobile skin); preview branch for John to compare.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T595.yml
