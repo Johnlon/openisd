@@ -27,7 +27,9 @@ const entered = (q: Quantity): Record<Quantity, Provenance> =>
 
 for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
   test.describe(`${skin}: a closed box's Volume, Fsc and Qtc`, () => {
-    test.beforeEach(async ({appPage: page}) => {
+    // A real page is required here: appPage is a worker-scoped desktop page whose `goto('/')`
+    // is deliberately a no-op, so its init script cannot change the skin between tests.
+    test.beforeEach(async ({page}) => {
       if (skin === 'mobile') await forceMobileSkin(page);
       await page.goto('/');
       if (skin === 'mobile') await openAMobileProject(page); else await openAProject(page);
@@ -35,11 +37,11 @@ for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
       await fillAndCommit(input(page, 'Volume'), '20');
     });
 
-    test('a typed Volume is the entered one', async ({appPage: page}) => {
+    test('a typed Volume is the entered one', async ({page}) => {
       expect(await provenances(page)).toEqual(entered('Volume'));
     });
 
-    test('a typed Fsc is the entered one: Volume and Qtc follow it', async ({appPage: page}) => {
+    test('a typed Fsc is the entered one: Volume and Qtc follow it', async ({page}) => {
       const volumeBefore = await input(page, 'Volume').inputValue();
       const qtcBefore = await input(page, 'Qtc').inputValue();
       await fillAndCommit(input(page, 'Fsc'), '70');
@@ -49,7 +51,7 @@ for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
       await expect(input(page, 'Qtc')).not.toHaveValue(qtcBefore);
     });
 
-    test('clearing the typed Fsc hands the entry to Volume, with every value unchanged', async ({appPage: page}) => {
+    test('clearing the typed Fsc hands the entry to Volume, with every value unchanged', async ({page}) => {
       await fillAndCommit(input(page, 'Fsc'), '70');
       const shown = {Volume: await input(page, 'Volume').inputValue(), Qtc: await input(page, 'Qtc').inputValue()};
       await fillAndCommit(input(page, 'Fsc'), '');
@@ -59,7 +61,7 @@ for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
       await expect(input(page, 'Qtc')).toHaveValue(shown.Qtc);
     });
 
-    test('a typed Qtc is the entered one: Volume and Fsc follow it', async ({appPage: page}) => {
+    test('a typed Qtc is the entered one: Volume and Fsc follow it', async ({page}) => {
       const volumeBefore = await input(page, 'Volume').inputValue();
       await fillAndCommit(input(page, 'Qtc'), '0.8');
       expect(await provenances(page)).toEqual(entered('Qtc'));
@@ -67,7 +69,7 @@ for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
       await expect(input(page, 'Volume')).not.toHaveValue(volumeBefore);
     });
 
-    test('clearing the typed Qtc hands the entry to Volume, with every value unchanged', async ({appPage: page}) => {
+    test('clearing the typed Qtc hands the entry to Volume, with every value unchanged', async ({page}) => {
       await fillAndCommit(input(page, 'Qtc'), '0.8');
       const shown = {Volume: await input(page, 'Volume').inputValue(), Fsc: await input(page, 'Fsc').inputValue()};
       await fillAndCommit(input(page, 'Qtc'), '');
@@ -77,14 +79,14 @@ for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
       await expect(input(page, 'Fsc')).toHaveValue(shown.Fsc);
     });
 
-    test('a Volume typed after a Qtc takes the entry back', async ({appPage: page}) => {
+    test('a Volume typed after a Qtc takes the entry back', async ({page}) => {
       await fillAndCommit(input(page, 'Qtc'), '0.8');
       await fillAndCommit(input(page, 'Volume'), '25');
       expect(await provenances(page)).toEqual(entered('Volume'));
       await expect(input(page, 'Volume')).toHaveValue(/^25/);
     });
 
-    test('clearing the typed Volume hands the entry to Qtc, with every value unchanged', async ({appPage: page}) => {
+    test('clearing the typed Volume hands the entry to Qtc, with every value unchanged', async ({page}) => {
       const shown = {Qtc: await input(page, 'Qtc').inputValue(), Fsc: await input(page, 'Fsc').inputValue()};
       await fillAndCommit(input(page, 'Volume'), '');
       expect(await provenances(page)).toEqual(entered('Qtc'));

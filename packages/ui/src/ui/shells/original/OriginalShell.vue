@@ -35,6 +35,7 @@ import OriginalProjectList from './OriginalProjectList.vue';
 import {useOriginalShell} from '../../../hooks/OriginalShell-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {INSTALL_URL} from '../../siteLinks.js';
+import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
 
 const {
   cloudAvailable, cloudDisplay, cloudDialogOpen, openCloudDialog, closeCloudDialog,
@@ -84,6 +85,7 @@ const {
 } = useOriginalShell();
 const winisdDifferences = injectWinisdDifferencesModal();
 const diagnostics = injectDiagnosticsModal();
+const announcements = useAnnouncementCenter();
 // The project announces its own writes (`projectChanged`), so a UIField has nothing to add.
 const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
@@ -133,6 +135,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </button>
           <div class="dropdown-menu" :class="{ open: openDd === 'info-dropdown' }" @click.stop>
             <div class="menu-item" @click="about(); closeDropdown()">About OpenISD</div>
+            <div class="menu-item" @click="announcements.showList(); closeDropdown()">Announcements</div>
             <a class="menu-item" :href="INSTALL_URL" target="_blank" rel="noopener" title="How to add OpenISD to your desktop or dock as an app." @click="closeDropdown()">Add to desktop as an app</a>
             <div
               v-if="cloudAvailable"
@@ -1376,21 +1379,21 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 }
 .field-row { display:flex; align-items:baseline; gap:8px; margin-bottom:6px; flex-wrap:nowrap; justify-content:flex-start; }
 .field:not(.ui-field) { display:flex; align-items:baseline; gap:4px; justify-content:flex-start; flex:none; }
-.field label, .field :deep(.ui-field-label) { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; flex:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.field input[type=text], .field input[type=number], .field select,
-.field :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; flex:none; }
+.field:where(:not(.ui-field)) label { color:#333; display:inline-block; width:var(--label-w, 150px); text-align:left; flex:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.field:where(:not(.ui-field)) input[type=text], .field:where(:not(.ui-field)) input[type=number], .field:where(:not(.ui-field)) select,
+.field:where(:not(.ui-field)) :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; flex:none; }
 .field.tight label { width:auto; margin-right:2px; }
 .driver-id-row { align-items:center; gap:10px; }
-/* A calculated readout row is as tall as the entered rows beside it (the old hand-built row was 1 px taller). */
-.field.ui-field-readout { padding-bottom:1px; }
-.field :deep(input.greyed) { background:#e9e9e9; color:#777; }
-.field :deep(input.calculated) { color:#1868d1; border-color:#1868d1; }
+/* These rules belong to the hand-built legacy fields only. UIFieldBody owns the standard
+   component's value box, provenance colour and unit-chip geometry. */
+.field:where(:not(.ui-field)) :deep(input.greyed) { background:#e9e9e9; color:#777; }
+.field:where(:not(.ui-field)) :deep(input.calculated) { color:#1868d1; }
 .adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:16px; align-items:start; }
 .adv-air-fields .field { gap:2px; }
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
 .adv-air-fields .field .unit { min-width:auto; }
-.adv-air-fields .field.ui-field { grid-template-columns:108px max-content max-content auto; column-gap:2px; }
+.adv-air-fields .field.ui-field { --ui-field-column-gap:2px; grid-template-columns:108px max-content max-content auto; column-gap:var(--ui-field-column-gap); }
 .adv-air-fields .field.ui-field :deep(.ui-field-unit), .adv-air-fields .field.ui-field :deep(.ui-field-dq) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-value) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
@@ -1406,9 +1409,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
-.field :deep(input.calculated.impossible) { color:#a11; border-color:#a11; }
-.field.entered :deep(input), .field.entered input, .field.ui-field-stored :deep(input) { color:#1b7d1b; border-color:#1b7d1b; }
-.field.ui-field-defaulted :deep(input) { color:#1868d1; border-color:#1868d1; }
+.field:where(:not(.ui-field)) :deep(input.calculated.impossible) { color:#a11; border-color:#a11; }
+.field.entered :deep(input), .field.entered input { color:#1b7d1b; border-color:#1b7d1b; }
+.field.ui-field-stored :deep(input) { color:#1b7d1b; }
+.field.ui-field-defaulted :deep(input) { color:#1868d1; }
 /* DQ — the generic "flagged field" rule: redline every field whose cell carries a data-quality
    flag. The entered one (the cause) gets the attention ring; the calculated ones (the symptom)
    are redlined too but stay calmer. Overrides the entered/calculated green/blue borders. */
@@ -1434,7 +1438,11 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .no-project-tabmsg { flex:1 1 auto; min-width:0; display:flex; align-items:center; justify-content:center; color:#777; font-style:italic; font-size:13px; }
 .alignment-modal { width:520px; max-width:92vw; }
 .alignment-modal .field-row { width:100%; }
+.alignment-modal :deep(.field-row > .ui-field) { width:100%; min-width:0; flex:1 1 auto; }
 .alignment-field { width:100%; }
+.alignment-modal :deep(.ui-field-readout) { grid-template-columns: 150px minmax(90px, 1fr) 34px 16px minmax(16px, max-content); }
+.alignment-modal :deep(.ui-field-readout .ui-field-value) { width:100%; }
+.alignment-modal :deep(.ui-field-readout .ui-field-value input) { width:100%; }
 .alignment-modal .alignment-select { flex:1; min-width:0; width:100%; }
 .alignment-readout { display:flex; align-items:center; gap:7px; margin:10px 0 4px; font-weight:600; color:#444; }
 .alignment-icon { font-size:18px; line-height:1; }

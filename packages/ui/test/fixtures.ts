@@ -9,6 +9,16 @@ import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} 
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
 const TELEMETRY_COLLECTOR_ORIGIN = 'https://openisd-stats.john-lonergan-0e9.workers.dev';
+const ANNOUNCEMENTS_URL = 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/announcements';
+
+async function stubAnnouncements(page: Page): Promise<void> {
+  await page.route(ANNOUNCEMENTS_URL, route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    headers: {'Cache-Control': 'no-store'},
+    body: JSON.stringify({version: 1, announcements: []}),
+  }));
+}
 
 /**
  * Shared Playwright fixtures for all UI/browser tests.
@@ -206,6 +216,11 @@ export const test = base.extend<
     const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 720 } });
     await standInForSnapshotsSite(context);
     const page = await context.newPage();
+    // The app fetches its public announcements feed on startup. Browser tests run from localhost,
+    // which the test Worker intentionally does not allow as a CORS origin, so give the app a
+    // deterministic empty feed instead of letting an unrelated cross-origin request pollute every
+    // test's browser diagnostics. Feature tests install their own feed when needed.
+    await stubAnnouncements(page);
     await page.addInitScript(() => {
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled */ }
@@ -238,6 +253,7 @@ export const test = base.extend<
   },
 
   page: async ({ page, browserLog }, use) => {
+    await stubAnnouncements(page);
     await page.addInitScript(() => {
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled */ }
@@ -265,6 +281,7 @@ export const test = base.extend<
 
   appPage: async ({ workerAppPage, testAdditions, browserLog }, use) => {
     await resetApp(workerAppPage, testAdditions);
+    await stubAnnouncements(workerAppPage);
     const detach = browserLog._attach?.(workerAppPage);
     try {
       await use(workerAppPage);

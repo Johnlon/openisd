@@ -25,6 +25,7 @@ import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
+import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
 import {APP_UPDATE_TEXT, NO_PROJECT_OPEN, PhoneHeaderSizes} from '@openisd/design/fields';
@@ -48,6 +49,7 @@ const {
 const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
 const winisdDifferences = injectWinisdDifferencesModal();
+const announcements = useAnnouncementCenter();
 const diagnostics = injectDiagnosticsModal();
 </script>
 
@@ -214,6 +216,7 @@ const diagnostics = injectDiagnosticsModal();
           <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
           <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+          <button type="button" class="mob-menu-item" @click="announcements.showList(); closeMenu()">Announcements</button>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
           <button v-if="!skinIsAutomatic" type="button" class="mob-menu-item" @click="useAutomaticSkin">Automatic view</button>
         </section>

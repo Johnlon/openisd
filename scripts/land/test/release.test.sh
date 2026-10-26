@@ -190,7 +190,7 @@ rel="$(release_json v20260101T0102Z)"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$HEAD_SHA" ] && ok "branch release at the promoted commit" || fail "release branch"
 [ "$(release_json v20260101T0102Z | jq -r .name)" = "OpenISD 7.0.951" ] && ok "the release is titled OpenISD <public number>" || fail "release title: $(release_json v20260101T0102Z)"
 grep -q '^| 7.0.951 | 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://snapshots.openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
-grep -Fq 'gh workflow run deploy.yml --ref main --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
+grep -Fq 'gh workflow run deploy.yml --ref main --field publish_production=true --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
   && ok "promotion dispatches production deployment from main" \
   || fail "production deploy dispatch: $(tail -10 "$GH_STATE/calls.log")"
 ! grep -qE 'release (download|create)|npm|vite' "$GH_STATE/calls.log" && ok "downloads nothing, builds nothing, creates nothing" || fail "unexpected calls: $(cat "$GH_STATE/calls.log")"
@@ -328,7 +328,7 @@ out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?
 [ $r = 0 ] && [ "$(release_json v20260101T0102Z | jq -r .latest)" = true ] && [ "$(release_json v20260102T0000Z | jq -r .latest)" = false ] && ok "--latest makes an older release Latest" || fail "--latest: $r $out"
-grep -Fq 'gh workflow run deploy.yml --ref main --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
+grep -Fq 'gh workflow run deploy.yml --ref main --field publish_production=true --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
   && ok "--latest dispatches production deployment from main" \
   || fail "--latest production deploy dispatch"
 out=$(bash scripts/release.sh --latest 20990101T0000Z 2>&1); r=$?
