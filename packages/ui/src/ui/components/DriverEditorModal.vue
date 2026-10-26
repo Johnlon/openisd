@@ -1047,7 +1047,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
    the widest (about 840px of content with the step arrows) and Parameters the tallest. Both measured, not guessed. The
    vh caps are only a small-screen backstop. */
 /* position: relative anchors the format picker's scrim to the editor, not the viewport. */
-.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 976px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
+.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 1180px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
 .de-tab { padding: 5px 12px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 14px; font-weight: 500; }
 .de-tab.on { background: var(--panel); font-weight: 600; }
@@ -1181,8 +1181,8 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   /* Field-slots per row, 4 tracks each (label/value/unit/alert). A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  /* Two field-slots per row: four phone-sized controls (T595) are wider than the modal. */
-  grid-template-columns: repeat(2, max-content max-content minmax(34px, max-content) 16px) !important;
+  /* Three field-slots per row: four phone-sized controls (T595) do not fit a 1280 px window. */
+  grid-template-columns: repeat(3, max-content max-content minmax(34px, max-content) 16px) !important;
   /* 2px between tracks: 15 gaps across 16 tracks; at 6px the grid was wider than the modal's body in Chromium and wider still in Firefox, so the body scrolled sideways. */
   gap: 3px 0 !important;
   align-items: center !important;
@@ -1251,8 +1251,9 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-desktop .de-fld.de-feeds { width: 100% !important; justify-self: stretch !important; }
 /* Connection flows beside Voicecoils: with two fields per row (T595) a forced row of its own
    left a one-field row above a full one. */
-/* The phone row is as tall as its ▲▼ pair; the shell's 40px field floor would pad the editor out. */
-.de-desktop .de-fld { min-height: 0 !important; }
+/* The phone row is as tall as its ▲▼ pair; the shell's 40px field floor would pad the editor out.
+   Never 0: an auto grid row in a height-capped modal shrinks to its fields' floor and they overlap. */
+.de-desktop .de-fld { min-height: 36px !important; }
 /* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
    it read as "Paralle" with the last letter clipped. Widened just for this one field. */
 .de-desktop .de-conn-sel { width: 96px !important; }
@@ -1300,8 +1301,8 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    columns of them overran the modal and forced a sideways scroll. */
 .de-desktop .de-cols {
   display: grid !important;
-  /* Two field-slots per row: four phone-sized controls (T595) are wider than the modal. */
-  grid-template-columns: repeat(2, max-content max-content minmax(34px, max-content) 16px) !important;
+  /* Three field-slots per row: four phone-sized controls (T595) do not fit a 1280 px window. */
+  grid-template-columns: repeat(3, max-content max-content minmax(34px, max-content) 16px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }

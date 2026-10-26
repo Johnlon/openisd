@@ -59,7 +59,9 @@ async function brokenControls(page: Page): Promise<string[]> {
     const shown = (el: Element): boolean => el.checkVisibility({visibilityProperty: true, opacityProperty: true});
     const overlap = (a: DOMRect, b: DOMRect): boolean => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
     const out: string[] = [];
-    const live = fields.filter(shown);
+    // An open dialog covers the page on purpose: check only its own fields.
+    const dialog = document.querySelector('.de-modal, .overlay.open');
+    const live = fields.filter(shown).filter(f => dialog === null || dialog.contains(f));
     for (const f of live) {
       const name = f.querySelector('label')?.textContent?.trim() || f.querySelector('input')?.id || '(no label)';
       const input = f.querySelector<HTMLInputElement>('.ui-field-value input');
@@ -136,6 +138,32 @@ test.describe('desktop number controls are the phone control', () => {
           await openTab(page, tab.trim());
           broken.push(...(await brokenControls(page)).map(b => `${box} ${tab.trim()}: ${b}`));
         }
+      }
+      expect(broken).toEqual([]);
+    });
+
+    test(`at ${size.width} x ${size.height} no control is cut off, covered or overlapping in the driver editor and the New project wizard`, async ({page}) => {
+      await page.setViewportSize(size);
+      const broken: string[] = [];
+      await openTab(page, 'Driver');
+      await page.locator('.driver-id-row').getByRole('button', {name: 'Edit'}).click();
+      for (const tab of await page.locator('.de-tab').allTextContents()) {
+        await page.locator('.de-tab', {hasText: tab}).click();
+        broken.push(...(await brokenControls(page)).map(b => `driver editor ${tab}: ${b}`));
+      }
+      await page.locator('.de-modal').getByRole('button', {name: 'Cancel', exact: true}).click();
+
+      for (const box of BOX_TYPES) {
+        await page.locator('.tb-btn[title*="New project"]').click();
+        const wizard = page.locator('.overlay.open');
+        const next = wizard.locator('.modal-footer').getByText('Next', {exact: true});
+        await wizard.getByText('Tang Band W5-1138SMF').first().click();
+        await next.click();
+        await next.click();
+        await page.locator('#np-box-type').selectOption(box);
+        await next.click();
+        broken.push(...(await brokenControls(page)).map(b => `wizard ${box}: ${b}`));
+        await wizard.getByRole('button', {name: 'Cancel', exact: true}).click();
       }
       expect(broken).toEqual([]);
     });

@@ -104,7 +104,7 @@ option.not-implemented { color:#999 }
 /* Pick lists and text boxes beside them are the phone's classic box too (.mob-classic select), so a
    row of mixed controls stays one height. */
 .app-root:not(.app-root-mobile) .field select, .app-root:not(.app-root-mobile) .step-content select,
-.app-root:not(.app-root-mobile) .field input[type=text]:not([data-numinput]), .app-root:not(.app-root-mobile) .step-content input[type=text]:not([data-numinput]) {
+.app-root:not(.app-root-mobile) .field input[type=text]:not([data-numinput]):not([readonly]), .app-root:not(.app-root-mobile) .step-content input[type=text]:not([data-numinput]):not([readonly]) {
   box-sizing: border-box; height: 34px; border: 1px solid #c4c4c4; border-radius: 4px; background-color: #fff;
   font-size: 15px; padding: 0 0 0 14px;
 }
