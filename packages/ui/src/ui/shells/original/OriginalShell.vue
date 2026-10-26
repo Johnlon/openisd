@@ -610,7 +610,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px; gap:8px;">
-                  <UIField class="field" style="--label-w:145px; grid-template-columns: 145px 90px 34px 0px 0px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                  <UIField class="field" style="--label-w:145px; grid-template-columns: 145px var(--ui-value-w) 34px 0px 0px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                   <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:145px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
                 </div>
               </div>
@@ -1358,7 +1358,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .vent-pane-tight .vent-groups { gap:8px; }
 /* UIField reserves a label-width first column; here the label sits above, so value, unit and
    data-quality dot start at the left edge. */
-.vent-pane-tight .vent-port-row > .ui-field { grid-template-columns:70px auto 16px; }
+/* The tight pane's box is 70 px; the value column still holds the box, its gap and the ▲▼ pair
+   (UIFieldBody's --ui-value-w), so the pair never sits on the unit (desktop row sweep, 26 Oct 2026). */
+.vent-pane-tight .vent-port-row > .ui-field { --ui-value-w: calc(70px + 2px + 2 * var(--stepper-w)); grid-template-columns:var(--ui-value-w) auto 16px; }
 .vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-value) { grid-column:1; }
 .vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-unit) { grid-column:2; }
 .vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-dq) { grid-column:3; }

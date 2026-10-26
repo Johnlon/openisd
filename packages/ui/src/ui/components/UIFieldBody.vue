@@ -163,8 +163,9 @@ function write(v: number | null, precision?: number): void {
 }
 .ui-field-value :deep(input.calculated) { color: var(--acc); }
 .ui-field-value :deep(input.greyed) { background: #e9e9e9; }
-.ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }
-.ui-field-dev { display: inline-flex; justify-content: center; min-width: 16px; width: auto; flex: none; grid-column: 5; }
+/* The ⚠ and ≠W are buttons, not text: centred on the box, not on the text baseline. */
+.ui-field-dq { display: inline-flex; justify-content: center; align-self: center; width: 16px; flex: none; grid-column: 4; }
+.ui-field-dev { display: inline-flex; justify-content: center; align-self: center; min-width: 16px; width: auto; flex: none; grid-column: 5; }
 .ui-field-dq-btn {
   border: none; background: none; padding: 0 2px; margin: 0;
   font-family: inherit; font-size: 15px; line-height: 1; color: #d68a00; cursor: help;

@@ -11,7 +11,7 @@
 // table"). A field with a `fixed` display renders its symbol, unrotatable.
 import {computed} from 'vue';
 import {useApp} from '../../logic/app.js';
-import type {NumberField} from '@openisd/design/fields';
+import {PhoneRowColumns, type NumberField} from '@openisd/design/fields';
 const presentationState = useApp().presentation;
 
 const props = defineProps<{
@@ -26,6 +26,8 @@ const label = computed(() => props.field.unitLabel(currentToken.value));
 // A field with a `fixed` display, or a `switchable` one whose group has ONE unit (e.g. `percent`
 // — a stored fraction shown as %), has nowhere to rotate: render a plain label, never a
 // clickable toggle with nothing to cycle.
+// A long label (1000/K) takes the wide chip column; the row's insets follow the class (PhoneRowColumns).
+const wide = computed(() => PhoneRowColumns.chipIsWide(label.value));
 const hasChoice = computed(() => props.field.display.kind === 'switchable' && props.field.nextToken(currentToken.value) !== currentToken.value);
 
 function cycle() {
@@ -38,7 +40,7 @@ function activate() {
 </script>
 
 <template>
-  <span :class="[unitClass, 'unit-label', {'unit-toggle': hasChoice}]"
+  <span :class="[unitClass, 'unit-label', {'unit-toggle': hasChoice, 'unit-wide': wide}]"
     :role="hasChoice ? 'button' : undefined" :tabindex="hasChoice ? 0 : undefined"
     :title="hasChoice ? `Click to change units (${label})` : undefined"
     @click="activate"

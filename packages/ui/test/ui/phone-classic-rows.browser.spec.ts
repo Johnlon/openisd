@@ -79,9 +79,56 @@ for (const size of PHONE_SIZES) {
         expect(b.chipInside, 'unit chip inside its box').toBe(true);
       }
 
+      // Inside every row, everything sits where PhoneRowColumns says, nothing overlaps, everything is
+      // centred and every font is the classic one (John, 26 Oct 2026, after the ≠W badge sat over "229"
+      // on Fsc, the ⚠ sat in the text of Qms, and the chip sat on the badge of Cms: "literally every
+      // placement and alignment and font and overlap"). From the right: ▲▼ tail | chip | ≠W | ⚠ | text.
+      const faults = await rows.evaluateAll((els, c) => els.flatMap(row => {
+        const input = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value .mob-readonly');
+        if (!input) return [];
+        const label = row.querySelector('label')?.textContent?.trim() ?? '?';
+        const out: string[] = [];
+        const say = (what: string, got: number, want: number) => { if (Math.abs(got - want) > c.tol) out.push(`${label}: ${what} is ${got.toFixed(1)}, contract ${want.toFixed(1)}`); };
+        const rect = (el: Element | null) => { const r = el?.getBoundingClientRect(); return r && r.width > 0 ? r : null; };
+        const r = row.getBoundingClientRect();
+        const cs = getComputedStyle(input);
+        const b = input.getBoundingClientRect();
+        say('box height', b.height, c.inputH);
+        say('box font', parseFloat(cs.fontSize), 15);
+        if (input.tagName === 'INPUT' && cs.textAlign !== 'left') out.push(`${label}: text-align ${cs.textAlign}, contract left`);
+        say('label font', parseFloat(getComputedStyle(row.querySelector('label') ?? row).fontSize), 14);
+        const chip = rect(row.querySelector('.ui-field-unit'));
+        const cue = rect(row.querySelector('.ui-field-dev'));
+        const dq = rect(row.querySelector('.ui-field-dq-btn')) && rect(row.querySelector('.ui-field-dq'));
+        let edge = b.right;   // the left edge of the overlay nearest the text so far
+        if (chip) { say('chip right', chip.right, b.right - 1); say('chip width', chip.width, (row.querySelector('.ui-field-unit')?.classList.contains('unit-wide') ?? false) ? c.chipWide : c.chip); say('chip height', chip.height, c.inputH); say('chip font', parseFloat(getComputedStyle(row.querySelector('.ui-field-unit')!).fontSize), 13); edge = chip.left; }
+        if (cue) { say('badge right', cue.right, edge - c.gap); say('badge width', cue.width, c.cue); edge = cue.left; }
+        if (dq && cue) { say('warning (beside a badge) right', dq.right, b.left - c.gap); say('warning width', dq.width, c.dq); }
+        else if (dq) { say('warning right', dq.right, edge - c.gap); say('warning width', dq.width, c.dq); edge = dq.left; }
+        say('text ends before the first overlay', b.right - parseFloat(cs.paddingRight), edge - c.gap);
+        const parts: {name: string; left: number; right: number; top: number; bottom: number}[] = [{
+          name: 'text', left: b.left + parseFloat(cs.paddingLeft), right: b.right - parseFloat(cs.paddingRight), top: b.top, bottom: b.bottom,
+        }];
+        for (const el of row.querySelectorAll<HTMLElement>('.winisd-deviation-cue, .ui-field-dq-btn, .ui-field-unit, .num-stepper-btn')) {
+          const e = rect(el);
+          if (!e) continue;
+          parts.push({name: el.className.split(' ')[0], left: e.left, right: e.right, top: e.top, bottom: e.bottom});
+          if (el.classList.contains('num-stepper-btn')) { say('▲▼ width', e.width, c.stepperBtnW); say('▲▼ height', e.height, c.stepperBtnH); say('▲▼ font', parseFloat(getComputedStyle(el).fontSize), 18); }
+        }
+        for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) {
+          const a = parts[i], d = parts[j];
+          if (Math.min(a.right, d.right) - Math.max(a.left, d.left) > c.tol && Math.min(a.bottom, d.bottom) - Math.max(a.top, d.top) > c.tol) out.push(`${label}: ${a.name} over ${d.name}`);
+        }
+        const mid = (r.top + r.bottom) / 2;
+        for (const p of parts) say(`${p.name} centre`, (p.top + p.bottom) / 2, mid);
+        return out;
+      }), {tol: 1.5, inputH: PhoneRowSizes.CLASSIC.inputMinPx, chip: PhoneRowColumns.STANDARD.chipMinPx, chipWide: PhoneRowColumns.STANDARD.chipWidePx, gap: PhoneRowColumns.STANDARD.gapPx,
+           cue: PhoneRowColumns.STANDARD.cuePx, dq: PhoneRowColumns.STANDARD.dqPx, stepperBtnW: 40, stepperBtnH: 36});
+      expect(faults, 'every row part sits, sizes and reads as the contract says').toEqual([]);
+
       const overflow = await page.evaluate(() => ({
         page: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-        cut: [...document.querySelectorAll<HTMLElement>('.mob-content label, .mob-content input, .mob-content button')]
+        cut: [...document.querySelectorAll<HTMLElement>('.mob-content label, .mob-content input, .mob-content button, .mob-content .ui-field-unit')]
           .filter(e => e.closest('[data-carousel]') === null)
           .filter(e => e.scrollWidth > e.clientWidth + 1).map(e => `${e.tagName}.${e.className}:${e.textContent?.trim() || e.getAttribute('aria-label') || e.id}`),
         outside: [...document.querySelectorAll<HTMLElement>('.mob-content input, .mob-content button')]

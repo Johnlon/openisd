@@ -3,6 +3,7 @@ release_note: Align mobile driver summary and field layouts.
 repo: openisd
 owner: codex
 status: done
+landed: 1180b4598ac12d8785cc54745fa2bab40c2adae4
 goal: Apply one shared classic-field sizing contract to mobile pages and overlays, keep mobile labels and Box actions inside their rows, and align driver summary values and units across desktop and mobile.
 done_test: bash scripts/test.sh packages/ui/test/architecture/mobile-number-field-sizes-owned-by-shell.test.ts
 visual_note: Mobile classic controls keep their intended sizing, Box actions fit on one line, and driver summary values and units align with a clear gap.
