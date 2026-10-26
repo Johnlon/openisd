@@ -2,7 +2,7 @@
 
 | Question | Answer |
 |---|---|
-| Who releases? | Fable, the SDLC agent, when John says so. |
+| Who releases? | Only after John explicitly approves the production release. |
 | What is a stamp? | The build minute in UTC, `20260101T0102Z`. It names the zip, the tags and the folders. |
 | Where is build output kept? | In GitHub Releases as zips. Never in git. |
 
@@ -21,10 +21,14 @@
 
 | Action | Command | Result |
 |---|---|---|
-| Promote | `bash scripts/release.sh --public <n.n.n> <stamp>` | Runs the hosted copies end-to-end test and the UI gallery first; either failing refuses. `--public` is the public number, `7.0.951` for the first release (WinISD's latest is 0.7.0.950); each later release adds 1 to the last part, the first two change only for a redesign. The script refuses a number not greater than the last. It becomes the release title "OpenISD 7.0.951" and the Version column of RELEASES.md; About and the footer show it. Adds tag `v<stamp>` on the same commit. The pre-release becomes a release marked Latest. Branch `release` moves forward. A row is added to RELEASES.md. Nothing is built or downloaded. |
-| Refused when | No `snap-<stamp>` tag, or an F in `tasks/fixes/` is open. | Nothing changes. |
-| Own notes | `bash scripts/release.sh --public <n.n.n> --notes-file F <stamp>` | F replaces the notes. Without it the snapshot's notes are kept. |
+| Prepare, then wait for approval | `bash scripts/release.sh --prepare --public <n.n.n> [--notes-file F] <stamp>` | Checks the snapshot is the current main build and test site, verifies production matches GitHub Latest, confirms no fix is open, runs the hosted-copies browser test and the UI gallery, then writes `build/release-preflight/<stamp>-<public>.json`. It does not publish. The record expires after seven days and is bound to the snapshot, main, Latest, test, production, release branch and notes-file hash. The command prints the next approval command. |
+| Approve and publish | `bash scripts/release.sh --approve-prepared <manifest>` | Rechecks that every recorded value is still current, then promotes without rerunning the browser checks. Changed notes, newer main, a different test or production build, a changed Latest release or a moved `release` branch make it refuse; prepare again after that. Promotion assigns `v<stamp>` to the prepared commit, marks the release Latest, moves `release` forward, adds a row to RELEASES.md and dispatches production deployment. |
+| One-command promote | `bash scripts/release.sh --public <n.n.n> [--notes-file F] <stamp>` | Runs the hosted-copies browser test and UI gallery, then promotes in one command. Use this when preparation and approval are happening together. |
+| Refused when | The snapshot or hosted build IDs do not match, an F in `tasks/fixes/` is open, the public number is not newer, or a prepared record is stale. | Nothing is published. |
+| Own notes | Add `--notes-file F` to `--prepare` or `--public`. | F replaces the notes. A prepared release also checks the file has not changed before approval. Without it the snapshot's notes are kept. |
 | Roll back | `bash scripts/release.sh --latest <stamp>` | The older release becomes Latest. The site root follows. |
+
+The production approval point is the `--approve-prepared` command: preparation performs the slow checks and leaves a reviewable record, while approval only revalidates the record and publishes. Do not run that command until John says to go live.
 
 ## What users see
 

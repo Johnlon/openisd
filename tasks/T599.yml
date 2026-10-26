@@ -1,0 +1,12 @@
+id: T599
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+goal: Prepare and approve a tested release without rerunning preflight at approval time
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/release.test.sh
+files:
+  - tasks/T599.yml
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - RELEASING.md
