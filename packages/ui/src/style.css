@@ -282,6 +282,10 @@ a { color:var(--acc) }
   height: var(--mob-input-h); margin-right: calc(var(--mob-col-stepper) + 1px); display: flex; align-items: center; justify-content: center;
   font-size: 13px;
 }
+/* A readout has no ▲▼ pair. Keep its unit chip at the value box's right edge instead of
+   reserving the normal stepper column; otherwise alignment sheets show a blank tail after Hz/L. */
+.mob-classic .mob-ui-field.ui-field.ui-field-readout .ui-field-unit { margin-right: 1px; }
+.mob-classic .mob-ui-field.ui-field.ui-field-readout .ui-field-value > .mob-readonly { margin-right: 0; }
 .mob-classic .mob-ui-field.ui-field .ui-field-dev {
   grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; width: auto;
   margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 8px);
