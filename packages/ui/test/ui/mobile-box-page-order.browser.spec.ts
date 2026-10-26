@@ -20,7 +20,7 @@ const EXPECTED: readonly {readonly option: BoxOption; readonly sections: readonl
   {option: 'vented', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', ALIGN, LOSSES], ['Vents', 'Fb', ...VENT_ROWS], ['Chart', 'Velocity limit']]},
   {option: 'box-passive-radiator', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', 'Fh', LOSSES],
     ['Passive radiator', 'Fp', 'Vas', 'Qms', 'Fpr', 'Sd', 'Mms', 'Cms', 'Xmax'],
-    ['User options', 'Num. of PRs', 'Added mass to cone', 'Fpr (with added mass)']]},
+    ['User options', 'Num. of PRs', 'Added mass', 'Fpr with mass']]},
   {option: 'bandpass4', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', 'Fsc', LOSSES], ['Front chamber', 'Vf', LOSSES],
     ['Front vent', 'Ffc', ...VENT_ROWS], ['Chart', 'Velocity limit']]},
   {option: 'bandpass6', sections: [['Box', 'Box type'], ['Rear chamber', 'Vb', LOSSES], ['Front chamber', 'Vf', LOSSES],

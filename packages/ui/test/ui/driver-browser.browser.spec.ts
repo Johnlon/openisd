@@ -4,6 +4,16 @@ import type {Page} from '@playwright/test';
 import {MY_DRIVERS_KEY, myDriversJson, parseMyDriversBucket} from '../fixtures/seedMyDrivers.js';
 
 test.describe('Driver browser', () => {
+  test('the selected-driver summary has a consistent inner gutter', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.dlist .ditem').first().click();
+    const preview = page.locator('.driver-library .preview');
+    await expect(preview).toBeVisible();
+    await expect(preview).toHaveCSS('padding', '12px 16px');
+  });
+
   test.describe('controls', () => {
     // ui-todo.md "Remove UI Elements" — four controls come out of the driver picker
     // (DriverBrowser.vue).

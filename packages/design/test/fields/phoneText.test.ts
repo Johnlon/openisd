@@ -33,6 +33,11 @@ describe('phone text', () => {
     expect(PhoneLabels.FB).toBe('Fb');
   });
 
+  it('uses concise labels for the passive-radiator added-mass rows', () => {
+    expect(PhoneLabels.PR_ADDED_MASS).toBe('Added mass');
+    expect(PhoneLabels.PR_FPR_MASS).toBe('Fpr with mass');
+  });
+
   it('the Box page words match the accepted mock', () => {
     expect(PhoneLabels.PR_FP).toBe('Fp');
     expect(PhoneBoxText.CHOOSE_ALIGNMENT_LINK).toBe('Choose alignment…');

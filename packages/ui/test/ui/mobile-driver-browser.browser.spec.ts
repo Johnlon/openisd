@@ -54,6 +54,14 @@ test('Cancel and Use stay inside the visible viewport, not clipped off the botto
   await expect(page.locator('.use-btn')).toHaveCount(0);
 });
 
+test('the selected-driver summary has the same clear inner gutter as the wizard preview', async ({page}) => {
+  await page.getByText('Select driver').click();
+  await page.locator('.dlist .ditem, .dlist .my-ditem').first().click();
+  const preview = page.locator('.driver-library .preview');
+  await expect(preview).toBeVisible();
+  await expect(preview).toHaveCSS('padding', '12px 16px');
+});
+
 // John, 17 Oct 2026: "empty wizard driver list with no hint"; "the list is empty but the favourite button is
 // selected visible". The phone skin shares the list, so the same answers hold here.
 test('with no favourites, Favorites is disabled; a filter that matches nothing offers Clear filters', async ({ page }) => {

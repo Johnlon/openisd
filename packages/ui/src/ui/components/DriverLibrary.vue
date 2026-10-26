@@ -503,6 +503,8 @@ onMounted(openedLibrary);
   display: flex;
   flex-direction: column;
   flex: 1;
+  box-sizing: border-box;
+  padding: 12px 16px;
   overflow: hidden;
 }
 .driver-library .prev-nav {

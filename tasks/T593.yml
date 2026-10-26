@@ -4,6 +4,7 @@ repo: openisd
 owner: codex
 label: fixes
 status: done
+landed: 91a1699852955b8a1efe152807d4be786275b0b6
 goal: Record restored project opens and bundled driver details in telemetry when the app starts.
 done_test: bash scripts/test.sh packages/ui/test/logic/boot.test.ts packages/ui/test/logic/projectOpenTelemetry.test.ts && bash scripts/quiet-test.sh npm run typecheck
 visual: []
