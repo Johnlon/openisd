@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: ca6b57c0b4b5ec23d16c0499a879fb287175946c
 goal: Enforce numeric unit control backgrounds and audit affordances across every field
 visual_note: On mobile, fixed unit labels are white, switchable units are grey with a blue underline, and empty unit slots stay transparent.
 done_test: bash scripts/test.sh packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
