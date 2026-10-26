@@ -32,3 +32,13 @@ test('refresh links point to the worker-bypassing about recovery path', async ()
   const liveResponse = await worker.fetch(new Request('https://example.workers.dev/refresh'), env);
   assert.equal(liveResponse.headers.get('Location'), 'https://openisd.app/about/refresh/');
 });
+
+test('the review page exposes the short refresh link for its own app host', async () => {
+  const testPage = await worker.fetch(new Request('https://test-worker.example/?site=test'), env);
+  const testHtml = await testPage.text();
+  assert.match(testHtml, /href="https:\/\/test-worker\.example\/refresh\?site=test">Update OpenISD on this device/);
+
+  const productionPage = await worker.fetch(new Request('https://production-worker.example/'), env);
+  const productionHtml = await productionPage.text();
+  assert.match(productionHtml, /href="https:\/\/production-worker\.example\/refresh">Update OpenISD on this device/);
+});

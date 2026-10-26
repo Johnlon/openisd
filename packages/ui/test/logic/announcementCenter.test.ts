@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {ANNOUNCEMENTS_URL, createAnnouncementCenter, parseAnnouncementResponse, type AnnouncementStorage} from '../../src/logic/announcementCenter.js';
+import {ANNOUNCEMENTS_URL, announcementEndpointsForHostname, createAnnouncementCenter, parseAnnouncementResponse, type AnnouncementStorage} from '../../src/logic/announcementCenter.js';
 
 const earlier = {id: 'openisd-7.0.956', version: '7.0.956', published: '2026-10-25', title: 'Earlier', summary: 'Earlier release', body: ['One'], href: 'https://openisd.app/'};
 const current = {id: 'openisd-7.0.957', version: '7.0.957', published: '2026-10-26', title: 'Current', summary: 'Current release', body: ['Two'], href: 'https://openisd.app/'};
@@ -14,6 +14,20 @@ function response(items: readonly object[]): Response {
 }
 
 describe('announcement center', () => {
+  it('uses separate no-store services for production and test app hosts', () => {
+    expect(announcementEndpointsForHostname('openisd.app')).toEqual({
+      feedUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/announcements',
+      archiveUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/',
+      refreshUrl: 'https://openisd-announcements.john-lonergan-0e9.workers.dev/refresh',
+    });
+    expect(announcementEndpointsForHostname('test.openisd.app')).toEqual({
+      feedUrl: ANNOUNCEMENTS_URL,
+      archiveUrl: 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/?site=test',
+      refreshUrl: 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/refresh?site=test',
+    });
+    expect(announcementEndpointsForHostname('lap')).toEqual(announcementEndpointsForHostname('test.openisd.app'));
+  });
+
   it('requests the fixed feed with browser caching disabled and opens the newest item', async () => {
     const fetchFn: typeof fetch = vi.fn(async () => response([earlier, current]));
     const center = createAnnouncementCenter(storage(), fetchFn);
@@ -25,6 +39,7 @@ describe('announcement center', () => {
     expect(center.open.value).toBe(true);
     expect(center.view.value).toBe('latest');
     expect(center.unreadCount.value).toBe(2);
+    expect(center.archiveUrl).toBe('https://openisd-announcements-test.john-lonergan-0e9.workers.dev/?site=test');
   });
 
   it('persists dismissal by stable ID and still opens a later announcement', async () => {
