@@ -484,7 +484,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <!-- vented / bandpass4 -->
           <div v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'">
             <div class="section-header">Vents</div>
-            <div class="two-col">
+            <div class="two-col vent-cols">
               <!-- Column 1: Config -->
               <div class="vent-config-col">
                 <div class="field-row">
@@ -1292,7 +1292,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .graph-empty-link:hover { color:#0b4f9e; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; max-height:60vh; min-height:206px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; max-height:60vh; min-height:361px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
 .save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-start; gap:6px; align-self:stretch; }
 /* Revert sits at the rail's BOTTOM, under whichever tab is showing (John, 2026-09-25: "put it
@@ -1305,7 +1305,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .save-rail .revert-btn:disabled { background:#e8e8e8; border-color:#ccc; color:#999; font-weight:normal; cursor:default; }
 /* Every tab stacks in ONE grid cell and only the active one is visible, so the panel is as deep as
    the tallest tab shown and stays that deep while the tab is switched. `.content-panel` min-height is
-   the tallest tab of any box type (bandpass6 or ABC, 206 px, measured by original-bottom-panel-height), so
+   the tallest tab of any box type (vented or bandpass4 with the phone-sized rows of T595, 361 px, measured by original-bottom-panel-height), so
    the height never changes with box type either (John, 2026-10-15). */
 .content-tabs { display:grid; grid-template-columns:minmax(0,1fr); }
 .tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; --label-w: 150px; }
@@ -1320,7 +1320,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    column (`flex:0 1 auto` with `min-width:0`) let the next column's origin slide left
    while this one's controls kept their own width, so the two painted on top of each
    other — the exact overlap `original-shell-layout.browser.spec.ts` locks out. */
-.two-col { display:flex; flex-wrap:wrap; gap:8px 24px; align-items:flex-start; justify-content:flex-start; }
+.two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
+/* The Vented tab's three columns of phone-sized controls do not fit side by side at 1280 px: the third drops below. */
+.two-col.vent-cols { flex-wrap:wrap; row-gap:8px; }
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
 .box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
@@ -1385,7 +1387,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .field.ui-field-readout { padding-bottom:1px; }
 .field :deep(input.greyed) { background:#e9e9e9; color:#777; }
 .field :deep(input.calculated) { color:#1868d1; border-color:#1868d1; }
-.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:16px; align-items:start; }
+.adv-air-fields { display:grid; grid-template-columns:max-content; column-gap:16px; align-items:start; }
 .adv-air-fields .field { gap:2px; }
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
@@ -1455,7 +1457,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label input[type=checkbox] { flex:none; }
 
 .adv-two-col { gap: 8px; align-items: flex-start; }
-.adv-left-col { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.adv-left-col { display: flex; flex-direction: column; gap: 4px; flex: none; width: 420px; }
 /* The standard WinISD options: one line each, as wide as the longest (John, 2026-10-05). */
 .adv-two-col .checkbox-col { margin-left: 0; width: max-content; }
 .adv-two-col .checkbox-col :deep(.adv-options) {
