@@ -58,15 +58,17 @@ function activate() {
 .unit-toggle:hover { color: #1868d1; }
 </style>
 <style>
-/* The phone skin's unit label is a grey chip, bold, with an edge on its left. This is the one place
-   that draws it, so every unit looks the same on every phone page, sheet, and global modal. A
-   rotating one adds the dotted underline above; callers only place and size it. */
+/* On phones every unit label is bold on white; a switchable unit becomes a grey control chip with
+   an edge on its left. This is the one place that draws it, so every unit looks the same on every
+   phone page, sheet, and global modal. A rotating one adds the blue underline above. */
 /* span.unit-label: one element more specific than a caller's scoped unit class (e.g. UIFieldBody's
    .ui-field-unit colour), so the chip wins whatever order the styles load in. */
 .app-root-mobile span.unit-label {
   box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+  background: #fff;
   font-size: 13px; font-weight: 600; color: #888; white-space: nowrap;
 }
+.app-root-mobile span.unit-label:empty { background: transparent; }
 .app-root-mobile span.unit-label.unit-toggle {
   padding: 0 6px; background: #efefef;
   border: 1px solid #cfcfcf;

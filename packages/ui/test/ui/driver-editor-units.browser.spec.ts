@@ -128,6 +128,7 @@ test('mobile Driver Editor: every numeric field uses the shared bold unit afford
     for (const label of labels) {
       const unit = driverEditorField(page, label).locator('.unit-label').first();
       if (!(await unit.count())) continue;
+      if (!(await unit.innerText()).trim()) continue; // unitless values keep an empty, transparent slot
       const look = await unit.evaluate(el => {
         const css = getComputedStyle(el);
         return {
@@ -137,6 +138,8 @@ test('mobile Driver Editor: every numeric field uses the shared bold unit afford
           background: css.backgroundColor,
           underline: css.textDecorationLine,
           underlineStyle: css.textDecorationStyle,
+          underlineColor: css.textDecorationColor,
+          underlineThickness: css.textDecorationThickness,
           underlineOffset: css.textUnderlineOffset,
           borderBottom: css.borderBottomStyle,
         };
@@ -145,10 +148,11 @@ test('mobile Driver Editor: every numeric field uses the shared bold unit afford
       if (look.toggle) {
         if (look.role !== 'button' || look.background !== 'rgb(239, 239, 239)'
           || look.underline !== 'underline' || look.underlineStyle !== 'solid'
+          || look.underlineColor !== 'rgb(24, 104, 209)' || look.underlineThickness !== '1px'
           || look.underlineOffset !== '5px' || look.borderBottom !== 'solid') {
           faults.push(`${tab}/${label}: toggle unit affordance is ${JSON.stringify(look)}`);
         }
-      } else if (look.role !== null || look.background !== 'rgba(0, 0, 0, 0)' || look.underline !== 'none') {
+      } else if (look.role !== null || look.background !== 'rgb(255, 255, 255)' || look.underline !== 'none') {
         faults.push(`${tab}/${label}: fixed unit affordance is ${JSON.stringify(look)}`);
       }
     }

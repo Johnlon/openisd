@@ -106,7 +106,7 @@ test.describe('phone unit buttons', () => {
     const units = page.locator('.mob-classic .ui-field-unit:not(.unit-toggle)');
     await expect(units.first()).toBeVisible();
     for (const unit of await units.all()) {
-      expect(await chip(unit)).toEqual(['rgba(0, 0, 0, 0)', 'rgb(136, 136, 136)', '0px', 'rgb(136, 136, 136)', '13px', '600', '0px']);
+      expect(await chip(unit)).toEqual(['rgb(255, 255, 255)', 'rgb(136, 136, 136)', '0px', 'rgb(136, 136, 136)', '13px', '600', '0px']);
       await expect(unit).toHaveCSS('text-decoration-line', 'none');
     }
   });

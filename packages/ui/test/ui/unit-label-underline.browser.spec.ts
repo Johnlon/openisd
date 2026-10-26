@@ -42,36 +42,30 @@ for (const screen of project_screens) {
     await waitForLabelsWhereExpected(screen.name, labels);
     const fields = await allUnits.evaluateAll(els => els.map(el => {
       const cs = getComputedStyle(el);
-      let surface = 'transparent';
-      for (let parent: Element | null = el; parent !== null; parent = parent.parentElement) {
-        const background = getComputedStyle(parent).backgroundColor;
-        if (background !== 'rgba(0, 0, 0, 0)' && background !== 'transparent') {
-          surface = background;
-          break;
-        }
-      }
       return {
         field: el.closest('.ui-field, .mob-field-row, .field')?.querySelector('label')?.textContent?.trim() ?? '(unlabelled)',
         text: el.textContent?.trim() ?? '', role: el.getAttribute('role'), toggle: el.classList.contains('unit-toggle'),
         line: cs.textDecorationLine, style: cs.textDecorationStyle, cursor: cs.cursor,
-        bottom: cs.borderBottomStyle, background: cs.backgroundColor, surface, weight: cs.fontWeight,
-        effectiveBackground: cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'
-          ? cs.backgroundColor : surface,
+        decorationColor: cs.textDecorationColor, decorationThickness: cs.textDecorationThickness,
+        decorationOffset: cs.textUnderlineOffset,
+        bottom: cs.borderBottomStyle, background: cs.backgroundColor, weight: cs.fontWeight,
       };
     }));
     const bad = fields.filter(s => {
       const clickable = s.role === 'button';
       const wrongWeight = screen.skin.name === 'mobile' && s.weight !== '600';
       const wrongToggleSemantics = clickable !== s.toggle;
+      const wrongMobileBackground = screen.skin.name === 'mobile'
+        && s.background !== (s.text === '' ? 'rgba(0, 0, 0, 0)' : clickable ? 'rgb(239, 239, 239)' : 'rgb(255, 255, 255)');
       if (clickable) {
         const expectedStyle = screen.skin.name === 'mobile' ? 'solid' : 'dotted';
-        return wrongWeight || wrongToggleSemantics || !(s.toggle && s.line.includes('underline') && s.style === expectedStyle && s.cursor === 'pointer'
+        return wrongWeight || wrongToggleSemantics || wrongMobileBackground || !(s.toggle && s.line.includes('underline') && s.style === expectedStyle && s.cursor === 'pointer'
           && (screen.skin.name === 'mobile'
-            ? s.background === 'rgb(239, 239, 239)' && s.bottom === 'solid'
+            ? s.bottom === 'solid' && s.decorationColor === 'rgb(24, 104, 209)' && s.decorationThickness === '1px' && s.decorationOffset === '5px'
             : true));
       }
       return wrongWeight || wrongToggleSemantics || s.role !== null || s.line !== 'none' || s.style !== 'solid'
-        || (screen.skin.name === 'mobile' && s.effectiveBackground !== 'rgb(255, 255, 255)');
+        || wrongMobileBackground;
     });
     expect(bad, `unit-affordance violations on ${screen.skin.name} ${screen.name}`).toEqual([]);
 
@@ -106,11 +100,36 @@ for (const screen of mobile_screens) {
         if (!cue.getClientRects().length) continue;
         const qr = cue.getBoundingClientRect();
         if (!inside(qr, rr)) problems.push(`${label}: ${cue.className} is outside its field row`);
+        if (control) {
+          // Some readouts deliberately place ≠W inside the value box. Guard the digits/text area,
+          // not the whole box: reserved right padding is where the adornment belongs.
+          let textRect: DOMRect;
+          if (control.matches('input, select, textarea')) {
+            const cr = control.getBoundingClientRect(), css = getComputedStyle(control);
+            const left = cr.left + parseFloat(css.paddingLeft || '0');
+            const right = cr.right - parseFloat(css.paddingRight || '0');
+            textRect = new DOMRect(left, cr.top, Math.max(0, right - left), cr.height);
+          } else {
+            const range = document.createRange();
+            range.selectNodeContents(control);
+            textRect = range.getBoundingClientRect();
+          }
+          if (qr.left < textRect.right - 0.5 && qr.right > textRect.left + 0.5 && qr.top < textRect.bottom - 0.5 && qr.bottom > textRect.top + 0.5) {
+            problems.push(`${label}: ${cue.className} overlaps the displayed value`);
+          }
+        }
         if (hasUnit && unit) {
           const ur = unit.getBoundingClientRect();
           if (qr.left < ur.right - 0.5 && qr.right > ur.left + 0.5 && qr.top < ur.bottom - 0.5 && qr.bottom > ur.top + 0.5) {
             problems.push(`${label}: ${cue.className} overlaps the unit`);
           }
+        }
+      }
+      const cues = [...row.querySelectorAll<HTMLElement>('.ui-field-dq-btn, .winisd-deviation-cue')].filter(cue => cue.getClientRects().length > 0);
+      for (let i = 0; i < cues.length; i++) for (let j = i + 1; j < cues.length; j++) {
+        const a = cues[i]!.getBoundingClientRect(), b = cues[j]!.getBoundingClientRect();
+        if (a.left < b.right - 0.5 && a.right > b.left + 0.5 && a.top < b.bottom - 0.5 && a.bottom > b.top + 0.5) {
+          problems.push(`${label}: ${cues[i]!.className} overlaps ${cues[j]!.className}`);
         }
       }
       return problems;
