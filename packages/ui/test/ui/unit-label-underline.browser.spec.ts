@@ -55,20 +55,23 @@ for (const screen of project_screens) {
         text: el.textContent?.trim() ?? '', role: el.getAttribute('role'), toggle: el.classList.contains('unit-toggle'),
         line: cs.textDecorationLine, style: cs.textDecorationStyle, cursor: cs.cursor,
         bottom: cs.borderBottomStyle, background: cs.backgroundColor, surface, weight: cs.fontWeight,
+        effectiveBackground: cs.backgroundColor !== 'rgba(0, 0, 0, 0)' && cs.backgroundColor !== 'transparent'
+          ? cs.backgroundColor : surface,
       };
     }));
     const bad = fields.filter(s => {
       const clickable = s.role === 'button';
       const wrongWeight = screen.skin.name === 'mobile' && s.weight !== '600';
+      const wrongToggleSemantics = clickable !== s.toggle;
       if (clickable) {
         const expectedStyle = screen.skin.name === 'mobile' ? 'solid' : 'dotted';
-        return wrongWeight || !(s.toggle && s.line.includes('underline') && s.style === expectedStyle && s.cursor === 'pointer'
+        return wrongWeight || wrongToggleSemantics || !(s.toggle && s.line.includes('underline') && s.style === expectedStyle && s.cursor === 'pointer'
           && (screen.skin.name === 'mobile'
             ? s.background === 'rgb(239, 239, 239)' && s.bottom === 'solid'
             : true));
       }
-      return wrongWeight || s.toggle || s.role !== null || s.line !== 'none' || s.style !== 'solid'
-        || (screen.skin.name === 'mobile' && (s.background !== 'rgba(0, 0, 0, 0)' || s.surface !== 'rgb(255, 255, 255)'));
+      return wrongWeight || wrongToggleSemantics || s.role !== null || s.line !== 'none' || s.style !== 'solid'
+        || (screen.skin.name === 'mobile' && s.effectiveBackground !== 'rgb(255, 255, 255)');
     });
     expect(bad, `unit-affordance violations on ${screen.skin.name} ${screen.name}`).toEqual([]);
 

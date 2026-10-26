@@ -235,7 +235,7 @@ async function probeBuild(browser, url) {
     await page.getByRole('button', { name: 'Start designing', exact: true }).click({ timeout: 4000 }).catch(() => {});
     await page.getByRole('button', { name: 'Menu', exact: true }).click({ timeout: 4000 });
     return (await page.locator('[data-testid=app-version]').first().textContent({ timeout: 4000 })).trim();
-  } catch { return url.match(/\/v\/([^/]+)\//)?.[1] ?? '(unknown)'; } finally { await ctx.close(); }
+  } catch { return url.match(/\/(?:v|snap)\/([^/]+)\//)?.[1] ?? '(unknown)'; } finally { await ctx.close(); }
 }
 
 const opts = parseArgs(process.argv.slice(2));

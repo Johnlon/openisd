@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: c7d3bb5529c62df7aa42064bdaeb9c2d3fa9cd17
 goal: Make the numeric field style audit discover every visible numeric control independently of its field styling and verify phone adornments on every numeric row
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
