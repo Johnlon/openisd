@@ -1,0 +1,80 @@
+T607 three-page field widths and spinner swipe repair
+2026-10-27; model gemini-4-argon-high via agy, readonly source/image review requested by John.
+Conversation e3615d1c-a5c1-4d26-90b1-0b1cb46ebfd1
+
+FIRST REVIEW
+### 1. Gesture & Code Correctness ([NumInput-hooks.ts](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L432-L525))
+
+* **Defect — Touch-hold repeat has a double initial delay (800 ms to 2nd step) and 400 ms acceleration lag**:
+  In [`onStepperPointerDown`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L474-L478), `holdTimer` waits `CARET_HOLD_START_MS` (400 ms) and then calls [`beginRepeat(at, dir)`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L512-L520). `beginRepeat` sets `heldSince = performance.now()` (at `t = 400 ms`), fires only the **first** step at 400 ms, and schedules `repeatTimer` for *another* `CARET_HOLD_START_MS` (400 ms). As a result:
+  * Holding for 400–799 ms and releasing produces only **1 step** (identical to a tap; the second step does not fire until **800 ms**).
+  * Coarse acceleration (`caretRepeatDelayMs(performance.now() - heldSince)`) is delayed by 400 ms relative to the actual touch-start time.
+  * *Fix*: Record `heldSince` at `pointerdown` (or pass it in), and when `holdTimer` fires at `CARET_HOLD_START_MS`, step once and schedule the next `tick` using `caretRepeatDelayMs(performance.now() - heldSince)` rather than waiting a second `CARET_HOLD_START_MS`.
+* **In-hold finger drift cancels active repeating**:
+  In [`onStepperPointerDown`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L479-L483), the `pointermove` listener stays active after `holding = true` and compares against initial `e.clientX`/`e.clientY`. If a user holds stationary for 400 ms to start repeating and their thumb then shifts by 8 px while still inside the 40×36 px button, `stopRepeat()` aborts the hold mid-repeat. Either gate the 8 px scroll-cancel check on `!holding` or only cancel after `holding` if the pointer leaves the button bounds.
+* **Event cleanup, blur, and caret preservation**:
+  * Splitting [`clearRepeat`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L434-L437) from [`stopRepeat`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L439-L442) and calling `clearRepeat()` in [`onBlur`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L611-L617) and [`onStepperBlur`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L506-L509) correctly prevents `focusStepper(button)` (which blurs the input or the opposite stepper button) from aborting `cancelStepperTouch` mid-gesture, while leaving the group (`!ownGroup(e.relatedTarget)`) or `window` blur / unmount still calls `stopRepeat()`.
+  * Capturing `const at = caretForStep()` at `pointerdown` ([L463](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L463)) before focus changes preserves the active input's caret/digit selection.
+
+---
+
+### 2. Visual & Layout Review (9 Screenshots & [joined-fields.css](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L83-L95))
+
+* **Signal tab (`before-signal.png` / `prod-measured-signal.png` vs `after-signal.png`)**:
+  * Shrinking Signal's inputs from 170 px to 134 px (at 374 px viewport) pulls the `▲`/`▼` stepper buttons **36 px inward from the right edge**, leaving a **52 px blank margin** to the right of every row.
+  * In `before-signal.png` and `prod-measured-signal.png`, the right edge of the `▼` buttons aligns with the `?` help icon in the `SIGNAL` band (`16 px` right inset). In `after-signal.png`, that right-edge alignment is visibly broken because the 68 px deduction in [`.mob-common-field-width`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L87-L89) subtracts 26 px of filter-card margins/borders and 10 px of net `≠W` model-cue space that do not exist on Signal.
+  * Additionally, because Filters cards are indented 13 px from the left (`x = 111 px`) while Driver/Signal rows are not (`x = 98 px`), matching box *widths* (`134 px`) still leaves the boxes and steppers at different horizontal screen positions across tabs (`98..232 px` on Driver/Signal vs `111..245 px` on Filters), and leaves the `Box` tab at the wider unshrunk width.
+* **Driver tab (`before-driver.png` / `prod-measured-driver.png` vs `after-driver.png`)**:
+  * All shown labels (`Drivers`, `Connection`, `Fs`, `Qts`, `Vas`, `Re`, `Xmax`), values (`1`, `Parallel`, `37.00`, `0.380`, `30.00`, `6.600`, `6.000`), and unit chips (`Hz`, `L`, `Ω`, `mm`) fit cleanly at 134 px with no clipping.
+  * However, narrowing `.mob-cselect` to `120 px` at 360 px viewport (`134 px` at 374 px) leaves only ~75–80 px of text width inside `Connection` (after 16 px left padding and the native dropdown arrow). When `Drivers > 1`, longer options such as `"Series / parallel"` will clip or truncate.
+* **Filters tab (`before-filters.png` vs `after-filters.png` vs `prod-measured-filters.png`)**:
+  * `before-filters.png` and `after-filters.png` are visually identical (134 px boxes, external `≠W` cue on `Order`).
+  * Compared to `prod-measured-filters.png`, production places `≠W` inside the `Order` box (`158 px` wide) with steppers flush to the card's right edge, whereas `before`/`after` place `≠W` in an external 24 px track to the right of `▼`.
+
+---
+
+### 3. Limits of TDD Evidence ([mobile-field-widths.browser.spec.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-field-widths.browser.spec.ts#L1-L25), [mobile-num-stepper-focus.browser.spec.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts#L83-L159), [fieldVisualContract.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L28-L88))
+
+1. **`.mob-crow` / `<select>` clipping is not checked by `measureFieldContent` or `measureFieldBorders`**:
+   * [`measureFieldContent`](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L28) and [`measureFieldBorders`](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L207) only query `.ui-field, .de-fld:not(.ui-field)`. The `Drivers` and `Connection` `<select class="mob-cselect">` rows on `MobileDriverTab` live in `.mob-crow` ([MobileDriverTab.vue:L25-L38](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/mobile/MobileDriverTab.vue#L25-L38)), so neither contract helper inspects their text fit or borders.
+   * Even inside `.ui-field`, the text-clipping check in [`measureFieldContent`](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L85-L88) is gated on `const numeric = value instanceof HTMLInputElement && ...` and never checks `HTMLSelectElement`.
+2. **Touch-hold test does not bound repeat start latency**:
+   * [`hold()` in `mobile-num-stepper-focus.browser.spec.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts#L30-L38) polls until `Number(await box.inputValue()) > 1.03` with default timeout, masking the 800 ms double-`CARET_HOLD_START_MS` delay before the second step.
+3. **Swipe/cancel tests only test unfocused inputs**:
+   * All swipe and `touchCancel` tests ([L101-L159](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts#L101-L159)) run with `box` blurred; none verify starting a swipe on `▲`/`▼` while `box` is focused with an active caret or draft entry.
+
+
+
+FINAL RECHECK
+### 1. Retraction of `Series / parallel` Claim ([options.ts:L36-L39](http://lap:8000/winisd/openisd-t607/packages/design/fields/options.ts#L36-L39))
+
+* Retracted: [`ARRAY_WIRING_OPTIONS`](http://lap:8000/winisd/openisd-t607/packages/design/fields/options.ts#L36-L39) defines only `'Parallel'` and `'Series'`. Claiming a `'Series / parallel'` option existed on `MobileDriverTab` was unverified conjecture; both actual labels fit comfortably at all tested widths (360 px, 374 px, 430 px).
+
+---
+
+### 2. Gesture, Timing & Drift Fixes ([NumInput-hooks.ts:L451-L527](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L451-L527), [mobile-num-stepper-focus.browser.spec.ts:L161-L214](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts#L161-L214))
+
+* **Hold cadence & acceleration**: [`onStepperPointerDown`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L464-L479) now records `pressedAt = performance.now()` at `pointerdown` and passes it to [`beginRepeat`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L517-L527), scheduling the post-activation tick via `caretRepeatDelayMs(performance.now() - heldSince)` (~333 ms after the 400 ms activation step) while keeping the 400 ms initial delay for immediate mouse/keyboard presses.
+* **In-hold finger drift**: [`pointermove`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L480-L488) now cancels on `>= 8 px` movement only while `!holding`, and once `holding` is active only cancels if the pointer moves outside `button.getBoundingClientRect()` (or on `pointercancel`/`pointerup`).
+* **Focused draft preservation**: Covered by the clock-controlled cadence test ([L161-L180](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts#L161-L180)), focused-draft vertical swipe tests ([L182-L198](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts#L182-L198)), and in-button drift test ([L200-L214](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts#L200-L214)). No correctness blockers remain.
+
+---
+
+### 3. Cross-Tab Edge Alignment & Final Image Comparison ([joined-fields.css:L87-L103](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L87-L103), [mobile-field-widths.browser.spec.ts:L16-L25](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-field-widths.browser.spec.ts#L16-L25))
+
+* **CSS & DOM contract**: Adding `13 px` to `--joined-label` and `.mob-crow-label` on unframed rows ([joined-fields.css:L98-L103](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L98-L103)) matches the `13 px` left inset (`12 px` margin + `1 px` border) of `.mob-fcard`. At 374 px viewport, all value boxes across Driver, Signal, and Filters now share both width (`134 px`) and horizontal bounds (`x = 111..245 px`), with steppers aligned at `x = 245..335 px` and the rightmost `24 px` reserved for the `≠W` cue rail.
+* **`after-final-driver.png` vs `before-driver.png` / `prod-measured-driver.png`**: Dropdowns and key-figure boxes sit at `x = 111..245 px` (`134 px` wide vs `98..268 px` in `before`/`prod-measured`), aligned with Filters; all labels, values, and unit chips fit on single lines without clipping.
+* **`after-final-signal.png` vs `before-signal.png` / `prod-measured-signal.png`**: Value boxes (`x = 111..245 px`) and `▲`/`▼` buttons (`x = 245..335 px`) now align directly with the Filter card's fields and steppers, leaving only the `24 px` external model-cue rail on the right instead of the earlier `36 px` gap.
+* **`after-final-filters.png` vs `before-filters.png` / `prod-measured-filters.png`**: Unchanged from `before-filters.png` (`134 px` boxes, external `≠W` cue in the right `24 px` rail vs internal `≠W` badge in `prod-measured-filters.png`). No visual defects or blockers found.
+
+
+IMPLEMENTER DISPOSITION
+Initial concrete timing/drift and column-offset criticisms were reproduced with deterministic failing tests, fixed and verified.
+Final recheck finds no correctness or visual blockers in the requested three-page repair.
+The long wiring-option claim was retracted against actual source, which contains only Parallel and Series.
+General select clipping outside .ui-field is a future coverage limit; the actual Driver labels fit these tested sizes.
+The final narrow layout uses the existing Filters width as a stated assumption following John's earlier preference; the optional width-choice question remained unanswered.
+Final pictures preserve field values/fonts/labels/heights while aligning control and unit edges across the three pages; Filters itself is unchanged from before.
+Existing production cloud/header, Info and earlier joined-field/cue differences predate this repair and are identified in the gallery.
+Automatic DOM/real-touch tests determine font/width/gesture checks; AI review is supplementary.
+No broader audit, approved catalogue migration, landing or deployment is claimed.

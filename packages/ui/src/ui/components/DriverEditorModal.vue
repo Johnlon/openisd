@@ -1047,7 +1047,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
    the widest (about 840px of content with the step arrows) and Parameters the tallest. Both measured, not guessed. The
    vh caps are only a small-screen backstop. */
 /* position: relative anchors the format picker's scrim to the editor, not the viewport. */
-.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 976px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
+.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 1100px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
 .de-tab { padding: 5px 12px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 14px; font-weight: 500; }
 .de-tab.on { background: var(--panel); font-weight: 600; }
@@ -1181,7 +1181,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
+  grid-template-columns: repeat(var(--de-field-columns,4), max-content 150px 30px 24px) !important;
   /* 2px between tracks: 15 gaps across 16 tracks; at 6px the grid was wider than the modal's body in Chromium and wider still in Firefox, so the body scrolled sideways. */
   gap: 3px 0 !important;
   align-items: center !important;
@@ -1203,7 +1203,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
      on one column edge. FOUR tracks: label, input, unit, DQ marker — the marker needs a track
      of its own or the row it appears on wraps and stops matching the rows around it. */
   display: grid;
-  grid-template-columns: max-content max-content minmax(34px, max-content) 16px;
+  grid-template-columns: max-content 150px 30px 24px;
   align-items: center;
   /* A tight row pitch: eight fields read as ONE list, as they do in WinISD's own Dimensions
      page. Row spacing lives HERE and nowhere else — a per-field margin on top of it stacked
@@ -1232,11 +1232,12 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    fits one tab's labels and clips another's. The provenance highlight is painted on this box,
    so it wraps all four parts as one component. */
 .de-desktop .de-fld {
+  --ui-field-column-gap: 3px;
   display: grid !important;
   grid-template-columns: subgrid !important;
   grid-column: span 4 !important;
   align-items: center !important;
-  gap: 3px !important;
+  gap: var(--ui-field-column-gap) !important;
   margin-bottom: 0 !important;
   width: fit-content !important;
   max-width: 100% !important;
@@ -1298,7 +1299,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    columns of them overran the modal and forced a sideways scroll. */
 .de-desktop .de-cols {
   display: grid !important;
-  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
+  grid-template-columns: repeat(var(--de-field-columns,4), max-content 150px 30px 24px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }
@@ -1312,11 +1313,6 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-desktop .de-cols .de-fld > :deep(input), .de-desktop .de-cols .de-fld > select,
 .de-desktop .de-dimlist .de-fld > :deep(input), .de-desktop .de-dimlist .de-fld > select { grid-column: 2 !important; }
 
-.de-desktop .de-cols .de-fld > .ui-field-unit,
-.de-desktop .de-dimlist .de-fld > .ui-field-unit,
-
-.de-desktop .de-cols .de-fld > .ui-field-dq,
-.de-desktop .de-dimlist .de-fld > .ui-field-dq,
 .de-desktop .de-cols .de-fld > .de-dq,
 .de-desktop .de-dimlist .de-fld > .de-dq {
   grid-column: 4 !important;
@@ -1353,8 +1349,6 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-phone .de-general .de-fld.de-comment > :deep(.ui-field-value) { flex: 1 1 auto; display: flex; align-items: stretch; }
 .de-phone .de-general .de-fld.de-comment.ui-field { display: flex; flex-direction: column; align-items: stretch; height: auto; min-height: var(--mob-row-min); padding-top: 6px; padding-bottom: 8px; }
 .de-phone .de-general .de-fld.de-comment textarea { flex: 1 1 auto; width: 100% !important; min-height: 120px !important; box-sizing: border-box; font-size: 15px; border: 1px solid var(--mob-box-line); border-radius: 4px; padding: 6px var(--mob-col-gutter) !important; resize: none; }
-/* The editor's rows carry no ≠W badge, so the ⚠ sits right beside the unit chip and leaves the middle of the box free to tap. */
-.de-phone.mob-classic :deep(.mob-ui-field.ui-field .ui-field-dq) { margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 8px); }
 .de-phone h2 .x { min-width: var(--mob-touch-min); min-height: var(--mob-touch-min); }
 /* The unit toggle and the ⚠ are buttons: as tall as the row's box, so a finger finds them. */
 .de-phone :deep(.ui-field-unit), .de-phone :deep(.ui-field-dq-btn) { min-height: var(--mob-input-h); display: inline-flex; align-items: center; }
@@ -1449,4 +1443,15 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 /* ── Phone: the ƒ mark in the left gutter of a row the inspector can explain ── */
 .de-phone .de-fld.de-fx { position: relative; }
 .de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: Georgia, serif; font-size: 14px; line-height: 1; pointer-events: none; }
+</style>
+
+<style scoped>
+/* Keep the complete value-plus-unit rail wide enough for displayed precision. On smaller
+   desktops use three field columns instead of clipping a fourth column at the modal edge. */
+@media (max-width: 1100px) {
+  .de-desktop { --de-field-columns: 3; }
+}
+@media (max-width: 900px) {
+  .de-desktop { --de-field-columns: 2; }
+}
 </style>

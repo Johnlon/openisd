@@ -2,7 +2,7 @@
 // The mobile Box tab — box type, volume, and the calculated resonance/Qtc readout. Thin: all
 // state and domain reads/writes live in useMobileBoxTab() (src/hooks/MobileBoxTab-hooks.ts), which
 // calls the SAME field-wiring factories src/hooks/boxFields.ts exports.
-import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
+import {NumberField, PhoneRowColumns, PhoneBoxText, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -138,10 +138,10 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
       </div>
       <template v-for="g in openLossGroups" :key="g.chamber">
         <div v-if="g.heading !== null" class="mob-panel-head">{{ g.heading }}</div>
-        <UISettlingField class="mob-ui-field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" stepper />
-        <UISettlingField class="mob-ui-field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" stepper />
-        <UISettlingField v-if="g.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" stepper />
-        <UISettlingField v-if="g.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" class="mob-ui-field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" class="mob-ui-field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" v-if="g.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" v-if="g.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" stepper />
       </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">

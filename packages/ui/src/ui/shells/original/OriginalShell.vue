@@ -69,7 +69,7 @@ const {
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, rearTuningCell, rearResonance,
-  model, startEdit, startWhatIf, placement,
+  model, startEdit, showDriverInfo, startWhatIf, placement,
   activeVent, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
@@ -443,9 +443,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="project.driver.brand.value" readonly></div>
             <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
             <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
+            <button type="button" class="edit-btn" title="View information about this project’s driver" @click="showDriverInfo">Info</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
           </div>
-          <div class="two-col" style="margin-top:6px;">
+          <div class="two-col driver-columns" style="margin-top:6px;">
             <div style="--label-w:150px;">
               <div class="section-header" style="margin-bottom:4px;">Placement</div>
               <div class="field-row" style="margin-bottom:4px;">
@@ -473,10 +474,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" /></div>
                 </div>
-                <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
+
               </div>
             </div>
           </div>
+          <p class="hint driver-model-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
         </section>
 
         <!-- ===== Enclosure / Vents tab ===== -->
@@ -1187,7 +1189,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .split-v:hover, .split-h:hover { background:#cfe0f5; }
 .split-toggle { position:absolute; display:grid; place-items:center; background:#f0f0f0; border:1px solid #aaa; color:#555; border-radius:4px; cursor:pointer; font-size:9px; line-height:1; padding:0; }
 .split-v .split-toggle { top:8px; left:50%; transform:translateX(-50%); width:15px; height:34px; }
-.split-h .split-toggle { left:190px; top:50%; transform:translateY(-50%); height:15px; width:34px; }
+.split-h .split-toggle { left:calc(var(--sidebar-width, 175px) + 15px); top:50%; transform:translateY(-50%); height:15px; width:34px; }
 .split-toggle:hover { background:#dbeaff; border-color:#7fb3ff; color:#1868d1; }
 /* collapsed panels: the grid track is 0px (mainStyle); hide the content so padding
    doesn't leave a sliver. The splitter (with its expand toggle) stays visible. */
@@ -1454,6 +1456,10 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 /* Hints beside (not below) their fields keep the pane shallow so the chart stays tall. */
 .beside-hint { display:flex; gap:16px; align-items:flex-start; }
 .side-hint { flex:none; width:220px; margin:0; }
+/* Unit text may widen its field; wrap the adjacent explanation within the remaining pane. */
+.driver-columns > :last-child { flex: 1 1 auto; min-width: 0; }
+.driver-columns .beside-hint > :first-child { flex: none; }
+.driver-columns .side-hint { flex: 1 1 220px; min-width: 0; max-width: 220px; }
 .env-arrow { align-self:flex-start; margin:6px 0 0; }
 /* > .two-col beats the .two-col > div flex:0 default so the description fills the width */
 .two-col > .description-col { flex:1 1 auto; display:flex; flex-direction:column; gap:4px; }

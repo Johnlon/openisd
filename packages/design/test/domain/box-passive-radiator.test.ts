@@ -15,15 +15,17 @@ describe('the passive radiator a box holds', () => {
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
 
-  it('holds a blank radiator from the start: blank reads, and edits land', () => {
+  it('holds a seeded dummy radiator from the start, and edits land', () => {
     const p = project();
     const r = p.box.passiveRadiator.radiator;
 
-    expect(r.brand.value).toBe('');
+    expect(r.brand.value).toBe('Placeholder');
+    expect(r.model.value).toBe('Dummy PR');
+    expect(r.spec.Qms.value).toBe(5);
     r.brand.set('SB');
     expect(p.box.passiveRadiator.radiator.brand.value).toBe('SB');
 
-    expect(r.spec.Fs_hz.value).toBe(null);
+    expect(r.spec.Fs_hz.value).toBeCloseTo(31.8309886, 6);
     r.spec.Fs_hz.set(12);
     expect(p.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(12);
 
@@ -146,13 +148,17 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.radiator.spec.Sd_m2.value).toBe(0.099);
   });
 
-  it('detaches the blank radiator a box starts with', () => {
+  it('detaches an independent copy of the dummy radiator a box starts with', () => {
     const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
 
-    expect(p.box.passiveRadiator.radiator.detach().brand.value).toBe('');
+    const detached = p.box.passiveRadiator.radiator.detach();
+    expect(detached.brand.value).toBe('Placeholder');
+    expect(detached.model.value).toBe('Dummy PR');
+    detached.model.set('Changed copy');
+    expect(p.box.passiveRadiator.radiator.model.value).toBe('Dummy PR');
   });
 
   it('the blank radiator a box starts with has its own identity', () => {

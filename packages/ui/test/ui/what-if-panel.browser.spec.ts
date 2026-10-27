@@ -1,5 +1,6 @@
 import {chartPicture, chartPng, settledChartPicture, COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, shownBoxVolume, shownDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
+import {measureCursorOrdinaryInk} from '../fixtures/fieldCursorContract.js';
 import {chartFontReport, watchChartFonts} from '../fixtures/chartFonts.js';
 
 /**
@@ -410,3 +411,23 @@ for (const size of [{ width: 1280, height: 800 }, { width: 1024, height: 700 }])
     expect(m.rowsRight).toBeLessThanOrEqual(m.right);
   });
 }
+
+
+test('desktop Mms has the selected solid unit affordance and inverse digit cursor', async ({page}) => {
+  const panel = await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
+  const row = whatIfField(page, 'Mms');
+  const unit = row.locator('.unit-toggle');
+  await expect(unit).toHaveAttribute('role', 'button');
+  await expect(unit).toHaveCSS('text-decoration-style', 'solid');
+  await expect(unit).toHaveCSS('text-decoration-color', 'rgb(24, 104, 209)');
+  const before = await unit.innerText();
+  await unit.click();
+  await expect(unit).not.toHaveText(before);
+  const input = row.locator('input');
+  await input.focus();
+  await input.evaluate(element => { if (element instanceof HTMLInputElement) element.setSelectionRange(0, 1); });
+  const marker = panel.locator('.num-mark-underline');
+  await expect(marker).toBeVisible();
+  await expect(marker).toHaveCSS('animation-name', 'joined-inverse-blink');
+  expect((await input.evaluate(measureCursorOrdinaryInk)).issues).toEqual([]);
+});

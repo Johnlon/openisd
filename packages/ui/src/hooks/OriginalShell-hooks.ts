@@ -173,7 +173,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // sourced from `appState.ts`'s own focus-aware `live` bridge.
   const project = useFocusedProject();
 
-  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort, appUpdate } = useApp();
+  const { engine, designIO, selection, driverBrowsing, myPassiveRadiators, bundledPassiveRadiators, confirmPort, appUpdate } = useApp();
   const { saveProject, saveAllProjects, saveProjectAs, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
@@ -580,9 +580,14 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const navCollapsed = computed({ get: () => presentationState.ui.originalNavCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalNavCollapsed = v; } });
   const bottomCollapsed = computed({ get: () => presentationState.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalBottomCollapsed = v; } });
   const chartMax = computed({ get: () => presentationState.ui.originalChartMax ?? false, set: (v: boolean) => { presentationState.ui.originalChartMax = v; } });
+  const navWidth = computed(() => {
+    const stored = presentationState.ui.originalNavW;
+    return typeof stored === 'number' ? Math.max(140, stored) : 175;
+  });
   const mainStyle = computed(() => chartMax.value ? {} : {
-    gridTemplateColumns: (navCollapsed.value ? '0px' : (presentationState.ui.originalNavW ?? 175) + 'px') + ' 7px 1fr',
+    gridTemplateColumns: (navCollapsed.value ? '0px' : navWidth.value + 'px') + ' 7px 1fr',
     gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : 'auto'),
+    '--sidebar-width': navCollapsed.value ? '0px' : navWidth.value + 'px',
   });
   function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
     const el = listeningElement(e);
@@ -788,7 +793,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
-    model, startEdit, startWhatIf, placement,
+    model, startEdit, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement,
     activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,

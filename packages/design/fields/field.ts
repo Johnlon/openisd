@@ -119,7 +119,13 @@ export abstract class Field {
   abstract readonly kind: FieldKind;
 }
 
+export enum NumberEditor {
+  Input = 'number',
+  CountSelect = 'count-select',
+}
+
 interface NumberFieldSpec extends FieldSpec {
+  readonly editor?: NumberEditor;
   readonly display: SwitchableUnit | FixedUnit;
   readonly limits: FieldLimits;
   readonly precision: number;
@@ -133,6 +139,7 @@ interface NumberFieldSpec extends FieldSpec {
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
 export class NumberField extends Field {
   readonly kind = 'number';
+  readonly editor: NumberEditor;
   /** How the field is shown: one fixed symbol, or a `UnitGroup` the user may rotate through. */
   readonly display: SwitchableUnit | FixedUnit;
   /** The band an entered value must fall in, in SI/model units. */
@@ -157,6 +164,7 @@ export class NumberField extends Field {
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
+    this.editor = spec.editor ?? NumberEditor.Input;
     this.display = Object.freeze(spec.display);
     this.limits = Object.freeze(spec.limits);
     this.precision = spec.precision;
@@ -407,6 +415,7 @@ export class NumberField extends Field {
 
   // ── Vent ──────────────────────────────────────────────────────────────────────────────────
   static readonly VENT_COUNT = new NumberField({
+    editor: NumberEditor.CountSelect,
     value: "vent_Count",
     label: "Number of vents",
     display: {kind: 'fixed', symbol: ''},
@@ -496,6 +505,7 @@ export class NumberField extends Field {
     description: "Passive Radiator Excursion Limit\nMaximum peak linear displacement of the passive radiator diaphragm.\nDraws the PR excursion limit line; it does not change the response curves.",
   });
   static readonly PR_NUM = new NumberField({
+    editor: NumberEditor.CountSelect,
     value: "pr_Num",
     label: "Num. of PRs",
     display: {kind: 'fixed', symbol: ''},
@@ -1214,6 +1224,7 @@ export class NumberField extends Field {
 
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
   static readonly DRIVER_NDRIVERS = new NumberField({
+    editor: NumberEditor.CountSelect,
     value: "driver_nDrivers",
     label: "Num. of drivers",
     display: {kind: 'fixed', symbol: ''},

@@ -164,7 +164,15 @@ test.describe('Original shell layout', () => {
       await page.mouse.up();
       expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
 
-      await page.evaluate(() => localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, originalBottomH: 300 } })));
+      await page.evaluate(() => {
+        const stored: unknown = JSON.parse(localStorage.getItem('openisd_view') ?? '{}');
+        if (typeof stored !== 'object' || stored === null || Array.isArray(stored)) throw new Error('Expected stored view preferences');
+        const ui: unknown = 'ui' in stored ? stored.ui : {};
+        if (typeof ui !== 'object' || ui === null || Array.isArray(ui)) throw new Error('Expected stored UI preferences');
+        // This test changes only the obsolete bottom-height setting, retaining the sidebar
+        // width that a preceding resize test may have saved in the shared browser page.
+        localStorage.setItem('openisd_view', JSON.stringify({...stored, ui: {...ui, splashSeen: true, originalBottomH: 300}}));
+      });
       await page.reload();
       expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
     });

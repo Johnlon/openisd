@@ -207,7 +207,7 @@ describe('spinStep: the next step keeps the place until the caret moves', () => 
   it('with no last step, steps at the caret like caretSpin, and at the tenths with no caret', () => {
     expect(spinStep('9.5', caretAt(1), null, 1, OPEN)?.text).toBe('10.5');
     expect(spinStep('6.00', NONE, null, 1, OPEN)?.text).toBe('6.10');
-    expect(spinStep('6.00', caretAt(4), null, 1, OPEN)?.text).toBe('6.10');
+    expect(spinStep('6.00', caretAt(4), null, 1, OPEN)?.text).toBe('6.01');
   });
   it('keeps the tens through a lost digit: 10.5 down is 0.5, up again is 10.5', () => {
     const down = spinStep('10.5', caretAt(0), null, -1, OPEN);
@@ -244,7 +244,7 @@ describe('spinStep: the next step keeps the place until the caret moves', () => 
 });
 
 // fable, 21 Oct 2026 (bugs/BUG_20261021_last-decimal-digit-cannot-spin.md): a selected digit spins its
-// own place wherever it sits; a bare caret at the end chooses no digit (tenths default, T522).
+// own place wherever it sits. John,27 October2026: an explicit end caret chooses the final digit too.
 describe('a selected digit chooses its place', () => {
   it('the last digit of 1.05 selected spins the hundredths', () => {
     expect(steppingCaret('1.05', digitAt(3))).toBe(4);
@@ -253,8 +253,8 @@ describe('a selected digit chooses its place', () => {
     expect(r?.place).toBe(-2);
     expect(r?.mark).toBe(3);
   });
-  it('a bare caret at the end still spins the tenths', () => {
-    expect(spinStep('1.05', caretAt(4), null, 1, OPEN)?.text).toBe('1.15');
+  it('a bare caret after the last digit spins that last digit', () => {
+    expect(spinStep('1.05', caretAt(4), null, 1, OPEN)?.text).toBe('1.06');
   });
   it('any other selected digit spins its place, as a caret right of it does', () => {
     expect(spinStep('1.05', digitAt(0), null, 1, OPEN)?.text).toBe('2.05');
@@ -293,8 +293,8 @@ describe('steppingCaret — a step starts at the tenths unless the person moved 
   it('uses the tenths digit when no caret was ever set', () => {
     expect(steppingCaret('20.00', NONE)).toBe(4);
   });
-  it('uses the tenths digit when the caret is only at the end, where typing leaves it', () => {
-    expect(steppingCaret('20.00', caretAt(5))).toBe(4);
+  it('keeps the caret after the final digit, including trailing precision zeroes', () => {
+    expect(steppingCaret('20.00', caretAt(5))).toBe(5);
     expect(steppingCaret('4.8', caretAt(3))).toBe(3);
   });
   it('keeps a caret the person put on another digit', () => {
@@ -304,5 +304,19 @@ describe('steppingCaret — a step starts at the tenths unless the person moved 
   it('a number with no decimals steps its units digit', () => {
     expect(steppingCaret('600', NONE)).toBe(3);
     expect(steppingCaret('600', caretAt(3))).toBe(3);
+  });
+});
+
+describe('a caret after the final displayed digit', () => {
+  it.each([
+    ['123.4500', '123.4501', 7, -4],
+    ['1,05', '1.06', 3, -2],
+    ['-1.05', '-1.04', 4, -2],
+    ['99', '100', 2, 0],
+  ] as const)('steps and marks the last digit of %s', (text, expected, mark, place) => {
+    const result = spinStep(text, caretAt(text.length), null, 1, OPEN);
+    expect(result?.text).toBe(expected);
+    expect(result?.mark).toBe(mark);
+    expect(result?.place).toBe(place);
   });
 });

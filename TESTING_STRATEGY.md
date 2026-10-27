@@ -58,6 +58,21 @@ speed. The architecture tests enforce the layering that makes this possible:
 - `npm run coverage:design` reports coverage for `packages/design`. The target is 100% for the
   engine and domain.
 
+## Typography regression checks
+
+Font conformance is a deterministic browser assertion, not an AI judgement. Keep expected
+family, size, weight, style, line height and letter spacing independent of application CSS,
+using the approved reference. Measure every matching visible control, not just the first.
+A computed font-family string alone cannot prove that a webfont rendered: require a loaded
+face of the intended weight/style covering the displayed characters. FontFaceSet.check alone
+also accepts undeclared families, so inspect the loaded faces too. Exercise the detector with
+controlled font substitutions and absent font declarations; the unchanged app must pass.
+
+The current shared field-content check enforces the production Inter profile for phone
+readonly numeric inputs. The seven cases in field-typography.browser.spec.ts prove that
+family/size/weight/style/spacing/line-height changes and silently missing font faces are caught.
+This is a bounded profile, not a claim that every UI text role has an approved typography contract.
+
 ## Where a test goes
 
 One file tests one object, and its folder is the layer of that object.

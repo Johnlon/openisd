@@ -32,6 +32,17 @@ test.describe('MobilePrTab', () => {
     expect(overflow, 'field labels must fit within two lines inside their phone rows').toEqual([]);
   });
 
+  test('mass-loaded resonance has the same numeric box width as editable PR fields', async ({page}) => {
+    await page.setViewportSize({width: 374, height: 705});
+    await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+    const editable = mobileFieldRow(page, 'Added mass').locator('input');
+    const readout = mobileFieldRow(page, 'Fpr with mass').locator('input[readonly]');
+    const [inputBox, outputBox] = await Promise.all([editable.boundingBox(), readout.boundingBox()]);
+    expect(inputBox).not.toBeNull();
+    expect(outputBox).not.toBeNull();
+    expect(Math.abs(inputBox!.width - outputBox!.width), 'access must not change the standard value-box width').toBeLessThanOrEqual(1);
+  });
+
   test('a passive-radiator box shows passive radiator fields and Select PR opens the browser', async ({ page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     await expect(page.locator('.mob-band-title', {hasText: /^Passive radiator$/})).toHaveCount(1);
@@ -128,4 +139,32 @@ test.describe('MobilePrTab', () => {
     await page.getByText('Select PR', { exact: true }).click();
     await expect(page.locator('.pr-lib-item .pr-lib-name', { hasText: 'Library Bench PR' })).toBeVisible();
   });
+});
+
+// The dummy must exist through the real wizard/type-switch path, not only an imported PR file.
+test('a new sealed project switching to PR receives a consistent Dummy PR', async ({page}) => {
+  await page.setViewportSize({width: 374, height: 705});
+  await page.locator('.mob-hamburger').click();
+  await page.getByRole('button', {name: 'New project', exact: true}).click();
+  await page.getByText('Tang Band W5-1138SMF', {exact: true}).click();
+  const footer = page.locator('.mob-np-footer');
+  const next = footer.getByRole('button', {name: 'Next ▸', exact: true});
+  await next.click();
+  await next.click();
+  await page.locator('#np-box-type').selectOption('sealed');
+  await next.click();
+  await next.click();
+  await page.getByLabel('Project name', {exact: true}).fill('Sealed to dummy PR');
+  await footer.getByRole('button', {name: 'Create Project', exact: true}).click();
+  await expect(page.locator('.mob-np-overlay')).toBeHidden();
+  await expect(page.locator('#mob-box-type')).toHaveValue('sealed');
+  await page.locator('#mob-box-type').selectOption('box-passive-radiator');
+  await expect(page.locator('#mob-pr-name')).toHaveValue('Dummy PR');
+  const qms = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})});
+  expect(Number(await qms.locator('input').inputValue())).toBe(5);
+  for (const name of ['Qms', 'Mms', 'Cms']) {
+    const row = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${name}$`)})});
+    await expect(row.locator('input')).not.toBeEmpty();
+    await expect(row.locator('.ui-field-dq-btn')).toHaveCount(0);
+  }
 });

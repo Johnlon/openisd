@@ -1,0 +1,95 @@
+### 1. Personal Comparison of the Eight Images
+
+#### Closed Box ([prod.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/prod.png), [test.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/test.png), [branch-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/branch-before.png), [branch-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/branch-final.png))
+- **[prod.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/prod.png) (`v20261025T2233Z`)**: `Vb`, `Fsc`, and `Qtc` share aligned `170px` joined outlines and `90px` spinner columns, with `16px` left text inset (`12.30` green, `71.95` and `0.707` blue). The `≠W` cues on `Fsc` and `Qtc` sit *inside* the numeric box (`Fsc` just left of the `Hz` divider; `Qtc` mid-box with empty white space to its right).
+- **[test.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/test.png) (`v20261026T2106Z`)**: Live `test.openisd.app` is visibly broken: numeric values are right-aligned (`12.30`, `71.95`, `0.707`) while `≠W` remains at its old internal position, **stamping directly over the digits** (`71.95` and `0.707` are illegible), and the `L`/`Hz` unit dividers are degraded.
+- **[branch-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/branch-before.png) (`v20261027T0941Z`)**: Uses the rejected detached-unit design (`L` and `Hz` separated by a white gap from narrow numeric boxes). Because `Qtc` is unitless, its spinners and `≠W` badge shift left by one unit column, breaking vertical alignment across the three rows.
+- **[branch-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/branch-final.png) (`v20261027T1121Z`)**: Restores joined number+unit boxes (`L` and `Hz` attached inside the right end of `Vb`/`Fsc`, `Qtc` full box width), restores left-aligned `16px` numeric inset, aligns all three box right edges (`160px` wide) and spinner columns, and places `≠W` outside right after the spinners.
+
+#### Driver ([prod.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/prod.png), [test.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/test.png), [branch-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-before.png), [branch-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-final.png))
+- **[prod.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/prod.png) (`v20261025T2233Z`)**: `Fs`, `Qts`, `Vas`, `Re`, `Xmax` render as `170px` joined grey (`#f4f4f4`) readout boxes with `16px` left inset and `rgb(24, 104, 209)` blue ink; `Hz`, `L`, `mm` are joined switchable caps, `Qts` is full width, and `Re` renders `Ω` inside the grey box.
+- **[test.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/test.png) (`v20261026T2106Z`)**: Live `test.openisd.app` stretches all five readout boxes to the right page margin (~`260px`), loses the left vertical divider on `Hz`/`L`/`mm`, and paints an **opaque white square behind `Ω` on `Re`** that erases the grey fill and clips the top/bottom box borders.
+- **[branch-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-before.png) (`v20261027T0941Z`)**: Renders the rejected narrow boxes with detached `Hz`/`L`/`mm` chips, an unboxed `Ω` floating in the white page background on `Re`, and wrong blue ink (`rgb(0, 102, 255)` in [branch-before.json](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-before.json#L21)).
+- **[branch-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-final.png) (`v20261027T1121Z`)**: Restores the `170px` joined grey (`#f4f4f4`) boxes, `rgb(24, 104, 209)` blue ink ([branch-final.json](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-final.json#L21)), `16px` left inset, joined `Hz`/`L`/`mm` caps with `1px solid #cfcfcf` left dividers, full-width `Qts`, and transparent `Ω` inside `Re`'s joined grey box.
+
+---
+
+### 2. Critique of Claimed Benefits & Unexplained Visible Differences
+
+1. **Closed Box `160px` vs `170px` tradeoff is justified on `REAR CHAMBER`, but creates a Subtle Alignment Split with `#mob-box-type`**:
+   - Moving `≠W` outside right eliminates `prod`'s internal badge intrusion and `test`'s digit collision while keeping `Vb`, `Fsc`, and `Qtc` aligned at `160px` (`120px` numeric + `40px` unit on `374px` viewport; `106px` numeric + `40px` unit at `360px`).
+   - **Unmentioned visual difference**: In [closed-box/prod.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/prod.png), the right edge of the `Box type` dropdown (`Closed`) aligns vertically with the right edge of the `▼` spinners (`16px` right gutter). In [closed-box/branch-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/branch-final.png), `REAR CHAMBER` spinners sit `10px` further left (`26px` from the viewport edge) while `≠W` extends to `2px` from the viewport edge, so neither the spinners nor the `≠W` cues share the right edge of `Box type`.
+2. **Unmentioned visual difference on Driver `Re` (`Ω` horizontal centering) and `<input readonly>` font**:
+   - In [driver/prod.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/prod.png), `Ω` in the `Re` row sits slightly right of the vertical centreline of `Hz`, `L`, and `mm`. In [driver/branch-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-final.png), `min-width: 40px` with `justify-content: center` ([joined-fields.css:L27-L75](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L27-L75)) centres `Ω` on the exact same vertical axis as `Hz`, `L`, and `mm` (an improvement, but visually different from `prod`).
+   - [driver/prod.json](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/prod.json#L17) rendered readouts as `SPAN` (inheriting the UI sans-serif font), whereas [driver/branch-final.json](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-final.json#L18) renders `INPUT[readonly]`, which picks up `font: 15px Arial, sans-serif` ([joined-fields.css:L50](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L50)), slightly changing glyph shapes (`3`, `6`, `0`) to match writable numeric inputs.
+3. **JSON capture provenance defect**:
+   - All six `prod.json`, `test.json`, and `branch-before.json` files record the local working tree's `sourceCheckpoint` (`e1f9e288...`) and `workingDiffSha256` (`ad3b9ab6...`) instead of the remote build's commit, and `branch-final.json` has a different uncommitted `workingDiffSha256` (`878aecde...`) on the same `sourceCheckpoint`.
+
+---
+
+### 3. What the Eight Images Do NOT Prove
+
+- **Not deployed to `test`**: `https://test.openisd.app` (`v20261026T2106Z`) still serves the broken build; `branch-final` was captured only on `http://127.0.0.1:4607` from uncommitted working tree changes.
+- **No visual proof of outside-left `⚠` or open DQ/refusal notes**: Neither screen triggers `.ui-field-dq-btn` or `.ui-field-note`, nor shows `⚠` and `≠W` together on a live app screen.
+- **No visual proof of mandatory, DQ (`dq-root`/`dq-symptom`), or invalid (`inp-bad`/`de-input-empty`) joined borders, or active inverse-cursor paint**: Every control shown is unfocused and valid.
+- **No visual proof of `360px` phone width, `unit-wide` (`60px` unit cap), desktop (`1024px`/`1280px`), other tabs/box types, or bottom-sheet cells (`.mob-sheet-cell`)**.
+
+---
+
+### 4. Source Inspection: Actual Blockers vs Future Coverage Suggestions
+
+#### Actual Blockers / Defects in the Selected Restoration
+
+1. **Page-wide `.mob-classic:has(.ui-field-dev)` shrinks readonly and stepperless boxes on mixed pages ([joined-fields.css:L44-L45](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L44-L45), [joined-fields.css:L71](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L71))**:
+   - Driver's `170px` box width on a `374px` viewport works only because `--joined-buttons: 90px` is unconditionally reserved in track 3 even on `.ui-field-readout` rows (`374 - 32 - 82 - 90 - 0 = 170px`), and Driver happens to have no `.ui-field-dev` on the page.
+   - Because `.joined-fields.app-root-mobile .mob-classic:has(.ui-field-dev) .ui-field[data-field] { --joined-model: 24px; padding-right: 2px; }` is scoped to the whole `.mob-classic` container, any `.ui-field-readout` or `CountSelect` `<select>` on a mobile page that also contains a `.ui-field-dev` row is shrunk from `170px` to `160px` even though its `90px` spinner track (`grid-column: 3`) is completely empty.
+2. **Stepperless rows with `≠W` on mobile get double left spacing (`4px` instead of `2px`) ([joined-fields.css:L53-L54](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L53-L54))**:
+   - Line 53 sets `.ui-field-dev { padding-left: 2px; }` and line 54 adds `:not(:has(.num-stepper)) .ui-field-dev { margin-left: 2px; }` on the same element when `grid-column: 3 / 5` is active (line 38), doubling the gap next to a `<select>` or readout box to `4px`.
+3. **Outside-left `⚠` (`.ui-field-dq`) shares `grid-column: 1; grid-row: 1` with `<label>`, risking unmeasured label-to-`⚠` collision and vertical overflow on mobile ([joined-fields.css:L13-L14](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L13-L14), [joined-fields.css:L35](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L35), [joined-fields.css:L46-L49](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L46-L49))**:
+   - When `.ui-field-dq-btn` is present, `<label>` gets `padding-right: 22px` inside `--joined-label` (`82px` on mobile, leaving only `60px` for label text).
+   - On desktop, `<label>` has `white-space: nowrap` (line 13) without `overflow: hidden`; inside a fixed-width track (`150px`), a label wider than `128px` overflows right directly under the `⚠` button.
+   - On mobile, `<label>` has `white-space: normal` (line 49) without `overflow-wrap: break-word` inside a fixed `height: 40px` row (line 46, which only switches to `height: auto` when `.ui-field-note-open` is set on line 55). Any single word wider than `60px` overflows under `⚠`, and a label that wraps to 3 lines (`48px`) clips vertically while the note is closed.
+   - **Test blind spot**: Neither [fieldVisualContract.ts:L33-L87](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L33-L87) nor [joined-field.browser.spec.ts:L58-L71](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/joined-field.browser.spec.ts#L58-L71) measures `<label>` glyph bounds against `.ui-field-dq-btn` or `input` (`measureFieldContent` only reads `label.textContent` as a string identifier).
+
+#### Non-Blocking Cleanup & Future Coverage Suggestions
+
+- **Stale `.mob-ui-field` rule in [UnitToggle.vue:L83-L86](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UnitToggle.vue#L83-L86)**: `.app-root-mobile .mob-ui-field.ui-field:has(input.de-input-mandatory) span.unit-label.unit-toggle` has higher specificity `(0,6,2)` than [joined-fields.css:L31](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L31) `(0,6,0)` and forces `border-color: var(--mob-box-line)` without `border-right-width: 2px`. Safe today only because `UIFieldBody` does not emit `.mob-ui-field`, but should be removed so callers passing `class="mob-ui-field"` cannot break mandatory+DQ unit borders.
+- **Unscoped `hasDq` in [NumInput.vue:L43](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L43)**: `v-if="hasDq || (refusal !== '' && !hideMark)"` ignores `hideMark` when `hasDq` is true; changing to `v-if="!hideMark && (hasDq || refusal !== '')"` prevents an unplaced grid item if `dq` is ever passed to `NumInput` inside `UIFieldBody`.
+- **Add `<label>` glyph overlap check to `measureFieldContent` ([fieldVisualContract.ts:L69](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L69))**: Measure the `<label>` text `Range` and assert it does not intersect `.ui-field-dq-btn` or the value control.
+
+
+
+=== Follow-up on reviewed source and images ===
+
+### 1. Personal Verification of the Two New Images & JSON Records
+
+- **[closed-box/branch-reviewed.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/branch-reviewed.png) & [branch-reviewed.json](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/closed-box/branch-reviewed.json) (`v20261027T1138Z`)**:
+  - Personally compared against `closed-box/prod.png` and `closed-box/branch-final.png`: visually unchanged from `branch-final.png`. `Vb` (`12.30`), `Fsc` (`71.95`), and `Qtc` (`0.707`) retain `160px` joined outlines, `16px` left numeric inset, aligned `90px` spinner columns, outside-right `≠W` cues, and compact `40px` single-line row heights with no stacked labels.
+- **[driver/branch-reviewed.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-reviewed.png) & [branch-reviewed.json](http://lap:8000/winisd/openisd-t607/build/ui-contract/joined-boxes-v1/driver/branch-reviewed.json) (`v20261027T1138Z`)**:
+  - Personally compared against `driver/prod.png` and `driver/branch-final.png`: the five `KEY FIGURES` readouts (`37.00`, `0.380`, `30.00`, `6.600`, `6.000`) remain `INPUT[readonly]` in `170px` joined `#f4f4f4` boxes with `rgb(24, 104, 209)` ink, and their glyphs (`3`, `6`, `0`) now visually match `driver/prod.png`'s `Inter, system-ui, sans-serif` typeface instead of `branch-final.png`'s `Arial`. Row heights remain `40px` with no label wrapping.
+
+---
+
+### 2. Personal Verification of the Source Fixes
+
+1. **Readonly typeface restoration ([joined-fields.css:L80-L81](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L80-L81), [joined-field.browser.spec.ts:L52](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/joined-field.browser.spec.ts#L52))**:
+   - Verified in source that `.joined-fields.app-root-mobile .ui-field.ui-field[data-field] .ui-field-value input[readonly]` sets `font-family: Inter, system-ui, sans-serif; line-height: 1.5;`, overriding the `font: 15px Arial, sans-serif` shorthand on line 50 while keeping `15px` size, and that the spec asserts the computed `fontFamily`.
+2. **Stepperless `≠W` gap fix ([joined-fields.css:L53-L54](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L53-L54), [joined-field.browser.spec.ts:L119-L127](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/joined-field.browser.spec.ts#L119-L127))**:
+   - Verified in source that `:not(:has(.num-stepper)) .ui-field-dev` now sets `margin-left: 0`, leaving only `padding-left: 2px` from line 53, and that the spec asserts `model.x - (input.x + input.width) === 2`.
+3. **Outside-left `⚠` label wrapping, row growth, and overlap detector ([joined-fields.css:L13](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L13), [joined-fields.css:L46-L49](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L46-L49), [fieldVisualContract.ts:L69-L80](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L69-L80), [joined-field.browser.spec.ts:L109-L117](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/joined-field.browser.spec.ts#L109-L117))**:
+   - Verified in source that `<label>` now sets `white-space: normal; overflow-wrap: anywhere;` on both skins (`line-height: normal` on desktop, `line-height: 16px` on mobile) and mobile `.ui-field` uses `min-height: 40px; height: auto;` so wrapped labels expand the row instead of clipping.
+   - Verified in `measureFieldContent` that `labelRange.getClientRects()` is checked against `.ui-field-dq-btn`, `value.getBoundingClientRect()`, and `row.getBoundingClientRect()` top/bottom bounds.
+4. **Equal readonly/editable width on mixed pages ([joined-fields.css:L45](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L45), [joined-fields.css:L71](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L71))**:
+   - Accepted as intentional design conformance: reserving `--joined-buttons: 90px` and page-wide `--joined-model: 24px` keeps readonly fields (such as PR `Fpr-with-mass`) aligned to the exact same box width as editable rows (`160px` on pages with `≠W`, `170px` without).
+
+---
+
+### 3. Remaining Concrete Defects vs Paused / Separate Work
+
+- **Concrete blockers in the selected joined-box restoration**: **None found** in the inspected CSS, contract, spec, or screenshots.
+- **What remains unverified by these static artifacts (not code defects in the inspected files)**:
+  - Test execution results are not independently verified in this read-only review, and `branch-reviewed.json` (`workingDiffSha256: 6d0c094f...` on `sourceCheckpoint: e1f9e288...`) is still an uncommitted local capture on `http://127.0.0.1:4607` rather than a live `https://test.openisd.app` deployment.
+  - The screenshots themselves still do not visually depict an active `⚠` DQ state, mandatory/invalid joined borders, `360px` viewport, or desktop tabs.
+- **Paused / non-blocking items outside the selected restoration**:
+  - `.joined-fields .field-catalogue .ui-field.ui-field[data-field]` shares line 43 of [joined-fields.css](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L43) with `.app-root-mobile`, whereas lines 48–55, 58, 75, and 81 only selector-match `.joined-fields.app-root-mobile` (relevant only if `.field-catalogue` is rendered without `.app-root-mobile` when the paused catalogue work resumes).
+  - Migration of incompatible compact-draft paint assertions remains separate work as noted.

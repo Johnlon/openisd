@@ -52,6 +52,7 @@ export {
   type ValueFloor,
   Field,
   NumberField,
+  NumberEditor,
   integerSpin,
   type FieldSpin,
   EnumField,
@@ -136,7 +137,7 @@ export {
 export { dateStampFrom, formatByteSize, formatCount, formatCountOf, formatDate, formatDateStamp, formatDateTime, formatDay, formatFixed, formatFixedOrDash, parseBasicUtc } from './format.js';
 export { ReadoutFormat } from './readoutFormat.js';
 export { parseUnitRotation } from './unitRotation.js';
-export { caretSpin, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';
+export { caretSpin, digitAtCaret, spinStep, tenthsCaret, steppingCaret, caretRepeatDelayMs, CARET_HOLD_START_MS, type CaretSpin, type SteppedPlace, type StepAt } from './caretSpin.js';
 export { DragSpin, dragSpinRate, pressedDigit, DRAG_SPIN_THRESHOLD_PX, type TextBox } from './dragSpin.js';
 export { parsePublicVersion, formatPublicVersion, titleOfPublicVersion, publicVersionOfTitle, comparePublicVersion, runningHeading, type PublicVersion } from './publicVersion.js';
 export { spinValue, roundSpun, holdStage, HOLD_START_MS, spinStepAttr, shownSpinRule, decimalsSpinRule, type SpinRule, type SpinDirection, type SpinBounds, type SpinSpeed, type HoldStage } from './spinnerStep.js';
@@ -158,3 +159,5 @@ export { APP_UPDATE_TEXT, UNSAVED_RELOAD_CONFIRM } from './appUpdateText.js';
 
 export { TuneText } from './tuneText.js';
 export { PhoneDialogHelp, ImportChoiceText, AboutText } from './phoneDialogText.js';
+
+export {FIELD_APPEARANCE_SAMPLES, FIELD_APPEARANCES, FieldEditor, FieldAccess, FieldUnits, FieldCue, appearanceFor, type FieldAppearance} from './fieldAppearance.js';

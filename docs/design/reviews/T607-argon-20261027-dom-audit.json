@@ -1,0 +1,292 @@
+{
+  "purpose": "Diagnostic DOM review of Argon hypotheses. Probe success records completion, NOT visual conformance; issues below are real failures. No screenshots created.",
+  "testedHead": "8dd302942",
+  "log": "build/test-logs/20261027-183430-3641921.log",
+  "rotations": 80,
+  "initial": [
+    {
+      "tab": "Parameters",
+      "issues": []
+    },
+    {
+      "tab": "Advanced",
+      "issues": [
+        {
+          "field": "gamma",
+          "problem": "displayed value is clipped: text 64.00px, content 58.89px"
+        }
+      ]
+    },
+    {
+      "tab": "Dimensions",
+      "issues": []
+    }
+  ],
+  "uniqueIssues": [
+    {
+      "tab": "Advanced",
+      "initial": "1000/K",
+      "selected": 1,
+      "field": "gamma",
+      "problem": "displayed value is clipped: text 64.00px, content 58.89px",
+      "sample": {
+        "label": "gamma",
+        "field": "gamma_m_per_s2_A",
+        "value": "248.87192",
+        "unit": "N/(A\u00b7kg)"
+      }
+    },
+    {
+      "tab": "Advanced",
+      "initial": "kg/m\u00b3",
+      "selected": 1,
+      "field": "roo",
+      "problem": "displayed value is clipped: text 73.08px, content 58.88px",
+      "sample": {
+        "label": "roo",
+        "field": "roo_kg_per_m3",
+        "value": "0.00120095",
+        "unit": "g/cm\u00b3"
+      }
+    },
+    {
+      "tab": "Advanced",
+      "initial": "kg/m\u00b3",
+      "selected": 1,
+      "field": "roo",
+      "problem": "displayed value overlaps ui-field-unit unit-label unit-toggle unit-wide: text 473.34\u2013546.42, control 533.22\u2013593.22",
+      "sample": {
+        "label": "roo",
+        "field": "roo_kg_per_m3",
+        "value": "0.00120095",
+        "unit": "g/cm\u00b3"
+      }
+    }
+  ],
+  "underline": [
+    {
+      "field": "Fs_hz",
+      "unit": "Hz",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 1.421875
+    },
+    {
+      "field": "Vas_m3",
+      "unit": "L",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 1.421875
+    },
+    {
+      "field": "Mms_kg",
+      "unit": "g",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Cms_m_per_N",
+      "unit": "mm/N",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Rms_kg_per_s",
+      "unit": "Ns/m",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Dd_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Le_H",
+      "unit": "mH",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Sd_m2",
+      "unit": "cm\u00b2",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 1.421875
+    },
+    {
+      "field": "fLe_hz",
+      "unit": "kHz",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Xmax_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Hc_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Hg_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Vd_m3",
+      "unit": "cm\u00b3",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Xlim_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "alfaVC_per_K",
+      "unit": "1000/K",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Rme_kg_per_s",
+      "unit": "Ns/m",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Mcost_kg_per_s",
+      "unit": "kg/s",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "EBP_hz",
+      "unit": "Hz",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "c_m_per_s",
+      "unit": "m/s",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "roo_kg_per_m3",
+      "unit": "kg/m\u00b3",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Thick_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Depth_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "MagDepth_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Magnet_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Basket_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Outer_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "Vcd_m",
+      "unit": "mm",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    },
+    {
+      "field": "DVol_m3",
+      "unit": "cm\u00b3",
+      "height": 28,
+      "line": "underline",
+      "offset": "5px",
+      "clearance": 2.421875
+    }
+  ]
+}

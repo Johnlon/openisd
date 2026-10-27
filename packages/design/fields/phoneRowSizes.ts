@@ -57,11 +57,19 @@ export class PhoneRowSizes {
 
 /** The widths across a classic phone row: label, ▲▼ area, unit chip, and the text gutter in the box. */
 export class PhoneRowColumns {
-  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 14);
+  /** Compound labels such as mm/N and 1000/K need room for their text and chip padding. */
+  static readonly WIDE_CHIP_PX = 60;
+  static readonly WARNING_PX = 26;
+  static readonly MODEL_CUE_PX = 24;
+  static readonly CONTROL_GAP_PX = 8;
+
+  static chipIsWide(label: string): boolean { return label.length > 3; }
+
+  static readonly STANDARD = new PhoneRowColumns(82, 90, 40, 16);
   /** The Advanced page's air rows: wide enough for "Temperature" on one line, narrow enough to leave room for a pressure in Pa. */
-  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 14);
+  static readonly MEDIUM_LABEL = new PhoneRowColumns(96, 90, 40, 16);
   /** The driver editor's General tab, whose labels are longer. */
-  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 14);
+  static readonly WIDE_LABEL = new PhoneRowColumns(128, 90, 40, 16);
 
   private constructor(
     /** The label column. */
@@ -80,6 +88,10 @@ export class PhoneRowColumns {
       ['--mob-col-label', `${this.labelPx}px`],
       ['--mob-col-stepper', `${this.stepperPx}px`],
       ['--mob-col-chip-min', `${this.chipMinPx}px`],
+      ['--mob-col-chip-wide', `${PhoneRowColumns.WIDE_CHIP_PX}px`],
+      ['--mob-col-dq', `${PhoneRowColumns.WARNING_PX}px`],
+      ['--mob-col-model', `${PhoneRowColumns.MODEL_CUE_PX}px`],
+      ['--mob-col-gap', `${PhoneRowColumns.CONTROL_GAP_PX}px`],
       ['--mob-col-gutter', `${this.textGutterPx}px`],
     ]);
   }

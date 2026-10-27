@@ -48,16 +48,16 @@ test.describe('Original skin', () => {
     await setTextAndCaret(box, '6.00', 4);
     await box.press('ArrowUp');
     await box.press('ArrowUp');
-    await expect(box).toHaveValue('6.20');
+    await expect(box).toHaveValue('6.02');
     await box.press('Tab');
-    await expect(box).toHaveValue('6.20');
+    await expect(box).toHaveValue('6.02');
   });
 
   test('a comma is accepted as the decimal mark', async ({page}) => {
     const box = page.locator('#og-box-volume');
     await setTextAndCaret(box, '6,50', 4);
     await box.press('ArrowUp');
-    await expect(box).toHaveValue('6.60');
+    await expect(box).toHaveValue('6.51');
   });
 
   test('the wheel steps a focused box at the caret', async ({page}) => {
@@ -84,8 +84,8 @@ test.describe('Mobile skin', () => {
     await expect(box).toHaveAttribute('inputmode', 'decimal');
     await setTextAndCaret(box, '1.00', 4);
     await box.press('ArrowUp');
-    await expect(box).toHaveValue('1.10');
-    expect(await markOf(box)).toEqual([2, 3]); // a caret at the end is no chosen digit: the tenths digit steps
+    await expect(box).toHaveValue('1.01');
+    expect(await markOf(box)).toEqual([3, 4]); // the explicit end caret chooses the final displayed digit
 
     await box.blur();
     const before = Number(await box.inputValue());
