@@ -3,10 +3,10 @@ import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 import type {Locator, Page} from '@playwright/test';
 
 /**
- * T567: press a digit of an editable number box and drag left or right to spin it (John, 19 Oct 2026:
+ * T567: press a digit of an editable number box to spin it: mouse up/down, touch left/right (John, 19 Oct 2026:
  * "the existing UI should be allowing spin by dragging any field"; QO299.c24: left/right only; 22 Oct:
  * "stretch and digit selection ... with same with mouse drag"). The pressed digit sets the step; past
- * 8 px the value keeps running while held; a tap still puts the caret; a vertical swipe still scrolls.
+ * 8 px the value keeps running while held; a tap still puts the caret; a vertical finger swipe still scrolls. Desktop horizontal dragging selects text (John, 28 Oct).
  * Acts as a user: real mouse and touch events, values read from the screen.
  */
 
@@ -59,11 +59,11 @@ test.describe('desktop skin, mouse', () => {
     await page.locator('select#og-box-type').selectOption('sealed');
   });
 
-  test('dragging right from the units digit raises the value in whole units and keeps it running while held', async ({page}) => {
+  test('dragging up from the units digit raises the value in whole units and keeps it running while held', async ({page}) => {
     const box = page.locator('#og-box-volume');
     await box.fill('20.00');
     await box.blur();
-    await mouseDrag(page, await digitCentre(box, 1), 40, 0, async () => (await numberIn(box)) > 22);
+    await mouseDrag(page, await digitCentre(box, 1), 0, -40, async () => (await numberIn(box)) > 22);
     const after = await numberIn(box);
     expect(Number.isInteger(after - 20)).toBe(true);
     const shown = await box.inputValue();
@@ -79,8 +79,8 @@ test.describe('desktop skin, mouse', () => {
     await page.clock.pauseAt(new Date(Date.now() + 60_000)); // the hold is 200 ms of scripted page time, not of a loaded machine's
     await page.mouse.move(from.x, from.y);
     await page.mouse.down();
-    await page.mouse.move(from.x + 20, from.y, {steps: 4});
-    await page.mouse.move(from.x + 40, from.y, {steps: 4});
+    await page.mouse.move(from.x, from.y - 20, {steps: 4});
+    await page.mouse.move(from.x, from.y - 40, {steps: 4});
     await page.clock.runFor(200);
     await page.mouse.up();
     const change = (await numberIn(box)) - 20;
@@ -90,21 +90,40 @@ test.describe('desktop skin, mouse', () => {
     expect(Math.round(change * 10) % 10).not.toBe(0);   // not a whole-unit step
   });
 
-  test('dragging left lowers the value, and the driven digit is highlighted while dragging', async ({page}) => {
+  test('dragging down lowers the value, and the driven digit is highlighted while dragging', async ({page}) => {
     const box = page.locator('#og-box-volume');
     await box.fill('20.00');
     await box.blur();
     const from = await digitCentre(box, 1);
     await page.mouse.move(from.x, from.y);
     await page.mouse.down();
-    await page.mouse.move(from.x - 40, from.y, {steps: 6});
+    await page.mouse.move(from.x, from.y + 40, {steps: 6});
     await expect.poll(async () => (await numberIn(box)) < 19).toBe(true);
     const marked = await box.evaluate(el => el instanceof HTMLInputElement ? el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0) : null);
     expect(marked).toHaveLength(1);
     await page.mouse.up();
   });
 
-  test('under 8 px nothing changes, and a click still puts the caret', async ({page}) => {
+  test('a vertical spin keeps its digit after returning to the dead zone with sideways drift', async ({page}) => {
+    const box = page.locator('#og-box-volume');
+    await box.fill('20.00');
+    await box.blur();
+    await page.clock.pauseAt(new Date(Date.now() + 60_000));
+    const from = await digitCentre(box, 1);
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    await page.mouse.move(from.x, from.y - 40, {steps: 4});
+    await page.clock.runFor(200);
+    expect(await numberIn(box)).toBeGreaterThan(20);
+    const selected = await box.evaluate(el => el instanceof HTMLInputElement ? [el.selectionStart, el.selectionEnd] : null);
+    await page.mouse.move(from.x + 60, from.y - 2);
+    await page.mouse.up();
+    expect(await box.evaluate(el => el instanceof HTMLInputElement ? [el.selectionStart, el.selectionEnd] : null)).toEqual(selected);
+    expect((selected?.[1] ?? 0) - (selected?.[0] ?? 0)).toBe(1);
+    await expect(box.locator('..').locator('.num-mark-underline')).toHaveText(/\d/);
+  });
+
+  test('under 8 px nothing changes, and a click selects one digit', async ({page}) => {
     const box = page.locator('#og-box-volume');
     await box.fill('20.00');
     await box.blur();
@@ -115,18 +134,33 @@ test.describe('desktop skin, mouse', () => {
     await page.mouse.up();
     await expect(box).toHaveValue('20.00');
     const caret = await box.evaluate(el => el instanceof HTMLInputElement ? [el.selectionStart, el.selectionEnd] : null);
-    expect(caret?.[0]).toBe(caret?.[1]);
+    expect((caret?.[1] ?? 0) - (caret?.[0] ?? 0)).toBe(1);
+    await expect(box.locator('..').locator('.num-mark-underline')).toHaveText(/\d/);
   });
 
-  test('a vertical drag never changes the value', async ({page}) => {
+  for(const start of ['selected digit','decimal point','left padding','empty value space'] as const) test(`mouse drag spins from ${start} even with selected text`,async({page})=>{
+    const box=page.locator('#og-box-volume');await box.fill('20.00');await box.press('ControlOrMeta+A');
+    const points=await box.evaluate(el=>{
+      if(!(el instanceof HTMLInputElement))throw new Error('Expected numeric input');const r=el.getBoundingClientRect(),css=getComputedStyle(el);const ctx=document.createElement('canvas').getContext('2d')!;ctx.font=css.font;
+      const textLeft=r.left+el.clientLeft+parseFloat(css.paddingLeft),y=r.top+r.height/2;
+      return {'selected digit':{x:textLeft+ctx.measureText(el.value[0]??'').width/2,y},'decimal point':{x:textLeft+ctx.measureText('20').width+ctx.measureText('.').width/2,y},'left padding':{x:r.left+2,y},'empty value space':{x:r.right-parseFloat(css.paddingRight)-3,y}};
+    });
+    const from=points[start];
+    await mouseDrag(page,from,0,-40,async()=>await numberIn(box)>20);
+    await expect(box).toBeFocused();
+  });
+
+  test('a horizontal selection drag never changes the value', async ({page}) => {
     const box = page.locator('#og-box-volume');
     await box.fill('20.00');
     await box.blur();
     const from = await digitCentre(box, 1);
     await page.mouse.move(from.x, from.y);
     await page.mouse.down();
-    await page.mouse.move(from.x, from.y + 60, {steps: 6});
-    await page.mouse.move(from.x, from.y - 60, {steps: 6});
+    await page.mouse.move(from.x + 60, from.y, {steps: 6});
+    await page.mouse.move(from.x - 60, from.y, {steps: 6});
+    await page.mouse.move(from.x - 60, from.y - 50, {steps: 6});
+    await page.clock.runFor(300);
     await page.mouse.up();
     await expect(box).toHaveValue('20.00');
   });
@@ -170,6 +204,22 @@ test.describe('phone skin, finger', () => {
     await expect(box).toHaveValue(before);
   });
 
+  test('a vertical-first finger gesture with horizontal drift at the top boundary never spins', async ({page}) => {
+    await page.clock.install();
+    await page.locator('.mob-tab', {hasText: 'Box'}).click();
+    const box = page.locator('input[data-numinput]').first();
+    await expect(box).toBeVisible();
+    const before = await box.inputValue();
+    const start = await digitCentre(box, 0);
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchStart', touchPoints: [{...start, id: 1}]});
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchMove', touchPoints: [{x: start.x, y: start.y + 20, id: 1}]});
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchMove', touchPoints: [{x: start.x + 30, y: start.y + 80, id: 1}]});
+    await page.clock.runFor(700);
+    await cdp.send('Input.dispatchTouchEvent', {type: 'touchEnd', touchPoints: []});
+    await expect(box).toHaveValue(before);
+  });
+
   test('a vertical swipe starting on a spinner scrolls without stepping the value', async ({page}) => {
     await page.locator('.mob-tab', {hasText: 'Box'}).click();
     const box = page.locator('input[data-numinput]').first();
@@ -186,7 +236,7 @@ test.describe('phone skin, finger', () => {
 });
 
 /**
- * The same drag (press the units digit, 40 px right in 8 moves, hold 700 ms, release) by mouse or by finger; returns the steps taken.
+ * The same drag (press the units digit, 40 px in the positive spin direction in 8 moves, hold 700 ms, release) by mouse or by finger; returns the steps taken.
  * The hold is 700 ms of the page's scripted clock (page.clock), run in 40 ms ticks, so the count is the same on a loaded machine.
  */
 async function sameDrag(page: Page, box: Locator, by: 'mouse' | 'touch'): Promise<number> {
@@ -196,7 +246,7 @@ async function sameDrag(page: Page, box: Locator, by: 'mouse' | 'touch'): Promis
   if (by === 'mouse') {
     await page.mouse.move(at.x, at.y);
     await page.mouse.down();
-    for (let i = 1; i <= 8; i++) await page.mouse.move(at.x + 5 * i, at.y);
+    for (let i = 1; i <= 8; i++) await page.mouse.move(at.x, at.y - 5 * i);
     await page.clock.runFor(700);
     await page.mouse.up();
   } else {
@@ -209,10 +259,10 @@ async function sameDrag(page: Page, box: Locator, by: 'mouse' | 'touch'): Promis
   return (await numberIn(box)) - 20;
 }
 
-test.describe('mouse and finger give the same drag', () => {
+test.describe('mouse vertical and finger horizontal spinning use the same stepping', () => {
   test.use({hasTouch: true});
 
-  test('desktop skin: the same drag by mouse and by finger takes the same steps', async ({page}) => {
+  test('desktop skin: equal vertical mouse and horizontal finger drags take the same steps', async ({page}) => {
     await page.clock.install({time: new Date()});
     await page.goto('/');
     await openAProject(page);

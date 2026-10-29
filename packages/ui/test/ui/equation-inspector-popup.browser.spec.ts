@@ -1,3 +1,4 @@
+import {measureFieldControlContainment} from '../fixtures/fieldControlContainment.js';
 import {driverEditorField, expect, openAProject, openDriverEditor, test} from '../fixtures.js';
 
 /**
@@ -124,3 +125,19 @@ test.describe('Equation inspector popup', () => {
     await expect(page.locator('.eq-inspector-card').getByText('Live:')).toHaveCount(0);
   });
 });
+
+for (const width of [780, 1024, 1280]) {
+  test(`inspecting keeps every editor control contained at ${width}px`, async ({page}) => {
+    await page.setViewportSize({width, height:900});
+    await page.goto('/');
+    await openAProject(page);
+    await openDriverEditor(page);
+    await page.getByRole('button', {name:'Parameters', exact:true}).click();
+    await page.getByRole('checkbox', {name:'Inspect Provenance'}).check();
+    await driverEditorField(page, 'Fs').locator('label').click();
+    const modal = page.locator('.de-modal');
+    await expect(page.locator('.eq-inspector-card')).toBeVisible();
+    expect((await modal.evaluate(measureFieldControlContainment)).issues).toEqual([]);
+    expect(overlaps((await modal.boundingBox())!, (await page.locator('.eq-inspector-card').boundingBox())!)).toBe(false);
+  });
+}

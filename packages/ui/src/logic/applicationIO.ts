@@ -70,6 +70,7 @@ export interface DesignIO {
   /** Tells the user a new project was not made because browser storage is full, and offers the projects list. */
   reportStorageFull(): Promise<void>;
   saveProject(): Promise<boolean>;
+  saveProjectRecord(project: OpenISDProject): Promise<boolean>;
   /** Save every open project that has unsaved edits to browser storage, the unfocused ones
    *  too. Resolves with how many were saved. */
   saveAllProjects(): Promise<number>;
@@ -212,9 +213,14 @@ export function createApplicationIO(deps: {
 
   /** Save — commit the edited project and refresh the browser-storage copy. */
   async function saveProject(): Promise<boolean> {
+    return saveProjectRecord(requireFocusedProject());
+  }
+
+  /** Save one named open project without changing which project is focused. */
+  async function saveProjectRecord(project: OpenISDProject): Promise<boolean> {
     deps.actions?.record('save-project');
-    endWhatIfBeforeIO();
-    const project = requireFocusedProject();
+    if (project === focusedProject()) endWhatIfBeforeIO();
+    else project.cancelWhatIf();
     // Storage first: a refused write must leave the project showing its unsaved changes.
     const result = deps.projectRepo.saveToStorage(project);
     if (result.kind === 'failed') {
@@ -222,7 +228,7 @@ export function createApplicationIO(deps: {
       return false;
     }
     project.save();
-    markProjectSaved();
+    if (project === focusedProject()) markProjectSaved();
     recordSave('stored', project);
     return true;
   }
@@ -437,7 +443,7 @@ export function createApplicationIO(deps: {
   }
 
   return {
-    reportStorageFull, saveProject, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
+    reportStorageFull, saveProject, saveProjectRecord, saveAllProjects, saveProjectAs, shareLink, exportWdr, exportWpr, exportOwdr, importFile, openFromDisk, exportProjectsArchive,
     exportBackup, downloadChartData, copyChartData, saveStoredBackup, importBackup,
   };
 }

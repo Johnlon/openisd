@@ -242,7 +242,7 @@ test.describe('New Project wizard', () => {
       await dirtyFocusedDesign(page);
 
       await openWizard(page);
-      await expect(page.locator('.overlay.open .np-warn')).toBeVisible();   // data-loss guard warns about unsaved changes
+      await expect(page.locator('.overlay.open').getByText(/The open project has unsaved changes/)).toHaveCount(0); // existing edits remain in their project; no repeated banner
       await walkWizard(page, 'sealed', 'Skin project');
 
       expect(await shownFilterCount(page), 'fresh project — no inherited filters').toBe(0);

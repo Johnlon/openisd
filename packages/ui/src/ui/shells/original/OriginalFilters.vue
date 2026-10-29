@@ -117,7 +117,7 @@ function toggleEdit(id: string | undefined) { editing.value = editing.value === 
 -->
 <style>
 .filter-edit-body { display:flex; flex-wrap:wrap; gap:10px 16px; padding:6px 12px 10px 30px; font-size:12px; }
-.filter-edit-body { --label-w: 44px; }
+.filter-edit-body { --label-w: 66px; }
 .filter-edit-body > label { display:flex; align-items:center; gap:5px; color:#333; }
 .filter-edit-body select { border:1px solid #999; border-radius:2px; padding:3px 5px; font:inherit; }
 </style>

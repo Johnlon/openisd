@@ -61,6 +61,22 @@ function captureDriver(engine: Engine) {
 }
 
 describe('useOgNewProject', () => {
+  it('creates a sealed project with a complete dummy PR sized for the chosen driver count', () => {
+    const engine = createEngine();
+    const driver = captureDriver(engine);
+    driver.specs.Sd_m2.set(0.021);
+    driver.specs.Xmax_m.set(0.008);
+    const wizard = useOgNewProject({appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine, initialDriver: driver});
+    wizard.nDrivers.value = 4;
+    wizard.boxType.value = 'sealed';
+    const project = wizard.createProject();
+    expect(project).not.toBeNull();
+    const pr = project!.box.passiveRadiator;
+    expect(pr.radiator.model.value).toBe('Dummy PR');
+    expect(pr.radiator.spec.Qms.value).toBe(5);
+    expect(pr.radiator.spec.Vd_m3.value! * pr.count.value).toBeGreaterThanOrEqual(project!.driver.specs.Vd_m3.value! * 4);
+  });
+
   it('initializes at step 1 and requires a driver selection before advancing', () => {
     const engine = createEngine();
     const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators: testPassiveRadiators(), areas: engine });

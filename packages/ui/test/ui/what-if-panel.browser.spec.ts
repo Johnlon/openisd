@@ -1,5 +1,6 @@
 import {chartPicture, chartPng, settledChartPicture, COMPLETE_DRIVER_PROJECT_OWPR, duplicateFocusedProject, expect, shownBoxVolume, shownDriverSpec, focusedIsModified, openAProject, setFocusedBoxType, setFocusedBoxVolume, setFocusedDriverSpecs, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
+import {measureCursorOrdinaryInk} from '../fixtures/fieldCursorContract.js';
 import {chartFontReport, watchChartFonts} from '../fixtures/chartFonts.js';
 
 /**
@@ -260,7 +261,9 @@ test.describe('What-if panel', () => {
       // One width for the whole panel — a field that sizes to its container instead of its content
       // would vary with the column it landed in.
       expect(new Set(widths).size, JSON.stringify(named)).toBe(1);
-      expect(widths[0]).toBeLessThanOrEqual(90);
+      expect(widths[0], 'joined box includes its 34px unit rail').toBe(124);
+      const railWidths = await page.locator('.what-if-panel .what-if-fld:not(.what-if-ro) input').evaluateAll(els => els.filter(el => el.closest('.what-if-fld')?.querySelector('.ui-field-unit')?.textContent?.trim()).map(el => { const css = getComputedStyle(el); return el.getBoundingClientRect().width - parseFloat(css.paddingRight); }));
+      for (const width of railWidths) expect(width, 'numeric rail stays narrow').toBeLessThanOrEqual(90);
       // ...and genuinely narrower than the cell holding it, i.e. leftover whitespace exists.
       const cellW = await page.locator('.what-if-panel .what-if-fld').first().evaluate(e => e.getBoundingClientRect().width);
       expect(widths[0]).toBeLessThan(cellW);
@@ -410,3 +413,23 @@ for (const size of [{ width: 1280, height: 800 }, { width: 1024, height: 700 }])
     expect(m.rowsRight).toBeLessThanOrEqual(m.right);
   });
 }
+
+
+test('desktop Mms has the selected solid unit affordance and inverse digit cursor', async ({page}) => {
+  const panel = await openWhatIf(page, COMPLETE_DRIVER_PROJECT_OWPR);
+  const row = whatIfField(page, 'Mms');
+  const unit = row.locator('.unit-toggle');
+  await expect(unit).toHaveAttribute('role', 'button');
+  await expect(unit).toHaveCSS('text-decoration-style', 'solid');
+  await expect(unit).toHaveCSS('text-decoration-color', 'rgb(24, 104, 209)');
+  const before = await unit.innerText();
+  await unit.click();
+  await expect(unit).not.toHaveText(before);
+  const input = row.locator('input');
+  await input.focus();
+  await input.evaluate(element => { if (element instanceof HTMLInputElement) element.setSelectionRange(0, 1); });
+  const marker = panel.locator('.num-mark-underline');
+  await expect(marker).toBeVisible();
+  await expect(marker).toHaveCSS('animation-name', 'joined-inverse-blink');
+  expect((await input.evaluate(measureCursorOrdinaryInk)).issues).toEqual([]);
+});

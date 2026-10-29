@@ -56,7 +56,8 @@ test.describe('Original Vented tab', () => {
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const endSel = page.locator('.field', { hasText: 'End Correction' }).locator('select');
       await expect(endSel).toHaveValue(/0\.613/);
-      await expect(endSel.locator('option:checked')).toContainText('Two free ends');
+      await expect(endSel.locator('option:checked')).toHaveText('Free (0.613)');
+      await expect(endSel.locator('option:checked')).toHaveAttribute('title','Two free ends');
     });
 
     test('the vent shape offers slotted, and slotted inputs are reachable', async ({ appPage: page }) => {
@@ -94,8 +95,8 @@ test.describe('Original Vented tab', () => {
     });
   });
 
-  test.describe('target tuning', () => {
-    test('the vented box calls Fb the TARGET, and says what it drives', async ({ appPage: page }) => {
+  test.describe('tuning frequency', () => {
+    test('the vented box names its tuning frequency and explains the port dimensions', async ({ appPage: page }) => {
       const field = page.locator('#og-fb-target-field');
       await expect(field.locator('label')).toHaveText('Tuning freq (Fb)');
       await expect(field).toHaveAttribute('title', /port dimension/i);

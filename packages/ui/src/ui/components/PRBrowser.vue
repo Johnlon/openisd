@@ -25,8 +25,8 @@ useEscToClose(() => true, close);
 </script>
 
 <template>
-  <div class="overlay on" @click="onBackdrop">
-    <div class="modal" :class="{ 'pr-phone': props.phone }">
+  <div class="overlay on" :class="{ 'pr-overlay-desktop': !props.phone }" @click="onBackdrop">
+    <div class="modal" :class="{ 'pr-phone': props.phone, 'pr-desktop': !props.phone }">
       <h2>Passive radiator library<button class="x" @click="close" title="Close">✕</button></h2>
       <div class="body">
         <input class="pr-filter" type="text" v-model="filter" placeholder="Filter passive radiators…"
@@ -78,6 +78,12 @@ useEscToClose(() => true, close);
 </template>
 
 <style scoped>
+/* Desktop picker shares the Driver library's compact popup proportions and scrim. */
+.overlay.pr-overlay-desktop {align-items:center;background:rgba(0,0,0,.18);z-index:100;}
+.pr-desktop {width:770px;max-width:95vw;height:535px;max-height:85vh;border-radius:6px !important;color:#000;}
+.pr-desktop h2 {flex:none;}
+.pr-desktop .body {flex:1;min-height:0;overflow-y:auto;}
+
 /* Pinned under the scrolling .body (the .modal is a flex column): Define and Done never scroll off. */
 .pr-footer { margin-top: 0; padding: 10px 14px 12px; flex-shrink: 0; }
 .pri { background: var(--acc); color:#fff; border-color: var(--acc); }

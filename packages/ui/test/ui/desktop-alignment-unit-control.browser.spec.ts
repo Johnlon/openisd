@@ -18,7 +18,7 @@ test('desktop vented alignment unit chips join their value controls', async ({ap
       const valueInput = value.querySelector<HTMLInputElement>('input')!;
       return {
         label: element.querySelector('label')?.textContent?.trim(),
-        gap: unit.getBoundingClientRect().left - value.getBoundingClientRect().right,
+        gap: unit.getBoundingClientRect().right - valueInput.getBoundingClientRect().right,
         valueBorder: getComputedStyle(valueInput).borderColor,
         background: unitStyle.backgroundColor,
         borderLeft: unitStyle.borderLeftWidth,
@@ -30,7 +30,7 @@ test('desktop vented alignment unit chips join their value controls', async ({ap
   const issues = details.filter(detail => detail.gap > 0.5
     || detail.valueBorder === 'rgb(24, 104, 209)'
     || detail.background !== 'rgb(239, 239, 239)'
-    || detail.borderLeft !== '0px'
+    || detail.borderLeft !== '1px'
     || detail.role !== 'button'
     || !detail.underline.includes('underline')
     || detail.overflow);

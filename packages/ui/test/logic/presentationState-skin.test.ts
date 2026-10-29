@@ -66,3 +66,8 @@ describe('presentationState.narrowViewport', () => {
     assert.equal(presentationState.narrowViewport, false);
   });
 });
+
+
+it('starts charts at 10 Hz to 1 kHz', () => {
+  assert.deepEqual(presentationState.sweepRange, {min:10,max:1000});
+});

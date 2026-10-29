@@ -30,10 +30,12 @@ for (const box of BOX_TYPES) {
     const tabCount = await page.locator('.project-nav li').count();
     for (let i = 0; i < tabCount; i++) {
       await page.locator('.project-nav li').nth(i).click();
+      for (const shape of await page.locator('.tab-section.active select[id*="vent-shape"]').all()) await shape.selectOption('slotted');
       const m = await page.evaluate(() => {
         const panel = document.querySelector('.content-panel')!.getBoundingClientRect();
         const section = document.querySelector('.tab-section.active')!;
-        const content = Math.max(0, ...[...section.querySelectorAll('*')].map(e => e.getBoundingClientRect().bottom)) - panel.top;
+        // The final row includes its bottom margin; a border-box-only read omits it.
+        const content = Math.max(0, ...[...section.querySelectorAll('*')].map(e => e.getBoundingClientRect().bottom + parseFloat(getComputedStyle(e).marginBottom))) - panel.top;
         const navBar = document.querySelector('.project-nav')!.scrollHeight
           + (document.querySelector('.quad-bottomleft .panel-title')?.getBoundingClientRect().height ?? 0);
         return {

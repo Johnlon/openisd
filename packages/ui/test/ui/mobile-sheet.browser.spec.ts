@@ -35,6 +35,23 @@ async function dragToBottom(page: Page, handle: Locator) {
   await page.mouse.up();
 }
 
+for (const mode of ['Tune', 'What-if'] as const) {
+  test(`${mode}: driver count uses the native count picker and preserves the mode's commit behaviour`, async ({page}) => {
+    await openGraph(page);
+    await page.getByRole('button', {name: `Open ${mode}`}).click();
+    const row = page.locator('.mob-sheet-cell').filter({has: page.locator('.mob-sheet-label', {hasText: /^Drivers$/})});
+    const picker = row.getByRole('combobox');
+    await expect(picker).toBeVisible();
+    await expect(row.locator('input,.num-stepper')).toHaveCount(0);
+    expect(await picker.locator('option').evaluateAll(options => options.map(option => option.getAttribute('value')))).toEqual(Array.from({length: 64}, (_, i) => String(i + 1)));
+    await picker.selectOption('4');
+    await expect(picker).toHaveValue('4');
+    await page.locator('.mob-sheet').getByRole('button', {name: 'Close', exact: true}).click();
+    await page.getByRole('button', {name: `Open ${mode}`}).click();
+    await expect(row.getByRole('combobox')).toHaveValue(mode === 'Tune' ? '4' : '1');
+  });
+}
+
 test('Tune and What-if each have their own pull-tab, side by side, and no mode toggle', async ({ page }) => {
   await openGraph(page);
   const tune = page.getByRole('button', { name: 'Open Tune' });
@@ -216,13 +233,13 @@ test.describe('phone keyboard', () => {
     const sheet = page.locator('.mob-sheet');
     await expect(sheet).toBeVisible();
 
-    const driversCell = sheet.locator('.mob-sheet-cell', { hasText: 'Drivers' });
+    const driversCell = sheet.locator('.mob-sheet-cell').filter({has: page.locator('.mob-sheet-label', {hasText: /^Fs$/})});
     const input = driversCell.locator('input');
     const upBtn = driversCell.locator('.num-stepper-btn').first();
 
     await input.scrollIntoViewIfNeeded();
     await input.tap();
-    await expect(input).toHaveValue('1');
+    const initialValue = Number(await input.inputValue());
 
     // Keyboard appears (shrinking viewport to soft keyboard height)
     await page.setViewportSize({ width: 374, height: 380 });
@@ -235,7 +252,7 @@ test.describe('phone keyboard', () => {
 
     // Sheet MUST remain open, value incremented to 2, and document/content scroll MUST NOT be shoved up
     await expect(sheet).toBeVisible();
-    await expect(input).toHaveValue('2');
+    expect(Number(await input.inputValue())).toBeGreaterThan(initialValue);
 
     const scrollOffsets = await page.evaluate(() => ({
       windowY: window.scrollY,
@@ -249,3 +266,29 @@ test.describe('phone keyboard', () => {
     expect(scrollOffsets.contentY).toBe(0);
   });
 });
+
+
+for (const mode of ['Tune', 'What-if']) {
+  test(`${mode}: native Tab keeps the draft through unit and both spinners`, async ({page}) => {
+    await openGraph(page);
+    await page.getByRole('button', {name: 'Open ' + mode}).click();
+    const row = page.locator('.mob-sheet-cell').filter({has: page.locator('.mob-sheet-label', {hasText: /^Box volume$/})});
+    const input = row.locator('input');
+    const unit = row.locator('.mob-sheet-unit');
+    const up = row.getByTitle('Increase', {exact: true});
+    const down = row.getByTitle('Decrease', {exact: true});
+    await input.fill('12.3400');
+    await input.evaluate(element => { if (element instanceof HTMLInputElement) element.setSelectionRange(3, 4); });
+    await input.press('Tab');
+    await expect(unit).toBeFocused();
+    await expect(input).toHaveValue('12.3400');
+    await unit.press('Tab');
+    await expect(up).toBeFocused();
+    await up.press('ArrowUp');
+    await expect(input).toHaveValue('12.4400');
+    await up.press('Tab');
+    await expect(down).toBeFocused();
+    await down.press('ArrowDown');
+    await expect(input).toHaveValue('12.3400');
+  });
+}

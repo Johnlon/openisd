@@ -1,9 +1,8 @@
-/**
- * Unit labels share bold typography. A switchable unit adds its grey control chip and blue underline;
- * a fixed unit stays a plain, light-grey label.
- */
+/** Unit appearance comes from the selected reference; fixed labels and switchable controls
+ * keep their distinct roles, and the unit cap stays joined to the numeric box. */
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
+import {referenceUnitPaint, measureUnitPaint} from '../fixtures/referenceUnitPaint.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 test.beforeEach(async ({appPage: page}) => {
@@ -58,10 +57,9 @@ test.describe('phone unit buttons', () => {
       const [controlBox, unitBox] = await Promise.all([valueControl.boundingBox(), unit.boundingBox()]);
       expect(controlBox, 'alignment value control must have layout geometry').not.toBeNull();
       expect(unitBox, 'alignment unit chip must have layout geometry').not.toBeNull();
-      expect(unitBox!.x).toBeGreaterThanOrEqual(controlBox!.x);
-      expect(unitBox!.y).toBeGreaterThanOrEqual(controlBox!.y);
-      expect(unitBox!.x + unitBox!.width).toBeLessThanOrEqual(controlBox!.x + controlBox!.width);
-      expect(unitBox!.y + unitBox!.height).toBeLessThanOrEqual(controlBox!.y + controlBox!.height);
+      expect(unitBox!.x).toBe(controlBox!.x + controlBox!.width + (await referenceUnitPaint(page)).gap);
+      expect(unitBox!.y).toBe(controlBox!.y);
+      expect(unitBox!.height).toBe(controlBox!.height);
     }
 
     for (const field of await fields.all()) {
@@ -91,8 +89,9 @@ test.describe('phone unit buttons', () => {
     const [controlBox, unitBox] = await Promise.all([valueControl.boundingBox(), unit.boundingBox()]);
     expect(controlBox).not.toBeNull();
     expect(unitBox).not.toBeNull();
-    expect(unitBox!.x).toBeGreaterThanOrEqual(controlBox!.x);
-    expect(unitBox!.x + unitBox!.width).toBeLessThanOrEqual(controlBox!.x + controlBox!.width);
+    expect(unitBox!.x).toBe(controlBox!.x + controlBox!.width + (await referenceUnitPaint(page)).gap);
+    expect(unitBox!.y).toBe(controlBox!.y);
+    expect(unitBox!.height).toBe(controlBox!.height);
 
     const beforeUnit = (await unit.innerText()).trim();
     const beforeValue = Number(await valueControl.inputValue());
@@ -101,12 +100,15 @@ test.describe('phone unit buttons', () => {
     expect(Number(await valueControl.inputValue())).not.toBe(beforeValue);
   });
 
-  test('the Signal tab fixed units (W, V, Ω) are bold labels, not controls', async ({appPage: page}) => {
+  test('the Signal tab fixed units (W, V, Ω) match the reference plain labels', async ({appPage: page}) => {
     await page.locator('.mob-tab', {hasText: 'Signal'}).click();
     const units = page.locator('.mob-classic .ui-field-unit:not(.unit-toggle)');
     await expect(units.first()).toBeVisible();
+    const reference = await referenceUnitPaint(page);
     for (const unit of await units.all()) {
-      expect(await chip(unit)).toEqual(['rgb(255, 255, 255)', 'rgb(136, 136, 136)', '0px', 'rgb(136, 136, 136)', '13px', '600', '0px']);
+      expect(await unit.evaluate(measureUnitPaint)).toEqual(reference.fixed);
+      await expect(unit).not.toHaveAttribute('role', 'button');
+      await expect(unit).not.toHaveAttribute('tabindex');
       await expect(unit).toHaveCSS('text-decoration-line', 'none');
     }
   });

@@ -486,13 +486,18 @@ export function createAppState(deps: AppStateDeps): AppState {
 
   const live: ShallowRef<OpenISDProject | null> = (() => {
     const liveRef = shallowRef<OpenISDProject | null>(null);
-    let disposeCurrent: (() => void) | null = null;
+    let disposeProjects: (() => void)[] = [];
     function resubscribe(): void {
-      if (disposeCurrent) { disposeCurrent(); disposeCurrent = null; }
-      const p = projects.value[focusedIndex.value] ?? null;
-      liveRef.value = p;
+      for (const dispose of disposeProjects) dispose();
+      const focused = projects.value[focusedIndex.value] ?? null;
+      liveRef.value = focused;
       changeTicks.value++;
-      if (p) disposeCurrent = p.subscribe(() => { triggerRef(liveRef); changeTicks.value++; });
+      disposeProjects = projects.value.map(project => project.subscribe(() => {
+        // Editing another row's colour/charts must repaint and persist the session,
+        // while only the focused design needs its calculation-facing live ref fired.
+        if (project === focused) triggerRef(liveRef);
+        changeTicks.value++;
+      }));
     }
     watch([projects, focusedIndex], resubscribe, { flush: 'sync' });
     resubscribe();
@@ -817,7 +822,7 @@ export function createAppState(deps: AppStateDeps): AppState {
   }
 
   /** A CHANGE SIGNAL for App.vue's persistence hook — a counter that increments on every change
-   *  to the FOCUSED project and on every focus/open/close, and hands over nothing (QO92).
+   *  to an OPEN project and on every focus/open/close, and hands over nothing (QO92).
    *
    *  It replaced `committedSnapshot`, which returned the focused project's committed state as an
    *  `OpenISDProject`. A copy, so a watcher could not mutate the layer — but every value in it
@@ -825,10 +830,8 @@ export function createAppState(deps: AppStateDeps): AppState {
    *  never hold, purely so the repo could serialise it. A design for autosave has to hand over
    *  bytes or a record instead; until then the hook needs to know only THAT something changed.
    *
-   *  UNFOCUSED PROJECTS ARE SILENT, and any persistence design must fix that rather than lean on
-   *  this: `live` subscribes to the focused project alone, so an open-but-unfocused project's
-   *  edits reach nothing here (QO92 records this as one of the two defects that sank the removed
-   *  autosave). A per-project signal is what a real design needs. */
+   *  The subscription covers all open projects: row colour and chart-copy actions can edit
+   *  an unfocused project without moving focus. Closing a project removes its subscription. */
   const projectChanged = computed<number>(() => changeTicks.value);
 
   /** The live presentation state as the repo's view shape — read directly by the share-link
