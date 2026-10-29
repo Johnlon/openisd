@@ -195,8 +195,8 @@ const scraperVoiceCoilTupleSchema = z.strictObject({
     Re_ohm: z.enum(["per-coil", "for-stated-connection", "unknown"]),
     BL_Tm: z.enum(["per-coil", "for-stated-connection", "unknown"]),
   }),
-  Re_ohm: scraperEntrySchema.optional(),
-  BL_Tm: scraperEntrySchema.optional(),
+  Re_ohm: scraperEntrySchema.nullable().optional(),
+  BL_Tm: scraperEntrySchema.nullable().optional(),
   numVC: z.union([scraperEntrySchema, z.strictObject({state: z.literal("not-stated")})]),
   connection: z.enum(["series", "parallel", "unknown", "not-stated"]),
   connection_reading: scraperEntrySchema.nullable(),
@@ -869,7 +869,7 @@ export class DriverRecordConverter {
 
     for (const field of ["Re_ohm", "BL_Tm"] as const) {
       const sourceEntry = tuple[field];
-      if (sourceEntry === undefined) continue;
+      if (sourceEntry === undefined || sourceEntry === null) continue;
       const projected = this.#projectScraperEntry(sourceEntry, section, field, warnings);
       if (!isKeyedObject(projected)) {
         result[field] = projected;

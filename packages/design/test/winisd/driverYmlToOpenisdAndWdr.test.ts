@@ -89,6 +89,19 @@ describe('driverYmlToOpenisdAndWdr', () => {
         'warns that the source readings cannot be represented as per-coil values');
     });
 
+    it('projects a coax tweeter tuple whose coil count and connection are not stated', () => {
+      const source = scraperTupleFixture('sb-acoustics-sb15bac30-8-coax.driver.json');
+      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
+      assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
+      assert.ok(wdr !== null, `woofer section still writes WDR; errors: ${JSON.stringify(errors)}`);
+
+      const app: unknown = parse(openisd);
+      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'state'), 'N');
+      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 3.8);
+      assert.equal(at(app, 'specs', 'tweeter', 'voice_coil'), undefined);
+      assert.deepEqual(errors.filter(error => error.level === 'error'), []);
+    });
+
     it('rejects tuple records that also provide flat voice-coil fields', () => {
       const record: unknown = parse(scraperTupleFixture('sb-acoustics-sw26dac76-3-dv.driver.json'));
       const woofer = at(record, 'specs', 'woofer');
