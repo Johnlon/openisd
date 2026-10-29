@@ -13,6 +13,11 @@ function label(): string {
     default: return props.row.field.label;
   }
 }
+
+function cellForNumericField(row: WhatIfBoxRow) {
+  if (row.cell === null) throw new Error(`What-if numeric field ${row.field.slot} has no editable cell`);
+  return row.cell;
+}
 </script>
 
 <template>
@@ -25,7 +30,7 @@ function label(): string {
   </div>
   <UIField v-else class="what-if-fld"
            :title="row.field.slot === 'volume' ? 'Net acoustic internal volume — excludes driver displacement, port tube volume and bracing. Tried here only: the project is not changed. WinISD: Vb.' : row.field.label"
-           :field="row.field.field" :label="label()" :cell="row.cell!" />
+           :field="row.field.field" :label="label()" :cell="cellForNumericField(row)" />
 </template>
 
 <style scoped>
