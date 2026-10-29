@@ -6,6 +6,10 @@ status: done
 goal: Restore production-style joined field boxes with external left warnings and right model cues, preserving independent functional fixes
 done_test: bash scripts/test.sh packages/design/test/fields/phoneRowColumns.test.ts packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
 files:
+  - vite.config.js
+  - .github/workflows/suite.yml
+  - scripts/hosting/test/offline-start.e2e.mjs
+  - bugs/BUG_20261029_app-fails-to-start-offline.md
   - packages/ui/test/logic/projectChanged.test.ts
   - packages/ui/src/logic/appState.ts
   - packages/ui/test/ui/desktop-project-rows.browser.spec.ts

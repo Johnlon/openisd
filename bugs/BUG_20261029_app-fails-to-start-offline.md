@@ -1,6 +1,6 @@
 # BUG_20261029_app-fails-to-start-offline
 
-**Status:** OPEN
+**Status:** RESOLVED (T612)
 
 ## Symptom
 John, 29 Oct 2026: "I was disconnected from the internet and the app failed to start." Serious:
@@ -25,11 +25,17 @@ was removed on purpose (BUG_20261018_test-build-hangs-on-loading-screen): the ro
 also covers the copies under v/, snap/ and test/.
 
 ## Fix
-Offline, a page request the worker cannot match must still get this copy's app shell: answer
-navigations to this build's own pages with its precached index.html whatever the query, while
-the hosted copies (v/, snap/, test/) stay out of the root worker's answers. Then find John's
-actual route (device, address, build) and pin it with a test.
+`vite.config.js` workbox `ignoreURLParametersMatching: [/.*/]`: the precache matches a page address
+with its query removed, so `/?pwa=1`, `/about/?y=2` and the like get this build's precached page
+offline. No navigation fallback was added: the hosted copies (v/, snap/, test/) are not in this
+build's precache, so the root worker still sends them to the network.
+
+Still open: which address and build John's device used. A worker stuck on an old build is
+BUG_20261025_phone-pwa-stays-on-old-build.
 
 ## Verification
-A browser spec: install the worker, go offline, open `/`, `/?x=1`, and the installed app's
-start address; each shows the app, not the browser's offline page. Repeat on a phone browser.
+`node scripts/hosting/test/offline-start.e2e.mjs` (also in the GitHub suite, shard 1): a real
+production build with its worker in control, taken offline; `/`, `/?x=1`, `/?pwa=1`,
+`/index.html?x=1` start the app, `/about/`, `/about/?y=2`, `/install/?z=3` show their own page,
+and `/test/`, `/test/?x=1` are not answered by the root worker. Red before the fix (5 failed),
+green after. `legacy-refresh.e2e.mjs` still passes.
