@@ -1,11 +1,11 @@
 /**
- * The round-trip/diff tools `winIsdDriverConverter.ts` uses to prove its own writers and
- * readers agree with themselves — split out of that file (moves only, `winIsdDriverConverter.ts`
+ * The round-trip/diff tools `driverRecordConverter.ts` uses to prove its own writers and
+ * readers agree with themselves — split out of that file (moves only, `driverRecordConverter.ts`
  * keeps the conversion logic itself: `driverYmlToOpenisdAndWdr`, `winIsdDriverToOpenIsdDriver`,
  * `openIsdDriverToWinIsdDriver`).
  *
  * `wdrRecordRoundTripDiffs` and `roundTripProblems` call back into `openIsdDriverToWinIsdDriver`
- * (still declared in `winIsdDriverConverter.ts`), which creates a two-file IMPORT CYCLE between
+ * (still declared in `driverRecordConverter.ts`), which creates a two-file IMPORT CYCLE between
  * this module and that one. Both crossing symbols are `export function` declarations — hoisted,
  * so each module's export binding exists before either file's top-level body runs — so the cycle
  * is safe at runtime; it is reported here rather than restructured around, per the split's own
@@ -18,7 +18,7 @@ import {OpenISDDriver} from "./driver/openISDDriver.js";
 import type {DriverSpec} from "./openisdSchema.js";
 import {type DriverError, type Engine} from "../engine/index.js";
 import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
-import {openIsdDriverToWinIsdDriver} from "./winIsdDriverConverter.js";
+import {openIsdDriverToWinIsdDriver} from "./driverRecordConverter.js";
 
 const WDR_HEADER_FIELDS = [
   "brand",

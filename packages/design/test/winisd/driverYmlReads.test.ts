@@ -8,7 +8,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {parse, stringify} from 'yaml';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {createEngine} from '../../engine/Engine.js';
 const engine = createEngine();
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus', 'dayton-ce28n-4.driver.yml');
@@ -35,7 +35,7 @@ function ymlWithFsReads(reads: Record<string, unknown>): string {
 }
 
 function convert(yml: string) {
-  return new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(yml);
+  return new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(yml);
 }
 
 describe('driver.yml readings with reads', () => {

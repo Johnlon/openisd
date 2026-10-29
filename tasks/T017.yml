@@ -8,7 +8,7 @@ goal: A reading keeps its printed text even when it is not a number (QO177; wini
 done_test: bash scripts/test.sh packages/design/test/domain/reads-schema.test.ts
 files:
   - packages/design/domain/openisdSchema.ts
-  - packages/design/domain/winIsdDriverConverter.ts
+  - packages/design/domain/driverRecordConverter.ts
   - packages/design/domain/winIsdDriverImport.ts
   - packages/design/domain/corroboration.ts
   - packages/design/domain/winIsdProjectConverter.ts

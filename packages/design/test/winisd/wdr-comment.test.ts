@@ -5,7 +5,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {WINISD_NEWLINE_SENTINEL} from '../../winisd/winisdBytes.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
@@ -36,7 +36,7 @@ specs:
 }
 
 function wdrFromYml(yml: string): string {
-  const {wdr, errors} = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(yml);
+  const {wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(yml);
   if (wdr === null) throw new Error(errors.map(e => e.message).join('; '));
   return wdr;
 }
@@ -53,7 +53,7 @@ describe('.wdr Comment=', () => {
     const incoming = `first 111111${WINISD_NEWLINE_SENTINEL}second 222222 `;
     const withIncoming = base.replace(/^Comment=.*$/m, `Comment=${incoming}`);
 
-    const imported = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(withIncoming);
+    const imported = new DriverRecordConverter(engine).winIsdDriverToOpenIsdDriver(withIncoming);
     if (imported.value === null) throw new Error(imported.errors.map(e => e.message).join('; '));
     const exported = imported.value.toWdrIniText().value!;
 

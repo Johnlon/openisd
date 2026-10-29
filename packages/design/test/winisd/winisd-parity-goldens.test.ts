@@ -26,7 +26,7 @@ import {createEngine} from '@openisd/design/engine';
 import {REFERENCE_CONDITIONS} from '../fixtures/referenceAir.js';
 import { OpenISDDriver, type Readable } from '@openisd/design';
 import { winISDDriverToOpenISDDeviceJson } from '../../domain/winIsdDriverImport.js';
-import { openIsdDriverToWinIsdDriver } from '../../domain/winIsdDriverConverter.js';
+import { openIsdDriverToWinIsdDriver } from '../../domain/driverRecordConverter.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 const here = dirname(fileURLToPath(import.meta.url));
 const fixtures = join(here, 'fixtures', 'winisd-parity');

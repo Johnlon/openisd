@@ -9,7 +9,7 @@
       "count": 1
     }
   },
-  "packages/design/domain/winIsdDriverConverter.ts": {
+  "packages/design/domain/driverRecordConverter.ts": {
     "import-x/no-cycle": {
       "count": 2
     }

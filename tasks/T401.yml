@@ -17,7 +17,7 @@ files:
   - packages/design/domain/driver/openISDDriverEmbedded.ts
   - packages/design/domain/project/openISDProject.ts
   - packages/design/domain/project/projectResolve.ts
-  - packages/design/domain/winIsdDriverConverter.ts
+  - packages/design/domain/driverRecordConverter.ts
   - packages/design/domain/winIsdDriverImport.ts
   - packages/design/engine/driver/DriverEngine.ts
   - packages/design/engine/solvers/driverQuantities.ts

@@ -4,7 +4,7 @@ import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {WinISDDriver} from '../../winisd/winisdDriver.js';
 import {createEngine} from '@openisd/design/engine';
 import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
-import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/driverRecordConverter.js';
 import type {Calculated, Entered, Readable} from '../../domain/cell.js';
 import type {CellState} from '../../winisd/cellState.js';
 

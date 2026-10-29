@@ -9,7 +9,7 @@ import {WinISDDriver} from '@openisd/design/winisd';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
-import {openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
+import {openIsdDriverToWinIsdDriver} from '../../domain/driverRecordConverter.js';
 
 /** The field reads `value` and carries the `.wdr` provenance `state`. */
 function assertReads<T>(field: Readable<T | null> & Entered & Calculated, value: T | null, state: CellState): void {

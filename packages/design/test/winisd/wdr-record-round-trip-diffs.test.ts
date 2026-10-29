@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {DriverRoundTripCheck} from '../../domain/driverRoundTripDiffs.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {createEngine} from '../../engine/Engine.js';
@@ -26,7 +26,7 @@ describe('wdrRecordRoundTripDiffs', () => {
   describe('wdrRecordRoundTripDiffs — the .wdr -> record leg refusing to read back', () => {
     it('reports wdr-record-round-trip when a non-numeric row in the .wdr we hold reads back without its value', () => {
       const engine = createEngine();
-      const { openisd, wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const { openisd, wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
       assert.ok(openisd !== null && wdr !== null);
 
       const driver1 = OpenISDDriver.fromConformingRecord(JSON.parse(openisd), engine);
@@ -63,8 +63,8 @@ describe('wdrRecordRoundTripDiffs', () => {
       // `oidDriverDiffs`/`wdrDriverDiffs` on the success path, past the `Array.isArray(driver3)` guard
       // the test above covers.
       const engine = createEngine();
-      const daytonParsed = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
-      const scanspeakParsed = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
+      const daytonParsed = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const scanspeakParsed = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
       assert.ok(daytonParsed.openisd !== null && scanspeakParsed.wdr !== null);
 
       const driver1 = OpenISDDriver.fromConformingRecord(JSON.parse(daytonParsed.openisd), engine);

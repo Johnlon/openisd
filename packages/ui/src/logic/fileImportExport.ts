@@ -1,7 +1,7 @@
 /**
  * Every driver/project file the app reads or writes: WinISD's `.wdr`/`.wpr`, our own
  * `.owdr`/`.owpr`. One function per operation, and each one is the domain's own text method for
- * that format — `toWdrIniText`/`WinIsdDriverConverter`, `toWprText`/`WinIsdProjectConverter`,
+ * that format — `toWdrIniText`/`DriverRecordConverter`, `toWprText`/`WinIsdProjectConverter`,
  * `toOwdrText`/`fromOwdrText` — except `.owpr` reading, which goes through the injected project
  * repo. This module converts text to bytes and problems to `DriverError`s; it never assembles a
  * format object itself.
@@ -10,7 +10,7 @@
  * messages; this module owns the format conversion. Nothing here touches app state or the
  * DOM.
  */
-import {OpenISDDriver, OpenISDProject, WinIsdDriverConverter, WinIsdProjectConverter} from '@openisd/design';
+import {OpenISDDriver, OpenISDProject, DriverRecordConverter, WinIsdProjectConverter} from '@openisd/design';
 import {DriverFileFormat, ProjectFileFormat} from '../fileFormat.js';
 import type {DriverError, Engine} from '@openisd/design/engine';
 import type {ExportedFiles, ProjectRepo} from '@openisd/persistence';
@@ -32,7 +32,7 @@ export function driverToWdrBytes(driver: OpenISDDriver): Bytes {
 /** Reads every driver/project file format into a domain object, with the one engine the
  *  composition root built and the project repo that brings a stored project up to schema. */
 export class DesignFiles {
-  readonly #drivers: WinIsdDriverConverter;
+  readonly #drivers: DriverRecordConverter;
   readonly #projects: WinIsdProjectConverter;
 
   constructor(
@@ -40,7 +40,7 @@ export class DesignFiles {
     private readonly projectRepo: ProjectRepo,
     private readonly exportedFiles: ExportedFiles,
   ) {
-    this.#drivers = new WinIsdDriverConverter(engine);
+    this.#drivers = new DriverRecordConverter(engine);
     this.#projects = new WinIsdProjectConverter(engine);
   }
 

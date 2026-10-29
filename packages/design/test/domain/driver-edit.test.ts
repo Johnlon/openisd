@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {type DriverError, createEngine} from '@openisd/design/engine';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
@@ -221,7 +221,7 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(driver.model.value).toBe('Copy of RS225');
   });
 
-  it('toWdrIniText() then WinIsdDriverConverter() round-trips a driver through WinISD .wdr text', () => {
+  it('toWdrIniText() then DriverRecordConverter() round-trips a driver through WinISD .wdr text', () => {
     const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     driver.specs.Fs_hz.set(41.5);
 
@@ -229,7 +229,7 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(errors.filter((e: DriverError) => e.level === 'error')).toEqual([]);
     if (text === null) throw new Error('toWdrIniText produced no text');
 
-    const back = new WinIsdDriverConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
+    const back = new DriverRecordConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
     if (back.value === null) throw new Error('winIsdDriverToOpenIsdDriver returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.specs.Fs_hz.value).toBeCloseTo(41.5, 3);
     expect(back.value.model.value).toBe('RS225');
@@ -246,7 +246,7 @@ describe('editing a driver — copy, then update or drop', () => {
     if (text === null) throw new Error('toWdrIniText produced no text');
     expect(text).toMatch(/^VCCon=2\r?$/m);
 
-    const back = new WinIsdDriverConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
+    const back = new DriverRecordConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
     if (back.value === null) throw new Error('winIsdDriverToOpenIsdDriver returned problems: ' + JSON.stringify(back.errors));
     expect(back.value.specs.numVC.value).toBe(1);
     expect(back.value.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
