@@ -153,7 +153,7 @@ test('a unitless row\'s step buttons line up with a row that has a unit', async 
 });
 
 // John, 2026-10-02: "make the mobile fields look like inputs when they are input".
-test('an editable value is drawn as an input box; a read-only one is not', async ({ page }) => {
+test('editable values have input boxes and calculated boxes remain readonly', async ({ page }) => {
   await page.locator('.mob-tab', { hasText: 'Signal' }).click();
   const input = fieldRow(page, 'Rs').locator('input');
   const style = await input.evaluate(el => {
@@ -164,12 +164,17 @@ test('an editable value is drawn as an input box; a read-only one is not', async
   expect(style.width).toBeGreaterThan(0);
   expect(style.bg).not.toBe('rgba(0, 0, 0, 0)');
 
-  // A calculated read-only value renders through NumReadout (a plain span), not NumInput with a
-  // readonly attribute — asserted directly (no `if`, playwright/no-conditional-expect): there is
-  // no <input> at all for it to look like one.
+  // John selected the production-style joined box for readonly values on27October.
+  // Native readonly semantics preserve selection/copy while preventing edits.
   await page.locator('.mob-tab', { hasText: 'Box' }).click();
   await page.locator('#mob-box-type').selectOption('bandpass4');
-  await expect(fieldRow(page, 'Fsc').locator('input')).toHaveCount(0);
+  const readout=fieldRow(page,'Fsc');
+  const calculated=readout.locator('input');
+  await expect(calculated).toHaveAttribute('readonly');
+  await expect(readout.locator('.num-stepper-btn')).toHaveCount(0);
+  const value=await calculated.inputValue();
+  await calculated.focus();await calculated.pressSequentially('123');
+  await expect(calculated).toHaveValue(value);
 });
 
 // Field diagnostics 2026-10-02: a stepper tapped on a field holding 0 threw InvalidStateError

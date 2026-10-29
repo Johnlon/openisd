@@ -78,17 +78,14 @@ test.describe('Original shell layout', () => {
       await expect(page.locator('.content-panel')).toContainText('Description');
     });
 
-    test('What-if is below the right-edge legend, not in the Driver row', async ({ appPage: page }) => {
-      const legend = page.locator('.value-legend');
-      const whatIf = page.locator('.save-rail .what-if-btn');
-
-      await expect(legend).toBeVisible();
-      await expect(whatIf).toHaveCount(1);
-      await expect(page.locator('.driver-id-row .what-if-btn')).toHaveCount(0);
-
-      const legendBottom = await legend.evaluate(element => element.getBoundingClientRect().bottom);
-      const whatIfTop = await whatIf.evaluate(element => element.getBoundingClientRect().top);
-      expect(whatIfTop).toBeGreaterThanOrEqual(legendBottom);
+    test('What-if is at the rail top and unsaved status accompanies the bottom legend', async ({appPage:page}) => {
+      await setFocusedBoxType(page,'bandpass4');
+      await expect(page.locator('.save-rail .value-legend')).toHaveCount(0);
+      await expect(page.locator('.prov-legend .unsaved-label')).toBeVisible();
+      const rail=await page.locator('.save-rail').boundingBox(), whatIf=await page.locator('.save-rail .what-if-btn').boundingBox(), revert=await page.locator('.save-rail .revert-btn').boundingBox();
+      expect(rail).not.toBeNull();expect(whatIf).not.toBeNull();expect(revert).not.toBeNull();
+      expect(Math.abs(whatIf!.y-rail!.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs(revert!.x+revert!.width-rail!.x-rail!.width)).toBeLessThanOrEqual(1);
     });
 
     test('Original save buttons sit in a right-edge rail beside the tabs (no vertical space consumed)', async ({ appPage: page }) => {
@@ -105,12 +102,12 @@ test.describe('Original shell layout', () => {
       expect(Math.abs(railTop - tabsTop)).toBeLessThanOrEqual(4); // both start at the top of the panel
     });
 
-    test('the Driver tab Brand box is 130 px and the Model box 140 px, as in 7.0.951', async ({ appPage: page }) => {
+    test('the Driver tab preserves the 130 px Brand box and widens Model to 420 px', async ({ appPage: page }) => {
       await page.setViewportSize({ width: 1880, height: 900 });
       await page.locator('.project-nav li', { hasText: 'Driver' }).click();
       const boxes = page.locator('.tab-section.active .driver-id-row input');
       expect(Math.round((await boxes.nth(0).boundingBox())?.width ?? 0), 'Brand').toBe(130);
-      expect(Math.round((await boxes.nth(1).boundingBox())?.width ?? 0), 'Model').toBe(140);
+      expect(Math.round((await boxes.nth(1).boundingBox())?.width ?? 0), 'Model').toBe(420);
     });
 
     test('Original skin buttons have readable dark text on their light fill', async ({ appPage: page }) => {
@@ -164,7 +161,15 @@ test.describe('Original shell layout', () => {
       await page.mouse.up();
       expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
 
-      await page.evaluate(() => localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, originalBottomH: 300 } })));
+      await page.evaluate(() => {
+        const stored: unknown = JSON.parse(localStorage.getItem('openisd_view') ?? '{}');
+        if (typeof stored !== 'object' || stored === null || Array.isArray(stored)) throw new Error('Expected stored view preferences');
+        const ui: unknown = 'ui' in stored ? stored.ui : {};
+        if (typeof ui !== 'object' || ui === null || Array.isArray(ui)) throw new Error('Expected stored UI preferences');
+        // This test changes only the obsolete bottom-height setting, retaining the sidebar
+        // width that a preceding resize test may have saved in the shared browser page.
+        localStorage.setItem('openisd_view', JSON.stringify({...stored, ui: {...ui, splashSeen: true, originalBottomH: 300}}));
+      });
       await page.reload();
       expect((await page.locator('.content-panel').boundingBox())!.height).toBe(before.height);
     });
@@ -227,9 +232,9 @@ test.describe('Original shell layout', () => {
       // One height for the tallest tab of any box type (John, 2026-10-15).
       expect(distinct, `panel height per box type: ${JSON.stringify(heights)}`).toHaveLength(1);
       expect(maxClip, 'the 7-tab rail must not be clipped by the fixed height').toBeLessThanOrEqual(1);
-      // Natural height, not stretched to fill: the tallest content is ~181px + panel chrome.
+      // The shared port grid includes tuning plus Width and Height for slotted ports.
       // A regression that let the row grow toward 45vh (~405px at 900px tall) fails here.
-      expect(distinct[0]).toBeLessThan(240);
+      expect(distinct[0]).toBeLessThan(300);
     });
   });
 
@@ -323,4 +328,38 @@ test.describe('Original shell layout', () => {
       }
     });
   });
+});
+
+
+test('desktop splitter buttons expose expanded state and remain keyboard operable',async({page})=>{
+ await page.goto('/');await openAProject(page);
+ for(const selector of ['.split-v .split-toggle','.split-h .split-toggle']){
+  const button=page.locator(selector);await expect(button).toHaveAttribute('aria-expanded','true');
+  await button.focus();await button.press('Enter');await expect(button).toHaveAttribute('aria-expanded','false');
+  await button.press('Enter');await expect(button).toHaveAttribute('aria-expanded','true');
+ }
+});
+
+test('desktop model and PR names have the requested wider boxes without hiding actions',async({page})=>{
+ await page.goto('/');await openAProject(page);await page.locator('.project-nav li').filter({hasText:/^Driver$/}).click();
+ const model=page.locator('.driver-id-row .field').filter({has:page.locator('label',{hasText:/^Model$/})}).locator('input');await expect(model).toHaveCSS('width','420px');
+ const pane=(await page.locator('.content-tabs').boundingBox())!;
+ for(const button of await page.locator('.tab-section.active .driver-id-row button').all()){const r=(await button.boundingBox())!;expect(r.x+r.width).toBeLessThanOrEqual(pane.x+pane.width);}
+ await setFocusedBoxType(page,'box-passive-radiator');await page.locator('.project-nav li').filter({hasText:/^Passive Radiator$/}).click();await expect(page.locator('#og-pr-name')).toHaveCSS('width','330px');
+ for(const button of await page.locator('.tab-section.active .driver-id-row button').all()){const r=(await button.boundingBox())!;expect(r.x+r.width).toBeLessThanOrEqual(pane.x+pane.width);}
+});
+
+
+test('green Save sits immediately above Revert and saves the open project', async ({appPage:page}) => {
+ await setFocusedBoxType(page,'bandpass4');
+ const save=page.locator('.save-rail').getByRole('button',{name:'Save',exact:true});
+ await expect(save).toBeVisible();
+ await expect(save).toHaveCSS('background-color','rgb(34, 128, 62)');
+ const saveBox=(await save.boundingBox())!,revert=(await page.locator('.save-rail .revert-btn').boundingBox())!;
+ expect(revert.y-saveBox.y-saveBox.height).toBeCloseTo(6,0);
+ expect(saveBox.x+saveBox.width).toBeCloseTo(revert.x+revert.width,0);
+ await expect(page.locator('.prov-legend .unsaved-label')).toBeVisible();
+ await save.click();
+ await expect(page.locator('.prov-legend .unsaved-label')).toHaveCount(0);
+ await expect(page.locator('.save-rail .revert-btn')).toBeDisabled();
 });

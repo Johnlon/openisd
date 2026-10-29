@@ -34,6 +34,7 @@ test.describe('Original Signal tab', () => {
     const pow = signalInput(page, 'System input power');
     await fillAndBlur(pow, '1');
     await pow.focus();
+    await pow.evaluate(el => { if (el instanceof HTMLInputElement) el.setSelectionRange(el.value.indexOf('.') + 1, el.value.indexOf('.') + 2); });
     await pow.press('ArrowUp');
     await expect(pow).toHaveValue('1.10');
     await pow.press('ArrowDown');
@@ -48,7 +49,7 @@ test.describe('Original Signal tab', () => {
     await fillAndBlur(pow, '9.5');
     await pow.focus();
     await pow.press('Home');
-    await pow.press('ArrowRight');          // the caret right of the units digit
+    // Home selects the units place in 9.50; ArrowRight would choose the tenths.
     await pow.press('ArrowUp');
     await expect(pow).toHaveValue(/^10\.5/);
     await pow.press('ArrowUp');
@@ -69,7 +70,7 @@ test.describe('Original Signal tab', () => {
   });
 
   // fable, 21 Oct 2026 (bugs/BUG_20261021_last-decimal-digit-cannot-spin.md): a selected digit spins
-  // its own place, even the last digit; a bare caret at the end still spins the tenths.
+  // its own place, even the last digit; a bare caret at the end also spins the last digit (John, T607).
   test('selecting the last digit spins that digit, by key and by ▲▼', async ({ appPage: page }) => {
     const pow = signalInput(page, 'System input power');
     await fillAndBlur(pow, '1.05');
@@ -84,9 +85,9 @@ test.describe('Original Signal tab', () => {
     await expect(pow).toHaveValue('1.07');
     await fillAndBlur(pow, '1.05');
     await pow.focus();
-    await pow.press('End');                 // a bare caret at the end chooses no digit
+    await pow.press('End');                 // a bare end caret chooses the last digit
     await pow.press('ArrowUp');
-    await expect(pow).toHaveValue('1.15');
+    await expect(pow).toHaveValue('1.06');
   });
 
   test('System input power is a UIField: label, box, ⚠ slot and unit in one row', async ({ appPage: page }) => {

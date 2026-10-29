@@ -108,3 +108,19 @@ describe('projectChanged fires on filter edits (drives the re-sweep)', () => {
     assert.ok(fired > 0, 'adding a filter must wake projectChanged');
   });
 });
+
+it('an unfocused project colour change wakes rows, charts and persistence without changing focus', async () => {
+  appState.newProject(); const other = appState.requireFocusedProject();
+  appState.newProject(); const focused = appState.requireFocusedProject();
+  const fired = await firingsDuring(() => other.traceColor.set('#123456'));
+  assert.ok(fired > 0, 'colour changes on another project must reach observers');
+  assert.equal(appState.focusedProject(), focused);
+});
+
+it('stops observing projects after they are closed', async () => {
+  appState.newProject(); const closed = appState.requireFocusedProject();
+  appState.newProject();
+  appState.removeProject(0);
+  const fired = await firingsDuring(() => closed.traceColor.set('#123456'));
+  assert.equal(fired, 0);
+});

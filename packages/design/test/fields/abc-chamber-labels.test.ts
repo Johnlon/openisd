@@ -16,10 +16,10 @@ describe('ABC / bandpass chamber field labels', () => {
 });
 
 describe('tuning fields', () => {
-  it('no tuning label says "Target"; every tuning help says it is a goal the box may not reach', () => {
+  it('no tuning label says "Target"; tuning help explains the paired frequency and length inputs', () => {
     for (const f of [NumberField.BOX_FB_HZ, NumberField.BOX_FRC_HZ, NumberField.BOX_FFC_HZ]) {
       expect(f.label).not.toMatch(/target/i);
-      expect(f.description).toContain('The tuning is a goal; the box may not reach it.');
+      expect(f.description).toMatch(/Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency/);
     }
   });
 });

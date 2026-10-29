@@ -1,0 +1,52 @@
+### Inspected Image Count
+
+**4 PNG images inspected**:
+- [`prod.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/prod.png)
+- [`test.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/test.png)
+- [`branch-before.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-before.png)
+- [`branch-after-final.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-after-final.png)
+
+---
+
+### Bounded Verdict
+
+**Pass for the bounded focus-hold, unit-step, test-coverage, and screenshot-attribution slice — with one remaining reverse-`Tab` edge case when `underlineIndex` is `null` (such as `Shift+Tab` from the unit button back into `<input>` immediately after a unit switch), plus the explicitly deferred open items.** Full appearance conformance, design sign-off, and deployment are **not** approved.
+
+---
+
+### Confirmed Closures
+
+1. **Intra-group key-hold repeat leak closed ([`NumInput-hooks.ts:L452-L455`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L452-L455), [`NumInput-hooks.ts:L557-L563`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L557-L563))**
+   - Both `onBlur` and `onStepperBlur` now call [`stopRepeat()`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L427-L430) unconditionally before checking `ownGroup(e.relatedTarget)`.
+   - Verified with `page.clock` in [`num-input-rendition.browser.spec.ts:L208-L228`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/num-input-rendition.browser.spec.ts#L208-L228) for both `input` → `.ui-field-unit` (`ArrowUp` held) and `Increase` → `Decrease` (`Space` held).
+
+2. **Stale digit/place state on unit switch before spinning closed ([`NumInput-hooks.ts:L75-L95`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L75-L95))**
+   - `watch(activeToken)` rescales the focused draft with its `halfWidthSI` (`200.0000` Hz → `0.2000000` kHz), calls `stopRepeat()`, resets `lastStep = null`, `lastCaret = {kind: 'none'}`, and `underlineIndex.value = null`, and collapses the input selection to `display.value.length`.
+   - Verified in [`num-input-rendition.browser.spec.ts:L231-L249`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/num-input-rendition.browser.spec.ts#L231-L249) (`100.0000` → `200.0000` Hz → `Enter` on unit → `0.2000000` kHz with no stale marker → `Tab` to `▲` → `ArrowUp` steps tenths to `0.3000000`).
+
+3. **Reverse `Tab` with an active digit marker closed ([`NumInput-hooks.ts:L101-L107`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L101-L107), [`num-input-rendition.browser.spec.ts:L187-L204`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/num-input-rendition.browser.spec.ts#L187-L204))**
+   - When `underlineIndex.value !== null`, `onFocus` schedules `nextTick` to call `chooseDigit(digit)` over the browser's default reverse-`Tab` full-input selection.
+   - [`num-input-rendition.browser.spec.ts:L187-L204`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/num-input-rendition.browser.spec.ts#L187-L204) verifies reverse traversal (`down` → `up` → `unit` → `input`) retains `'1.2500'` and `.num-mark-underline` `'5'`, and forward exit past `down` clears the marker.
+
+4. **Host, mobile-sheet, and outside-click test gaps closed**
+   - [`closed-box-fields.browser.spec.ts:L61-L86`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/closed-box-fields.browser.spec.ts#L61-L86) asserts `.num-mark-underline` across `unit`, `up`, and `down`, then verifies `down.press('Tab')` focuses `.winisd-deviation-cue` (`≠W`) and clears `.num-mark-underline`.
+   - [`number-stepper.browser.spec.ts:L138-L149`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/number-stepper.browser.spec.ts#L138-L149) asserts both the end-caret highlight/spin after `box.click()` and marker removal (`await expect(overlay).toHaveCount(0)`) after clicking the `Box` tab outside the field.
+   - [`mobile-sheet.browser.spec.ts:L271-L294`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-sheet.browser.spec.ts#L271-L294) covers native `Tab` across `input` → `.mob-sheet-unit` → `up` → `down` in both `Tune` and `What-if`.
+
+5. **Visual attribution & correction confirmed ([`pixel-attribution-check.json`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/pixel-attribution-check.json), [`publish-field-keyboard-review.mjs:L21`](http://lap:8000/winisd/openisd-t607/scripts/publish-field-keyboard-review.mjs#L21), [`index.html`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/index.html))**
+   - **Correction to my earlier review**: My claim in [`T607-argon-keyboard-review.txt:L69-L73`](http://lap:8000/winisd/openisd-t607/docs/design/reviews/T607-argon-keyboard-review.txt#L69-L73) that `Vb`/`Fsc` narrowed by 8–10px between `branch-before.png` and `branch-after.png` was false (I relied on the earlier erroneous caption rather than checking row pixel bounds). Visual inspection of [`branch-before.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-before.png) vs [`branch-after-final.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-after-final.png) and [`pixel-attribution-check.json:L3-L32`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/pixel-attribution-check.json#L3-L32) confirms the `Vb` and `Fsc` rows are identical and all pixel changes sit inside `[140, 427, 321, 467]` on `Qtc` (`0.70[0]0` inverse marker, `▲` focus outline, `≠W` unfocused).
+   - [`publish-field-keyboard-review.mjs:L21`](http://lap:8000/winisd/openisd-t607/scripts/publish-field-keyboard-review.mjs#L21) and [`index.html:L1`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/index.html#L1) now state the exact pixel attribution and explicitly disclose the pre-existing branch-vs-production differences (missing cloud icon, unitless `Qtc` spinner alignment, bottom-link spacing).
+
+---
+
+### Concrete Unresolved / New Defects
+
+1. **New edge case: `Shift+Tab` into `<input>` when `underlineIndex === null` (e.g. right after switching units on `unitEl`) selects the whole input and marks index `0` ([`NumInput-hooks.ts:L89-L107`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L89-L107), [`NumInput-hooks.ts:L365-L375`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L365-L375))**
+   - **Mechanism**: Toggling the unit while `unitEl` is focused sets `underlineIndex.value = null` and collapses the selection to `display.value.length` ([`NumInput-hooks.ts:L89-L94`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L89-L94)). If the user then presses `Shift+Tab` from `unitEl` back to `inputEl` (or enters the group backwards via `Shift+Tab` through `▼` → `▲` → `unit` → `input` without spinning), `onFocus` takes `if (!entering)` (`groupFocused.value` is already `true`) and skips the `nextTick` fixup because `digit === null` ([`NumInput-hooks.ts:L105`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L105)).
+   - **Consequence**: The browser's default keyboard focus selects the entire text `[0, display.value.length]` (hidden by `input[data-numinput]::selection { background: transparent }` in [`field-catalogue.css:L84`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L84)), and `selectionchange` → `rememberCaret()` sees `selectionStart = 0, selectionEnd = length`, setting `lastCaret = {kind: 'caret', at: 0}` and `underlineIndex.value = 0` (highlighting the leading digit while the full value is selected).
+
+2. **Remaining open items (acknowledged as open outside this slice)**
+   - **Inverse-blink provenance color & `2px` border offset**: [`field-catalogue.css:L86`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L86) still uses `56%,100%{background:transparent;color:#078200}` (turning calculated/defaulted digits green during the off-phase), and `.num-mark-overlay` hardcodes `padding: 0 7px !important` ([`field-catalogue.css:L82`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L82)) across both `1px` and `2px` (`de-input-mandatory`/`inp-bad`) borders.
+   - **Spinner/unit-first entry baseline**: [`onStepperFocus`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L450) sets `groupFocused.value = true` without initializing `entryValue.value = props.modelValue` or `badEntry.value = false`.
+   - **Minor prose spacing nit in publisher**: [`publish-field-keyboard-review.mjs:L21`](http://lap:8000/winisd/openisd-t607/scripts/publish-field-keyboard-review.mjs#L21) / [`index.html:L1`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/index.html#L1) has missing spaces before numbers in `same374×705`, `Qtc0.7000`, and `measure108px`.
+

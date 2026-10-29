@@ -105,6 +105,16 @@ be clear what the problem is"; "the before and after is because I need to unders
 - Failure this came from: F46 was raised as "rows 8 px taller, depth spec fails" with no
   screenshots. John had not seen the change and did not recognise the problem.
 
+### Before claiming a change is in test
+
+John, 2026-10-26: before claiming anything is in test, compare live production
+(`https://openisd.app`) and live test (`https://test.openisd.app`) screenshots of the same
+project, inputs, settings, screen and viewport. Verify the served build IDs. Inspect the
+pictures personally and annotate/explain every visible deviation, identifying regressions
+and justifying the benefit of intended changes. Share the comparison on a page with a
+comment box under every picture. Local captures and green tests do not establish deployment.
+If the live comparison is incomplete, say the change is unverified and do not claim it is in test.
+
 ## Communication — plain bug statements
 
 Report a bug or a split as one plain sentence: "There are two things, X and Y. X does A, Y does

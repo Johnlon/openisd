@@ -56,6 +56,8 @@ export interface ToneGenerator {
   setFrequency(freqHz: number): void;
   /** Stop and tear down the oscillator. */
   stop(): void;
+  /** Resume the existing audio context after the browser suspends it. */
+  resume(): void;
   /** Whether a tone is currently sounding. */
   playing(): boolean;
 }
@@ -77,23 +79,42 @@ export function createToneGenerator(makeCtx: () => ToneCtx = () => new AudioCont
 
   return {
     start(freqHz: number): void {
-      if (osc) { this.setFrequency(freqHz); return; }   // already playing → just retune
+      if (osc) {
+        this.setFrequency(freqHz);
+        this.resume();
+        return;
+      }   // already playing → just retune
       ctx ??= makeCtx();
-      if (ctx.state === 'suspended') void ctx.resume();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(clampHz(freqHz), ctx.currentTime);
-      g.gain.setValueAtTime(0, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(GAIN, ctx.currentTime + RAMP);   // fade in
-      o.connect(g);
-      g.connect(ctx.destination);
-      o.start();
-      osc = o; gain = g;
+      const context = ctx;
+      const buildOscillator = () => {
+        // The user may have unchecked Generate while resume() was pending.
+        if (ctx !== context || osc) return;
+        const o = context.createOscillator();
+        const g = context.createGain();
+        o.type = 'sine';
+        o.frequency.setValueAtTime(clampHz(freqHz), context.currentTime);
+        g.gain.setValueAtTime(0, context.currentTime);
+        g.gain.linearRampToValueAtTime(GAIN, context.currentTime + RAMP);   // fade in
+        o.connect(g);
+        g.connect(context.destination);
+        o.start();
+        osc = o; gain = g;
+      };
+      if (context.state === 'running') buildOscillator();
+      else void context.resume().then(buildOscillator).catch(() => undefined);
     },
 
     setFrequency(freqHz: number): void {
-      if (osc && ctx) osc.frequency.setValueAtTime(clampHz(freqHz), ctx.currentTime);
+      if (osc && ctx) {
+        const t = ctx.currentTime;
+        osc.frequency.cancelScheduledValues(t);
+        osc.frequency.setValueAtTime(osc.frequency.value, t);
+        osc.frequency.linearRampToValueAtTime(clampHz(freqHz), t + RAMP);
+      }
+    },
+
+    resume(): void {
+      if (ctx && ctx.state !== 'running') void ctx.resume().catch(() => undefined);
     },
 
     stop(): void {

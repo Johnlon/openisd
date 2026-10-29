@@ -487,6 +487,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
       }
       made.nDrivers.set(nDrivers.value);
       made.wiring.set(wiring.value);
+      made.box.applyStartingValues();
     });
 
     newProjectDriver.value = null;

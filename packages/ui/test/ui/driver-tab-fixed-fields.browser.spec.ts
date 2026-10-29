@@ -1,4 +1,5 @@
 import {expect, openAProject, test} from '../fixtures.js';
+import {measureFieldContent} from '../fixtures/fieldVisualContract.js';
 import {fillAndBlur} from '../fixtures/numField.js';
 
 /**
@@ -25,3 +26,13 @@ for (const label of ['Voice coil temp rise', 'Added mass to cone']) {
     await expect(box).toHaveValue(/^7(\.0+)?$/);
   });
 }
+
+
+test('all three advanced driver boxes have equal width', async ({page}) => {
+  const widths = await page.locator('.driver-columns .ui-field input').evaluateAll(inputs => inputs.map(input => input.getBoundingClientRect().width));
+  expect(widths).toHaveLength(3);
+  for (const width of widths) expect(width).toBe(widths[0]);
+  const units = await page.locator('.driver-advanced-fields .ui-field-unit').evaluateAll(elements=>elements.map(element=>element.getBoundingClientRect().width));
+  for (const width of units) expect(width).toBe(units[0]);
+  expect((await page.locator('.driver-advanced-fields').evaluate(measureFieldContent)).issues).toEqual([]);
+});

@@ -13,7 +13,7 @@ import {selectedOption} from '../logic/domEvents.js';
 const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
 export function useMobileDriverTab() {
-  const {appState, presentation: presentationState} = useApp();
+  const {appState, driverBrowsing, presentation: presentationState} = useApp();
   const {driverName, projectChanged} = appState;
   const project = useFocusedProject();
   const { selection } = useApp();
@@ -35,7 +35,7 @@ export function useMobileDriverTab() {
   function editDriver(): void { selection.editProjectDriver(); }
 
   return {
-    project, brand, model, fullName, keyFigures, browseDrivers, editDriver,
+    project, brand, model, fullName, keyFigures, browseDrivers, editDriver, showDriverInfo: driverBrowsing.showProjectDriverInfo,
     N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption,
   };
 }

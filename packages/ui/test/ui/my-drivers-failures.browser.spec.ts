@@ -161,3 +161,23 @@ test('importing the same driver file twice through the real path yields two entr
   expect(entries).toHaveLength(2);
   expect(entries[0]?.uuid).not.toBe(entries[1]?.uuid);
 });
+
+test('a saved driver can be edited and cancelled with no project open', async ({page}) => {
+  const original = bucket(slot('without-project', 'Saved', 'Independent'));
+  await page.addInitScript(([value, key]) => {
+    localStorage.setItem(key, value);
+    localStorage.setItem('openisd_view', JSON.stringify({ui:{splashSeen:true,skinOverride:'original'}}));
+  }, [original, MY_DRIVERS_KEY]);
+  await page.goto('/');
+  await expect(page.locator('.project-row')).toHaveCount(0);
+  await page.getByRole('button', {name:'Manage Drivers',exact:true}).click();
+  await page.locator('.my-ditem .my-edit').click();
+  await expect(page.locator('.de-modal')).toBeVisible();
+  await page.locator('.de-tabs').getByRole('button',{name:'General',exact:true}).click();
+  await page.locator('.de-model').fill('Uncommitted change');
+  await page.locator('.de-btns').getByRole('button',{name:'Cancel',exact:true}).click();
+  await expect(page.locator('.de-modal')).toHaveCount(0);
+  await expect(page.locator('.project-row')).toHaveCount(0);
+  // The repository normalizes the envelope on load; every saved entry must remain intact.
+  expect(parseMyDriversBucket(await page.evaluate(key=>localStorage.getItem(key), MY_DRIVERS_KEY)).entries).toEqual(parseMyDriversBucket(original).entries);
+});

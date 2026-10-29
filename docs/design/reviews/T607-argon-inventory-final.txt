@@ -1,0 +1,61 @@
+### Bounded Verdict
+
+Within the scoped inventory/test slice, the residual ordinary `Boolean` vs `BugToggle` (`bug-switch`) inventory finding is **closed symmetrically**. Both writable and readonly catalogue selectors now enforce mutual exclusion, and all four directional negative mutations are covered in browser tests.
+
+This verdict is strictly bounded to the DOM/scenario inventory slice. As recorded in [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L440-L463), no application rendering code changed in this slice, and neither the DRAFT use cases nor whole-app conformance are approved.
+
+---
+
+### 1. Ordinary `Boolean` vs `BugToggle` Symmetry Check
+
+- **Symmetric selector separation ([fieldInventoryScenarios.ts:L105-L106](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L105-L106)):**
+  - `FieldEditor.Boolean` requires `input[type="checkbox"]:not(.catalogue-bug)` (writable) and `span[role="checkbox"]:not(.catalogue-bug)` (readonly).
+  - `FieldEditor.BugToggle` requires `input[type="checkbox"].catalogue-bug` (writable) and `span.catalogue-bug[role="checkbox"]` (readonly).
+- **Symmetric negative mutations ([field-catalogue.browser.spec.ts:L146-L149](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/field-catalogue.browser.spec.ts#L146-L149)):**
+  - `rendererMutations` tests both directions across both access modes: adding `.catalogue-bug` to `boolean-writable-none-none` and `boolean-readonly-none-none`, and removing `.catalogue-bug` from `bug-toggle-writable-none-none` and `bug-toggle-readonly-none-none`. Each asserts `'wrong editor'`.
+- **Scope boundary:** `.catalogue-bug` is a catalogue-specimen DOM class marker. It does not verify the reference HTML structure (`label.toggle.bug` with `<span aria-hidden="true">⚠</span>` in [field-use-cases.html:L15](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15)) or computed yellow warning paint ([field-use-cases.html:L2](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L2)).
+
+---
+
+### 2. Critique of Recheck & Strategy Disposition
+
+The disposition in [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L440-L463) accurately corrects two errors in [T607-argon-inventory-recheck.txt](http://lap:8000/winisd/openisd-t607/docs/design/reviews/T607-argon-inventory-recheck.txt#L17-L28):
+
+1. **`tabindex="-1"` on spinners is already the current app rendering, not a mutation:**
+   - [T607-argon-inventory-recheck.txt:L18](http://lap:8000/winisd/openisd-t607/docs/design/reviews/T607-argon-inventory-recheck.txt#L18) proposed `el.setAttribute('tabindex', '-1')` on `.num-stepper-btn` as a negative mutation.
+   - In [NumInput.vue:L45-L50](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L45-L50), both increase and decrease `<button>` elements already hardcode `tabindex="-1"`. Setting `-1` again is a no-op.
+   - By contrast, the HTML reference ([field-use-cases.html:L15](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15), [L37](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L37), [L42](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L42), [L290-L311](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L290-L311)) renders ordinary focusable `<button type="button">` spinners without `tabindex="-1"` as part of one keyboard focus group with the input.
+   - The disposition in [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L450-L455) is right **not** to freeze `tabindex: '-1'` into the scenario contract, as that would codify the legacy divergence against the reference.
+2. **Real field identity is `box_Fsc_hz`, not `box.fsc`:**
+   - [fieldInventoryScenarios.ts:L5](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L5) and [L49-L51](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L49-L51) bind `.ui-field[data-field="${field.value}"]` using `NumberField.BOX_FSC_HZ` (`box_Fsc_hz`, documented in [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L452)).
+3. **Recheck report staleness:**
+   - [T607-argon-inventory-recheck.txt:L24-L28](http://lap:8000/winisd/openisd-t607/docs/design/reviews/T607-argon-inventory-recheck.txt#L24-L28) predates the final `:not(.catalogue-bug)` fix and 4-mutation suite in [fieldInventoryScenarios.ts:L105](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L105) and [field-catalogue.browser.spec.ts:L146-L149](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/field-catalogue.browser.spec.ts#L146-L149).
+
+---
+
+### 3. Concrete Remaining Defects (Source Evidence)
+
+1. **Spinner parts omit attribute contracts (`type` and `tabindex`) while `NumInput.vue` retains `tabindex="-1"`:**
+   - [NumInput.vue:L45-L50](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L45-L50) sets `tabindex="-1"` on both `.num-stepper-btn` buttons.
+   - [fieldInventoryScenarios.ts:L30-L32](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L30-L32) and [L134-L136](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L134-L136) omit `attributes` on `spinners`, `increase button`, and `decrease button` (unlike `model cue` and `DQ cue` at [L33-L34](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L33-L34), [L137-L138](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L137-L138), which enforce `attributes: {type: 'button', ..., tabindex: null}`). Removing `type="button"` or injecting an arbitrary `tabindex="5"` on a spinner button currently goes undetected by `fieldInventoryScenarios.ts`.
+2. **`NumInput.vue` still renders legacy underline cursor markup and an inline post-input `<span class="dq-note">`:**
+   - [NumInput.vue:L41](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L41) and [L145-L151](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L145-L151) render `.num-mark-underline` (`text-decoration: underline 2px solid; border-bottom: 2px solid`) rather than the decided Option E blinking inverse-video digit guide ([field-use-cases.html:L5](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L5), [L15](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15), [L41](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L41)).
+   - [NumInput.vue:L43](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L43) and [L76-L82](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L76-L82) still render `<span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" ...>⚠</span>` *after* `.num-input-wrap`, instead of an outside-left `<button type="button" class="ui-field-dq-btn">⚠</button>` ([field-use-cases.html:L15](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15) cases 07–12).
+3. **Minor scenario selector/part asymmetries in `fieldInventoryScenarios.ts`:**
+   - `numericOccurrence` ([fieldInventoryScenarios.ts:L34](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L34)) omits `text: '⚠'` on `DQ cue` (present on `catalogueOccurrence` at [L138](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L138)), and all page scenarios ([L46-L73](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L46-L73)) only test `dqCues: 0`.
+   - `textInput` ([fieldInventoryScenarios.ts:L82](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L82), used by `FieldEditor.Text` and readonly `FieldEditor.Choice` at [L97-L99](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L97-L99)) uses `input:not([type]),input[type="text"]` without `:not([data-numinput])`, unlike readonly `Number`/`Count` ([L89](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L89), [L93](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L93)).
+   - `PHONE_ALLPASS_INVENTORY` ([fieldInventoryScenarios.ts:L68-L69](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L68-L69)) uses `input[type="checkbox"]` without `:not(.catalogue-bug)` and `parts: []` (no visible label element).
+   - `PHONE_DRIVER_INVENTORY` ([fieldInventoryScenarios.ts:L16](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L16), [L24](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L24), [L60](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L60)) still codifies legacy `span.mob-readonly` rather than `input[type="text"][readonly]`.
+4. **Catalogue/page spec coverage remains partial in `field-catalogue.browser.spec.ts`:**
+   - [field-catalogue.browser.spec.ts:L33-L35](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/field-catalogue.browser.spec.ts#L33-L35) checks `measureCompactFields` on only the 44 numeric/count catalogue rows (`expect(report.rows).toBe(44)`), leaving the 52 non-numeric forms without compact geometry/paint checks.
+   - The page and extra-view loops ([field-catalogue.browser.spec.ts:L76-L120](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/field-catalogue.browser.spec.ts#L76-L120)) assert `report.rows > 0` / `report.rows + borders.rows > 0` rather than reconciling against complete per-host `measureFieldInventory` scenarios.
+
+---
+
+### 4. Overclaims Check
+
+- [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L406-L463) is largely free of overclaims and explicitly disclaims design approval, deployment, and full-app conformance.
+- Two narrow overstatements to keep bounded:
+  1. [field-use-cases.html:L15](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15) (case-01 description above the "Production behaviour" note) states *"On desktop, ← → selects and ↑ ↓ spins, even while a ▲▼ button has focus"*; as [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L110-L111) and [L450-L455](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L450-L455) note, that holds on the approval page's own script ([field-use-cases.html:L290-L300](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L290-L300)) while `NumInput.vue` still has `tabindex="-1"` on spinners.
+  2. [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L422) credits all 96 catalogue forms with *"Presence, native semantics and all named parts"*, which is slightly overstated while spinner button attributes (`type="button"`, `tabindex`) and `:not([data-numinput])` on `Text`/readonly `Choice` remain unasserted in [fieldInventoryScenarios.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldInventoryScenarios.ts#L82-L139).
+

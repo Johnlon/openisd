@@ -2,6 +2,7 @@
 // The mobile "Manage Drivers" pane — DriverLibrary.vue (shared, presentation-only) hosted full-
 // height instead of the desktop DriverBrowser overlay it's normally reached through. Same reuse
 // pattern as MobileNewProject.vue's step 1: one driver-library implementation, restyled per host.
+import {DriverListMode} from '../../../logic/driverListMode.js';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import {useMobileManageDriversTab} from '../../../hooks/MobileManageDriversTab-hooks.js';
 
@@ -11,7 +12,7 @@ useMobileManageDriversTab(() => emit('chosen'));
 
 <template>
   <div class="mob-drivers-wrap">
-    <DriverLibrary class="mob-drivers-library" show-name host="manage" phone />
+    <DriverLibrary class="mob-drivers-library" show-name :host="DriverListMode.Manage" phone />
   </div>
 </template>
 

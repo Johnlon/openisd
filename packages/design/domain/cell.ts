@@ -509,7 +509,7 @@ export function inputOf<T>(read: () => T | null): SolverInput<T> {
 }
 
 /** The other member of a solved pair, read lazily (the two members are built one after the other). */
-export type PairPartner = () => Readable<number | null> & Entered & Writable<number>;
+export type PairPartner = () => Readable<number | null> & Entered & Precise & Writable<number>;
 
 /** Builds one half of a solved pair (vent `tuning_goal_hz` ↔ `length_m`, PR `addedMass_kg` ↔
  *  `tuning_goal_hz`) — entering or explicitly clearing this member atomically clears the sibling
@@ -548,11 +548,13 @@ export function pairedField(
    *  rather than blank: a passive radiator's added mass is 0 when none is stated. Absent: both go
    *  to N. */
   partnerDefault: number | null = null,
+  /** Precision to state when the calculated partner has no measurement precision. */
+  partnerHalfWidth?: number,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
   class PairedField extends DualWriteFieldImpl<number> {
     override clear(): void {
       const other = partner();
-      if (other.value !== null && this.entered) other.set(other.value);
+      if (other.value !== null && this.entered) other.set(other.value, other.precision ?? partnerHalfWidth);
       else if (other.value === null && this.entered && partnerDefault !== null) other.set(partnerDefault);
       else if (this.entered || other.value === null) commitPair(undefined);
       else ownEntry.clear();

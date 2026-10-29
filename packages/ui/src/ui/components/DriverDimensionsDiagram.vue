@@ -15,10 +15,10 @@
       </marker>
     </defs>
     <g transform="translate(15,15)">
-      <rect x="400" y="20" width="10" height="380" fill="#1a2029" stroke="#c9d4e0" stroke-width="1.3" stroke-linejoin="round"/>
+      <rect x="400" y="20" width="10" height="380" fill="#1a2029" stroke="#0f172a" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
       <g stroke="#c9d4e0" stroke-width="1.3" fill="none" stroke-linejoin="round" stroke-linecap="round">
-        <path d="M 310 140 L 400 50"/>
-        <path d="M 310 280 L 400 370"/>
+        <path d="M 400 50 L 310 140 L 310 145" stroke="#0f172a" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" vector-effect="non-scaling-stroke"/>
+        <path d="M 400 370 L 310 280 L 310 275" stroke="#0f172a" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" vector-effect="non-scaling-stroke"/>
         <path d="M 310 140 L 310 280"/>
         <polygon points="330,150 330,180 385,180 385,105" fill="#11151c"/>
         <polygon points="335,155 335,175 380,175 380,114" fill="none"/>

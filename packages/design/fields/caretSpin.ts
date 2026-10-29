@@ -41,6 +41,14 @@ function indexOfExponent(text: string, exp: number): number {
   return index < signLength ? -1 : index;
 }
 
+/** The digit indicated by a native text caret, including the final displayed digit at the end. */
+export function digitAtCaret(text: string, caret: number): number | null {
+  if (!NUMBER_TEXT.test(text) || caret < 0 || caret > text.length) return null;
+  if (/\d/.test(text[caret - 1] ?? '')) return caret - 1;
+  if (/\d/.test(text[caret] ?? '')) return caret;
+  return null;
+}
+
 /**
  * One caret step of `text` (a number as typed or shown, "-" and "." or "," allowed) with the caret
  * at `caret`. `null` when there is nothing to step at the caret: no number, an exponent, the caret
@@ -57,12 +65,9 @@ export function caretSpin(text: string, caret: number, dir: SpinDirection, bound
   const pointIndex = signLength + whole.length;
   if (caret < 0 || caret > text.length || (negative && caret === 0)) return null;
 
-  const isDigitAt = (i: number): boolean => i >= signLength && i < text.length && i !== pointIndex;
-  let digitIndex: number;
-  let after: boolean;
-  if (caret >= 1 && isDigitAt(caret - 1)) { digitIndex = caret - 1; after = true; }
-  else if (isDigitAt(caret)) { digitIndex = caret; after = false; }
-  else return null;
+  const digitIndex = digitAtCaret(text, caret);
+  if (digitIndex === null) return null;
+  const after = digitIndex < caret;
 
   const spun = stepAtPlace(negative, whole, fraction, exponentAt(digitIndex, pointIndex), dir, bounds);
   return after ? spun : {...spun, caret: spun.mark};
@@ -89,8 +94,8 @@ function stepAtPlace(negative: boolean, whole: string, fraction: string, exp: nu
 }
 
 /** Where the box says to step: nothing chosen, a bare caret at index `at`, or the one digit at index
- *  `at` selected. A selected digit is always a choice, even the last digit; a bare caret at the end
- *  of the text is not (that is where typing leaves it). */
+ *  `at` selected. An explicit caret after the last digit chooses that digit too; only `none`
+ *  uses the default tenths place. */
 export type StepAt =
   | {readonly kind: 'none'}
   | {readonly kind: 'caret'; readonly at: number}
@@ -146,12 +151,12 @@ export function tenthsCaret(text: string): number {
 
 /** The caret a step starts from: the tenths digit by default (John, 2026-10-21: "by default start the
  *  spin at the 1/10th unit"). A selected digit is kept, as the caret just right of it; a bare caret
- *  the person put on a digit is kept; no caret, or a bare caret at the very end (where typing leaves
- *  it, which is not a chosen digit), means the default. */
+ *  the person put on a digit is kept, including after the final digit; only no caret means the
+ *  default (John,27 October2026). */
 export function steppingCaret(text: string, at: StepAt): number {
   switch (at.kind) {
     case 'none': return tenthsCaret(text);
-    case 'caret': return at.at >= text.length ? tenthsCaret(text) : at.at;
+    case 'caret': return at.at;
     case 'digit': return at.at + 1;
   }
 }

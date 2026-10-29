@@ -405,3 +405,31 @@ test('the tab titles fit their row without a scrollbar on a narrow desktop windo
   const [scroll, client] = await page.locator('.de-tabs').evaluate(el => [el.scrollWidth, el.clientWidth]);
   expect(scroll).toBeLessThanOrEqual(client);
 });
+
+test('editor help sits at header ends and explains core, chart-specific and environment fields',async({page})=>{
+ await openEditor(page,'Parameters');
+ const top=page.getByRole('button',{name:'Help: Driver editor',exact:true});
+ const close=page.locator('.de-modal > h2 > .x');
+ const t=(await top.boundingBox())!,c=(await close.boundingBox())!;
+ expect(c.x-t.x-t.width).toBeLessThanOrEqual(16);
+ await top.click();
+ const sheet=page.getByRole('dialog',{name:'Help: Driver editor: key fields'});
+ await expect(sheet).toContainText('Core requirements');await expect(sheet).toContainText('Xmax — optional');
+ await page.keyboard.press('Escape');await expect(sheet).toHaveCount(0);await expect(page.locator('.de-modal')).toBeVisible();
+ for(const tab of ['Parameters','Advanced','Dimensions']) {
+  await page.locator('.de-tab').filter({hasText:new RegExp('^'+tab+'$')}).click();
+  for(const heading of await page.locator('.de-hdr:visible').all()) {
+   const button=heading.getByRole('button'),h=(await heading.boundingBox())!,b=(await button.boundingBox())!;
+   expect(h.x+h.width-b.x-b.width).toBeLessThanOrEqual(6);
+   await button.click();
+   expect(await page.locator('.mob-help-sheet .mob-help-row').count()).toBeGreaterThan(0);
+   await page.getByRole('button',{name:'Close help',exact:true}).click();
+  }
+ }
+ await page.locator('.de-tab').filter({hasText:/^Advanced$/}).click();
+ await expect(page.locator('[data-field-key="roo_kg_per_m3"] label')).toHaveText('rho');
+ await page.getByRole('button',{name:'Help: Environment parameters',exact:true}).click();
+ await expect(page.locator('.mob-help-sheet')).toContainText('kg/m³');
+ await expect(page.locator('.mob-help-sheet')).toContainText('speed of sound');
+ await expect(page.locator('.mob-help-sheet')).toContainText('project');
+});

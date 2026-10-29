@@ -3,10 +3,10 @@ import {expect, openAProject, test} from '../fixtures.js';
 /**
  * T522: the Box volume spinner marks the stepped digit on every box type, Closed included
  * (John, 21 Oct 2026: "Not all boxes in the demo support the underline on the spin - Box volume on Closed").
- * On the desktop skin the mark is a one-digit selection in the box, which keeps focus.
+ * The selected inverse cursor marks the digit; the spinner keeps focus for keyboard navigation.
  */
 for (const boxType of ['vented', 'sealed'] as const) {
-  test(`Box volume ▲ on ${boxType} marks the stepped digit and keeps focus in the box`, async ({page}) => {
+  test(`Box volume ▲ on ${boxType} marks the stepped digit and keeps focus on the spinner`, async ({page}) => {
     await page.goto('/');
     await openAProject(page);
     await page.locator('.project-nav li', {hasText: /^Box$/}).click();
@@ -19,13 +19,12 @@ for (const boxType of ['vented', 'sealed'] as const) {
     await page.locator('.ui-field:has(#og-box-volume) .num-stepper-btn').first().click();
 
     await expect(box).toHaveValue('20.10');
-    await expect.poll(() => box.evaluate(el => document.activeElement === el)).toBe(true);
-    const marked = await box.evaluate(el => el instanceof HTMLInputElement ? el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0) : null);
-    expect(marked).toBe('1');
+    await expect(page.locator('.ui-field:has(#og-box-volume) .num-stepper-btn').first()).toBeFocused();
+    await expect(box.locator('..').locator('.num-mark-underline')).toHaveText('1');
   });
 }
 
-test('Box volume ▲ on a fresh field steps 0.1 and marks the tenths digit', async ({page}) => {
+test('Box volume ▲ after typing selects the final digit and preserves its place', async ({page}) => {
   await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', {hasText: /^Box$/}).click();
@@ -36,9 +35,9 @@ test('Box volume ▲ on a fresh field steps 0.1 and marks the tenths digit', asy
   await box.blur();
   await page.locator('.ui-field:has(#og-box-volume) .num-stepper-btn').first().click();
 
-  await expect(box).toHaveValue('20.10');
-  const sel = await box.evaluate(el => el instanceof HTMLInputElement ? {start: el.selectionStart, text: el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0)} : null);
-  expect(sel).toEqual({start: 3, text: '1'});
+  await expect(box).toHaveValue('20.01');
+  await expect(box.locator('..').locator('.num-mark-underline')).toHaveText('1');
+  await expect(box.locator('..').locator('.num-mark-pre')).toHaveText('20.0');
 });
 
 test('What-if Vb ▲ on a Closed box marks the stepped tenths digit', async ({page}) => {

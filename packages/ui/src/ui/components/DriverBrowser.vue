@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import {ref, watch} from 'vue';
+import {ref} from 'vue';
 import {useEscToClose} from '../../logic/useEscToClose.js';
 import {useApp} from '../../logic/app.js';
+import {DriverListMode} from '../../logic/driverListMode.js';
 import DriverLibrary from './DriverLibrary.vue';
 
 // The phone skin draws the library as the classic phone list; the desktop overlay is unchanged.
@@ -17,7 +18,7 @@ const { driverBrowsing, presentation: presentationState } = useApp();
 // the user lands back in the project, not in an editor. The ✎ on a My Drivers row is the other
 // thing entirely: it edits that SAVED driver, and never touches the project.
 const {
-  previewDriver, previewData, pickDriver, closeLibrary,
+  previewDriver, previewData, projectInfoOpen, closeLibrary,
   myDriversRead, exportedThisSession, exportMyDriversRaw, deleteAllMyDrivers,
 } = driverBrowsing;
 
@@ -33,9 +34,6 @@ function requestDeleteAll(): void {
 function close() { closeLibrary(); }
 useEscToClose(() => presentationState.browseOpen, close);
 
-// Closing the picker drops any open summary, so reopening lands on the list rather than on
-// whatever was last being read. (Opening is the library's own job: it re-reads My Drivers on mount.)
-watch(() => presentationState.browseOpen, val => { if (!val) pickDriver(null); });
 </script>
 
 <template>
@@ -77,7 +75,7 @@ watch(() => presentationState.browseOpen, val => { if (!val) pickDriver(null); }
         <span class="x" @click="close" title="Close the driver library browser">✕</span>
       </h2>
       <div class="body">
-        <DriverLibrary host="manage" :phone="phone" />
+        <DriverLibrary :host="projectInfoOpen ? DriverListMode.Info : DriverListMode.Manage" :phone="phone" />
       </div>
     </div>
   </div>

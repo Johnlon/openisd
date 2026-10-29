@@ -1,0 +1,15 @@
+**Scoped closure confirmed for the no-marker reverse-`Tab` case.**
+
+1. **Keyboard `Shift+Tab` re-entry ([`NumInput-hooks.ts:L101-L106`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L101-L106), [`num-input-rendition.browser.spec.ts:L252-L268`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/num-input-rendition.browser.spec.ts#L252-L268))**:
+   - After `100.0000` Hz → `Tab` → `Enter` (`0.1000000` kHz, `underlineIndex.value = null`) → `Shift+Tab`, `onFocus` runs with `entering === false` (`groupFocused.value === true`).
+   - `underlineIndex.value ?? digitAtCaret(display.value, display.value.length)` synchronously captures `8` before any `selectionchange` from the browser's full-input selection `[0, 9]`.
+   - `nextTick` then calls [`chooseDigit(8)`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L174-L182), restoring `.num-mark-pre = "0.100000"`, `.num-mark-underline = "0"`, `lastCaret = {kind: 'digit', at: 8}`, and selection `[8, 9]`, so `ArrowUp` steps to `0.1000001`.
+   - The same fallback also covers reverse-tabbing into the group from outside (`▼` → `▲` → `unit` → `input`) when `underlineIndex.value` is `null`.
+   - When `underlineIndex.value !== null`, `??` preserves the explicit marker index.
+
+2. **Non-blocking pointer-reentry note ([`NumInput-hooks.ts:L103-L105`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L103-L105), [`NumInput-hooks.ts:L117-L118`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L117-L118))**:
+   - [`onBoxPointer`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L117-L118) sets `underlineIndex.value = null` on `pointerdown` before `onFocus` fires (per the comment `"a pointer press already cleared the old marker"`).
+   - With the unconditional `?? digitAtCaret(...)` fallback, pressing the pointer in `<input>` while `.ui-field-unit` or `▲`/`▼` is focused also schedules `chooseDigit(lastDigit)` on `nextTick` (before `pointerup`). Clicking a digit still lands on the clicked digit at `pointerup` via [`onBoxPointerUp`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L184-L190), whereas clicking `.` or `-` (`at.kind === 'none'`) from intra-group focus selects the final digit instead of leaving a collapsed caret.
+
+All previously noted broader items remain tracked separately.
+

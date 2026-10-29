@@ -11,7 +11,7 @@
 // table"). A field with a `fixed` display renders its symbol, unrotatable.
 import {computed} from 'vue';
 import {useApp} from '../../logic/app.js';
-import type {NumberField} from '@openisd/design/fields';
+import {PhoneRowColumns, type NumberField} from '@openisd/design/fields';
 const presentationState = useApp().presentation;
 
 const props = defineProps<{
@@ -27,18 +27,23 @@ const label = computed(() => props.field.unitLabel(currentToken.value));
 // — a stored fraction shown as %), has nowhere to rotate: render a plain label, never a
 // clickable toggle with nothing to cycle.
 const hasChoice = computed(() => props.field.display.kind === 'switchable' && props.field.nextToken(currentToken.value) !== currentToken.value);
+// Long fixed symbols need the same reserved rail as long switchable unit labels.
+const wide = computed(() => PhoneRowColumns.chipIsWide(label.value));
 
 function cycle() {
   presentationState.ui.unitTokens = {...props.field.withNextUnit(presentationState.ui.unitTokens ?? {})};
 }
 
-function activate() {
-  if (hasChoice.value) cycle();
+function activate(event: Event) {
+  if (hasChoice.value) {
+    event.stopPropagation();
+    cycle();
+  }
 }
 </script>
 
 <template>
-  <span :class="[unitClass, 'unit-label', {'unit-toggle': hasChoice}]"
+  <span :class="[unitClass, 'unit-label', {'unit-toggle': hasChoice, 'unit-wide': wide}]"
     :role="hasChoice ? 'button' : undefined" :tabindex="hasChoice ? 0 : undefined"
     :title="hasChoice ? `Click to change units (${label})` : undefined"
     @click="activate"
@@ -49,14 +54,14 @@ function activate() {
 <style scoped>
 /* The cue that a unit label has a tooltip and can be clicked to change units. Owned here so every
    caller, on every skin, shows it whatever class it passes (T373). A plain label has none. */
-.unit-label { background: #fff; }
+.unit-label { background: transparent; }
 .unit-label:empty { background: transparent; }
 .unit-toggle {
   box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
   padding: 0 6px; background: #efefef; color: #555;
   border: 1px solid #cfcfcf; border-radius: 0 3px 3px 0;
-  cursor: pointer; text-decoration: underline dotted; text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
+  cursor: pointer; text-decoration: underline solid; text-decoration-color: #1868d1; text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
 }
 .unit-toggle:hover { color: #1868d1; }
 </style>
@@ -66,13 +71,18 @@ function activate() {
    .ui-field-unit colour), so the chip wins whatever order the styles load in. */
 .app-root-mobile span.unit-label {
   box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
-  background: #fff;
+  background: transparent;
   font-size: 13px; font-weight: 600; color: #888; white-space: nowrap;
 }
 .app-root-mobile span.unit-label:empty { background: transparent; }
 .app-root-mobile span.unit-label.unit-toggle {
   padding: 0 6px; font-weight: 600; background: #efefef; text-decoration: underline solid;
   text-decoration-color: #1868d1; text-decoration-thickness: 1px; text-underline-offset: 5px;
+}
+/* The shared chip owns its divider and the continuation of a mandatory field's outline. */
+.app-root-mobile .mob-ui-field.ui-field span.unit-label.unit-toggle { border-left: 1px solid #cfcfcf; }
+.app-root-mobile .mob-ui-field.ui-field:has(input.de-input-mandatory) span.unit-label.unit-toggle {
+  border-top-width: 2px; border-bottom-width: 2px; border-color: var(--mob-box-line);
 }
 .app-root-mobile span.unit-toggle:hover { color: #1868d1; }
 </style>
