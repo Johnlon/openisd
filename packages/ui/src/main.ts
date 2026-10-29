@@ -119,8 +119,8 @@ const forgetCloudSyncRecord = (): void => {
   createSyncLedger({storage: localStore, random: randomBytes}).forgetAll();
 };
 
-const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const googleClientId = typeof rawClientId === 'string' && rawClientId.trim() !== '' ? rawClientId.trim() : null;
+// packages/ui/.env sets it for every build; .env.test leaves it empty for the browser suite.
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || null;
 const oauthConfig: OAuthConfig = {
   clientId: googleClientId,
   // The app's own directory, so a snapshot at /snap/<stamp>/ comes back to itself and the root
