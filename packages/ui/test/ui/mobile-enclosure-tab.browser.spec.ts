@@ -84,3 +84,14 @@ test.describe('MobileEnclosureTab', () => {
     await expect(diameter).toHaveValue(/^5(\.0+)?$/);
   });
 });
+
+for(const width of [360,412]) for(const box of ['vented','bandpass4','bandpass6','abc']) test(`${box} slotted mobile port columns stay aligned at ${width}px`,async({appPage:page})=>{
+ await page.setViewportSize({width,height:900});await page.locator('.mob-tab').filter({hasText:/^Box$/}).click();await page.locator('#mob-box-type').selectOption(box);
+ const shapes=page.locator('.mob-crow').filter({has:page.locator('label',{hasText:/^Shape$/})}).locator('select');await expect(shapes).not.toHaveCount(0);
+ for(const shape of await shapes.all())await shape.selectOption('slotted');
+ const sections=page.locator('.mob-csection').filter({has:page.locator('option[value="slotted"]')});
+ const geometry=await sections.locator('.ui-field input').evaluateAll(inputs=>inputs.map(input=>{const r=input.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width};}));
+ expect(geometry.length).toBeGreaterThan(3);
+ for(const box of geometry){expect(box).toEqual(geometry[0]);expect(box.right).toBeLessThanOrEqual(width);expect(box.left).toBeGreaterThanOrEqual(0);}
+ const scroll=await page.locator('.mob-content').evaluate(el=>({width:el.clientWidth,scroll:el.scrollWidth}));expect(scroll.scroll).toBeLessThanOrEqual(scroll.width);
+});

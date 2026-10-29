@@ -8,8 +8,8 @@ import UnitToggle from '../../components/UnitToggle.vue';
 import PhoneBand from './PhoneBand.vue';
 import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
-import { SheetMode } from '@openisd/design/fields';
-import { inputChecked } from '../../../logic/domEvents.js';
+import { NumberEditor, SheetMode } from '@openisd/design/fields';
+import { inputChecked, selectedOption } from '../../../logic/domEvents.js';
 
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean; autoY: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: boolean] }>();
@@ -29,15 +29,20 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
     </div>
     <div class="mob-sheet-rows" :style="{ '--mob-row-slots': rowSlots }">
       <div v-for="(line, lineIdx) in lines" :key="lineIdx" class="mob-sheet-line">
-        <div v-for="cell in line" :key="cell.field.label" class="mob-sheet-cell mob-sheet-row">
+        <div v-for="cell in line" :key="cell.field.label" class="mob-sheet-cell mob-sheet-row" :data-field="cell.field.field.value">
           <span class="mob-sheet-label">{{ mode.labelOf(cell.field) }}</span>
           <span class="mob-sheet-value">
-            <NumInput :field="cell.field.field" :model-value="cell.value" :precision="cell.field.field.precision"
+            <select v-if="cell.field.field.editor === NumberEditor.CountSelect" :value="cell.value" :aria-label="mode.labelOf(cell.field)"
+                    @change="event => { const value = selectedOption(event, cell.field.field.countOptions()); if (value !== null) setValue(cell.field, value); }">
+              <option v-for="option in cell.field.field.countOptions()" :key="option.value" :value="option.value">{{ option.label }}</option>
+            </select>
+            <NumInput v-else :field="cell.field.field" :model-value="cell.value" :precision="cell.field.field.precision"
                       :aria-label="mode.labelOf(cell.field)" stepper
                       @pointerdown="portValuePress($event, cell)" @mousedown="portValuePress($event, cell)" @click="portValuePress($event, cell)"
-                      @update:model-value="(v: number | null) => setValue(cell.field, v)" />
+                      @update:model-value="(v: number | null) => setValue(cell.field, v)">
+              <template #unit><UnitToggle :field="cell.field.field" unit-class="mob-sheet-unit" /></template>
+            </NumInput>
           </span>
-          <UnitToggle :field="cell.field.field" unit-class="mob-sheet-unit" />
         </div>
       </div>
     </div>
@@ -162,12 +167,16 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
   line-height: 1;
   color: #222;
 }
+.mob-sheet-value :deep(select) {
+  width: 108px; min-width: 0; height: var(--mob-input-h); box-sizing: border-box;
+  border: 1px solid #c4c4c4; border-radius: 4px; background: #fff; color: var(--fg); font: inherit; padding: 0 8px;
+}
 .mob-sheet-value :deep(input) {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
   height: var(--mob-input-h);
-  padding: 0 46px 0 14px;
+  padding: 0 46px 0 var(--mob-col-gutter);
   border: 1px solid #c4c4c4;
   border-radius: 4px;
   background: #fff;

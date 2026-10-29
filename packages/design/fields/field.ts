@@ -119,7 +119,13 @@ export abstract class Field {
   abstract readonly kind: FieldKind;
 }
 
+export enum NumberEditor {
+  Input = 'number',
+  CountSelect = 'count-select',
+}
+
 interface NumberFieldSpec extends FieldSpec {
+  readonly editor?: NumberEditor;
   readonly display: SwitchableUnit | FixedUnit;
   readonly limits: FieldLimits;
   readonly precision: number;
@@ -133,6 +139,7 @@ interface NumberFieldSpec extends FieldSpec {
 /** A field holding a quantity: it has a band, a precision, and a display unit. */
 export class NumberField extends Field {
   readonly kind = 'number';
+  readonly editor: NumberEditor;
   /** How the field is shown: one fixed symbol, or a `UnitGroup` the user may rotate through. */
   readonly display: SwitchableUnit | FixedUnit;
   /** The band an entered value must fall in, in SI/model units. */
@@ -157,6 +164,7 @@ export class NumberField extends Field {
 
   private constructor(spec: NumberFieldSpec) {
     super(spec);
+    this.editor = spec.editor ?? NumberEditor.Input;
     this.display = Object.freeze(spec.display);
     this.limits = Object.freeze(spec.limits);
     this.precision = spec.precision;
@@ -392,7 +400,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume. The tuning is a goal; the box may not reach it.",
+    description: "Box Tuning Frequency (Fb)\nHelmholtz resonance of the vented enclosure, set by port dimensions and box volume. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
 
   static readonly BOX_FFC_HZ = new NumberField({
@@ -402,11 +410,12 @@ export class NumberField extends Field {
     limits: {min: 0, max: 1000},
     floor: "positive",
     precision: 2,
-    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume. The tuning is a goal; the box may not reach it.",
+    description: "Front Chamber Tuning Frequency (Ffc)\nHelmholtz resonance of the front, vented chamber of a 4th-order bandpass, 6th-order bandpass or ABC box, set by port dimensions and chamber volume. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
 
   // ── Vent ──────────────────────────────────────────────────────────────────────────────────
   static readonly VENT_COUNT = new NumberField({
+    editor: NumberEditor.CountSelect,
     value: "vent_Count",
     label: "Number of vents",
     display: {kind: 'fixed', symbol: ''},
@@ -496,6 +505,7 @@ export class NumberField extends Field {
     description: "Passive Radiator Excursion Limit\nMaximum peak linear displacement of the passive radiator diaphragm.\nDraws the PR excursion limit line; it does not change the response curves.",
   });
   static readonly PR_NUM = new NumberField({
+    editor: NumberEditor.CountSelect,
     value: "pr_Num",
     label: "Num. of PRs",
     display: {kind: 'fixed', symbol: ''},
@@ -1147,17 +1157,17 @@ export class NumberField extends Field {
     floor: "positive",
     precision: 2,
     plausible: {min: 300.0, max: 360.0},
-    description: "Reference Speed of Sound (c)\nSpeed of sound in the air this driver record refers to. Shown only: no calculation uses it, and OpenISD uses the project's own air everywhere. Its purpose is not known. It may record the air the driver was measured in, or it may be meant to adjust the driver's values to the project's air (a guess, 2026-09-26).",
+    description: "Speed of sound (c), in m/s. Read-only air value supplied by the project environment, or app defaults without a project. Used in acoustic and compliance calculations. Change the environment in Advanced or Options.",
   });
   static readonly ROO_KG_PER_M3 = new NumberField({
     value: "roo_kg_per_m3",
-    label: "roo",
+    label: "rho",
     display: {kind: 'switchable', group: 'density', base: 'kgPerM3'},
     limits: {min: 0, max: 10},
     floor: "positive",
     precision: 5,
     plausible: {min: 0.9, max: 1.5},
-    description: "Reference Air Density (roo)\nAir density in the air this driver record refers to. Shown only: no calculation uses it, and OpenISD uses the project's own air everywhere. Its purpose is not known. It may record the air the driver was measured in, or it may be meant to adjust the driver's values to the project's air (a guess, 2026-09-26).",
+    description: "Air density (rho), in kg/m³: the mass of air per unit volume. Read-only value supplied by the project environment, or app defaults without a project. Used in acoustic loading, compliance and sound-output calculations. Change the environment in Advanced or Options.",
   });
 
   // ── Box ───────────────────────────────────────────────────────────────────────────────────
@@ -1209,11 +1219,12 @@ export class NumberField extends Field {
     display: {kind: 'switchable', group: 'freq', base: 'Hz'},
     limits: {min: 0, max: 20000},
     precision: 2,
-    description: "Rear Chamber Tuning Frequency (Frc)\nTarget Helmholtz tuning for the vented rear chamber in a 6th-order bandpass or ABC box. The tuning is a goal; the box may not reach it.",
+    description: "Rear Chamber Tuning Frequency (Frc)\nHelmholtz tuning frequency of the vented rear chamber in a 6th-order bandpass or ABC box. Enter the tuning frequency to calculate port length, or enter port length to calculate the tuning frequency. An unbuildable port is flagged.",
   });
 
   // ── Driver ────────────────────────────────────────────────────────────────────────────────
   static readonly DRIVER_NDRIVERS = new NumberField({
+    editor: NumberEditor.CountSelect,
     value: "driver_nDrivers",
     label: "Num. of drivers",
     display: {kind: 'fixed', symbol: ''},

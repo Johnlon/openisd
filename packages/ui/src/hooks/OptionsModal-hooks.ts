@@ -147,7 +147,7 @@ export function useOptionsModal(deps?: OptionsModalDeps): OptionsModalAPI {
   /** The Plot Window frequency-range draft. Lives here rather than in the .vue so its
    *  validation gates the same OK that applies the settings. */
   const freqRangeDraft = ref<{fmin: number | string; fmax: number | string}>({
-    fmin: 10, fmax: 20000,
+    fmin: 10, fmax: 1000,
   });
   function setFreqRange(fmin: number | string, fmax: number | string): void {
     freqRangeDraft.value = {fmin, fmax};

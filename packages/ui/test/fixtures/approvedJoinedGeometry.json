@@ -1,0 +1,2247 @@
+{
+  "provenance": {
+    "url": "http://127.0.0.1:4607",
+    "build": "v20261027T1419Z",
+    "capturedAt": "2026-10-27T17:45:52.133Z",
+    "reviewStatus": "Mobile appearance accepted by John for 607. Desktop paint is a frozen observed test-deployment candidate, awaiting his desktop review; no additional use-case approval implied."
+  },
+  "geometry": {
+    "catalogue": [
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-none-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-dq-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-model-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-writable-none-both-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-none-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-dq-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-model-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-writable-fixed-both-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-none-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-dq-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-model-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-writable-switchable-both-no-stepper",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-readonly-none-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-readonly-none-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-readonly-none-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": "number-readonly-none-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-readonly-fixed-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-readonly-fixed-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-readonly-fixed-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": "number-readonly-fixed-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-readonly-switchable-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-readonly-switchable-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-readonly-switchable-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": "number-readonly-switchable-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-writable-none-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-writable-none-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-writable-none-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-writable-none-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-readonly-none-none",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-readonly-none-dq",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-readonly-none-model",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Num",
+        "specimen": "count-readonly-none-both",
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      }
+    ],
+    "sealed": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Fsc_hz",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Qtc_value",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      }
+    ],
+    "vented": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Fb_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_D_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_L_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_CrossArea_m2",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_1stPortResonance_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_portVelocityLimit_m_per_s",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "box-passive-radiator": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Fh_hz",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_Fp_hz",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_Vas_l",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_Qms",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "pr_Fs_hz",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_Sd_cm2",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Mms_kg",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Cms_m_per_N",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_Xmax_mm",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_Madd_g",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "pr_FsMass_hz",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "bandpass4": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Fsc_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Vf_l",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Ffc_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_D_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_L_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_CrossArea_m2",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_1stPortResonance_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_portVelocityLimit_m_per_s",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "bandpass6": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Vf_l",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Frc_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_D_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_L_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_CrossArea_m2",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_1stPortResonance_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Ffc_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_D_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_L_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_CrossArea_m2",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_1stPortResonance_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_portVelocityLimit_m_per_s",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "abc": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Vf_l",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Frc_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_D_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_L_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_CrossArea_m2",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_1stPortResonance_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "box_Ffc_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_D_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_L_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_CrossArea_m2",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_1stPortResonance_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_D_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_L_cm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_CrossArea_m2",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_1stPortResonance_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "vent_portVelocityLimit_m_per_s",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "Driver": [
+      {
+        "field": "Fs_hz",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Qts",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": null
+      },
+      {
+        "field": "Vas_m3",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Re_ohm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Xmax_m",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "Signal": [
+      {
+        "field": "signal_Pin_W",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "signal_DriveV_V",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "signal_Rs_ohm",
+        "specimen": null,
+        "valueWidth": 170,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "Filters": [
+      {
+        "field": "filter_Order",
+        "specimen": null,
+        "valueWidth": 134,
+        "rowHeight": 40,
+        "rowWidth": 348,
+        "unit": null
+      },
+      {
+        "field": "filter_Q",
+        "specimen": null,
+        "valueWidth": 134,
+        "rowHeight": 40,
+        "rowWidth": 348,
+        "unit": null
+      },
+      {
+        "field": "filter_T_s",
+        "specimen": null,
+        "valueWidth": 134,
+        "rowHeight": 40,
+        "rowWidth": 348,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "Advanced": [
+      {
+        "field": "adv_Temp_K",
+        "specimen": null,
+        "valueWidth": 156,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_Humidity_pct",
+        "specimen": null,
+        "valueWidth": 156,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_Pressure_kPa",
+        "specimen": null,
+        "valueWidth": 156,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_SoundVelocity_m_per_s",
+        "specimen": null,
+        "valueWidth": 156,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "adv_AirDensity_kg_per_m3",
+        "specimen": null,
+        "valueWidth": 156,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "editor-General": [],
+    "editor-Parameters": [
+      {
+        "field": "Qes",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": null
+      },
+      {
+        "field": "Qts",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": null
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Vas_m3",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Mms_kg",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Cms_m_per_N",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Rms_kg_per_s",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Re_ohm",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "BL_Tm",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Dd_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Le_H",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Sd_m2",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "fLe_hz",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "KLe_H_sqrtHz",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Xmax_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Hc_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Hg_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Vd_m3",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Xlim_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Pe_W",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "no",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Znom_ohm",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "USPL_dB",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "SPL_dB",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "numVC",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": null
+      },
+      {
+        "field": "power_peak_W",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "editor-Advanced": [
+      {
+        "field": "alfaVC_per_K",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Rt_K_per_W",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Ct_J_per_K",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "SPLmaxLF_dB",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "SPLmax_dB",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Rme_kg_per_s",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "gamma_m_per_s2_A",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -53,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Mpow_N_per_sqrtW",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Mcost_kg_per_s",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "EBP_hz",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Gloss",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "c_m_per_s",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "roo_kg_per_m3",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "editor-Dimensions": [
+      {
+        "field": "Thick_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Depth_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "MagDepth_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Magnet_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Basket_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Outer_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "Vcd_m",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
+        "field": "DVol_m3",
+        "specimen": null,
+        "valueWidth": 168,
+        "rowHeight": 40,
+        "rowWidth": 372,
+        "unit": {
+          "leftFromValueRight": -40,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      }
+    ],
+    "Tune": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "pr_Madd_g",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "pr_Num",
+        "specimen": null,
+        "valueWidth": 108,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": null
+      },
+      {
+        "field": "signal_Pin_W",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "driver_nDrivers",
+        "specimen": null,
+        "valueWidth": 108,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": null
+      }
+    ],
+    "What-if": [
+      {
+        "field": "box_Vb_l",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "pr_Madd_g",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "pr_Num",
+        "specimen": null,
+        "valueWidth": 108,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": null
+      },
+      {
+        "field": "signal_Pin_W",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "Fs_hz",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "Vas_m3",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": {
+          "leftFromValueRight": -46,
+          "rightFromValueRight": -1,
+          "topFromValueTop": 1,
+          "height": 32
+        }
+      },
+      {
+        "field": "Qes",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": null
+      },
+      {
+        "field": "Qms",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": null
+      },
+      {
+        "field": "driver_nDrivers",
+        "specimen": null,
+        "valueWidth": 108,
+        "rowHeight": 34,
+        "rowWidth": 342,
+        "unit": null
+      }
+    ]
+  }
+}

@@ -20,7 +20,8 @@ async function measure(page: import('@playwright/test').Page) {
     }).length;
     const clipped = [...document.querySelectorAll<HTMLElement>('.de-dimlist .de-fld')]
       .filter((f) => f.scrollWidth > f.clientWidth + 1).length;
-    return {
+    const basket=[document.querySelector('.de-diagram g[transform] > rect'),...[...document.querySelectorAll('.de-diagram g[transform] > g:first-of-type > path')].slice(0,2)].filter((node):node is Element=>node!==null).map(node=>{const css=getComputedStyle(node);return {stroke:css.stroke,width:css.strokeWidth,vector:css.vectorEffect};});
+    return {basket,
       dimsW: dims.width, svgW: svg.width, svgH: svg.height, labels, labelsOutside,
       scrollW: document.documentElement.scrollWidth, innerW: window.innerWidth, clipped,
     };
@@ -39,6 +40,8 @@ test.describe('desktop', () => {
     await expect(page.locator('.de-diagram svg')).toBeVisible();
     const m = await measure(page);
     console.log('DESKTOP', JSON.stringify(m));
+    expect(m.basket).toHaveLength(3);
+    for(const edge of m.basket)expect(edge).toEqual({stroke:'rgb(15, 23, 42)',width:'2.5px',vector:'non-scaling-stroke'});
     expect(m.labels).toBeGreaterThan(0);
     expect(m.labelsOutside).toBe(0);
     expect(m.scrollW).toBeLessThanOrEqual(m.innerW);
@@ -60,6 +63,8 @@ test.describe('phone', () => {
     await page.locator('.de-diagram svg').scrollIntoViewIfNeeded();
     const m = await measure(page);
     console.log('PHONE', JSON.stringify(m));
+    expect(m.basket).toHaveLength(3);
+    for(const edge of m.basket)expect(edge).toEqual({stroke:'rgb(15, 23, 42)',width:'2.5px',vector:'non-scaling-stroke'});
     expect(m.labels).toBeGreaterThan(0);
     expect(m.labelsOutside).toBe(0);
     expect(m.clipped).toBe(0);

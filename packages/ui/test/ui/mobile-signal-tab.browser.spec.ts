@@ -47,6 +47,7 @@ test('System input power spins by its tenths digit a tap: 1 W up is 1.1 W, by ke
   await pow.fill('1');
   await pow.blur();
   await pow.focus();
+  await pow.evaluate(el => { if (el instanceof HTMLInputElement) el.setSelectionRange(el.value.indexOf('.') + 1, el.value.indexOf('.') + 2); });
   await pow.press('ArrowUp');
   await expect(pow).toHaveValue('1.10');
   const [upBtn, downBtn] = await page.locator('.mob-ui-field', { hasText: 'Power' })
@@ -66,7 +67,7 @@ test('a spin keeps its place as the number gains and loses a digit, by key and b
   await pow.blur();
   await pow.focus();
   await pow.press('Home');
-  await pow.press('ArrowRight');            // the caret right of the units digit
+  // Home selects the units place in 9.50; ArrowRight would choose the tenths.
   await pow.press('ArrowUp');
   await expect(pow).toHaveValue(/^10\.5/);
   await pow.press('ArrowUp');
@@ -86,7 +87,7 @@ test('a spin keeps its place as the number gains and loses a digit, by key and b
 });
 
 // fable, 21 Oct 2026 (bugs/BUG_20261021_last-decimal-digit-cannot-spin.md): a selected digit spins
-// its own place, even the last digit; a bare caret at the end still spins the tenths.
+// its own place, even the last digit; a bare caret at the end also spins the last digit (John, T607).
 test('selecting the last digit spins that digit, by key and by ▲▼', async ({ appPage: page }) => {
   const pow = rowInput(page, 'Power');
   await pow.fill('1.05');

@@ -6,8 +6,8 @@
  */
 import {computed} from 'vue';
 import type {ComputedRef, Ref} from 'vue';
-import {NumberField} from '@openisd/design/fields';
-import type {OpenISDProject} from '@openisd/design';
+import {NumberField, PhoneLabels} from '@openisd/design/fields';
+import type {OpenISDProject, TuningField, VentPort} from '@openisd/design';
 import {airIfAvailable} from '@openisd/design/engine';
 import type {BoxType, VentEngine} from '@openisd/design/engine';
 
@@ -21,10 +21,21 @@ export interface VentReadoutsDeps {
   vent: VentEngine;
 }
 
-/** The tooltip the QO11 ruling requires: Fb is the target the port solver designs to. */
-export const FB_TARGET_TIP = 'The tuning you are designing to. It is an INPUT, not a readout: the '
-  + 'port dimensions are calculated from it — the vent length on the enclosure tab is solved '
-  + 'to deliver this tuning, and moves whenever you change the vent diameter or the volume.';
+/** The tuning row that heads a vent section (Fb in Vents, Frc in Rear vent, Ffc in Front vent); the Intra vent has none. */
+function tuningRowOf(port: VentPort): {field: NumberField; label: string; cell: TuningField} | null {
+  if (port.tuning_goal_hz === null) return null;
+  switch (port.name) {
+    case 'Vent': return {field: NumberField.BOX_FB_HZ, label: PhoneLabels.FB, cell: port.tuning_goal_hz};
+    case 'Rear': return {field: NumberField.BOX_FRC_HZ, label: PhoneLabels.FRC, cell: port.tuning_goal_hz};
+    case 'Front': return {field: NumberField.BOX_FFC_HZ, label: PhoneLabels.FFC, cell: port.tuning_goal_hz};
+    case 'Intra': return null;
+  }
+}
+/** The same tuning/length solved pair is editable on Box and on the port panel. */
+export const FB_TARGET_TIP = 'Tuning frequency of the chamber and port. Enter a frequency to calculate '
+  + 'the port length; enter the port length to calculate the tuning frequency. The calculation uses '
+  + 'the chamber volume, port dimensions, number of ports and end correction. An entered frequency '
+  + 'that requires an unbuildable port is flagged.';
 /** Cross area is a solved pair with the vent's own shape dimension — diameter round, height
  *  slotted. Width is always an input, never derived. */
 export const VENT_GEOMETRY_TIP = 'Cross area is solved from the vent\'s own dimension: diameter for a '
@@ -86,6 +97,7 @@ export function createVentReadouts({ project, projectChanged: changed, selectedB
       const issue = port.vent.length_m.dq.find(i => i.kind === 'target-unreachable') ?? null;
       return {
         ...port,
+        tuning: tuningRowOf(port),
         portPipeResonance_hz: L == null || air === null ? null : vent.firstResonance_hz(L, air),
         unreachable: issue !== null,
         unreachableMsg: issue === null ? '' : issue.text,

@@ -47,6 +47,15 @@ for (const size of PHONE_SIZES) {
       for (const l of lefts) expect(Math.abs(l - lefts[0])).toBeLessThanOrEqual(0.5);
     });
 
+    test('Description fills the page width and remaining body height', async ({page}) => {
+      const description=await page.locator('#mob-proj-description').boundingBox();
+      const body=await page.locator('.mob-dlg-body').boundingBox();
+      expect(description).not.toBeNull();expect(body).not.toBeNull();
+      expect(Math.abs(description!.x-16)).toBeLessThanOrEqual(1);
+      expect(Math.abs(description!.x+description!.width-body!.width+16)).toBeLessThanOrEqual(1);
+      expect(body!.y+body!.height-description!.y-description!.height).toBeLessThanOrEqual(16);
+    });
+
     test('nothing is cut, nothing scrolls sideways, every control is on screen', async ({page}) => {
       const result = await page.evaluate(() => {
         const dlg = document.querySelector('.mob-dlg');

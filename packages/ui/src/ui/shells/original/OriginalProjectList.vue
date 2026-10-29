@@ -1,216 +1,10 @@
 <script setup lang="ts">
-import { nextTick, ref, shallowRef, onMounted, onUnmounted } from 'vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
-import {
-  emptyBinLabel,
-  PROJECT_LIST_TEXT,
-  type ProjectRowAction,
-  type ProjectRowOrder,
-} from '@openisd/design/fields';
-import type { ProjectListRow } from '../../../hooks/projectBinView.js';
-import type { BinRow } from '../../../hooks/binRows.js';
-import type { OpenISDProject } from '@openisd/design';
-import { inputValue, inputChecked, selectValue } from '../../../logic/domEvents.js';
-
-const props = defineProps<{
-  projectRows: readonly ProjectListRow[];
-  shownProjects: readonly ProjectListRow[];
-  projectsFooter: string;
-  searchOffered: boolean;
-  projectQuery: string;
-  projectOrder: ProjectRowOrder;
-  projectOrders: readonly ProjectRowOrder[];
-  binRows: readonly BinRow[];
-  binTotal: string;
-  binOpen: boolean;
-  binLabel: string;
-  storeLabel: string;
-}>();
-
-const emit = defineEmits<{
-  (e: 'update:projectQuery', val: string): void;
-  (e: 'update:projectOrder', val: ProjectRowOrder): void;
-  (e: 'update:binOpen', val: boolean): void;
-  (e: 'choose', row: ProjectListRow): void;
-  (e: 'close', project: OpenISDProject): void;
-  (e: 'setTraceVisible', project: OpenISDProject, visible: boolean): void;
-  (e: 'cycleColor', project: OpenISDProject): void;
-  (e: 'duplicate', row: ProjectListRow): void;
-  (e: 'export', row: ProjectListRow): void;
-  (e: 'rename', row: ProjectListRow, name: string): void;
-  (e: 'resolve', row: ProjectListRow): void;
-  (e: 'moveToBin', row: ProjectListRow): void;
-  (e: 'restoreFromBin', binned: BinRow): void;
-  (e: 'deleteForever', binned: BinRow): void;
-  (e: 'emptyBin'): void;
-  (e: 'exportAll'): void;
-  (e: 'newProject'): void;
-  (e: 'import'): void;
-}>();
-
-const editingRow = shallowRef<ProjectListRow | null>(null);
-const editingName = ref('');
-let renameInputEl: HTMLInputElement | null = null;
-let cancellingRename = false;
-
-function setRenameInput(el: unknown): void {
-  renameInputEl = el instanceof HTMLInputElement ? el : null;
-}
-
-async function startRename(row: ProjectListRow): Promise<void> {
-  cancellingRename = false;
-  editingRow.value = row;
-  editingName.value = row.name;
-  await nextTick();
-  if (renameInputEl) {
-    renameInputEl.focus();
-    renameInputEl.select();
-  }
-}
-
-function commitRename(): void {
-  if (cancellingRename) {
-    cancellingRename = false;
-    return;
-  }
-  const row = editingRow.value;
-  if (row === null) return;
-  const name = editingName.value.trim();
-  editingRow.value = null;
-  if (name !== '' && name !== row.name) {
-    emit('rename', row, name);
-  }
-}
-
-function cancelRename(): void {
-  cancellingRename = true;
-  editingRow.value = null;
-  editingName.value = '';
-}
-
-const searchInputRef = ref<HTMLInputElement | null>(null);
-const listRef = ref<HTMLElement | null>(null);
-
-async function focusSearchOrList(): Promise<void> {
-  await nextTick();
-  if (props.searchOffered && searchInputRef.value) {
-    searchInputRef.value.focus();
-    searchInputRef.value.select?.();
-  } else if (listRef.value) {
-    listRef.value.focus();
-  }
-}
-
-defineExpose({
-  focusSearchOrList,
-});
-
-const menuOpen = shallowRef<{ row: ProjectListRow; x: number; y: number } | null>(null);
-
-function closeMenu(): void {
-  menuOpen.value = null;
-}
-
-function openRowMenu(row: ProjectListRow, ev: MouseEvent): void {
-  if (ev.currentTarget instanceof HTMLElement) {
-    const rect = ev.currentTarget.getBoundingClientRect();
-    menuOpen.value = {
-      row,
-      x: Math.max(10, Math.min(rect.left, window.innerWidth - 180)),
-      y: Math.min(rect.bottom, window.innerHeight - 200),
-    };
-  }
-}
-
-function openRowContextMenu(row: ProjectListRow, ev: MouseEvent): void {
-  menuOpen.value = {
-    row,
-    x: Math.max(10, Math.min(ev.clientX, window.innerWidth - 180)),
-    y: Math.min(ev.clientY, window.innerHeight - 200),
-  };
-}
-
-function onWindowKeydown(ev: KeyboardEvent): void {
-  if (ev.key === 'Escape' && menuOpen.value !== null) {
-    closeMenu();
-    ev.stopPropagation();
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('click', closeMenu);
-  window.addEventListener('keydown', onWindowKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('click', closeMenu);
-  window.removeEventListener('keydown', onWindowKeydown);
-});
-
-function onSortChange(e: Event): void {
-  const val = selectValue(e);
-  const found = props.projectOrders.find(o => o.label === val);
-  if (found) {
-    emit('update:projectOrder', found);
-  }
-}
-
-function onQueryInput(e: Event): void {
-  emit('update:projectQuery', inputValue(e));
-}
-
-function onToggleShow(row: ProjectListRow, e: Event): void {
-  const project = row.handle.open;
-  if (project) {
-    emit('setTraceVisible', project, inputChecked(e));
-  }
-}
-
-function onRowClick(row: ProjectListRow): void {
-  emit('choose', row);
-}
-
-function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
-  closeMenu();
-  const project = row.handle.open;
-  switch (action) {
-    case 'open':
-    case 'makeActive':
-      emit('choose', row);
-      break;
-    case 'close':
-      if (project) emit('close', project);
-      break;
-    case 'show':
-      if (project) emit('setTraceVisible', project, true);
-      break;
-    case 'hide':
-      if (project) emit('setTraceVisible', project, false);
-      break;
-    case 'colour':
-      if (project) emit('cycleColor', project);
-      break;
-    case 'duplicate':
-      emit('duplicate', row);
-      break;
-    case 'export':
-      emit('export', row);
-      break;
-    case 'delete':
-      emit('moveToBin', row);
-      break;
-    case 'rename':
-      void startRename(row);
-      break;
-    case 'resolve':
-      emit('resolve', row);
-      break;
-    default: {
-      const unhandled: never = action;
-      throw new Error(`unhandled row action ${String(unhandled)}`);
-    }
-  }
-}
+import {useOriginalProjectList, type OriginalProjectListProps, type OriginalProjectListEmit} from '../../../hooks/OriginalProjectList-hooks.js';
+const props = defineProps<OriginalProjectListProps>();
+const emit = defineEmits<OriginalProjectListEmit>();
+const {emptyBinLabel, PROJECT_LIST_TEXT, editingRow, editingName, startRename, setRenameInput, commitRename, cancelRename, searchInputRef, listRef, focusSearchOrList, menuOpen, openRowMenu, openRowContextMenu, onSortChange, onQueryInput, onToggleShow, onRowClick, handleMenuAction, colourInput, onColourClick, openColourPicker, onColourInput, desktopMenuItems} = useOriginalProjectList(props, emit);
+defineExpose({focusSearchOrList});
 </script>
 
 <template>
@@ -273,15 +67,21 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
           @click="onRowClick(row)"
           @contextmenu.prevent.stop="openRowContextMenu(row, $event)"
         >
-          <span
+          <button
+            type="button"
             class="project-swatch"
+            :disabled="row.open.kind === 'closed'"
+            :aria-label="'Change trace colour for ' + row.name"
+            title="Click for an unused colour; double-click to choose a colour"
+            @click.stop="onColourClick(row, $event)"
+            @dblclick.stop.prevent="openColourPicker(row, true, $event)"
             :class="{
               'swatch-closed': row.open.kind === 'closed',
               'swatch-open': row.open.kind === 'open' && row.open.shown,
               'swatch-hidden': row.open.kind === 'open' && !row.open.shown,
             }"
             :style="row.open.kind === 'open' && row.open.colour ? { '--swatch-color': row.open.colour } : {}"
-          ></span>
+          ></button>
 
           <input
             v-if="row.open.kind === 'open'"
@@ -294,6 +94,7 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
           >
           <span v-else class="project-show-spacer" aria-hidden="true"></span>
 
+          <div class="project-content">
           <div class="project-identity">
             <input
               v-if="editingRow?.key === row.key"
@@ -311,6 +112,7 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
             <span
               v-else
               class="project-name"
+              :title="row.name"
               @dblclick.stop="startRename(row)"
             >{{ row.name }}</span>
             <span
@@ -320,27 +122,36 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
               :class="`project-tag-${t.kind}`"
             >{{ t.text }}</span>
             <span
-              v-if="row.open.kind === 'open' && row.open.unsaved"
-              class="project-unsaved-dot"
-              :title="PROJECT_LIST_TEXT.UNSAVED_CHANGES"
-            >●</span>
-            <span
               v-if="row.sync"
               class="project-sync-mark"
               :title="row.sync.text"
             >{{ row.sync.glyph }}</span>
           </div>
 
-          <span class="col-summary" :title="row.summary">{{ row.summary }}</span>
-          <span class="col-edited">{{ row.edited }}</span>
-          <span class="col-size">{{ row.size }}</span>
+          <span v-if="row.boxDetails" class="project-box-type" :title="row.summary">{{ row.boxDetails.type }}</span>
+          <span v-if="row.boxDetails" class="project-volumes">{{ row.boxDetails.volumes }}</span>
+          <div class="project-metadata">
+            <span class="col-edited">{{ row.edited }}</span>
+            <span class="col-size">{{ row.size }}</span>
+          </div>
+          </div>
 
-          <button
-            type="button"
-            class="row-menu-btn"
-            :title="PROJECT_LIST_TEXT.MORE_OPTIONS"
-            @click.stop="openRowMenu(row, $event)"
-          >⋯</button>
+          <div class="project-row-actions">
+            <button
+              type="button"
+              class="row-menu-btn"
+              :title="PROJECT_LIST_TEXT.MORE_OPTIONS"
+              @click.stop="openRowMenu(row, $event)"
+            >⋯</button>
+            <button
+              v-if="row.open.kind === 'open' && row.open.unsaved"
+              type="button"
+              class="row-save-btn"
+              title="Save this project"
+              :aria-label="'Save ' + row.name"
+              @click.stop="emit('saveProject', row)"
+            ><ToolbarIcon :name="row.open.active ? 'saveInverted' : 'save'" /></button>
+          </div>
         </div>
       </div>
 
@@ -354,7 +165,8 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
           </button>
         </div>
       </div>
-    </template>
+
+</template>
 
     <!-- Bin view -->
     <template v-else>
@@ -379,6 +191,7 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
       </div>
     </template>
 
+    <input ref="colourInput" class="project-colour-input" type="color" tabindex="-1" aria-label="Project trace colour" @click.stop @input="onColourInput">
     <!-- Context / row menu -->
     <div
       v-if="menuOpen !== null"
@@ -387,12 +200,12 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
       @click.stop
     >
       <button
-        v-for="item in menuOpen.row.menu"
+        v-for="item in desktopMenuItems(menuOpen.row)"
         :key="item.action"
         type="button"
         class="row-menu-item"
         :class="`menu-action-${item.action}`"
-        @click="handleMenuAction(menuOpen.row, item.action)"
+        @click="handleMenuAction(menuOpen.row, item.action, $event)"
       >
         {{ item.label }}
       </button>
@@ -498,8 +311,10 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
 }
 
 .project-row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 6px 16px minmax(0, 1fr) 24px;
+  grid-template-rows: 1fr;
+  align-items: start;
   gap: 6px;
   padding: 4px 6px;
   cursor: pointer;
@@ -519,8 +334,6 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
 
 .project-row.is-unsaved {
   background: #fff3b3;
-  border-left: 4px solid #f2994a;
-  padding-left: 3px;
 }
 
 .project-row.is-unsaved:hover {
@@ -529,14 +342,21 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
 
 .project-row.is-unsaved.selected {
   background: #1868d1;
-  border-left-color: #ffd07d;
   color: #fff;
 }
 
 .project-swatch {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: 5px;
+  min-height: 24px;
+  height: calc(100% - 10px);
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  align-self: stretch;
+  margin: 5px 0;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 2px;
   flex: none;
   box-sizing: border-box;
 }
@@ -557,6 +377,10 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
 }
 
 .project-show-cbx {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  justify-self: center;
   accent-color: #1868d1;
   flex: none;
   margin: 0;
@@ -564,6 +388,8 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
 }
 
 .project-show-spacer {
+  grid-column: 2;
+  grid-row: 1;
   width: 13px;
   flex: none;
 }
@@ -573,22 +399,19 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
   min-width: 0;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 2px 4px;
   overflow: hidden;
 }
 
 .project-name {
-  /* The name comes first: it keeps about 10 characters and wraps to 2 lines; a tag that no longer
-     fits beside it moves to the next line (T217 review: a narrow panel cut the name to "s…"). */
-  flex: 1 1 10ch;
+  flex: 1 1 auto;
   min-width: 0;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  display: block;
+  white-space: nowrap;
   overflow: hidden;
-  overflow-wrap: anywhere;
+  text-overflow: ellipsis;
+  overflow-wrap: normal;
   font-size: 12px;
 }
 
@@ -642,17 +465,6 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
   color: #666;
 }
 
-.project-unsaved-dot {
-  color: #f2994a;
-  font-size: 9px;
-  flex: none;
-  line-height: 1;
-}
-
-.project-row.selected .project-unsaved-dot {
-  color: #ffd07d;
-}
-
 .project-sync-mark {
   white-space: nowrap;
   font-size: 11px;
@@ -701,6 +513,31 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
   line-height: 1;
 }
 
+.project-row-actions {
+  grid-column: 4;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.row-save-btn {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 1px;
+  border: 0;
+  border-radius: 2px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.row-save-btn:hover:not(:disabled) {background: rgba(0, 0, 0, 0.08);}
+.project-row.selected .row-save-btn:hover:not(:disabled) {background:transparent;}
+.row-save-btn:disabled {opacity: 0.35; cursor: default;}
+
 .project-row.selected .row-menu-btn {
   color: #fff;
 }
@@ -723,11 +560,7 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
   }
 }
 
-@container project-list (max-width: 270px) {
-  .col-summary {
-    display: none;
-  }
-}
+
 
 .projects-panel-footer {
   display: flex;
@@ -861,4 +694,14 @@ function handleMenuAction(row: ProjectListRow, action: ProjectRowAction): void {
   background: #1868d1;
   color: #fff;
 }
+</style>
+
+<style scoped>
+.project-content {grid-column:3;grid-row:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.project-box-type,.project-volumes {display:block;font-size:11px;line-height:1.3;overflow-wrap:normal;}
+.project-box-type {white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.project-metadata {display:flex;gap:6px;min-width:0;}
+.project-colour-input {position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0;padding:0;border:0;}
+.project-swatch:focus-visible {outline:2px solid currentColor;outline-offset:2px;}
+.project-swatch:disabled {cursor:default;}
 </style>

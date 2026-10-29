@@ -2,18 +2,19 @@ import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 import type {Locator} from '@playwright/test';
 
-/**
- * Number field steppers and digit marking across both desktop and mobile skins.
- *
- * Desktop: clicking ▲▼, key or wheel steps the digit, keeps focus in the input,
- * and marks the stepped digit via a 1-character selection at the stepped place value.
- *
- * Mobile: clicking ▲▼ keeps focus on the stepper button (keyboard stays down),
- * and marks the stepped digit via an underline mirror overlay at the stepped place value.
- *
- * Both skins: stepping tenths across carry (9.9 + 0.1 -> 10.0) keeps the mark on the tenths place.
- * Esc, typing or tapping in the box clears the mark.
- */
+/** The decided rendition keeps spinner focus and marks the logical digit in inverse video.
+ * Native selection of an unfocused input is not the marker: the reference gallery's browser
+ * collapses it after pointer release too. Active-input caret behavior has its own spec. */
+async function logicalMarkOf(box: Locator) {
+  return box.evaluate(el => {
+    const row = el.closest('.ui-field');
+    const digit = row?.querySelector('.num-mark-underline');
+    if (digit === null || digit === undefined) return null;
+    const start = row?.querySelector('.num-mark-pre')?.textContent?.length ?? 0;
+    const char = digit.textContent ?? '';
+    return {start, end: start + char.length, char};
+  });
+}
 
 async function setBoxValueAndCaret(box: Locator, value: string, caret: number): Promise<void> {
   await box.focus();
@@ -30,7 +31,7 @@ test.describe('Original skin (desktop)', () => {
     await page.locator('.project-nav li', {hasText: /^Box$/}).click();
   });
 
-  test('▲ steps the digit at the caret (tenths here), selects the stepped digit, and keeps focus in the input', async ({page}) => {
+  test('▲ steps the digit at the caret (tenths here), marks the stepped digit, and keeps focus on the spinner', async ({page}) => {
     const box = page.locator('#og-box-volume');
     await setBoxValueAndCaret(box, '20.00', 4); // caret after the tenths digit
     await expect(box).toHaveValue('20.00');
@@ -39,16 +40,9 @@ test.describe('Original skin (desktop)', () => {
     await stepperUp.click();
 
     await expect(box).toHaveValue('20.10');
-    expect(await box.evaluate(el => document.activeElement === el)).toBe(true);
+    await expect(stepperUp).toBeFocused();
 
-    const sel = await box.evaluate(el => {
-      if (!(el instanceof HTMLInputElement)) return null;
-      return {
-        start: el.selectionStart,
-        end: el.selectionEnd,
-        char: el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0),
-      };
-    });
+    const sel = await logicalMarkOf(box);
     expect(sel).not.toBeNull();
     expect(sel!.end! - sel!.start!).toBe(1);
     expect(sel!.start).toBe(3); // tenths digit in '20.10'
@@ -63,16 +57,9 @@ test.describe('Original skin (desktop)', () => {
     await stepperUp.click();
 
     await expect(box).toHaveValue('30.10');
-    expect(await box.evaluate(el => document.activeElement === el)).toBe(true);
+    await expect(stepperUp).toBeFocused();
 
-    const sel = await box.evaluate(el => {
-      if (!(el instanceof HTMLInputElement)) return null;
-      return {
-        start: el.selectionStart,
-        end: el.selectionEnd,
-        char: el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0),
-      };
-    });
+    const sel = await logicalMarkOf(box);
     expect(sel).not.toBeNull();
     expect(sel!.end! - sel!.start!).toBe(1);
     expect(sel!.start).toBe(0); // tens digit in '30.10'
@@ -87,16 +74,9 @@ test.describe('Original skin (desktop)', () => {
     await stepperUp.click();
 
     await expect(box).toHaveValue('10.0');
-    expect(await box.evaluate(el => document.activeElement === el)).toBe(true);
+    await expect(stepperUp).toBeFocused();
 
-    const sel = await box.evaluate(el => {
-      if (!(el instanceof HTMLInputElement)) return null;
-      return {
-        start: el.selectionStart,
-        end: el.selectionEnd,
-        char: el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0),
-      };
-    });
+    const sel = await logicalMarkOf(box);
     expect(sel).not.toBeNull();
     expect(sel!.end! - sel!.start!).toBe(1);
     expect(sel!.start).toBe(3); // tenths digit in '10.0'
@@ -112,10 +92,10 @@ test.describe('Original skin (desktop)', () => {
     const stepperUp = page.locator('.ui-field:has(#og-box-volume) .num-stepper-btn').first();
     await stepperUp.click();
 
-    const selBefore = await box.evaluate(el => (el instanceof HTMLInputElement ? el.selectionEnd! - el.selectionStart! : 0));
-    expect(selBefore).toBe(1);
+    expect(await logicalMarkOf(box)).toMatchObject({end: 5, start: 4});
 
-    await box.press('Escape');
+    await stepperUp.press('Escape');
+    await expect(page.locator('.ui-field:has(#og-box-volume) .num-mark-underline')).toHaveCount(0);
     const selAfter = await box.evaluate(el => (el instanceof HTMLInputElement ? el.selectionEnd! - el.selectionStart! : -1));
     expect(selAfter).toBe(0);
   });
@@ -130,7 +110,7 @@ test.describe('Mobile skin', () => {
     await page.locator('.mob-tab', {hasText: 'Box'}).click();
   });
 
-  test('▲ button holds focus, steps tenths across carry 9.9 -> 10.0, and marks tenths with underline overlay', async ({page}) => {
+  test('▲ button holds focus, steps tenths across carry 9.9 -> 10.0, and marks tenths with inverse overlay', async ({page}) => {
     const row = mobileFieldRow(page, 'Vb').first();
     const box = row.locator('input').first();
     await box.fill('9.9');
@@ -155,8 +135,16 @@ test.describe('Mobile skin', () => {
     await expect(underline).toHaveText('0');
     await expect(post).toHaveText('0');
 
-    // Tap in the box clears the mark
+    // Clicking beyond the text puts the native caret after the final digit. John's
+    // end-caret ruling requires that digit to be highlighted and spun, not cleared.
     await box.click();
+    await expect(box).toBeFocused();
+    await expect(pre).toHaveText('10.0');
+    await expect(underline).toHaveText('0');
+    await expect(post).toHaveText('');
+    await box.press('ArrowUp');
+    await expect(box).toHaveValue('10.01');
+    await page.locator('.mob-tab').filter({hasText: /^Box$/}).click();
     await expect(overlay).toHaveCount(0);
   });
 });

@@ -49,7 +49,8 @@ export class ProjectSummary {
         return this.lineWith(this.code.length > 0 ? this.code.toUpperCase() : this.driver, unitTokens);
     }
 
-    private lineWith(driverText: string, unitTokens: Readonly<Record<string, string>>): string {
+    /** Separate display lines for a project card, using the same units as the full summary. */
+    boxDetails(unitTokens: Readonly<Record<string, string>>): {readonly type: string; readonly volumes: string} {
         const field = NumberField.BOX_VB_L;
         const token = field.unitTokenFor(unitTokens);
         const decimals = decimalsIn(field.unitFor(token), VOLUME_DECIMALS_IN_LITRES);
@@ -58,6 +59,11 @@ export class ProjectSummary {
             ? shown(this.volume.volume_m3)
             : `${shown(this.volume.rear_m3)} + ${shown(this.volume.front_m3)}`;
         const typeName = BOX_TYPE_OPTIONS.find(o => o.value === this.boxType)?.label ?? this.boxType;
-        return [driverText, typeName, `${amount} ${field.unitLabel(token)}`].join(' · ');
+        return {type: typeName, volumes: `${amount} ${field.unitLabel(token)}`};
+    }
+
+    private lineWith(driverText: string, unitTokens: Readonly<Record<string, string>>): string {
+        const details = this.boxDetails(unitTokens);
+        return [driverText, details.type, details.volumes].join(' · ');
     }
 }
