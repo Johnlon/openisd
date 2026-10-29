@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: e446f6b1ba655ae9b5598face2100d312af7c96d
 goal: Keep announcements nonintrusive on archived builds
 done_test: node --test cloudflare/announcements/test/worker.test.mjs && bash scripts/test.sh packages/ui/test/logic/announcementCenter.test.ts && bash scripts/quiet-test.sh npm run typecheck
 visual: []

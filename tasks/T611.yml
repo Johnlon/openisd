@@ -1,0 +1,13 @@
+id: T611
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: Every build is the same app: task previews and local builds MUST include cloud sync, as openisd.app does
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-every-build-has-cloud-sync.test.ts && bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T611.yml
+  - packages/ui/.env
+  - .github/workflows/build.yml
+  - packages/ui/test/architecture/architecture-every-build-has-cloud-sync.test.ts
+  - bugs/BUG_20261029_preview-builds-hide-cloud-sync.md

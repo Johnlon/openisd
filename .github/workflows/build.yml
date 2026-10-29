@@ -35,8 +35,6 @@ jobs:
         run: bash scripts/snap.sh
         env:
           GH_TOKEN: ${{ github.token }}
-          # Public OAuth Web client id; the cloud sync UI renders only when the build has one.
-          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
 
   deploy:
     needs: snapshot
