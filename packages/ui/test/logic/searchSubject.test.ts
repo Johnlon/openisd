@@ -8,7 +8,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver} from '@openisd/design';
+import {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import type {BundledDriverIndexRow} from '@openisd/persistence';
 import {
@@ -27,7 +27,7 @@ const spec = (read_value: number) =>
 
 const UUID = '00000000-0000-4000-8000-000000000001';
 
-const driver: OpenISDDriver = (() => {
+const driver: OpenISDDriverStandalone = (() => {
   const d = OpenISDDriver.fromConformingRecord({
     uuid: { value: UUID },
     manufacturer: scraped('Tang Band'), brand: scraped('Tang Band'), model: scraped('W5-1138SMF'),

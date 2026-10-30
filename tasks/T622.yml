@@ -6,6 +6,39 @@ status: open
 goal: Loading a stored project and saving it gives the same bytes: the embedded driver id is read back, never reminted (BUG_20261013_project-driver-uuid-reminted-on-read)
 done_test: bash scripts/test.sh packages/design/test/domain/project/stored-text.test.ts packages/persistence/test/storageUpgrade.test.ts
 files:
-  - tasks/T622.yml
   - bugs/BUG_20261013_project-driver-uuid-reminted-on-read.md
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/driverRoundTripDiffs.ts
+  - packages/design/domain/project/freshEmbeddedDriver.ts
+  - packages/design/domain/project/nullDriverId.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/domain/project/slimDriver.ts
+  - packages/design/test/domain/driver-edit.test.ts
+  - packages/design/test/domain/project-air.test.ts
+  - packages/design/test/domain/project/same-owpr-text.test.ts
   - packages/design/test/domain/project/stored-text.test.ts
+  - packages/persistence/src/repos/bundledDriverRepo.ts
+  - packages/persistence/src/repos/myDriverRepo.ts
+  - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/test/fixtures/savedRecords.ts
+  - packages/ui/src/hooks/DriverEditorModal-hooks.ts
+  - packages/ui/src/logic/bundledIndexRows.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/src/logic/driverDraft.ts
+  - packages/ui/src/logic/driverSelection.ts
+  - packages/ui/src/logic/fileImportExport.ts
+  - packages/ui/src/logic/telemetry/driverPick.ts
+  - packages/ui/src/logic/telemetry/projectDriver.ts
+  - packages/ui/test/hooks/DriverEditorModal-hooks.test.ts
+  - packages/ui/test/logic/boot.test.ts
+  - packages/ui/test/logic/bundledIndexRows.test.ts
+  - packages/ui/test/logic/driverDraft.test.ts
+  - packages/ui/test/logic/driverFilters.test.ts
+  - packages/ui/test/logic/driverPick.test.ts
+  - packages/ui/test/logic/projectOpenTelemetry.test.ts
+  - packages/ui/test/logic/searchSubject.test.ts
+  - tasks/T622.yml

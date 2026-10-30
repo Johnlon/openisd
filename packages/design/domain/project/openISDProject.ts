@@ -22,11 +22,11 @@ import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { airFieldsOver } from './projectAir.js';
 import type { AirField, AirFields } from './projectAir.js';
-import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf, withoutDriverId } from './projectSerialization.js';
+import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
-import { freshEmbeddedDriver } from './freshEmbeddedDriver.js';
+import { withNullEmbeddedDriverId } from './nullDriverId.js';
 import type { ProjectIssues } from './projectIssues.js';
 import { ProjectMeta } from './projectMeta.js';
 import { ProjectListeners } from './projectListeners.js';
@@ -108,6 +108,7 @@ export class OpenISDProject {
             this.#engine,
             () => this.#airState(root),
             () => this.#issues.driver,
+            () => this.#appContext.newId(),
         );
     }
 
@@ -465,7 +466,7 @@ export class OpenISDProject {
      *  wraps of one record are two independently editable projects, which is what opening a FILE
      *  twice should give. */
     static wrap(json: OpenISDProjectJson, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
-        return this.wrapWithIdentity(freshEmbeddedDriver(json, appContext), appContext.newId(), engine, appContext);
+        return this.wrapWithIdentity(withNullEmbeddedDriverId(json), appContext.newId(), engine, appContext);
     }
 
     /**
@@ -484,9 +485,9 @@ export class OpenISDProject {
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
     static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
-        const project = new OpenISDProject(freshEmbeddedDriver(session.saved, appContext), uuid, engine, appContext);
+        const project = new OpenISDProject(withNullEmbeddedDriverId(session.saved), uuid, engine, appContext);
         if (session.edited) {
-            project.#edited = freshEmbeddedDriver(session.edited, appContext);
+            project.#edited = withNullEmbeddedDriverId(session.edited);
             // The constructor's own resolve() only reached `#saved`, set just above — the
             // edited layer just assigned needs its own (S7-d: recompute on load).
             project.#resolve();
@@ -635,16 +636,6 @@ export class OpenISDProject {
         const parsed = parseOwprSession(text);
         if ('errors' in parsed) return parsed.errors;
         return OpenISDProject.wrapSession(parsed.session, newUuid(), engine);
-    }
-
-    /** Whether two `.owpr` texts state the same project, the embedded driver's per-read id aside.
-     *  Unreadable text is never the same as anything. */
-    static sameOwprText(a: string, b: string): boolean {
-        if (a === b) return true;
-        const x = parseOwprSession(a);
-        const y = parseOwprSession(b);
-        if ('errors' in x || 'errors' in y) return false;
-        return JSON.stringify(withoutDriverId(x.session)) === JSON.stringify(withoutDriverId(y.session));
     }
 
     /** Like `fromOwprText`, but a field that fails the schema is removed so its default applies

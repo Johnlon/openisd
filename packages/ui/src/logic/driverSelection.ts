@@ -1,4 +1,4 @@
-import {OpenISDDriver} from '@openisd/design';
+import type {OpenISDDriverStandalone} from '@openisd/design';
 import type {AppState} from './appState.js';
 import type {PresentationState} from './presentationState.js';
 import type {DesignFiles} from './fileImportExport.js';
@@ -46,7 +46,7 @@ export interface SelectionResult {
 /** A driver read off the user's disk, or the reason the file could not be read. The driver is
  *  the public domain object — never the record shape. */
 export type FileReadResult =
-  | { ok: true; driver: OpenISDDriver }
+  | { ok: true; driver: OpenISDDriverStandalone }
   | { ok: false; error: string };
 
 /**
@@ -98,12 +98,12 @@ type EditorSubject =
  *  subject — this module does not construct either, since it is not a licensed constructor). */
 export type EditorDraftSeed =
   | { kind: 'project' }
-  | { kind: 'myDriver'; openedAs: string; seed: OpenISDDriver | null };
+  | { kind: 'myDriver'; openedAs: string; seed: OpenISDDriverStandalone | null };
 
 export interface DriverSelection {
-  selectDriver(d: OpenISDDriver): Promise<SelectionResult>;
-  editMyDriver(d: OpenISDDriver, uuid?: string): void;
-  editOverviewDriver(d: OpenISDDriver): Promise<SelectionResult>;
+  selectDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
+  editMyDriver(d: OpenISDDriverStandalone, uuid?: string): void;
+  editOverviewDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
   editProjectDriver(): void;
   openNewDriver(): void;
   /** What the editor is open on right now, and what to seed its own draft from. */
@@ -118,14 +118,14 @@ export interface DriverSelectionDeps {
   appState: AppState;
   presentation: PresentationState;
   /** Told which driver the user chose, for usage statistics. Omitted means nobody is told. */
-  driverPicked?: (driver: OpenISDDriver) => void;
+  driverPicked?: (driver: OpenISDDriverStandalone) => void;
 }
 
 export function createDriverSelection(deps: DriverSelectionDeps): DriverSelection {
   const { requireFocusedProject } = deps.appState;
   const presentationState = deps.presentation;
   let subject: EditorSubject = { kind: 'project' };
-  let editSeed: OpenISDDriver | null = null;
+  let editSeed: OpenISDDriverStandalone | null = null;
 
   /**
    * Choosing a driver COPIES it into the project and returns the user to the project.
@@ -135,11 +135,11 @@ export function createDriverSelection(deps: DriverSelectionDeps): DriverSelectio
    * disk are all sources; once chosen, the project owns its own copy and later edits change
    * that copy alone. Editing is a separate act, from the Driver panel's Edit button.
    */
-  function adoptIntoProject(driver: OpenISDDriver): void {
+  function adoptIntoProject(driver: OpenISDDriverStandalone): void {
     requireFocusedProject().setDriver(driver);
   }
 
-  function embedInProject(driver: OpenISDDriver): void {
+  function embedInProject(driver: OpenISDDriverStandalone): void {
     adoptIntoProject(driver);
     presentationState.browseOpen = false;
   }

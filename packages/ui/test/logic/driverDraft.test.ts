@@ -8,7 +8,7 @@
  */
 import {describe, expect, it, beforeEach} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver} from '@openisd/design';
+import {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {DriverDrafts} from '../../src/logic/driverDraft.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
@@ -30,7 +30,7 @@ const spec = (read_value: number) =>
 
 /** Each test builds its own driver — no shared fixture, so a failure is diagnosable from the
  *  one block it sits in. */
-function aDriver(brand: string, model: string): OpenISDDriver {
+function aDriver(brand: string, model: string): OpenISDDriverStandalone {
   const record = {
     uuid: { value: '00000000-0000-4000-8000-000000000000' },
     manufacturer: scraped(brand), brand: scraped(brand), model: scraped(model),

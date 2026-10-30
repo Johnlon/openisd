@@ -7,7 +7,7 @@ import {fieldsOf, type TelemetryEvent} from '../../src/logic/telemetry/events.js
 import type {Telemetry} from '../../src/logic/telemetry/telemetry.js';
 
 const engine = createEngine();
-const driver = ProjectBuilder.empty(engine).driver;
+const driver = ProjectBuilder.empty(engine).driver.detach();
 
 function indexJson(uuid: string): string {
   return JSON.stringify([{

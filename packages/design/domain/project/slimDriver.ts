@@ -4,6 +4,7 @@
  *  the catalogue record. Loading works out everything else it needs. The result still parses
  *  under the project schema every earlier build reads: required keys remain, empty. */
 import {statedPrecisionOf} from '../cell.js';
+import {NULL_GUID} from './nullDriverId.js';
 import {specEntryJsonSchema} from '../openisdSchema.js';
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -60,7 +61,7 @@ function emptyQuality(): Readonly<Record<string, readonly unknown[]>> {
 
 function slimmedDevice(device: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
     const slim: Record<string, unknown> = {};
-    if ('uuid' in device) slim.uuid = valueOnly(device.uuid);
+    slim.uuid = {value: NULL_GUID};
     slim.quality = emptyQuality();
     for (const key of NAME_KEYS) if (key in device) slim[key] = valueOnly(device[key]);
     if ('sku' in device) slim.sku = device.sku;

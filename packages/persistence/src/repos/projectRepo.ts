@@ -332,7 +332,7 @@ export function createProjectRepo(
     const stored = openSessionPayload(parsed);
     if (!stored || stored.focusedId !== focusedId || stored.entries.length !== entries.length) return false;
     return stored.entries.every((e, i) => e.id === entries[i].id && e.traceHidden === entries[i].traceHidden
-      && OpenISDProject.sameOwprText(e.text, entries[i].text));
+      && e.text === entries[i].text);
   }
 
 function projectNameOf(text: string): string | null {

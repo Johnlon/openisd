@@ -108,7 +108,7 @@ describe('bootApplication', () => {
 
     expect(telemetry.record).toHaveBeenCalledWith({
       kind: 'project_open', source: 'restore', box: 'sealed',
-      driverId: restored.driver.uuid(), driverName: 'Dayton Audio RS225P-8',
+      driverName: 'Dayton Audio RS225P-8',
     });
   });
 

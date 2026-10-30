@@ -14,7 +14,7 @@
 import type {WdrHeader} from "../winisd/winisdDriver.js";
 import {WinISDDriver} from "../winisd/winisdDriver.js";
 import type {Readable} from "./cell.js";
-import {OpenISDDriver} from "./driver/openISDDriver.js";
+import {OpenISDDriver, type OpenISDDriverStandalone} from "./driver/openISDDriver.js";
 import type {DriverSpec} from "./openisdSchema.js";
 import {type DriverError, type Engine} from "../engine/index.js";
 import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
@@ -218,7 +218,7 @@ export function jsonRoundTripDiffs(openisd: string): DriverError[] {
 /** A record read into a driver, or the reasons it could not be. The importers receive it rather
  *  than call `OpenISDDriver` themselves, so a refusal path can be tested without a record that
  *  really fails. */
-export type DriverFromRecord = (record: unknown, engine: Engine) => OpenISDDriver | string[];
+export type DriverFromRecord = (record: unknown, engine: Engine) => OpenISDDriverStandalone | string[];
 
 /** The bundler's round-trip gate: reads back what the converter wrote, with the same engine the
  *  converter used, and reports every difference as a `DriverError`. */

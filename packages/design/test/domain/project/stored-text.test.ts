@@ -8,6 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../../engine/Engine.js';
 import {OpenISDProject} from '../../../domain/project/openISDProject.js';
+import {NULL_GUID} from '../../../domain/project/nullDriverId.js';
 import {compactedStoredText} from '../../../domain/project/projectSerialization.js';
 import {WinIsdProjectConverter} from '../../../domain/winIsdProjectConverter.js';
 
@@ -23,7 +24,7 @@ function project(): OpenISDProject {
 
 /** `text` as JSON with every `dq_calculated` removed, for comparing what is stored. */
 function withoutDq(text: string): unknown {
-  return JSON.parse(text, (key: string, value: unknown): unknown => (key === 'dq_calculated' || key === 'uuid' ? undefined : value));
+  return JSON.parse(text, (key: string, value: unknown): unknown => (key === 'dq_calculated' ? undefined : value));
 }
 
 function loaded(text: string): OpenISDProject {
@@ -46,22 +47,23 @@ describe('OpenISDProject.toStoredText', () => {
     expect(withoutDq(back.toOwprText())).toEqual(withoutDq(original.toOwprText()));
   });
 
-  it('is the same length every time the same project is stored, whatever id the driver is read with', () => {
-    const original = project();
-    const sizes = new Set<number>();
-    let text = original.toStoredText();
-    for (let round = 0; round < 5; round++) {
-      sizes.add(new TextEncoder().encode(text).length);
-      text = loaded(text).toStoredText();
-      sizes.add(new TextEncoder().encode(project().toStoredText()).length);
-    }
-    expect([...sizes]).toHaveLength(1);
-  });
-
   // BUG_20261013_project-driver-uuid-reminted-on-read: the embedded driver keeps the id it was stored with.
   it('is the same text, byte for byte, after a load and a store', () => {
     const text = project().toStoredText();
     expect(loaded(text).toStoredText()).toBe(text);
+  });
+
+  it('holds the null GUID as the embedded driver id', () => {
+    expect(JSON.parse(project().toStoredText()).saved.driverEmbedding.device.uuid.value).toBe(NULL_GUID);
+  });
+
+  it('normalises an old text with a random embedded driver id to the null GUID on read', () => {
+    const old = JSON.parse(project().toStoredText());
+    old.saved.driverEmbedding.device.uuid.value = 'ed26036f-a592-4e91-b4cb-f6b6031fa003';
+    old.edited.driverEmbedding.device.uuid.value = '5cb08428-b412-4af1-a099-0dc850db7cde';
+    const back = JSON.parse(loaded(JSON.stringify(old)).toStoredText());
+    expect(back.saved.driverEmbedding.device.uuid.value).toBe(NULL_GUID);
+    expect(back.edited.driverEmbedding.device.uuid.value).toBe(NULL_GUID);
   });
 
   it('keeps the edited state', () => {

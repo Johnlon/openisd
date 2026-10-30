@@ -4,7 +4,6 @@ import type {OpenISDDriver} from '@openisd/design';
 export function projectDriverTelemetry(driver: OpenISDDriver): {readonly driverId?: string; readonly driverName?: string} {
   if (driver.providedBy.value !== 'OpenIsd') return {};
   return {
-    driverId: driver.uuid(),
     driverName: `${driver.brand.value} ${driver.model.value}`.trim(),
   };
 }

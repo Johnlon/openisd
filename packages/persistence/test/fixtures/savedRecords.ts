@@ -1,5 +1,5 @@
 /** Valid saved records, as My Drivers / My Passive Radiators hold them. */
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {OpenISDDriver, OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
@@ -29,7 +29,7 @@ export function driverRecord() {
   };
 }
 
-export function aDriver(): OpenISDDriver {
+export function aDriver(): OpenISDDriverStandalone {
   const d = OpenISDDriver.fromConformingRecord(driverRecord(), engine);
   if (Array.isArray(d)) throw new Error('fixture driver must conform: ' + d.join('; '));
   return d;
