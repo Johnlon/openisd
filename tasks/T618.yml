@@ -1,0 +1,9 @@
+id: T618
+release_note: internal
+repo: openisd
+owner: codex
+status: open
+goal: Refresh OpenISD catalogue from tuple-aware driver snapshot
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T618.yml
