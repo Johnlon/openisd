@@ -20,8 +20,8 @@ function valueOnly(field: unknown): unknown {
 }
 
 /** An entered or calculated entry cut to state, value and the precision it states. A
- *  not-available entry has no simulation value, but its published readings remain useful source
- *  data and must survive project save/reload. */
+ *  not-available entry has no simulation value, but its source readings remain part of the
+ *  driver's record and must survive project save/reload. */
 function slimmedEntry(entry: unknown): unknown {
     const parsed = specEntryJsonSchema.safeParse(entry);
     if (!parsed.success) return entry;

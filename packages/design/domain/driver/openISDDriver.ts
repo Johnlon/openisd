@@ -141,6 +141,18 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.specs[field];
     }
 
+    /** The source's own text for a field that has readings but no usable simulation value.
+     *  Each field is queried independently; a reported reading is never promoted to E or fed
+     *  into the solver by this accessor. */
+    reportedSpecReadings(field: NumericDriverSpecFieldName): readonly {source: string; text: string}[] {
+        const entry = this.record.value.specs.woofer[field];
+        if (entry === undefined || entry.state !== 'N') return [];
+        return Object.entries(entry.readings).flatMap(([source, reading]) => {
+            const text = reading.actual_reading ?? ('read_value' in reading ? String(reading.read_value) : '');
+            return text.length === 0 ? [] : [{source, text}];
+        });
+    }
+
     /** Everything this driver's stated values disagree about — an over-specified driver whose
      *  numbers cannot all be true at once — or cannot yet derive, because too few of a group
      *  (e.g. Qts's Qes/Qms pair) are stated. Empty when consistent and fully solvable.

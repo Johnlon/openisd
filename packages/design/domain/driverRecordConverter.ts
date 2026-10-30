@@ -906,20 +906,13 @@ export class DriverRecordConverter {
         continue;
       }
       if (basis === "unknown") {
-        // OpenISD's established default for an unstated coil count is one. With one coil,
-        // per-coil and whole-driver readings are the same number, whatever connection was used.
-        // Keep the published numeric reading; the ambiguity only matters for multiple coils.
-        if (coilCount === undefined && "state" in tuple.numVC && tuple.numVC.state === "not-stated") {
-          result[field] = projected;
-          continue;
-        }
-        result[field] = this.#unavailableVoiceCoilEntry(projected);
-        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading basis is unknown; raw source readings are retained without per-coil scaling"});
+        result[field] = projected;
+        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading basis is unknown; the stated value is retained without scaling"});
         continue;
       }
       if (coilCount === undefined || (tuple.connection !== "series" && tuple.connection !== "parallel")) {
-        result[field] = this.#unavailableVoiceCoilEntry(projected);
-        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading is for a stated connection, but a supported connection and stated coil count are required for per-coil scaling"});
+        result[field] = projected;
+        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil connection or count is unstated; the stated value is retained without scaling"});
         continue;
       }
       if (projected.state !== "E" || typeof projected.value !== "number") {
@@ -932,13 +925,6 @@ export class DriverRecordConverter {
       result[field] = {...projected, value: projected.value * factor};
     }
     return result;
-  }
-
-  #unavailableVoiceCoilEntry(projected: Record<string, unknown>): Record<string, unknown> {
-    const unavailable: Record<string, unknown> = {state: "N"};
-    if (projected.readings !== undefined) unavailable.readings = projected.readings;
-    if (projected.dq_scraper !== undefined) unavailable.dq_scraper = projected.dq_scraper;
-    return unavailable;
   }
 
   /** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the
