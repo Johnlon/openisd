@@ -7,8 +7,9 @@ import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
 
 /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
-export function sessionOf(name: string, saved: OpenISDProjectJson, edited: OpenISDProjectJson | null): OpenISDProjectSessionJson {
+export function sessionOf(id: string, name: string, saved: OpenISDProjectJson, edited: OpenISDProjectJson | null): OpenISDProjectSessionJson {
     return {
+        id,
         label: name,
         saved: structuredClone(saved),
         edited: edited ? structuredClone(edited) : null,
@@ -50,6 +51,27 @@ export function storedTextOf(session: OpenISDProjectSessionJson): string {
     return JSON.stringify(slimmedCanonical(session), withoutDerived);
 }
 
+/** A stored text from before projects carried an id, as a stored text with `id` as its id; null
+ *  when the text is not a project session. The store's layout step uses it once per stored project. */
+export function storedTextWithId(text: string, id: string): string | null {
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(text);
+    } catch {
+        return null;
+    }
+    if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
+    const {id: ignored, ...rest} = parsed;
+    void ignored;
+    return JSON.stringify(slimmedCanonical({id, ...rest}), withoutDerived);
+}
+
+/** A text written before projects carried an id gets one here, once, when it is read; a text
+ *  that has one is returned as it was. */
+function withProjectId(parsed: unknown, newId: () => string): unknown {
+    return isRecord(parsed) && !('id' in parsed) ? {id: newId(), ...parsed} : parsed;
+}
+
 /** A stored or `.owpr` project text as `storedTextOf` writes it; null when the text is not a
  *  project session, which the repo that owns it reports and this leaves untouched. */
 export function compactedStoredText(text: string): string | null {
@@ -66,14 +88,14 @@ export function compactedStoredText(text: string): string | null {
 /** `.owpr` text parsed and validated, or everything wrong with it. Stops short of building an
  *  `OpenISDProject`: minting its identity and attaching the engine is
  *  `OpenISDProject.fromOwprText`'s own job, not this function's. */
-export function parseOwprSession(text: string): { session: OpenISDProjectSessionJson } | { errors: string[] } {
+export function parseOwprSession(text: string, newId: () => string): { session: OpenISDProjectSessionJson } | { errors: string[] } {
     let parsed: unknown;
     try {
         parsed = JSON.parse(text);
     } catch {
         return {errors: ['not valid JSON']};
     }
-    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(parsed));
+    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(withProjectId(parsed, newId)));
     if (!result.success) {
         return {errors: result.error.issues.map(issue => issue.path.length === 0
             ? issue.message
@@ -86,14 +108,14 @@ import {withoutImportSku} from './withoutImportSku.js';
 
 /** `.owpr` text parsed with every failing field removed so its default applies, and which ones
  *  were; refused only when the text is not JSON or not a project session at all. */
-export function parseOwprSessionRepairing(text: string): Repaired<OpenISDProjectSessionJson> | string[] {
+export function parseOwprSessionRepairing(text: string, newId: () => string): Repaired<OpenISDProjectSessionJson> | string[] {
     let parsed: unknown;
     try {
         parsed = JSON.parse(text);
     } catch {
         return ['not valid JSON'];
     }
-    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(parsed));
+    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(withProjectId(parsed, newId)));
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
     const paired = singleEnteredVentPairs(retired.session);

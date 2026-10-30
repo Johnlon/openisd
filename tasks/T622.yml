@@ -11,6 +11,7 @@ files:
   - packages/design/domain/driver/openISDDriverEmbedded.ts
   - packages/design/domain/driverRecordConverter.ts
   - packages/design/domain/driverRoundTripDiffs.ts
+  - packages/design/domain/openisdSchema.ts
   - packages/design/domain/project/freshEmbeddedDriver.ts
   - packages/design/domain/project/nullDriverId.ts
   - packages/design/domain/project/openISDProject.ts
@@ -18,8 +19,11 @@ files:
   - packages/design/domain/project/slimDriver.ts
   - packages/design/test/domain/driver-edit.test.ts
   - packages/design/test/domain/project-air.test.ts
+  - packages/design/test/domain/project/project-id.test.ts
   - packages/design/test/domain/project/same-owpr-text.test.ts
+  - packages/design/test/domain/project/slim-driver.test.ts
   - packages/design/test/domain/project/stored-text.test.ts
+  - packages/design/test/domain/retired-loss-mode.test.ts
   - packages/persistence/src/repos/bundledDriverRepo.ts
   - packages/persistence/src/repos/myDriverRepo.ts
   - packages/persistence/src/repos/projectRepo.ts

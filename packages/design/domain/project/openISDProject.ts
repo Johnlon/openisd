@@ -7,7 +7,6 @@ import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, S
 import type { EnvironmentIssue } from '../../engine/index.js';
 import { airStateOf } from './projectAir.js';
 import { DEFAULT_SOURCE_RESISTANCE_OHM } from '../../fields/defaults.js';
-import { newUuid } from '../newUuid.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import type { Box } from '../box/box.js';
 import type { FrequencyGrid } from '../box/frequencyGrid.js';
@@ -22,7 +21,7 @@ import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { airFieldsOver } from './projectAir.js';
 import type { AirField, AirFields } from './projectAir.js';
-import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
+import { storedTextOf, storedTextWithId, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
@@ -66,7 +65,7 @@ export class OpenISDProject {
      *
      *  It exists so the running app can tell two open projects apart when their names collide,
      *  and so a store — or a focus pointer — can key on something stable. */
-    readonly #uuid: string;
+    #uuid: string;
 
     /** The project as of the last save. Never mutated: every write builds a new record. */
     #saved: OpenISDProjectJson;
@@ -484,8 +483,8 @@ export class OpenISDProject {
     }
 
     /** Wrap a stored session (saved and edited states) under an adopted identity. */
-    static wrapSession(session: OpenISDProjectSessionJson, uuid: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
-        const project = new OpenISDProject(withNullEmbeddedDriverId(session.saved), uuid, engine, appContext);
+    static wrapSession(session: OpenISDProjectSessionJson, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject {
+        const project = new OpenISDProject(withNullEmbeddedDriverId(session.saved), session.id, engine, appContext);
         if (session.edited) {
             project.#edited = withNullEmbeddedDriverId(session.edited);
             // The constructor's own resolve() only reached `#saved`, set just above — the
@@ -495,7 +494,19 @@ export class OpenISDProject {
         return project;
     }
 
-    /** This project's in-memory identity. */
+    /** A stored text from before ids, as a stored text carrying `id`; null for a text that is
+     *  not a project. */
+    static storedTextWithId(text: string, id: string): string | null {
+        return storedTextWithId(text, id);
+    }
+
+    /** Give this project a new id: what a second copy of an already open or stored file gets. */
+    assignNewId(): void {
+        this.#uuid = this.#appContext.newId();
+        this.#notify();
+    }
+
+    /** This project's durable id: in its stored and `.owpr` text, never in a `.wpr`. */
     uuid(): string {
         return this.#uuid;
     }
@@ -630,26 +641,27 @@ export class OpenISDProject {
     /** `.owpr` text back to a project, or everything wrong with the text. The inverse of
      *  `toOwprText()`.
      *
-     *  The project takes a FRESH identity: a file's contents are provenance, not a store key
-     *  (QO81), so opening the same file twice yields two independently addressable projects. */
-    static fromOwprText(text: string, engine: Engine): OpenISDProject | string[] {
-        const parsed = parseOwprSession(text);
+     *  The project keeps the id its text carries (a text from before ids gets one minted here).
+     *  Opening the same file twice gives two projects with one id: whoever opens the second
+     *  gives it a new one (`assignNewId`) when the first is open or stored. */
+    static fromOwprText(text: string, engine: Engine, appContext: AppContext = realAppContext): OpenISDProject | string[] {
+        const parsed = parseOwprSession(text, () => appContext.newId());
         if ('errors' in parsed) return parsed.errors;
-        return OpenISDProject.wrapSession(parsed.session, newUuid(), engine);
+        return OpenISDProject.wrapSession(parsed.session, engine, appContext);
     }
 
     /** Like `fromOwprText`, but a field that fails the schema is removed so its default applies
      *  instead of refusing the project; `repaired` names every field that was reset, for the
      *  user to be told. Refused only when the text is not a project at all. */
-    static fromOwprTextRepairing(text: string, engine: Engine): { project: OpenISDProject; repaired: readonly FieldPath[] } | string[] {
-        const parsed = parseOwprSessionRepairing(text);
+    static fromOwprTextRepairing(text: string, engine: Engine, appContext: AppContext = realAppContext): { project: OpenISDProject; repaired: readonly FieldPath[] } | string[] {
+        const parsed = parseOwprSessionRepairing(text, () => appContext.newId());
         if (Array.isArray(parsed)) return parsed;
-        return { project: OpenISDProject.wrapSession(parsed.value, newUuid(), engine), repaired: parsed.repaired };
+        return { project: OpenISDProject.wrapSession(parsed.value, engine, appContext), repaired: parsed.repaired };
     }
 
     /** Serialises saved and ordinary edited states for persistence. The transient what-if is absent. */
     cloneSession(): OpenISDProjectSessionJson {
-        return sessionOf(this.#committed().meta.name, this.#saved, this.#edited);
+        return sessionOf(this.#uuid, this.#committed().meta.name, this.#saved, this.#edited);
     }
 
     /** Whether unsaved changes exist. `charts` (chart zoom/sweep range) is excluded: dragging a

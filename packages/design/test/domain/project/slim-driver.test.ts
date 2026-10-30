@@ -77,9 +77,9 @@ function slimDeviceOf(session: Record<string, unknown>): Record<string, unknown>
 }
 
 describe('slimmedProjectSession', () => {
-  it('keeps the identity and the three texts the editor edits, as bare values', () => {
+  it('holds the null GUID as the id and keeps the three texts the editor edits, as bare values', () => {
     const d = slimDeviceOf(fatSession());
-    expect(d.uuid).toEqual({value: 'u1'});
+    expect(d.uuid).toEqual({value: '00000000-0000-0000-0000-000000000000'});
     expect(d.manufacturer).toEqual({value: 'Tang Band'});
     expect(d.brand).toEqual({value: 'Tang Band'});
     expect(d.model).toEqual({value: 'W5'});
@@ -146,8 +146,8 @@ describe('the project text', () => {
 
   it('parses under the project schema, which every earlier build reads', () => {
     const p = project();
-    expect(parseOwprSession(p.toOwprText())).toHaveProperty('session');
-    expect(parseOwprSession(p.toStoredText())).toHaveProperty('session');
+    expect(parseOwprSession(p.toOwprText(), () => "unused")).toHaveProperty('session');
+    expect(parseOwprSession(p.toStoredText(), () => "unused")).toHaveProperty('session');
   });
 
   it('reads back with the same driver, parameter by parameter', () => {
