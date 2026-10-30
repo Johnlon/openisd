@@ -27,6 +27,16 @@ function withoutDq(text: string): unknown {
   return JSON.parse(text, (key: string, value: unknown): unknown => (key === 'dq_calculated' ? undefined : value));
 }
 
+/** `text` parsed as JSON, and the value at `path` inside it (undefined when a step is not an object). */
+function jsonAt(text: string, ...path: string[]): unknown {
+  let node: unknown = JSON.parse(text);
+  for (const key of path) {
+    if (typeof node !== 'object' || node === null) return undefined;
+    node = Object.entries(node).find(([k]) => k === key)?.[1];
+  }
+  return node;
+}
+
 function loaded(text: string): OpenISDProject {
   const p = OpenISDProject.fromOwprText(text, engine);
   if (Array.isArray(p)) throw new Error('refused: ' + p.join('; '));
@@ -54,16 +64,16 @@ describe('OpenISDProject.toStoredText', () => {
   });
 
   it('holds the null GUID as the embedded driver id', () => {
-    expect(JSON.parse(project().toStoredText()).saved.driverEmbedding.device.uuid.value).toBe(NULL_GUID);
+    expect(jsonAt(project().toStoredText(), 'saved', 'driverEmbedding', 'device', 'uuid', 'value')).toBe(NULL_GUID);
   });
 
   it('normalises an old text with a random embedded driver id to the null GUID on read', () => {
-    const old = JSON.parse(project().toStoredText());
-    old.saved.driverEmbedding.device.uuid.value = 'ed26036f-a592-4e91-b4cb-f6b6031fa003';
-    old.edited.driverEmbedding.device.uuid.value = '5cb08428-b412-4af1-a099-0dc850db7cde';
-    const back = JSON.parse(loaded(JSON.stringify(old)).toStoredText());
-    expect(back.saved.driverEmbedding.device.uuid.value).toBe(NULL_GUID);
-    expect(back.edited.driverEmbedding.device.uuid.value).toBe(NULL_GUID);
+    const idPath = ['driverEmbedding', 'device', 'uuid'];
+    const old = project().toStoredText().replaceAll(NULL_GUID, 'ed26036f-a592-4e91-b4cb-f6b6031fa003');
+    expect(old).not.toContain(NULL_GUID);
+    const back = loaded(old).toStoredText();
+    expect(jsonAt(back, 'saved', ...idPath, 'value')).toBe(NULL_GUID);
+    expect(jsonAt(back, 'edited', ...idPath, 'value')).toBe(NULL_GUID);
   });
 
   it('keeps the edited state', () => {
