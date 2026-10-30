@@ -58,8 +58,8 @@ describe('fixtures/test-bundle-paths.json — every named reference device is in
     }
     // The suite filters the picker for this model and picks it — it must be a driver row.
     assert.ok(out.driverRows.some(r => r.path === 'tang-band/w5-1138smf'));
-    // Diversity the specs rely on: a coaxial, and two passive radiators.
+    // Diversity the specs rely on: a coaxial, and three passive radiators.
     assert.ok(out.driverRows.some(r => r.canonical === 'Coaxial'), 'no coaxial');
-    assert.equal(out.radiatorRows.length, 2);
+    assert.equal(out.radiatorRows.length, 3);
   });
 });

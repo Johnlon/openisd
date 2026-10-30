@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: d44758a9c95fea1e16e4546ca860be6fb541192f
 goal: The selected bundled driver MUST retain every published field and reading when the project is saved and reopened.
 done_test: bash scripts/test.sh packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/design/test/domain/project/slim-driver.test.ts packages/design/test/domain/driver-spec-floor-coverage.test.ts packages/design/test/schemagen/driver-model-is-current.test.ts packages/design/test/architecture-spec-section-is-numeric.test.ts packages/design/test/winisd/bridge-bundle.test.ts packages/design/test/domain/reads-schema.test.ts packages/design/test/scripts/driver-snapshot-pin.test.ts
 files:
