@@ -562,3 +562,13 @@ test.describe('Options dialog', () => {
     });
   });
 });
+
+
+test('Plot Window spinner buttons match the regular desktop field buttons',async({page})=>{
+ await page.goto('/');await openAProject(page);await page.locator('.project-nav li').filter({hasText:/^Box$/}).click();
+ const read=(node:Element)=>{const css=getComputedStyle(node),box=node.getBoundingClientRect();return {width:box.width,height:box.height,font:css.font,color:css.color,background:css.backgroundColor,border:css.border,borderRadius:css.borderRadius};};
+ const expected=await Promise.all([0,1].map(index=>page.locator('.tab-section.active .num-stepper-btn').nth(index).evaluate(read)));
+ await openPlotWindow(page);
+ const buttons=page.locator('.opt-limits .num-stepper-btn');expect(await buttons.count()).toBeGreaterThan(20);
+ for(const [index,button] of (await buttons.all()).entries())expect(await button.evaluate(read)).toEqual(expected[index%2]);
+});

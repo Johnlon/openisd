@@ -1,0 +1,191 @@
+# Fresh Code & Test Audit — Checkpoint `10fbfcca3` (`t607-field-renditions`)
+
+## 1. Review Coverage, Baseline Discipline, and Limits
+
+- **Reviewed scope**: Read-only inspection at checkpoint `10fbfcca37c1edd8f774ba63280b64e29c7524da` (plus `fb861c0f5..10fbfcca3` scoped diff and uncommitted strategy notes in [`FIELD_APPEARANCE_CATALOGUE.md`](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L147-L322)) across [`caretSpin.ts`](http://lap:8000/winisd/openisd-t607/packages/design/fields/caretSpin.ts#L1-L176), [`fieldAppearance.ts`](http://lap:8000/winisd/openisd-t607/packages/design/fields/fieldAppearance.ts#L1-L59), [`NumInput-hooks.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L1-L598), [`NumInput.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L1-L159), [`FieldCatalogue.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue#L1-L66), [`UIFieldBody.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L1-L189), [`UnitToggle.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UnitToggle.vue#L1-L85), [`NumReadout.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumReadout.vue#L1-L63), [`field-catalogue.css`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L1-L109), [`compactFieldContract.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/compactFieldContract.ts#L1-L78), [`fieldControlContainment.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldControlContainment.ts#L1-L55), the seven browser specs in `packages/ui/test/ui/`, [
+# Fresh Code & Test Audit — `t607-field-renditions` (`10fbfcca3`)
+
+## 1. Review Coverage and Limits
+
+- **Scope inspected**: Static read-only audit of commit `10fbfcca37c1edd8f774ba63280b64e29c7524da` (`git diff fb861c0f5..10fbfcca3`) plus uncommitted working-tree strategy notes in [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L1-L322). All scoped files were read in full: [caretSpin.ts](http://lap:8000/winisd/openisd-t607/packages/design/fields/caretSpin.ts#L1-L176), [fieldAppearance.ts](http://lap:8000/winisd/openisd-t607/packages/design/fields/fieldAppearance.ts#L1-L59), [spinnerStep.ts](http://lap:8000/winisd/openisd-t607/packages/design/fields/spinnerStep.ts#L1-L142), [numberText.ts](http://lap:8000/winisd/openisd-t607/packages/design/fields/numberText.ts#L1-L43), [dragSpin.ts](http://lap:8000/winisd/openisd-t607/packages/design/fields/dragSpin.ts#L1-L85), [field.ts](http://lap:8000/winisd/openisd-t607/packages/design/fields/field.ts#L1-L1587), [dimensions.ts](http://lap:8000/winisd/openisd-t607/packages/design/fields/dimensions.ts#L1-L200), [NumInput-hooks.ts](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L1-L598), [NumInput.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L1-L159), [FieldCatalogue.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue#L1-L66), [UIFieldBody.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L1-L189), [UnitToggle.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UnitToggle.vue#L1-L85), [NumReadout.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumReadout.vue#L1-L63), [field-catalogue.css](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L1-L109), [field-use-cases.html](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L1-L325), [field-use-cases-behaviour.ts](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases-behaviour.ts#L1-L11), and all nine scoped test/fixture files under `packages/ui/test/`.
+- **Limits**: Read-only static inspection; no browser process, test runner, or dev server was executed. Visual subpixel compositing and full-page scroll/flex heights that depend on live Chromium layout are separated below as hypotheses (`H1`–`H2`).
+- **Approval boundary**: [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L3) and [field-use-cases.html](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15) are explicitly `DRAFT`. The gallery contains **20 numbered cases (`#case-01`..`#case-20`) plus 4 limits demos (`gain`, `mass`, `power`, `qms`)**, not 24 approved cases. Only Case 01 option E (blinking inverse-video cursor), the end-caret final-digit rule, and touch in-place editing with `StepperPin` scroll ratchet are recorded as decided; remaining cases still require John's approval.
+
+---
+
+## 2. Confirmed Defects (Implementation & Vacuous/Circular Tests)
+
+### C1 (High) — Circular contextual access check, `NUMVC` rendered as spinner box instead of count `<select>`, single-unit switchable affordance mismatch, and unreconciled page control inventory
+
+- **Exact file/line**:
+  - `packages/ui/test/fixtures/compactFieldContract.ts` lines 16–77 (especially lines 16, 31, 37, 45–48)
+  - `packages/ui/test/ui/field-catalogue.browser.spec.ts` lines 25–34, 74–118
+  - `packages/ui/src/ui/components/UIFieldBody.vue` lines 115–127
+  - `packages/design/fields/field.ts` lines 922–931 (`NO`), 952–961 (`NUMVC`), 1060–1069 (`GLOSS`)
+  - `packages/design/fields/fieldAppearance.ts` lines 18–22
+  - `packages/ui/src/ui/components/UnitToggle.vue` line 29
+- **Minimal triggering sequence or mutation**:
+  1. *Circular access*: Flip `:readonly="true"` on a writable field (or `:readonly="false"` on a read-only field) in any view. `UIFieldBody.vue:L115,L119` sets both `data-access` and `<NumReadout>`/`<input readonly>` from the same `props.readonly` boolean, and `compactFieldContract.ts:L31,L37` derives expected read-only status from `row.dataset.access === 'readonly'`.
+  2. *Missing CountSelect on `NUMVC`*: Open Driver Editor → `Parameters`. `NumberField.NUMVC` (`field.ts:L952-L961`, limits 1..4, integer spin, precision 0) omits `editor: NumberEditor.CountSelect`. Both `UIFieldBody.vue:L120` and the test's `intrinsicNumbers` helper (`field-catalogue.browser.spec.ts:L25`) check `field.editor === NumberEditor.CountSelect`, so both agree `numVC` is a spinner `<input>` rather than a `<select>`.
+  3. *Single-choice switchable unit group*: `NumberField.NO` (`field.ts:L922-L931`) and `NumberField.GLOSS` (`field.ts:L1060-L1069`) declare `display: {kind: 'switchable', group: 'percent', base: 'pct'}` where `UNIT_GROUPS.percent` (`dimensions.ts:L101-L103`) has only one token (`pct`). `UnitToggle.vue:L29` checks `props.field.nextToken(currentToken.value) !== currentToken.value` and renders a non-clickable fixed label (`span.unit-label`), whereas `appearanceFor` (`fieldAppearance.ts:L21`) classifies them as `FieldUnits.Switchable`.
+  4. *Vacuous inventory*: Delete a required `.ui-field` from a dialog or replace it with a raw `<input>` lacking `data-field`. `compactFieldContract.ts:L16` queries only `.ui-field[data-field], .mob-sheet-cell[data-field]`, and `field-catalogue.browser.spec.ts:L82,L112` asserts only `report.rows > 0`.
+- **Expected vs. Actual**:
+  - *Expected*: Tests verify an independent per-view manifest of expected fields, contextual `writable`/`readonly` access, `count` `<select>` editors (including `numVC`), and whether unit slots are interactive toggles (`role="button"`) vs fixed labels.
+  - *Actual*: Uncommitted strategy prose in `FIELD_APPEARANCE_CATALOGUE.md:L183-L299` proposes a scenario table, but current test code is circular on `data-access` and `field.editor`, ignores unit interactivity (`hasUnits` only checks text length at `compactFieldContract.ts:L45`), and renders `numVC` as a spinner text input.
+- **Why current tests miss it**: `compactFieldContract.ts` derives expectations from the DOM's own `data-access` attribute and the shared `NumberField` registry without an independent per-screen specification or raw-control reconciliation.
+- **Smallest general regression plus repair**:
+  - *Regression*: Add a test asserting `NumberField.NUMVC.editor === NumberEditor.CountSelect`, `appearanceFor(NumberField.NO).units === FieldUnits.Fixed`, and passing a per-screen expected field/access/unit-affordance manifest into `measureCompactFields` that also fails on any unannotated `input, select, textarea, [role="checkbox"], .mob-readonly` inside the root.
+  - *Repair*: Add `editor: NumberEditor.CountSelect` to `NumberField.NUMVC` (`field.ts:L952`); change `appearanceFor` (`fieldAppearance.ts:L21`) to return `FieldUnits.Switchable` only when `field.nextToken(field.display.base) !== field.display.base`; enforce an explicit per-view manifest and control-count reconciliation in `compactFieldContract.ts`.
+
+---
+
+### C2 (High) — Paint/geometry tests skip all 26 non-numeric catalogue forms, omit DQ button paint, check only 1 of 4 border sides, and never run `measureCompactFields` on desktop views
+
+- **Exact file/line**:
+  - `packages/ui/test/ui/field-renditions.browser.spec.ts` lines 46–59, 104–124
+  - `packages/ui/src/ui/components/FieldCatalogue.vue` lines 33–54, 65
+  - `packages/ui/src/ui/field-catalogue.css` lines 38–45
+  - `packages/ui/test/fixtures/compactFieldContract.ts` lines 16, 40–58
+- **Minimal triggering sequence or mutation**:
+  1. Mutate `border-right: none`, `border-top: none`, or `border-bottom: none` on `.ui-field .num-input-box`, or corrupt `.ui-field-dq-btn` font/size/colour, or break any `Choice`, `Text`, `Boolean`, or `BugToggle` row in `FieldCatalogue.vue`: all tests pass.
+  2. Inspect the 26 non-numeric rows in `FieldCatalogue.vue:L40-L54`:
+     - Writable `Choice` (`FieldCatalogue.vue:L41`, `field-catalogue.css:L38`) spans `grid-column: 2 / 5` (`width: 100%` = `240px` across the `108 + 2 + 48 + 2 + 80` tracks), whereas `#case-16 .text-choice` in `field-use-cases.html:L2` has `width: 160px`.
+     - Read-only `Choice` (`FieldCatalogue.vue:L50`) renders `<input readonly value="Round">` spanning columns `2 / 5`.
+     - Read-only `Boolean` and `BugToggle` (`FieldCatalogue.vue:L43,L65`) render `<span role="checkbox" class="catalogue-check-readout">` (`20×20px`), and `BugToggle` (`FieldCatalogue.vue:L44,L65`) styles the checkbox input directly (`border: 2px solid #d6a600; background: #fff1aa`) instead of the gallery's `#case-19` `.toggle.bug` pill with a leading `⚠` (`field-use-cases.html:L2,L15`).
+- **Expected vs. Actual**:
+  - *Expected*: Every family in `FIELD_APPEARANCES` (all 70 rows) and every sub-control (including `.ui-field-dq-btn` and all 4 border edges) is verified by automated paint and geometry checks across both mobile (`Compact`) and desktop (`Original`) skins.
+  - *Actual*: `field-renditions.browser.spec.ts:L46` filters `FIELD_APPEARANCES` to `Number` and `Count` only (44 of 70 rows); `FieldCatalogue.vue:L40-L54` omits `data-field` on non-numeric rows so `measureCompactFields` (`field-catalogue.browser.spec.ts:L32`, `report.rows === 44`) skips them too; `compactFieldContract.ts:L44` checks only `borderLeftWidth`/`borderLeftStyle`/`borderLeftColor` and keeps `±1px` size tolerances (`L40,L42`); desktop tests (`field-renditions.browser.spec.ts:L104-L124`) never call `measureCompactFields`.
+- **Why current tests miss it**: Explicit `.filter(item => item.family === FieldFamily.Number || item.family === FieldFamily.Count)` at `field-renditions.browser.spec.ts:L46`, missing `data-field` attributes on non-numeric catalogue rows, single-edge border sampling in `compactFieldContract.ts:L44`, and omission of `.ui-field-dq-btn` from `styleOf` assertions.
+- **Smallest general regression plus repair**:
+  - *Regression*: Add a spec assertion that checks all four border sides in `compactFieldContract.ts`, compares `.ui-field-dq-btn` paint against `#case-07 .dq`, removes the `Number`/`Count` filter in `field-renditions.browser.spec.ts:L46`, and calls `measureCompactFields` on desktop Sealed Box.
+  - *Repair*: Add `data-field` to all 26 non-numeric rows in `FieldCatalogue.vue`, check `Top`/`Right`/`Bottom`/`Left` borders in `compactFieldContract.ts:L44`, include `.ui-field-dq-btn` in paint comparison, and align non-numeric catalogue renditions with the approved gallery cases.
+
+---
+
+### C3 (High) — Blinking inverse-video cursor and read-only CSS rules overwrite provenance colours (`calculated`, `defaulted`, and read-only stored values)
+
+- **Exact file/line**:
+  - `packages/ui/src/ui/field-catalogue.css` lines 55–58, 83–86
+  - `docs/design/field-use-cases.html` lines 5, 15, 40
+  - `packages/ui/src/ui/components/UIFieldBody.vue` lines 63, 119
+  - `packages/ui/test/ui/field-renditions.browser.spec.ts` lines 92–102
+- **Minimal triggering sequence or mutation**:
+  1. *Cursor blink overwrites calculated/defaulted colour*: Focus or step a calculated editable field (e.g. Closed Box `Fsc` or `Qtc`, or Vented `Fb`, which carry `.calculated` / `.value-c` with `#06f` blue text) or a defaulted field (`#23548f` slate-blue text). During the `56%, 100%` phase of `@keyframes spin-inverse-blink` (`field-catalogue.css:L86` and `field-use-cases.html:L5`), the keyframe sets `color: #078200` (entered green), painting the active digit green inside a blue calculated or slate-blue defaulted number.
+  2. *Read-only fields lose entered/defaulted provenance*: `UIFieldBody.vue:L119` hardcodes `:class="['calculated', 'greyed', ...]"` on `<NumReadout>` instead of passing `view.provenanceClass`, and `field-catalogue.css:L58` forces `:is(input[readonly], .mob-readonly) { background: #f1f1f1 !important; color: #06f !important; }`. Any read-only stored/entered (`#078200`) or defaulted (`#23548f`) value is forced to calculated blue (`#06f`).
+  3. *Defaulted fixed binding puts `.value-c` on input*: `UIFieldBody.vue:L63` sets `provenanceClass: props.defaulted === true ? CellClass.Calculated : CellClass.Entered`, attaching `.value-c` (`color: #06f` at `field-catalogue.css:L56`) to defaulted inputs and relying purely on source order (`.ui-field-defaulted` at `L57`, same specificity `(0,4,1)`) not to paint blue.
+- **Expected vs. Actual**:
+  - *Expected*: [field-use-cases.html](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15) Section 2 and Section 3 (`L40`) state that text colour must continue to describe provenance (`#078200` entered, `#06f` calculated, `#23548f` defaulted), the cursor must not turn a calculated value into an entered value, and read-only stored values retain their provenance.
+  - *Actual*: Both `field-catalogue.css:L86` and `field-use-cases.html:L5` hardcode `color: #078200` in `@keyframes spin-inverse-blink`, and `UIFieldBody.vue:L119` + `field-catalogue.css:L58` force read-only fields to `#06f`.
+- **Why current tests miss it**: `field-renditions.browser.spec.ts:L92-L102` samples `color` on unfocused `<input>` elements only, never on `.num-mark-underline` across animation phases or on read-only entered/defaulted fields.
+- **Smallest general regression plus repair**:
+  - *Regression*: Step a calculated field (`Fsc` or `#case-06`) and assert `getComputedStyle(marker).color` is `rgb(255, 255, 255)` at the `0%` keyframe and `rgb(0, 102, 255)` (not `rgb(7, 130, 0)`) at the `75%` keyframe; assert a read-only entered field retains `rgb(7, 130, 0)`.
+  - *Repair*: Change `56%, 100%` in `@keyframes spin-inverse-blink` (`field-catalogue.css:L86` and `field-use-cases.html:L5`) from `color: #078200` to `color: inherit`; pass `view.provenanceClass` to `NumReadout` in `UIFieldBody.vue:L119` and remove `color: #06f !important` from `field-catalogue.css:L58` so provenance rules set the foreground colour.
+
+---
+
+### C4 (High) — Unit switching fails to reset `lastCaret` / `lastStep` / `underlineIndex`, wipes unfocused refused drafts in `NumInput-hooks.ts`, and leaves stale `.digit-guide` text in `field-use-cases.html`
+
+- **Exact file/line**:
+  - `packages/ui/src/hooks/NumInput-hooks.ts` lines 75–85, 343–375
+  - `docs/design/field-use-cases.html` lines 111, 320
+- **Minimal triggering sequence or mutation**:
+  1. *Stale `lastCaret` and `lastStep` across unit switch*: Focus `Fs` (`31.83` in `Hz`), click or step a digit so `lastCaret` and `lastStep` are populated, then click `UnitToggle` (`Hz` → `kHz`, changing `display.value` to `'0.03'`). Clicking `UnitToggle` blurs the input (`groupFocused.value = false`), and `watch(activeToken)` (`NumInput-hooks.ts:L75-L85`) updates `display.value = fmt(props.modelValue)` without resetting `lastCaret`, `lastStep`, or `underlineIndex.value`. Pressing `▲` next calls `caretForStep()` (`L370`), which reuses the stale `lastCaret` and `lastStep.place` from the old unit's string representation. Even if `activeToken` changes while `groupFocused.value === true` (`L78-L84`), `display.value` is rescaled without resetting `lastCaret`, `lastStep`, or `underlineIndex.value`.
+  2. *Unfocused refused draft erased on unit switch*: Type an out-of-range value into a switchable-unit field and blur (`groupFocused.value = false`, `refusal.value !== ''`). Click `UnitToggle`. Unlike `watch(() => props.modelValue)` (`L73`, which guards `refusal.value === ''`), `watch(activeToken)` (`L76-L77`) unconditionally overwrites `display.value = fmt(props.modelValue)` when `!groupFocused.value`, silently discarding the refused draft.
+  3. *Gallery unit switch leaves stale `.digit-guide`*: In `field-use-cases.html:L320`, clicking `button[data-unit]` mutates `input.value` without resetting `state.at`, `state.last`, or `state.mark` and without calling `renderSpinSelection(input)`.
+- **Expected vs. Actual**:
+  - *Expected*: [field-use-cases.html](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L111) Section 9 requires unit switching to treat the new unit as a fresh display context (resetting remembered caret/step indices and re-evaluating limits against the rescaled draft).
+  - *Actual*: `NumInput-hooks.ts:L75-L85` retains `lastCaret`/`lastStep`/`underlineIndex` across unit switches and wipes unfocused refused drafts; `field-use-cases.html:L320` leaves the old unit's string inside `.digit-guide`.
+- **Why current tests miss it**: No test in `num-input-caret.browser.spec.ts` or `number-stepper.browser.spec.ts` clicks `UnitToggle` after establishing a caret/step position or while holding a refused draft.
+- **Smallest general regression plus repair**:
+  - *Regression*: Step `Fs` in `Hz` at the ones digit, click `UnitToggle` to `kHz`, press `▲`, and assert the step uses the new display string's default final digit (`0.01 kHz`), not the old `Hz` place; also assert an unfocused refused draft is rescaled (not erased) when switching units.
+  - *Repair*: In `watch(activeToken)` (`NumInput-hooks.ts:L75-L85`), reset `lastCaret = {kind: 'none'}`, `lastStep = null`, and `underlineIndex.value = null`, and rescale any active or refused draft (`groupFocused.value || refusal.value !== ''`); in `field-use-cases.html:L320`, reset `state.at`, `state.last`, `state.mark` and call `renderSpinSelection(input)`.
+
+---
+
+### C5 (Medium) — `allowOutOfRange` in `NumInput-hooks.ts` bypasses `badEntry`, `blankRefused`, and `floor` checks
+
+- **Exact file/line**:
+  - `packages/ui/src/hooks/NumInput-hooks.ts` lines 505–508, 565–572
+  - `docs/design/field-use-cases.html` lines 97–103
+- **Minimal triggering sequence or mutation**:
+  1. On a `NumInput` with `allowOutOfRange: true`, type a lone `"-"`, `"."`, or `"1e"` (`badEntry.value === true`), or clear an input with `blankRefused: true`. Because `if (props.allowOutOfRange) return '';` is the first line of `refusal` (`NumInput-hooks.ts:L566`) before `if (badEntry.value)` (`L567`) and `if (display.value === '' && props.blankRefused)` (`L568`), `refusal.value` returns `''`. No `inp-bad` class or `⚠` message is shown, and blurring (`L547`) silently reverts the input to `fmt(props.modelValue)`.
+  2. On a positive-floor field (`floor: 'positive'`) with `allowOutOfRange: true`, type `0` or `-5`: `valid(si)` (`L506`) checks only `isFinite(si)`, emitting `0` or `-5` via `update:modelValue` in violation of the physical floor rule (`field-use-cases.html:L97-L103`).
+- **Expected vs. Actual**:
+  - *Expected*: `allowOutOfRange` relaxes soft `[min, max]` band limits while still refusing non-numeric drafts (`badEntry`), disallowed blanks (`blankRefused`), and physical domain floors (`positive` / `nonNegative`).
+  - *Actual*: `allowOutOfRange` short-circuits all refusal and floor validation.
+- **Why current tests miss it**: No test exercises `allowOutOfRange: true` with partial non-numeric text, blank text, or `floor: 'positive'` <= 0 values.
+- **Smallest general regression plus repair**:
+  - *Regression*: Mount `NumInput` with `allowOutOfRange: true, blankRefused: true, limits: {min: 1, max: 100, floor: 'positive'}`, enter `"-"` and `"0"`, and assert `inp-bad` and `refusal` are active and `update:modelValue` is not emitted.
+  - *Repair*: In `NumInput-hooks.ts:L505-L508` and `L565-L572`, run `badEntry`, `blankRefused`, and `floor` checks before bypassing `[min, max]` range clamps for `allowOutOfRange`.
+
+---
+
+### C6 (Medium) — Caret marker clearing on click/typing is contradicted by `rememberCaret()`, and `Escape` on a focused stepper button leaves stale `lastCaret` / `lastStep`
+
+- **Exact file/line**:
+  - `packages/ui/src/hooks/NumInput-hooks.ts` lines 90, 100, 166–172, 285–301, 319–321, 344–354, 526
+  - `packages/ui/test/ui/number-stepper.browser.spec.ts` lines 97–100, 138–140
+  - `packages/ui/test/ui/num-input-rendition.browser.spec.ts` lines 90–102
+- **Minimal triggering sequence or mutation**:
+  1. `onFocus` (`L90`), `onBoxPointer` (`L100`), and `onKeydown` (`L320`) set `underlineIndex.value = null`, and `number-stepper.browser.spec.ts:L138-L140` asserts `// Tap in the box clears the mark`. However, in commit `10fbfcca3`, `rememberCaret()` (`L352`) was modified to set `underlineIndex.value = at.kind === 'digit' ? at.at : digitAtCaret(display.value, at.at)`, and is invoked on every `onInput` (`L526`) and `document` `selectionchange` (`L355`). Thus, typing or clicking any position that fires `selectionchange` or `onBoxPointerUp` (`L171`) immediately repopulates `underlineIndex.value`; `box.click()` at `number-stepper.browser.spec.ts:L139` only passed because clicking the horizontal centre of the 108px input missed the right-aligned glyphs and did not move `selectionStart`.
+  2. When a spinner button has focus (`number-stepper.browser.spec.ts:L97`), pressing `Escape` runs `onKeydown` (`NumInput-hooks.ts:L285-L301`), which clears `underlineIndex.value = null` (`L290`) but does not reset `lastCaret` or `lastStep`, and `if (e.target instanceof HTMLInputElement)` (`L298`) skips syncing `inputEl.value.value` because `e.target` is the `HTMLButtonElement`.
+- **Expected vs. Actual**:
+  - *Expected*: Either the active digit cursor is always shown whenever a caret/digit is active (`FIELD_APPEARANCE_CATALOGUE.md:L129-L133`, `num-input-rendition.browser.spec.ts:L90-L102`), or typing/clicking clears it until the next spin; and `Escape` from any element inside the field group restores the input DOM value and resets `lastCaret`/`lastStep`.
+  - *Actual*: `NumInput-hooks.ts` contains contradictory clear-then-repopulate logic for `underlineIndex`, and `Escape` on a focused spinner button leaves `lastCaret`/`lastStep` and `inputEl.value.value` untouched.
+- **Why current tests miss it**: `number-stepper.browser.spec.ts:L139` clicks the geometric centre of the box without moving `selectionStart`, and `L97` checks only that the overlay disappears on `Escape` without stepping again to test whether `lastCaret`/`lastStep` were cleared.
+- **Smallest general regression plus repair**:
+  - *Regression*: Test `Escape` while a spinner button is focused after stepping a middle digit, then press `▲` and assert stepping resumes from the default final digit; remove the contradictory `Tap in the box clears the mark` expectation in favour of testing the decided active-digit marker behaviour.
+  - *Repair*: In `NumInput-hooks.ts:L285-L301`, reset `lastCaret = {kind: 'none'}` and `lastStep = null` and sync `if (inputEl.value) inputEl.value.value = display.value`; remove dead `underlineIndex.value = null` resets in `onBoxPointer`/`onKeydown` that fight `rememberCaret()`.
+
+---
+
+### C7 (Medium) — Spinner button keyboard reachability (`tabindex="-1"`), `@pointerleave` aborting captured pointer holds, missing `lostpointercapture` / `visibilitychange` cleanup, and gallery/app controller split
+
+- **Exact file/line**:
+  - `packages/ui/src/ui/components/NumInput.vue` lines 45–50
+  - `packages/ui/src/hooks/NumInput-hooks.ts` lines 418–427, 455–456
+  - `docs/design/field-use-cases.html` lines 15, 42, 73, 127, 186–322
+- **Minimal triggering sequence or mutation**:
+  1. *`pointerleave` vs `setPointerCapture`*: Press and hold `▲` with a mouse on `NumInput.vue:L46` (`onStepperPointerDown` calls `setPointerCapture` at `NumInput-hooks.ts:L422`), then let the pointer drift 1px outside the `40×34px` button while holding the mouse button down. `@pointerleave="onStepperLeave"` (`NumInput.vue:L46`, `NumInput-hooks.ts:L455-L456`: `if (e.pointerType !== 'touch') stopRepeat()`) immediately kills the hold repeat despite active pointer capture. Conversely, `NumInput.vue` lacks `@lostpointercapture="stopRepeat"` and `document` `visibilitychange` cleanup (`field-use-cases.html:L309,L315`).
+  2. *`tabindex="-1"` on spinner buttons*: `NumInput.vue:L45,L48` sets `tabindex="-1"` on both `.num-stepper-btn` buttons, making them unreachable via `Tab` (whereas `field-use-cases.html:L15,L42` leaves `.steppers button` tabbable and `NumInput-hooks.ts:L313` implements `Space`/`Enter` handlers for focused buttons).
+  3. *Gallery/app controller divergence*: `field-use-cases.html:L186-L322` runs a separate inline script that lacks `Escape` draft restoration, mouse-wheel stepping, and horizontal drag-to-spin (`DRAG_SPIN_THRESHOLD_PX` is imported at `L172` and never used).
+- **Expected vs. Actual**:
+  - *Expected*: Pointer capture sustains press-and-hold until `pointerup`, `pointercancel`, `lostpointercapture`, or `visibilitychange` (`field-use-cases.html:L127`); keyboard reachability and interaction behaviour are identical between the gallery and the app.
+  - *Actual*: Desktop mouse hold stops on `@pointerleave`, `lostpointercapture`/`visibilitychange` are unbound in `NumInput.vue`, `tabindex="-1"` differs between gallery and app, and the gallery duplicates a subset of `NumInput-hooks.ts`.
+- **Why current tests miss it**: `number-stepper.browser.spec.ts` never moves the pointer outside the button during a hold, never dispatches `lostpointercapture`, and uses programmatic `.focus()` (`L94`) rather than `Tab`.
+- **Smallest general regression plus repair**:
+  - *Regression*: Hold `▲` with mouse pointerdown, move pointer outside button bounds while still pressed, advance timers past `400ms`, and assert repeat continues until `pointerup` or `lostpointercapture`.
+  - *Repair*: Replace `@pointerleave="onStepperLeave"` on `.num-stepper-btn` (`NumInput.vue:L46,L49`) with `@lostpointercapture="stopRepeat"` plus a `visibilitychange` listener in `NumInput-hooks.ts`, align `tabindex` between gallery and app, and drive the gallery from the shared logic.
+
+---
+
+## 3. Hypotheses Requiring a Live Browser / Geometry Probe
+
+- **H1 — Subpixel glyph fringe between `.num-mark-overlay` and live `<input>` text**:
+  - *Source basis*: In `field-use-cases.html:L4`, `.spin-editor input.value` sets `color: transparent` so glyphs are painted only once (by `.digit-guide`). In `NumInput.vue:L38-L41` and `field-catalogue.css:L82-L84`, the `<input>` text remains opaque (`padding: 0 6px` inside a `1px` border, `line-height: normal`) while `.num-mark-overlay` (`padding: 0 7px`, `line-height: 18px`) paints the same glyphs over it. Whether this produces a 0.5–1px vertical baseline offset or anti-aliasing fringe around the active digit requires a live browser pixel/bounding-box probe.
+- **H2 — Parent pane shell height and short-window scroll budget (`PR` pane `247px` vs `226px`; `Vented` short-window `1112px` vs `1057px`)**:
+  - *Source basis*: Noted in [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L163-L165). Identifying the exact ancestor padding/gap rules responsible and confirming no controls clip across viewports requires live DOM layout measurement.
+
+---
+
+## 4. User Design Decisions Still Open (Do Not Assume Approved)
+
+- **Unapproved cases in `DRAFT` catalogue**: Beyond Case 01 option E (blinking inverse cursor), the end-caret final-digit rule, and touch in-place editing + `StepperPin`, the remaining cases across the 20 numbered cases (`#case-01`..`#case-20`, where `#case-03` has note "clean" and `#case-20` has note "good" with explicit caveat that the examples still need approval) and 4 limits demos (`gain`, `mass`, `power`, `qms`) are not yet signed off by John.
+- **Specific open rulings for John**:
+  1. **Unit-rail column alignment in mixed groups**: `field-catalogue.css:L25,L32-L34` sets `.ui-field-no-unit` to `grid-template-columns: minmax(112px, 1fr) 108px 80px` (collapsing the `48px` unit column so unitless inputs/steppers shift right by `50px` relative to adjacent unit-bearing rows), whereas `field-use-cases.html:L3` keeps `.field-row` at `minmax(118px, 1fr) 108px 48px 80px` unless `.no-unit` is explicitly applied.
+  2. **Non-numeric control widths and read-only renditions**: Whether `Choice` `<select>` is `160px` (`#case-16`) or `240px` spanning tracks `2 / 5` (`field-catalogue.css:L38`), how read-only `Choice` and read-only `Boolean` should render, and whether `BugToggle` uses the `#case-19` `.toggle.bug` yellow pill with `⚠` (`field-use-cases.html:L2,L15`).
+  3. **Keyboard `Tab` stops on `.num-stepper-btn`**: Whether `Tab` should traverse `input → ▲ → ▼` (`field-use-cases.html:L15,L42`) or skip spinner buttons via `tabindex="-1"` (`NumInput.vue:L45,L48`) since `ArrowUp`/`ArrowDown` already step from the input.
+
+---
+
+## 5. Most Useful Next TDD Step & Independent Focused Recheck Criteria
+
+1. **Next TDD step**:
+   - Write a failing browser test in `packages/ui/test/ui/num-input-rendition.browser.spec.ts` and `num-input-caret.browser.spec.ts` that:
+     1. Focuses a calculated field (`Fsc` or `#case-06`) and asserts `.num-mark-underline` computed `color` at the `75%` blink phase is `rgb(0, 102, 255)` (`#06f`), not `rgb(7, 130, 0)` (`#078200`), and that a read-only entered field retains `rgb(7, 130, 0)` (**C3**).
+     2. Steps `Fs` in `Hz` at an interior digit, clicks `UnitToggle` to switch to `kHz`, clicks `▲`, and asserts the step increments the final digit of the `kHz` display rather than reusing the stale `Hz` caret/step state (**C4**).
+     3. Asserts `NumberField.NUMVC.editor === NumberEditor.CountSelect` and `appearanceFor(NumberField.NO).units === FieldUnits.Fixed` (**C1**).
+   - Observe all three fail against `10fbfcca3`, apply the minimal repairs in `field-catalogue.css`, `UIFieldBody.vue`, `NumInput-hooks.ts`, `field.ts`, and `fieldAppearance.ts`, and verify green.
+2. **What an independent focused recheck must demand**:
+   - **Zero tolerance / zero filter**: `compactFieldContract.ts` checks all 4 border sides with `0px` width/height tolerance, reconciles the total count of interactive/read-only controls in the container against an independent per-view manifest, and runs on both mobile (`Compact`) and desktop (`Original`) views.
+   - **Mutation proof**: Demonstrated red-then-green failure when mutating (a) `:readonly` on a single field, (b) `border-right-width: 0px` on `.num-input-box`, (c) `.ui-field-dq-btn` styles, (d) `.num-mark-underline` blink phase colour on a calculated field, and (e) unit switching after stepping an interior digit.

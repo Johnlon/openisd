@@ -347,6 +347,7 @@ describe('openIsdProjectToWinIsdProject', () => {
       project.box.passiveRadiator.radiator.spec.Fs_hz.clear();
       project.box.passiveRadiator.radiator.spec.Vas_m3.clear();
       project.box.passiveRadiator.radiator.spec.Xmax_m.clear();
+      project.box.passiveRadiator.radiator.spec.Qms.clear();
 
       const { value: wpr, errors } = new WinIsdProjectConverter(engine).openIsdProjectToWinIsdProject(project);
       assert.equal(errors.length, 0, JSON.stringify(errors));

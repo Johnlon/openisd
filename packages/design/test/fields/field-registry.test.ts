@@ -12,7 +12,7 @@ import {describe, expect, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
-import {ALL_FIELDS, DateField, EnumField, Field, NumberField, TextField, ToggleField} from '../../fields/field.js';
+import {ALL_FIELDS, DateField, EnumField, Field, NumberField, NumberEditor, TextField, ToggleField} from '../../fields/field.js';
 const KINDS = [NumberField, EnumField, TextField, ToggleField, DateField];
 
 describe('field-registry — the field registry', () => {
@@ -60,6 +60,17 @@ describe('field-registry — the field registry', () => {
       .filter(f => !(f.limits.min < f.limits.max) || f.precision < 0)
       .map(f => `${f.value} ${JSON.stringify(f.limits)} dp=${f.precision}`);
     expect(bad).toEqual([]);
+  });
+
+  it('declares finite counts as selectors independently of their current rendered form', () => {
+    const counts = [NumberField.DRIVER_NDRIVERS, NumberField.PR_NUM, NumberField.VENT_COUNT];
+    expect(NumberField.ALL.filter(field => field.editor === NumberEditor.CountSelect)).toEqual(expect.arrayContaining(counts));
+    expect(NumberField.ALL.filter(field => field.editor === NumberEditor.CountSelect)).toHaveLength(counts.length);
+    expect(NumberField.FILTER_ORDER.editor).toBe(NumberEditor.Input);
+    for (const field of counts) {
+      expect(field.countOptions().map(option => option.value)).toEqual(Array.from({length: field.limits.max - field.limits.min + 1}, (_, i) => field.limits.min + i));
+      expect(field.display).toEqual({kind: 'fixed', symbol: ''});
+    }
   });
 
   it('offers a non-empty option list on every enum', () => {

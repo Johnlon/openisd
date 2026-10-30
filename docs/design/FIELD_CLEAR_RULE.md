@@ -1,8 +1,8 @@
 # Field states and the clear rule
 
-John's rulings, 16 Oct 2026. Bugs: `bugs/BUG_20261016_clearing-a-linked-pair-member-is-inconsistent.md`,
-`bugs/BUG_20261016_box-tab-tuning-input-missing-for-bandpass4-and-pr.md`,
-`bugs/BUG_20261009_pr-added-mass-can-be-cleared-to-blank.md`.
+John's rulings, 16 Oct 2026. Bugs: `bugs/archive/BUG_20261016_clearing-a-linked-pair-member-is-inconsistent.md`,
+`bugs/archive/BUG_20261016_box-tab-tuning-input-missing-for-bandpass4-and-pr.md`,
+`bugs/archive/BUG_20261009_pr-added-mass-can-be-cleared-to-blank.md`.
 
 ## States
 

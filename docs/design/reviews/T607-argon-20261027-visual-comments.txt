@@ -1,0 +1,418 @@
+LATEST RELEASE FOLLOW-UP: the two high-priority clipping issues and both concrete spacing issues below have been repaired. Permanent DOM tests cover seeded unit cycles, narrow desktop containment, fixed-unit right clearance and phone library footer width. See the appended fresh1920review and final1943repair evidence. Earlier open statuses describe historical checkpoints.
+
+Independent visual/source review requested by John, 27 Oct 2026
+
+Request: send the same images to Argon and see what it thinks.
+Model: gemini-4-argon-high via agy, read-only plan mode.
+Conversation: a77400b8-6089-44fc-905e-9941b7e230bb
+Status: SUCCESS
+
+Evidence: 10 existing images (5 production/preview pairs), plus exact commit8dd302942 source/test diff.
+All preview images are1419, before the1818repairs. No new desktop captures were made.
+The report is not current-build visual approval and is not authority to change user-selected design.
+
+Initial disposition:
+- Info between Select driver and Edit was explicitly requested by John ("add a info button between ... edit driver and select driver and show the driver info panel"). The reviewer lacked that instruction; its unjustified-feature label is a false positive. Keep Info.
+- Uniform versus inset desktop mandatory borders is an observation needing independent computed production evidence; no new appearance decision is inferred.
+- Underline clearance and full unit-cycle readability are being checked with DOM measurements, not accepted solely from reviewer estimates.
+- Initial-viewport/toast limitations remain explicit. Cancellation coverage does not prove preservation after completing Create; the additional scenario remains to be covered.
+
+DOM FOLLOW-UP (completed183430; diagnostic, not a conformance pass)
+80unit rotations checked across seeded desktop Parameters, Advanced and Dimensions.
+- CONFIRMED: Advanced gamma248.87192 N/(A·kg) needs64.00px but has58.89px. It is already clipped on entering the seeded Advanced tab, before rotating a unit.
+- CONFIRMED: Advanced air density0.00120095 g/cm³ needs73.08px but has58.88px and overlaps its unit cap after rotation. Parameters and Dimensions had no issues for this seeded cycle.
+- NOT CONFIRMED IN EDITOR: all measured switchable editor chips are28px high, with at least1.421875px estimated underline-to-inner-border clearance. The review assumed20px and therefore overstates that specific editor claim. This does not establish clearance in every other desktop host.
+- EXISTING TEST GAP: Dimensions-only cycle coverage and a different complete-project fixture did not exercise these seeded Advanced values. The shared text-width detector does report both once those states are visited. A diagnostic probe completing successfully is NOT a passing conformance verdict.
+- OPEN: extend the permanent seeded unit-cycle/precision scenarios across all editor tabs, fit the full joined group without clipping, then rerun the shared geometry/border checks. Current1818preview is not deployment-ready on this evidence.
+Measurements: T607-argon-20261027-dom-audit.json. No further application edits or new desktop screenshots were made during this review request.
+
+VERBATIM REVIEW FOLLOWS
+
+### (1) Image Files Viewed
+
+All 10 images in [image-manifest.json](http://lap:8000/winisd/openisd-t607/build/tmp/t607-argon-image-review/image-manifest.json) were inspected directly via `read_file`:
+
+1. [desktop/production/desktop__driver__editor__parameters.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/production/desktop__driver__editor__parameters.png)
+2. [desktop/preview/desktop__driver__editor__parameters.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/preview/desktop__driver__editor__parameters.png)
+3. [desktop/production/desktop__results__what-if__bandpass-4th-order.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/production/desktop__results__what-if__bandpass-4th-order.png)
+4. [desktop/preview/desktop__results__what-if__bandpass-4th-order.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/preview/desktop__results__what-if__bandpass-4th-order.png)
+5. [production/wizard-box-passive-radiator-1/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/production/wizard-box-passive-radiator-1/01.png)
+6. [preview/wizard-box-passive-radiator-1/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/preview/wizard-box-passive-radiator-1/01.png)
+7. [production/tab-driver/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/production/tab-driver/01.png)
+8. [preview/tab-driver/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/preview/tab-driver/01.png)
+9. [production/box-sealed/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/production/box-sealed/01.png)
+10. [preview/box-sealed/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/preview/box-sealed/01.png)
+
+---
+
+### (2) Per-Pair Visual Critique
+
+All pairs compare **Production `v20261025T2233Z`** against **pre-fix Preview `v20261027T1419Z`** on project SHA `d7f7694b…` (`scrollCoverage: "initial viewport"`).
+
+#### Pair 1: `desktop/driver/editor/parameters` (`1280×900`)
+- **`Cms` (`0.4705 mm/N`), `Rms` (`2.03143 Ns/m`), `KLe` (`H·√Hz`)**: **Regression (pictured in `v20261027T1419Z`)** — Each input outline extends ~23.3px right of its unit chip and paints over the left `[▲]` stepper button, leaving a blank white box segment between the unit and `[▼]`.
+- **Switchable unit chips (`Fs` `Hz`, `Vas` `L`, `Mms` `g`, `Cms` `mm/N`, `Rms` `Ns/m`, `Dd` `mm`, `Le` `mH`, `Sd` `cm²`, `fLe` `kHz`, `Xmax` `mm`, `Hc` `mm`, `Hg` `mm`, `Vd` `cm³`, `Xlim` `mm`, plus background `Added mass to cone` `g` and `AlfaVC` `1000/K`)**:
+  - **Beneficial**: Unit chips are joined inside the right end of the value box before `[▲][▼]` (except on `Cms`/`Rms` above), replacing production's `[input] [▲][▼] unit` layout.
+  - **Regression (pictured in `v20261027T1419Z`)**: Underlines are still `dotted` dark grey (`#555`) at `2px` offset instead of the ruled `solid` blue (`#1868d1`) underline.
+- **Fixed units (`Re` `Ω`, `BL` `Tm`, `Pe` `W`, `η₀` `%`, `Znom` `Ω`, `USPL` `dB`, `SPL` `dB`, `Peak power` `W`, background `Signal Generator` `1000.00 Hz`)**: **Beneficial** — Plain unbordered text inside the right rail of the input box, with `[▲][▼]` outside right.
+- **Mandatory input borders (`Fs`, `Vas`, `Re`, `Sd`)**: **Unjustified** — Production renders uniform dark 2px `solid` borders on all four sides; preview uses `--joined-border-style: inset` ([joined-fields.css:L65](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L65)), making the bottom and right edges visibly lighter than top and left.
+- **Top cloud-sync banner & toolbar cloud icon**: **Neutral** — Present in production, absent in local preview.
+
+#### Pair 2: `desktop/results/what-if/bandpass-4th-order` (`1280×900`)
+- **What-if fields (`Fs` `Hz`, `Vas` `L`, `Sd` `cm²`, `Re` `Ω`, `Vb` `L`, `Le` `mH`, `Xmax` `mm`, `Pe` `W`, `Bl` `Tm`, `Mms` `g`, `EBP` `Hz`) & Box-tab fields (`Rear chamber` `Volume` `L`, `Frc` `Hz`, `Qtc`; `Front chamber` `Volume` `L`, `Tuning freq (Ffc)` `Hz`)**: **Beneficial** — Joined value/unit boxes make the docked `.what-if-panel` narrower, uncovering the Box tab's diagram and explanatory text behind it.
+- **Switchable unit underlines in What-if and Box tab**: **Regression (pictured in `v20261027T1419Z`)** — Still `dotted` `#555` instead of `solid` `#1868d1`.
+- **Transient `"Project imported from same-complete-project.owpr"` toast**: **Regression (capture defect in both)** — Captured before toast dismissal, occluding the What-if `Fs` label and the left edge of the `Fs` (`37.00 Hz`) input.
+
+#### Pair 3: `mobile/projects/new/passive-radiator/choose-driver` (`374×705`)
+- **Embedded `DriverLibrary` in Step 1 (`Search drivers...`, `Bass`–`Unclassified` chips, `Fs`/`Sd`/`Z` filters, `Bundled|My Drivers|All`, `.dlist`, `Add new Driver`, `Load File...`)**: **Regression (pictured in `v20261027T1419Z`)** — Both builds omit the `phone` prop on `DriverLibrary` (rendering the desktop filter layout on phone), and `v20261027T1419Z` removed `.mob-np-library-wrap`'s horizontal padding without adding `phone`, leaving all controls flush against the 0px/374px viewport edges and reflowing `PR` onto the first chip row.
+- **`1843 drivers` vs `1846 drivers`**: **Neutral** — Corpus count difference.
+
+#### Pair 4: `mobile/driver/overview` (`374×705`)
+- **`KEY FIGURES` readonly joined fields (`Fs` `37.00 Hz`, `Qts` `0.380`, `Vas` `30.00 L`, `Re` `6.600 Ω`, `Xmax` `6.000 mm`)**: **Beneficial / Neutral (parity preserved)** — Retains production's exact `170px` box width, `#f4f4f4` surface, `Inter` 15px typography, plain `Ω`, and solid blue underlined `Hz`/`L`/`mm` chips.
+- **`Info` button between `Select driver` and `Edit`**: **Unjustified (in scope of field review)** — Added in `v20261027T1419Z`, narrowing `Select driver` and `Edit`.
+
+#### Pair 5: `mobile/enclosure/closed-box/overview` (`374×705`)
+- **WinISD difference cues (`≠W`) on `Fsc` (`71.95 Hz`) and `Qtc` (`0.707`)**: **Beneficial** — Moved from inside the readonly input boxes (production) to outside right of the `[▲][▼]` spinners (preview), while reserving a shared `24px` cue track ([joined-fields.css:L71](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L71)) so `Vb`, `Fsc`, and `Qtc` share aligned input and spinner edges.
+
+---
+
+### (3) Severity-Ranked Remaining Source/Test Issues & Minimal General Invariants
+
+1. **[HIGH] `5px` underline offset inside `20px`-tall desktop `.unit-toggle` chips collides with the bottom border ([UnitToggle.vue:L63-L64](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UnitToggle.vue#L63-L64), [joined-fields.css:L5](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L5))**
+   - **Why**: Phone chips are `34px` tall, where `text-underline-offset: 5px` clears the bottom border by ~6px. Desktop chips are `--joined-height: 20px` (`box-sizing: border-box`) with a `1px` border (`2px` on mandatory `Fs`, `Vas`, `Sd`). A vertically centered `11px–12px` label has its alphabetic baseline at `y ≈ 13.5–14px`; adding `5px` offset + `1px` thickness puts the underline at `y ≈ 18.5–20px`, directly inside the `1px` (`y = 19..20px`) or `2px` (`y = 18..20px`) bottom border.
+   - **Smallest general invariant**: In `measureFieldContent` ([fieldVisualContract.ts:L166](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L166)), for every visible `.unit-toggle`, measure text ascent/descent via canvas/Range and require `baselineY + parseFloat(css.textUnderlineOffset) + parseFloat(css.textDecorationThickness) <= box.bottom - parseFloat(css.borderBottomWidth) - 1`. (Desktop `.unit-toggle` needs `text-underline-offset: 2px` or `3px`, while `.app-root-mobile` keeps `5px`.)
+
+2. **[HIGH] Removing `.num-input-wrap { min-width: var(--joined-box) }` leaves desktop Driver Editor subgrid inputs at `124px` even when `.unit-wide` (`--joined-chip: 60px`) is active, squeezing numeric content width to `54–56px` ([DriverEditorModal.vue:L1184](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverEditorModal.vue#L1184), [joined-fields.css:L12](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L12))**
+   - **Why**: `.de-desktop .de-params`, `.de-cols`, and `.de-dimlist` hardcode track 2 as `minmax(124px, max-content)`. With `min-width: var(--joined-box)` removed and `input` set to `width: 100%; min-width: 0`, track 2 stays `124px` wide even when `.unit-wide` reserves `padding-right: 60px` (`--joined-chip: 60px`). Subtracting `6px` left padding, `60px` right chip padding, and `2–4px` borders leaves only `54–56px` for digits. Rotating `Vas` (`30.00 L` → `cu ft`, which triggers `.unit-wide`), `Cms` (`mm/N` → `m/N` `0.0004705` or `µm/N`), or multi-digit `Rms`/`Rme` risks clipping display-precision values. Currently, `driver-editor-units.browser.spec.ts` ([driver-editor-units.browser.spec.ts:L260-L281](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/driver-editor-units.browser.spec.ts#L260-L281)) only tests `measureFieldContent` across unit rotations on the unseeded `Dimensions` tab, never on `Parameters` or `Advanced` with seeded driver values.
+   - **Smallest general invariant**: Run the full unit-cycle loop with `measureFieldContent` and `measureFieldBorders` across **all** tabs (`Parameters`, `Advanced`, `Dimensions`) on a seeded driver (and with worst-case display-precision values per `NumberField`).
+
+3. **[MEDIUM] Existing project dirty-state preservation is not verified through `Create Project`, and mobile hides dirty status outside the `Projects` dialog ([new-project-wizard.browser.spec.ts:L241-L250](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/new-project-wizard.browser.spec.ts#L241-L250), [mobile-new-project-wizard.browser.spec.ts:L61-L79](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts#L61-L79))**
+   - **Why**:
+     - On desktop (`new-project-wizard.browser.spec.ts:L241`), the test dirties the initial project and creates `'Skin project'`, but only asserts that `'Skin project'` starts clean; it never asserts that the original project row in `.projects-list` remains `.is-unsaved` and keeps its edited value when re-selected.
+     - On mobile (`mobile-new-project-wizard.browser.spec.ts:L61`), the test only checks steps 1–2 and then clicks close (`✕`); it never checks steps 3–5 or completes `Create Project` to verify the prior project remains `42 L` and `Unsaved`. Visually, on mobile main screens (Pairs 4–5), there is no `"Unsaved"` text badge outside the `☰ → Projects` modal (only the blue fill on the header save icon).
+   - **Smallest general invariant**: In both desktop and mobile wizard specs, after dirtying Project A (`42 L`), walk all 5 steps (asserting `0` `.np-warn` banners on every step), click `Create`, then switch back to Project A in the project list and assert its `Unsaved` marker and `42 L` value are preserved.
+
+4. **[MEDIUM] Initial-viewport captures and transient toasts hide controls under test ([image-manifest.json:L19](http://lap:8000/winisd/openisd-t607/build/tmp/t607-argon-image-review/image-manifest.json#L19), [what-if-panel.browser.spec.ts:L41](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/what-if-panel.browser.spec.ts#L41))**
+   - **Why**: Every capture in the manifest is `"scrollCoverage": "initial viewport"`. In Pair 2, the `"Project imported..."` flash banner obscures the What-if `Fs` label/input; in Pair 1, 5 of the 8 wide-unit fields (`alfaVC`, `Rme`, `Mcost`, `c`, `roo` on `Advanced`) are uncaptured; in Pair 3, the driver preview pane and wizard steps 2–5 are uncaptured.
+   - **Smallest general invariant**: Capture scripts and visual contract checks must wait for `.flash` / `/Project imported/` to be hidden before capture, and enumerate all tabs/steps or scroll containers to `scrollHeight` rather than snapshotting only the initial viewport.
+
+5. **[LOW] `fieldVisualContract.ts` checks spinner intersection rather than ordering, and skips phone unit top/bottom alignment ([fieldVisualContract.ts:L43-L55](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L43-L55), [fieldVisualContract.ts:L166](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L166))**
+   - **Why**: `intersects(box, spinner.getBoundingClientRect())` passes if a spinner is misplaced left of or above/below the input without overlapping; and lines 166/182 skip `.app-root-mobile` when checking that `.unit-toggle` top and height match `value`.
+   - **Smallest general invariant**: In `measureFieldContent`, require `spinner.left >= box.right - 0.5` for all visible `.num-stepper-btn`, and require `Math.abs(unitBox.top - box.top) <= 0.5 && Math.abs(unitBox.bottom - box.bottom) <= 0.5` for all joined `.unit-toggle` chips on both skins.
+
+---
+
+### (4) Separation of Provenance: Old Pictured Failures vs. Plausible Source Repairs vs. Unverified Claims
+
+| Category | Specific Items |
+| :--- | :--- |
+| **A. Old failures pictured in `v20261027T1419Z` screenshots** | 1. Desktop Driver Editor `Cms`, `Rms`, `KLe` inputs extend ~23.3px past their unit chips and cover `[▲]` spinners (Pair 1).<br>2. Desktop switchable units in Driver Editor, What-if, and Box tab still show `dotted` dark underlines instead of `solid` blue (Pairs 1, 2).<br>3. Mobile wizard Step 1 renders desktop `DriverLibrary` flush to viewport edges without `.dl-phone` padding/folding (Pair 3).<br>4. `"Project imported..."` toast obscures What-if `Fs` row (Pair 2). |
+| **B. Plausible source repairs in commit `8dd302942` (`v20261027T1818Z`)** | 1. Removing `.num-input-wrap { min-width: var(--joined-box) }` ([joined-fields.css:L76](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L76)) resolves the subgrid track-2 overflow on `Cms`/`Rms`/`KLe` so input right edges match unit right edges and clear spinners.<br>2. Adding `phone` prop to `<DriverLibrary>` in [MobileNewProject.vue:L165](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/mobile/MobileNewProject.vue#L165) restores `.dl-phone` 16px insets and folded filters.<br>3. Removing `hadUnsaved` / `.np-warn` from [MobileNewProject.vue:L162](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/mobile/MobileNewProject.vue#L162) and [OriginalNewProject.vue:L124](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/original/OriginalNewProject.vue#L124) eliminates the repeated wizard warning banner.<br>4. Querying `.ui-field-unit` instead of `row.children.item(2)` ([driver-editor-units.browser.spec.ts:L56](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/driver-editor-units.browser.spec.ts#L56)) fixes the stale DOM child-index assumption. |
+| **C. Current visual/behavioural claims NOT verified by supplied images** | 1. **No screenshot of `v20261027T1818Z` (`8dd302942`) exists**: the repaired `Cms`/`Rms`/`KLe` boxes, the mobile wizard `.dl-phone` layout, and the removed `.np-warn` banner are not pictured.<br>2. **Desktop `solid` blue underline at `5px` offset ([UnitToggle.vue:L63-L64](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UnitToggle.vue#L63-L64))**: not pictured on desktop, and geometrically collides with the bottom border of `20px`-high desktop chips.<br>3. **Inverse blinking digit cursor (`joined-inverse-blink`) and press-and-hold spinner acceleration**: cannot be verified from static unfocused screenshots.<br>4. **Display-precision readability after unit rotation on `Parameters`/`Advanced` without `min-width: var(--joined-box)`**: neither pictured nor covered by rotation tests on seeded `Parameters`/`Advanced` tabs. |
+
+
+
+FRESH1920BEFORE/AFTER REVIEW (12images, verbatim)
+
+### (1) Image Files Inspected
+
+All 12 images in [images.json](http://lap:8000/winisd/openisd-t607/build/tmp/t607-argon-release-review/images.json) (`v20261027T1920Z` preview vs `v20261025T2233Z` production, project SHA `d7f7694b…`) were inspected via `read_file`:
+
+1. [preview/wizard-box-passive-radiator-1/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/preview/wizard-box-passive-radiator-1/01.png)
+2. [production/wizard-box-passive-radiator-1/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/production/wizard-box-passive-radiator-1/01.png)
+3. [preview/tab-driver/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/preview/tab-driver/01.png)
+4. [production/tab-driver/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/production/tab-driver/01.png)
+5. [preview/box-sealed/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/preview/box-sealed/01.png)
+6. [production/box-sealed/01.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/production/box-sealed/01.png)
+7. [desktop/preview/desktop__results__what-if__bandpass-4th-order.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/desktop/preview/desktop__results__what-if__bandpass-4th-order.png)
+8. [desktop/production/desktop__results__what-if__bandpass-4th-order.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/desktop/production/desktop__results__what-if__bandpass-4th-order.png)
+9. [desktop/preview/desktop__driver__editor__parameters.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/desktop/preview/desktop__driver__editor__parameters.png)
+10. [desktop/production/desktop__driver__editor__parameters.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/desktop/production/desktop__driver__editor__parameters.png)
+11. [desktop/preview/desktop__driver__editor__advanced.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/desktop/preview/desktop__driver__editor__advanced.png)
+12. [desktop/production/desktop__driver__editor__advanced.png](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1920Z/images/desktop/production/desktop__driver__editor__advanced.png)
+
+---
+
+### (2) Per-Pair Visual Assessment & Verdict
+
+1. **`mobile/projects/new/passive-radiator/choose-driver` (`374×705`) — Verdict: `beneficial` (list/filters) / `regression` (`.browser-footer` width)**
+   - **Beneficial**: `DriverLibrary` now uses `.dl-phone` (`SEARCH` and `DRIVERS` bands with `?` buttons, `Brand or model` + folded `Filters ▾` with 16px inset, two-line rows with `Maker page ↗` and 44px `☆` targets, 44px-tall `Add new Driver` and `Load File...` buttons).
+   - **Regression**: Above `Add new Driver` / `Load File...`, the `.browser-footer > div` top border (`border-top: 1px solid #ccc`) and button row stop ~90px short of the right viewport edge instead of spanning the full width like `.mob-np-footer` below it.
+   - **Data/env**: `1846 drivers` (preview) vs `1843 drivers` (production).
+
+2. **`mobile/driver/overview` (`374×705`) — Verdict: `beneficial`**
+   - **Beneficial/Neutral**: `KEY FIGURES` readonly boxes (`Fs` `37.00 Hz`, `Qts` `0.380`, `Vas` `30.00 L`, `Re` `6.600 Ω`, `Xmax` `6.000 mm`) preserve exact production geometry (`170px`), `Inter` 15px font, `#f4f4f4` fill, solid blue underlined `Hz`/`L`/`mm` chips, and plain `Ω`. Authorised `Info` button sits cleanly between `Select driver` and `Edit`.
+   - **Data/env**: Production shows header cloud icon and bottom `"Sync your projects across devices?"` bar; preview does not.
+
+3. **`mobile/enclosure/closed-box/overview` (`374×705`) — Verdict: `beneficial`**
+   - **Beneficial**: `≠W` cues on `Fsc` (`71.95 Hz`) and `Qtc` (`0.707`) are moved from inside the readonly boxes to outside right of the `[▲][▼]` spinners. The shared `24px` cue track keeps `Vb` (`12.30 L`), `Fsc`, and `Qtc` boxes, unit chips, and spinners vertically aligned.
+   - **Data/env**: Production shows header cloud icon and bottom sync bar.
+
+4. **`desktop/results/what-if/bandpass-4th-order` (`1280×900`) — Verdict: `beneficial` (with 1 `needs decision` on `20px` chip `g` descender)**
+   - **Beneficial**: Import toast is gone; all What-if fields (`Fs`, `Vas`, `Qes`, `Qms`, `Sd`, `Re`, `Vb`, `Le`, `Xmax`, `Pe`, `Bl`, `Mms`, `EBP`), Box-tab fields (`Rear chamber` `Volume`/`Frc`/`Qtc`, `Front chamber` `Volume`/`Tuning freq (Ffc)`), and `Signal Generator` (`1000.00 Hz`) render joined value/unit boxes with `[▲][▼]` outside right, making `.what-if-panel` narrower and uncovering the Box diagram/notes. Switchable units show solid blue (`#1868d1`) underlines.
+   - **Needs decision**: In `20px`-tall desktop chips (What-if `Mms` `39.32 g`, plus background Driver tab `Added mass to cone` `g` in Pair 5), `text-underline-offset: 5px` places the solid blue underline below the descender of `g` ~1px above the bottom border, whereas `28px` Driver Editor chips (`Mms` `g` in Pair 5) have ample bottom clearance.
+   - **Data/env**: Production shows top sync bar and cloud toolbar icon.
+
+5. **`desktop/driver/editor/parameters` (`1280×900`) — Verdict: `beneficial` (with 1 `needs decision` on mandatory border style)**
+   - **Beneficial**: `Cms` (`0.4705 mm/N`), `Rms` (`2.03143 Ns/m`), and `KLe` (`H·√Hz`) are completely fixed — every field uses the `150px` track, unit chips end flush with the input right edge, `[▲][▼]` spinners sit outside right with zero overlap, and the `28px` editor chips show crisp solid blue underlines with clear bottom margin on `Hz`, `L`, `g`, `mm/N`, `Ns/m`, `mm`, `mH`, `cm²`, `kHz`, `cm³`.
+   - **Needs decision**: Mandatory borders (`Fs`, `Vas`, `Re`, `Sd`) use `2px inset #767676` ([joined-fields.css:L65](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L65)) with lighter bottom/right edges instead of production's uniform dark `2px solid` border on all 4 sides; `.de-modal` width (`1100px` vs `976px`) is wider at `1280×900`.
+
+6. **`desktop/driver/editor/advanced` (`1280×900`) — Verdict: `beneficial` (overall) / `regression` (right-edge zero inset on `gamma` `N/(A·kg)` and `Mpow` `N/√W`)**
+   - **Beneficial**: Switchable units (`AlfaVC` `1000/K`, `Rme` `Ns/m`, `Mcost` `kg/s`, `EBP` `Hz`, readonly `c` `m/s`, `roo` `1.20095 kg/m³`) and short fixed units (`R(t)` `K/W`, `C(t)` `J/K`, `SPLmaxLF` `dB`, `SPLmax` `dB`, `Gloss` `%`) are properly joined and aligned with external `[▲][▼]` spinners.
+   - **Regression**: On `gamma` (`306.61779 N/(A·kg)`), `Mpow` (`4.69307 N/√W`), and `KLe` (`H·√Hz` in Pair 5), the rightmost glyph of the fixed unit (`)`, `W`, `z`) touches the `1px` right border of the input box with `0px` right padding.
+
+---
+
+### (3) Severity-Ranked Remaining Confirmed Defects & Minimal Deterministic Checks
+
+1. **[LOW-MEDIUM] Wide fixed unit labels (`N/(A·kg)` on `gamma`, `N/√W` on `Mpow`, `H·√Hz` on `KLe`) touch the input's right border with `0px` clearance ([joined-fields.css:L74](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L74))**
+   - **Cause**: `.ui-field-unit:not(.unit-toggle)` sets `width: max-content; min-width: 34px; padding: 0;` at `justify-self: end`. Short fixed units (`< 34px`) get centered inside the `34px` box (~6–12px right inset), but fixed units `>= 34px` expand to `max-content` with `padding: 0`, placing their last glyph flush against the input's right border.
+   - **Fix & minimal check**: Give `.ui-field-unit:not(.unit-toggle)` `padding: 0 4px;` (with `box-sizing: border-box`). In `measureFieldContent` ([fieldVisualContract.ts:L162](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/fieldVisualContract.ts#L162)), require `glyphs.right <= valueBox.right - parseFloat(valueCss.borderRightWidth) - 3` for all visible `.ui-field-unit`.
+
+2. **[LOW] Mobile `.dl-phone .browser-footer > div` top border and button row do not span full width ([DriverLibrary.vue:L832-L839](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L832-L839), [DriverLibrary.vue:L1089](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L1089))**
+   - **Cause**: `.browser-footer` is `display: flex; justify-content: space-between`, and its child `<div>` lacks `flex: 1` / `width: 100%`, so the child `<div>` shrinks to `max-content` (~284px of 374px) and its `border-top: 1px solid #ccc` terminates mid-screen.
+   - **Fix & minimal check**: Add `flex: 1;` (or `width: 100%; box-sizing: border-box;`) to `.driver-library.dl-phone .browser-footer > div`. In `mobile-new-project-wizard.browser.spec.ts`, assert `Math.abs(footerDivBox.width - libraryBox.width) <= 1`.
+
+---
+
+### (4) Review Limits
+
+- **Static unfocused screenshots**: Do not visually prove the active `joined-inverse-blink` digit cursor or press-and-hold stepper acceleration.
+- **Default-unit snapshot vs. rotated worst-case precision**: The 6 pairs show default units (`mm/N`, `Ns/m`, `N/(A·kg)`, `kg/m³`); rotated worst-case conversions (e.g. `Vas` in `cu ft`, `roo` in `g/cm³` `0.00120095`, `gamma` `248.87192`) and narrower desktop viewports (`780px` 2-column, `1024px` 3-column) are covered by the automated browser specs ([driver-editor-units.browser.spec.ts:L261-L328](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/driver-editor-units.browser.spec.ts#L261-L328)), not pictured in these 12 frames.
+
+
+FINAL1943DISPOSITION
+Both substantiated spacing issues were reproduced by failing permanent DOM tests194219, then fixed. Desktop fixed units get4pxinternal padding; phone library action row flexes to full width. The shared contract now also rejects fixed-unit text touching the right border.36affected unit/reference tests pass194328, and60visual baseline cases pass194334. Inset mandatory borders and slight desktop underline positioning are recorded appearance choices; no invented user approval is claimed. Full-precision clipping remains repaired by150pxjoined editor tracks and2/3/4responsive columns.
+
+
+FINAL2032ARGONREVIEW — five same-project production/preview pairs
+### Per-Pair Visual Verdict (`v20261025T2233Z` → `v20261027T2032Z`)
+
+1. **`desktop/settings/options/plot-window` (1280×900) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/desktop/production/desktop__settings__options__plot-window.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2032Z/images/desktop/preview/desktop__settings__options__plot-window.png))
+   - **Observed controls:** All 12 `LIMITS` rows (`Frequency range` through `Front port - Air velocity`, `Start` and `End` cells) plus the background Signal Generator field (`1000.00 Hz`) move fixed units (`Hz`, `dB`, `deg`, `mm`, `Ω`, `ms`, `W`, `m/s`) from outside the `[▲][▼]` spinners into the right end of the joined input box, followed by 18px desktop spinners and `↺` reset buttons.
+   - **Defects/Regressions:** None. Screen-reader labels in [OptionsModal.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/OptionsModal.vue#L533-L537) collapse cleanly (`--joined-label: 0px`), keeping table rows compact with all 9 color swatches, 12 limit rows, and footer buttons (`Defaults`, `OK`, `Cancel`) fitting inside the modal without scrollbars or clipping.
+
+2. **`desktop/workspace/advanced` (1280×900) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/desktop/production/desktop__workspace__advanced.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2032Z/images/desktop/preview/desktop__workspace__advanced.png))
+   - **Observed controls:** `Temperature` (`293.15 K`), `Relative humidity` (`50.00 %`), and `Air pressure` (`101325.00 Pa`) use joined value/unit boxes with 18px `[▲][▼]` spinners on the right; switchable units `K` and `Pa` have joined right caps with a left divider and solid blue underline, while fixed unit `%` sits inside the box without a cap border. Readonly calculated fields `Sound velocity` (`343.99 m/s`) and `Air density` (`1.19885 kg/m³`) render as joined `#f4f4f4` readout boxes with blue calculated text and internal fixed units.
+   - **Defects/Regressions:** None. The entire `Advanced` pane (environment fields, 5 simulation checkboxes with `≠W` on transmission-line port simulation, `Enable WinISD-style …` and `Enable WinISD bugs` groups, legend, and `What-if` / `Revert`) fits within 1280px with zero horizontal overflow or glyph clipping.
+
+3. **`desktop/driver/editor/parameters` (1280×900) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/desktop/production/desktop__driver__editor__parameters.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2032Z/images/desktop/preview/desktop__driver__editor__parameters.png))
+   - **Observed controls:** All 4 columns across `Thiele/Small parameters`, `Electro-Mechanical parameters`, `Large-Signal parameters`, and `Miscellaneous parameters` use the 150px joined value/unit rail with 18px `[▲][▼]` spinners to the right ([DriverEditorModal.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverEditorModal.vue#L1185)). Switchable units (`Hz`, `L`, `g`, `mm/N`, `Ns/m`, `mm`, `mH`, `cm²`, `kHz`, `cm³`) have joined caps and solid blue underlines; fixed units (`Ω`, `Tm`, `H·√Hz`, `W`, `%`, `dB`) sit inside the box with a 4px right inset; mandatory fields (`Fs`, `Vas`, `Re`, `Sd`) retain their 2px `#767676` inset border. Background Driver tab controls (`Added mass to cone` `0.00000 g`, `AlfaVC` `3.9000 1000/K`) likewise use joined boxes.
+   - **Defects/Regressions:** None. Full-precision values (`BL` `12.05672`, `Cms` `0.4705` with wide `mm/N` cap, `Rms` `2.03143` with wide `Ns/m` cap) and `Connection` (`Parallel`) display without text clipping or spinner overlap.
+
+4. **`tab-driver` (374×705) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/production/tab-driver/01.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2032Z/images/preview/tab-driver/01.png))
+   - **Observed controls:** Top action bar adds the requested `Info` button between `Select driver` and `Edit`. `KEY FIGURES` (`Fs` `37.00 Hz`, `Qts` `0.380`, `Vas` `30.00 L`, `Re` `6.600 Ω`, `Xmax` `6.000 mm`) preserve production's readonly styling (`#f4f4f4` fill, 15px `Inter` blue calculated values, left divider and solid blue underline on switchable `Hz`/`L`/`mm`, plain fixed `Ω`).
+   - **Defects/Regressions:** None.
+
+5. **`box-sealed` (374×705) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/production/box-sealed/01.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2032Z/images/preview/box-sealed/01.png))
+   - **Observed controls:** In `REAR CHAMBER` (`Vb` `12.30 L`, `Fsc` `71.95 Hz`, `Qtc` `0.707`), the `≠W` model deviation cues on `Fsc` and `Qtc` move out of the numeric input rail to the dedicated 24px track to the right of the `[▲][▼]` spinners ([joined-fields.css](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L71)).
+   - **Defects/Regressions:** None. `Vb`, `Fsc`, and `Qtc` share aligned input boxes and spinner columns, and the 14px `Choose alignment...` and `Box losses (Qa, Ql, Qp)...` links remain intact.
+
+### Bounded Judgment
+
+All 5 pairs in `v20261027T2032Z` pass visual inspection with **zero regressions**; every pair is **beneficial** and conforms to the joined-field, unit-underline, model-cue placement, readonly typography, and desktop/mobile sizing contracts.
+
+
+ROOT DISPOSITION — Argon's blanket zero-regression conclusion is not accepted. The Advanced screenshot wraps Relative humidity and Sound velocity; production does not. A permanent DOM single-line test failed on both labels, then passed after removing surplus desktop gaps and label inset while preserving input widths. Forty affected geometry/label/control tests pass204440. Argon also called the Advanced sound/density fields readonly; they are editable calculated fields, as their UISettlingField bindings and existing editing tests establish. The other four inspected pairs preserve numerical values and provide the requested joined units, external model cues and Driver Info action. Cloud-prompt/header differences are capture-environment state, not evidence of a field improvement.
+
+NUMBER GALLERY — Current real components require a host StepperPin just as MobileShell does. New integration test failed with a150pxjump; the gallery now provides the same existing controller against its own scrollport. All12writable spinner cases plus existing catalogue/rendition tests pass (55total204819).
+
+
+FINAL2049ARGONREVIEW — corrected source, three production/preview pairs
+### Per-Pair Visual Verdict (`v20261025T2233Z` → `v20261027T2049Z`)
+
+1. **`desktop/settings/options/plot-window` (1280×900) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/desktop/production/desktop__settings__options__plot-window.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2049Z/images/desktop/preview/desktop__settings__options__plot-window.png))
+   - **Field & layout check:** All 12 `LIMITS` rows (`Frequency range` through `Front port - Air velocity`) and the background `Signal Generator` (`1000.00 Hz`) place fixed units (`Hz`, `dB`, `deg`, `mm`, `Ω`, `ms`, `W`, `m/s`) inside the right end of the joined input box, followed by `[▲][▼]` spinners and `↺` reset buttons. All row labels and `COLORS` labels remain single-line, and hidden screen-reader labels add zero row height.
+   - **Numeric parity:** Every visible value matches production (`10.0` / `20000.0`, `-30.00` / `6.00`, `-40.00` / `20.00`, `-180.00` / `180.00`, `40.00` / `115.00`, `0.00` / `30.00`, `0.00` / `150.00`, `-90.00` / `90.00`, `0.00` / `40.00`, `0.00` / `500.00`, `0.00` / `40.00`, `0.00` / `40.00`, and `1000.00`).
+   - **Background environment difference:** Production shows the top `Sync your projects across devices?` consent banner and toolbar cloud icon behind the modal; local preview does not.
+
+2. **`desktop/workspace/advanced` (1280×900) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/desktop/production/desktop__workspace__advanced.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2049Z/images/desktop/preview/desktop__workspace__advanced.png))
+   - **Single-line label check:** Both **`Relative humidity`** and **`Sound velocity`** (which wrapped onto two lines in `v20261027T2032Z`) are now **single-line** in `v20261027T2049Z`, matching production alongside single-line `Temperature`, `Air pressure`, and `Air density`.
+   - **Field & layout check:** `Temperature` (`293.15 K`), `Relative humidity` (`50.00 %`), and `Air pressure` (`101325.00 Pa`) use joined value/unit boxes (`K` and `Pa` with joined unit caps and solid blue underlines; `%` as a fixed internal unit) followed by `[▲][▼]` spinners. `Sound velocity` (`343.99 m/s`) and `Air density` (`1.19885 kg/m³`) render in white joined boxes with blue app-level/calculated provenance text and internal fixed units (`m/s`, `kg/m³`). The `≠W` cue on `Use "transmission line"-model for port simulation` and both WinISD compatibility fieldsets fit within 1280px without horizontal overflow or reduced gaps crowding adjacent columns.
+   - **Numeric parity:** Every visible value matches production (`293.15`, `50.00`, `101325.00`, `343.99`, `1.19885`, and `1000.00` in `Signal Generator`).
+   - **Background environment difference:** Only the missing local cloud-consent banner/icon at the top of the viewport shifts the `SPL response` chart height slightly.
+
+3. **`desktop/driver/editor/parameters` (1280×900) — Beneficial** ([old](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T1943Z/images/desktop/production/desktop__driver__editor__parameters.png) vs [new](http://lap:8000/winisd/openisd-t607/build/ui-manifest/review-v20261027T2049Z/images/desktop/preview/desktop__driver__editor__parameters.png))
+   - **Field & layout check:** All 28 fields across the 4-column `Parameters` grid and the background `Driver` tab (`Added mass to cone` `0.00000 g`, `AlfaVC` `3.9000 1000/K`) use joined value/unit boxes with `[▲][▼]` spinners to the right. Switchable units (`Hz`, `L`, `g`, `mm/N`, `Ns/m`, `mm`, `mH`, `cm²`, `kHz`, `cm³`, `1000/K`) display joined caps with solid blue underlines; fixed units (`Ω`, `Tm`, `H·√Hz`, `W`, `%`, `dB`) sit inside the box with right-border clearance; mandatory fields (`Fs`, `Vas`, `Re`, `Sd`) keep their 2px dark inset border. All labels are single-line.
+   - **Numeric parity:** Every visible value matches production (`0.415`, `4.500`, `0.380`, `37.00`, `30.00`, `39.32`, `0.4705`, `2.03143`, `6.600`, `12.05672`, `164.29`, `0.800`, `212.00`, `6.000`, `127`, `150.00`, `0.3560`, `8.0000`, `88.51`, `87.67`, `1`, `Parallel`, plus background `1000.00`, `0.00000`, `3.9000`, `Parallel`).
+   - **Background environment difference:** Absence of the local cloud-consent banner shifts the background `Driver` pane slightly upward behind the modal scrim, exposing its bottom italic note under the controls rather than to the right.
+
+### Final Judgment
+
+All 3 pairs in `v20261027T2049Z` are **beneficial** with **zero remaining regressions**: the `Relative humidity` and `Sound velocity` label wraps from `2032` are resolved (both are now single-line), all numeric values match production, and all joined value/unit boxes, switchable-unit underlines, and external spinners/model cues render cleanly.
+
+
+FINAL ROOT DISPOSITION
+Root personally compared the final Advanced and Driver Editor frames with production; the previously wrapped environment labels are single-line, values match and joined controls fit. The final phone Driver and Closed Box images are byte-identical to the previously personally reviewed2032frames, so those two comparisons remain applicable. The final review therefore covers five representative views; it is not blanket human approval of507images or unapproved use cases. The final full gallery has507decodedimages, zero unexpected capture failures and passes both published-page tests205918.
+
+
+=== Focused gallery / Type repair, 27 October 22:52 ===
+Conversation 861038ef-9a79-4d63-b7d1-82948bf45de1
+### Pair-by-Pair Review (2049 Before vs 2252 After at 374px)
+
+1. **Driver Summary `Type` ([driver-type-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/driver-type-before.png) → [driver-type-after.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/driver-type-after.png))**
+   - **Correction**: [DriverLibrary.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L316) and [DriverLibrary.vue:L622](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L622) added `.spec-text { text-align: left }`, stopping `Subwoofer` from sitting flush against the far-right unit edge under `mH`/`cm²`/`W`.
+   - **Remaining defects**: Partial improvement only. Numeric rows in the right column right-align their numbers against a `3.5em` unit track ([DriverLibrary.vue:L612-L615](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L612-L615)), whereas `.spec-text` left-aligns at the start of the `1.6fr` value track ([DriverLibrary.vue:L594](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L594)). Visually, `Subwoofer` now starts ~20px further left than `150.00` and `212.00` above it while still protruding into the unit column under `W`. Additionally, `.spec-val b` enforces `white-space: nowrap` without ellipsis ([DriverLibrary.vue:L618](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L618)), so longer type strings can overflow the cell.
+
+2. **`choice-writable-none-both` ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-before-choice-writable-none-both.png) → [after](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-after-choice-writable-none-both.png))**
+   - **Correction**: Beneficial. Adding `.joined-field` ([FieldCatalogue.vue:L58](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue#L58)) and `.ui-field-dq-btn` styling ([joined-fields.css:L94-L97](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L94-L97)) replaced the oversized grey `⚠` button with the exterior left amber glyph, aligned the `<select>` left edge to the shared control column, restored the native dropdown chevron, and moved `≠W` outside right.
+   - **Remaining defects**:
+     - **Phantom `90px` spinner column**: [joined-fields.css:L45](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L45) keeps `--joined-buttons: 90px` even when `:not(:has(.num-stepper))`, and [joined-fields.css:L38](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L38) places `.ui-field-dev` in `grid-column: 3 / 5`. This squeezes the `<select>` to the width of a spinner-equipped number box and leaves ~88px of dead whitespace to the right of `≠W`.
+     - **Oversized text inset**: `--joined-inset: 16px` ([joined-fields.css:L20](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L20), [joined-fields.css:L45](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L45)) puts `16px` horizontal padding inside an already-narrow `<select>`, indenting `"Round Tube"` far from the left border and reducing available label space before the chevron.
+
+3. **`choice-readonly-none-both` ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-before-choice-readonly-none-both.png) → [after](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-after-choice-readonly-none-both.png))**
+   - **Correction**: Beneficial for geometry—`⚠` is outside left, the control left edge aligns with the shared column, and `≠W` is outside right instead of overlapping the box.
+   - **Readonly vs provenance note**: Because `readonly` represents access rather than calculated provenance, rendering `"Round"` in black (`15px Arial`) rather than calculated-readout accent colour ([joined-fields.css:L24](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L24)) is not in itself a bug.
+   - **Remaining defects**:
+     - **Same `90px` phantom button column and `16px` inset** as `choice-writable`, leaving the box artificially narrow with large trailing whitespace after `≠W`.
+     - **Zero readonly affordance**: Rendered as a plain `<input readonly>` ([FieldCatalogue.vue:L68](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue#L68)) with a `#fff` background and `#c4c4c4` border ([joined-fields.css:L20-L21](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L20-L21)), it is visually indistinguishable from an editable text input.
+
+4. **`range-readonly-switchable-both` ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-before-range-readonly-switchable-both.png) → [after](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-after-range-readonly-switchable-both.png))**
+   - **Correction**: Beneficial. `⚠` is outside left, the `<meter>` bar is sized to `height: 34px` ([FieldCatalogue.vue:L84](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue#L84)), `padding-right: var(--joined-chip)` ([FieldCatalogue.vue:L90](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue#L90)) stops the `<meter>` bar before the `Hz` button, and `≠W` sits outside right instead of colliding with `Hz`.
+   - **Remaining defects**:
+     - **Unjoined/mismatched unit box**: Unlike an `<input>`, `<meter>` renders a rounded pill track smaller than its `34px` layout box with no outer border, so the rectangular bordered `Hz` button sticks out vertically above and below the meter bar and does not visually join with it.
+     - **Same `90px` phantom button track**: Compresses `<meter>` + `Hz` into a narrow column with ~88px of empty space after `≠W`.
+
+5. **`number-writable-none-dq` ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-before-number-writable-none-dq.png) → [after](http://lap:8000/winisd/openisd-t607/build/ui-contract/gallery-layout-repair/gallery-after-number-writable-none-dq.png))**
+   - **Correction**: Beneficial. Removing the extra desktop label `padding-right` and standardizing `.ui-field-dq-btn` ([joined-fields.css:L91-L97](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L91-L97)) stopped `"Value"` from breaking across two lines (`Val` / `ue`).
+   - **Remaining defects**:
+     - **Fragile label wrapping (`overflow-wrap: anywhere`)**: [joined-fields.css:L13-L14](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L13-L14) and [joined-fields.css:L49](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L49) leave only `82px - 22px - 4px = 56px` for a label when `⚠` is present and keep `overflow-wrap: anywhere`, which will still split longer production words mid-syllable.
+     - **Input vs stepper height mismatch**: `--joined-height` is `34px` ([joined-fields.css:L45](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L45)) while `.num-stepper-btn` is `36px` ([joined-fields.css:L52](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/joined-fields.css#L52)), making `▲`/`▼` 2px taller than the `5.000` box.
+
+---
+
+### Audit & Coverage Limitations ([number-control-gallery.browser.spec.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/number-control-gallery.browser.spec.ts#L25-L72))
+
+- **Synthetic unit-clearance check ([L55-L60](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/number-control-gallery.browser.spec.ts#L55-L60))**: Computes `box.right - parseFloat(style.paddingRight) - parseFloat(style.borderRightWidth)` rather than measuring actual text glyph bounds or native widget tracks/icons; a control with `padding-right: 40px` passes even if long text or a native slider/picker renders into the unit area.
+- **Left-edge-only column check ([L49](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/number-control-gallery.browser.spec.ts#L49))**: Asserts `box.left` alignment but never checks `box.right`, missing the 90px phantom stepper column on non-stepper controls and detached `≠W` cues on narrow `checkbox`/`color` controls ([FieldCatalogue.vue:L88-L89](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue#L88-L89)).
+- **Bounded scope**: The deterministic DOM audit verifies the 96 gallery forms only at 3 phone widths (`360px`, `374px`, `412px`) using the dummy label `"Value"`, and the summary check covers 7 viewports/routes; this does not establish universal layout correctness across all production labels, values, or desktop/sheet hosts.
+
+
+ROOT DISPOSITION
+Root personally compared all nine published 2049/2252pairs; each is beneficial for the reported problem. Gemini calls Type a partial improvement because it begins left of numeric digits; this is intentional text-vs-number alignment. Text has no unit, so occupying otherwise empty unit space is valid. Its longest canonical-Type overflow hypothesis is being measured separately.
+Accepted: the first audit lacked an upper bound on model-cue distance. Both boolean-with-model variants reproduce a detached cue. A general maximum6px gap assertion fails before the repair at all three widths; intrinsic narrow tracks fix it, and288form/width contexts pass. Colour specimens have no model cue in the valid96-form catalogue, contrary to the earlier progress shorthand.
+The 90px absent-spinner reservation,16px input inset,34px value box and36px touch buttons are preserved from the selected shared-width contract. Widening choices into the reservation would reintroduce the field-width inconsistency John rejected.
+Readonly access/provenance distinctions and native meter styling are appearance proposals requiring John approval, not newly proven failures. Native controls keep their own representation. Broader production-label and actual native-track/glyph coverage remain bounded: a padding clearance check does not prove every long value fits. No claim of universal visual correctness.
+
+FOLLOW-UP EVIDENCE: every current DriverType display label fits the actual Type row at374px (canonical-Type probe230150passes). This does not prove arbitrary future strings fit. Checkbox upper-bound gap detector is red-before/green-after across360/374/412. Final2300actual gallery iframe and checkbox captures2pass230230; root visually compared both new pairs and concurs. The original Gemini review predates the final checkbox correction; its acceptance has not been inferred.
+
+
+=== Gallery comments:22pairs,44images; Gemini review ===
+Conversation 0b96a493-9575-4b9d-a350-708722a90358
+First large print request timed out without text. Follow-up returned this completed critique, with all22pairs inspected:
+
+### Remaining Visual Defects (Prioritised)
+
+1. **`End Correction` select text collides with chevron & truncates value (`desktop/enclosure/bandpass-6th-order/vents-tab`, `desktop/enclosure/abc/vents-tab`):**
+   - `.vent-pane-tight .field:not(.ui-field) select` sets `width: 124px; padding: 0 6px` on options formatted as `{{ o.label }} ({{ o.value }})`. Across all 5 `End Correction` dropdowns in 6th-order and ABC vents, `One flanged end (0.732)` clips the `(0.732)` suffix and the final `d` of `One flanged end` collides directly with the native dropdown chevron (`v`).
+2. **PR section header bars stop short of steppers and `≠W` cues (`desktop/enclosure/passive-radiator/radiator-tab`):**
+   - In `User options`, the grey `.section-header` bar ends at the right edge of the 150px value box (`Hz`), leaving the `▲ ▼` steppers on `Target tuning freq (Fp)` / `Added mass to cone` and the `≠W` cue on `Num. of PRs` spilling ~40px past the right edge of the header bar. In `Passive radiator parameters`, `Cms`'s `≠W` cue also extends ~24px past its header bar.
+3. **Mobile Options vertical growth clips content against the sticky footer (`mobile/settings/options/your-data`, `mobile/settings/options/plot-window`, `mobile/settings/options/general`):**
+   - **Your data:** Changing the storage breakdown from a 2-column flow to 5 full-width rows pushes `BACKUPS` down ~52px; line 3 of the `BACKUPS` copy (`3 are kept, plus the last one made before an app...`) is now sliced horizontally in half by the footer border (was fully visible in BEFORE).
+   - **Plot Window (mobile):** Narrowing the label column wraps `Air speed limit` and `Selected range` onto two lines, pushing `LIMITS` down so `Frequency range start` is sliced through the middle of `range start` at the footer edge.
+   - **General (mobile):** Narrowing the label column wraps `Relative humidity`, `Sound velocity`, and `Min box volume` onto two lines unnecessarily when the row has ample horizontal slack.
+4. **Mobile Driver Dimensions diagram remains vertically clipped (`mobile/driver/editor/dimensions`):**
+   - Only the top ~25% of the driver SVG (`Thick` callout and upper basket rim) is visible between `DVol` and the bottom checkbox bar; `Magnet`, `Basket`, `Outer`, `MagDpt`, and `Depth` are cut off out of view.
+
+---
+
+### 22 View-Pair Verdicts (All 22 Inspected; 0 Uninspected)
+
+- **`mobile/projects/library/actions` — Neutral:** Action-sheet pixels intentionally unchanged.
+- **`mobile/projects/details` — Beneficial:** `Description` label is left-aligned on the form rail and the textarea expands to fill full page width and remaining vertical height.
+- **`mobile/enclosure/vented/alignment` — Beneficial:** `Alignment` select left edge now aligns on the exact vertical rail of the `Volume` and `Tuning freq (Fb)` numeric boxes.
+- **`desktop/enclosure/passive-radiator/radiator-tab` — Beneficial (with minor defect):** Fixes `Vas`/`Fpr` value-to-unit collision, unifies all 8 box widths (`150px`), moves `Fpr (with added mass)` onto its own 4th row instead of clipping off-screen, and removes the duplicate right legend. Remaining defect: `.section-header` bars do not span the stepper/`≠W` tracks.
+- **`desktop/enclosure/bandpass-4th-order/box-tab` — Beneficial:** Eliminates `Rear chamber` stepper overlap with `Front chamber` `Volume` label; removes duplicate right legend; places `What-if` top-right, `Revert` bottom-right, and `Unsaved changes` in the bottom bar.
+- **`desktop/enclosure/bandpass-4th-order/vents-tab` — Beneficial:** Duplicate right legend removed; `What-if`, `Revert`, and bottom `Unsaved changes` cleanly placed.
+- **`desktop/enclosure/bandpass-6th-order/box-tab` — Beneficial:** Resolves `Rear chamber` stepper / `Front chamber` label overlap and cleans up right rail / bottom legend.
+- **`desktop/enclosure/bandpass-6th-order/vents-tab` — Beneficial (with defect):** Restores grey `Rear`/`Front` chamber headers and eliminates severe field collisions, but `End Correction` text (`One flanged end`) collides with the select chevron and truncates `(0.732)`.
+- **`desktop/enclosure/bandpass-6th-order/losses/front` — Beneficial:** Modal unchanged; underlying 6th-order Box tab shows repaired chamber spacing and right rail.
+- **`desktop/enclosure/abc/box-tab` — Beneficial:** Resolves `Rear chamber` / `Front chamber` overlap and duplicate right legend.
+- **`desktop/enclosure/abc/vents-tab` — Beneficial (with defect):** Restores `Rear`/`Front`/`Intra` headers, eliminates multi-field overlaps, and fits all 3 columns within 1280px, but all 3 `End Correction` selects suffer the `One flanged end` chevron collision/truncation.
+- **`desktop/enclosure/abc/losses/rear` — Beneficial:** Underlying ABC Box tab overlap and legend repaired.
+- **`desktop/enclosure/abc/losses/front` — Beneficial:** Underlying ABC Box tab overlap and legend repaired.
+- **`desktop/results/charts/front-port` — Beneficial:** Underlying 6th-order Box tab overlap and legend repaired.
+- **`desktop/results/charts/front-port-gain` — Beneficial:** Underlying 6th-order Box tab overlap and legend repaired.
+- **`desktop/results/charts/intra-port` — Beneficial:** Underlying ABC Box tab overlap and legend repaired.
+- **`desktop/driver/editor/dimensions` — Beneficial:** Basket outer rim and angled struts use crisp 2.5px dark (`#0f172a`) non-scaling strokes instead of washed-out light grey lines.
+- **`mobile/settings/options/general` — Beneficial (with minor defect):** Widens value box so `101325.00` (`Air pressure`) and `1.20095` (`Air density`) are no longer clipped against unit chips, at the cost of wrapping `Relative humidity`, `Sound velocity`, and `Min box volume` labels onto 2 lines.
+- **`mobile/settings/options/your-data` — Harmful / Mixed:** Right-aligns byte values cleanly in a 5-row list, but the added height causes the sticky footer to slice line 3 of the `BACKUPS` paragraph in half.
+- **`desktop/settings/options/plot-window` — Beneficial:** Stepper buttons on `LIMITS` now match the standard desktop joined-field stepper styling (`18px` width, subtle border/triangles).
+- **`mobile/settings/options/plot-window` — Harmful:** Unchanged control alignment, but narrower label column forces `Air speed limit` and `Selected range` to wrap to 2 lines and clips `Frequency range start` more severely at the bottom edge.
+- **`mobile/driver/editor/dimensions` — Beneficial (diagram still clipped):** Visible top portion of basket strut shows the 2.5px dark stroke, though most of the diagram remains clipped below the fold.
+
+
+ROOT DISPOSITION
+Accepted the End Correction clipping: a new native text-space test reproduces the long labels. New compact descriptions preserve all original coefficients/full titles; the three choices must fit beside the native arrow.
+Accepted the harmful extra mobile storage/Plot Window height. Restore the compact two-column storage arrangement with right-aligned counts within each column, and restore the wide colour-label profile on Plot Window while retaining the value-safe medium General profile. Tests require two aligned columns and single-line colour labels.
+PR banner allegation does not reproduce: the new heading-bound audit includes PR parameters/options and their cues; the existing2325image and DOM case pass. Do not enlarge a correct bar based on this mistaken inference.
+Mobile Dimensions is scrollable rather than clipped beyond reach: both-skin label/containment checks pass after scrolling. Add a second gallery frame to show the complete drawing, and capture the matching production detail.
+Remaining General word wrapping is a deliberate width tradeoff to retain full pressure/density precision and the requested aligned value rail at360px; it does not increase the40pxrow height or split words.
+Final rerender/review verification follows.
+
+
+FINAL NARROW RECHECK — build2346
+### Do Any Remaining Visual Defects Prevent Acceptance?
+
+**No blocking defects remain in these 5 repaired surfaces.** All three defects that degraded the previous pass (`End Correction` text-to-chevron collision/coefficient truncation, `Your data` `BACKUPS` paragraph clipping, and `Plot Window` 2-line colour label wrapping) are resolved, and the scrolled mobile `Dimensions` view confirms the full diagram renders without clipping.
+
+### Minor Remaining Observations (Non-blocking)
+
+1. **`End Correction` right edge extends ~14px past the `.vent-col-title` banner (`desktop/enclosure/abc/vents-tab`, `desktop/enclosure/bandpass-6th-order/vents-tab`):** Widening the `End Correction` `<select>` to `138px` makes `Vent length` + `End Correction` slightly wider than `Cross area` + `1st port resonance` below it, and the grey `Rear` / `Front` / `Intra` header bar stops at the `1st port resonance` right edge rather than spanning the `End Correction` right edge. No controls overlap and all three ABC columns still fit inside 1280px with clear gap before `What-if` / `Revert`.
+2. **`Frequency range start` label at initial scroll fold (`mobile/settings/options/plot-window`):** Restoring single-line labels for `Air speed limit` and `Selected range` fixes the label wrapping, though because each colour row retains its fixed control height, the bottom of `Frequency range start` remains partially bisected by the sticky footer at scroll-top `0` (matching the original pre-change scroll fold).
+
+---
+
+### Pair-by-Pair Verdicts
+
+- **`desktop/enclosure/abc/vents-tab` — Beneficial:** `1 flange (0.732)` displays the full coefficient with ~22px clearance before the dropdown chevron (`v`) in all three columns (`Rear`, `Front`, `Intra`), eliminating the previous text-on-arrow collision while still fitting 1280px cleanly.
+- **`desktop/enclosure/bandpass-6th-order/vents-tab` — Beneficial:** `1 flange (0.732)` is fully legible with clear separation from the chevron in both `Rear` and `Front` columns.
+- **`mobile/settings/options/your-data` — Beneficial:** The 2-column storage table (`Projects` / `My Drivers`, `Bin` / `Backups`, `Settings`) right-aligns byte values along each column rail while reclaiming ~52px of vertical space, so all 5 lines of the `BACKUPS` explanation now sit cleanly above the footer without clipping.
+- **`mobile/settings/options/plot-window` — Beneficial:** `Air speed limit` and `Selected range` return to clean single-line labels while keeping colour swatches and reset buttons aligned.
+- **`mobile/driver/editor/dimensions` (`02.png` full diagram, Production vs After) — Beneficial:** The scrolled view shows the entire cross-section (`Thick`, `Outer`, `Basket`, `Magnet`, `MagDpt`, `Depth`) with the 2.5px dark (`#0f172a`) non-scaling basket rim and diagonal struts crisp and matching production detail.
+
+
+ROOT: all5targeted changes are visually beneficial in my own image comparisons. The claimed14pxheader shortfall does not reproduce: the expanded native header-bound matrix includes these selectors and passes; the actual2346header spans its last control. Do not adopt this incorrect pixel inference. The remaining initial Plot Window fold is normal scrollable content: the new3-width check scrolls every number input fully above the fixed footer and passes. The complete phone diagram is now shown as part2in both production and preview. Canonical coefficients remain0.613/0.732/0.849; only compact display wording changed.
+
+
+28 Oct — Advanced/Driver/sixth-order corrections
+Conversation 67d4764c-7494-4a9f-993a-6def21bd8384
+- **Driver** ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-layout/before/images/desktop/preview/desktop__workspace__driver.png) vs [final](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-layout/final/images/desktop/preview/desktop__workspace__driver.png)): **Blocker on white-input equality.** Outer right edges (input + unit + steppers) now align across all three rows. However, because `1000/K` is wider than `K` and `g`, the `AlfaVC` white numeric box shrunk narrower than `Voice coil temp rise` and `Added mass to cone` (in *before*, the three white boxes had equal width). Equalizing both white inputs and outer edges requires giving `K` and `g` the same unit width as `1000/K`.
+- **Advanced** ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-layout/before/images/desktop/preview/desktop__workspace__advanced.png) vs [final](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-layout/final/images/desktop/preview/desktop__workspace__advanced.png)): **Improved.** All five environment fields stack on the left with `K`, `%`, `Pa`, `m/s`, and `kg/m³` vertically aligned (`Sound velocity` and `Air density` span the combined value+unit width without an inner divider). The five simulation checkboxes sit cleanly in a middle column between environment and compatibility/bugs. Minor note: bottom clearance below `Reset to app levels` is very tight (~2px), though unclipped.
+- **Sixth-order vents** ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-layout/before/images/desktop/preview/desktop__enclosure__bandpass-6th-order__vents-tab.png) vs [final](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-layout/final/images/desktop/preview/desktop__enclosure__bandpass-6th-order__vents-tab.png)): **Improved, no regressions.** All `Rear` and `Front` labels moved from above the inputs to the left with aligned columns and no clipping.
+
+Disposition: Driver inner-width finding accepted. Added a DOM unit-width assertion; it failed before setting every driver advanced unit cap to60px. Advanced bottom clearance is covered by the existing no-clipping/no-panel-growth test at1280/1600, which passes after reducing wrapper spacing by1px. Sixth-order full native label is visible in final capture. The follow-up driver DOM test passes: equal outer widths, equal unit caps, actual glyph clearance and existing blank/Escape behaviour. Root inspected the fresh0031driver image and confirmed aligned internal divisions; the other two views retain their reviewed geometry.
+
+
+28 Oct — Port panels
+- **ABC** ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/before-slotted/images/desktop/preview/desktop__enclosure__abc__vents-tab.png) vs [final](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/final-slotted/images/desktop/preview/desktop__enclosure__abc__vents-tab.png), [populated](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/populated-slotted/images/desktop/preview/desktop__enclosure__abc__vents-tab.png)): **Pass.** Rear, Front, and Intra share the single-column grid with left labels, combined `Number`+`Shape` row, writable `Frc`/`Ffc` rows, and a reserved blank top row in Intra so all rows align horizontally across all three groups. The prior right-edge clipping in Intra (`Shape`, `Slot height`, `End Correction`) is fixed, `End Correction` aligns with the numeric+unit column, and populated numeric values (`114.05`, `3439.85`) fit without clipping.
+- **4th Order Bandpass** ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/before-slotted/images/desktop/preview/desktop__enclosure__bandpass-4th-order__vents-tab.png) vs [final](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/final-slotted/images/desktop/preview/desktop__enclosure__bandpass-4th-order__vents-tab.png)): **Pass.** Replaces the 3-column layout with the ABC-style `Vents` column plus a separate `Limits` column (`Port velocity limit`). Writable `Tuning freq (Ffc)`, numeric inputs, unit boxes, and `End Correction` (`Free (0.613)`) align cleanly with no clipping or scrollbars.
+- **Vented** ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/before-slotted/images/desktop/preview/desktop__enclosure__vented__vents-tab.png) vs [final](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/final-slotted/images/desktop/preview/desktop__enclosure__vented__vents-tab.png)): **Pass.** Matches the 4th Order Bandpass split (`Vents` + `Limits`) with writable `Tuning freq (Fb)` and identical label, input, unit, stepper, and `End Correction` alignment.
+- **6th Order Bandpass** ([before](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/before-slotted/images/desktop/preview/desktop__enclosure__bandpass-6th-order__vents-tab.png) vs [final](http://lap:8000/winisd/openisd-t607/build/ui-contract/port-panels/final-slotted/images/desktop/preview/desktop__enclosure__bandpass-6th-order__vents-tab.png)): **Pass.** Rear (`Frc`) and Front (`Ffc`) match the ABC Rear/Front layout, resolving the prior Front right-edge clipping (`Slot height` stepper and `End Correction`) and `1st port resonance` label wrapping.
+
+**Blockers:** None.
+
+
+
+28 Oct — Desktop follow-ups
+- **Advanced ([advanced-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/desktop-followups/advanced-before.png) → [advanced-after.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/desktop-followups/advanced-after.png)) — PASS (with layout note):**
+  - **Verified:** `Sound velocity`, `Air density`, and `Reset to app levels` are in the second column; chart range is `10`–`1.00k` Hz; green `Save` sits above `Revert`.
+  - **Overlap/clipping:** None. All controls fit inside the lower pane without clipping or scrollbars.
+  - **Regressions/notes:** Placing `Sound velocity` and `Air density` in column 2 pushed the five simulation checkboxes into column 1 underneath `Air pressure` (stacking 8 items vertically in column 1 rather than keeping checkboxes in their own column). `Save` also renders bright green while `Revert` is disabled (no unsaved changes).
+
+- **Passive Radiator ([pr-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/desktop-followups/pr-before.png) → [pr-after.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/desktop-followups/pr-after.png)) — PASS:**
+  - **Verified:** `Passive radiator library` dialog is centred vertically and horizontally in the viewport (no longer encroaching on the top toolbar); chart range is `10`–`1.00k` Hz; green `Save` is stacked cleanly above `Revert`.
+  - **Overlap/clipping:** None. The modal cleanly overlays the chart and lower pane as expected, with no clipped controls or scrollbars.
+
+- **Blockers:** None, unless the 5 Advanced checkboxes stacking under `Air pressure` in column 1 (instead of a third column) is unintended.
+
+
+Root disposition: port verdicts accepted. Desktop follow-ups have no clipping/overlap blockers. The simulation checkboxes below the environment are intentional to fit two equal-width air columns at1280px; the lower panel remains the common272px floor. Save remains enabled like the existing toolbar Save, including when clean. No changes needed from these notes.
+
+
+28Oct — correction: checkboxes MUST be column3.
+**Compliant — Pass.**
+
+In the [after screenshot](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-column3/after/images/desktop/preview/desktop__workspace__advanced.png) (compared to [before](http://lap:8000/winisd/openisd-t607/build/ui-contract/advanced-column3/before/images/desktop/preview/desktop__workspace__advanced.png)), the five simulation checkboxes are placed in Column 3 directly after the two environment columns (`Temperature`/`Relative humidity`/`Air pressure` and `Sound velocity`/`Air density`/`Reset to app levels`) and before the WinISD compatibility groups. At 1600px, there is no overlap, text/control clipping, or unwanted scrollbar, with clean horizontal separation between columns and full visibility of the `≠W` badge and right-hand action buttons (`What-if`, `Save`, `Revert`).
+
+Root: accepted; supersedes the earlier below-air layout approval.

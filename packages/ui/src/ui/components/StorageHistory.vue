@@ -183,7 +183,7 @@ async function onRestore(key: string) {
 .sh-phone-rows .sh-actions button, .sh-phone-rows .sh-picker button { height: 32px; padding: 0 8px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; font: inherit; font-size: 11px; font-weight: 500; cursor: pointer; }
 .sh-phone-rows .sh-actions button:first-child { background: #e0efff; border-color: #93c5fd; color: #0369a1; font-weight: 600; }
 .sh-phone-rows .sh-actions button:disabled { opacity: 0.5; cursor: default; }
-.su-phone-rows { margin: 0; }
-.su-phone-rows .su-row { display: flex; }
-.su-phone-rows dd { font-weight: 600; color: var(--fg); }
+.su-phone-rows {display:grid;grid-template-columns:repeat(2,minmax(0,1fr) max-content);column-gap:8px;margin:0 16px;}
+.su-phone-rows .su-row {display:grid;grid-column:span 2;grid-template-columns:subgrid;margin:0;padding:6px 0;}
+.su-phone-rows dd {text-align:right;font-variant-numeric:tabular-nums; font-weight: 600; color: var(--fg); }
 </style>

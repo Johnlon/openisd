@@ -45,7 +45,7 @@ const {
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
   projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
-  projectListRef, duplicateProject, exportProject, cycleProjectColor, renameProject,
+  projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
   chartLabel, chartItems, selectChart, toggleChart,
@@ -69,8 +69,8 @@ const {
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, rearTuningCell, rearResonance,
-  model, startEdit, startWhatIf, placement,
-  activeVent, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
+  model, startEdit, showDriverInfo, startWhatIf, placement,
+  ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   prResonanceMassDq, prFsMass_hz,
@@ -262,6 +262,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           @close="requestCloseProject"
           @setTraceVisible="setTraceVisible"
           @cycleColor="cycleProjectColor"
+          @setColor="setProjectColor"
+          @copyCharts="copyProjectCharts"
+          @saveProject="saveProjectRow"
           @duplicate="duplicateProject"
           @export="exportProject"
           @rename="renameProject"
@@ -278,7 +281,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="quad-signalgen-wrap">
           <div class="panel-title">Signal Generator</div>
           <div class="signal-gen-row" title="Play a real sine tone out of the audio output for testing speakers.">
-            <label><input type="checkbox" v-model="genOn" @change="toggleGenerate"> Generate</label>
+            <label class="signal-gen-switch" title="Generate tone">
+              <input type="checkbox" v-model="genOn" aria-label="Generate tone" @change="toggleGenerate">
+              <span aria-hidden="true"></span>
+            </label>
             <UIFixedField class="signal-gen-field" :field="NumberField.SIGNAL_GENHZ_HZ" label="" :value="genHz" @update:value="v => { genHz = v; }" />
           </div>
         </div>
@@ -287,7 +293,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       <!-- vertical splitter: drag to resize the left panel; toggle collapses it -->
       <div class="split-v" title="Drag to resize the left panel" @pointerdown="onNavSplitDown" @dblclick="navCollapsed = !navCollapsed">
         <button class="split-toggle" :title="navCollapsed ? 'Expand the left panel (Projects / Signal Generator)' : 'Collapse the left panel to give the graph more width'"
-                @pointerdown.stop @click="navCollapsed = !navCollapsed">{{ navCollapsed ? '›' : '‹' }}</button>
+                :aria-expanded="!navCollapsed" @pointerdown.stop @click="navCollapsed = !navCollapsed"><svg class="split-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4 6 8 10 12" /></svg></button>
       </div>
 
       <!-- top-right quadrant: graph -->
@@ -327,7 +333,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       <!-- horizontal splitter: drag to resize the bottom section; toggle collapses it -->
       <div class="split-h" @dblclick="bottomCollapsed = !bottomCollapsed">
         <button class="split-toggle" :title="bottomCollapsed ? 'Expand the bottom section (project tabs)' : 'Collapse the bottom section to give the graph more height'"
-                @pointerdown.stop @click="bottomCollapsed = !bottomCollapsed">{{ bottomCollapsed ? '˄' : '˅' }}</button>
+                :aria-expanded="!bottomCollapsed" @pointerdown.stop @click="bottomCollapsed = !bottomCollapsed"><svg class="split-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 4 6 8 10 12" /></svg></button>
       </div>
 
       <!-- bottom-left quadrant: tab rail -->
@@ -441,11 +447,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <section class="tab-section" :class="{ active: activeTab === 'driver' }">
           <div class="field-row driver-id-row">
             <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="project.driver.brand.value" readonly></div>
-            <div class="field tight"><label>Model</label><input type="text" style="width:140px" :value="model" readonly></div>
+            <div class="field tight"><label>Model</label><input type="text" style="width:420px" :value="model" readonly></div>
             <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
+            <button type="button" class="edit-btn" title="View information about this project’s driver" @click="showDriverInfo">Info</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
           </div>
-          <div class="two-col" style="margin-top:6px;">
+          <div class="two-col driver-columns" style="margin-top:6px;">
             <div style="--label-w:150px;">
               <div class="section-header" style="margin-bottom:4px;">Placement</div>
               <div class="field-row" style="margin-bottom:4px;">
@@ -468,15 +475,16 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <div style="--label-w:172px;">
               <div class="section-header">Advanced options</div>
               <div class="beside-hint">
-                <div style="--label-w: 160px;">
+                <div class="driver-advanced-fields" style="--label-w: 160px;">
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_ADDEDMASS_G" :value="project.driverAddedMass_kg.value" @update:value="v => project.driverAddedMass_kg.set(v)" /></div>
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.ALFAVC_PER_K" :value="project.alfaVC_per_K.value" @update:value="v => project.alfaVC_per_K.set(v)" /></div>
                 </div>
-                <p class="hint side-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
+
               </div>
             </div>
           </div>
+          <p class="hint driver-model-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
         </section>
 
         <!-- ===== Enclosure / Vents tab ===== -->
@@ -484,106 +492,15 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <!-- No Box Type selector here. It lives on the Box tab, which is the one place the
                box type is chosen; a second copy of it on this tab put the passive radiator's
                own [Select PR] [Edit] row underneath a control that is not about the PR. -->
-          <!-- vented / bandpass4 -->
-          <div v-if="selectedBox === 'vented' || selectedBox === 'bandpass4'">
-            <div class="section-header">Vents</div>
-            <div class="two-col">
-              <!-- Column 1: Config -->
-              <div class="vent-config-col">
-                <div class="field-row">
-                  <div class="field">
-                    <label>Number of Vents</label>
-                    <select id="vent-count" :value="activeVent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) activeVent.count.set(n); }">
-                      <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="field-row">
-                  <div class="field">
-                    <label>Shape</label>
-                    <select id="vent-shape" :value="activeVent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) activeVent.shape.set(shape); }" style="width:135px">
-                      <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="field-row">
-                  <div class="field entered">
-                    <label>End Correction</label>
-                    <select :value="activeVent.endCorrection_m.value" @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) activeVent.endCorrection_m.set(k); }" style="width:190px">
-                      <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Column 2: Dimensions -->
-              <div class="vent-dims-col" style="--label-w:100px;">
-                <div v-if="activeVent.shape.value === 'slotted'">
-                  <div class="field-row">
-                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_W_CM" :cell="activeVent.width_m" />
-                  </div>
-                  <div class="field-row">
-                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_H_CM" :cell="activeVent.height_m" />
-                  </div>
-                </div>
-                <div v-else>
-                  <div class="field-row">
-                    <UIField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_D_CM" :cell="activeVent.diameter_m" />
-                  </div>
-                </div>
-
-                <div class="field-row">
-                  <!-- Always editable (John, 2026-10-06: "vent length should be editable"). Typing a
-                       length makes it the pair's entered side and the target tuning the calculated
-                       one; `ventLState` only colours it. Blank and marked `impossible` when the target
-                       tuning is beyond what this vent can reach: the solver writes no length. -->
-                  <UIField class="field" input-id="og-vent-length" :field="NumberField.VENT_L_CM" :cell="activeVent.length_m" />
-                </div>
-              </div>
-
-              <!-- Column 3: the solver's target, then what the geometry yields -->
-              <div>
-                <!-- The target tuning is the port solver's INPUT, so it belongs on this pane as
-                     well as the Box tab — you are sizing a vent, and this is the number it is
-                     sized to (human ruling QO11). WinISD shows it only on its Box screen
-                     (docs/images/winisd/vents-tab.png has no tuning field); carrying it here is
-                     deliberately ours. Same tuning target, same E/C state and same setter as the
-                     Box tab: ONE stored value with two places to see and edit it.
-                     It sits in this column, not beside the other config fields, because the
-                     pane's height is set by its tallest column: a fourth row in either of the
-                     first two overflows the panel for the round or the slotted shape
-                     (test/ui/original-shell-layout.browser.spec.ts). Here every shape stays at three. -->
-                <div class="field-row">
-                  <UIField id="og-vent-fb-target-field" class="field" input-id="og-vent-fb-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FB_HZ" :cell="activeTuning" />
-                </div>
-                <div class="field-row">
-                  <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="activeVent.totalArea_m2()" readonly />
-                </div>
-                <div class="field-row">
-                  <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="portPipeResonance_hz" readonly />
-                </div>
-                <div class="field-row">
-                  <UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" />
-                </div>
-              </div>
-            </div>
-            <!-- No trailing hint here: the pane must fit the fixed bottom panel without
-                 scrolling (original-shell-layout.browser.spec.ts), and the target-tuning guidance already
-                 lives in the field's own tooltip (FB_TARGET_TIP). -->
-            <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
-          </div>
-
           <!-- passive radiator -->
-          <div v-else-if="selectedBox === 'box-passive-radiator'">
+          <div v-if="selectedBox === 'box-passive-radiator'">
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
-              <div class="field tight entered" :title="TextField.PR_NAME.description"><label>{{ TextField.PR_NAME.label }}</label><input id="og-pr-name" type="text" style="width:220px" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))"></div>
+              <div class="field tight entered" :title="TextField.PR_NAME.description"><label>{{ TextField.PR_NAME.label }}</label><input id="og-pr-name" type="text" style="width:330px" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))"></div>
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select passive radiator</button>
               <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
             </div>
-            <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
-              @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
-            <div class="two-col" style="gap:12px;">
-              <div style="--label-w:36px;">
+            <div class="two-col pr-controls" style="gap:12px;">
+              <div style="--label-w:58px;">
                 <div class="section-header">Passive radiator parameters</div>
                 <div style="display: grid; grid-template-columns: auto auto; column-gap: 26px; row-gap: 0; margin-bottom: 0;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
@@ -595,7 +512,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
                 </div>
               </div>
-              <div style="--label-w:145px;">
+              <div style="--label-w:167px;">
                 <div class="section-header">User options</div>
                 <div class="field-row" style="margin-bottom:3px;">
                   <UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
@@ -610,8 +527,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px; gap:8px;">
-                  <UIField class="field" style="--label-w:145px; grid-template-columns: 145px 90px 34px 0px 0px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
-                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:145px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
+                  <UIField class="field" style="--label-w:167px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                </div>
+                <div class="field-row" style="margin-bottom:3px;">
+                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:167px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
                 </div>
               </div>
             </div>
@@ -620,39 +539,40 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
 <!-- Closed (sealed) has NO enclosure pane: the Box tab is the single home of
                Volume + Fsc, and showEnclosureTab drops the nav entry for sealed. -->
-          <div v-else-if="selectedBox === 'bandpass6' || selectedBox === 'abc'" class="vent-pane-tight">
-            <!-- WinISD's own layout (capture bp6_abc_wizard_defaults): one column per port, Rear,
-                 Front, then Intra, each four rows of up to two fields. -->
+          <div v-else-if="ventPorts.length > 0" class="vent-pane-tight vent-labels-left port-columns">
+            <!-- Every ported box shares the same columns; slotted Width and Height occupy separate rows. -->
             <div class="vent-groups">
               <div v-for="port in ventPorts" :key="port.name" class="vent-col">
-                <div class="vent-col-title">{{ port.name }}</div>
-                <div class="vent-port-row">
-                  <div class="field">
-                    <label>Number</label>
-                    <select :id="`og-vent-count-${port.name.toLowerCase()}`" :value="port.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
-                      <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-                    </select>
-                  </div>
+                <div class="vent-col-title section-header">{{ ventPorts.length === 1 ? 'Vents' : port.name }}</div>
+                <div class="vent-port-row port-tuning-row">
+                  <UIField v-if="port.tuning" :id="ventPorts.length === 1 ? 'og-vent-fb-target-field' : undefined" class="field" :input-id="ventPorts.length === 1 ? 'og-vent-fb-target' : `og-vent-tuning-${port.name.toLowerCase()}`" :title="FB_TARGET_TIP" :field="port.tuning.field" :cell="port.tuning.cell" />
+                  <div v-else class="port-tuning-placeholder" aria-hidden="true"></div>
                   <div class="field">
                     <label>Shape</label>
-                    <select :id="`og-vent-shape-${port.name.toLowerCase()}`" :value="port.vent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) port.vent.shape.set(shape); }">
+                    <select :id="ventPorts.length === 1 ? 'vent-shape' : `og-vent-shape-${port.name.toLowerCase()}`" :value="port.vent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) port.vent.shape.set(shape); }">
                       <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
                   </div>
                 </div>
-                <div class="vent-port-row">
+                <div class="vent-port-row port-dimensions-row">
                   <template v-if="port.vent.shape.value === 'slotted'">
                     <UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-width-${port.name.toLowerCase()}`" :field="NumberField.VENT_W_CM" :cell="port.vent.width_m" />
                     <UIField class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-height-${port.name.toLowerCase()}`" :field="NumberField.VENT_H_CM" :cell="port.vent.height_m" />
                   </template>
                   <UIField v-else class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-diameter-${port.name.toLowerCase()}`" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" />
+                  <div class="field port-count-field">
+                    <label>Number</label>
+                    <select :id="ventPorts.length === 1 ? 'vent-count' : `og-vent-count-${port.name.toLowerCase()}`" :value="port.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
+                      <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="vent-port-row">
-                  <UIField class="field" :input-id="`og-vent-length-${port.name.toLowerCase()}`" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" />
+                  <UIField class="field" :input-id="ventPorts.length === 1 ? 'og-vent-length' : `og-vent-length-${port.name.toLowerCase()}`" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" />
                   <div class="field">
                     <label>End Correction</label>
                     <select :value="port.vent.endCorrection_m.value" @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) port.vent.endCorrection_m.set(k); }">
-                      <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} ({{ o.value }})</option>
+                      <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value" :title="o.label">{{ o.compactLabel }} ({{ o.value }})</option>
                     </select>
                   </div>
                 </div>
@@ -660,6 +580,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIFixedField class="field" :title="VENT_GEOMETRY_TIP" :field="NumberField.VENT_CROSSAREA_M2" :value="port.vent.totalArea_m2()" readonly />
                   <UIFixedField class="field" :field="NumberField.VENT_1STPORTRESONANCE_HZ" :value="port.portPipeResonance_hz" readonly />
                 </div>
+              </div>
+              <div v-if="ventPorts.length === 1" class="vent-settings-col" style="--label-w:110px;">
+                <div class="section-header">Limits</div>
+                <div class="field-row"><UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" /></div>
+                <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               </div>
             </div>
           </div>
@@ -679,7 +604,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <div class="field-row"><div class="field"><label>Angle</label><input type="text" class="greyed" value="0.0000" disabled><span class="unit">{{ NumberField.SIGNAL_ANGLE_RAD.unitLabel() }}</span></div></div>
               <p class="hint">Listening distance/angle are not modelled yet.</p>
             </div>
-            <div style="--label-w:186px;">
+            <div style="--label-w:208px;">
               <div class="section-header">Signal source</div>
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" /></div>
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
@@ -794,13 +719,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
         <!-- Save rail — stacked on the right edge so the buttons consume no vertical space. -->
         <div class="save-rail">
-          <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
-          <div class="value-legend" title="Field colours used throughout the application">
-            <span><i class="legend-swatch legend-entered"></i>Entered</span>
-            <span><i class="legend-swatch legend-calculated"></i>App level / calculated</span>
-            <span><i class="legend-swatch legend-normal"></i>Normal</span>
-          </div>
           <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try other values and watch the charts. The design is not changed." @click="startWhatIf">&#9835; What-if</button>
+          <button v-if="projectOpen" class="edit-btn project-save-btn" title="Save the project to browser storage" @click="saveProject">Save</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
         </div>
         </template>
@@ -811,7 +731,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
       </div>
     </div>
 
-    <ProvenanceLegend />
+    <ProvenanceLegend>
+      <span v-if="isModified" class="unsaved-label" title="This project has unsaved changes."><span class="unsaved-dot"></span>Unsaved changes</span>
+    </ProvenanceLegend>
 
     <!-- ===== Box losses modal: the one chamber set whose Advanced-> opened it ===== -->
     <div class="overlay" :class="{ open: lossesOpen !== null }" @click.self="lossesOpen = null">
@@ -909,6 +831,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <div class="modal-footer"><div></div><div class="footer-buttons"><button class="cancel-btn" @click="ventedAlignmentEditor.cancel">Cancel</button><button class="ok-btn" @click="ventedAlignmentEditor.accept">Accept</button></div></div>
       </div>
     </div>
+
+    <PRBrowser v-if="prBrowseOpen" @close="prBrowseOpen = false"
+      @load="loadPREntry" @load-bundled="loadBundledPassiveRadiatorEntry" @define="defineNewPREntry" />
 
     <OptionsModal v-if="optionsOpen" @close="optionsOpen = false" />
 
@@ -1187,7 +1112,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .split-v:hover, .split-h:hover { background:#cfe0f5; }
 .split-toggle { position:absolute; display:grid; place-items:center; background:#f0f0f0; border:1px solid #aaa; color:#555; border-radius:4px; cursor:pointer; font-size:9px; line-height:1; padding:0; }
 .split-v .split-toggle { top:8px; left:50%; transform:translateX(-50%); width:15px; height:34px; }
-.split-h .split-toggle { left:190px; top:50%; transform:translateY(-50%); height:15px; width:34px; }
+.split-h .split-toggle { left:calc(var(--sidebar-width, 175px) + 15px); top:50%; transform:translateY(-50%); height:15px; width:34px; }
+.split-icon {width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+.split-v .split-toggle[aria-expanded="false"] .split-icon {transform:rotate(180deg);}
+.split-h .split-icon {transform:rotate(-90deg);}
+.split-h .split-toggle[aria-expanded="false"] .split-icon {transform:rotate(90deg);}
+.split-v::after {content:"";position:absolute;top:50%;left:1px;height:24px;border-left:2px dotted #a5adb6;pointer-events:none;}
+.split-toggle {background:linear-gradient(#fff,#e8edf2);border-color:#a5adb6;border-radius:6px;box-shadow:0 1px 2px #0002;}
+.split-toggle:focus-visible {outline:2px solid #1868d1;outline-offset:2px;}
 .split-toggle:hover { background:#dbeaff; border-color:#7fb3ff; color:#1868d1; }
 /* collapsed panels: the grid track is 0px (mainStyle); hide the content so padding
    doesn't leave a sliver. The splitter (with its expand toggle) stays visible. */
@@ -1232,9 +1164,16 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .close-actions .btn { width:100%; }
 .close-btn { color:#b02a2a; }
 .close-btn:disabled { color:#999; cursor:default; text-decoration:none; opacity:.6; }
-.signal-gen-row { display:flex; flex-wrap:wrap; align-items:center; gap:2px 8px; }
-.signal-gen-field { grid-template-columns: 0 var(--ui-value-w) auto; column-gap: 2px; }
-.signal-gen-field :deep(.ui-field-unit) { width: auto; }
+.signal-gen-row { display:flex; flex-wrap:nowrap; align-items:center; gap:4px; }
+.signal-gen-switch { position:relative; display:block; flex:none; width:29px; height:17px; cursor:pointer; }
+.signal-gen-switch input { position:absolute; inset:0; z-index:1; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.signal-gen-switch > span { position:absolute; inset:1px 0; border:1px solid #87919a; border-radius:9px; background:#d6dadd; transition:background-color .12s ease; }
+.signal-gen-switch > span::after { content:""; position:absolute; top:1px; left:1px; width:11px; height:11px; border-radius:50%; background:#fff; box-shadow:0 1px 2px #0005; transition:transform .12s ease; }
+.signal-gen-switch input:checked + span { border-color:#1769c2; background:#1769c2; }
+.signal-gen-switch input:checked + span::after { transform:translateX(12px); }
+.signal-gen-switch input:focus-visible + span { outline:2px solid #145ea8; outline-offset:2px; }
+.signal-gen-field { min-width:0; --ctl-stepper-w:11px; }
+.signal-gen-field :deep(.ui-field-unit) { font-size:11px; padding:0 2px; }
 .signal-gen-field :deep(.ui-field-dq), .signal-gen-field :deep(.ui-field-dev) { display: none; }
 .project-nav {
   display: flex;
@@ -1295,20 +1234,22 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .graph-empty-link:hover { color:#0b4f9e; }
 
 /* ---------- Content panel ---------- */
-.content-panel { grid-area:content; max-height:60vh; min-height:206px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:10px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
+.content-panel { grid-area:content; max-height:60vh; min-height:244px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; display:flex; flex-direction:column; }
-.save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-start; gap:6px; align-self:stretch; }
+.save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:6px; align-self:stretch; }
 /* Revert sits at the rail's BOTTOM, under whichever tab is showing (John, 2026-09-25: "put it
-   on the right bottom of the project tables - all table"). `margin-top:auto` is what puts it
+   on the right bottom of the project tables - all table"). The Save button above it takes `margin-top:auto` to put them
    there, and it is why the rail stretches rather than hugging its content at the top. */
 /* The unsaved-changes yellow the rail already uses for its dot and label — Revert is the
    action that clears exactly what that dot is reporting (John, 2026-09-25). */
-.save-rail .revert-btn { margin-top:auto; background:#e0a800; border-color:#b88a00; color:#3a2600; font-weight:600; }
+.save-rail .project-save-btn { margin-top:auto; background:#22803e; border-color:#19632f; color:#fff; font-weight:600; }
+.save-rail .project-save-btn:hover { background:#19632f; }
+.save-rail .revert-btn { background:#e0a800; border-color:#b88a00; color:#3a2600; font-weight:600; }
 .save-rail .revert-btn:hover:not(:disabled) { background:#f0b80c; }
 .save-rail .revert-btn:disabled { background:#e8e8e8; border-color:#ccc; color:#999; font-weight:normal; cursor:default; }
 /* Every tab stacks in ONE grid cell and only the active one is visible, so the panel is as deep as
    the tallest tab shown and stays that deep while the tab is switched. `.content-panel` min-height is
-   the tallest tab of any box type (bandpass6 or ABC, 206 px, measured by original-bottom-panel-height), so
+   the tallest tab of any box type (bandpass6 or ABC, 244 px, measured by original-bottom-panel-height), so
    the height never changes with box type either (John, 2026-10-15). */
 .content-tabs { display:grid; grid-template-columns:minmax(0,1fr); }
 .tab-section { grid-area:1 / 1; visibility:hidden; overflow:hidden; min-height:0; --label-w: 150px; }
@@ -1326,14 +1267,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .two-col { display:flex; gap:24px; align-items:flex-start; justify-content:flex-start; }
 .two-col > div { flex:none; }
 .box-layout { display:flex; gap:var(--box-col-gap); align-items:flex-start; }
-.box-fields-col { flex:none; width:var(--box-col-w); --label-w:62px; }
+.box-fields-col { flex:none; width:var(--box-col-w); --label-w:128px; }
 /* A long label ("Tuning freq (Fb)") wraps in the narrow chamber columns; it is never cut by an ellipsis. */
 .box-fields-col :deep(.ui-field) { align-items:center; }
 .box-fields-col .field :deep(.ui-field-label) { white-space:normal; overflow:visible; text-overflow:clip; line-height:13px; }
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
-.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:194px; --box-col-gap:24px; }
+.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:302px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
 .box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
@@ -1342,7 +1283,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .box-diagram-col { flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
 /* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
    fixed-width control columns this one may shrink without reintroducing the overlap. */
-.box-notes-col { flex:1 1 240px; min-width:170px; max-width:340px; display:flex; flex-direction:column; gap:8px; }
+.box-notes-col { flex:1 1 240px; min-width:140px; max-width:260px; display:flex; flex-direction:column; gap:8px; }
 .box-notes-col .hint { margin:0; }
 .pending-note { color:#7a5b1a; }
 .vent-groups { display:flex; gap:20px; }
@@ -1350,20 +1291,29 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .vent-pane-tight .vent-col-title { margin-bottom:2px; }
 .vent-pane-tight { --label-w:86px; }
 .vent-pane-tight .vent-port-row { gap:8px; }
-.vent-pane-tight .vent-port-row > .field { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
-.vent-pane-tight .field > :deep(*:not(label)) { grid-row:2; }
-.vent-pane-tight .field > :deep(label), .vent-pane-tight .field > label { grid-row:1; grid-column:1 / span 4; width:auto; }
-.vent-pane-tight .field input[type=text], .vent-pane-tight .field select, .vent-pane-tight .field :deep(input) { width:70px; padding:1px 4px; }
-.vent-pane-tight .field > label, .vent-pane-tight .field > :deep(label) { font-size:11px; line-height:12px; }
-.vent-pane-tight .vent-groups { gap:8px; }
-/* UIField reserves a label-width first column; here the label sits above, so value, unit and
-   data-quality dot start at the left edge. */
-.vent-pane-tight .vent-port-row > .ui-field { grid-template-columns:70px auto 16px; }
-.vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-value) { grid-column:1; }
-.vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-unit) { grid-column:2; }
-.vent-pane-tight .vent-port-row > .ui-field :deep(.ui-field-dq) { grid-column:3; }
-.vent-pane-tight .vent-port-row > .field select { width:100px; }
-.vent-pane-tight .vent-port-row { display:grid; grid-template-columns:130px 130px; gap:8px; }
+.vent-pane-tight .vent-port-row > .field:not(.ui-field) { display:grid; grid-template-rows:auto auto; justify-content:start; align-items:center; column-gap:4px; row-gap:0; }
+.vent-pane-tight .vent-port-row > .field:not(.ui-field) > label { grid-row:1; width:auto; }
+.vent-pane-tight .field:not(.ui-field) select { grid-row:2; width:138px; height:20px; padding:0 6px; }
+.vent-pane-tight .vent-groups { gap:16px; }
+.vent-pane-tight .vent-port-row { display:grid; grid-template-columns:repeat(2,max-content); gap:8px; }
+.vent-labels-left .vent-port-row > .field:not(.ui-field) { grid-template-columns:72px 138px; grid-template-rows:auto; }
+.vent-labels-left .vent-port-row > .field:not(.ui-field) > label { grid-column:1; grid-row:1; }
+.vent-labels-left .field:not(.ui-field) select { grid-column:2; grid-row:1; }
+.vent-labels-left .vent-port-row > .field:has(select:not([id])) { grid-template-columns:86px 138px; }
+/* Compact port exploration: shape on row2, count below on row3. */
+.port-columns .vent-col, .port-columns .vent-settings-col { width:400px; flex:none; }
+.port-columns .vent-col { display:grid; grid-template-columns:257px max-content; column-gap:8px; row-gap:2px; align-content:start; align-items:center; }
+.port-columns .vent-col-title { grid-column:1 / -1; grid-row:1; }
+.port-columns .vent-port-row { display:contents; }
+.port-columns .vent-port-row > .field { grid-column:1; }
+.port-columns .port-tuning-row > .ui-field, .port-columns .port-tuning-placeholder { grid-column:1; grid-row:2; }
+.port-columns .port-tuning-placeholder { width:257px; min-height:var(--ctl-h,20px); }
+.port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:120px 138px; }
+.port-columns .vent-port-row > .field:has(select:not([id])) { grid-template-columns:120px 138px; column-gap:2px; }
+.port-columns .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:2; grid-row:3; grid-template-columns:44px 85px; }
+.port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:44px 42px; }
+.port-columns .field:has(select[id*="vent-count"]) select { width:42px; }
+.port-columns .field:has(select[id*="vent-shape"]) select { width:85px; }
 .vent-col { flex:none; }
 .vent-col-title { font-weight:600; color:#444; margin-bottom:4px; }
 .vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
@@ -1388,7 +1338,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    component's value box, provenance colour and unit-chip geometry. */
 .field:where(:not(.ui-field)) :deep(input.greyed) { background:#e9e9e9; color:#777; }
 .field:where(:not(.ui-field)) :deep(input.calculated) { color:#1868d1; }
-.adv-air-fields { display:grid; grid-template-columns:max-content max-content; column-gap:16px; align-items:start; }
+.adv-air-fields { display:grid; grid-template-columns:repeat(2,max-content); column-gap:8px; align-items:start; }
 .adv-air-fields .field { gap:2px; }
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
@@ -1397,14 +1347,14 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .adv-air-fields .field.ui-field :deep(.ui-field-unit), .adv-air-fields .field.ui-field :deep(.ui-field-dq) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-value) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
-.adv-air-fields .field-row { margin-bottom: 4px; }
+.adv-air-fields .field-row { margin-bottom: 3px; }
 .adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
 .adv-air-fields .field-row:nth-child(4),
 .adv-air-fields .field-row:nth-child(5) { grid-column:2; }
 .adv-air-fields .field-row:nth-child(4) { grid-row:1; }
 .adv-air-fields .field-row:nth-child(5) { grid-row:2; }
 .adv-air-fields .field-row:nth-child(4) label,
-.adv-air-fields .field-row:nth-child(5) label { width:92px; margin-right:4px; }
+.adv-air-fields .field-row:nth-child(5) label { width:108px; margin-right:0; }
 .adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; margin-top:2px; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
@@ -1454,6 +1404,10 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 /* Hints beside (not below) their fields keep the pane shallow so the chart stays tall. */
 .beside-hint { display:flex; gap:16px; align-items:flex-start; }
 .side-hint { flex:none; width:220px; margin:0; }
+/* Unit text may widen its field; wrap the adjacent explanation within the remaining pane. */
+.driver-columns > :last-child { flex: 1 1 auto; min-width: 0; }
+.driver-columns .beside-hint > :first-child { flex: none; }
+.driver-columns .side-hint { flex: 1 1 220px; min-width: 0; max-width: 220px; }
 .env-arrow { align-self:flex-start; margin:6px 0 0; }
 /* > .two-col beats the .two-col > div flex:0 default so the description fills the width */
 .two-col > .description-col { flex:1 1 auto; display:flex; flex-direction:column; gap:4px; }
@@ -1464,23 +1418,23 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .checkbox-col label input[type=checkbox] { flex:none; }
 
 .adv-two-col { gap: 8px; align-items: flex-start; }
-.adv-left-col { display: flex; flex-direction: column; gap: 4px; flex: none; }
+.adv-left-col { display:contents; }
 /* The standard WinISD options: one line each, as wide as the longest (John, 2026-10-05). */
 .adv-two-col .checkbox-col { margin-left: 0; width: max-content; }
 .adv-two-col .checkbox-col :deep(.adv-options) {
   display: grid;
-  grid-template-rows: repeat(3, auto);
-  grid-auto-flow: column;
+  grid-template-columns: max-content;
   column-gap: 16px;
   row-gap: 0;
 }
 .adv-two-col .checkbox-col :deep(label) { white-space: nowrap; }
 .adv-two-col .side-hint { width: 190px; }
 .adv-two-col .sim-options-box {
+  margin-left:auto;
   border: 1px solid #c8c8c8;
   background: #f4f6f9;
   border-radius: 4px;
-  padding: 4px 8px;
+  padding: 4px;
   /* Shrinks to its widest group, never below: the groups wrap, the labels never do. */
   flex: 0 1 auto;
   min-width: min-content;
@@ -1507,7 +1461,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 .save-btn:disabled { opacity:.45; cursor:default; }
 .save-btn.dirty { border-color:#d9a441; background:#fff3e0; color:#8a5a00; font-weight:600; }
 .save-btn.dirty:hover:not(:disabled) { background:#ffe4b0; }
-.unsaved-label { display:flex; align-items:center; justify-content:flex-start; gap:6px; color:#8a5a00; font-weight:600; font-size:11px; }
+.unsaved-label { margin-left:auto; display:flex; align-items:center; justify-content:flex-start; gap:6px; color:#8a5a00; font-weight:600; font-size:11px; }
 .unsaved-dot { width:8px; height:8px; border-radius:50%; background:#e0a800; display:inline-block; animation:unsaved-pulse 1.6s ease-in-out infinite; }
 .value-legend { display:flex; flex-direction:column; gap:4px; color:#555; font-size:10px; white-space:nowrap; }
 .value-legend span { display:flex; align-items:center; gap:4px; }

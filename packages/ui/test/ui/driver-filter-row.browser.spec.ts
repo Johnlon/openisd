@@ -12,6 +12,7 @@ for (const width of [360, 390]) {
     await forceMobileSkin(page);
     await page.goto('/');
     await page.getByText('New project').click();
+    await page.locator('.mob-np-body .dl-filters-toggle').click();
     await expect(page.locator('.mob-np-body .param-row')).toBeVisible();
     const groups = page.locator('.mob-np-body .param-row .pgroup');
     await expect(groups).toHaveCount(3);

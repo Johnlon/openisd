@@ -1,12 +1,14 @@
-import type {Ref} from 'vue';
+import type {ComputedRef, Ref} from 'vue';
 import {useApp} from '../logic/app.js';
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {cellClassOf} from '../logic/driverCells.js';
 import type {Calculated, Clearable, Entered, Precise, ProvenanceLetter, Readable, Writable} from '@openisd/design';
-import {driverSpecOfSlot} from '@openisd/design';
+import {driverSpecOfSlot, ventOfSlot} from '@openisd/design';
 import type {DqIssue} from '@openisd/design/engine';
 import {type NumberField, SheetField, SheetMode} from '@openisd/design/fields';
+import type {SheetSlot} from '@openisd/design/fields';
+import type {BoxType} from '@openisd/design/engine';
 import type {NumSpecField} from '../logic/appState.js';
 import {createSheetSession} from './sheetSession.js';
 import type {ClearableUICell} from '../ui/components/uiFieldBinding.js';
@@ -21,6 +23,8 @@ export type { NumSpecField };
  */
 /** One driver row of the panel: the spec field it edits, its registry field and its label. */
 export interface WhatIfDriverRow { readonly key: NumSpecField; readonly def: NumberField; readonly label: string }
+export interface WhatIfBoxRow { readonly field: SheetField; readonly value: number | null; readonly cell: ClearableUICell | null }
+export interface WhatIfPortLengthRow { readonly key: string; readonly label: string; readonly portName: 'Vent' | 'Rear' | 'Front'; readonly cell: ClearableUICell }
 
 // The driver rows the phone What-if sheet offers (Fs, Qes, Qms, Vas) come from the same design list.
 const SHEET_ROWS: readonly WhatIfDriverRow[] = SheetField.DRIVER_SPEC.flatMap(row => {
@@ -48,6 +52,11 @@ class WhatIfCell implements ClearableUICell {
 export interface OriginalWhatIfAPI {
   /** The driver rows shared with the phone What-if sheet, in its order. */
   readonly sheetRows: readonly WhatIfDriverRow[];
+  /** The active box's editable fields, from the same type-aware list as the mobile sheet. */
+  readonly boxRows: ComputedRef<readonly WhatIfBoxRow[]>;
+  /** Port lengths paired with the tuning rows shown in the desktop What-if. */
+  readonly portLengthRows: ComputedRef<readonly WhatIfPortLengthRow[]>;
+  setBoxField(field: SheetField, value: number): void;
   readonly ebp: Readonly<Ref<number | null>>;
   readonly vb_m3: Readonly<Ref<number | null>>;
 
@@ -73,6 +82,58 @@ export function useOriginalWhatIf(): OriginalWhatIfAPI {
   const {projectChanged} = useApp().appState;
   const project = useFocusedProject();
   const session = createSheetSession({ project, projectChanged, mode: SheetMode.WHAT_IF });
+
+  function boxCell(type: BoxType, slot: SheetSlot): ClearableUICell {
+    const box = project.value.box;
+    switch (slot) {
+      case 'volume': return box.volumeOf(type);
+      case 'frontVolume': return box.frontVolumeOf(type) ?? missingBoxField(slot);
+      case 'ventTuning': return box.ventGroupOf(type).tuning_goal_hz;
+      case 'rearTuning': return box.rearTuningOf(type) ?? missingBoxField(slot);
+      case 'ventArea': case 'rearVentArea': case 'frontVentArea': case 'intraVentArea':
+        return ventOfSlot(project.value, type, slot)?.area_m2 ?? missingBoxField(slot);
+      case 'prAddedMass': return box.passiveRadiator.addedMass_kg;
+      case 'prCount': return missingBoxField(slot);
+      case 'driverFs': case 'driverQes': case 'driverQms': case 'driverVas':
+      case 'driverCount': case 'inputPower':
+        return missingBoxField(slot);
+    }
+  }
+
+  function missingBoxField(slot: SheetSlot): never {
+    throw new Error(`What-if box field is not available for this box: ${slot}`);
+  }
+
+  const boxRows = computed<readonly WhatIfBoxRow[]>(() => {
+    void projectChanged.value;
+    const type = project.value.box.boxType.value;
+    return session.rows.value
+      .filter(row => row.field !== SheetField.INPUT_POWER && row.field !== SheetField.DRIVER_COUNT && !SheetField.DRIVER_SPEC.includes(row.field))
+      .map(row => ({
+        field: row.field,
+        value: row.value,
+        cell: row.field.slot === 'prCount' ? null : new WhatIfCell(boxCell(type, row.field.slot), session.begin),
+      }));
+  });
+
+  const portLengthRows = computed<readonly WhatIfPortLengthRow[]>(() => {
+    void projectChanged.value;
+    const type = project.value.box.boxType.value;
+    const ports = project.value.box.ventPortsOf(type);
+    return session.rows.value.flatMap(row => {
+      if (row.field.slot !== 'ventTuning' && row.field.slot !== 'rearTuning') return [];
+      const portName: WhatIfPortLengthRow['portName'] = row.field.slot === 'rearTuning' ? 'Rear' : type === 'vented' ? 'Vent' : 'Front';
+      const port = ports.find(candidate => candidate.name === portName);
+      if (!port) return [];
+      const label = portName === 'Vent' ? 'Port length' : `${portName} port length`;
+      return [{key: `${portName.toLowerCase()}-port-length`, label, portName, cell: new WhatIfCell(port.vent.length_m, session.begin)}];
+    });
+  });
+
+  function setBoxField(field: SheetField, value: number): void {
+    session.begin();
+    session.set(field, value);
+  }
 
 
   function specField(key: NumSpecField):
@@ -147,6 +208,9 @@ export function useOriginalWhatIf(): OriginalWhatIfAPI {
 
   return {
     sheetRows: SHEET_ROWS,
+    boxRows,
+    portLengthRows,
+    setBoxField,
     ebp,
     vb_m3,
     vbCell,

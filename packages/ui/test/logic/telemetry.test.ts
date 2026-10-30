@@ -337,10 +337,18 @@ describe('session end', () => {
 describe('service worker registration', () => {
   it('registers quietly when allowed', async () => {
     const record = vi.fn();
-    const register = vi.fn(() => Promise.resolve(undefined));
-    await registerServiceWorker({register}, '/sw.js', '/', {record, flush: vi.fn()}, 'Windows');
+    const registration = {scope: '/'};
+    const register = vi.fn(() => Promise.resolve(registration));
+    expect(await registerServiceWorker({register}, '/sw.js', '/', {record, flush: vi.fn()}, 'Windows')).toBe(registration);
     expect(register).toHaveBeenCalledWith('/sw.js', {scope: '/', updateViaCache: 'none'});
     expect(record).not.toHaveBeenCalled();
+  });
+
+  it('treats an empty registration from a blocking host as unavailable', async () => {
+    const record = vi.fn();
+    const result = await registerServiceWorker({register: () => Promise.resolve(undefined)}, '/sw.js', '/', {record, flush: vi.fn()}, 'Windows');
+    expect(result).toBeNull();
+    expect(record.mock.calls).toEqual([[{kind: 'sw_blocked', platform: 'Windows'}]]);
   });
 
   it('catches a refusal and sends sw_blocked instead of a crash', async () => {

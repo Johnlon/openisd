@@ -41,12 +41,12 @@ describe('PhoneRowSizes', () => {
 });
 
 describe('PhoneRowColumns', () => {
-  it('standard columns: 82 px label, 90 px stepper, 40 px chip, 14 px gutter', () => {
+  it('standard columns: 82 px label, 90 px stepper, 40 px chip, 16 px gutter', () => {
     const vars = PhoneRowColumns.STANDARD.cssVars();
     expect(vars.get('--mob-col-label')).toBe('82px');
     expect(vars.get('--mob-col-stepper')).toBe('90px');
     expect(vars.get('--mob-col-chip-min')).toBe('40px');
-    expect(vars.get('--mob-col-gutter')).toBe('14px');
+    expect(vars.get('--mob-col-gutter')).toBe('16px');
   });
 
   it('wide label columns differ from standard only in the label', () => {

@@ -9,7 +9,7 @@ import {wiringOptions} from '../../logic/driverDraft.js';
 import {readDriverFileText} from '../../logic/driverFileText.js';
 import {driverToWdrBytes} from '../../logic/fileImportExport.js';
 import {cellClassOf} from '../../logic/driverCells.js';
-import {commitMyDriver} from '../../hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, useDriverEditorHelp} from '../../hooks/DriverEditorModal-hooks.js';
 import type {DqReason} from '@openisd/design';
 import type {Calculated, Clearable, Entered, Precise, Readable, Writable} from '@openisd/design';
 import UIField from './UIField.vue';
@@ -22,6 +22,7 @@ import {DriverFileFormat} from '../../fileFormat.js';
 import EquationInspectorModal from './EquationInspectorModal.vue';
 import MobileKeyStrip from '../shells/mobile/MobileKeyStrip.vue';
 import PhoneBand from '../shells/mobile/PhoneBand.vue';
+import PhoneHelpSheet from '../shells/mobile/PhoneHelpSheet.vue';
 import SaveToLibraryDialog from './SaveToLibraryDialog.vue';
 import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
@@ -702,12 +703,15 @@ useEscToClose(() => presentationState.editDriverInfo, cancel);
 // panel would close the whole editor and discard the session's edits.
 useEscToClose(() => exportPickerOpen.value, () => { exportPickerOpen.value = false; });
 useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
+const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
 </script>
 
 <template>
   <div class="overlay on">
-    <div class="modal de-modal" :class="skin ? 'de-phone mob-classic' : 'de-desktop'" :style="modalStyle" ref="modalRootEl">
-      <h2>{{ editorTitle }}<button class="x" @click="cancel" title="Close without keeping changes">✕</button></h2>
+    <div class="modal de-modal" :class="[skin ? 'de-phone mob-classic' : 'de-desktop', {'de-inspecting': !skin && inspectProvenance}]" :style="modalStyle" ref="modalRootEl">
+      <h2>{{ editorTitle }}<button type="button" class="de-help-button" aria-label="Help: Driver editor" title="Key fields and chart-specific data" @click="showHelp(PhoneHelp.EDITOR_OVERVIEW)">?</button><button class="x" @click="cancel" title="Close without keeping changes">✕</button></h2>
+
+      <PhoneHelpSheet v-if="helpSection" :section="helpSection" @close="closeHelp" />
 
       <div class="de-tabs">
         <button v-for="t in TABS" :key="t" class="de-tab" :class="{ on: tab === t }" @click="tab = t">{{ t }}</button>
@@ -745,7 +749,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <div v-if="tab === 'Parameters'" class="de-params">
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THIELE_SMALL" />
-              <div v-else class="de-hdr">Thiele/Small parameters</div>
+              <div v-else class="de-hdr">Thiele/Small parameters<button type="button" class="de-help-button" aria-label="Help: Thiele/Small parameters" @click="showHelp(PhoneHelp.EDITOR_THIELE_SMALL)">?</button></div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Qes')]" data-field-key="Qes" :style="getFieldStyle('Qes')" :field="NumberField.QES" :cell="fieldOf('Qes')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Qms')]" data-field-key="Qms" :style="getFieldStyle('Qms')" :field="NumberField.QMS" :cell="fieldOf('Qms')" />
@@ -757,7 +761,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ELECTRO_MECHANICAL" />
-              <div v-else class="de-hdr">Electro-Mechanical parameters</div>
+              <div v-else class="de-hdr">Electro-Mechanical parameters<button type="button" class="de-help-button" aria-label="Help: Electro-Mechanical parameters" @click="showHelp(PhoneHelp.EDITOR_ELECTRO_MECHANICAL)">?</button></div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
@@ -777,7 +781,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_LARGE_SIGNAL" />
-              <div v-else class="de-hdr">Large-Signal parameters</div>
+              <div v-else class="de-hdr">Large-Signal parameters<button type="button" class="de-help-button" aria-label="Help: Large-Signal parameters" @click="showHelp(PhoneHelp.EDITOR_LARGE_SIGNAL)">?</button></div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Xmax_m')]" data-field-key="Xmax_m" :style="getFieldStyle('Xmax_m')" :field="NumberField.XMAX_M" :cell="fieldOf('Xmax_m')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Hc_m')]" data-field-key="Hc_m" :style="getFieldStyle('Hc_m')" :field="NumberField.HC_M" :cell="fieldOf('Hc_m')" />
@@ -791,7 +795,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_MISCELLANEOUS" />
-              <div v-else class="de-hdr">Miscellaneous parameters</div>
+              <div v-else class="de-hdr">Miscellaneous parameters<button type="button" class="de-help-button" aria-label="Help: Miscellaneous parameters" @click="showHelp(PhoneHelp.EDITOR_MISCELLANEOUS)">?</button></div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('no')]" data-field-key="no" :style="getFieldStyle('no')" :field="NumberField.NO" :cell="fieldOf('no')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Znom_ohm')]" data-field-key="Znom_ohm" :style="getFieldStyle('Znom_ohm')" :field="NumberField.ZNOM_OHM" :cell="fieldOf('Znom_ohm')" />
@@ -810,7 +814,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <div v-if="tab === 'Advanced'" class="de-params">
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THERMAL" />
-              <div v-else class="de-hdr">Thermal parameters</div>
+              <div v-else class="de-hdr">Thermal parameters<button type="button" class="de-help-button" aria-label="Help: Thermal parameters" @click="showHelp(PhoneHelp.EDITOR_THERMAL)">?</button></div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('alfaVC_per_K')]" data-field-key="alfaVC_per_K" :style="getFieldStyle('alfaVC_per_K')" :field="NumberField.ALFAVC_PER_K" :cell="fieldOf('alfaVC_per_K')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Rt_K_per_W')]" data-field-key="Rt_K_per_W" :style="getFieldStyle('Rt_K_per_W')" :field="NumberField.RT_K_PER_W" :cell="fieldOf('Rt_K_per_W')" />
@@ -820,7 +824,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_FIGURE_OF_MERIT" />
-              <div v-else class="de-hdr">Figure of merits</div>
+              <div v-else class="de-hdr">Figure of merits<button type="button" class="de-help-button" aria-label="Help: Figure of merits" @click="showHelp(PhoneHelp.EDITOR_FIGURE_OF_MERIT)">?</button></div>
               <div class="de-cols">
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('SPLmaxLF_dB')]" data-field-key="SPLmaxLF_dB" :style="getFieldStyle('SPLmaxLF_dB')" :field="NumberField.SPLMAXLF_DB" :cell="fieldOf('SPLmaxLF_dB')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('SPLmax_dB')]" data-field-key="SPLmax_dB" :style="getFieldStyle('SPLmax_dB')" :field="NumberField.SPLMAX_DB" :cell="fieldOf('SPLmax_dB')" />
@@ -837,7 +841,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_ENVIRONMENT" />
-              <div v-else class="de-hdr">Environment parameters</div>
+              <div v-else class="de-hdr">Environment parameters<button type="button" class="de-help-button" aria-label="Help: Environment parameters" @click="showHelp(PhoneHelp.EDITOR_ENVIRONMENT)">?</button></div>
               <div class="de-cols">
                 <UIFixedField class="de-fld value-c" :class="skin?.field" data-field-key="c_m_per_s" :title="NumberField.C_M_PER_S.description" :field="NumberField.C_M_PER_S" :value="cellVal('c_m_per_s')" readonly />
                 <UIFixedField class="de-fld value-c" :class="skin?.field" data-field-key="roo_kg_per_m3" :title="NumberField.ROO_KG_PER_M3.description" :field="NumberField.ROO_KG_PER_M3" :value="cellVal('roo_kg_per_m3')" readonly />
@@ -849,7 +853,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
           <div v-if="tab === 'Dimensions'" class="de-dims">
             <div class="de-dimlist">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_DIMENSIONS" />
-              <div v-else class="de-hdr">Dimensions</div>
+              <div v-else class="de-hdr">Dimensions<button type="button" class="de-help-button" aria-label="Help: Dimensions" @click="showHelp(PhoneHelp.EDITOR_DIMENSIONS)">?</button></div>
               <!-- Every length below is stored in METRES and shown in MILLIMETRES (the length unit group),
                    the same unit the Parameters tab uses for Xmax/Hc/Hg/Dd, and one of the units
                    WinISD offers on each of these fields. Unscaled, a 6.5" basket read "0.17";
@@ -1056,7 +1060,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
    the widest (about 840px of content with the step arrows) and Parameters the tallest. Both measured, not guessed. The
    vh caps are only a small-screen backstop. */
 /* position: relative anchors the format picker's scrim to the editor, not the viewport. */
-.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 976px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
+.de-modal { position: relative !important; display: flex !important; flex-direction: column !important; width: 1100px !important; max-width: 96vw !important; min-height: 550px !important; max-height: 96vh !important; flex-shrink: 0 !important; overflow: hidden !important; }
 .de-tabs { display: flex; gap: 2px; padding: 6px 12px 0; border-bottom: 1px solid var(--line); }
 .de-tab { padding: 5px 12px; border: 1px solid var(--line); border-bottom: none; border-radius: 3px 3px 0 0; background: var(--panel2); color: var(--fg); cursor: pointer; font: inherit; font-size: 14px; font-weight: 500; }
 .de-tab.on { background: var(--panel); font-weight: 600; }
@@ -1094,6 +1098,7 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
 .de-body { display: flex; flex-direction: column; gap: 6px; flex: 1 !important; }
 
 .de-fld { position: relative; }
+.de-desktop.de-inspecting { --de-field-columns:3; margin-left:12px; margin-right:auto; max-width:calc(100vw - 236px) !important; }
 .de-desktop .de-fld { display: flex; flex-direction: column; gap: 2px; margin-bottom: 3px; width: fit-content; justify-self: start; }
 .de-desktop .de-fld :deep(label) { font-size: 11px; color: var(--mut); white-space: nowrap; }
 .de-desktop .de-fld input, .de-desktop .de-fld select { padding: 2px 5px; border: 1px solid var(--line); border-radius: 3px; font: inherit; background: var(--panel); color: var(--fg); }
@@ -1190,7 +1195,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
   /* 4 field-slots per row, 4 tracks each (label/value/unit/alert) = 16 tracks. A `.de-fld`
      subgrids across 4 of them (one field-slot); with only 4 tracks total here, every field
      spanned the whole row and the tab rendered as one field per line instead of four. */
-  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
+  grid-template-columns: repeat(var(--de-field-columns,4), max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
   /* 2px between tracks: 15 gaps across 16 tracks; at 6px the grid was wider than the modal's body in Chromium and wider still in Firefox, so the body scrolled sideways. */
   gap: 3px 0 !important;
   align-items: center !important;
@@ -1212,7 +1217,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
      on one column edge. FOUR tracks: label, input, unit, DQ marker — the marker needs a track
      of its own or the row it appears on wraps and stops matching the rows around it. */
   display: grid;
-  grid-template-columns: max-content max-content minmax(34px, max-content) 16px;
+  grid-template-columns: max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px;
   align-items: center;
   /* A tight row pitch: eight fields read as ONE list, as they do in WinISD's own Dimensions
      page. Row spacing lives HERE and nowhere else — a per-field margin on top of it stacked
@@ -1241,11 +1246,12 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    fits one tab's labels and clips another's. The provenance highlight is painted on this box,
    so it wraps all four parts as one component. */
 .de-desktop .de-fld {
+  --ui-field-column-gap: 3px;
   display: grid !important;
   grid-template-columns: subgrid !important;
   grid-column: span 4 !important;
   align-items: center !important;
-  gap: 3px !important;
+  gap: var(--ui-field-column-gap) !important;
   margin-bottom: 0 !important;
   width: fit-content !important;
   max-width: 100% !important;
@@ -1307,7 +1313,7 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
    columns of them overran the modal and forced a sideways scroll. */
 .de-desktop .de-cols {
   display: grid !important;
-  grid-template-columns: repeat(4, max-content max-content minmax(34px, max-content) 16px) !important;
+  grid-template-columns: repeat(var(--de-field-columns,4), max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
   gap: 6px 12px !important;
   align-items: center !important;
 }
@@ -1321,11 +1327,6 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-desktop .de-cols .de-fld > :deep(input), .de-desktop .de-cols .de-fld > select,
 .de-desktop .de-dimlist .de-fld > :deep(input), .de-desktop .de-dimlist .de-fld > select { grid-column: 2 !important; }
 
-.de-desktop .de-cols .de-fld > .ui-field-unit,
-.de-desktop .de-dimlist .de-fld > .ui-field-unit,
-
-.de-desktop .de-cols .de-fld > .ui-field-dq,
-.de-desktop .de-dimlist .de-fld > .ui-field-dq,
 .de-desktop .de-cols .de-fld > .de-dq,
 .de-desktop .de-dimlist .de-fld > .de-dq {
   grid-column: 4 !important;
@@ -1362,8 +1363,6 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-phone .de-general .de-fld.de-comment > :deep(.ui-field-value) { flex: 1 1 auto; display: flex; align-items: stretch; }
 .de-phone .de-general .de-fld.de-comment.ui-field { display: flex; flex-direction: column; align-items: stretch; height: auto; min-height: var(--mob-row-min); padding-top: 6px; padding-bottom: 8px; }
 .de-phone .de-general .de-fld.de-comment textarea { flex: 1 1 auto; width: 100% !important; min-height: 120px !important; box-sizing: border-box; font-size: 15px; border: 1px solid var(--mob-box-line); border-radius: 4px; padding: 6px var(--mob-col-gutter) !important; resize: none; }
-/* The editor's rows carry no ≠W badge, so the ⚠ sits right beside the unit chip and leaves the middle of the box free to tap. */
-.de-phone.mob-classic :deep(.mob-ui-field.ui-field .ui-field-dq) { margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 8px); }
 .de-phone h2 .x { min-width: var(--mob-touch-min); min-height: var(--mob-touch-min); }
 /* The unit toggle and the ⚠ are buttons: as tall as the row's box, so a finger finds them. */
 .de-phone :deep(.ui-field-unit), .de-phone :deep(.ui-field-dq-btn) { min-height: var(--mob-input-h); display: inline-flex; align-items: center; }
@@ -1458,4 +1457,28 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 /* ── Phone: the ƒ mark in the left gutter of a row the inspector can explain ── */
 .de-phone .de-fld.de-fx { position: relative; }
 .de-phone .de-fld.de-fx::before { content: var(--de-fx); position: absolute; left: 4px; top: 50%; transform: translateY(-50%); color: #888; font-style: italic; font-family: Georgia, serif; font-size: 14px; line-height: 1; pointer-events: none; }
+</style>
+
+<style scoped>
+/* Keep the complete value-plus-unit rail wide enough for displayed precision. On smaller
+   desktops use three field columns instead of clipping a fourth column at the modal edge. */
+@media (max-width: 1100px) {
+  .de-desktop { --de-field-columns: 3; }
+  .de-desktop.de-inspecting { --de-field-columns:2; }
+}
+@media (max-width: 900px) {
+  .de-desktop { --de-field-columns: 2; }
+  .de-desktop.de-inspecting { --de-field-columns:1; }
+}
+</style>
+
+<style scoped>
+.de-help-button {width:22px;height:22px;padding:0;border:1px solid #3a6fb0;border-radius:50%;background:#e6f0fb;color:#23548f;font:600 12px/1 sans-serif;cursor:pointer;flex:none;}
+.de-hdr {display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px;padding-right:4px;}
+.de-modal > h2 > .de-help-button {margin-left:auto;}
+.de-modal > h2 > .x {margin-left:0;}
+.de-hdr .de-help-button {width:14px;height:14px;font-size:10px;}
+.de-help-button:hover,.de-help-button:focus-visible {background:#cfe2f8;}
+.de-desktop :deep(.mob-help-overlay) {align-items:center;justify-content:center;}
+.de-desktop :deep(.mob-help-sheet) {width:min(680px,92%);max-height:90%;border-radius:8px;}
 </style>

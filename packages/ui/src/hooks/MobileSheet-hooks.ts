@@ -14,7 +14,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createSheetSession, type SheetRow} from './sheetSession.js';
 import {portFieldsView, type PortFieldsView} from './portFieldsView.js';
-import {ChartPageHelp, PhoneRowSizes, SheetSizes, type PhoneHelpSection, type SheetField, type SheetMode} from '@openisd/design/fields';
+import {ChartPageHelp, PhoneRowColumns, PhoneRowSizes, SheetSizes, type PhoneHelpSection, type SheetField, type SheetMode} from '@openisd/design/fields';
 
 /** The sheet's open state (owned by the chart view; its Auto Y box follows it) and its fixed mode. */
 export interface MobileSheetDeps {
@@ -168,7 +168,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
 
   return {
     isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode,
-    sizeStyle: [...PhoneRowSizes.CLASSIC.cssVars()].map(([name, value]) => `${name}: ${value}`).join('; '), help,
+    sizeStyle: [...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.STANDARD.cssVars()].map(([name, value]) => `${name}: ${value}`).join('; '), help,
     portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };

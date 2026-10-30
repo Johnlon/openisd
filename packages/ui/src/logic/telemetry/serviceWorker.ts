@@ -13,7 +13,14 @@ export async function registerServiceWorker<Registration>(
   host: ServiceWorkerHost<Registration>, url: string, scope: string, telemetry: Telemetry, platform: Platform,
 ): Promise<Registration | null> {
   try {
-    return await host.register(url, {scope, updateViaCache: 'none'});
+    const registration = await host.register(url, {scope, updateViaCache: 'none'});
+    // A blocking host may resolve without a registration instead of rejecting.
+    // Never hand an absent registration to the update listener owner.
+    if (registration === undefined || registration === null) {
+      telemetry.record({kind: 'sw_blocked', platform});
+      return null;
+    }
+    return registration;
   } catch {
     telemetry.record({kind: 'sw_blocked', platform});
     return null;

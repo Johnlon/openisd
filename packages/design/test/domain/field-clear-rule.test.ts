@@ -130,6 +130,7 @@ describe('clear rule: step 2, swap with the equation partner', () => {
     expect(letter(p.box.sealed.volume_m3)).toBe('C');
     expect(letter(p.box.sealed.q_tc)).toBe('E');
     expect(p.box.sealed.q_tc.value).toBe(qtc);
+    expect(p.box.sealed.q_tc.precision, 'clearing does not invent extra Qtc decimals').toBe(0.0005);
     expect(p.box.sealed.volume_m3.value).toBeCloseTo(0.03, 2);
   });
 });

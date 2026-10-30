@@ -5,13 +5,11 @@ import {fileURLToPath} from 'node:url';
 
 const STYLE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src', 'style.css');
 
-describe('architecture — mobile readouts do not reserve a stepper column', () => {
-  it('puts the unit at the readout edge and gives a plain readout the full value width', () => {
+describe('architecture — mobile readouts share the standard value width', () => {
+  it('keeps the unit at the standard value edge instead of stretching into the button track', () => {
     const source = readFileSync(STYLE, 'utf8');
-    const unit = source.match(/\.mob-classic\s+\.mob-ui-field\.ui-field\.ui-field-readout\s+\.ui-field-unit\s*\{([^}]*)\}/)?.[1] ?? '';
-    const plainValue = source.match(/\.mob-classic\s+\.mob-ui-field\.ui-field\.ui-field-readout\s+\.ui-field-value\s*>\s*\.mob-readonly\s*\{([^}]*)\}/)?.[1] ?? '';
-
-    expect(unit, 'a readout unit must override the editable field stepper offset').toMatch(/margin-right:\s*1px\s*;/);
-    expect(plainValue, 'a plain readout must not reserve space for absent steppers').toMatch(/margin-right:\s*0\s*;/);
+    const plainValue = source.match(/\.mob-classic\s+\.mob-ui-field\.ui-field\s+\.ui-field-value\s*>\s*\.mob-readonly\s*\{([^}]*)\}/)?.[1] ?? '';
+    expect(plainValue).toMatch(/margin-right:\s*var\(--mob-col-stepper\)\s*;/);
+    expect(source).not.toMatch(/\.ui-field-readout\s+\.ui-field-value\s*>\s*\.mob-readonly\s*\{\s*margin-right:\s*0\s*;/);
   });
 });

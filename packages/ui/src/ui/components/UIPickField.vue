@@ -16,6 +16,8 @@ const props = defineProps<{
   <div class="ui-field ui-pick-field" :style="{'--pick-width': props.width?.css}">
     <label class="ui-field-label" :for="inputId">{{ label }}</label>
     <span class="ui-field-value"><slot /></span>
+    <span v-if="$slots.dq" class="ui-field-dq"><slot name="dq" /></span>
+    <slot name="unit" />
     <span v-if="$slots.cue" class="ui-field-dev"><slot name="cue" /></span>
   </div>
 </template>

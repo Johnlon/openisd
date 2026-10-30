@@ -1,0 +1,93 @@
+T607 Driver Info enhancement — Gemini source and image review
+2026-10-27; requested by John; model gemini-4-argon-high via agy.
+Conversation 101c48ef-e9b6-431a-825b-d42439662314. Read-only review.
+
+FIRST REVIEW
+### 1. Verdict: Button Position & Information Route
+
+- **Button position**: Correct on both skins. `Info` sits between `Select driver` and `Edit` in [MobileDriverTab.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/mobile/MobileDriverTab.vue#L19-L23) ([after-final-phone-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/after-final-phone-stable.png)) and between `Select Driver` and `✎ Edit` on desktop ([after-final-desktop-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/after-final-desktop-stable.png)).
+- **Information route**: Correct in principle. [`showProjectDriverInfo()`](http://lap:8000/winisd/openisd-t607/packages/ui/src/logic/driverBrowsingState.ts#L449-L455) binds `previewDriver` directly to `focusedProject().driver`, sets `projectInfoOpen = true` and `presentationState.browseOpen = true`, skips `init()`/`reloadMyDrivers()` in [`openedLibrary()`](http://lap:8000/winisd/openisd-t607/packages/ui/src/logic/driverBrowsingState.ts#L573-L577), and renders [`DriverLibrary.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L300-L369) under [`DriverListMode.Info`](http://lap:8000/winisd/openisd-t607/packages/ui/src/logic/driverListMode.ts#L2-L6) with `Close` only ([info-phone-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-phone-final.png), [info-desktop-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-desktop-final.png)).
+
+---
+
+### 2. Concrete Defects & Source Criticisms
+
+1. **Wrong screen captured in `prod-phone-stable.png`**:
+   - [prod-phone-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/prod-phone-stable.png) was captured on the **Box** tab (`Vented`, `Vb`, `Fb` with the sync banner), not the **Driver** tab. It provides no production baseline for the mobile Driver tab.
+
+2. **`projectInfoOpen` state leak if `browseOpen` closes outside `closeLibrary()`**:
+   - [`DriverBrowser.vue:L39`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverBrowser.vue#L39) watches `presentationState.browseOpen` and calls `pickDriver(null)` when it turns `false`, leaving `projectInfoOpen.value = true` if anything closes the overlay by mutating `presentationState.browseOpen = false` rather than calling [`closeLibrary()`](http://lap:8000/winisd/openisd-t607/packages/ui/src/logic/driverBrowsingState.ts#L565-L570).
+   - If `projectInfoOpen` remains `true`, the next `Select driver` open mounts `DriverLibrary` in `DriverListMode.Info` and [`openedLibrary()`](http://lap:8000/winisd/openisd-t607/packages/ui/src/logic/driverBrowsingState.ts#L574) returns early without calling `init()` or `reloadMyDrivers()`, stranding the picker on `"Loading…"`.
+   - **Fix**: Watch `presentationState.browseOpen` inside [`driverBrowsingState.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/src/logic/driverBrowsingState.ts#L565-L570) (not `DriverBrowser.vue`) so `!browseOpen` always resets both `projectInfoOpen.value = false` and `previewDriver.value = null`.
+
+3. **False-positive post-Close picker check in browser and unit tests**:
+   - After closing `Info` and clicking `Select driver`, [`driver-info.browser.spec.ts:L34-L36`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/driver-info.browser.spec.ts#L34-L36) only checks `await expect(page.locator('.wb-modal .preview')).toHaveCount(0)`. An uninitialized library stuck on `"Loading…"` also has `.preview` count `0`. The spec should assert that catalogue rows (`.ditem`) or `initialized` actually load after closing `Info`.
+   - Similarly, [`driverBrowsingState-info.test.ts:L26-L32`](http://lap:8000/winisd/openisd-t607/packages/ui/test/logic/driverBrowsingState-info.test.ts#L26-L32) asserts `initialized.value === false` during `Info` and then calls `closeLibrary()`, but never calls `openedLibrary()` a second time after `closeLibrary()` to prove normal picker initialization resumes.
+
+4. **Weak geometry assertions in [`driver-info.browser.spec.ts:L19-L20`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/driver-info.browser.spec.ts#L19-L20)**:
+   - `expect(boxes.every(box => box.left >= 0 && box.right <= host.width)).toBe(true)` only verifies horizontal viewport bounds. It does not assert that the three buttons stay on a single row (`boxes[0].top === boxes[1].top === boxes[2].top`), do not overlap (`boxes[0].right <= boxes[1].left`), maintain equal height, or that phone `Info` is `44px × 44px`.
+
+5. **Empty `.browser-footer` rendered below `.preview` in [`DriverLibrary.vue:L371-L377`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L371-L377)**:
+   - `v-if="!previewDriver"` is on the inner `<div>` instead of `<div class="browser-footer">`. When `previewDriver` is shown (including `Info`), `.browser-footer` remains in the flex column with `padding: 4px 0 2px` plus `.driver-library`'s `gap: 6px`, adding 12px of empty bottom padding under the `.preview` box in [info-desktop-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-desktop-final.png) and 6px in [info-phone-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-phone-final.png).
+
+6. **Per-render object allocation for phone `Close` CSS variables ([`DriverLibrary.vue:L360`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverLibrary.vue#L360))**:
+   - `:style="Object.fromEntries(PhoneRowSizes.CLASSIC.cssVars())"` rebuilds the style object on every render because `DriverBrowser` mounts outside `PhoneClassicPage`. Hoisting that constant in `<script setup>` (or setting the vars on `.driver-library.dl-phone`) avoids repeated allocation.
+
+---
+
+### 3. Image Comparison Summary
+
+- **Phone (`374×705`)**: Comparing [before-phone-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/before-phone-stable.png) and [after-final-phone-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/after-final-phone-stable.png), the new square `Info` button fits cleanly between `Select driver` and `Edit` without changing row heights or shifting `DRIVERS`, `CONNECTION`, or `KEY FIGURES` (`37.00`, `0.380`, `30.00`, `6.600`, `6.000`). [info-phone-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-phone-final.png) shows aligned 2-column specs, metadata, star control, and a full-width 44px `Close` button.
+- **Desktop (`1280×900`)**: Comparing [before-desktop-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/before-desktop-stable.png) and [after-final-desktop-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/after-final-desktop-stable.png), `Info` sits between `Select Driver` and `✎ Edit`, shifting `✎ Edit` right on the same row with no vertical shift or layout disturbance. [info-desktop-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-desktop-final.png) renders the 4-column summary inside `.wb-modal` with only the star, `✕`, and right-aligned `Close`.
+
+---
+
+### 4. What These Screenshots (and Provided Files) Do Not Prove
+
+1. **Production mobile Driver tab parity**: Missing because [prod-phone-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/prod-phone-stable.png) is on the Box tab.
+2. **Desktop Driver tab & mobile hook source implementation**: The desktop component rendering `.driver-id-row` and `packages/ui/src/hooks/MobileDriverTab-hooks.ts` were outside the allowed file list and were not inspected.
+3. **`320px` phone button text fit and `1024px` desktop layout**: Only `374px` phone and `1280px` desktop viewports are pictured; `320px` wrapping/clipping of `Select driver` beside `Info` and `Edit` is not visually shown.
+4. **Catalogue population after closing `Info`**: Neither the screenshots nor [`driver-info.browser.spec.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/driver-info.browser.spec.ts#L34-L36) verify that the driver list populates with rows when `Select driver` is opened after closing `Info`.
+5. **Header `✕` and `Escape` close paths from `Info`**: Not exercised in tests or screenshots.
+6. **Scroll behavior and optional summary fields**: The fixture driver has no external links (`Datasheet (PDF)`, `Manufacturer page`, `Listing page`), `Series`, `Description`, `Notes`, or overflowing content requiring `.prev-body` scroll above a pinned `Close` footer.
+7. **Deployment verification**: These are local captures, not verified live `https://test.openisd.app` vs `https://openisd.app` screenshots with build IDs.
+
+
+RECHECK
+### 1. Critique of the Fix & Updated Source/Tests
+
+- **Synchronous overlay reset ([`driverBrowsingState.ts:L574-L576`](http://lap:8000/winisd/openisd-t607/packages/ui/src/logic/driverBrowsingState.ts#L574-L576) & [`DriverBrowser.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverBrowser.vue#L20-L37))**: Moving cleanup out of `DriverBrowser.vue` into `watch(() => presentationState.browseOpen, open => { if (!open) closeLibrary(); }, {flush: 'sync'})` in `driverBrowsingState.ts` resolves the stale-`projectInfoOpen` defect cleanly and keeps state lifecycle in `logic/`. Calling `closeLibrary()` when `open` is already `false` is idempotent and cannot loop.
+- **Shell & hook wiring ([`MobileDriverTab-hooks.ts:L38`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/MobileDriverTab-hooks.ts#L38), [`OriginalShell-hooks.ts:L796`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/OriginalShell-hooks.ts#L796), [`OriginalShell.vue:L445-L447`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/original/OriginalShell.vue#L445-L447))**: Both shells delegate `showDriverInfo` straight to `driverBrowsing.showProjectDriverInfo` with no logic in the Vue templates.
+- **Browser & unit test updates ([`driver-info.browser.spec.ts:L20-L53`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/driver-info.browser.spec.ts#L20-L53), [`driverBrowsingState-info.test.ts:L7-L16`](http://lap:8000/winisd/openisd-t607/packages/ui/test/logic/driverBrowsingState-info.test.ts#L7-L16))**:
+  - The browser spec now covers single-row alignment (`top` and `height` equality), non-overlap (`right <= left`), minimum button heights (`44px` phone / `20px` desktop), all three dismissal routes (`Close`, `h2 .x`, `Escape`), visible catalogue rows (`.wb-modal .dlist .ditem`) upon reopening `Select driver`, and opening `.de-modal` via `Edit`.
+  - Minor non-blocking test note: in [`driverBrowsingState-info.test.ts:L12-L14`](http://lap:8000/winisd/openisd-t607/packages/ui/test/logic/driverBrowsingState-info.test.ts#L12-L14), `await nextTick()` before `expect(app.driverBrowsing.projectInfoOpen.value).toBe(false)` would also pass with a default async watcher; asserting immediately after `app.presentation.browseOpen = false` would directly lock in `{flush: 'sync'}`.
+- **Correctness blockers**: None remaining.
+
+---
+
+### 2. Corrected Production vs Local Image Comparison
+
+- **Phone ([prod-corrected-phone-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/prod-corrected-phone-stable.png) vs [after-final-phone-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/after-final-phone-stable.png) & [info-phone-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-phone-final.png))**:
+  - Both baselines are now on the `Driver` tab with identical driver name (`Fixture Test Driver`), `DRIVERS`/`CONNECTION` selects, and `KEY FIGURES` (`37.00 Hz`, `0.380`, `30.00 L`, `6.600 Ω`, `6.000 mm`).
+  - **Intended change**: The 44px square `Info` button sits between `Select driver` and `Edit`; the two outer flex buttons narrow symmetrically with no wrapping, clipping, or vertical shift of any row below.
+  - **Pre-existing differences vs production**: Production shows the header cloud icon and the bottom `"Sync your projects across devices?"` banner above the tab bar; local omits cloud UI, allowing `same-complete-project` to fit in the header.
+- **Desktop ([prod-corrected-desktop-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/prod-corrected-desktop-stable.png) vs [after-final-desktop-stable.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/after-final-desktop-stable.png) & [info-desktop-final.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/driver-info-v1/info-desktop-final.png))**:
+  - **Intended change**: `Info` sits between `Select Driver` and `✎ Edit` on `.driver-id-row`, shifting `✎ Edit` right with no row-height or layout change.
+  - **Pre-existing differences vs production**: Production shows the toolbar cloud button and sync banner strip under the toolbar; local has the pre-existing joined unit/stepper fields (`1000.00 Hz`, `Advanced options`) and bottom-aligned hint text.
+
+---
+
+### 3. Benefit Assessment
+
+- **Beneficial enhancement**: Adding `Info` between `Select driver` and `Edit` gives direct, read-only access to the existing driver summary (`EBP`, `Znom`, `Pe`, provenance metadata, links, and favourite toggle) for the embedded project driver—including custom or imported drivers absent from the bundled catalogue—without opening the full mutable editor or triggering a catalogue fetch.
+
+
+IMPLEMENTER DISPOSITION
+The wrong production phone Box capture is excluded from the gallery; corrected production Driver images are published.
+The stale Info route was reproduced (red123234), fixed in logic, and unit/import tests pass123303.
+The browser test now verifies one row, non-overlap, equal heights, all three close paths, actual catalogue rows after Info and normal Edit. Four widths pass123514.
+The final unit assertion checks cleanup immediately, without nextTick, to require synchronous behavior.
+Existing empty footer spacing and small per-render style allocation are left as non-blocking review suggestions.
+Final V3 captures were personally inspected. Phone Driver, phone Info and desktop Info PNGs are byte-identical to reviewed V2 captures; desktop Driver is visually unchanged.
+Production-only cloud UI/banner and prior joined controls/hint placement differences predate this enhancement. They are identified in the gallery, not attributed to Info.
+No exhaustive audit or deployment is claimed; the broader audit was explicitly cancelled by John.

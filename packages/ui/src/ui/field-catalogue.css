@@ -1,0 +1,109 @@
+/* Shared field rendition on this review branch. The reference HTML remains the independent visual oracle. */
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) {
+  display:grid !important; grid-template-columns:minmax(70px,1fr) 108px 48px 80px 22px !important;
+  column-gap:2px !important; align-items:center !important; min-width:0 !important;
+  width:100% !important; box-sizing:border-box !important; height:40px !important; min-height:40px !important;
+  padding:0 6px !important; overflow:visible !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) > :is(label,.mob-sheet-label) {grid-column:1 !important;grid-row:1 !important; padding:0 2px 0 0 !important; font-size:14px !important;line-height:16px !important;font-family:inherit !important;white-space:normal !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell):has(.ui-field-dq-btn) > :is(label,.mob-sheet-label) {padding-right:20px !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-value,.mob-sheet-value) {display:contents !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .num-input-wrap {grid-column:2 !important;grid-row:1 !important;display:block !important; width:108px !important;min-width:0 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-value,.mob-sheet-value) input,
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-value,.mob-sheet-value) select,
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-value,.mob-sheet-value) > .mob-readonly {
+  grid-column:2 !important;grid-row:1 !important;width:108px !important;min-width:0 !important;max-width:108px !important;
+  height:34px !important;min-height:34px !important;box-sizing:border-box !important;padding:0 6px !important;margin:0 !important;
+  font-size:15px !important;text-align:left !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-value,.mob-sheet-value) > .mob-readonly {display:flex !important;align-items:center;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-unit,.mob-sheet-unit) {
+  grid-column:3 !important;grid-row:1 !important;width:48px !important;min-width:0 !important;max-width:48px !important;
+  height:34px !important;margin:0 !important;padding:0 3px !important;box-sizing:border-box !important;
+  display:flex !important;align-items:center !important;justify-content:center !important;font-size:13px !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-unit,.mob-sheet-unit):empty {display:none !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .num-stepper {grid-column:4 !important;grid-row:1 !important;display:flex !important;width:80px !important;gap:0 !important;margin:0 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .num-stepper-btn {width:40px !important;min-width:40px !important;height:34px !important;min-height:34px !important;box-sizing:border-box !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .ui-field-dq {grid-column:1 !important;grid-row:1 !important;justify-self:end !important;width:18px !important;margin:0 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .ui-field-dq-btn {width:18px !important;min-width:18px !important;padding:0 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .ui-field-dev {grid-column:5 !important;grid-row:1 !important;justify-self:start !important;margin:0 !important;width:auto !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell):not(:has(.num-stepper)) .ui-field-dev {grid-column:4 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell):has(:is(.ui-field-unit,.mob-sheet-unit):empty) .num-stepper {grid-column:3 / 5 !important;justify-self:start !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell):has(:is(.ui-field-unit,.mob-sheet-unit):empty):has(.num-stepper) .ui-field-dev {grid-column:3 / 5 !important;margin-left:82px !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell):has(:is(.ui-field-unit,.mob-sheet-unit):empty):not(:has(.num-stepper)) .ui-field-dev {grid-column:3 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell).ui-field-note-open {height:auto !important;min-height:40px !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .ui-field-note {grid-column:1 / -1 !important;grid-row:2 !important;}
+/* Wider free-text/select editors use the available value tracks. Numeric counts stay 108px. */
+.compact-fields.compact-fields .ui-field.ui-pick-field :is(.ui-field-value,.mob-sheet-value) > :is(input,select,textarea) {grid-column:2 / 5 !important;width:100% !important;max-width:none !important;}
+.compact-fields.compact-fields .ui-field.ui-pick-field .ui-field-dev {grid-column:5 !important;}
+
+.compact-fields.compact-fields .ui-field.catalogue-range :is(.ui-field-value,.mob-sheet-value) > input {grid-column:2 !important;width:108px !important;}
+.compact-fields.compact-fields .ui-field.catalogue-range .ui-field-dev {grid-column:4 !important;}
+.compact-fields.compact-fields .ui-field.ui-pick-field :is(.ui-field-value,.mob-sheet-value) > input[type=checkbox] {grid-column:2 !important;width:20px !important;height:20px !important;min-height:20px !important;justify-self:start;}
+.compact-fields.compact-fields .ui-field.ui-pick-field :is(.ui-field-value,.mob-sheet-value) > input[type=color] {grid-column:2 !important;width:36px !important;height:26px !important;min-height:26px !important;}
+
+.compact-fields.compact-fields .mob-sheet-line {padding:0 !important;height:40px !important;}
+.compact-fields.compact-fields .mob-sheet-cell .mob-sheet-unit {position:static !important;top:auto !important;bottom:auto !important;right:auto !important;}
+.compact-fields.compact-fields .mob-sheet-cell .mob-sheet-label {width:auto !important;}
+
+/* Paint is fixed by the reviewed rendition, independent of either skin's theme and old field CSS. */
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(input,select,textarea,.mob-readonly) {
+  font-family:Arial,sans-serif !important; font-size:15px !important; font-weight:400 !important; line-height:normal !important;
+  border:1px solid #c4c4c4 !important; border-radius:4px !important; background:#fff !important; box-shadow:none !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) input {color:#078200 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(input.calculated,input.de-input-calculated,input.value-c) {color:#06f !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(input.defaulted,.ui-field-defaulted input) {color:#23548f !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(input[readonly],.mob-readonly) {background:#f1f1f1 !important;color:#06f !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-unit,.mob-sheet-unit) {
+  font:13px Arial,sans-serif !important; color:#555 !important; background:transparent !important; border:0 !important; border-radius:3px !important;
+  text-decoration:none !important; text-align:start !important; margin:0 !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(.ui-field-unit,.mob-sheet-unit).unit-toggle {
+  color:#23548f !important; background:#efefef !important; border:1px solid #bbb !important;
+  text-decoration:underline !important;text-align:center !important;text-underline-offset:3px !important;cursor:pointer !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .num-stepper-btn {
+  border:1px solid #999 !important; border-radius:5px !important; background:linear-gradient(#fff,#ddd) !important;
+  font:18px Arial,sans-serif !important; text-align:center !important; color:#000 !important; padding:0 !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .winisd-deviation-cue {
+  display:inline-flex !important;align-items:center !important;justify-content:center !important;width:22px !important;min-width:22px !important;height:18px !important;
+  font:600 9px Arial,sans-serif !important;border:1px solid #3a6fb0 !important;border-radius:3px !important;background:#e6f0fb !important;color:#23548f !important;padding:0 !important;
+}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) .ui-field-dq-btn {font:15px Arial,sans-serif !important;color:#ba7800 !important;background:transparent !important;border:0 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) input.de-input-mandatory {border:2px solid #777 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(input.de-input-empty,input.inp-bad) {border:2px solid #c62828 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) input:disabled {background:#e8e8e8 !important;color:#777 !important;}
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) :is(input,select,textarea,button):focus-visible {outline:2px solid #1868c9 !important;outline-offset:1px !important;}
+
+/* E: the selected digit blinks in inverse video; native touch carets remain collapsed. */
+.compact-fields .num-mark-overlay {font:15px Arial,sans-serif !important;line-height:18px !important;padding:0 7px !important;text-align:left !important;}
+.compact-fields .num-mark-underline {font:inherit !important;text-decoration:none !important;border:0 !important;animation:spin-inverse-blink 1s step-end infinite;}
+.compact-fields input[data-numinput]::selection {background:transparent;color:inherit;}
+.compact-fields .num-stepper-btn {touch-action:none !important;}
+@keyframes spin-inverse-blink {0%,55%{background:#1868c9;color:#fff}56%,100%{background:transparent;color:transparent}}
+@media(prefers-reduced-motion:reduce){.compact-fields .num-mark-underline{animation:none;background:#1868c9;color:#fff}}
+
+/* The generator has no visible field label or cues. Its complete control still uses the same rendition. */
+.compact-fields.compact-fields .ui-field.signal-gen-field {grid-template-columns:0 90px 24px 0 !important;}
+
+/* A single chamber owns a consistent field width plus its adjacent alignment action. */
+.compact-fields .box-tab-main:has(.box-layout > .box-fields-col:only-child) {width:420px !important;}
+.compact-fields .box-layout > .box-fields-col:only-child {width:420px !important;}
+.compact-fields.compact-fields .box-layout > .box-fields-col:only-child .ui-field {width:348px !important;flex:none !important;}
+
+/* Explanations use the full pane instead of becoming a tall strip beside wider controls. */
+.compact-fields .driver-columns .field-row {margin-bottom:0 !important;}
+.compact-fields .driver-model-hint {margin:4px 0 0 !important;}
+.compact-fields .adv-air-fields {column-gap:8px !important;}
+.compact-fields .adv-two-col {gap:22px !important;}
+/* Keep explanatory prose readable when classic panes scroll at narrower window widths. */
+.compact-fields .box-notes-col {min-width:220px;}
+/* The reference row already includes vertical spacing; legacy wrapper margins must not add more depth. */
+.compact-fields .tab-section .field-row:has(> .ui-field) {margin-bottom:0 !important;}
+/* Label typography is part of the reference, while its available width follows the parent group. */
+.compact-fields.compact-fields :is(.ui-field.ui-field,.mob-sheet-cell) > :is(label,.mob-sheet-label) {
+  font:400 13px/16px Arial,sans-serif !important;color:#555 !important;text-align:start !important;width:auto !important;margin:0 !important;
+}

@@ -64,7 +64,7 @@ export interface ProjectBinView {
 }
 
 export interface ProjectBinViewDeps {
-  readonly appState: Pick<AppState, 'openProjects' | 'removeProject' | 'projectHasUnsavedChanges' | 'focusedProject' | 'isTraceVisible' | 'traceVisibilityRevision' | 'projectDisplayName'>;
+  readonly appState: Pick<AppState, 'openProjects' | 'removeProject' | 'projectHasUnsavedChanges' | 'focusedProject' | 'isTraceVisible' | 'traceVisibilityRevision' | 'projectDisplayName' | 'projectChanged'>;
   readonly projectRepo: ProjectRepo;
   /** Read inside a computed, so the rows follow cloud sync. */
   readonly cloudMarks: () => ProjectCloudMarks;
@@ -98,6 +98,7 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
 
   const projectRows = computed<ProjectListRow[]>(() => {
     void deps.appState.traceVisibilityRevision.value;
+    void deps.appState.projectChanged.value;
     const units = deps.unitTokens();
     const marks = deps.cloudMarks();
     const open = deps.appState.openProjects();
@@ -115,6 +116,7 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
         name: project !== null ? deps.appState.projectDisplayName(project) : listing.name,
         driver: summary?.driver ?? '',
         summary: summary?.line(units) ?? '',
+        boxDetails: summary?.boxDetails(units),
         phoneSummary: summary?.phoneLine(units) ?? '',
         saved: {modifiedMs: new Date(listing.modified).getTime(), bytes: listing.bytes, readable: listing.kind === 'readable'},
         open: openState(project),
