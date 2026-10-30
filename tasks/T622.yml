@@ -1,0 +1,9 @@
+id: T622
+release_note: internal
+repo: openisd
+owner: cover2
+status: open
+goal: Loading a stored project and saving it gives the same bytes: the embedded driver id is read back, never reminted (BUG_20261013_project-driver-uuid-reminted-on-read)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T622.yml
