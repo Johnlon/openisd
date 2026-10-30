@@ -14,7 +14,8 @@ import {
     bundledPassiveRadiatorRows,
     chipsOf,
     displayNameOf,
-    passiveRadiatorRows
+  passiveRadiatorRows,
+  previewSpecsOf,
 } from '../../src/logic/driverDisplay.js';
 import type {BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 
@@ -84,6 +85,57 @@ describe('chipsOf — classification chips for one driver', () => {
     const { canonical } = chipsOf(driver);
     // Sd in cm² < 12 resolves to Tweeter by the T/S fallback (Sd = 0.001 m² = 10 cm²).
     assert.equal(canonical, 'Tweeter');
+  });
+});
+
+describe('previewSpecsOf — reported readings with no usable simulation value', () => {
+  it('shows stated Re and BL as separate spec values', () => {
+    const record = driverOf({brand: 'Tang Band', model: 'W5-1138SMF'}).cloneDriver();
+    record.specs.woofer.Re_ohm = {state: 'E', value: 3.4};
+    record.specs.woofer.BL_Tm = {state: 'E', value: 7.17};
+    const driver = OpenISDDriver.fromConformingRecord(record, createEngine());
+    if (Array.isArray(driver)) throw new Error(`fixture is not a valid driver: ${driver.join(', ')}`);
+
+    const specs = previewSpecsOf(driver);
+    assert.deepEqual(specs.filter(spec => spec.label === 'Re' || spec.label === 'BL'), [
+      {label: 'Re', value: '3.400', unit: 'Ω'},
+      {label: 'BL', value: '7.17000', unit: 'Tm'},
+    ]);
+  });
+
+  it('shows raw Re and BL readings with their sources and labels them as reported', () => {
+    const driver = driverOf({brand: 'Tang Band', model: 'W5-1138SMF'});
+    const record = driver.cloneDriver();
+    record.specs.woofer.Re_ohm = {
+      state: 'N',
+      readings: {
+        manufacturer_datasheet: {actual_reading: '3.4 W', read_value: 3.4},
+        manufacturer_product_page: {actual_reading: '3.4 Ω', read_value: 3.4},
+      },
+    };
+    record.specs.woofer.BL_Tm = {
+      state: 'N',
+      readings: {
+        manufacturer_datasheet: {actual_reading: '7.17 TM', read_value: 7.17},
+        manufacturer_product_page: {actual_reading: '7.17 TM', read_value: 7.17},
+      },
+    };
+    const updated = OpenISDDriver.fromConformingRecord(record, createEngine());
+    if (Array.isArray(updated)) throw new Error(`fixture is not a valid driver: ${updated.join(', ')}`);
+
+    const specs = previewSpecsOf(updated);
+    assert.deepEqual(specs.filter(spec => spec.label.includes('reported')), [
+      {
+        label: 'Re (reported)',
+        value: '3.4 W (manufacturer datasheet); 3.4 Ω (manufacturer product page)',
+      },
+      {
+        label: 'BL (reported)',
+        value: '7.17 TM (manufacturer datasheet); 7.17 TM (manufacturer product page)',
+      },
+    ]);
+    assert.equal(updated.specs.Re_ohm.value, null);
+    assert.equal(updated.specs.BL_Tm.value, null);
   });
 });
 

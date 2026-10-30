@@ -203,7 +203,7 @@ const usableReadingJsonSchema = z.strictObject({
  *  conversion table knows (Mms "327.7" with no unit). The printed text is kept either way
  *  (John, 2026-10-20: "the scraper collects facts it read"). One list per variant; add a reason
  *  here and every exhaustive match sees it. */
-export const UNPARSED_REJECTION_REASONS = ['no-numeric-value', 'unit-not-recognised'] as const;
+export const UNPARSED_REJECTION_REASONS = ['no-numeric-value', 'unit-not-recognised', 'multiple-values'] as const;
 /** Why a number WAS read but is refused. */
 export const PARSED_REJECTION_REASONS = ['ohm-glyph-merged-as-digit'] as const;
 export type UnparsedRejectionReason = typeof UNPARSED_REJECTION_REASONS[number];

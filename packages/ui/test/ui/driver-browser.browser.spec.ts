@@ -4,6 +4,21 @@ import type {Page} from '@playwright/test';
 import {MY_DRIVERS_KEY, myDriversJson, parseMyDriversBucket} from '../fixtures/seedMyDrivers.js';
 
 test.describe('Driver browser', () => {
+  test('the bundled W5-1138SMF preview shows its stated Re and BL values', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.filter').fill('W5-1138SMF');
+    const driver = page.locator('.dlist .ditem:not(.my-ditem)').filter({hasText: 'W5-1138SMF'}).first();
+    await expect(driver).toBeVisible();
+    await driver.click();
+
+    const preview = page.locator('.driver-library .preview');
+    await expect(preview).toBeVisible();
+    await expect(preview).toContainText(/Re\s+3\.400\s+Ω/);
+    await expect(preview).toContainText(/BL\s+7\.17000\s+Tm/);
+  });
+
   test('the selected-driver summary has a consistent inner gutter', async ({page}) => {
     await page.goto('/');
     await openAProject(page);

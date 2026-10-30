@@ -74,19 +74,23 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.deepEqual(errors.filter(error => error.level === 'error'), []);
     });
 
-    it('keeps tuple values unavailable when basis, connection, or coil count is unknown', () => {
+    it('keeps each reported voice-coil value entered when tuple metadata is incomplete', () => {
       const source = scraperTupleFixture('faitalpro-12pr300-8.driver.json');
       const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
       assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
       assert.ok(wdr !== null, `tuple record writes WDR; errors: ${JSON.stringify(errors)}`);
 
       const app: unknown = parse(openisd);
-      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'state'), 'N');
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'state'), 'N');
+      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 5.4);
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), 14.1);
       assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 5.4);
       assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings', 'manufacturer_product_page', 'read_value'), 14.1);
+      assert.equal(WinISDDriver.fromWdrIni(wdr).cell('Re').value, '5.4');
+      assert.equal(WinISDDriver.fromWdrIni(wdr).cell('BL').value, '14.1');
       assert.ok(errors.some(error => error.level === 'warn' && error.message.includes('basis is unknown')),
-        'warns that the source readings cannot be represented as per-coil values');
+        'warns that the stated Re value was retained without tuple-based scaling');
     });
 
     it('projects a coax tweeter tuple whose coil count and connection are not stated', () => {
@@ -96,7 +100,10 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.ok(wdr !== null, `woofer section still writes WDR; errors: ${JSON.stringify(errors)}`);
 
       const app: unknown = parse(openisd);
-      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'state'), 'N');
+      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'value'), 3.8);
       assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 3.8);
       assert.equal(at(app, 'specs', 'tweeter', 'voice_coil'), undefined);
       assert.deepEqual(errors.filter(error => error.level === 'error'), []);
@@ -202,6 +209,24 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.deepEqual(errors.filter(e => e.message.includes('unrecognised rejection reason')), []);
       const commentLine = wdr.split(/\r?\n/).find(l => l.startsWith('Comment='));
       assert.ok(commentLine?.includes('Xlim_m: manufacturer_datasheet 0.06 ft.³ — unit-not-recognised'), `got: ${commentLine}`);
+    });
+
+    it('a multiple-values refusal is known, preserved, and not warned as an unknown reason', () => {
+      const record: unknown = parse(daytonDriverYml());
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      woofer.Basket_m = {readings: {
+        manufacturer_product_page: {
+          actual_reading: '63/60 mm (Installation front/rear)',
+          rejected: 'multiple-values',
+        },
+      }};
+      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null && wdr !== null, `projection produced; errors: ${JSON.stringify(errors)}`);
+      assert.deepEqual(at(parse(openisd), 'specs', 'woofer', 'Basket_m', 'readings', 'manufacturer_product_page'), {
+        actual_reading: '63/60 mm (Installation front/rear)', rejected: 'multiple-values',
+      });
+      assert.deepEqual(errors.filter(error => error.message.includes('unrecognised rejection reason')), []);
     });
 
     it('writing a rejected reading on a numeric field writes value 0, state N, and printed text in comment', () => {

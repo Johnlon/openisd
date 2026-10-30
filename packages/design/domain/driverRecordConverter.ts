@@ -54,6 +54,12 @@ export interface DriverYmlProjection {
   errors: DriverError[];
 }
 
+/** The shared scraper-entry DQ pass when a library projection is not requested. */
+export interface DriverYmlDqWarnings {
+  warnings: DriverError[];
+  errors: DriverError[];
+}
+
 /** The scraper-only section. It is named ONCE, here, because this is the only place that drops
  *  it — `drivers.md` Part A's structural drop is a property of `OpenISDDeviceJson`, which cannot
  *  help a caller that must also emit YAML text preserving the source's key order. */
@@ -687,6 +693,21 @@ export class DriverRecordConverter {
     return { openisd, wdr, errors };
   }
 
+  /** Run the same scraper-entry DQ pass without attempting an OpenISD or WinISD projection.
+   *
+   * The scraper pipeline uses this for records whose role is outside the library's
+   * woofer/passive-radiator boundary. Parsing and source corroboration stay in the shared
+   * private method; this boundary returns its warnings and errors without derived files.
+   */
+  driverYmlToDqWarnings(driverYmlText: string): DriverYmlDqWarnings {
+    const parsed = this.#driverYmlToOpenisdRecord(driverYmlText);
+    if (!parsed.ok) return { warnings: [], errors: [parsed.error] };
+    return {
+      warnings: parsed.warnings.filter(problem => problem.level === "warn"),
+      errors: parsed.warnings.filter(problem => problem.level === "error"),
+    };
+  }
+
   /** `.wdr` text -> `OpenISDDriver` — the reverse of `openIsdDriverToWinIsdDriver`, for a caller
    *  (a `.wdr`/`.owdr` file import) holding raw `.wdr` text rather than an already-parsed
    *  `WinISDDriver`. Three steps, same chain `winIsdProjectToOpenIsdProject` uses for the driver
@@ -881,13 +902,13 @@ export class DriverRecordConverter {
         continue;
       }
       if (basis === "unknown") {
-        result[field] = this.#unavailableVoiceCoilEntry(projected);
-        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading basis is unknown; raw source readings are retained without per-coil scaling"});
+        result[field] = projected;
+        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading basis is unknown; the stated value is retained without scaling"});
         continue;
       }
       if (coilCount === undefined || (tuple.connection !== "series" && tuple.connection !== "parallel")) {
-        result[field] = this.#unavailableVoiceCoilEntry(projected);
-        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading is for a stated connection, but a supported connection and stated coil count are required for per-coil scaling"});
+        result[field] = projected;
+        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil connection or count is unstated; the stated value is retained without scaling"});
         continue;
       }
       if (projected.state !== "E" || typeof projected.value !== "number") {
@@ -900,13 +921,6 @@ export class DriverRecordConverter {
       result[field] = {...projected, value: projected.value * factor};
     }
     return result;
-  }
-
-  #unavailableVoiceCoilEntry(projected: Record<string, unknown>): Record<string, unknown> {
-    const unavailable: Record<string, unknown> = {state: "N"};
-    if (projected.readings !== undefined) unavailable.readings = projected.readings;
-    if (projected.dq_scraper !== undefined) unavailable.dq_scraper = projected.dq_scraper;
-    return unavailable;
   }
 
   /** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the

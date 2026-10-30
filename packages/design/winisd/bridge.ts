@@ -5,13 +5,11 @@
  * packages/winisd/dist/openisd-bridge.js) and evaluated once per process inside a bare V8
  * context that has no `console`, `process`, `fetch`, `require` or module loader.
  *
- * `globalThis.driverYmlToOpenisdAndWdr` is the ONE global this file adds — the property
- * mini-racer's Python caller reads and calls
- * (`ctx.call("driverYmlToOpenisdAndWdr", [driverYmlText])`). This is a deliberate,
- * spec-mandated exception to ARCHITECTURE.md §5 "NO GLOBAL VARIABLES": the whole point of this
- * file is to publish a symbol a foreign V8 embedding can find with no import machinery of its
- * own, matching the existing `window.selfTestDone` precedent (QT69.1: the bridge exposes
- * exactly one function).
+ * `globalThis.driverYmlToOpenisdAndWdr` and `globalThis.driverYmlToDqWarnings` are the only
+ * functions this file adds — the properties mini-racer's Python caller reads and calls. The
+ * second is used only when no WinISD library projection applies. These are deliberate,
+ * spec-mandated exceptions to ARCHITECTURE.md §5 "NO GLOBAL VARIABLES": the whole point of this
+ * file is to publish the two symbols a foreign V8 embedding can find with no import machinery.
  *
  * Contract (`drivers/drivers.md` Part C, approved by John 2026-08-30): the exposed function
  * takes `driverYmlText: string` — the SCRAPER's `driver.yml`, not `openisd.yml` — and returns a
@@ -76,3 +74,13 @@ declare global {
 }
 
 globalThis.driverYmlToOpenisdAndWdr = driverYmlToOpenisdAndWdrBridge;
+
+function driverYmlToDqWarningsBridge(driverYmlText: string): string {
+  return JSON.stringify(driverFiles.driverYmlToDqWarnings(driverYmlText));
+}
+
+declare global {
+  var driverYmlToDqWarnings: typeof driverYmlToDqWarningsBridge;
+}
+
+globalThis.driverYmlToDqWarnings = driverYmlToDqWarningsBridge;
