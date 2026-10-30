@@ -29,6 +29,7 @@ UNIT_CMD="bash gates/ok.sh"
 ARCHITECTURE_CMD="bash gates/ok.sh"
 CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/ok.sh"
+GATE_FILES="no-such-gate-file"
 GATE_DEADLINE_S=30
 LAND_LOCK="$SCRATCH/land.lock"
 CONF
