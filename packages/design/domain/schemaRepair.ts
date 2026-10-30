@@ -50,7 +50,7 @@ function removeAt(root: unknown, path: FieldPath): boolean {
 function messagesOf(issues: readonly z.core.$ZodIssue[]): string[] {
     return issues.map(issue => issue.path.length === 0
         ? issue.message
-        : `'${issue.path.join('.')}': ${issue.message}`);
+        : `'${issue.path.map(String).join('.')}': ${issue.message}`);
 }
 
 /**

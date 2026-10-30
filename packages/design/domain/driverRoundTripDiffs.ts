@@ -215,10 +215,18 @@ export function jsonRoundTripDiffs(openisd: string): DriverError[] {
   }
 }
 
+/** A record read into a driver, or the reasons it could not be. The importers receive it rather
+ *  than call `OpenISDDriver` themselves, so a refusal path can be tested without a record that
+ *  really fails. */
+export type DriverFromRecord = (record: unknown, engine: Engine) => OpenISDDriver | string[];
+
 /** The bundler's round-trip gate: reads back what the converter wrote, with the same engine the
  *  converter used, and reports every difference as a `DriverError`. */
 export class DriverRoundTripCheck {
-  constructor(private readonly engine: Engine) {}
+  constructor(
+    private readonly engine: Engine,
+    private readonly driverFromRecord: DriverFromRecord = OpenISDDriver.fromConformingRecord,
+  ) {}
 
   /**
    * THE ROUND TRIPS (`drivers.md` Part C step 6). Both texts this function is about to return on
@@ -277,7 +285,7 @@ export class DriverRoundTripCheck {
     w2: WinISDDriver
   ): DriverError[] {
     const { record: i3 } = winISDDriverToOpenISDDeviceJson(w2);
-    const driver3 = OpenISDDriver.fromConformingRecord(i3, this.engine);
+    const driver3 = this.driverFromRecord(i3, this.engine);
     if (Array.isArray(driver3)) {
       return [{
         level: "error",

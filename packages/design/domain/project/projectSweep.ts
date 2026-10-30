@@ -60,12 +60,17 @@ export interface ProjectSweepSource {
     readonly prIssues: readonly PrIssue[];
 }
 
+/** A stated value as the engine's optional parameter takes it: absent where nothing is stated. */
+function undefinedIfNull<T>(value: T | null): T | undefined {
+    return value ?? undefined;
+}
+
 /** The ENCLOSURE parameters alone — what `solveBoxParams` reads (`engine/params.ts`: `Vb`, `Vf`,
  *  `Sp`, `prSd`, `prCms`, `prMmd`), with no drive level and no sweep settings. See
  *  `boxParamsIssuesOf` for why this is separate from `sweepParamsOf`. */
 function enclosureParamsOf(source: ProjectSweepSource, boxType: SimulatableBoxType): EnclosureParams {
     const {Vf, Sp, prSd, prCms, prMmd} = boxSpecificParamsOf(source, boxType);
-    return {Vb: boxVolume_m3Of(source, boxType) ?? undefined, Vf, Sp, prSd, prCms, prMmd};
+    return {Vb: undefinedIfNull(boxVolume_m3Of(source, boxType)), Vf, Sp, prSd, prCms, prMmd};
 }
 
 /** `eg` is the drive voltage the sweep runs at: `sweepOf` passes the solved `driveVoltage_V`
@@ -91,7 +96,7 @@ function sweepParamsOf(source: ProjectSweepSource, P: FrequencyGrid, eg: number,
          Vb, eg,
         fmin: P.fmin,
         fmax: P.fmax,
-        N: P.N ?? source.sweepN.value ?? undefined,
+        N: P.N ?? undefinedIfNull(source.sweepN.value),
         nDrivers: source.nDrivers.value,
         wiring: source.wiring.value,
         Rs: source.Rs_ohm.value,
@@ -146,8 +151,8 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // Null only when the vent's tuning ↔ length pair is itself unsolved, which
             // ventSweepIssuesOf already refuses the sweep over before this is read.
             const Fb = box.vented.tuning_goal_hz.value;
-            const portEndCorrection_m = box.vented.vent.endCorrectionLength_m() ?? undefined;
-            return {Sp: Sp ?? undefined, Leff: Leff ?? undefined, Fb: Fb ?? undefined, portEndCorrection_m};
+            const portEndCorrection_m = undefinedIfNull(box.vented.vent.endCorrectionLength_m());
+            return {Sp: undefinedIfNull(Sp), Leff: undefinedIfNull(Leff), Fb: undefinedIfNull(Fb), portEndCorrection_m};
         }
         case 'bandpass4': {
             const Sp = box.bandpass4.vents.front.totalArea_m2();
@@ -158,11 +163,11 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // the front's own tuning — never the shared Ql/Qa/Qp above (engine/types.ts
             // `SweepParams.Qlr` doc, bugs/archive/BUG_20260927_bandpass4-box-not-winisd-form.md).
             return {
-                Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Leff: Leff ?? undefined,
+                Vf: undefinedIfNull(front.volume_m3.value), Sp: undefinedIfNull(Sp), Leff: undefinedIfNull(Leff),
                 Qlr: rear.Ql.value, Qar: rear.Qa.value, Qiclfr: box.bandpass4.Qiclfr.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
-                Ff: front.tuning_goal_hz.value ?? undefined,
-                portEndCorrection_m: box.bandpass4.vents.front.endCorrectionLength_m() ?? undefined,
+                Ff: undefinedIfNull(front.tuning_goal_hz.value),
+                portEndCorrection_m: undefinedIfNull(box.bandpass4.vents.front.endCorrectionLength_m()),
             };
         }
         case 'box-passive-radiator': {
@@ -172,13 +177,13 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // which prSweepIssuesOf already refuses the sweep over before this is read.
             const Fr = box.passiveRadiator.systemTuning_hz.value;
             return {
-                prSd: r.Sd_m2.value ?? undefined,
+                prSd: undefinedIfNull(r.Sd_m2.value),
                 prNum: box.passiveRadiator.count.value,
-                prMmd: r.Mms_kg.value ?? undefined,
-                prMadd: box.passiveRadiator.addedMass_kg.value ?? undefined,
-                prCms: r.Cms_m_per_N.value ?? undefined,
-                prRms: r.Rms_kg_per_s.value ?? undefined,
-                Fr: Fr ?? undefined,
+                prMmd: undefinedIfNull(r.Mms_kg.value),
+                prMadd: undefinedIfNull(box.passiveRadiator.addedMass_kg.value),
+                prCms: undefinedIfNull(r.Cms_m_per_N.value),
+                prRms: undefinedIfNull(r.Rms_kg_per_s.value),
+                Fr: undefinedIfNull(Fr),
             };
         }
         case 'bandpass6': {
@@ -191,11 +196,11 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             // `bandpass4` above — `Bandpass6Box`'s `winisd-lossy` branch reads these directly
             // (`SweepParams.Qpr`'s own doc).
             return {
-                Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
+                Vf: undefinedIfNull(front.volume_m3.value), Sp: undefinedIfNull(Sp), Spr: undefinedIfNull(Spr),
                 Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
                 Qiclfr: box.bandpass6.Qiclfr.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
-                Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
+                Fr: undefinedIfNull(rear.tuning_goal_hz.value), Ff: undefinedIfNull(front.tuning_goal_hz.value),
                 ...ends,
             };
         }
@@ -208,12 +213,12 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
             const LeffIntra = box.abc.vents.intra.effectiveLength_m();
             const ends = ventEndCorrections_m(box.abc.vents);
             return {
-                Vf: front.volume_m3.value ?? undefined, Sp: Sp ?? undefined, Spr: Spr ?? undefined,
+                Vf: undefinedIfNull(front.volume_m3.value), Sp: undefinedIfNull(Sp), Spr: undefinedIfNull(Spr),
                 Qlr: rear.losses.Ql.value, Qar: rear.losses.Qa.value, Qpr: rear.losses.Qp.value,
                 Qiclfr: box.abc.Qiclfr.value,
                 Qlf: front.losses.Ql.value, Qaf: front.losses.Qa.value, Qpf: front.losses.Qp.value,
-                Fr: rear.tuning_goal_hz.value ?? undefined, Ff: front.tuning_goal_hz.value ?? undefined,
-                SpIntra: SpIntra ?? undefined, LeffIntra: LeffIntra ?? undefined,
+                Fr: undefinedIfNull(rear.tuning_goal_hz.value), Ff: undefinedIfNull(front.tuning_goal_hz.value),
+                SpIntra: undefinedIfNull(SpIntra), LeffIntra: undefinedIfNull(LeffIntra),
                 ...ends,
             };
         }
@@ -223,17 +228,16 @@ function boxSpecificParamsOf(source: ProjectSweepSource, boxType: SimulatableBox
     }
 }
 
-/** Which of the engine's simulable topologies this project is, or null — see the original
- *  `OpenISDProject.#engineBoxType`'s doc comment for why null is not a failure. */
-function engineBoxTypeOf(source: ProjectSweepSource): SimulatableBoxType | null {
+/** Which of the engine's simulable topologies this project is. */
+function engineBoxTypeOf(source: ProjectSweepSource): SimulatableBoxType {
     return source.engine.box.simulatableBoxType(source.box.boxType.value);
 }
 
 /** The front and rear vents' end corrections, for WinISD's transmission-line port model. */
 function ventEndCorrections_m(vents: Bandpass6Box['vents']): Pick<SweepParams, 'portEndCorrection_m' | 'rearPortEndCorrection_m'> {
     return {
-        portEndCorrection_m: vents.front.endCorrectionLength_m() ?? undefined,
-        rearPortEndCorrection_m: vents.rear.endCorrectionLength_m() ?? undefined,
+        portEndCorrection_m: undefinedIfNull(vents.front.endCorrectionLength_m()),
+        rearPortEndCorrection_m: undefinedIfNull(vents.rear.endCorrectionLength_m()),
     };
 }
 
@@ -331,8 +335,7 @@ export function runMaxCurvesJob(simulation: SimulationEngine, job: SweepJob): Ma
     return simulation.maxCurves(job.driver, job.Le_H, job.box, {...job.maxCurves, air: new FixedAir(job.air)});
 }
 
-/** The job this project's sweep runs, or the issues that stop it. `issues` is empty when the
- *  topology is one the engine has no model for. */
+/** The job this project's sweep runs, or the issues that stop it. */
 export type SweepPlan =
     | { readonly kind: 'ready'; readonly job: SweepJob }
     | { readonly kind: 'blocked'; readonly issues: readonly SweepIssue[] };
@@ -346,7 +349,6 @@ function sweepDriverOf(source: ProjectSweepSource, air: Air): SweepDriver {
 
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {
     const box = engineBoxTypeOf(source);
-    if (!box) return {kind: 'blocked', issues: []};
     if (source.air.kind === 'notAvailable') return {kind: 'blocked', issues: source.air.issues};
     if (source.airIssues.length) return {kind: 'blocked', issues: source.airIssues};
     const air = source.air.air;
@@ -357,7 +359,7 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
     if (Vb === null) return {kind: 'blocked', issues: boxParamsIssuesOf(source)};
     return {kind: 'ready', job: {
         driver: sweepDriverOf(source, air),
-        Le_H: source.driver.specs.Le_H.value ?? undefined,
+        Le_H: undefinedIfNull(source.driver.specs.Le_H.value),
         box,
         air: {c: air.c(), rho: air.rho()},
         sweep: sweepParamsOf(source, P, source.driveVoltage_V, box, Vb),
@@ -367,9 +369,8 @@ export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): Sweep
 
 /** The frequency response, impedance and excursion this design produces — or the issues that
  *  stopped it, each NAMING the quantity the driver does not state. A bare null would say only
- *  "cannot simulate", which is what a caller cannot act on. `value` is null with an empty
- *  `errors` when the active topology is one the engine has no model for, or a field this project
- *  itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
+ *  "cannot simulate", which is what a caller cannot act on. `values` is null when a field this
+ *  project itself needs to sweep (its box volume, its drive voltage) is not yet stated. */
 export function sweepOf(source: ProjectSweepSource, P: FrequencyGrid): SweepSolveResult {
     const plan = sweepPlanOf(source, P);
     if (plan.kind === 'blocked') return {values: null, issues: [...plan.issues]};
@@ -386,11 +387,10 @@ export function maxCurvesOf(source: ProjectSweepSource, P: FrequencyGrid): MaxCu
 }
 
 /** What is wrong with this project's enclosure parameters — checked BEFORE a sweep, so a caller
- *  can refuse rather than plot nonsense. Empty when nothing is wrong, and also empty (rather than
- *  a false accusation) when the topology cannot be simulated at all. */
+ *  can refuse rather than plot nonsense. Empty when nothing is wrong. */
 export function boxParamsIssuesOf(source: ProjectSweepSource): readonly BoxParamsIssue[] {
     const box = engineBoxTypeOf(source);
-    return box ? source.engine.simulation.solveBoxParams(box, enclosureParamsOf(source, box)).issues : [];
+    return source.engine.simulation.solveBoxParams(box, enclosureParamsOf(source, box)).issues;
 }
 
 /** The tuning the vent as built actually produces. A precomputed readout — null, with a

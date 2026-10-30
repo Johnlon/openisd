@@ -8,8 +8,6 @@ import type { Vent, VentShape } from '../vent.js';
 
 /** What a cleared port dimension settles to, so the box never stays blank (John, 2026-10-09). */
 export interface VentStart {
-    /** Fill the geometry pair the vent's `shape` uses, where unset. */
-    readonly geometry: (vent: Vent) => void;
     /** The width a cleared width box goes back to. */
     readonly slotWidth_m: () => number;
 }

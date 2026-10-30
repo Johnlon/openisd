@@ -57,7 +57,7 @@ export class ProjectSummary {
         const amount = this.volume.kind === 'one'
             ? shown(this.volume.volume_m3)
             : `${shown(this.volume.rear_m3)} + ${shown(this.volume.front_m3)}`;
-        const typeName = BOX_TYPE_OPTIONS.find(o => o.value === this.boxType)?.label ?? this.boxType;
-        return [driverText, typeName, `${amount} ${field.unitLabel(token)}`].join(' · ');
+        const typeNames = BOX_TYPE_OPTIONS.flatMap(o => o.value === this.boxType ? [o.label] : []);
+        return [driverText, ...typeNames, `${amount} ${field.unitLabel(token)}`].join(' · ');
     }
 }

@@ -1,0 +1,19 @@
+id: T619
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: The GitHub suite run fails, with a warning to agents never to ignore it, when any engine or domain file in packages/design is below 100% coverage, and every such file is at 100%
+done_test: bash scripts/land/test/coverage-design-gate.test.sh && bash scripts/quiet-test.sh npm run coverage:design && bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T619.yml
+  - package.json
+  - .github/workflows/suite.yml
+  - scripts/coverage-design.sh
+  - scripts/land/test/coverage-design-gate.test.sh
+  - packages/design/vitest.coverage.config.ts
+  - packages/design/engine/**
+  - packages/design/domain/**
+  - packages/design/test/**
+  - bugs/BUG_20261030_*.md
+  - packages/ui/test/visual/SOURCES.sha256

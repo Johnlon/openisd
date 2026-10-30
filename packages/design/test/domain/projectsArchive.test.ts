@@ -1,4 +1,4 @@
-import {describe, expect, test} from 'vitest';
+import {describe, expect, test, vi} from 'vitest';
 import {buildProjectsArchive, parseProjectsArchive} from '../../domain/project/projectsArchive.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
@@ -31,5 +31,35 @@ describe('projectsArchive', () => {
     expect(parsed.kind).toBe('failed');
     if (parsed.kind !== 'failed') return;
     expect(parsed.reason).toBeDefined();
+  });
+});
+
+describe('parseProjectsArchive: refusals', () => {
+  const never = vi.fn((_text: string): OpenISDProject | string[] => ['unused']);
+
+  test('bytes that are not valid UTF-8 are refused as such, not as bad JSON', () => {
+    const invalid = new Uint8Array([0x7b, 0xff, 0xfe, 0x7d]);
+    expect(parseProjectsArchive(invalid, never)).toEqual({kind: 'failed', reason: 'not valid UTF-8'});
+    expect(never).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['null', 'null', 'not a project archive'],
+    ['an array', '[1]', 'not a project archive'],
+    ['no version', '{"projects":[]}', 'not a project archive'],
+    ['another version', '{"version":2,"projects":[]}', 'unsupported version: 2'],
+    ['projects not a list', '{"version":1,"projects":4}', 'archive is malformed'],
+    ['a project without text', '{"version":1,"projects":[{"text":3}]}', 'archive is malformed'],
+    ['a project that is not an object', '{"version":1,"projects":[5]}', 'archive is malformed'],
+  ])('%s', (_name, text, reason) => {
+    expect(parseProjectsArchive(text, never)).toEqual({kind: 'failed', reason});
+    expect(never).not.toHaveBeenCalled();
+  });
+
+  test('names the first problem of a project that will not read', () => {
+    const read = vi.fn((_text: string): OpenISDProject | string[] => ['bad field', 'second']);
+    const result = parseProjectsArchive('{"version":1,"projects":[{"text":"abc"}]}', read);
+    expect(result).toEqual({kind: 'failed', reason: 'could not parse a project: bad field'});
+    expect(read).toHaveBeenCalledWith('abc');
   });
 });

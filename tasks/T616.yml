@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: c7f75f944ee52523e9253b570d89831cf9ccaa24
 goal: Correct per-coil projection for the selected catalogue records, preserve source readings, and retain the existing catalogue membership.
 done_test: bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/ui/test/scripts/test-bundle.test.ts packages/ui/test/logic/unknownVoiceCoilReading.test.ts
 visual_note: The mobile Driver tab still shows the same W5 values; the captured difference is confined to the unit-control right edge. Ambiguous multi-coil Re/BL readings now explain that they are retained for reference and excluded from simulation.

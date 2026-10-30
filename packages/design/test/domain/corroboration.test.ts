@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {Corroboration, corroborate} from '../../domain/corroboration.js';
+import {Corroboration, ReaderAgreement, corroborate, readerVerdict} from '../../domain/corroboration.js';
 import type {Reading} from '../../domain/corroboration.js';
 
 const reading = (read_value: number, extra: Partial<Reading> = {}): Reading => ({read_value, ...extra});
@@ -70,5 +70,25 @@ describe('Corroboration — the enum class itself', () => {
     for (const member of Corroboration.ALL) {
       expect(Corroboration.parse(member.value)).toBe(member);
     }
+  });
+});
+
+describe('Corroboration and ReaderAgreement — string form', () => {
+  it('toString gives the wire value', () => {
+    expect(String(Corroboration.Match)).toBe(Corroboration.Match.value);
+    expect(String(ReaderAgreement.Disagree)).toBe('DISAGREE');
+    expect(String(ReaderAgreement.Agree)).toBe('AGREE');
+    expect(String(ReaderAgreement.Single)).toBe('SINGLE');
+  });
+});
+
+describe('readerVerdict — a read with a value but no stated precision', () => {
+  it('compares on the value alone', () => {
+    const verdict = readerVerdict({
+      text_layer: {actual_reading: '5', read_value: 5, read_precision: null},
+      pymupdf4llm: {actual_reading: '5', read_value: 5, read_precision: null},
+    });
+    expect(verdict.agreement).toBe(ReaderAgreement.Agree);
+    expect(verdict.numbered).toEqual(['text_layer', 'pymupdf4llm']);
   });
 });

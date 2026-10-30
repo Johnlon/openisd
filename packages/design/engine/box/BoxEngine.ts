@@ -43,11 +43,9 @@ const UNIVERSAL: readonly ChartId[] = Object.freeze([
 /** The box area of the engine: which topologies the circuit models, which charts a box type
  *  shows, and the defaults a display assumes before a project exists. */
 export interface BoxEngine {
-  /** Narrow a box type to one the circuit models, or null when it has none — the caller's cue to
-   *  report a design it cannot simulate rather than draw a wrong curve. Every `BoxType` is
-   *  simulatable today, so this never actually returns null; the return type stays `| null`
-   *  because the two sets are declared separately on purpose (`SimulatableBoxType`'s own doc). */
-  simulatableBoxType(box: BoxType): SimulatableBoxType | null;
+  /** Narrow a box type to the one the circuit models. Every `BoxType` is simulatable; the
+   *  exhaustive switch makes a new `BoxType` without a model a compile error here. */
+  simulatableBoxType(box: BoxType): SimulatableBoxType;
   /** Whether OpenISD has finished this box type. A type that is not finished is still offered
    *  by the pickers, shown dimmed. */
   implemented(box: BoxType): boolean;
@@ -80,7 +78,7 @@ export class BoxEngineImpl implements BoxEngine {
 
   /** A SWITCH, not a list: the case labels NARROW `box` to exactly `SimulatableBoxType`, so
    *  `return box` needs no assertion, and there is no array to be mutable state. */
-  simulatableBoxType(box: BoxType): SimulatableBoxType | null {
+  simulatableBoxType(box: BoxType): SimulatableBoxType {
     switch (box) {
       case 'sealed':
       case 'vented':

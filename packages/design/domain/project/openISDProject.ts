@@ -387,7 +387,7 @@ export class OpenISDProject {
      *  version skew that adds/removes chart ids — `parseChartId` (`chart/series.ts`)
      *  does the string↔member conversion at the UI boundary. */
     get graphs(): SimpleField<readonly string[]> {
-        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).graphs;
+        return this.#chartsView().graphs;
     }
 
     /** Which charts this project's box type shows, in WinISD's own chart-menu order — a design
@@ -396,12 +396,16 @@ export class OpenISDProject {
      *  EQ/filter charts always. The UI shows exactly the ids this returns, never a second list
      *  of "which charts apply". */
     get charts(): readonly ChartId[] {
-        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).charts;
+        return this.#chartsView().charts;
+    }
+
+    #chartsView(): ProjectChartsView {
+        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value);
     }
 
     /** The charts shown at once, stacked (see `OpenCharts`). */
     get openCharts(): OpenCharts {
-        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).openCharts;
+        return this.#chartsView().openCharts;
     }
 
     /** The graph cursor/selection (S10/QO130) — PROJECT-scoped, reversing QO90: two open
@@ -439,7 +443,7 @@ export class OpenISDProject {
     /** The project's trace/legend colour (a CSS colour), saved in the project file; null until
      *  first assigned. Chart view state, so `isModified()` ignores it. */
     get traceColor(): SimpleField<string | null> {
-        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).traceColor;
+        return this.#chartsView().traceColor;
     }
 
     /** Give the project its trace colour as ground state: written to the saved record, and to the
@@ -454,7 +458,7 @@ export class OpenISDProject {
     }
 
     get sweepN(): SimpleField<number | null> {
-        return new ProjectChartsView(this.#slot('charts'), this.#engine.box, () => this.box.boxType.value).sweepN;
+        return this.#chartsView().sweepN;
     }
 
     /** A record ENTERS the process here. A record carries no identity, so one is minted — two
@@ -678,7 +682,7 @@ export class OpenISDProject {
             focus(root, 'signal'),
             this.#engine.signal,
             () => usableRe(root, (r) => this.#driverOver(r)),
-            () => this.Rs_ohm.value ?? 0,
+            () => this.Rs_ohm.value,
             () => this.winisdVaModel.value,
             () => this.nDrivers.value,
             () => this.#issues.signal,
@@ -762,8 +766,8 @@ export class OpenISDProject {
 
     /** What is wrong with the temperature the air runs at: outside the range the air model supports. */
     #airRangeIssues(root: SimpleField<OpenISDProjectJson>): readonly EnvironmentIssue[] {
-        const tempK = this.#airFieldsOver(root).tempK.value;
-        return tempK === null ? [] : this.#engine.environment.temperatureIssues(tempK);
+        const stated = [this.#airFieldsOver(root).tempK.value].filter(tempK => tempK !== null);
+        return stated.flatMap(tempK => this.#engine.environment.temperatureIssues(tempK));
     }
 
     /** Everything `projectSweep.ts`'s free functions need to read off this project — built fresh

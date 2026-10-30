@@ -46,33 +46,45 @@ export class ConsistencyCheck {
     // one starts at the float-representation floor and accumulates however far each entered
     // field's own rounding can move it.
     const inherited = this.inheritedWidths(entered, resolved, solve, precisionOf);
-    const delta: Partial<Record<RouteQuantity, number>> = {};
+    // Each numeric field's solved value with its own half-width, in one structure so a value and
+    // its width can never be read apart.
+    const terms = new Map<RouteQuantity, {readonly value: number; readonly delta: number}>();
     for (const field of this.fields) {
       const value = resolved[field];
       if (typeof value !== 'number') continue;
-      delta[field] = entered[field] != null
-        ? precisionOf(field)
-        : Math.abs(value) * FLOAT_NOISE + (inherited[field] ?? 0);
+      terms.set(field, {
+        value,
+        delta: entered[field] != null
+          ? precisionOf(field)
+          : Math.abs(value) * FLOAT_NOISE + (inherited[field] ?? 0),
+      });
     }
 
     const values = this.valuesFrom(resolved);
     const issues: CalculationIssue<RouteQuantity>[] = [];
     for (const rel of this.relations) {
       if (rel.onlyWhenTargetEntered && entered[rel.target] == null) continue;
-      if (!rel.fields.every(f => typeof values[f] === 'number')) continue;
+      const targetTerm = terms.get(rel.target);
+      if (targetTerm === undefined) continue;
+      const others: {readonly field: RouteQuantity; readonly value: number; readonly delta: number}[] = [];
+      let complete = true;
+      for (const f of rel.fields) {
+        const term = terms.get(f);
+        if (term === undefined) { complete = false; break; }
+        if (f !== rel.target) others.push({field: f, ...term});
+      }
+      if (!complete) continue;
       const expected = rel.predict(values);
       if (!isFinite(expected)) continue;
 
-      // `rel.target` is one of `rel.fields`, so `delta[rel.target]` was set above for it.
-      let tolerance = (delta[rel.target] ?? 0) + rel.modelTolerance * Math.abs(expected);
-      for (const f of rel.fields) {
-        const fieldDelta = delta[f];
-        if (f === rel.target || !(fieldDelta! > 0)) continue;
-        const moved = rel.predict({...values, [f]: values[f]! + fieldDelta!});
+      let tolerance = targetTerm.delta + rel.modelTolerance * Math.abs(expected);
+      for (const o of others) {
+        if (!(o.delta > 0)) continue;
+        const moved = rel.predict({...values, [o.field]: o.value + o.delta});
         if (isFinite(moved)) tolerance += Math.abs(moved - expected);
       }
 
-      const actual = values[rel.target]!;
+      const actual = targetTerm.value;
       const residual = Math.abs(expected - actual);
       if (residual > tolerance) {
         // `residual` is the gap between the two intervals' CENTRES; `tolerance` is how much of

@@ -44,7 +44,7 @@ import {selectOrigin} from "./selectOrigin.js";
 import {sourceRank} from "./sourceRank.js";
 import {Corroboration, ReaderAgreement, corroborate, isRecognisedRejection, isUsable, readerVerdict, type Reading} from "./corroboration.js";
 import {Reader} from "./reader.js";
-import {DriverRoundTripCheck} from "./driverRoundTripDiffs.js";
+import {DriverRoundTripCheck, type DriverFromRecord} from "./driverRoundTripDiffs.js";
 
 /** Both derived artefacts and every problem found producing them. `openisd`/`wdr` are null when a
  *  blocking failure stopped that artefact being produced; `errors` is always an array. */
@@ -208,6 +208,27 @@ const scraperVoiceCoilTupleSchema = z.strictObject({
   connection_reading: scraperEntrySchema.nullable(),
 });
 
+/** One scraper-supplied entry as the schema parsed it. */
+type ScraperEntry = z.infer<typeof scraperEntrySchema>;
+
+/** A scraper entry once the app has picked its value: no reading won (`N`), or one did (`E`). */
+type ProjectedEntry =
+  | { state: "N"; readings: ScraperEntry["readings"]; dq_scraper?: ScraperEntry["dq_scraper"] }
+  | {
+      state: "E";
+      value: number;
+      origin: string;
+      corroboration: string;
+      readings: ScraperEntry["readings"];
+      dq_scraper?: ScraperEntry["dq_scraper"];
+    };
+
+/** Orders `[role, reading]` pairs by role name. The pairs come from one record's entries, so two
+ *  never share a name. */
+function byRoleName([a]: readonly [string, unknown], [b]: readonly [string, unknown]): number {
+  return a < b ? -1 : 1;
+}
+
 /** A literal worth putting in a MISMATCH warning: what the source actually printed when we have
  *  it, the parsed number otherwise. */
 function readingLiteral(r: Reading): string {
@@ -252,6 +273,15 @@ function makeRecordTextWinisdSafe(
       makeRecordTextWinisdSafe(item, `${path}.${index}`, warnings)
     );
   if (value === null || typeof value !== "object") return value;
+  return makeObjectTextWinisdSafe(value, path, warnings);
+}
+
+/** `makeRecordTextWinisdSafe` over an object's own entries: the same keys, each value rewritten. */
+function makeObjectTextWinisdSafe(
+  value: object,
+  path: string,
+  warnings: DriverError[]
+): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const [key, v] of Object.entries(value)) {
     out[key] = makeRecordTextWinisdSafe(
@@ -266,11 +296,8 @@ function makeRecordTextWinisdSafe(
 /** `«™» (U+2122)` — the character itself and its code point, so a reader of `dq.alert` can find
  *  it in the source even when the terminal cannot draw it either. */
 function describeCharacter(character: string): string {
-  const codePoint = character.codePointAt(0);
-  const hex =
-    codePoint === undefined
-      ? "?"
-      : codePoint.toString(16).toUpperCase().padStart(4, "0");
+  // `character` is one code point of a string, so `codePointAt(0)` is always a number.
+  const hex = Number(character.codePointAt(0)).toString(16).toUpperCase().padStart(4, "0");
   return `"${character}" (U+${hex})`;
 }
 
@@ -447,18 +474,12 @@ function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
   for (const section of sections) {
     for (const [field, entry] of Object.entries(section)) {
       if (entry === undefined || !('state' in entry) || entry.state !== "N") continue;
-      const readings = entry.readings;
-      if (!readings) continue;
-      const roles = Object.keys(readings).sort((a, b) => {
-        const diff = sourceRank(a) - sourceRank(b);
-        if (diff !== 0) return diff;
-        return a.localeCompare(b);
-      });
-      for (const role of roles) {
-        const r = readings[role];
-        if (!r) continue;
+      const ranked = Object.entries(entry.readings).sort(
+        ([a], [b]) => sourceRank(a) - sourceRank(b) || a.localeCompare(b)
+      );
+      for (const [role, r] of ranked) {
         const reason = !isUsable(r) ? r.rejected : `impossible for ${field}`;
-        const textOrValue = r.actual_reading ?? (isUsable(r) || "read_value" in r ? String(r.read_value) : "");
+        const textOrValue = r.actual_reading ?? (isUsable(r) ? String(r.read_value) : "");
         const printedPart = textOrValue ? ` ${textOrValue}` : "";
         lines.push(`${field}: ${role}${printedPart} — ${reason}`);
       }
@@ -627,8 +648,11 @@ export function openIsdDriverToWinIsdDriver(
 export class DriverRecordConverter {
   readonly #roundTrip: DriverRoundTripCheck;
 
-  constructor(private readonly engine: Engine) {
-    this.#roundTrip = new DriverRoundTripCheck(engine);
+  constructor(
+    private readonly engine: Engine,
+    private readonly driverFromRecord: DriverFromRecord = OpenISDDriver.fromConformingRecord,
+  ) {
+    this.#roundTrip = new DriverRoundTripCheck(engine, driverFromRecord);
   }
 
   /**
@@ -722,7 +746,7 @@ export class DriverRecordConverter {
     const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdrDriver);
     errors.push(...warnings);
 
-    const driverOrErrors = OpenISDDriver.fromConformingRecord(record, this.engine);
+    const driverOrErrors = this.driverFromRecord(record, this.engine);
     if (Array.isArray(driverOrErrors)) {
       for (const problem of driverOrErrors)
         errors.push({ level: "error", field: "driver", message: problem });
@@ -770,11 +794,7 @@ export class DriverRecordConverter {
     const warnings: DriverError[] = [];
     const record = this.#stripScraperOnlyFieldsFromJavascriptObject(javascriptThing,  warnings);
 
-    const safe = makeRecordTextWinisdSafe(record, "", warnings);
-    if (!isRecord(safe))
-      throw new Error("the text pass must return the record it was given");
-
-    return { ok: true, record: safe, warnings };
+    return { ok: true, record: makeObjectTextWinisdSafe(record, "", warnings), warnings };
   }
 
   /**
@@ -857,49 +877,37 @@ export class DriverRecordConverter {
     const result: Record<string, unknown> = {};
     let coilCount: number | undefined;
     if ("readings" in tuple.numVC) {
-      const projectedCount = this.#projectScraperEntry(tuple.numVC, section, "numVC", warnings);
-      if (isKeyedObject(projectedCount) && projectedCount.state === "E" && typeof projectedCount.value === "number") {
-        coilCount = projectedCount.value;
-        result.numVC = projectedCount;
-      } else {
-        result.numVC = projectedCount;
-      }
+      const projectedCount = this.#projectParsedEntry(tuple.numVC, section, "numVC", warnings);
+      result.numVC = projectedCount;
+      if (projectedCount.state === "E") coilCount = projectedCount.value;
     }
     if (coilCount !== undefined && (!Number.isInteger(coilCount) || coilCount < 1 || coilCount > 4)) {
       coilCount = undefined;
       warnings.push({level: "warn", field: `${section}.numVC`, message: "voice-coil scaling unavailable: coil count is not an integer from 1 through 4"});
     }
 
+    const connectionReading = tuple.connection_reading;
     if (tuple.connection === "series" || tuple.connection === "parallel") {
-      const projectedConnection = this.#projectScraperEntry(
-        tuple.connection_reading,
-        section,
-        "numVC",
-        warnings
-      );
-      if (isKeyedObject(projectedConnection)) {
+      if (connectionReading !== null) {
+        const projectedConnection = this.#projectParsedEntry(connectionReading, section, "VCCon", warnings);
         result.VCCon = {
           ...projectedConnection,
           state: "E",
           value: tuple.connection === "series" ? 2 : 1,
-          ...("origin" in projectedConnection || tuple.connection_reading === null
+          ...("origin" in projectedConnection
             ? {}
-            : {origin: Object.keys(tuple.connection_reading.readings)[0]}),
+            : {origin: Object.keys(connectionReading.readings)[0]}),
         };
       }
-    } else if (tuple.connection === "unknown" && tuple.connection_reading !== null) {
-      result.VCCon = {state: "N", readings: tuple.connection_reading.readings};
+    } else if (tuple.connection === "unknown" && connectionReading !== null) {
+      result.VCCon = {state: "N", readings: connectionReading.readings};
       warnings.push({level: "warn", field: `${section}.VCCon`, message: "voice-coil connection is unclassified; source reading is retained and no wiring is inferred"});
     }
 
     for (const field of ["Re_ohm", "BL_Tm"] as const) {
       const sourceEntry = tuple[field];
       if (sourceEntry === undefined || sourceEntry === null) continue;
-      const projected = this.#projectScraperEntry(sourceEntry, section, field, warnings);
-      if (!isKeyedObject(projected)) {
-        result[field] = projected;
-        continue;
-      }
+      const projected = this.#projectParsedEntry(sourceEntry, section, field, warnings);
       const basis = tuple.basis[field];
       if (basis === "per-coil") {
         result[field] = projected;
@@ -922,7 +930,7 @@ export class DriverRecordConverter {
         warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading is for a stated connection, but a supported connection and stated coil count are required for per-coil scaling"});
         continue;
       }
-      if (projected.state !== "E" || typeof projected.value !== "number") {
+      if (projected.state !== "E") {
         result[field] = projected;
         continue;
       }
@@ -934,9 +942,8 @@ export class DriverRecordConverter {
     return result;
   }
 
-  #unavailableVoiceCoilEntry(projected: Record<string, unknown>): Record<string, unknown> {
-    const unavailable: Record<string, unknown> = {state: "N"};
-    if (projected.readings !== undefined) unavailable.readings = projected.readings;
+  #unavailableVoiceCoilEntry(projected: ProjectedEntry): ProjectedEntry {
+    const unavailable: ProjectedEntry = {state: "N", readings: projected.readings};
     if (projected.dq_scraper !== undefined) unavailable.dq_scraper = projected.dq_scraper;
     return unavailable;
   }
@@ -970,13 +977,23 @@ export class DriverRecordConverter {
     // below.
     const parsed = scraperEntrySchema.safeParse(entryForScraperSchema(entry));
     if (!parsed.success) return entry;
+    return this.#projectParsedEntry(parsed.data, section, field, warnings);
+  }
 
-    const { readings, dq_scraper } = parsed.data;
+  /** `#projectScraperEntry` for an entry that already parsed as `scraperEntrySchema`: always
+   *  projects, to an `N` entry when no reading wins or to an `E` entry carrying the winner. */
+  #projectParsedEntry(
+    scraped: ScraperEntry,
+    section: string,
+    field: string,
+    warnings: DriverError[]
+  ): ProjectedEntry {
+    const { readings, dq_scraper } = scraped;
     const originResult = selectOrigin(readings, field, (f, v) => this.engine.driver.isPhysicallyPlausible(f, v));
     // A reading outside the field's physical band never becomes a value (T018: the field is N
     // and the .wdr comment lists it), but the tools still read the range mark as a warning
     // (winisd_tools BUG_20260823 range/calc marks; AI triage of calculation-field failures).
-    for (const [, r] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    for (const [, r] of Object.entries(readings).sort(byRoleName)) {
       if (!isUsable(r)) continue;
       const issue = this.engine.driver.rangeIssue(field, r.read_value);
       if (issue) warnings.push({ level: "warn", field, message: issue.text });
@@ -984,7 +1001,7 @@ export class DriverRecordConverter {
     const corroboration = corroborate(readings);
     if (corroboration === Corroboration.Mismatch) {
       const parts = Object.entries(readings)
-        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .sort(byRoleName)
         .map(([role, r]) => `${role}=${readingLiteral(r)}`)
         .join(", ");
       warnings.push({
@@ -997,7 +1014,7 @@ export class DriverRecordConverter {
     // Reader agreement is derived from each datasheet reading's `reads` and never stored. Readers
     // that disagree are a DQ warning showing every reader's read; a value only OCR read, with no
     // text layer behind it, is a warning that it is unverified.
-    for (const [role, reading] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    for (const [role, reading] of Object.entries(readings).sort(byRoleName)) {
       const reads = reading.reads;
       if (reads === undefined) continue;
       const verdict = readerVerdict(reads);
@@ -1021,7 +1038,7 @@ export class DriverRecordConverter {
       }
     }
 
-    for (const [role, r] of Object.entries(readings).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    for (const [role, r] of Object.entries(readings).sort(byRoleName)) {
       if (!isUsable(r) && !isRecognisedRejection(r)) {
         warnings.push({
           level: "warn",
@@ -1033,13 +1050,13 @@ export class DriverRecordConverter {
 
     switch (originResult.kind) {
       case "none": {
-        const notAvailable: Record<string, unknown> = { state: "N", readings };
+        const notAvailable: ProjectedEntry = { state: "N", readings };
         if (dq_scraper !== undefined) notAvailable.dq_scraper = dq_scraper;
         return notAvailable;
       }
       case "winner": {
         const winner = originResult.reading;
-        const projected: Record<string, unknown> = {
+        const projected: ProjectedEntry = {
           state: "E",
           value: winner.read_value,
           origin: originResult.role,

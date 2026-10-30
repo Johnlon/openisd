@@ -145,21 +145,22 @@ function wdrWiring(entries: Readonly<Record<string, SpecEntryJson>>): {coils: nu
 }
 
 /** Replace an entry's value (and its parsed reading) by `perCoil(value)`, keeping the printed
- *  literal and the E mark exactly as the file had them. Absent entries stay absent. */
+ *  literal (the file's own cell text for `wdrKey`) and the E mark exactly as the file had them.
+ *  Absent entries stay absent. */
 function perCoilEntryInto(
     entries: Record<string, SpecEntryJson>,
+    wdr: WinISDDriver,
     schemaKey: string,
+    wdrKey: string,
     perCoil: (terminal: number) => number,
 ): void {
     const entry = entries[schemaKey];
     if (entry?.state !== 'E') return;
     const value = perCoil(entry.value);
-    const manual = entry.readings?.manual;
     entries[schemaKey] = {
         ...entry,
         value,
-        ...(entry.readings === undefined || manual === undefined
-            ? {} : {readings: {...entry.readings, manual: {...manual, read_value: value}}}),
+        readings: {manual: {actual_reading: wdr.cell(wdrKey).value, read_value: value}},
     };
 }
 
@@ -229,8 +230,8 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     // (docs/research/WINISD_PARITY.md section 11b, "Reading a .wdr back"). The wiring is the file's
     // own `VCCon`, trusted as stated: the same factor is applied back on export, so it cancels.
     const {coils, series} = wdrWiring(specEntries);
-    perCoilEntryInto(specEntries, 'Re_ohm', Re => series ? Re / coils : Re * coils);
-    perCoilEntryInto(specEntries, 'BL_Tm', BL => series ? BL / coils : BL);
+    perCoilEntryInto(specEntries, wdr, 'Re_ohm', 'Re', Re => series ? Re / coils : Re * coils);
+    perCoilEntryInto(specEntries, wdr, 'BL_Tm', 'BL', BL => series ? BL / coils : BL);
 
     // Optional: present only when the header line is non-blank, so a `.wdr` that never states
     // one produces no field — not an empty string standing in for "unstated"

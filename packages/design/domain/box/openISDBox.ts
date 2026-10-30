@@ -1,6 +1,6 @@
 import {type Engine, airIfAvailable} from '../../engine/index.js';
 import type { AirState, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
-import { CalculatedFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
+import { CalculatedFieldImpl, DerivableFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
 import { WINISD_BOX_LOSSES } from '../boxDefaults.js';
@@ -170,7 +170,6 @@ export class OpenISDBox implements Box {
         // Every port, in any box type, settles a cleared dimension to the starting port rather
         // than going blank (John, 2026-10-09).
         const ventStart: VentStart = {
-            geometry: (vent) => startVentGeometry(vent, driver.specs.Dd_m.value),
             slotWidth_m: () => startSlotWidth(driver.specs.Dd_m.value),
         };
 
@@ -184,7 +183,7 @@ export class OpenISDBox implements Box {
         // when none is stated. Entering one drops the others' entries. Clearing the entered Qtc or Fsc makes
         // Vb E at its current value; clearing the entered Vb makes Qtc E at its current value
         // (docs/design/FIELD_CLEAR_RULE.md, John 16 Oct 2026, "ok E").
-        const sealedVolume = new DualWriteFieldImpl<number>(
+        const sealedVolume = new DerivableFieldImpl<number>(
             () => {
                 const stated = sealedVolumeStored.value;
                 if (stated === null) {
@@ -192,9 +191,10 @@ export class OpenISDBox implements Box {
                     if (calc !== null) return calculatedCell<number | null>('volume_m3', calc);
                 }
                 const issue = engine.issues.requiredPositiveIssue('Box volume', stated, 'alignment');
+                const marks = issue ? [issue] : undefined;
                 return stated === null
-                    ? absentCell<number>('volume_m3', issue ? [issue] : undefined)
-                    : enteredCell<number | null>('volume_m3', stated, issue ? [issue] : undefined, sealedVolumeStored.precision);
+                    ? absentCell<number>('volume_m3', marks)
+                    : enteredCell<number | null>('volume_m3', stated, marks, sealedVolumeStored.precision);
             },
             {
                 entered: (v: number) => {
@@ -208,8 +208,6 @@ export class OpenISDBox implements Box {
                     sealedFscEntry.clear();
                     sealedVolumeStored.clear();
                 },
-                calculated: () => undefined,
-                dq: () => undefined,
             },
         );
         // Clearing the entered Qtc or Fsc hands the entry to Vb, at the value Vb has now.
@@ -218,40 +216,30 @@ export class OpenISDBox implements Box {
             if (entry.entered && vb !== null) sealedVolumeStored.set(vb);
             entry.clear();
         };
-        class SealedQtcField extends DualWriteFieldImpl<number> {
-            override set(v: number, precision?: number): void {
+        const sealedQtc = new DualWriteFieldImpl<number>(() => sealedQtcEntry, {
+            entered: (v, precision) => {
                 sealedVolumeStored.clear();
                 sealedFscEntry.clear();
                 sealedQtcEntry.set(v, precision);
-            }
-            override clear(): void { handEntryToVolume(sealedQtcEntry); }
-        }
-        const sealedQtc = new SealedQtcField(() => sealedQtcEntry, {
-            entered: (v, precision) => sealedQtcEntry.set(v, precision),
-            clear: () => sealedQtcEntry.clear(),
+            },
+            clear: () => handEntryToVolume(sealedQtcEntry),
             calculated: (v, precision) => sealedQtcEntry.setCalculated(v, undefined, precision),
             dq: (list) => sealedQtcEntry.setDq(list),
             notAvailable: () => sealedQtcEntry.setNotAvailable(),
         });
-        class SealedFscField extends DualWriteFieldImpl<number> {
-            override set(v: number, precision?: number): void {
-                sealedVolumeStored.clear();
-                sealedQtcEntry.clear();
-                sealedFscEntry.set(v, precision);
-            }
-            override clear(): void { handEntryToVolume(sealedFscEntry); }
-        }
-        const sealedFsc = new SealedFscField(
+        const sealedFsc = new DerivableFieldImpl<number>(
             () => {
                 if (sealedFscEntry.entered) return sealedFscEntry;
                 const v = this.#sealedResonance(sealedVolume.value, sealedLosses, 'lossy')?.Fsc ?? null;
                 return v === null ? absentCell<number>('resonance_hz') : calculatedCell<number | null>('resonance_hz', v);
             },
             {
-                entered: (v, precision) => sealedFscEntry.set(v, precision),
-                clear: () => sealedFscEntry.clear(),
-                calculated: () => undefined,
-                dq: () => undefined,
+                entered: (v, precision) => {
+                    sealedVolumeStored.clear();
+                    sealedQtcEntry.clear();
+                    sealedFscEntry.set(v, precision);
+                },
+                clear: () => handEntryToVolume(sealedFscEntry),
             },
         );
         this.sealed = {
