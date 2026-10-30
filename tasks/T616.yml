@@ -1,0 +1,33 @@
+id: T616
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+goal: Correct per-coil projection for the selected catalogue records, preserve source readings, and retain the existing catalogue membership.
+done_test: bash scripts/test.sh packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/ui/test/scripts/test-bundle.test.ts packages/ui/test/logic/unknownVoiceCoilReading.test.ts
+visual_note: The mobile Driver tab still shows the same W5 values; the captured difference is confined to the unit-control right edge. Ambiguous multi-coil Re/BL readings now explain that they are retained for reference and excluded from simulation.
+visual:
+  - mobile-tab-driver
+files:
+  - tasks/T616.yml
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - packages/ui/test/logic/unknownVoiceCoilReading.test.ts
+  - packages/ui/src/logic/unknownVoiceCoilReading.ts
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/ui/components/UIFixedField.vue
+  - packages/ui/src/ui/components/UISettlingField.vue
+  - packages/ui/src/ui/components/uiFieldBinding.ts
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/public/drivers/dayton-audio/cx120-8.json
+  - packages/ui/public/drivers/dayton-audio/e150he-44.json
+  - packages/ui/public/drivers/dayton-audio/e150he-pr.json
+  - packages/ui/public/drivers/dayton-audio/e180he-44.json
+  - packages/ui/public/drivers/dayton-audio/e180he-pr.json
+  - packages/ui/public/drivers/tang-band/w5-1138smf.json
+  - packages/ui/public/passive-radiators-index.json
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png

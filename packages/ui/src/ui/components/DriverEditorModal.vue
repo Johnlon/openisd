@@ -27,6 +27,7 @@ import type {SaveNameField} from '../../hooks/saveNameField.js';
 import {getProvenanceInfo, PROVENANCE_MAP} from '../../logic/provenance.js';
 import {editableFrom, elementFrom, inputFrom, selectedOption} from '../../logic/domEvents.js';
 import {FIELD_EDIT_MODE} from '../../logic/fieldEditMode.js';
+import {unknownVoiceCoilReading} from '../../logic/unknownVoiceCoilReading.js';
 
 function cellOf(field: NumSpecField): Readable<number | null> & Entered & Calculated {
   return fieldOf(field);
@@ -227,6 +228,14 @@ function fieldOf(field: NumSpecField): Readable<number | null> & Entered & Calcu
   void trigger.value;
   return draftDriver.value.specField(field);
 }
+
+const coilReadingNotes = computed(() => {
+  const device = draftDriver.value.toOpenIsdDeviceJson();
+  return {
+    Re_ohm: unknownVoiceCoilReading(device, 'Re_ohm'),
+    BL_Tm: unknownVoiceCoilReading(device, 'BL_Tm'),
+  };
+});
 
 function cellVal(field: NumSpecField): number | null {
   const v = cellOf(field).value;
@@ -753,8 +762,8 @@ useEscToClose(() => identityMsgOpen.value, dismissIdentityMsg);
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Mms_kg')]" data-field-key="Mms_kg" :style="getFieldStyle('Mms_kg')" :field="NumberField.MMS_KG" :cell="fieldOf('Mms_kg')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Cms_m_per_N')]" data-field-key="Cms_m_per_N" :style="getFieldStyle('Cms_m_per_N')" :field="NumberField.CMS_M_PER_N" :cell="fieldOf('Cms_m_per_N')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Rms_kg_per_s')]" data-field-key="Rms_kg_per_s" :style="getFieldStyle('Rms_kg_per_s')" :field="NumberField.RMS_KG_PER_S" :cell="fieldOf('Rms_kg_per_s')" />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" required />
-                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('Re_ohm')]" data-field-key="Re_ohm" :style="getFieldStyle('Re_ohm')" :field="NumberField.RE_OHM" :cell="fieldOf('Re_ohm')" :dq="coilReadingNotes.Re_ohm" note-tone="warning" required />
+                <UIField class="de-fld" :class="[skin?.field, inspectClass('BL_Tm')]" data-field-key="BL_Tm" :style="getFieldStyle('BL_Tm')" :field="NumberField.BL_TM" :cell="fieldOf('BL_Tm')" :dq="coilReadingNotes.BL_Tm" note-tone="warning" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Dd_m')]" data-field-key="Dd_m" :style="getFieldStyle('Dd_m')" :field="NumberField.DD_M" :cell="fieldOf('Dd_m')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Le_H')]" data-field-key="Le_H" :style="getFieldStyle('Le_H')" :field="NumberField.LE_H" :cell="fieldOf('Le_H')" />
                 <UIField class="de-fld" :class="[skin?.field, inspectClass('Sd_m2')]" data-field-key="Sd_m2" :style="getFieldStyle('Sd_m2')" :field="NumberField.SD_M2" :cell="fieldOf('Sd_m2')" required />

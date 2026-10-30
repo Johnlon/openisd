@@ -38,6 +38,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   label: undefined,
   deviation: undefined,
   dq: undefined,
+  noteTone: undefined,
   dqState: undefined,
   allowOutOfRange: false,
   defaulted: undefined,
@@ -67,16 +68,18 @@ const view = computed(() => {
     case 'clearable': {
       const cell = binding.cell;
       const readout = dqOfCell(cell);
+      const dq = [...readout.dq, ...(props.dq ?? [])];
+      const dqState = props.dqState ?? readout.dqState;
       return {
         value: cell.value,
         precision: cell.precision,
         provenanceClass: cellClassOf(cell),
         mandatory: props.required || cell.mandatoryAndUnsatisfied,
-        reason: dqReason(readout),
+        reason: dqReason({dq, dqState}),
         dqClasses: {
-          'dq-flag': readout.dq.length > 0,
-          'dq-root': readout.dq.length > 0 && readout.dqState === 'E',
-          'dq-symptom': readout.dq.length > 0 && readout.dqState === 'C',
+          'dq-flag': dq.length > 0,
+          'dq-root': dq.length > 0 && dqState === 'E',
+          'dq-symptom': dq.length > 0 && dqState === 'C',
         },
       };
     }
@@ -129,7 +132,7 @@ function write(v: number | null, precision?: number): void {
     <span v-if="deviation" class="ui-field-dev">
       <WinisdDeviationCue :deviation="deviation" />
     </span>
-    <span v-if="(reasonOpen || refusal !== '') && reason" class="ui-field-note" role="note" @click.stop="reasonOpen = false">{{ reason }}</span>
+    <span v-if="(reasonOpen || refusal !== '') && reason" :class="['ui-field-note', {'ui-field-note-warning': noteTone === 'warning'}]" role="note" @click.stop="reasonOpen = false">{{ reason }}</span>
   </div>
 </template>
 
@@ -180,4 +183,5 @@ function write(v: number | null, precision?: number): void {
   padding: 4px 6px; border: 1px solid var(--bad); border-radius: 4px;
   background: var(--panel); color: var(--fg); font-size: 11px; line-height: 1.3;
 }
+.ui-field-note-warning { border-color: var(--acc2); background: color-mix(in srgb, var(--acc2) 8%, var(--panel)); }
 </style>

@@ -64,7 +64,10 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 2.4);
       assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), 9.7);
       assert.equal(at(app, 'specs', 'woofer', 'numVC', 'value'), 2);
+      assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'state'), 'E', 'an explicitly classified source connection is entered');
       assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'value'), 2, '2 is series in the app record');
+      assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'readings', 'manufacturer_datasheet', 'actual_reading'),
+        '(par./ser.) 9.7/19.4 Tm', 'the source text that established the wiring remains available');
       assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings', 'manufacturer_datasheet', 'read_value'), 19.4,
         'raw source reading remains the published series total');
 
@@ -74,23 +77,40 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.deepEqual(errors.filter(error => error.level === 'error'), []);
     });
 
-    it('keeps tuple values unavailable when basis, connection, or coil count is unknown', () => {
+    it('uses unambiguous coil readings when the default count is one', () => {
       const source = scraperTupleFixture('faitalpro-12pr300-8.driver.json');
       const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
       assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
       assert.ok(wdr !== null, `tuple record writes WDR; errors: ${JSON.stringify(errors)}`);
 
       const app: unknown = parse(openisd);
+      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 5.4);
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), 14.1);
+      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 5.4);
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings', 'manufacturer_product_page', 'read_value'), 14.1);
+      assert.equal(errors.some(error => error.message.includes('basis is unknown')), false,
+        'one coil has no per-coil scaling ambiguity');
+    });
+
+    it('keeps multi-coil readings unavailable when their basis and connection are unknown', () => {
+      const record: unknown = parse(scraperTupleFixture('faitalpro-12pr300-8.driver.json'));
+      const woofer = at(record, 'specs', 'woofer');
+      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
+      const tuple = at(woofer, 'voice_coil');
+      if (!isRecord(tuple)) throw new Error('expected specs.woofer.voice_coil');
+      tuple.numVC = {readings: {manufacturer_product_page: {actual_reading: 'dual voice coil', read_precision: 0.5, read_value: 2}}};
+
+      const {openisd, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
+      const app: unknown = parse(openisd);
       assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'state'), 'N');
       assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'state'), 'N');
       assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 5.4);
       assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings', 'manufacturer_product_page', 'read_value'), 14.1);
-      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), undefined,
-        'an unknown basis never promotes the raw reading to a simulation input');
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), undefined,
-        'an unknown basis never promotes the raw reading to a simulation input');
       assert.ok(errors.some(error => error.level === 'warn' && error.message.includes('basis is unknown')),
-        'warns that the source readings cannot be represented as per-coil values');
+        'warns when multiple coils make the unreported basis material');
     });
 
     it('projects a coax tweeter tuple whose coil count and connection are not stated', () => {
@@ -100,7 +120,8 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.ok(wdr !== null, `woofer section still writes WDR; errors: ${JSON.stringify(errors)}`);
 
       const app: unknown = parse(openisd);
-      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'state'), 'N');
+      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'state'), 'E');
+      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'value'), 3.8);
       assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 3.8);
       assert.deepEqual(errors.filter(error => error.level === 'error'), []);
     });
