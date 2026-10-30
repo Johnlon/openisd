@@ -188,6 +188,13 @@ deploy workflow alone does not prove users receive that build.
 `.claude/rules/general.md`: no workarounds for unexpected issues, no backdoor in UI testing, no
 reload in tests unless testing reload, and in the app every button shows a visible result.
 
+## Release work stays integrated
+
+When John is trying to get a release out, keep the work on one integrated release branch. Do not
+fragment release changes across parallel branches or worktrees; merge required work into the release
+branch before continuing release verification. Coordinate with other repositories only where their
+work is an actual dependency, and consume their committed output on the integrated release branch.
+
 ## Loaded on demand
 
 The rest of the project's working conventions live in path-scoped rules and docs so they only
