@@ -1,0 +1,17 @@
+id: T620
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: The ui coverage gate measures the ui source files it names (its include resolves inside packages/ui), and each ui file may not drop below its recorded coverage
+done_test: bash scripts/land/test/coverage-ui-gate.test.sh && bash scripts/quiet-test.sh npm run coverage:ui && bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T620.yml
+  - .github/workflows/suite.yml
+  - package.json
+  - vitest.config.ts
+  - packages/ui/vitest.coverage.config.ts
+  - packages/ui/coverage-baseline.json
+  - scripts/coverage-ratchet.mjs
+  - scripts/coverage-ui.sh
+  - scripts/land/test/coverage-ui-gate.test.sh

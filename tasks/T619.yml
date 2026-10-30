@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: e9b57f2f2de23243ddce8d9175e7b4c2dbf24b15
 goal: The GitHub suite run fails, with a warning to agents never to ignore it, when any engine or domain file in packages/design is below 100% coverage, and every such file is at 100%
 done_test: bash scripts/land/test/coverage-design-gate.test.sh && bash scripts/quiet-test.sh npm run coverage:design && bash scripts/quiet-test.sh npm run typecheck
 files:
