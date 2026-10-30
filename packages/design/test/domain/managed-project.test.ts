@@ -154,7 +154,7 @@ describe('ManagedProject — the layers', () => {
     expect(notifications).toBe(0);
   });
 
-  it('recalc()/notifyVentChanged() notify subscribers with no state change of their own', () => {
+  it('recalc() notifies subscribers with no state change of their own', () => {
     const mp = managed();
     let notifications = 0;
     mp.subscribe(() => { notifications += 1; });
@@ -162,7 +162,7 @@ describe('ManagedProject — the layers', () => {
     mp.recalc();
     expect(notifications).toBe(1);
 
-    mp.notifyVentChanged();
+    mp.recalc();
     expect(notifications).toBe(2);
   });
 });

@@ -285,13 +285,13 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling).value).toBeCloseTo(0, 9);
 
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
-    p.notifyPrChanged();
+    p.recalc();
 
     expect(p.box.passiveRadiator.addedMass_kg.value).toBeNull();
     expect(p.box.passiveRadiator.addedMass_kg.dq.some(issue => issue.kind === 'target-unreachable')).toBe(true);
 
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling);
-    p.notifyPrChanged();
+    p.recalc();
 
     expect(p.box.passiveRadiator.addedMass_kg.value).toBeCloseTo(0, 9);
     expect(p.box.passiveRadiator.addedMass_kg.dq.some(issue => issue.kind === 'target-unreachable')).toBe(false);
@@ -311,7 +311,7 @@ describe('the passive radiator a box holds', () => {
 
     const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
-    p.notifyPrChanged();
+    p.recalc();
 
     const DQ = [fixtureEngine.issues.targetUnreachable('addedMass_kg', ceiling)];
     expect(p.box.passiveRadiator.tuning_goal_hz.entered).toBe(true);                 // the input

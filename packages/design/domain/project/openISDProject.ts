@@ -998,7 +998,7 @@ export class OpenISDProject {
     // `addedMassForTuning_kg`) have no callers.
     //
     // Until that relation exists, these report "nothing solved, nothing known" rather than
-    // throwing: `notifyVentChanged` runs on EVERY project change (`appState.ts`), so a throw here
+    // throwing: `recalc` runs on EVERY project change (`appState.ts`), so a throw here
     // means no project can be opened at all. Doing nothing is what the app did before the
     // migration, when neither direction had a caller — this is the pre-existing behaviour, not
     // a new one, and the feature is ruled and scoped in QO126.
@@ -1007,11 +1007,6 @@ export class OpenISDProject {
      *  subscribers. Every field reads lazily, so the subscriber notification IS the force-solve:
      *  it makes every consumer re-read, which recomputes any derived cell whose sources moved. */
     recalc(): void {
-        this.#notify();
-    }
-
-    /** @deprecated Use `recalc()` instead. */
-    notifyVentChanged(): void {
         this.#notify();
     }
 
@@ -1025,11 +1020,6 @@ export class OpenISDProject {
      *  readout — not-available when the box is not vented or the geometry is incomplete. */
     get ventMaxReachableFb(): Readable<number | null> & Calculated {
         return ventMaxReachableFbOf(this.#sweepSource());
-    }
-
-    /** @deprecated Use `recalc()` instead. */
-    notifyPrChanged(): void {
-        this.#notify();
     }
 
     /** Batch multiple mutations into a single subscriber notification. */

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: fe89dcb3603748622895e046d4ff3749b749dce6
 goal: land.sh refuses a landing whose diff touches a coverage, lint, type or CI gate file unless the task is labelled gates and names a board item John has answered
 done_test: bash scripts/land/test/land-gates.test.sh
 files:

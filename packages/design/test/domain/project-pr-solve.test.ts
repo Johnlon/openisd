@@ -30,7 +30,7 @@ describe('OpenISDProject passive-radiator solve', () => {
 
       p.box.passiveRadiator.addedMass_kg.clear();
       p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
-      p.notifyPrChanged();
+      p.recalc();
 
       const massCell = p.box.passiveRadiator.addedMass_kg;
       const tuningCell = p.box.passiveRadiator.tuning_goal_hz;

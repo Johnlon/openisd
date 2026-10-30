@@ -289,7 +289,7 @@ export function applyVentEdit(project: OpenISDProject, capture: EditCapture, tar
       case 'endCorrection': vent.endCorrection_m.set(capture.typed); break;
       case 'count': vent.count.set(capture.typed); break;
     }
-    project.notifyVentChanged();
+    project.recalc();
   });
 }
 
@@ -317,7 +317,7 @@ export function applyPortEdit(project: OpenISDProject, capture: EditCapture, tar
       case 'count': port.vent.count.set(capture.typed); break;
       case 'length': port.vent.length_m.set(capture.typed); break;
     }
-    project.notifyVentChanged();
+    project.recalc();
   });
 }
 

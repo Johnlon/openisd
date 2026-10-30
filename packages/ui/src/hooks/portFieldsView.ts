@@ -24,7 +24,7 @@ export interface PortFieldsView {
 export function portFieldsView(vent: Vent, project: OpenISDProject): PortFieldsView {
   const edit = (write: () => void) => project.batch(() => {
     write();
-    project.notifyVentChanged();
+    project.recalc();
   });
   const wrapCell = (cell: ClearableUICell): ClearableUICell => ({
     get name() { return cell.name; },

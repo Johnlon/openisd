@@ -68,7 +68,7 @@ describe('prGroup — one user action is one notification', () => {
  */
 // BLOCKED: QO126, like the eight cases in ventGroup.test.ts. The store's watch DOES fire
 // (BUG_20260822_pr_group_auto_solve_watch_never_fires_after_the_live_repoint.md is RESOLVED);
-// what it calls, `OpenISDProject.notifyPrChanged()`, is an empty stub until the tuning <-> added-mass
+// what it calls, `OpenISDProject.recalc()`, is an empty stub until the tuning <-> added-mass
 // relation is wired. The assertion is kept as written rather than weakened — one loosened to
 // match a stub would go green and stop describing the behaviour the app is supposed to have.
 describe('prGroup — auto-solve watch fires on every appState.requireFocusedProject() notification (BLOCKED: QO126)', () => {
@@ -82,12 +82,12 @@ describe('prGroup — auto-solve watch fires on every appState.requireFocusedPro
     appState.requireFocusedProject().box.passiveRadiator.addedMass_kg.set(0); // known starting value for the calculated member — a raw write, must NOT mark prMadd entered
     const before = appState.requireFocusedProject().box.passiveRadiator.addedMass_kg.value;
 
-    appState.requireFocusedProject().box.passiveRadiator.tuning_goal_hz.set(55); // raw write — no suspension, no direct notifyPrChanged call
+    appState.requireFocusedProject().box.passiveRadiator.tuning_goal_hz.set(55); // raw write — no suspension, no direct recalc call
 
     const after = appState.requireFocusedProject().box.passiveRadiator.addedMass_kg.value;
     assert.notEqual(after, before,
       'prMadd was not re-solved after a live prFp write. The store\'s watch fires; ' +
-      'OpenISDProject.notifyPrChanged() is an empty stub until QO126 wires the tuning <-> ' +
+      'OpenISDProject.recalc() is an empty stub until QO126 wires the tuning <-> ' +
       'added-mass relation.');
   });
 });

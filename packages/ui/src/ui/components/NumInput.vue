@@ -72,12 +72,20 @@ function fmt(v: number | null | undefined): string {
 
 const focused = ref(false);
 const badEntry = ref(false);
-const entryValue = ref<number | null | undefined>(props.modelValue);
-const display = ref(fmt(props.modelValue));
+const entryValue = ref<number | null | undefined>(null);
+const display = ref('');
 
+// Immediate: the first run seeds the box from the model; later runs keep it in step.
+let seeded = false;
 watch(() => props.modelValue, (v) => {
+  if (!seeded) {
+    seeded = true;
+    entryValue.value = v;
+    display.value = fmt(v);
+    return;
+  }
   if (!focused.value && refusal.value === '') display.value = fmt(v);
-});
+}, { immediate: true });
 watch(activeToken, (newToken, oldToken) => {
   if (!focused.value) {
     display.value = fmt(props.modelValue);

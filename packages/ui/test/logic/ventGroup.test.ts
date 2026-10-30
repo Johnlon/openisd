@@ -17,7 +17,6 @@ import assert from 'node:assert/strict';
 import {OpenISDDriver, ProjectBuilder, type OpenISDProject} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {
-  notifyVentChanged,
   ventAchievedFb,
   VentMember,
   ventMaxReachableFb,
@@ -46,7 +45,7 @@ function ventedProject() {
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);
-  p.notifyVentChanged();
+  p.recalc();
   return p;
 }
 
@@ -140,7 +139,7 @@ describe('ventGroup', () => {
   // the other's entered fact and lets the solver re-derive it — so an "over-determined" pair
   // (both members simultaneously 'entered' and contradictory) can no longer occur BY DESIGN; the
   // old test asserting that state persisted is gone, replaced below.
-  describe('notifyVentChanged() re-derives the calculated member', () => {
+  describe('recalc() re-derives the calculated member', () => {
     let p: ReturnType<typeof ventedProject>;
     beforeEach(() => { p = ventedProject(); });
 
@@ -165,7 +164,7 @@ describe('ventGroup', () => {
     it('THE DIRECTION TEST — changing vent diameter holds the tuning and moves the length', () => {
       const lenBefore = p.box.vented.vent.length_m.value;
       p.box.vented.vent.diameter_m.set(0.07);
-      notifyVentChanged(p);
+      p.recalc();
       assert.equal(p.box.vented.tuning_goal_hz.value, 40, 'an entered tuning must never be rewritten by the solver');
       assert.notEqual(p.box.vented.vent.length_m.value, lenBefore, 'the length must absorb the diameter change');
     });
@@ -174,7 +173,7 @@ describe('ventGroup', () => {
       tuning(p).clear();
       ventLength(p).set(0.154);
       p.box.vented.vent.diameter_m.set(0.07);
-      notifyVentChanged(p);
+      p.recalc();
       assert.equal(p.box.vented.vent.length_m.value, 0.154, 'an entered length must never be rewritten');
       assert.notEqual(p.box.vented.tuning_goal_hz.value, 40, 'now the TUNING absorbs the diameter change');
     });
@@ -184,7 +183,7 @@ describe('ventGroup', () => {
       // whatever was previously the pair's stated target, even one as far off as 0.999 m.
       ventLength(p).set(0.999);
       p.box.vented.vent.diameter_m.set(0.07);
-      notifyVentChanged(p);
+      p.recalc();
       assert.equal(p.box.vented.vent.length_m.value, 0.999, 'the entered length is held exactly');
       assert.equal(p.box.vented.tuning_goal_hz.calculated, true, 'the domain re-derives tuning, not the UI');
       assert.notEqual(p.box.vented.tuning_goal_hz.value, 40, 'the old entered tuning target is gone, not held alongside it');
