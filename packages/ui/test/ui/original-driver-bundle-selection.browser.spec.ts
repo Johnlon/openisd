@@ -69,14 +69,18 @@ function numericValueOrNull(value: unknown): number | null {
   return typeof number === 'number' ? number : null;
 }
 
-function selectedWooferSpecs(project: unknown): Record<string, unknown> {
+function selectedDriverSpecs(project: unknown): Record<string, Record<string, unknown>> {
   if (!isRecord(project) || !isRecord(project.saved)
     || !isRecord(project.saved.driverEmbedding) || !isRecord(project.saved.driverEmbedding.device)
-    || !isRecord(project.saved.driverEmbedding.device.specs)
-    || !isRecord(project.saved.driverEmbedding.device.specs.woofer)) {
-    throw new Error('exported project has no embedded woofer spec record');
+    || !isRecord(project.saved.driverEmbedding.device.specs)) {
+    throw new Error('exported project has no embedded driver spec records');
   }
-  return project.saved.driverEmbedding.device.specs.woofer;
+  const sections: Record<string, Record<string, unknown>> = {};
+  for (const [name, value] of Object.entries(project.saved.driverEmbedding.device.specs)) {
+    if (!isRecord(value)) throw new Error(`exported project has an invalid ${name} spec section`);
+    sections[name] = value;
+  }
+  return sections;
 }
 
 function detachedEditorSpecs(project: unknown): Record<string, unknown> {
@@ -229,6 +233,24 @@ function expectEverySourceField(
   }
 }
 
+function expectEveryAdditionalSectionField(model: string, section: string,
+  expected: Record<string, SpecEntry>, actual: Record<string, unknown>): void {
+  expect(actual, `${model} lost its ${section} specification section`).toBeDefined();
+  for (const [key, source] of Object.entries(expected)) {
+    const cell = actual[key];
+    expect(entryState(cell), `${model}.${section}.${key} changed its source state`)
+      .toBe(source.state);
+    if (source.value !== undefined) {
+      expect(entryValue(cell), `${model}.${section}.${key} changed its source value`)
+        .toEqual(source.value);
+    }
+    if (source.state === 'N' && source.readings !== undefined) {
+      expect(isRecord(cell) ? cell.readings : undefined,
+        `${model}.${section}.${key} lost its published readings`).toEqual(source.readings);
+    }
+  }
+}
+
 test.describe('Original driver bundle selection', () => {
   for (const path of DRIVER_BUNDLE_PATHS) {
     const source = bundledRecord(path);
@@ -252,27 +274,51 @@ test.describe('Original driver bundle selection', () => {
       await exportedProjectOwpr(page);
       await page.reload();
       const exported = await exportedProjectOwpr(page);
-      const actual = selectedWooferSpecs(exported);
+      const actualSections = selectedDriverSpecs(exported);
+      expect(Object.keys(actualSections).sort(), `${model} changed its published spec sections`)
+        .toEqual(Object.keys(source.specs).sort());
+      const additionalSections = Object.entries(source.specs).filter(([section]) => section !== 'woofer');
+      for (const [section, sourceFields] of additionalSections) {
+        expectEveryAdditionalSectionField(model, section, sourceFields, actualSections[section] ?? {});
+      }
+      const actual = actualSections.woofer;
+      expect(actual, `${model} has no embedded woofer spec section`).toBeDefined();
       const editorSpecs = detachedEditorSpecs(exported);
       expectEverySourceField(model, source.specs.woofer, actual, freshlyResolvedBundleSpecs(path, exported), false, projectAirValues(exported));
 
       await openDriverEditor(page);
-      const renderedValues: Record<string, {value: string; unit: string}> = {};
+      const renderedValues: Record<string, {value: string; unit: string; state: string}> = {};
       await forEachEditorTab(page, async (_tab, _labels) => {
         const fields = await page.locator('.de-body .de-fld[data-field-key]').evaluateAll(elements =>
           elements.map(element => ({
             key: element.getAttribute('data-field-key') ?? '',
-            value: element.querySelector<HTMLInputElement | HTMLSelectElement>('input, select')?.value ?? '',
+            input: (() => {
+              const input = element.querySelector<HTMLInputElement | HTMLSelectElement>('input, select');
+              const stateClass = (target: Element | null): string => target?.classList.contains('value-e') ? 'E'
+                : target?.classList.contains('value-c') ? 'C'
+                  : target?.classList.contains('value-n') ? 'N' : 'unknown';
+              return {
+                value: input?.value ?? '',
+                state: stateClass(element) !== 'unknown' ? stateClass(element) : stateClass(input),
+              };
+            })(),
             unit: element.querySelector<HTMLElement>('.unit-label')?.textContent?.trim() ?? '',
           })));
-        for (const field of fields) renderedValues[field.key] = {value: field.value, unit: field.unit};
+        for (const field of fields) renderedValues[field.key] = {
+          value: field.input.value,
+          unit: field.unit,
+          state: field.input.state,
+        };
       });
       const uiSpecKeys = Object.keys(source.specs.woofer)
         .filter(key => NumberField.named(key) !== undefined);
       const missingUiFields = uiSpecKeys.filter(key => !(key in renderedValues));
       const wrongUiValues = uiSpecKeys.filter(key =>
         renderedValues[key]?.value !== visibleNumber(editorSpecs[key], NumberField.named(key), renderedValues[key]?.unit ?? ''));
+      const wrongUiStates = uiSpecKeys.filter(key => renderedValues[key]?.state !== source.specs.woofer[key]?.state);
       expect(missingUiFields, `${model} editor does not expose every bundled parameter`).toEqual([]);
+      expect(wrongUiStates.map(key => ({key, rendered: renderedValues[key]?.state, bundled: source.specs.woofer[key]?.state})),
+        `${model} editor changed a bundled field's Entered/Calculated/Not available state`).toEqual([]);
       expect(wrongUiValues.map(key => ({key, rendered: renderedValues[key], editor: editorSpecs[key], formatted: visibleNumber(editorSpecs[key], NumberField.named(key), renderedValues[key]?.unit ?? '')})),
         `${model} editor values do not match the detached editor driver's resolved data`).toEqual([]);
     });
