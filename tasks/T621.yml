@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: 6f2b1162b8efaf77992d248114154b98150f9ca1
 goal: Every packages/design source file is type-checked (winisd/bridge.ts and the two config files are in a tsconfig program) and type-aware lint covers every design source folder
 done_test: bash scripts/quiet-test.sh npm run typecheck && bash scripts/test.sh packages/design/test/architecture-every-source-file-is-type-checked.test.ts && node_modules/.bin/eslint packages/design
 files:
