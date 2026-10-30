@@ -9,7 +9,7 @@ done_test: bash scripts/test.sh packages/design/test/domain/selectOrigin.test.ts
 files:
   - packages/design/domain/selectOrigin.ts
   - packages/design/test/domain/selectOrigin.test.ts
-  - packages/design/domain/winIsdDriverConverter.ts
+  - packages/design/domain/driverRecordConverter.ts
   - packages/design/domain/corroboration.ts
   - packages/design/domain/sourceRank.ts
   - packages/design/test/winisd/**

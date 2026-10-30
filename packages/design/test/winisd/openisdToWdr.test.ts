@@ -2,8 +2,8 @@
  * `openisd.json` → `winisd.wdr` projection — the entry point `winisd_tools` calls in-process
  * (embedded V8) to generate the `.wdr` it stores in `winisd_drivers`.
  *
- * Seam under test: `new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(driverYmlText)`, the ONE entry the V8 bridge calls
- * (`packages/design/winisd/winIsdDriverConverter.ts`). It returns both derived files; only the
+ * Seam under test: `new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(driverYmlText)`, the ONE entry the V8 bridge calls
+ * (`packages/design/winisd/driverRecordConverter.ts`). It returns both derived files; only the
  * `.wdr` half is the oracle's business.
  * `WinISDDriver` (the OpenISD target migration plan Step 8, ARCHITECTURE.md §3
  * "WinISDDriver is solely a serialisation device") stays internal to that composition.
@@ -28,7 +28,7 @@ import {dirname, join} from 'node:path';
 import {createEngine} from '../../engine/Engine.js';
 import type {DriverError} from '@openisd/design/engine';
 import {WINISD_NEWLINE_SENTINEL} from '../../winisd/winisdBytes.js';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 const engine = createEngine();
 
@@ -122,7 +122,7 @@ specs: {woofer: {}}
  *  returns BOTH derived files; the oracle only concerns the `.wdr`, so the yaml half is dropped
  *  here rather than in every assertion below. */
 const wdrOf = (text: string) => {
-  const { wdr, errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(text);
+  const { wdr, errors } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(text);
   return { value: wdr, errors };
 };
 

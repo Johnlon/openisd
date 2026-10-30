@@ -131,9 +131,10 @@ describe('composition root', () => {
 describe('the bundled catalogue artifacts', () => {
   it('are written under packages/ui/public/ so vite serves them as static files, and nothing under src/', () => {
     const bundler = readFileSync(join(ROOT, 'scripts', 'bundle-drivers.mjs'), 'utf8');
+    const outputWriter = readFileSync(join(ROOT, 'scripts', 'bundleOutputs.mjs'), 'utf8');
     assert.ok(bundler.includes("join(PUBLIC, 'drivers-index.json')"), 'bundle-drivers.mjs must write packages/ui/public/drivers-index.json');
     assert.ok(bundler.includes("join(PUBLIC, 'passive-radiators-index.json')"), 'bundle-drivers.mjs must write packages/ui/public/passive-radiators-index.json');
-    assert.ok(bundler.includes("join(PUBLIC, 'drivers')"), 'bundle-drivers.mjs must write records under packages/ui/public/drivers/');
+    assert.ok(outputWriter.includes("join(publicRoot, 'drivers')"), 'bundleOutputs.mjs must write records under packages/ui/public/drivers/');
     assert.equal(existsSync(join(ROOT, 'packages', 'ui', 'src', 'drivers-bundle.json')), false,
       'packages/ui/src/drivers-bundle.json must not exist — the catalogue lives in public/');
     assert.equal(existsSync(join(ROOT, 'packages', 'ui', 'public', 'drivers-bundle.json')), false,

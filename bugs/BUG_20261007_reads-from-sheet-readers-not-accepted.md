@@ -15,7 +15,7 @@ record that has it, and nothing derives reader agreement from it.
   value and any stored agreement are refused.
 - `corroboration.ts`: `readerVerdict(reads)` derives AGREE / DISAGREE / SINGLE and `unverified` (every numbered
   read is OCR), pairwise through the existing `readingsAgree`; no second formula, nothing stored.
-- `winIsdDriverConverter.ts`: a datasheet reading whose readers disagree raises a warning showing every reader's
+- `driverRecordConverter.ts`: a datasheet reading whose readers disagree raises a warning showing every reader's
   read, beside the existing "sources disagree" warning; a reading only OCR readers read raises a warning that no
   text layer confirmed it.
 

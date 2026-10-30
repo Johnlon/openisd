@@ -1,0 +1,26 @@
+id: T614
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+goal: The selected bundled driver MUST retain every published field and reading when the project is saved and reopened.
+done_test: bash scripts/test.sh packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/design/test/domain/project/slim-driver.test.ts packages/design/test/domain/driver-spec-floor-coverage.test.ts packages/design/test/schemagen/driver-model-is-current.test.ts packages/design/test/architecture-spec-section-is-numeric.test.ts packages/design/test/winisd/bridge-bundle.test.ts packages/design/test/domain/reads-schema.test.ts packages/design/test/scripts/driver-snapshot-pin.test.ts
+files:
+  - tasks/T614.yml
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/driver/driverSpecFieldName.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/openisdSchema.ts
+  - scripts/schemagen/out/driver_model.py
+  - packages/design/domain/project/slimDriver.ts
+  - packages/design/test/domain/project/slim-driver.test.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/public/drivers/eminence/sigma-pro-18a.json
+  - packages/ui/public/drivers/faitalpro/12pr300-8.json
+  - packages/ui/public/drivers/sb-acoustics/sb15bac30-8-coax-aluminum.json
+  - packages/design/winisd/bridge.ts
+  - packages/design/test/winisd/bridge-bundle.test.ts
+  - packages/design/test/domain/reads-schema.test.ts
+  - bugs/_archive/BUG_20261030_converter_flags_multiple_values_as_unknown.md

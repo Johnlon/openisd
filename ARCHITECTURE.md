@@ -388,7 +388,7 @@ the phase before it has returned, and it is the only place that order is stated.
   - WinISD writes UTF-8 and stores a newline as the byte `A4`, so its reader destroys any
     character whose UTF-8 contains `A4`.
 - **File I/O belongs to the domain.** `OpenISDProject.fromOwprText()`/`toOwprText()` for the
-  app's own format; `WinIsdProjectConverter` and `WinIsdDriverConverter` for WinISD's, reached
+  app's own format; `WinIsdProjectConverter` and `DriverRecordConverter` for WinISD's, reached
   through `ui/logic/fileImportExport.ts`'s `DesignFiles`. `ui/logic/applicationIO.ts` only
   chooses file names, calls those and shows messages.
 

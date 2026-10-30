@@ -10,7 +10,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {openISDDeviceJsonSchema} from '../../domain/openisdSchema.js';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {createEngine} from '../../engine/Engine.js';
 
 // A REAL corpus record, copied from `winisd_drivers/db/datasheets/dayton-audio/cfc100-4/driver.json`
@@ -50,7 +50,7 @@ describe('openISDDeviceJsonSchema.data_sources — maker and distributor documen
 
 describe('a real distributor-sourced driver file converts (the projection the driver db runs)', () => {
   it('Dayton CFC100-4 (Parts Express sources) converts with no error, and its Fs of 94 Hz reaches the .wdr', () => {
-    const result = new WinIsdDriverConverter(createEngine()).driverYmlToOpenisdAndWdr(readFileSync(CFC100, 'utf8'));
+    const result = new DriverRecordConverter(createEngine()).driverYmlToOpenisdAndWdr(readFileSync(CFC100, 'utf8'));
     assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
     assert.ok(result.openisd?.includes('https://www.parts-express.com/pedocs/specs/295-601--dayton-audio-cfc100-4-specification-sheet.pdf'));
     assert.match(result.wdr ?? '', /^Fs=94$/m);

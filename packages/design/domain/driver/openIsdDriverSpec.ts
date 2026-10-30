@@ -13,7 +13,7 @@ import type {
     Writable
 } from '../cell.js';
 import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField, writeEntryDq} from '../cell.js';
-import type {DriverDeviceJson, DriverSpecsSection, SpecEntryJson} from '../openisdSchema.js';
+import type {DriverDeviceJson, SpecEntryJson} from '../openisdSchema.js';
 import {
     calcNumVC,
     calculatedWiring,
@@ -200,7 +200,7 @@ export class OpenIsdDriverSpec {
         /** One `SpecEntryJson` slot inside this section — deletes the key when set to `undefined`
          *  (T11: absence is 'N', not a stored null). */
         const sectionLens = driverSection(record, section);
-        const sectionSlot = (key: keyof DriverSpecsSection): SimpleField<SpecEntryJson | undefined> => ({
+        const sectionSlot = (key: DriverSpecFieldName): SimpleField<SpecEntryJson | undefined> => ({
             get value() {
                 return sectionLens.value[key];
             },
@@ -218,7 +218,7 @@ export class OpenIsdDriverSpec {
         /** The issues `key` is named by, out of a durable list — the same split `#markDq`
          *  makes: a `field`-carrying issue names one field, everything else names whatever
          *  `issueFields` says. */
-        const dqFor = (key: keyof DriverSpecsSection): (() => readonly DqIssue[]) | undefined =>
+        const dqFor = (key: DriverSpecFieldName): (() => readonly DqIssue[]) | undefined =>
             durableIssues === undefined ? undefined : () => durableIssues().filter(issue =>
                 'field' in issue ? issue.field === key : issue.fields.some(f => f === key));
         /** Every numeric spec field's OWN floor (`driverSpecFloor`, not one floor for every field —

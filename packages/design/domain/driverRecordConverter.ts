@@ -54,6 +54,12 @@ export interface DriverYmlProjection {
   errors: DriverError[];
 }
 
+/** The shared scraper-entry DQ pass when a library projection is not requested. */
+export interface DriverYmlDqWarnings {
+  warnings: DriverError[];
+  errors: DriverError[];
+}
+
 /** The scraper-only section. It is named ONCE, here, because this is the only place that drops
  *  it — `drivers.md` Part A's structural drop is a property of `OpenISDDeviceJson`, which cannot
  *  help a caller that must also emit YAML text preserving the source's key order. */
@@ -190,6 +196,18 @@ const scraperEntrySchema = z.strictObject({
   dq_scraper: dqMarks(),
 });
 
+const scraperVoiceCoilTupleSchema = z.strictObject({
+  basis: z.strictObject({
+    Re_ohm: z.enum(["per-coil", "for-stated-connection", "unknown"]),
+    BL_Tm: z.enum(["per-coil", "for-stated-connection", "unknown"]),
+  }),
+  Re_ohm: scraperEntrySchema.nullable().optional(),
+  BL_Tm: scraperEntrySchema.nullable().optional(),
+  numVC: z.union([scraperEntrySchema, z.strictObject({state: z.literal("not-stated")})]),
+  connection: z.enum(["series", "parallel", "unknown", "not-stated"]),
+  connection_reading: scraperEntrySchema.nullable(),
+});
+
 /** A literal worth putting in a MISMATCH warning: what the source actually printed when we have
  *  it, the parsed number otherwise. */
 function readingLiteral(r: Reading): string {
@@ -277,7 +295,7 @@ function dqCommentLines(record: DriverDeviceJson): string[] {
 
   for (const section of sections) {
     for (const [field, entry] of Object.entries(section)) {
-      if (entry === undefined || entry.state === "N") continue;
+      if (entry === undefined || !('state' in entry) || entry.state === "N") continue;
 
       const value = entry.value;
       // `dq_scraper` only ever rides on an entered value — nothing was scraped for one the
@@ -428,7 +446,7 @@ function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
   const lines: string[] = [];
   for (const section of sections) {
     for (const [field, entry] of Object.entries(section)) {
-      if (entry === undefined || entry.state !== "N") continue;
+      if (entry === undefined || !('state' in entry) || entry.state !== "N") continue;
       const readings = entry.readings;
       if (!readings) continue;
       const roles = Object.keys(readings).sort((a, b) => {
@@ -606,7 +624,7 @@ export function openIsdDriverToWinIsdDriver(
 
 /** Driver file conversion — `driver.yml` to openisd + `.wdr`, and `.wdr` text back to a driver —
  *  holding the one engine every driver it builds is given. */
-export class WinIsdDriverConverter {
+export class DriverRecordConverter {
   readonly #roundTrip: DriverRoundTripCheck;
 
   constructor(private readonly engine: Engine) {
@@ -673,6 +691,21 @@ export class WinIsdDriverConverter {
     const wdr = wdrDriver.toWdrIni();
     errors.push(...this.#roundTrip.roundTripProblems(driverOrErrors, openisd, wdr));
     return { openisd, wdr, errors };
+  }
+
+  /** Run the same scraper-entry DQ pass without attempting an OpenISD or WinISD projection.
+   *
+   * The scraper pipeline uses this for records whose role is outside the library's
+   * woofer/passive-radiator boundary. Parsing and source corroboration stay in the shared
+   * private method; this boundary returns its warnings and errors without derived files.
+   */
+  driverYmlToDqWarnings(driverYmlText: string): DriverYmlDqWarnings {
+    const parsed = this.#driverYmlToOpenisdRecord(driverYmlText);
+    if (!parsed.ok) return { warnings: [], errors: [parsed.error] };
+    return {
+      warnings: parsed.warnings.filter(problem => problem.level === "warn"),
+      errors: parsed.warnings.filter(problem => problem.level === "error"),
+    };
   }
 
   /** `.wdr` text -> `OpenISDDriver` — the reverse of `openIsdDriverToWinIsdDriver`, for a caller
@@ -777,13 +810,124 @@ export class WinIsdDriverConverter {
         continue;
       }
       const fields: Record<string, unknown> = {};
+      const hasVoiceCoilTuple = (sectionKey === "woofer" || sectionKey === "tweeter") && Object.hasOwn(section, "voice_coil");
+      const flatVoiceCoilFields = ["Re_ohm", "BL_Tm", "numVC", "VCCon"];
+      const hasMixedVoiceCoilShape = hasVoiceCoilTuple && flatVoiceCoilFields.some(field => Object.hasOwn(section, field));
       for (const [field, entry] of Object.entries(section)) {
+        if (field === "voice_coil" && (sectionKey === "woofer" || sectionKey === "tweeter")) {
+          if (hasMixedVoiceCoilShape) {
+            // Keep the illegal key in place so OpenISD's strict record schema rejects the mixed
+            // tuple-plus-flat representation. Neither representation wins by precedence.
+            fields.voice_coil = entry;
+          } else {
+            Object.assign(fields, this.#projectVoiceCoilTuple(entry, sectionKey, warnings));
+          }
+          continue;
+        }
         const projected = this.#projectScraperEntry(entry, sectionKey, field,  warnings);
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
       sections[sectionKey] = fields;
     }
     return sections;
+  }
+
+  #projectVoiceCoilTuple(
+    value: unknown,
+    section: string,
+    warnings: DriverError[]
+  ): Record<string, unknown> {
+    if (!isKeyedObject(value)) return {voice_coil: value};
+    const tupleForSchema: Record<string, unknown> = {};
+    for (const [key, member] of Object.entries(value)) {
+      if (key === "Re_ohm" || key === "BL_Tm" || key === "numVC" || key === "connection_reading") {
+        if (member === null || !isKeyedObject(member) || "state" in member) {
+          tupleForSchema[key] = member;
+        } else {
+          tupleForSchema[key] = entryForScraperSchema(member);
+        }
+      } else {
+        tupleForSchema[key] = member;
+      }
+    }
+    const parsed = scraperVoiceCoilTupleSchema.safeParse(tupleForSchema);
+    if (!parsed.success) return {voice_coil: value};
+
+    const tuple = parsed.data;
+    const result: Record<string, unknown> = {};
+    let coilCount: number | undefined;
+    if ("readings" in tuple.numVC) {
+      const projectedCount = this.#projectScraperEntry(tuple.numVC, section, "numVC", warnings);
+      if (isKeyedObject(projectedCount) && projectedCount.state === "E" && typeof projectedCount.value === "number") {
+        coilCount = projectedCount.value;
+        result.numVC = projectedCount;
+      } else {
+        result.numVC = projectedCount;
+      }
+    }
+    if (coilCount !== undefined && (!Number.isInteger(coilCount) || coilCount < 1 || coilCount > 4)) {
+      coilCount = undefined;
+      warnings.push({level: "warn", field: `${section}.numVC`, message: "voice-coil scaling unavailable: coil count is not an integer from 1 through 4"});
+    }
+
+    if (tuple.connection === "series" || tuple.connection === "parallel") {
+      const projectedConnection = this.#projectScraperEntry(
+        tuple.connection_reading,
+        section,
+        "numVC",
+        warnings
+      );
+      if (isKeyedObject(projectedConnection)) {
+        result.VCCon = {
+          ...projectedConnection,
+          ...(projectedConnection.state === "E" ? {value: tuple.connection === "series" ? 2 : 1} : {}),
+        };
+      }
+    } else if (tuple.connection === "unknown" && tuple.connection_reading !== null) {
+      result.VCCon = {state: "N", readings: tuple.connection_reading.readings};
+      warnings.push({level: "warn", field: `${section}.VCCon`, message: "voice-coil connection is unclassified; source reading is retained and no wiring is inferred"});
+    }
+
+    for (const field of ["Re_ohm", "BL_Tm"] as const) {
+      const sourceEntry = tuple[field];
+      if (sourceEntry === undefined || sourceEntry === null) continue;
+      const projected = this.#projectScraperEntry(sourceEntry, section, field, warnings);
+      if (!isKeyedObject(projected)) {
+        result[field] = projected;
+        continue;
+      }
+      const basis = tuple.basis[field];
+      if (basis === "per-coil") {
+        result[field] = projected;
+        continue;
+      }
+      if (basis === "unknown") {
+        result[field] = this.#unavailableVoiceCoilEntry(projected);
+        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading basis is unknown; raw source readings are retained without per-coil scaling"});
+        continue;
+      }
+      if (coilCount === undefined || (tuple.connection !== "series" && tuple.connection !== "parallel")) {
+        result[field] = this.#unavailableVoiceCoilEntry(projected);
+        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading is for a stated connection, but a supported connection and stated coil count are required for per-coil scaling"});
+        continue;
+      }
+      if (projected.state !== "E" || typeof projected.value !== "number") {
+        result[field] = projected;
+        continue;
+      }
+      const factor = field === "Re_ohm"
+        ? tuple.connection === "series" ? 1 / coilCount : coilCount
+        : tuple.connection === "series" ? 1 / coilCount : 1;
+      result[field] = {...projected, value: projected.value * factor};
+    }
+    return result;
+  }
+
+  #unavailableVoiceCoilEntry(projected: Record<string, unknown>): Record<string, unknown> {
+    const unavailable: Record<string, unknown> = {state: "N"};
+    if (projected.readings !== undefined) unavailable.readings = projected.readings;
+    if (projected.dq_scraper !== undefined) unavailable.dq_scraper = projected.dq_scraper;
+    return unavailable;
   }
 
   /** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the

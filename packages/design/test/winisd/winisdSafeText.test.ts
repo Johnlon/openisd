@@ -6,7 +6,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {parse, stringify as stringifyYaml} from 'yaml';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {createEngine} from '../../engine/Engine.js';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -179,7 +179,7 @@ describe('winisdSafeText', () => {
     }
 
     it('translates the characters WinISD cannot draw out of openisd.json', () => {
-      const { openisd } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+      const { openisd } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
       assert.ok(openisd !== null, 'the fixture must still project');
 
       for (const bad of ['™', '–', '“', '”', '″', '…', ' ']) {
@@ -190,7 +190,7 @@ describe('winisdSafeText', () => {
     });
 
     it('removes the 0xA4-carrying characters that would corrupt the .wdr', () => {
-      const { openisd } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+      const { openisd } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
       assert.ok(openisd !== null);
 
       assert.ok(!openisd.includes('ä'), 'a-with-diaeresis is C3 A4 and tears a .wdr value in half');
@@ -200,7 +200,7 @@ describe('winisdSafeText', () => {
     });
 
     it('leaves the .wdr free of them too, because it is built from the cleaned record', () => {
-      const { wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+      const { wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
       assert.ok(wdr !== null, 'a woofer record must produce a .wdr');
 
       for (const bad of ['™', '–', '“', '”', '″', '…', ' ', 'ä', '≤']) {
@@ -209,7 +209,7 @@ describe('winisdSafeText', () => {
     });
 
     it('reports every rewrite as a warn naming the field and both characters', () => {
-      const { errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
+      const { errors } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonWithUnsafeText());
       const rewrites = errors.filter((e) => e.field.startsWith('winisd-safe-text'));
 
       assert.ok(rewrites.length > 0, 'a rewrite nobody is told about is a silent edit');
@@ -221,7 +221,7 @@ describe('winisdSafeText', () => {
     });
 
     it('says nothing about a record that needed no rewrite', () => {
-      const { errors } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const { errors } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
       assert.deepEqual(errors.filter((e) => e.field.startsWith('winisd-safe-text')), []);
     });
   });
