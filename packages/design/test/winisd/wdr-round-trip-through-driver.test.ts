@@ -30,7 +30,7 @@ import {createEngine} from '@openisd/design/engine';
 import {REFERENCE_AIR_VALUES} from '../fixtures/referenceAir.js';
 import { PARSTATE_LEN } from '../../winisd/parstate.js';
 import { WinISDDriver } from '../../winisd/winisdDriver.js';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SAMPLES = join(here, '..', '..', '..', '..', 'drivers', 'myprobes');
@@ -145,7 +145,7 @@ function lostEntered(file: string, src: string): string[] {
 
 /** text → WinISDDriver → OpenISDDriver. */
 function importDriver(src: string) {
-  const imported = new WinIsdDriverConverter(createEngine()).winIsdDriverToOpenIsdDriver(src);
+  const imported = new DriverRecordConverter(createEngine()).winIsdDriverToOpenIsdDriver(src);
   if (imported.value === null) {
     assert.fail(`driver text rejected: ${imported.errors.map(error => error.message).join('; ')}`);
   }

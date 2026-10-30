@@ -19,15 +19,16 @@ function valueOnly(field: unknown): unknown {
     return isRecord(field) && 'value' in field ? {value: field.value} : field;
 }
 
-/** An entered or calculated entry cut to state, value and the precision it states; a
- *  not-available entry holds only readings no screen shows, and is absent in effect. */
+/** An entered or calculated entry cut to state, value and the precision it states. A
+ *  not-available entry has no simulation value, but its published readings remain useful source
+ *  data and must survive project save/reload. */
 function slimmedEntry(entry: unknown): unknown {
     const parsed = specEntryJsonSchema.safeParse(entry);
     if (!parsed.success) return entry;
     const e = parsed.data;
     switch (e.state) {
         case 'N':
-            return undefined;
+            return {state: 'N', readings: e.readings};
         case 'C':
             return e.precision === undefined ? {state: 'C', value: e.value} : {state: 'C', value: e.value, precision: e.precision};
         case 'E': {

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: 32180ce7716dfa4bc3df65a292d5bd4efb56e8f9
 goal: Every build is the same app: task previews and local builds MUST include cloud sync, as openisd.app does
 done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-every-build-has-cloud-sync.test.ts && bash scripts/quiet-test.sh npm run typecheck
 files:

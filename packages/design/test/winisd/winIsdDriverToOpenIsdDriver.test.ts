@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {createEngine} from '../../engine/Engine.js';
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus');
 
@@ -16,14 +16,14 @@ describe('winIsdDriverToOpenIsdDriver', () => {
   describe('winIsdDriverToOpenIsdDriver — the reverse direction, for .wdr/.owdr import', () => {
     it('a .wdr with a non-numeric stated field loads, leaves the field out and warns (T017: a .wdr text cell is never a reading)', () => {
       const engine = createEngine();
-      const { wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const { wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
       assert.ok(wdr !== null);
       // Corrupt a mandatory, ParState-E ("Q") row so the record this text reads back as fails the
       // same schema that accepted the untouched fixture — a real .wdr's own reader disagreeing with
       // the driver seam, not a defect in the Dayton fixture (see the round-trip test above).
       const corrupted = wdr.replace(/^Qts=.*$/m, 'Qts=not-a-number');
 
-      const { value, errors } = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(corrupted);
+      const { value, errors } = new DriverRecordConverter(engine).winIsdDriverToOpenIsdDriver(corrupted);
 
       assert.ok(value !== null, 'a non-numeric cell is left out, not a reason to refuse the driver');
       assert.ok(errors.some(e => e.level === 'warn' && e.field === 'Qts' && /not a number: left out/.test(e.message)),

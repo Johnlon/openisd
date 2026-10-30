@@ -1,6 +1,6 @@
 /**
  * `OpenISDProject` <-> WinISD `.wpr` — the project-level counterpart to
- * `winIsdDriverConverter.ts`'s `openIsdDriverToWinIsdDriver`/`winISDDriverToOpenISDDeviceJson`
+ * `driverRecordConverter.ts`'s `openIsdDriverToWinIsdDriver`/`winISDDriverToOpenISDDeviceJson`
  * pair. Free functions, not methods on `OpenISDProject` — `packages/design/AGENTS.md` "expose
  * only the class surface from domain/index.ts": these live beside `WinISDProject`, which does no
  * physics and no unit conversion of its own (its own doc comment), and take the already-computed
@@ -29,7 +29,7 @@ import {ProjectBuilder} from './openisdTransforms.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
 
-import {openIsdDriverToWinIsdDriver} from './winIsdDriverConverter.js';
+import {openIsdDriverToWinIsdDriver} from './driverRecordConverter.js';
 import {WinISDDriver} from '../winisd/winisdDriver.js';
 import {WinISDProject} from '../winisd/winisdProject.js';
 import {type RadiatorDeviceJson, type SpecEntryJson} from './openisdSchema.js';

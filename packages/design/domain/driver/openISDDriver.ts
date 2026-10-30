@@ -4,7 +4,7 @@ import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
-import { openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
+import { openIsdDriverToWinIsdDriver } from '../driverRecordConverter.js';
 import { newUuid } from '../newUuid.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
@@ -387,7 +387,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return OpenISDDeviceJson.toOpenisdDriverJson(this.record.value);
     }
 
-    /** This driver as WinISD `.wdr` text — the form `WinIsdDriverConverter.winIsdDriverToOpenIsdDriver` reads back.
+    /** This driver as WinISD `.wdr` text — the form `DriverRecordConverter.winIsdDriverToOpenIsdDriver` reads back.
      *
      *  `.wdr` states far less than an openisd record does: a field WinISD has no key for is
      *  dropped, so this is a lossy write and the round trip is not an identity. `errors` carries

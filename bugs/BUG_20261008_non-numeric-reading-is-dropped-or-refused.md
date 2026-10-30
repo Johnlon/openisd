@@ -7,7 +7,7 @@
   RejectedParsed and RejectedUnparsed readings (plus unrecognised-reason variants); the printed text
   is kept in `actual_reading`.
 - Claim 4 (converter drops rejected readings): already fixed. They are kept and written to the .wdr
-  comment (`winIsdDriverConverter.ts`, `driverYmlToOpenisdAndWdr.test.ts`).
+  comment (`driverRecordConverter.ts`, `driverYmlToOpenisdAndWdr.test.ts`).
 - Claims 2 and 3 (.wdr text cell, non-finite VCCon): follow John's 2026-10-11 ruling, which is later
   than this bug: a .wdr holds only a flag and a number, so loading one never makes a Rejected reading.
   The cell is left out and the import warns "<key> is "<text>", not a number: left out", for an
@@ -32,7 +32,7 @@ There is no nullable `read_value`. `rejected` today is a free string in `reading
 
 ## 1. The schema cannot store a Rejected reading
 `packages/design/domain/openisdSchema.ts:187`: `read_value: z.number()` is required. A reading
-printed "N/A" with no number fails the strict parse. `winIsdDriverConverter.ts:777-785` returns the
+printed "N/A" with no number fails the strict parse. `driverRecordConverter.ts:777-785` returns the
 entry unchanged on a failed parse, and the next stage rejects the record or skips the entry with
 no flag.
 Fix: the schema accepts Rejected.
@@ -50,7 +50,7 @@ Fix: blank = nothing printed, absence is fine (the test stays for blank). Non-fi
 a Rejected reading with that text.
 
 ## 4. The converter drops readings that carry `rejected`
-`winIsdDriverConverter.ts:155` (policy text :140-147): the reading and its rejected text are
+`driverRecordConverter.ts:155` (policy text :140-147): the reading and its rejected text are
 lost on conversion.
 Fix: keep them with their text. The UI shows the printed text.
 

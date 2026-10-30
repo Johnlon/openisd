@@ -107,8 +107,12 @@ describe('slimmedProjectSession', () => {
     expect(woofer.Qes).toEqual({state: 'C', value: 0.57, precision: 0.01});
   });
 
-  it('drops a not-available entry, which every reader treats as absent', () => {
-    expect(record(record(slimDeviceOf(fatSession()).specs).woofer)).not.toHaveProperty('Vas_m3');
+  it('keeps not-available source readings without turning them into simulation values', () => {
+    const woofer = record(record(slimDeviceOf(fatSession()).specs).woofer);
+    expect(woofer.Vas_m3).toEqual({
+      state: 'N',
+      readings: {manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'unparsable'}},
+    });
   });
 
   it('is the same on a second pass', () => {
