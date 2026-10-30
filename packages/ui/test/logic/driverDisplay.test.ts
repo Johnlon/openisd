@@ -16,6 +16,7 @@ import {
     displayNameOf,
   passiveRadiatorRows,
   previewSpecsOf,
+  PreviewSpecKind,
 } from '../../src/logic/driverDisplay.js';
 import type {BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 
@@ -98,8 +99,8 @@ describe('previewSpecsOf — reported readings with no usable simulation value',
 
     const specs = previewSpecsOf(driver);
     assert.deepEqual(specs.filter(spec => spec.label === 'Re' || spec.label === 'BL'), [
-      {label: 'Re', value: '3.400', unit: 'Ω'},
-      {label: 'BL', value: '7.17000', unit: 'Tm'},
+      {kind: PreviewSpecKind.Number, label: 'Re', value: '3.400', unit: 'Ω'},
+      {kind: PreviewSpecKind.Number, label: 'BL', value: '7.17000', unit: 'Tm'},
     ]);
   });
 
@@ -126,10 +127,12 @@ describe('previewSpecsOf — reported readings with no usable simulation value',
     const specs = previewSpecsOf(updated);
     assert.deepEqual(specs.filter(spec => spec.label.includes('reported')), [
       {
+        kind: PreviewSpecKind.Text,
         label: 'Re (reported)',
         value: '3.4 W (manufacturer datasheet); 3.4 Ω (manufacturer product page)',
       },
       {
+        kind: PreviewSpecKind.Text,
         label: 'BL (reported)',
         value: '7.17 TM (manufacturer datasheet); 7.17 TM (manufacturer product page)',
       },
