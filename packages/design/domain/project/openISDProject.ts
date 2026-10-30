@@ -21,7 +21,7 @@ import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { airFieldsOver } from './projectAir.js';
 import type { AirField, AirFields } from './projectAir.js';
-import { storedTextOf, canonicalTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
+import { storedTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
@@ -494,19 +494,24 @@ export class OpenISDProject {
         return project;
     }
 
-    /** A project text from before ids as the same text carrying `id`: the id first, the driver id
-     *  the null GUID, the keys in the canonical order, and the indent it had. Null for a text that
-     *  is not a project. The store's layout step uses it once per stored project. */
-    static textWithId(text: string, id: string): string | null {
+    /** A project text from before ids as the text this build writes for the same project, carrying
+     *  `id`: loaded and written again, so the driver id is the null GUID, the keys are in the
+     *  canonical order and the calculated values are present. Keeps the indent the text had
+     *  (`.owpr` indented, stored on one line). Null for a text that is not a readable project,
+     *  which stays as it is for the repo that owns it to report. The store's layout step uses it
+     *  once per stored project. */
+    static textWithId(text: string, id: string, engine: Engine): string | null {
         let parsed: unknown;
         try {
             parsed = JSON.parse(text);
         } catch {
             return null;
         }
-        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed) || !('saved' in parsed)) return null;
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null;
         const rest = Object.fromEntries(Object.entries(parsed).filter(([key]) => key !== 'id'));
-        return canonicalTextOf({id, ...rest}, /^\{\r?\n/.test(text) ? 2 : undefined);
+        const project = OpenISDProject.fromOwprText(JSON.stringify({id, ...rest}), engine);
+        if (Array.isArray(project)) return null;
+        return /^\{\r?\n/.test(text) ? project.toOwprText() : project.toStoredText();
     }
 
     /** Give this project a new id: what a second copy of an already open or stored file gets. */

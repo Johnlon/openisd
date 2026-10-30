@@ -78,19 +78,19 @@ describe('a project id', () => {
   it('is added to a stored text by textWithId, first, in the canonical order, on one line', () => {
     const older = JSON.parse(fromWpr().toStoredText());
     delete older.id;
-    expect(OpenISDProject.textWithId(JSON.stringify(older), 'the-id')).toBe(JSON.stringify({id: 'the-id', ...older}));
+    expect(OpenISDProject.textWithId(JSON.stringify(older), 'the-id', engine)).toBe(JSON.stringify({id: 'the-id', ...older}));
   });
 
   it('is added to an indented .owpr text by textWithId, keeping the indent', () => {
     const p = fromWpr();
     const older = JSON.parse(p.toOwprText());
     delete older.id;
-    const text = OpenISDProject.textWithId(JSON.stringify(older, null, 2), 'the-id');
+    const text = OpenISDProject.textWithId(JSON.stringify(older, null, 2), 'the-id', engine);
     expect(text).toBe(JSON.stringify({id: 'the-id', ...older}, null, 2));
   });
 
   it('textWithId answers null for a text that is not a project session', () => {
-    expect(OpenISDProject.textWithId('not json', 'x')).toBeNull();
-    expect(OpenISDProject.textWithId('[]', 'x')).toBeNull();
+    expect(OpenISDProject.textWithId('not json', 'x', engine)).toBeNull();
+    expect(OpenISDProject.textWithId('[]', 'x', engine)).toBeNull();
   });
 });

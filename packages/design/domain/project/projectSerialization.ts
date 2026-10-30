@@ -51,12 +51,6 @@ export function storedTextOf(session: OpenISDProjectSessionJson): string {
     return JSON.stringify(slimmedCanonical(session), withoutDerived);
 }
 
-/** Any session as canonical text: slimmed, keys in the schema's order, `dq_calculated` marks
- *  kept, with `indent` (undefined for one line). */
-export function canonicalTextOf(session: unknown, indent: number | undefined): string {
-    return JSON.stringify(slimmedCanonical(session), null, indent);
-}
-
 /** A text written before projects carried an id gets one here, once, when it is read; a text
  *  that has one is returned as it was. */
 function withProjectId(parsed: unknown, newId: () => string): unknown {

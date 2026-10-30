@@ -27,9 +27,22 @@ files:
   - packages/design/test/domain/project/stored-text.test.ts
   - packages/design/test/domain/retired-loss-mode.test.ts
   - packages/persistence/src/repos/bundledDriverRepo.ts
+  - packages/persistence/src/repos/layoutSteps.ts
   - packages/persistence/src/repos/myDriverRepo.ts
   - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/storageLayout.ts
   - packages/persistence/test/fixtures/savedRecords.ts
+  - packages/persistence/test/fixtures/storeSummary.ts
+  - packages/persistence/test/goldens/backup-file/file-layout-3.json
+  - packages/persistence/test/goldens/custom-drivers/dump-layout-3.json
+  - packages/persistence/test/goldens/empty/dump-layout-3.json
+  - packages/persistence/test/goldens/exported-driver-file/file-layout-3.owdr
+  - packages/persistence/test/goldens/exported-project-file/file-layout-3.owpr
+  - packages/persistence/test/goldens/many-projects/dump-layout-3.json
+  - packages/persistence/test/goldens/one-project/dump-layout-3.json
+  - packages/persistence/test/goldens/open-sessions/dump-layout-3.json
+  - packages/persistence/test/goldens/passive-radiators/dump-layout-3.json
+  - packages/persistence/test/storageUpgrade.test.ts
   - packages/ui/src/hooks/DriverEditorModal-hooks.ts
   - packages/ui/src/logic/bundledIndexRows.ts
   - packages/ui/src/logic/driverBrowsingState.ts
