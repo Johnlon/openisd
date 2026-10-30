@@ -103,7 +103,7 @@ const EXTERNAL_NETWORK_SPECS = ['**/micka-crosscheck.browser.spec.ts'];
 // One bundle dir per PORT, like the dist dir: concurrent runs never empty each other's catalogue (T489).
 export const TEST_BUNDLE_DIR = `build/test-bundle-${PORT}`;
 export const BUILD_TEST_APP = `bash scripts/kill-http.sh ${PORT} && node scripts/version-info.mjs && node scripts/test-bundle.mjs ${TEST_BUNDLE_DIR} && node_modules/.bin/vite build --mode test --outDir ../../build/test-dist-${PORT} --emptyOutDir`;
-const SERVE_TEST_APP = `OPENISD_DRIVERS_BUNDLE_DIR=${TEST_BUNDLE_DIR} node_modules/.bin/vite preview --outDir ../../build/test-dist-${PORT} --port ${PORT} --strictPort`;
+const SERVE_TEST_APP = `OPENISD_DRIVERS_BUNDLE_DIR=${TEST_BUNDLE_DIR} node_modules/.bin/vite preview --outDir ../../build/test-dist-${PORT} --port ${PORT} --strictPort --host 0.0.0.0`;
 
 export default defineConfig({
   testDir: './packages/ui/test',

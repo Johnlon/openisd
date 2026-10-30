@@ -363,9 +363,9 @@ test.describe('Original driver bundle selection', () => {
       const displayedFields = [
         ['Fs_hz', '#og-pr-fs', NumberField.PR_FS_HZ], ['Qms', '#og-pr-qms', NumberField.PR_QMS],
         ['Vas_m3', '#og-pr-vas', NumberField.PR_VAS_L],
-        ['Sd_m2', 'label.ui-field-label:text-is("Sd") + .ui-field-value input', NumberField.PR_SD_CM2],
+        ['Sd_m2', 'label.ui-field-label:text-is("Sd") ~ .ui-field-value input', NumberField.PR_SD_CM2],
         ['Mms_kg', '#og-pr-mms', NumberField.MMS_KG], ['Cms_m_per_N', '#og-pr-cms', NumberField.CMS_M_PER_N],
-        ['Xmax_m', 'label.ui-field-label:text-is("Xmax") + .ui-field-value input', NumberField.PR_XMAX_MM],
+        ['Xmax_m', 'label.ui-field-label:text-is("Xmax") ~ .ui-field-value input', NumberField.PR_XMAX_MM],
       ] as const;
       const shown = await Promise.all(displayedFields.map(async ([key, selector, field]) => ({
         key,

@@ -1,9 +1,9 @@
 {
-  "winisd_drivers_commit": "dc08001554f1f65a916f0a4997b818e8ce201e4a",
+  "winisd_drivers_commit": "79a404a5c94e914f6fe5bc0984c1054a00cfb02d",
   "fixtures": {
-    "accuton/bd90-6-727/driver.json": "b9829503bf33f8b8b0397051bc8216f5bf9771920afa67cf05d75b287881e0b8",
-    "accuton/bd90-6-727/openisd.json": "90a77e497ad400208390d8880eb5b3f4520636e779aff49e15d4177357e66a19",
-    "dayton-audio/da215-8/openisd.json": "5d588f5614f55e72c16522359c2fc97c383ee5437e9e52f9b8c8b02da907e1da"
+    "accuton/bd90-6-727/driver.json": "293d3d93d13fe97329b6f66f76e11f76da1c3751a5e707fe302f1df1dbd14c1e",
+    "accuton/bd90-6-727/openisd.json": "cb6d7860a466346a6bc6070bda1fb1833f8973df3827420def520f742e17ade9",
+    "dayton-audio/da215-8/openisd.json": "d2a50c1aa2b6da172aa674bf97efe3b33e05d5093e46d3d1e9b4d18c3ca940d4"
   },
-  "bundle_sha256": "f700d49eadbbfb78702097e68c90e094ce9a17d315baba250b69c5a81853748b"
+  "bundle_sha256": "9d422d8a0e726f1d6eecf747750246cc8dff76b663790b4cd68d5316609e3631"
 }

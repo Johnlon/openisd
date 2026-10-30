@@ -3,7 +3,21 @@ release_note: internal
 repo: openisd
 owner: codex
 status: open
-goal: Refresh OpenISD catalogue from tuple-aware driver snapshot
-done_test: bash scripts/quiet-test.sh npm run typecheck
+goal: Refresh OpenISD catalogue from tuple-aware snapshot and expose test servers for review
+done_test: bash scripts/quiet-test.sh npm run typecheck:design && bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/ui/test/scripts/bundle-outputs.test.ts && bash scripts/quiet-test.sh bash scripts/land/test/sync-driver-snapshot.test.sh
 files:
   - tasks/T618.yml
+  - docs/DEV_PROCESS.md
+  - packages/design/test/fixtures/driver-snapshot/**
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - playwright.config.js
+  - packages/ui/public/drivers-index.json
+  - packages/ui/public/passive-radiators-index.json
+  - packages/ui/public/drivers/**
+  - scripts/bundle-drivers.mjs
+  - scripts/bundleStamp.mjs
+  - scripts/driver-snapshot.pin
+  - scripts/land/test/sync-driver-snapshot.test.sh
+  - scripts/sync-driver-snapshot.sh
+  - scripts/start-http.sh
+  - scripts/verify-preview-own-port.sh

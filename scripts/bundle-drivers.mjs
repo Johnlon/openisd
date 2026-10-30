@@ -6,7 +6,7 @@
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> --only-record <brand/sku> [--only-record ...]
  *
  * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is `--corpus <dir>` (required;
- * only scripts/sync-driver-snapshot.sh passes it, from a clean winisd_drivers checkout); each `<brand>/<sku>/openisd.json` is the canonical
+ * only scripts/sync-driver-snapshot.sh passes it, from committed winisd_drivers/snapshot/datasheets); each `<brand>/<sku>/openisd.json` is the canonical
  * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
  *
  * Outputs, all under packages/ui/public/ and all tracked in git (CI has no corpus checkout):
@@ -62,7 +62,7 @@ function corpusArg(argv) {
   const i = argv.indexOf('--corpus');
   const dir = i >= 0 ? argv[i + 1] : undefined;
   if (!dir) {
-    console.error('bundle-drivers: --corpus <dir> is required (the datasheets directory). The live driver db is read only by scripts/sync-driver-snapshot.sh; run that to refresh the bundle.');
+    console.error('bundle-drivers: --corpus <dir> is required (the snapshot datasheets directory). Run scripts/sync-driver-snapshot.sh to refresh the committed bundle from winisd_drivers/snapshot.');
     process.exit(2);
   }
   return resolve(dir);

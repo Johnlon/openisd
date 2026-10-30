@@ -113,7 +113,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
         'warns when multiple coils make the unreported basis material');
     });
 
-    it('projects a coax tweeter tuple whose coil count and connection are not stated', () => {
+    it('keeps a per-coil tweeter Re entered when count and connection are not stated', () => {
       const source = scraperTupleFixture('sb-acoustics-sb15bac30-8-coax.driver.json');
       const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
       assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
@@ -126,9 +126,17 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.deepEqual(errors.filter(error => error.level === 'error'), []);
     });
 
-    it('projects a coax tweeter tuple whose coil count and connection are not stated', () => {
-      const source = scraperTupleFixture('sb-acoustics-sb15bac30-8-coax.driver.json');
-      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
+    it('marks connection-dependent tweeter Re unavailable when count and connection are not stated', () => {
+      const record: unknown = parse(scraperTupleFixture('sb-acoustics-sb15bac30-8-coax.driver.json'));
+      const tweeter = at(record, 'specs', 'tweeter');
+      if (!isRecord(tweeter)) throw new Error('expected specs.tweeter');
+      const tuple = at(tweeter, 'voice_coil');
+      if (!isRecord(tuple)) throw new Error('expected specs.tweeter.voice_coil');
+      const basis = at(tuple, 'basis');
+      if (!isRecord(basis)) throw new Error('expected specs.tweeter.voice_coil.basis');
+      basis.Re_ohm = 'for-stated-connection';
+
+      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
       assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
       assert.ok(wdr !== null, `woofer section still writes WDR; errors: ${JSON.stringify(errors)}`);
 

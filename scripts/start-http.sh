@@ -17,7 +17,7 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 STATE_DIR="${HTTP_STATE_DIR:-$ROOT_DIR}"
 PID_FILE="$STATE_DIR/.server-${PORT}.pid"
 LOG_FILE="$STATE_DIR/.server-${PORT}.log"
-SERVER_CMD="${START_HTTP_CMD:-npm run dev -- --port $PORT --strictPort --host}"
+SERVER_CMD="${START_HTTP_CMD:-npm run dev -- --port $PORT --strictPort --host 0.0.0.0}"
 
 # If a Vite dev server is already up on this port, reuse it
 if curl -s -o /dev/null -w "%{http_code}" "http://localhost:${PORT}/@vite/client" 2>/dev/null | grep -q "200"; then
