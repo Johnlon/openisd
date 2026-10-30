@@ -18,9 +18,11 @@ files:
   - packages/design/domain/project/projectSerialization.ts
   - packages/design/domain/project/slimDriver.ts
   - packages/design/test/domain/driver-edit.test.ts
+  - packages/design/test/domain/driver-record.test.ts
   - packages/design/test/domain/project-air.test.ts
   - packages/design/test/domain/project/project-id.test.ts
   - packages/design/test/domain/project/same-owpr-text.test.ts
+  - packages/design/test/domain/project/slim-driver.coverage.test.ts
   - packages/design/test/domain/project/slim-driver.test.ts
   - packages/design/test/domain/project/stored-text.test.ts
   - packages/design/test/domain/retired-loss-mode.test.ts

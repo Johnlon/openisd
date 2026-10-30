@@ -21,7 +21,7 @@ import { ProjectAdvanced } from './projectAdvanced.js';
 import { ProjectChartsView, type OpenCharts } from './projectChartsView.js';
 import { airFieldsOver } from './projectAir.js';
 import type { AirField, AirFields } from './projectAir.js';
-import { storedTextOf, storedTextWithId, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
+import { storedTextOf, canonicalTextOf, owprTextOf, parseOwprSession, parseOwprSessionRepairing, sessionOf } from './projectSerialization.js';
 import type { FieldPath } from '../schemaRepair.js';
 import { boxParamsIssuesOf, maxCurvesOf, sweepOf, sweepPlanOf, ventAchievedFbOf, ventMaxReachableFbOf } from './projectSweep.js';
 import type { ProjectSweepSource, SweepPlan } from './projectSweep.js';
@@ -494,10 +494,19 @@ export class OpenISDProject {
         return project;
     }
 
-    /** A stored text from before ids, as a stored text carrying `id`; null for a text that is
-     *  not a project. */
-    static storedTextWithId(text: string, id: string): string | null {
-        return storedTextWithId(text, id);
+    /** A project text from before ids as the same text carrying `id`: the id first, the driver id
+     *  the null GUID, the keys in the canonical order, and the indent it had. Null for a text that
+     *  is not a project. The store's layout step uses it once per stored project. */
+    static textWithId(text: string, id: string): string | null {
+        let parsed: unknown;
+        try {
+            parsed = JSON.parse(text);
+        } catch {
+            return null;
+        }
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed) || !('saved' in parsed)) return null;
+        const rest = Object.fromEntries(Object.entries(parsed).filter(([key]) => key !== 'id'));
+        return canonicalTextOf({id, ...rest}, /^\{\r?\n/.test(text) ? 2 : undefined);
     }
 
     /** Give this project a new id: what a second copy of an already open or stored file gets. */

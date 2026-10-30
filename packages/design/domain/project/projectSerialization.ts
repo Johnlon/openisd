@@ -51,19 +51,10 @@ export function storedTextOf(session: OpenISDProjectSessionJson): string {
     return JSON.stringify(slimmedCanonical(session), withoutDerived);
 }
 
-/** A stored text from before projects carried an id, as a stored text with `id` as its id; null
- *  when the text is not a project session. The store's layout step uses it once per stored project. */
-export function storedTextWithId(text: string, id: string): string | null {
-    let parsed: unknown;
-    try {
-        parsed = JSON.parse(text);
-    } catch {
-        return null;
-    }
-    if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
-    const {id: ignored, ...rest} = parsed;
-    void ignored;
-    return JSON.stringify(slimmedCanonical({id, ...rest}), withoutDerived);
+/** Any session as canonical text: slimmed, keys in the schema's order, `dq_calculated` marks
+ *  kept, with `indent` (undefined for one line). */
+export function canonicalTextOf(session: unknown, indent: number | undefined): string {
+    return JSON.stringify(slimmedCanonical(session), null, indent);
 }
 
 /** A text written before projects carried an id gets one here, once, when it is read; a text

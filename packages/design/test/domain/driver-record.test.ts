@@ -195,7 +195,7 @@ describe('OpenISDDriver record', () => {
       const session = project.cloneSession();
       // Proves the injected AppContext is actually wired in, not merely accepted and ignored —
       // the real `newUuid()` would never produce this exact string.
-      expect(session.edited?.driverEmbedding.device.uuid.value).toBe('11111111-1111-4111-8111-111111111111');
+      expect(session.id).toBe('11111111-1111-4111-8111-111111111111');
 
       // Structural, not raw string containment (S2-7d2: the fixture's Fs/Mms/Cms are jointly
       // over-determined, so the cascade now also attaches a formula dq to Fs_hz — a real, separate

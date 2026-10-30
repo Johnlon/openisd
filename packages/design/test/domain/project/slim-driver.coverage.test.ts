@@ -1,4 +1,5 @@
 /** slimmedProjectSession on hand-made sessions: every shape the stored text may hold. */
+import {NULL_GUID} from '../../../domain/project/nullDriverId.js';
 import {describe, expect, it} from 'vitest';
 import {slimmedProjectSession} from '../../../domain/project/slimDriver.js';
 
@@ -40,7 +41,7 @@ describe('slimmedProjectSession', () => {
     expect(out).toEqual({
       label: 'L', edited: null,
       saved: {driverEmbedding: {device: {
-        uuid: {value: 'u'}, quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []},
+        uuid: {value: NULL_GUID}, quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []},
         manufacturer: {value: 'M'}, brand: 'B', model: {value: 'Mo'}, sku: 'SKU', driver_type: {value: 'woofer'},
         data_sources: {value: {}}, provided_by: {value: 'p'}, comment: {value: 'c'}, added: 'plain',
         specs: {
@@ -61,21 +62,21 @@ describe('slimmedProjectSession', () => {
   it('adds no specs to a device that has none', () => {
     const out = slimmedProjectSession({saved: embedding({sku: 'S'}), edited: null});
     expect(out).toEqual({saved: {driverEmbedding: {device: {
-      quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []}, sku: 'S', data_sources: {value: {}},
+      uuid: {value: NULL_GUID}, quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []}, sku: 'S', data_sources: {value: {}},
     }}}, edited: null});
   });
 
   it('keeps only the quality summary and sources of a bare device, and a non-record specs value', () => {
     const out = slimmedProjectSession({saved: embedding({specs: 4}), edited: null});
     expect(out).toEqual({saved: {driverEmbedding: {device: {
-      quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []}, data_sources: {value: {}}, specs: 4,
+      uuid: {value: NULL_GUID}, quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []}, data_sources: {value: {}}, specs: 4,
     }}}, edited: null});
   });
 
   it('drops a spec key whose entry is undefined', () => {
     const out = slimmedProjectSession({saved: embedding({specs: {woofer: {Fs_hz: undefined}}}), edited: null});
     expect(out).toEqual({saved: {driverEmbedding: {device: {
-      quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []}, data_sources: {value: {}}, specs: {woofer: {}},
+      uuid: {value: NULL_GUID}, quality: {missing: [], invalid: [], parse_errors: [], cross_source_only: []}, data_sources: {value: {}}, specs: {woofer: {}},
     }}}, edited: null});
   });
 });
