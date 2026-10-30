@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import {createMyDriverRepo, MY_DRIVERS_KEY} from '../src/repos/myDriverRepo.js';
 import {createSavedEntries} from '../src/repos/savedEntries.js';
 import {createMemoryStorage, type ListableStorage} from '../src/storage/keyValueStorage.js';
+import {ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {backupOn, myDriverRepoOn} from './fixtures/repoOn.js';
 import {aDriver} from './fixtures/savedRecords.js';
@@ -29,6 +30,26 @@ function memoryStorage(): ListableStorage & { raw(key: string): string | null } 
 }
 
 describe('myDriverRepo', () => {
+  it('two drivers saved from one project get different ids in their records, neither the null GUID', () => {
+    const storage = memoryStorage();
+    const repo = myDriverRepoOn(storage, engine);
+    const project = ProjectBuilder.empty(engine);
+
+    repo.upsert(project.driver.detach());
+    repo.upsert(project.driver.detach());
+
+    const written: unknown = JSON.parse(storage.raw(MY_DRIVERS_KEY) ?? 'null');
+    if (!isRecord(written) || !Array.isArray(written.entries)) throw new Error('the bucket must hold entries');
+    const recordIds = written.entries.map((entry: unknown) => {
+      if (!isRecord(entry) || !isRecord(entry.record) || !isRecord(entry.record.uuid)) throw new Error('an entry carries a record with an id');
+      return entry.record.uuid.value;
+    });
+    assert.equal(recordIds.length, 2);
+    assert.notEqual(recordIds[0], recordIds[1]);
+    assert.ok(!recordIds.includes('00000000-0000-0000-0000-000000000000'));
+    assert.ok(!(storage.raw(MY_DRIVERS_KEY) ?? '').includes('00000000-0000-0000-0000-000000000000'));
+  });
+
   it('writes { entries: [{ uuid, record }] }, with no version of its own', () => {
     const storage = memoryStorage();
     const repo = myDriverRepoOn(storage, engine);

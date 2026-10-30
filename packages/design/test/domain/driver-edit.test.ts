@@ -181,6 +181,16 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(second).not.toBe(first);
   });
 
+  it('the null GUID is in no driver file a project driver is exported to, detached or copied', () => {
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+
+    for (const driver of [project.driver.detach(), project.driver.copyAsNew()]) {
+      expect(driver.uuid()).not.toBe(NULL_GUID);
+      expect(driver.toOwdrText()).not.toContain(NULL_GUID);
+      expect(driver.toWdrIniText().value).not.toContain(NULL_GUID);
+    }
+  });
+
   it('loading a project file leaves its embedded driver holding the null GUID', () => {
     const original = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
 

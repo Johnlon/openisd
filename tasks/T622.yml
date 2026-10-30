@@ -42,8 +42,11 @@ files:
   - packages/persistence/test/goldens/one-project/dump-layout-3.json
   - packages/persistence/test/goldens/open-sessions/dump-layout-3.json
   - packages/persistence/test/goldens/passive-radiators/dump-layout-3.json
+  - packages/persistence/test/myDriverRepo.test.ts
+  - packages/persistence/test/projectRepo.test.ts
   - packages/persistence/test/storageUpgrade.test.ts
   - packages/ui/src/hooks/DriverEditorModal-hooks.ts
+  - packages/ui/src/logic/appState.ts
   - packages/ui/src/logic/bundledIndexRows.ts
   - packages/ui/src/logic/driverBrowsingState.ts
   - packages/ui/src/logic/driverDisplay.ts
@@ -58,6 +61,7 @@ files:
   - packages/ui/test/logic/driverDraft.test.ts
   - packages/ui/test/logic/driverFilters.test.ts
   - packages/ui/test/logic/driverPick.test.ts
+  - packages/ui/test/logic/projectIdNeverShared.test.ts
   - packages/ui/test/logic/projectOpenTelemetry.test.ts
   - packages/ui/test/logic/searchSubject.test.ts
   - tasks/T622.yml

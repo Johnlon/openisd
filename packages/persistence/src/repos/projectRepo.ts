@@ -492,15 +492,11 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   migrateOpenSessions();
   migrateAutosaveState();
 
-  /** The project's file text without the embedded driver's id, which every open of a file makes
-   *  afresh: two opens of one file have the same design text. */
+  /** The project's file text without its id, which a second copy of one file does not share:
+   *  two opens of one file have the same design text. */
   function designOf(project: OpenISDProject): string {
     const parsed: unknown = JSON.parse(project.toOwprText());
-    if (isRecord(parsed)) {
-      for (const part of [parsed.saved, parsed.edited]) {
-        if (isRecord(part) && isRecord(part.driverEmbedding) && isRecord(part.driverEmbedding.device)) delete part.driverEmbedding.device.uuid;
-      }
-    }
+    if (isRecord(parsed)) delete parsed.id;
     return JSON.stringify(parsed);
   }
 
@@ -565,7 +561,11 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       if (opened.kind === 'newer') {
         return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads})`];
       }
-      return readRepairing(opened.text, null);
+      const project = readRepairing(opened.text, null);
+      // A file carries the id of the project it was saved from. When that project is stored here, this is
+      // a second copy of it and takes an id of its own, so saving it can never overwrite the stored one.
+      if (!Array.isArray(project) && readStoredEntries().some(entry => entry.id === project.uuid())) project.assignNewId();
+      return project;
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
@@ -667,8 +667,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         return { id, text: project.toStoredText(), modified: '', traceHidden: traceHidden.has(project) };
       });
       const focusedId = focused === null ? null : storedIdentity.get(focused) ?? focused.uuid();
-      // Writing the session already stored would still change its text (each read mints the
-      // embedded driver a fresh id), and every other tab would rebuild all its projects.
+      // Writing the session already stored would change nothing, and every other tab would rebuild all its projects.
       if (storesSameSession(entries, focusedId)) return;
       storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries, focusedId } satisfies OpenSessionPayload));
     },
