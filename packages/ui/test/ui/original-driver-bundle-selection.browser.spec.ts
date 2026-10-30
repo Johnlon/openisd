@@ -10,6 +10,20 @@ import {z} from 'zod';
 const BUNDLE_PATHS = z.string().array().parse(JSON.parse(readFileSync('packages/ui/test/fixtures/test-bundle-paths.json', 'utf8')));
 const DRIVER_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => !path.endsWith('-pr'));
 const PR_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => path.endsWith('-pr'));
+
+const EXPECTED_REPORTED_COIL_VALUES: Record<string, Record<string, Record<string, number>>> = {
+  'tang-band/w5-1138smf': {woofer: {Re_ohm: 3.4, BL_Tm: 7.17}},
+  'dayton-audio/e150he-44': {woofer: {Re_ohm: 3.3, BL_Tm: 4.9}},
+  'dayton-audio/e180he-44': {woofer: {Re_ohm: 3.4, BL_Tm: 4.8}},
+  'dayton-audio/cx120-8': {woofer: {Re_ohm: 6.22, BL_Tm: 5.08}, tweeter: {Re_ohm: 5.6}},
+  'dayton-audio/nd140-pr': {},
+  'dayton-audio/e150he-pr': {},
+  'dayton-audio/e180he-pr': {},
+  'eminence/sigma-pro-18a': {woofer: {Re_ohm: 6.29, BL_Tm: 22.1}},
+  'faitalpro/10fe200-4': {woofer: {Re_ohm: 3, BL_Tm: 7}},
+  'faitalpro/12pr300-8': {woofer: {Re_ohm: 5.4, BL_Tm: 14.1}},
+  'sb-acoustics/sb15bac30-8-coax-aluminum': {woofer: {Re_ohm: 5.7, BL_Tm: 5.3}, tweeter: {Re_ohm: 3.8}},
+};
 const NUMERIC_DRIVER_NAMES = DRIVER_SPEC_FIELD_NAMES.filter(
   (key): key is NumericDriverSpecFieldName => key !== 'VCCon',
 );
@@ -275,6 +289,14 @@ test.describe('Original driver bundle selection', () => {
       await page.reload();
       const exported = await exportedProjectOwpr(page);
       const actualSections = selectedDriverSpecs(exported);
+      for (const [section, expectedFields] of Object.entries(EXPECTED_REPORTED_COIL_VALUES[path])) {
+        for (const [key, value] of Object.entries(expectedFields)) {
+          expect(entryState(source.specs[section]?.[key]), `${model}.${section}.${key} is not entered in the bundle`).toBe('E');
+          expect(entryValue(source.specs[section]?.[key]), `${model}.${section}.${key} lost its published number in the bundle`).toBe(value);
+          expect(entryState(actualSections[section]?.[key]), `${model}.${section}.${key} was not entered after selection`).toBe('E');
+          expect(entryValue(actualSections[section]?.[key]), `${model}.${section}.${key} changed after selection`).toBe(value);
+        }
+      }
       expect(Object.keys(actualSections).sort(), `${model} changed its published spec sections`)
         .toEqual(Object.keys(source.specs).sort());
       const additionalSections = Object.entries(source.specs).filter(([section]) => section !== 'woofer');
