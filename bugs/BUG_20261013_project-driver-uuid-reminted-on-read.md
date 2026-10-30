@@ -1,6 +1,8 @@
 # BUG_20261013_project-driver-uuid-reminted-on-read
 
-**Status:** RULED (John, 16 Oct 2026), fixed by the slim driver task: an embedded driver is a value object with no id of its own; the project is the entity. Bundled drivers and My Drivers are entities with ids. An embedded copy of a bundled driver carries that catalogue id as a cross-reference only. No instance id, minted or stored.
+**Status:** OPEN (reopened 30 Oct 2026, T622). The 16 Oct ruling stands (John): an embedded driver is a value object with no id of its own; the project is the entity. Bundled drivers and My Drivers are entities with ids. An embedded copy of a bundled driver carries that catalogue id as a cross-reference only. No instance id, minted or stored. It was marked fixed by the slim driver task (T158), but at main 9bc0de1d6 the ruling is not built: `slimDriver.ts:63` still keeps `device.uuid`, and `OpenISDProject.wrap` and `wrapSession` (`openISDProject.ts:468,487,489`) still call `freshEmbeddedDriver`, which mints a new one on every load.
+
+Failing test: `packages/design/test/domain/project/stored-text.test.ts`, "is the same text, byte for byte, after a load and a store". It shows a second difference besides the id: the order of fields inside the stored text changes on a load and store (e.g. `SPL_dB` moves after `Xmax_m`, `endCorrection_m` moves to the end of each vent).
 
 ## Symptom
 Loading a stored project and saving it again never gives the same bytes, because the driver embedded in the project gets a new uuid on every read, so every load rewrites the store.

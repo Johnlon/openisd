@@ -58,6 +58,12 @@ describe('OpenISDProject.toStoredText', () => {
     expect([...sizes]).toHaveLength(1);
   });
 
+  // BUG_20261013_project-driver-uuid-reminted-on-read: the embedded driver keeps the id it was stored with.
+  it('is the same text, byte for byte, after a load and a store', () => {
+    const text = project().toStoredText();
+    expect(loaded(text).toStoredText()).toBe(text);
+  });
+
   it('keeps the edited state', () => {
     const p = project();
     p.name.set('renamed');
