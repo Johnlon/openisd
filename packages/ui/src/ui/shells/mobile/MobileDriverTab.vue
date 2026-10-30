@@ -7,7 +7,7 @@ import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileDriverTab } from '../../../hooks/MobileDriverTab-hooks.js';
 
-const { project, fullName, keyFigures, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption } = useMobileDriverTab();
+const { project, fullName, keyFigures, keyFigureDq, browseDrivers, editDriver, N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption } = useMobileDriverTab();
 </script>
 
 <template>
@@ -40,7 +40,7 @@ const { project, fullName, keyFigures, browseDrivers, editDriver, N_DRIVERS_OPTI
     <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.FS_HZ" label="Fs" :value="keyFigures.Fs" readonly plain />
     <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.QTS" label="Qts" :value="keyFigures.Qts" readonly plain />
     <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.VAS_M3" label="Vas" :value="keyFigures.Vas" readonly plain />
-    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.RE_OHM" label="Re" :value="keyFigures.Re" readonly plain />
+    <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.RE_OHM" label="Re" :value="keyFigures.Re" :dq="keyFigureDq.Re" note-tone="warning" readonly plain />
     <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.XMAX_M" label="Xmax" :value="keyFigures.Xmax" readonly plain />
   </PhoneClassicPage>
 </template>

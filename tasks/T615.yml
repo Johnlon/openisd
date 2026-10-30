@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: codex
 status: done
+landed: b3b4fc98de4e32e02b5db930763abe298b9b16b5
 goal: Selecting a bundled driver or passive radiator MUST retain every published field and spec section through save and reload.
 done_test: bash scripts/test.sh packages/ui/test/scripts/bundle-outputs.test.ts packages/ui/test/scripts/test-bundle.test.ts packages/design/test/scripts/driver-snapshot-pin.test.ts
 files:

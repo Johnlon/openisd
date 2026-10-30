@@ -287,6 +287,16 @@ test.describe('Original driver bundle selection', () => {
       expectEverySourceField(model, source.specs.woofer, actual, freshlyResolvedBundleSpecs(path, exported), false, projectAirValues(exported));
 
       await openDriverEditor(page);
+      const unresolvedCoilKeys = ['Re_ohm', 'BL_Tm'].filter(key =>
+        source.specs.woofer[key]?.state === 'N' && source.specs.woofer[key]?.readings !== undefined);
+      for (const key of ['Re_ohm', 'BL_Tm'] as const) {
+        const field = page.locator(`.de-fld[data-field-key="${key}"]`);
+        const button = field.locator('.ui-field-dq-btn');
+        const warningText = await button.getAttribute('title').catch(() => null);
+        const warnsOfUnknownBasis = warningText?.includes('voice-coil count or basis is not specified') ?? false;
+        expect(warnsOfUnknownBasis, `${model}.${key} warning must match its source voice-coil basis`)
+          .toBe(unresolvedCoilKeys.includes(key));
+      }
       const renderedValues: Record<string, {value: string; unit: string; state: string}> = {};
       await forEachEditorTab(page, async (_tab, _labels) => {
         const fields = await page.locator('.de-body .de-fld[data-field-key]').evaluateAll(elements =>

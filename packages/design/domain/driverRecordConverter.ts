@@ -880,7 +880,11 @@ export class DriverRecordConverter {
       if (isKeyedObject(projectedConnection)) {
         result.VCCon = {
           ...projectedConnection,
-          ...(projectedConnection.state === "E" ? {value: tuple.connection === "series" ? 2 : 1} : {}),
+          state: "E",
+          value: tuple.connection === "series" ? 2 : 1,
+          ...("origin" in projectedConnection || tuple.connection_reading === null
+            ? {}
+            : {origin: Object.keys(tuple.connection_reading.readings)[0]}),
         };
       }
     } else if (tuple.connection === "unknown" && tuple.connection_reading !== null) {
@@ -902,6 +906,13 @@ export class DriverRecordConverter {
         continue;
       }
       if (basis === "unknown") {
+        // OpenISD's established default for an unstated coil count is one. With one coil,
+        // per-coil and whole-driver readings are the same number, whatever connection was used.
+        // Keep the published numeric reading; the ambiguity only matters for multiple coils.
+        if (coilCount === undefined && "state" in tuple.numVC && tuple.numVC.state === "not-stated") {
+          result[field] = projected;
+          continue;
+        }
         result[field] = this.#unavailableVoiceCoilEntry(projected);
         warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading basis is unknown; raw source readings are retained without per-coil scaling"});
         continue;
