@@ -15,3 +15,10 @@ Loading a stored project and saving it again never gives the same bytes, because
 
 ## Fix proposal
 The stored uuid is read back and kept. A project read from the store keeps the id it was saved with; only a driver adopted from outside (library pick, `.wdr` / `.owdr` file) is given a fresh id. Then load then save is byte-identical, `sameOwprText` can compare plain text, and `withoutMintedIds` is deleted from the fixed-point test, which then compares the dump byte for byte.
+
+## John's ruling, 30 Oct 2026 (QO312, http://lap:8000/board/#QO312)
+- The driver inside a project has no id of its own. Where the record type requires the field, it holds the null GUID, and the domain never exposes it: `OpenISDDriverEmbedded` has no id method.
+- `uuid()` lives only on `OpenISDDriverStandalone` (bundled drivers and My Drivers). Saving a project's driver to My Drivers, or detaching it, mints a real new id.
+- No pointer back to the catalogue until winisd_tools proves its catalogue ids stay the same across builds.
+- Every project has a durable, mandatory id that lives with it forever: in browser storage and `.owpr`, never in `.wpr`. Older stored projects get one once, on the layout upgrade.
+- Making the driver id the same as the project id was rejected: a driver saved to My Drivers from a project would carry it, and two such drivers would share an id.
