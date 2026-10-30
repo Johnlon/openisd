@@ -23,6 +23,7 @@
 import type {Box} from './box/box.js';
 import type {Vent} from './vent.js';
 import {OpenISDDriver} from './driver/openISDDriver.js';
+import {type DriverFromRecord} from './driverRoundTripDiffs.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
 import {ProjectBuilder} from './openisdTransforms.js';
@@ -249,7 +250,10 @@ function importVentGeometry(
 /** Project file conversion — a project to WinISD's `.wpr` model and `.wpr` text back to a
  *  project — holding the one engine every project it builds is given. */
 export class WinIsdProjectConverter {
-  constructor(private readonly engine: Engine) {}
+  constructor(
+    private readonly engine: Engine,
+    private readonly driverFromRecord: DriverFromRecord = OpenISDDriver.fromConformingRecord,
+  ) {}
 
   /**
    * `OpenISDProject` -> a `WinISDProject` ready to render as `.wpr` text.
@@ -360,7 +364,7 @@ export class WinIsdProjectConverter {
     const {record, warnings} = winISDDriverToOpenISDDeviceJson(wdrDriver);
     errors.push(...warnings);
 
-    const driverOrErrors = OpenISDDriver.fromConformingRecord(record, this.engine);
+    const driverOrErrors = this.driverFromRecord(record, this.engine);
     if (Array.isArray(driverOrErrors)) {
       for (const problem of driverOrErrors) errors.push({level: 'error', field: 'driver', message: problem});
       return {value: null, errors};

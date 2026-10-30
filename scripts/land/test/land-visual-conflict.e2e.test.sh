@@ -45,6 +45,7 @@ TYPECHECK_CMD="bash gates/ok.sh"
 UNIT_CMD="bash gates/ok.sh"
 ARCHITECTURE_CMD="bash gates/ok.sh"
 ATTRIBUTION_CMD="bash gates/attribution.sh"
+GATE_FILES="no-such-gate-file"
 CANDIDATE_CMD="true"
 VISUAL_RETAKE_CMD="bash gates/retake.sh"
 GATE_DEADLINE_S=60

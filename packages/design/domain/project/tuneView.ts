@@ -21,6 +21,11 @@ const L_PER_M3 = 1000;
 const CM_PER_M = 100;
 const MM_PER_M = 1000;
 
+/** `read` applied to `value`, or null when there is no value. */
+export function whenKnown<T, U>(value: T | null, read: (known: T) => U | null): U | null {
+    return value === null ? null : read(value);
+}
+
 /** One design swept: the sweep and what Tune reads off it. Null when the design has no volume or
  *  will not sweep. */
 interface Parts {
@@ -36,7 +41,7 @@ function partsOf(project: OpenISDProject, grid: FrequencyGrid): Parts | null {
     const peaks = project.peaks(sw);
     const fb_hz = project.box.vented.tuning_goal_hz.value;
     const vent = project.box.vented.vent;
-    const length_m = fb_hz === null ? null : vent.lengthForTuning_m(vb_m3, fb_hz);
+    const length_m = whenKnown(fb_hz, fb => vent.lengthForTuning_m(vb_m3, fb));
     const diameter_m = vent.diameter_m.value;
     return {
         sw,
@@ -44,9 +49,9 @@ function partsOf(project: OpenISDProject, grid: FrequencyGrid): Parts | null {
             f3_hz: project.rolloffFreq(sw, 3),
             vb_L: vb_m3 * L_PER_M3,
             ventSpeed_m_per_s: peaks.ventSpeed_m_per_s,
-            ventLength_cm: length_m === null ? null : length_m * CM_PER_M,
-            excursion_mm: peaks.excursion_m === null ? null : peaks.excursion_m * MM_PER_M,
-            ventDiameter_cm: diameter_m === null ? null : diameter_m * CM_PER_M,
+            ventLength_cm: whenKnown(length_m, m => m * CM_PER_M),
+            excursion_mm: whenKnown(peaks.excursion_m, m => m * MM_PER_M),
+            ventDiameter_cm: whenKnown(diameter_m, m => m * CM_PER_M),
         },
     };
 }

@@ -156,6 +156,12 @@ export class EnteredFieldImpl<T> extends ReadableFieldImpl<T | null> implements 
   clear(): void { this.writes.clear(); }
 }
 
+/** A fact the owner enters and clears, whose value reads as calculated by the owner's own formula
+ *  while none is entered. The solver never writes it. */
+export class DerivableFieldImpl<T> extends EnteredFieldImpl<T> implements Calculated {
+  get calculated(): boolean { return this.readCell().calculated; }
+}
+
 /** Read-only: the solver derives this value or reports it absent, and nothing ever enters it. */
 export class CalculatedFieldImpl<V> extends ReadableFieldImpl<V> implements Calculated {
   get calculated(): boolean { return this.readCell().calculated; }
@@ -523,17 +529,15 @@ export type PairPartner = () => Readable<number | null> & Entered & Precise & Wr
  *  `tuning_goal_hz`), which ancestor slot reaches both, so it writes the literal itself; no
  *  computed-key indexing here to lose type safety over.
  *
- *  `clear()` is overridden as a class method, not routed through the constructor's `writes`,
- *  specifically so `setNotAvailable()` — the solver's own "could not derive this" signal, called
- *  on every resolve where the pair is incomplete, entered or not — stays self-only:
- *  `DualWriteFieldImpl`'s `setNotAvailable()` also ends up calling `writes.clear()` when this
- *  member isn't entered, and routing that through the atomic pair-clear would wipe a
- *  just-entered sibling on every routine "can't derive this today," not only on a real user
- *  retraction. `ownEntry` is this member's own plain `entryField` — reused for the read, and for
- *  `calculated`/`dq`/the solver's own `clear`, none of which ever touch the sibling.
+ *  `clear()` is the pair-aware retraction below, while `setNotAvailable()` — the solver's own
+ *  "could not derive this" signal, called on every resolve where the pair is incomplete, entered
+ *  or not — is routed to `ownEntry` and stays self-only: routing it through the atomic pair-clear
+ *  would wipe a just-entered sibling on every routine "can't derive this today," not only on a
+ *  real user retraction. `ownEntry` is this member's own plain `entryField` — reused for the
+ *  read, and for `calculated`/`dq`/`setNotAvailable`, none of which ever touch the sibling.
  *
- *  The class-level `.clear()` override only cascades when this member is currently the pair's
- *  stated fact (`this.entered`): clearing a merely calculated field — the sibling's own
+ *  The `clear` write only cascades when this member is currently the pair's
+ *  stated fact (`entered`): clearing a merely calculated field — the sibling's own
  *  derived echo, not a fact anyone stated — must not reach across and erase the other member's
  *  real entered value. Only retracting the actual target resets the pair. */
 export function pairedField(
@@ -551,20 +555,18 @@ export function pairedField(
   /** Precision to state when the calculated partner has no measurement precision. */
   partnerHalfWidth?: number,
 ): Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable {
-  class PairedField extends DualWriteFieldImpl<number> {
-    override clear(): void {
-      const other = partner();
-      if (other.value !== null && this.entered) other.set(other.value, other.precision ?? partnerHalfWidth);
-      else if (other.value === null && this.entered && partnerDefault !== null) other.set(partnerDefault);
-      else if (this.entered || other.value === null) commitPair(undefined);
-      else ownEntry.clear();
-    }
-  }
-  return new PairedField(() => ownEntry, {
+  const field: DualWriteFieldImpl<number> = new DualWriteFieldImpl<number>(() => ownEntry, {
     entered: (v: number, precision?: number) => commitPair({ state: 'E', value: v, precision }),
-    clear: () => ownEntry.clear(),
+    clear: () => {
+      const other = partner();
+      if (other.value !== null && field.entered) other.set(other.value, other.precision ?? partnerHalfWidth);
+      else if (other.value === null && field.entered && partnerDefault !== null) other.set(partnerDefault);
+      else if (field.entered || other.value === null) commitPair(undefined);
+      else ownEntry.clear();
+    },
     calculated: (v: number) => ownEntry.setCalculated(v),
     dq: (list) => ownEntry.setDq([...list]),
     notAvailable: () => ownEntry.setNotAvailable(),
   });
+  return field;
 }

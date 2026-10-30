@@ -8,8 +8,7 @@ export interface ProjectArchive {
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
-function isProjectArchive(obj: unknown): obj is ProjectArchive {
-  if (!isRecord(obj)) return false;
+function isProjectArchive(obj: Record<string, unknown>): obj is Record<string, unknown> & ProjectArchive {
   if (obj.version !== 1) return false;
   if (!Array.isArray(obj.projects)) return false;
   for (const p of obj.projects) {
@@ -33,12 +32,12 @@ export function buildProjectsArchive(projects: readonly OpenISDProject[]): strin
 /** `readProject` reads one project's `.owpr` text the way a single `.owpr` file is read (schema
  *  upgrades and repairs included), so a project in an archive is treated exactly like one on its own. */
 export function parseProjectsArchive(bytes: Uint8Array | string, readProject: (text: string) => OpenISDProject | string[]): ArchiveParseResult {
-  let text = '';
+  let text: string;
   if (typeof bytes === 'string') {
     text = bytes;
   } else {
     try {
-      text = new TextDecoder().decode(bytes);
+      text = new TextDecoder('utf-8', {fatal: true}).decode(bytes);
     } catch {
       return { kind: 'failed', reason: 'not valid UTF-8' };
     }
@@ -51,17 +50,17 @@ export function parseProjectsArchive(bytes: Uint8Array | string, readProject: (t
     return { kind: 'failed', reason: 'not valid JSON' };
   }
   
-  if (!parsed || typeof parsed !== 'object' || !('version' in parsed)) {
+  if (!isRecord(parsed) || !('version' in parsed)) {
     return { kind: 'failed', reason: 'not a project archive' };
   }
-  
+
   if (!isProjectArchive(parsed)) {
-    if (isRecord(parsed) && parsed.version !== 1) {
-      return { kind: 'failed', reason: `unsupported version: ${String(isRecord(parsed) ? parsed.version : '')}` };
+    if (parsed.version !== 1) {
+      return { kind: 'failed', reason: `unsupported version: ${String(parsed.version)}` };
     }
     return { kind: 'failed', reason: 'archive is malformed' };
   }
-  
+
   const projects: OpenISDProject[] = [];
   for (const p of parsed.projects) {
     const proj = readProject(p.text);

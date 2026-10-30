@@ -51,20 +51,17 @@ export class WizardPlan {
 
   /** The page's place in this plan, from 1; null where the plan skips the page. */
   numberOf(step: WizardStep): number | null {
-    const index = this.steps.indexOf(step);
-    return index < 0 ? null : index + 1;
+    return this.steps.reduce<number | null>((place, s, index) => (s === step ? index + 1 : place), null);
   }
 
   /** The page after `step`; null at the last page. */
   next(step: WizardStep): WizardStep | null {
-    const index = this.steps.indexOf(step);
-    return index < 0 ? null : this.steps[index + 1] ?? null;
+    return this.steps.find((_, index) => this.steps[index - 1] === step) ?? null;
   }
 
   /** The page before `step`; null at the first page. */
   back(step: WizardStep): WizardStep | null {
-    const index = this.steps.indexOf(step);
-    return index <= 0 ? null : this.steps[index - 1] ?? null;
+    return this.steps.find((_, index) => this.steps[index + 1] === step) ?? null;
   }
 
   labelOf(step: WizardStep): string {

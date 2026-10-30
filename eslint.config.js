@@ -18,7 +18,7 @@ const noUnusedVars = {
 // truth here as they are for `npm run typecheck` — there is no second list of files to keep in
 // step. It costs lint time; the rules below cannot be written any other way.
 const typeAware = {
-  files: ['packages/*/src/**/*.ts', 'packages/*/test/**/*.ts', 'packages/design/{domain,engine,fields,browser}/**/*.ts'],
+  files: ['packages/*/src/**/*.ts', 'packages/*/test/**/*.ts', 'packages/design/**/*.ts'],
   languageOptions: {
     parser: tseslint.parser,
     parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },

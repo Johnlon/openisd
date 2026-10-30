@@ -25,6 +25,13 @@ describe('OpenISDProject trace colour', () => {
       expect(back.traceColor.value).toBe('#111111');
     });
 
+    it('is cleared back to null by setting null', () => {
+      const p = project();
+      p.traceColor.set('#111111');
+      p.traceColor.set(null);
+      expect(p.traceColor.value).toBeNull();
+    });
+
     it('setting it is not an unsaved change', () => {
       const p = project();
       const text = p.toOwprText();
@@ -59,6 +66,18 @@ describe('OpenISDProject trace colour', () => {
       expect(session.edited?.charts.traceColor).toBe('#654321');
       expect(session.edited?.meta.name).toBe('edited name');
       expect(project.isModified()).toBe(true);
+    });
+
+    it('during a what-if, colours the what-if record too, so cancelling keeps the colour', () => {
+      const project = ProjectBuilder.empty(engine);
+      project.save();
+      project.beginWhatIf();
+
+      project.stampTraceColor('#abcdef');
+      expect(project.traceColor.value).toBe('#abcdef');
+      project.cancelWhatIf();
+
+      expect(project.traceColor.value).toBe('#abcdef');
     });
   });
 });

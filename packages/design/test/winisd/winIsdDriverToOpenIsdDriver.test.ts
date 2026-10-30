@@ -29,5 +29,19 @@ describe('winIsdDriverToOpenIsdDriver', () => {
       assert.ok(errors.some(e => e.level === 'warn' && e.field === 'Qts' && /not a number: left out/.test(e.message)),
         `expected a Qts warning, got: ${JSON.stringify(errors)}`);
     });
+
+    it('refuses with each reason the record seam gives, and returns no driver', () => {
+      const engine = createEngine();
+      const { wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      assert.ok(wdr !== null);
+
+      const { value, errors } = new DriverRecordConverter(engine, () => ['first reason', 'second reason']).winIsdDriverToOpenIsdDriver(wdr);
+
+      assert.equal(value, null);
+      assert.deepEqual(errors.filter(e => e.level === 'error'), [
+        { level: 'error', field: 'driver', message: 'first reason' },
+        { level: 'error', field: 'driver', message: 'second reason' },
+      ]);
+    });
   });
 });

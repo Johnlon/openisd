@@ -71,7 +71,8 @@ export class OpenIsdPassiveRadiatorSpec {
 
     /** Each stated figure's own half-width, 0 for one not stated. */
     #precisions(): PrSpecPrecision {
-        const width = (f: Entered & Precise): number => f.entered ? f.precision ?? 0 : 0;
+        // An entered figure always states a width; `Number(null)` is 0 for the type's sake.
+        const width = (f: Entered & Precise): number => f.entered ? Number(f.precision) : 0;
         return {
             Fs_hz: width(this.Fs_hz), Qms: width(this.Qms), Vas_m3: width(this.Vas_m3), Sd_m2: width(this.Sd_m2),
             Mms_kg: width(this.Mms_kg), Cms_m_per_N: width(this.Cms_m_per_N), Rms_kg_per_s: width(this.Rms_kg_per_s),

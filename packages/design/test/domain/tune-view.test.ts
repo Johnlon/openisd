@@ -2,12 +2,12 @@
  * `OpenISDProject.tune` — the read model of the Tune view. Every number comes from the same calls
  * the charts use (`rolloffFreq`, the sweep, `lengthForTuning_m`); nothing is computed twice.
  */
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {type Engine, createEngine} from '@openisd/design/engine';
 import type {FrequencyGrid} from '../../domain/box/frequencyGrid.js';
 import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {TuneLimits, VolumeLimit_L} from '../../domain/project/tuneLimits.js';
-import {f3PointOf} from '../../domain/project/tuneView.js';
+import {f3PointOf, whenKnown} from '../../domain/project/tuneView.js';
 import {NumberField} from '../../fields/field.js';
 import {TuneText} from '../../fields/tuneText.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
@@ -90,6 +90,17 @@ describe('f3PointOf', () => {
   it('puts the F3 marker 3 dB under the passband, and none when there is no F3', () => {
     expect(f3PointOf(35, 90)).toEqual({f_hz: 35, spl_db: 87});
     expect(f3PointOf(null, 90)).toBeNull();
+  });
+});
+
+describe('whenKnown', () => {
+  it('reads a known value, and never calls the reader for a missing one', () => {
+    const read = vi.fn((v: number) => v * 2);
+    expect(whenKnown(21, read)).toBe(42);
+    expect(read).toHaveBeenCalledWith(21);
+    read.mockClear();
+    expect(whenKnown(null, read)).toBeNull();
+    expect(read).not.toHaveBeenCalled();
   });
 });
 

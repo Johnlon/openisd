@@ -10,13 +10,11 @@
     ]
   },
   "include": [
-    "chart/**/*.ts",
-    "domain/**/*.ts",
-    "engine/**/*.ts",
-    "filter/**/*.ts",
-    "browser/**/*.ts",
-    "app/**/*.ts",
-    "test/**/*.ts",
-    "compat/**/*.ts"
+    "**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist"
   ]
 }

@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import type {Calculated, Entered, Readable, SimpleField} from '../../domain/cell.js';
-import {CalculatedFieldImpl, calculatedCell, entryField, inputOf, nullableField, pairedField, ReadableFieldImpl, requiredField, resolvingField, DefaultingFieldImpl, enteredCell} from '../../domain/cell.js';
+import {CalculatedFieldImpl, calculatedCell, entryField, inputOf, nullableField, pairedField, ReadableFieldImpl, requiredField, resolvingField, DefaultingFieldImpl, DualWriteFieldImpl, defaultingEntryField, enteredCell} from '../../domain/cell.js';
 import type {SpecEntryJson} from '../../domain/openisdSchema.js';
 import type {DqIssue} from '../../engine/consistency.js';
 import {createEngine} from '../../engine/Engine.js';
@@ -529,5 +529,43 @@ describe('resolvingField — a slot that resolves after every outside write', ()
     slot.set(1);
     slot.set(2);
     expect(calls).toBe(2);
+  });
+});
+
+describe('DualWriteFieldImpl.setNotAvailable — a writer with no notAvailable of its own', () => {
+  function build(cell: () => ReturnType<typeof enteredCell<number | null>>) {
+    const writes = {entered: vi.fn(), clear: vi.fn(), calculated: vi.fn(), dq: vi.fn()};
+    return {field: new DualWriteFieldImpl<number>(cell, writes), writes};
+  }
+
+  it('clears a value that is not entered', () => {
+    const {field, writes} = build(() => calculatedCell<number | null>('v', 4));
+    field.setNotAvailable();
+    expect(writes.clear).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves an entered value alone', () => {
+    const {field, writes} = build(() => enteredCell<number | null>('v', 4));
+    field.setNotAvailable();
+    expect(writes.clear).not.toHaveBeenCalled();
+  });
+});
+
+describe('DefaultingFieldImpl.precision', () => {
+  it('reads the precision of the cell', () => {
+    const writes = {entered: vi.fn(), clear: vi.fn(), calculated: vi.fn(), dq: vi.fn()};
+    const field = new DefaultingFieldImpl<number>(() => enteredCell('v', 4, undefined, 2), writes);
+    expect(field.precision).toBe(2);
+  });
+});
+
+describe('defaultingEntryField.setDq', () => {
+  it('records the issues on a present entry and keeps reading the live list', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>({state: 'E', value: 3});
+    const field = defaultingEntryField(slot, 'x', () => 9);
+    const mark = issue('x');
+    field.setDq([mark]);
+    expect(field.dq).toEqual([mark]);
+    expect(field.value).toBe(3);
   });
 });

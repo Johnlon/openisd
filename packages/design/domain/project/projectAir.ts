@@ -40,8 +40,8 @@ export function airFieldsOver(environment: SimpleField<OpenISDEnvironmentJson>, 
 }
 
 function inputOf(field: SolverAirField): AirInput {
-    const value = field.value;
-    return field.entered && value !== null ? {kind: 'entered', value, precision: field.precision ?? 0} : {kind: 'open'};
+    const {value, precision} = field;
+    return field.entered && value !== null && precision !== null ? {kind: 'entered', value, precision} : {kind: 'open'};
 }
 
 /** What the air resolve found: the issues of the air, and the air itself or why there is none. */

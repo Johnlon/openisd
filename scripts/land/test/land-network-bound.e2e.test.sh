@@ -49,6 +49,7 @@ TYPECHECK_CMD="bash gates/ok.sh"
 UNIT_CMD="bash gates/ok.sh"
 ARCHITECTURE_CMD="bash gates/ok.sh"
 ATTRIBUTION_CMD="bash gates/ok.sh"
+GATE_FILES="no-such-gate-file"
 CANDIDATE_CMD="true"
 GATE_DEADLINE_S=60
 LAND_LOCK="$SCRATCH/land.lock"

@@ -66,7 +66,6 @@ function plainName(key: string): string {
     case 'prCms_m_per_N': return 'radiator compliance';
     case 'voltage_V': return 'drive voltage';
     case 'power_W': return 'drive power';
-    case 'tempK': return 'temperature';
     default: return key.replace(/_(?:kg_per_s|m_per_N|N_per_sqrtW|per_K|ohm|kg|hz|m3|m2|Tm|W|V|H|K|Pa|m)$/, '');
   }
 }

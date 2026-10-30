@@ -25,6 +25,7 @@ loops until a command passes; it never decides.
 | `locked`    | files the `done_test` depends on, each with a sha256; any change refuses the landing |
 | `files`     | glob allowlist (`:(glob)` semantics: `**` crosses directories, `*` does not) |
 | `label`     | optional; `fixes` lets a landing pass an open fixes task                 |
+| `gates_approved` | optional; `QO<n>`: board item John has answered, lets a landing change a `GATE_FILES` file |
 
 Open tasks may overlap; claimed tasks may not (checked at claim).
 
@@ -108,6 +109,7 @@ admit slots, matt restore) are derived from a single runtime root
 they must never both be live at once.
 `POST_LAND_DEADLINE_S` (default 5400): a post-land run past it has its process group killed and is recorded red ("TIMED OUT").
 `HEALTH_RED_MAX_MIN` (default 120): land.sh prints a health line and refuses `red-main` when main is red and the last green is older than this, unless the task has `label: fixes`.
+`GATE_FILES` (land.conf): land.sh refuses `gates` when the diff touches one of these globs (coverage scripts, vitest, eslint, tsconfig, suite.yml) unless the task has `gates_approved: QO<n>` and board item QO<n> (`QUESTIONS_FILE`) has a thread entry `by: John`.
 
 ## Integrating a branch
 

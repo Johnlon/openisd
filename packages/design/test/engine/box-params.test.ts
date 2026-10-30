@@ -85,7 +85,7 @@ describe('Engine.solveBoxParams', () => {
       // If `simulatableBoxType` ever started refusing a box the engine really does model, that
       // test would still pass while the app lost a feature.
       for (const box of ['sealed', 'vented', 'bandpass4', 'box-passive-radiator', 'bandpass6', 'abc'] as const)
-        assert.notEqual(engine.box.simulatableBoxType(box), null, `${box} must remain simulatable`);
+        assert.equal(engine.box.simulatableBoxType(box), box, `${box} must remain simulatable`);
     });
 
     it('every box type is implemented', () => {

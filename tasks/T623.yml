@@ -1,0 +1,11 @@
+id: T623
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+landed: 077cb007916d1f4fbeb3dcfca4916fe907f35103
+goal: An architecture test fails on any coverage-ignore comment in packages/, on any change to the shape of the design and ui coverage configs, and on eslint-disable or ts-expect-error counts above their ceilings (design 4/4, persistence 0, ui 13)
+done_test: bash scripts/test.sh packages/design/test/architecture-no-coverage-gaming.test.ts
+files:
+  - tasks/T623.yml
+  - packages/design/test/architecture-no-coverage-gaming.test.ts

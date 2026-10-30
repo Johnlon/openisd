@@ -28,6 +28,7 @@ UNIT_CMD="true"
 ARCHITECTURE_CMD="true"
 CANDIDATE_CMD="true"
 ATTRIBUTION_CMD="true"
+GATE_FILES="no-such-gate-file"
 GATE_DEADLINE_S=5
 LAND_LOCK="$SCRATCH/land.lock"
 LINT_REQUIRES="node_modules"

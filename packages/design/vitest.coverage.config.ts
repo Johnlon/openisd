@@ -13,8 +13,10 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['engine/**/*.ts', 'domain/**/*.ts'],
-      reporter: ['text-summary'],
+      // `text` with skipFull lists only the short files, each with its uncovered line numbers.
+      reporter: ['text-summary', ['text', {skipFull: true}]],
       reportsDirectory: '../../build/coverage-design',
+      // AGENTS: never lower these, turn perFile off, or exclude a file. scripts/coverage-design.sh says why.
       thresholds: {perFile: true, statements: 100, branches: 100, functions: 100, lines: 100},
     },
   },

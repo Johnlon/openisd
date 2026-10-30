@@ -33,7 +33,8 @@ type RoleReading = readonly [string, Reading];
 function byRankThenRole([roleA]: RoleReading, [roleB]: RoleReading): number {
   const byRank = sourceRank(roleA) - sourceRank(roleB);
   if (byRank !== 0) return byRank;
-  return roleA < roleB ? -1 : roleA > roleB ? 1 : 0;
+  // Role names are the keys of one record, so two never match.
+  return roleA < roleB ? -1 : 1;
 }
 
 /** `readings`'s winning role for `field`. `isPlausible(field, value)` is the one door into D5's
@@ -54,15 +55,11 @@ export function selectOrigin(
     return { kind: 'none' };
   }
 
-  const counts = new Map<number, number>();
-  for (const [, r] of survivors) counts.set(r.read_value, (counts.get(r.read_value) ?? 0) + 1);
-
+  // Only one value can hold a strict majority; the first survivor (best rank) carrying it wins.
   const majorityThreshold = survivors.length / 2;
-  for (const [val, count] of counts.entries()) {
-    if (count > majorityThreshold) {
-      const agreed = survivors.find(([, r]) => r.read_value === val);
-      if (agreed) return { kind: 'winner', role: agreed[0], reading: agreed[1] };
-    }
+  for (const [role, reading] of survivors) {
+    const count = survivors.filter(([, r]) => r.read_value === reading.read_value).length;
+    if (count > majorityThreshold) return { kind: 'winner', role, reading };
   }
 
   const [role, reading] = survivors[0];
