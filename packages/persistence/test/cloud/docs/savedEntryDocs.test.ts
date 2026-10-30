@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import {createEngine} from '@openisd/design/engine';
 import { DeviceName } from '@openisd/design/cloud';
 const ANDROID_PHONE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36';
 
@@ -9,10 +10,10 @@ import { createStorageBackup } from '../../../src/repos/storageBackup.js';
 import { createSavedEntries } from '../../../src/repos/savedEntries.js';
 import { createQuotaStorage } from '../../fixtures/quotaStorage.js';
 import type { LayoutRules } from '../../../src/repos/layoutMigration.js';
-import { LAYOUT_STEPS } from '../../../src/repos/layoutSteps.js';
+import { layoutStepsOn } from '../../../src/repos/layoutSteps.js';
 
 const FIXED_NOW = new Date(2026, 9, 13, 21, 5, 0).getTime();
-const RULES: LayoutRules = { layout: 2, steps: LAYOUT_STEPS };
+const RULES: LayoutRules = { layout: 2, steps: layoutStepsOn(createEngine()) };
 
 function setupDriver(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);

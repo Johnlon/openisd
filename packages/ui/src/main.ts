@@ -21,7 +21,7 @@ import {
     preRepairCopyText,
     createLocalStorage, createStoragePrefix,
     createMemoryStorage,
-    LAYOUT_STEPS,
+    layoutStepsOn,
     STORAGE_LAYOUT,
     createStoreOpening,
     type OpenStore,
@@ -511,7 +511,8 @@ if (typeof window !== 'undefined' && isOAuthFragment(window.location.hash)) {
 
 // THE LOAD RULES come before anything is built or read: the browser store is opened (or refused)
 // by `openStore`. An older layout is backed up and migrated; a newer one is not opened at all.
-const layoutRules = { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS };
+// The migration reads stored projects before the app's settings can be read, so its engine has default settings.
+const layoutRules = { layout: STORAGE_LAYOUT, steps: layoutStepsOn(createEngine()) };
 const exportedFiles = createExportedFiles(layoutRules);
 const baked: unknown = import.meta.env.VITE_BUILD_VERSION;
 const opening = createStoreOpening(localStore, {

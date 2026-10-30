@@ -2,14 +2,14 @@
  *  composition root builds them. */
 import {
   createAppSettingsRepo, createBackupRepo, createExportedFiles, createStorageHistory, createMyDriverRepo, createMyPassiveRadiatorRepo, createProjectRepo,
-  createStorageBackup, createStorageUsage, createViewStateRepo, LAYOUT_STEPS, STORAGE_LAYOUT,
+  createStorageBackup, createStorageUsage, createViewStateRepo, layoutStepsOn, STORAGE_LAYOUT,
   type FileStorage, type ListableStorage, type ProjectRepairReport, type ProjectRepo, type StorageBackup, type StoredDataFault,
 } from '@openisd/persistence';
-import type {Engine} from '@openisd/design/engine';
+import {createEngine, type Engine} from '@openisd/design/engine';
 
 const FIXED_NOW_MS = Date.UTC(2026, 0, 1, 1, 2, 3);
 
-export const exportedFilesOn = () => createExportedFiles({ layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS });
+export const exportedFilesOn = () => createExportedFiles({ layout: STORAGE_LAYOUT, steps: layoutStepsOn(createEngine()) });
 
 export function backupOn(storage: ListableStorage): StorageBackup {
   return createStorageBackup(storage, () => FIXED_NOW_MS);
@@ -33,10 +33,10 @@ export const appSettingsRepoOn = (storage: ListableStorage, onUnreadable: (fault
   createAppSettingsRepo(storage, backupOn(storage), onUnreadable, () => undefined, onSaved);
 
 export const storageHistoryOn = (storage: ListableStorage, projects: Pick<ProjectRepo, 'readProjectText' | 'importArchive'>) =>
-  createStorageHistory(backupOn(storage), backupRepoOn(storage), { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS }, projects);
+  createStorageHistory(backupOn(storage), backupRepoOn(storage), { layout: STORAGE_LAYOUT, steps: layoutStepsOn(createEngine()) }, projects);
 
 export const backupRepoOn = (storage: ListableStorage) =>
-  createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS }, () => undefined);
+  createBackupRepo(storage, backupOn(storage), () => FIXED_NOW_MS, { layout: STORAGE_LAYOUT, steps: layoutStepsOn(createEngine()) }, () => undefined);
 
 /** Storage usage over a storage with an empty Bin. */
 export const storageUsageOn = (storage: ListableStorage) => createStorageUsage(storage, {binned: () => []});

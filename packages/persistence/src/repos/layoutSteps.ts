@@ -3,7 +3,7 @@
  *  `storageUpgrade.test.ts`. */
 import type {FileJson, LayoutStep, StoreData} from './layoutMigration.js';
 import {OpenISDProject} from '@openisd/design';
-import {createEngine, type Engine} from '@openisd/design/engine';
+import type {Engine} from '@openisd/design/engine';
 import {
   OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STATE_KEY,
 } from './storageKeys.js';
@@ -78,26 +78,32 @@ function savedEntryIdOf(text: string, savedBucket: string | undefined): string {
 /** Layout 2 -> 3: every stored project carries a durable id inside its text (John, QO312). A
  *  saved project and an open-session project take the id of the entry that holds them, the one
  *  key they were already found by; the autosave text takes the id of the saved entry with the
- *  same text. The same pass loads and writes each project the way every later write does: the embedded
- *  driver id is the null GUID, the keys are in the canonical order and calculated values are present. A text that is not a readable project stays exactly as it is.
- *  Exported `.owpr` files are not touched: a file with no id is given one when it is opened. */
-const STEP_2_TO_3: LayoutStep = {
-  from: 2,
-  migrate(data: StoreData): StoreData {
-    const next: Record<string, string> = {...data};
-    const engine = createEngine();
-    const saved = bucketWithProjectIds(data[OPENISD_PROJECTS_KEY], engine);
-    if (saved !== undefined) next[OPENISD_PROJECTS_KEY] = saved;
-    const open = bucketWithProjectIds(data[OPENISD_OPEN_SESSIONS_KEY], engine);
-    if (open !== undefined) next[OPENISD_OPEN_SESSIONS_KEY] = open;
-    const autosave = data[OPENISD_STATE_KEY];
-    if (autosave !== undefined) {
-      const text = OpenISDProject.textWithId(autosave, savedEntryIdOf(autosave, data[OPENISD_PROJECTS_KEY]), engine);
-      if (text !== null) next[OPENISD_STATE_KEY] = text;
-    }
-    return next;
-  },
-  migrateFile: (file: FileJson): FileJson => file,
-};
+ *  same text. The same pass loads and writes each project the way every later write does: the
+ *  embedded driver id is the null GUID, the keys are in the canonical order and calculated values
+ *  are present. A text that is not a readable project stays exactly as it is. Exported `.owpr` files are not touched: a file with no id is given one when it is opened. */
+function stepTwoToThree(engine: Engine): LayoutStep {
+  return {
+    from: 2,
+    migrate(data: StoreData): StoreData {
+      const next: Record<string, string> = {...data};
+      const saved = bucketWithProjectIds(data[OPENISD_PROJECTS_KEY], engine);
+      if (saved !== undefined) next[OPENISD_PROJECTS_KEY] = saved;
+      const open = bucketWithProjectIds(data[OPENISD_OPEN_SESSIONS_KEY], engine);
+      if (open !== undefined) next[OPENISD_OPEN_SESSIONS_KEY] = open;
+      const autosave = data[OPENISD_STATE_KEY];
+      if (autosave !== undefined) {
+        const text = OpenISDProject.textWithId(autosave, savedEntryIdOf(autosave, data[OPENISD_PROJECTS_KEY]), engine);
+        if (text !== null) next[OPENISD_STATE_KEY] = text;
+      }
+      return next;
+    },
+    migrateFile: (file: FileJson): FileJson => file,
+  };
+}
 
-export const LAYOUT_STEPS: readonly LayoutStep[] = [STEP_1_TO_2, STEP_2_TO_3];
+/** The steps that bring an older store up to the current layout. Step 2 to 3 loads and writes each
+ *  stored project, so it takes an engine from the caller. The app gives it one with
+ *  default settings: the store (and so the app's settings) is not readable until it is migrated. */
+export function layoutStepsOn(engine: Engine): readonly LayoutStep[] {
+  return [STEP_1_TO_2, stepTwoToThree(engine)];
+}
