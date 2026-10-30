@@ -1,0 +1,15 @@
+id: T621
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: Every packages/design source file is type-checked (winisd/bridge.ts and the two config files are in a tsconfig program) and type-aware lint covers every design source folder
+done_test: bash scripts/quiet-test.sh npm run typecheck && bash scripts/test.sh packages/design/test/architecture-every-source-file-is-type-checked.test.ts && node_modules/.bin/eslint packages/design
+files:
+  - tasks/T621.yml
+  - packages/design/tsconfig.json
+  - packages/ui/tsconfig.json
+  - eslint.config.js
+  - packages/design/cloud/conflictNames.ts
+  - packages/design/cloud/docMigrate.ts
+  - packages/design/test/architecture-every-source-file-is-type-checked.test.ts

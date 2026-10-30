@@ -73,13 +73,13 @@ export function unwrapDoc(
     case 'project': {
       const parsed = parseJsonSafe(text);
       if (!isRecord(parsed)) return null;
-      const entries = Object.getOwnPropertyDescriptor(parsed, 'entries')?.value;
+      const entries: unknown = Object.getOwnPropertyDescriptor(parsed, 'entries')?.value;
       if (!Array.isArray(entries)) return null;
       for (const entry of entries) {
         if (!isRecord(entry)) continue;
-        const entryId = Object.getOwnPropertyDescriptor(entry, 'id')?.value;
+        const entryId: unknown = Object.getOwnPropertyDescriptor(entry, 'id')?.value;
         if (entryId === id.uuid) {
-          const entryText = Object.getOwnPropertyDescriptor(entry, 'text')?.value;
+          const entryText: unknown = Object.getOwnPropertyDescriptor(entry, 'text')?.value;
           return typeof entryText === 'string' ? entryText : null;
         }
       }
@@ -89,13 +89,13 @@ export function unwrapDoc(
     case 'pr': {
       const parsed = parseJsonSafe(text);
       if (!isRecord(parsed)) return null;
-      const entries = Object.getOwnPropertyDescriptor(parsed, 'entries')?.value;
+      const entries: unknown = Object.getOwnPropertyDescriptor(parsed, 'entries')?.value;
       if (!Array.isArray(entries)) return null;
       for (const entry of entries) {
         if (!isRecord(entry)) continue;
-        const entryUuid = Object.getOwnPropertyDescriptor(entry, 'uuid')?.value;
+        const entryUuid: unknown = Object.getOwnPropertyDescriptor(entry, 'uuid')?.value;
         if (entryUuid === id.uuid) {
-          const record = Object.getOwnPropertyDescriptor(entry, 'record')?.value;
+          const record: unknown = Object.getOwnPropertyDescriptor(entry, 'record')?.value;
           return typeof record === 'string' ? record : JSON.stringify(record);
         }
       }

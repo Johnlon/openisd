@@ -47,42 +47,31 @@ export function setDeviceModelInBody(body: string, model: string): string {
   }
 }
 
+/** The record with every own entry kept, and the entry under `key` replaced by `replace(value)`
+ *  when `key` is present. */
+function mapEntry(
+  record: Readonly<Record<string, unknown>>,
+  key: string,
+  replace: (value: unknown) => unknown,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(record)) out[k] = k === key ? replace(v) : v;
+  return out;
+}
+
+/** `value` with its `meta.name` set to `newName` when it is a record holding a `meta` record. */
+function renameMeta(value: unknown, newName: string): unknown {
+  if (!isRecord(value)) return value;
+  return mapEntry(value, 'meta', meta => (isRecord(meta) ? mapEntry(meta, 'name', () => newName) : meta));
+}
+
 export function setProjectNameInBody(body: string, newName: string): string {
   try {
     const parsed: unknown = JSON.parse(body);
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return body;
-    const entries = Object.entries(parsed);
-    const updatedEntries = entries.map(([key, val]) => {
-      if (key === 'label') return [key, newName];
-      if (key === 'saved' && typeof val === 'object' && val !== null && !Array.isArray(val)) {
-        const savedEntries = Object.entries(val).map(([sKey, sVal]) => {
-          if (sKey === 'meta' && typeof sVal === 'object' && sVal !== null && !Array.isArray(sVal)) {
-            const metaEntries = Object.entries(sVal).map(([mKey, mVal]) => {
-              if (mKey === 'name') return [mKey, newName];
-              return [mKey, mVal];
-            });
-            return [sKey, Object.fromEntries(metaEntries)];
-          }
-          return [sKey, sVal];
-        });
-        return [key, Object.fromEntries(savedEntries)];
-      }
-      if (key === 'edited' && typeof val === 'object' && val !== null && !Array.isArray(val)) {
-        const editedEntries = Object.entries(val).map(([eKey, eVal]) => {
-          if (eKey === 'meta' && typeof eVal === 'object' && eVal !== null && !Array.isArray(eVal)) {
-            const metaEntries = Object.entries(eVal).map(([mKey, mVal]) => {
-              if (mKey === 'name') return [mKey, newName];
-              return [mKey, mVal];
-            });
-            return [eKey, Object.fromEntries(metaEntries)];
-          }
-          return [eKey, eVal];
-        });
-        return [key, Object.fromEntries(editedEntries)];
-      }
-      return [key, val];
-    });
-    return JSON.stringify(Object.fromEntries(updatedEntries));
+    if (!isRecord(parsed)) return body;
+    const labelled = mapEntry(parsed, 'label', () => newName);
+    const saved = mapEntry(labelled, 'saved', value => renameMeta(value, newName));
+    return JSON.stringify(mapEntry(saved, 'edited', value => renameMeta(value, newName)));
   } catch {
     return body;
   }
