@@ -2,7 +2,7 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {createEngine} from '@openisd/design/engine';
 import {createLayoutSteps} from '../src/repos/layoutSteps.js';
-import {OPENISD_STATE_KEY} from '../src/repos/storageKeys.js';
+import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY} from '../src/repos/storageKeys.js';
 import {goldenText} from './fixtures/goldens.js';
 
 function layoutTwoAutosave(): string {
@@ -32,5 +32,19 @@ describe('layout step 2 to 3', () => {
 
     assert.equal(first, 'minted-1');
     assert.equal(second, 'minted-2');
+  });
+});
+
+describe('layout step 2 to 3, texts the strict read refuses', () => {
+  it('gives a refused open-session text and a quarantined text their entry id, keeping the content', () => {
+    const step = createLayoutSteps(createEngine(), () => 'unused').find(s => s.from === 2);
+    assert.ok(step !== undefined);
+    const bucket = JSON.stringify({entries: [{id: 'e-1', text: '{"label":"bad","saved":{"nope":1}}'}], focusedId: 'e-1'});
+
+    const out = step.migrate({[OPENISD_OPEN_SESSIONS_KEY]: bucket, [OPENISD_QUARANTINE_SESSION_KEY]: bucket});
+
+    for (const key of [OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY]) {
+      assert.equal(out[key], JSON.stringify({entries: [{id: 'e-1', text: '{"id":"e-1","label":"bad","saved":{"nope":1}}'}], focusedId: 'e-1'}));
+    }
   });
 });

@@ -107,8 +107,12 @@ describe('compactedStoredText', () => {
     expect(text).toContain('"saved"');
   });
 
-  it('textWithId() is null for a JSON object that is not a project, and for text that is not an object', () => {
-    expect(OpenISDProject.textWithId('{"a": 1}', 'some-id', engine)).toBeNull();
+  it('textWithId() still gives a JSON object the id, first and with nothing else changed, when the strict read refuses it (QO315: never refuse data we can fix)', () => {
+    expect(OpenISDProject.textWithId('{"a": 1}', 'some-id', engine)).toBe('{"id":"some-id","a":1}');
+    expect(OpenISDProject.textWithId('{"id":"old","a": 1}', 'some-id', engine)).toBe('{"id":"some-id","a":1}');
+  });
+
+  it('textWithId() is null for text that is not a JSON object', () => {
     expect(OpenISDProject.textWithId('[1]', 'some-id', engine)).toBeNull();
     expect(OpenISDProject.textWithId('not json', 'some-id', engine)).toBeNull();
   });

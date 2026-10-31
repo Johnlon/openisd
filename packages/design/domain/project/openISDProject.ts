@@ -498,8 +498,8 @@ export class OpenISDProject {
     /** A project text from before ids as the text this build writes for the same project, carrying
      *  `id`: loaded and written again, so the driver id is the null GUID, the keys are in the
      *  canonical order and the calculated values are present. Keeps the indent the text had
-     *  (`.owpr` indented, stored on one line). Null for a text that is not a readable project,
-     *  which stays as it is for the repo that owns it to report. The store's layout step uses it
+     *  (`.owpr` indented, stored on one line). Null for a text that is not a JSON object. A project the strict read refuses gets
+     *  its id and nothing else, so the repo that owns it can still repair it with a durable id. The store's layout step uses it
      *  once per stored project. */
     static textWithId(text: string, id: string, engine: Engine): string | null {
         let parsed: unknown;
@@ -511,7 +511,8 @@ export class OpenISDProject {
         if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null;
         const rest = Object.fromEntries(Object.entries(parsed).filter(([key]) => key !== 'id'));
         const project = OpenISDProject.fromOwprText(JSON.stringify({id, ...rest}), engine);
-        if (Array.isArray(project)) return null;
+        // A text the strict read refuses (a field to repair) still keeps its content; only the id is added.
+        if (Array.isArray(project)) return /^\{\r?\n/.test(text) ? JSON.stringify({id, ...rest}, null, 2) : JSON.stringify({id, ...rest});
         return /^\{\r?\n/.test(text) ? project.toOwprText() : project.toStoredText();
     }
 

@@ -5,7 +5,7 @@ import type {FileJson, LayoutStep, StoreData} from './layoutMigration.js';
 import {OpenISDProject} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import {
-  OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_STATE_KEY,
+  OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,
 } from './storageKeys.js';
 
 function parsed(text: string): unknown {
@@ -87,6 +87,8 @@ function stepTwoToThree(engine: Engine, newId: () => string): LayoutStep {
       if (saved !== undefined) next[OPENISD_PROJECTS_KEY] = saved;
       const open = bucketWithProjectIds(data[OPENISD_OPEN_SESSIONS_KEY], engine);
       if (open !== undefined) next[OPENISD_OPEN_SESSIONS_KEY] = open;
+      const quarantined = bucketWithProjectIds(data[OPENISD_QUARANTINE_SESSION_KEY], engine);
+      if (quarantined !== undefined) next[OPENISD_QUARANTINE_SESSION_KEY] = quarantined;
       const autosave = data[OPENISD_STATE_KEY];
       if (autosave !== undefined) {
         const text = OpenISDProject.textWithId(autosave, savedEntryIdOf(autosave, data[OPENISD_PROJECTS_KEY], newId), engine);
