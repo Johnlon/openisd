@@ -1,6 +1,6 @@
 id: F56
 owner: Johnlon
-status: open
+status: done
 sha: 7f20c7781175e86db06a6f8cc0a4b08f8937c912
 tested: 7f20c7781175e86db06a6f8cc0a4b08f8937c912
 last_green: fe89dcb3603748622895e046d4ff3749b749dce6
@@ -103,3 +103,5 @@ also_red:
     full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-c45efe8731.log
     failing: |
     
+closed_note: |
+  Closed by post-land: the full suite is green at 8758da449cac3c412dc8b0c0cf1bdf965b02285f, which holds every red commit listed here.
