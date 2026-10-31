@@ -25,6 +25,7 @@ export interface PassiveRadiatorStepView {
   readonly Fs_hz: number | null;
   readonly Sd_m2: number | null;
   readonly Xmax_m: number | null;
+  readonly Xlim_m: number | null;
 }
 
 /** The step's writes, one per field; null clears a parameter. Writing with no radiator chosen
@@ -36,6 +37,7 @@ export interface PassiveRadiatorStepEdits {
   setFs_hz(v: number | null): void;
   setSd_m2(v: number | null): void;
   setXmax_m(v: number | null): void;
+  setXlim_m(v: number | null): void;
 }
 
 /** Where the passive-radiator step finds radiators: the user's saved ones and the bundled catalogue. */
@@ -415,7 +417,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     return {
       name: pr.model.value,
       Vas_m3: spec.Vas_m3.value, Qms: spec.Qms.value, Fs_hz: spec.Fs_hz.value,
-      Sd_m2: spec.Sd_m2.value, Xmax_m: spec.Xmax_m.value,
+      Sd_m2: spec.Sd_m2.value, Xmax_m: spec.Xmax_m.value, Xlim_m: spec.Xlim_m.value,
     };
   });
 
@@ -437,6 +439,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     setFs_hz: v => writeSpec(pr => pr.spec.Fs_hz, v),
     setSd_m2: v => writeSpec(pr => pr.spec.Sd_m2, v),
     setXmax_m: v => writeSpec(pr => pr.spec.Xmax_m, v),
+    setXlim_m: v => writeSpec(pr => pr.spec.Xlim_m, v),
   };
 
   const canNext = computed(() => {

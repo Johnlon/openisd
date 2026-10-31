@@ -60,6 +60,15 @@ export class OpenIsdPassiveRadiatorSpec {
         this.weight_kg = prSpec(section, 'weight_kg');
     }
 
+    /** The radiator's excursion limit for the charts: its Xmax, or its Xmech (`Xlim_m`) when the
+     *  record states no Xmax - a radiator has no voice coil, so its mechanical limit is its limit
+     *  (QO327, John 31 Oct 2026). The two stay separate fields, each holding only what the record
+     *  gives; nothing is copied from one to the other and nothing is invented. Null when neither
+     *  is stated. */
+    get excursionLimit_m(): number | null {
+        return this.Xmax_m.value ?? this.Xlim_m.value;
+    }
+
     /** The seven figures of the radiator's T/S set that were typed or loaded, nothing derived. */
     #stated(): PrSpecValues {
         const stated = (f: Entered & Readable<number | null>): number | null => f.entered ? f.value : null;

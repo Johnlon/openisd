@@ -405,6 +405,7 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   await expect(footerButton(page, skin, skin.buttons.next), 'Next waits for a radiator').toBeDisabled();
   for (const f of STEP_RADIATOR_FIGURES) await expect.soft(root.locator(f.id), `${f.id} before a radiator is chosen`).toHaveValue('');
   await expect.soft(root.locator('#np-pr-xmax'), 'Xmax before a radiator is chosen').toHaveValue('');
+  await expect.soft(root.locator('#np-pr-xmech'), 'Xmech before a radiator is chosen').toHaveValue('');
 
   await root.locator('#np-pr-select').click();
   await page.locator('.pr-lib-item .pr-lib-name', {hasText: 'E150HE-PR'}).first().click();
@@ -412,9 +413,11 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   for (const f of STEP_RADIATOR_FIGURES) {
     await expect.soft(root.locator(f.id), `${f.id} after the pick`).toHaveValue(f.field.format(required(radiator, f.key)));
   }
-  // The record states no Xmax (only a limit, Xlim), so the step leaves it blank; Mms / Cms / Rms are not boxes on this step.
+  // The record states no Xmax, only a mechanical limit (Xlim, shown as Xmech): the two are separate fields, so
+  // Xmax stays blank and Xmech shows the record's 19 mm (QO327); Mms / Cms / Rms are not boxes on this step.
   expect(radiator.figure('Xmax_m'), 'the radiator record states no Xmax').toBeNull();
   await expect.soft(root.locator('#np-pr-xmax'), 'Xmax after the pick').toHaveValue('');
+  await expect.soft(root.locator('#np-pr-xmech'), 'Xmech after the pick').toHaveValue(NumberField.PR_XMECH_MM.format(required(radiator, 'Xlim_m')));
   await expectArrival(page, skin, WizardStep.BOX_DETAILS, 'next', true);
   await expect(footerButton(page, skin, skin.buttons.next), 'Next once a radiator is chosen').toBeEnabled();
 
@@ -438,9 +441,9 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   expect.soft(shown.qms, 'PR Qms').toBe(Number(NumberField.PR_QMS.format(required(radiator, 'Qms'))));
   expect.soft(shown.fs_hz, 'PR Fs').toBe(Number(NumberField.PR_FS_HZ.format(required(radiator, 'Fs_hz'))));
   expect.soft(shown.sd_cm2, 'PR Sd').toBe(Number(NumberField.PR_SD_CM2.format(required(radiator, 'Sd_m2'))));
-  // The record states no Xmax, so the project's figure is the box's starting rule, twice the driver's Xmax
-  // (OpenISDBox applyStartingValues, STARTING.radiatorXmaxMultiple): the wizard step showed this box blank.
-  expect.soft(shown.xmax_mm, 'PR Xmax').toBe(Number(NumberField.PR_XMAX_MM.format(2 * required(driver, 'Xmax_m'))));
+  // The record states no Xmax, so the project's Xmax is blank too: nothing is invented (QO327). Its Xmech is its own field.
+  expect.soft(shown.xmax_mm, 'PR Xmax').toBeNull();
+  expect.soft(shown.xmech_mm, 'PR Xmech').toBe(Number(NumberField.PR_XMECH_MM.format(required(radiator, 'Xlim_m'))));
 
   expect.soft(await shownBoxVolume(page), 'the project box volume is the wizard starting volume').toBe(startingVolume_L);
   expect.soft(await shownProjectName(page), 'project name').toBe(projectName);

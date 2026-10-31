@@ -49,6 +49,7 @@ const emit = defineEmits<{
     <UIFixedField :class="fieldClass" label="Fs" input-id="np-pr-fs" :field="NumberField.PR_FS_HZ" :value="radiator?.Fs_hz ?? null" @update:value="edits.setFs_hz" />
     <UIFixedField :class="fieldClass" input-id="np-pr-sd" :field="NumberField.PR_SD_CM2" :value="radiator?.Sd_m2 ?? null" @update:value="edits.setSd_m2" />
     <UIFixedField :class="fieldClass" input-id="np-pr-xmax" :field="NumberField.PR_XMAX_MM" :value="radiator?.Xmax_m ?? null" @update:value="edits.setXmax_m" />
+    <UIFixedField :class="fieldClass" input-id="np-pr-xmech" :field="NumberField.PR_XMECH_MM" :value="radiator?.Xlim_m ?? null" @update:value="edits.setXlim_m" />
   </div>
 </template>
 

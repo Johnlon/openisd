@@ -50,6 +50,7 @@ const STARTING = Object.freeze({
     radiatorModel: 'Dummy PR',
     radiatorQms: 5,
     radiatorSd_m2: 0.02,
+    // Sizes the PLACEHOLDER radiator only; a real radiator record is never given an Xmax it lacks.
     radiatorXmaxMultiple: 2,
     radiatorCms_m_per_N: 0.0005,
     radiatorMms_kg: 0.05,
@@ -672,9 +673,11 @@ export class OpenISDBox implements Box {
                 if (pr.radiator.model.value === '') pr.radiator.model.set(STARTING.radiatorModel);
                 const spec = pr.radiator.spec;
                 const driver = this.#driver.specs;
-                const driverSd = driver.Sd_m2.value, driverXmax = driver.Xmax_m.value;
+                const driverSd = driver.Sd_m2.value;
                 if (spec.Sd_m2.value === null) spec.Sd_m2.set(driverSd !== null && driverSd > 0 ? driverSd : STARTING.radiatorSd_m2);
-                if (spec.Xmax_m.value === null && driverXmax !== null && driverXmax > 0) spec.Xmax_m.set(driverXmax * STARTING.radiatorXmaxMultiple);
+                // No Xmax is invented for a radiator record that lacks one (QO327, John 31 Oct 2026): its
+                // Xmech, a separate field, is the charts' limit. Only the placeholder radiator is sized
+                // off the driver, in `#startDummyRadiator`.
                 // The starting radiator as the figures WinISD asks for: its mass and compliance
                 // stated through Fs, Vas and the dummy mechanical Q. Mms, Cms and Rms follow by the solve.
                 // Supply damping only for our dummy; an unknown Qms on a real radiator stays unknown.

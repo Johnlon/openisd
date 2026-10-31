@@ -36,7 +36,7 @@ export function useCompareOverlays(
       const box = p.box.boxType.value;
       if (!boxTypeIsSimulatable(box)) continue;
       const prXmax = box === 'box-passive-radiator'
-        ? (p.box.passiveRadiator.radiator.spec.Xmax_m.value ?? undefined)
+        ? (p.box.passiveRadiator.radiator.spec.excursionLimit_m ?? undefined)
         : undefined;
       const P: PlotParams = {
         fmin: presentationState.sweepRange.min,

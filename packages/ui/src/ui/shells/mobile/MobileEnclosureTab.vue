@@ -84,6 +84,7 @@ const {
     <UIField class="mob-ui-field" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
     <UIField class="mob-ui-field" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" stepper />
     <UIField class="mob-ui-field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" stepper />
+    <UIField class="mob-ui-field" :field="NumberField.PR_XMECH_MM" :cell="project.box.passiveRadiator.radiator.spec.Xlim_m" stepper />
 
     </section>
 
