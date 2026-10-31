@@ -109,3 +109,24 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
     expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'alpha_role'});
   });
 });
+
+describe('selectOrigin — ties on source rank', () => {
+  it('unranked roles tie on rank and the alphabetically first wins when no value has a majority', () => {
+    const readings = {
+      zeta: {read_value: 1},
+      alpha: {read_value: 2},
+      mid: {read_value: 3},
+      beta: {read_value: 4},
+    };
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'alpha', reading: {read_value: 2}});
+  });
+
+  it('the best-ranked source carrying the majority value is the one named', () => {
+    const readings = {
+      manual: {read_value: 41},
+      distributor_datasheet: {read_value: 41},
+      manufacturer_datasheet: {read_value: 40},
+    };
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
+  });
+});

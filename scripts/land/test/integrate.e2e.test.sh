@@ -36,13 +36,16 @@ STUB
 printf '%s\n' "$@" >> "$GATE_LOG/test.args"
 for f in "$@"; do ! grep -q FAILME "$f" || exit 1; done
 STUB
+    CANDIDATE_LINE='CANDIDATE_CMD="true"'
+    [ -z "${CAND_OVERRIDE+x}" ] || CANDIDATE_LINE="$CAND_OVERRIDE"
     cat > land.conf <<CONF
 LINT_CMD="bash gates/lint.sh"
 TYPECHECK_CMD="bash gates/typecheck.sh"
 UNIT_CMD="bash gates/unit.sh"
 ARCHITECTURE_CMD="true"
-CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
+${CANDIDATE_LINE}
 ATTRIBUTION_CMD="bash gates/attribution.sh"
+GATE_FILES="no-such-gate-file"
 GATE_DEADLINE_S=20
 LAND_LOCK="$SCRATCH/land.lock"
 CONF
@@ -70,7 +73,7 @@ echo one > "$W/w1/a.txt"; echo ok > "$W/w1/tests/new.test.ts"
 printf 'id: T1\nowner: t\nstatus: claimed\ngoal: g\n' > "$W/w1/tasks/T1.yml"
 c1 add -A; c1 commit -qm "feat one"; back
 before=$(origin_head); integrate T1 feat; r=$?
-if [ $r = 0 ] && [ "$(origin_head)" != "$before" ] && origin_has "T1: feat integrated" \
+if [ $r = 0 ] && [ "$(origin_head)" != "$before" ] && origin_has "(auto) T1: g" && git -C "$W/origin.git" log --format=%B main | grep -q "feat integrated:" \
    && git -C "$W/origin.git" show main:a.txt | grep -q one \
    && git -C "$W/origin.git" log --format=%B main | grep -q "feat one" \
    && grep -q 'tests/new.test.ts' "$GATE_LOG/test.args" \
@@ -130,6 +133,27 @@ before=$(origin_head); integrate T1 feat; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && out_has "gate fixes"; then
     ok "open fixes task refuses"
 else fail "fixes refusal (r=$r): $(show_out)"; fi
+
+# (g) the candidate gate: a red or missing CANDIDATE_CMD refuses and main stays; the label never bypasses it
+CAND_OVERRIDE='CANDIDATE_CMD="false"'
+setup; branch feat; echo one > "$W/w1/b.txt"; c1 commit -qam "feat"; back
+before=$(origin_head); integrate T1 feat; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && out_has "REFUSED" && out_has "candidate"; then
+    ok "red candidate refuses, main unchanged"
+else fail "red candidate (r=$r): $(show_out)"; fi
+CAND_OVERRIDE='# no CANDIDATE_CMD'
+setup; branch feat; echo one > "$W/w1/b.txt"; c1 commit -qam "feat"; back
+before=$(origin_head); integrate T1 feat; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && out_has "REFUSED" && out_has "candidate"; then
+    ok "unset CANDIDATE_CMD refuses, main unchanged"
+else fail "unset candidate (r=$r): $(show_out)"; fi
+CAND_OVERRIDE='CANDIDATE_CMD="false"'
+setup; branch feat; printf 'id: T1\nowner: t\nstatus: claimed\nlabel: fixes\ngoal: g\n' > "$W/w1/tasks/T1.yml"; c1 add -A; c1 commit -qm "feat"; back
+before=$(origin_head); integrate T1 feat; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && out_has "candidate"; then
+    ok "label fixes does not bypass the candidate gate"
+else fail "fixes label (r=$r): $(show_out)"; fi
+unset CAND_OVERRIDE
 
 [ $fails = 0 ] && { echo "integrate.e2e: all passed"; exit 0; }
 echo "integrate.e2e: $fails failed"; exit 1

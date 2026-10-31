@@ -2,7 +2,7 @@
 // The mobile Box tab — box type, volume, and the calculated resonance/Qtc readout. Thin: all
 // state and domain reads/writes live in useMobileBoxTab() (src/hooks/MobileBoxTab-hooks.ts), which
 // calls the SAME field-wiring factories src/hooks/boxFields.ts exports.
-import {NumberField, PhoneBoxText, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
+import {NumberField, PhoneRowColumns, PhoneBoxText, PhoneHelp, PhoneLabels, ReadoutFormat, WinisdDeviation} from '@openisd/design/fields';
 import {selectedOption} from '../../../logic/domEvents.js';
 import {useEscToClose} from '../../../logic/useEscToClose.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -79,7 +79,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
   </PhoneClassicPage>
 
   <div v-if="sealedAlignmentOpen" class="mob-align-overlay" @click.self="sealedAlignmentEditor.cancel">
-    <div class="mob-align-sheet">
+    <div class="mob-align-sheet mob-classic">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Choose sealed alignment</span>
         <button class="mob-x" @click="sealedAlignmentEditor.cancel">&#10005;</button>
@@ -105,7 +105,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
   </div>
 
   <div v-if="ventedAlignmentOpen" class="mob-align-overlay" @click.self="ventedAlignmentEditor.cancel">
-    <div class="mob-align-sheet">
+    <div class="mob-align-sheet mob-classic">
       <div class="mob-panel-head mob-panel-head-row">
         <span>Choose vented alignment</span>
         <button class="mob-x" @click="ventedAlignmentEditor.cancel">&#10005;</button>
@@ -117,8 +117,8 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
           <option v-for="o in ventedAlignmentOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
         </select>
       </div>
-      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly plain />
-      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly plain />
+      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_VB_L" label="Volume" :value="ventedAlignmentVolume_m3" :format="ReadoutFormat.ALIGNMENT_VOLUME_L" readonly />
+      <UIFixedField class="mob-ui-field" :field="NumberField.BOX_FB_HZ" label="Tuning freq (Fb)" :value="ventedAlignmentTuning_hz" :format="ReadoutFormat.TUNING_HZ" readonly />
       <div class="mob-align-readout">
         <span class="mob-align-dot" :class="ventedAlignmentSuitability ?? 'unknown'"></span>
         <span>EBP {{ readoutWithUnit(ReadoutFormat.EBP, ventedAlignmentEbp, '—') }} — {{ ventedAlignmentSuitabilityLabel }}</span>
@@ -138,10 +138,10 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
       </div>
       <template v-for="g in openLossGroups" :key="g.chamber">
         <div v-if="g.heading !== null" class="mob-panel-head">{{ g.heading }}</div>
-        <UISettlingField class="mob-ui-field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" stepper />
-        <UISettlingField class="mob-ui-field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" stepper />
-        <UISettlingField v-if="g.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" stepper />
-        <UISettlingField v-if="g.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" class="mob-ui-field" :field="NumberField.LOSS_QL" :value="g.Ql.value" @update:value="v => g.Ql.set(v)" @clear="g.Ql.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" class="mob-ui-field" :field="NumberField.LOSS_QA" :value="g.Qa.value" @update:value="v => g.Qa.set(v)" @clear="g.Qa.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" v-if="g.Qp !== null" class="mob-ui-field" :field="NumberField.LOSS_QP" :value="g.Qp.value" @update:value="v => g.Qp?.set(v)" @clear="g.Qp?.clear()" stepper />
+        <UISettlingField :columns="PhoneRowColumns.WIDE_LABEL" v-if="g.Qicl !== null" class="mob-ui-field" :field="NumberField.LOSS_QICL" :value="g.Qicl.value" @update:value="v => g.Qicl?.set(v)" @clear="g.Qicl?.clear()" stepper />
       </template>
       <p class="mob-hint">Qa (stuffing): 100 = none · 20–50 = light · 5–10 = heavy. WinISD defaults: Ql=10, Qa=100, Qp=100, Qicl=100.</p>
       <div class="mob-align-footer">
@@ -171,15 +171,15 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
 .mob-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: var(--mob-row-pad-y) 12px;
+  justify-content:flex-start;
+  gap:0;
+  padding:var(--mob-row-pad-y) 16px;
   min-height: var(--mob-row-min);
 }
-.mob-row-label { font-size: 14px; color: var(--fg); }
+.mob-row-label { flex:none;width:var(--mob-col-label,82px);box-sizing:border-box;padding-right:4px;font-size:14px; color: var(--fg); }
 .mob-select {
   flex: 1;
-  max-width: 60%;
+  min-width:0;max-width:none;
   min-height: 40px;
   padding: 6px 8px;
   border: 1px solid var(--line);

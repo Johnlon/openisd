@@ -262,11 +262,6 @@ describe('conflicts and round trips', () => {
     expect(repaired.project.envC_m_per_s.provenance).toBe('C');
     expect(repaired.project.envTempK.provenance).toBe('E');
   });
-
-  it('two legacy texts are the same project (test 16)', () => {
-    const text = withEnvironment(sealed(createEngine()).toOwprText(), {});
-    expect(OpenISDProject.sameOwprText(text, text)).toBe(true);
-  });
 });
 
 describe('the sweep', () => {

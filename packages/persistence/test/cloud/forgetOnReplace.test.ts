@@ -111,25 +111,34 @@ describe('forgetOnReplace — viewStateRepo', () => {
 });
 
 describe('forgetOnReplace — storeGate', () => {
-  it('calls onReplaced once when layout migration write-back succeeds', () => {
+  it('does not forget the sync record when a layout migration rewrites the store; it tells of each rewritten project', () => {
+    const entry = (id: string, text: string) => ({id, text, modified: ''});
     const storage = createMemoryStorage({
-      [OPENISD_STORAGE_LAYOUT_KEY]: '1',
-      [OPENISD_PROJECTS_KEY]: '{"projects":[]}',
+      [OPENISD_STORAGE_LAYOUT_KEY]: '2',
+      [OPENISD_PROJECTS_KEY]: JSON.stringify({entries: [entry('p-1', '{"label":"A","saved":{}}')]}),
     });
     const onReplaced = vi.fn();
+    const projectRewritten = vi.fn();
     const opening = createStoreOpening(
       storage,
       {
         build: createBuildStamp('v20260101T000000Z'),
         now: () => FIXED_NOW_MS,
-        rules: APP_RULES,
+        rules: {layout: 3, steps: [{
+          from: 2,
+          migrate: data => ({...data, [OPENISD_PROJECTS_KEY]: JSON.stringify({entries: [entry('p-1', '{"id":"p-1","label":"A","saved":{}}')]})}),
+          migrateFile: file => file,
+        }]},
         memoryStorage: createMemoryStorage,
+        projectRewritten,
       },
       onReplaced,
     );
 
     expect(opening.kind).toBe('ready');
-    expect(onReplaced).toHaveBeenCalledTimes(1);
+    expect(onReplaced).toHaveBeenCalledTimes(0);
+    expect(projectRewritten).toHaveBeenCalledTimes(1);
+    expect(projectRewritten).toHaveBeenCalledWith('p-1', '{"label":"A","saved":{}}', '{"id":"p-1","label":"A","saved":{}}');
   });
 
   it('calls onReplaced zero times on startup with matching layout', () => {
@@ -145,6 +154,7 @@ describe('forgetOnReplace — storeGate', () => {
         now: () => FIXED_NOW_MS,
         rules: APP_RULES,
         memoryStorage: createMemoryStorage,
+        projectRewritten: () => undefined,
       },
       onReplaced,
     );

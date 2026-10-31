@@ -8,9 +8,9 @@
  */
 import {describe, expect, it, beforeEach} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver} from '@openisd/design';
+import {OpenISDDriver, OpenISDDriverStandalone, ProjectBuilder} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {DriverDrafts} from '../../src/logic/driverDraft.js';
+import {DriverDrafts, wiringOptions} from '../../src/logic/driverDraft.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
@@ -30,7 +30,7 @@ const spec = (read_value: number) =>
 
 /** Each test builds its own driver — no shared fixture, so a failure is diagnosable from the
  *  one block it sits in. */
-function aDriver(brand: string, model: string): OpenISDDriver {
+function aDriver(brand: string, model: string): OpenISDDriverStandalone {
   const record = {
     uuid: { value: '00000000-0000-4000-8000-000000000000' },
     manufacturer: scraped(brand), brand: scraped(brand), model: scraped(model),
@@ -107,5 +107,46 @@ describe('DriverDrafts.open — wiring, expressed without naming the domain', ()
     const parallel = draft.driver.specs.VCCon.value;
 
     expect(series).not.toBe(parallel);
+  });
+});
+
+describe('DriverDrafts — copies, project subjects and the auto-calculate switch', () => {
+  it('copyAsNew() gives an independent copy with the id the app context mints', () => {
+    const seed = aDriver('Dayton', 'RS225');
+    const ids = new DriverDrafts(createEngine(), {...appState.appContext, newId: () => 'minted-copy'});
+
+    const copy = ids.copyAsNew(seed);
+
+    assert.equal(copy.uuid(), 'minted-copy');
+    assert.equal(copy.model.value, 'RS225');
+    assert.notEqual(seed.uuid(), 'minted-copy');
+  });
+
+  it('a project subject opens a detached copy of the project\'s driver', () => {
+    const engine = createEngine();
+    const project = new ProjectBuilder(aDriver('Dayton', 'RS225'), engine).sealed().volume_m3(0.03).build();
+
+    const draft = new DriverDrafts(engine, appState.appContext).open({kind: 'project'}, () => project.driver);
+    draft.driver.model.set('Edited');
+
+    assert.equal(project.driver.model.value, 'RS225');
+  });
+
+  it('a project subject with no project driver is refused', () => {
+    assert.throws(() => new DriverDrafts(createEngine(), appState.appContext).open({kind: 'project'}), /needs the project driver/);
+  });
+
+  it('auto-calculate is on for a new draft and can be switched off and on', () => {
+    const draft = new DriverDrafts(createEngine(), appState.appContext).open({kind: 'myDriver', openedAs: '', seed: aDriver('A', 'B')});
+    assert.equal(draft.autoCalculate, true);
+
+    draft.setAutoCalculate(false);
+    assert.equal(draft.autoCalculate, false);
+    draft.setAutoCalculate(true);
+    assert.equal(draft.autoCalculate, true);
+  });
+
+  it('wiringOptions() lists the domain\'s coil wiring choices', () => {
+    assert.ok(wiringOptions().length > 1);
   });
 });

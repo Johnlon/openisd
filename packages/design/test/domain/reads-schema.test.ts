@@ -94,6 +94,12 @@ describe('readingJsonSchema — Usable | RejectedParsed | RejectedUnparsed | Unr
     expect(readingJsonSchema.safeParse({...unit, read_value: 0.06}).success).toBe(false);
   });
 
+  it('accepts multiple-values as a known RejectedUnparsed reason, retaining the printed values', () => {
+    const multiple = {actual_reading: '63/60 mm (Installation front/rear)', rejected: 'multiple-values'};
+    expect(readingJsonSchema.parse(multiple)).toEqual(multiple);
+    expect(readingJsonSchema.safeParse({...multiple, read_value: 63}).success).toBe(false);
+  });
+
   it('refuses the ohm-glyph reason without read_value', () => {
     const wrong = {actual_reading: '3.19', rejected: 'ohm-glyph-merged-as-digit'};
     expect(readingJsonSchema.safeParse(wrong).success).toBe(false);

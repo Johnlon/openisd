@@ -1,11 +1,11 @@
 /**
- * The round-trip/diff tools `winIsdDriverConverter.ts` uses to prove its own writers and
- * readers agree with themselves — split out of that file (moves only, `winIsdDriverConverter.ts`
+ * The round-trip/diff tools `driverRecordConverter.ts` uses to prove its own writers and
+ * readers agree with themselves — split out of that file (moves only, `driverRecordConverter.ts`
  * keeps the conversion logic itself: `driverYmlToOpenisdAndWdr`, `winIsdDriverToOpenIsdDriver`,
  * `openIsdDriverToWinIsdDriver`).
  *
  * `wdrRecordRoundTripDiffs` and `roundTripProblems` call back into `openIsdDriverToWinIsdDriver`
- * (still declared in `winIsdDriverConverter.ts`), which creates a two-file IMPORT CYCLE between
+ * (still declared in `driverRecordConverter.ts`), which creates a two-file IMPORT CYCLE between
  * this module and that one. Both crossing symbols are `export function` declarations — hoisted,
  * so each module's export binding exists before either file's top-level body runs — so the cycle
  * is safe at runtime; it is reported here rather than restructured around, per the split's own
@@ -14,11 +14,11 @@
 import type {WdrHeader} from "../winisd/winisdDriver.js";
 import {WinISDDriver} from "../winisd/winisdDriver.js";
 import type {Readable} from "./cell.js";
-import {OpenISDDriver} from "./driver/openISDDriver.js";
+import {OpenISDDriver, type OpenISDDriverStandalone} from "./driver/openISDDriver.js";
 import type {DriverSpec} from "./openisdSchema.js";
 import {type DriverError, type Engine} from "../engine/index.js";
 import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
-import {openIsdDriverToWinIsdDriver} from "./winIsdDriverConverter.js";
+import {openIsdDriverToWinIsdDriver} from "./driverRecordConverter.js";
 
 const WDR_HEADER_FIELDS = [
   "brand",
@@ -215,10 +215,18 @@ export function jsonRoundTripDiffs(openisd: string): DriverError[] {
   }
 }
 
+/** A record read into a driver, or the reasons it could not be. The importers receive it rather
+ *  than call `OpenISDDriver` themselves, so a refusal path can be tested without a record that
+ *  really fails. */
+export type DriverFromRecord = (record: unknown, engine: Engine) => OpenISDDriverStandalone | string[];
+
 /** The bundler's round-trip gate: reads back what the converter wrote, with the same engine the
  *  converter used, and reports every difference as a `DriverError`. */
 export class DriverRoundTripCheck {
-  constructor(private readonly engine: Engine) {}
+  constructor(
+    private readonly engine: Engine,
+    private readonly driverFromRecord: DriverFromRecord = OpenISDDriver.fromConformingRecord,
+  ) {}
 
   /**
    * THE ROUND TRIPS (`drivers.md` Part C step 6). Both texts this function is about to return on
@@ -277,7 +285,7 @@ export class DriverRoundTripCheck {
     w2: WinISDDriver
   ): DriverError[] {
     const { record: i3 } = winISDDriverToOpenISDDeviceJson(w2);
-    const driver3 = OpenISDDriver.fromConformingRecord(i3, this.engine);
+    const driver3 = this.driverFromRecord(i3, this.engine);
     if (Array.isArray(driver3)) {
       return [{
         level: "error",

@@ -75,6 +75,7 @@ export interface ProjectRowSource<H> {
   readonly driver: string;
   /** "Tang Band W5-1138SMF · Vented · 12.0 L"; '' for a project that would not read. */
   readonly summary: string;
+  readonly boxDetails?: {readonly type: string; readonly volumes: string};
   /** "E150HE-44 · Vented · 12.0 L": the phone's line, the driver's short code in place of its name. */
   readonly phoneSummary: string;
   readonly saved: ProjectSaved;
@@ -120,6 +121,7 @@ export interface ProjectRow<H> {
   readonly title: string;
   readonly tags: readonly ProjectRowTag[];
   readonly summary: string;
+  readonly boxDetails?: {readonly type: string; readonly volumes: string};
   /** The phone's line: the driver's short code, or its name when it has none. */
   readonly phoneSummary: string;
   /** "5 Oct 2026, 23:32". */
@@ -191,6 +193,7 @@ export function projectRow<H>(source: ProjectRowSource<H>): ProjectRow<H> {
     title: `Project — ${stem}${active ? ' (Active)' : ''}`,
     tags,
     summary: source.summary,
+    boxDetails: source.boxDetails,
     phoneSummary: source.phoneSummary,
     edited: formatDateTime(new Date(saved.modifiedMs)),
     size: formatByteSize(saved.bytes),

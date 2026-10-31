@@ -80,6 +80,7 @@ UNIT_CMD="bash gates/unit.sh"
 ARCHITECTURE_CMD="bash gates/architecture.sh"
 CANDIDATE_CMD="true"   # the candidate gate is tested in land-candidate.e2e.test.sh
 ATTRIBUTION_CMD="bash gates/attribution.sh"
+GATE_FILES="no-such-gate-file"
 GATE_DEADLINE_S=5
 LAND_LOCK="$SCRATCH/land.lock"
 EOF

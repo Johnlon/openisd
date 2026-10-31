@@ -17,7 +17,9 @@
 #   5. lint, typecheck, unit (the unit half every land.sh runs)
 #   6. corpus, when the merge touches the schema, projectRepo, a loader or `driver_type`: the
 #      stored-data corpus spec and the schemagen proof (SDLC S4)
-#   7. commit the squash, attribution guard, push to main, start the post-land run, detached
+#   7. commit the squash, attribution guard; push the candidate to land/<id>-integrated and wait for the
+#      GitHub Actions suite to go green on it (CANDIDATE_CMD, as land.sh; refused if unset or red, whatever
+#      the label); only then push to main, start the post-land run, detached
 #
 # Config: land.conf (read, never changed). Env INTEGRATE_CORPUS_CMD and INTEGRATE_PROOF_CMD replace
 # the corpus commands (the scratch-repo test stubs them); INTEGRATE_DIR replaces the worktree root.
@@ -40,6 +42,8 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 . "$CORE/task.sh"
 # shellcheck source=./land/core/gate.sh
 . "$CORE/gate.sh"
+# shellcheck source=./land/core/candidate.sh
+. "$CORE/candidate.sh"
 
 # gate.sh's refuse says "land:"; this script says its own name.
 refuse() {
@@ -47,6 +51,17 @@ refuse() {
   [ -s "$GATE_OUT" ] && tail -n 20 "$GATE_OUT" | sed 's/^/  | /' >&2
   exit 1
 }
+
+# A network call, bounded so a stall cannot hold LAND_LOCK.
+net() {
+  local what="$1" status; shift
+  timeout -k 5 "${LAND_NET_TIMEOUT_S:-120}" "$@"; status=$?
+  if [ "$status" = 124 ] || [ "$status" = 137 ]; then echo "integrate: $what timed out; nothing integrated" >&2; return 124; fi
+  return "$status"
+}
+CANDIDATE_BRANCH=""
+CANDIDATE_LOG_PREFIX=integrate
+CANDIDATE_RUN_GATE=gate
 
 # gate.sh's gate waits on the gate and reads its status; under set -e a red gate would end this
 # script before refuse names it. So gates run with -e off.
@@ -67,6 +82,10 @@ KEEP_WT=0
 cleanup() {
   local status=$?
   gate_stop
+  # The candidate branch is only the gate's input: removed whatever the result.
+  if [ -n "$CANDIDATE_BRANCH" ]; then
+    net "git push --delete $CANDIDATE_BRANCH" git -C "$ROOT" push -q origin --delete "$CANDIDATE_BRANCH" > /dev/null 2>&1 || true
+  fi
   rm -rf "$WORK"
   if [ -n "$WT" ] && [ "$KEEP_WT" = 0 ]; then
     git -C "$ROOT" worktree remove --force "$WT" > /dev/null 2>&1 || true
@@ -157,9 +176,12 @@ done
 
 # 5. lint, typecheck, unit half, on the squash committed (so every gate sees it as the diff from origin/main)
 git add -A
+# The subject comes from task_commit_message, as land.sh's squash does, so it passes the commit-msg hook
+# (an agent's subject starts with "(auto) "); the branch's own subjects follow as the body.
 {
-  echo "$ID: $BRANCH integrated"
+  task_commit_message "$ID" "$(task_field "$TASK" goal)" "$(task_field "$TASK" release_note)"
   echo
+  echo "$BRANCH integrated:"
   git -C "$ROOT" log --format='- %s' "$BASE..$BRANCH_REF"
 } > "$WORK/message"
 if [ -z "$(git status --porcelain)" ]; then
@@ -187,6 +209,9 @@ fi
 
 # 7. attribution, task record, push, post-land
 gate attribution "$WORK/message" "$ATTRIBUTION_CMD"
+# The candidate gate runs on the squash itself, before the "landed" bookkeeping commit: actions.sh treats a commit
+# that changes only tasks/ as covered by its parent's run, so the run must exist on the squash sha, not on a later head.
+candidate_gate "land/$ID-integrated"
 if [ -f "$TASK" ]; then
   sed -i '/^landed:/d' "$TASK"
   printf 'landed: %s\n' "$(git rev-parse --short=10 HEAD)" >> "$TASK"

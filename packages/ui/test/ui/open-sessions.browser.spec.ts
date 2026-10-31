@@ -186,8 +186,11 @@ test.describe('Open sessions', () => {
       await expect(page.locator('.flash')).toContainText('of your open projects');
       browserLog.reset();   // that message is expected; this test is about the record
 
-      // Both entries hold the same text, which is kept once.
-      expect(await refusedTexts(page)).toEqual(['{}']);
+      // Each entry is kept, given a real id on upgrade: its key "a" or "b" is not one (QO315: never refuse data we can fix).
+      const texts = await refusedTexts(page);
+      expect(texts).toHaveLength(2);
+      for (const text of texts) expect(text).toMatch(/^\{"id":"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"\}$/);
+      expect(new Set(texts).size).toBe(2);
       expect(await storedSession(page)).not.toBe(UNREADABLE);   // the live key is usable again
     });
 

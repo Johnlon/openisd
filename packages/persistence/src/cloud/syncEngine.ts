@@ -18,6 +18,7 @@ import {
   type ConflictCopy,
   type SyncActivity,
   decideDocSync,
+  type SyncRuleAction,
   shouldPurgeTombstone,
 } from '@openisd/design/cloud';
 import type { CloudStore } from './cloudStore.js';
@@ -407,6 +408,9 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
             });
             if (migrated !== null) {
               fetchedBody = migrated;
+              // The hash Drive holds is of the older body; the rules compare this device's current
+              // body with the remote's, so it is the migrated body's hash that counts.
+              remoteHash = bodyHashOf(migrated);
             }
           }
           remoteBody = fetchedBody;
@@ -420,15 +424,21 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       }
 
       // Pure rule decision
-      const action = decideDocSync({
+      const decided = decideDocSync({
         id,
         local: localDoc !== null && localHash !== null ? { hash: localHash, layout: localDoc.layout } : null,
         ledger: ledgerRow !== null ? { hash: ledgerRow.hash, revision: ledgerRow.revision, seq: ledgerRow.seq } : null,
-        remote: remoteMeta,
+        remote: remoteMeta === null ? null : {...remoteMeta, remoteHash},
         appLayout: deps.layout,
         deviceId: deps.ledger.deviceId().text,
         prospectiveSeq: ledgerRow !== null ? ledgerRow.seq + 1 : 1,
       });
+      // A remote doc below the app layout that is the same project once upgraded is not a conflict and
+      // not an edit: it is upgraded the way the local store was, and the upgraded doc replaces it on Drive.
+      const action: SyncRuleAction = remoteMeta !== null && !remoteMeta.deleted && remoteMeta.layout < deps.layout
+        && localDoc !== null && (decided.kind === 'nothing' || decided.kind === 'adopt')
+        ? { kind: 'pushUpdate', expectedRevision: remoteMeta.revision }
+        : decided;
 
       switch (action.kind) {
         case 'nothing':

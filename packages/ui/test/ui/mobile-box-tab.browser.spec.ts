@@ -14,6 +14,7 @@
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, renameFocusedProject, setFocusedBoxType, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {forceMobileSkin, mobileFieldRow, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
+import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
@@ -26,6 +27,35 @@ function volumeInput(page: Page) {
 }
 
 test.describe('MobileBoxTab', () => {
+  test('alignment and box-loss links stay on one line without overrunning their mobile row', async ({appPage: page}) => {
+    await page.locator('#mob-box-type').selectOption('sealed');
+    const links = page.locator('.mob-clinks').filter({has: page.locator('.mob-clink', {hasText: 'Choose alignment'})}).first();
+    await expect(links).toBeVisible();
+
+    for (const width of [320, PIXEL_9.width]) {
+      await page.setViewportSize({width, height: PIXEL_9.height});
+      const layout = await links.evaluate(root => {
+        const bounds = root.getBoundingClientRect();
+        return [...root.querySelectorAll<HTMLButtonElement>('.mob-clink')].map(button => {
+          const rect = button.getBoundingClientRect();
+          return {
+            label: button.textContent?.trim(),
+            whiteSpace: getComputedStyle(button).whiteSpace,
+            textFits: button.scrollWidth <= button.clientWidth,
+            staysInRow: rect.top >= bounds.top && rect.bottom <= bounds.bottom + 0.5,
+          };
+        });
+      });
+
+      expect(layout.map(item => item.label)).toEqual(['Choose alignment…', 'Box losses (Qa, Ql, Qp)…']);
+      for (const item of layout) {
+        expect(item.whiteSpace, `${item.label} should not wrap at ${width}px`).toBe('nowrap');
+        expect(item.textFits, `${item.label} text should fit at ${width}px without clipping`).toBe(true);
+        expect(item.staysInRow, `${item.label} should stay inside its row at ${width}px`).toBe(true);
+      }
+    }
+  });
+
   // John, 2026-10-06: "does it line up on the screen". The Vb row and the Fb row put the box, ▲▼
   // and unit at the same x.
   test('the Vb row lines up with the Fb row below it', async ({ appPage: page }) => {
@@ -160,7 +190,7 @@ test.describe('MobileBoxTab', () => {
       await page.locator('#mob-box-type').selectOption('box-passive-radiator');
       await expect(volumeInput(page)).not.toHaveValue('0.00');
       // The PR name is an editable box since 1b15a8f9, so it is a value, not page text.
-      await expect(page.locator('#mob-pr-name')).toHaveValue('ReplaceMe');
+      await expect(page.locator('#mob-pr-name')).toHaveValue('Dummy PR');
       await expect(mobileFieldRow(page, 'Sd').locator('input')).not.toHaveValue('0.00');
     }
 

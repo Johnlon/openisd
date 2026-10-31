@@ -43,7 +43,7 @@ export {
 export { STORAGE_LAYOUT } from './storageLayout.js';
 export { BuildStamp, createBuildStamp } from './repos/buildStamp.js';
 export { type LayoutRules, type LayoutStep, type FileJson } from './repos/layoutMigration.js';
-export { LAYOUT_STEPS } from './repos/layoutSteps.js';
+export { createLayoutSteps } from './repos/layoutSteps.js';
 export {createStorageUsage, type StorageUsage, type StorageUsageReport} from './repos/storageUsage.js';
 export {
   createStorageHistory, type BackupProject, type HistoryEntry, type HistoryFile, type HistoryRow, type RestoreProjectResult, type StorageHistory,
@@ -79,7 +79,7 @@ export {
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
 } from './repos/projectRepo.js';
 
-export { createLedgerFollowsRewrite } from './cloud/ledgerFollowsRewrite.js';
+export { createLedgerFollowsMigration, createLedgerFollowsRewrite } from './cloud/ledgerFollowsRewrite.js';
 export { type CompactionOutcome, createStoredTextCompaction } from './repos/storedTextCompaction.js';
 export { createQuarantineRetirement, type QuarantineRetirementOutcome } from './repos/quarantineRetirement.js';
 

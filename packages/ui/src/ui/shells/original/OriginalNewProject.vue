@@ -14,6 +14,7 @@ import UIPickField from '../../components/UIPickField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
+import {DriverListMode} from '../../../logic/driverListMode.js';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
 
@@ -29,7 +30,6 @@ const {
   isDriverStep, isCountStep, isBoxTypeStep, isBoxDetailsStep, isProjectInfoStep,
   currentStepNumber,
   stepLabel,
-  hadUnsaved,
 
   selectedDriver,
   selectedDriverName,
@@ -121,7 +121,6 @@ function handleCreate() {
       </div>
 
       <div class="modal-body">
-        <p v-if="hadUnsaved" class="np-warn" title="The open project has unsaved changes.">⚠ The open project has unsaved changes — they are not lost, but the new project takes focus.</p>
         <p class="np-step">Step {{ currentStepNumber }} of {{ totalSteps }} — {{ stepLabel }}</p>
 
         <!-- The chosen driver, on every step once there is one -->
@@ -132,7 +131,7 @@ function handleCreate() {
 
         <!-- Step 1: the driver library itself (Q1). A row summarises; the footer's Next chooses it. -->
         <div v-if="isDriverStep" class="step-content">
-          <DriverLibrary class="np-library" show-name host="pick" />
+          <DriverLibrary class="np-library" show-name :host="DriverListMode.Pick" />
         </div>
 
         <!-- Step 2: Driver count & placement -->
@@ -291,7 +290,6 @@ function handleCreate() {
 .modal-titlebar .close-btn:hover { background: #e64545; color: #fff; }
 .modal-body { padding: 16px 20px; }
 .np-step { color: #666; margin-bottom: 10px; font-weight: 500; }
-.np-warn { color: #8a4b00; background: #fff3e0; border: 1px solid #f0c088; border-radius: 3px; padding: 6px 10px; margin-bottom: 10px; font-size: 12.5px; }
 .step-content { margin-top: 10px; }
 .selected-driver-banner { background: #eef4fc; border: 1px solid #b8d4f8; padding: 6px 10px; border-radius: 3px; margin-bottom: 12px; font-size: 13px; color: #224466; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .driver-specs-preview { display: inline-flex; gap: 12px; font-size: 12px; color: #556; margin-left: auto; }
@@ -299,6 +297,8 @@ function handleCreate() {
 .np-library { height: 420px; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .step-content :deep(.ui-field) { margin-bottom: 10px; }
+/* Wizard field labels (e.g. "Voice coil connection") are wider than the default 128px text area left after the 22px warning slot; every field, pick or number, shares the one 172px label column. */
+.step-content :deep(.ui-field) { --label-w: 172px; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }

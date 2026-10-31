@@ -21,10 +21,9 @@
  *     mini-racer 0.14.1's measured set exactly (`MEASURED_PRESENT`/`MEASURED_ABSENT` below),
  *     `globalThis.driverYmlToOpenisdAndWdr(realYamlFixture)` returns the pinned JSON-string contract
  *     for a clean record, a blocking-error record and a warn-alongside-a-good-record case;
- *  5. exactly one FUNCTION is added to the sandbox — `driverYmlToOpenisdAndWdr` (QT69.1: the
- *     bridge exposes exactly one function; John, 2026-08-25: the Python caller makes exactly this
- *     one call per record, with all verification embedded inside it) — alongside the two names
- *     zod keeps on globalThis, which are named in the assertion so nothing else can slip in.
+ *  5. exactly the two scraper boundary functions are added to the sandbox —
+ *     `driverYmlToOpenisdAndWdr` and `driverYmlToDqWarnings` — alongside the two names zod keeps
+ *     on globalThis, which are named in the assertion so nothing else can slip in.
  */
 import {afterAll, beforeAll, describe, it} from 'vitest';
 import assert from 'node:assert/strict';
@@ -226,7 +225,7 @@ function createMiniRacerLikeContext(): vm.Context {
 }
 
 describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)', () => {
-  it('adds exactly one FUNCTION, plus the realm state zod keeps on globalThis', () => {
+  it('adds exactly the scraper boundary functions, plus the realm state zod keeps on globalThis', () => {
     const ctx = createMiniRacerLikeContext();
     // Array.from: the vm realm's own Array constructor (via Symbol.species) would otherwise
     // make the array returned by vm.runInContext structurally equal but not deepStrictEqual
@@ -242,9 +241,47 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     // whether the leak is accepted: "yes absolutely"). They are inert to the Python caller, which
     // reads only the function. Naming them EXPLICITLY is what keeps the gate worth having: one
     // more global, from zod or from anything else, still fails here.
-    assert.deepEqual(added.sort(), ['__zod_globalConfig', '__zod_globalRegistry', 'driverYmlToOpenisdAndWdr']);
+    assert.deepEqual(added.sort(), [
+      '__zod_globalConfig', '__zod_globalRegistry', 'driverYmlToDqWarnings', 'driverYmlToOpenisdAndWdr',
+    ]);
     assert.equal(vm.runInContext('typeof globalThis.driverYmlToOpenisdAndWdr', ctx), 'function');
+    assert.equal(vm.runInContext('typeof globalThis.driverYmlToDqWarnings', ctx), 'function');
     assert.equal(vm.runInContext('typeof globalThis.__zod_globalRegistry', ctx), 'object');
+  });
+
+  it('returns the dedicated DQ envelope for a real driver record', () => {
+    const jsonText = readFileSync(REAL_DRIVER_JSON, 'utf8');
+    const ctx = createMiniRacerLikeContext();
+    vm.runInContext(bundleSource, ctx);
+    ctx.JSON_TEXT = jsonText;
+    const raw = runString('globalThis.driverYmlToDqWarnings(JSON_TEXT)', ctx);
+    const parsed: unknown = JSON.parse(raw);
+    assert.ok(isRecord(parsed));
+    assert.deepEqual(Object.keys(parsed).sort(), ['errors', 'warnings']);
+    assert.ok(Array.isArray(parsed.errors) && parsed.errors.every(isBridgeError));
+    assert.ok(Array.isArray(parsed.warnings) && parsed.warnings.every(isBridgeError));
+  });
+
+  it('the DQ-only bridge treats multiple-values as a known refusal', () => {
+    const record: unknown = JSON.parse(readFileSync(REAL_DRIVER_JSON, 'utf8'));
+    if (!isRecord(record) || !isRecord(record.specs) || !isRecord(record.specs.woofer)) {
+      throw new Error('expected the pinned record to contain specs.woofer');
+    }
+    record.specs.woofer.Basket_m = {readings: {
+      manufacturer_product_page: {
+        actual_reading: '63/60 mm (Installation front/rear)',
+        rejected: 'multiple-values',
+      },
+    }};
+    const ctx = createMiniRacerLikeContext();
+    vm.runInContext(bundleSource, ctx);
+    ctx.JSON_TEXT = JSON.stringify(record);
+    const raw = runString('globalThis.driverYmlToDqWarnings(JSON_TEXT)', ctx);
+    const parsed: unknown = JSON.parse(raw);
+    if (!isRecord(parsed) || !Array.isArray(parsed.warnings)) throw new Error('expected DQ warning array');
+    assert.equal(parsed.warnings.some(problem => isBridgeError(problem)
+      && problem.field === 'woofer.Basket_m'
+      && problem.message.includes('unrecognised rejection reason')), false);
   });
 
   it('converts a real driver.json record to openisd.json + .wdr, base64 file BYTES, CRLF-preserved', () => {

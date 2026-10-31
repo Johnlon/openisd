@@ -13,7 +13,7 @@ import {existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
 import {join, relative} from 'node:path';
 
 /** Where the catalogue's outputs live, relative to the repo root. The corpus has no default
- *  location: callers pass its directory (scripts/sync-driver-snapshot.sh is the only one that has it). */
+ *  location: scripts/sync-driver-snapshot.sh passes the committed snapshot directory. */
 export const OUTPUTS = ['packages/ui/public/drivers-index.json', 'packages/ui/public/passive-radiators-index.json', 'packages/ui/public/drivers'];
 export const STAMP = 'build/drivers-bundle.stamp';
 /** Source files whose change alters a row or a record's shape — part of the fingerprint. */

@@ -249,10 +249,12 @@ a { color:var(--acc) }
    ▲▼ area, 40 px high; the unit chip sits inside the box's right edge, the ≠W badge and ⚠ left of it. */
 .mob-classic { --mob-edge: 16px; --mob-box-line: #c4c4c4; background: #fff; }
 .mob-classic .mob-ui-field.ui-field {
+  --mob-chip: var(--mob-col-chip-min); --mob-tail: var(--mob-col-stepper);
   display: grid; grid-template-columns: var(--mob-col-label) minmax(0, 1fr); column-gap: 0; row-gap: 0; align-items: center;
   box-sizing: border-box; height: var(--mob-row-min); min-height: var(--mob-row-min); padding: 0 var(--mob-edge);
   border: none; box-shadow: inset 0 -1px 0 #e6e6e6; overflow: visible;
 }
+.mob-classic .mob-ui-field.ui-field:has(.unit-wide) { --mob-chip: var(--mob-col-chip-wide); }
 .mob-classic .mob-ui-field.ui-field > label {
   grid-column: 1; grid-row: 1; padding-right: 8px; font-size: 14px; line-height: var(--mob-label-lh); color: #555; white-space: normal; overflow-wrap: normal;
 }
@@ -260,7 +262,7 @@ a { color:var(--acc) }
 .mob-classic .mob-ui-field.ui-field .ui-field-value .num-input-wrap { flex: 1 1 auto; width: 0; min-width: 0; }
 .mob-classic .mob-ui-field.ui-field .ui-field-value input {
   width: 100%; height: var(--mob-input-h); min-height: var(--mob-input-h); box-sizing: border-box; border: 1px solid var(--mob-box-line); border-radius: 4px; background: #fff;
-  font-size: 15px; padding: 0 calc(var(--mob-col-chip-min) + 4px) 0 var(--mob-col-gutter);
+  font-size: 15px; padding: 0 var(--mob-chip) 0 var(--mob-col-gutter); text-align: left;
 }
 .mob-classic .mob-ui-field.ui-field .ui-field-value select {
   width: 100%; height: var(--mob-input-h); min-height: var(--mob-input-h); box-sizing: border-box; border: 1px solid var(--mob-box-line); border-radius: 4px; background: #fff;
@@ -269,7 +271,7 @@ a { color:var(--acc) }
 .mob-classic .mob-ui-field.ui-field .num-mark-overlay { padding: 0 0 0 calc(var(--mob-col-gutter) + 1px); font-size: 15px; }
 .mob-classic .mob-ui-field.ui-field .ui-field-value > .mob-readonly {
   flex: 1 1 auto; width: 0; min-width: 0; margin-right: var(--mob-col-stepper); box-sizing: border-box; height: var(--mob-input-h);
-  display: flex; align-items: center; padding: 0 calc(var(--mob-col-chip-min) + 4px) 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4;
+  display: flex; align-items: center; padding: 0 var(--mob-chip) 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4;
   font-size: 15px; color: var(--acc);
 }
 .mob-classic .mob-ui-field.ui-field .num-stepper { margin-left: 6px !important; gap: 4px; width: calc(var(--mob-col-stepper) - 6px); flex: none; }
@@ -278,15 +280,23 @@ a { color:var(--acc) }
   border: 1px solid #999 !important; border-radius: 6px !important; background: linear-gradient(#fdfdfd, #e2e2e2); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 .mob-classic .mob-ui-field.ui-field .ui-field-unit {
-  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box; width: auto; min-width: var(--mob-col-chip-min);
-  height: var(--mob-input-h); margin-right: calc(var(--mob-col-stepper) + 1px); display: flex; align-items: center; justify-content: center;
+  grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; box-sizing: border-box; width: auto; min-width: var(--mob-chip);
+  height: var(--mob-input-h); margin-right: calc(var(--mob-tail) + 1px); display: flex; align-items: center; justify-content: center;
   font-size: 13px;
 }
+/* Phone chips sit inside the value box and retain their own divider. A mandatory
+   value's stronger top/bottom outline must continue through the unit segment. */
+.mob-classic .mob-ui-field.ui-field .ui-field-unit.unit-toggle { height: var(--mob-input-h); }
+/* Read-only and writable quantities share the same box width and unit edge.
+   A readout omits the buttons without stretching its numeric box into their track. */
 .mob-classic .mob-ui-field.ui-field .ui-field-dev {
   grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; width: auto;
-  margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 8px);
+  margin-right: calc(var(--mob-tail) + var(--mob-chip) + var(--mob-col-gap) / 2);
 }
-.mob-classic .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; margin-right: calc(var(--mob-col-stepper) + var(--mob-col-chip-min) + 34px); }
+.mob-classic .mob-ui-field.ui-field .ui-field-dq { grid-column: 2; grid-row: 1; justify-self: end; align-self: center; z-index: 1; width: var(--mob-col-dq); margin-right: calc(var(--mob-tail) + var(--mob-chip) + var(--mob-col-gap)); }
+/* Put warnings beside the label so long values keep their full value rail. */
+.mob-classic .mob-ui-field.ui-field .ui-field-dq { grid-column: 1; margin-right: calc(var(--mob-col-gap) / 2); }
+.mob-classic .mob-ui-field.ui-field:has(.ui-field-dq-btn) > label { padding-right: calc(var(--mob-col-dq) + var(--mob-col-gap)); }
 .mob-classic .mob-ui-field.ui-field .ui-field-note { grid-column: 1 / -1; }
 /* A DQ explanation is a second grid row. Keep the normal classic field at 40 px, but let the
    affected field grow so its explanation cannot paint over the following control. */
@@ -318,8 +328,8 @@ a { color:var(--acc) }
 .mob-classic .mob-cname { flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h); padding: 0 var(--mob-col-gutter); border: 1px solid var(--mob-box-line); border-radius: 4px; background: #f4f4f4; font: inherit; font-size: 15px; font-weight: 600; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: inherit; }
 .mob-classic .mob-cbtns { display: flex; gap: 8px; box-sizing: border-box; padding: 6px var(--mob-edge); border-bottom: 1px solid #e6e6e6; }
 .mob-classic .mob-cbtns button:not(.mob-btn) { flex: 1; min-width: 0; height: 44px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 13px; font-weight: 500; white-space: nowrap; padding: 0 4px; cursor: pointer; }
-.mob-classic .mob-clinks { display: flex; justify-content: flex-start; gap: 8px; padding: 0 8px; border-bottom: 1px solid #e6e6e6; }
-.mob-classic .mob-clink { height: 32px; padding: 0 8px; border: none; background: none; font: inherit; font-size: 14px; color: var(--mut); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.mob-classic .mob-clinks { display: flex; justify-content: flex-start; gap: 4px; padding: 0 4px; border-bottom: 1px solid #e6e6e6; }
+.mob-classic .mob-clink { min-width: 0; height: 32px; padding: 0 4px; border: none; background: none; font: inherit; font-size: 14px; line-height: 1.5; white-space: nowrap; color: var(--mut); text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .mob-classic .mob-clink-end { margin-left: auto; }
 .mob-classic .mob-cpic { display: flex; justify-content: center; box-sizing: border-box; height: 158px; padding: 16px 0; border-bottom: 1px solid #e6e6e6; }
 .mob-classic .mob-cpic svg { height: 100%; width: auto; }

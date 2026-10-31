@@ -105,6 +105,16 @@ be clear what the problem is"; "the before and after is because I need to unders
 - Failure this came from: F46 was raised as "rows 8 px taller, depth spec fails" with no
   screenshots. John had not seen the change and did not recognise the problem.
 
+### Before claiming a change is in test
+
+John, 2026-10-26: before claiming anything is in test, compare live production
+(`https://openisd.app`) and live test (`https://test.openisd.app`) screenshots of the same
+project, inputs, settings, screen and viewport. Verify the served build IDs. Inspect the
+pictures personally and annotate/explain every visible deviation, identifying regressions
+and justifying the benefit of intended changes. Share the comparison on a page with a
+comment box under every picture. Local captures and green tests do not establish deployment.
+If the live comparison is incomplete, say the change is unverified and do not claim it is in test.
+
 ## Communication — plain bug statements
 
 Report a bug or a split as one plain sentence: "There are two things, X and Y. X does A, Y does
@@ -177,6 +187,19 @@ deploy workflow alone does not prove users receive that build.
 
 `.claude/rules/general.md`: no workarounds for unexpected issues, no backdoor in UI testing, no
 reload in tests unless testing reload, and in the app every button shows a visible result.
+
+## Release work stays integrated
+
+When John is trying to get a release out, keep the work on one integrated release branch. Do not
+fragment release changes across parallel branches or worktrees; merge required work into the release
+branch before continuing release verification. Coordinate with other repositories only where their
+work is an actual dependency, and consume their committed output on the integrated release branch.
+
+## SDLC policy — always
+
+[`docs/SDLC_POLICY.md`](docs/SDLC_POLICY.md): John's standing orders. Main broken → fix it directly on main, only
+the fix, no branches or housekeeping; failing tests → one spec, then a cluster of 2–3, then the suite; release
+fixes before new work; agent sessions run in tmux under the keeper; a restarted agent coordinates before working.
 
 ## Loaded on demand
 

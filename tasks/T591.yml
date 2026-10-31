@@ -1,0 +1,12 @@
+id: T591
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+landed: 4cc361b2d73725008e39486f552ba6cacb6efa1f
+goal: Record the promoted OpenISD 7.0.956 build in the release ledger.
+done_test: grep -Fq '| 7.0.956 | 20261025T2233Z |' RELEASES.md
+visual: []
+files:
+  - RELEASES.md
+  - tasks/T591.yml

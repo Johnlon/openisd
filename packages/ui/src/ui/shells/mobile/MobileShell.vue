@@ -25,13 +25,14 @@ import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import { useMobileShell } from '../../../hooks/MobileShell-hooks.js';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
+import {useAnnouncementCenter} from '../../../hooks/Announcements-hooks.js';
 import {OpenableFiles} from '../../../fileFormat.js';
 import {inputChecked} from '../../../logic/domEvents.js';
 import {APP_UPDATE_TEXT, NO_PROJECT_OPEN, PhoneHeaderSizes} from '@openisd/design/fields';
+import {phoneClassicFieldVars} from './phoneClassicFieldVars.js';
 
 /** The header's sizes (44 px controls, 14 px project name on two lines) as CSS variables. */
 const headerVars = Object.fromEntries(PhoneHeaderSizes.CLASSIC.cssVars());
-
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
@@ -48,11 +49,12 @@ const {
 const { projectChanged } = useApp().appState;
 provideCellScope({ revision: projectChanged, written: () => {} });
 const winisdDifferences = injectWinisdDifferencesModal();
+const announcements = useAnnouncementCenter();
 const diagnostics = injectDiagnosticsModal();
 </script>
 
 <template>
-  <div class="mobile-root" :style="{ height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }">
+  <div class="mobile-root" :style="[phoneClassicFieldVars, { height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }]">
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <!-- No top bar over the Graph destination — it's deliberately full-screen (see
@@ -214,6 +216,7 @@ const diagnostics = injectDiagnosticsModal();
           <button type="button" class="mob-menu-item" @click="winisdDifferences.show(); closeMenu()">OpenISD and WinISD differences</button>
           <button type="button" class="mob-menu-item" @click="diagnostics.show(); closeMenu()">Diagnostics</button>
           <button type="button" class="mob-menu-item" @click="about(); closeMenu()">About OpenISD</button>
+          <button type="button" class="mob-menu-item" @click="announcements.showList(); closeMenu()">Announcements</button>
           <button type="button" class="mob-menu-item" @click="switchToDesktop">Switch to Desktop view</button>
           <button v-if="!skinIsAutomatic" type="button" class="mob-menu-item" @click="useAutomaticSkin">Automatic view</button>
         </section>

@@ -55,6 +55,7 @@ TYPECHECK_CMD="bash gates/ok.sh"
 UNIT_CMD="bash gates/ok.sh"
 ARCHITECTURE_CMD="bash gates/ok.sh"
 ATTRIBUTION_CMD="bash gates/attribution.sh"
+GATE_FILES="no-such-gate-file"
 CANDIDATE_CMD="bash scripts/land/post-land/actions.sh"
 ACTIONS_REPO=owner/name
 ACTIONS_FIND_S=3

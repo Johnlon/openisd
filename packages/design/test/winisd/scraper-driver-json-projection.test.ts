@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {parse} from 'yaml';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {openISDDeviceJsonSchema} from '../../domain/openisdSchema.js';
 import {createEngine} from '../../engine/Engine.js';
 
@@ -28,7 +28,7 @@ function at(v: unknown, key: string): unknown {
 }
 
 function project(text: string) {
-  return new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(text);
+  return new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(text);
 }
 
 function keysOf(text: string | null): string[] {

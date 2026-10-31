@@ -21,7 +21,7 @@ describe('OpenISDProject vent solve', () => {
       p.box.vented.vent.endCorrection_m.set(0.6);
       p.box.vented.vent.length_m.clear();
       p.box.vented.tuning_goal_hz.set(35);
-      p.notifyVentChanged();
+      p.recalc();
 
       const lenCell = p.box.vented.vent.length_m;
       const tuningCell = p.box.vented.tuning_goal_hz;
@@ -44,7 +44,7 @@ describe('OpenISDProject vent solve', () => {
       p.box.vented.vent.length_m.set(0.15);
       p.box.vented.tuning_goal_hz.clear();
 
-      p.notifyVentChanged();
+      p.recalc();
 
       // length_m must remain entered (E) and untouched by solver
       expect(p.box.vented.vent.length_m.entered).toBe(true);
@@ -63,14 +63,14 @@ describe('OpenISDProject vent solve', () => {
       p.box.vented.vent.endCorrection_m.set(0.6);
       p.box.vented.tuning_goal_hz.set(35);
 
-      p.notifyVentChanged();
+      p.recalc();
       expect(p.box.vented.vent.length_m.calculated).toBe(true);
 
       // Take away a required input (the vent's size): a slot with no dimensions. Clearing the
       // tuning would instead fall back to the starting alignment (John, 2026-10-01), and clearing
       // the diameter to the 50 mm starting port (John, 2026-10-09), so the length would still solve.
       p.box.vented.vent.shape.set('slotted');
-      p.notifyVentChanged();
+      p.recalc();
 
       // length_m should transition from C -> N (not-available)
       expect(p.box.vented.vent.length_m.value).toBeNull();
@@ -81,7 +81,7 @@ describe('OpenISDProject vent solve', () => {
       p.box.vented.vent.shape.set('round');
       p.box.vented.vent.diameter_m.set(0.05);
       p.box.vented.vent.endCorrection_m.set(0.6);
-      p.notifyVentChanged();
+      p.recalc();
 
       expect(p.ventAchievedFb.calculated).toBe(true);
       const fb = p.ventAchievedFb.value;
@@ -107,7 +107,7 @@ describe('OpenISDProject vent solve', () => {
       p.box.vented.vent.diameter_m.set(0.05);
       p.box.vented.vent.endCorrection_m.set(0.6);
       p.box.vented.tuning_goal_hz.set(500); // impossible high target
-      p.notifyVentChanged();
+      p.recalc();
 
       expect(p.box.vented.vent.length_m.value).toBeNull();
       expect(p.box.vented.vent.length_m.dq.some(issue => issue.kind === 'target-unreachable')).toBe(true);

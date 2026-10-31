@@ -415,7 +415,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     return {
       name: pr.model.value,
       Vas_m3: spec.Vas_m3.value, Qms: spec.Qms.value, Fs_hz: spec.Fs_hz.value,
-      Sd_m2: spec.Sd_m2.value, Xmax_m: spec.Xmax_m.value,
+      Sd_m2: spec.Sd_m2.value, Xmax_m: spec.pickedXmax_m,
     };
   });
 
@@ -487,6 +487,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
       }
       made.nDrivers.set(nDrivers.value);
       made.wiring.set(wiring.value);
+      made.box.applyStartingValues();
     });
 
     newProjectDriver.value = null;

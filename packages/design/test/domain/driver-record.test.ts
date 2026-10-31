@@ -23,7 +23,8 @@ describe('OpenISDDriver record', () => {
       expect(record.brand.value).toBe('Dayton');
       const fs = wooferOf(record)?.Fs_hz;
       if (fs?.state !== 'E') throw new Error('expected an entered Fs_hz entry');
-      expect(fs.origin).toBeDefined();
+      expect(fs.origin).toBe('scraped');
+      expect(fs.value).toBe(30);
     });
 
     it('a write to the driver after the call does not retroactively change the returned record', () => {
@@ -38,7 +39,8 @@ describe('OpenISDDriver record', () => {
       driver.specs.Fs_hz.set(99);
 
       // `before` is unmodified by the subsequent set.
-      expect(wooferOf(before)?.Fs_hz).toBeDefined();
+      expect(numericValueOf(wooferOf(before)?.Fs_hz)).toBe(30);
+      expect(numericValueOf(wooferOf(driver.cloneDriver())?.Fs_hz)).toBe(99);
       expect(JSON.stringify(wooferOf(before)?.Fs_hz)).toBe(fsBeforeStr);
     });
   });
@@ -168,8 +170,10 @@ describe('OpenISDDriver record', () => {
       }), createEngine()).sealed().volume_m3(0.03).build();
 
       expect(project.isWhatIfActive()).toBe(false);
-      expect(() => project.cancelWhatIf()).not.toThrow();
-      expect(() => project.resetWhatIf()).not.toThrow();
+      project.cancelWhatIf();
+      expect(project.isWhatIfActive()).toBe(false);
+      expect(project.driver.specs.Fs_hz.value).toBe(30);
+      project.resetWhatIf();
       expect(project.isWhatIfActive()).toBe(false);
       expect(project.driver.specs.Fs_hz.value).toBe(30);
     });
@@ -191,7 +195,7 @@ describe('OpenISDDriver record', () => {
       const session = project.cloneSession();
       // Proves the injected AppContext is actually wired in, not merely accepted and ignored —
       // the real `newUuid()` would never produce this exact string.
-      expect(session.edited?.driverEmbedding.device.uuid.value).toBe('11111111-1111-4111-8111-111111111111');
+      expect(session.id).toBe('11111111-1111-4111-8111-111111111111');
 
       // Structural, not raw string containment (S2-7d2: the fixture's Fs/Mms/Cms are jointly
       // over-determined, so the cascade now also attaches a formula dq to Fs_hz — a real, separate

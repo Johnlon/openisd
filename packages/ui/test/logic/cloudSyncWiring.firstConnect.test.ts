@@ -16,7 +16,7 @@ import {
   OPENISD_CLOUD_AUTH_KEY,
   OPENISD_MY_DRIVERS_KEY,
   STORAGE_LAYOUT,
-  LAYOUT_STEPS,
+  createLayoutSteps,
   createProjectBin,
   createProjectBinMarks,
 } from '@openisd/persistence';
@@ -45,7 +45,7 @@ function deviceOn(drive: DriveEmulator, fill: number, userAgent = 'Windows') {
   const engine = createEngine();
   const storage = createMemoryStorage();
   const backup = createStorageBackup(storage, () => NOW);
-  const rules: LayoutRules = {layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS};
+  const rules: LayoutRules = {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')};
   const projectRepo = createProjectRepo(engine, noFiles, storage, 'http://localhost/', backup, createExportedFiles(rules), () => undefined, () => undefined);
   const appSettingsRepo = createAppSettingsRepo(storage, backup, () => undefined, () => undefined, () => undefined);
   const deviceName = DeviceName.ofBrowser(userAgent, 0);

@@ -40,6 +40,8 @@ export class PhoneLabels {
   static readonly FFC = 'Ffc';
   /** The passive radiator's entered target tuning, first row of the Passive radiator section. */
   static readonly PR_FP = 'Fp';
+  static readonly PR_ADDED_MASS = 'Added mass';
+  static readonly PR_FPR_MASS = 'Fpr with mass';
   static readonly DRIVERS = 'Drivers';
   static readonly CONNECTION = 'Connection';
   static readonly POWER = 'Power';
@@ -191,15 +193,66 @@ export class PhoneHelp {
     {label: 'Rs', text: 'the resistance of the cable and amplifier between the amplifier and the driver.'},
   ]);
 
+  static readonly EDITOR_OVERVIEW = new PhoneHelpSection('Driver editor: key fields', 'Core simulation data and optional chart-specific data have different roles. Required values can be entered or calculated from other parameters.', [
+    {label:'Fs', text:'Free-air resonance: sets the driver’s bass resonance.'},
+    {label:'Vas', text:'Equivalent compliance volume: describes the suspension’s compliance in acoustic terms.'},
+    {label:'Re', text:'Voice-coil DC resistance: part of the electrical load and drive calculations.'},
+    {label:'Sd', text:'Effective cone area: converts cone motion into displaced air.'},
+    {label:'Qes, Qms and Qts', text:'Enter any two. The editor calculates the third. These describe electrical, mechanical and total damping. All three do not need manual entry.'},
+    {label:'Core requirements', text:'Fs, Vas, Re and Sd must be available, together with enough Q information. Thick borders mark required fields; red highlights missing required data. Green numbers are entered; blue numbers are calculated.'},
+    {label:'Xmax — optional', text:'Not a core requirement. It supplies the limit line on the cone-excursion chart and contributes to excursion-limited maximum-output calculations. Without it, the cone-excursion curve can still be shown, but its Xmax limit line is absent.'},
+    {label:'Pe — optional', text:'The thermal power rating contributes to power-limited maximum-output calculations. A missing rating does not prevent basic response calculations.'},
+    {label:'Other fields', text:'Additional parameters support their associated calculations. Missing or conflicting data are explained by the field’s warning or provenance information.'},
+  ]);
+
   /** The driver editor's section bands (screen 8); each ? opens the section's one-line meaning. */
-  static readonly EDITOR_THIELE_SMALL = new PhoneHelpSection('Thiele/Small parameters', 'The driver figures, measured at low volume, that set how it plays bass.', []);
-  static readonly EDITOR_ELECTRO_MECHANICAL = new PhoneHelpSection('Electro-mechanical parameters', 'The moving parts, the suspension that holds them and the magnet motor that drives them.', []);
-  static readonly EDITOR_LARGE_SIGNAL = new PhoneHelpSection('Large-signal parameters', 'How far the cone can move and how much power the driver can take.', []);
-  static readonly EDITOR_MISCELLANEOUS = new PhoneHelpSection('Miscellaneous parameters', 'Efficiency, loudness, impedance (the load in ohms) and wiring.', []);
-  static readonly EDITOR_THERMAL = new PhoneHelpSection('Thermal parameters', 'How the voice coil heats up.', []);
-  static readonly EDITOR_FIGURE_OF_MERIT = new PhoneHelpSection('Figures of merit', 'Scores worked out from the parameters, for comparing drivers.', []);
-  static readonly EDITOR_ENVIRONMENT = new PhoneHelpSection('Environment parameters', 'The air conditions the parameters were measured in.', []);
-  static readonly EDITOR_DIMENSIONS = new PhoneHelpSection('Dimensions', 'The driver\'s physical sizes, for reference.', []);
+  static readonly EDITOR_THIELE_SMALL = new PhoneHelpSection("Thiele/Small parameters", "These are core inputs for the bass-response charts. Values may be entered or calculated from sufficient related data.", [
+    {"label": "Fs — core", "text": "Free-air resonance, in Hz: where the driver naturally resonates without an enclosure. It helps determine the response and enclosure tuning."},
+    {"label": "Vas — core", "text": "Equivalent compliance volume, normally in litres: the volume of air with the same compliance as the suspension. It is not a recommended box volume."},
+    {"label": "Qes, Qms, Qts — core group", "text": "Electrical, mechanical and total damping. Enter any two; the third is calculated. These values control resonance damping and the shape of the bass response."},
+  ]);
+  static readonly EDITOR_ELECTRO_MECHANICAL = new PhoneHelpSection("Electro-mechanical parameters", "Re and Sd are core simulation data. Other values describe the same physical driver and may be derived; the editor reports missing relationships rather than requiring every box to be typed.", [
+    {"label": "Re — core", "text": "Voice-coil DC resistance, in ohms. Used for the electrical load and drive calculations. This is not the nominal impedance rating."},
+    {"label": "Sd — core", "text": "Effective radiating cone area, normally in cm². Used to relate cone motion to air displacement and sound output."},
+    {"label": "Mms, Cms, Rms", "text": "Moving mass, suspension compliance and mechanical damping. They link to Fs, Vas and the Q values; calculated values are shown in blue."},
+    {"label": "BL and Dd", "text": "BL is motor force factor. Dd is effective cone diameter and can provide Sd; it is not the outside basket diameter."},
+    {"label": "Le, fLe and KLe — model-specific", "text": "Voice-coil inductance, its measurement frequency and the frequency-dependent inductance coefficient. These support inductance modelling and affect the electrical impedance/response when that model is enabled. They are not the same kind of core requirement as Re and Sd."},
+  ]);
+  static readonly EDITOR_LARGE_SIGNAL = new PhoneHelpSection("Large-signal parameters", "These values describe output limits. They are optional for basic response calculations, but the relevant limit or maximum-output result needs its supporting data.", [
+    {"label": "Xmax — chart-specific", "text": "One-way linear excursion, normally in mm. Adds the Xmax limit line to cone excursion and contributes to excursion-limited maximum output. Missing Xmax does not prevent the basic cone-excursion curve."},
+    {"label": "Pe — chart-specific", "text": "Continuous thermal power rating, in watts. Used for thermal power limits and maximum-output calculations; not required for the ordinary small-signal response."},
+    {"label": "Hc and Hg", "text": "Voice-coil winding height and magnetic gap height. They can provide a geometric estimate of Xmax; a manufacturer’s measured excursion specification may use a different criterion."},
+    {"label": "Vd", "text": "Displacement volume: cone area multiplied by one-way excursion. It describes how much air the cone can displace."},
+    {"label": "Xlim — optional reference", "text": "Mechanical travel limit. It is distinct from Xmax: staying within physical travel does not guarantee linear operation."},
+  ]);
+  static readonly EDITOR_MISCELLANEOUS = new PhoneHelpSection("Miscellaneous parameters", "These fields describe sensitivity, rated load and wiring. Optional reference figures are not additional core requirements.", [
+    {"label": "Efficiency, SPL and USPL", "text": "Efficiency and sensitivity describe how much sound is produced for a stated input. Power-based and voltage-based sensitivities use different reference conditions; they are not interchangeable."},
+    {"label": "Znom", "text": "Nominal impedance rating, such as 4 or 8 ohms, for amplifier matching. Re is the measured DC resistance."},
+    {"label": "Voicecoils and Connection", "text": "The number of voice coils and how they are connected. These determine the driver’s terminal electrical properties; enter the configuration you intend to model."},
+    {"label": "Peak power — optional reference", "text": "Short-term power rating. It is not the continuous Pe rating used for thermal limits."},
+  ]);
+  static readonly EDITOR_THERMAL = new PhoneHelpSection("Thermal parameters", "Thermal information is separate from the core small-signal inputs.", [
+    {"label": "AlfaVC", "text": "How much voice-coil resistance changes per degree of temperature rise. Relevant when modelling a heated coil and its effect on response."},
+    {"label": "R(t)", "text": "Thermal resistance, in K/W: the temperature rise associated with each watt of heat flow."},
+    {"label": "C(t)", "text": "Thermal capacitance, in J/K: the heat needed to raise the coil/motor temperature by one degree. Missing thermal reference data do not by themselves prevent basic response calculations."},
+  ]);
+  static readonly EDITOR_FIGURE_OF_MERIT = new PhoneHelpSection("Figures of merit", "Derived comparison figures, not a list of extra mandatory inputs. A figure stays unavailable if the data needed to calculate it are missing.", [
+    {"label": "SPLmaxLF and SPLmax", "text": "Low-frequency and maximum-output figures. Their supporting excursion and power data matter; supplying only the core response parameters does not establish these limits."},
+    {"label": "Rme, gamma, Mpow and Mcost", "text": "Derived motor and mechanical comparison figures. Use each field’s explanation/provenance to see its calculation and inputs."},
+    {"label": "EBP", "text": "Efficiency bandwidth product, Fs divided by Qes. A rough enclosure-selection indicator, not a rule that a driver must use a particular box."},
+    {"label": "Gloss", "text": "Gravity sag expressed relative to excursion. It helps assess a driver mounted with its cone facing up or down and needs the relevant mechanical/excursion data."},
+  ]);
+  static readonly EDITOR_ENVIRONMENT = new PhoneHelpSection("Environment parameters", "These readouts show the air used for the driver calculations. They are calculated from the project environment, or the app\u2019s environment defaults when no project applies; they are not additional driver specifications to enter.", [
+    {"label": "c — speed of sound", "text": "How fast sound travels through air, in m/s. It relates frequency to wavelength and participates in acoustic/compliance calculations. Temperature changes it."},
+    {"label": "rho (ρ) — air density", "text": "Mass of air per unit volume, in kg/m³. It affects acoustic loading, the relation between Vas and compliance, and sound-output calculations. Temperature, pressure and humidity affect it."},
+    {"label": "Where to change them", "text": "Use the project’s Advanced environment settings, or Options for the app defaults. The driver editor shows the resulting values read-only. Stored legacy driver values do not override the project’s air."},
+  ]);
+  static readonly EDITOR_DIMENSIONS = new PhoneHelpSection("Dimensions", "Physical fit and reference information. These dimensions are not the core inputs that determine the bass response.", [
+    {"label": "Frame, basket and mounting dimensions", "text": "Use these to check the cut-out, fixing clearance and outside size against the manufacturer’s drawing."},
+    {"label": "Depth and magnet dimensions", "text": "Check space behind the baffle and clearance around the magnet, including any ventilation space required by the manufacturer."},
+    {"label": "Voice-coil diameter", "text": "Physical coil size; it is not the effective radiating cone diameter used to determine Sd."},
+    {"label": "Driver volume", "text": "The volume occupied by the driver. Useful when planning net enclosure volume; keep physical displacement separate from the acoustic Vas parameter."},
+  ]);
 
   static readonly PROJECT_DETAILS = new PhoneHelpSection('Project details', 'The project name and notes.', [
     {label: 'Name', text: 'the name shown in the project list.'},

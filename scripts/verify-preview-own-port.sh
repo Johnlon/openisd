@@ -13,7 +13,7 @@ cleanup() {
   release_test_slot
 }
 trap cleanup EXIT
-npx vite --port "$OPENISD_TEST_PORT" --strictPort >"build/verify-preview-$OPENISD_TEST_PORT.log" 2>&1 &
+npx vite --port "$OPENISD_TEST_PORT" --strictPort --host 0.0.0.0 >"build/verify-preview-$OPENISD_TEST_PORT.log" 2>&1 &
 VITE_PID=$!
 for _ in $(seq 1 90); do
   curl -s -o /dev/null "http://localhost:$OPENISD_TEST_PORT/@vite/client" && break

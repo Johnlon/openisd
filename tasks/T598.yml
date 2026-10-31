@@ -1,0 +1,16 @@
+id: T598
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+landed: 2f034f13e6d440b9ec390013a2c194b73a29a8e2
+goal: Pin and test the latest scraper-generated WinISD driver catalogue in OpenISD
+done_test: bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/design/test/winisd/bridge-bundle.test.ts packages/ui/test/scripts/round-trip-gate.test.ts && bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T598.yml
+  - scripts/driver-snapshot.pin
+  - packages/design/test/fixtures/driver-snapshot/**
+  - packages/ui/public/drivers-index.json
+  - packages/ui/public/passive-radiators-index.json
+  - packages/ui/public/drivers/**
+  - packages/ui/test/visual/SOURCES.sha256

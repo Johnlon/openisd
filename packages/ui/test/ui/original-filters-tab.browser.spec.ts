@@ -5,8 +5,9 @@ import {fillAndBlur} from '../fixtures/numField.js';
 /** The `.filter-edit-body` row whose label starts with `label`: a `UIFixedField` row for a number, or the
  *  Subtype `<label>` around its select. Anchored so "Q" never matches "Qp". */
 function editorRow(panel: Locator, label: string): Locator {
-  return panel.locator('.filter-edit-body .ui-field, .filter-edit-body > label')
-    .filter({hasText: new RegExp(`^${label}\\b`)});
+  return label === 'Subtype'
+    ? panel.locator('.filter-edit-body > label').filter({hasText: /^Subtype/})
+    : panel.locator('.filter-edit-body .ui-field').filter({has: panel.page().locator('label').filter({hasText: new RegExp(`^${label}$`)})});
 }
 
 function editorField(panel: Locator, label: string): Locator {

@@ -18,7 +18,7 @@ import type {ComputedRef, Ref} from 'vue';
 import {computed, onMounted, onUnmounted, ref, shallowRef, watch} from 'vue';
 import {openStoredProject as openStoredProjectFromStore} from '../logic/storedProjectOpen.js';
 import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
-import {cycleTraceColor, traceColor} from '../logic/presentationState.js';
+import {copyChartDefinition, cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
@@ -33,7 +33,7 @@ import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {useEscToClose} from '../logic/useEscToClose.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
-import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS, BOX_TYPE_OPTIONS, dateStampFrom, END_CORRECTION_OPTIONS, formatDateStamp, formatFixed, formatFixedOrDash, NumberField, ReadoutFormat, COMPACT_VENT_SHAPE_OPTIONS as VENT_SHAPE_OPTIONS, WinisdDeviation} from '@openisd/design/fields';
 import {inputChecked, inputFrom, inputValue, listeningElement, selectedOption, selectValue} from '../logic/domEvents.js';
 import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
@@ -162,7 +162,7 @@ const TAB_ACTIONS: Record<TabId, ActionName> = {
 // ---- The shell's one hook -----------------------------------------------------
 export function useOriginalShell(options?: { sealedReadouts?: typeof createSealedReadouts }) {
   const recentActions = useRecentActions();
-  const { appState, presentation: presentationState } = useApp();
+  const { appState, logging, presentation: presentationState } = useApp();
   const { definePassiveRadiator, isTraceVisible, setTraceVisible, allIssues, IMPLEMENTED_BOX_TYPES, boxTypeIsSimulatable, copyProjectName, curvesData, driverName, duplicateFocusedProject, focusedProject, focusProject, isModified, markProjectSaved, maxData, openProjects, projectChanged, projectDisplayName, projectHasUnsavedChanges, removeProject, resetProjectToGround, syncedP } = appState;
   const { setSkinOverride } = presentationState;
   const sealedReadouts = options?.sealedReadouts ?? createSealedReadouts;
@@ -173,8 +173,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // sourced from `appState.ts`'s own focus-aware `live` bridge.
   const project = useFocusedProject();
 
-  const { engine, designIO, selection, myPassiveRadiators, bundledPassiveRadiators, confirmPort, appUpdate } = useApp();
-  const { saveProject, saveAllProjects, saveProjectAs, importFile } = designIO;
+  const { engine, designIO, selection, driverBrowsing, myPassiveRadiators, bundledPassiveRadiators, confirmPort, appUpdate } = useApp();
+  const { saveProject, saveProjectRecord, saveAllProjects, saveProjectAs, importFile } = designIO;
   // The Info menu's "About OpenISD" opens the splash — the one place that text lives.
   const { show: about } = injectSplashModal();
   // The Info menu's manual, persisted skin switch — the auto-by-viewport half lives in
@@ -366,8 +366,47 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     chooseProject(row);
     void saveProjectAs();
   }
+  // Chart view changes are not acoustic edits. Persist them into the stored copy without
+  // committing any unsaved driver/box changes held by the open project.
+  function persistProjectChartView(project: OpenISDProject): boolean {
+    const id = projectRepo.storedIdOf(project);
+    if (id === null) return true;
+    const stored = projectRepo.loadStoredProject(id);
+    if (Array.isArray(stored)) {logging.flash('Could not read saved chart settings: ' + stored.join('; ')); return false;}
+    copyChartDefinition(project, stored);
+    stored.traceColor.set(project.traceColor.value);
+    const result = projectRepo.saveToStorageAs(stored, id);
+    if (result.kind === 'failed') {logging.flash('Could not save chart settings: ' + result.reason); return false;}
+    return true;
+  }
   function cycleProjectColor(p: OpenISDProject): void {
-    cycleTraceColor(p);
+    cycleTraceColor(p, appState.openProjects());
+    persistProjectChartView(p);
+  }
+  function setProjectColor(p: OpenISDProject, colour: string): void {
+    p.traceColor.set(colour);
+    persistProjectChartView(p);
+  }
+  function copyProjectCharts(row: ProjectListRow): void {
+    const source = appState.focusedProject();
+    if (source === null || source === row.handle.open) return;
+    const target = row.handle.open ?? projectRepo.loadStoredProject(row.handle.id);
+    if (Array.isArray(target)) {logging.flash('Could not read the destination project: ' + target.join('; ')); return;}
+    copyChartDefinition(source, target);
+    if (row.handle.open === null) {
+      const result = projectRepo.saveToStorageAs(target, row.handle.id);
+      if (result.kind === 'failed') {logging.flash('Could not save chart settings: ' + result.reason); return;}
+      binView.refresh();
+    } else if (!persistProjectChartView(target)) return;
+    logging.flash(`Copied charts from "${source.name.value}" to "${row.name}".`);
+  }
+  async function saveProjectRow(row: ProjectListRow): Promise<void> {
+    const project = row.handle.open;
+    if (project === null || !project.isModified()) return;
+    const saved = await saveProjectRecord(project);
+    if (!saved) return;
+    binView.refresh();
+    logging.flash(`Saved "${project.name.value}".`);
   }
   function renameProject(row: ProjectListRow, newName: string): void {
     const trimmed = newName.trim();
@@ -580,9 +619,14 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const navCollapsed = computed({ get: () => presentationState.ui.originalNavCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalNavCollapsed = v; } });
   const bottomCollapsed = computed({ get: () => presentationState.ui.originalBottomCollapsed ?? false, set: (v: boolean) => { presentationState.ui.originalBottomCollapsed = v; } });
   const chartMax = computed({ get: () => presentationState.ui.originalChartMax ?? false, set: (v: boolean) => { presentationState.ui.originalChartMax = v; } });
+  const navWidth = computed(() => {
+    const stored = presentationState.ui.originalNavW;
+    return typeof stored === 'number' ? Math.max(200, stored) : 200;
+  });
   const mainStyle = computed(() => chartMax.value ? {} : {
-    gridTemplateColumns: (navCollapsed.value ? '0px' : (presentationState.ui.originalNavW ?? 175) + 'px') + ' 7px 1fr',
+    gridTemplateColumns: (navCollapsed.value ? '0px' : navWidth.value + 'px') + ' 7px 1fr',
     gridTemplateRows: '1fr 7px ' + (bottomCollapsed.value ? '0px' : 'auto'),
+    '--sidebar-width': navCollapsed.value ? '0px' : navWidth.value + 'px',
   });
   function startSplitDrag(e: PointerEvent, apply: (rect: DOMRect, ev: PointerEvent) => void): void {
     const el = listeningElement(e);
@@ -597,7 +641,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   }
   function onNavSplitDown(e: PointerEvent): void {
     if (navCollapsed.value) return;
-    startSplitDrag(e, (rect, ev) => { presentationState.ui.originalNavW = Math.min(520, Math.max(140, ev.clientX - rect.left)); });
+    startSplitDrag(e, (rect, ev) => { presentationState.ui.originalNavW = Math.min(520, Math.max(200, ev.clientX - rect.left)); });
   }
 
   // ---- Driver identity + placement ----------------------------------------------
@@ -634,7 +678,16 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   let tone: ToneGenerator | null = null;
   function toggleGenerate() { tone ??= createToneGenerator(); if (genOn.value) tone.start(genHz.value); else tone.stop(); }
   watch(genHz, v => { if (genOn.value) tone?.setFrequency(v); });
-  onUnmounted(() => tone?.stop());
+  const resumeToneWhenVisible = () => {
+    if (genOn.value && document.visibilityState === 'visible') tone?.resume();
+  };
+  if (typeof document !== 'undefined') document.addEventListener('visibilitychange', resumeToneWhenVisible);
+  if (typeof window !== 'undefined') window.addEventListener('focus', resumeToneWhenVisible);
+  onUnmounted(() => {
+    if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', resumeToneWhenVisible);
+    if (typeof window !== 'undefined') window.removeEventListener('focus', resumeToneWhenVisible);
+    tone?.stop();
+  });
 
   // ---- Signal tab: drive voltage = √(Pin × Re) per driver, plus series resistance ------------
   // Delegated to the unit-tested `createDriveSignal` (`driveSignal.ts`).
@@ -764,7 +817,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
     openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
-    projectListRef, duplicateProject, exportProject, cycleProjectColor, renameProject,
+    projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
     chartLabel, chartItems, selectChart, toggleChart,
@@ -788,7 +841,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
-    model, startEdit, startWhatIf, placement,
+    model, startEdit, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement,
     activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,

@@ -131,6 +131,7 @@ export async function handleOAuthBoot(
 export async function bootApplication(deps: BootDeps): Promise<void> {
   if (await restoreFromShareLink(deps)) {
     deps.appState.markProjectSaved();
+    deps.appState.recordStartupRestoredProjects();
     return;
   }
   const session = restoreSession(deps);
@@ -145,6 +146,7 @@ export async function bootApplication(deps: BootDeps): Promise<void> {
       deps.appState.focusProject(idx);
     }
   }
+  deps.appState.recordStartupRestoredProjects();
   // A restored session carries each project's own saved and edited layers, so its unsaved edits
   // stay unsaved. Only the single legacy project has no such layers: it is the ground state.
   if (session !== 'restored') deps.appState.markProjectSaved();

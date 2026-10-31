@@ -19,3 +19,15 @@ export function createLedgerFollowsRewrite(storage: KeyValueStorage, random: () 
     ledger.set({...row, hash: afterHash});
   };
 }
+
+/** A layout migration is `createLedgerFollowsRewrite` and one thing more: the change cursor is dropped, so
+ *  the next sync lists every Drive file and finds each older-layout doc to replace with its upgraded text
+ *  (a run that reads only what changed since the cursor would leave them at the old layout). */
+export function createLedgerFollowsMigration(storage: KeyValueStorage, random: () => Uint8Array): ProjectRewritten {
+  const follow = createLedgerFollowsRewrite(storage, random);
+  return (projectId, before, after) => {
+    follow(projectId, before, after);
+    if (storage.get(LEDGER_KEY) === null) return;
+    createSyncLedger({storage, random}).setCursor(null);
+  };
+}

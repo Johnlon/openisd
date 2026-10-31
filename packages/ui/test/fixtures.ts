@@ -9,6 +9,16 @@ import {COMPLETE_DRIVER_PROJECT_OWPR, ensureSampleProject, SAMPLE_PROJECT_OWPR} 
 export {COMPLETE_DRIVER_PROJECT_OWPR, SAMPLE_PROJECT_OWPR};
 
 const TELEMETRY_COLLECTOR_ORIGIN = 'https://openisd-stats.john-lonergan-0e9.workers.dev';
+const ANNOUNCEMENTS_URL = 'https://openisd-announcements-test.john-lonergan-0e9.workers.dev/announcements';
+
+async function stubAnnouncements(page: Page): Promise<void> {
+  await page.route(ANNOUNCEMENTS_URL, route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    headers: {'Cache-Control': 'no-store'},
+    body: JSON.stringify({version: 1, announcements: []}),
+  }));
+}
 
 /**
  * Shared Playwright fixtures for all UI/browser tests.
@@ -105,9 +115,33 @@ export async function resetApp(page: Page, additions: TestAdditions): Promise<vo
   await page.setViewportSize({ width: 1280, height: 720 });
 
   await dismissOverlays(page);
+  await restoreAutomaticSkin(page);
   await closeAllProjects(page);
   await restoreOptions(page);
+  await restoreSidebarWidth(page);
   await clearHash(page);
+}
+
+/** Every test starts on the skin the window gives (F58): a skin a test chose stays chosen on the shared
+ *  page, so it is undone the way a user does, with "Automatic view", and the desktop shell a 1280 px
+ *  window gives is checked before the test runs. */
+async function restoreAutomaticSkin(page: Page): Promise<void> {
+  // The window was just widened: let the app finish following it before reading which shell shows.
+  // Only a chosen phone skin keeps the mobile shell on a 1280 px window.
+  const desktopShown = await expect(page.locator('.original-root')).toBeVisible({timeout: 2000}).then(() => true, () => false);
+  if (!desktopShown) {
+    await page.locator('.mob-hamburger').click();
+    const automatic = page.locator('.mob-menu-item', {hasText: 'Automatic view'});
+    if (await automatic.count() > 0) await automatic.click();
+    else await page.locator('.mob-menu-close').click();
+  } else {
+    await page.locator('.tb-btn[title="Info"]').click();
+    const automatic = page.getByText('Automatic view', {exact: true});
+    if (await automatic.count() > 0) await automatic.click();
+    else await page.keyboard.press('Escape');
+  }
+  await expect(page.locator('.original-root'), 'resetApp: a 1280 px window shows the desktop shell').toBeVisible();
+  await expect(page.locator('.mobile-root')).toHaveCount(0);
 }
 
 const OVERLAY_SELECTOR = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, .mob-dlg, dialog[open]';
@@ -188,6 +222,20 @@ async function restoreOptions(page: Page): Promise<void> {
   await modal.waitFor({ state: 'hidden' });
 }
 
+/** The app keeps a dragged sidebar width for the next visit, and this worker's page serves the next
+ *  test. Restores the default the way a user does: drag the splitter to the far left, where it stops
+ *  at the 200 px minimum, which is the default. The mobile skin has no splitter. */
+async function restoreSidebarWidth(page: Page): Promise<void> {
+  const splitter = page.locator('.split-v');
+  if (await splitter.count() === 0 || !(await splitter.isVisible())) return;
+  const box = (await splitter.boundingBox())!;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + box.width / 2, y);
+  await page.mouse.down();
+  await page.mouse.move(0, y, { steps: 4 });
+  await page.mouse.up();
+}
+
 async function clearHash(page: Page): Promise<void> {
   if (!page.url().includes('#') && !page.url().includes('?')) return;
   await page.evaluate(() => {
@@ -206,6 +254,11 @@ export const test = base.extend<
     const context = await browser.newContext({ baseURL, viewport: { width: 1280, height: 720 } });
     await standInForSnapshotsSite(context);
     const page = await context.newPage();
+    // The app fetches its public announcements feed on startup. Browser tests run from localhost,
+    // which the test Worker intentionally does not allow as a CORS origin, so give the app a
+    // deterministic empty feed instead of letting an unrelated cross-origin request pollute every
+    // test's browser diagnostics. Feature tests install their own feed when needed.
+    await stubAnnouncements(page);
     await page.addInitScript(() => {
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled */ }
@@ -238,6 +291,7 @@ export const test = base.extend<
   },
 
   page: async ({ page, browserLog }, use) => {
+    await stubAnnouncements(page);
     await page.addInitScript(() => {
       try { if (!localStorage.getItem('openisd_view')) localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); }
       catch { /* storage disabled */ }
@@ -265,6 +319,7 @@ export const test = base.extend<
 
   appPage: async ({ workerAppPage, testAdditions, browserLog }, use) => {
     await resetApp(workerAppPage, testAdditions);
+    await stubAnnouncements(workerAppPage);
     const detach = browserLog._attach?.(workerAppPage);
     try {
       await use(workerAppPage);

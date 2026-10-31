@@ -25,7 +25,7 @@ function sealedProject(): OpenISDProject {
 
 /** The project's `.owpr` text as an older build wrote it: with `advanced.lossMode` stated. */
 function legacyText(lossMode: 'lossless' | 'conventional-lossy' | 'winisd-lossy'): string {
-  const parsed = parseOwprSession(sealedProject().toOwprText());
+  const parsed = parseOwprSession(sealedProject().toOwprText(), () => 'unused');
   if ('errors' in parsed) throw new Error(parsed.errors.join('; '));
   const stated = (p: OpenISDProjectJson): OpenISDProjectJson => ({...p, advanced: {...p.advanced, lossMode}});
   const {session} = parsed;

@@ -1,0 +1,91 @@
+id: T618
+release_note: internal
+repo: openisd
+owner: codex
+status: claimed
+gates_approved: QO316
+goal: Refresh OpenISD catalogue from tuple-aware snapshot and expose test servers for review
+done_test: bash scripts/quiet-test.sh npm run typecheck:design && bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/design/test/winisd/driverRecordConverter.coverage.test.ts packages/ui/test/scripts/bundle-outputs.test.ts && bash scripts/quiet-test.sh bash scripts/land/test/sync-driver-snapshot.test.sh
+files:
+  - scripts/land/test/coverage-design-gate.test.sh
+  - scripts/land/test/coverage-ui-gate.test.sh
+  - .github/workflows/suite.yml
+  - tasks/T631.yml
+  - packages/ui/test/hooks/**
+  - packages/ui/test/logic/**
+  - packages/ui/test/ui/**
+  - packages/ui/test/visual/**
+  - packages/ui/test/fixtures/**
+  - packages/ui/src/**
+  - packages/design/test/**
+  - packages/design/domain/**
+  - bugs/**
+  - packages/ui/test/ui/original-box-tab.browser.spec.ts
+  - packages/ui/test/ui/new-project-step4-alignment.browser.spec.ts
+  - packages/ui/test/ui/driver-browser.browser.spec.ts
+  - packages/ui/test/fixtures/fieldVisualContract.ts
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/src/ui/components/UIPickField.vue
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - tasks/T618.yml
+  - docs/handover/**
+  - packages/ui/vitest.coverage.config.ts
+  - tasks/fixes/F56.yml
+  - CLAUDE.md
+  - docs/DEV_PROCESS.md
+  - packages/design/test/fixtures/driver-snapshot/**
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - packages/design/test/winisd/driverRecordConverter.coverage.test.ts
+  - playwright.config.js
+  - packages/ui/public/drivers-index.json
+  - packages/ui/public/passive-radiators-index.json
+  - packages/ui/public/drivers/**
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/ui/original-chart-auto-y.browser.spec.ts
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - scripts/bundle-drivers.mjs
+  - scripts/bundleStamp.mjs
+  - scripts/driver-snapshot.pin
+  - scripts/land/test/sync-driver-snapshot.test.sh
+  - scripts/sync-driver-snapshot.sh
+  - scripts/start-http.sh
+  - scripts/verify-preview-own-port.sh
+
+label: fixes
+visual_note: "Desktop screens take the T607 field look (colour rail, label and box widths), the signal-generator box is 6px wider, wizard labels are wider so the warning slot fits, and the default plot window is 10-20000 Hz again (mobile graph)."
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-empty
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step4
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5
+  - mobile-tab-graph
+landed: ddfe06b35a

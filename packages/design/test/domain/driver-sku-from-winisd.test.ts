@@ -10,7 +10,7 @@ import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {WinIsdProjectConverter} from '../../domain/winIsdProjectConverter.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -56,7 +56,7 @@ function loaded(text: string): OpenISDProject {
 
 describe('driver sku from WinISD files', () => {
   it('a .wdr import has no sku', () => {
-    const {value} = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(wdrText);
+    const {value} = new DriverRecordConverter(engine).winIsdDriverToOpenIsdDriver(wdrText);
     expect(value?.sku.value).toBe('');
   });
 
@@ -103,7 +103,7 @@ describe('a typed or db sku survives', () => {
   });
 
   it('a driver keeps its sku through openisd.json export and import', () => {
-    const {value} = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(wdrText);
+    const {value} = new DriverRecordConverter(engine).winIsdDriverToOpenIsdDriver(wdrText);
     if (value === null) throw new Error('import failed');
     value.sku.set('ZZ-333333');
     const back = OpenISDDriver.fromOwdrText(value.toOwdrText(), engine);
@@ -115,7 +115,7 @@ describe('a typed or db sku survives', () => {
 describe('a library driver saved with an import placeholder sku', () => {
   /** A stored driver record whose sku is `sku` grounded 'manual' and whose model is `model`. */
   function storedRecord(sku: string, model: string, origin: string): unknown {
-    const {value} = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(wdrText);
+    const {value} = new DriverRecordConverter(engine).winIsdDriverToOpenIsdDriver(wdrText);
     if (value === null) throw new Error('import failed');
     const record: unknown = JSON.parse(value.toOwdrText());
     if (!isRecord(record)) throw new Error('not a record');

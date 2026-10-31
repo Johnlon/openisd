@@ -1,0 +1,13 @@
+id: T597
+release_note: internal
+repo: openisd
+owner: codex
+status: done
+landed: c724edf6d5b8bf682f3590360832335b881d0098
+goal: Repair UI gallery phone navigation and snapshot build identification so release comparisons capture the intended screens
+done_test: bash scripts/test.sh packages/ui/test/architecture/ui-gallery-covers-every-screen.test.ts
+files:
+  - tasks/T597.yml
+  - scripts/ui-gallery/screens.mjs
+  - scripts/ui-gallery/capture.mjs
+  - packages/ui/test/ui/unit-label-underline.browser.spec.ts

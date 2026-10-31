@@ -8,7 +8,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {createEngine} from '../../engine/Engine.js';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 import type {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
@@ -17,7 +17,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const fixture = (name: string): string => readFileSync(join(here, '..', 'fixtures', 'dual-coil', name), 'utf8');
 
 function importWdr(text: string): OpenISDDriver {
-  const imported = new WinIsdDriverConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
+  const imported = new DriverRecordConverter(createEngine()).winIsdDriverToOpenIsdDriver(text);
   if (imported.value === null) throw new Error(imported.errors.map(e => e.message).join('; '));
   return imported.value;
 }

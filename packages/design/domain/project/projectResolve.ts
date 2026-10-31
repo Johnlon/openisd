@@ -35,6 +35,16 @@ export interface ProjectResolveContext {
     readonly readoutRsOhmOver: (root: SimpleField<OpenISDProjectJson>) => number;
 }
 
+/** The issues of whichever box type is active; the rest stay empty. */
+interface BoxSolved {
+    readonly vent: readonly VentIssue[];
+    readonly rearVent: readonly VentIssue[];
+    readonly pr: readonly PrIssue[];
+    readonly radiator: readonly PrSpecIssue[];
+    readonly sealed: readonly SealedAlignmentIssue[];
+    readonly ventTuningExtra: DqIssue | null;
+}
+
 /**
  * T11/S2-7d: resolve the CURRENT layer's driver — write every quantity `solveDriver` can derive
  * back into THAT layer as a `'C'` entry, and answer the result to cache.
@@ -85,15 +95,13 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         resolveVentCount(v);
     }
     const boxType = directRoot.value.box.boxType;
-    let vent: readonly VentIssue[] = [];
-    let rearVent: readonly VentIssue[] = [];
-    let pr: readonly PrIssue[] = [];
-    let radiator: readonly PrSpecIssue[] = [];
-    let sealed: readonly SealedAlignmentIssue[] = [];
-    let ventTuningExtra: DqIssue | null = null;
-
-    if (boxType === 'vented') {
-        vent = engine.vent.solve({
+    const NONE: BoxSolved = {vent: [], rearVent: [], pr: [], radiator: [], sealed: [], ventTuningExtra: null};
+    // One arm per box type; a new `BoxType` leaves a code path without a return, which the
+    // compiler refuses.
+    const solved = ((): BoxSolved => {
+    switch (boxType) {
+    case 'vented': {
+        const vent = engine.vent.solve({
             tuning_goal_hz: box.vented.tuning_goal_hz,
             length_m: box.vented.vent.length_m,
             Vb_m3: inputOf(() => box.vented.volume_m3.value),
@@ -106,17 +114,19 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
         // it: the two say different things (this geometry does not solve / nobody would build
         // this).
         const Fb = box.vented.tuning_goal_hz.value;
-        ventTuningExtra = Fb === null ? null : engine.vented.tuningIssue(Fb);
-    } else if (boxType === 'bandpass4') {
-        vent = engine.vent.solve({
+        return {...NONE, vent, ventTuningExtra: Fb === null ? null : engine.vented.tuningIssue(Fb)};
+    }
+    case 'bandpass4':
+        return {...NONE, vent: engine.vent.solve({
             tuning_goal_hz: box.bandpass4.chambers.front.tuning_goal_hz,
             length_m: box.bandpass4.vents.front.length_m,
             Vb_m3: inputOf(() => box.bandpass4.chambers.front.volume_m3.value),
             area_m2: inputOf(() => box.bandpass4.vents.front.area_m2.value),
             count: inputOf(() => box.bandpass4.vents.front.count.value),
             endCorrection_m: inputOf(() => box.bandpass4.vents.front.endCorrection_m.value),
-        }, air);
-    } else if (boxType === 'bandpass6' || boxType === 'abc') {
+        }, air)};
+    case 'bandpass6':
+    case 'abc': {
         const {chambers, vents} = boxType === 'abc' ? box.abc : box.bandpass6;
         const solvePort = (chamber: typeof chambers.front, port: typeof vents.front): readonly VentIssue[] => engine.vent.solve({
             tuning_goal_hz: chamber.tuning_goal_hz,
@@ -126,13 +136,13 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             count: inputOf(() => port.count.value),
             endCorrection_m: inputOf(() => port.endCorrection_m.value),
         }, air);
-        rearVent = solvePort(chambers.rear, vents.rear);
-        vent = solvePort(chambers.front, vents.front);
-    } else if (boxType === 'box-passive-radiator') {
+        return {...NONE, rearVent: solvePort(chambers.rear, vents.rear), vent: solvePort(chambers.front, vents.front)};
+    }
+    case 'box-passive-radiator': {
         const p = box.passiveRadiator;
         const r = p.radiator;
-        radiator = r.spec.resolve(engine.pr, air);
-        pr = engine.pr.solve({
+        const radiator = r.spec.resolve(engine.pr, air);
+        const pr = engine.pr.solve({
             addedMass_kg: p.addedMass_kg,
             tuning_goal_hz: p.tuning_goal_hz,
             resonanceWithAddedMass_hz: p.resonanceWithAddedMass_hz,
@@ -143,7 +153,9 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             prCms_m_per_N: inputOf(() => r.spec.Cms_m_per_N.value),
             prNum: inputOf(() => p.count.value),
         }, air);
-    } else if (boxType === 'sealed') {
+        return {...NONE, pr, radiator};
+    }
+    case 'sealed': {
         const ts = driver.specs;
         // The Rg-loaded Qts, inlined rather than `sourceLoadedQts(Rs)` (that method reads the
         // NOTIFYING `this.driver.ts` — calling it from inside a resolve would re-enter the
@@ -156,7 +168,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
                 ts.Qms.value ?? NaN, ts.Qes.value ?? NaN, ts.solverParams().Re_terminal_ohm.value ?? NaN,
                 directRoot.value.driverEmbedding.Rs_ohm, Qts);
         };
-        sealed = engine.sealed.solve({
+        const sealed = engine.sealed.solve({
             Qts: inputOf(rgLoadedQts),
             Vas_m3: inputOf(() => ts.Vas_m3.value),
             Fs_hz: inputOf(() => ts.Fs_hz.value),
@@ -165,9 +177,12 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
             Qtc: box.sealed.q_tc,
             Vb_m3: sealedVolumeAsSolverField(box.sealed.volume_m3),
         });
+        return {...NONE, sealed};
     }
+    }
+    })();
 
-    return { driver: driverIssues, signal, vent, rearVent, pr, radiator, sealed, ventTuningExtra, air: airIssues };
+    return { driver: driverIssues, signal, ...solved, air: airIssues };
 }
 
 /** The driver's Re at the project's coil temperature rise, or null when Re is unusable — read

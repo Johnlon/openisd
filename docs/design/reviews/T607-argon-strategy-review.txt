@@ -1,0 +1,161 @@
+# Strategy Review — T607 Exclusive Field Renditions (`t607-field-renditions` @ `10fbfcca3`)
+
+**Reviewer:** Gemini Argon High (First, Strategy-Only Review)  
+**Scope Notice:** **This first review is a strategy and architecture critique only. It is NOT code signoff, test signoff, or visual signoff.**
+
+---
+
+## 1. Executive Verdict on the Strategy
+
+The written strategy in [FIELD_APPEARANCE_CATALOGUE.md](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L147-L284) and the interaction contract in [field-use-cases.html](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15-L170) identify the right target architecture (one shared `Field` + `FieldAppearance` + `UIFieldBody` pipeline, zero ad-hoc shell inputs, and deterministic visual/behavioural contracts), **but the strategy as written is flawed in five critical ways**:
+
+1. **It treats the current CSS and component layer as a near-complete implementation needing only shell layout tweaks**, when in reality [field-catalogue.css](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L1-L109) is a `:is(...) !important` override stylesheet bolted onto legacy markup that actively breaks provenance colours, inverse-video cursor rendering, keyboard focus order, and desktop pane widths.
+2. **It misdiagnoses why the desktop shell fails layout gates**, blaming container sizes when the actual culprits are (a) forcing a fixed 5-column `348px` minimum width (`minmax(70px,1fr) 108px 48px 80px 22px`) onto *every* `.ui-field` even when unitless, read-only, or without `≠W`, and (b) widening `.left-sidebar` from `175px` to `300px`, which stole `125px` from `.content-panel`.
+3. **Its proposed test oracle is currently circular and selector-blind**: [field-renditions.browser.spec.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/field-renditions.browser.spec.ts#L30-L62) compares synthetic `?field-catalogue=1` fixtures only against `#case-03` (`entered`), and [compactFieldContract.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/compactFieldContract.ts#L16) only inspects `.ui-field[data-field], .mob-sheet-cell[data-field]`, completely ignoring dozens of unmigrated raw controls in [OriginalShell.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/original/OriginalShell.vue) and [UIPickField.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIPickField.vue).
+4. **It conflates two divergent implementations of the interaction contract**: the gallery inline script in [field-use-cases.html](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L194-L322) and the production hook in [NumInput-hooks.ts](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L1-L598) do not share DOM structure, cursor rendering, or state transitions.
+5. **It sequences full-app rollout ahead of John's approval of the remaining 22 gallery cases**, risking mass rework while leaving known gallery defects (missing `≠W` popups on Cases 09–16, Case 19 checkbox centering) unfixed on the approval page itself.
+
+---
+
+## 2. Requirements Decided by John vs. Open Approvals vs. Reviewer Recommendations
+
+| Category | Item | Status / Authority |
+| --- | --- | --- |
+| **Requirement (Decided by John)** | Exclusive use of catalogue component renditions across the entire app, with comprehensive tests that fail on any tiny visual or behavioural deviation | **Fixed objective** — cannot be shrunk to a subset of fields or shells. |
+| **Requirement (Decided by John)** | **Cursor Option E (Inverse-video digit)**: selected spin digit blinks 55% inverse (`#1868c9` bg, `#fff` text) / 45% normal (`1.15s steps(1,end)`), while the native text caret remains visible at its exact click/arrow insertion point. | Approved in [field-use-cases.html:L15,L39](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15). |
+| **Requirement (Decided by John)** | **Case 03** (entered writable number with unit + spinners) and **Case 20** (provenance/status colour matrix: entered green `#078200`, calculated blue `#06f`, defaulted `#23548f`, mandatory `#fff8e1`/`#f59e0b`, empty, disabled, refusal `#fff5f5`/`#ef4444`, DQ `#fffbeb`/`#f59e0b`). Read-only orthogonal to provenance. | Approved in [FIELD_APPEARANCE_CATALOGUE.md:L3,L15-L17](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L3). |
+| **Requirement (Decided by John)** | Single-row horizontal field layout (`40px` row height, `34px` control height); **stacked labels above controls are rejected**. | Decided ([FIELD_APPEARANCE_CATALOGUE.md:L113](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L113)). |
+| **Requirement (Decided by John)** | Narrower value boxes (`108px` number / `156px` unitless); DQ badge sits outside left of the value box; `≠W` badge sits outside right hugging spinners/dropdown; count fields (`1..4`, `1..8`, `1..20`) use native `<select>`. | Decided ([FIELD_APPEARANCE_CATALOGUE.md:L109-L119](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L109-L119)). |
+| **Requirement (Decided by John)** | Mobile fields edit in place with a collapsed native caret on first tap (never full-value selection) + `1500ms` `StepperPin` ratchet; native caret to the right of the last digit selects/spins the last digit (including a trailing zero after `.`). | Decided ([field-use-cases.html:L31-L40,L120-L127](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L31-L40)). |
+| **Awaiting John's Approval** | **Cases 01–02, 04–19, 21–24** in [field-use-cases.html](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L15) (including read-only variants, count `<select>`, choice `<select>`, text/multiline/date, boolean checkbox, yellow bug switch, DQ + `≠W` combinations, refusal popup, mobile sheet cell). | **Unapproved** ([FIELD_APPEARANCE_CATALOGUE.md:L3,L253-L255](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L3)). |
+| **Reviewer Recommendation** | Collapse optional right-hand grid tracks (`unit`, `stepper`, `dev`) when a field appearance cannot have them, or define explicit per-rendition track templates in `FieldAppearance`, instead of forcing a 5-column `348px` track onto every `.ui-field`. | Recommendation (architectural fix required to satisfy John's single-row + no-overflow constraints). |
+| **Reviewer Recommendation** | Replace the opaque `<input>` + painted-on-top `.num-mark-overlay` hack in `NumInput.vue` with transparent `<input>` text over a per-character `.digit-guide` layer (matching `field-use-cases.html`) that inherits the field's provenance colour variable. | Recommendation (technical fix required to make John's Cursor E and Case 20 rulings actually work). |
+
+---
+
+## 3. Disputed Claims About the Existing Implementation (With File/Line Citations)
+
+### 3.1. Disputed Claim: "Implemented and covered by tests: Inverse-video active digit marker (`E`)" ([FIELD_APPEARANCE_CATALOGUE.md:L149-L154](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L149-L154))
+- **Reality in code:** The app implementation in [NumInput.vue:L38-L41,L140-L150](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L38-L41) and [field-catalogue.css:L82-L87](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L82-L87) is visually and semantically broken and does **not** match [field-use-cases.html:L4,L211-L215](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L4):
+  1. In [field-use-cases.html:L4](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L4), `.num-wrap input` has `color:transparent; caret-color:transparent;` so the number is drawn **once** by `.digit-guide` spans (`<i>` for the active digit, `<b>` for the simulated caret).
+  2. In [NumInput.vue:L16-L41](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L16-L41), the `<input>` text remains opaque (`color: #078200` or `#06f`), while `.num-mark-overlay` renders on top of it with `.num-mark-underline` animated by `@keyframes spin-inverse-blink` ([field-catalogue.css:L86](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L86)). Because `<input>` has `border: 1px` + `padding: 0 6px` (`7px` text inset, native baseline centering) while `.num-mark-overlay` is `position: absolute; inset: 0; padding: 0 7px; display: flex; align-items: center`, the overlay glyph is subpixel-misaligned over the live `<input>` glyph, producing double-rendered anti-aliasing fringes.
+  3. Worse, `@keyframes spin-inverse-blink` at [field-catalogue.css:L86](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L86) hardcodes `56%,100%{background:transparent;color:#078200;}`! On a calculated (`#06f`) or defaulted (`#23548f`) field, the 45% "normal" phase paints an opaque **entered-green (`#078200`)** digit over the blue number, directly violating [field-use-cases.html:L41](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L41) (*"the cursor must not turn a calculated value into an entered value"*).
+
+### 3.2. Disputed Claim: Provenance and read-only are orthogonal in `UIFieldBody.vue` and `field-catalogue.css` ([FIELD_APPEARANCE_CATALOGUE.md:L15-L17,L181](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L15-L17))
+- **Reality in code:** Three separate bugs still conflate provenance and read-only:
+  1. [UIFieldBody.vue:L119](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L119) hardcodes `:class="['calculated', 'greyed', ...]"` on `<NumReadout v-if="readonly">`, discarding `view.provenanceClass` (`value-e`, `value-c`, `value-n`).
+  2. [field-catalogue.css:L58](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L58) forces `.compact-fields.compact-fields :is(input[readonly],.mob-readonly){background:#f1f1f1 !important;color:#06f !important;}` — turning **every** read-only field (including read-only stored/entered driver specs and Brand/Model) into calculated blue `#06f`.
+  3. [field-catalogue.css:L55](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L55) forces `.compact-fields.compact-fields :is(input,select,textarea,.mob-readonly){... color:#078200 !important;}` by default, while [UIFieldBody.vue:L63](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L63) maps `props.defaulted === true ? CellClass.Calculated : CellClass.Entered` on `fixed`/`settling` bindings — erasing `CellClass.Normal` (`value-n`) whenever `defaulted` is `undefined` ([uiFieldBinding.ts:L53](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/uiFieldBinding.ts#L53)) and turning calculated fields whose callers pass `:defaulted="true"` via `UIFixedField` into entered green whenever `.calculated` is omitted on the inner input.
+
+### 3.3. Disputed Claim: "The implementation does the arithmetic on scaled decimal integers to avoid showing ordinary binary floating-point tails" ([field-use-cases.html:L54-L57](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L54-L57))
+- **Reality in code:** [caretSpin.ts:L81-L83](http://lap:8000/winisd/openisd-t607/packages/design/fields/caretSpin.ts#L81-L83) does **not** use `BigInt` or arbitrary-precision decimal integers; it converts strings into IEEE-754 doubles (`const scaled = sign * Number(\`${whole}${fraction.padEnd(decimals, '0')}\`); const unitScale = Number(\`1e${exp + decimals}\`);`) and divides `nextScaled / unitScale`. Above 15 significant digits (`Number.MAX_SAFE_INTEGER`), integer addition silently loses ulps, and `nextScaled / unitScale` is still binary floating-point division.
+
+### 3.4. Disputed Claim: Unit rotation re-validates marker, remembered place, text fit, and limits against the new representation ([field-use-cases.html:L110-L112](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L110-L112))
+- **Reality in code:** Neither the gallery nor the app implements this:
+  - In [field-use-cases.html:L320](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L320), clicking `.unit` writes `Number((v * next[1]).toPrecision(11))` and calls `render(wrap)` **without** updating `state.at`, `state.mark`, or `state.last`. A caret at index `5` in `0.0254` (`mm`/`m`) stays at index `5` when the string becomes `1` (`in`), pointing past the end of the string.
+  - In [NumInput-hooks.ts:L75-L85](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L75-L85), `watch(activeToken)` updates `display.value = fmt(props.modelValue)` and never resets or remaps `lastCaret`, `lastStep`, or `underlineIndex.value`.
+
+### 3.5. Disputed Claim: `allowOutOfRange` and floor/limit refusal consistency
+- **Reality in code:** In [NumInput-hooks.ts:L505-L509,L566](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L505-L509), when `props.allowOutOfRange` is `true` (used by Advanced environmental fields in [OriginalShell.vue:L697-L701](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/original/OriginalShell.vue#L697-L701)), `valid(si)` returns `isFinite(si)` and `refusal` returns `''` immediately — completely bypassing `field.floor` (`> 0` physical positivity floors on `AIR_TEMPERATURE`, `AIR_PRESSURE`, `AIR_DENSITY`, `SOUND_SPEED`) and `describeEntryRefusal`!
+
+### 3.6. Disputed Claim: Keyboard focus order and spinner focus preservation ([field-use-cases.html:L42,L99](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L42))
+- **Reality in code:**
+  - In [NumInput.vue:L45-L48](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L45-L48), `.num-stepper-btn` has `tabindex="-1"`, so pressing `Tab` from the `<input>` can **never** focus the spinner buttons (contradicting [field-use-cases.html:L42](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L42)).
+  - In [UIFieldBody.vue:L116-L136](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L116-L136) and [field-catalogue.css:L8-L35](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L8-L35), DOM order is `label -> value -> unit -> dq -> dev`, while CSS grid visually places `.ui-field-dq` in column 1 (left of the value box) and `.ui-field-unit` in column 3 (left of `.num-stepper` in column 4). Tab order therefore jumps backward visually across the row (`input -> unit -> left-hand DQ badge -> right-hand ≠W badge`).
+
+---
+
+## 4. Missing Dimensions, Circular Oracles, Architectural Mistakes, Sequencing Risks & Untestable Promises
+
+### 4.1. Architectural Mistakes Causing the Current Desktop Shell Failures
+The strategy notes two open failures in [original-shell-layout.browser.spec.ts](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/original-shell-layout.browser.spec.ts) (`vented` horizontal overflow `1112px > 1057px` and `pr` vertical pane height `247px > 226px`), and proposes tweaking shell containers. **Inspecting the CSS reveals the root causes are architectural mistakes in the rendition layer itself:**
+1. **Every `.ui-field` is forced to reserve 5 fixed columns (`348px` minimum width):**  
+   [field-catalogue.css:L2-L7](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L2-L7) applies `grid-template-columns: minmax(70px,1fr) 108px 48px 80px 22px !important` to **every** `.ui-field`. A read-only field with no spinners still reserves `80px` of empty space in column 4; a unitless field still reserves `48px` (or `156px + 80px + 22px`); a field whose `FieldAppearance.canShowWinisdDiff` is `false` still reserves `22px` in column 5.
+2. **Widening `.left-sidebar` from `175px` to `300px` ([T607-progress.md:L343](http://lap:8000/winisd/openisd-t607/tasks/T607-progress.md?html#L343)) stole `125px` from `.content-panel`:**  
+   In the `1600×400` short-window test ([original-shell-layout.browser.spec.ts:L298-L323](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/original-shell-layout.browser.spec.ts#L298-L323)), Vented Enclosure needs `~1112px` across its 3 columns (`vent-config-col` + `vent-dims-col` + 4-field column), which previously fit inside `1600 - 175 - 200 = 1225px` but now overflows `1600 - 300 - 200 = 1100px` (`clientWidth = 1057px`) by `55px`! Widening the entire left sidebar on all tabs just to fit `.ui-field` inside the collapsible Signal Generator drawer is an architectural mistake.
+3. **Multi-port (`bandpass6`, `abc`) 6-field-across layouts are ignored by the strategy:**  
+   In [OriginalShell.vue:L624-L666,L1352-L1367](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/original/OriginalShell.vue#L624-L666), `.vent-pane-tight` places 3 port columns side by side, each with a 2-column `.vent-Subgrid` (6 fields across) using stacked labels (`grid-template-rows: auto auto`) and `70px` inputs. Under `.compact-fields` (`!important` single-row `348px` fields), 6 fields across requires `> 2000px`! The strategy does not explain how 3-port (`bandpass6`/`abc`) panes are laid out without stacked labels or horizontal scrollbars.
+4. **PR pane height (`247px` vs `226px`, hard ceiling `< 240px` in [original-shell-layout.browser.spec.ts:L240](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/original-shell-layout.browser.spec.ts#L240)):**  
+   Every other tab has at most 5 rows (`5 × 40px + 26px = 226px`). The PR tab ([OriginalShell.vue:L575-L618](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/original/OriginalShell.vue#L575-L618)) stacks a full-width PR picker row (`34px` + `8px` margin) + `.sub-section-header` (`23px`) + four `40px` rows (`160px`) + `20px` panel padding = `245–247px`.
+
+### 4.2. Circular Oracles & Blind Spots in the Test Strategy
+1. **Oracle circularity in [field-renditions.browser.spec.ts:L30-L62](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/field-renditions.browser.spec.ts#L30-L62):**
+   - It tests `?field-catalogue=1` ([FieldCatalogue.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/FieldCatalogue.vue)), which mounts synthetic `<UIFixedField>` instances, **never** testing `<UIField>` (`model` binding) or real shell instances.
+   - It filters `FIELD_APPEARANCES` down to `FieldEditor.Number || FieldEditor.Count` (44 forms), ignoring all `Choice`, `Text`, `Multiline`, `Date`, `Boolean`, and `BugToggle` appearances.
+   - It compares every writable number exclusively against `#case-03 input` (`entered` green) and never compares calculated/defaulted/mandatory/empty/disabled/refusal/DQ states against `#case-20`. That is why [BUG_20261027_rendition-branch-calculated-values-shown-entered.md](http://lap:8000/winisd/openisd-t607/bugs/BUG_20261027_rendition-branch-calculated-values-shown-entered.md?html#L1-L11) passed all 44 forms.
+2. **Selector blindness in [compactFieldContract.ts:L16](http://lap:8000/winisd/openisd-t607/packages/ui/test/fixtures/compactFieldContract.ts#L16):**
+   - `measureCompactFields` queries only `.ui-field[data-field], .mob-sheet-cell[data-field]`.
+   - Any control that lacks `data-field` is **100% invisible** to the contract test! Right now that excludes:
+     - Every `<UIPickField>` ([UIPickField.vue:L16](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIPickField.vue#L16) does not take a `field` prop or emit `data-field`).
+     - Over 25 raw `<div class="field">` / `<label>` controls in [OriginalShell.vue](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/original/OriginalShell.vue): Cursor Hz (`L184`), Charts high (`L196`), Box Type (`L357`), Driver Brand/Model (`L443-L444`), Num. of drivers (`L452`), Placement (`L458`), Voice coil connection (`L463`), Vents count/shape/end-correction (`L495-L517`, `L631-L658`), PR name (`L580`), Signal Distance/Angle (`L679-L680`), Advanced switches (`L705-L772`), Project metadata (`L783-L790`), and DriverEditorModal General tab non-select inputs ([DriverEditorModal.vue:L720-L732](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/DriverEditorModal.vue#L720-L732)).
+3. **Conflict with existing assertions in [original-shell-layout.browser.spec.ts:L108-L114](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/original-shell-layout.browser.spec.ts#L108-L114):**
+   - `original-shell-layout.browser.spec.ts` currently asserts legacy widths on Driver tab Brand (`130px`) and Model (`140px`). Once migrated to the catalogue text rendition (`156px`), those legacy assertions will collide unless reconciled with the catalogue contract.
+
+### 4.3. Missing Dimensions & Incorrect Semantic Assumptions
+1. **`NUMVC` (Voicecoils `1..4`) is missing `NumberEditor.CountSelect`:**  
+   In [field.ts:L952-L961](http://lap:8000/winisd/openisd-t607/packages/design/fields/field.ts#L952-L961), `NUMVC` has `limits: { min: 1, max: 4 }` and `spin: INTEGER_SPIN`, but omits `editor: NumberEditor.CountSelect` (unlike `DRIVER_COUNT`, `VENT_COUNT`, `PR_COUNT`), so it renders as a text/spinner input instead of a count `<select>`.
+2. **`MobileSheet.vue` bypasses `UIFieldBody` entirely:**  
+   [MobileSheet.vue:L32-L45](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/mobile/MobileSheet.vue#L32-L45) renders a custom `.mob-sheet-cell` without `UIFieldBody`, missing `.ui-field-dq` badges, `.ui-field-dev` (`≠W`) badges, count `<select>` support, and read-only provenance preservation (it hardcodes `class="mob-readonly calculated greyed"` at `L36`).
+3. **Popover / Viewport Containment is unverified:**  
+   Neither `fieldVisualContract.ts` nor `fieldControlContainment.ts` checks that open `.num-refusal-pop`, DQ popovers, or `≠W` popups stay within the viewport and are not clipped by `overflow: hidden` / `overflow-y: auto` on `.content-panel` or `.de-body`.
+
+### 4.4. Untestable Promises
+- The strategy promises **"`0px` tolerance" across Chromium, Firefox, and WebKit** ([FIELD_APPEARANCE_CATALOGUE.md:L193-L202](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L193-L202)) for all geometry and typography. While CSS box dimensions (`width`, `height`, `padding`, `border`) can be asserted to `≤ 0.5px` (`Math.round`), **subpixel glyph widths (`scrollWidth`), native `<select>` arrow chrome, and `<input type="date">` internal layout vary across Chromium, Firefox, and WebKit engines**. Comparing an app control against the gallery reference mounted in the *same* browser engine at runtime is valid (`0px` box delta within the same browser), but hardcoding Chromium pixel constants for text glyph widths across Firefox/WebKit will flake unless compared dynamically against the same-engine reference element.
+
+### 4.5. Practical Sequencing Risks
+- Only **Cursor E**, **Case 03**, and **Case 20** have John's explicit approval ([FIELD_APPEARANCE_CATALOGUE.md:L3](http://lap:8000/winisd/openisd-t607/docs/design/FIELD_APPEARANCE_CATALOGUE.md?html#L3)). Rolling out unapproved cases across every screen before fixing the known defects on `field-use-cases.html` (missing `≠W` popups on Cases 09, 10, 11, 12, 14, 16; Case 19 checkbox centering — [T607-progress.md:L241-L242](http://lap:8000/winisd/openisd-t607/tasks/T607-progress.md?html#L241-L242)) guarantees churn.
+
+---
+
+## 5. What Must Change Before Implementation Continues
+
+1. **Fix the gallery approval page (`docs/design/field-use-cases.html`) first** so Cases 09–16 have working `≠W` popups, Case 19 checkbox is vertically centered, and unit switching updates/re-validates caret state as promised by its own contract.
+2. **Unify the cursor/digit rendering architecture (`NumInput.vue` + `field-catalogue.css`)** with `field-use-cases.html`: make the `<input>` text transparent when `.num-mark-overlay` is active (or always), align overlay padding/border box identically (`1px` border + `6px` padding), and use `currentColor` / CSS custom properties (`--field-fg`) in `@keyframes spin-inverse-blink` instead of hardcoded `#078200` so calculated (`#06f`) and defaulted (`#23548f`) fields keep their provenance colour when focused.
+3. **Eliminate the read-only = calculated conflation**:
+   - In [UIFieldBody.vue:L119](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L119), pass `view.provenanceClass` (`entered`, `calculated`, `defaulted`, `value-n`) to `<NumReadout>` instead of hardcoding `'calculated'`.
+   - In [UIFieldBody.vue:L63](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L63), preserve `CellClass.Normal` when `props.defaulted === undefined`.
+   - In [field-catalogue.css:L55-L60](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L55-L60), remove `color:#06f !important` from `:is(input[readonly],.mob-readonly)` and drive text colour strictly from provenance class (`.entered`/`value-e`, `.calculated`/`value-c`, `.defaulted`, `.value-n`, `.disabled`).
+4. **Make `.ui-field` grid tracks appearance-driven instead of a hardcoded 5-column `348px` template**:
+   - Collapse or omit the `48px` unit column on unitless appearances, the `80px` stepper column on read-only/non-spin appearances, and the `22px` `≠W` column when `canShowWinisdDiff` is `false` (or when no `≠W` cue is present in compact multi-column panes), and restore `.left-sidebar` width (`175px` default, or floating/popover Signal Generator) so Vented (`1600×400`) and multi-port (`bandpass6`/`abc`) panes fit without overflow.
+5. **Close the selector escape hatch in tests**:
+   - Write a DOM completeness assertion in `field-renditions.browser.spec.ts` that queries **every** visible `input, select, textarea, .num-readout, .mob-readonly` inside application shells/modals and fails if any control does not have a closest `[data-field][data-appearance-id]` wrapper matching a registered `FIELD_APPEARANCES` entry.
+
+---
+
+## 6. Smallest Concrete Next Step and Required Proof
+
+### Smallest Concrete Next Step
+Fix **Case 20 provenance orthogonality** and **Cursor E (`spin-inverse-blink`) provenance preservation** across `UIFieldBody.vue`, `NumInput.vue`, `field-catalogue.css`, and `field-renditions.browser.spec.ts` — the two items **already approved by John** that are currently broken on the branch ([BUG_20261027_rendition-branch-calculated-values-shown-entered.md](http://lap:8000/winisd/openisd-t607/bugs/BUG_20261027_rendition-branch-calculated-values-shown-entered.md?html#L1-L11)).
+
+### Proof It Must Produce
+1. **Live DOM / Computed-Style Proof (`bash scripts/quiet-test.sh bash scripts/test.sh packages/ui/test/ui/field-renditions.browser.spec.ts`):**
+   - Extend `field-renditions.browser.spec.ts` so that for **both** `?field-catalogue=1` and the live desktop/mobile app shells (`OriginalShell` Box/Driver/Enclosure/Signal/Advanced tabs + `DriverEditorModal`), every rendered field's computed `color`, `backgroundColor`, `borderColor`, `fontWeight`, and `height` are compared directly against the matching state cell in `docs/design/field-use-cases.html#case-20` (`entered` -> `rgb(7, 130, 0)`, `calculated` -> `rgb(0, 102, 255)`, `defaulted` -> `rgb(35, 84, 143)`, `mandatory`, `empty`, `disabled`, `refusal`, `dq`, and read-only entered vs read-only calculated).
+2. **Cursor E Proof on Non-Entered Fields:**
+   - Focusing a calculated (`#06f`) or defaulted (`#23548f`) writable field (`Vb`, `Fb`, or an auto-calculated EBP/Qts field) and inspecting the active digit at both blink phases (`0%` inverse `#1868c9`/`#fff` and `100%` normal `rgb(0, 102, 255)` / `rgb(35, 84, 143)`) proves the normal phase retains the field's provenance colour and does not paint a double glyph or turn green.
+
+---
+
+## 7. How a Second Independent Reviewer Should Audit the Branch
+
+When the implementation agent reports a step or the branch ready for check, the second independent reviewer (Argon code/work audit) should execute this exact verification protocol:
+
+1. **Zero Escape-Hatch Audit (No Unwrapped Controls):**
+   - Run a browser query across every tab of `OriginalShell` (`Box`, `Driver`, `Enclosure` in `closed`/`vented`/`pr`/`bandpass4`/`bandpass6`/`abc`, `Signal`, `Advanced`, `Project`), `MobileShell` + `MobileSheet`, `DriverEditorModal` (`General`, `Parameters`, `Derived`), and `SettingsModal`:
+     ```js
+     [...document.querySelectorAll('input, select, textarea, .num-readout, .mob-readonly')]
+       .filter(el => el.offsetParent !== null && !el.closest('[data-field][data-appearance-id]'))
+     ```
+   - **Pass criterion:** Returns `[]` (zero unwrapped controls). Every control must trace to one of the 62 `FIELD_APPEARANCES` entries.
+2. **Non-Circular Cross-Page Visual Audit Against `field-use-cases.html`:**
+   - Verify that `field-renditions.browser.spec.ts` loads `docs/design/field-use-cases.html` as the oracle and compares **live application controls** (not just `FieldCatalogue.vue`) across **all 8 editor kinds** (`Number`, `Count`, `Choice`, `Text`, `Multiline`, `Date`, `Boolean`, `BugToggle`) and **all 8 Case 20 states**.
+3. **Subpixel & Double-Glyph Inspection on Cursor E:**
+   - Inspect `NumInput.vue` and `field-catalogue.css` to confirm the underlying `<input>` text is not painted beneath `.num-mark-overlay` (no double anti-aliasing halo) and that `@keyframes spin-inverse-blink` does not hardcode `#078200`.
+4. **Behavioural State-Machine Matrix Audit:**
+   - Verify automated browser tests exist and pass for:
+     - Caret at every character boundary (before sign, between sign and first digit, between digits, before `.`, after `.`, after final digit, after trailing zero).
+     - Focus transfer `input -> spinner` and `blur -> spinner click` preserving remembered digit (`lastCaret` / `lastStep`).
+     - Unit toggle while focused and while blurred with a remembered caret (verifying `lastCaret`/`lastStep` are remapped or cleared, never indexing stale character offsets).
+     - Strict floor refusal (`Qms 0.[1]00 ↓` refused, `0.100` remains stored, `↑` recovers; Advanced air fields respecting physical floors even when `allowOutOfRange` is set).
+     - Mobile tap-to-edit collapsed caret + `1500ms` `StepperPin` hold on blur.
+5. **Layout & Overflow Gate Audit:**
+   - Run `bash scripts/quiet-test.sh bash scripts/test.sh packages/ui/test/ui/original-shell-layout.browser.spec.ts` across all 6 enclosure types (`closed`, `vented`, `pr`, `bandpass4`, `bandpass6`, `abc`) at `1600×900`, `1600×400`, `1366×768`, and mobile `390×844`, confirming zero horizontal or vertical overflow (`scrollWidth <= clientWidth`, `scrollHeight <= clientHeight`, pane height `< 240px`) and zero clipped popovers (`refusal`, `DQ`, `≠W`).

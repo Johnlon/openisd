@@ -6,7 +6,7 @@
  * Tested against a fake AudioContext — we can assert node creation, frequency, and
  * start/stop, but NOT audible output (a real limitation, not a claim of sound).
  */
-import {beforeEach, describe, it} from 'vitest';
+import {beforeEach, describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
 import {createToneGenerator} from '../../src/logic/toneGenerator.js';
 
@@ -61,6 +61,59 @@ describe('tone generator', () => {
     t.start(40);
     t.stop();
     assert.equal(ctx.oscs[0].stopped, true);
+    assert.equal(t.playing(), false);
+  });
+
+  it('starts only after a suspended context resumes', async () => {
+    let finishResume!: () => void;
+    ctx.state = 'suspended';
+    ctx.resume = () => new Promise<void>(resolve => { finishResume = () => { ctx.state = 'running'; resolve(); }; });
+    const t = make();
+
+    t.start(77);
+    assert.equal(ctx.oscs.length, 0);
+    finishResume();
+    await Promise.resolve();
+
+    assert.equal(ctx.oscs.length, 1);
+    assert.equal(ctx.oscs[0]?.frequency.value, 77);
+    assert.equal(t.playing(), true);
+  });
+
+  it('does not start after Generate is unchecked while resume is pending', async () => {
+    let finishResume!: () => void;
+    ctx.state = 'suspended';
+    ctx.resume = () => new Promise<void>(resolve => { finishResume = () => { ctx.state = 'running'; resolve(); }; });
+    const t = make();
+
+    t.start(77);
+    t.stop();
+    finishResume();
+    await Promise.resolve();
+
+    assert.equal(ctx.oscs.length, 0, 'the unchecked signal must not start when the context finishes resuming');
+    assert.equal(t.playing(), false);
+  });
+
+  it('uses the browser AudioContext when no factory is supplied', () => {
+    vi.stubGlobal('AudioContext', FakeCtx);
+    const t = createToneGenerator();
+    t.start(220);
+    assert.equal(t.playing(), true);
+  });
+
+  it('ignores retunes and resume requests before a context exists, and contains resume failures', async () => {
+    const t = make();
+    t.setFrequency(440);
+    t.resume();
+    ctx.state = 'suspended';
+    ctx.resume = () => Promise.reject(new Error('audio is unavailable'));
+
+    t.start(440);
+    t.resume();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    assert.equal(ctx.oscs.length, 0);
     assert.equal(t.playing(), false);
   });
 });

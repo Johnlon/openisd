@@ -25,6 +25,7 @@ loops until a command passes; it never decides.
 | `locked`    | files the `done_test` depends on, each with a sha256; any change refuses the landing |
 | `files`     | glob allowlist (`:(glob)` semantics: `**` crosses directories, `*` does not) |
 | `label`     | optional; `fixes` lets a landing pass an open fixes task                 |
+| `gates_approved` | optional; `QO<n>`: board item John has answered, lets a landing change a `GATE_FILES` file |
 
 Open tasks may overlap; claimed tasks may not (checked at claim).
 
@@ -108,6 +109,7 @@ admit slots, matt restore) are derived from a single runtime root
 they must never both be live at once.
 `POST_LAND_DEADLINE_S` (default 5400): a post-land run past it has its process group killed and is recorded red ("TIMED OUT").
 `HEALTH_RED_MAX_MIN` (default 120): land.sh prints a health line and refuses `red-main` when main is red and the last green is older than this, unless the task has `label: fixes`.
+`GATE_FILES` (land.conf): land.sh refuses `gates` when the diff touches one of these globs (coverage scripts, vitest, eslint, tsconfig, suite.yml) unless the task has `gates_approved: QO<n>` and board item QO<n> (`QUESTIONS_FILE`) has a thread entry `by: John`.
 
 ## Integrating a branch
 
@@ -116,7 +118,9 @@ A branch that did not go through `land.sh` (agy, opencode) reaches main only by
 into a fresh worktree of origin/main, refuses if a test file the branch added or changed is deleted or
 red (`branch-tests`), runs lint, typecheck and the unit half, runs the stored-data corpus and the
 schemagen proof when the merge touches the schema, `projectRepo`, a loader or `driver_type`, then
-pushes and starts post-land. Exit 0 integrated, 1 refused (names the gate), 2 cannot start, 3
+pushes the candidate to `land/<id>-integrated` and waits for the green GitHub Actions run on it (the
+same `candidate` gate as `land.sh`, `scripts/land/core/candidate.sh`; refused if red or unset, whatever
+the label), and only then pushes main and starts post-land. Exit 0 integrated, 1 refused (names the gate), 2 cannot start, 3
 conflict: the paths are in `tasks/<id>.yml` under `blocked:`, the worktree stays for a hand
 resolution (never `--ours`/`--theirs`).
 
@@ -137,7 +141,8 @@ resolution (never `--ours`/`--theirs`).
   kept for going back (one line in `land.conf`);
 - green: records the sha as the last green and prints `post-land: green at <sha>`. It closes every open
   F whose red commits are all in that sha's history (an infra F, with no sha, is left alone) and pushes
-  the close to main. A release is the GitHub Pages deploy on every push to main (`deploy.yml` triggers on main);
+  the close to main. A main snapshot deploys test and snapshots only; production requires the explicit
+  `publish_production=true` release dispatch with an expected build ID;
 - red: pushes `tasks/fixes/F<n>.yml` (`status: open`, the sha, the failing specs from the run's failed
   jobs, the failing screens' before/after page, the run link, and every commit since the last green)
   to main. `land.sh` then refuses every landing except one labelled `fixes`.
@@ -155,6 +160,6 @@ No hook runs a test suite. `--no-verify` only on John's word, per commit.
 ## Driver snapshot
 
 - Tests and builds never read the live driver db (`../winisd_drivers`). The committed bundle (`packages/ui/public/drivers/**`, `drivers-index.json`, `passive-radiators-index.json`) and the three fixtures in `packages/design/test/fixtures/driver-snapshot/` are the pinned snapshot.
-- `scripts/driver-snapshot.pin` records the winisd_drivers commit and the sha256 of every fixture and of the bundle; `packages/design/test/scripts/driver-snapshot-pin.test.ts` fails on drift.
-- `scripts/sync-driver-snapshot.sh` is the only reader of the live db. It refuses a dirty or non-git checkout.
-- Bump the pin: run it on a clean winisd_drivers and commit everything it changed.
+- `scripts/driver-snapshot.pin` records the winisd_drivers snapshot commit and the sha256 of every fixture and of the bundle; `packages/design/test/scripts/driver-snapshot-pin.test.ts` fails on drift.
+- `scripts/sync-driver-snapshot.sh` reads only committed `winisd_drivers/snapshot/datasheets`. Scraper work elsewhere in that repository does not affect the OpenISD bundle; edits or untracked files inside the snapshot are refused until committed. Pass repeated `--only-record brand/sku` options for a narrow refresh; omit them for a full snapshot rebuild.
+- Bump the pin: commit the intended snapshot in winisd_drivers, then run the sync script and commit the resulting OpenISD bundle and pin.

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {WinIsdDriverConverter, openIsdDriverToWinIsdDriver} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter, openIsdDriverToWinIsdDriver} from '../../domain/driverRecordConverter.js';
 import {wdrDriverDiffs, oidDriverDiffs, textRoundTripDiff, jsonRoundTripDiffs} from '../../domain/driverRoundTripDiffs.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {createEngine} from '../../engine/Engine.js';
@@ -72,8 +72,8 @@ function driverOf(wdr: string): OpenISDDriver {
 describe('WinISD driver diffs', () => {
   describe('the diff primitives — each mismatch arm exercised directly, per their own doc comments', () => {
     it('wdrDriverDiffs reports a snapshot mismatch between two different real .wdr outputs', () => {
-      const a = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
-      const b = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
+      const a = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const b = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
       assert.ok(a.wdr !== null && b.wdr !== null, 'both fixtures must produce a .wdr, or this proves nothing');
 
       const wa = WinISDDriver.fromWdrIni(a.wdr);
@@ -87,8 +87,8 @@ describe('WinISD driver diffs', () => {
 
     it('oidDriverDiffs reports a snapshot mismatch between two different real OpenISD drivers', () => {
       const engine = createEngine();
-      const daytonParsed = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
-      const scanspeakParsed = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
+      const daytonParsed = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const scanspeakParsed = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
       assert.ok(daytonParsed.openisd !== null && scanspeakParsed.openisd !== null);
 
       const daytonRecord: unknown = JSON.parse(daytonParsed.openisd);
@@ -115,7 +115,7 @@ describe('WinISD driver diffs', () => {
       // A real .wdr's rows, but built with an empty header object — `headerField()` then returns
       // `undefined` for brand/model/manufacturer/providedBy/comment/dateAdded, forcing the `?? ""`
       // fallback in `wdrDriverSnapshotJson` rather than a hand-built header disagreeing by design.
-      const { wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const { wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
       assert.ok(wdr !== null);
       const real = WinISDDriver.fromWdrIni(wdr);
       const noHeader = WinISDDriver.build({}, real.rows(), []);

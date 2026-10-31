@@ -111,26 +111,18 @@ test.describe('Original Advanced tab', () => {
       expect(await firstChartTable(page)).toBe(calculated);
     });
 
-    test('air constants and calculated readouts use two columns', async ({ appPage: page }) => {
-      const positions = await page.locator('.adv-air-fields .field').evaluateAll(fields =>
-        fields.map(field => ({
-          label: field.querySelector('label')?.textContent?.trim(),
-          left: Math.round(field.getBoundingClientRect().left),
-          top: Math.round(field.getBoundingClientRect().top),
-        })),
-      );
-
-      const left = positions.filter(field => ['Temperature', 'Relative humidity', 'Air pressure'].includes(field.label ?? ''));
-      const right = positions.filter(field => ['Sound velocity', 'Air density'].includes(field.label ?? ''));
-
-      expect(new Set(left.map(field => field.left)).size).toBe(1);
-      expect(new Set(right.map(field => field.left)).size).toBe(1);
-      expect(right[0]!.left).toBeGreaterThan(left[0]!.left);
-      expect(right.find(field => field.label === 'Sound velocity')!.top)
-        .toBe(left.find(field => field.label === 'Temperature')!.top);
-      expect(right.find(field => field.label === 'Air density')!.top)
-        .toBe(left.find(field => field.label === 'Relative humidity')!.top);
-      expect(Math.max(...positions.map(field => field.top)) - Math.min(...positions.map(field => field.top))).toBeLessThan(180);
+    test('air constants and calculated readouts occupy two aligned columns', async ({ appPage: page }) => {
+      // Two columns need the room of a wide window; a narrow pane wraps the calculated column under the entered one (BUG_20261031).
+      await page.setViewportSize({width: 1920, height: 1080});
+      const positions = await page.locator('.adv-air-fields .field').evaluateAll(fields => fields.map(field => {
+        const rect=field.getBoundingClientRect();return {left:rect.left,top:rect.top,bottom:rect.bottom};
+      }));
+      expect(positions).toHaveLength(5);
+      expect(new Set(positions.slice(0,3).map(field=>field.left)).size).toBe(1);
+      expect(positions[3]!.left).toBeGreaterThan(positions[0]!.left);
+      expect(positions[4]!.left).toBe(positions[3]!.left);
+      expect(positions[3]!.top).toBe(positions[0]!.top);
+      expect(positions[4]!.top).toBe(positions[1]!.top);
     });
 
     test('a project\'s stored temperature, humidity and pressure are shown, not blank', async ({ appPage: page }) => {
@@ -394,13 +386,10 @@ test.describe('Original Advanced tab', () => {
       await expect(page.locator('.tab-section.active')).not.toContainText('WinISD Compatibility');
     });
 
-    test('Advanced layout: the air readout column sits 16 px from the air-constant column', async ({ appPage: page }) => {
-      const rows = page.locator('.adv-air-fields .field-row');
-      const leftRight = Math.max(...await Promise.all([0, 1, 2].map(async i => {
-        const b = (await rows.nth(i).boundingBox())!; return b.x + b.width;
-      })));
-      const rightLeft = (await rows.nth(3).boundingBox())!.x;
-      expect(Math.round(rightLeft - leftRight)).toBe(16);
+    test('Advanced layout: simulation options have a clear gap beside the environment', async ({ appPage: page }) => {
+      const environment=(await page.locator('.adv-air-fields').boundingBox())!;
+      const options=(await page.locator('.checkbox-col').boundingBox())!;
+      expect(options.x-environment.x-environment.width).toBeGreaterThanOrEqual(8);
     });
 
     test('"Re without Rg" switches the VA chart and the power readout between WinISD\'s Re and the amplifier\'s Re + Rg (BUG_20260927)', async ({ appPage: page }) => {
@@ -557,10 +546,24 @@ test.describe('Original Advanced tab', () => {
       });
     }
 
-    // T390: the ≠W cue by the transmission-line tickbox and the "TL port without end correction"
-    // switch pushed the panel past the right edge of a 1440×900 window.
-    test('at 1440×900 on a vented box the whole Advanced tab fits: no sideways scroll, no switch cut off', async ({ appPage: page }) => {
-      await page.setViewportSize({width: 1440, height: 900});
+    // BUG_20261031: T607's wider air rows pushed the Advanced tab to 1225 px wide; it scrolled sideways below 1600.
+    for (const [width, height] of [[1280, 800], [1366, 768]] as const) {
+      test(`the Advanced tab fits at ${width}x${height} with no sideways scroll and the switch groups side by side`, async ({ appPage: page }) => {
+        await page.setViewportSize({width, height});
+        const pane = page.locator('.tab-section.active');
+        const [scroll, client] = await pane.evaluate(el => [el.scrollWidth, el.clientWidth]);
+        expect(scroll, `pane scrolls sideways at ${width}x${height}`).toBeLessThanOrEqual(client);
+        const options = (await page.locator('.option-switch-group').boundingBox())!;
+        const bugs = (await page.locator('.error-switch-group').boundingBox())!;
+        expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
+        expect(Math.abs(bugs.y - options.y)).toBeLessThanOrEqual(1);
+      });
+    }
+
+    // Keep the T390 cue/switch containment check at the wide viewport required by
+    // John's28Oct fixed column order; narrower panes are exercised below.
+    test('at 1600×900 on a vented box the whole Advanced tab fits: no sideways scroll, no switch cut off', async ({ appPage: page }) => {
+      await page.setViewportSize({width: 1600, height: 900});
       await showAdvancedOn(page, 'vented');
       await expect(page.locator('label[data-field-key="tlPortModel"] .winisd-deviation-cue')).toBeVisible();
       const pane = page.locator('.tab-section.active');
@@ -575,8 +578,8 @@ test.describe('Original Advanced tab', () => {
       }
     });
 
-    test('BUG_20261019: on the desktop Advanced tab at 1280×800 and 1600×900, every switch in "Enable WinISD bugs" is fully inside the panel without clipping or new scrollbars', async ({ appPage: page }) => {
-      for (const [width, height] of [[1280, 800], [1600, 900]] as const) {
+    test('BUG_20261019: on the desktop Advanced tab at 1600×900 and 1920×1080, every switch in "Enable WinISD bugs" is fully inside the panel without clipping or new scrollbars', async ({ appPage: page }) => {
+      for (const [width, height] of [[1600, 900], [1920, 1080]] as const) {
         await page.setViewportSize({width, height});
         await showAdvancedOn(page, 'vented');
         const pane = page.locator('.tab-section.active');
@@ -585,7 +588,7 @@ test.describe('Original Advanced tab', () => {
         expect(scrollH, `at ${width}x${height} pane scrolls vertically`).toBeLessThanOrEqual(clientH);
         // Every tab shares one panel, as deep as its minimum or the tallest tab: the Advanced tab must not deepen it.
         const [advancedH, panelFloorH] = await page.locator('.content-panel').evaluate(panel => {
-          const contentH = (section: Element) => Math.max(0, ...[...section.children].map(c => c.getBoundingClientRect().bottom - section.getBoundingClientRect().top));
+          const contentH = (section: Element) => Math.max(0, ...[...section.children].map(c => c.getBoundingClientRect().bottom + parseFloat(getComputedStyle(c).marginBottom) - section.getBoundingClientRect().top));
           const sections = [...panel.querySelectorAll('.content-tabs > .tab-section')];
           const isActive = (s: Element) => s.classList.contains('active');
           const css = getComputedStyle(panel);
@@ -719,4 +722,59 @@ test.describe('Original Advanced tab', () => {
       await expect(label).not.toHaveClass(/error-switch-na/);
     });
   });
+});
+
+test('desktop environment labels retain their production single-line form at 1280px', async ({page}) => {
+  await page.setViewportSize({width:1280,height:900});
+  await page.goto('/');
+  await openAProject(page);
+  await page.locator('.project-nav li', {hasText:'Advanced'}).click();
+  const labels = await page.locator('.adv-air-fields .ui-field-label').evaluateAll(labels => labels.map(label => {
+    const text = document.createRange(); text.selectNodeContents(label);
+    const canvas=document.createElement('canvas').getContext('2d');if(canvas===null)throw new Error('No canvas');canvas.font=getComputedStyle(label).font;
+    return {label:label.textContent, width:label.getBoundingClientRect().width, textWidth:canvas.measureText(label.textContent??'').width, font:canvas.font, lines:new Set([...text.getClientRects()].map(rect => Math.round(rect.top))).size};
+  }));
+  expect(labels).toHaveLength(5);
+  expect(labels.filter(label => label.lines !== 1)).toEqual([]);
+});
+
+
+test('environment boxes and unit columns align within each air column', async ({appPage: page}) => {
+  const geometry = await page.locator('.adv-air-fields .ui-field').evaluateAll(rows => rows.map(row => {
+    const input = row.querySelector('input')!.getBoundingClientRect();
+    const unit = row.querySelector('.ui-field-unit')!.getBoundingClientRect();
+    return {width:input.width, unitOffset:unit.left-input.left};
+  }));
+  expect(geometry).toHaveLength(5);
+  for (const row of geometry.slice(0,3)) expect(row).toEqual(geometry[0]);
+  for (const row of geometry.slice(3)) expect(row).toEqual(geometry[3]);
+  expect(geometry[3]!.width).toBeLessThan(geometry[0]!.width);
+});
+
+test('simulation options occupy column three before compatibility groups', async ({appPage: page}) => {
+  const air = (await page.locator('.adv-air-fields').boundingBox())!;
+  const options = (await page.locator('.adv-options').boundingBox())!;
+  const bugs = (await page.locator('.error-switch-group').boundingBox())!;
+  expect(options.x).toBeGreaterThanOrEqual(air.x + air.width);
+  expect(Math.abs(options.y-air.y)).toBeLessThanOrEqual(1);
+  expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
+  expect(bugs.x).toBeGreaterThanOrEqual(air.x + air.width);
+});
+
+
+// John,28Oct: air inputs, calculated air, standard checkboxes, then compatibility.
+// Preserve these columns in narrow panes; verify every switch can be scrolled into view.
+for (const width of [1280,1440]) test(`Advanced columns remain accessible at ${width}px`, async ({appPage:page}) => {
+ await page.setViewportSize({width,height:800});
+ const pane=page.locator('.tab-section.active');
+ for(const label of await page.locator('.error-switch-group label[data-field-key]').all()) {
+  await label.scrollIntoViewIfNeeded();
+  const p=(await pane.boundingBox())!,r=(await label.boundingBox())!;
+  expect(r.x).toBeGreaterThanOrEqual(p.x);
+  // Scroll offsets round to whole CSS pixels; allow subpixel edge rounding.
+  expect(r.x+r.width).toBeLessThanOrEqual(p.x+p.width+1);
+  expect(r.y+r.height).toBeLessThanOrEqual(p.y+p.height);
+ }
+ const vertical=await pane.evaluate(el=>({scroll:el.scrollHeight,client:el.clientHeight}));
+ expect(vertical.scroll).toBeLessThanOrEqual(vertical.client);
 });

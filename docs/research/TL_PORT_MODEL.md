@@ -57,7 +57,7 @@ WinISD's pipe drops the end correction, so its low-frequency mass is smaller tha
 Map. Ticking the box moves the tuning up by about 1.1 Hz on this project (impedance minimum
 39.13 Hz to 40.26 Hz), while the Box tab still shows Fb 38 Hz. A real port's mouth mass (the end
 correction) does not disappear when you model the duct as a pipe. Recorded as
-`bugs/BUG_20261018_winisd-tl-port-no-end-correction.md`.
+`bugs/archive/BUG_20261018_winisd-tl-port-no-end-correction.md`.
 
 ## OpenISD
 
@@ -81,7 +81,7 @@ correction) does not disappear when you model the duct as a pipe. Recorded as
 
 Result: the leftover is an OpenISD fault, not a WinISD difference. WinISD uses the same tan form
 with or without losses. OpenISD's `lossless` branch (Ql and Qa both >= 1e6, `engine/circuit.ts`
-`loss`) does not. Bug: `bugs/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md`.
+`loss`) does not. Bug: `bugs/archive/BUG_20261018_tl-port-lossless-branch-not-winisd-form.md`.
 
 Setup: `runs/vented-w5-tlports-lossless` (Ql = Qa = 1e6, Qp 15, TL on) against OpenISD with the
 yellow no-end-correction switch on, on WinISD's own 2087-point grid; same probe on

@@ -31,12 +31,12 @@ export type SheetSlot =
   | 'prAddedMass' | 'prCount' | 'driverFs' | 'driverQes' | 'driverQms' | 'driverVas' | 'driverCount' | 'inputPower';
 
 export class SheetField {
-  static readonly BOX_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Box volume', 'Box volume');
-  static readonly REAR_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Rear volume', 'Rear volume');
-  static readonly FRONT_VOLUME = new SheetField('frontVolume', NumberField.BOX_VF_L, 'Front volume', 'Front volume');
-  static readonly TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Tuning (Fb)', 'Tuning');
-  static readonly FRONT_TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Front tuning', 'Front tuning');
-  static readonly REAR_TUNING = new SheetField('rearTuning', NumberField.BOX_FRC_HZ, 'Rear tuning', 'Rear tuning');
+  static readonly BOX_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Box volume', 'Box volume', null, 'Vb');
+  static readonly REAR_VOLUME = new SheetField('volume', NumberField.BOX_VB_L, 'Rear volume', 'Rear volume', null, 'Vb');
+  static readonly FRONT_VOLUME = new SheetField('frontVolume', NumberField.BOX_VF_L, 'Front volume', 'Front volume', null, 'Vf');
+  static readonly TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Tuning (Fb)', 'Tuning', null, 'Fb');
+  static readonly FRONT_TUNING = new SheetField('ventTuning', NumberField.BOX_FB_HZ, 'Front tuning', 'Front tuning', null, 'Front Fb');
+  static readonly REAR_TUNING = new SheetField('rearTuning', NumberField.BOX_FRC_HZ, 'Rear tuning', 'Rear tuning', null, 'Rear Fb');
   /** One port's cross-sectional area, whatever its shape; its length follows the tuning. Tapping the
    *  value opens that port's own fields (`portTitle`). */
   static readonly PORT_AREA = new SheetField('ventArea', NumberField.VENT_CROSSAREA_M2, 'Port area', 'Port area', 'Port');
@@ -70,6 +70,8 @@ export class SheetField {
     readonly tuneLabel: string,
     /** The name of the port this row's value opens the fields of; null for every other row. */
     readonly portTitle: string | null = null,
+    /** Compact label for the desktop What-if panel; defaults to the row's full label. */
+    readonly whatIfLabel: string | null = null,
   ) {}
 
   /** The sheet rows for a box of `type`, in the order shown: the box first, then the signal,

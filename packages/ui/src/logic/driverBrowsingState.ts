@@ -1,5 +1,5 @@
 import {computed, type ComputedRef, type Ref, ref, shallowRef, watch} from 'vue';
-import type {OpenISDDriver} from '@openisd/design';
+import type {OpenISDDriverStandalone} from '@openisd/design';
 import {Chip, DriverType} from '@openisd/design/filter';
 import type {PresentationState} from './presentationState.js';
 import {readDriverFileText} from './driverFileText.js';
@@ -37,7 +37,7 @@ import type {AppState} from './appState.js';
 /** A My Drivers row: the storage uuid this repo minted (the delete/edit handle) plus the driver
  *  itself. The uuid is NOT on the driver — it is the key into the saved-driver map, assigned only
  *  when a driver is in that list. */
-export interface MyDriverRow { uuid: string; driver: OpenISDDriver }
+export interface MyDriverRow { uuid: string; driver: OpenISDDriverStandalone }
 
 /** The preview pane's view of one driver. Built from the driver's own accessors — no record
  *  data, no `FileEntry` wrapper. */
@@ -58,11 +58,11 @@ export interface PreviewVM {
 
 /** A driver's canonical record UUID for the favourites set and the list `v-for` key. Editing a
  *  driver keeps its identity; an explicit copy or a file import mints a new one. */
-function driverId(d: OpenISDDriver): string {
+function driverId(d: OpenISDDriverStandalone): string {
   return d.uuid();
 }
 
-function previewVMOf(d: OpenISDDriver): PreviewVM {
+function previewVMOf(d: OpenISDDriverStandalone): PreviewVM {
   const links: Array<{ href: string; label: string }> = [];
   const ds = d.dataSource('manufacturer_datasheet');
   const pp = d.dataSource('manufacturer_product_page');
@@ -139,7 +139,7 @@ export interface DriverBrowsingState {
   isFavorite(uuid: string): boolean;
   toggleFavorite(uuid: string): void;
   toggleFavoritesOnly(): void;
-  driverId(d: OpenISDDriver): string;
+  driverId(d: OpenISDDriverStandalone): string;
   driverScope: ComputedRef<DriverScope>;
   cycleDriverScope(): void;
   filteredDrivers: ComputedRef<readonly BundledDriverIndexRow[]>;
@@ -154,28 +154,30 @@ export interface DriverBrowsingState {
   deleteAllMyDrivers(): void;
   removeBrokenEntry(key: number): void;
   filteredMyDrivers: ComputedRef<MyDriverRow[]>;
-  displayNameOf(d: OpenISDDriver): string;
-  editMyDriver(d: OpenISDDriver, uuid?: string): void;
-  editOverviewDriver(d: OpenISDDriver): Promise<{ ok: boolean; error?: string }>;
+  displayNameOf(d: OpenISDDriverStandalone): string;
+  editMyDriver(d: OpenISDDriverStandalone, uuid?: string): void;
+  editOverviewDriver(d: OpenISDDriverStandalone): Promise<{ ok: boolean; error?: string }>;
   reloadMyDrivers(): void;
   deleteMyDriver(uuid: string): void;
   clearMyDrivers(): Promise<void>;
-  previewDriver: Ref<OpenISDDriver | null>;
+  projectInfoOpen: Ref<boolean>;
+  showProjectDriverInfo(): void;
+  previewDriver: Ref<OpenISDDriverStandalone | null>;
   previewData: ComputedRef<PreviewVM | null>;
   /** Preview a domain object — a My Drivers row — or clear the preview with null. */
-  pickDriver(d: OpenISDDriver | null): void;
+  pickDriver(d: OpenISDDriverStandalone | null): void;
   /** Preview a bundled row: its record is loaded through the repo (cached after the first
    *  time), then previewed. A load that fails lands in `statusMsg`. */
   pickBundledDriver(row: BundledDriverIndexRow): Promise<void>;
-  chooseDriver(d: OpenISDDriver): Promise<void>;
+  chooseDriver(d: OpenISDDriverStandalone): Promise<void>;
   /** The library is rendered inline by the New Project wizard — every "Use" hands the driver
    *  to `cb` instead of embedding it in a project, until `closeLibrary()`. */
-  embedLibrary(cb: (d: OpenISDDriver) => void): void;
+  embedLibrary(cb: (d: OpenISDDriverStandalone) => void): void;
   loadFromDisk(e: Event): void;
-  cloneDriver(d: OpenISDDriver): void;
+  cloneDriver(d: OpenISDDriverStandalone): void;
   openedLibrary(): void;
   closeLibrary(): void;
-  driverHasDqIssues: (d: OpenISDDriver) => boolean;
+  driverHasDqIssues: (d: OpenISDDriverStandalone) => boolean;
 }
 
 export interface DriverBrowsingStateDeps {
@@ -198,7 +200,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const { focusedProject, newProjectDriver } = deps.appState;
   const presentationState = deps.presentation;
 
-  // `shallowRef`, not `ref`: `myDrivers` holds `OpenISDDriver` — a class with `#private` fields —
+  // `shallowRef`, not `ref`: `myDrivers` holds `OpenISDDriverStandalone` — a class with `#private` fields —
   // and Vue's deep `UnwrapRef` mapped type loses that field's nominal branding while unwrapping.
   // Every write here replaces the whole array (never mutates a nested field in place), so shallow
   // reactivity loses nothing; the index rows get the same treatment for the same reason.
@@ -220,14 +222,15 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const myDriversRead = shallowRef<MyDriversRead>({ kind: 'ok', drivers: [], broken: [] });
   /** True once the user has exported the raw bucket this session — the Delete challenge. */
   const exportedThisSession = ref(false);
-  const previewDriver = shallowRef<OpenISDDriver | null>(null);
+  const previewDriver = shallowRef<OpenISDDriverStandalone | null>(null);
+  const projectInfoOpen = ref(false);
 
   // When set, "Use" hands the chosen driver to this callback instead of embedding it in the
   // focused project — the New Project wizard's driver step, where the library is rendered
   // inline and there is no project yet (FIX_WIZARD_SEALED Q1). It stays set until the host
   // calls `closeLibrary()`, so the user can Use, look again, and Use a different driver.
   // Per-composable-instance, not module scope.
-  let onChoose: ((d: OpenISDDriver) => void) | null = null;
+  let onChoose: ((d: OpenISDDriverStandalone) => void) | null = null;
 
   const favorites = ref<string[]>(prefs.favorites());
   const favoritesOnly = ref(false);   // the Favorites button: an on/off filter, like a type chip
@@ -440,7 +443,16 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const previewData = computed<PreviewVM | null>(() =>
     previewDriver.value ? previewVMOf(previewDriver.value) : null);
 
-  function pickDriver(d: OpenISDDriver | null): void { previewDriver.value = d; }
+  function pickDriver(d: OpenISDDriverStandalone | null): void { previewDriver.value = d; }
+
+  /** Read the embedded project driver directly; no catalogue lookup or replacement. */
+  function showProjectDriverInfo(): void {
+    const project = focusedProject();
+    if (project === null) return;
+    previewDriver.value = project.driver.detach();
+    projectInfoOpen.value = true;
+    presentationState.browseOpen = true;
+  }
 
   async function pickBundledDriver(row: BundledDriverIndexRow): Promise<void> {
     try {
@@ -457,7 +469,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   // Choosing a driver COPIES it into the project and closes the picker (docs/design/STATE_MODEL.md) —
   // the user lands back in the project, not in an editor.
 
-  async function chooseDriver(d: OpenISDDriver): Promise<void> {
+  async function chooseDriver(d: OpenISDDriverStandalone): Promise<void> {
     statusErr.value = false;
     // New Project wizard's driver step: no project to embed into — hand the driver back and
     // let the wizard build the project. `d.detach()` so the wizard owns an independent copy,
@@ -484,7 +496,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   /** The library is being rendered inline by the New Project wizard: every "Use" calls `cb`
    *  with the chosen driver (a detached copy) instead of embedding it in a project, until the
    *  wizard calls `closeLibrary()`. The overlay picker is not opened. */
-  function embedLibrary(cb: (d: OpenISDDriver) => void): void {
+  function embedLibrary(cb: (d: OpenISDDriverStandalone) => void): void {
     onChoose = cb;
   }
 
@@ -532,9 +544,9 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
    * copy stands beside its source rather than replacing it. The copy is DETACHED — it shares
    * no state with the driver it came from.
    */
-  function cloneDriver(d: OpenISDDriver): void {
+  function cloneDriver(d: OpenISDDriverStandalone): void {
     const copy = d.detach();
-    copy.renameToCopy();
+    copy.renameToCopy(() => deps.appState.appContext.newId());
     const saved = myDriverRepo.upsert(copy);
     reloadMyDrivers();
     if (!saved) {
@@ -551,13 +563,21 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   /** Closing the picker: the preview resets, and any pending wizard handoff is dropped —
    *  cancelling the picker cancels that step of the wizard. */
   function closeLibrary(): void {
+    projectInfoOpen.value = false;
     previewDriver.value = null;
     onChoose = null;
     presentationState.browseOpen = false;
   }
 
+  // Other project actions can also close the overlay. Clear its route synchronously so
+  // an immediate Select driver open cannot retain the information-only mode.
+  watch(() => presentationState.browseOpen, open => {
+    if (!open) closeLibrary();
+  }, {flush: 'sync'});
+
   /** Opening the picker: build the pool once, and refresh the user's saved drivers. */
   function openedLibrary(): void {
+    if (projectInfoOpen.value) return;
     void init();
     reloadMyDrivers();
   }
@@ -587,7 +607,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // preview + selection
-    previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, embedLibrary, loadFromDisk, cloneDriver,
+    projectInfoOpen, showProjectDriverInfo, previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, embedLibrary, loadFromDisk, cloneDriver,
     // lifecycle
     openedLibrary, closeLibrary,
     // DQ

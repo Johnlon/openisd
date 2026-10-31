@@ -1,0 +1,20 @@
+id: T608
+release_note: Test and production refresh and announcements endpoints.
+repo: openisd
+owner: codex
+status: done
+landed: 7e2fe0305f2cbf6f50d655e54719e2a54b197bdb
+goal: The app MUST fetch and review announcements from the matching test or production service, and each service MUST provide a no-store refresh link, when a user opens the app or its recovery URL.
+done_test: bash scripts/test.sh packages/ui/test/logic/announcementCenter.test.ts && bash scripts/quiet-test.sh node --test cloudflare/announcements/test/worker.test.mjs && bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T608.yml
+  - packages/ui/src/logic/announcementCenter.ts
+  - packages/ui/src/main.ts
+  - packages/ui/src/ui/components/AnnouncementsModal.vue
+  - packages/ui/test/logic/announcementCenter.test.ts
+  - packages/ui/test/ui/announcements.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - cloudflare/announcements/src/index.js
+  - cloudflare/announcements/test/worker.test.mjs
+  - cloudflare/announcements/wrangler.production.toml
+  - cloudflare/announcements/README.md

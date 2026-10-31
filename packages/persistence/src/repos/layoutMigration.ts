@@ -16,7 +16,7 @@ export interface LayoutStep {
 }
 
 /** The layout a build writes, and the steps that bring an older store up to it. The composition
- *  root builds the app's from `STORAGE_LAYOUT` and `LAYOUT_STEPS`; a test passes its own to prove
+ *  root builds the app's from `STORAGE_LAYOUT` and `createLayoutSteps`; a test passes its own to prove
  *  the rules without a real next layout. */
 export interface LayoutRules {
   readonly layout: number;

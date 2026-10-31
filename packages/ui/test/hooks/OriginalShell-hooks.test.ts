@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {computed, ref, shallowRef} from 'vue';
 import {createApp} from 'vue';
 import {APP_LOGIC} from '../../src/logic/app.js';
@@ -6,6 +6,7 @@ import {FOCUSED_PROJECT} from '../../src/logic/focusedProjectContext.js';
 import {SplashModalKey} from '../../src/hooks/SplashModal-hooks.js';
 import {provideCloudSync} from '../../src/hooks/CloudSync-hooks.js';
 import {createCloudUiStore, createMemoryStorage} from '@openisd/persistence';
+import {DriverId, ProjectId} from '@openisd/design/cloud';
 import {testAppLogic} from './testAppLogic.js';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
@@ -28,6 +29,45 @@ function createCompleteProject() {
 }
 
 describe('OriginalShell-hooks', () => {
+  it('opens a project conflict as a project and a driver conflict in the driver browser', () => {
+    const logic = testAppLogic();
+    const project = ProjectBuilder.empty(logic.engine);
+    project.driver.specs.Fs_hz.set(40);
+    project.driver.specs.Qts.set(0.38);
+    project.driver.specs.Qes.set(0.45);
+    project.driver.specs.Vas_m3.set(0.03);
+    project.box.sealed.volume_m3.set(0.012);
+    logic.projectRepo.storeNew(project);
+    const storedProjectId = logic.projectRepo.listStoredProjects()[0]!.id;
+    const app = createApp({render: () => null});
+    app.provide(APP_LOGIC, logic);
+    app.provide(FOCUSED_PROJECT, computed(() => project));
+    app.provide(SplashModalKey, {
+      open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null),
+      dismiss: () => undefined, show: () => undefined,
+    });
+    provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
+    const shell = app.runWithContext(() => useOriginalShell());
+
+    shell.handleCloudOpenConflict(ProjectId.of(storedProjectId)!);
+    shell.handleCloudOpenConflict(DriverId.of('missing-driver')!);
+
+    expect(shell.presentationState.browseOpen).toBe(true);
+    const anchor = {href: '', download: '', click: vi.fn()};
+    vi.stubGlobal('document', {createElement: vi.fn(() => anchor)});
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
+    try {
+      shell.exportProjectsArchive();
+      expect(anchor.download).toMatch(/^openisd-projects-.*\.json$/);
+      expect(anchor.href).toBe('blob:test');
+      expect(anchor.click).toHaveBeenCalledOnce();
+      expect(createObjectUrl).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    }
+  });
+
   describe('airFieldDataQuality', () => {
     it('returns empty array when value is null', () => {
       expect(airFieldDataQuality('temperature', null)).toEqual([]);

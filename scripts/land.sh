@@ -60,6 +60,8 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 . "$CORE/task.sh"
 # shellcheck source=./land/core/gate.sh
 . "$CORE/gate.sh"
+# shellcheck source=./land/core/candidate.sh
+. "$CORE/candidate.sh"
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 
 # --self-check: every locked sha256 in tasks/*.yml matches its file (T000's done_test); nothing lands.
@@ -272,6 +274,43 @@ if [ "$(task_field "$TASK" label)" != "fixes" ]; then
   [ -z "$open_fixes" ] || refuse fixes "open fixes task: $open_fixes; land a task labelled fixes first"
 fi
 
+# 4b. gate files: John approves changes to them (30 Oct 2026, report a4 section 1.4: an agent could make a
+# coverage gate pass by editing the gate). A diff touching a GATE_FILES glob (land.conf) lands only when the
+# task carries `gates_approved: QO<n>` and that board item (QUESTIONS_FILE) has a thread entry `by: John`.
+# A separate field from `label:` so a task can be labelled fixes and also carry gates approval.
+# An unset or empty GATE_FILES refuses: deleting the list must not switch the check off.
+[ -n "${GATE_FILES:-}" ] || { GATE_OUT=/dev/null; refuse gates "GATE_FILES is not set in land.conf"; }
+# The item must name this landing's task id (a whole word in title or body), so an agent cannot cite an
+# unrelated item John once commented on.
+{
+  gate_hits="$(git diff --name-only origin/main HEAD | python3 -c '
+import fnmatch, sys
+globs = sys.argv[1:]
+for line in sys.stdin.read().split("\n"):
+    if line and any(fnmatch.fnmatchcase(line, g) for g in globs):
+        print(line)
+' $GATE_FILES | tr '\n' ' ')"
+  if [ -n "$gate_hits" ]; then
+    gates_qo="$(task_field "$TASK" gates_approved)"
+    gates_msg="gate files changed: ${gate_hits}; a gate file changed; John approves gate changes: put the change to John as a board item and add gates_approved: QO<n> to the task once he has answered"
+    [ -n "$gates_qo" ] || refuse gates "$gates_msg"
+    # exit 0 only when the item with id == $gates_qo has a thread entry by John; missing file or item fails
+    python3 - "${QUESTIONS_FILE:-}" "$gates_qo" "$ID" <<'PY' || refuse gates "$gates_msg (board item $gates_qo has no answer by John in ${QUESTIONS_FILE:-unset})"
+import re, sys, yaml
+path, qo, task_id = sys.argv[1], sys.argv[2], sys.argv[3]
+names_task = re.compile(r"(?<![A-Za-z0-9])" + re.escape(task_id) + r"(?![A-Za-z0-9])")
+with open(path) as f:
+    doc = yaml.safe_load(f)
+items = doc.get("questions", []) if isinstance(doc, dict) else doc
+for item in items or []:
+    if isinstance(item, dict) and item.get("id") == qo:
+        text = str(item.get("title", "")) + "\n" + str(item.get("body", ""))
+        sys.exit(0 if names_task.search(text) and any(isinstance(t, dict) and t.get("by") == "John" for t in item.get("thread") or []) else 1)
+sys.exit(1)
+PY
+  fi
+}
+
 # 5. the gates
 for required in ${LINT_REQUIRES:-}; do
   [ -e "$required" ] || { GATE_OUT=/dev/null; refuse lint "$required is missing in $ROOT, so lint would run with whatever tool the path finds. Create worktrees with _agent_files/bin/new-worktree.sh, which links it in."; }
@@ -333,26 +372,19 @@ fi
 # starts the Actions suite (.github/workflows/suite.yml); main is pushed only when that run is green.
 # The landing lock is held throughout, so no other landing moves main in between. CANDIDATE_CMD waits for
 # the run on HEAD and exits 0 only on green (scripts/land/post-land/actions.sh).
-[ -n "${CANDIDATE_CMD:-}" ] || { GATE_OUT=/dev/null; refuse candidate "CANDIDATE_CMD is not set in land.conf; main moves only after the full suite is green on the candidate"; }
-{
-  CANDIDATE_BRANCH="land/$ID"
-  GATE_OUT="$WORK/candidate.out"
-  net "git push of the candidate" git push -q -f origin "HEAD:refs/heads/$CANDIDATE_BRANCH" > "$GATE_OUT" 2>&1 \
-    || refuse candidate "origin rejected, or did not answer, the push of the candidate to $CANDIDATE_BRANCH"
-  echo "land: candidate $(git rev-parse --short=10 HEAD) is on $CANDIDATE_BRANCH; waiting for GitHub Actions (about 4 min)"
-  # Every landing's GitHub record: a pull request from the candidate (T331; on when land.conf sets PULL_REQUESTS).
-  if [ -n "${PULL_REQUESTS:-}" ]; then
-    goal="$(task_field "$TASK" goal)"
-    printf '%s\n\nOpened by scripts/land.sh. Its checks are the candidate gate: when they pass, land.sh moves main to this commit by a fast-forward push, and GitHub shows this pull request merged. A refused landing closes it, saying why.\n' \
-      "${goal:-$ID}" > "$WORK/pr-body.md"
-    PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$(pr_title "$ID" "$goal")" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
-      || { GATE_OUT="$WORK/pr.out"; PR_NUMBER=""; refuse pull-request "GitHub did not open the pull request for $CANDIDATE_BRANCH"; }
-    sed 's/^/land: /' "$WORK/pr.out"
-    echo "land: pull request #$PR_NUMBER: https://github.com/${ACTIONS_REPO:-}/pull/$PR_NUMBER"
-  fi
-  GATE_DEADLINE_S="${CANDIDATE_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate candidate /dev/null "$CANDIDATE_CMD"
-  grep -m1 'actions: run ' "$GATE_OUT" | sed 's/^.*actions: /land: candidate green: /'
+# Every landing's GitHub record: a pull request from the candidate (T331; on when land.conf sets PULL_REQUESTS).
+open_pull_request() {
+  [ -n "${PULL_REQUESTS:-}" ] || return 0
+  local goal
+  goal="$(task_field "$TASK" goal)"
+  printf '%s\n\nOpened by scripts/land.sh. Its checks are the candidate gate: when they pass, land.sh moves main to this commit by a fast-forward push, and GitHub shows this pull request merged. A refused landing closes it, saying why.\n' \
+    "${goal:-$ID}" > "$WORK/pr-body.md"
+  PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$(pr_title "$ID" "$goal")" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
+    || { GATE_OUT="$WORK/pr.out"; PR_NUMBER=""; refuse pull-request "GitHub did not open the pull request for $CANDIDATE_BRANCH"; }
+  sed 's/^/land: /' "$WORK/pr.out"
+  echo "land: pull request #$PR_NUMBER: https://github.com/${ACTIONS_REPO:-}/pull/$PR_NUMBER"
 }
+candidate_gate "land/$ID" open_pull_request
 
 # 6. push
 before_push="$(git rev-parse origin/main)"

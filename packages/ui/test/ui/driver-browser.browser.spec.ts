@@ -4,6 +4,73 @@ import type {Page} from '@playwright/test';
 import {MY_DRIVERS_KEY, myDriversJson, parseMyDriversBucket} from '../fixtures/seedMyDrivers.js';
 
 test.describe('Driver browser', () => {
+  test('the bundled W5-1138SMF preview shows its stated Re and BL values', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.filter').fill('W5-1138SMF');
+    const driver = page.locator('.dlist .ditem:not(.my-ditem)').filter({hasText: 'W5-1138SMF'}).first();
+    await expect(driver).toBeVisible();
+    await driver.click();
+
+    const preview = page.locator('.driver-library .preview');
+    await expect(preview).toBeVisible();
+    const specification = (label: string) => preview.locator('.spec-row').filter({
+      has: page.locator('.spec-lbl', {hasText: new RegExp(`^${label}$`)}),
+    });
+    await expect(specification('Re').locator('.spec-val b')).toHaveText('3.400');
+    await expect(specification('Re').locator('.spec-unit')).toHaveText('Ω');
+    await expect(specification('BL').locator('.spec-val b')).toHaveText('7.17000');
+    await expect(specification('BL').locator('.spec-unit')).toHaveText('Tm');
+  });
+
+  test('the selected-driver summary has a consistent inner gutter', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.dlist .ditem').first().click();
+    const preview = page.locator('.driver-library .preview');
+    await expect(preview).toBeVisible();
+    await expect(preview).toHaveCSS('padding', '12px 16px');
+  });
+
+  test('numeric values and unit labels align in each specification column', async ({page}) => {
+    await page.goto('/');
+    await openAProject(page);
+    await page.locator('[title*="librar" i]').first().click();
+    await page.locator('.dlist .ditem').first().click();
+    const preview = page.locator('.driver-library .preview');
+    await expect(preview).toBeVisible();
+
+    const alignment = await preview.evaluate(element => {
+      const columns = new Map<number, {values: number[]; units: number[]; gaps: number[]}>();
+      for (const row of element.querySelectorAll<HTMLElement>('.spec-row')) {
+        const key = Math.round(row.getBoundingClientRect().left);
+        const column = columns.get(key) ?? {values: [], units: [], gaps: []};
+        columns.set(key, column);
+        const value = row.querySelector<HTMLElement>('.spec-val b')!;
+        if (Number.isFinite(Number(value.textContent?.trim()))) column.values.push(value.getBoundingClientRect().right);
+        const unit = row.querySelector<HTMLElement>('.spec-unit');
+        if (unit && unit.textContent?.trim()) {
+          column.units.push(unit.getBoundingClientRect().left);
+          column.gaps.push(unit.getBoundingClientRect().left - value.getBoundingClientRect().right);
+        }
+      }
+      const drift = (values: number[]) => values.length ? Math.max(...values) - Math.min(...values) : 0;
+      return [...columns.values()].map(column => ({
+        valueDrift: drift(column.values),
+        unitDrift: drift(column.units),
+        minGap: Math.min(...column.gaps),
+      }));
+    });
+    expect(alignment.length).toBeGreaterThan(0);
+    for (const column of alignment) {
+      expect(column.valueDrift, 'numeric values in a spec column should share a right edge').toBeLessThanOrEqual(1);
+      expect(column.unitDrift, 'units in a spec column should share a left edge').toBeLessThanOrEqual(1);
+      expect(column.minGap, 'values and units should have visible separation').toBeGreaterThanOrEqual(4);
+    }
+  });
+
   test.describe('controls', () => {
     // ui-todo.md "Remove UI Elements" — four controls come out of the driver picker
     // (DriverBrowser.vue).

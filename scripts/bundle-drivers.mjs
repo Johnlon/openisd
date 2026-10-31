@@ -3,9 +3,10 @@
  * bundle-drivers.mjs — writes the bundled driver catalogue the app serves and fetches.
  *
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> [--force]
+ *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> --only-record <brand/sku> [--only-record ...]
  *
  * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is `--corpus <dir>` (required;
- * only scripts/sync-driver-snapshot.sh passes it, from a clean winisd_drivers checkout); each `<brand>/<sku>/openisd.json` is the canonical
+ * only scripts/sync-driver-snapshot.sh passes it, from committed winisd_drivers/snapshot/datasheets); each `<brand>/<sku>/openisd.json` is the canonical
  * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
  *
  * Outputs, all under packages/ui/public/ and all tracked in git (CI has no corpus checkout):
@@ -31,10 +32,11 @@
  * Runs under tsx (predev/prebuild) because the packages export TypeScript source.
  */
 
-import {mkdirSync, readFileSync, rmSync, statSync, writeFileSync} from 'fs';
+import {readFileSync, statSync} from 'fs';
 import {dirname, join, relative, resolve} from 'path';
 import {fileURLToPath} from 'url';
 import {isBundlable, project} from './bundleProjection.mjs';
+import {applyBundleOutputs, filesForSelectedPaths, onlyRecordPathsFromArgs} from './bundleOutputs.mjs';
 import {checkOpenisdRoundTrip} from './roundTripGate.mjs';
 import {
     bundleFingerprintOnDisk,
@@ -50,17 +52,17 @@ const RECORD_FILE = 'openisd.json';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const CORPUS = corpusArg(process.argv);
+const SELECTED_PATHS = onlyRecordPathsFromArgs(process.argv);
 const PUBLIC = join(ROOT, 'packages', 'ui', 'public');
 const DRIVER_INDEX = join(PUBLIC, 'drivers-index.json');
 const RADIATOR_INDEX = join(PUBLIC, 'passive-radiators-index.json');
-const RECORDS_DIR = join(PUBLIC, 'drivers');
 const STAMP_FILE = join(ROOT, STAMP);
 
 function corpusArg(argv) {
   const i = argv.indexOf('--corpus');
   const dir = i >= 0 ? argv[i + 1] : undefined;
   if (!dir) {
-    console.error('bundle-drivers: --corpus <dir> is required (the datasheets directory). The live driver db is read only by scripts/sync-driver-snapshot.sh; run that to refresh the bundle.');
+    console.error('bundle-drivers: --corpus <dir> is required (the snapshot datasheets directory). Run scripts/sync-driver-snapshot.sh to refresh the committed bundle from winisd_drivers/snapshot.');
     process.exit(2);
   }
   return resolve(dir);
@@ -79,16 +81,21 @@ function main() {
   const force = process.argv.includes('--force');
 
   console.log(`\nOpenISD\n  reading ${CORPUS}`);
+  if (SELECTED_PATHS.size > 0) {
+    console.log(`  selected record path(s): ${[...SELECTED_PATHS].join(', ')}`);
+  }
   let rawFiles;
   try { rawFiles = walkRecords(CORPUS); }
   catch { throw new Error(`driver source path is not checked out: ${CORPUS}`); }
   console.log(`  found ${rawFiles.length} ${RECORD_FILE} files`);
 
   const fingerprint = bundleFingerprintOnDisk(ROOT, CORPUS);
-  if (!force && bundleOutputsPresent(ROOT) && readStamp(ROOT) === fingerprint) {
+  if (SELECTED_PATHS.size === 0 && !force && bundleOutputsPresent(ROOT) && readStamp(ROOT) === fingerprint) {
     console.log(`  unchanged since the last run (build/drivers-bundle.stamp) — nothing rewritten; --force to rebuild`);
     return;
   }
+  const filesToRead = filesForSelectedPaths(rawFiles, SELECTED_PATHS, file => recordPathOf(CORPUS, file));
+  if (SELECTED_PATHS.size > 0) console.log(`  validating ${filesToRead.length} selected record(s)`);
 
   const driverRows = [];
   const radiatorRows = [];
@@ -97,7 +104,7 @@ function main() {
   const perGroup = new Map();
   const roundTripFailures = [];
 
-  for (const file of rawFiles) {
+  for (const [index, file] of filesToRead.entries()) {
     const path = recordPathOf(CORPUS, file);
     const group = path.split('/')[0];
     const record = JSON.parse(readFileSync(file, 'utf8'));
@@ -123,8 +130,8 @@ function main() {
       }
     }
 
-    if (records.length % 250 === 0 || records.length === rawFiles.length - skipped.length) {
-      console.log(`  ${String(records.length).padStart(5)}/${rawFiles.length} opened — ${records.length} usable, ${skipped.length} unusable`);
+    if (records.length % 250 === 0 || index === filesToRead.length - 1) {
+      console.log(`  ${String(index + 1).padStart(5)}/${filesToRead.length} opened — ${records.length} usable, ${skipped.length} unusable`);
     }
   }
 
@@ -135,7 +142,7 @@ function main() {
       roundTripFailures.map(m => `  - ${m}`).join('\n'),
     );
   }
-  console.log(`  round-trip gate: ${records.length}/${records.length} records clean`);
+  console.log(`  round-trip gate: ${records.length}/${filesToRead.length} ${SELECTED_PATHS.size > 0 ? 'selected record(s)' : 'records'} clean`);
 
   for (const [group, n] of [...perGroup].sort((a, b) => b[1] - a[1])) {
     console.log(`    ${group.padEnd(24)} ${String(n).padStart(4)}`);
@@ -145,22 +152,24 @@ function main() {
     for (const p of skipped.slice(0, 5)) console.log(`    - ${p}`);
   }
 
-  rmSync(RECORDS_DIR, { recursive: true, force: true });
-  for (const { path, record } of records) {
-    const out = join(RECORDS_DIR, `${path}.json`);
-    mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, JSON.stringify(record));
-  }
-  writeFileSync(DRIVER_INDEX, JSON.stringify(driverRows));
-  writeFileSync(RADIATOR_INDEX, JSON.stringify(radiatorRows));
-  mkdirSync(dirname(STAMP_FILE), { recursive: true });
-  writeFileSync(STAMP_FILE, `${fingerprint}\n`);
+  const written = applyBundleOutputs({
+    publicRoot: PUBLIC,
+    stampFile: STAMP_FILE,
+    records,
+    driverRows,
+    radiatorRows,
+    selectedPaths: SELECTED_PATHS,
+    fingerprint,
+  });
 
   const kb = n => Math.round(n / 1024);
+  const driverIndexCount = JSON.parse(readFileSync(DRIVER_INDEX, 'utf8')).length;
+  const radiatorIndexCount = JSON.parse(readFileSync(RADIATOR_INDEX, 'utf8')).length;
   console.log(
-    `\n  → ${driverRows.length} drivers (drivers-index.json ${kb(statSync(DRIVER_INDEX).size)} KB), ` +
-    `${radiatorRows.length} passive radiators (passive-radiators-index.json ${kb(statSync(RADIATOR_INDEX).size)} KB), ` +
-    `${records.length} records under packages/ui/public/drivers/`,
+    `\n  → ${driverIndexCount} drivers (drivers-index.json ${kb(statSync(DRIVER_INDEX).size)} KB), ` +
+    `${radiatorIndexCount} passive radiators (passive-radiators-index.json ${kb(statSync(RADIATOR_INDEX).size)} KB), ` +
+    `${written} record file(s) written under packages/ui/public/drivers/` +
+    (SELECTED_PATHS.size > 0 ? ' (selected refresh; unselected records/index rows preserved; full-bundle stamp cleared)' : ''),
   );
   if (records.length === 0) console.warn('WARNING: the catalogue is EMPTY — the app will list no bundled drivers.');
 }

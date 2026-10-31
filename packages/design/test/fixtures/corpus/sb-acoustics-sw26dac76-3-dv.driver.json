@@ -1,0 +1,388 @@
+{
+  "added": {
+    "definition": "when this record was added, ISO yyyy-mm-dd",
+    "origin": "openisd",
+    "value": "2026-09-24"
+  },
+  "brand": {
+    "definition": "the selling brand; equals the manufacturer except for house brands",
+    "origin": "manufacturer_product_page",
+    "value": "SB Acoustics"
+  },
+  "data_sources": {
+    "definition": "the record-wide provenance index — every source role used anywhere in this file resolves to a URL here",
+    "value": {
+      "manufacturer_datasheet": "https://sbacoustics.com/wp-content/uploads/2021/09/10in-SW26DAC76-3-DV-OEM-only.pdf",
+      "manufacturer_product_page": "https://sbacoustics.com/product/10in-sw26dac76-3-dv/"
+    }
+  },
+  "description": {
+    "definition": "the manufacturer's own product blurb, page chrome stripped",
+    "origin": "manufacturer_product_page",
+    "value": "Remark: To be discontinued from standard product range, available to OEM minimum order quantity 24 pcs."
+  },
+  "driver_type": {
+    "definition": "what kind of driver this is (closed vocabulary); decides which specs section applies",
+    "origin": "manufacturer_product_page",
+    "value": [
+      "woofer",
+      "subwoofer"
+    ]
+  },
+  "manufacturer": {
+    "definition": "the company that makes the driver; a second-order descriptive field, shown only when it differs from the brand",
+    "origin": "manufacturer_product_page",
+    "value": "SB Acoustics"
+  },
+  "model": {
+    "definition": "the vendor's exact designation including the impedance variant — unique within a brand, and the name shown in the driver browser",
+    "origin": "manufacturer_product_page",
+    "value": "SW26DAC76-3-DV"
+  },
+  "printed": [],
+  "product_image": {
+    "definition": "the manufacturer's product photo for this driver",
+    "origin": "manufacturer_product_page",
+    "value": "https://sbacoustics.com/wp-content/uploads/2021/04/10in-SW26DAC76-3-DV-OEM-only.jpg"
+  },
+  "provided_by": {
+    "definition": "who supplied this record — the OpenISD project for a pipeline-emitted record",
+    "origin": "openisd",
+    "value": "OpenIsd"
+  },
+  "quality": {
+    "invalid": [],
+    "parse_errors": [
+      "SPL_dB='88/82 dB': Undeclared value pair: '88/82 dB'",
+      "Re_ohm='2 x 2.4 Ω': datasheet prints '2 x 2.4 Ω', an '<n> x <m>' form, not one reading",
+      "Znom_ohm='2 x 3 Ω': datasheet prints '2 x 3 Ω', an '<n> x <m>' form, not one reading"
+    ]
+  },
+  "scraper_meta": {
+    "scraper": {
+      "definition": "the vendor scraper/extraction method that produced this record",
+      "value": "sbacoustics_html_extractor"
+    }
+  },
+  "sku": {
+    "definition": "the canonical identity code — the vendor designation slugified, impedance variant included; names the record directory (guard-enforced equal) and is unique within the manufacturer",
+    "grounds": [
+      {
+        "definition": "the printed designation the code was derived from",
+        "origin": "manufacturer_product_page",
+        "reading": "SW26DAC76-3-DV"
+      },
+      {
+        "definition": "the source URL that corroborated the derivation",
+        "origin": "manufacturer_product_page",
+        "reading": "https://sbacoustics.com/product/10in-sw26dac76-3-dv/"
+      }
+    ],
+    "value": "sw26dac76-3-dv"
+  },
+  "specs": {
+    "woofer": {
+      "Cms_m_per_N": {
+        "definition": "suspension compliance (m/N)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.36 mm/N",
+            "read_precision": 5e-06,
+            "read_value": 0.00036
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.36 mm/N",
+            "read_precision": 5e-06,
+            "read_value": 0.00036
+          }
+        }
+      },
+      "Fs_hz": {
+        "definition": "free-air resonance frequency (Hz)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "19.5 Hz",
+            "read_precision": 0.05,
+            "read_value": 19.5
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "19.5 Hz",
+            "read_precision": 0.05,
+            "read_value": 19.5
+          }
+        }
+      },
+      "Hc_m": {
+        "definition": "voice-coil winding height — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "30 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.03
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "30 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.03
+          }
+        }
+      },
+      "Hg_m": {
+        "definition": "magnetic air-gap height — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "6 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.006
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "6 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.006
+          }
+        }
+      },
+      "Mms_kg": {
+        "definition": "moving mass including air load — stored in kg, not g",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "185 g",
+            "read_precision": 0.0005,
+            "read_value": 0.185
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "185 g",
+            "read_precision": 0.0005,
+            "read_value": 0.185
+          }
+        }
+      },
+      "Pe_W": {
+        "definition": "rated thermal power handling (W, IEC 268-5)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "300 W",
+            "read_precision": 0.5,
+            "read_value": 300.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "300 W",
+            "read_precision": 0.5,
+            "read_value": 300.0
+          }
+        }
+      },
+      "Qes": {
+        "definition": "electrical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.29",
+            "read_precision": 0.005,
+            "read_value": 0.29
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.29",
+            "read_precision": 0.005,
+            "read_value": 0.29
+          }
+        }
+      },
+      "Qms": {
+        "definition": "mechanical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "5.96",
+            "read_precision": 0.005,
+            "read_value": 5.96
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "5.96",
+            "read_precision": 0.005,
+            "read_value": 5.96
+          }
+        }
+      },
+      "Qts": {
+        "definition": "total Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.28",
+            "read_precision": 0.005,
+            "read_value": 0.28
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "0.28",
+            "read_precision": 0.005,
+            "read_value": 0.28
+          }
+        }
+      },
+      "Rms_kg_per_s": {
+        "definition": "mechanical suspension resistance (kg/s)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "3.8 kg/s",
+            "read_precision": 0.05,
+            "read_value": 3.8
+          }
+        }
+      },
+      "SPL_dB": {
+        "definition": "sensitivity (dB)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "(par./ser.) 88/82 dB",
+            "note": "2.83V/1m",
+            "read_precision": 0.5,
+            "read_value": 82.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "88/82 dB",
+            "rejected": "undeclared-pair"
+          }
+        }
+      },
+      "Sd_m2": {
+        "definition": "effective piston area — stored in m², not cm²",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "312cm²",
+            "read_precision": 5e-05,
+            "read_value": 0.0312
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "312 cm²",
+            "read_precision": 5e-05,
+            "read_value": 0.0312
+          }
+        }
+      },
+      "Vas_m3": {
+        "definition": "equivalent compliance volume — stored in m³, not litres",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "49.7 ltr.",
+            "read_precision": 5e-05,
+            "read_value": 0.0497
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "49.7 ltr.",
+            "read_precision": 5e-05,
+            "read_value": 0.0497
+          }
+        }
+      },
+      "Vcd_m": {
+        "definition": "voice coil diameter — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "75.5 mm",
+            "read_precision": 5e-05,
+            "read_value": 0.0755
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "75.5 mm",
+            "read_precision": 5e-05,
+            "read_value": 0.0755
+          }
+        }
+      },
+      "Xmax_m": {
+        "definition": "one-way linear excursion limit — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "24mm",
+            "read_precision": 0.00025,
+            "read_value": 0.012
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "24 mm",
+            "read_precision": 0.00025,
+            "read_value": 0.012
+          }
+        }
+      },
+      "Znom_ohm": {
+        "definition": "nominal impedance (Ω)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "2 x 3 Ω",
+            "read_precision": 0.5,
+            "read_value": 3.0
+          }
+        }
+      },
+      "voice_coil": {
+        "BL_Tm": {
+          "definition": "motor force factor (T·m)",
+          "readings": {
+            "manufacturer_datasheet": {
+              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+              "read_precision": 0.05,
+              "read_value": 19.4
+            },
+            "manufacturer_product_page": {
+              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+              "read_precision": 0.05,
+              "read_value": 19.4
+            }
+          }
+        },
+        "Re_ohm": {
+          "definition": "DC voice coil resistance (Ω)",
+          "readings": {
+            "manufacturer_product_page": {
+              "actual_reading": "2 x 2.4 Ω",
+              "read_precision": 0.05,
+              "read_value": 2.4
+            }
+          }
+        },
+        "basis": {
+          "BL_Tm": "for-stated-connection",
+          "Re_ohm": "per-coil"
+        },
+        "connection": "series",
+        "connection_reading": {
+          "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
+          "readings": {
+            "manufacturer_datasheet": {
+              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+              "read_precision": 0.5,
+              "read_value": 2.0
+            },
+            "manufacturer_product_page": {
+              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+              "read_precision": 0.5,
+              "read_value": 2.0
+            }
+          }
+        },
+        "numVC": {
+          "definition": "number of voice coils; 2 marks a dual-voice-coil driver",
+          "readings": {
+            "manufacturer_product_page": {
+              "actual_reading": "2 x 2.4 Ω",
+              "read_precision": 0.5,
+              "read_value": 2.0
+            }
+          }
+        }
+      },
+      "weight_kg": {
+        "definition": "net driver weight (kg)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "3.43kg",
+            "read_precision": 0.005,
+            "read_value": 3.43
+          }
+        }
+      }
+    }
+  },
+  "uuid": {
+    "definition": "stable record identity, minted by the pipeline at first emit and never re-derived",
+    "value": "b810bbac-93cc-49fe-aea5-79c4375661d0"
+  }
+}

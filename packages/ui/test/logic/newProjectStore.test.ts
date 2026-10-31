@@ -33,7 +33,7 @@ describe('startStoringNewProjects', () => {
     const p = made('New one');
     appState.addProject(p);
     await nextTick();
-    expect(projectRepo.isStored(p, appState.openProjects())).toBe(true);
+    expect(projectRepo.isStored(p)).toBe(true);
     expect(p.isModified()).toBe(false);
   });
 
@@ -53,7 +53,7 @@ describe('startStoringNewProjects', () => {
     appState.addProject(p);
     const again = startStoringNewProjects({appState, projectRepo, onFailed: () => undefined});
     again();
-    expect(projectRepo.isStored(p, appState.openProjects())).toBe(true);
+    expect(projectRepo.isStored(p)).toBe(true);
   });
 
   it('a project the store will not take is not created, and the user is told', async () => {
@@ -64,7 +64,7 @@ describe('startStoringNewProjects', () => {
     appState.addProject(p);
     await nextTick();
     expect(onFailed).toHaveBeenCalledTimes(1);
-    expect(projectRepo.isStored(p, [p])).toBe(false);
+    expect(projectRepo.isStored(p)).toBe(false);
     expect(appState.openProjects()).not.toContain(p);
   });
 });

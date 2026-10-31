@@ -43,6 +43,21 @@ describe('viewSnapshot — unit choices', () => {
   });
 });
 
+describe('viewSnapshot — skin choice', () => {
+  it('applyViewSnapshot keeps a saved skin choice the app offers', () => {
+    appState.applyViewSnapshot({ui: {skinOverride: 'mobile'}});
+
+    expect(presentationState.ui.skinOverride).toBe('mobile');
+  });
+
+  it('applyViewSnapshot drops a saved skin choice the app does not have, so the skin follows the window (F58)', () => {
+    presentationState.ui.skinOverride = 'mobile';
+    appState.applyViewSnapshot({ui: {skinOverride: 'desktop'}});
+
+    expect('skinOverride' in presentationState.ui).toBe(false);
+  });
+});
+
 /**
  * QO168 (2026-09-21) takes S10/QO130's project-scoping of the graph cursor one step further:
  * the four fast-changing cursor fields (crosshair f, pinnedF, locked, drag-band range) are OUT

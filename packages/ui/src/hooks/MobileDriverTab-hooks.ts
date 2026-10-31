@@ -9,11 +9,12 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {ARRAY_WIRING_OPTIONS, NumberField} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
+import {unknownVoiceCoilReading} from '../logic/unknownVoiceCoilReading.js';
 
 const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
 export function useMobileDriverTab() {
-  const {appState, presentation: presentationState} = useApp();
+  const {appState, driverBrowsing, presentation: presentationState} = useApp();
   const {driverName, projectChanged} = appState;
   const project = useFocusedProject();
   const { selection } = useApp();
@@ -30,12 +31,18 @@ export function useMobileDriverTab() {
     const spec = project.value.driver.specs;
     return {Fs: spec.Fs_hz.value, Qts: spec.Qts.value, Vas: spec.Vas_m3.value, Re: spec.Re_ohm.value, Xmax: spec.Xmax_m.value};
   });
+  const keyFigureDq = computed(() => {
+    void projectChanged.value;
+    const device = project.value.driver.toOpenIsdDeviceJson();
+    return {Re: unknownVoiceCoilReading(device, 'Re_ohm')};
+  });
 
   function browseDrivers(): void { presentationState.browseOpen = true; }
   function editDriver(): void { selection.editProjectDriver(); }
 
   return {
-    project, brand, model, fullName, keyFigures, browseDrivers, editDriver,
+    project, brand, model, fullName, keyFigures, keyFigureDq, browseDrivers, editDriver,
+    showDriverInfo: driverBrowsing.showProjectDriverInfo,
     N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption,
   };
 }

@@ -58,8 +58,9 @@ test.describe('MobileVentedTab', () => {
 
   test('clearing Vent diameter keeps the cross area; the diameter is calculated', async ({ appPage: page }) => {
     const diameter = mobileFieldRow(page, 'Vent diameter').locator('input');
-    const area = page.locator('.ui-field', { hasText: 'Cross area' }).locator('.mob-readonly');
-    const areaBefore = (await area.textContent()) ?? '';
+    // A calculated value is a read-only box (T607), so its text is the box's value.
+    const area = mobileFieldRow(page, 'Cross area').locator('input');
+    const areaBefore = await area.inputValue();
     const diameterBefore = await diameter.inputValue();
 
     await diameter.fill('');
@@ -67,15 +68,15 @@ test.describe('MobileVentedTab', () => {
 
     await expect(diameter).toHaveValue(diameterBefore);
     await expect(diameter).toHaveClass(/value-c/);
-    await expect(area).toHaveText(areaBefore);
+    await expect(area).toHaveValue(areaBefore);
   });
 
   test('picking two vents makes the Cross area box show twice the one-port area', async ({ appPage: page }) => {
-    const area = page.locator('.ui-field', { hasText: 'Cross area' }).locator('.mob-readonly');
-    const one = parseFloat((await area.textContent()) ?? '');
+    const area = mobileFieldRow(page, 'Cross area').locator('input');
+    const one = parseFloat(await area.inputValue());
     expect(one).toBeGreaterThan(0);
     await page.locator('.mob-crow', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
-    await expect.poll(async () => parseFloat((await area.textContent()) ?? '') / one).toBeCloseTo(2, 2);
+    await expect.poll(async () => parseFloat(await area.inputValue()) / one).toBeCloseTo(2, 2);
   });
 
   // John, 2026-10-01: the port velocity limit sits on the vent section in both layouts.

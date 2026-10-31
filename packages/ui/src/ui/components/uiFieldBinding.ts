@@ -46,6 +46,8 @@ export interface UIFieldCommon {
   deviation?: WinisdDeviation;
   /** Custom DQ flags to display for fixed fields or readouts. */
   dq?: readonly string[];
+  /** Applies an amber information style to the expanded DQ note. */
+  noteTone?: 'warning';
   /** Whether the flagged value was entered ('E', the cause) or calculated ('C', a symptom), for `dq`. */
   dqState?: ProvenanceLetter;
   /** Accepts any finite number: the data-quality flag, not the box, says it is out of range. */

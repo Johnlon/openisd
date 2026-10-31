@@ -4,8 +4,7 @@ import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
 import type { Calculated, Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
-import { openIsdDriverToWinIsdDriver } from '../winIsdDriverConverter.js';
-import { newUuid } from '../newUuid.js';
+import { openIsdDriverToWinIsdDriver } from '../driverRecordConverter.js';
 import { asDriverDevice } from '../openisdSchema.js';
 import type { DriverDeviceJson } from '../openisdSchema.js';
 import { deviceWithoutImportSku } from '../project/withoutImportSku.js';
@@ -45,7 +44,7 @@ import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
 const NOT_A_DRIVER = 'no woofer section — this record is a passive radiator, nothing to simulate';
 
 export abstract class OpenISDDriver extends OpenISDDevice {
-    static fromConformingRecord(record: unknown, engine: Engine): OpenISDDriver | string[] {
+    static fromConformingRecord(record: unknown, engine: Engine): OpenISDDriverStandalone | string[] {
         const conformed = OpenISDDeviceJson.fromConformingRecord(record);
         if ('problems' in conformed) return conformed.problems;
 
@@ -59,13 +58,13 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  Every spec field reads `not-available`, so the editor renders it blank and the consistency
      *  solver has nothing to work from until the user types. No conformance check: this record is
      *  minted here, not received from outside, so there is no untrusted input to refuse. */
-    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDDriver {
+    static empty(engine: Engine, appContext: AppContext = realAppContext): OpenISDDriverStandalone {
         return OpenISDDriverStandalone.wrap(blankDeviceRecord({woofer: {}}, 'woofer', appContext), engine);
     }
 
     /** `.owdr` text — openisd driver JSON — back to a driver, or the reasons it could not be
      *  read. The inverse of `toOwdrText()`. */
-    static fromOwdrText(text: string, engine: Engine): OpenISDDriver | string[] {
+    static fromOwdrText(text: string, engine: Engine): OpenISDDriverStandalone | string[] {
         const parsed = OpenISDDeviceJson.fromOpenisdDriverJson(text);
         if ('problems' in parsed) return parsed.problems;
 
@@ -139,6 +138,18 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable {
 
         return this.specs[field];
+    }
+
+    /** The source's own text for a field that has readings but no usable simulation value.
+     *  Each field is queried independently; a reported reading is never promoted to E or fed
+     *  into the solver by this accessor. */
+    reportedSpecReadings(field: NumericDriverSpecFieldName): readonly {source: string; text: string}[] {
+        const entry = this.record.value.specs.woofer[field];
+        if (entry === undefined || entry.state !== 'N') return [];
+        return Object.entries(entry.readings).flatMap(([source, reading]) => {
+            const text = reading.actual_reading ?? ('read_value' in reading ? String(reading.read_value) : '');
+            return text.length === 0 ? [] : [{source, text}];
+        });
     }
 
     /** Everything this driver's stated values disagree about — an over-specified driver whose
@@ -292,15 +303,13 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  "edit a bundle entry" and "fork this entry" possible without any of them reaching into the
      *  storage this window points at. Always STANDALONE — a copy belongs to nothing until
      *  something adopts it (via `OpenISDDriverEmbedded.update()`, or a repo save). */
-    detach(): OpenISDDriverStandalone {
-        return OpenISDDriverStandalone.wrap(structuredClone(this.record.value), this.engine);
-    }
+    abstract detach(): OpenISDDriverStandalone;
 
     /** An independent standalone copy with a new record identity. Used when a driver crosses into
      * a new owner, such as a project embedding or an explicit user copy. */
-    copyAsNew(): OpenISDDriver {
+    copyAsNew(newId: () => string): OpenISDDriverStandalone {
         const copy = this.cloneDriver();
-        copy.uuid = { value: newUuid() };
+        copy.uuid = { value: newId() };
         return OpenISDDriverStandalone.wrap(copy, this.engine);
     }
 
@@ -331,16 +340,11 @@ export abstract class OpenISDDriver extends OpenISDDevice {
     /** Make this driver a copy: its `model` states so, so `<brand>/<model>` differs from the
      *  driver it was copied from and the two stand side by side rather than one replacing the
      *  other. Called on a detached copy, before it is saved; a copy is a new record identity. */
-    renameToCopy(): void {
+    renameToCopy(newId: () => string): void {
         this.model.set('Copy of ' + this.model.value);
         const copy = this.cloneDriver();
-        copy.uuid = { value: newUuid() };
+        copy.uuid = { value: newId() };
         this.record.set(copy);
-    }
-
-    /** The stable identity carried by the canonical driver record. */
-    uuid(): string {
-        return this.record.value.uuid.value;
     }
 
     /** The product series this driver belongs to (e.g. "Reference Series"), or null. Descriptive
@@ -387,7 +391,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return OpenISDDeviceJson.toOpenisdDriverJson(this.record.value);
     }
 
-    /** This driver as WinISD `.wdr` text — the form `WinIsdDriverConverter.winIsdDriverToOpenIsdDriver` reads back.
+    /** This driver as WinISD `.wdr` text — the form `DriverRecordConverter.winIsdDriverToOpenIsdDriver` reads back.
      *
      *  `.wdr` states far less than an openisd record does: a field WinISD has no key for is
      *  dropped, so this is a lossy write and the round trip is not an identity. `errors` carries
@@ -447,6 +451,18 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
     setAutoCalculate(enabled: boolean): void {
         this.#autoCalculate = enabled;
         if (enabled) this.resolve();
+    }
+
+    /** A copy that keeps this driver's id: a standalone driver is an entity, and the editor's
+     *  working copy of it is the same entity until it is saved as a new one (`copyAsNew`). */
+    detach(): OpenISDDriverStandalone {
+        return OpenISDDriverStandalone.wrap(structuredClone(this.record.value), this.engine);
+    }
+
+    /** The stable identity carried by the canonical driver record. Only a standalone driver
+     *  (bundled or My Drivers) has one; the driver inside a project is a value, not an entity. */
+    uuid(): string {
+        return this.record.value.uuid.value;
     }
 
     /** OFF: skip the derive, return the last resolve's cached issues untouched. */

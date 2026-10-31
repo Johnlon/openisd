@@ -1,0 +1,346 @@
+id: T607
+release_note: Restore joined numeric controls with external warnings and model cues, improve digit and spinner entry, add Driver Info, and initialise a consistent Dummy PR.
+repo: openisd
+owner: codex
+status: done
+landed: 835d7726ed735dc6f620a8cbbb32ef46b5e6a3ec
+goal: Restore production-style joined field boxes with external left warnings and right model cues, preserving independent functional fixes
+done_test: bash scripts/test.sh packages/design/test/fields/phoneRowColumns.test.ts packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
+files:
+  - vite.config.js
+  - .github/workflows/suite.yml
+  - scripts/hosting/test/offline-start.e2e.mjs
+  - bugs/BUG_20261029_app-fails-to-start-offline.md
+  - packages/ui/test/logic/projectChanged.test.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/test/ui/desktop-project-rows.browser.spec.ts
+  - packages/ui/test/logic/projectTraceColor.test.ts
+  - packages/ui/src/ui/shells/original/OriginalProjectList.vue
+  - packages/ui/src/hooks/OriginalProjectList-hooks.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/design/test/domain/project-summary.test.ts
+  - packages/design/fields/projectRows.ts
+  - packages/design/domain/project/projectSummary.ts
+  - packages/ui/test/ui/my-drivers-failures.browser.spec.ts
+  - packages/ui/test/ui/diagnostics-repair-outcome.browser.spec.ts
+  - packages/ui/src/ui/components/DiagnosticsModal.vue
+  - packages/ui/test/logic/telemetry.test.ts
+  - packages/ui/src/logic/telemetry/serviceWorker.ts
+  - docs/handover/HANDOVER_20261028_T607.md
+  - docs/research/WINISD_PARITY.md
+  - docs/research/WINISD_EQUIVALENCE.md
+  - docs/research/TL_PORT_MODEL.md
+  - docs/research/ACCURACY_IMPROVEMENTS.md
+  - docs/design/FIELD_CLEAR_RULE.md
+  - docs/OUTSTANDING_APP_WORK.md
+  - docs/CHARTS.md
+  - bugs/**
+  - packages/ui/test/ui/driver-editor-layout.browser.spec.ts
+  - packages/design/fields/phoneText.ts
+  - packages/ui/src/hooks/DriverEditorModal-hooks.ts
+  - packages/ui/src/logic/presentationState.ts
+  - packages/ui/src/hooks/OptionsModal-hooks.ts
+  - packages/ui/test/logic/presentationState-skin.test.ts
+  - BACKLOG.md
+  - packages/ui/src/ui/components/PRBrowser.vue
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/src/hooks/ventReadouts.ts
+  - packages/ui/src/hooks/MobileEnclosureTab-hooks.ts
+  - packages/ui/test/hooks/ventReadouts.test.ts
+  - packages/ui/test/ui/mobile-enclosure-tab.browser.spec.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/driver-tab-fixed-fields.browser.spec.ts
+  - packages/design/fields/options.ts
+  - packages/ui/src/ui/shells/mobile/MobileProjectTab.vue
+  - packages/ui/src/ui/components/PhoneDialogPage.vue
+  - packages/ui/src/ui/components/DriverDimensionsDiagram.vue
+  - packages/ui/src/ui/components/StorageHistory.vue
+  - packages/ui/src/ui/components/ProvenanceLegend.vue
+  - packages/ui/test/ui/driver-editor-dimensions-diagram.browser.spec.ts
+  - packages/ui/test/ui/options-dialog.browser.spec.ts
+  - packages/ui/test/ui/mobile-project-tab-classic.browser.spec.ts
+  - packages/ui/test/ui/original-field-regions.browser.spec.ts
+  - bugs/BUG_20261027_gallery_commented_surfaces_overlap.md
+  - tasks/T607.yml
+  - bugs/BUG_20261026_ui-contract-coverage-gaps.md
+  - tasks/T607-progress.md
+  - packages/ui/test/fixtures/fieldVisualContract.ts
+  - packages/ui/test/ui/field-visual-contract.browser.spec.ts
+  - bugs/BUG_20261026_mobile-closed-box-values-overlap-cues.md
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - bugs/BUG_20261026_fixed-unit-backgrounds-cover-field-borders.md
+  - CLAUDE.md
+  - packages/ui/src/ui/components/UnitToggle.vue
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/test/ui/unit-label-underline.browser.spec.ts
+  - packages/ui/test/ui/mobile-unit-buttons.browser.spec.ts
+  - bugs/BUG_20261026_visual-review-exposes-unit-and-control-regressions.md
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/design/test/fields/phoneRowColumns.test.ts
+  - packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/driver-editor-units.browser.spec.ts
+  - bugs/BUG_20261026_driver-selector-summary-alignment-regression.md
+  - bugs/BUG_20261026_sealed-to-pr-leaves-dummy-qms-empty.md
+  - bugs/BUG_20261026_advanced-air-density-unit-indented.md
+  - bugs/BUG_20261026_phone-warning-difference-cue-placement.md
+  - packages/ui/test/ui/driver-summary-contract.browser.spec.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/design/test/domain/box-starting-values.test.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/ui/test/ui/mobile-pr-tab.browser.spec.ts
+  - docs/design/FIELD_APPEARANCE_CATALOGUE.md
+  - bugs/BUG_20261026_catalogue-and-compact-field-review.md
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/test/fields/field-registry.test.ts
+  - packages/design/fields/field.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/test/ui/mobile-sheet.browser.spec.ts
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/design/fields/index.ts
+  - packages/ui/test/ui/field-catalogue.browser.spec.ts
+  - packages/design/test/fields/fieldAppearance.test.ts
+  - packages/ui/test/architecture/mobile-readout-unit-placement.test.ts
+  - packages/design/fields/fieldAppearance.ts
+  - packages/ui/src/ui/field-catalogue.css
+  - packages/ui/src/ui/components/FieldCatalogue.vue
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/components/UIPickField.vue
+  - packages/ui/test/fixtures/compactFieldContract.ts
+  - docs/design/field-use-cases.html
+  - packages/design/test/domain/box-passive-radiator.test.ts
+  - docs/design/field-use-cases-comments-archive.json
+  - docs/design/field-use-cases-behaviour.ts
+  - scripts/publish-field-use-cases.mjs
+  - packages/ui/test/ui/field-use-cases.browser.spec.ts
+  - packages/ui/test/ui/field-renditions.browser.spec.ts
+  - packages/ui/test/ui/num-input-rendition.browser.spec.ts
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/test/ui/number-stepper.browser.spec.ts
+  - packages/ui/test/ui/mobile-num-stepper-focus.browser.spec.ts
+  - bugs/BUG_20261027_rendition-branch-calculated-values-shown-entered.md
+  - packages/ui/test/fixtures/fieldControlContainment.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - bugs/BUG_20261027_rendition-branch-desktop-pane-layout.md
+  - docs/design/field-rendition-branch-review.html
+  - scripts/publish-field-rendition-review.mjs
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - packages/design/fields/caretSpin.ts
+  - packages/design/test/fields/caret-spin.test.ts
+  - bugs/BUG_20261027_end-caret-spins-wrong-digit.md
+  - packages/ui/test/ui/num-input-caret.browser.spec.ts
+  - docs/design/reviews/T607-argon-strategy-review.txt
+  - docs/design/reviews/T607-argon-work-review.txt
+  - docs/design/reviews/T607-argon-followup-review.txt
+  - scripts/publish-field-focus-review.mjs
+  - packages/ui/test/ui/closed-box-fields.browser.spec.ts
+  - packages/ui/test/fixtures/fieldInventory.ts
+  - packages/ui/test/fixtures/fieldInventoryScenarios.ts
+  - packages/ui/test/ui/phone-field-inventory.browser.spec.ts
+  - scripts/audit-field-control-sources.mjs
+  - docs/design/reviews/T607-argon-inventory-review.txt
+  - docs/design/reviews/T607-argon-inventory-recheck.txt
+  - docs/design/reviews/T607-argon-inventory-final.txt
+  - scripts/publish-field-keyboard-review.mjs
+  - docs/design/reviews/T607-argon-keyboard-review.txt
+  - docs/design/reviews/T607-argon-keyboard-recheck.txt
+  - docs/design/reviews/T607-argon-keyboard-caret-recheck.txt
+  - packages/ui/src/ui/components/NumReadout.vue
+  - scripts/publish-field-pointer-readonly-review.mjs
+  - docs/design/reviews/T607-argon-pointer-readonly-review.txt
+  - packages/ui/test/fixtures/fieldCursorContract.ts
+  - packages/ui/test/ui/field-cursor.browser.spec.ts
+  - packages/ui/test/fixtures/referenceUnitPaint.ts
+
+  - packages/ui/test/ui/joined-field.browser.spec.ts
+  - packages/ui/src/ui/joined-fields.css
+
+  - scripts/publish-joined-field-review.mjs
+  - bugs/BUG_20261027_joined_field_restore_gaps.md
+  - docs/design/reviews/T607-argon-joined-field-review.txt
+
+  - packages/ui/test/ui/box-losses-layout.browser.spec.ts
+  - docs/design/T607-surface-audit.md
+  - bugs/BUG_20261027_box_losses_label_and_surface_audit_gaps.md
+
+  - scripts/capture-box-losses-review.mjs
+
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+
+  - packages/ui/test/ui/driver-info.browser.spec.ts
+  - packages/ui/test/logic/driverBrowsingState-info.test.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+
+  - packages/ui/src/logic/driverListMode.ts
+  - packages/ui/src/ui/components/DriverBrowser.vue
+  - packages/ui/src/ui/shells/mobile/MobileManageDriversTab.vue
+
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - scripts/publish-driver-info-review.mjs
+  - scripts/capture-driver-info-review.mjs
+
+  - docs/design/reviews/T607-argon-driver-info-review.txt
+
+  - packages/ui/test/ui/field-typography.browser.spec.ts
+  - TESTING_STRATEGY.md
+
+  - packages/ui/src/ui/shells/mobile/MobileSignalTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileFiltersTab.vue
+  - packages/ui/test/ui/mobile-num-stepper.browser.spec.ts
+  - packages/ui/test/ui/mobile-field-widths.browser.spec.ts
+  - scripts/capture-field-consistency-review.mjs
+  - scripts/publish-field-consistency-review.mjs
+  - bugs/BUG_20261027_spinner_swipe_changes_value.md
+  - bugs/BUG_20261027_phone_field_widths_differ_by_page.md
+  - docs/design/reviews/T607-argon-field-consistency-review.txt
+
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/test/ui/mobile-field-appearance.browser.spec.ts
+  - scripts/publish-mobile-spacing-restoration.mjs
+
+  - scripts/mobile-surface-discovery.ts
+  - scripts/publish-mobile-surface-manifest.ts
+  - scripts/record-mobile-surface-visits.ts
+  - packages/ui/test/fixtures/mobileSurfaceManifest.ts
+  - packages/ui/test/fixtures/mobileSurfaceNavigation.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/scripts/mobile-surface-manifest.test.ts
+  - packages/ui/test/ui/mobile-surface-manifest.browser.spec.ts
+  - docs/design/MOBILE_SURFACE_MANIFEST.md
+
+  - packages/ui/test/fixtures/mobileSurfaceFlow.ts
+
+  - packages/ui/test/fixtures/mobileSurfaceIdentity.ts
+  - packages/ui/test/fixtures/mobileVisualFlow.ts
+  - packages/ui/test/fixtures/desktopSurfaceManifest.ts
+  - scripts/capture-mobile-surface-manifest.ts
+  - scripts/mobile-surface-capture-navigation.ts
+  - scripts/capture-desktop-surface-manifest.ts
+  - scripts/publish-surface-visual-catalogue.ts
+  - bugs/BUG_20261027_production_capture_serviceworker_blocked.md
+  - bugs/BUG_20261027_visual_catalogue_reference_ambiguous.md
+
+  - scripts/capture-approved-field-paint.ts
+  - scripts/capture-approved-field-geometry.ts
+  - packages/ui/test/fixtures/approvedJoinedPaint.json
+  - packages/ui/test/fixtures/approvedJoinedGeometry.json
+  - packages/ui/test/fixtures/approvedPaintReference.ts
+  - packages/ui/test/fixtures/joinedFieldReference.ts
+  - packages/ui/test/visual/**
+
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/what-if-panel.browser.spec.ts
+
+  - docs/design/reviews/T607-argon-20261027-visual-comments.txt
+  - docs/design/reviews/T607-argon-20261027-image-manifest.json
+
+  - docs/design/reviews/T607-argon-20261027-dom-audit.json
+
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - packages/design/test/winisd/openIsdProjectToWinIsdProject.test.ts
+  - packages/design/test/domain/air-has-no-hidden-source.test.ts
+
+  - packages/design/domain/cell.ts
+  - packages/design/test/domain/field-clear-rule.test.ts
+  - packages/design/test/domain/vent-pair-clear.test.ts
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/test/fixtures/generateSample.ts
+  - packages/ui/test/ui/box-volume-spin-mark.browser.spec.ts
+  - packages/ui/test/ui/desktop-alignment-unit-control.browser.spec.ts
+  - packages/ui/test/ui/driver-editor-provenance.browser.spec.ts
+  - packages/ui/test/ui/driver-filter-row.browser.spec.ts
+  - packages/ui/test/ui/mobile-box-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-selects.browser.spec.ts
+  - packages/ui/test/ui/number-box-drag-spin.browser.spec.ts
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/ui/original-bottom-panel-height.browser.spec.ts
+  - packages/ui/test/ui/original-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/original-signal-tab.browser.spec.ts
+  - packages/ui/test/ui/phone-app-dialogs.browser.spec.ts
+  - packages/ui/test/ui/stepper-follows-shown-skin.browser.spec.ts
+  - scripts/land/test/old-machinery-gone.test.sh
+
+  - eslint.config.js
+
+  - packages/ui/test/ui/equation-inspector-popup.browser.spec.ts
+
+  - packages/ui/test/ui/number-control-gallery.browser.spec.ts
+
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/test/logic/driverDisplay.test.ts
+  - packages/ui/src/hooks/OriginalWhatIf-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
+  - packages/ui/src/ui/components/WhatIfBoxField.vue
+  - packages/design/fields/sheetField.ts
+  - packages/design/test/fields/abc-chamber-labels.test.ts
+  - packages/ui/src/logic/applicationIO.ts
+  - packages/ui/src/logic/toneGenerator.ts
+  - packages/ui/src/ui/components/ToolbarIcon.vue
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+
+visual:
+  - mobile-tab-graph
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-empty
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step4
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5
+  - mobile-menu
+  - mobile-tab-advanced
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-tab-signal
+  - mobile-wizard-abc-step3
+  - mobile-wizard-abc-step4
+  - mobile-wizard-bandpass4-step3
+  - mobile-wizard-bandpass4-step4
+  - mobile-wizard-bandpass6-step3
+  - mobile-wizard-bandpass6-step4
+  - mobile-wizard-box-passive-radiator-step3
+  - mobile-wizard-box-passive-radiator-step4
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2
+  - mobile-wizard-sealed-step3
+  - mobile-wizard-sealed-step4
+  - mobile-wizard-vented-step3
+  - mobile-wizard-vented-step4
+
+visual_note: Restore joined field boxes with external cues; fit full-precision editor values and restore phone wizard layout.

@@ -21,7 +21,7 @@ describe('openStoredProject', () => {
     second.save();
     appState.addProject(first);
     appState.addProject(second);
-    repo.storeNew(first, appState.openProjects());
+    repo.storeNew(first);
     const id = repo.storedIdOf(first);
     if (id === null) throw new Error('not stored');
     const result = openStoredProject(appState, repo, id);

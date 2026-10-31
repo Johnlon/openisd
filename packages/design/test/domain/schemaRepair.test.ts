@@ -48,4 +48,25 @@ describe('parseRepairing', () => {
         expect(Array.isArray(parseRepairing(schema, [1, 2]))).toBe(true);
         expect(Array.isArray(parseRepairing(schema, {limit: 3, filters: []}))).toBe(true); // name is required at the root
     });
+
+    it('an issue at a path holding a symbol is not repairable and is refused with the symbol named', () => {
+        const symbolic = z.strictObject({name: z.string()}).superRefine((_value, ctx) => {
+            ctx.addIssue({code: 'custom', message: 'odd', path: [Symbol('k')]});
+        });
+        expect(parseRepairing(symbolic, {name: 'a'})).toEqual(["'Symbol(k)': odd"]);
+    });
+
+    it('refuses when the issue path runs through a value that has no such child', () => {
+        const deep = z.strictObject({name: z.string()}).superRefine((_value, ctx) => {
+            ctx.addIssue({code: 'custom', message: 'deep', path: ['name', 'x', 'y']});
+        });
+        expect(parseRepairing(deep, {name: 'a'})).toEqual(["'name.x.y': deep"]);
+    });
+
+    it('refuses when nothing named by the issues can be removed', () => {
+        const ghost = z.strictObject({name: z.string()}).superRefine((_value, ctx) => {
+            ctx.addIssue({code: 'unrecognized_keys', keys: ['ghost'], path: [], message: 'ghost key'});
+        });
+        expect(parseRepairing(ghost, {name: 'a'})).toEqual(['ghost key']);
+    });
 });

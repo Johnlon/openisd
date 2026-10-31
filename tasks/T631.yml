@@ -1,0 +1,15 @@
+id: T631
+release_note: internal
+repo: openisd
+owner: unassigned
+status: open
+label: none
+goal: "Restore the 100% coverage landing gate: design engine/domain at 100%, ui ratchet against coverage-baseline.json (dropped 31 Oct 2026 under QO316 to unblock the red main; the scripts and baseline were kept)"
+note: "also flip the suite.yml assertions in scripts/land/test/coverage-*-gate.test.sh back to present"
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/coverage-design-gate.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/coverage-ui-gate.test.sh
+files:
+  - .github/workflows/suite.yml
+  - scripts/coverage-design.sh
+  - scripts/coverage-ui.sh
+  - packages/ui/coverage-baseline.json
+  - tasks/T631.yml

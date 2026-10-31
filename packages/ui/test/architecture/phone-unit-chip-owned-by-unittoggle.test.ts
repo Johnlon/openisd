@@ -16,6 +16,7 @@ import {dirname, join, relative} from 'node:path';
 
 const UI_SRC = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'src');
 const MOBILE_SHELLS = join(UI_SRC, 'ui', 'shells', 'mobile');
+const UNIT_TOGGLE = join(UI_SRC, 'ui', 'components', 'UnitToggle.vue');
 const LOOK = /(^|[;\s])(background|border-left|border-radius|font-weight|color)\s*:/;
 const UNIT_CLASS = /\.[\w-]*unit[\w-]*/;
 
@@ -42,6 +43,18 @@ function lookRules(text: string, phoneOnly: boolean): string[] {
 }
 
 describe('architecture — the phone unit chip belongs to UnitToggle', () => {
+  it('fixed labels preserve their surface and switchable units are grey', () => {
+    const source = readFileSync(UNIT_TOGGLE, 'utf8');
+    const fixed = source.match(/\.app-root-mobile span\.unit-label\s*\{([^}]*)\}/)?.[1] ?? '';
+    const toggle = source.match(/\.app-root-mobile span\.unit-label\.unit-toggle\s*\{([^}]*)\}/)?.[1] ?? '';
+    const empty = source.match(/\.app-root-mobile span\.unit-label:empty\s*\{([^}]*)\}/)?.[1] ?? '';
+    expect(fixed, 'UnitToggle must define the fixed unit label style').not.toBe('');
+    expect(fixed).toMatch(/\bbackground\s*:\s*transparent\b/);
+    expect(toggle, 'UnitToggle must define a separate switchable unit style').not.toBe('');
+    expect(toggle).toMatch(/\bbackground\s*:\s*#efefef\b/);
+    expect(empty).toMatch(/\bbackground\s*:\s*transparent\b/);
+  });
+
   it('no phone shell and no phone rule in style.css styles a unit class look', () => {
     const offences: string[] = [];
     for (const f of vueFiles(MOBILE_SHELLS)) {

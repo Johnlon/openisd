@@ -56,7 +56,15 @@ interface UiState {
   splashSeen?: boolean;
   /** Manual, persisted skin choice from the Info menu. Absent means "follow the viewport" —
    *  `App.vue`'s `activeSkin` falls back to `narrowViewport` below. */
-  skinOverride?: 'original' | 'mobile';
+  skinOverride?: SkinChoice;
+}
+
+/** A skin the person can choose from the Info menu. */
+export type SkinChoice = 'original' | 'mobile';
+
+/** `value` as a skin the app offers, or undefined for anything else (a saved view is outside data). */
+export function parseSkinChoice(value: unknown): SkinChoice | undefined {
+  return value === 'original' || value === 'mobile' ? value : undefined;
 }
 
 export interface PresentationState {
@@ -159,8 +167,27 @@ export function assignTraceColor(project: OpenISDProject, open: readonly OpenISD
   project.stampTraceColor(TRACE_PALETTE.find(c => !taken.has(c)) ?? TRACE_PALETTE[open.length % TRACE_PALETTE.length]);
 }
 
-/** Advance `project`'s own trace colour to the next palette entry — the toolbar's "Color" button. */
-export function cycleTraceColor(project: OpenISDProject): void {
-  const idx = TRACE_PALETTE.indexOf(traceColor(project));
-  project.traceColor.set(TRACE_PALETTE[(idx + 1) % TRACE_PALETTE.length]);
+/** Advance the project's colour, skipping every colour already used by another open project.
+ *  With no open list supplied, preserves the toolbar's original palette rotation. */
+export function cycleTraceColor(project: OpenISDProject, open: readonly OpenISDProject[] = []): void {
+  const current = traceColor(project).toLowerCase();
+  const taken = new Set([current, ...open.filter(p => p !== project).map(p => traceColor(p).toLowerCase())]);
+  const index = TRACE_PALETTE.indexOf(current);
+  for (let offset = 1; offset <= TRACE_PALETTE.length; offset++) {
+    const colour = TRACE_PALETTE[(index + offset) % TRACE_PALETTE.length];
+    if (!taken.has(colour)) {project.traceColor.set(colour); return;}
+  }
+  // An odd stride visits every 24-bit RGB colour before repeating. Inspecting more
+  // candidates than occupied colours guarantees a free choice when the palette is full.
+  const rgbSpace = 0x1000000, stride = 0x9e3779;
+  for (let offset = 1; offset <= taken.size + 1; offset++) {
+    const colour = '#' + ((0x3a7bd5 + offset * stride) % rgbSpace).toString(16).padStart(6, '0');
+    if (!taken.has(colour)) {project.traceColor.set(colour); return;}
+  }
+}
+
+/** Copy the persisted chart definition, preserving the target's design and trace identity. */
+export function copyChartDefinition(source: OpenISDProject, target: OpenISDProject): void {
+  target.graphs.set([...source.graphs.value]);
+  target.sweepN.set(source.sweepN.value);
 }

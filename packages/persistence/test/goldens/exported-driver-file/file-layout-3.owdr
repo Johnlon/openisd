@@ -1,0 +1,358 @@
+{
+  "layout": 3,
+  "added": {
+    "value": "2026-01-01"
+  },
+  "brand": {
+    "value": "Golden"
+  },
+  "comment": {
+    "value": ""
+  },
+  "data_sources": {
+    "value": {
+      "manufacturer_datasheet": "https://example.invalid/ds.pdf"
+    }
+  },
+  "driver_type": {
+    "value": [
+      "woofer"
+    ]
+  },
+  "manufacturer": {
+    "value": "Golden"
+  },
+  "model": {
+    "value": "G-2"
+  },
+  "provided_by": {
+    "value": "golden"
+  },
+  "quality": {
+    "confirmed_fields": [],
+    "cross_source_only": [],
+    "fields_with_issues": [],
+    "invalid": [],
+    "missing": [],
+    "parse_errors": []
+  },
+  "sku": {
+    "grounds": [
+      {
+        "origin": "manufacturer_datasheet",
+        "reading": "GOLD-2"
+      }
+    ],
+    "value": "GOLD-2"
+  },
+  "specs": {
+    "woofer": {
+      "BL_Tm": {
+        "dq_calculated": [],
+        "precision": 0.7124526207409331,
+        "state": "C",
+        "value": 13.24559801044567
+      },
+      "Cms_m_per_N": {
+        "dq_calculated": [
+          {
+            "detail": "Fs_hz, Mms_kg, Cms_m_per_N disagree by 2.9%: Fs = 1/(2π·√(Mms·Cms)). Every field in the group is marked - correct one of them, or clear one to let it be calculated.",
+            "kind": "calc",
+            "params": {
+              "actual": 33,
+              "expected": 29.057584156627364,
+              "fields": [
+                "Fs_hz",
+                "Mms_kg",
+                "Cms_m_per_N"
+              ],
+              "formula": "Fs = 1/(2π·√(Mms·Cms))",
+              "relative": 0.028793660228414182,
+              "target": "Fs_hz"
+            },
+            "rule": "inconsistent-inputs",
+            "severity": "error"
+          }
+        ],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 0.0005
+          }
+        },
+        "state": "E",
+        "value": 0.0005
+      },
+      "Dd_m": {
+        "dq_calculated": [],
+        "precision": 0.002230155145471757,
+        "state": "C",
+        "value": 0.1427299292922217
+      },
+      "EBP_hz": {
+        "dq_calculated": [],
+        "precision": 1.2820512820610475,
+        "state": "C",
+        "value": 84.61538461538463
+      },
+      "Fs_hz": {
+        "dq_calculated": [
+          {
+            "detail": "Rms_kg_per_s, Fs_hz, Mms_kg, Qms disagree by 36.9%: Rms = 2π·Fs·Mms/Qms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.",
+            "kind": "calc",
+            "params": {
+              "actual": 2,
+              "expected": 4.6910659533241255,
+              "fields": [
+                "Rms_kg_per_s",
+                "Fs_hz",
+                "Mms_kg",
+                "Qms"
+              ],
+              "formula": "Rms = 2π·Fs·Mms/Qms",
+              "relative": 0.3685872350104717,
+              "target": "Rms_kg_per_s"
+            },
+            "rule": "inconsistent-inputs",
+            "severity": "error"
+          }
+        ],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 33
+          }
+        },
+        "state": "E",
+        "value": 33
+      },
+      "Gloss": {
+        "dq_calculated": [],
+        "precision": 0.002646093773272379,
+        "state": "C",
+        "value": 0.028513010375520308
+      },
+      "Mms_kg": {
+        "dq_calculated": [
+          {
+            "detail": "Rms_kg_per_s, Fs_hz, Mms_kg, Qms disagree by 36.9%: Rms = 2π·Fs·Mms/Qms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.",
+            "kind": "calc",
+            "params": {
+              "actual": 2,
+              "expected": 4.6910659533241255,
+              "fields": [
+                "Rms_kg_per_s",
+                "Fs_hz",
+                "Mms_kg",
+                "Qms"
+              ],
+              "formula": "Rms = 2π·Fs·Mms/Qms",
+              "relative": 0.3685872350104717,
+              "target": "Rms_kg_per_s"
+            },
+            "rule": "inconsistent-inputs",
+            "severity": "error"
+          }
+        ],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 0.06
+          }
+        },
+        "state": "E",
+        "value": 0.06
+      },
+      "Mpow_N_per_sqrtW": {
+        "dq_calculated": [],
+        "precision": 0.2781183547284627,
+        "state": "C",
+        "value": 5.6479419687709305
+      },
+      "Qes": {
+        "dq_calculated": [],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 0.38999999999999996
+          }
+        },
+        "state": "E",
+        "value": 0.38999999999999996
+      },
+      "Qms": {
+        "dq_calculated": [
+          {
+            "detail": "Rms_kg_per_s, Fs_hz, Mms_kg, Qms disagree by 36.9%: Rms = 2π·Fs·Mms/Qms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.",
+            "kind": "calc",
+            "params": {
+              "actual": 2,
+              "expected": 4.6910659533241255,
+              "fields": [
+                "Rms_kg_per_s",
+                "Fs_hz",
+                "Mms_kg",
+                "Qms"
+              ],
+              "formula": "Rms = 2π·Fs·Mms/Qms",
+              "relative": 0.3685872350104717,
+              "target": "Rms_kg_per_s"
+            },
+            "rule": "inconsistent-inputs",
+            "severity": "error"
+          }
+        ],
+        "state": "C",
+        "value": 2.652
+      },
+      "Qts": {
+        "dq_calculated": [],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 0.33999999999999997
+          }
+        },
+        "state": "E",
+        "value": 0.33999999999999997
+      },
+      "Re_ohm": {
+        "dq_calculated": [],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 5.5
+          }
+        },
+        "state": "E",
+        "value": 5.5
+      },
+      "Rme_kg_per_s": {
+        "dq_calculated": [],
+        "precision": 3.141592653591374,
+        "state": "C",
+        "value": 31.899248482604058
+      },
+      "Rms_kg_per_s": {
+        "dq_calculated": [
+          {
+            "detail": "Rms_kg_per_s, Fs_hz, Mms_kg, Qms disagree by 36.9%: Rms = 2π·Fs·Mms/Qms. Every field in the group is marked - correct one of them, or clear one to let it be calculated.",
+            "kind": "calc",
+            "params": {
+              "actual": 2,
+              "expected": 4.6910659533241255,
+              "fields": [
+                "Rms_kg_per_s",
+                "Fs_hz",
+                "Mms_kg",
+                "Qms"
+              ],
+              "formula": "Rms = 2π·Fs·Mms/Qms",
+              "relative": 0.3685872350104717,
+              "target": "Rms_kg_per_s"
+            },
+            "rule": "inconsistent-inputs",
+            "severity": "error"
+          }
+        ],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 2
+          }
+        },
+        "state": "E",
+        "value": 2
+      },
+      "SPL_dB": {
+        "dq_calculated": [],
+        "precision": 0.9031351173263147,
+        "state": "C",
+        "value": 84.26858486889063
+      },
+      "SPLmaxLF_dB": {
+        "dq_calculated": [],
+        "precision": 0.8143021543745022,
+        "state": "C",
+        "value": 82.70861099279827
+      },
+      "Sd_m2": {
+        "dq_calculated": [],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 0.016
+          }
+        },
+        "state": "E",
+        "value": 0.016
+      },
+      "USPL_dB": {
+        "dq_calculated": [],
+        "precision": 0.9426164338677268,
+        "state": "C",
+        "value": 85.90068668443399
+      },
+      "VCCon": {
+        "dq_calculated": [],
+        "state": "C",
+        "value": 1
+      },
+      "Vas_m3": {
+        "dq_calculated": [],
+        "precision": 0.0029505840000026984,
+        "state": "C",
+        "value": 0.018157439999999997
+      },
+      "Vd_m3": {
+        "dq_calculated": [],
+        "precision": 0.00001199999999999921,
+        "state": "C",
+        "value": 0.000128
+      },
+      "Xmax_m": {
+        "dq_calculated": [],
+        "origin": "scraped",
+        "readings": {
+          "scraped": {
+            "read_value": 0.008
+          }
+        },
+        "state": "E",
+        "value": 0.008
+      },
+      "Znom_ohm": {
+        "dq_calculated": [],
+        "state": "C",
+        "value": 8
+      },
+      "c_m_per_s": {
+        "dq_calculated": [],
+        "state": "C",
+        "value": 343.68412096215235
+      },
+      "gamma_m_per_s2_A": {
+        "dq_calculated": [],
+        "precision": 11.874210377612824,
+        "state": "C",
+        "value": 220.75996684076117
+      },
+      "no": {
+        "dq_calculated": [],
+        "precision": 0.0003383619999073814,
+        "state": "C",
+        "value": 0.001627095955807309
+      },
+      "numVC": {
+        "dq_calculated": [],
+        "state": "C",
+        "value": 1
+      },
+      "roo_kg_per_m3": {
+        "dq_calculated": [],
+        "state": "C",
+        "value": 1.2009521771468228
+      }
+    }
+  }
+}

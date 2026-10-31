@@ -12,10 +12,10 @@ export interface SelectorOption<T = string | number> {
 }
 
 /** Port end-correction presets (WinISD parity). */
-export const END_CORRECTION_OPTIONS: readonly SelectorOption<number>[] = Object.freeze([
-  Object.freeze({ value: 0.613, label: 'Two free ends' }),
-  Object.freeze({ value: 0.732, label: 'One flanged end' }),
-  Object.freeze({ value: 0.849, label: 'Two flanged ends' }),
+export const END_CORRECTION_OPTIONS: readonly (SelectorOption<number> & {readonly compactLabel:string})[] = Object.freeze([
+  Object.freeze({ value: 0.613, label: 'Two free ends', compactLabel:'Free' }),
+  Object.freeze({ value: 0.732, label: 'One flanged end', compactLabel:'1 flange' }),
+  Object.freeze({ value: 0.849, label: 'Two flanged ends', compactLabel:'2 flanges' }),
 ]);
 
 /** Vent geometry / shape options — values are the domain's own `VentShape` members. */
@@ -23,6 +23,12 @@ export const VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.f
   Object.freeze({ value: 'round', label: 'Round Tube' }),
   Object.freeze({ value: 'slotted', label: 'Slotted Duct' }),
 ]);
+
+/** Short captions for the compact desktop port rows; stored values stay identical. */
+const COMPACT_VENT_SHAPE_LABELS: Record<VentShape,string> = {round:'Round',slotted:'Slot'};
+export const COMPACT_VENT_SHAPE_OPTIONS: readonly SelectorOption<VentShape>[] = Object.freeze(
+  VENT_SHAPE_OPTIONS.map(({value}) => Object.freeze({value,label:COMPACT_VENT_SHAPE_LABELS[value]})),
+);
 
 /** Voice coil wiring connection options. The VALUES are the domain's own wiring members, so a
  *  chosen option is written to the driver as-is — the compiler checks each literal against

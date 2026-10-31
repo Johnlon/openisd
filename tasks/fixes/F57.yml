@@ -1,0 +1,29 @@
+id: F57
+owner: Johnlon
+status: done
+sha: bef6c747a8f5444e504edcbf212c330b34c7b761
+tested: bef6c747a8f5444e504edcbf212c330b34c7b761
+last_green: 60137cd65e8239f741f4790d433b751ad746dd60
+range: 60137cd65e8239f741f4790d433b751ad746dd60..bef6c747a8f5444e504edcbf212c330b34c7b761
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-bef6c747a8.log
+goal: main is red at bef6c747a8; make the full suite pass again
+commits: |
+  bef6c747a8 (auto) SDLC policy: fix broken main on main, test ladder, release first, agents in tmux under the keeper
+  afc05e1aba Merge remote-tracking branch 'origin/main' into t622
+  f4d567cf47 (auto) T626: The phone menu reset is awaited, no source calls the deprecated notifyVe
+  af18065be2 (auto) T622: newer-file refusals say the next step; bug file records John's rulings, one key and the remaining refusals; visual hash re-taken
+  652bfe3c97 (auto) T622: test that the migrated text equals the first save under the user's settings
+  1d58e3b163 (auto) T622: an older tab cannot lower a newer store's layout or write into it; a layout migration drops the sync cursor
+  3bada1a481 (auto) T622: a text the strict read refuses still gets its project id; the quarantined session is migrated too
+  2cdff5f237 (auto) T622: one key for a project: a file, link or archive never overwrites a saved project with another design; storeNew takes no open list
+  1327c999d5 (auto) T622: wip one key for a project: the store key is the project id, storedIdentity removed
+  a6b6517567 (auto) T622: a layout upgrade keeps the sync record; sync upgrades a remote doc the way the local store is upgraded and pushes it at the new layout
+  09b32b74c1 (auto) T622: cloud specs stamp the store with the current layout, so the page is not migrated and the sync record kept
+  3019b187b4 (auto) T622: Loading a stored project and saving it gives the same bytes: the embedde
+failing: |
+
+output: |
+  2026-10-31T15:54:11.418Z 1539552-1793462049-22987 actions: start 2026-10-31T15:54:11Z bef6c747a8 (Johnlon/openisd suite.yml)
+  2026-10-31T16:04:17.790Z 1539552-1793462049-22987 actions: no suite.yml run on bef6c747a8 after 600s (or GitHub cannot be read); red
+closed_note: |
+  Closed by post-land: the full suite is green at 9a5feb228f89de162f363f1353e415848499bf34, which holds every red commit listed here.

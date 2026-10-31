@@ -11,10 +11,10 @@ describe('a calculation issue names its own fields', () => {
     expect(issue.fields).toEqual(['a', 'b']);
   });
 
-  it('a missing-dependencies issue names its target plus every route field', () => {
+  it('a missing-dependencies issue names its target plus the missing inputs only', () => {
     const issue: CalculationIssue<Q> = engine.issues.missingDependencies<Q>('a',
       [{ formula: 'a = b + c', required: ['b', 'c'], missing: ['c'] }]);
-    expect(issue.fields).toEqual(['a', 'b', 'c', 'c']);
+    expect(issue.fields).toEqual(['a', 'c']);
   });
 });
 

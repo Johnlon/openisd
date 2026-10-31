@@ -66,7 +66,7 @@ useEscToClose(() => true, close);
 const { confirmPort, presentation: presentationState } = useApp();
 /** The phone draws this dialog as a classic full-screen dialog (PHONE_CLASSIC_BUILD_SPEC row 20); the desktop is unchanged. */
 /** The label column the dialogs' rows use (their labels are longer than a project page's). */
-const DIALOG_COLUMNS = PhoneRowColumns.WIDE_LABEL;
+const DIALOG_COLUMNS = PhoneRowColumns.MEDIUM_LABEL;
 const phone = computed(() => presentationState.shownSkin() === 'mobile');
 const { resetUnitTokens } = presentationState;
 const { downloadBackup, restoreFromFile } = useBackupSettings();
@@ -215,7 +215,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
       </div>
       <div v-if="!canApply" class="opt-error opt-phone-error" data-testid="settings-error">{{ limitsError ?? 'The frequency range needs both a start and an end, with the start below the end.' }}</div>
     </template>
-    <PhoneDialogPage>
+    <PhoneDialogPage :columns="tab.v === 'General' ? DIALOG_COLUMNS : PhoneRowColumns.WIDE_LABEL">
       <template v-if="tab.v === 'General'">
         <PhoneBand :section="PhoneDialogHelp.OPTIONS_USER" />
         <div class="mob-crow">
@@ -525,14 +525,14 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
   cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; }
 
 .opt-limits { width: auto; border-collapse: collapse; font-size: 11px; }
-.opt-limits th, .opt-limits td { padding: 3px 4px; text-align: left; }
+.opt-limits th, .opt-limits td { padding: 2px 4px; text-align: left; }
 .opt-limits td:first-child { white-space: nowrap; }
 .opt-limits th { color: var(--mut); font-weight: 500; border-bottom: 1px solid var(--line); }
 /* A chart limit's start or end: the box and ▲▼ and unit only. Its label stays for screen readers
    but takes no room, and the ⚠ and ≠W slots (never used here) are dropped so a pair fits a row. */
-.opt-limits .opt-lim-field.ui-field { grid-template-columns: 0 var(--ui-value-w) 34px; }
-.opt-lim-field.ui-field { --ctl-h: 20px; column-gap: 0; }
-.opt-lim-field :deep(.ui-field-label) { overflow: hidden; width: 0; }
+.joined-fields .opt-limits .opt-lim-field.ui-field[data-field] { --joined-label: 0px; grid-template-columns: 0 var(--joined-box) var(--joined-buttons); column-gap: 0; }
+.opt-lim-field.ui-field { column-gap: 0; }
+.opt-lim-field :deep(.ui-field-label) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .opt-lim-field :deep(.ui-field-dq),
 .opt-lim-field :deep(.ui-field-dev) { display: none; }
 

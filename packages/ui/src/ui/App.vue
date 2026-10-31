@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, watch} from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
+import './joined-fields.css';
+import FieldCatalogue from './components/FieldCatalogue.vue';
+const fieldCatalogue = new URLSearchParams(window.location.search).has('field-catalogue');
 import MobileShell from './shells/mobile/MobileShell.vue';
 import OriginalNewProject from './shells/original/OriginalNewProject.vue';
 import MobileNewProject from './shells/mobile/MobileNewProject.vue';
@@ -11,6 +14,7 @@ import {PHONE_DRIVER_EDITOR_SKIN} from './components/driverEditorSkin.js';
 import Flash from './components/Flash.vue';
 import DiagnosticsModal from './components/DiagnosticsModal.vue';
 import SplashModal from './components/SplashModal.vue';
+import AnnouncementsModal from './components/AnnouncementsModal.vue';
 import WinisdDifferencesModal from './components/WinisdDifferencesModal.vue';
 import ConfirmDialog from './components/ConfirmDialog.vue';
 import {bootApplication} from '../logic/boot.js';
@@ -26,12 +30,14 @@ import {provideWinisdDifferencesModal} from '../hooks/WinisdDifferencesModal-hoo
 import {provideDiagnosticsModal} from '../hooks/DiagnosticsModal-hooks.js';
 import {createViewportWatch} from '../logic/viewport.js';
 import {useTelemetryUi} from '../hooks/telemetryContext.js';
+import {useAnnouncementCenter} from '../hooks/Announcements-hooks.js';
 import CrashScreen from './components/CrashScreen.vue';
 
 const { designIO, projectRepo, viewStateRepo, logging, selection, bundledDrivers, bundledPassiveRadiators, versionIndex, confirmPort, appUpdate, appState, presentation: presentationState, recordedProjectId, persistence, browserStorage, storageUsage, saves } = useApp();
 const { applyState, hiddenTraces, currentViewSnapshot, focusedProject, openProjects, projectChanged, requireFocusedProject } = appState;
 const { state: confirmState } = confirmPort;
 const { launch, actions: recentActions } = useTelemetryUi();
+const announcements = useAnnouncementCenter();
 
 watch(() => presentationState.newProjectOpen, open => { if (open) recentActions.record('dialog:new-project'); });
 watch(() => presentationState.editDriverInfo, open => { if (open) recentActions.record('dialog:driver-editor'); });
@@ -107,6 +113,7 @@ onMounted(async () => {
     presentation: presentationState,
     recordedProjectId,
   });
+  void announcements.load();
   viewStateRepo.save(currentViewSnapshot());
   projectRepo.saveOpenProjects(openProjects(), focusedProject(), hiddenTraces(openProjects()));
   stopSessionSync = startSessionSync({ projectRepo, viewStateRepo, appState });
@@ -142,19 +149,20 @@ onUnmounted(() => {
        desktop mode this element is unconstrained (full width), so the same rule is a no-op —
        `position: fixed` against a full-viewport containing block behaves identically to `fixed`
        against the real viewport. -->
-  <div class="app-root" :class="{ 'app-root-mobile': activeSkin === 'mobile' }">
+  <div class="app-root joined-fields" :class="{ 'app-root-mobile': activeSkin === 'mobile' || fieldCatalogue }">
     <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
          empty placeholders, and the toolbar's global actions stay reachable. All overlays
          self-gate on their own presentationState booleans. Which shell mounts is `activeSkin`:
          the manual override when set, else the live viewport. -->
-    <MobileShell v-if="activeSkin === 'mobile'" />
+    <FieldCatalogue v-if="fieldCatalogue" />
+    <MobileShell v-else-if="activeSkin === 'mobile'" />
     <OriginalShell v-else />
     <!-- Global overlays — each self-gates internally and is safe with no project open. -->
     <MobileNewProject v-if="presentationState.newProjectOpen && activeSkin === 'mobile'" @close="presentationState.newProjectOpen = false" />
     <OriginalNewProject v-else-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
-    <!-- Both read the focused project, so neither may mount without one — whatever set the
-         flag. The shell itself renders with no project; these do not. -->
-    <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" :skin="activeSkin === 'mobile' ? PHONE_DRIVER_EDITOR_SKIN : undefined" @close="presentationState.editDriverInfo = false" />
+    <!-- Saved-driver editing owns a detached library draft and needs no project.
+         Project-driver editing and What-if still require an open project. -->
+    <DriverEditorModal v-if="presentationState.editDriverInfo && (projectOpen || selection.editSubject().kind === 'myDriver')" :skin="activeSkin === 'mobile' ? PHONE_DRIVER_EDITOR_SKIN : undefined" @close="presentationState.editDriverInfo = false" />
     <OriginalWhatIf v-if="presentationState.editDriver && projectOpen" />
     <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
     <DriverBrowser :phone="activeSkin === 'mobile'" />
@@ -166,6 +174,8 @@ onUnmounted(() => {
     <DiagnosticsModal />
     <!-- What OpenISD is — raised for a first visitor, reopened from Info → About OpenISD. -->
     <SplashModal />
+    <!-- Versioned announcements remain available from Info/App menus after dismissal. -->
+    <AnnouncementsModal />
     <!-- Help → "OpenISD and WinISD differences"; also opened by the group headings and ≠W cues. -->
     <WinisdDifferencesModal />
     <!-- In-app confirm dialog, hosted once for both skins. -->

@@ -13,7 +13,7 @@ import type {
     Writable
 } from '../cell.js';
 import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField, writeEntryDq} from '../cell.js';
-import type {DriverDeviceJson, DriverSpecsSection, SpecEntryJson} from '../openisdSchema.js';
+import type {DriverDeviceJson, SpecEntryJson} from '../openisdSchema.js';
 import {
     calcNumVC,
     calculatedWiring,
@@ -24,39 +24,78 @@ import {
 } from '../voiceCoilWiring.js';
 import {computedSlot} from './computedSlot.js';
 import {driverSection} from './driverSection.js';
-import {DRIVER_SPEC_FIELD_NAMES} from './driverSpecFieldName.js';
 import type {DriverSpecFieldName} from './driverSpecFieldName.js';
 import {NO_SLOT} from './noSlot.js';
 
 /**
- * The floor for the `DriverSpecFieldName`s the field registry has no entry for. Every other
- * spec field states its floor on its own `NumberField`, beside its two bands.
- *
- * `VCCon` is a wiring name, never a number, and never reaches this mechanism (see `f()`).
- * The six others are spec fields nobody has stated a band for, so there is no `NumberField` to
- * carry the floor; `driver-spec-floor-coverage.test.ts` fails if this table and the registry
- * ever stop covering every name between them.
+ * Every `DriverSpecFieldName`'s floor, stated once. A spec field the registry has a `NumberField`
+ * for reads its floor off that field, beside its two bands; the seven the registry has no entry
+ * for (`VCCon` is a wiring name, never a number; the others nobody has stated a band for) state
+ * theirs here. The record is total over `DriverSpecFieldName`, so a new spec field without a floor
+ * fails to compile; `driver-spec-floor-coverage.test.ts` fails if the registry gains or loses a field
+ * this table treats the other way.
  */
-const FLOOR_WITHOUT_FIELD: Partial<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze({
+const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze({
     VCCon: 'none',
-    Dia_m: 'positive', freq_low_hz: 'positive', freq_high_hz: 'positive',
-    weight_kg: 'positive', OuterX_m: 'positive', OuterY_m: 'positive',
+    Fs_hz: NumberField.FS_HZ.floor,
+    Re_ohm: NumberField.RE_OHM.floor,
+    Le_H: NumberField.LE_H.floor,
+    fLe_hz: NumberField.FLE_HZ.floor,
+    KLe_H_sqrtHz: NumberField.KLE_H_SQRTHZ.floor,
+    Znom_ohm: NumberField.ZNOM_OHM.floor,
+    Qts: NumberField.QTS.floor,
+    Qes: NumberField.QES.floor,
+    Qms: NumberField.QMS.floor,
+    Vas_m3: NumberField.VAS_M3.floor,
+    Sd_m2: NumberField.SD_M2.floor,
+    BL_Tm: NumberField.BL_TM.floor,
+    Mms_kg: NumberField.MMS_KG.floor,
+    Cms_m_per_N: NumberField.CMS_M_PER_N.floor,
+    Rms_kg_per_s: NumberField.RMS_KG_PER_S.floor,
+    Xmax_m: NumberField.XMAX_M.floor,
+    Xlim_m: NumberField.XLIM_M.floor,
+    SPL_dB: NumberField.SPL_DB.floor,
+    Pe_W: NumberField.PE_W.floor,
+    Dd_m: NumberField.DD_M.floor,
+    EBP_hz: NumberField.EBP_HZ.floor,
+    numVC: NumberField.NUMVC.floor,
+    Dia_m: 'positive',
+    Vd_m3: NumberField.VD_M3.floor,
+    no: NumberField.NO.floor,
+    SPLmax_dB: NumberField.SPLMAX_DB.floor,
+    SPLmaxLF_dB: NumberField.SPLMAXLF_DB.floor,
+    USPL_dB: NumberField.USPL_DB.floor,
+    alfaVC_per_K: NumberField.ALFAVC_PER_K.floor,
+    Rt_K_per_W: NumberField.RT_K_PER_W.floor,
+    Ct_J_per_K: NumberField.CT_J_PER_K.floor,
+    gamma_m_per_s2_A: NumberField.GAMMA_M_PER_S2_A.floor,
+    Rme_kg_per_s: NumberField.RME_KG_PER_S.floor,
+    Mpow_N_per_sqrtW: NumberField.MPOW_N_PER_SQRTW.floor,
+    Mcost_kg_per_s: NumberField.MCOST_KG_PER_S.floor,
+    Gloss: NumberField.GLOSS.floor,
+    c_m_per_s: NumberField.C_M_PER_S.floor,
+    roo_kg_per_m3: NumberField.ROO_KG_PER_M3.floor,
+    Vcd_m: NumberField.VCD_M.floor,
+    Hg_m: NumberField.HG_M.floor,
+    Hc_m: NumberField.HC_M.floor,
+    freq_low_hz: 'positive',
+    freq_high_hz: 'positive',
+    power_peak_W: NumberField.POWER_PEAK_W.floor,
+    weight_kg: 'positive',
+    Thick_m: NumberField.THICK_M.floor,
+    Depth_m: NumberField.DEPTH_M.floor,
+    MagDepth_m: NumberField.MAGDEPTH_M.floor,
+    Magnet_m: NumberField.MAGNET_M.floor,
+    Basket_m: NumberField.BASKET_M.floor,
+    Outer_m: NumberField.OUTER_M.floor,
+    OuterX_m: 'positive',
+    OuterY_m: 'positive',
+    DVol_m3: NumberField.DVOL_M3.floor,
 });
 
-/** Every `DriverSpecFieldName` the registry has a `NumberField` for, indexed once from the
- *  registry's own members — never a per-key literal that could fall out of step with it. A name
- *  in `FLOOR_WITHOUT_FIELD` above is absent here, not present with a `NumberField` that isn't one. */
-const FIELD_FOR_SPEC_NAME: Partial<Record<DriverSpecFieldName, NumberField>> = Object.freeze(
-    DRIVER_SPEC_FIELD_NAMES.reduce<Partial<Record<DriverSpecFieldName, NumberField>>>((map, name) => {
-        const field = NumberField.ALL.find(f => f.value === name);
-        if (field !== undefined) map[name] = field;
-        return map;
-    }, {}),
-);
-
-/** `key`'s own floor — the field's, where the registry has the field. */
+/** `key`'s own floor. */
 export function driverSpecFloor(key: DriverSpecFieldName): ValueFloor {
-    return FIELD_FOR_SPEC_NAME[key]?.floor ?? FLOOR_WITHOUT_FIELD[key] ?? 'none';
+    return FLOORS[key];
 }
 
 /** `key`'s own floor, applied to `v` — no default arm: a `ValueFloor` variant added without a
@@ -200,7 +239,7 @@ export class OpenIsdDriverSpec {
         /** One `SpecEntryJson` slot inside this section — deletes the key when set to `undefined`
          *  (T11: absence is 'N', not a stored null). */
         const sectionLens = driverSection(record, section);
-        const sectionSlot = (key: keyof DriverSpecsSection): SimpleField<SpecEntryJson | undefined> => ({
+        const sectionSlot = (key: DriverSpecFieldName): SimpleField<SpecEntryJson | undefined> => ({
             get value() {
                 return sectionLens.value[key];
             },
@@ -218,7 +257,7 @@ export class OpenIsdDriverSpec {
         /** The issues `key` is named by, out of a durable list — the same split `#markDq`
          *  makes: a `field`-carrying issue names one field, everything else names whatever
          *  `issueFields` says. */
-        const dqFor = (key: keyof DriverSpecsSection): (() => readonly DqIssue[]) | undefined =>
+        const dqFor = (key: DriverSpecFieldName): (() => readonly DqIssue[]) | undefined =>
             durableIssues === undefined ? undefined : () => durableIssues().filter(issue =>
                 'field' in issue ? issue.field === key : issue.fields.some(f => f === key));
         /** Every numeric spec field's OWN floor (`driverSpecFloor`, not one floor for every field —
@@ -387,14 +426,12 @@ export class OpenIsdDriverSpec {
         issues: readonly (CalculationIssue<DriverQuantityName> | OutOfRangeIssue)[],
     ): void {
         const mark = (key: DriverQuantityName, dq: readonly DqIssue[]): void => handles[key].setDq(dq);
-        // An `OutOfRangeIssue.field` is plain `string` (D14's mark shape is shared across every
-        // domain), so it is validated against the quantity list before it is narrowed.
-        const fieldNames: readonly string[] = DRIVER_QUANTITY_NAMES;
-        const isField = (candidate: string): candidate is DriverQuantityName => fieldNames.includes(candidate);
         DRIVER_QUANTITY_NAMES.forEach(key => mark(key, []));
         issues.forEach(issue => {
             if ('field' in issue) {
-                if (isField(issue.field)) mark(issue.field, [issue]);
+                // An `OutOfRangeIssue.field` is plain `string` (D14's mark shape is shared across every
+                // domain), so it is matched against the quantity list rather than narrowed from it.
+                DRIVER_QUANTITY_NAMES.filter(key => key === issue.field).forEach(key => mark(key, [issue]));
                 return;
             }
             issue.fields.forEach(field => mark(field, [issue]));

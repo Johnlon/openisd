@@ -60,7 +60,25 @@ export interface AirSolution {
   readonly issues: readonly AirIssue[];
 }
 
-type Known = ReadonlyMap<AirQuantityName, number>;
+/** One air quantity's value and its half-width, kept together so neither is read without the other. */
+interface Quantity { readonly value: number; readonly width: number }
+/** Every quantity at once. A quantity not yet known reads as `OPEN`; a relation never reads its
+ *  own open field, so `OPEN` is never used in a sum. */
+type Snapshot = Readonly<Record<AirQuantityName, Quantity>>;
+const OPEN: Quantity = Object.freeze({value: NaN, width: 0});
+
+function snapshotOf(known: ReadonlyMap<AirQuantityName, Quantity>): Snapshot {
+  return {
+    tempK: known.get('tempK') ?? OPEN, humidityPct: known.get('humidityPct') ?? OPEN,
+    pressurePa: known.get('pressurePa') ?? OPEN, c: known.get('c') ?? OPEN, rho: known.get('rho') ?? OPEN,
+  };
+}
+
+/** `from` with one quantity's value moved, its width kept. */
+function moved(from: Snapshot, name: AirQuantityName, value: number): Snapshot {
+  return {...from, [name]: {value, width: from[name].width}};
+}
+
 type Outcome = {readonly kind: 'solved'; readonly value: number} | {readonly kind: 'failed'; readonly why: string};
 
 const QUANTITIES: readonly AirQuantityName[] = Object.freeze<AirQuantityName[]>(['tempK', 'humidityPct', 'pressurePa', 'c', 'rho']);
@@ -92,7 +110,6 @@ function bisect(g: (x: number) => number, lo: number, hi: number): number | null
     const mid = a + (b - a) / 2;
     if (mid <= a || mid >= b) return mid;
     const gMid = g(mid);
-    if (gMid === 0) return mid;
     if (Math.sign(gMid) === Math.sign(gLo)) { a = mid; gLo = gMid; } else { b = mid; }
   }
 }
@@ -105,20 +122,14 @@ function soundSpeed(t: number, rh: number, p: number): number {
   return Number.isNaN(c) ? Infinity : c;
 }
 
-function need(known: Known, name: AirQuantityName): number {
-  const v = known.get(name);
-  if (v === undefined) throw new Error(`air solver: ${name} is not known`);
-  return v;
-}
-
-type FieldSolver = (known: Known, widths: Known) => Outcome;
+type FieldSolver = (known: Snapshot) => Outcome;
 
 /** The one relation field still open, solved: its outcome, and the same solve over other values
  *  (to carry the inputs' half-widths through). */
 interface RelationStep {
   readonly target: AirQuantityName;
   readonly outcome: Outcome;
-  again(known: Known): Outcome;
+  again(known: Snapshot): Outcome;
 }
 
 /** What the loop and the checks need of a relation, whatever its fields. */
@@ -127,9 +138,9 @@ interface AirRelation {
   readonly fields: readonly AirQuantityName[];
   /** The one field a conflict is reported against: the one `predict` calculates. */
   readonly target: AirQuantityName;
-  predict(known: Known): number;
+  predict(known: Snapshot): number;
   /** Solves the relation's single open field, if exactly one is open and not given up on. */
-  solveOpen(known: Known, widths: Known, gaveUp: ReadonlySet<AirQuantityName>): RelationStep | null;
+  solveOpen(known: ReadonlyMap<AirQuantityName, Quantity>, gaveUp: ReadonlySet<AirQuantityName>): RelationStep | null;
 }
 
 /** A relation over exactly the fields `F`: the compiler requires a solver for every one of them,
@@ -139,16 +150,16 @@ class FieldRelation<F extends AirQuantityName> implements AirRelation {
     readonly formula: string,
     readonly fields: readonly F[],
     readonly target: F,
-    readonly predict: (known: Known) => number,
+    readonly predict: (known: Snapshot) => number,
     private readonly solvers: {readonly [K in F]: FieldSolver},
   ) {}
 
-  solveOpen(known: Known, widths: Known, gaveUp: ReadonlySet<AirQuantityName>): RelationStep | null {
+  solveOpen(known: ReadonlyMap<AirQuantityName, Quantity>, gaveUp: ReadonlySet<AirQuantityName>): RelationStep | null {
     const open = this.fields.filter(f => !known.has(f));
     const target = open[0];
     if (open.length !== 1 || target === undefined || gaveUp.has(target)) return null;
     const solver = this.solvers[target];
-    return {target, outcome: solver(known, widths), again: k => solver(k, widths)};
+    return {target, outcome: solver(snapshotOf(known)), again: solver};
   }
 }
 
@@ -159,10 +170,9 @@ function densityResult(v: number): Outcome {
 /** Solves one of T, RH, p from a typed c, given `at`: c as a function of that quantity. */
 function soundBracket(
   at: (x: number) => number, limits: {readonly min: number; readonly max: number},
-  known: Known, widths: Known,
+  known: Snapshot,
 ): Outcome {
-  const c = need(known, 'c');
-  const width = widths.get('c') ?? 0;
+  const {value: c, width} = known.c;
   const {min, max} = limits;
   const cMin = at(min), cMax = at(max);
   // Every value in the range matches the typed c within its precision: it pins nothing.
@@ -182,11 +192,11 @@ const DENSITY: AirRelation = Object.freeze(new FieldRelation<'pressurePa' | 'c' 
   'ρ = γ·p/c², γ = 1.4',
   ['pressurePa', 'c', 'rho'],
   'rho',
-  known => GAMMA * need(known, 'pressurePa') / (need(known, 'c') * need(known, 'c')),
+  k => GAMMA * k.pressurePa.value / (k.c.value * k.c.value),
   {
-    rho: known => densityResult(GAMMA * need(known, 'pressurePa') / (need(known, 'c') * need(known, 'c'))),
-    pressurePa: known => densityResult(need(known, 'rho') * need(known, 'c') * need(known, 'c') / GAMMA),
-    c: known => densityResult(Math.sqrt(GAMMA * need(known, 'pressurePa') / need(known, 'rho'))),
+    rho: k => densityResult(GAMMA * k.pressurePa.value / (k.c.value * k.c.value)),
+    pressurePa: k => densityResult(k.rho.value * k.c.value * k.c.value / GAMMA),
+    c: k => densityResult(Math.sqrt(GAMMA * k.pressurePa.value / k.rho.value)),
   },
 ));
 
@@ -194,46 +204,42 @@ const SOUND: AirRelation = Object.freeze(new FieldRelation<'tempK' | 'humidityPc
   'c = f(T, RH, p), the WinISD air model',
   ['tempK', 'humidityPct', 'pressurePa', 'c'],
   'c',
-  known => soundSpeed(need(known, 'tempK'), need(known, 'humidityPct'), need(known, 'pressurePa')),
+  k => soundSpeed(k.tempK.value, k.humidityPct.value, k.pressurePa.value),
   {
-    c: known => {
-      const c = soundSpeed(need(known, 'tempK'), need(known, 'humidityPct'), need(known, 'pressurePa'));
+    c: k => {
+      const c = soundSpeed(k.tempK.value, k.humidityPct.value, k.pressurePa.value);
       return Number.isFinite(c) ? solved(c) : failed('no air at these conditions');
     },
-    tempK: (known, widths) => soundBracket(
-      x => soundSpeed(x, need(known, 'humidityPct'), need(known, 'pressurePa')), LIMITS.tempK, known, widths),
-    humidityPct: (known, widths) => soundBracket(
-      x => soundSpeed(need(known, 'tempK'), x, need(known, 'pressurePa')), LIMITS.humidityPct, known, widths),
-    pressurePa: (known, widths) => soundBracket(
-      x => soundSpeed(need(known, 'tempK'), need(known, 'humidityPct'), x), LIMITS.pressurePa, known, widths),
+    tempK: k => soundBracket(x => soundSpeed(x, k.humidityPct.value, k.pressurePa.value), LIMITS.tempK, k),
+    humidityPct: k => soundBracket(x => soundSpeed(k.tempK.value, x, k.pressurePa.value), LIMITS.humidityPct, k),
+    pressurePa: k => soundBracket(x => soundSpeed(k.tempK.value, k.humidityPct.value, x), LIMITS.pressurePa, k),
   },
 ));
 
 const RELATIONS: readonly AirRelation[] = Object.freeze<AirRelation[]>([DENSITY, SOUND]);
 
 /** Pressure and c together, with T, RH and ρ known: ρ·f(p)² = γ·p has one root in p. */
-function solveCoupled(known: Known): {readonly p: number; readonly c: number} | null {
-  const t = need(known, 'tempK'), rh = need(known, 'humidityPct'), rho = need(known, 'rho');
+function solveCoupled(known: Snapshot): {readonly p: number; readonly c: number} | null {
+  const t = known.tempK.value, rh = known.humidityPct.value, rho = known.rho.value;
   const {min, max} = LIMITS.pressurePa;
   const p = bisect(x => rho * soundSpeed(t, rh, x) ** 2 - GAMMA * x, min, max);
   if (p === null) return null;
-  const c = soundSpeed(t, rh, p);
-  return Number.isFinite(c) ? {p, c} : null;
+  // The root has finite c: c grows without bound towards the corner where the model gives NaN,
+  // so the residual stays positive up to that edge and cannot change sign there.
+  return {p, c: soundSpeed(t, rh, p)};
 }
 
 /** First-order half-width of a solved value: each input moved by its own half-width, summed. */
 function propagatedWidth(
-  inputs: readonly AirQuantityName[], known: Known, widths: Known,
-  compute: (k: Known) => number | null, value: number,
+  inputs: readonly AirQuantityName[], known: Snapshot,
+  compute: (k: Snapshot) => number | null, value: number,
 ): number {
   let total = 0;
   for (const name of inputs) {
-    const w = widths.get(name) ?? 0;
-    if (!(w > 0)) continue;
-    const bumped = new Map(known);
-    bumped.set(name, need(known, name) + w);
-    const moved = compute(bumped);
-    if (moved !== null && Number.isFinite(moved)) total += Math.abs(moved - value);
+    const {value: at, width} = known[name];
+    if (!(width > 0)) continue;
+    const result = compute(moved(known, name, at + width));
+    if (result !== null && Number.isFinite(result)) total += Math.abs(result - value);
   }
   return total;
 }
@@ -243,7 +249,7 @@ function withinLimits(name: AirQuantityName, value: number): boolean {
   return Number.isFinite(value) && value >= min && value <= max && (name !== 'c' && name !== 'rho' || value > 0);
 }
 
-function unavailable(target: AirQuantityName, relation: AirRelation, why: string, known: Known): AirIssue {
+function unavailable(target: AirQuantityName, relation: AirRelation, why: string, known: ReadonlyMap<AirQuantityName, Quantity>): AirIssue {
   return missingDependencies(target, [{
     formula: `${relation.formula} - ${why}`,
     required: relation.fields.filter(f => f !== target && known.has(f)),
@@ -263,26 +269,24 @@ function appValue(appAir: AppAir, name: AirQuantityName): number {
 }
 
 export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
-  const known = new Map<AirQuantityName, number>();
-  const widths = new Map<AirQuantityName, number>();
+  const known = new Map<AirQuantityName, Quantity>();
   for (const name of QUANTITIES) {
     const input = inputs[name];
-    if (input.kind === 'entered') { known.set(name, input.value); widths.set(name, input.precision); }
+    if (input.kind === 'entered') known.set(name, {value: input.value, width: input.precision});
   }
   const issues: AirIssue[] = [];
   const gaveUp = new Set<AirQuantityName>();
   const used = new Set<AirRelation>();
 
   const record = (name: AirQuantityName, value: number, width: number): void => {
-    known.set(name, value);
-    widths.set(name, width);
+    known.set(name, {value, width});
   };
 
   const propagate = (): void => {
     for (let progressed = true; progressed;) {
       progressed = false;
       for (const rel of RELATIONS) {
-        const step = rel.solveOpen(known, widths, gaveUp);
+        const step = rel.solveOpen(known, gaveUp);
         if (step === null) continue;
         const {target, outcome} = step;
         used.add(rel);
@@ -291,7 +295,7 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
           issues.push(unavailable(target, rel, outcome.kind === 'failed' ? outcome.why : 'the answer is outside its limits', known));
         } else {
           const others = rel.fields.filter(f => f !== target);
-          record(target, outcome.value, propagatedWidth(others, known, widths, k => {
+          record(target, outcome.value, propagatedWidth(others, snapshotOf(known), k => {
             const o = step.again(k);
             return o.kind === 'solved' ? o.value : null;
           }, outcome.value));
@@ -303,7 +307,8 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
 
     if (!known.has('pressurePa') && !known.has('c') && known.has('tempK') && known.has('humidityPct') && known.has('rho')
         && !gaveUp.has('pressurePa')) {
-      const both = solveCoupled(known);
+      const snap = snapshotOf(known);
+      const both = solveCoupled(snap);
       used.add(DENSITY);
       used.add(SOUND);
       if (both === null || !withinLimits('pressurePa', both.p) || !withinLimits('c', both.c)) {
@@ -313,8 +318,8 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
         issues.push(unavailable('c', DENSITY, 'no pressure in range fits this density', known));
       } else {
         const ins: readonly AirQuantityName[] = ['tempK', 'humidityPct', 'rho'];
-        record('pressurePa', both.p, propagatedWidth(ins, known, widths, k => solveCoupled(k)?.p ?? null, both.p));
-        record('c', both.c, propagatedWidth(ins, known, widths, k => solveCoupled(k)?.c ?? null, both.c));
+        record('pressurePa', both.p, propagatedWidth(ins, snap, k => solveCoupled(k)?.p ?? null, both.p));
+        record('c', both.c, propagatedWidth(ins, snap, k => solveCoupled(k)?.c ?? null, both.c));
       }
     }
 
@@ -341,19 +346,18 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   }
 
   // A relation that solved nothing but has all its quantities known must agree with them.
+  const final = snapshotOf(known);
   for (const rel of RELATIONS) {
     if (used.has(rel) || !rel.fields.every(f => known.has(f))) continue;
-    const expected = rel.predict(known);
+    const expected = rel.predict(final);
     if (!Number.isFinite(expected)) continue;
-    const actual = need(known, rel.target);
-    let tolerance = widths.get(rel.target) ?? 0;
+    const actual = final[rel.target].value;
+    let tolerance = final[rel.target].width;
     for (const f of rel.fields) {
-      const w = widths.get(f) ?? 0;
-      if (f === rel.target || !(w > 0)) continue;
-      const bumped = new Map(known);
-      bumped.set(f, need(known, f) + w);
-      const moved = rel.predict(bumped);
-      if (Number.isFinite(moved)) tolerance += Math.abs(moved - expected);
+      const {value, width} = final[f];
+      if (f === rel.target || !(width > 0)) continue;
+      const bumped = rel.predict(moved(final, f, value + width));
+      if (Number.isFinite(bumped)) tolerance += Math.abs(bumped - expected);
     }
     const residual = Math.abs(expected - actual);
     if (residual > tolerance) {
@@ -363,16 +367,17 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   }
 
   const tempK = known.get('tempK');
-  if (tempK !== undefined) issues.push(...temperatureIssues(tempK));
+  if (tempK !== undefined) issues.push(...temperatureIssues(tempK.value));
 
-  const widthOf = (name: AirQuantityName): number | null => known.has(name) ? widths.get(name) ?? 0 : null;
+  const valueOf = (name: AirQuantityName): number | null => known.get(name)?.value ?? null;
+  const widthOf = (name: AirQuantityName): number | null => known.get(name)?.width ?? null;
   return {
     widths: {
       tempK: widthOf('tempK'), humidityPct: widthOf('humidityPct'), pressurePa: widthOf('pressurePa'), c: widthOf('c'), rho: widthOf('rho'),
     },
     values: {
-      tempK: known.get('tempK') ?? null, humidityPct: known.get('humidityPct') ?? null,
-      pressurePa: known.get('pressurePa') ?? null, c: known.get('c') ?? null, rho: known.get('rho') ?? null,
+      tempK: valueOf('tempK'), humidityPct: valueOf('humidityPct'),
+      pressurePa: valueOf('pressurePa'), c: valueOf('c'), rho: valueOf('rho'),
     },
     issues,
   };

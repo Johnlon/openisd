@@ -1,0 +1,107 @@
+id: F56
+owner: Johnlon
+status: done
+sha: 7f20c7781175e86db06a6f8cc0a4b08f8937c912
+tested: 7f20c7781175e86db06a6f8cc0a4b08f8937c912
+last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+range: fe89dcb3603748622895e046d4ff3749b749dce6..7f20c7781175e86db06a6f8cc0a4b08f8937c912
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-7f20c77811.log
+goal: main is red at 7f20c77811; make the full suite pass again
+commits: |
+  7f20c77811 (auto) T618: landed 4d062c16fe
+  4d062c16fe T618: release/20261030-integrated integrated
+failing: |
+
+output: |
+  2026-10-31T02:05:33.274Z 37821-1793412323-26859 actions: 7f20c77811 changes only task files; its suite result is the run on 4d062c16fe
+  2026-10-31T02:05:33.283Z 37821-1793412323-26859 actions: start 2026-10-31T02:05:33Z 4d062c16fe (Johnlon/openisd suite.yml)
+  2026-10-31T02:15:43.959Z 37821-1793412323-26859 actions: no suite.yml run on 4d062c16fe after 600s (or GitHub cannot be read); red
+also_red:
+  - sha: 344e9e2caa6270d8f7b0fad2601e27a09e553a88
+    tested: 344e9e2caa6270d8f7b0fad2601e27a09e553a88
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..344e9e2caa6270d8f7b0fad2601e27a09e553a88
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-344e9e2caa.log
+    failing: |
+also_red:
+  - sha: f70ded065e1dff28c413e7caba780ab1ff51244a
+    tested: f70ded065e1dff28c413e7caba780ab1ff51244a
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..f70ded065e1dff28c413e7caba780ab1ff51244a
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-f70ded065e.log
+    failing: |
+    
+also_red:
+  - sha: 56688ca48910a9b73b30e75978bd097e355ff41d
+    tested: 56688ca48910a9b73b30e75978bd097e355ff41d
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..56688ca48910a9b73b30e75978bd097e355ff41d
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-56688ca489.log
+    failing: |
+    
+also_red:
+  - sha: 7e82475778d007ba139e003f391b6b07213b45ed
+    tested: 7e82475778d007ba139e003f391b6b07213b45ed
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..7e82475778d007ba139e003f391b6b07213b45ed
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-7e82475778.log
+    failing: |
+    
+also_red:
+  - sha: d63db5def0115b5ecde39c1089ce9e37af8d9169
+    tested: d63db5def0115b5ecde39c1089ce9e37af8d9169
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..d63db5def0115b5ecde39c1089ce9e37af8d9169
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-d63db5def0.log
+    failing: |
+    
+also_red:
+  - sha: 9fe59ba643f54c707777d0377e20ce9896a4f9c0
+    tested: 9fe59ba643f54c707777d0377e20ce9896a4f9c0
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..9fe59ba643f54c707777d0377e20ce9896a4f9c0
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-9fe59ba643.log
+    failing: |
+    
+also_red:
+  - sha: a9d32aa2fab13088d22f0ec8a7a7f9fc75d217c3
+    tested: a9d32aa2fab13088d22f0ec8a7a7f9fc75d217c3
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..a9d32aa2fab13088d22f0ec8a7a7f9fc75d217c3
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-a9d32aa2fa.log
+    failing: |
+    
+also_red:
+  - sha: 507b70f2202b17a86cbb729ba46770f5ce6b7cab
+    tested: 507b70f2202b17a86cbb729ba46770f5ce6b7cab
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..507b70f2202b17a86cbb729ba46770f5ce6b7cab
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-507b70f220.log
+    failing: |
+    
+also_red:
+  - sha: 6ef5409fa6e8f3d8750dc792884e565369d2adb6
+    tested: 6ef5409fa6e8f3d8750dc792884e565369d2adb6
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..6ef5409fa6e8f3d8750dc792884e565369d2adb6
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-6ef5409fa6.log
+    failing: |
+    
+also_red:
+  - sha: ff96373458ae3018786c5da5ad8dd675a6f7c70b
+    tested: ff96373458ae3018786c5da5ad8dd675a6f7c70b
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..ff96373458ae3018786c5da5ad8dd675a6f7c70b
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-ff96373458.log
+    failing: |
+    
+also_red:
+  - sha: c45efe8731566a7f26bef3a85d5daa819112e60a
+    tested: c45efe8731566a7f26bef3a85d5daa819112e60a
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..c45efe8731566a7f26bef3a85d5daa819112e60a
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-c45efe8731.log
+    failing: |
+    
+closed_note: |
+  Closed by post-land: the full suite is green at 8758da449cac3c412dc8b0c0cf1bdf965b02285f, which holds every red commit listed here.

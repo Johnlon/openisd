@@ -79,6 +79,15 @@ case "$sub" in
 esac
 SHIM
 chmod +x "$S/bin/gh"; export PATH="$S/bin:$PATH"
+cat > "$S/bin/curl" <<'CURLSHIM'
+#!/usr/bin/env bash
+case "${*: -1}" in
+  https://test.openisd.app/build-info.json) printf '{"version":"%s"}\n' "${TEST_BUILD_INFO:-}" ;;
+  https://openisd.app/build-info.json) printf '{"version":"%s"}\n' "${PROD_BUILD_INFO:-}" ;;
+  *) echo "curl shim: unsupported URL ${*: -1}" >&2; exit 1 ;;
+esac
+CURLSHIM
+chmod +x "$S/bin/curl"
 
 # ---- git: an isolated config and a bare remote ----------------------------------------------------
 printf '[user]\n\tname = Test\n\temail = test@example.test\n[init]\n\tdefaultBranch = main\n' > "$S/gitconfig"
@@ -181,7 +190,7 @@ rel="$(release_json v20260101T0102Z)"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$HEAD_SHA" ] && ok "branch release at the promoted commit" || fail "release branch"
 [ "$(release_json v20260101T0102Z | jq -r .name)" = "OpenISD 7.0.951" ] && ok "the release is titled OpenISD <public number>" || fail "release title: $(release_json v20260101T0102Z)"
 grep -q '^| 7.0.951 | 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://snapshots.openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
-grep -Fq 'gh workflow run deploy.yml --ref main --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
+grep -Fq 'gh workflow run deploy.yml --ref main --field publish_production=true --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
   && ok "promotion dispatches production deployment from main" \
   || fail "production deploy dispatch: $(tail -10 "$GH_STATE/calls.log")"
 ! grep -qE 'release (download|create)|npm|vite' "$GH_STATE/calls.log" && ok "downloads nothing, builds nothing, creates nothing" || fail "unexpected calls: $(cat "$GH_STATE/calls.log")"
@@ -242,10 +251,84 @@ git merge-base --is-ancestor "$HOT_SHA" "$MERGE" && ok "the hotfix commit stays 
 add_snap 20260105T0000Z "$FF_SHA" 2026-01-05T00:00:00Z
 out=$(bash scripts/release.sh --public 7.0.1102 20260105T0000Z 2>&1); r=$?
 [ $r = 0 ] && [ "$(rel_tip)" = "$MERGE" ] && grep -q 'already contains' <<< "$out" && ok "release already containing the commit: left alone" || fail "contained case: $r $out"
+
+# ---- 6c. preflight now, approve quickly later ------------------------------------------------------
+add_snap 20260106T0000Z "$(git rev-parse HEAD)" 2026-01-06T00:00:00Z
+printf '## Prepared note\n\n- This exact text is approved.\n' > "$S/prepared-notes.md"
+export TEST_BUILD_INFO=v20260106T0000Z PROD_BUILD_INFO=v20260105T0000Z
+: > "$GH_STATE/calls.log"
+out=$(bash scripts/release.sh --prepare --public 7.0.1103 --notes-file "$S/prepared-notes.md" 20260106T0000Z 2>&1); r=$?
+[ $r = 0 ] && grep -q -- '--approve-prepared' <<< "$out" && ok "prepare prints the explicit approval command" || fail "prepare: $r $out"
+manifest="build/release-preflight/20260106T0000Z-7.0.1103.json"
+[ -s "$manifest" ] && ok "prepare saves a release-readiness record" || fail "no readiness record: $manifest"
+! remote_has v20260106T0000Z && [ -z "$(release_json v20260106T0000Z)" ] && ok "preparation publishes nothing" || fail "prepare published a release"
+jq '.checks.uiGallery = "failed"' "$manifest" > "$S/invalid-manifest.json"
+out=$(bash scripts/release.sh --approve-prepared "$S/invalid-manifest.json" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'invalid release-readiness record' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval rejects a readiness record without passing checks" || fail "invalid readiness record: $r $out"
+jq '.preparedAt = 1 | .expiresAt = 2' "$manifest" > "$S/expired-manifest.json"
+out=$(bash scripts/release.sh --approve-prepared "$S/expired-manifest.json" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'readiness record expired' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval rejects an expired readiness record" || fail "expired readiness record: $r $out"
+prepared_release_tip="$(rel_tip)"
+grep -q '^node scripts/hosting/test/hosted-copies.e2e.mjs$' "$GH_STATE/calls.log" \
+  && grep -q '^node scripts/ui-gallery/capture.mjs --after https://snapshots.openisd.app/snap/20260106T0000Z/ --before https://snapshots.openisd.app/v/20260105T0000Z/$' "$GH_STATE/calls.log" \
+  && ok "preparation ran hosted-copy and UI-gallery checks against the right builds" \
+  || fail "preflight checks missing or wrong: $(cat "$GH_STATE/calls.log")"
+prepared_calls="$(wc -l < "$GH_STATE/calls.log")"
+printf 'changed after preparation\n' >> "$S/prepared-notes.md"
+out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'notes changed' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval refuses a changed notes file without publishing" \
+  || fail "changed notes were not refused safely: $r $out"
+printf '## Prepared note\n\n- This exact text is approved.\n' > "$S/prepared-notes.md"
+TEST_BUILD_INFO=v20260107T0000Z
+out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'test.openisd.app is' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval refuses when test no longer serves the prepared build" || fail "stale test build: $r $out"
+TEST_BUILD_INFO=v20260106T0000Z
+PROD_BUILD_INFO=v20260104T0000Z
+out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'production is' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval refuses when production does not match GitHub Latest" || fail "stale production build: $r $out"
+PROD_BUILD_INFO=v20260105T0000Z
+jq 'map(.latest = (.tag_name == "v20260104T0000Z"))' "$GH_STATE/releases.json" > "$GH_STATE/releases.new" && mv "$GH_STATE/releases.new" "$GH_STATE/releases.json"
+PROD_BUILD_INFO=v20260104T0000Z
+out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'Latest release changed' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval refuses when GitHub Latest changes" || fail "stale Latest: $r $out"
+jq 'map(.latest = (.tag_name == "v20260105T0000Z"))' "$GH_STATE/releases.json" > "$GH_STATE/releases.new" && mv "$GH_STATE/releases.new" "$GH_STATE/releases.json"
+PROD_BUILD_INFO=v20260105T0000Z
+prepared_main_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+stale_main_sha="$(git commit-tree "$prepared_main_sha^{tree}" -p "$prepared_main_sha" -m 'main advanced after release preparation')"
+git push -q origin "$stale_main_sha:refs/heads/main"
+out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'not the current main build' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval refuses when main advances after preparation" || fail "stale main: $r $out"
+git --git-dir="$GH_REMOTE" update-ref refs/heads/main "$prepared_main_sha"
+git update-ref refs/remotes/origin/main "$prepared_main_sha"
+stale_release_tip="$(git commit-tree "$prepared_release_tip^{tree}" -p "$prepared_release_tip" -m 'release advanced after preparation')"
+git push -q origin "$stale_release_tip:refs/heads/release"
+out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'release branch changed since preparation' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval refuses when release branch advances after preparation" || fail "stale release branch: $r $out"
+git --git-dir="$GH_REMOTE" update-ref refs/heads/release "$prepared_release_tip"
+git update-ref refs/remotes/origin/release "$prepared_release_tip"
+out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
+[ $r = 0 ] && ok "approval publishes a current, fully checked candidate" || fail "approval: $r $out"
+[ "$(git ls-remote origin refs/tags/v20260106T0000Z | cut -f1)" = "$(git rev-parse "snap-20260106T0000Z^{commit}")" ] \
+  && ok "approved version tag points at the prepared snapshot" || fail "approved version tag points elsewhere"
+[ "$(rel_tip)" = "$prepared_release_tip" ] && ok "approval leaves an already-containing release branch unchanged" || fail "release branch changed unexpectedly"
+[ "$(grep -c '^node scripts/hosting/test/hosted-copies.e2e.mjs$' "$GH_STATE/calls.log")" = 1 ] \
+  && [ "$(grep -c '^node scripts/ui-gallery/capture.mjs ' "$GH_STATE/calls.log")" = 1 ] \
+  && [ "$(wc -l < "$GH_STATE/calls.log")" -gt "$prepared_calls" ] \
+  && ok "approval skips the completed browser checks and dispatches deployment" \
+  || fail "approval reran preflight or omitted deployment: $(cat "$GH_STATE/calls.log")"
+
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?
 [ $r = 0 ] && [ "$(release_json v20260101T0102Z | jq -r .latest)" = true ] && [ "$(release_json v20260102T0000Z | jq -r .latest)" = false ] && ok "--latest makes an older release Latest" || fail "--latest: $r $out"
-grep -Fq 'gh workflow run deploy.yml --ref main --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
+grep -Fq 'gh workflow run deploy.yml --ref main --field publish_production=true --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
   && ok "--latest dispatches production deployment from main" \
   || fail "--latest production deploy dispatch"
 out=$(bash scripts/release.sh --latest 20990101T0000Z 2>&1); r=$?

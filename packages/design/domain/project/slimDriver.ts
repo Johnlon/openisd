@@ -4,6 +4,7 @@
  *  the catalogue record. Loading works out everything else it needs. The result still parses
  *  under the project schema every earlier build reads: required keys remain, empty. */
 import {statedPrecisionOf} from '../cell.js';
+import {NULL_GUID} from './nullDriverId.js';
 import {specEntryJsonSchema} from '../openisdSchema.js';
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -19,15 +20,16 @@ function valueOnly(field: unknown): unknown {
     return isRecord(field) && 'value' in field ? {value: field.value} : field;
 }
 
-/** An entered or calculated entry cut to state, value and the precision it states; a
- *  not-available entry holds only readings no screen shows, and is absent in effect. */
+/** An entered or calculated entry cut to state, value and the precision it states. A
+ *  not-available entry has no simulation value, but its source readings remain part of the
+ *  driver's record and must survive project save/reload. */
 function slimmedEntry(entry: unknown): unknown {
     const parsed = specEntryJsonSchema.safeParse(entry);
     if (!parsed.success) return entry;
     const e = parsed.data;
     switch (e.state) {
         case 'N':
-            return undefined;
+            return {state: 'N', readings: e.readings};
         case 'C':
             return e.precision === undefined ? {state: 'C', value: e.value} : {state: 'C', value: e.value, precision: e.precision};
         case 'E': {
@@ -59,7 +61,7 @@ function emptyQuality(): Readonly<Record<string, readonly unknown[]>> {
 
 function slimmedDevice(device: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> {
     const slim: Record<string, unknown> = {};
-    if ('uuid' in device) slim.uuid = valueOnly(device.uuid);
+    slim.uuid = {value: NULL_GUID};
     slim.quality = emptyQuality();
     for (const key of NAME_KEYS) if (key in device) slim[key] = valueOnly(device[key]);
     if ('sku' in device) slim.sku = device.sku;

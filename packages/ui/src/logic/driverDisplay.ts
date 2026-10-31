@@ -5,14 +5,15 @@
  * the driver itself (John, 2026-09-05: "this facade... it's not domain logic it's display and
  * search logic").
  */
-import type {OpenISDDriver, OpenISDPassiveRadiatorStandalone, Readable} from '@openisd/design';
+import type {OpenISDDriver, OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone, Readable} from '@openisd/design';
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 import {Chip, DriverType} from '@openisd/design/filter';
 import {NumberField} from '@openisd/design/fields';
 import {DriverScope} from '../driverScope.js';
 
 /** One row of the preview pane's spec table. `value` is already formatted for display. */
-export interface PreviewSpec { label: string; value: string | null; unit?: string }
+export enum PreviewSpecKind { Number = 'number', Text = 'text' }
+export interface PreviewSpec { kind: PreviewSpecKind; label: string; value: string | null; unit?: string }
 
 /** Everything the filter bar can ask of a driver, as data. The controls holding these values
  *  live in `driverBrowsingState.ts`; the question they add up to is answered by `matchesCriteria`. */
@@ -45,7 +46,7 @@ export interface SearchSubject {
   readonly Znom_ohm: number | null;
 }
 
-export function searchSubjectOfDriver(driver: OpenISDDriver): SearchSubject {
+export function searchSubjectOfDriver(driver: OpenISDDriverStandalone): SearchSubject {
   const s = specSummaryOf(driver);
   return { id: driver.uuid(), name: displayNameOf(driver), chips: chipsOf(driver).types, Fs_hz: s.Fs, Sd_m2: s.Sd, Znom_ohm: s.Znom };
 }
@@ -75,27 +76,41 @@ export function specSummaryOf(driver: OpenISDDriver): {
 /** The preview pane's spec table for one driver — formatted rows, zero/absent values dropped. */
 export function previewSpecsOf(driver: OpenISDDriver): PreviewSpec[] {
   const n = specSummaryOf(driver);
-  const fmtField = (field: NumberField, v: number | null): { value: string | null; unit?: string } => {
-    if (v == null || !isFinite(v) || v === 0) return { value: null };
-    return { value: field.format(v), unit: field.unitLabel() };
+  const fmtField = (field: NumberField, v: number | null): { kind: PreviewSpecKind.Number; value: string | null; unit?: string } => {
+    if (v == null || !isFinite(v) || v === 0) return { kind: PreviewSpecKind.Number, value: null };
+    return { kind: PreviewSpecKind.Number, value: field.format(v), unit: field.unitLabel() };
   };
   const canonical = chipsOf(driver).canonical;
   const ebpVal = driver.ebp();
-  return [
+  const reported = (field: 'Re_ohm' | 'BL_Tm', label: string): PreviewSpec | null => {
+    if (driver.specField(field).value !== null) return null;
+    const readings = driver.reportedSpecReadings(field);
+    if (readings.length === 0) return null;
+    return {
+      kind: PreviewSpecKind.Text,
+      label: `${label} (reported)`,
+      value: readings.map(reading => `${reading.text} (${reading.source.replaceAll('_', ' ')})`).join('; '),
+    };
+  };
+  const rows: (PreviewSpec | null)[] = [
     { label: 'Fs',   ...fmtField(NumberField.FS_HZ, n.Fs) },
     { label: 'Qts',  ...fmtField(NumberField.QTS, n.Qts) },
     { label: 'Qes',  ...fmtField(NumberField.QES, n.Qes) },
     { label: 'Qms',  ...fmtField(NumberField.QMS, n.Qms) },
     { label: 'Re',   ...fmtField(NumberField.RE_OHM, n.Re) },
+    { label: 'BL',   ...fmtField(NumberField.BL_TM, driver.specs.BL_Tm.value) },
+    reported('Re_ohm', 'Re'),
+    reported('BL_Tm', 'BL'),
     { label: 'Le',   ...fmtField(NumberField.LE_H, n.Le) },
     { label: 'Vas',  ...fmtField(NumberField.VAS_M3, n.Vas) },
     { label: 'Sd',   ...fmtField(NumberField.SD_M2, n.Sd) },
     { label: 'Xmax', ...fmtField(NumberField.XMAX_M, n.Xmax) },
     { label: 'Pe',   ...fmtField(NumberField.PE_W, n.Pe) },
     { label: 'Znom', ...fmtField(NumberField.ZNOM_OHM, n.Znom) },
-    { label: 'Type', value: canonical && canonical !== DriverType.Unclassified.display ? canonical : null },
-    { label: 'EBP',  value: ebpVal != null ? NumberField.EBP_HZ.format(ebpVal) : null, unit: NumberField.EBP_HZ.unitLabel() },
-  ].filter(s => s.value != null);
+    { kind: PreviewSpecKind.Text, label: 'Type', value: canonical && canonical !== DriverType.Unclassified.display ? canonical : null },
+    { kind: PreviewSpecKind.Number, label: 'EBP',  value: ebpVal != null ? NumberField.EBP_HZ.format(ebpVal) : null, unit: NumberField.EBP_HZ.unitLabel() },
+  ];
+  return rows.filter((s): s is PreviewSpec => s !== null && s.value != null);
 }
 
 /** The preview pane's text block for one driver — meta and provenance, read off the driver's

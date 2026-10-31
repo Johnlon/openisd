@@ -18,7 +18,7 @@ const noUnusedVars = {
 // truth here as they are for `npm run typecheck` — there is no second list of files to keep in
 // step. It costs lint time; the rules below cannot be written any other way.
 const typeAware = {
-  files: ['packages/*/src/**/*.ts', 'packages/*/test/**/*.ts', 'packages/design/{domain,engine,fields,browser}/**/*.ts'],
+  files: ['packages/*/src/**/*.ts', 'packages/*/test/**/*.ts', 'packages/design/**/*.ts'],
   languageOptions: {
     parser: tseslint.parser,
     parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
@@ -94,7 +94,7 @@ export default [
   // ── Ignore generated and dependency directories ──────────────────────────
   // dist-electron/ is the optional desktop shell's build output — same minified bundle as
   // dist/, so it is ignored for the same reason: it is emitted, not authored.
-  { ignores: ['**/dist/**', '**/dist-electron/**', '**/node_modules/**', 'packages/ui/public/**', 'build/**', 'coverage/**'] },
+  { ignores: ['**/dist/**', '**/dist-electron/**', '**/node_modules/**', 'packages/ui/public/**', '**/build/**', 'coverage/**'] },
 
   // ── typescript-eslint recommended (registers plugin + rules for .ts) ──────
   ...tseslint.configs.recommended,
@@ -380,6 +380,8 @@ export default [
       ...pluginPlaywright.configs['flat/recommended'].rules,
       'playwright/no-page-pause': 'error',
       'playwright/no-wait-for-timeout': 'error',
+      // The wizard walk spec keeps every assertion in its `walk` helper, which each test calls.
+      'playwright/expect-expect': ['warn', {assertFunctionNames: ['walk']}],
       ...noUnusedVars,
       // ── The fixture is mandatory, and this is what makes it unbypassable ──────
       // AGENTS.md §"Two suites, both required": every *.browser.spec.ts must take

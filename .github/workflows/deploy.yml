@@ -11,13 +11,23 @@ name: deploy
 on:
   workflow_call:
     inputs:
+      publish_production:
+        description: Publish the approved build to openisd.app
+        required: false
+        type: boolean
+        default: false
       expected_build_id:
         required: false
         type: string
   workflow_dispatch:
     inputs:
+      publish_production:
+        description: Publish to openisd.app only after release approval
+        required: false
+        default: false
+        type: boolean
       expected_build_id:
-        description: Production build ID expected after deployment
+        description: Required build ID to verify after production deployment
         required: false
         type: string
 
@@ -63,6 +73,7 @@ jobs:
 
   deploy:
     needs: assemble
+    if: ${{ inputs.publish_production && inputs.expected_build_id != '' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages

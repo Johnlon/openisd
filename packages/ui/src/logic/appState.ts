@@ -45,10 +45,9 @@ import {
     type AppSettingsRepo, copyOfName, uniqueName,
     type ViewSnapshot,
 } from '@openisd/persistence';
-import {assignTraceColor, type PresentationState} from './presentationState.js';
+import {assignTraceColor, parseSkinChoice, type PresentationState} from './presentationState.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {ventSolveSuspended} from './ventGroup.js';
-import {notifyPrChanged} from './prGroup.js';
 import {projectDriverTelemetry} from './telemetry/projectDriver.js';
 
 /** The driver spec fields the app's UI reads/writes by name — the schema's own spec keys.
@@ -191,6 +190,8 @@ export interface AppState {
   /** Record that `project` is now the stored project `identity` names (it was saved as a copy). */
   setOpenIdentity(project: OpenISDProject, identity: OpenProjectIdentity): void;
   restoreProjects(restored: OpenISDProject[], requestedFocus: number, traceHidden: ReadonlySet<OpenISDProject>): void;
+  /** Report the project state restored by the initial app boot (not cross-tab synchronization). */
+  recordStartupRestoredProjects(): void;
   requireFocusedProject(): OpenISDProject;
   duplicateFocusedProject(newName: string): void;
   readonly driverName: ComputedRef<string>;
@@ -374,8 +375,15 @@ export function createAppState(deps: AppStateDeps): AppState {
     }
   }
 
+  /** Two open projects never share an id: a project whose id is held by one of `others` (a second
+   *  copy of an open file) takes a new one. */
+  function giveOwnIdAmong(project: OpenISDProject, others: readonly OpenISDProject[]): void {
+    if (others.some(other => other !== project && other.uuid() === project.uuid())) project.assignNewId();
+  }
+
   /** Add a newly-created or re-imported project to the registry and focus it. */
   function addProject(project: OpenISDProject): void {
+    giveOwnIdAmong(project, projects.value);
     assignTraceColor(project, projects.value);
     projects.value = [...projects.value, project];
     focusedIndex.value = projects.value.length - 1;
@@ -437,6 +445,10 @@ export function createAppState(deps: AppStateDeps): AppState {
     focusedIndex.value = restored.length === 0 ? 0 : Math.min(Math.max(requestedFocus, 0), restored.length - 1);
   }
 
+  function recordStartupRestoredProjects(): void {
+    for (const project of projects.value) recordOpen('restore', project);
+  }
+
 
   /** Assert a project is focused right now and return it. Throws `NoFocusedProjectError`
    *  when `focusedProject()` is null — a defensive boundary check for code that must run with
@@ -480,13 +492,18 @@ export function createAppState(deps: AppStateDeps): AppState {
 
   const live: ShallowRef<OpenISDProject | null> = (() => {
     const liveRef = shallowRef<OpenISDProject | null>(null);
-    let disposeCurrent: (() => void) | null = null;
+    let disposeProjects: (() => void)[] = [];
     function resubscribe(): void {
-      if (disposeCurrent) { disposeCurrent(); disposeCurrent = null; }
-      const p = projects.value[focusedIndex.value] ?? null;
-      liveRef.value = p;
+      for (const dispose of disposeProjects) dispose();
+      const focused = projects.value[focusedIndex.value] ?? null;
+      liveRef.value = focused;
       changeTicks.value++;
-      if (p) disposeCurrent = p.subscribe(() => { triggerRef(liveRef); changeTicks.value++; });
+      disposeProjects = projects.value.map(project => project.subscribe(() => {
+        // Editing another row's colour/charts must repaint and persist the session,
+        // while only the focused design needs its calculation-facing live ref fired.
+        if (project === focused) triggerRef(liveRef);
+        changeTicks.value++;
+      }));
     }
     watch([projects, focusedIndex], resubscribe, { flush: 'sync' });
     resubscribe();
@@ -517,7 +534,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       const p = live.value;
       if (!p) return;
       solvingVent = true;
-      try { notifyPrChanged(p); } finally { solvingVent = false; }
+      try { p.recalc(); } finally { solvingVent = false; }
     },
     { flush: 'sync', immediate: true },
   );
@@ -811,7 +828,7 @@ export function createAppState(deps: AppStateDeps): AppState {
   }
 
   /** A CHANGE SIGNAL for App.vue's persistence hook — a counter that increments on every change
-   *  to the FOCUSED project and on every focus/open/close, and hands over nothing (QO92).
+   *  to an OPEN project and on every focus/open/close, and hands over nothing (QO92).
    *
    *  It replaced `committedSnapshot`, which returned the focused project's committed state as an
    *  `OpenISDProject`. A copy, so a watcher could not mutate the layer — but every value in it
@@ -819,10 +836,8 @@ export function createAppState(deps: AppStateDeps): AppState {
    *  never hold, purely so the repo could serialise it. A design for autosave has to hand over
    *  bytes or a record instead; until then the hook needs to know only THAT something changed.
    *
-   *  UNFOCUSED PROJECTS ARE SILENT, and any persistence design must fix that rather than lean on
-   *  this: `live` subscribes to the focused project alone, so an open-but-unfocused project's
-   *  edits reach nothing here (QO92 records this as one of the two defects that sank the removed
-   *  autosave). A per-project signal is what a real design needs. */
+   *  The subscription covers all open projects: row colour and chart-copy actions can edit
+   *  an unfocused project without moving focus. Closing a project removes its subscription. */
   const projectChanged = computed<number>(() => changeTicks.value);
 
   /** The live presentation state as the repo's view shape — read directly by the share-link
@@ -866,6 +881,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       addProject(project);
       return;
     }
+    giveOwnIdAmong(project, projects.value.filter((_, i) => i !== focusedIndex.value));
     projects.value = projects.value.map((existing, i) => (i === focusedIndex.value ? project : existing));
   }
 
@@ -879,6 +895,9 @@ export function createAppState(deps: AppStateDeps): AppState {
     if (v.ui) {
       Object.assign(presentation.ui, v.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
       presentation.ui.unitTokens = {...parseUnitRotation(v.ui.unitTokens)};   // an older save's short-named unit choices move to their field
+      const skin = parseSkinChoice(v.ui.skinOverride);   // a skin the app does not offer is dropped: the skin then follows the window (F58)
+      if (skin === undefined) delete presentation.ui.skinOverride;
+      else presentation.ui.skinOverride = skin;
     }
     if (v.chart) {
       presentation.sweepRange = {min: v.chart.sweepRange.min, max: v.chart.sweepRange.max};
@@ -924,7 +943,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     differenceCuesShown, setDifferenceCuesShown, ventedLimits, setVentedLimits, envDefaults, setEnvDefaults,
     engine, appContext,
     openProjects, focusedProject, focusProject, removeProject, addProject, openProjectByIdentity,
-    openProjectOnce, replaceOpenProject, setOpenIdentity, restoreProjects, requireFocusedProject, duplicateFocusedProject,
+    openProjectOnce, replaceOpenProject, setOpenIdentity, restoreProjects, recordStartupRestoredProjects, requireFocusedProject, duplicateFocusedProject,
     driverName, projectDisplayName, projectHasUnsavedChanges, openDriverPicker, syncedP,
     curvesData: curves, maxData: max, paramIssues, allIssues, isModified, markProjectSaved,
     resetProjectToGround, newProject, boxTypeIsSimulatable, IMPLEMENTED_BOX_TYPES,

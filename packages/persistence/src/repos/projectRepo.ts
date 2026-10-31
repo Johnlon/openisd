@@ -4,7 +4,7 @@
  *  validation and reconstruction are entirely `@openisd/design`'s
  *  (`OpenISDProject.fromOwprText()` — QO116: one whole-record `.safeParse()` at the load
  *  boundary). This file supplies no shape of its own and never holds the project's record. */
-import {OpenISDProject, ProjectSummary, newUuid, withMovedChamberQicl, type FieldPath} from '@openisd/design';
+import {OpenISDProject, ProjectSummary, withMovedChamberQicl, type FieldPath} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {FileStorage, SaveResult} from '../storage/fileStorage.js';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
@@ -76,12 +76,12 @@ export interface ProjectRepo {
   saveToStorage(project: OpenISDProject): StorageSaveResult;
   /** Whether browser storage holds the project's own stored copy. `open` is every project open
    *  now: a project sharing its stored copy with an earlier open one has no copy of its own. */
-  isStored(project: OpenISDProject, open: readonly OpenISDProject[]): boolean;
+  isStored(project: OpenISDProject): boolean;
   /** Store a project the moment it is made, as a stored project of its own, under the name it
    *  has (two projects may share a name). The same file with the same content is the stored
    *  project already: it keeps that copy. A project that already has a stored copy is stored
    *  under it again. */
-  storeNew(project: OpenISDProject, open: readonly OpenISDProject[]): StorageSaveResult;
+  storeNew(project: OpenISDProject): StorageSaveResult;
   /** Save `project` to browser storage as the stored project `id` (a new id makes a new entry). */
   saveToStorageAs(project: OpenISDProject, id: string): StorageSaveResult;
   /** Imports projects from an archive, merging by unique name. */
@@ -298,7 +298,6 @@ export function createProjectRepo(
 ): ProjectRepo {
   const upgrade = createProjectSchemaUpgrade(engine);
   let lastSavedAt = 0;
-  const storedIdentity = new WeakMap<OpenISDProject, string>();
 
   /** Upgrade and parse `text`, resetting any field the schema refuses. When a field was reset,
    *  the stored record it came from is backed up (before anything can write over it) and the
@@ -332,7 +331,7 @@ export function createProjectRepo(
     const stored = openSessionPayload(parsed);
     if (!stored || stored.focusedId !== focusedId || stored.entries.length !== entries.length) return false;
     return stored.entries.every((e, i) => e.id === entries[i].id && e.traceHidden === entries[i].traceHidden
-      && OpenISDProject.sameOwprText(e.text, entries[i].text));
+      && e.text === entries[i].text);
   }
 
 function projectNameOf(text: string): string | null {
@@ -492,27 +491,33 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
   migrateOpenSessions();
   migrateAutosaveState();
 
-  /** The project's file text without the embedded driver's id, which every open of a file makes
-   *  afresh: two opens of one file have the same design text. */
+  /** The project's file text without its id, which a second copy of one file does not share:
+   *  two opens of one file have the same design text. */
   function designOf(project: OpenISDProject): string {
     const parsed: unknown = JSON.parse(project.toOwprText());
-    if (isRecord(parsed)) {
-      for (const part of [parsed.saved, parsed.edited]) {
-        if (isRecord(part) && isRecord(part.driverEmbedding) && isRecord(part.driverEmbedding.device)) delete part.driverEmbedding.device.uuid;
-      }
-    }
+    if (isRecord(parsed)) delete parsed.id;
     return JSON.stringify(parsed);
   }
 
-  /** Another project, open before `project`, holds the stored copy `id` too. */
-  function sharesWithEarlier(project: OpenISDProject, id: string, open: readonly OpenISDProject[]): boolean {
-    const at = open.indexOf(project);
-    return open.slice(0, Math.max(at, 0)).some(other => storedIdentity.get(other) === id);
+  /** `project` may not take a stored project's place unless it is that project: when a stored entry has
+   *  its id, the same design keeps the id (it is the stored project, read again) and a different design
+   *  takes a new one, so a file, link or archive never overwrites a saved project. */
+  function claimId(project: OpenISDProject): void {
+    const held = readStoredEntries().find(entry => entry.id === project.uuid());
+    if (held === undefined) return;
+    const stored = readRepairing(held.text, null);
+    if (Array.isArray(stored) || designOf(stored) !== designOf(project)) project.assignNewId();
+  }
+
+  /** `project` as the saved entry `id`: a project read from the store is its entry, so its id is the entry's. */
+  function asEntry(project: OpenISDProject, id: string): OpenISDProject {
+    if (project.uuid() !== id) project.adoptId(id);
+    return project;
   }
 
   function saveToStorage(project: OpenISDProject): StorageSaveResult {
     const entries = readStoredEntries();
-    const id = storedIdentity.get(project) ?? project.uuid();
+    const id = project.uuid();
     const now = Math.max(Date.now(), lastSavedAt + 1);
     lastSavedAt = now;
     const entry: StoredProjectEntry = { id, text: project.toStoredText(), modified: new Date(now).toISOString() };
@@ -526,7 +531,6 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       return { kind: 'failed', reason: String(e) };
     }
     
-    storedIdentity.set(project, id);
     onSaved();
     return { kind: 'saved' };
   }
@@ -557,15 +561,19 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       if (!payload) return ['share link is not a recognised session payload'];
 
       const result = readRepairing(payload.project, null);
-      return Array.isArray(result) ? result : { project: result, view: payload.view };
+      if (Array.isArray(result)) return result;
+      claimId(result);
+      return { project: result, view: payload.view };
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
       const opened = exportedFiles.open(text);
       if (opened.kind === 'newer') {
-        return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads})`];
+        return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
       }
-      return readRepairing(opened.text, null);
+      const project = readRepairing(opened.text, null);
+      if (!Array.isArray(project)) claimId(project);
+      return project;
     },
 
     saveToFile(project: OpenISDProject, naming: FileNaming): Promise<SaveResult> {
@@ -580,34 +588,17 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
 
     saveToStorage,
 
-    isStored(project: OpenISDProject, open: readonly OpenISDProject[]): boolean {
-      const id = storedIdentity.get(project);
-      return id !== undefined && !sharesWithEarlier(project, id, open) && readStoredEntries().some(entry => entry.id === id);
+    isStored(project: OpenISDProject): boolean {
+      return readStoredEntries().some(entry => entry.id === project.uuid());
     },
 
-    storeNew(project: OpenISDProject, open: readonly OpenISDProject[]): StorageSaveResult {
-      const known = storedIdentity.get(project);
-      if (known !== undefined && !sharesWithEarlier(project, known, open)) return saveToStorage(project);
-      // The same file with the same content is the project already stored: it keeps that stored copy.
-      const text = designOf(project);
-      const same = readStoredEntries().find(entry => {
-        if (open.some(other => other !== project && storedIdentity.get(other) === entry.id)) return false;
-        const stored = readRepairing(entry.text, null);
-        return !Array.isArray(stored) && designOf(stored) === text;
-      });
-      if (same !== undefined) {
-        storedIdentity.set(project, same.id);
-        return {kind: 'saved'};
-      }
-      storedIdentity.set(project, project.uuid());
-      const result = saveToStorage(project);
-      if (result.kind === 'failed') storedIdentity.delete(project);
-      return result;
+    storeNew(project: OpenISDProject): StorageSaveResult {
+      claimId(project);
+      return saveToStorage(project);
     },
 
     saveToStorageAs(project: OpenISDProject, id: string): StorageSaveResult {
-      storedIdentity.set(project, id);
-      return saveToStorage(project);
+      return saveToStorage(asEntry(project, id));
     },
 
     importArchive(imported: readonly OpenISDProject[]): { added: number } {
@@ -625,7 +616,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         existingNames.push(finalName);
         
         project.name.set(finalName);
-        addedEntries.push({ id: newUuid(), text: project.toStoredText(), modified: new Date(now++).toISOString() });
+        if (entries.some(e => e.id === project.uuid()) || addedEntries.some(e => e.id === project.uuid())) project.assignNewId();
+        addedEntries.push({ id: project.uuid(), text: project.toStoredText(), modified: new Date(now++).toISOString() });
       }
       if (addedEntries.length > 0) {
         lastSavedAt = now;
@@ -641,8 +633,6 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       if (text === null) return null;
       const project = readRepairing(text, source);
       if (Array.isArray(project)) return project;
-      const entry = readStoredEntries().find(candidate => candidate.text === text);
-      storedIdentity.set(project, entry?.id ?? 'legacy');
       return project;
     },
     listStoredProjects(): StoredProjectListing[] {
@@ -657,18 +647,14 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       const entry = readStoredEntries().find(candidate => candidate.id === id);
       if (entry === undefined) return ['saved project not found'];
       const project = readRepairing(entry.text, SAVED_PROJECTS_SOURCE);
-      if (!Array.isArray(project)) storedIdentity.set(project, id);
-      return project;
+      return Array.isArray(project) ? project : asEntry(project, id);
     },
     saveOpenProjects(projects: readonly OpenISDProject[], focused: OpenISDProject | null, traceHidden: ReadonlySet<OpenISDProject>): void {
       const entries = projects.map((project): OpenSessionEntry => {
-        const id = storedIdentity.get(project) ?? project.uuid();
-        storedIdentity.set(project, id);
-        return { id, text: project.toStoredText(), modified: '', traceHidden: traceHidden.has(project) };
+        return { id: project.uuid(), text: project.toStoredText(), modified: '', traceHidden: traceHidden.has(project) };
       });
-      const focusedId = focused === null ? null : storedIdentity.get(focused) ?? focused.uuid();
-      // Writing the session already stored would still change its text (each read mints the
-      // embedded driver a fresh id), and every other tab would rebuild all its projects.
+      const focusedId = focused === null ? null : focused.uuid();
+      // Writing the session already stored would change nothing, and every other tab would rebuild all its projects.
       if (storesSameSession(entries, focusedId)) return;
       storage.set(OPEN_SESSION_STORAGE_KEY, JSON.stringify({ entries, focusedId } satisfies OpenSessionPayload));
     },
@@ -691,7 +677,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
           refusedEntries.push({ id: entry.id, text: entry.text });
           continue;
         }
-        storedIdentity.set(project, entry.id);
+        asEntry(project, entry.id);
         if (entry.traceHidden) traceHidden.add(project);
         if (entry.id === payload.focusedId) focusedIndex = projects.length;
         projects.push(project);
@@ -777,7 +763,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       }
     },
     storedIdOf(project: OpenISDProject): string | null {
-      return storedIdentity.get(project) ?? null;
+      return readStoredEntries().some(entry => entry.id === project.uuid()) ? project.uuid() : null;
     },
     deleteStoredProject(id: string): 'done' | 'refused' {
       const entries = readStoredEntries();

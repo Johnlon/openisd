@@ -3,7 +3,7 @@
  *  `createBundledRepo` with the driver's data: `drivers-index.json` under the app base, read by
  *  `readBundledDriverIndex`, and records opened through `OpenISDDriver.fromConformingRecord`. The
  *  list is index rows; a driver becomes a domain object only when `load()` is asked for it. */
-import {OpenISDDriver} from '@openisd/design';
+import {OpenISDDriver, type OpenISDDriverStandalone} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {BundledDriverIndexRow, IndexRead} from './bundledIndex.js';
 import {baseOf, createBundledRepo, type FieldReader, readIndex} from './bundledRepo.js';
@@ -44,11 +44,11 @@ export interface BundledDriverRepo {
   /** The driver for a uuid: cache hit, else its record is fetched, opened and cached. Throws
    *  naming the uuid, the URL and status, or the seam's problems. Callers `detach()` before
    *  editing — the cached instance is the repo's. */
-  load(uuid: string): Promise<OpenISDDriver>;
+  load(uuid: string): Promise<OpenISDDriverStandalone>;
 }
 
 export function createBundledDriverRepo(deps: BundledDriverRepoDeps): BundledDriverRepo {
-  return createBundledRepo<BundledDriverIndexRow, OpenISDDriver>({
+  return createBundledRepo<BundledDriverIndexRow, OpenISDDriverStandalone>({
     fetch: deps.fetch,
     indexUrl: `${deps.baseUrl}drivers-index.json`,
     recordUrl: path => `${deps.baseUrl}drivers/${path}.json`,

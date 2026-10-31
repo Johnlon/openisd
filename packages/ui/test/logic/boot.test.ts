@@ -7,7 +7,7 @@
  * share link, session, legacy project, view, panels — and nothing in it runs before the phase
  * it depends on has returned.
  */
-import {beforeEach, describe, expect, it} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import type {OpenProjectSession, ProjectRepo, ViewSnapshot} from '@openisd/persistence';
@@ -15,12 +15,15 @@ import {bootApplication, type BootDeps} from '../../src/logic/boot.js';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
 import type {AppState} from '../../src/logic/appState.js';
 import type {PresentationState} from '../../src/logic/presentationState.js';
+import type {Telemetry} from '../../src/logic/telemetry/telemetry.js';
 
 let appState: AppState;
 let presentationState: PresentationState;
+let telemetry: Telemetry;
 
 beforeEach(() => {
-  const fixture = createAppStateFixture();
+  telemetry = {record: vi.fn(), flush: vi.fn()};
+  const fixture = createAppStateFixture(undefined, telemetry);
   appState = fixture.appState;
   presentationState = fixture.presentation;
 });
@@ -91,6 +94,22 @@ describe('bootApplication', () => {
     await bootApplication(deps);
     expect(appState.openProjects()).toHaveLength(2);
     expect(appState.focusedProject()?.name.value).toBe('two');
+  });
+
+  it('records restored project details for the browser activity report', async () => {
+    const restored = project('one');
+    restored.driver.providedBy.set('OpenIsd');
+    restored.driver.brand.set('Dayton Audio');
+    restored.driver.model.set('RS225P-8');
+    const session = {projects: [restored], focusedIndex: 0, refused: [], refusedEntries: [], traceHidden: new Set<OpenISDProject>()};
+    const {deps} = recording({session: () => session});
+
+    await bootApplication(deps);
+
+    expect(telemetry.record).toHaveBeenCalledWith({
+      kind: 'project_open', source: 'restore', box: 'sealed',
+      driverName: 'Dayton Audio RS225P-8',
+    });
   });
 
   // bugs/BUG_20261005_project-selection-lost-on-reload.md

@@ -29,7 +29,7 @@ test.beforeEach(async ({page}) => {
 });
 
 test('the radiator Mms and Cms are rows the user can see and enter', async ({page}) => {
-  await mobileFieldRow(page, 'Fpr (with added mass)').scrollIntoViewIfNeeded();
+  await mobileFieldRow(page, 'Fpr with mass').scrollIntoViewIfNeeded();
   await saveShot(page);
   const mms = mobileFieldRow(page, 'Mms').locator('input').first();
   await expect(mms).toBeVisible();

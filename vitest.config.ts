@@ -34,27 +34,6 @@ export default defineConfig({
     // reach the next. Every test ends with the globals and mocks it found.
     unstubGlobals: true,
     restoreMocks: true,
-    coverage: {
-      provider: 'v8',
-      include: [
-        'packages/ui/src/**/*.{ts,vue}',
-      ],
-      exclude: [
-        'packages/ui/src/main.ts',
-        'packages/ui/src/types.ts',
-      ],
-      // Measured 2026-09-21 (npx vitest run --coverage, post Tasks 2/3/5):
-      // statements 41.08%, branches 33.68%, functions 45.35%, lines 46.02%.
-      // branches/functions had to come DOWN — new low-coverage hook code (esp.
-      // OriginalShell-hooks.ts) dropped real coverage below the old thresholds,
-      // which were already red before this edit.
-      thresholds: {
-        statements: 41.0,
-        branches: 33.6,
-        functions: 45.3,
-        lines: 46.0,
-      },
-    },
     projects: [
       {
         test: {

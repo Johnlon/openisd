@@ -1,0 +1,19 @@
+id: T630
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+landed: f9e9e3471f5f0de07a8173dfda54de63ef9635e9
+goal: integrate.sh pushes main only after the GitHub suite is green on the exact pushed sha, the same candidate gate as land.sh; a red candidate is refused whatever the label
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/integrate.e2e.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/land-candidate.e2e.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/land-gates.test.sh
+gates_approved: QO317
+files:
+  - tasks/T630.yml
+  - tasks/T628.yml
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - scripts/integrate.sh
+  - scripts/land.sh
+  - scripts/land/core/candidate.sh
+  - scripts/land/test/integrate.e2e.test.sh
+  - scripts/land/test/land-candidate.e2e.test.sh
+  - docs/DEV_PROCESS.md

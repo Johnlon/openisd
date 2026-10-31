@@ -261,7 +261,7 @@ const PATHS: readonly DestructivePath[] = [
     seed: () => ({...withDrivers(), [OPENISD_PROJECTS_KEY]: projectsOf(goodProjectText('mine'))}),
     destroys: [OPENISD_MY_DRIVERS_KEY, OPENISD_PROJECTS_KEY],
     act: s => {
-      createStoreOpening(s, {build: createBuildStamp('v20260301T040506Z'), now: () => FIXED_NOW_MS, memoryStorage: createMemoryStorage, rules: {layout: 2, steps: [{
+      createStoreOpening(s, {build: createBuildStamp('v20260301T040506Z'), now: () => FIXED_NOW_MS, memoryStorage: createMemoryStorage, projectRewritten: () => undefined, rules: {layout: 2, steps: [{
         from: STEP_1_TO_2.from, migrate: data => ({...data, [OPENISD_PROJECTS_KEY]: 'migrated'}), migrateFile: file => file,
       }]}}, () => undefined);
     },

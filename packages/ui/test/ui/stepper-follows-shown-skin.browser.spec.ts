@@ -19,7 +19,7 @@ test('on a phone-sized window with no saved layout choice, a mouse click on ▲ 
   await expect(row.locator('input')).not.toBeFocused();
 });
 
-test('on a wide window the desktop box keeps focus when ▲ is clicked', async ({ page }) => {
+test('on a wide window the spinner keeps focus for digit navigation when ▲ is clicked', async ({ page }) => {
   await page.goto('/');
   await openAProject(page);
   await page.locator('.project-nav li', { hasText: /^Signal$/ }).click();
@@ -28,5 +28,6 @@ test('on a wide window the desktop box keeps focus when ▲ is clicked', async (
 
   await row.locator('.num-stepper-btn').first().click();
 
-  await expect(box).toBeFocused();
+  await expect(row.locator('.num-stepper-btn').first()).toBeFocused();
+  await expect(box).not.toBeFocused();
 });

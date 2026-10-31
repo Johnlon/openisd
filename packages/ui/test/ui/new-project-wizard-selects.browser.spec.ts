@@ -30,7 +30,7 @@ async function toStep(page: Page, mobile: boolean, step: number, box: string): P
   const root = mobile ? page.locator('.mob-np-body') : page.locator('.overlay.open .modal-body');
   const footer = mobile ? page.locator('.mob-np-footer') : page.locator('.overlay.open .modal-footer');
   const next = footer.getByText(mobile ? 'Next ▸' : 'Next', {exact: true});
-  await page.getByPlaceholder('Search drivers').fill('W5-1138SMF');
+  await page.locator('.driver-library input.filter').fill('W5-1138SMF');
   await root.getByText(TEST_DRIVER).first().click();
   await next.click();
   for (let at = 2; at < step; at++) {

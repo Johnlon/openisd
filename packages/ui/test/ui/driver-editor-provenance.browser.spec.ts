@@ -176,9 +176,13 @@ test('Inspect Provenance disables typing, keeps the spinner active, and allows a
   const body = page.locator('.eq-docked .eq-body');
   expect((await body.boundingBox())!.height).toBeLessThanOrEqual(300);
   await page.setViewportSize({width: 390, height: 600});
-  const shortViewportCard = await page.locator('.eq-docked').boundingBox();
-  expect(shortViewportCard!.y).toBeGreaterThanOrEqual(0);
-  expect(shortViewportCard!.y + shortViewportCard!.height).toBeLessThanOrEqual(600);
+  await expect.poll(() => page.evaluate(() => window.innerHeight)).toBe(600);
+  const cardRect = () => page.locator('.eq-docked').evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return {top: r.top, bottom: r.bottom};
+  });
+  await expect.poll(async () => (await cardRect()).bottom).toBeLessThanOrEqual(600);
+  await expect.poll(async () => (await cardRect()).top).toBeGreaterThanOrEqual(0);
 
   await page.locator('.eq-x').click();
   await expect(page.locator('.de-toolbar')).toBeVisible();
@@ -332,7 +336,7 @@ test.describe('Driver Editor provenance map and field boxes', () => {
           for (const [part, el] of [['label', f.querySelector('label')],
                                     ['input', f.querySelector('input, select, textarea')],
                                     ['unit', f.querySelector('.ui-field-unit, .u')]] as const) {
-            if (!el) continue;
+            if (!el || !el.checkVisibility({visibilityProperty: true})) continue;
             const r = el.getBoundingClientRect();
             // 1 px of sub-pixel rounding is not an escape; more than that is outside the box.
             const over = Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom);

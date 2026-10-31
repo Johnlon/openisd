@@ -119,7 +119,7 @@ test.describe('Original Box tab', () => {
   test('the 6th-order bandpass Frc field persists a typed value instead of discarding it', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('bandpass6');
-    const frc = page.locator('.field', { hasText: 'Tuning freq (Frc)' }).locator('input');
+    const frc = page.locator('.tab-section.active .field', { hasText: 'Tuning freq (Frc)' }).locator('input');
     await frc.click();
     await fillAndBlur(frc, '2222');
     await expect(frc).toHaveValue(/^2222(\.0+)?$/); // 2-dp display formatting, not the bug
@@ -152,7 +152,7 @@ test.describe('Original Box tab', () => {
   test('the 6th-order bandpass Frc field, when emptied, shows the calculated tuning instead of 0', async ({ appPage: page }) => {
     await page.locator('.project-nav li', { hasText: 'Box' }).click();
     await page.locator('select#og-box-type').selectOption('bandpass6');
-    const frc = page.locator('.ui-field', { hasText: 'Tuning freq (Frc)' }).locator('input');
+    const frc = page.locator('.tab-section.active .ui-field', { hasText: 'Tuning freq (Frc)' }).locator('input');
     const entered = await frc.inputValue();
     await fillAndBlur(frc, '');
     await expect(frc).toHaveValue(entered);

@@ -21,7 +21,7 @@ import {
     preRepairCopyText,
     createLocalStorage, createStoragePrefix,
     createMemoryStorage,
-    LAYOUT_STEPS,
+    createLayoutSteps,
     STORAGE_LAYOUT,
     createStoreOpening,
     type OpenStore,
@@ -33,6 +33,7 @@ import {
     createProjectBinMarks,
     createStoredTextCompaction,
     createQuarantineRetirement,
+    createLedgerFollowsMigration,
     createLedgerFollowsRewrite,
     createViewStateRepo,
     isStoredDataFault,
@@ -85,6 +86,8 @@ import {installBrowserListeners} from './logic/telemetry/browserListeners.js';
 import {FeatureUse} from './logic/telemetry/featureUse.js';
 import {driverPickRecorder} from './logic/telemetry/driverPick.js';
 import {provideTelemetryUi} from './hooks/telemetryContext.js';
+import {provideAnnouncementCenter} from './hooks/Announcements-hooks.js';
+import {announcementEndpointsForHostname, createAnnouncementCenter} from './logic/announcementCenter.js';
 import {newUuid} from '@openisd/design';
 import {DesktopSizes, PhoneRowSizes, trailOfLocation} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
@@ -117,8 +120,8 @@ const forgetCloudSyncRecord = (): void => {
   createSyncLedger({storage: localStore, random: randomBytes}).forgetAll();
 };
 
-const rawClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const googleClientId = typeof rawClientId === 'string' && rawClientId.trim() !== '' ? rawClientId.trim() : null;
+// packages/ui/.env sets it for every build; .env.test leaves it empty for the browser suite.
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || null;
 const oauthConfig: OAuthConfig = {
   clientId: googleClientId,
   // The app's own directory, so a snapshot at /snap/<stamp>/ comes back to itself and the root
@@ -418,6 +421,11 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     .directive('limits', vLimits);
 
   provideCloudSync(app, cloudSync, cloudUi);
+  provideAnnouncementCenter(app, createAnnouncementCenter(
+    window.localStorage,
+    window.fetch.bind(window),
+    announcementEndpointsForHostname(window.location.hostname),
+  ));
   provideTelemetryUi(app, {crashReports, launch: new LaunchReporter(telemetry, launchEnvironment, defer, installMarker), featureUse, actions: recentActions});
   provideApp(app, {
     engine, logging, driverBrowsing, selection, designIO, designFiles, driverDrafts, myPassiveRadiators, prefs,
@@ -504,7 +512,8 @@ if (typeof window !== 'undefined' && isOAuthFragment(window.location.hash)) {
 
 // THE LOAD RULES come before anything is built or read: the browser store is opened (or refused)
 // by `openStore`. An older layout is backed up and migrated; a newer one is not opened at all.
-const layoutRules = { layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS };
+// The migration reads stored projects before the app's settings can be read, so its engine has default settings.
+const layoutRules = { layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), newUuid) };
 const exportedFiles = createExportedFiles(layoutRules);
 const baked: unknown = import.meta.env.VITE_BUILD_VERSION;
 const opening = createStoreOpening(localStore, {
@@ -512,6 +521,7 @@ const opening = createStoreOpening(localStore, {
   now: Date.now,
   rules: layoutRules,
   memoryStorage: createMemoryStorage,
+  projectRewritten: createLedgerFollowsMigration(localStore, randomBytes),
 }, forgetCloudSyncRecord);
 
 const recordedProjectIdStore: RecordedProjectIdStore = {

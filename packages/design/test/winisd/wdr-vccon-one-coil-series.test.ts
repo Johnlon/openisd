@@ -4,7 +4,7 @@
  */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {driverFromSpec} from '../fixtures/recordBuilders.js';
 
@@ -18,7 +18,7 @@ describe('one-coil driver set to Series', () => {
     if (exported.value === null) throw new Error(exported.errors.map(e => e.message).join('; '));
     expect(exported.value).toMatch(/^VCCon=2\r?$/m);
 
-    const imported = new WinIsdDriverConverter(engine).winIsdDriverToOpenIsdDriver(exported.value);
+    const imported = new DriverRecordConverter(engine).winIsdDriverToOpenIsdDriver(exported.value);
     if (imported.value === null) throw new Error(imported.errors.map(e => e.message).join('; '));
     expect(imported.value.specs.VCCon.value).toBe(VoiceCoilWiring.Series);
     expect(imported.value.specs.VCCon.entered).toBe(true);

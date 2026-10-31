@@ -32,6 +32,7 @@ UNIT_CMD="bash gates/ok.sh"
 ARCHITECTURE_CMD="bash gates/ok.sh"
 CANDIDATE_CMD="true"
 ATTRIBUTION_CMD="bash gates/ok.sh"
+GATE_FILES="no-such-gate-file"
 GATE_DEADLINE_S=30
 LAND_LOCK="$SCRATCH/land.lock"
 EOF

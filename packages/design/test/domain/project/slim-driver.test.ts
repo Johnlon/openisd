@@ -77,9 +77,9 @@ function slimDeviceOf(session: Record<string, unknown>): Record<string, unknown>
 }
 
 describe('slimmedProjectSession', () => {
-  it('keeps the identity and the three texts the editor edits, as bare values', () => {
+  it('holds the null GUID as the id and keeps the three texts the editor edits, as bare values', () => {
     const d = slimDeviceOf(fatSession());
-    expect(d.uuid).toEqual({value: 'u1'});
+    expect(d.uuid).toEqual({value: '00000000-0000-0000-0000-000000000000'});
     expect(d.manufacturer).toEqual({value: 'Tang Band'});
     expect(d.brand).toEqual({value: 'Tang Band'});
     expect(d.model).toEqual({value: 'W5'});
@@ -107,8 +107,23 @@ describe('slimmedProjectSession', () => {
     expect(woofer.Qes).toEqual({state: 'C', value: 0.57, precision: 0.01});
   });
 
-  it('drops a not-available entry, which every reader treats as absent', () => {
-    expect(record(record(slimDeviceOf(fatSession()).specs).woofer)).not.toHaveProperty('Vas_m3');
+  it('keeps readings for a not-available entry without turning them into a project value', () => {
+    const session: unknown = JSON.parse(project().toOwprText());
+    const saved = record(record(session).saved);
+    const device = record(record(saved.driverEmbedding).device);
+    const woofer = record(record(device.specs).woofer);
+    woofer.Vas_m3 = {
+      state: 'N',
+      readings: {manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'unparsable'}},
+    };
+    const slimmed = slimmedProjectSession(session);
+    const slimmedDevice = record(record(record(record(slimmed).saved).driverEmbedding).device);
+    const vas = record(record(slimmedDevice.specs).woofer).Vas_m3;
+    expect(vas).toEqual({
+      state: 'N',
+      readings: {manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'unparsable'}},
+    });
+    expect(parseOwprSession(JSON.stringify(slimmed), () => 'some-id')).toHaveProperty('session');
   });
 
   it('is the same on a second pass', () => {
@@ -142,8 +157,8 @@ describe('the project text', () => {
 
   it('parses under the project schema, which every earlier build reads', () => {
     const p = project();
-    expect(parseOwprSession(p.toOwprText())).toHaveProperty('session');
-    expect(parseOwprSession(p.toStoredText())).toHaveProperty('session');
+    expect(parseOwprSession(p.toOwprText(), () => "unused")).toHaveProperty('session');
+    expect(parseOwprSession(p.toStoredText(), () => "unused")).toHaveProperty('session');
   });
 
   it('reads back with the same driver, parameter by parameter', () => {

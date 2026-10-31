@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {WinIsdDriverConverter} from '../../domain/winIsdDriverConverter.js';
+import {DriverRecordConverter} from '../../domain/driverRecordConverter.js';
 import {DriverRoundTripCheck} from '../../domain/driverRoundTripDiffs.js';
 import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
 import {createEngine} from '../../engine/Engine.js';
@@ -26,7 +26,7 @@ describe('wdrRecordRoundTripDiffs', () => {
   describe('wdrRecordRoundTripDiffs — the .wdr -> record leg refusing to read back', () => {
     it('reports wdr-record-round-trip when a non-numeric row in the .wdr we hold reads back without its value', () => {
       const engine = createEngine();
-      const { openisd, wdr } = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const { openisd, wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
       assert.ok(openisd !== null && wdr !== null);
 
       const driver1 = OpenISDDriver.fromConformingRecord(JSON.parse(openisd), engine);
@@ -57,14 +57,31 @@ describe('wdrRecordRoundTripDiffs', () => {
         `expected snapshot mismatches, got: ${JSON.stringify(diffs)}`);
     });
 
+    it('reports wdr-record-round-trip with the seam\'s reasons when the record seam refuses what the .wdr reads back as', () => {
+      const engine = createEngine();
+      const { openisd, wdr } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      assert.ok(openisd !== null && wdr !== null);
+      const driver1 = OpenISDDriver.fromConformingRecord(JSON.parse(openisd), engine);
+      assert.ok(!Array.isArray(driver1));
+
+      const diffs = new DriverRoundTripCheck(engine, () => ['first reason', 'second reason'])
+        .wdrRecordRoundTripDiffs(driver1, WinISDDriver.fromWdrIni(wdr));
+
+      assert.deepEqual(diffs, [{
+        level: 'error',
+        field: 'wdr-record-round-trip',
+        message: 'the .wdr we wrote reads back as a record the driver seam refuses: first reason; second reason',
+      }]);
+    });
+
     it('reports a genuine mismatch through the success-path map when driver1 and w2 come from different real records', () => {
       // Both fixtures individually build a valid driver and a valid .wdr — the disagreement here is
       // real content (Dayton vs ScanSpeak), not a corrupted row, so this exercises the `.map()` over
       // `oidDriverDiffs`/`wdrDriverDiffs` on the success path, past the `Array.isArray(driver3)` guard
       // the test above covers.
       const engine = createEngine();
-      const daytonParsed = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
-      const scanspeakParsed = new WinIsdDriverConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
+      const daytonParsed = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(daytonDriverYml());
+      const scanspeakParsed = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(scanspeakDriverYml());
       assert.ok(daytonParsed.openisd !== null && scanspeakParsed.wdr !== null);
 
       const driver1 = OpenISDDriver.fromConformingRecord(JSON.parse(daytonParsed.openisd), engine);

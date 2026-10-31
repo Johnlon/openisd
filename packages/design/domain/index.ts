@@ -84,7 +84,7 @@ export { ProjectBuilder } from './openisdTransforms.js';
 export { ProjectSummary, type SummaryVolume } from './project/projectSummary.js';
 export { defaultProjectName } from './project/defaultProjectName.js';
 export type { BoxProjectBuilder } from './openisdTransforms.js';
-export { WinIsdDriverConverter } from './winIsdDriverConverter.js';
+export { DriverRecordConverter } from './driverRecordConverter.js';
 export { WinIsdProjectConverter } from './winIsdProjectConverter.js';
 export { OpenISDPassiveRadiatorStandalone } from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 // The engine, named here as well as at its own door (`@openisd/design/engine`): the domain

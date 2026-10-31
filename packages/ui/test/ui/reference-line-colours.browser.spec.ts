@@ -10,14 +10,16 @@ import {PIXEL_9} from '../fixtures/phoneSizes.js';
 /** A green nothing else on the chart uses. */
 const CHOSEN = '#00c000';
 
-/** Pixels on the chart canvas within a few levels of CHOSEN. */
+/** Pixels on the chart canvas that are CHOSEN, solid or anti-aliased. The chart canvas is transparent (no fill), so a 1.1px
+ *  dashed line on a 1x display lands on two pixel rows at ~55% alpha each, with the colour itself unchanged: read alpha 60+,
+ *  and hue (red equals blue, green well above both), which no other chart colour has. */
 const chosenPixels = (page: Page, canvas: string) => page.evaluate(selector => {
   const c = document.querySelector<HTMLCanvasElement>(selector);
   const g = c?.getContext('2d');
   if (!c || !g || c.width === 0) return 0;
   const d = g.getImageData(0, 0, c.width, c.height).data;
   let n = 0;
-  for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200 && d[i] < 40 && d[i + 1] > 160 && d[i + 1] < 230 && d[i + 2] < 40) n++;
+  for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 60 && Math.abs(d[i] - d[i + 2]) <= 12 && d[i + 1] - d[i] >= 50) n++;
   return n;
 }, canvas);
 

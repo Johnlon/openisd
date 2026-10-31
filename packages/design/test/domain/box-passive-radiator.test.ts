@@ -15,15 +15,17 @@ describe('the passive radiator a box holds', () => {
     spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
   }), createEngine()).sealed().volume_m3(0.03).build();
 
-  it('holds a blank radiator from the start: blank reads, and edits land', () => {
+  it('holds a seeded dummy radiator from the start, and edits land', () => {
     const p = project();
     const r = p.box.passiveRadiator.radiator;
 
-    expect(r.brand.value).toBe('');
+    expect(r.brand.value).toBe('Placeholder');
+    expect(r.model.value).toBe('Dummy PR');
+    expect(r.spec.Qms.value).toBe(5);
     r.brand.set('SB');
     expect(p.box.passiveRadiator.radiator.brand.value).toBe('SB');
 
-    expect(r.spec.Fs_hz.value).toBe(null);
+    expect(r.spec.Fs_hz.value).toBeCloseTo(31.8309886, 6);
     r.spec.Fs_hz.set(12);
     expect(p.box.passiveRadiator.radiator.spec.Fs_hz.value).toBe(12);
 
@@ -146,13 +148,17 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.radiator.spec.Sd_m2.value).toBe(0.099);
   });
 
-  it('detaches the blank radiator a box starts with', () => {
+  it('detaches an independent copy of the dummy radiator a box starts with', () => {
     const p = new ProjectBuilder(driverFrom({
       brand: 'Dayton', model: 'RS225', section: 'woofer',
       spec: specSection({ Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008 }),
     }), createEngine()).sealed().volume_m3(0.03).build();
 
-    expect(p.box.passiveRadiator.radiator.detach().brand.value).toBe('');
+    const detached = p.box.passiveRadiator.radiator.detach();
+    expect(detached.brand.value).toBe('Placeholder');
+    expect(detached.model.value).toBe('Dummy PR');
+    detached.model.set('Changed copy');
+    expect(p.box.passiveRadiator.radiator.model.value).toBe('Dummy PR');
   });
 
   it('the blank radiator a box starts with has its own identity', () => {
@@ -285,13 +291,13 @@ describe('the passive radiator a box holds', () => {
     expect(p.box.passiveRadiator.addedMassForTuning_kg(ceiling).value).toBeCloseTo(0, 9);
 
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
-    p.notifyPrChanged();
+    p.recalc();
 
     expect(p.box.passiveRadiator.addedMass_kg.value).toBeNull();
     expect(p.box.passiveRadiator.addedMass_kg.dq.some(issue => issue.kind === 'target-unreachable')).toBe(true);
 
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling);
-    p.notifyPrChanged();
+    p.recalc();
 
     expect(p.box.passiveRadiator.addedMass_kg.value).toBeCloseTo(0, 9);
     expect(p.box.passiveRadiator.addedMass_kg.dq.some(issue => issue.kind === 'target-unreachable')).toBe(false);
@@ -311,7 +317,7 @@ describe('the passive radiator a box holds', () => {
 
     const ceiling = p.box.passiveRadiator.systemTuning_hz.value!;
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
-    p.notifyPrChanged();
+    p.recalc();
 
     const DQ = [fixtureEngine.issues.targetUnreachable('addedMass_kg', ceiling)];
     expect(p.box.passiveRadiator.tuning_goal_hz.entered).toBe(true);                 // the input
@@ -347,5 +353,26 @@ describe('the passive radiator a box holds', () => {
 
     // (0.09 + 0.111111) kg on the same compliance: 1/(2π·√(0.201111·0.0009)) = 11.8298… Hz.
     expect(p.box.passiveRadiator.resonanceWithAddedMass_hz.value).toBeCloseTo(11.8299, 3);
+  });
+
+  it('leaves an unknown Qms blank on a radiator that keeps the placeholder brand but is not the dummy', () => {
+    const p = project();
+    p.box.boxType.set('box-passive-radiator');
+    const r = p.box.passiveRadiator.radiator;
+    r.model.set('Custom PR');
+    r.spec.Qms.clear();
+    p.box.applyStartingValues();
+    expect(r.model.value).toBe('Custom PR');
+    expect(r.spec.Qms.value).toBe(null);
+  });
+
+  it('leaves an unknown Qms blank on a radiator of another brand', () => {
+    const p = project();
+    p.box.boxType.set('box-passive-radiator');
+    const r = p.box.passiveRadiator.radiator;
+    r.brand.set('SB');
+    r.spec.Qms.clear();
+    p.box.applyStartingValues();
+    expect(r.spec.Qms.value).toBe(null);
   });
 });

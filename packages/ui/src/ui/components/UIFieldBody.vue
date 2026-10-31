@@ -15,8 +15,9 @@
  * bugs/BUG_20261005_no-common-ui-field-component.md
  */
 import {computed, ref, useId} from 'vue';
-import {PhoneRowColumns} from '@openisd/design/fields';
+import {NumberEditor, PhoneRowColumns} from '@openisd/design/fields';
 import NumInput from './NumInput.vue';
+import {selectedOption} from '../../logic/domEvents.js';
 import NumReadout from './NumReadout.vue';
 import UnitToggle from './UnitToggle.vue';
 import WinisdDeviationCue from './WinisdDeviationCue.vue';
@@ -38,6 +39,7 @@ const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), 
   label: undefined,
   deviation: undefined,
   dq: undefined,
+  noteTone: undefined,
   dqState: undefined,
   allowOutOfRange: false,
   defaulted: undefined,
@@ -67,16 +69,18 @@ const view = computed(() => {
     case 'clearable': {
       const cell = binding.cell;
       const readout = dqOfCell(cell);
+      const dq = [...readout.dq, ...(props.dq ?? [])];
+      const dqState = props.dqState ?? readout.dqState;
       return {
         value: cell.value,
         precision: cell.precision,
         provenanceClass: cellClassOf(cell),
         mandatory: props.required || cell.mandatoryAndUnsatisfied,
-        reason: dqReason(readout),
+        reason: dqReason({dq, dqState}),
         dqClasses: {
-          'dq-flag': readout.dq.length > 0,
-          'dq-root': readout.dq.length > 0 && readout.dqState === 'E',
-          'dq-symptom': readout.dq.length > 0 && readout.dqState === 'C',
+          'dq-flag': dq.length > 0,
+          'dq-root': dq.length > 0 && dqState === 'E',
+          'dq-symptom': dq.length > 0 && dqState === 'C',
         },
       };
     }
@@ -111,25 +115,31 @@ function write(v: number | null, precision?: number): void {
 </script>
 
 <template>
-  <div :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false, 'ui-field-note-open': (reasonOpen || refusal !== '') && reason}]">
+  <div :data-field="field.value" :data-access="readonly ? 'readonly' : 'writable'" :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false, 'ui-field-note-open': (reasonOpen || refusal !== '') && reason}]">
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
-    <span class="ui-field-value">
-      <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">
-        <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses, {'mob-readonly': plain}]" :value="view.value" :field="field" :format="format" :as-input="!plain" />
-        <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-          :half-width="view.precision" :mandatory="view.mandatory" :min="min" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :spin="spin" :blank-refused="binding.kind === 'fixed'" hide-mark
-          @update:model-value="write" @refusal="text => refusal = text" />
-      </slot>
-    </span>
-    <UnitToggle :field="field" unit-class="ui-field-unit" />
     <span class="ui-field-dq">
       <button v-if="reason" type="button" class="ui-field-dq-btn" :title="reason" :aria-expanded="reasonOpen"
         aria-label="Why this value is flagged" @click.stop="reasonOpen = !reasonOpen">&#9888;</button>
     </span>
+    <span class="ui-field-value">
+      <slot name="value" :view="view" :id="id" :write="write" :refusal="refusal" :set-refusal="(text: string) => refusal = text">
+        <NumReadout v-if="readonly" :id="id" :class="['calculated', 'greyed', view.dqClasses]" :value="view.value" :field="field" :format="format" />
+        <select v-else-if="field.editor === NumberEditor.CountSelect" :id="id" :value="view.value"
+          @change="event => { const value = selectedOption(event, field.countOptions()); if (value !== null) write(value); }">
+          <option v-for="option in field.countOptions()" :key="option.value" :value="option.value">{{ option.label }}</option>
+        </select>
+        <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
+          :half-width="view.precision" :mandatory="view.mandatory" :min="min" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :spin="spin" :blank-refused="binding.kind === 'fixed'" hide-mark
+          @update:model-value="write" @refusal="text => refusal = text">
+          <template #unit><UnitToggle :field="field" unit-class="ui-field-unit" /></template>
+        </NumInput>
+      </slot>
+    </span>
+    <UnitToggle v-if="readonly || field.editor === NumberEditor.CountSelect || $slots.value" :field="field" unit-class="ui-field-unit" />
     <span v-if="deviation" class="ui-field-dev">
       <WinisdDeviationCue :deviation="deviation" />
     </span>
-    <span v-if="(reasonOpen || refusal !== '') && reason" class="ui-field-note" role="note" @click.stop="reasonOpen = false">{{ reason }}</span>
+    <span v-if="(reasonOpen || refusal !== '') && reason" :class="['ui-field-note', {'ui-field-note-warning': noteTone === 'warning'}]" role="note" @click.stop="reasonOpen = false">{{ reason }}</span>
   </div>
 </template>
 
@@ -138,28 +148,40 @@ function write(v: number | null, precision?: number): void {
   /* The box, its gap and the ▲▼ pair. */
   --stepper-w: var(--ctl-stepper-w, 14px);
   --stepper-h: var(--ctl-h, 20px);
+  --ui-field-column-gap: 4px;
   --ui-value-w: calc(90px + 2px + 2 * var(--stepper-w));
   display: grid;
-  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) 34px 16px 16px;
-  column-gap: 4px;
-  align-items: baseline;
+  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--ui-value-w) minmax(34px, max-content) 16px minmax(16px, max-content);
+  column-gap: var(--ui-field-column-gap);
+  align-items: center;
   position: relative; flex: none;
 }
-.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) 90px 34px 16px 16px; }
+.ui-field-readout { grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) 90px minmax(34px, max-content) 16px minmax(16px, max-content); }
+.ui-field-readout { padding-bottom: 1px; }
 .ui-field-readout .ui-field-value { width: 90px; }
+/* A switchable readout unit is part of the same control, with no white gutter between the value
+   and its unit chip. The unit component owns the grey background and border. */
+.ui-field > :deep(.ui-field-unit.unit-toggle) { margin-left: calc(-1 * var(--ui-field-column-gap)); border-left: 0; height: var(--ctl-h); }
 .ui-field > label { grid-column: 1; white-space: nowrap; }
 .ui-field-value { display: inline-flex; align-items: center; gap: 2px; width: var(--ui-value-w); flex: none; grid-column: 2; }
 /* FIXED width, the same in every unit: the box never resizes when its unit is cycled. Wide
    enough for the longest value any field shows in any unit (a Vas in cu in, a Vd in cu ft). */
-.ui-field-value :deep(input) { width: 90px; height: var(--ctl-h); box-sizing: border-box; }
+.ui-field-value :deep(input) {
+  width: 90px; height: var(--ctl-h); box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 2px; padding: 4px 3px;
+  background: #fff; font: inherit; text-align: left;
+}
+.ui-field-value :deep(.num-stepper) { margin-left: 0; }
+.ui-field-value :deep(input.calculated) { color: var(--acc); }
+.ui-field-value :deep(input.greyed) { background: #e9e9e9; }
 .ui-field-dq { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 4; }
-.ui-field-dev { display: inline-flex; justify-content: center; width: 16px; flex: none; grid-column: 5; }
+.ui-field-dev { display: inline-flex; justify-content: center; min-width: 16px; width: auto; flex: none; grid-column: 5; }
 .ui-field-dq-btn {
   border: none; background: none; padding: 0 2px; margin: 0;
   font-family: inherit; font-size: 15px; line-height: 1; color: #d68a00; cursor: help;
 }
 .ui-field-unit { flex: none; 
-  grid-column: 3; width: 34px; box-sizing: border-box;
+  grid-column: 3; justify-self: start; width: max-content; min-width: 34px; box-sizing: border-box;
   white-space: nowrap; text-align: left;
 }
 /* Under the field's own row, in the layout: it takes its own space and never covers the row below. */
@@ -169,4 +191,5 @@ function write(v: number | null, precision?: number): void {
   padding: 4px 6px; border: 1px solid var(--bad); border-radius: 4px;
   background: var(--panel); color: var(--fg); font-size: 11px; line-height: 1.3;
 }
+.ui-field-note-warning { border-color: var(--acc2); background: color-mix(in srgb, var(--acc2) 8%, var(--panel)); }
 </style>

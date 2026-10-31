@@ -203,7 +203,7 @@ const usableReadingJsonSchema = z.strictObject({
  *  conversion table knows (Mms "327.7" with no unit). The printed text is kept either way
  *  (John, 2026-10-20: "the scraper collects facts it read"). One list per variant; add a reason
  *  here and every exhaustive match sees it. */
-export const UNPARSED_REJECTION_REASONS = ['no-numeric-value', 'unit-not-recognised'] as const;
+export const UNPARSED_REJECTION_REASONS = ['no-numeric-value', 'unit-not-recognised', 'multiple-values'] as const;
 /** Why a number WAS read but is refused. */
 export const PARSED_REJECTION_REASONS = ['ohm-glyph-merged-as-digit'] as const;
 export type UnparsedRejectionReason = typeof UNPARSED_REJECTION_REASONS[number];
@@ -273,7 +273,7 @@ const rejectedUnrecognisedParsedReadingJsonSchema = z.strictObject({
  * - A field nobody printed: no reading at all, not a Rejected one.
  * - Fs printed "21 Hz": Usable `{actual_reading: '21 Hz', read_value: 21}`.
  *
- * Exported so `winIsdDriverConverter.ts` validates a scraper's driver.yml readings against the
+ * Exported so `driverRecordConverter.ts` validates a scraper's driver.yml readings against the
  * SAME shape this record stores, rather than a hand-duplicated copy free to drift.
  */
 export const readingJsonSchema = z.union([
@@ -361,7 +361,7 @@ const notAvailableEntrySchema = z.strictObject({
  *
  * NO LEGACY PREPROCESS (D15): a bare `{origin, readings}` shape with no `state` key — the old
  * `driver.yml` shape, before the scraper's own origin pick and corroboration verdict were retired
- * from the scraper side — is no longer accepted here. `winIsdDriverConverter.ts` builds the
+ * from the scraper side — is no longer accepted here. `driverRecordConverter.ts` builds the
  * `{state:'E', value, origin, corroboration, readings, dq_scraper}` entry itself, choosing the
  * origin and computing corroboration on this side (`sourceRank.ts`, `corroboration.ts`), before
  * this schema ever parses it — so a bare scraper shape reaching this union IS a parse error, not
@@ -990,7 +990,10 @@ export const openISDProjectJsonSchema = z.strictObject({
 });
 export type OpenISDProjectJson = z.infer<typeof openISDProjectJsonSchema>;
 
+/** A stored or `.owpr` project: its durable id first (John, QO312), then the name and the two states.
+ *  The id lives with the project forever, in browser storage and `.owpr`, and never in a `.wpr`. */
 export const openISDProjectSessionJsonSchema = z.strictObject({
+    id: z.string().min(1),
     label: z.string(),
     saved: openISDProjectJsonSchema,
     edited: openISDProjectJsonSchema.nullable(),

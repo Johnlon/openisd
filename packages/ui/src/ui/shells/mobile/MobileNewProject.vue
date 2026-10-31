@@ -18,6 +18,7 @@ import MobileKeyStrip from './MobileKeyStrip.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
+import {DriverListMode} from '../../../logic/driverListMode.js';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
 
@@ -31,7 +32,6 @@ provideCellScope({ revision: ref(0), written: () => {} });
 const {
   isDriverStep, isCountStep, isBoxTypeStep, isBoxDetailsStep, isProjectInfoStep,
   stepLabel,
-  hadUnsaved,
 
   selectedDriver,
   selectedDriverName,
@@ -159,11 +159,10 @@ function handleCreate() {
     </div>
 
     <div class="mob-np-body">
-      <p v-if="hadUnsaved" class="np-warn">⚠ The open project has unsaved changes — they are not lost, but the new project takes focus.</p>
 
       <!-- Step 1: driver library -->
       <div v-if="isDriverStep" class="mob-np-library-wrap">
-        <DriverLibrary class="mob-np-library" show-name host="pick" />
+        <DriverLibrary class="mob-np-library" phone show-name :host="DriverListMode.Pick" />
       </div>
 
       <PhoneClassicPage v-else>
@@ -321,9 +320,8 @@ function handleCreate() {
 .mob-np-help { position: absolute; right: 4px; top: 50%; margin-top: -22px; width: 44px; height: 44px; padding: 0; border: none; background: none; color: var(--acc); display: grid; place-items: center; cursor: pointer; z-index: 2; }
 .mob-np-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; display: flex; flex-direction: column; background: #fff; }
 .mob-np-body > :deep(.mob-classic) { flex: 1 0 auto; }
-.mob-np-library-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 14px; background: var(--m-bg, #EEF1F0); }
+.mob-np-library-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: 0; background: var(--m-bg, #EEF1F0); }
 .mob-np-library { flex: 1; min-height: 0; }
-.np-warn { margin: 10px 14px 0; color: #8a4b00; background: #fff3e0; border: 1px solid #f0c088; border-radius: 3px; padding: 8px 10px; font-size: 13px; }
 
 /* Selected-driver banner on steps 2 to 5: two lines, each one line with an ellipsis if too long */
 .mob-np-banner { padding: 8px 16px; background: #f0fdf4; border-bottom: 1px solid #bbf7d0; font-size: 13px; color: #166534; display: flex; flex-direction: column; gap: 1px; }

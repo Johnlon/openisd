@@ -57,6 +57,17 @@ describe('ProjectSummary — the Open project list\'s second line', () => {
     expect(ProjectSummary.of(projectOf('bandpass4', 0.012, 0.008)).line(rotation)).toBe('Tang Band W5-1138SMF · 4th Order Bandpass · 0.42 + 0.28 cu ft');
   });
 
+  it('shows a dash for a blank or non-finite volume', () => {
+    const blank = ProjectBuilder.empty(createEngine());
+    blank.driver.specs.Vas_m3.clear();
+    blank.box.volumeOf('sealed').clear();
+    blank.driver.brand.set('Tang Band');
+    blank.driver.model.set('W5-1138SMF');
+    expect(ProjectSummary.of(blank).line(LITRES)).toBe('Tang Band W5-1138SMF · Closed · — L');
+    const infinite = projectOf('abc', Infinity, 0.005);
+    expect(ProjectSummary.of(infinite).line(LITRES)).toBe('Tang Band W5-1138SMF · ABC · — + 5.0 L');
+  });
+
   describe('phoneLine: the driver short code, upper-cased, in place of brand and model', () => {
     it('shows the sku upper-cased before box and volume', () => {
       const p = project('e150he-44');
@@ -71,4 +82,18 @@ describe('ProjectSummary — the Open project list\'s second line', () => {
       expect(ProjectSummary.of(p).phoneLine(LITRES)).toBe('Tang Band W5-1138SMF · Closed · 3.5 L');
     });
   });
+});
+
+
+it('provides box type and volumes separately for multiline desktop project rows', () => {
+  expect(ProjectSummary.of(projectOf('bandpass6', 0.012, 0.008)).boxDetails({})).toEqual({type:'6th Order Bandpass', volumes:'12.0 + 8.0 L'});
+  expect(ProjectSummary.of(projectOf('vented', 0.012)).boxDetails({[NumberField.BOX_VB_L.value]:'cuft'})).toEqual({type:'Vented', volumes:'0.42 cu ft'});
+});
+
+it('names the driver by whichever of brand and model is filled', () => {
+  const p = projectOf('sealed', 0.02);
+  p.driver.brand.set('');
+  expect(ProjectSummary.of(p).line({})).toBe('W5-1138SMF · Closed · 20.0 L');
+  p.driver.model.set('');
+  expect(ProjectSummary.of(p).line({})).toBe(' · Closed · 20.0 L');
 });

@@ -43,7 +43,7 @@ test.describe('Original skin', () => {
   test('an unreachable rear tuning shows its message once and covers no row', async ({page}) => {
     await page.locator('#og-box-type').selectOption('abc');
     await page.locator('.project-nav li', {hasText: 'Box'}).first().click();
-    await setNumField(page, 'Tuning freq (Frc)', '2000');
+    await setNumField(page, 'Tuning freq (Frc)', '2000', page.locator('.tab-section.active'));
     await page.locator('.project-nav li', {hasText: 'ABC'}).click();
     const length = page.locator('.ui-field', {has: page.locator('#og-vent-length-rear')});
     const resonance = page.locator('.vent-col').first().locator('.field', {hasText: '1st port resonance'});

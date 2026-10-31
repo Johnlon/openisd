@@ -1,0 +1,13 @@
+id: T633
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+landed: edb9fde051137cc9b125357befe0ef42c09b4df8
+goal: original-shell-layout short-window case is deterministic: it failed on the T632 candidate and passed on the T618 one with the same UI code
+done_test: bash scripts/test.sh packages/ui/test/architecture/browser-fixture-restores-sidebar.test.ts
+files:
+  - tasks/T633.yml
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - packages/ui/test/fixtures.ts
+  - packages/ui/test/architecture/browser-fixture-restores-sidebar.test.ts

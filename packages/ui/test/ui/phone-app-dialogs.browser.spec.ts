@@ -5,6 +5,8 @@
  * measured at every phone size: nothing is cut, nothing scrolls sideways, the buttons stay on screen.
  * Flash / toast (row 33) is not here: it needs App.vue and MobileShell.vue, which this task may not touch.
  */
+import {measureFieldContent} from '../fixtures/fieldVisualContract.js';
+import {setFocusedBoxType} from '../fixtures.js';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -70,7 +72,7 @@ async function heights(loc: Locator): Promise<number[]> {
   return loc.evaluateAll(els => els.map(e => e.getBoundingClientRect().height));
 }
 
-/** Every value box in the dialog's field rows starts at one x, its text a 14 px gutter in, its chip inside it. */
+/** Every value box in the dialog's field rows starts at one x, its text a 16 px gutter in, its chip inside it. */
 async function expectValueBoxesAligned(dialog: Locator): Promise<void> {
   const rows = dialog.locator('.mob-ui-field');
   expect(await rows.count(), 'the page has field rows').toBeGreaterThan(0);
@@ -84,7 +86,7 @@ async function expectValueBoxesAligned(dialog: Locator): Promise<void> {
   }));
   for (const b of boxes) {
     expect(Math.abs(b.left - boxes[0].left), 'value boxes share one left edge').toBeLessThanOrEqual(TOL);
-    expect(b.gutter, 'text gutter').toBe(14);
+    expect(b.gutter, 'text gutter').toBe(16);
     expect(b.chipInside, 'unit chip inside its box').toBe(true);
   }
 }
@@ -421,4 +423,41 @@ for (const size of PHONE_SIZES) {
       await gatePage.close();
     });
   });
+}
+
+for(const width of [360,374,412]) {
+ test(`Options values and storage counts remain aligned and readable at ${width}px`,async({page})=>{
+  await startOnPhone(page,{width,height:705});await tapMobileMenuItem(page,'Options');
+  const dialog=page.locator('.mob-dlg[aria-label="Options"]');
+  const username=await dialog.locator('#opt-phone-username').boundingBox(), number=await dialog.locator('.mob-ui-field input').first().boundingBox();
+  expect(username).not.toBeNull();expect(number).not.toBeNull();expect(Math.abs(username!.x-number!.x)).toBeLessThanOrEqual(1);
+  const issues=await dialog.evaluate(measureFieldContent);
+  expect(issues.controls).toBeGreaterThan(5);expect(issues.issues).toEqual([]);
+  await dialog.getByRole('tab',{name:'Your data',exact:true}).click();
+  const columns=await dialog.locator('.su-phone-rows .su-row').evaluateAll(nodes=>{
+   const result:Record<string,number[]>={};
+   for(const row of nodes){const value=row.querySelector('dd')!;const key=String(Math.round(row.getBoundingClientRect().left));(result[key]??=[]).push(value.getBoundingClientRect().right);}
+   return Object.values(result);
+  });
+  expect(columns).toHaveLength(2);
+  for(const rights of columns){expect(rights.length).toBeGreaterThan(1);expect(Math.max(...rights)-Math.min(...rights)).toBeLessThanOrEqual(1);}
+  await dialog.getByRole('tab',{name:'Plot Window',exact:true}).click();
+  for(const text of ['Air speed limit','Selected range']) {
+   const lines=await dialog.getByText(text,{exact:true}).evaluate(node=>{const range=document.createRange();range.selectNodeContents(node);return new Set([...range.getClientRects()].map(box=>Math.round(box.top))).size;});
+   expect(lines).toBe(1);
+  }
+  const body=await dialog.locator('.mob-dlg-body').boundingBox();expect(body).not.toBeNull();
+  for(const input of await dialog.locator('.mob-ui-field input').all()) {
+   await input.scrollIntoViewIfNeeded();const box=await input.boundingBox();expect(box).not.toBeNull();
+   expect(box!.y).toBeGreaterThanOrEqual(body!.y-1);expect(box!.y+box!.height).toBeLessThanOrEqual(body!.y+body!.height+1);
+  }
+ });
+
+ for(const box of ['sealed','vented'] as const) test(`${box} alignment selector shares the value column at ${width}px`,async({page})=>{
+  await startOnPhone(page,{width,height:705});await setFocusedBoxType(page,box);
+  await page.getByRole('button',{name:'Choose alignment…'}).click();
+  const sheet=page.locator('.mob-align-sheet');
+  const select=await sheet.locator('select').boundingBox(), input=await sheet.locator('input').first().boundingBox();
+  expect(select).not.toBeNull();expect(input).not.toBeNull();expect(Math.abs(select!.x-input!.x)).toBeLessThanOrEqual(1);
+ });
 }

@@ -16,7 +16,8 @@ import {createBackupRepo} from './backupRepo.js';
 import {createLayoutMigrator, type LayoutRules, type StoreData} from './layoutMigration.js';
 import {type BackupInfo, createStorageBackup, type StorageBackup} from './storageBackup.js';
 import {type LostKey, createStorageLog, type StorageLog} from './storageLog.js';
-import {OPENISD_STORAGE_LAYOUT_KEY} from './storageKeys.js';
+import {OPENISD_PROJECTS_KEY, OPENISD_STORAGE_LAYOUT_KEY} from './storageKeys.js';
+import type {ProjectRewritten} from './storedTextCompaction.js';
 import {createStorageSnapshot, emptySnapshot, envelopeText, isStoreDataKey, readEnvelope} from './storageSnapshot.js';
 import {createStampedStore, stampStore} from './stampedStore.js';
 
@@ -61,6 +62,31 @@ export interface OpenStoreDeps {
   readonly rules: LayoutRules;
   /** A fresh storage held in memory, seeded with `initial` — where a backup is opened read-only. */
   readonly memoryStorage: (initial: Record<string, string>) => ListableStorage;
+  /** Told of each saved project whose text a layout migration rewrote (id, text before, text after).
+   *  A migration is not an edit: Cloud sync follows the rewrite and keeps its record. */
+  readonly projectRewritten: ProjectRewritten;
+}
+
+function isUnknownArray(value: unknown): value is readonly unknown[] {
+  return Array.isArray(value);
+}
+
+/** The text of each saved project in `data`, by entry id; nothing for a bucket that is not readable. */
+function savedProjectTexts(data: StoreData): ReadonlyMap<string, string> {
+  const texts = new Map<string, string>();
+  const bucketText = data[OPENISD_PROJECTS_KEY];
+  if (bucketText === undefined) return texts;
+  let bucket: unknown;
+  try { bucket = JSON.parse(bucketText); } catch { return texts; }
+  const entries: unknown = typeof bucket === 'object' && bucket !== null ? Object.getOwnPropertyDescriptor(bucket, 'entries')?.value : undefined;
+  if (!isUnknownArray(entries)) return texts;
+  for (const entry of entries) {
+    if (typeof entry !== 'object' || entry === null) continue;
+    const id: unknown = Object.getOwnPropertyDescriptor(entry, 'id')?.value;
+    const text: unknown = Object.getOwnPropertyDescriptor(entry, 'text')?.value;
+    if (typeof id === 'string' && typeof text === 'string') texts.set(id, text);
+  }
+  return texts;
 }
 
 export function createStoreOpening(
@@ -81,7 +107,7 @@ export function createStoreOpening(
   function openLive(): StoreOpening {
     const log = createStorageLog(raw, deps.now);
     const lostKeys = log.recordStart();
-    const storage = createStampedStore(log.observe(raw), stamp);
+    const storage = createStampedStore(log.observe(raw), stamp, false);
     return {kind: 'ready', storage, backup: createStorageBackup(raw, deps.now), log, lostKeys, readOnly: false};
   }
 
@@ -104,7 +130,11 @@ export function createStoreOpening(
     });
     if (migrated === null) return {kind: 'blocked', reason: 'noStep', storeLayout: found, exportRaw: rawExport};
     stampStore(raw, stamp);
-    onReplaced();
+    const after = savedProjectTexts(migrated);
+    for (const [id, before] of savedProjectTexts(data)) {
+      const text = after.get(id);
+      if (text !== undefined && text !== before) deps.projectRewritten(id, before, text);
+    }
     return openLive();
   }
 
@@ -116,7 +146,7 @@ export function createStoreOpening(
     restore(key) {
       const text = backup.read(key);
       if (text === null) return openingAfterFailedRestore();
-      const repo = createBackupRepo(createStampedStore(raw, stamp), backup, deps.now, rules, onReplaced);
+      const repo = createBackupRepo(createStampedStore(raw, stamp, true), backup, deps.now, rules, onReplaced);
       const result = repo.importAll(text, {replaceEverything: true});
       if (result.kind !== 'ok') return openingAfterFailedRestore();
       return createStoreOpening(raw, deps, onReplaced);

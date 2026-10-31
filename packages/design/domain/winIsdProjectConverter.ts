@@ -1,6 +1,6 @@
 /**
  * `OpenISDProject` <-> WinISD `.wpr` — the project-level counterpart to
- * `winIsdDriverConverter.ts`'s `openIsdDriverToWinIsdDriver`/`winISDDriverToOpenISDDeviceJson`
+ * `driverRecordConverter.ts`'s `openIsdDriverToWinIsdDriver`/`winISDDriverToOpenISDDeviceJson`
  * pair. Free functions, not methods on `OpenISDProject` — `packages/design/AGENTS.md` "expose
  * only the class surface from domain/index.ts": these live beside `WinISDProject`, which does no
  * physics and no unit conversion of its own (its own doc comment), and take the already-computed
@@ -23,13 +23,14 @@
 import type {Box} from './box/box.js';
 import type {Vent} from './vent.js';
 import {OpenISDDriver} from './driver/openISDDriver.js';
+import {type DriverFromRecord} from './driverRoundTripDiffs.js';
 import {OpenISDPassiveRadiatorStandalone} from './passiveRadiator/openISDPassiveRadiatorStandalone.js';
 import {OpenISDProject} from './project/openISDProject.js';
 import {ProjectBuilder} from './openisdTransforms.js';
 import {type DriverError, type Engine, type Filter} from '../engine/index.js';
 import {WINISD_MAX_FILTER_ORDER} from '../fields/filterLimits.js';
 
-import {openIsdDriverToWinIsdDriver} from './winIsdDriverConverter.js';
+import {openIsdDriverToWinIsdDriver} from './driverRecordConverter.js';
 import {WinISDDriver} from '../winisd/winisdDriver.js';
 import {WinISDProject} from '../winisd/winisdProject.js';
 import {type RadiatorDeviceJson, type SpecEntryJson} from './openisdSchema.js';
@@ -249,7 +250,10 @@ function importVentGeometry(
 /** Project file conversion — a project to WinISD's `.wpr` model and `.wpr` text back to a
  *  project — holding the one engine every project it builds is given. */
 export class WinIsdProjectConverter {
-  constructor(private readonly engine: Engine) {}
+  constructor(
+    private readonly engine: Engine,
+    private readonly driverFromRecord: DriverFromRecord = OpenISDDriver.fromConformingRecord,
+  ) {}
 
   /**
    * `OpenISDProject` -> a `WinISDProject` ready to render as `.wpr` text.
@@ -360,7 +364,7 @@ export class WinIsdProjectConverter {
     const {record, warnings} = winISDDriverToOpenISDDeviceJson(wdrDriver);
     errors.push(...warnings);
 
-    const driverOrErrors = OpenISDDriver.fromConformingRecord(record, this.engine);
+    const driverOrErrors = this.driverFromRecord(record, this.engine);
     if (Array.isArray(driverOrErrors)) {
       for (const problem of driverOrErrors) errors.push({level: 'error', field: 'driver', message: problem});
       return {value: null, errors};

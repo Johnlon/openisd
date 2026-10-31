@@ -24,6 +24,11 @@ async function numberIn(input: Locator): Promise<number | null> {
 export async function shownPassiveRadiator(page: Page): Promise<ShownPassiveRadiator> {
   await setFocusedBoxType(page, 'sealed');
   await setFocusedBoxType(page, 'box-passive-radiator');
+  return readPassiveRadiatorTab(page);
+}
+
+/** Reads the passive radiator as its tab (the phone: the Box tab) shows it now, without leaving the box type. */
+export async function readPassiveRadiatorTab(page: Page): Promise<ShownPassiveRadiator> {
   const phone = await page.locator('.mobile-root').count() > 0;
   if (!phone) await openTab(page, 'Passive Radiator');
   if (phone) {

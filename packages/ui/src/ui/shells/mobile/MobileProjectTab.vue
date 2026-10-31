@@ -15,7 +15,7 @@ const { name, creator, created, modified, description, dateCommits } = useMobile
 </script>
 
 <template>
-  <PhoneClassicPage>
+  <PhoneClassicPage class="project-details-page">
     <PhoneBand :section="PhoneHelp.PROJECT_DETAILS" />
     <div class="mob-crow">
       <label class="mob-crow-label" for="mob-proj-name">Name</label>
@@ -41,6 +41,9 @@ const { name, creator, created, modified, description, dateCommits } = useMobile
 </template>
 
 <style scoped>
+.project-details-page {display:flex;flex-direction:column;min-height:100%;}
+.project-details-page > .mob-crow {flex-shrink:0;}
+.mob-crow.mob-crow-notes {flex:1;}
 /* Rows, labels and bands are the shared classic ones (style.css); only the text box and notes box live here. */
 .mob-ctext {
   flex: 1 1 auto; min-width: 0; box-sizing: border-box; height: var(--mob-input-h);
@@ -48,8 +51,8 @@ const { name, creator, created, modified, description, dateCommits } = useMobile
   background: #fff; color: var(--fg); font: inherit; font-size: 15px; text-align: left;
 }
 .mob-ctext:focus { outline: none; border: 2px solid var(--acc); padding: 0 calc(var(--mob-col-gutter) - 1px); }
-.mob-crow-notes { flex-direction: column; align-items: stretch; height: auto; gap: 4px; padding-top: 6px; padding-bottom: 8px; }
+.mob-crow.mob-crow-notes { flex-direction: column; align-items: stretch; height: auto; gap: 4px; padding-top: 6px; padding-bottom: 8px; }
 .mob-crow-notes .mob-crow-label { width: auto; }
-.mob-cnotes { flex: none; height: 96px; padding: 8px var(--mob-col-gutter); resize: none; }
+.mob-cnotes { flex: 1; min-height: 96px; width:100%; height:auto; padding: 8px var(--mob-col-gutter); resize: none; }
 .mob-cnotes:focus { padding: 7px calc(var(--mob-col-gutter) - 1px); }
 </style>
