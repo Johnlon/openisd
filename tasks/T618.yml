@@ -53,7 +53,6 @@ files:
   - scripts/verify-preview-own-port.sh
 
 label: fixes
-landed: 38491bbcc
 visual_note: "Desktop screens take the T607 field look (colour rail, label and box widths), the signal-generator box is 6px wider, wizard labels are wider so the warning slot fits, and the default plot window is 10-20000 Hz again (mobile graph)."
 visual:
   - desktop-box-abc
@@ -89,3 +88,4 @@ visual:
   - desktop-wizard-vented-step4
   - desktop-wizard-vented-step5
   - mobile-tab-graph
+landed: ddfe06b35a
