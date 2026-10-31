@@ -618,12 +618,16 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div class="two-col adv-two-col">
             <div class="adv-left-col">
               <div class="adv-air-fields" style="--label-w:108px;">
+                <div class="adv-air-col">
                 <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_TEMP_K" :value="advTemp" @update:value="v => advTemp = v" @clear="advTemp = null" :defaulted="!envTempStored" :dq="envTempDq.dq" :dq-state="envTempDq.dqState" stepper allow-out-of-range /></div>
                 <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_HUMIDITY_PCT" :value="advHumidity" @update:value="v => advHumidity = v" @clear="advHumidity = null" :defaulted="!envHumidityStored" :dq="envHumidityDq.dq" :dq-state="envHumidityDq.dqState" stepper allow-out-of-range /></div>
                 <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_PRESSURE_KPA" :value="advPressure" @update:value="v => advPressure = v" @clear="advPressure = null" :defaulted="!envPressureStored" :dq="envPressureDq.dq" :dq-state="envPressureDq.dqState" stepper allow-out-of-range /></div>
+                </div>
+                <div class="adv-air-col">
                 <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_SOUNDVELOCITY_M_PER_S" :value="advSoundVelocity" @update:value="v => advSoundVelocity = v" @clear="advSoundVelocity = null" :defaulted="!envSoundVelocityStored" :dq="envSoundVelocityDq.dq" :dq-state="envSoundVelocityDq.dqState" allow-out-of-range /></div>
                 <div class="field-row"><UISettlingField class="field adv-air-field" :field="NumberField.ADV_AIRDENSITY_KG_PER_M3" :value="advAirDensity" @update:value="v => advAirDensity = v" @clear="advAirDensity = null" :defaulted="!envAirDensityStored" :dq="envAirDensityDq.dq" :dq-state="envAirDensityDq.dqState" allow-out-of-range /></div>
                 <button class="reset-air-btn" @click="resetAirToAppDefaults">Reset to app levels</button>
+                </div>
               </div>
               <div class="checkbox-col">
                 <AdvancedOptions />
@@ -1361,7 +1365,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    component's value box, provenance colour and unit-chip geometry. */
 .field:where(:not(.ui-field)) :deep(input.greyed) { background:#e9e9e9; color:#777; }
 .field:where(:not(.ui-field)) :deep(input.calculated) { color:#1868d1; }
-.adv-air-fields { display:grid; grid-template-columns:repeat(2,max-content); column-gap:8px; align-items:start; }
+/* Two columns of rows (entered, then calculated). They wrap under each other when the pane is too narrow for both, so the tab never scrolls sideways. */
+.adv-air-fields { display:flex; flex-wrap:wrap; column-gap:8px; align-items:flex-start; }
+.adv-air-col { flex:none; }
 .adv-air-fields .field { gap:2px; }
 .adv-air-fields .field label { width:108px; white-space:nowrap; }
 .adv-air-fields .field input, .adv-air-fields :deep(input) { width:82px; padding:4px 3px; }
@@ -1371,14 +1377,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .adv-air-fields .field.ui-field :deep(.ui-field-value) { width:auto; }
 .adv-air-fields .field.ui-field :deep(.ui-field-dev) { display:none; }
 .adv-air-fields .field-row { margin-bottom: 3px; }
-.adv-air-fields .field-row:nth-child(-n+3) { grid-column:1; }
-.adv-air-fields .field-row:nth-child(4),
-.adv-air-fields .field-row:nth-child(5) { grid-column:2; }
-.adv-air-fields .field-row:nth-child(4) { grid-row:1; }
-.adv-air-fields .field-row:nth-child(5) { grid-row:2; }
-.adv-air-fields .field-row:nth-child(4) label,
-.adv-air-fields .field-row:nth-child(5) label { width:108px; margin-right:0; }
-.adv-air-fields .reset-air-btn { grid-column:2; grid-row:3; justify-self:start; margin-top:2px; }
+.adv-air-col:nth-child(2) .field-row label { width:108px; margin-right:0; }
+.adv-air-fields .reset-air-btn { margin-top:2px; }
 .reset-air-btn { border:1px solid #999; background:#f0f0f0; border-radius:3px; padding:4px 8px; cursor:pointer; color:#333; }
 /* A solved length of zero or less is not a port that can be built — it reads as the failure it
    is, matching the red unreachable notice below the pane rather than looking like a dimension. */
@@ -1442,6 +1442,7 @@ textarea.comment, textarea.description { width:100%; border:1px solid #999; bord
 
 .adv-two-col { gap: 8px; align-items: flex-start; }
 .adv-left-col { display:contents; }
+.adv-two-col > .adv-air-fields { flex:0 1 auto; }
 /* The standard WinISD options: one line each, as wide as the longest (John, 2026-10-05). */
 .adv-two-col .checkbox-col { margin-left: 0; width: max-content; }
 .adv-two-col .checkbox-col :deep(.adv-options) {

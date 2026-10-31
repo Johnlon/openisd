@@ -667,6 +667,7 @@
     "bugs/BUG_20261030_project-hides-reported-voice-coil-readings.md",
     "bugs/BUG_20261030_projects-archive-accepts-invalid-utf8.md",
     "bugs/BUG_20261030_wdr-connection-reading-judged-as-numvc.md",
+    "bugs/BUG_20261031_advanced-tab-scrolls-sideways-at-1280.md",
     "bugs/BUG_20261031_phone-pr-p173-cms-display.md",
     "bugs/BUG_20261031_pr-spec-accepts-air-not-available.md",
     "bugs/_archive/BUG_20261029_coax_tweeter_voice_coil_tuple_rejected.md",
