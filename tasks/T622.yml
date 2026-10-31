@@ -53,6 +53,7 @@ files:
   - packages/persistence/test/myDriverRepo.test.ts
   - packages/persistence/test/projectRepo.test.ts
   - packages/persistence/test/storageUpgrade.test.ts
+  - packages/ui/coverage-baseline.json
   - packages/ui/src/hooks/DriverEditorModal-hooks.ts
   - packages/ui/src/logic/appState.ts
   - packages/ui/src/logic/bundledIndexRows.ts
@@ -77,6 +78,9 @@ files:
   - packages/ui/test/logic/projectOpenTelemetry.test.ts
   - packages/ui/test/logic/searchSubject.test.ts
   - packages/ui/test/logic/storeGate.test.ts
+  - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
+  - packages/ui/test/ui/cloudSyncDialog.browser.spec.ts
+  - packages/ui/test/ui/fixtures/cloudSyncStubs.ts
+  - packages/ui/test/ui/fixtures/driveConnected.ts
   - packages/ui/test/visual/SOURCES.sha256
   - tasks/T622.yml
-  - packages/ui/coverage-baseline.json

@@ -1,6 +1,6 @@
 import type {Page} from '@playwright/test';
 import {expect, openAProject, test} from '../fixtures.js';
-import {enableCloudSync} from './fixtures/cloudSyncStubs.js';
+import {CURRENT_STORAGE_LAYOUT, enableCloudSync} from './fixtures/cloudSyncStubs.js';
 
 async function stubGoogleApis(page: Page) {
   await page.route('**/accounts.google.com/**', async route => {
@@ -162,8 +162,8 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
     await enableCloudSync(page);
     await stubGoogleApis(page);
 
-    await page.addInitScript(() => {
-      localStorage.setItem('openisd_storage_layout', '2');
+    await page.addInitScript((layout: string) => {
+      localStorage.setItem('openisd_storage_layout', layout);
       localStorage.setItem('openisd_cloud_auth', JSON.stringify({
         kind: 'token',
         accessToken: 'ya29.test_token',
@@ -182,7 +182,7 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
         deviceId: 'device-laptop',
         maxSeq: 1,
       }));
-    });
+    }, CURRENT_STORAGE_LAYOUT);
 
     await page.goto('/');
     await openAProject(page);
@@ -206,15 +206,15 @@ test.describe('Cloud sync dialog (Plan P1-13)', () => {
     await enableCloudSync(page);
     await stubGoogleApis(page);
 
-    await page.addInitScript(() => {
-      localStorage.setItem('openisd_storage_layout', '2');
+    await page.addInitScript((layout: string) => {
+      localStorage.setItem('openisd_storage_layout', layout);
       localStorage.setItem('openisd_cloud_auth', JSON.stringify({
         kind: 'token',
         accessToken: 'ya29.test_token',
         expiresAt_ms: Date.now() + 3600000,
         account: 'john@gmail.com',
       }));
-    });
+    }, CURRENT_STORAGE_LAYOUT);
 
     await page.goto('/');
     await openAProject(page);

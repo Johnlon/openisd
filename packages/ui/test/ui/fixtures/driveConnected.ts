@@ -2,7 +2,7 @@
  *  Real sync and Drive client; only Google's servers are emulated. */
 import type {Page} from '@playwright/test';
 import {DriveEmulator} from '../../fixtures/driveEmulator.js';
-import {enableCloudSync} from './cloudSyncStubs.js';
+import {CURRENT_STORAGE_LAYOUT, enableCloudSync} from './cloudSyncStubs.js';
 
 export const RENAMED = 'W5-1138SMF Fixture, edited on iPhone';
 export const PULLED_VOLUME_M3 = 0.02;
@@ -42,11 +42,11 @@ export async function emulateDriveServer(page: Page): Promise<DriveEmulator> {
 export async function connectedToDrive(page: Page): Promise<DriveEmulator> {
   const drive = await emulateDriveServer(page);
   await enableCloudSync(page);
-  await page.addInitScript(() => {
-    localStorage.setItem('openisd_storage_layout', '2');
+  await page.addInitScript((layout: string) => {
+    localStorage.setItem('openisd_storage_layout', layout);
     localStorage.setItem('openisd_cloud_auth', JSON.stringify({
       kind: 'token', accessToken: 'ya29.stubbed_test_token', expiresAt_ms: Date.now() + 3_600_000, account: 'john@gmail.com',
     }));
-  });
+  }, CURRENT_STORAGE_LAYOUT);
   return drive;
 }

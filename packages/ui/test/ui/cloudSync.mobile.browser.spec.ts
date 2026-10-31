@@ -3,6 +3,7 @@ import {existsSync, mkdirSync, rmSync} from 'node:fs';
 import net from 'node:net';
 import {join} from 'node:path';
 import {dirtyFocusedDesign, expect, openAMobileProject, test} from '../fixtures.js';
+import {CURRENT_STORAGE_LAYOUT} from './fixtures/cloudSyncStubs.js';
 import {forceMobileSkin, openMobileMenu} from '../fixtures/mobileSkin.js';
 import {deliverWaitingBuild} from '../fixtures/updateHost.js';
 
@@ -226,8 +227,8 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
     });
 
     test('conflict notice shows when there are unseen conflicts and opens dialog', async ({ page }) => {
-      await page.addInitScript(() => {
-        localStorage.setItem('openisd_storage_layout', '2');
+      await page.addInitScript((layout: string) => {
+        localStorage.setItem('openisd_storage_layout', layout);
         localStorage.setItem('openisd_cloud_auth', JSON.stringify({
           kind: 'token',
           account: 'john@gmail.com',
@@ -253,7 +254,7 @@ test.describe('Mobile Cloud Sync (T129 / P1-13b)', () => {
           hintDismissed: false,
           conflictsSeen: 0,
         }));
-      });
+      }, CURRENT_STORAGE_LAYOUT);
 
       await page.route('https://www.googleapis.com/**', route => {
         const url = route.request().url();

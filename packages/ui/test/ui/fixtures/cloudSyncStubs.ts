@@ -78,3 +78,12 @@ export async function stubGoogleApis(page: Page): Promise<void> {
     });
   });
 }
+
+/** The storage layout the app writes now, read from its source, as the text a page's store is stamped
+ *  with so it is not migrated (a migration forgets the cloud sync record). */
+export const CURRENT_STORAGE_LAYOUT: string = (() => {
+  const source = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'persistence', 'src', 'storageLayout.ts'), 'utf8');
+  const match = /STORAGE_LAYOUT\s*(?::\s*number\s*)?=\s*(\d+)/.exec(source);
+  if (match === null) throw new Error('storageLayout.ts does not say STORAGE_LAYOUT = <number>');
+  return match[1];
+})();
