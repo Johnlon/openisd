@@ -1,7 +1,7 @@
 /**
  * The vent group's UI seam. The physics — which of volume, diameter, tuning and length is HELD and
  * which is SOLVED, the Helmholtz relation itself, reachability — lives on `OpenISDProject`
- * (`cell()`/`enter()`/`clear()`/`notifyVentChanged()`), the owner of the state. This module keeps
+ * (`cell()`/`enter()`/`clear()`/`recalc()`), the owner of the state. This module keeps
  * only what is genuinely a UI concern: the members the shells bind (`VentMember`), the E/C/N letter
  * the badges show, and the solve-suspension that parks `appState.ts`'s coarse auto-solve watch
  * so one user action produces one solve (and a wholesale restore is adopted verbatim,
@@ -9,19 +9,6 @@
  */
 import type {OpenISDProject, Vent} from '@openisd/design';
 import type {ProvenanceLetter} from '@openisd/design';
-
-/** A thin passthrough onto the domain's own reactivity ping (`prGroup.ts`'s
- *  `notifyPrChanged` already took this shape). S2-7d2 wires the tuning ↔ vent-length relation
- *  into `OpenISDProject#resolve()` itself, run synchronously by every `.set()`/`.clear()` this
- *  module's own `VentMember` writes already make — so the manual Helmholtz solve
- *  this function used to perform (QO126's stub workaround, while the relation was unwired) is
- *  gone: it is now REDUNDANT with `#resolve()`, and worse, actively conflicting with it — calling
- *  `.set()` here on the "achieved" side re-entered it as a fresh fact, which (correctly) cleared
- *  its just-entered sibling and re-derived it a second time through the SAME formula, landing on
- *  a float a few ULPs off the value the user actually typed. */
-export function notifyVentChanged(p: OpenISDProject): void {
-  p.notifyVentChanged();
-}
 
 /** The vent group of the project's adopted box type: the front chamber's on a 4th-order bandpass,
  *  the vented box's otherwise. The domain owns that choice (`Box.ventGroupOf`). */
@@ -35,7 +22,7 @@ function act(p: OpenISDProject, write: () => void): void {
   suspendVentSolve(() => {
     p.batch(() => {
       write();
-      p.notifyVentChanged();
+      p.recalc();
     });
   });
 }

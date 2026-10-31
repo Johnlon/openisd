@@ -1,0 +1,17 @@
+id: T634
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+landed: 60137cd65e8239f741f4790d433b751ad746dd60
+goal: Advanced tab fits at 1280 and 1366 again: test build scrolls 278px sideways where production fits, ~380px of new width left of the switch groups (QO318 prod-vs-test page)
+done_test: bash scripts/quiet-test.sh bash scripts/test.sh packages/ui/test/architecture/advanced-air-fields-wrap.test.ts packages/ui/test/ui/OriginalShell-advanced-layout.test.ts
+files:
+  - tasks/T634.yml
+  - bugs/BUG_20261031_advanced-tab-scrolls-sideways-at-1280.md
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/test/ui/original-advanced-tab.browser.spec.ts
+  - packages/ui/test/architecture/advanced-air-fields-wrap.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json

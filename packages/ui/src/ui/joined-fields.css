@@ -163,4 +163,4 @@
 /* Air labels gain 22px while their value boxes lose 22px; total group width is unchanged. */
 
 /* Keep the entered air values wide enough for Pa; only the two derived boxes narrow. */
-.joined-fields:not(.app-root-mobile) .adv-air-fields .field-row:nth-child(-n+3) .ui-field[data-field] {--joined-box:146px;}
+.joined-fields:not(.app-root-mobile) .adv-air-col:first-child .field-row .ui-field[data-field] {--joined-box:146px;}

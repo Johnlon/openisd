@@ -8,7 +8,7 @@
  * Each editor takes its own `Filter` variant as a typed prop and calls the `api.editX` for that
  * variant — never a per-field string route.
  */
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 import type {FilterType} from '@openisd/design/engine';
 import {inputChecked} from '../../../logic/domEvents.js';
 import type {OriginalFiltersAPI} from '../../../hooks/OriginalFilters-hooks.js';
@@ -22,7 +22,7 @@ import RaisedCosineEditor from './filters/RaisedCosineEditor.vue';
 import ShelfEditor from './filters/ShelfEditor.vue';
 
 const {api} = defineProps<{ api: OriginalFiltersAPI }>();
-const filters = api.filters;
+const filters = computed(() => api.filters.value);
 
 /** One quick-add button per type, WinISD's Filter Editor "Filter type" order, then the two
  *  OpenISD-only shelves. */
