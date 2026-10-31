@@ -1,6 +1,6 @@
 id: F60
-owner: Johnlon
-status: open
+owner: cover
+status: done
 sha: e6f0e4a71fbc9675807bff2b71b48449cf8c3a8d
 tested: e6f0e4a71fbc9675807bff2b71b48449cf8c3a8d
 last_green: 0fe2a2503b5b8d4a37ad41131974a0be880bf440
@@ -31,3 +31,5 @@ failing: |
 output: |
   2026-10-31T19:07:13.757Z 1920579-1793473632-11246 actions: start 2026-10-31T19:07:13Z e6f0e4a71f (Johnlon/openisd suite.yml)
   2026-10-31T19:17:20.603Z 1920579-1793473632-11246 actions: no suite.yml run on e6f0e4a71f after 600s (or GitHub cannot be read); red
+closed_note: |
+  Closed by cover: nothing was red. Post-land found no push run on e6f0e4a71 (direct bookkeeping pushes start none). Since the green suite on e366a72dc (GitHub run 41225575863, hand-started) main adds only RELEASES.md, task files, the F59 bug file and its manifest line; the manifest test passes at 5fc648ff9. Same gate defect as F59: bugs/BUG_20261031_post-land-ignores-hand-started-suite-run.md (QO328).
