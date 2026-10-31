@@ -1,0 +1,78 @@
+### Inspected Image Count
+
+**4 PNG images inspected**:
+- [prod.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/prod.png)
+- [test.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/test.png)
+- [branch-before.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-before.png)
+- [branch-after.png](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-after.png)
+
+---
+
+### Bounded Verdict
+
+**Partial pass — the basic forward `Tab` path and `branch-after.png` focus/marker state work and are visually beneficial, but the focus-group implementation has four concrete interaction bugs (including a runaway key-hold bug when tabbing within the group and stale digit/place state on unit switches), one CSS provenance bug in the inverse blink, a non-catalogue layout regression in `UIFieldBody.vue`, and an inaccurate visual-attribution claim in the publisher prose.**
+
+---
+
+### 1. Code & CSS Defects
+
+1. **Key-hold repeat is not stopped when focus moves within `ownGroup` (runaway spin bug)**
+   - **Where**: [`onBlur`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L540-L545), [`onStepperBlur`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L436-L438), [`onKeydown`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L321-L323), and [`NumInput.vue`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L44).
+   - **Defect**: When `e.relatedTarget` satisfies [`ownGroup(e.relatedTarget)`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L339-L341), neither `onBlur` nor `onStepperBlur` calls [`stopRepeat()`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L411-L414). Furthermore, `<span ref="unitEl">` at [`NumInput.vue:L44`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L44) has no `@keydown` or `@keyup` listeners.
+   - **Consequence**:
+     - If a user holds `ArrowUp`/`ArrowDown` in `inputEl` and presses `Tab` into a switchable `.ui-field-unit`, `repeatTimer` keeps running. Releasing `ArrowUp` on `.ui-field-unit` never fires [`onKeyup`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L325-L327), so the field spins indefinitely until focus leaves the entire group.
+     - If a user holds `Space` or `Enter` on `▲` (`increaseEl`) and presses `Tab` to `▼` (`decreaseEl`), `repeatTimer` keeps incrementing (`+1`) while `▼` is focused.
+   - **Fix**: Call `stopRepeat()` unconditionally at the start of `onBlur` and `onStepperBlur` (or on `Tab` in `onKeydown`), and bind `@keydown="onKeydown" @keyup="onKeyup"` on `unitEl` (filtering `Space`/`Enter` so unit toggling is not hijacked by spinner repeat).
+
+2. **Switching units while `unitEl` has focus leaves `underlineIndex`, `lastCaret`, and `lastStep` stale**
+   - **Where**: [`watch(activeToken)`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L75-L85).
+   - **Defect**: Because `unitEl` sets `groupFocused.value = true` on `focusin` ([`NumInput.vue:L44`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L44)), activating the unit button (via `Tab` → `Enter`/`Space`, or by pointer click which focuses `unitEl` before `click`) runs the `groupFocused.value === true` branch at [`NumInput-hooks.ts:L78-L84`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L78-L84). That branch reformats `display.value` for `newToken` (e.g. `100.0000` Hz → `0.1000` kHz) but never updates or clears `underlineIndex.value`, `lastCaret`, or `lastStep`.
+   - **Consequence**: Directly violates [`field-use-cases.html:L111`](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html?html#L111) (*"The marker, remembered place, text fit and limits must be checked against the new representation, rather than blindly reusing a character index from the old one"*). The old index can highlight a decimal point `.`, disappear past the string end, or step the wrong decimal place on the next `Tab` → `▲`.
+
+3. **Entering the group via `unitEl` or a spinner skips `entering` initialization (`entryValue`, `badEntry`)**
+   - **Where**: [`onFocus`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L87-L98) vs [`onStepperFocus`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L434).
+   - **Defect**: `onStepperFocus` sets `groupFocused.value = true` without recording `entryValue.value = props.modelValue`. If focus enters the group via `Shift+Tab` into `▼` (or pointer click on `unitEl`/`▲`/`▼`) and then `Shift+Tab`s into `inputEl`, `onFocus` sees `entering === false` (`!groupFocused.value` is already `false`) and returns early at [`NumInput-hooks.ts:L90`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L90). `entryValue.value` retains whatever stale value existed from an earlier edit, causing [`leaveGroup()`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L564) to emit a false `blur-notify` or miss a real one.
+
+4. **Inverse-video blink turns the selected digit of calculated/defaulted fields green during the off-phase**
+   - **Where**: [`field-catalogue.css:L56-L57`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L56-L57) and [`field-catalogue.css:L86`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L86).
+   - **Defect**: `@keyframes spin-inverse-blink` specifies `56%,100%{background:transparent;color:#078200}`. Because `.num-mark-overlay` sits directly over the visible `<input>` text ([`NumInput.vue:L38-L41`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/NumInput.vue#L38-L41)), when a calculated (`#06f`) or defaulted (`#23548f`) field is focused (before typing), the selected digit alternates between white-on-blue (`0%–55%`) and **entered green `#078200`** (`56%–100%`) instead of the field's blue provenance color.
+   - **Consequence**: Violates [`field-use-cases.html:L41`](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html?html#L41) (*"Ordinary text colour continues to describe provenance; the cursor must not turn a calculated value into an entered value"*). In `field-catalogue.css:L86`, the `56%, 100%` phase should use `color: transparent` so the underlying `<input>` glyph shows its actual provenance color (or inherit the provenance color). Also note that mandatory/refused inputs use `border: 2px` ([`field-catalogue.css:L76-L77`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L76-L77)) while `.num-mark-overlay` hardcodes `padding: 0 7px !important` ([`field-catalogue.css:L82`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L82)), creating a 1px horizontal offset vs `1px`-bordered inputs (`1px border + 6px padding = 7px`).
+
+5. **Non-`.compact-fields` layout in `UIFieldBody.vue` is broken by moving `UnitToggle` inside `.ui-field-value`**
+   - **Where**: [`UIFieldBody.vue:L127-L131`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L127-L131) and [`UIFieldBody.vue:L161-L183`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L161-L183).
+   - **Defect**: In `UIFieldBody.vue`'s own scoped styles, `.ui-field-value` is `display: inline-flex; width: var(--ui-value-w); grid-column: 2;` ([`UIFieldBody.vue:L163`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L163)), and `.ui-field > :deep(.ui-field-unit.unit-toggle)` ([`UIFieldBody.vue:L161`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/components/UIFieldBody.vue#L161)) uses a direct child combinator `>`. Moving `UnitToggle` inside `NumInput` places `.ui-field-unit` inside `.ui-field-value > .num-unit`. That only works when `.compact-fields` is active because [`field-catalogue.css:L10`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/field-catalogue.css#L10) forces `.ui-field-value { display: contents !important }`; in any surface without `.compact-fields`, `.ui-field-unit` is no longer a grid child in `grid-column: 3` and is squeezed inside the `inline-flex` `.ui-field-value` container.
+
+---
+
+### 2. Test Critique
+
+1. **`number-stepper.browser.spec.ts` change is justified for the click itself, but drops the outside-click clear check**
+   - **Where**: [`number-stepper.browser.spec.ts:L138-L147`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/number-stepper.browser.spec.ts#L138-L147).
+   - **Assessment**: Playwright's `await box.click()` clicks the center (`x = 54px`) of the 108px-wide left-aligned input, which is to the right of `'10.00'` (~45px). That places the native caret at the end (`10.00|`, offset 5). Under the approved end-caret contract ([`field-use-cases.html:L32,L144`](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html?html#L32)), a caret after the final digit highlights and spins the final digit (`10.0[0]` → `10.01`). Updating the assertion after `box.click()` is therefore **correct**.
+   - **Gap**: The test previously also served as the mobile-skin check that clicking away clears the marker. Add an outside click after line 146 (e.g. clicking the section band) and assert `await expect(overlay).toHaveCount(0)`.
+
+2. **Missing test coverage for claims made in `index.html`**
+   - **Where**: [`closed-box-fields.browser.spec.ts:L61-L82`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/closed-box-fields.browser.spec.ts#L61-L82) and [`num-input-rendition.browser.spec.ts:L162-L193`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/num-input-rendition.browser.spec.ts#L162-L193).
+   - **Gaps**:
+     - [`index.html:L1`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/index.html#L1) claims *"Returning to the number retains the draft"*, but neither spec `Shift+Tab`s back into `input` to verify draft/precision retention on re-entry ([`NumInput-hooks.ts:L88-L90`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L88-L90)).
+     - [`closed-box-fields.browser.spec.ts:L61-L82`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/closed-box-fields.browser.spec.ts#L61-L82) never asserts that `.num-mark-underline` stays visible while `unit`, `up`, and `down` are focused, nor that `down.press('Tab')` focuses `.winisd-deviation-cue` (`≠W`).
+     - [`MobileSheet.vue:L42-L45`](http://lap:8000/winisd/openisd-t607/packages/ui/src/ui/shells/mobile/MobileSheet.vue#L42-L45) was modified in the diff, but no test exercises native `Tab` inside `MobileSheet`.
+
+---
+
+### 3. Four-Image Visual & Attribution Review
+
+| Image | Visual observation after 1 `Tab` from `Qtc` (`0.70[0]0`) | Assessment |
+| --- | --- | --- |
+| [`prod.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/prod.png) | `Tab` skips `▲▼` and focuses internal `≠W` inside `Qtc`; digit marker is lost; trailing zeros `0.7000` kept. Wide inputs (`Vb`/`Fsc` with attached unit chips, `Qtc` stretched to `▲`); `▲▼` vertically aligned across all 3 rows; cloud icon in header. | Baseline production (`v20261025T2233Z`). |
+| [`test.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/test.png) | Same `Tab` skip to `≠W`. Right-aligned numbers collide with internal `≠W` on `Fsc` and `Qtc`. | Known broken live-test build (`v20261026T2106Z`). |
+| [`branch-before.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-before.png) | Compact fields active, but `Tab` still skips `▲▼` and focuses external `≠W`; digit marker on `0.7000` is lost. `Vb` and `Fsc` input boxes are ~8–10px wider than `Qtc`'s 108px input box. | Pre-fix branch baseline. |
+| [`branch-after.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/branch-after.png) | `Tab` focuses `Qtc`'s `▲` button (`#1868c9` focus ring) and preserves both `0.7000` and the inverse-video highlight on the 3rd decimal `0`. `Vb` and `Fsc` input boxes narrow by ~8–10px to match `Qtc`'s 108px width, pulling `Vb`/`Fsc`'s units, `▲▼` buttons, and `Fsc`'s `≠W` ~8–10px left. | Target keyboard/focus repair works visually; attribution prose has one inaccuracy below. |
+
+#### Attribution Criticism ([`publish-field-keyboard-review.mjs:L21`](http://lap:8000/winisd/openisd-t607/scripts/publish-field-keyboard-review.mjs#L21) / [`index.html:L1`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-native-tab-v1/index.html#L1))
+1. **Inaccurate position claim (`branch-before.png` vs `branch-after.png`)**: The publisher text states: *"The Vb/Fsc boxes are slightly narrower after moving their units into the numeric group; measured width is 108px, agreeing with the reference while preserving the unit and button positions."* While the **column order** is preserved and all three number boxes (`Vb`, `Fsc`, `Qtc`) now align cleanly at 108px wide, the **horizontal positions** of `L`, `Hz`, `▲▼` on `Vb`/`Fsc`, and `≠W` on `Fsc` shifted ~8–10px left in `branch-after.png` when `Vb`/`Fsc` shrank to 108px. State that their column order is preserved and the controls shift left to hug the 108px box, rather than claiming their positions were preserved.
+2. **Unmentioned branch-vs-production differences**: `index.html` notes the pre-existing branch differences (external `≠W`, separate units, shorter number boxes, label width, typography, header wrapping), but omits three visible differences between `branch-after.png` and `prod.png`:
+   - The **cloud status icon** in the top app bar of `prod.png` is absent in `branch-before.png` and `branch-after.png`.
+   - On `Qtc` (unitless), `field-catalogue.css:L32` (`:has(:is(.ui-field-unit,.mob-sheet-unit):empty) .num-stepper { grid-column: 3 / 5 !important }`) pulls `Qtc`'s `▲▼` spinners 50px left into the empty unit track, breaking the vertical alignment of `▲▼` across `Vb`, `Fsc`, and `Qtc` that existed in `prod.png`.
+   - The bottom links (`Choose alignment...` and `Box losses (Qa, Ql, Qp)...`) render in a larger font with a much tighter gap than in `prod.png`.
+

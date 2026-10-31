@@ -3,6 +3,8 @@ import type {Page} from '@playwright/test';
 import {fillAndBlur} from '../fixtures/numField.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {UNIT_GROUPS} from '@openisd/design/fields';
+import {measureFieldContent, measureFieldBorders} from '../fixtures/fieldVisualContract.js';
+import {measureFieldControlContainment} from '../fixtures/fieldControlContainment.js';
 
 /**
  * The Driver Editor's per-field display units: every field whose quantity has more than one unit
@@ -52,7 +54,7 @@ test('every unit with alternates is a working toggle, and every other unit is a 
   const problems: string[] = [];
   await forEachEditorTab(page, async (tab, labels) => {
     const untagged = await page.locator('.de-body .ui-field:visible').evaluateAll(rows => rows.map(row => {
-      const unit = row.children.item(2);
+      const unit = row.querySelector('.ui-field-unit');
       const text = unit?.textContent?.trim() ?? '';
       return text !== '' && !unit?.classList.contains('unit-label')
         ? `${row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)'}/${text}` : null;
@@ -82,7 +84,7 @@ test('every unit with alternates is a working toggle, and every other unit is a 
         problems.push(`${tab}/${label}: "${shownUnit}" has alternates but is not a toggle`);
         continue;
       }
-      if (decoration !== 'underline/dotted') problems.push(`${tab}/${label}: toggle unit "${shownUnit}" has ${decoration}, expected underline/dotted`);
+      if (decoration !== 'underline/solid') problems.push(`${tab}/${label}: toggle unit "${shownUnit}" has ${decoration}, expected underline/solid`);
 
       const input = fld.locator('input').first();
       if (!(await input.inputValue())) { await input.fill('1'); await input.blur(); }
@@ -119,7 +121,7 @@ test('mobile Driver Editor: every numeric field uses the shared bold unit afford
   const faults: string[] = [];
   await forEachEditorTab(page, async (tab, labels) => {
     const untagged = await page.locator('.de-body .ui-field:visible').evaluateAll(rows => rows.map(row => {
-      const unit = row.children.item(2);
+      const unit = row.querySelector('.ui-field-unit');
       const text = unit?.textContent?.trim() ?? '';
       return text !== '' && !unit?.classList.contains('unit-label')
         ? `${row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)'}/${text}` : null;
@@ -152,7 +154,7 @@ test('mobile Driver Editor: every numeric field uses the shared bold unit afford
           || look.underlineOffset !== '5px' || look.borderBottom !== 'solid') {
           faults.push(`${tab}/${label}: toggle unit affordance is ${JSON.stringify(look)}`);
         }
-      } else if (look.role !== null || look.background !== 'rgb(255, 255, 255)' || look.underline !== 'none') {
+      } else if (look.role !== null || look.background !== 'rgba(0, 0, 0, 0)' || look.underline !== 'none') {
         faults.push(`${tab}/${label}: fixed unit affordance is ${JSON.stringify(look)}`);
       }
     }
@@ -256,13 +258,88 @@ for (const { tab, label, defaultUnit, otherUnit } of RESISTANCE_FIELDS) {
   });
 }
 
-test('every unit label occupies the same width, whatever it says', async ({ page }) => {
-  await openEditorOn(page, 'Dimensions');
-  const widths = await page.evaluate(() =>
-    [...document.querySelectorAll<HTMLElement>('.de-body .unit-label')]
-      .map(u => ({ text: (u.textContent || '').trim(), w: Math.round(u.getBoundingClientRect().width) })));
-  expect(widths.length, 'the tab must actually render unit labels').toBeGreaterThan(3);
-  const distinct = [...new Set(widths.map(w => w.w))];
-  expect(distinct, `unit widths differ (${widths.map(w => `${w.text}=${w.w}px`).join(', ')}) — ` +
-    'a unit sized by its text moves every column when it is cycled').toHaveLength(1);
+for (const tab of ['Parameters', 'Advanced', 'Dimensions']) {
+test(tab + ': seeded unit rotations preserve readable values and fitted controls', async ({page}) => {
+  await openDriverEditor(page);
+  await seedDriverInEditor(page);
+  await page.getByRole('button', {name: tab, exact: true}).click();
+  const modal = page.locator('.de-modal');
+  const units = modal.locator('.unit-label[role="button"]');
+  const positions = () => modal.locator('.de-body input').evaluateAll(inputs => inputs.map(input => input.getBoundingClientRect().left));
+  expect(await units.count(), 'Dimensions has multiple convertible units').toBeGreaterThan(3);
+  const before = await positions();
+  expect((await modal.evaluate(measureFieldContent)).issues).toEqual([]);
+  for (const unit of await units.all()) {
+    const initial = (await unit.innerText()).trim();
+    const rotations = Object.values(UNIT_GROUPS).find(group => group.some(def => def.label === initial))?.length ?? 0;
+    expect(rotations, `${initial} belongs to a convertible unit group`).toBeGreaterThan(1);
+    for (let step = 0; step < rotations; step++) {
+      await unit.click();
+      expect(await positions(), 'unit rotation does not move the number column').toEqual(before);
+      const report = await modal.evaluate(measureFieldContent);
+      expect(report.rows).toBeGreaterThan(3);
+      expect(report.controls).toBe(report.rows);
+      expect(report.issues, `${initial} rotation ${step + 1}`).toEqual([]);
+    }
+    await expect(unit, 'the complete unit cycle returns to its starting label').toHaveText(initial);
+  }
+});
+}
+
+
+test('joined editor units end with their input and spinners stay outside every input', async ({page}) => {
+  await openDriverEditor(page);
+  await seedDriverInEditor(page);
+  const issues: string[] = [];
+  await forEachEditorTab(page, async tab => {
+    const failures = await page.locator('.de-body .ui-field:visible').evaluateAll(rows => rows.flatMap(row => {
+      const input = row.querySelector('input');
+      if (input === null) return [];
+      const box = input.getBoundingClientRect();
+      const unit = row.querySelector('.unit-label');
+      const name = row.getAttribute('data-field-key') ?? row.querySelector('label')?.textContent;
+      const problems: string[] = [];
+      if (unit?.textContent?.trim() && Math.abs(unit.getBoundingClientRect().right - box.right) > 0.5) {
+        problems.push(`${name}: unit ends at ${unit.getBoundingClientRect().right}, input at ${box.right}`);
+      }
+      for (const spinner of row.querySelectorAll('.num-stepper-btn')) {
+        if (spinner.getBoundingClientRect().left < box.right - 0.5) problems.push(`${name}: spinner overlaps input`);
+      }
+      return problems;
+    }));
+    issues.push(...failures.map(problem => `${tab}/${problem}`));
+  });
+  expect(issues).toEqual([]);
+});
+
+
+for (const width of [780, 1024, 1280]) {
+  test(`every editor tab keeps complete controls visible at ${width}px`, async ({page}) => {
+    await page.setViewportSize({width, height: 900});
+    await openDriverEditor(page);
+    await seedDriverInEditor(page);
+    await forEachEditorTab(page, async tab => {
+      const modal = page.locator('.de-modal');
+      expect((await modal.evaluate(measureFieldControlContainment)).issues, tab).toEqual([]);
+      expect((await modal.evaluate(measureFieldContent)).issues, tab).toEqual([]);
+      expect((await modal.evaluate(measureFieldBorders)).issues, tab).toEqual([]);
+    });
+  });
+}
+
+test('desktop fixed-unit glyphs leave space inside the right input border', async ({page}) => {
+  await openDriverEditor(page);
+  await seedDriverInEditor(page);
+  const issues: string[] = [];
+  await forEachEditorTab(page, async tab => {
+    const failures = await page.locator('.de-body .unit-label:not(.unit-toggle):visible').evaluateAll(units => units.filter(unit => unit.textContent?.trim()).flatMap(unit => {
+      const input = unit.closest('.ui-field')?.querySelector('input');
+      if (!input) return [];
+      const range = document.createRange(); range.selectNodeContents(unit);
+      const clearance = input.getBoundingClientRect().right - parseFloat(getComputedStyle(input).borderRightWidth) - range.getBoundingClientRect().right;
+      return clearance < 2.5 ? [`${unit.textContent}: only ${clearance}px right clearance`] : [];
+    }));
+    issues.push(...failures.map(failure => `${tab}/${failure}`));
+  });
+  expect(issues).toEqual([]);
 });

@@ -47,7 +47,8 @@ const STARTING = Object.freeze({
      *  as a stand-in, never a spec sheet (John 2026-09-29): Sd the driver's own when known, Xmax
      *  twice the driver's — a radiator has no motor, so it needs more excursion than the driver. */
     radiatorBrand: 'Placeholder',
-    radiatorModel: 'ReplaceMe',
+    radiatorModel: 'Dummy PR',
+    radiatorQms: 5,
     radiatorSd_m2: 0.02,
     radiatorXmaxMultiple: 2,
     radiatorCms_m_per_N: 0.0005,
@@ -61,8 +62,8 @@ function ventTuningPair(
     commit: (tuning: SpecEntryJson | undefined, length: SpecEntryJson | undefined) => void,
     tuningEntry: TuningField, lengthEntry: TuningField,
 ): {readonly tuning: TuningField; readonly length: TuningField} {
-    const tuning: TuningField = pairedField((entry) => commit(entry, undefined), tuningEntry, () => length);
-    const length: TuningField = pairedField((entry) => commit(undefined, entry), lengthEntry, () => tuning);
+    const tuning: TuningField = pairedField((entry) => commit(entry, undefined), tuningEntry, () => length, null, displayedHalfWidth(NumberField.VENT_L_CM));
+    const length: TuningField = pairedField((entry) => commit(undefined, entry), lengthEntry, () => tuning, null, displayedHalfWidth(NumberField.BOX_FB_HZ));
     return {tuning, length};
 }
 
@@ -142,6 +143,7 @@ export class OpenISDBox implements Box {
     readonly #rs: () => number;
     /** The project's own resolved air, injected: the starting radiator's Vas is worked out in it. */
     readonly #air: () => AirState;
+    readonly #nDrivers: () => number;
 
     private constructor(
         lens: SimpleField<OpenISDBoxJson>,
@@ -151,11 +153,13 @@ export class OpenISDBox implements Box {
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
         air: () => AirState,
+        nDrivers: () => number,
     ) {
         this.#driver = driver;
         this.#engine = engine;
         this.#rs = rs;
         this.#air = air;
+        this.#nDrivers = nDrivers;
         const boxType = focus(lens, 'boxType');
         this.boxType = simpleField(() => boxType.value, (type) => {
             boxType.set(type);
@@ -204,7 +208,7 @@ export class OpenISDBox implements Box {
                 },
                 clear: () => {
                     const qtc = sealedQtcEntry.value;
-                    if (sealedVolumeStored.value !== null && qtc !== null) sealedQtcEntry.set(qtc);
+                    if (sealedVolumeStored.value !== null && qtc !== null) sealedQtcEntry.set(qtc, sealedQtcEntry.precision ?? displayedHalfWidth(NumberField.BOX_QTC_VALUE));
                     sealedFscEntry.clear();
                     sealedVolumeStored.clear();
                 },
@@ -213,7 +217,7 @@ export class OpenISDBox implements Box {
         // Clearing the entered Qtc or Fsc hands the entry to Vb, at the value Vb has now.
         const handEntryToVolume = (entry: {readonly entered: boolean; clear(): void}): void => {
             const vb = sealedVolume.value;
-            if (entry.entered && vb !== null) sealedVolumeStored.set(vb);
+            if (entry.entered && vb !== null) sealedVolumeStored.set(vb, sealedVolume.precision ?? displayedHalfWidth(NumberField.BOX_VB_L));
             entry.clear();
         };
         const sealedQtc = new DualWriteFieldImpl<number>(() => sealedQtcEntry, {
@@ -266,8 +270,8 @@ export class OpenISDBox implements Box {
                 vent: { ...cur.vent, length_m: length },
             });
         };
-        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, () => ventedLengthField);
-        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, () => ventedTuningField);
+        const ventedTuningField = pairedField((entry) => commitVentedPair(entry, undefined), ventedTuningEntry, () => ventedLengthField, null, displayedHalfWidth(NumberField.VENT_L_CM));
+        const ventedLengthField = pairedField((entry) => commitVentedPair(undefined, entry), ventedLengthEntry, () => ventedTuningField, null, displayedHalfWidth(NumberField.BOX_FB_HZ));
         // A cleared port dimension settles to the starting port (John, 2026-10-09).
         const ventWindow = new VentWindow(ventedVentLens, engine.vent, air, ventedLengthField, ventStart);
         this.vented = {
@@ -597,15 +601,49 @@ export class OpenISDBox implements Box {
         }
     }
 
+    /** Keep the recognised automatic placeholder mechanically complete and large enough
+     *  for the active driver array. Real or renamed radiator records retain their own data. */
+    #startDummyRadiator(): void {
+        // An unfinished empty project has no active driver yet. Its dormant radiator stays blank.
+        if (this.boxType.value !== 'box-passive-radiator' && this.#driver.specs.Fs_hz.value === null) return;
+        const pr = this.passiveRadiator;
+        const radiator = pr.radiator;
+        const blank = radiator.brand.value === '' && radiator.model.value === '';
+        const dummy = radiator.brand.value === STARTING.radiatorBrand
+            && (radiator.model.value === STARTING.radiatorModel || radiator.model.value === 'ReplaceMe');
+        if (!blank && !dummy) return;
+        radiator.brand.set(STARTING.radiatorBrand);
+        radiator.model.set(STARTING.radiatorModel);
+        const spec = radiator.spec;
+        const driverSd = this.#driver.specs.Sd_m2.value;
+        const driverXmax = this.#driver.specs.Xmax_m.value;
+        if (spec.Sd_m2.value === null) spec.Sd_m2.set(driverSd !== null && driverSd > 0 ? driverSd : STARTING.radiatorSd_m2);
+        const sd = spec.Sd_m2.value;
+        if (sd !== null && sd > 0 && driverSd !== null && driverXmax !== null && driverXmax > 0) {
+            const excursion = Math.max(driverXmax * STARTING.radiatorXmaxMultiple,
+                driverSd * driverXmax * this.#nDrivers() / (sd * pr.count.value));
+            if ((spec.Xmax_m.value ?? 0) < excursion) spec.Xmax_m.set(excursion);
+        }
+        const xmax = spec.Xmax_m.value;
+        if (sd !== null && xmax !== null) spec.Vd_m3.set(sd * xmax);
+        if (spec.Qms.value === null) spec.Qms.set(STARTING.radiatorQms);
+        if (spec.Fs_hz.value === null) spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
+        const air = airIfAvailable(this.#air());
+        if (spec.Vas_m3.value === null && sd !== null && air !== null) spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, sd, air));
+    }
+
     /** Give the active box type its starting values where nothing is entered yet: sealed gets the
      *  flat-alignment volume, vented the QB3 design for the driver as driven plus vent geometry for
      *  its shape (50 mm round; a slot the driver's diameter wide and 3 cm high), a passive-radiator
      *  box 7 L with no mass added to a placeholder radiator sized off the driver, bandpass4 a 7 L rear and
      *  a 10 L front at 35 Hz through the same vent geometry, bandpass6 and ABC the WinISD wizard's volumes, tunings and 102 mm vents (plus the ABC connecting vent's 50 mm length).
-     *  Called by `boxType.set()` and by every `ProjectBuilder` at build; every write is gated on
-     *  its own field being unset, so nothing entered is ever overwritten. A driver without the
+     *  Called by `boxType.set()` and by every `ProjectBuilder` at build; ordinary starting writes are gated on
+     *  their own field being unset. The recognised automatic dummy is also kept consistent and
+     *  large enough for the active array; real/custom radiator data is preserved. A driver without the
      *  specs a design needs leaves that value alone. */
     applyStartingValues(): void {
+        // Every new project carries a usable dummy, including a sealed project whose PR is dormant.
+        this.#startDummyRadiator();
         switch (this.boxType.value) {
             case 'sealed': {
                 if (isStated(this.sealed.volume_m3.value)) return;
@@ -638,7 +676,10 @@ export class OpenISDBox implements Box {
                 if (spec.Sd_m2.value === null) spec.Sd_m2.set(driverSd !== null && driverSd > 0 ? driverSd : STARTING.radiatorSd_m2);
                 if (spec.Xmax_m.value === null && driverXmax !== null && driverXmax > 0) spec.Xmax_m.set(driverXmax * STARTING.radiatorXmaxMultiple);
                 // The starting radiator as the figures WinISD asks for: its mass and compliance
-                // stated through Fs and Vas, Qms left blank. Mms, Cms and Rms follow by the solve.
+                // stated through Fs, Vas and the dummy mechanical Q. Mms, Cms and Rms follow by the solve.
+                // Supply damping only for our dummy; an unknown Qms on a real radiator stays unknown.
+                if (spec.Qms.value === null && pr.radiator.brand.value === STARTING.radiatorBrand
+                    && pr.radiator.model.value === STARTING.radiatorModel) spec.Qms.set(STARTING.radiatorQms);
                 const startSd = spec.Sd_m2.value;
                 if (spec.Fs_hz.value === null && startSd !== null) {
                     spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
@@ -717,8 +758,9 @@ export class OpenISDBox implements Box {
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
         air: () => AirState,
+        nDrivers: () => number,
     ): OpenISDBox {
-        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air);
+        return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers);
     }
 
     /** The sealed volume an entered Qtc or an entered Fsc gives; null with neither entered or when no box reaches it. */

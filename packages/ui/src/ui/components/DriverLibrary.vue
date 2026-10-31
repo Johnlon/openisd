@@ -2,7 +2,8 @@
 import {onMounted, ref} from 'vue';
 import {useApp} from '../../logic/app.js';
 import {DriverFileFormat} from '../../fileFormat.js';
-import {NumberField, PhoneDriverListText, PhoneHelp} from '@openisd/design/fields';
+import {NumberField, PhoneDriverListText, PhoneHelp, PhoneRowSizes} from '@openisd/design/fields';
+import PhoneButton from '../shells/mobile/PhoneButton.vue';
 import PhoneBand from '../shells/mobile/PhoneBand.vue';
 
 const znomUnit = NumberField.ZNOM_OHM.unitLabel();
@@ -17,10 +18,12 @@ const znomUnit = NumberField.ZNOM_OHM.unitLabel();
 // `showName`: the overlay puts the summarised driver's name in its own title bar; a host with
 // no title bar asks for it inline above the summary.
 // `host`: 'manage' (the driver manager: DriverBrowser overlay and MobileManageDriversTab)
-// or 'pick' (step 1 of the New Project wizard, both skins). 'pick' hides the summary's
+// or 'pick' (step 1 of the New Project wizard, both skins). 'info' shows the current
+// project's existing summary with Close and no selection/editor actions. 'pick' hides the summary's
 // Edit and Clone driver buttons, and suppresses the summary's own Cancel/Use footer
 // (the host wizard draws its own Back/Next/Cancel navigation).
-export type DriverListMode = 'manage' | 'pick';
+import {PreviewSpecKind} from '../../logic/driverDisplay.js';
+import {DriverListMode} from '../../logic/driverListMode.js';
 
 // `phone`: the classic phone list (PHONE_CLASSIC_BUILD_SPEC screens 6 and 7): filters fold behind a
 // Filters button beside the search, section bands carry a ?, rows are two lines with a 44 px star.
@@ -48,7 +51,7 @@ const {
   filteredMyDrivers, displayNameOf, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
   favoritesAvailable, favoritesOnly, isFavorite, toggleFavorite, toggleFavoritesOnly,
   driverScope, cycleDriverScope,
-  previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, loadFromDisk, cloneDriver,
+  previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, loadFromDisk, cloneDriver, closeLibrary,
   openedLibrary,
   driverHasDqIssues,
   myDriversRead, exportedThisSession, exportBrokenEntry, removeBrokenEntry,
@@ -179,7 +182,7 @@ onMounted(openedLibrary);
 
         </template><!-- end the folded filters -->
 
-        <PhoneBand v-if="props.phone" :section="props.host === 'manage' ? PhoneHelp.DRIVER_LIST_MANAGE : PhoneHelp.DRIVER_LIST_PICK" />
+        <PhoneBand v-if="props.phone" :section="props.host === DriverListMode.Manage ? PhoneHelp.DRIVER_LIST_MANAGE : PhoneHelp.DRIVER_LIST_PICK" />
         <div class="statusrow">
           <span class="status" :class="{ err: statusErr }">{{ statusMsg || `${listedCount} drivers` }}</span>
           <button v-if="props.phone && filtersOn" type="button" class="dl-clear" @click="clearAllFilters()">Clear filters</button>
@@ -301,18 +304,18 @@ onMounted(openedLibrary);
             <button class="fav-btn" :class="{ on: isFavorite(driverId(previewDriver)) }"
                     :title="isFavorite(driverId(previewDriver)) ? 'Remove from favourites' : 'Add to favourites'"
                     @click="toggleFavorite(driverId(previewDriver))">{{ isFavorite(driverId(previewDriver)) ? '★' : '☆' }}</button>
-            <button v-if="props.host === 'manage'" class="clone-btn" @click="cloneDriver(previewDriver)"
+            <button v-if="props.host === DriverListMode.Manage" class="clone-btn" @click="cloneDriver(previewDriver)"
                     title="Copy this driver into My Drivers as &quot;Copy of …&quot; — an independent driver you can then edit">Clone driver</button>
-            <button v-if="props.host === 'manage'" class="edit-btn" @click="editOverviewDriver(previewDriver)"
+            <button v-if="props.host === DriverListMode.Manage" class="edit-btn" @click="editOverviewDriver(previewDriver)"
                     title="Edit this driver's parameters — saving will add or update in My Drivers">Edit</button>
           </div>
           <div class="prev-body">
             <div class="prev-specs">
               <div v-for="s in previewData.specs" :key="s.label" class="spec-row">
                 <span class="spec-lbl">{{ s.label }}</span>
-                <span class="spec-val" :class="{ 'has-unit-slot': Boolean(s.unit) || Number.isFinite(Number(s.value)) }">
+                <span class="spec-val" :class="{ 'has-unit-slot': s.kind === PreviewSpecKind.Number, 'spec-text': s.kind === PreviewSpecKind.Text }">
                   <b>{{ s.value }}</b>
-                  <span v-if="s.unit || Number.isFinite(Number(s.value))" class="spec-unit" :aria-hidden="!s.unit">{{ s.unit }}</span>
+                  <span v-if="s.kind === PreviewSpecKind.Number" class="spec-unit" :aria-hidden="!s.unit">{{ s.unit }}</span>
                 </span>
               </div>
             </div>
@@ -354,7 +357,11 @@ onMounted(openedLibrary);
           </div>
           <!-- The primary action sits at the bottom, under the specs it commits (John, 2026-09-24).
                Cancel sits beside it — the pane's two exits belong together (John, 2026-09-24). -->
-          <div v-if="props.host === 'manage'" class="prev-footer">
+          <div v-if="props.host === DriverListMode.Info" class="prev-footer">
+            <PhoneButton v-if="props.phone" :style="Object.fromEntries(PhoneRowSizes.CLASSIC.cssVars())" @click="closeLibrary">Close</PhoneButton>
+            <button v-else type="button" class="cancel-btn" @click="closeLibrary">Close</button>
+          </div>
+          <div v-if="props.host === DriverListMode.Manage" class="prev-footer">
             <button class="cancel-btn" @click="pickDriver(null)"
                     title="Back to the driver list — nothing is changed">Cancel</button>
             <button class="use-btn" @click="chooseDriver(previewDriver)"
@@ -508,6 +515,7 @@ onMounted(openedLibrary);
   flex: 1;
   box-sizing: border-box;
   padding: 12px 16px;
+  background: var(--panel, #f7f7f7);
   overflow: hidden;
 }
 .driver-library .prev-nav {
@@ -574,10 +582,13 @@ onMounted(openedLibrary);
 }
 .driver-library .prev-specs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, 160px);
   gap: 2px 10px;
   margin-bottom: 10px;
 }
+/* Phones share two equal summary columns on both hosts; desktop columns keep a
+   stable width with enough room for the number and its reserved unit rail. */
+:global(.app-root-mobile) .driver-library .prev-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .driver-library .spec-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
@@ -608,6 +619,7 @@ onMounted(openedLibrary);
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+.driver-library .spec-val.spec-text, .driver-library .spec-val.spec-text b {text-align:left;}
 .driver-library .spec-unit {
   white-space: nowrap;
   text-align: left;
@@ -1076,6 +1088,6 @@ onMounted(openedLibrary);
 .driver-library.dl-phone .ditem .fav-btn { width: 44px; height: 44px; padding: 0; font-size: 20px; color: #999; }
 .driver-library.dl-phone .ditem .fav-btn.on { color: #f0a500; }
 .driver-library.dl-phone .browser-footer { flex: none; }
-.driver-library.dl-phone .browser-footer > div { gap: 8px; padding: 8px 16px 10px; border-top: 1px solid #ccc; }
+.driver-library.dl-phone .browser-footer > div { flex: 1; gap: 8px; padding: 8px 16px 10px; border-top: 1px solid #ccc; }
 .driver-library.dl-phone .browser-footer button { flex: 1 0 auto; min-width: 0; height: 44px; padding: 0 12px; border: 1px solid #aaa; border-radius: 4px; background: #fff; font: inherit; font-size: 15px; font-weight: 600; white-space: nowrap; cursor: pointer; color: #000; }
 </style>

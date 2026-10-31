@@ -10,6 +10,20 @@ import {z} from 'zod';
 const BUNDLE_PATHS = z.string().array().parse(JSON.parse(readFileSync('packages/ui/test/fixtures/test-bundle-paths.json', 'utf8')));
 const DRIVER_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => !path.endsWith('-pr'));
 const PR_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => path.endsWith('-pr'));
+
+const EXPECTED_REPORTED_COIL_VALUES: Record<string, Record<string, Record<string, number>>> = {
+  'tang-band/w5-1138smf': {woofer: {Re_ohm: 3.4, BL_Tm: 7.17}},
+  'dayton-audio/e150he-44': {woofer: {Re_ohm: 6.6, BL_Tm: 9.8}},
+  'dayton-audio/e180he-44': {woofer: {Re_ohm: 6.8, BL_Tm: 9.6}},
+  'dayton-audio/cx120-8': {woofer: {Re_ohm: 6.22, BL_Tm: 5.08}, tweeter: {Re_ohm: 5.6}},
+  'dayton-audio/nd140-pr': {},
+  'dayton-audio/e150he-pr': {},
+  'dayton-audio/e180he-pr': {},
+  'eminence/sigma-pro-18a': {woofer: {Re_ohm: 6.29, BL_Tm: 22.1}},
+  'faitalpro/10fe200-4': {woofer: {Re_ohm: 3, BL_Tm: 7}},
+  'faitalpro/12pr300-8': {woofer: {Re_ohm: 5.4, BL_Tm: 14.1}},
+  'sb-acoustics/sb15bac30-8-coax-aluminum': {woofer: {Re_ohm: 5.7, BL_Tm: 5.3}, tweeter: {Re_ohm: 3.8}},
+};
 const NUMERIC_DRIVER_NAMES = DRIVER_SPEC_FIELD_NAMES.filter(
   (key): key is NumericDriverSpecFieldName => key !== 'VCCon',
 );
@@ -275,6 +289,14 @@ test.describe('Original driver bundle selection', () => {
       await page.reload();
       const exported = await exportedProjectOwpr(page);
       const actualSections = selectedDriverSpecs(exported);
+      for (const [section, expectedFields] of Object.entries(EXPECTED_REPORTED_COIL_VALUES[path])) {
+        for (const [key, value] of Object.entries(expectedFields)) {
+          expect(entryState(source.specs[section]?.[key]), `${model}.${section}.${key} is not entered in the bundle`).toBe('E');
+          expect(entryValue(source.specs[section]?.[key]), `${model}.${section}.${key} lost its published number in the bundle`).toBe(value);
+          expect(entryState(actualSections[section]?.[key]), `${model}.${section}.${key} was not entered after selection`).toBe('E');
+          expect(entryValue(actualSections[section]?.[key]), `${model}.${section}.${key} changed after selection`).toBe(value);
+        }
+      }
       expect(Object.keys(actualSections).sort(), `${model} changed its published spec sections`)
         .toEqual(Object.keys(source.specs).sort());
       const additionalSections = Object.entries(source.specs).filter(([section]) => section !== 'woofer');
@@ -363,9 +385,9 @@ test.describe('Original driver bundle selection', () => {
       const displayedFields = [
         ['Fs_hz', '#og-pr-fs', NumberField.PR_FS_HZ], ['Qms', '#og-pr-qms', NumberField.PR_QMS],
         ['Vas_m3', '#og-pr-vas', NumberField.PR_VAS_L],
-        ['Sd_m2', 'label.ui-field-label:text-is("Sd") + .ui-field-value input', NumberField.PR_SD_CM2],
+        ['Sd_m2', 'label.ui-field-label:text-is("Sd") ~ .ui-field-value input', NumberField.PR_SD_CM2],
         ['Mms_kg', '#og-pr-mms', NumberField.MMS_KG], ['Cms_m_per_N', '#og-pr-cms', NumberField.CMS_M_PER_N],
-        ['Xmax_m', 'label.ui-field-label:text-is("Xmax") + .ui-field-value input', NumberField.PR_XMAX_MM],
+        ['Xmax_m', 'label.ui-field-label:text-is("Xmax") ~ .ui-field-value input', NumberField.PR_XMAX_MM],
       ] as const;
       const shown = await Promise.all(displayedFields.map(async ([key, selector, field]) => ({
         key,

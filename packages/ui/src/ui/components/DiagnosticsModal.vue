@@ -53,7 +53,7 @@ const title = computed(() => faultLog.faults.length ? 'Something went wrong' : f
           <button type="button" class="dg-phone-btn" @click="applyFix(fix)">Apply</button>
         </div>
       </template>
-      <p v-else-if="faultLog.faults.length" class="mob-dhint">No stored-state repair applies — this fault is in the running code, not in your saved data. Copy the report below.</p>
+      <p v-else-if="faultLog.faults.length" class="mob-dhint">No automatic repair is currently available. If the problem persists, copy the report below.</p>
       <p v-if="!faultLog.faults.length && !faultLog.repairs.length" class="mob-dhint">
         Nothing to report. No fault has occurred and no saved project needed repair. Copy diagnostics gives a report of this browser's stored data if you want to send one.
       </p>
@@ -112,8 +112,7 @@ const title = computed(() => faultLog.faults.length ? 'Something went wrong' : f
         </div>
       </section>
       <p v-else-if="faultLog.faults.length" class="dg-nofix">
-        No stored-state repair applies — this fault is in the running code, not in your saved
-        data. Copy the report below.
+        No automatic repair is currently available. If the problem persists, copy the report below.
       </p>
 
       <p v-if="!faultLog.faults.length && !faultLog.repairs.length && faultLog.cloudSyncSummary()" class="dg-nofix">

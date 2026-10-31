@@ -258,6 +258,13 @@ export default defineConfig(({ command, mode }) => ({
         // copies missed test/; the build is deployed at relative paths, so no build-time pattern
         // can name its own page instead.
         navigateFallback: null,
+        // The precache matches an address with its query removed, whatever the parameters, so this
+        // build's own pages start offline from any address a user opens (an installed app's ?pwa=1,
+        // a shared link): Workbox's default ignores only utm_* and fbclid, and every other query
+        // missed the precache and went to the network (BUG_20261029_app-fails-to-start-offline).
+        // The query is still the page's to read. The hosted copies stay out: their paths are not
+        // in this build's precache, whatever the query.
+        ignoreURLParametersMatching: [/.*/],
         // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
         // this file's variables would not exist.
         runtimeCaching: [{

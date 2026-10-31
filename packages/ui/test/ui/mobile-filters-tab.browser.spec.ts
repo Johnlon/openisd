@@ -38,7 +38,7 @@ test('removing a filter clears the list back to empty', async ({ appPage: page }
 
 test('an order-4 allpass shows the WinISD deviation cue, and it opens the differences page at its entry, within the phone width', async ({ appPage: page }) => {
   await page.getByText('+ AP', { exact: true }).click();
-  const order = page.locator('.mob-fcard .ui-field').filter({ hasText: /^Order\b/ }).locator('input');
+  const order = page.locator('.mob-fcard .ui-field').filter({ has: page.locator('label:text-is("Order")') }).locator('input');
   await order.fill('4');
   await order.blur();
   const cue = page.locator('button.winisd-deviation-cue');

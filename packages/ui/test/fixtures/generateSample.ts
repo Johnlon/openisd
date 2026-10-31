@@ -2,7 +2,7 @@ import {mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {z} from 'zod';
-import {createEngine, OpenISDDriver, OpenISDPassiveRadiatorStandalone, ProjectBuilder} from '@openisd/design';
+import {createEngine, OpenISDDriver, ProjectBuilder} from '@openisd/design';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
 import {COMPLETE_DRIVER_PROJECT_OWPR, FIXTURE_DATE, SAMPLE_PROJECT_OWPR} from './sampleProject.js';
 
@@ -53,7 +53,7 @@ const fixtureStamp = FIXTURE_DATE.toISOString().slice(0, 10).replaceAll('-', '')
 project.created.set(fixtureStamp);
 project.modified.set(fixtureStamp);
 project.box.vented.vent.diameter_m.set(0.05);
-project.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
+// ProjectBuilder supplies the same consistent Dummy PR as the wizard.
 project.envTempK.set(293.15);
 project.envPressurePa.set(101325);
 project.envHumidityPct.set(50);
@@ -103,7 +103,7 @@ completeProject.name.set("Complete Fixture Project");
 completeProject.created.set(fixtureStamp);
 completeProject.modified.set(fixtureStamp);
 completeProject.box.vented.vent.diameter_m.set(0.05);
-completeProject.box.passiveRadiator.configurePR(OpenISDPassiveRadiatorStandalone.empty());
+// Keep ProjectBuilder’s consistent Dummy PR in this fixture too.
 completeProject.envTempK.set(293.15);
 completeProject.envPressurePa.set(101325);
 completeProject.envHumidityPct.set(50);

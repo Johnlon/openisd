@@ -76,7 +76,7 @@ describe('DriverRecordConverter — voice-coil tuple edge cases', () => {
     expect(errors.some(e => e.level === 'error')).toBe(true);
   });
 
-  it('an implausible coil count is kept as N and leaves a stated-connection reading unavailable', () => {
+  it('an implausible coil count preserves stated-connection readings without scaling', () => {
     const dq = {kind: 'range', severity: 'warn', rule: 'r', detail: 'd', params: {}};
     const {openisd, errors} = convert(withWoofer({
       voice_coil: tupleOf({
@@ -86,10 +86,10 @@ describe('DriverRecordConverter — voice-coil tuple edge cases', () => {
       }),
     }));
     const woofer = wooferOf(openisd);
-    expect(child(woofer, 'Re_ohm')).toMatchObject({state: 'N', dq_scraper: [dq]});
-    expect(child(woofer, 'BL_Tm').state).toBe('N');
+    expect(child(woofer, 'Re_ohm')).toMatchObject({state: 'E', value: 4.8, dq_scraper: [dq]});
+    expect(child(woofer, 'BL_Tm')).toMatchObject({state: 'E', value: 9.7});
     expect(child(woofer, 'BL_Tm')).not.toHaveProperty('dq_scraper');
-    expect(warnings(errors).filter(m => m.includes('required for per-coil scaling'))).toHaveLength(2);
+    expect(warnings(errors).filter(m => m.includes('stated value is retained without scaling'))).toHaveLength(2);
   });
 
   it('a coil count that is not a whole number from 1 to 4 turns scaling off with a warning', () => {
@@ -147,9 +147,10 @@ describe('DriverRecordConverter — voice-coil tuple edge cases', () => {
     expect(warnings(errors)).toContain('voice-coil connection is unclassified; source reading is retained and no wiring is inferred');
   });
 
-  it('a reading basis that is unknown with a stated coil count is held back with a warning', () => {
-    const {errors} = convert(withWoofer({voice_coil: tupleOf({basis: {Re_ohm: 'unknown', BL_Tm: 'per-coil'}})}));
-    expect(warnings(errors)).toContain('voice-coil reading basis is unknown; raw source readings are retained without per-coil scaling');
+  it('a reading basis that is unknown preserves its entered value without per-coil scaling', () => {
+    const {openisd, errors} = convert(withWoofer({voice_coil: tupleOf({basis: {Re_ohm: 'unknown', BL_Tm: 'per-coil'}})}));
+    expect(child(wooferOf(openisd), 'Re_ohm')).toMatchObject({state: 'E', value: 2.4});
+    expect(warnings(errors)).toContain('voice-coil reading basis is unknown; the stated value is retained without scaling');
   });
 });
 

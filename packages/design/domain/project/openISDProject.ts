@@ -142,6 +142,7 @@ export class OpenISDProject {
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
             () => this.#airState(root),
+            () => root.value.driverEmbedding.nDrivers,
         );
     }
 

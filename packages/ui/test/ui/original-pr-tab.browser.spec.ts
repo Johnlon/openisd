@@ -416,3 +416,23 @@ test.describe('Original Passive Radiator tab data quality', () => {
       .not.toHaveClass(/dq-flag/);
   });
 });
+
+test('PR selector backdrop and dialog stay above both desktop splitters',async({page})=>{
+ await page.goto('/');await openAProject(page);await setFocusedBoxType(page,'box-passive-radiator');await page.locator('.project-nav li').filter({hasText:/^Passive Radiator$/}).click();
+ const points=await page.locator('.split-v,.split-h,.split-toggle').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}));
+ await page.getByRole('button',{name:'Select passive radiator',exact:true}).click();
+ const overlay=page.locator('.overlay.on').filter({has:page.locator('.pr-lib')});await expect(overlay).toBeVisible();
+ expect(await overlay.evaluate((root,points)=>points.every(point=>root.contains(document.elementFromPoint(point.x,point.y))),points)).toBe(true);
+ await overlay.locator('h2 .x').click();await expect(overlay).toHaveCount(0);
+});
+
+test('desktop PR picker matches Driver picker proportions and covers the tab rail',async({page})=>{
+ await page.goto('/');await openAProject(page);await page.locator('.project-nav li').filter({hasText:/^Driver$/}).click();await page.getByRole('button',{name:'Select Driver',exact:true}).click();
+ const driver=(await page.locator('.wb-modal').boundingBox())!;await page.locator('.wb-modal .x').click();
+ await setFocusedBoxType(page,'box-passive-radiator');await page.locator('.project-nav li').filter({hasText:/^Passive Radiator$/}).click();await page.getByRole('button',{name:'Select passive radiator',exact:true}).click();
+ const popup=page.locator('.modal').filter({has:page.locator('.pr-lib')}),overlay=page.locator('.overlay.on').filter({has:popup});
+ const radiator=(await popup.boundingBox())!;expect(radiator.x).toBe(driver.x);expect(radiator.y).toBe(driver.y);expect(radiator.width).toBe(driver.width);expect(radiator.height).toBe(driver.height);
+ const points=await page.locator('.project-nav li').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2};}));
+ expect(await overlay.evaluate((root,points)=>points.every(point=>root.contains(document.elementFromPoint(point.x,point.y))),points)).toBe(true);
+ await expect(overlay).toHaveCSS('background-color','rgba(0, 0, 0, 0.18)');
+});

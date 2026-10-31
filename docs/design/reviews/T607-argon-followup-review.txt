@@ -1,0 +1,39 @@
+### Images Inspected
+
+Inspected **4** PNG images and their **4** adjacent JSON records in [`build/ui-contract/closed-box-focus-v1/`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/): [`prod.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/prod.png), [`test.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/test.png), [`branch-before.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/branch-before.png), and [`branch-after.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/branch-after.png). No other images or pages were inspected.
+
+---
+
+### Code & Regression Test Audit
+
+#### 1. [`NumInput-hooks.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L540-L561) (`onBlur` / `ownStepper` / `stopRepeat`)
+- **Verdict**: Sound for the targeted defect; causes no new regression.
+- **Mechanism**:
+  - Moving focus from `<input>` to its own stepper buttons (`increaseEl` / `decreaseEl`) still exits at line 543 (`if (e instanceof FocusEvent && ownStepper(e.relatedTarget)) return;`), preserving `groupFocused`, the draft string, and `underlineIndex` as required by John's policy and [`field-use-cases.html`](http://lap:8000/winisd/openisd-t607/docs/design/field-use-cases.html#L42).
+  - Moving `underlineIndex.value = null; stopRepeat();` to lines 545–546 executes before the `if (refusal.value !== '')` early return (line 549) and before `if (t === null) return;` (line 557).
+  - Removing the old conditional `if (!(e instanceof FocusEvent) || !ownStepper(e.relatedTarget))` at line 557 is a pure deduplication because line 543 already filters out `e instanceof FocusEvent && ownStepper(e.relatedTarget)`.
+  - `rememberCaret()` ([`NumInput-hooks.ts:L346`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L346)) guards on `document.activeElement !== el`, so late `selectionchange` events cannot reinstate `underlineIndex` after blur.
+
+#### 2. [`num-input-rendition.browser.spec.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/test/ui/num-input-rendition.browser.spec.ts#L105-L136)
+- **Case 1 (`a refused draft retains its text but loses the digit marker when focus leaves`, lines 105–118)**: Directly verifies the refused-draft blur path (`refusal.value !== ''`). Entering `'0'` on a positive-floor specimen, placing the marker with `ArrowLeft`/`End`, and clicking the page heading proves `.num-mark-underline` drops to count `0` while value `'0'` and the refusal `title` remain.
+- **Case 2 (`leaving the field stops held keyboard spinning before key release`, lines 121–136)**:
+  - **Why selecting the ones digit (`setSelectionRange(1, 2)`) works**: On valid blur, `fmt(props.modelValue)` reformats `'11.0000'` to `'11.000'` (3 decimal places), resetting DOM selection and dropping index `6` out of bounds (`lastCaret = {kind: 'digit', at: 6}`). Selecting index `1` keeps `lastCaret` (`{kind: 'digit', at: 1}`) valid in `'11.000'`, so an unstopped repeat timer continues stepping `11.000 → 14.000` over `1000ms`.
+  - **Low-severity test gap (Verified)**: Case 2 tests `stopRepeat()` on a **valid** draft (`11.0000`, where `refusal.value === ''`), which already reached `stopRepeat()` prior to this patch. To exercise the newly fixed **refused-draft** `stopRepeat()` path (`refusal.value !== ''` at line 549), a test would need to blur while holding `ArrowDown` after stepping down into a refused floor state (e.g., `1.000 → 0.000` on a positive-floor field where `min = 0` but `0` is refused).
+
+---
+
+### Image Comparison & Metadata Critique
+
+#### 1. High-Severity Overlooked Visual Defect in [`test.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/test.png) and [`publish-field-focus-review.mjs`](http://lap:8000/winisd/openisd-t607/scripts/publish-field-focus-review.mjs#L9)
+- **Verified fault**: In [`test.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/test.png), numeric values are right-aligned inside inputs that still render internal `≠W` badges on the right:
+  - In **Qtc**, the refused **`0` is completely invisible** (occluded behind the internal `≠W` badge).
+  - In **Fsc**, **`71.95` collides with `≠W`**, obscuring the middle digits (`1.9`).
+- **Misleading caption/check**: [`publish-field-focus-review.mjs:L9`](http://lap:8000/winisd/openisd-t607/scripts/publish-field-focus-review.mjs#L9) describes `test.png` merely as *"the existing inner cue placement differs"*, and line 16 passes because DOM `record.state.value === '0'` in [`test.json`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/test.json#L15) even though the `0` is visually hidden on screen.
+
+#### 2. Medium-Severity Misleading Metadata in Capture JSONs and Review Script
+- **Verified fault 1**: [`prod.json`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/prod.json#L12-L13) (`v20261025T2233Z`) and [`test.json`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/test.json#L12-L13) (`v20261026T2106Z`) record the local worktree's `"sourceCheckpoint": "10fbfcca3..."` and `"workingDiffSha256": "e3b0c44..."` (the SHA-256 of an empty string), which do not represent the source commits deployed to `openisd.app` or `test.openisd.app`.
+- **Verified fault 2**: [`branch-before.json`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/branch-before.json#L5-L15) reports `"hasChanges": true` alongside `"workingDiffSha256": "e3b0c44..."` (empty-string SHA-256) because the script hashes only the hook diff rather than the dirty working tree. Furthermore, [`publish-field-focus-review.mjs:L18`](http://lap:8000/winisd/openisd-t607/scripts/publish-field-focus-review.mjs#L18) renders `source 10fbfcca3` identically under both `branch-before` and `branch-after` without displaying the patch hash in the visible caption.
+
+#### 3. Verdict on This Focus Repair & Scope Limits
+- **Focus repair verdict**: Comparing [`branch-before.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/branch-before.png) (`marker: 1`, blue inverse highlight stuck on `Qtc = 0` after blurring to the `Box` tab) against [`branch-after.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/branch-after.png) (`marker: 0`, plain `0` and refusal message retained) confirms that **this specific focus-loss repair is beneficial** and restores compliance with [`prod.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/prod.png) and John's focus rule.
+- **Strict scope limits**: This signoff covers only the `onBlur` marker/repeat cleanup in [`NumInput-hooks.ts`](http://lap:8000/winisd/openisd-t607/packages/ui/src/hooks/NumInput-hooks.ts#L542-L560). It does not approve default caret/place rules, other catalogue cases, [`test.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/test.png)'s occluded layout, or the branch's broader unapproved visual changes vs [`prod.png`](http://lap:8000/winisd/openisd-t607/build/ui-contract/closed-box-focus-v1/prod.png) (missing top-bar cloud icon/title wrapping, narrower boxes, external `⚠`/`≠W` badges, and red refusal input border).

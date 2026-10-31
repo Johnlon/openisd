@@ -238,6 +238,9 @@ jobs:
       - name: stale mobile worker recovery
         if: matrix.shard == 1
         run: node scripts/hosting/test/legacy-refresh.e2e.mjs
+      - name: installed app starts offline
+        if: matrix.shard == 1
+        run: node scripts/hosting/test/offline-start.e2e.mjs
       - name: browser tests
         env:
           OPENISD_TEST_WORKERS: ${{ env.WORKERS }}

@@ -43,6 +43,14 @@ describe('vent pair clear (domain cells)', () => {
     assert.equal(p.box.vented.vent.length_m.calculated, true);
   });
 
+  it('promoting a calculated port length states its displayed precision', () => {
+    const p = ventedProject();
+    p.box.vented.volume_m3.set(0.03);
+    p.box.vented.tuning_goal_hz.set(40);
+    p.box.vented.tuning_goal_hz.clear();
+    assert.equal(p.box.vented.vent.length_m.precision, 0.00005);
+  });
+
   it('clearing the calculated side changes nothing', () => {
     const p = ventedProject();
     p.box.vented.vent.length_m.set(0.222222);

@@ -15,6 +15,7 @@ const ITEMS = [
     <span v-for="item in ITEMS" :key="item.cell" class="prov-legend-item">
       <span class="prov-legend-sw" :class="item.cell"></span>{{ item.label }}
     </span>
+    <slot />
   </div>
 </template>
 

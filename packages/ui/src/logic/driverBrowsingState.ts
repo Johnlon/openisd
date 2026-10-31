@@ -160,6 +160,8 @@ export interface DriverBrowsingState {
   reloadMyDrivers(): void;
   deleteMyDriver(uuid: string): void;
   clearMyDrivers(): Promise<void>;
+  projectInfoOpen: Ref<boolean>;
+  showProjectDriverInfo(): void;
   previewDriver: Ref<OpenISDDriver | null>;
   previewData: ComputedRef<PreviewVM | null>;
   /** Preview a domain object — a My Drivers row — or clear the preview with null. */
@@ -221,6 +223,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   /** True once the user has exported the raw bucket this session — the Delete challenge. */
   const exportedThisSession = ref(false);
   const previewDriver = shallowRef<OpenISDDriver | null>(null);
+  const projectInfoOpen = ref(false);
 
   // When set, "Use" hands the chosen driver to this callback instead of embedding it in the
   // focused project — the New Project wizard's driver step, where the library is rendered
@@ -442,6 +445,15 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   function pickDriver(d: OpenISDDriver | null): void { previewDriver.value = d; }
 
+  /** Read the embedded project driver directly; no catalogue lookup or replacement. */
+  function showProjectDriverInfo(): void {
+    const project = focusedProject();
+    if (project === null) return;
+    previewDriver.value = project.driver;
+    projectInfoOpen.value = true;
+    presentationState.browseOpen = true;
+  }
+
   async function pickBundledDriver(row: BundledDriverIndexRow): Promise<void> {
     try {
       previewDriver.value = await driverRepo.load(row.uuid);
@@ -551,13 +563,21 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   /** Closing the picker: the preview resets, and any pending wizard handoff is dropped —
    *  cancelling the picker cancels that step of the wizard. */
   function closeLibrary(): void {
+    projectInfoOpen.value = false;
     previewDriver.value = null;
     onChoose = null;
     presentationState.browseOpen = false;
   }
 
+  // Other project actions can also close the overlay. Clear its route synchronously so
+  // an immediate Select driver open cannot retain the information-only mode.
+  watch(() => presentationState.browseOpen, open => {
+    if (!open) closeLibrary();
+  }, {flush: 'sync'});
+
   /** Opening the picker: build the pool once, and refresh the user's saved drivers. */
   function openedLibrary(): void {
+    if (projectInfoOpen.value) return;
     void init();
     reloadMyDrivers();
   }
@@ -587,7 +607,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     editOverviewDriver: selection.editOverviewDriver,
     reloadMyDrivers, deleteMyDriver, clearMyDrivers,
     // preview + selection
-    previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, embedLibrary, loadFromDisk, cloneDriver,
+    projectInfoOpen, showProjectDriverInfo, previewDriver, previewData, pickDriver, pickBundledDriver, chooseDriver, embedLibrary, loadFromDisk, cloneDriver,
     // lifecycle
     openedLibrary, closeLibrary,
     // DQ

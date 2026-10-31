@@ -1,0 +1,222 @@
+[
+  {
+    "id": "desktop/driver/editor/parameters",
+    "title": "Driver Editor \u2014 Parameters",
+    "captures": [
+      {
+        "side": "production",
+        "status": "captured",
+        "url": "https://openisd.app",
+        "build": {
+          "version": "v20261025T2233Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "capturedAt": "2026-10-27T16:57:27.816Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/production/desktop__driver__editor__parameters.png"
+        ]
+      },
+      {
+        "side": "preview",
+        "status": "captured",
+        "url": "http://127.0.0.1:4607",
+        "build": {
+          "version": "v20261027T1419Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "capturedAt": "2026-10-27T16:53:25.832Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/preview/desktop__driver__editor__parameters.png"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "desktop/results/what-if/bandpass-4th-order",
+    "title": "What-if \u2014 bandpass-4th-order",
+    "captures": [
+      {
+        "side": "production",
+        "status": "captured",
+        "url": "https://openisd.app",
+        "build": {
+          "version": "v20261025T2233Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "capturedAt": "2026-10-27T16:56:26.281Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/production/desktop__results__what-if__bandpass-4th-order.png"
+        ]
+      },
+      {
+        "side": "preview",
+        "status": "captured",
+        "url": "http://127.0.0.1:4607",
+        "build": {
+          "version": "v20261027T1419Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 1280,
+          "height": 900
+        },
+        "capturedAt": "2026-10-27T16:52:41.563Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/desktop/preview/desktop__results__what-if__bandpass-4th-order.png"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mobile/projects/new/passive-radiator/choose-driver",
+    "title": "New Passive radiator project \u2014 Select driver",
+    "captures": [
+      {
+        "side": "production",
+        "status": "captured",
+        "url": "https://openisd.app",
+        "build": {
+          "version": "v20261025T2233Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 374,
+          "height": 705
+        },
+        "capturedAt": "2026-10-27T16:53:32.543Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/production/wizard-box-passive-radiator-1/01.png"
+        ]
+      },
+      {
+        "side": "preview",
+        "status": "captured",
+        "url": "http://127.0.0.1:4607",
+        "build": {
+          "version": "v20261027T1419Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 374,
+          "height": 705
+        },
+        "capturedAt": "2026-10-27T16:48:16.146Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/preview/wizard-box-passive-radiator-1/01.png"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mobile/driver/overview",
+    "title": "Driver",
+    "captures": [
+      {
+        "side": "production",
+        "status": "captured",
+        "url": "https://openisd.app",
+        "build": {
+          "version": "v20261025T2233Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 374,
+          "height": 705
+        },
+        "capturedAt": "2026-10-27T16:54:17.389Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/production/tab-driver/01.png"
+        ]
+      },
+      {
+        "side": "preview",
+        "status": "captured",
+        "url": "http://127.0.0.1:4607",
+        "build": {
+          "version": "v20261027T1419Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 374,
+          "height": 705
+        },
+        "capturedAt": "2026-10-27T16:40:08.800Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/preview/tab-driver/01.png"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mobile/enclosure/closed-box/overview",
+    "title": "Closed box",
+    "captures": [
+      {
+        "side": "production",
+        "status": "captured",
+        "url": "https://openisd.app",
+        "build": {
+          "version": "v20261025T2233Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 374,
+          "height": 705
+        },
+        "capturedAt": "2026-10-27T16:39:54.763Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/production/box-sealed/01.png"
+        ]
+      },
+      {
+        "side": "preview",
+        "status": "captured",
+        "url": "http://127.0.0.1:4607",
+        "build": {
+          "version": "v20261027T1419Z"
+        },
+        "projectSha256": "d7f7694b360561bf2001dcd7ceb884137c4610b37686d7850cd744f7dbb9531b",
+        "viewport": {
+          "width": 374,
+          "height": 705
+        },
+        "capturedAt": "2026-10-27T16:39:36.385Z",
+        "scrollCoverage": "initial viewport",
+        "errors": [],
+        "images": [
+          "/home/john/work/winisd/openisd-t607/build/ui-manifest/mobile-visual-draft/images/preview/box-sealed/01.png"
+        ]
+      }
+    ]
+  }
+]

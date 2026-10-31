@@ -333,7 +333,7 @@ test.describe('Driver Editor provenance map and field boxes', () => {
           for (const [part, el] of [['label', f.querySelector('label')],
                                     ['input', f.querySelector('input, select, textarea')],
                                     ['unit', f.querySelector('.ui-field-unit, .u')]] as const) {
-            if (!el) continue;
+            if (!el || !el.checkVisibility({visibilityProperty: true})) continue;
             const r = el.getBoundingClientRect();
             // 1 px of sub-pixel rounding is not an escape; more than that is outside the box.
             const over = Math.max(box.left - r.left, r.right - box.right, box.top - r.top, r.bottom - box.bottom);

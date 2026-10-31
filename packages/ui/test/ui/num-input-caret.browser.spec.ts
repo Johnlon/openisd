@@ -1,4 +1,4 @@
-import {expect, openAMobileProject, openAProject, test} from '../fixtures.js';
+import {expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import {forceMobileSkin, mobileFieldRow} from '../fixtures/mobileSkin.js';
 import type {Locator} from '@playwright/test';
 
@@ -48,16 +48,16 @@ test.describe('Original skin', () => {
     await setTextAndCaret(box, '6.00', 4);
     await box.press('ArrowUp');
     await box.press('ArrowUp');
-    await expect(box).toHaveValue('6.20');
+    await expect(box).toHaveValue('6.02');
     await box.press('Tab');
-    await expect(box).toHaveValue('6.20');
+    await expect(box).toHaveValue('6.02');
   });
 
   test('a comma is accepted as the decimal mark', async ({page}) => {
     const box = page.locator('#og-box-volume');
     await setTextAndCaret(box, '6,50', 4);
     await box.press('ArrowUp');
-    await expect(box).toHaveValue('6.60');
+    await expect(box).toHaveValue('6.51');
   });
 
   test('the wheel steps a focused box at the caret', async ({page}) => {
@@ -84,12 +84,75 @@ test.describe('Mobile skin', () => {
     await expect(box).toHaveAttribute('inputmode', 'decimal');
     await setTextAndCaret(box, '1.00', 4);
     await box.press('ArrowUp');
-    await expect(box).toHaveValue('1.10');
-    expect(await markOf(box)).toEqual([2, 3]); // a caret at the end is no chosen digit: the tenths digit steps
+    await expect(box).toHaveValue('1.01');
+    expect(await markOf(box)).toEqual([3, 4]); // the explicit end caret chooses the final displayed digit
 
     await box.blur();
     const before = Number(await box.inputValue());
     await row.locator('.num-stepper-btn').first().click();
     expect(Number(await box.inputValue())).toBeGreaterThan(before);
   });
+});
+
+test.describe('desktop native text editing alongside digit spinning',()=>{
+ test.beforeEach(async({page})=>{await page.goto('/');await openAProject(page);await page.locator('.project-nav li').filter({hasText:/^Box$/}).click();});
+
+ for(const gesture of ['select all','double click'] as const) test(`${gesture} visibly selects the number for replacement and deletion`,async({page})=>{
+  const box=page.locator('#og-box-volume');await box.fill('123.45');
+  const selectors = {'select all': () => box.press('ControlOrMeta+A'), 'double click': () => box.dblclick()};
+  const select = selectors[gesture];
+  await select();
+  expect(await box.evaluate(el=>el instanceof HTMLInputElement && el.selectionStart===0 && el.selectionEnd===el.value.length)).toBe(true);
+  expect(await box.evaluate(el=>getComputedStyle(el,'::selection').backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+  await expect(box.locator('..').locator('.num-mark-overlay')).toHaveCount(0);
+  await box.pressSequentially('67.8');await expect(box).toHaveValue('67.8');
+  await select();await box.press('Delete');await expect(box).toHaveValue('');
+ });
+
+ test('shift-click retains a native text range for replacement',async({page})=>{
+  const box=page.locator('#og-box-volume');await box.fill('123.45');await box.press('Home');
+  const end=await box.evaluate(el=>{const css=getComputedStyle(el),r=el.getBoundingClientRect();return {x:r.width-parseFloat(css.paddingRight)-2,y:r.height/2};});
+  await box.click({position:end,modifiers:['Shift']});
+  expect(await box.evaluate(el=>el instanceof HTMLInputElement && el.selectionEnd!-el.selectionStart!>1)).toBe(true);
+  await box.press('Backspace');await expect(box).toHaveValue('');
+ });
+});
+
+
+test('dragging across passive-radiator Vas selects text without changing the value', async ({page}) => {
+  await page.clock.install();
+  await page.goto('/');
+  await openAProject(page);
+  await setFocusedBoxType(page, 'box-passive-radiator');
+  await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
+  const box = page.locator('#og-pr-vas');
+  await box.fill('123.45');
+  const points = await box.evaluate(el => {
+    if (!(el instanceof HTMLInputElement)) throw new Error('Expected numeric input');
+    const css = getComputedStyle(el), rect = el.getBoundingClientRect();
+    const context = document.createElement('canvas').getContext('2d');
+    if (context === null) throw new Error('No text measurement context');
+    context.font = css.font;
+    const left = rect.left + el.clientLeft + parseFloat(css.paddingLeft);
+    return {left, right: left + context.measureText(el.value).width, y: rect.top + rect.height / 2};
+  });
+  await page.mouse.move(points.left, points.y);
+  await page.mouse.down();
+  await page.mouse.move(points.right, points.y, {steps: 12});
+  await page.clock.runFor(200);
+  await page.mouse.up();
+  await expect(box).toHaveValue('123.45');
+  expect(await markOf(box)).toEqual([0, 6]);
+  await box.press('Delete');
+  await expect(box).toHaveValue('');
+});
+
+
+test('native selection of a single digit stays visibly selected for editing',async({page})=>{
+ await page.goto('/');await openAProject(page);await page.locator('.project-nav li').filter({hasText:/^Box$/}).click();
+ const box=page.locator('#og-box-volume');await box.fill('6');await box.press('ControlOrMeta+A');
+ expect(await markOf(box)).toEqual([0,1]);
+ await expect(box.locator('..').locator('.num-mark-overlay')).toHaveCount(0);
+ expect(await box.evaluate(el=>getComputedStyle(el,'::selection').backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+ await box.press('Delete');await expect(box).toHaveValue('');
 });

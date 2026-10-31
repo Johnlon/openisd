@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, watch} from 'vue';
 import OriginalShell from './shells/original/OriginalShell.vue';
+import './joined-fields.css';
+import FieldCatalogue from './components/FieldCatalogue.vue';
+const fieldCatalogue = new URLSearchParams(window.location.search).has('field-catalogue');
 import MobileShell from './shells/mobile/MobileShell.vue';
 import OriginalNewProject from './shells/original/OriginalNewProject.vue';
 import MobileNewProject from './shells/mobile/MobileNewProject.vue';
@@ -146,19 +149,20 @@ onUnmounted(() => {
        desktop mode this element is unconstrained (full width), so the same rule is a no-op —
        `position: fixed` against a full-viewport containing block behaves identically to `fixed`
        against the real viewport. -->
-  <div class="app-root" :class="{ 'app-root-mobile': activeSkin === 'mobile' }">
+  <div class="app-root joined-fields" :class="{ 'app-root-mobile': activeSkin === 'mobile' || fieldCatalogue }">
     <!-- The shell renders WITH or WITHOUT a project — with none it shows the toolbar plus the
          empty placeholders, and the toolbar's global actions stay reachable. All overlays
          self-gate on their own presentationState booleans. Which shell mounts is `activeSkin`:
          the manual override when set, else the live viewport. -->
-    <MobileShell v-if="activeSkin === 'mobile'" />
+    <FieldCatalogue v-if="fieldCatalogue" />
+    <MobileShell v-else-if="activeSkin === 'mobile'" />
     <OriginalShell v-else />
     <!-- Global overlays — each self-gates internally and is safe with no project open. -->
     <MobileNewProject v-if="presentationState.newProjectOpen && activeSkin === 'mobile'" @close="presentationState.newProjectOpen = false" />
     <OriginalNewProject v-else-if="presentationState.newProjectOpen" @close="presentationState.newProjectOpen = false" />
-    <!-- Both read the focused project, so neither may mount without one — whatever set the
-         flag. The shell itself renders with no project; these do not. -->
-    <DriverEditorModal v-if="presentationState.editDriverInfo && projectOpen" :skin="activeSkin === 'mobile' ? PHONE_DRIVER_EDITOR_SKIN : undefined" @close="presentationState.editDriverInfo = false" />
+    <!-- Saved-driver editing owns a detached library draft and needs no project.
+         Project-driver editing and What-if still require an open project. -->
+    <DriverEditorModal v-if="presentationState.editDriverInfo && (projectOpen || selection.editSubject().kind === 'myDriver')" :skin="activeSkin === 'mobile' ? PHONE_DRIVER_EDITOR_SKIN : undefined" @close="presentationState.editDriverInfo = false" />
     <OriginalWhatIf v-if="presentationState.editDriver && projectOpen" />
     <!-- The wizard's step-1 driver picker sits ON TOP of the wizard modal (both z-index 100). -->
     <DriverBrowser :phone="activeSkin === 'mobile'" />

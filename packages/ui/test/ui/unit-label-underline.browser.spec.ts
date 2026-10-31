@@ -1,11 +1,8 @@
-/**
- * Every clickable unit label (a button titled "Click to change units") shows the dotted underline
- * that tells the user it has a tooltip and can be clicked, on every project screen of both skins
- * (T373, QD4). The underline comes from the unit label control itself, whatever class a screen gives it.
- * Mobile clickable chips keep their grey border and use a blue underline as the click affordance.
- */
+/** Every unit uses the selected joined-unit reference on both skins. The rejected separate-unit prototype is retained only as history. */
 import {expect, test} from '../fixtures.js';
 import type {Locator} from '@playwright/test';
+import {ALL_FIELDS, NumberField} from '@openisd/design/fields';
+import {referenceUnitPaint, measureUnitPaint} from '../fixtures/referenceUnitPaint.js';
 import {SCREENS} from '../visual/screens.js';
 
 async function waitForLabelsWhereExpected(screenName: string, labels: Locator): Promise<void> {
@@ -19,60 +16,57 @@ async function waitForLabelsWhereExpected(screenName: string, labels: Locator): 
 const project_screens = SCREENS.filter(s => s.name !== 'empty');
 
 for (const screen of project_screens) {
-  test(`unit labels are dotted-underlined ${screen.skin.name} ${screen.name}`, async ({page}) => {
+  test(`unit labels match the selected reference ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
     const unwrappedNumeric = await page.locator('input[data-numinput]:visible, input[type=number]:visible').evaluateAll(inputs => inputs
       .filter(input => input.closest('.ui-field') === null)
       .map(input => `${input.getAttribute('aria-label') ?? input.getAttribute('name') ?? '(unlabelled)'}: outside .ui-field`));
     expect(unwrappedNumeric, `numeric controls outside the shared field component on ${screen.skin.name} ${screen.name}`).toEqual([]);
-    const untagged = await page.locator('.ui-field:visible').evaluateAll(rows => rows.filter(row =>
-      row.querySelector('[data-numinput], input[type=number], .ui-field-value > .calculated') !== null,
-    ).map(row => {
-      // UIFieldBody's third grid child is the unit slot. Inspect the slot by position so this
-      // audit still catches a unit that forgot the UnitToggle/unit-label marker entirely.
-      const unit = row.children.item(2);
-      const text = unit?.textContent?.trim() ?? '';
-      return text !== '' && !unit?.classList.contains('unit-label')
-        ? `${row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)'}/${text}` : null;
-    }).filter((x): x is string => x !== null));
-    expect(untagged, `numeric fields with untagged unit slots on ${screen.skin.name} ${screen.name}`).toEqual([]);
-    const allUnits = page.locator('.unit-label:visible');
-    const labels = page.locator('[role="button"][title^="Click to change units"]');
-    // Screens that always show unit labels must show some; the rest are checked for whatever they show.
-    await waitForLabelsWhereExpected(screen.name, labels);
-    const fields = await allUnits.evaluateAll(els => els.map(el => {
-      const cs = getComputedStyle(el);
-      return {
-        field: el.closest('.ui-field, .mob-field-row, .field')?.querySelector('label')?.textContent?.trim() ?? '(unlabelled)',
-        text: el.textContent?.trim() ?? '', role: el.getAttribute('role'), toggle: el.classList.contains('unit-toggle'),
-        line: cs.textDecorationLine, style: cs.textDecorationStyle, cursor: cs.cursor,
-        decorationColor: cs.textDecorationColor, decorationThickness: cs.textDecorationThickness,
-        decorationOffset: cs.textUnderlineOffset,
-        bottom: cs.borderBottomStyle, background: cs.backgroundColor, weight: cs.fontWeight,
-      };
+    const expected = Object.fromEntries(ALL_FIELDS.filter((field): field is NumberField => field instanceof NumberField).map(field => {
+      const token = field.unitTokenFor({});
+      return [field.value, {text: field.unitLabel(token), toggle: field.display.kind === 'switchable' && field.nextToken(token) !== token}];
     }));
-    const bad = fields.filter(s => {
-      const clickable = s.role === 'button';
-      const wrongWeight = screen.skin.name === 'mobile' && s.weight !== '600';
-      const wrongToggleSemantics = clickable !== s.toggle;
-      const expectedBackground = s.text === '' ? 'rgba(0, 0, 0, 0)' : clickable ? 'rgb(239, 239, 239)' : 'rgb(255, 255, 255)';
-      const wrongBackground = s.background !== expectedBackground;
-      if (clickable) {
-        const expectedStyle = screen.skin.name === 'mobile' ? 'solid' : 'dotted';
-        return wrongWeight || wrongToggleSemantics || wrongBackground || !(s.toggle && s.line.includes('underline') && s.style === expectedStyle && s.cursor === 'pointer'
-          && (screen.skin.name === 'mobile'
-            ? s.bottom === 'solid' && s.decorationColor === 'rgb(24, 104, 209)' && s.decorationThickness === '1px' && s.decorationOffset === '5px'
-            : true));
-      }
-      return wrongWeight || wrongToggleSemantics || s.role !== null || s.line !== 'none' || s.style !== 'solid'
-        || wrongBackground;
-    });
-    expect(bad, `unit-affordance violations on ${screen.skin.name} ${screen.name}`).toEqual([]);
+    const semantics = await page.locator('.ui-field:visible').evaluateAll((rows, fields) => rows.flatMap(row => {
+      const id = row.getAttribute('data-field') ?? '';
+      const spec = fields[id];
+      if (spec === undefined) return row.querySelector('[data-numinput],input[type="number"]') === null ? [] : [id + ': unknown numeric field'];
+      const units = row.querySelectorAll('.ui-field-unit');
+      if (units.length !== 1) return [id + ': missing or duplicate unit slot'];
+      const unit = units[0];
+      if (unit === undefined) throw new Error('Expected unit slot');
+      const problems: string[] = [];
+      if (!unit.classList.contains('unit-label')) problems.push(id + ': unit bypasses the shared unit component');
+      if (unit.textContent !== spec.text) problems.push(id + ': unit text differs from the registered default');
+      if (unit.classList.contains('unit-toggle') !== spec.toggle) problems.push(id + ': unit affordance differs from its intrinsic choices');
+      if (unit.getAttribute('role') !== (spec.toggle ? 'button' : null)) problems.push(id + ': wrong unit role');
+      if (unit.getAttribute('tabindex') !== (spec.toggle ? '0' : null)) problems.push(id + ': wrong unit Tab capability');
+      return problems;
+    }), expected);
+    expect(semantics).toEqual([]);
+    const labels = page.locator('[role="button"][title^="Click to change units"]');
+    await waitForLabelsWhereExpected(screen.name, labels);
+    const reference = await referenceUnitPaint(page,screen.skin.name,screen.name);
+    await expect(page.locator('.unit-label:visible')).toHaveCount(reference.units.length);
+    const visibleUnits=await page.locator('.unit-label:visible').all();
+    for (const [index,unit] of visibleUnits.entries()) {
+      const id = await unit.evaluate(element => element.closest('.ui-field')?.getAttribute('data-field') ?? '');
+      expect(expected[id], 'unit must belong to a registered numeric field').toBeDefined();
+      const spec = requireUnitOwner(expected[id]);
+      expect(reference.units[index]?.field).toBe(id);
+      expect(reference.units[index]?.symbol).toBe(spec.text);
+      expect(reference.units[index]?.toggle).toBe(spec.toggle);
+      expect(await unit.evaluate(measureUnitPaint)).toEqual(reference.units[index]?.paint);
+    }
 
   });
 }
 
-// Every visible numeric row on both skins checks that its unit chip joins the value control and
+function requireUnitOwner<T>(spec: T | undefined): T {
+  if (spec === undefined) throw new Error('Expected numeric unit owner');
+  return spec;
+}
+
+// Every visible numeric row checks that its unit stays outside the numeric box and
 // warning/WinISD adornments stay in-row without covering the value or unit.
 function fieldRowsSelector(skinName: string): string {
   return skinName === 'mobile' ? '.mob-classic .ui-field:visible' : '.original-root .ui-field:visible';
@@ -81,28 +75,26 @@ for (const screen of project_screens) {
   test(`unit and adornment geometry ${screen.skin.name} ${screen.name}`, async ({page}) => {
     await screen.open(page);
     const selector = fieldRowsSelector(screen.skin.name);
-    const misplaced = await page.locator(selector).evaluateAll((rows, skinName) => rows.flatMap(row => {
+    const reference = await referenceUnitPaint(page,screen.skin.name,screen.name);
+    const misplaced = await page.locator(selector).evaluateAll((rows, expectedUnits) => rows.flatMap(row => {
       const label = row.querySelector('label')?.textContent?.trim() ?? '(unlabelled)';
-      const numeric = row.querySelector('[data-numinput], input[type=number], .ui-field-value > .calculated');
+      const numeric = row.querySelector('[data-numinput], input[type=number], .ui-field-value input,.ui-field-value select,.ui-field-value > .calculated');
       if (!numeric) return [];
       const unit = row.querySelector<HTMLElement>('.ui-field-unit');
       const hasUnit = unit !== null && unit.textContent?.trim() !== '';
       const control = row.querySelector<HTMLElement>('.ui-field-value input, .ui-field-value select, .ui-field-value .mob-readonly, .ui-field-value .calculated');
-      const valueBox = row.querySelector<HTMLElement>('.ui-field-value');
       const rr = row.getBoundingClientRect();
-      const inside = (r: DOMRect, outer: DOMRect) => r.left >= outer.left - 0.5 && r.top >= outer.top - 0.5
-        && r.right <= outer.right + 0.5 && r.bottom <= outer.bottom + 0.5;
+      const inside = (r: DOMRect, outer: DOMRect) => r.left >= outer.left && r.top >= outer.top
+        && r.right <= outer.right && r.bottom <= outer.bottom;
       const problems: string[] = [];
       if (hasUnit && !control) problems.push(`${label}: unit has no value control`);
       if (hasUnit && control && unit) {
         const ur = unit.getBoundingClientRect();
         const cr = control.getBoundingClientRect();
-        if (skinName === 'mobile' && !inside(ur, cr)) problems.push(`${label}: unit is outside its value control`);
-        if (skinName === 'desktop' && unit.classList.contains('unit-toggle') && valueBox
-          && Math.abs(ur.left - valueBox.getBoundingClientRect().right) > 0.5) {
-          const delta = ur.left - valueBox.getBoundingClientRect().right;
-          problems.push(`${label}: clickable unit offset ${delta}px from value control; margin ${getComputedStyle(unit).marginLeft}; gap ${getComputedStyle(row).columnGap}`);
-        }
+        const approved=expectedUnits.find(entry=>entry.field===row.getAttribute('data-field')&&entry.symbol===unit.textContent);
+        if(!approved)problems.push(`${label}: missing approved joined-unit reference`);
+        else if(ur.left-cr.right!==-Number(approved.paint.width))problems.push(`${label}: unit gap ${ur.left-cr.right}, expected ${-Number(approved.paint.width)}`);
+        if (ur.top !== cr.top || ur.height !== cr.height) problems.push(`${label}: unit and value edges do not align`);
         if (!inside(ur, rr)) problems.push(`${label}: unit outside field row by ${Math.max(rr.left - ur.left, ur.right - rr.right, 0)}px`);
       }
       for (const cue of row.querySelectorAll<HTMLElement>('.ui-field-dq-btn, .winisd-deviation-cue')) {
@@ -142,7 +134,7 @@ for (const screen of project_screens) {
         }
       }
       return problems;
-    }), screen.skin.name);
+    }), reference.units);
     expect(misplaced, `unit/control and warning/WinISD cue placement on ${screen.skin.name} ${screen.name}`).toEqual([]);
   });
 }

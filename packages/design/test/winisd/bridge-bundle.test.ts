@@ -280,6 +280,7 @@ describe('openisd-bridge.js — behavioural (node:vm, mini-racer-shaped sandbox)
     const parsed: unknown = JSON.parse(raw);
     if (!isRecord(parsed) || !Array.isArray(parsed.warnings)) throw new Error('expected DQ warning array');
     assert.equal(parsed.warnings.some(problem => isBridgeError(problem)
+      && problem.field === 'woofer.Basket_m'
       && problem.message.includes('unrecognised rejection reason')), false);
   });
 

@@ -32,15 +32,11 @@ const props = withDefaults(defineProps<{
   halfWidth?: number | null;
   /** Shown in place of a null/non-finite value — '—' everywhere the app already uses it. */
   placeholder?: string;
-  /** Render as a readonly `<input>` (desktop's "greyed field" look) instead of a bare `<span>`
-   *  (mobile's plain readout row) — same formatted text either way. */
-  asInput?: boolean;
 }>(), {
   value: null,
   precision: undefined,
   halfWidth: null,
   placeholder: '—',
-  asInput: false,
 });
 
 const activeToken = computed(() => props.field?.unitTokenFor(presentationState.ui.unitTokens ?? {}));
@@ -58,6 +54,5 @@ const text = computed(() => {
 </script>
 
 <template>
-  <input v-if="asInput" type="text" :value="text" readonly>
-  <span v-else>{{ text }}</span>
+  <input type="text" :value="text" readonly>
 </template>

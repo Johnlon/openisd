@@ -158,6 +158,6 @@ No hook runs a test suite. `--no-verify` only on John's word, per commit.
 ## Driver snapshot
 
 - Tests and builds never read the live driver db (`../winisd_drivers`). The committed bundle (`packages/ui/public/drivers/**`, `drivers-index.json`, `passive-radiators-index.json`) and the three fixtures in `packages/design/test/fixtures/driver-snapshot/` are the pinned snapshot.
-- `scripts/driver-snapshot.pin` records the winisd_drivers commit and the sha256 of every fixture and of the bundle; `packages/design/test/scripts/driver-snapshot-pin.test.ts` fails on drift.
-- `scripts/sync-driver-snapshot.sh` is the only reader of the live db. It refuses a dirty or non-git checkout.
-- Bump the pin: run it on a clean winisd_drivers and commit everything it changed.
+- `scripts/driver-snapshot.pin` records the winisd_drivers snapshot commit and the sha256 of every fixture and of the bundle; `packages/design/test/scripts/driver-snapshot-pin.test.ts` fails on drift.
+- `scripts/sync-driver-snapshot.sh` reads only committed `winisd_drivers/snapshot/datasheets`. Scraper work elsewhere in that repository does not affect the OpenISD bundle; edits or untracked files inside the snapshot are refused until committed. Pass repeated `--only-record brand/sku` options for a narrow refresh; omit them for a full snapshot rebuild.
+- Bump the pin: commit the intended snapshot in winisd_drivers, then run the sync script and commit the resulting OpenISD bundle and pin.
