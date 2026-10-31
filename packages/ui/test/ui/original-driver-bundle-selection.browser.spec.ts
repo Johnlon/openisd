@@ -13,8 +13,8 @@ const PR_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => path.endsWith('-pr'));
 
 const EXPECTED_REPORTED_COIL_VALUES: Record<string, Record<string, Record<string, number>>> = {
   'tang-band/w5-1138smf': {woofer: {Re_ohm: 3.4, BL_Tm: 7.17}},
-  'dayton-audio/e150he-44': {woofer: {Re_ohm: 3.3, BL_Tm: 4.9}},
-  'dayton-audio/e180he-44': {woofer: {Re_ohm: 3.4, BL_Tm: 4.8}},
+  'dayton-audio/e150he-44': {woofer: {Re_ohm: 6.6, BL_Tm: 9.8}},
+  'dayton-audio/e180he-44': {woofer: {Re_ohm: 6.8, BL_Tm: 9.6}},
   'dayton-audio/cx120-8': {woofer: {Re_ohm: 6.22, BL_Tm: 5.08}, tweeter: {Re_ohm: 5.6}},
   'dayton-audio/nd140-pr': {},
   'dayton-audio/e150he-pr': {},

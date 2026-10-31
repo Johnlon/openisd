@@ -18,22 +18,20 @@ die() { echo "sync-driver-snapshot: refused: $*" >&2; exit 1; }
 
 [ -d "$CORPUS_ROOT" ] || die "$CORPUS_ROOT is not a git checkout (no such directory)"
 git -C "$CORPUS_ROOT" rev-parse --is-inside-work-tree > /dev/null 2>&1 || die "$CORPUS_ROOT is not a git checkout"
-SNAPSHOT="$CORPUS_ROOT/snapshot"
-DATASHEETS="$SNAPSHOT/datasheets"
-[ -d "$DATASHEETS" ] || die "$DATASHEETS does not exist; commit the OpenISD snapshot first"
+DATASHEETS="snapshot/datasheets"
 
-# Scraper work in db/, db.2/, etc. is independent of OpenISD. Only the committed snapshot is an
-# input, and local changes inside it must be committed before they can affect the bundle.
+# Build strictly from the committed snapshot tree. Scraper work in db/, db.2/, snapshot/runs,
+# and uncommitted snapshot edits cannot enter the OpenISD bundle.
 git -C "$CORPUS_ROOT" ls-files --error-unmatch snapshot/datasheets > /dev/null 2>&1 \
-  || die "$DATASHEETS is not tracked by git; commit the OpenISD snapshot first"
-if ! git -C "$CORPUS_ROOT" diff --quiet HEAD -- snapshot; then
-  die "$SNAPSHOT has uncommitted changes; commit the snapshot before refreshing OpenISD"
-fi
-snapshot_status="$(git -C "$CORPUS_ROOT" status --porcelain --untracked-files=all --ignored=matching -- snapshot)" \
-  || die "git status failed for $SNAPSHOT"
-[ -z "$snapshot_status" ] || die "$SNAPSHOT contains untracked or ignored files; commit the complete snapshot first"
+  || die "snapshot/datasheets is not tracked by git; commit the OpenISD snapshot first"
 COMMIT="$(git -C "$CORPUS_ROOT" log -1 --format=%H HEAD -- snapshot/datasheets)"
-[ -n "$COMMIT" ] || die "no committed history found for $DATASHEETS"
+[ -n "$COMMIT" ] || die "no committed history found for snapshot/datasheets"
+WORK_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/openisd-driver-snapshot.XXXXXX")"
+trap 'rm -rf "$WORK_ROOT"' EXIT
+git -C "$CORPUS_ROOT" archive "$COMMIT" snapshot/datasheets | tar -x -C "$WORK_ROOT" \
+  || die "could not extract committed snapshot $COMMIT"
+DATASHEETS="$WORK_ROOT/snapshot/datasheets"
+[ -d "$DATASHEETS" ] || die "committed snapshot $COMMIT has no snapshot/datasheets tree"
 
 FIXTURES=(accuton/bd90-6-727/driver.json accuton/bd90-6-727/openisd.json dayton-audio/da215-8/openisd.json)
 SNAP="$ROOT/packages/design/test/fixtures/driver-snapshot"

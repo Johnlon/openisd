@@ -56,6 +56,9 @@
   "specs": {
     "woofer": {
       "BL_Tm": {
+        "corroboration": "UNMATCHED",
+        "dq_calculated": [],
+        "origin": "manufacturer_product_page",
         "readings": {
           "manufacturer_product_page": {
             "actual_reading": "10.7",
@@ -63,7 +66,8 @@
             "read_value": 10.7
           }
         },
-        "state": "N"
+        "state": "E",
+        "value": 10.7
       },
       "Basket_m": {
         "readings": {
@@ -150,9 +154,9 @@
       },
       "Mpow_N_per_sqrtW": {
         "dq_calculated": [],
-        "precision": 0.06124438633614559,
+        "precision": 0.04205868677287228,
         "state": "C",
-        "value": 4.5396968849857195
+        "value": 4.562495330010063
       },
       "Outer_m": {
         "readings": {
@@ -220,6 +224,9 @@
         "value": 0.28
       },
       "Re_ohm": {
+        "corroboration": "UNMATCHED",
+        "dq_calculated": [],
+        "origin": "manufacturer_product_page",
         "readings": {
           "manufacturer_product_page": {
             "actual_reading": "5.5 Ohm",
@@ -227,7 +234,8 @@
             "read_value": 5.5
           }
         },
-        "state": "N"
+        "state": "E",
+        "value": 5.5
       },
       "Rme_kg_per_s": {
         "dq_calculated": [],
@@ -290,6 +298,12 @@
         "state": "E",
         "value": 0.00733
       },
+      "USPL_dB": {
+        "dq_calculated": [],
+        "precision": 0.5394813165437995,
+        "state": "C",
+        "value": 93.63210181554336
+      },
       "VCCon": {
         "dq_calculated": [],
         "state": "C",
@@ -343,10 +357,21 @@
         "state": "E",
         "value": 0.003
       },
+      "Znom_ohm": {
+        "dq_calculated": [],
+        "state": "C",
+        "value": 8
+      },
       "c_m_per_s": {
         "dq_calculated": [],
         "state": "C",
         "value": 343.68412096215235
+      },
+      "gamma_m_per_s2_A": {
+        "dq_calculated": [],
+        "precision": 14.609375000304679,
+        "state": "C",
+        "value": 1337.4999999999998
       },
       "no": {
         "dq_calculated": [],
