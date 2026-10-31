@@ -1,6 +1,6 @@
 id: F57
 owner: Johnlon
-status: open
+status: done
 sha: bef6c747a8f5444e504edcbf212c330b34c7b761
 tested: bef6c747a8f5444e504edcbf212c330b34c7b761
 last_green: 60137cd65e8239f741f4790d433b751ad746dd60
@@ -25,3 +25,5 @@ failing: |
 output: |
   2026-10-31T15:54:11.418Z 1539552-1793462049-22987 actions: start 2026-10-31T15:54:11Z bef6c747a8 (Johnlon/openisd suite.yml)
   2026-10-31T16:04:17.790Z 1539552-1793462049-22987 actions: no suite.yml run on bef6c747a8 after 600s (or GitHub cannot be read); red
+closed_note: |
+  Closed by post-land: the full suite is green at 9a5feb228f89de162f363f1353e415848499bf34, which holds every red commit listed here.
