@@ -2,7 +2,7 @@ id: T618
 release_note: internal
 repo: openisd
 owner: codex
-status: open
+status: claimed
 goal: Refresh OpenISD catalogue from tuple-aware snapshot and expose test servers for review
 done_test: bash scripts/quiet-test.sh npm run typecheck:design && bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/design/test/winisd/driverRecordConverter.coverage.test.ts packages/ui/test/scripts/bundle-outputs.test.ts && bash scripts/quiet-test.sh bash scripts/land/test/sync-driver-snapshot.test.sh
 files:
@@ -17,6 +17,7 @@ files:
   - packages/ui/public/passive-radiators-index.json
   - packages/ui/public/drivers/**
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
   - scripts/bundle-drivers.mjs
   - scripts/bundleStamp.mjs
   - scripts/driver-snapshot.pin
