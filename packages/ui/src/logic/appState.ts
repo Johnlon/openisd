@@ -48,7 +48,6 @@ import {
 import {assignTraceColor, type PresentationState} from './presentationState.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {ventSolveSuspended} from './ventGroup.js';
-import {notifyPrChanged} from './prGroup.js';
 import {projectDriverTelemetry} from './telemetry/projectDriver.js';
 
 /** The driver spec fields the app's UI reads/writes by name — the schema's own spec keys.
@@ -528,7 +527,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       const p = live.value;
       if (!p) return;
       solvingVent = true;
-      try { notifyPrChanged(p); } finally { solvingVent = false; }
+      try { p.recalc(); } finally { solvingVent = false; }
     },
     { flush: 'sync', immediate: true },
   );

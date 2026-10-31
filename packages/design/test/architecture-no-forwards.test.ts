@@ -52,8 +52,6 @@ const FORWARDS_BASELINE: ReadonlySet<string> = new Set([
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.classifyFiniteIssues",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.classifyFlatClamp",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.classifyMaxFinite",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.notifyPrChanged",
-  "packages/design/domain/project/openISDProject.ts#OpenISDProject.notifyVentChanged",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.passbandRef",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.peaks",
   "packages/design/domain/project/openISDProject.ts#OpenISDProject.recalc",

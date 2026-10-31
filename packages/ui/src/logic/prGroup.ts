@@ -1,7 +1,7 @@
 /**
  * The passive-radiator tuning group's UI seam. The relation — `tuning_goal_hz` ↔ `addedMass_kg`,
  * pinning either solves the other — lives on `OpenISDProject` (`cell()`/`enter()`/`clear()`/
- * `notifyPrChanged()`), the owner of the state. This module keeps the field names, the
+ * `recalc()`), the owner of the state. This module keeps the field names, the
  * badge letter, and the same one-action-one-solve suspension as the vent group.
  *
  * The two members ARE the field-table keys, so there is no dispatch: `enterPrField`/`clearPrField`
@@ -16,11 +16,6 @@ import type {ProvenanceLetter} from '@openisd/design';
 export const PR_GROUP = ['tuning_goal_hz', 'addedMass_kg'] as const;
 /** One of the two names listed above. */
 export type PrField = typeof PR_GROUP[number];
-
-/** Re-solve whichever member is CALCULATED from the entered one — the domain's own solver. */
-export function notifyPrChanged(p: OpenISDProject): void {
-  p.notifyPrChanged();
-}
 
 /** Enter a PR-group field — held until explicitly cleared. One user action, one solve. */
 export function enterPrField(p: OpenISDProject, field: PrField, value: number): void {

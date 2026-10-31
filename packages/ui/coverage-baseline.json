@@ -120,10 +120,10 @@
     "statements": 56
   },
   "packages/ui/src/hooks/MobileShell-hooks.ts": {
-    "lines": 0,
-    "branches": 0,
-    "functions": 0,
-    "statements": 0
+    "lines": 28,
+    "branches": 3,
+    "functions": 11,
+    "statements": 24
   },
   "packages/ui/src/hooks/MobileSignalTab-hooks.ts": {
     "lines": 0,
@@ -330,10 +330,10 @@
     "statements": 66
   },
   "packages/ui/src/logic/appState.ts": {
-    "lines": 89,
-    "branches": 75,
-    "functions": 83,
-    "statements": 88
+    "lines": 90,
+    "branches": 76,
+    "functions": 85,
+    "statements": 89
   },
   "packages/ui/src/logic/appUpdate.ts": {
     "lines": 100,
@@ -504,10 +504,10 @@
     "statements": 92
   },
   "packages/ui/src/logic/prGroup.ts": {
-    "lines": 80,
+    "lines": 100,
     "branches": 100,
-    "functions": 83,
-    "statements": 85
+    "functions": 100,
+    "statements": 100
   },
   "packages/ui/src/logic/presentationState.ts": {
     "lines": 92,
@@ -744,10 +744,10 @@
     "statements": 21
   },
   "packages/ui/src/logic/ventGroup.ts": {
-    "lines": 72,
+    "lines": 100,
     "branches": 100,
-    "functions": 45,
-    "statements": 63
+    "functions": 95,
+    "statements": 100
   },
   "packages/ui/src/logic/versionIndex.ts": {
     "lines": 100,

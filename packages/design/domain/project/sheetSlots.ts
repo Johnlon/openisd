@@ -68,7 +68,7 @@ export function writeSheetSlot(p: OpenISDProject, type: BoxType, slot: SheetSlot
             if (vent === null) return;
             p.batch(() => {
                 vent.area_m2.set(v);
-                p.notifyVentChanged();
+                p.recalc();
             });
             return;
         }
