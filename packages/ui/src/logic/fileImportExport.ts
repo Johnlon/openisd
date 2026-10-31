@@ -63,7 +63,7 @@ export class DesignFiles {
     if (format === DriverFileFormat.Wdr) return this.#drivers.winIsdDriverToOpenIsdDriver(text);
     const opened = this.exportedFiles.open(text);
     if (opened.kind === 'newer') {
-      const message = `this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads})`;
+      const message = `this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`;
       return { value: null, errors: [{ level: 'error', field: 'driver', message }] };
     }
     const result = OpenISDDriver.fromOwdrText(opened.text, this.engine);

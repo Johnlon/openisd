@@ -499,6 +499,15 @@ describe('projectRepo', () => {
       expect(opened.uuid()).toBe(made.uuid());
     });
 
+    it('a file from a newer OpenISD is refused with its next step, and the repo keeps nothing of it', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const text = JSON.stringify({layout: 99, id: 'x', label: 'from the future'});
+      const result = repo.readProjectText(text);
+      assert.ok(Array.isArray(result));
+      expect(result.join(' ')).toMatch(/newer OpenISD.*unchanged.*reload this page/);
+      expect(repo.listStoredProjects()).toHaveLength(0);
+    });
+
     it('never refuses a layout-3 file that has lost its id: one is minted on read (QO315)', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const parsed: unknown = JSON.parse(exportedFilesOn().stamp(project('No id').toOwprText()));

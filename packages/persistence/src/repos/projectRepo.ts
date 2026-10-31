@@ -569,7 +569,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     readProjectText(text: string): OpenISDProject | string[] {
       const opened = exportedFiles.open(text);
       if (opened.kind === 'newer') {
-        return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads})`];
+        return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads}). The file is unchanged: reload this page to get the latest OpenISD, then open it again`];
       }
       const project = readRepairing(opened.text, null);
       if (!Array.isArray(project)) claimId(project);
