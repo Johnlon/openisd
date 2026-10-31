@@ -426,7 +426,7 @@ describe('projectRepo', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const made = project('Fresh');
       expect(repo.isStored(made)).toBe(false);
-      expect(repo.storeNew(made, [made]).kind).toBe('saved');
+      expect(repo.storeNew(made).kind).toBe('saved');
       expect(repo.isStored(made)).toBe(true);
       expect(made.isModified()).toBe(false);
       expect(repo.listStoredProjects().map(e => e.name)).toEqual(['Fresh']);
@@ -436,8 +436,8 @@ describe('projectRepo', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const first = project('ABC');
       const second = project('ABC');
-      repo.storeNew(first, [first, second]);
-      repo.storeNew(second, [first, second]);
+      repo.storeNew(first);
+      repo.storeNew(second);
       expect(repo.listStoredProjects().map(e => e.name)).toEqual(['ABC', 'ABC']);
       expect(second.name.value).toBe('ABC');
       expect(second.isModified()).toBe(false);
@@ -446,10 +446,10 @@ describe('projectRepo', () => {
     it('the same file with the same content is the project already stored: it keeps that copy', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const first = project('ABC');
-      repo.storeNew(first, [first]);
+      repo.storeNew(first);
       const again = OpenISDProject.fromOwprText(first.toOwprText(), engine);
       assert.ok(!Array.isArray(again));
-      repo.storeNew(again, [again]);
+      repo.storeNew(again);
       expect(repo.listStoredProjects()).toHaveLength(1);
       expect(repo.storedIdOf(again)).toBe(repo.storedIdOf(first));
     });
@@ -457,22 +457,26 @@ describe('projectRepo', () => {
     it('a project that already has a stored copy is stored under it again, not beside it', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const made = project('Once');
-      repo.storeNew(made, [made]);
-      repo.storeNew(made, [made]);
+      repo.storeNew(made);
+      repo.storeNew(made);
       expect(repo.listStoredProjects()).toHaveLength(1);
     });
 
-    it('an open project that shares its stored copy with an earlier one is stored as its own', () => {
+    it('a project with a stored project\'s id and a different design takes a new id and leaves the stored one as it was (a share link)', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
-      const first = project('ABC');
-      const second = project('ABC');
-      repo.saveToStorageAs(first, 'one');
-      repo.saveToStorageAs(second, 'one');
-      expect(repo.isStored(first)).toBe(true);
-      expect(repo.isStored(second)).toBe(false);
-      repo.storeNew(second, [first, second]);
-      expect(repo.storedIdOf(second)).not.toBe('one');
-      expect(repo.listStoredProjects().map(e => e.name)).toEqual(['ABC', 'ABC']);
+      const stored = project('ABC');
+      repo.storeNew(stored);
+      const storedText = repo.loadStoredProject(stored.uuid());
+      assert.ok(!Array.isArray(storedText));
+      const edited = OpenISDProject.fromOwprText(stored.toOwprText(), engine);
+      assert.ok(!Array.isArray(edited));
+      edited.name.set('ABC changed');
+      repo.storeNew(edited);
+      expect(edited.uuid()).not.toBe(stored.uuid());
+      expect(repo.listStoredProjects().map(e => e.name).sort()).toEqual(['ABC', 'ABC changed']);
+      const again = repo.loadStoredProject(stored.uuid());
+      assert.ok(!Array.isArray(again));
+      expect(again.name.value).toBe('ABC');
     });
 
     it('says it failed when the store takes no more, and the project is not stored', () => {
@@ -480,7 +484,7 @@ describe('projectRepo', () => {
       const repo = projectRepoOn(engine, noFiles, storage, 'http://localhost');
       const made = project('Big');
       const refuse = vi.spyOn(storage, 'set').mockImplementation(() => { throw new Error('quota'); });
-      expect(repo.storeNew(made, [made]).kind).toBe('failed');
+      expect(repo.storeNew(made).kind).toBe('failed');
       refuse.mockRestore();
       expect(repo.isStored(made)).toBe(false);
     });
@@ -507,16 +511,19 @@ describe('projectRepo', () => {
       expect(opened.uuid()).not.toBe('');
     });
 
-    it('gives the copy a new id when a stored project has the file\'s id, and the stored one is left as it was', () => {
+    it('keeps the id when the file is the stored project itself, and gives a changed copy a new id', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const made = project('ABC');
-      repo.storeNew(made, [made]);
-      const text = made.toOwprText();
-      const first = repo.readProjectText(text);
-      const second = repo.readProjectText(text);
-      assert.ok(!Array.isArray(first) && !Array.isArray(second));
-      expect(first.uuid()).not.toBe(made.uuid());
-      expect(second.uuid()).not.toBe(made.uuid());
+      repo.storeNew(made);
+      const same = repo.readProjectText(made.toOwprText());
+      assert.ok(!Array.isArray(same));
+      expect(same.uuid()).toBe(made.uuid());
+      const changed = OpenISDProject.fromOwprText(made.toOwprText(), engine);
+      assert.ok(!Array.isArray(changed));
+      changed.name.set('ABC changed');
+      const copy = repo.readProjectText(changed.toOwprText());
+      assert.ok(!Array.isArray(copy));
+      expect(copy.uuid()).not.toBe(made.uuid());
       expect(repo.listStoredProjects()).toHaveLength(1);
       expect(repo.loadStoredProject(made.uuid())).toSatisfy((p: unknown) => p instanceof OpenISDProject && p.uuid() === made.uuid());
     });
@@ -524,10 +531,10 @@ describe('projectRepo', () => {
     it('storing the copy of an already stored file with the same content keeps the stored copy', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const made = project('ABC');
-      repo.storeNew(made, [made]);
+      repo.storeNew(made);
       const copy = repo.readProjectText(made.toOwprText());
       assert.ok(!Array.isArray(copy));
-      repo.storeNew(copy, [copy]);
+      repo.storeNew(copy);
       expect(repo.listStoredProjects()).toHaveLength(1);
     });
   });

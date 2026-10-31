@@ -31,9 +31,8 @@ describe('createProjectBinView: projects named alike', () => {
     const logic = testAppLogic();
     const first = namedProject(logic, 'ABC');
     const second = namedProject(logic, 'ABC');
-    const open = logic.appState.openProjects();
-    logic.projectRepo.storeNew(first, open);
-    logic.projectRepo.storeNew(second, open);
+    logic.projectRepo.storeNew(first);
+    logic.projectRepo.storeNew(second);
     const {view} = viewOf(logic);
     expect(view.projectRows.value).toHaveLength(2);
     expect(new Set(view.projectRows.value.map(r => r.key)).size).toBe(2);
@@ -44,7 +43,7 @@ describe('createProjectBinView: projects named alike', () => {
     const logic = testAppLogic();
     const closed = ProjectBuilder.empty(logic.engine);
     closed.name.set('Shelved');
-    logic.projectRepo.storeNew(closed, []);
+    logic.projectRepo.storeNew(closed);
     const {view} = viewOf(logic);
     expect(view.projectRows.value.map(r => [r.name, r.open.kind])).toEqual([['Shelved', 'closed']]);
   });
@@ -55,7 +54,7 @@ describe('createProjectBinView: a search box that is not offered', () => {
     const logic = testAppLogic();
     for (let i = 1; i <= 9; i++) {
       const p = namedProject(logic, `Box ${i}`);
-      logic.projectRepo.storeNew(p, logic.appState.openProjects());
+      logic.projectRepo.storeNew(p);
     }
     const {view} = viewOf(logic);
     expect(view.searchOffered.value).toBe(true);

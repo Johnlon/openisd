@@ -47,14 +47,14 @@ function setupList() {
   const first = ProjectBuilder.empty(logic.engine);
   first.name.set('First project');
   logic.appState.addProject(first);
-  logic.projectRepo.storeNew(first, logic.appState.openProjects());
+  logic.projectRepo.storeNew(first);
   const second = ProjectBuilder.empty(logic.engine);
   second.name.set('Second project');
   logic.appState.addProject(second);
-  logic.projectRepo.storeNew(second, logic.appState.openProjects());
+  logic.projectRepo.storeNew(second);
   const closed = ProjectBuilder.empty(logic.engine);
   closed.name.set('Closed project');
-  logic.projectRepo.storeNew(closed, []);
+  logic.projectRepo.storeNew(closed);
   const view = createProjectBinView({
     appState: logic.appState,
     projectRepo: logic.projectRepo,

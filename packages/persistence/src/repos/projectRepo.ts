@@ -81,7 +81,7 @@ export interface ProjectRepo {
    *  has (two projects may share a name). The same file with the same content is the stored
    *  project already: it keeps that copy. A project that already has a stored copy is stored
    *  under it again. */
-  storeNew(project: OpenISDProject, open: readonly OpenISDProject[]): StorageSaveResult;
+  storeNew(project: OpenISDProject): StorageSaveResult;
   /** Save `project` to browser storage as the stored project `id` (a new id makes a new entry). */
   saveToStorageAs(project: OpenISDProject, id: string): StorageSaveResult;
   /** Imports projects from an archive, merging by unique name. */
@@ -499,6 +499,16 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
     return JSON.stringify(parsed);
   }
 
+  /** `project` may not take a stored project's place unless it is that project: when a stored entry has
+   *  its id, the same design keeps the id (it is the stored project, read again) and a different design
+   *  takes a new one, so a file, link or archive never overwrites a saved project. */
+  function claimId(project: OpenISDProject): void {
+    const held = readStoredEntries().find(entry => entry.id === project.uuid());
+    if (held === undefined) return;
+    const stored = readRepairing(held.text, null);
+    if (Array.isArray(stored) || designOf(stored) !== designOf(project)) project.assignNewId();
+  }
+
   /** `project` as the saved entry `id`: a project read from the store is its entry, so its id is the entry's. */
   function asEntry(project: OpenISDProject, id: string): OpenISDProject {
     if (project.uuid() !== id) project.adoptId(id);
@@ -551,7 +561,9 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       if (!payload) return ['share link is not a recognised session payload'];
 
       const result = readRepairing(payload.project, null);
-      return Array.isArray(result) ? result : { project: result, view: payload.view };
+      if (Array.isArray(result)) return result;
+      claimId(result);
+      return { project: result, view: payload.view };
     },
 
     readProjectText(text: string): OpenISDProject | string[] {
@@ -560,9 +572,7 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
         return [`this file was saved by a newer OpenISD (its layout ${opened.layout}; this OpenISD reads up to layout ${opened.reads})`];
       }
       const project = readRepairing(opened.text, null);
-      // A file carries the id of the project it was saved from. When that project is stored here, this is
-      // a second copy of it and takes an id of its own, so saving it can never overwrite the stored one.
-      if (!Array.isArray(project) && readStoredEntries().some(entry => entry.id === project.uuid())) project.assignNewId();
+      if (!Array.isArray(project)) claimId(project);
       return project;
     },
 
@@ -582,19 +592,8 @@ function migrateEntries<T extends { text: string }>(entries: readonly T[]): { en
       return readStoredEntries().some(entry => entry.id === project.uuid());
     },
 
-    storeNew(project: OpenISDProject, open: readonly OpenISDProject[]): StorageSaveResult {
-      if (readStoredEntries().some(entry => entry.id === project.uuid())) return saveToStorage(project);
-      // The same file with the same content is the project already stored: it is that project, and takes its id.
-      const text = designOf(project);
-      const same = readStoredEntries().find(entry => {
-        if (open.some(other => other !== project && other.uuid() === entry.id)) return false;
-        const stored = readRepairing(entry.text, null);
-        return !Array.isArray(stored) && designOf(stored) === text;
-      });
-      if (same !== undefined) {
-        project.adoptId(same.id);
-        return {kind: 'saved'};
-      }
+    storeNew(project: OpenISDProject): StorageSaveResult {
+      claimId(project);
       return saveToStorage(project);
     },
 

@@ -37,7 +37,7 @@ describe('OriginalShell-hooks', () => {
     project.driver.specs.Qes.set(0.45);
     project.driver.specs.Vas_m3.set(0.03);
     project.box.sealed.volume_m3.set(0.012);
-    logic.projectRepo.storeNew(project, []);
+    logic.projectRepo.storeNew(project);
     const storedProjectId = logic.projectRepo.listStoredProjects()[0]!.id;
     const app = createApp({render: () => null});
     app.provide(APP_LOGIC, logic);
