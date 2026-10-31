@@ -1,5 +1,6 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
+import {OpenISDProject} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {createLayoutSteps} from '../src/repos/layoutSteps.js';
 import {OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY} from '../src/repos/storageKeys.js';
@@ -46,5 +47,42 @@ describe('layout step 2 to 3, texts the strict read refuses', () => {
     for (const key of [OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY]) {
       assert.equal(out[key], JSON.stringify({entries: [{id: 'e-1', text: '{"id":"e-1","label":"bad","saved":{"nope":1}}'}], focusedId: 'e-1'}));
     }
+  });
+});
+
+function fieldOf(value: unknown, key: string): unknown {
+  assert.ok(typeof value === 'object' && value !== null);
+  return Object.entries(value).find(([k]) => k === key)?.[1];
+}
+
+function isUnknownArray(value: unknown): value is readonly unknown[] {
+  return Array.isArray(value);
+}
+
+describe('layout step 2 to 3 and the engine the app runs on', () => {
+  it('writes each project the way the first save after the upgrade does, whatever the user\'s settings are', () => {
+    const userEngine = createEngine({
+      ventedLimits: () => ({minVb_m3: 0.002, maxVb_m3: 0.7, minFb_hz: 12, maxFb_hz: 120, minPortLen_m: 0.01, maxPortLen_m: 2, maxPortVelocity_ms: 20}),
+      envDefaults: () => ({tempK: 300, humidityPct: 80, pressurePa: 95_000}),
+    });
+    const step = createLayoutSteps(createEngine(), () => 'unused').find(s => s.from === 2);
+    assert.ok(step !== undefined);
+    let projects = 0;
+    for (const name of ['one-project', 'many-projects']) {
+      const bucketText = fieldOf(JSON.parse(goldenText(name, 'dump-layout-2.json')), 'openisd_projects');
+      assert.ok(typeof bucketText === 'string');
+      const entries = fieldOf(JSON.parse(step.migrate({openisd_projects: bucketText}).openisd_projects), 'entries');
+      assert.ok(isUnknownArray(entries));
+      for (const entry of entries) {
+        const text = fieldOf(entry, 'text');
+        assert.ok(typeof text === 'string');
+        const loaded = OpenISDProject.fromOwprText(text, userEngine);
+        assert.ok(!Array.isArray(loaded), Array.isArray(loaded) ? loaded.join('; ') : '');
+        // Sync hashes the JSON, not its layout in the text, so the indent an older text had does not matter.
+        assert.deepEqual(JSON.parse(loaded.toStoredText()), JSON.parse(text));
+        projects++;
+      }
+    }
+    assert.ok(projects > 0);
   });
 });
