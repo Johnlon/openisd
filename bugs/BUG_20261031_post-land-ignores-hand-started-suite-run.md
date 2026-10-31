@@ -1,6 +1,6 @@
 # Post-land ignores a suite run started by hand on the exact sha (F59)
 
-Found: 31 Oct 2026, F59. Not yet fixed.
+Found: 31 Oct 2026, F59 (again F60). Fixed 31 Oct 2026 by T635 (QO328: John said yes): post-land takes any suite run on the exact commit, push or hand start.
 
 ## What happened
 

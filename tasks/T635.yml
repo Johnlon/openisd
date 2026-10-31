@@ -1,0 +1,13 @@
+id: T635
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+label: fixes
+goal: Post-land accepts a passing suite run on the exact commit, whether a push or a hand start began it (QO328)
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/post-land-actions.e2e.test.sh
+files:
+  - tasks/T635.yml
+  - scripts/land/post-land/actions.sh
+  - scripts/land/test/post-land-actions.e2e.test.sh
+  - bugs/BUG_20261031_post-land-ignores-hand-started-suite-run.md

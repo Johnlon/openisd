@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: f4d567cf471c1be7a71883d56e7fbde9d1eac002
 goal: The phone menu reset is awaited, no source calls the deprecated notifyVentChanged/notifyPrChanged, and no Vue component copies a prop at setup
 done_test: bash scripts/test.sh packages/ui/test/hooks/MobileShell-hooks.test.ts && bash scripts/test.sh packages/ui/test/logic/ventGroup.test.ts && bash scripts/test.sh packages/design/test/architecture-no-forwards.test.ts && bash scripts/test.sh packages/design/test/domain/project-vent-solve.test.ts && bash scripts/test.sh packages/ui/test/hooks/MobileSheet-hooks.test.ts && bash scripts/test.sh packages/ui/test/hooks/OriginalFilters-hooks.test.ts && bash scripts/test.sh packages/ui/test/logic/prGroup.test.ts
 files:

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover2
 status: done
+landed: af18065be2c5ae1c5fe5316b2ac0f33e93c945d0
 goal: Loading a stored project and saving it gives the same bytes: the embedded driver holds the null GUID, uuid() is on standalone drivers only, every project has a durable id (BUG_20261013_project-driver-uuid-reminted-on-read, QO312)
 done_test: bash scripts/test.sh packages/design/test/domain/project/stored-text.test.ts packages/design/test/domain/project/project-id.test.ts packages/design/test/domain/driver-edit.test.ts packages/persistence/test/storageUpgrade.test.ts packages/persistence/test/projectRepo.test.ts packages/persistence/test/layoutSteps.test.ts packages/persistence/test/layoutMigration.test.ts packages/persistence/test/myDriverRepo.test.ts packages/ui/test/logic/projectIdNeverShared.test.ts packages/persistence/test/layoutSteps.test.ts packages/persistence/test/stampedStore.test.ts packages/persistence/test/cloud/ledgerFollowsRewrite.test.ts packages/persistence/test/cloud/forgetOnReplace.test.ts packages/persistence/test/cloud/syncEngine.test.ts
 files:
