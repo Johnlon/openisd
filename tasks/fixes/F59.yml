@@ -1,0 +1,31 @@
+id: F59
+owner: Johnlon
+status: open
+sha: cbbd0810eaee6a94bc943cc6b0ad2072a3e170f9
+tested: cbbd0810eaee6a94bc943cc6b0ad2072a3e170f9
+last_green: 0fe2a2503b5b8d4a37ad41131974a0be880bf440
+range: 0fe2a2503b5b8d4a37ad41131974a0be880bf440..cbbd0810eaee6a94bc943cc6b0ad2072a3e170f9
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-cbbd0810ea.log
+goal: main is red at cbbd0810ea; make the full suite pass again
+commits: |
+  cbbd0810ea (auto) F58: closed, the full suite is green at e366a72dc
+  e366a72dca (auto) F58: a saved skin the app does not offer is dropped; every test starts on the automatic skin, checked; manifest lists the PR Xmax bug file
+  769c0dd3b2 Merge remote-tracking branch 'origin/main' into f58fix
+  a6048a79d2 (auto) main fix: a passive radiator's Xmax is its Xmech when the record has no Xmax (QO327)
+  3b2c7dcc58 Revert "(auto) WIP QO327: separate Xmech field, superseded by c4"
+  0870dcd99f (auto) WIP QO327: separate Xmech field, superseded by c4
+  ff95d7bea9 (auto) F58: announcements spec no longer saves an invalid desktop skin on the shared page; later mobile specs saw the desktop shell
+  823e48c9aa (auto) F58: still red at 20192e8fd3
+  20192e8fd3 (auto) main fix: wizard walk spec assertions inside test steps (lint no-standalone-expect)
+  c654406b7f (auto) main fix: manifest fixture, wizard PR step baselines after the pick fix; build fix lint conditional in new-project-wizard spec
+  8f33750177 (auto) main fix: wizard walk test, both skins: every transition and every field against the bundled E150HE and E150HE-PR records
+  f06e63fa79 (auto) F58: the full suite is red at d05bd237a0
+  d05bd237a0 Merge remote-tracking branch 'origin/main' into idfix
+  c934b5c85d (auto) main fix: passive radiator pick fills Vas Qms Fs Sd Xmax again (a blank box with no value yet was treated as an emptied, refused entry and ignored the picked value)
+  8d0d3c8cb2 (auto) main fix: the 2->3 upgrade gives a non-UUID entry key a new UUID in key, text and focus; tests use real ids
+failing: |
+
+output: |
+  2026-10-31T18:04:12.415Z 1865009-1793469851-4441 actions: cbbd0810ea changes only task files; its suite result is the run on e366a72dca
+  2026-10-31T18:04:12.419Z 1865009-1793469851-4441 actions: start 2026-10-31T18:04:12Z e366a72dca (Johnlon/openisd suite.yml)
+  2026-10-31T18:14:19.651Z 1865009-1793469851-4441 actions: no suite.yml run on e366a72dca after 600s (or GitHub cannot be read); red
