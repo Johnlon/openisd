@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: a51d0508e9ad87acc1ad59637be6bac3b0230682
 goal: post-land never tests a bookkeeping-only head twice: a head whose only change since the last recorded sha is tasks/** or questions.yml inherits that record and writes no new F note; no run found on such a head is not a red
 done_test: bash scripts/quiet-test.sh bash scripts/land/test/post-land-bookkeeping-head.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/post-land.e2e.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/post-land-red-base.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/post-land-coalesce.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/post-land-queue.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/post-land-signal.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/post-land-timeout.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/post-land-actions.e2e.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/watchdog.test.sh
 gates_approved: QO321

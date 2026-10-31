@@ -117,6 +117,7 @@ export async function resetApp(page: Page, additions: TestAdditions): Promise<vo
   await dismissOverlays(page);
   await closeAllProjects(page);
   await restoreOptions(page);
+  await restoreSidebarWidth(page);
   await clearHash(page);
 }
 
@@ -196,6 +197,20 @@ async function restoreOptions(page: Page): Promise<void> {
   await modal.getByRole('button', { name: /Reset to Metric/ }).click();
   await modal.getByTestId('settings-apply').click();
   await modal.waitFor({ state: 'hidden' });
+}
+
+/** The app keeps a dragged sidebar width for the next visit, and this worker's page serves the next
+ *  test. Restores the default the way a user does: drag the splitter to the far left, where it stops
+ *  at the 200 px minimum, which is the default. The mobile skin has no splitter. */
+async function restoreSidebarWidth(page: Page): Promise<void> {
+  const splitter = page.locator('.split-v');
+  if (await splitter.count() === 0 || !(await splitter.isVisible())) return;
+  const box = (await splitter.boundingBox())!;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + box.width / 2, y);
+  await page.mouse.down();
+  await page.mouse.move(0, y, { steps: 4 });
+  await page.mouse.up();
 }
 
 async function clearHash(page: Page): Promise<void> {
