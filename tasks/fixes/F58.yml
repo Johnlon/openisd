@@ -1,6 +1,6 @@
 id: F58
-owner: Johnlon
-status: open
+owner: cover
+status: done
 sha: d05bd237a02190ea3e2c29618821be06c4d1dc36
 tested: d05bd237a02190ea3e2c29618821be06c4d1dc36
 last_green: 0fe2a2503b5b8d4a37ad41131974a0be880bf440
@@ -71,3 +71,5 @@ also_red:
     full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-20192e8fd3.log
     failing: |
     
+closed_note: |
+  Closed by cover: the full suite is green at e366a72dc (GitHub run 41225575863, started by hand on the direct push), which holds every red commit listed here. Cause and fix: bugs/BUG_20261031_announcements-spec-leaves-desktop-skin.md.
