@@ -1,0 +1,65 @@
+id: F58
+owner: Johnlon
+status: open
+sha: d05bd237a02190ea3e2c29618821be06c4d1dc36
+tested: d05bd237a02190ea3e2c29618821be06c4d1dc36
+last_green: 0fe2a2503b5b8d4a37ad41131974a0be880bf440
+range: 0fe2a2503b5b8d4a37ad41131974a0be880bf440..d05bd237a02190ea3e2c29618821be06c4d1dc36
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-d05bd237a0.log
+goal: main is red at d05bd237a0; make the full suite pass again
+commits: |
+  d05bd237a0 Merge remote-tracking branch 'origin/main' into idfix
+  c934b5c85d (auto) main fix: passive radiator pick fills Vas Qms Fs Sd Xmax again (a blank box with no value yet was treated as an emptied, refused entry and ignored the picked value)
+  8d0d3c8cb2 (auto) main fix: the 2->3 upgrade gives a non-UUID entry key a new UUID in key, text and focus; tests use real ids
+failing: |
+  unit (1): stderr | test/cloud/docs/projectDocs.test.ts > projectDocs > lists unreadable when store text is corrupt JSON
+  unit (1): stderr | test/cloud/docs/projectDocs.test.ts > projectDocs > lists unreadable when store shape is invalid
+  unit (1):      × keeps new source popups/conditional branches, docs and links from escaping the published inventory 857ms
+  unit (1): stderr | test/hooks/DiagnosticsModal-hooks.test.ts > useDiagnosticsModal > opens modal when a fault occurs
+  unit (1):  FAIL   ui  test/scripts/mobile-surface-manifest.test.ts > mobile surface manifest > keeps new source popups/conditional branches, docs and links from escaping the published inventory
+  browser (6):   ✘  200 packages/ui/test/ui/unit-label-underline.browser.spec.ts:19:3 › unit labels match the selected reference desktop wizard-box-passive-radiator-step4 (2.4s)
+  browser (1):   ✘  144 packages/ui/test/visual/visual.browser.spec.ts:10:3 › visual desktop wizard-box-passive-radiator-step4 (3.1s)
+visual: |
+  visual screens: desktop-wizard-box-passive-radiator-step4
+  visual page: http://lap:8000/winisd/visual-pages/red-d05bd237a0/index.html
+output: |
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):         - disabled all CSS animations
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       - waiting for fonts to load...
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       - fonts loaded
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       - captured a stable screenshot
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       - 1392 pixels (ratio 0.01 of all image pixels) are different.
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): 
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): 
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       13 |     // The build stamp differs on every build: it is masked, nothing else is. The font record goes with the
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       14 |     // report: a chart's labels left in the fallback font turn the picture red (bug what-if-close-curve-not-restored).
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     > 15 |     await expect(page).toHaveScreenshot(`${screen.skin.name}-${screen.name}.png`, {mask: [page.getByTestId('app-version')]}).finally(async () => {
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):          |                        ^
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       16 |       await test.info().attach('chart fonts', {body: await chartFontReport(page), contentType: 'text/plain'});
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       17 |     });
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):       18 |   });
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):         at /__w/openisd/openisd/packages/ui/test/visual/visual.browser.spec.ts:15:24
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): 
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     attachment #1: desktop-wizard-box-passive-radiator-step4 (image/png) ───────────────────────────
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     Expected: packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     Received: test-results/visual-visual.browser-visu-b9bc1--box-passive-radiator-step4/desktop-wizard-box-passive-radiator-step4-actual.png
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     Diff:     test-results/visual-visual.browser-visu-b9bc1--box-passive-radiator-step4/desktop-wizard-box-passive-radiator-step4-diff.png
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     ────────────────────────────────────────────────────────────────────────────────────────────────
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): 
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     attachment #2: chart fonts (text/plain) ────────────────────────────────────────────────────────
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     now 2769 ms, fonts.status=loaded, faces [Inter 400 loaded, Inter 400 loaded, Inter 600 loaded, Inter 700 loaded]
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     — font events
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     837 ms loading []
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     877 ms loadingdone [Inter 600 loaded, Inter 700 loaded, Inter 400 loaded, Inter 400 loaded]
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     — canvas text
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     — downloads
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     31–65 ms 600-AI2-A2X8.css
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     31–81 ms ma...
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     ────────────────────────────────────────────────────────────────────────────────────────────────
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): 
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     Error Context: test-results/visual-visual.browser-visu-b9bc1--box-passive-radiator-step4/error-context.md
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): 
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):   1 failed
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):     packages/ui/test/visual/visual.browser.spec.ts:10:3 › visual desktop wizard-box-passive-radiator-step4 
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):   172 passed (1.6m)
+  2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): ##[error]Process completed with exit code 1.
+  2026-10-31T16:46:26.311Z 1660235-1793465174-5940 actions: red at d05bd237a0: https://github.com/Johnlon/openisd/actions/runs/41220484001
