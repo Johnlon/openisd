@@ -285,6 +285,19 @@ for rec in "$PENDING"/*; do
   fi
 done
 
+# A head whose only change since the last tested sha is task bookkeeping (tasks/**, questions.yml; the F notes
+# post-land itself pushes) has nothing new to test: it takes that sha's result and writes no F commit. Without
+# this the watchdog re-tested each F note and pushed another "still red" note, every pass (QO321, 31 Oct).
+if [ -n "$tested" ] && [ "$tested" != "$SHA" ] && git merge-base --is-ancestor "$tested" "$SHA" 2>/dev/null \
+   && [ -z "$(git diff --name-only "$tested" "$SHA" -- . ':!tasks/**' ':!questions.yml')" ]; then
+  printf '%s\n' "$SHA" > "${POST_LAND_RECORD}.tested.$$" && mv -f "${POST_LAND_RECORD}.tested.$$" "${POST_LAND_RECORD}.tested"
+  if [ "$(cat "${POST_LAND_RECORD}.green" 2>/dev/null)" = "$tested" ]; then
+    printf '%s\n' "$SHA" > "${POST_LAND_RECORD}.green.$$" && mv -f "${POST_LAND_RECORD}.green.$$" "${POST_LAND_RECORD}.green"
+  fi
+  echo "post-land: ${SHA:0:10} changes only task files since ${tested:0:10}; it takes that result, nothing re-tested, no F written"
+  exit 0
+fi
+
 git worktree add -q --detach "$COPY" "$SHA" || { echo "post-land: cannot check out $SHA" >&2; exit 2; }
 printf '%s %s %s\n' "$$" "$(starttime $$)" "$SHA" > "$HOLDER"
 echo "post-land: running the full suite on ${SHA:0:10}"
