@@ -23,3 +23,11 @@ also_red:
     range: fe89dcb3603748622895e046d4ff3749b749dce6..344e9e2caa6270d8f7b0fad2601e27a09e553a88
     full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-344e9e2caa.log
     failing: |
+also_red:
+  - sha: f70ded065e1dff28c413e7caba780ab1ff51244a
+    tested: f70ded065e1dff28c413e7caba780ab1ff51244a
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..f70ded065e1dff28c413e7caba780ab1ff51244a
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-f70ded065e.log
+    failing: |
+    
