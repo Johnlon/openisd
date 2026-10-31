@@ -1014,6 +1014,16 @@ describe('useNumInput remaining paths', () => {
     app.unmount();
   });
 
+  it('a box that starts with no value and refuses blanks shows the value that arrives later, with no refusal', async () => {
+    const {api, app, props} = setup({modelValue: null, field: NumberField.BOX_VB_L, blankRefused: true});
+    expect(api.refusal.value).toBe('');
+    props.modelValue = 0.0048;
+    await nextTick();
+    expect(api.display.value).not.toBe('');
+    expect(api.refusal.value).toBe('');
+    app.unmount();
+  });
+
   it('leaves the shown text alone when the model changes under a focused box', async () => {
     const {api, app, props} = setup({modelValue: 12.3});
     focusIn(api);

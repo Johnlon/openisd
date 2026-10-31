@@ -1,12 +1,14 @@
 import {dirtyFocusedDesign, expect, openAProject, shownBoxVolume, shownDrivePower, shownFilterCount, shownProjectName, test, W5_1138SMF} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
+import {z} from 'zod';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '@openisd/design/fields';
 import {createEngine} from '@openisd/design/engine';
 import {owdrText, type SeedDriver} from '../fixtures/seedMyDrivers.js';
 
+const E150HE_PR_RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'drivers', 'dayton-audio', 'e150he-pr.json');
 const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 's-re.wdr');
 
 /**
@@ -360,6 +362,50 @@ test.describe('New Project wizard', () => {
       await expect.poll(async () => parseFloat(await page.locator('#og-pr-qms').inputValue())).toBeCloseTo(6, 3);
       await expect.poll(async () => parseFloat(await page.locator('#og-pr-fs').inputValue())).toBeCloseTo(18, 3);
     });
+
+    // bugs/BUG_20261031_pr-pick-leaves-values-blank.md: the pick filled the name and left the boxes blank.
+    test('picking the bundled E150HE-PR fills every figure the step shows from its catalogue record, and the project shows the same', async ({ appPage: page }) => {
+      const figureOf = (key: string): number => {
+        const record: unknown = JSON.parse(readFileSync(E150HE_PR_RECORD, 'utf8'));
+        const entry = z.object({specs: z.object({'passive-radiator': z.record(z.string(), z.object({value: z.unknown()}))})}).parse(record).specs['passive-radiator'][key];
+        if (entry === undefined || typeof entry.value !== 'number') throw new Error(`the catalogue record has no ${key}`);
+        return entry.value;
+      };
+      // [step box, PR page field, catalogue figure in the box's unit]: Vas in L, Sd in cm2.
+      const shown = [
+        ['#np-pr-vas', 'pr_Vas_l', figureOf('Vas_m3') * 1000],
+        ['#np-pr-qms', 'pr_Qms', figureOf('Qms')],
+        ['#np-pr-fs', 'pr_Fs_hz', figureOf('Fs_hz')],
+        ['#np-pr-sd', 'pr_Sd_cm2', figureOf('Sd_m2') * 10000],
+      ] as const;
+      expect(() => figureOf('Xmax_m'), 'the record states no Xmax, so the step leaves it blank').toThrow(/no Xmax_m/);
+
+      await page.locator('.tb-btn[title*="New project"]').click();
+      const modal = page.locator('.overlay.open');
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();                           // chooses the driver: step 2
+      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.getByLabel('Box type').selectOption('box-passive-radiator');
+      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('#np-pr-select').click();
+      await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
+      await expect(modal.locator('#np-pr-name')).toHaveValue(/E150HE-PR/);
+
+      await expect(modal.locator('#np-pr-xmax')).toHaveValue('');
+      for (const [box, , expected] of shown) {
+        await expect.poll(async () => parseFloat(await modal.locator(box).inputValue()), { message: `${box} after the pick` }).toBeCloseTo(expected, 1);
+      }
+
+      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('input[type="text"]').fill('PR picked in the wizard');
+      await modal.locator('button', { hasText: 'Create' }).click();
+      await page.locator('.project-nav li', { hasText: 'Passive Radiator' }).first().click();
+      for (const [, field, expected] of shown) {
+        const box = page.locator(`[data-field="${field}"] input`);
+        await expect.poll(async () => parseFloat(await box.inputValue()), { message: `${field} on the PR page` }).toBeCloseTo(expected, 1);
+      }
+    });
+
   });
 
   test.describe('with no project open', () => {
