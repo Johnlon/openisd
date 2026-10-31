@@ -1,0 +1,25 @@
+id: F56
+owner: Johnlon
+status: open
+sha: 7f20c7781175e86db06a6f8cc0a4b08f8937c912
+tested: 7f20c7781175e86db06a6f8cc0a4b08f8937c912
+last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+range: fe89dcb3603748622895e046d4ff3749b749dce6..7f20c7781175e86db06a6f8cc0a4b08f8937c912
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-7f20c77811.log
+goal: main is red at 7f20c77811; make the full suite pass again
+commits: |
+  7f20c77811 (auto) T618: landed 4d062c16fe
+  4d062c16fe T618: release/20261030-integrated integrated
+failing: |
+
+output: |
+  2026-10-31T02:05:33.274Z 37821-1793412323-26859 actions: 7f20c77811 changes only task files; its suite result is the run on 4d062c16fe
+  2026-10-31T02:05:33.283Z 37821-1793412323-26859 actions: start 2026-10-31T02:05:33Z 4d062c16fe (Johnlon/openisd suite.yml)
+  2026-10-31T02:15:43.959Z 37821-1793412323-26859 actions: no suite.yml run on 4d062c16fe after 600s (or GitHub cannot be read); red
+also_red:
+  - sha: 344e9e2caa6270d8f7b0fad2601e27a09e553a88
+    tested: 344e9e2caa6270d8f7b0fad2601e27a09e553a88
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..344e9e2caa6270d8f7b0fad2601e27a09e553a88
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-344e9e2caa.log
+    failing: |
