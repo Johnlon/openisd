@@ -63,3 +63,11 @@ output: |
   2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1):   172 passed (1.6m)
   2026-10-31T16:46:24.515Z 1660235-1793465174-5940 browser (1): ##[error]Process completed with exit code 1.
   2026-10-31T16:46:26.311Z 1660235-1793465174-5940 actions: red at d05bd237a0: https://github.com/Johnlon/openisd/actions/runs/41220484001
+also_red:
+  - sha: 20192e8fd3b809ddb9b09a4313879d3fc0cbc6c8
+    tested: 20192e8fd3b809ddb9b09a4313879d3fc0cbc6c8
+    last_green: 0fe2a2503b5b8d4a37ad41131974a0be880bf440
+    range: 0fe2a2503b5b8d4a37ad41131974a0be880bf440..20192e8fd3b809ddb9b09a4313879d3fc0cbc6c8
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-20192e8fd3.log
+    failing: |
+    
