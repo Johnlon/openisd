@@ -18,7 +18,7 @@ async function feed(page: import('@playwright/test').Page, items: readonly objec
 }
 
 async function start(page: import('@playwright/test').Page): Promise<void> {
-  await page.evaluate(() => localStorage.setItem('openisd_view', JSON.stringify({ui: {splashSeen: true, skinOverride: 'desktop'}})));
+  await page.evaluate(() => localStorage.setItem('openisd_view', JSON.stringify({ui: {splashSeen: true}})));
   await page.reload();
   await expect(page.getByRole('dialog')).toBeVisible();
 }
