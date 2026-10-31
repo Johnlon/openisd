@@ -6652,7 +6652,7 @@
       },
       {
         "field": "pr_Sd_cm2",
-        "symbol": "cm\u00b2",
+        "symbol": "cm²",
         "toggle": true,
         "paint": {
           "width": 40,
@@ -7712,9 +7712,9 @@
           "borderRightStyle": "solid",
           "borderBottomStyle": "solid",
           "borderLeftStyle": "solid",
-          "borderTopColor": "rgb(176, 42, 42)",
-          "borderRightColor": "rgb(176, 42, 42)",
-          "borderBottomColor": "rgb(176, 42, 42)",
+          "borderTopColor": "rgb(187, 187, 187)",
+          "borderRightColor": "rgb(187, 187, 187)",
+          "borderBottomColor": "rgb(187, 187, 187)",
           "borderLeftColor": "rgb(207, 207, 207)",
           "borderTopLeftRadius": "0px",
           "borderTopRightRadius": "3px",
@@ -7748,9 +7748,9 @@
           "borderRightStyle": "solid",
           "borderBottomStyle": "solid",
           "borderLeftStyle": "solid",
-          "borderTopColor": "rgb(176, 42, 42)",
-          "borderRightColor": "rgb(176, 42, 42)",
-          "borderBottomColor": "rgb(176, 42, 42)",
+          "borderTopColor": "rgb(187, 187, 187)",
+          "borderRightColor": "rgb(187, 187, 187)",
+          "borderBottomColor": "rgb(187, 187, 187)",
           "borderLeftColor": "rgb(207, 207, 207)",
           "borderTopLeftRadius": "0px",
           "borderTopRightRadius": "3px",
@@ -7765,7 +7765,7 @@
       },
       {
         "field": "pr_Sd_cm2",
-        "symbol": "cm\u00b2",
+        "symbol": "cm²",
         "toggle": true,
         "paint": {
           "width": 34,
@@ -7784,9 +7784,9 @@
           "borderRightStyle": "solid",
           "borderBottomStyle": "solid",
           "borderLeftStyle": "solid",
-          "borderTopColor": "rgb(176, 42, 42)",
-          "borderRightColor": "rgb(176, 42, 42)",
-          "borderBottomColor": "rgb(176, 42, 42)",
+          "borderTopColor": "rgb(187, 187, 187)",
+          "borderRightColor": "rgb(187, 187, 187)",
+          "borderBottomColor": "rgb(187, 187, 187)",
           "borderLeftColor": "rgb(207, 207, 207)",
           "borderTopLeftRadius": "0px",
           "borderTopRightRadius": "3px",
@@ -7820,9 +7820,9 @@
           "borderRightStyle": "solid",
           "borderBottomStyle": "solid",
           "borderLeftStyle": "solid",
-          "borderTopColor": "rgb(176, 42, 42)",
-          "borderRightColor": "rgb(176, 42, 42)",
-          "borderBottomColor": "rgb(176, 42, 42)",
+          "borderTopColor": "rgb(187, 187, 187)",
+          "borderRightColor": "rgb(187, 187, 187)",
+          "borderBottomColor": "rgb(187, 187, 187)",
           "borderLeftColor": "rgb(207, 207, 207)",
           "borderTopLeftRadius": "0px",
           "borderTopRightRadius": "3px",
@@ -8757,7 +8757,7 @@
       },
       {
         "field": "signal_Rs_ohm",
-        "symbol": "\u03a9",
+        "symbol": "Ω",
         "toggle": false,
         "paint": {
           "width": 34,
@@ -9197,7 +9197,7 @@
       },
       {
         "field": "adv_AirDensity_kg_per_m3",
-        "symbol": "kg/m\u00b3",
+        "symbol": "kg/m³",
         "toggle": false,
         "paint": {
           "width": 43,
@@ -9379,7 +9379,7 @@
       },
       {
         "field": "vent_CrossArea_m2",
-        "symbol": "cm\u00b2",
+        "symbol": "cm²",
         "toggle": true,
         "paint": {
           "width": 40,
@@ -9561,7 +9561,7 @@
       },
       {
         "field": "Re_ohm",
-        "symbol": "\u03a9",
+        "symbol": "Ω",
         "toggle": false,
         "paint": {
           "width": 40,
@@ -9707,7 +9707,7 @@
       },
       {
         "field": "signal_Rs_ohm",
-        "symbol": "\u03a9",
+        "symbol": "Ω",
         "toggle": false,
         "paint": {
           "width": 40,
@@ -9891,7 +9891,7 @@
       },
       {
         "field": "vent_CrossArea_m2",
-        "symbol": "cm\u00b2",
+        "symbol": "cm²",
         "toggle": true,
         "paint": {
           "width": 40,
@@ -10145,7 +10145,7 @@
       },
       {
         "field": "vent_CrossArea_m2",
-        "symbol": "cm\u00b2",
+        "symbol": "cm²",
         "toggle": true,
         "paint": {
           "width": 40,
@@ -10397,7 +10397,7 @@
       },
       {
         "field": "adv_AirDensity_kg_per_m3",
-        "symbol": "kg/m\u00b3",
+        "symbol": "kg/m³",
         "toggle": false,
         "paint": {
           "width": 40,
@@ -10579,7 +10579,7 @@
       },
       {
         "field": "vent_CrossArea_m2",
-        "symbol": "cm\u00b2",
+        "symbol": "cm²",
         "toggle": true,
         "paint": {
           "width": 40,

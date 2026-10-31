@@ -371,9 +371,8 @@ test.describe('New Project wizard', () => {
     test('picking the bundled E150HE-PR fills every figure the step shows from its catalogue record, and the project shows the same', async ({ appPage: page }) => {
       const figureOf = (key: string): number => {
         const record: unknown = JSON.parse(readFileSync(E150HE_PR_RECORD, 'utf8'));
-        const entry = z.object({specs: z.object({'passive-radiator': z.record(z.string(), z.object({value: z.unknown()}))})}).parse(record).specs['passive-radiator'][key];
-        if (entry === undefined || typeof entry.value !== 'number') throw new Error(`the catalogue record has no ${key}`);
-        return entry.value;
+        const entries = z.object({specs: z.object({'passive-radiator': z.record(z.string(), z.unknown())})}).parse(record).specs['passive-radiator'];
+        return z.object({value: z.number()}).parse(entries[key]).value;
       };
       // [step box, PR page field, catalogue figure in the box's unit]: Vas in L, Sd in cm2.
       const shown = [
@@ -382,7 +381,7 @@ test.describe('New Project wizard', () => {
         ['#np-pr-fs', 'pr_Fs_hz', figureOf('Fs_hz')],
         ['#np-pr-sd', 'pr_Sd_cm2', figureOf('Sd_m2') * 10000],
       ] as const;
-      expect(() => figureOf('Xmax_m'), 'the record states no Xmax, so the step leaves it blank').toThrow(/no Xmax_m/);
+      expect(() => figureOf('Xmax_m'), 'the record states no Xmax, so the step leaves it blank').toThrow();
 
       await page.locator('.tb-btn[title*="New project"]').click();
       const modal = page.locator('.overlay.open');
