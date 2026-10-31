@@ -165,13 +165,57 @@ function desktopSuitabilityLabel(suitability: EbpSuitability): string {
   }
 }
 
+async function desktopOpen(page: Page): Promise<void> {
+  await page.locator('.tb-btn[title*="New project"]').click();
+  await expect(page.locator('.overlay.open')).toBeVisible();
+}
+
+async function desktopExpectBanner(page: Page, driver: CatalogueRecord, line: BannerLine): Promise<void> {
+  const banner = page.locator('.overlay.open .selected-driver-banner');
+  await expect(banner.locator('.banner-value')).toHaveText(`${driver.brand} ${driver.model}`);
+  // The desktop banner always carries the driver's figures; the box and EBP lines are the phone's.
+  if (line.kind === 'figures') await expect.soft(banner.locator('.driver-specs-preview span')).toHaveText(driverFigureLines(driver));
+}
+
+async function desktopExpectEbp(page: Page, ebpText: string, suitability: EbpSuitability): Promise<void> {
+  const root = page.locator('.overlay.open');
+  await expect.soft(root.locator('.ebp-row')).toHaveText(`Efficiency Bandwidth Product (EBP): ${ebpText}`);
+  await expect.soft(root.locator('.suitability-badge')).toHaveText(desktopSuitabilityLabel(suitability));
+}
+
+async function desktopExpectDriverTab(page: Page, driver: CatalogueRecord, step2: Step2Values): Promise<void> {
+  await openTab(page, 'Driver');
+  const tab = page.locator('.tab-section.active');
+  await expect.soft(tab.locator('.driver-id-row input').first(), 'Brand').toHaveValue(driver.brand);
+  await expect.soft(tab.locator('.driver-model-field input'), 'Model').toHaveValue(driver.model);
+  await expect.soft(tab.locator('.field', {hasText: 'Num. of drivers'}).locator('select'), 'Num. of drivers').toHaveValue(step2.nDrivers);
+  await expect.soft(tab.locator('.field', {hasText: 'Voice coil connection'}).locator('select'), 'Voice coil connection').toHaveValue(step2.wiring);
+  await expect.soft(tab.locator('input[type=radio][value=standard]'), 'Placement Standard').toBeChecked();
+  for (const advanced of [NumberField.DRIVER_VCTEMPRISE_K, NumberField.DRIVER_ADDEDMASS_G, NumberField.ALFAVC_PER_K]) {
+    await expect.soft(tab.locator('.driver-advanced-fields .field', {hasText: advanced.label}).locator('input').first(), advanced.label).toHaveValue(/\d/);
+  }
+  // The driver's figures: the Driver tab's Edit opens the editor, whose Parameters tab states them all.
+  await openDriverEditor(page);
+  await editorTab(page, 'Parameters');
+  for (const f of EDITOR_FIGURES) {
+    // The editor keeps a record's own digits (Dd 109.998), where the formatter rounds to the field's precision (110.00):
+    // the figure must agree to that precision.
+    const box = page.locator(`.de-body [data-field-key="${f.key}"] input`).first();
+    await expect(box, `driver editor ${f.label} has a value`).toHaveValue(/\d/);
+    expect.soft(Number(await box.inputValue()), `driver editor ${f.label}`).toBeCloseTo(Number(f.field.format(required(driver, f.key))), 2);
+  }
+  await page.locator('.de-footer button', {hasText: 'Cancel'}).click();
+  await page.locator('.de-body').waitFor({state: 'hidden'});
+}
+
+async function desktopReadRadiator(page: Page): ReturnType<typeof readPassiveRadiatorTab> {
+  return readPassiveRadiatorTab(page);
+}
+
 const DESKTOP: Skin = {
   name: 'desktop (Original)',
   buttons: {back: 'Back', next: 'Next', create: 'Create', cancel: 'Cancel'},
-  async open(page) {
-    await page.locator('.tb-btn[title*="New project"]').click();
-    await expect(page.locator('.overlay.open')).toBeVisible();
-  },
+  open: desktopOpen,
   root: page => page.locator('.overlay.open'),
   footer: page => page.locator('.overlay.open .modal-footer'),
   headingText(step) {
@@ -179,94 +223,70 @@ const DESKTOP: Skin = {
     return `Step ${plan.numberOf(step)} of ${plan.total} — ${plan.labelOf(step)}`;
   },
   nameBox: page => page.locator('.overlay.open #np-project-name'),
-  async expectBanner(page, driver, line) {
-    const banner = page.locator('.overlay.open .selected-driver-banner');
-    await expect(banner.locator('.banner-value')).toHaveText(`${driver.brand} ${driver.model}`);
-    // The desktop banner always carries the driver's figures; the box and EBP lines are the phone's.
-    if (line.kind === 'figures') await expect.soft(banner.locator('.driver-specs-preview span')).toHaveText(driverFigureLines(driver));
-  },
-  async expectEbp(page, ebpText, suitability) {
-    const root = page.locator('.overlay.open');
-    await expect.soft(root.locator('.ebp-row')).toHaveText(`Efficiency Bandwidth Product (EBP): ${ebpText}`);
-    await expect.soft(root.locator('.suitability-badge')).toHaveText(desktopSuitabilityLabel(suitability));
-  },
-  async expectDriverTab(page, driver, step2) {
-    await openTab(page, 'Driver');
-    const tab = page.locator('.tab-section.active');
-    await expect.soft(tab.locator('.driver-id-row input').first(), 'Brand').toHaveValue(driver.brand);
-    await expect.soft(tab.locator('.driver-model-field input'), 'Model').toHaveValue(driver.model);
-    await expect.soft(tab.locator('.field', {hasText: 'Num. of drivers'}).locator('select'), 'Num. of drivers').toHaveValue(step2.nDrivers);
-    await expect.soft(tab.locator('.field', {hasText: 'Voice coil connection'}).locator('select'), 'Voice coil connection').toHaveValue(step2.wiring);
-    await expect.soft(tab.locator('input[type=radio][value=standard]'), 'Placement Standard').toBeChecked();
-    for (const advanced of [NumberField.DRIVER_VCTEMPRISE_K, NumberField.DRIVER_ADDEDMASS_G, NumberField.ALFAVC_PER_K]) {
-      await expect.soft(tab.locator('.driver-advanced-fields .field', {hasText: advanced.label}).locator('input').first(), advanced.label).toHaveValue(/\d/);
-    }
-    // The driver's figures: the Driver tab's Edit opens the editor, whose Parameters tab states them all.
-    await openDriverEditor(page);
-    await editorTab(page, 'Parameters');
-    for (const f of EDITOR_FIGURES) {
-      // The editor keeps a record's own digits (Dd 109.998), where the formatter rounds to the field's precision (110.00):
-      // the figure must agree to that precision.
-      const box = page.locator(`.de-body [data-field-key="${f.key}"] input`).first();
-      await expect(box, `driver editor ${f.label} has a value`).toHaveValue(/\d/);
-      expect.soft(Number(await box.inputValue()), `driver editor ${f.label}`).toBeCloseTo(Number(f.field.format(required(driver, f.key))), 2);
-    }
-    await page.locator('.de-footer button', {hasText: 'Cancel'}).click();
-    await page.locator('.de-body').waitFor({state: 'hidden'});
-  },
-  async readRadiator(page) {
-    return readPassiveRadiatorTab(page);
-  },
+  expectBanner: desktopExpectBanner,
+  expectEbp: desktopExpectEbp,
+  expectDriverTab: desktopExpectDriverTab,
+  readRadiator: desktopReadRadiator,
 };
+
+async function phoneOpen(page: Page): Promise<void> {
+  await page.getByText('New project').click();
+  await expect(page.locator('.mob-np-overlay')).toBeVisible();
+}
+
+async function phoneExpectBanner(page: Page, driver: CatalogueRecord, line: BannerLine): Promise<void> {
+  const banner = page.locator('.mob-np-banner');
+  await expect(banner.locator('.mob-np-banner-name')).toHaveText(`${driver.brand} ${driver.model}`);
+  const sub = banner.locator('.mob-np-banner-sub');
+  switch (line.kind) {
+    case 'figures':
+      await expect.soft(sub).toHaveText(PhoneWizardText.driverFigures(driverFigureLines(driver)));
+      break;
+    case 'ebp':
+      await expect.soft(sub).toHaveText(PhoneWizardText.ebpLine(line.ebpText, PhoneWizardText.ebpBadge(line.suitability)));
+      break;
+    case 'box':
+      await expect.soft(sub).toHaveText(PhoneWizardText.boxAndDrivers(line.boxLabel, line.nDrivers));
+      break;
+  }
+}
+
+async function phoneExpectEbp(page: Page, ebpText: string, suitability: EbpSuitability): Promise<void> {
+  const root = page.locator('.mob-np-overlay');
+  await expect.soft(root.locator('.mob-np-ebp-val')).toHaveText(`${PhoneWizardText.EBP_LABEL}: ${ebpText}`);
+  await expect.soft(root.locator('.mob-np-ebp-formula')).toHaveText(PhoneWizardText.EBP_FORMULA);
+  await expect.soft(root.locator('.mob-np-ebp-badge')).toHaveText(PhoneWizardText.ebpBadge(suitability)?.label ?? '');
+}
+
+async function phoneExpectDriverTab(page: Page, driver: CatalogueRecord, step2: Step2Values): Promise<void> {
+  await openTab(page, 'Driver');
+  await expect.soft(page.locator('.mob-cname-button'), 'Brand and model').toHaveText(`${driver.brand} ${driver.model}`);
+  await expect.soft(page.locator('#mob-n-drivers'), 'Drivers').toHaveValue(step2.nDrivers);
+  await expect.soft(page.locator('#mob-wiring'), 'Connection').toHaveValue(step2.wiring);
+  // The phone's Driver tab states five key figures.
+  for (const f of PREVIEW_FIGURES.filter(p => ['Fs', 'Qts', 'Vas', 'Re', 'Xmax'].includes(p.label))) {
+    const expected = f.field.format(required(driver, f.key));
+    await expect.soft(mobileFieldRow(page, f.label).locator('input').first(), `driver key figure ${f.label}`).toHaveValue(expected);
+  }
+}
+
+async function phoneReadRadiator(page: Page): ReturnType<typeof readPassiveRadiatorTab> {
+  await openTab(page, 'Box');
+  return readPassiveRadiatorTab(page);
+}
 
 const PHONE: Skin = {
   name: 'phone (mobile, 374x705)',
   buttons: {back: PhoneWizardText.BACK, next: PhoneWizardText.NEXT, create: PhoneWizardText.CREATE, cancel: PhoneWizardText.CANCEL},
-  async open(page) {
-    await page.getByText('New project').click();
-    await expect(page.locator('.mob-np-overlay')).toBeVisible();
-  },
+  open: phoneOpen,
   root: page => page.locator('.mob-np-overlay'),
   footer: page => page.locator('.mob-np-footer'),
   headingText: step => WizardPlan.of(BOX_TYPE).labelOf(step),
   nameBox: page => page.locator('.mob-np-overlay #np-proj-name'),
-  async expectBanner(page, driver, line) {
-    const banner = page.locator('.mob-np-banner');
-    await expect(banner.locator('.mob-np-banner-name')).toHaveText(`${driver.brand} ${driver.model}`);
-    const sub = banner.locator('.mob-np-banner-sub');
-    switch (line.kind) {
-      case 'figures':
-        await expect.soft(sub).toHaveText(PhoneWizardText.driverFigures(driverFigureLines(driver)));
-        break;
-      case 'ebp':
-        await expect.soft(sub).toHaveText(PhoneWizardText.ebpLine(line.ebpText, PhoneWizardText.ebpBadge(line.suitability)));
-        break;
-      case 'box':
-        await expect.soft(sub).toHaveText(PhoneWizardText.boxAndDrivers(line.boxLabel, line.nDrivers));
-        break;
-    }
-  },
-  async expectEbp(page, ebpText, suitability) {
-    const root = page.locator('.mob-np-overlay');
-    await expect.soft(root.locator('.mob-np-ebp-val')).toHaveText(`${PhoneWizardText.EBP_LABEL}: ${ebpText}`);
-    await expect.soft(root.locator('.mob-np-ebp-formula')).toHaveText(PhoneWizardText.EBP_FORMULA);
-    await expect.soft(root.locator('.mob-np-ebp-badge')).toHaveText(PhoneWizardText.ebpBadge(suitability)?.label ?? '');
-  },
-  async expectDriverTab(page, driver, step2) {
-    await openTab(page, 'Driver');
-    await expect.soft(page.locator('.mob-cname-button'), 'Brand and model').toHaveText(`${driver.brand} ${driver.model}`);
-    await expect.soft(page.locator('#mob-n-drivers'), 'Drivers').toHaveValue(step2.nDrivers);
-    await expect.soft(page.locator('#mob-wiring'), 'Connection').toHaveValue(step2.wiring);
-    // The phone's Driver tab states five key figures.
-    for (const f of PREVIEW_FIGURES.filter(p => ['Fs', 'Qts', 'Vas', 'Re', 'Xmax'].includes(p.label))) {
-      const expected = f.field.format(required(driver, f.key));
-      await expect.soft(mobileFieldRow(page, f.label).locator('input').first(), `driver key figure ${f.label}`).toHaveValue(expected);
-    }
-  },
-  async readRadiator(page) {
-    await openTab(page, 'Box');
-    return readPassiveRadiatorTab(page);
-  },
+  expectBanner: phoneExpectBanner,
+  expectEbp: phoneExpectEbp,
+  expectDriverTab: phoneExpectDriverTab,
+  readRadiator: phoneReadRadiator,
 };
 
 // ---------------------------------------------------------------------------------------------------------
@@ -359,7 +379,7 @@ async function walk(page: Page, skin: Skin): Promise<void> {
   const boxSelect = root.locator('#np-box-type');
   await expect.soft(boxSelect, 'Box type default').toHaveValue('sealed');
   const offered: BoxType[] = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'];
-  expect.soft((await boxSelect.locator('option').evaluateAll(os => os.map(o => (o as HTMLOptionElement).value))).sort(), 'Box types offered').toEqual([...offered].sort());
+  expect.soft((await boxSelect.locator('option').evaluateAll(os => os.map(o => (o instanceof HTMLOptionElement ? o.value : "")))).sort(), 'Box types offered').toEqual([...offered].sort());
   await skin.expectEbp(page, ebpText, suitability);
 
   // Back goes to step 2 with its choices kept, and Next comes forward again.

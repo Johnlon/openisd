@@ -380,6 +380,8 @@ export default [
       ...pluginPlaywright.configs['flat/recommended'].rules,
       'playwright/no-page-pause': 'error',
       'playwright/no-wait-for-timeout': 'error',
+      // The wizard walk spec keeps every assertion in its `walk` helper, which each test calls.
+      'playwright/expect-expect': ['warn', {assertFunctionNames: ['walk']}],
       ...noUnusedVars,
       // ── The fixture is mandatory, and this is what makes it unbypassable ──────
       // AGENTS.md §"Two suites, both required": every *.browser.spec.ts must take
