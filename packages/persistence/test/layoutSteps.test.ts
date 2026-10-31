@@ -40,13 +40,25 @@ describe('layout step 2 to 3, texts the strict read refuses', () => {
   it('gives a refused open-session text and a quarantined text their entry id, keeping the content', () => {
     const step = createLayoutSteps(createEngine(), () => 'unused').find(s => s.from === 2);
     assert.ok(step !== undefined);
-    const bucket = JSON.stringify({entries: [{id: 'e-1', text: '{"label":"bad","saved":{"nope":1}}'}], focusedId: 'e-1'});
+    const id = '6f1c2a3b-4d5e-4f60-8a71-b2c3d4e5f607';
+    const bucket = JSON.stringify({entries: [{id, text: '{"label":"bad","saved":{"nope":1}}'}], focusedId: id});
 
     const out = step.migrate({[OPENISD_OPEN_SESSIONS_KEY]: bucket, [OPENISD_QUARANTINE_SESSION_KEY]: bucket});
 
     for (const key of [OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY]) {
-      assert.equal(out[key], JSON.stringify({entries: [{id: 'e-1', text: '{"id":"e-1","label":"bad","saved":{"nope":1}}'}], focusedId: 'e-1'}));
+      assert.equal(out[key], JSON.stringify({entries: [{id, text: `{"id":"${id}","label":"bad","saved":{"nope":1}}`}], focusedId: id}));
     }
+  });
+
+  it('replaces an entry key that is not a UUID with a new id, in the key, the text and the focus alike', () => {
+    const minted = '0a1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d';
+    const step = createLayoutSteps(createEngine(), () => minted).find(s => s.from === 2);
+    assert.ok(step !== undefined);
+    const bucket = JSON.stringify({entries: [{id: 'a', text: '{}'}], focusedId: 'a'});
+
+    const out = step.migrate({[OPENISD_OPEN_SESSIONS_KEY]: bucket});
+
+    assert.equal(out[OPENISD_OPEN_SESSIONS_KEY], JSON.stringify({entries: [{id: minted, text: `{"id":"${minted}"}`}], focusedId: minted}));
   });
 });
 

@@ -47,20 +47,32 @@ const STEP_1_TO_2: LayoutStep = {
   migrateFile: (file: FileJson): FileJson => file,
 };
 
-/** `entry` (`{id, text, ...}`) with its project text carrying the entry's id as the project id. */
-function entryWithProjectId(entry: unknown, engine: Engine): unknown {
+/** A project id this app writes: a UUID. Every build since July 2026 keys entries this way. */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** `entry` (`{id, text, ...}`) with its project text carrying `id` as the project id, and `id` as its key. */
+function entryWithProjectId(entry: unknown, id: string, engine: Engine): unknown {
   if (!isRecord(entry) || typeof entry.id !== 'string' || typeof entry.text !== 'string') return entry;
-  const text = OpenISDProject.textWithId(entry.text, entry.id, engine);
-  return text === null ? entry : {...entry, text};
+  const text = OpenISDProject.textWithId(entry.text, id, engine);
+  return text === null ? entry : {...entry, id, text};
 }
 
 /** The bucket text `value` (`{entries: [...]}` plus any other fields) with every entry's project
  *  text carrying its entry id; a text that is not a readable bucket stays exactly as it is. */
-function bucketWithProjectIds(value: string | undefined, engine: Engine): string | undefined {
+function bucketWithProjectIds(value: string | undefined, engine: Engine, newId: () => string): string | undefined {
   if (value === undefined) return undefined;
   const bucket = parsed(value);
   if (!isRecord(bucket) || !isUnknownArray(bucket.entries)) return value;
-  return JSON.stringify({...bucket, entries: bucket.entries.map(entry => entryWithProjectId(entry, engine))});
+  // A key that is not a UUID (hand-made or damaged data) is replaced by a new one, in the key and the text alike.
+  const renamed = new Map<string, string>();
+  const entries = bucket.entries.map(entry => {
+    if (!isRecord(entry) || typeof entry.id !== 'string') return entry;
+    const id = UUID_PATTERN.test(entry.id) ? entry.id : (renamed.get(entry.id) ?? newId());
+    if (id !== entry.id) renamed.set(entry.id, id);
+    return entryWithProjectId(entry, id, engine);
+  });
+  const focusedId = typeof bucket.focusedId === 'string' ? renamed.get(bucket.focusedId) : undefined;
+  return JSON.stringify({...bucket, entries, ...(focusedId === undefined ? {} : {focusedId})});
 }
 
 /** The id of the saved project entry whose text is `text`, or a new id from `newId` when no saved
@@ -83,11 +95,11 @@ function stepTwoToThree(engine: Engine, newId: () => string): LayoutStep {
     from: 2,
     migrate(data: StoreData): StoreData {
       const next: Record<string, string> = {...data};
-      const saved = bucketWithProjectIds(data[OPENISD_PROJECTS_KEY], engine);
+      const saved = bucketWithProjectIds(data[OPENISD_PROJECTS_KEY], engine, newId);
       if (saved !== undefined) next[OPENISD_PROJECTS_KEY] = saved;
-      const open = bucketWithProjectIds(data[OPENISD_OPEN_SESSIONS_KEY], engine);
+      const open = bucketWithProjectIds(data[OPENISD_OPEN_SESSIONS_KEY], engine, newId);
       if (open !== undefined) next[OPENISD_OPEN_SESSIONS_KEY] = open;
-      const quarantined = bucketWithProjectIds(data[OPENISD_QUARANTINE_SESSION_KEY], engine);
+      const quarantined = bucketWithProjectIds(data[OPENISD_QUARANTINE_SESSION_KEY], engine, newId);
       if (quarantined !== undefined) next[OPENISD_QUARANTINE_SESSION_KEY] = quarantined;
       const autosave = data[OPENISD_STATE_KEY];
       if (autosave !== undefined) {
