@@ -67,6 +67,8 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   let pointerEntering = false;
   const groupFocused = ref(false);
   const badEntry = ref(false);
+  /** The person emptied the box (a typed blank), as opposed to a box that never had a value. */
+  const emptied = ref(false);
   const entryValue = ref<number | null | undefined>(props.modelValue);
   const display = ref(fmt(props.modelValue));
 
@@ -119,6 +121,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     underlineIndex.value = null;
     if (refusal.value !== '') return;   // a refused entry stays as typed until fixed or Esc
     badEntry.value = false;
+    emptied.value = false;
     entryValue.value = props.modelValue;
     // Switch to unformatted string so toPrecision doesn't fight the user's keystrokes
     display.value = fmt(props.modelValue);
@@ -360,6 +363,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
         e.preventDefault();
         e.stopPropagation();
         badEntry.value = false;
+        emptied.value = false;
         display.value = fmt(props.modelValue);
         if (e.target instanceof HTMLInputElement) e.target.value = display.value;
         return;
@@ -656,9 +660,11 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     rememberCaret();
     if (t.value === '') {
       badEntry.value = false;
+      emptied.value = true;
       emit('update:modelValue', null);
       return;
     }
+    emptied.value = false;
     badEntry.value = !NUMBER_TEXT.test(t.value);
     const v = numberOf(t.value);
     badEntry.value = badEntry.value || !isFinite(v);   // a lone "-" or "." is not a number yet, and says so
@@ -693,6 +699,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
       return;
     }
     badEntry.value = false;
+    emptied.value = false;
     display.value = fmt(props.modelValue);
     const t = inputEl.value;
     if (t === null) return;
@@ -707,7 +714,8 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   const refusal = computed<string>(() => {
     if (props.allowOutOfRange) return '';
     if (badEntry.value) return entryRefusal(bounds.value, { kind: 'not-a-number' });
-    if (display.value === '' && props.blankRefused) return entryRefusal(bounds.value, { kind: 'not-a-number' });
+    // Refused only when the person emptied the box. A box that never had a value is just unset, so a value that arrives later still shows.
+    if (emptied.value && props.blankRefused) return entryRefusal(bounds.value, { kind: 'not-a-number' });
     if (display.value === '' || !isFinite(numberOf(display.value))) return '';
     if (display.value === fmt(props.modelValue)) return '';
     return entryRefusal(bounds.value, { kind: 'number', si: fromDisp(numberOf(display.value)) });
