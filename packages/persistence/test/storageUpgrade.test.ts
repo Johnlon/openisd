@@ -29,7 +29,7 @@ const BUILD = createBuildStamp('v20260301T040506Z');
 const cases = storeCases();
 
 function open(storage: ListableStorage) {
-  return createStoreOpening(storage, {build: BUILD, now: () => FIXED_NOW_MS, rules: APP_RULES, memoryStorage: createMemoryStorage}, () => undefined);
+  return createStoreOpening(storage, {build: BUILD, now: () => FIXED_NOW_MS, rules: APP_RULES, memoryStorage: createMemoryStorage, projectRewritten: () => undefined}, () => undefined);
 }
 
 function ready(storage: ListableStorage) {

@@ -4,9 +4,10 @@ repo: openisd
 owner: cover2
 status: done
 goal: Loading a stored project and saving it gives the same bytes: the embedded driver holds the null GUID, uuid() is on standalone drivers only, every project has a durable id (BUG_20261013_project-driver-uuid-reminted-on-read, QO312)
-done_test: bash scripts/test.sh packages/design/test/domain/project/stored-text.test.ts packages/design/test/domain/project/project-id.test.ts packages/design/test/domain/driver-edit.test.ts packages/persistence/test/storageUpgrade.test.ts packages/persistence/test/projectRepo.test.ts packages/persistence/test/layoutSteps.test.ts packages/persistence/test/layoutMigration.test.ts packages/persistence/test/myDriverRepo.test.ts packages/ui/test/logic/projectIdNeverShared.test.ts
+done_test: bash scripts/test.sh packages/design/test/domain/project/stored-text.test.ts packages/design/test/domain/project/project-id.test.ts packages/design/test/domain/driver-edit.test.ts packages/persistence/test/storageUpgrade.test.ts packages/persistence/test/projectRepo.test.ts packages/persistence/test/layoutSteps.test.ts packages/persistence/test/layoutMigration.test.ts packages/persistence/test/myDriverRepo.test.ts packages/ui/test/logic/projectIdNeverShared.test.ts packages/persistence/test/cloud/syncEngine.test.ts
 files:
   - bugs/BUG_20261013_project-driver-uuid-reminted-on-read.md
+  - bugs/BUG_20261031_layout-upgrade-makes-conflict-copies.md
   - packages/design/domain/driver/openISDDriver.ts
   - packages/design/domain/driver/openISDDriverEmbedded.ts
   - packages/design/domain/driverRecordConverter.ts
@@ -26,16 +27,21 @@ files:
   - packages/design/test/domain/project/slim-driver.test.ts
   - packages/design/test/domain/project/stored-text.test.ts
   - packages/design/test/domain/retired-loss-mode.test.ts
+  - packages/persistence/src/cloud/syncEngine.ts
   - packages/persistence/src/index.ts
   - packages/persistence/src/repos/bundledDriverRepo.ts
   - packages/persistence/src/repos/layoutMigration.ts
   - packages/persistence/src/repos/layoutSteps.ts
   - packages/persistence/src/repos/myDriverRepo.ts
   - packages/persistence/src/repos/projectRepo.ts
+  - packages/persistence/src/repos/storeGate.ts
   - packages/persistence/src/storageLayout.ts
   - packages/persistence/test/cloud/docs/projectDocs.test.ts
   - packages/persistence/test/cloud/docs/savedEntryDocs.test.ts
   - packages/persistence/test/cloud/docs/singletonDocs.test.ts
+  - packages/persistence/test/cloud/forgetOnReplace.test.ts
+  - packages/persistence/test/cloud/syncEngine.test.ts
+  - packages/persistence/test/destructivePaths.test.ts
   - packages/persistence/test/fixtures/repoOn.ts
   - packages/persistence/test/fixtures/savedRecords.ts
   - packages/persistence/test/fixtures/storeSummary.ts
@@ -53,6 +59,7 @@ files:
   - packages/persistence/test/myDriverRepo.test.ts
   - packages/persistence/test/projectRepo.test.ts
   - packages/persistence/test/storageUpgrade.test.ts
+  - packages/persistence/test/storeGate.test.ts
   - packages/ui/coverage-baseline.json
   - packages/ui/src/hooks/DriverEditorModal-hooks.ts
   - packages/ui/src/logic/appState.ts
@@ -78,6 +85,7 @@ files:
   - packages/ui/test/logic/projectOpenTelemetry.test.ts
   - packages/ui/test/logic/searchSubject.test.ts
   - packages/ui/test/logic/storeGate.test.ts
+  - packages/ui/test/ui/cloud-layout-upgrade.browser.spec.ts
   - packages/ui/test/ui/cloudSync.mobile.browser.spec.ts
   - packages/ui/test/ui/cloudSyncDialog.browser.spec.ts
   - packages/ui/test/ui/fixtures/cloudSyncStubs.ts

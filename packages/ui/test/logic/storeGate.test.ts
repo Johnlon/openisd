@@ -20,7 +20,7 @@ function blockedOpening() {
     }),
   });
   const opening: StoreOpening = createStoreOpening(storage, {
-    build: BUILD, now: () => NOW, rules: {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')}, memoryStorage: createMemoryStorage,
+    build: BUILD, now: () => NOW, rules: {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')}, memoryStorage: createMemoryStorage, projectRewritten: () => undefined,
   }, () => undefined);
   if (opening.kind === 'ready') throw new Error('expected the newer store to be refused');
   return {storage, opening};

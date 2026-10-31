@@ -377,6 +377,38 @@ describe('SyncEngine — Drive sync plan P1-10 (sections 5.1–5.5)', () => {
       expect(cloudFile?.meta.layout).toBe(3);
     });
 
+    it('a remote doc at an older layout that migrates to the local body is the same doc: no conflict copy, and the upgraded doc is pushed', async () => {
+      const olderBody = JSON.stringify({ name: 'Sub 12', volume: 45 });
+      const migratedBody = JSON.stringify({ id: 'proj-1', name: 'Sub 12', volume: 45 });
+      localProjects.docs = [{ id: project1Id, body: migratedBody, layout: 3 }];
+      localProjects.migrator = doc => (doc.layout === 2 ? migratedBody : doc.body);
+      cloud.seedFile({
+        meta: {
+          id: project1Id,
+          fileId: FileId.of('file-p1')!,
+          revision: RevisionId.of('rev-1')!,
+          parentRevision: null,
+          layout: 2,
+          seq: 1,
+          writer: 'device-other',
+          device: '',
+          deleted: false,
+          remoteHash: bodyHashOf(olderBody)!,
+        },
+        body: olderBody,
+      });
+
+      const outcome = await createEngine(3).run();
+
+      expect(outcome.kind).toBe('synced');
+      if (outcome.kind === 'synced') expect(outcome.conflicts).toHaveLength(0);
+      expect(localProjects.conflictCalls).toHaveLength(0);
+      expect(cloud.files.size).toBe(1);
+      // The upgraded doc replaces the older one on Drive.
+      expect(cloud.files.get('file-p1')?.meta.layout).toBe(3);
+      expect(cloud.files.get('file-p1')?.body).toBe(migratedBody);
+    });
+
     it('the fake plays the overwrite race: moved reply causes re-pull and conflict copy', async () => {
       localProjects.docs = [{ id: project1Id, body: body1Updated, layout: APP_LAYOUT }];
       const hash1 = bodyHashOf(body1)!;

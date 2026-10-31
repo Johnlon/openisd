@@ -29,7 +29,7 @@ const STEPS: readonly LayoutStep[] = [1, 2].map((from): LayoutStep => ({
 }));
 
 const deps = (layout: number) => ({
-  build: BUILD, now: () => FIXED_NOW_MS, rules: {layout, steps: STEPS}, memoryStorage: createMemoryStorage,
+  build: BUILD, now: () => FIXED_NOW_MS, rules: {layout, steps: STEPS}, memoryStorage: createMemoryStorage, projectRewritten: () => undefined,
 });
 
 function ready(opening: StoreOpening) {

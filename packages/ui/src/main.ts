@@ -520,6 +520,7 @@ const opening = createStoreOpening(localStore, {
   now: Date.now,
   rules: layoutRules,
   memoryStorage: createMemoryStorage,
+  projectRewritten: createLedgerFollowsRewrite(localStore, randomBytes),
 }, forgetCloudSyncRecord);
 
 const recordedProjectIdStore: RecordedProjectIdStore = {
