@@ -95,3 +95,11 @@ also_red:
     full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-ff96373458.log
     failing: |
     
+also_red:
+  - sha: c45efe8731566a7f26bef3a85d5daa819112e60a
+    tested: c45efe8731566a7f26bef3a85d5daa819112e60a
+    last_green: fe89dcb3603748622895e046d4ff3749b749dce6
+    range: fe89dcb3603748622895e046d4ff3749b749dce6..c45efe8731566a7f26bef3a85d5daa819112e60a
+    full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-c45efe8731.log
+    failing: |
+    
