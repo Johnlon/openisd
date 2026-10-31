@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: ddfe06b35a
 goal: Picking a radiator copies each of Mms, Cms, Rms as entered or leaves it out, never flips it to calculated; the can't-calculate warning marks only empty boxes (bugs/BUG_20261031_phone-pr-p173-cms-display.md).
 done_test: bash scripts/test.sh packages/design/test/domain/pr-adopt-datasheet-figures.test.ts packages/design/test/domain/pr-spec-resolve.test.ts packages/design/test/engine/driver-consistency-check.test.ts packages/design/test/engine/pr-consistency.test.ts
 files:

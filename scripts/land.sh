@@ -60,6 +60,8 @@ if [ -f "$HERE/land.conf" ]; then CONF="$HERE/land.conf"; else CONF="$ROOT/land.
 . "$CORE/task.sh"
 # shellcheck source=./land/core/gate.sh
 . "$CORE/gate.sh"
+# shellcheck source=./land/core/candidate.sh
+. "$CORE/candidate.sh"
 export OPENISD_RUN_ID="${OPENISD_RUN_ID:-$$-$(date +%s)-$RANDOM}"
 
 # --self-check: every locked sha256 in tasks/*.yml matches its file (T000's done_test); nothing lands.
@@ -370,26 +372,19 @@ fi
 # starts the Actions suite (.github/workflows/suite.yml); main is pushed only when that run is green.
 # The landing lock is held throughout, so no other landing moves main in between. CANDIDATE_CMD waits for
 # the run on HEAD and exits 0 only on green (scripts/land/post-land/actions.sh).
-[ -n "${CANDIDATE_CMD:-}" ] || { GATE_OUT=/dev/null; refuse candidate "CANDIDATE_CMD is not set in land.conf; main moves only after the full suite is green on the candidate"; }
-{
-  CANDIDATE_BRANCH="land/$ID"
-  GATE_OUT="$WORK/candidate.out"
-  net "git push of the candidate" git push -q -f origin "HEAD:refs/heads/$CANDIDATE_BRANCH" > "$GATE_OUT" 2>&1 \
-    || refuse candidate "origin rejected, or did not answer, the push of the candidate to $CANDIDATE_BRANCH"
-  echo "land: candidate $(git rev-parse --short=10 HEAD) is on $CANDIDATE_BRANCH; waiting for GitHub Actions (about 4 min)"
-  # Every landing's GitHub record: a pull request from the candidate (T331; on when land.conf sets PULL_REQUESTS).
-  if [ -n "${PULL_REQUESTS:-}" ]; then
-    goal="$(task_field "$TASK" goal)"
-    printf '%s\n\nOpened by scripts/land.sh. Its checks are the candidate gate: when they pass, land.sh moves main to this commit by a fast-forward push, and GitHub shows this pull request merged. A refused landing closes it, saying why.\n' \
-      "${goal:-$ID}" > "$WORK/pr-body.md"
-    PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$(pr_title "$ID" "$goal")" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
-      || { GATE_OUT="$WORK/pr.out"; PR_NUMBER=""; refuse pull-request "GitHub did not open the pull request for $CANDIDATE_BRANCH"; }
-    sed 's/^/land: /' "$WORK/pr.out"
-    echo "land: pull request #$PR_NUMBER: https://github.com/${ACTIONS_REPO:-}/pull/$PR_NUMBER"
-  fi
-  GATE_DEADLINE_S="${CANDIDATE_DEADLINE_S:-$GATE_DEADLINE_S}" run_gate candidate /dev/null "$CANDIDATE_CMD"
-  grep -m1 'actions: run ' "$GATE_OUT" | sed 's/^.*actions: /land: candidate green: /'
+# Every landing's GitHub record: a pull request from the candidate (T331; on when land.conf sets PULL_REQUESTS).
+open_pull_request() {
+  [ -n "${PULL_REQUESTS:-}" ] || return 0
+  local goal
+  goal="$(task_field "$TASK" goal)"
+  printf '%s\n\nOpened by scripts/land.sh. Its checks are the candidate gate: when they pass, land.sh moves main to this commit by a fast-forward push, and GitHub shows this pull request merged. A refused landing closes it, saying why.\n' \
+    "${goal:-$ID}" > "$WORK/pr-body.md"
+  PR_NUMBER="$(ACTIONS_REPO="${ACTIONS_REPO:-}" bash "$HERE/land/pr.sh" open "$ID" "$CANDIDATE_BRANCH" "$(pr_title "$ID" "$goal")" "$WORK/pr-body.md" 2> "$WORK/pr.out")" \
+    || { GATE_OUT="$WORK/pr.out"; PR_NUMBER=""; refuse pull-request "GitHub did not open the pull request for $CANDIDATE_BRANCH"; }
+  sed 's/^/land: /' "$WORK/pr.out"
+  echo "land: pull request #$PR_NUMBER: https://github.com/${ACTIONS_REPO:-}/pull/$PR_NUMBER"
 }
+candidate_gate "land/$ID" open_pull_request
 
 # 6. push
 before_push="$(git rev-parse origin/main)"

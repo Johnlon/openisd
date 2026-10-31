@@ -1,0 +1,6 @@
+id: F56
+owner: Johnlon
+status: deferred
+sha: 50064c1dda89c47abaeb86cc9e19c60afcd0766a
+goal: The transmission-line port option MUST have the same enabled state on desktop and mobile when the same project is open, except for box types without a vent port.
+deferred_reason: John confirmed this reported desktop/mobile mismatch is not blocking release 7.0.953; reproduce and resolve separately.

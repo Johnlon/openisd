@@ -118,7 +118,9 @@ A branch that did not go through `land.sh` (agy, opencode) reaches main only by
 into a fresh worktree of origin/main, refuses if a test file the branch added or changed is deleted or
 red (`branch-tests`), runs lint, typecheck and the unit half, runs the stored-data corpus and the
 schemagen proof when the merge touches the schema, `projectRepo`, a loader or `driver_type`, then
-pushes and starts post-land. Exit 0 integrated, 1 refused (names the gate), 2 cannot start, 3
+pushes the candidate to `land/<id>-integrated` and waits for the green GitHub Actions run on it (the
+same `candidate` gate as `land.sh`, `scripts/land/core/candidate.sh`; refused if red or unset, whatever
+the label), and only then pushes main and starts post-land. Exit 0 integrated, 1 refused (names the gate), 2 cannot start, 3
 conflict: the paths are in `tasks/<id>.yml` under `blocked:`, the worktree stays for a hand
 resolution (never `--ours`/`--theirs`).
 
