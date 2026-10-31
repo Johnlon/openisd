@@ -674,6 +674,8 @@ export class OpenISDBox implements Box {
                 const driver = this.#driver.specs;
                 const driverSd = driver.Sd_m2.value, driverXmax = driver.Xmax_m.value;
                 if (spec.Sd_m2.value === null) spec.Sd_m2.set(driverSd !== null && driverSd > 0 ? driverSd : STARTING.radiatorSd_m2);
+                // Only a radiator with neither Xmax nor Xmech reaches here with Xmax blank (a picked record's
+                // Xmech is already its Xmax, `adoptDatasheetFigures`); that one gets twice the driver's Xmax (QO327).
                 if (spec.Xmax_m.value === null && driverXmax !== null && driverXmax > 0) spec.Xmax_m.set(driverXmax * STARTING.radiatorXmaxMultiple);
                 // The starting radiator as the figures WinISD asks for: its mass and compliance
                 // stated through Fs, Vas and the dummy mechanical Q. Mms, Cms and Rms follow by the solve.
