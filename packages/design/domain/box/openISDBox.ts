@@ -438,7 +438,7 @@ export class OpenISDBox implements Box {
             // record, legal because both derive from the class that declares `slot`.
             configurePR: (chosen: OpenISDPassiveRadiatorStandalone) => {
                 prSlot.set({ ...prSlot.value, ...chosen.clonePassiveRadiator() });
-                getRadiator().spec.deriveFromWinisdFigures(this.#engine.pr, air());
+                getRadiator().spec.adoptDatasheetFigures();
             },
             get radiator() {
                 return getRadiator();

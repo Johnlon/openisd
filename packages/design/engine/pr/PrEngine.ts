@@ -166,7 +166,8 @@ export class PrEngineImpl implements PrEngine {
     }
     if (solved.Rms_kg_per_s === null) {
       return missingDependencies<RouteQuantity>('Rms_kg_per_s',
-        [{formula: 'Rms = √(Mms/Cms)/Qms', required: ['Qms', 'Mms_kg', 'Cms_m_per_N'], missing: lacking(['Qms'])}]);
+        [{formula: 'Rms = √(Mms/Cms)/Qms', required: ['Qms', 'Mms_kg', 'Cms_m_per_N'], missing: lacking(['Qms'])}],
+        'Until then the charts take the radiator as lossless.');
     }
     return null;
   }

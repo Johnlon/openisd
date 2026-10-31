@@ -177,9 +177,12 @@ test('Inspect Provenance disables typing, keeps the spinner active, and allows a
   expect((await body.boundingBox())!.height).toBeLessThanOrEqual(300);
   await page.setViewportSize({width: 390, height: 600});
   await expect.poll(() => page.evaluate(() => window.innerHeight)).toBe(600);
-  const shortViewportCard = await page.locator('.eq-docked').boundingBox();
-  expect(shortViewportCard!.y).toBeGreaterThanOrEqual(0);
-  expect(shortViewportCard!.y + shortViewportCard!.height).toBeLessThanOrEqual(600);
+  const cardRect = () => page.locator('.eq-docked').evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    return {top: r.top, bottom: r.bottom};
+  });
+  await expect.poll(async () => (await cardRect()).bottom).toBeLessThanOrEqual(600);
+  await expect.poll(async () => (await cardRect()).top).toBeGreaterThanOrEqual(0);
 
   await page.locator('.eq-x').click();
   await expect(page.locator('.de-toolbar')).toBeVisible();

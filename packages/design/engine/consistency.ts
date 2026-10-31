@@ -124,17 +124,20 @@ export type DqIssue = CalculationIssue<string> | VentedPlausibilityIssue | Targe
 // is what lets the UI read `field.dq.map(i => i.text)` and hold no engine at all
 // (John, 2026-09-27).
 
-/** A target no route can reach yet, with every blocked route's formula and what it still needs. */
+/** A target no route can reach yet, with every blocked route's formula and what it still needs.
+ *  `fields` names the target and the missing inputs only: a stated input the route also needs
+ *  has nothing wrong with it and is not marked (BUG_20261031_phone-pr-p173-cms-display).
+ *  `consequence`, when given, is a sentence on what the charts do meanwhile. */
 export function missingDependencies<Q extends string>(
-  target: Q, routes: readonly SolveRoute<Q>[],
+  target: Q, routes: readonly SolveRoute<Q>[], consequence?: string,
 ): CalculationIssue<Q> {
   const blocked = routes.map(r => `${r.formula} (needs ${r.missing.join(', ')})`).join('; or ');
   return {
     kind: 'missing-dependencies',
     target,
     routes,
-    fields: [target, ...routes.flatMap(r => [...r.required, ...r.missing])],
-    text: plainNames(`${target} cannot be calculated yet - state ${blocked}.`),
+    fields: [target, ...routes.flatMap(r => r.missing)],
+    text: plainNames(`${target} cannot be calculated yet - state ${blocked}.`) + (consequence === undefined ? '' : ` ${consequence}`),
   };
 }
 

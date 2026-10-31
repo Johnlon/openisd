@@ -34,7 +34,7 @@ test('the What-if panel has the legend as one thin row at its bottom', async ({p
   await page.locator('.project-nav li', {hasText: 'Driver'}).click();
   await page.locator('.edit-btn', {hasText: 'What-if'}).click();
   await expect(page.locator('.what-if-panel')).toBeVisible();
-  await expectOneThinRow(page.locator('.what-if-panel > .prov-legend'));
+  await expectOneThinRow(page.locator('.what-if-panel .prov-legend'));
 });
 
 test('the phone Box and Signal pages have the key strip directly under the header, in Entered, Calculated, Not Available', async ({page}) => {

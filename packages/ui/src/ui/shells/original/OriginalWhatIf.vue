@@ -169,7 +169,7 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-box-placeholder { min-width:0; }
 /* Keep box labels on the app's usual left edge and reserve enough room for "Front port area".
    The input and its two spinner buttons use 80px + 2×14px, narrowing each control slightly. */
-.what-if-panel { --label-w:128px; --what-if-box-w:114px; }
+.what-if-panel { --label-w:128px; --what-if-box-w:124px; }
 .what-if-panel :deep(.ui-field.ui-field[data-field] > .ui-field-label) {
   grid-column:1; grid-row:1; width:100%; max-width:none; box-sizing:border-box;
   justify-self:stretch; margin-right:22px; padding:0; white-space:nowrap; overflow-wrap:normal; text-align:left;

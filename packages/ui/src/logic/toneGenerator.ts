@@ -76,6 +76,7 @@ export function createToneGenerator(makeCtx: () => ToneCtx = () => new AudioCont
   let ctx: ToneCtx | null = null;
   let osc: ToneOsc | null = null;
   let gain: ToneGain | null = null;
+  let startGeneration = 0;
 
   return {
     start(freqHz: number): void {
@@ -86,9 +87,10 @@ export function createToneGenerator(makeCtx: () => ToneCtx = () => new AudioCont
       }   // already playing → just retune
       ctx ??= makeCtx();
       const context = ctx;
+      const generation = ++startGeneration;
       const buildOscillator = () => {
         // The user may have unchecked Generate while resume() was pending.
-        if (ctx !== context || osc) return;
+        if (ctx !== context || osc || generation !== startGeneration) return;
         const o = context.createOscillator();
         const g = context.createGain();
         o.type = 'sine';
@@ -118,6 +120,9 @@ export function createToneGenerator(makeCtx: () => ToneCtx = () => new AudioCont
     },
 
     stop(): void {
+      // Invalidate a start whose AudioContext.resume() has not resolved yet, even when
+      // there is no oscillator to tear down.
+      startGeneration++;
       if (!osc || !ctx || !gain) return;
       const t = ctx.currentTime;
       gain.gain.cancelScheduledValues(t);

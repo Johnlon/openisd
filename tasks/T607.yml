@@ -3,6 +3,7 @@ release_note: Restore joined numeric controls with external warnings and model c
 repo: openisd
 owner: codex
 status: done
+landed: 835d7726ed735dc6f620a8cbbb32ef46b5e6a3ec
 goal: Restore production-style joined field boxes with external left warnings and right model cues, preserving independent functional fixes
 done_test: bash scripts/test.sh packages/design/test/fields/phoneRowColumns.test.ts packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
 files:

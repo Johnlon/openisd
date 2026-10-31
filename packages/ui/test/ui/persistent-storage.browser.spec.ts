@@ -115,12 +115,12 @@ test('desktop: a save that takes storage past 80% shows the nearly-full popup on
   await openAProject(page);
   await expect(page.getByRole('alertdialog')).toHaveCount(0);
   await page.evaluate(() => { sessionStorage.setItem('site-holds-90', '1'); });
-  await page.getByRole('button', {name: 'Save', exact: true}).click();
+  await page.locator('.tb-btn[aria-label="Save"]').click();
   const popup = page.getByRole('alertdialog', {name: 'Storage is nearly full'});
   await expect(popup.locator('p')).toHaveText(CROSSED);
   await popup.getByRole('button', {name: 'Close', exact: true}).click();
   await expect(popup).toHaveCount(0);
-  await page.getByRole('button', {name: 'Save', exact: true}).click();
+  await page.locator('.tb-btn[aria-label="Save"]').click();
   await expect(page.locator('.tb-btn[aria-label="Save"]')).toBeVisible();
   await expect(popup).toHaveCount(0);
 });

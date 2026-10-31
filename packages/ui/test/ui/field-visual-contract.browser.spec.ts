@@ -126,10 +126,11 @@ for (const width of [360, 374]) {
     await expect(qms).toHaveValue('');
     for (const label of ['Mms', 'Cms']) {
       const row = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: new RegExp(`^${label}$`)})});
-      await expect(row.locator('.ui-field-dq-btn')).toHaveCount(1);
+      await expect(row.locator('.ui-field-dq-btn')).toHaveCount(0);
       await expect(row.locator('.winisd-deviation-cue')).toHaveCount(1);
-      await expect(row.locator('input')).not.toBeEmpty();
+      await expect(row.locator('input')).not.toHaveValue('');
     }
+    await expect(page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('.ui-field-dq-btn')).toHaveCount(1);
     const report = await page.locator('.mob-content').evaluate(measureFieldContent);
     expect(report.rows).toBeGreaterThan(0);
     expect(report.controls).toBe(report.rows);

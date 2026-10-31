@@ -89,3 +89,11 @@ it('provides box type and volumes separately for multiline desktop project rows'
   expect(ProjectSummary.of(projectOf('bandpass6', 0.012, 0.008)).boxDetails({})).toEqual({type:'6th Order Bandpass', volumes:'12.0 + 8.0 L'});
   expect(ProjectSummary.of(projectOf('vented', 0.012)).boxDetails({[NumberField.BOX_VB_L.value]:'cuft'})).toEqual({type:'Vented', volumes:'0.42 cu ft'});
 });
+
+it('names the driver by whichever of brand and model is filled', () => {
+  const p = projectOf('sealed', 0.02);
+  p.driver.brand.set('');
+  expect(ProjectSummary.of(p).line({})).toBe('W5-1138SMF · Closed · 20.0 L');
+  p.driver.model.set('');
+  expect(ProjectSummary.of(p).line({})).toBe(' · Closed · 20.0 L');
+});

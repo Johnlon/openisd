@@ -96,6 +96,7 @@ describe('Engine.checkConsistency', () => {
       expect(issues[0]).toMatchObject({
         kind: 'missing-dependencies',
         target: 'Qts',
+        fields: ['Qts', 'Qms'],
       });
       if (issues[0].kind === 'missing-dependencies') {
         expect(issues[0].routes).toEqual([

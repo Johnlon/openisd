@@ -38,7 +38,7 @@
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field):not(:has(.num-stepper)) .ui-field-dev {grid-column:3 / 5;}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .ui-field-note {grid-column:1 / -1;}
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field).signal-gen-field {
-  --joined-label:0px;--joined-chip:20px;--joined-box:90px;--joined-buttons:24px;
+  --joined-label:0px;--joined-chip:20px;--joined-box:96px;--joined-buttons:24px;
   width:auto;flex:1 1 auto;min-width:0;
 }
 
@@ -124,8 +124,9 @@
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) {--joined-buttons:0px;}
 
 /* A unit's spelling must not change the outline or the unit rail within these groups. */
-.joined-fields:not(.app-root-mobile) .driver-advanced-fields .ui-field.ui-field[data-field] {--joined-box:124px;--joined-chip:60px;}
-.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-label:130px;--joined-box:124px;--joined-chip:60px;}
+.joined-fields:not(.app-root-mobile) .driver-advanced-fields .ui-field.ui-field[data-field] {--joined-box:134px;--joined-chip:60px;}
+.joined-fields:not(.app-root-mobile) .adv-air-fields .ui-field.ui-field[data-field] {--joined-label:130px;--joined-box:134px;--joined-chip:60px;}
+/* One box width for every row of each group: the widest unit (kg/m3) needs 134px, so all rows take it and the outlines stay equal. */
 /* Two sixth-order port groups have room for the usual labels beside their controls. */
 .joined-fields:not(.app-root-mobile) .vent-labels-left .ui-field.ui-field[data-field] {
  --joined-label:72px;grid-template-columns:var(--joined-label) var(--joined-box) var(--joined-buttons) var(--joined-model);grid-template-rows:var(--joined-height);

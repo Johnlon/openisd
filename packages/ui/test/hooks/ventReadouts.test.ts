@@ -45,6 +45,12 @@ describe('createVentReadouts on a two-chamber box with a ported front', () => {
     expect(project.box.abc.vents.intra.length_m.value).toBe(0.0777);
   });
 
+  it('the active port resonance is calculated when its length and air are available', () => {
+    const {readouts} = readoutsFor('abc');
+    readouts.activeVent.value.length_m.set(0.2);
+    expect(readouts.portPipeResonance_hz.value).toBeGreaterThan(0);
+  });
+
   it('a port whose tuning has no positive length says so on that port only', () => {
     const {readouts, projectChanged} = readoutsFor('bandpass6');
     readouts.ventPorts.value[0]?.tuning_goal_hz?.set(2000);

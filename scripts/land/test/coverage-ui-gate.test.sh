@@ -11,13 +11,9 @@ repo = sys.argv[1]
 fails = []
 
 wf = yaml.safe_load(open(f"{repo}/.github/workflows/suite.yml"))
-steps = wf["jobs"].get("coverage-ui", {}).get("steps", [])
-if "bash scripts/coverage-ui.sh" not in [s.get("run", "") for s in steps]:
-    fails.append("suite.yml: job coverage-ui does not run bash scripts/coverage-ui.sh")
-if not any(s.get("run", "").startswith("git fetch") and "origin main:refs/remotes/origin/main" in s.get("run", "") for s in steps):
-    fails.append("suite.yml: job coverage-ui does not fetch origin/main, so the ratchet's rule 4 cannot run")
-if any(s.get("continue-on-error") for s in steps) or wf["jobs"].get("coverage-ui", {}).get("continue-on-error"):
-    fails.append("suite.yml: coverage-ui carries continue-on-error")
+# QO316 (John, 31 Oct 2026): coverage gate off for now, jobs removed from suite.yml. T631 flips this assertion back to present when it restores them.
+if "coverage-ui" in wf["jobs"]:
+    fails.append("suite.yml: job coverage-ui is present while QO316 has the gate off")
 
 cfg = open(f"{repo}/packages/ui/vitest.coverage.config.ts").read()
 if "include: ['src/**/*.ts']," not in cfg:

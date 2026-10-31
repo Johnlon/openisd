@@ -3,6 +3,7 @@ import {computed, defineComponent, effectScope, h, provide} from 'vue';
 import {renderToString} from 'vue/server-renderer';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
+import {SheetField} from '@openisd/design/fields';
 import {provideFocusedProject} from '../../src/logic/focusedProjectContext.js';
 import {useOriginalWhatIf, type OriginalWhatIfAPI} from '../../src/hooks/OriginalWhatIf-hooks.js';
 import {runHook} from './runHook.js';
@@ -50,6 +51,30 @@ async function renderHook(project = createProject()): Promise<OriginalWhatIfAPI>
 }
 
 describe('OriginalWhatIf-hooks', () => {
+  it('builds the editable box rows and port-length rows for every box type', async () => {
+    const expectedByType = [
+      ['sealed', [], [SheetField.BOX_VOLUME], []],
+      ['vented', ['Port length'], [SheetField.BOX_VOLUME, SheetField.TUNING, SheetField.PORT_AREA], []],
+      ['bandpass4', ['Front port length'], [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME, SheetField.FRONT_TUNING, SheetField.PORT_AREA], []],
+      ['bandpass6', ['Rear port length'], [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME, SheetField.REAR_TUNING, SheetField.REAR_PORT_AREA, SheetField.FRONT_PORT_AREA], []],
+      ['abc', ['Rear port length'], [SheetField.REAR_VOLUME, SheetField.FRONT_VOLUME, SheetField.REAR_TUNING, SheetField.REAR_PORT_AREA, SheetField.FRONT_PORT_AREA, SheetField.INTRA_PORT_AREA], []],
+      ['box-passive-radiator', [], [SheetField.BOX_VOLUME, SheetField.PR_ADDED_MASS, SheetField.PR_COUNT], [SheetField.PR_COUNT]],
+    ] as const;
+    for (const [boxType, expectedPorts, expectedRows, expectedNullCellRows] of expectedByType) {
+      const project = createProject();
+      project.box.boxType.set(boxType);
+      const api = await renderHook(project);
+
+      expect(api.boxRows.value.map(row => row.field)).toEqual(expectedRows);
+      expect(api.boxRows.value.filter(row => row.cell === null).map(row => row.field)).toEqual(expectedNullCellRows);
+      expect(api.boxRows.value.filter(row => row.cell !== null).every(row => row.cell!.value === row.value)).toBe(true);
+      api.boxRows.value.filter(row => row.cell !== null).forEach(row => row.cell!.clear());
+      expect(api.portLengthRows.value.map(row => row.label)).toEqual(expectedPorts);
+      expect(api.portLengthRows.value.every(row => row.cell.value !== null)).toBe(true);
+      expect(api.sheetRows.map(row => row.key)).toEqual(['Fs_hz', 'Vas_m3', 'Qes', 'Qms']);
+    }
+  });
+
   it('a write with no What-if open starts one, so the project stays unmodified', async () => {
     const project = createProject();
     project.save();

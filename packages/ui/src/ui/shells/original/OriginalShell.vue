@@ -447,7 +447,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <section class="tab-section" :class="{ active: activeTab === 'driver' }">
           <div class="field-row driver-id-row">
             <div class="field tight"><label>Brand</label><input type="text" style="width:130px" :value="project.driver.brand.value" readonly></div>
-            <div class="field tight"><label>Model</label><input type="text" style="width:420px" :value="model" readonly></div>
+            <div class="field tight driver-model-field"><label>Model</label><input type="text" :value="model" readonly></div>
             <button class="edit-btn" title="Swap in a different driver for this project." @click="presentationState.browseOpen = true">Select Driver</button>
             <button type="button" class="edit-btn" title="View information about this project’s driver" @click="showDriverInfo">Info</button>
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
@@ -1283,7 +1283,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .box-diagram-col { flex:none; width:119px; display:flex; align-items:flex-start; justify-content:center; }
 /* Third span, right of the diagram. Text WRAPS rather than overflowing, so unlike the
    fixed-width control columns this one may shrink without reintroducing the overlap. */
-.box-notes-col { flex:1 1 240px; min-width:140px; max-width:260px; display:flex; flex-direction:column; gap:8px; }
+/* The fields column sets the row height; this column follows it (size containment keeps its text
+   out of the row's height) and scrolls inside when its text is taller, so the bottom panel never
+   grows per box type. */
+.box-notes-col { flex:1 1 240px; min-width:140px; max-width:260px; display:flex; flex-direction:column; gap:8px; align-self:stretch; min-height:0; contain:size; overflow-y:auto; overflow-x:hidden; }
+.box-notes-col > * { flex:none; }
 .box-notes-col .hint { margin:0; }
 .pending-note { color:#7a5b1a; }
 .vent-groups { display:flex; gap:20px; }
@@ -1314,6 +1318,21 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:44px 42px; }
 .port-columns .field:has(select[id*="vent-count"]) select { width:42px; }
 .port-columns .field:has(select[id*="vent-shape"]) select { width:85px; }
+/* A pane too narrow for the ports side by side (400px each) stacks Shape and Number in one row under
+   Tuning, so each column needs 262px instead of 400px and no control reaches into its neighbour. */
+.port-columns { container: og-pane / inline-size; }
+@container og-pane (max-width:1231px) {
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { width:auto; flex:1 1 0; min-width:262px; max-width:400px; grid-template-columns:131px minmax(0,1fr); }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col :is(.vent-port-row > .field, .port-tuning-row > .ui-field, .port-tuning-placeholder) { grid-column:1 / -1; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:1; grid-row:3; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:3; }
+}
+@container og-pane (max-width:831px) {
+  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col { width:auto; flex:1 1 0; min-width:262px; max-width:400px; grid-template-columns:131px minmax(0,1fr); }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col :is(.vent-port-row > .field, .port-tuning-row > .ui-field, .port-tuning-placeholder) { grid-column:1 / -1; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:1; grid-row:3; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:3; }
+}
 .vent-col { flex:none; }
 .vent-col-title { font-weight:600; color:#444; margin-bottom:4px; }
 .vent-col-hint { color:#888; font-size:11px; font-style:italic; margin-bottom:4px; }
@@ -1334,6 +1353,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .field:where(:not(.ui-field)) :deep(input) { border:1px solid #999; padding:4px 6px; border-radius:2px; background:#fff; width:90px; flex:none; }
 .field.tight label { width:auto; margin-right:2px; }
 .driver-id-row { align-items:center; gap:10px; }
+/* The Model box is 420 px, and shrinks only when the panel is too narrow, so Select Driver, Info and Edit stay on one line inside it. */
+.driver-id-row .driver-model-field { flex:0 1 auto; min-width:0; }
+.driver-id-row .driver-model-field :deep(input) { flex:0 1 420px; min-width:0; width:420px; }
+.driver-id-row > .edit-btn { flex:none; white-space:nowrap; }
 /* These rules belong to the hand-built legacy fields only. UIFieldBody owns the standard
    component's value box, provenance colour and unit-chip geometry. */
 .field:where(:not(.ui-field)) :deep(input.greyed) { background:#e9e9e9; color:#777; }

@@ -95,17 +95,17 @@ export class OpenIsdPassiveRadiatorSpec {
         return pr.checkSpec(stated, this.#precisions(), air);
     }
 
-    /** A record adopted into a project states Mms, Cms and Rms from its datasheet; where Fs, Qms,
-     *  Vas and Sd alone derive one of them, it is demoted to calculated so the four drive it. A
-     *  record stating only the mechanical set keeps it entered. */
-    deriveFromWinisdFigures(pr: PrEngine, air: AirState): void {
-        const stated = this.#stated();
-        const fromFour = pr.solveSpec({...stated, Mms_kg: null, Cms_m_per_N: null, Rms_kg_per_s: null}, air);
-        const demote = (field: Entered & Calculatable<number>, derived: number | null): void => {
-            if (field.entered && derived !== null) field.setCalculated(derived);
+    /** A record just adopted into a project: each of Cms, Mms and Rms is dropped (reads N, and
+     *  `resolve` fills it) when the record states its other half - Vas, Fs, Qms - so the four
+     *  WinISD figures drive it; one whose other half is absent stays entered. Nothing is ever
+     *  copied and then flipped to calculated (BUG_20261031_phone-pr-p173-cms-display, John
+     *  31 Oct 2026). */
+    adoptDatasheetFigures(): void {
+        const drop = (field: Entered & Clearable, otherHalf: Entered): void => {
+            if (field.entered && otherHalf.entered) field.clear();
         };
-        demote(this.Cms_m_per_N, fromFour.Cms_m_per_N);
-        demote(this.Mms_kg, fromFour.Mms_kg);
-        demote(this.Rms_kg_per_s, fromFour.Rms_kg_per_s);
+        drop(this.Cms_m_per_N, this.Vas_m3);
+        drop(this.Mms_kg, this.Fs_hz);
+        drop(this.Rms_kg_per_s, this.Qms);
     }
 }

@@ -297,6 +297,8 @@ function handleCreate() {
 .np-library { height: 420px; }
 .field-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .step-content :deep(.ui-field) { margin-bottom: 10px; }
+/* Wizard field labels (e.g. "Voice coil connection") are wider than the default 128px text area left after the 22px warning slot; every field, pick or number, shares the one 172px label column. */
+.step-content :deep(.ui-field) { --label-w: 172px; }
 .field { display: flex; align-items: center; gap: 6px; }
 .field label { color: #333; display: inline-block; min-width: 150px; }
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }

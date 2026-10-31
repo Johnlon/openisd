@@ -19,7 +19,15 @@ export function numInputByLabel(page: Page, labelText: string, scope: Locator = 
 
 /** Type into an already-resolved field and commit it by blurring (Tab) — the app's commit point. */
 export async function fillAndCommit(input: Locator, value: string): Promise<void> {
-  await input.fill(value);
+  // Focusing a box puts its caret on the last digit (the digit that spins), so a bare `fill` on an unfocused
+  // box replaces only that digit. A user clicks the box first and then replaces all of it.
+  await input.click();
+  if (value === '') {
+    await input.press('Control+a');
+    await input.press('Delete');
+  } else {
+    await input.fill(value);
+  }
   await input.press('Tab');
 }
 
@@ -61,14 +69,14 @@ export class PageOps {
 
   /** Type a value into the field at `selector` and commit it by blurring. */
   async setNum(selector: string, value: string | number): Promise<void> {
-    await this.#page.locator(selector).fill(String(value));
-    await this.#page.locator(selector).blur();
+    await fillAndCommit(this.#page.locator(selector), String(value));
   }
 }
 
 /** Fill an already-resolved field and commit by blurring — the var-holding-a-Locator form of the
  *  same gesture `PageOps.setNum` wraps. */
 export async function fillAndBlur(input: Locator, value: string): Promise<void> {
+  await input.click();   // focus puts the caret on the last digit; click first so fill replaces the whole value
   await input.fill(value);
   await input.blur();
 }

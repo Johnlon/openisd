@@ -1,0 +1,9 @@
+id: T629
+release_note: internal
+repo: openisd
+owner: claude
+status: open
+goal: main is green again: the T618 landing's red (F56) is fixed - design coverage on openISDDriver/projectSummary/openISDBox, coverage-ui, and the 115 failing browser tests.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T629.yml

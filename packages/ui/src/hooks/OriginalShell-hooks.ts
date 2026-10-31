@@ -200,7 +200,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // Both are global view state (`presentationState.ts`), not project data.
   function resetChartView() {
     presentationState.yRanges = {};
-    presentationState.sweepRange = {min: 10, max: 1000};
+    presentationState.sweepRange = {min: 10, max: 20000};
   }
 
   function fmt(n: number | null | undefined, dp: number): string {

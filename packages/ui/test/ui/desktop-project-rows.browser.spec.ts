@@ -24,7 +24,8 @@ for (const box of ['sealed','vented','box-passive-radiator','bandpass4','bandpas
     expect(geometry.parts.every(part=>part.fits && part.right<=geometry.right)).toBe(true);
     expect(geometry.parts[1].top).toBeGreaterThanOrEqual(geometry.parts[0].bottom);
     expect(geometry.parts[2].top).toBeGreaterThanOrEqual(geometry.parts[1].bottom);
-    expect(geometry.swatchWidth).toBeGreaterThanOrEqual(20);
+    // John (T607): the colour swatch is a narrow vertical rail down the row's left edge, not a dot.
+    expect(geometry.swatchWidth).toBeGreaterThanOrEqual(4);
     expect(geometry.swatchHeight).toBeGreaterThanOrEqual(20);
   });
 }
@@ -161,16 +162,23 @@ test('project-list colour and copied charts survive closing and reopening the de
   expect(await swatch.evaluate(el=>getComputedStyle(el).getPropertyValue('--swatch-color'))).toBe(colour);
 });
 
-test('project row checkbox and unsaved marker keep their alignment with multiline names', async ({page}) => {
+test('project row rail, checkbox and save button keep their alignment with multiline names', async ({page}) => {
   await duplicateFocusedProject(page, 'A long project name with multiple lines');
   const result = await page.locator('.project-row.selected').evaluate(row=>{
     const rect=(selector:string)=>row.querySelector(selector)!.getBoundingClientRect();
-    return {gap:rect('.project-show-cbx').top-rect('.project-swatch').bottom,
-      markerOffset:Math.abs(rect('.project-unsaved-dot').top-rect('.row-menu-btn').top)};
+    const rowRect=row.getBoundingClientRect(), rail=rect('.project-swatch'), cbx=rect('.project-show-cbx'),
+      menu=rect('.row-menu-btn'), save=rect('.row-save-btn');
+    return {railToCheckbox:cbx.left-rail.right, checkboxFromTop:cbx.top-rowRect.top,
+      railInsideRow:rail.top>=rowRect.top && rail.bottom<=rowRect.bottom,
+      saveBelowMenu:save.top-menu.bottom, saveCentreOffset:Math.abs((save.left+save.width/2)-(menu.left+menu.width/2)),
+      saveInsideRow:save.bottom<=rowRect.bottom};
   });
-  expect(result.gap).toBeGreaterThanOrEqual(0);
-  expect(result.gap).toBeLessThanOrEqual(8);
-  expect(result.markerOffset).toBeLessThanOrEqual(6);
+  expect(result.railInsideRow).toBe(true);
+  expect(result.railToCheckbox).toBeGreaterThanOrEqual(0);
+  expect(result.checkboxFromTop).toBeLessThanOrEqual(8);
+  expect(result.saveBelowMenu).toBeGreaterThanOrEqual(0);
+  expect(result.saveCentreOffset).toBeLessThanOrEqual(6);
+  expect(result.saveInsideRow).toBe(true);
 });
 
 test('saving project-list chart views does not save unsaved box edits', async ({page}) => {

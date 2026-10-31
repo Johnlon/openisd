@@ -81,6 +81,7 @@ test.describe('Sealed alignment dialog Volume', () => {
     const before = await box.inputValue();
     await dialog.locator('.ui-field .num-stepper-btn').first().click();
     await expect(box).not.toHaveValue(before);
+    await box.click();   // a box takes its caret on the last digit when focused; click first, then replace the whole value
     await box.fill('42');
     await box.press('Tab');
     await expect(box).toHaveValue(/^42(\.0+)?$/);

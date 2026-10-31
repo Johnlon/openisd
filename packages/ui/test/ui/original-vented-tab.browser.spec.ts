@@ -134,7 +134,8 @@ test.describe('Original Vented tab', () => {
     test('clearing Tuning freq keeps the vent length and the volume; the tuning is calculated', async ({ appPage: page }) => {
       const pageOps = new PageOps(page);
       await pageOps.setNum('#og-fb-target', '40');
-      await expect(page.locator('#og-fb-target')).toHaveValue('40.00');
+      // T607 (62151d66e): an entered value keeps the precision it was typed with, so 40 shows as 40; only the calculated tuning below shows 40.00.
+      await expect(page.locator('#og-fb-target')).toHaveValue('40');
       await page.locator('.project-nav li', { hasText: 'Vented' }).click();
       const length = page.locator('#og-vent-length');
       const lengthBefore = await length.inputValue();

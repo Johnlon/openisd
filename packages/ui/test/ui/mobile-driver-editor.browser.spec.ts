@@ -299,9 +299,9 @@ for (const tabName of ['General', 'Parameters', 'Advanced', 'Dimensions']) {
     // Buttons and tabs are finger-sized; the boxes inside a row are the classic set's.
     const small = await page.locator('.de-modal').evaluate((root, [touch, box]) => {
       const shown = (el: Element): boolean => el.getClientRects().length > 0;
-      // The band's ? is the classic page's 22 px round help button (PHONE_CLASSIC_BUILD_SPEC §2), not a row control.
+      // The band's and the editor's ? are the classic page's 22 px round help button (PHONE_CLASSIC_BUILD_SPEC §2), not a row control.
       const rowPart = '.num-stepper-btn, .ui-field-dq-btn, .ui-field-unit';
-      const buttons = [...root.querySelectorAll('button, [role=button]')].filter(el => shown(el) && !el.matches(`${rowPart}, .mob-band-help`));
+      const buttons = [...root.querySelectorAll('button, [role=button]')].filter(el => shown(el) && !el.matches(`${rowPart}, .mob-band-help, .de-help-button`));
       const parts = [...root.querySelectorAll(`${rowPart}, select, input:not([type=file]):not([type=checkbox])`)].filter(shown);
       const checks = [...root.querySelectorAll('input[type=checkbox]')].filter(shown).map(el => el.closest('label') ?? el);
       const measure = (el: Element, min: number) => ({

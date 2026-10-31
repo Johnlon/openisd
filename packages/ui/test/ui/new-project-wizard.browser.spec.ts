@@ -316,6 +316,7 @@ test.describe('New Project wizard', () => {
       await expect(unit).toHaveText('L');
       await unit.click();
       await expect(unit).toHaveText('cu ft');
+      await volume.click();   // focus puts the caret on the last digit; click first so fill replaces the whole value
       await volume.fill('1');
       await volume.press('Tab');
       await modal.locator('button', { hasText: 'Next' }).click();

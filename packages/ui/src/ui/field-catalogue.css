@@ -87,7 +87,7 @@
 @media(prefers-reduced-motion:reduce){.compact-fields .num-mark-underline{animation:none;background:#1868c9;color:#fff}}
 
 /* The generator has no visible field label or cues. Its complete control still uses the same rendition. */
-.compact-fields.compact-fields .ui-field.signal-gen-field {grid-template-columns:0 90px 24px 0 !important;}
+.compact-fields.compact-fields .ui-field.signal-gen-field {grid-template-columns:0 96px 24px 0 !important;}
 
 /* A single chamber owns a consistent field width plus its adjacent alignment action. */
 .compact-fields .box-tab-main:has(.box-layout > .box-fields-col:only-child) {width:420px !important;}

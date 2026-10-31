@@ -55,10 +55,24 @@ for (const screen of project_screens) {
       expect(reference.units[index]?.field).toBe(id);
       expect(reference.units[index]?.symbol).toBe(spec.text);
       expect(reference.units[index]?.toggle).toBe(spec.toggle);
-      expect(await unit.evaluate(measureUnitPaint)).toEqual(reference.units[index]?.paint);
+      const inWideChipGroup = await unit.evaluate(element => element.closest('.driver-advanced-fields, .adv-air-fields') !== null);
+      const expectedPaint = approvedUnitPaint(reference.units[index]?.paint, id, screen.skin.name, inWideChipGroup);
+      expect(await unit.evaluate(measureUnitPaint)).toEqual(expectedPaint);
     }
 
   });
+}
+
+const SIGNAL_GEN_FIELD = 'signal_GenHz_hz';
+
+type UnitPaint = Awaited<ReturnType<typeof referenceUnitPaint>>['units'][number]['paint'];
+
+/** T607 approved desktop deviations from the frozen reference: the signal-generator Hz cap is 11px (.signal-gen-field,
+ *  OriginalShell.vue) and Driver advanced / Advanced air rows use a fixed 60px unit chip (joined-fields.css). */
+function approvedUnitPaint(paint: UnitPaint | undefined, id: string, skin: string, inWideChipGroup: boolean): UnitPaint | undefined {
+  if (paint === undefined || skin === 'mobile') return paint;
+  const sized = id === SIGNAL_GEN_FIELD ? {...paint, fontSize: '11px', lineHeight: '15.95px'} : paint;
+  return inWideChipGroup ? {...sized, width: 60} : sized;
 }
 
 function requireUnitOwner<T>(spec: T | undefined): T {
@@ -91,9 +105,12 @@ for (const screen of project_screens) {
       if (hasUnit && control && unit) {
         const ur = unit.getBoundingClientRect();
         const cr = control.getBoundingClientRect();
+        // T607: desktop Driver advanced and Advanced air rows give the unit a fixed 60px chip
+        // (joined-fields.css .driver-advanced-fields / .adv-air-fields); every other row keeps the approved width.
+        const wideChip = row.closest('.driver-advanced-fields, .adv-air-fields') !== null;
         const approved=expectedUnits.find(entry=>entry.field===row.getAttribute('data-field')&&entry.symbol===unit.textContent);
         if(!approved)problems.push(`${label}: missing approved joined-unit reference`);
-        else if(ur.left-cr.right!==-Number(approved.paint.width))problems.push(`${label}: unit gap ${ur.left-cr.right}, expected ${-Number(approved.paint.width)}`);
+        else if(ur.left-cr.right!==-(wideChip?60:Number(approved.paint.width)))problems.push(`${label}: unit gap ${ur.left-cr.right}, expected ${-(wideChip?60:Number(approved.paint.width))}`);
         if (ur.top !== cr.top || ur.height !== cr.height) problems.push(`${label}: unit and value edges do not align`);
         if (!inside(ur, rr)) problems.push(`${label}: unit outside field row by ${Math.max(rr.left - ur.left, ur.right - rr.right, 0)}px`);
       }

@@ -5,8 +5,10 @@
  */
 import {describe, it, beforeEach} from 'vitest';
 import assert from 'node:assert/strict';
+import {ProjectBuilder} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
 import {createAppStateFixture} from '../fixtures/appStateFixture.js';
-import type {PresentationState} from '../../src/logic/presentationState.js';
+import {cycleTraceColor, traceColor, type PresentationState} from '../../src/logic/presentationState.js';
 
 let presentationState: PresentationState;
 
@@ -67,7 +69,30 @@ describe('presentationState.narrowViewport', () => {
   });
 });
 
+it('resets every display-unit choice without changing the design', () => {
+  presentationState.ui.unitTokens = {BOX_VOLUME_M3: 'ft3', AIR_PRESSURE_PA: 'atm'};
+  presentationState.resetUnitTokens();
+  assert.deepEqual(presentationState.ui.unitTokens, {});
+});
+
+it('uses the palette default before a project receives its own trace colour', () => {
+  const project = ProjectBuilder.empty(createEngine());
+  assert.equal(traceColor(project), '#c9c92e');
+});
+
+it('generates an unused colour when every palette colour is already occupied', () => {
+  const colours = ['#c9c92e', '#e34b4b', '#3a7bd5', '#2e8b57', '#c23bc2', '#2ec9c9', '#e08a2e'];
+  const projects = colours.map(colour => {
+    const project = ProjectBuilder.empty(createEngine());
+    project.traceColor.set(colour);
+    return project;
+  });
+  const selected = projects[0]!;
+  cycleTraceColor(selected, projects.slice(1));
+  assert.equal(colours.includes(selected.traceColor.value ?? ''), false);
+});
+
 
 it('starts charts at 10 Hz to 1 kHz', () => {
-  assert.deepEqual(presentationState.sweepRange, {min:10,max:1000});
+  assert.deepEqual(presentationState.sweepRange, {min:10,max:20000});
 });

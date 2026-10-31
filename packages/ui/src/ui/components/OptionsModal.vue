@@ -525,7 +525,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
   cursor: pointer; font-size: 14px; width: 26px; height: 26px; line-height: 1; }
 
 .opt-limits { width: auto; border-collapse: collapse; font-size: 11px; }
-.opt-limits th, .opt-limits td { padding: 3px 4px; text-align: left; }
+.opt-limits th, .opt-limits td { padding: 2px 4px; text-align: left; }
 .opt-limits td:first-child { white-space: nowrap; }
 .opt-limits th { color: var(--mut); font-weight: 500; border-bottom: 1px solid var(--line); }
 /* A chart limit's start or end: the box and ▲▼ and unit only. Its label stays for screen readers

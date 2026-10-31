@@ -1,8 +1,10 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
+import {createRenderer, defineComponent} from 'vue';
+import {PhoneHelpSection} from '@openisd/design/fields';
 import {MY_DRIVERS_KEY, createMemoryStorage} from '@openisd/persistence';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
-import {commitMyDriver, ebpVal} from '../../src/hooks/DriverEditorModal-hooks.js';
+import {commitMyDriver, ebpVal, useDriverEditorHelp} from '../../src/hooks/DriverEditorModal-hooks.js';
 import {myDriverRepoOn} from '../fixtures/repoOn.js';
 
 function completeDriver(): OpenISDDriver {
@@ -60,5 +62,47 @@ describe('DriverEditorModal-hooks', () => {
       storage.set(MY_DRIVERS_KEY, 'not json');
       expect(commitMyDriver(myDrivers, completeDriver(), '')).toBe(false);
     });
+  });
+
+  it('opens and closes the selected field-help section', () => {
+    const listeners = new Map<string, EventListener>();
+    const windowStub = {
+      addEventListener: (type: string, listener: EventListener) => listeners.set(type, listener),
+      removeEventListener: (type: string) => listeners.delete(type),
+    };
+    vi.stubGlobal('window', windowStub);
+    type HostNode = {children: HostNode[]; parent: HostNode | null};
+    const renderer = createRenderer<HostNode, HostNode>({
+      patchProp: () => undefined,
+      insert: (child, parent) => { child.parent = parent; parent.children.push(child); },
+      remove: child => { child.parent = null; },
+      createElement: () => ({children: [], parent: null}),
+      createText: () => ({children: [], parent: null}),
+      createComment: () => ({children: [], parent: null}),
+      setText: () => undefined,
+      setElementText: () => undefined,
+      parentNode: node => node.parent,
+      nextSibling: () => null,
+    });
+    let help!: ReturnType<typeof useDriverEditorHelp>;
+    const app = renderer.createApp(defineComponent({
+      setup() {
+        help = useDriverEditorHelp();
+        return () => null;
+      },
+    }));
+    app.mount({children: [], parent: null});
+    const section = new PhoneHelpSection('Key fields', 'The values needed for the charts.', []);
+
+    expect(help.helpSection.value).toBeNull();
+    help.showHelp(section);
+    expect(help.helpSection.value).toBe(section);
+    const keydown = listeners.get('keydown');
+    expect(keydown).toBeDefined();
+    keydown?.(Object.assign(new Event('keydown'), {key: 'Escape'}));
+    expect(help.helpSection.value).toBeNull();
+    app.unmount();
+    expect(listeners.has('keydown')).toBe(false);
+    vi.unstubAllGlobals();
   });
 });

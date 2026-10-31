@@ -81,10 +81,12 @@ describe('the driver embedded in a project says the same', () => {
     expect(project.driver.specs.Qms.mandatoryAndUnsatisfied).toBe(true);
   });
 
-  it('flags the whole Q trio together while fewer than two are stated, and nothing else', () => {
-    // Any two of Qes, Qms, Qts give the third, so stating only Qes still flags Qes with the rest.
+  it('flags the unstated Q fields while fewer than two are stated, not the stated one nor anything else', () => {
+    // Any two of Qes, Qms, Qts give the third; the stated Qes is fine and unmarked (84d62eab3, BUG_20261031_phone-pr-p173-cms-display).
     const specs = projectWithOnlyQes().driver.specs;
-    expect(specs.Qes.mandatoryAndUnsatisfied).toBe(true);
+    expect(specs.Qes.mandatoryAndUnsatisfied).toBe(false);
+    expect(specs.Qts.mandatoryAndUnsatisfied).toBe(true);
+    expect(specs.Qms.mandatoryAndUnsatisfied).toBe(true);
     expect(specs.Fs_hz.mandatoryAndUnsatisfied).toBe(false);
   });
 });

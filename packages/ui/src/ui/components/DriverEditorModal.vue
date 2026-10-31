@@ -811,7 +811,7 @@ const {helpSection, showHelp, closeHelp} = useDriverEditorHelp();
           </div>
 
           <!-- ============================= Advanced parameters ============================= -->
-          <div v-if="tab === 'Advanced'" class="de-params">
+          <div v-if="tab === 'Advanced'" class="de-params de-adv">
             <div class="de-group">
               <PhoneBand v-if="skin" :section="PhoneHelp.EDITOR_THERMAL" />
               <div v-else class="de-hdr">Thermal parameters<button type="button" class="de-help-button" aria-label="Help: Thermal parameters" @click="showHelp(PhoneHelp.EDITOR_THERMAL)">?</button></div>
@@ -1265,6 +1265,13 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 .de-desktop .de-fld.de-feeds { width: 100% !important; justify-self: stretch !important; }
 /* Connection sits directly UNDER Voicecoils, not beside it: an explicit column-1 start pushes
    it past Voicecoils' own column-1 slot (already taken) into column 1 of the NEXT row. */
+/* Advanced: Density (second slot, last row) shows a 73px number beside the 60px kg/m³ chip, which needs a 150px input track; 136px clipped it. Only that slot widens. */
+.de-desktop .de-params.de-adv {
+  grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px repeat(2, max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px) !important;
+}
+.de-desktop.de-inspecting .de-params.de-adv {
+  grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important;
+}
 .de-desktop .de-conn { grid-column: 1 / span 4 !important; }
 /* "Parallel"/"Series" plus the native select arrow do not fit the shared 90px input track —
    it read as "Paralle" with the last letter clipped. Widened just for this one field. */
@@ -1465,10 +1472,15 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
 @media (max-width: 1100px) {
   .de-desktop { --de-field-columns: 3; }
   .de-desktop.de-inspecting { --de-field-columns:2; }
+  /* Advanced grid: same column count as the other tabs; slot 2 keeps its 150px Density track. */
+  .de-desktop .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
+  .de-desktop.de-inspecting .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
 }
 @media (max-width: 900px) {
   .de-desktop { --de-field-columns: 2; }
   .de-desktop.de-inspecting { --de-field-columns:1; }
+  .de-desktop .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px max-content 150px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
+  .de-desktop.de-inspecting .de-params.de-adv { grid-template-columns: max-content 136px calc(2 * var(--ctl-stepper-w,18px) + 2px) 24px !important; }
 }
 </style>
 

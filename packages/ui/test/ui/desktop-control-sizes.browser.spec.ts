@@ -29,7 +29,8 @@ async function coveredArrows(page: Page, scope: string): Promise<number> {
 test('the ▲▼ pair is one size on the wizard and the Box tab (Options joins when its boxes move to the standard control, T367), and as tall as a number box', async ({page}) => {
   await page.goto('/');
   await openAProject(page);
-  const boxTab = await sizesOf(page, '.num-stepper-btn');
+  // The signal generator's compact field (T607) deliberately uses 11 px arrows; every other pair is the standard size.
+  const boxTab = await sizesOf(page, '.ui-field:not(.signal-gen-field) .num-stepper-btn');
   expect(await coveredArrows(page, 'body'), 'Box tab arrows clipped or covered').toBe(0);
   expect(boxTab.length, 'the Box tab has arrows').toBeGreaterThan(0);
 

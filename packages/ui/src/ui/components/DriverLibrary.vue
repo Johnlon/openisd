@@ -591,7 +591,7 @@ onMounted(openedLibrary);
 :global(.app-root-mobile) .driver-library .prev-specs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .driver-library .spec-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  grid-template-columns: fit-content(45%) minmax(0, 1fr);
   align-items: baseline;
   gap: 6px;
   padding: 2px 6px;

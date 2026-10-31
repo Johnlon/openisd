@@ -26,7 +26,7 @@ export default defineConfig({
         'src/types.ts',
       ],
       // json-summary feeds the ratchet; `text` with skipFull lists only the short files.
-      reporter: ['json-summary', 'text-summary', ['text', {skipFull: true}]],
+      reporter: ['json', 'json-summary', 'lcov', 'text-summary', ['text', {skipFull: true}]],
       reportsDirectory: '../../build/coverage-ui',
     },
   },

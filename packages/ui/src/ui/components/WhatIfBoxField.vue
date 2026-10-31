@@ -37,7 +37,7 @@ function cellForNumericField(row: WhatIfBoxRow) {
 .what-if-fld { min-width:0; }
 .what-if-count-fld {
   display:grid;
-  grid-template-columns:var(--label-w, 128px) var(--what-if-box-w, 114px) calc(2 * var(--ctl-stepper-w, 18px) + 2px) 24px;
+  grid-template-columns:var(--label-w, 128px) var(--what-if-box-w, 124px) calc(2 * var(--ctl-stepper-w, 18px) + 2px) 24px;
   column-gap:2px; align-items:center; min-width:0;
 }
 .what-if-count-fld label { grid-column:1; justify-self:stretch; margin-right:22px; max-width:calc(100% - 22px); white-space:nowrap; font:inherit; color:#333; text-align:left; }

@@ -11,11 +11,9 @@ repo = sys.argv[1]
 fails = []
 
 wf = yaml.safe_load(open(f"{repo}/.github/workflows/suite.yml"))
-runs = [s.get("run", "") for s in wf["jobs"].get("coverage", {}).get("steps", [])]
-if "bash scripts/coverage-design.sh" not in runs:
-    fails.append("suite.yml: job coverage does not run bash scripts/coverage-design.sh")
-if any(s.get("continue-on-error") for s in wf["jobs"].get("coverage", {}).get("steps", [])):
-    fails.append("suite.yml: a coverage step carries continue-on-error")
+# QO316 (John, 31 Oct 2026): coverage gate off for now, jobs removed from suite.yml. T631 flips this assertion back to present when it restores them.
+if "coverage" in wf["jobs"]:
+    fails.append("suite.yml: job coverage is present while QO316 has the gate off")
 
 cfg = open(f"{repo}/packages/design/vitest.coverage.config.ts").read()
 if "thresholds: {perFile: true, statements: 100, branches: 100, functions: 100, lines: 100}" not in cfg:

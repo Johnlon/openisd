@@ -1,0 +1,24 @@
+id: T628
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: Picking a radiator copies each of Mms, Cms, Rms as entered or leaves it out, never flips it to calculated; the can't-calculate warning marks only empty boxes (bugs/BUG_20261031_phone-pr-p173-cms-display.md).
+done_test: bash scripts/test.sh packages/design/test/domain/pr-adopt-datasheet-figures.test.ts packages/design/test/domain/pr-spec-resolve.test.ts packages/design/test/engine/driver-consistency-check.test.ts packages/design/test/engine/pr-consistency.test.ts
+files:
+  - tasks/T628.yml
+  - bugs/BUG_20261031_phone-pr-p173-cms-display.md
+  - bugs/BUG_20261031_pr-spec-accepts-air-not-available.md
+  - packages/design/test/domain/pr-adopt-datasheet-figures.test.ts
+  - packages/design/test/domain/pr-spec-resolve.test.ts
+  - packages/design/test/engine/driver-consistency-check.test.ts
+  - packages/design/test/engine/pr-consistency.test.ts
+  - packages/design/test/fixtures/driverSolverGolden.ts
+  - packages/design/engine/consistency.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/domain/box/openISDBox.ts
+note: |
+  31 Oct 2026: fix committed (77acb2722), targeted + architecture tests, typecheck, lint green.
+  land.sh refused: main red since T618 (F56 open); someone else is fixing the build.
+  Land with `bash scripts/land.sh T628` once main is green.

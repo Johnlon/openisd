@@ -354,4 +354,25 @@ describe('the passive radiator a box holds', () => {
     // (0.09 + 0.111111) kg on the same compliance: 1/(2π·√(0.201111·0.0009)) = 11.8298… Hz.
     expect(p.box.passiveRadiator.resonanceWithAddedMass_hz.value).toBeCloseTo(11.8299, 3);
   });
+
+  it('leaves an unknown Qms blank on a radiator that keeps the placeholder brand but is not the dummy', () => {
+    const p = project();
+    p.box.boxType.set('box-passive-radiator');
+    const r = p.box.passiveRadiator.radiator;
+    r.model.set('Custom PR');
+    r.spec.Qms.clear();
+    p.box.applyStartingValues();
+    expect(r.model.value).toBe('Custom PR');
+    expect(r.spec.Qms.value).toBe(null);
+  });
+
+  it('leaves an unknown Qms blank on a radiator of another brand', () => {
+    const p = project();
+    p.box.boxType.set('box-passive-radiator');
+    const r = p.box.passiveRadiator.radiator;
+    r.brand.set('SB');
+    r.spec.Qms.clear();
+    p.box.applyStartingValues();
+    expect(r.spec.Qms.value).toBe(null);
+  });
 });

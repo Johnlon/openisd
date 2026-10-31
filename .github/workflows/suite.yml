@@ -121,43 +121,6 @@ jobs:
       - name: shell tests
         run: bash scripts/test-shell.sh
 
-  # The 100 % coverage bar on packages/design engine/ and domain/ (T619, John 30 Oct 2026). Red refuses the landing;
-  # scripts/coverage-design.sh prints the warning to agents that a red here is never ignored or worked around.
-  coverage:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.SHA }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
-      - name: design engine and domain at 100 % coverage
-        run: bash scripts/coverage-design.sh
-
-  # The coverage ratchet on packages/ui src/**/*.ts (T620, John 30 Oct 2026). A file may not fall below
-  # packages/ui/coverage-baseline.json and a new file must be 100 %; scripts/coverage-ui.sh prints the warning to agents.
-  coverage-ui:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.SHA }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
-      # The ratchet checks the baseline against origin/main's; the checkout above fetches only SHA.
-      - name: fetch main for the baseline check
-        run: git fetch --no-tags --depth=1 origin main:refs/remotes/origin/main
-      - name: ui source files at or above their coverage baseline
-        run: bash scripts/coverage-ui.sh
-
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 15

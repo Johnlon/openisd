@@ -123,7 +123,7 @@ export function createPresentationState(): PresentationState {
     mobilePane: null,
     mobileDestination: 'box',
     yRanges: {},
-    sweepRange: {min: 10, max: 1000},
+    sweepRange: {min: 10, max: 20000},
     narrowViewport: false,
     ui: {
       unitTokens: {},

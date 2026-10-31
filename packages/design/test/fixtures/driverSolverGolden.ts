@@ -877,7 +877,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
   values: [{field: "Qes", value: 0.5}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}],
   record: [{field: "Fs_hz", value: null, entered: false}, {field: "Re_ohm", value: null, entered: false}, {field: "Le_H", value: null, entered: false}, {field: "Qes", value: 0.5, entered: true}, {field: "Qms", value: null, entered: false}, {field: "Qts", value: null, entered: false}, {field: "Vas_m3", value: null, entered: false}, {field: "Sd_m2", value: null, entered: false}, {field: "BL_Tm", value: null, entered: false}, {field: "Mms_kg", value: null, entered: false}, {field: "Cms_m_per_N", value: null, entered: false}, {field: "Rms_kg_per_s", value: null, entered: false}, {field: "Xmax_m", value: null, entered: false}, {field: "Pe_W", value: null, entered: false}],
   issues: [
-   {kind: "missing-dependencies", fields: ["Qts","Qes","Qms","Qms"], text: "Qts cannot be calculated yet - state Qts = Qes·Qms/(Qes+Qms) (needs Qms)."},
+   {kind: "missing-dependencies", fields: ["Qts","Qms"], text: "Qts cannot be calculated yet - state Qts = Qes·Qms/(Qes+Qms) (needs Qms)."},
   ],
  },
  {
@@ -885,7 +885,7 @@ export const DRIVER_SOLVER_GOLDEN: readonly CaseOutcome[] = Object.freeze([
   values: [{field: "Fs_hz", value: 40}, {field: "Re_ohm", value: 0.01}, {field: "Znom_ohm", value: 0}, {field: "c_m_per_s", value: 343.68412096215235}, {field: "roo_kg_per_m3", value: 1.2009521771468228}, {field: "Re_terminal_ohm", value: 0.01}],
   record: [{field: "Fs_hz", value: 40, entered: true}, {field: "Re_ohm", value: 0.01, entered: true}, {field: "Le_H", value: null, entered: false}, {field: "Qes", value: null, entered: false}, {field: "Qms", value: null, entered: false}, {field: "Qts", value: null, entered: false}, {field: "Vas_m3", value: null, entered: false}, {field: "Sd_m2", value: null, entered: false}, {field: "BL_Tm", value: null, entered: false}, {field: "Mms_kg", value: null, entered: false}, {field: "Cms_m_per_N", value: null, entered: false}, {field: "Rms_kg_per_s", value: null, entered: false}, {field: "Xmax_m", value: null, entered: false}, {field: "Pe_W", value: null, entered: false}],
   issues: [
-   {kind: "missing-dependencies", fields: ["Qts","Qes","Qms","Qes","Qms"], text: "Qts cannot be calculated yet - state Qts = Qes·Qms/(Qes+Qms) (needs Qes, Qms)."},
+   {kind: "missing-dependencies", fields: ["Qts","Qes","Qms"], text: "Qts cannot be calculated yet - state Qts = Qes·Qms/(Qes+Qms) (needs Qes, Qms)."},
    {kind: "out-of-range", fields: ["Re_ohm"], text: "coil resistance (Re) 0.010 is below the physical limit 0.1.", actual: 0.01},
   ],
  },
