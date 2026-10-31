@@ -33,6 +33,7 @@ import {
     createProjectBinMarks,
     createStoredTextCompaction,
     createQuarantineRetirement,
+    createLedgerFollowsMigration,
     createLedgerFollowsRewrite,
     createViewStateRepo,
     isStoredDataFault,
@@ -520,7 +521,7 @@ const opening = createStoreOpening(localStore, {
   now: Date.now,
   rules: layoutRules,
   memoryStorage: createMemoryStorage,
-  projectRewritten: createLedgerFollowsRewrite(localStore, randomBytes),
+  projectRewritten: createLedgerFollowsMigration(localStore, randomBytes),
 }, forgetCloudSyncRecord);
 
 const recordedProjectIdStore: RecordedProjectIdStore = {

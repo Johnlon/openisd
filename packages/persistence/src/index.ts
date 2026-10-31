@@ -79,7 +79,7 @@ export {
   PROJECT_EXT, projectNameFromFilename, projectFilename, copyOfName, uniqueName,
 } from './repos/projectRepo.js';
 
-export { createLedgerFollowsRewrite } from './cloud/ledgerFollowsRewrite.js';
+export { createLedgerFollowsMigration, createLedgerFollowsRewrite } from './cloud/ledgerFollowsRewrite.js';
 export { type CompactionOutcome, createStoredTextCompaction } from './repos/storedTextCompaction.js';
 export { createQuarantineRetirement, type QuarantineRetirementOutcome } from './repos/quarantineRetirement.js';
 

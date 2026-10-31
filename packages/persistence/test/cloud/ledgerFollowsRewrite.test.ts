@@ -5,11 +5,11 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {BodyHash, FileId, RevisionId, bodyHashOf, type DocId} from '@openisd/design/cloud';
+import {BodyHash, ChangeCursor, FileId, RevisionId, bodyHashOf, type DocId} from '@openisd/design/cloud';
 import {createEngine} from '@openisd/design/engine';
 import {createProjectDocs} from '../../src/cloud/docs/projectDocs.js';
-import {createLedgerFollowsRewrite} from '../../src/cloud/ledgerFollowsRewrite.js';
-import {createSyncLedger, type SyncLedger} from '../../src/cloud/syncLedger.js';
+import {createLedgerFollowsMigration, createLedgerFollowsRewrite} from '../../src/cloud/ledgerFollowsRewrite.js';
+import {createSyncLedger, LEDGER_KEY, type SyncLedger} from '../../src/cloud/syncLedger.js';
 import {createStoredTextCompaction} from '../../src/repos/storedTextCompaction.js';
 import {OPENISD_PROJECTS_KEY} from '../../src/repos/storageKeys.js';
 import {createMemoryStorage, type ListableStorage} from '../../src/storage/keyValueStorage.js';
@@ -127,5 +127,27 @@ describe('compacting stored project texts, seen by Cloud sync', () => {
     });
     createStoredTextCompaction(storage, backupOn(storage), createLedgerFollowsRewrite(storage, randomBytes)).run();
     assert.equal(storage.keys().some(key => key.startsWith('openisd_cloud_')), false);
+  });
+});
+
+describe('a layout migration follows the rewrite and drops the change cursor', () => {
+  it('moves the hash of an unedited project and leaves the next sync a full listing', () => {
+    const storage = createMemoryStorage();
+    const ledger = createSyncLedger({storage, random: randomBytes});
+    const before = JSON.stringify({label: 'A'});
+    const after = JSON.stringify({id: 'p-1', label: 'A'});
+    ledger.set(syncedRow('p-1', before));
+    ledger.setCursor(ChangeCursor.of('cursor-9'));
+
+    createLedgerFollowsMigration(storage, randomBytes)('p-1', before, after);
+
+    assert.equal(ledger.row(projectId('p-1'))?.hash.toString(), hashOrFail(after).toString());
+    assert.equal(ledger.cursor(), null);
+  });
+
+  it('creates no ledger on a device that never synced', () => {
+    const storage = createMemoryStorage();
+    createLedgerFollowsMigration(storage, randomBytes)('p-1', '{"label":"A"}', '{"id":"p-1","label":"A"}');
+    assert.equal(storage.get(LEDGER_KEY), null);
   });
 });

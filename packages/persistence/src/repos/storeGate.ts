@@ -107,7 +107,7 @@ export function createStoreOpening(
   function openLive(): StoreOpening {
     const log = createStorageLog(raw, deps.now);
     const lostKeys = log.recordStart();
-    const storage = createStampedStore(log.observe(raw), stamp);
+    const storage = createStampedStore(log.observe(raw), stamp, false);
     return {kind: 'ready', storage, backup: createStorageBackup(raw, deps.now), log, lostKeys, readOnly: false};
   }
 
@@ -146,7 +146,7 @@ export function createStoreOpening(
     restore(key) {
       const text = backup.read(key);
       if (text === null) return openingAfterFailedRestore();
-      const repo = createBackupRepo(createStampedStore(raw, stamp), backup, deps.now, rules, onReplaced);
+      const repo = createBackupRepo(createStampedStore(raw, stamp, true), backup, deps.now, rules, onReplaced);
       const result = repo.importAll(text, {replaceEverything: true});
       if (result.kind !== 'ok') return openingAfterFailedRestore();
       return createStoreOpening(raw, deps, onReplaced);
