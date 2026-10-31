@@ -504,15 +504,6 @@ export class NumberField extends Field {
     precision: 2,
     description: "Passive Radiator Excursion Limit\nMaximum peak linear displacement of the passive radiator diaphragm.\nDraws the PR excursion limit line; it does not change the response curves.",
   });
-  static readonly PR_XMECH_MM = new NumberField({
-    value: "pr_Xmech_mm",
-    label: "Xmech",
-    display: {kind: 'switchable', group: 'length', base: 'mm'},
-    limits: {min: 0, max: 0.5},
-    floor: "positive",
-    precision: 2,
-    description: "Passive Radiator Mechanical Excursion Limit\nMaximum travel of the passive radiator diaphragm before it bottoms out; a radiator has no voice coil, so this is its limit.\nSeparate from Xmax: the PR excursion chart draws its limit line at Xmax, or at Xmech when Xmax is blank.",
-  });
   static readonly PR_NUM = new NumberField({
     editor: NumberEditor.CountSelect,
     value: "pr_Num",

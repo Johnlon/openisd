@@ -26,7 +26,6 @@ const LEGACY_ROTATION_KEYS: Readonly<Record<string, NumberField>> = Object.freez
   prSd: NumberField.PR_SD_CM2,
   prVas: NumberField.PR_VAS_L,
   prXmax: NumberField.PR_XMAX_MM,
-  prXmech: NumberField.PR_XMECH_MM,
   advPressure: NumberField.ADV_PRESSURE_KPA,
   advTemp: NumberField.ADV_TEMP_K,
   driverAddedMass: NumberField.DRIVER_ADDEDMASS_G,

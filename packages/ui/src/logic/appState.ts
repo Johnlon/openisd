@@ -585,7 +585,7 @@ export function createAppState(deps: AppStateDeps): AppState {
     if (!p) return {fmin: presentation.sweepRange.min, fmax: presentation.sweepRange.max};
     const box = p.box.boxType.value;
     const prXmax = box === 'box-passive-radiator'
-      ? (p.box.passiveRadiator.radiator.spec.excursionLimit_m ?? undefined)
+      ? (p.box.passiveRadiator.radiator.spec.Xmax_m.value ?? undefined)
       : undefined;
     return {
       fmin: presentation.sweepRange.min,

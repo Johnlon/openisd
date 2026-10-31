@@ -510,7 +510,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" input-id="og-pr-mms" :field="NumberField.MMS_KG" :cell="project.box.passiveRadiator.radiator.spec.Mms_kg" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" />
                   <UIField class="field" input-id="og-pr-cms" :field="NumberField.CMS_M_PER_N" :cell="project.box.passiveRadiator.radiator.spec.Cms_m_per_N" :deviation="WinisdDeviation.PR_MMS_CMS_TYPING" />
                   <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
-                  <UIField class="field" :field="NumberField.PR_XMECH_MM" :cell="project.box.passiveRadiator.radiator.spec.Xlim_m" />
                 </div>
               </div>
               <div style="--label-w:167px;">

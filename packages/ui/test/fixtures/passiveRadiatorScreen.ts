@@ -12,7 +12,6 @@ export interface ShownPassiveRadiator {
   fs_hz: number | null;
   sd_cm2: number | null;
   xmax_mm: number | null;
-  xmech_mm: number | null;
 }
 
 async function numberIn(input: Locator): Promise<number | null> {
@@ -42,7 +41,6 @@ export async function readPassiveRadiatorTab(page: Page): Promise<ShownPassiveRa
       fs_hz: await numberIn(mobileFieldRow(page, 'Fpr').filter({ hasNotText: 'with added mass' }).locator('input').first()),
       sd_cm2: await numberIn(input('Sd')),
       xmax_mm: await numberIn(input('Xmax')),
-      xmech_mm: await numberIn(input('Xmech')),
     };
   }
   const pane = page.locator('.two-col').filter({ has: page.locator('#og-pr-fs') });
@@ -54,6 +52,5 @@ export async function readPassiveRadiatorTab(page: Page): Promise<ShownPassiveRa
     fs_hz: await numberIn(page.locator('#og-pr-fs')),
     sd_cm2: await numberIn(numInputByLabel(page, 'Sd', pane).first()),
     xmax_mm: await numberIn(numInputByLabel(page, 'Xmax', pane).first()),
-    xmech_mm: await numberIn(numInputByLabel(page, 'Xmech', pane).first()),
   };
 }

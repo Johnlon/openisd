@@ -732,9 +732,7 @@ describe('useOgNewProject — passive-radiator step', () => {
     edits.setFs_hz(18);
     edits.setSd_m2(0.06);
     edits.setXmax_m(0.012);
-    edits.setXlim_m(0.019);
     expect(wizard.passiveRadiatorView.value?.Qms).toBe(6);
-    expect(wizard.passiveRadiatorView.value?.Xlim_m).toBe(0.019);
     wizard.next();
     wizard.projName.value = 'Typed PR';
 
@@ -744,7 +742,6 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(spec?.Fs_hz.value).toBeCloseTo(18, 9);
     expect(spec?.Sd_m2.value).toBeCloseTo(0.06, 9);
     expect(spec?.Xmax_m.value).toBeCloseTo(0.012, 9);
-    expect(spec?.Xlim_m.value).toBeCloseTo(0.019, 9);
   });
 
   it('typing a name or a parameter at step 4 defines the radiator with no pick first', () => {
