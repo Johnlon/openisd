@@ -17,6 +17,8 @@ files:
   - packages/ui/public/passive-radiators-index.json
   - packages/ui/public/drivers/**
   - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/ui/original-chart-auto-y.browser.spec.ts
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
   - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
   - scripts/bundle-drivers.mjs
   - scripts/bundleStamp.mjs

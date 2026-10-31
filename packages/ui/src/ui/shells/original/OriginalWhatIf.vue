@@ -43,9 +43,9 @@ const boxLines = computed<readonly BoxLine[]>(() => {
     }
     return lines;
   }
-  const pair = (rear: string, fore: string): readonly (BoxRow | null)[] => [
-    bySlot.get(rear as SheetBoxRow['field']['slot']) ?? null,
-    bySlot.get(fore as SheetBoxRow['field']['slot']) ?? null,
+  const pair = (rear: SheetBoxRow['field']['slot'], fore: SheetBoxRow['field']['slot']): readonly (BoxRow | null)[] => [
+    bySlot.get(rear) ?? null,
+    bySlot.get(fore) ?? null,
   ];
   const lines: BoxLine[] = [
     {cells: pair('volume', 'frontVolume'), full: false},
