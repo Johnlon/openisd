@@ -1,6 +1,6 @@
 id: F59
-owner: Johnlon
-status: open
+owner: cover
+status: done
 sha: cbbd0810eaee6a94bc943cc6b0ad2072a3e170f9
 tested: cbbd0810eaee6a94bc943cc6b0ad2072a3e170f9
 last_green: 0fe2a2503b5b8d4a37ad41131974a0be880bf440
@@ -29,3 +29,5 @@ output: |
   2026-10-31T18:04:12.415Z 1865009-1793469851-4441 actions: cbbd0810ea changes only task files; its suite result is the run on e366a72dca
   2026-10-31T18:04:12.419Z 1865009-1793469851-4441 actions: start 2026-10-31T18:04:12Z e366a72dca (Johnlon/openisd suite.yml)
   2026-10-31T18:14:19.651Z 1865009-1793469851-4441 actions: no suite.yml run on e366a72dca after 600s (or GitHub cannot be read); red
+closed_note: |
+  Closed by cover: nothing was red. Post-land read no push run on e366a72dc, but the suite was started by hand on that sha and is green (GitHub run 41225575863); cbbd0810e adds only the F58 record. Gate defect: bugs/BUG_20261031_post-land-ignores-hand-started-suite-run.md.

@@ -672,6 +672,7 @@
     "bugs/BUG_20261031_announcements-spec-leaves-desktop-skin.md",
     "bugs/BUG_20261031_layout-upgrade-makes-conflict-copies.md",
     "bugs/BUG_20261031_phone-pr-p173-cms-display.md",
+    "bugs/BUG_20261031_post-land-ignores-hand-started-suite-run.md",
     "bugs/BUG_20261031_pr-pick-leaves-values-blank.md",
     "bugs/BUG_20261031_pr-spec-accepts-air-not-available.md",
     "bugs/BUG_20261031_pr-xmax-invented-2x-driver.md",
