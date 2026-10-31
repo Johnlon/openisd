@@ -1,0 +1,32 @@
+id: T626
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: The phone menu reset is awaited, no source calls the deprecated notifyVentChanged/notifyPrChanged, and no Vue component copies a prop at setup
+done_test: bash scripts/test.sh packages/ui/test/hooks/MobileShell-hooks.test.ts && bash scripts/test.sh packages/ui/test/logic/ventGroup.test.ts && bash scripts/test.sh packages/design/test/architecture-no-forwards.test.ts && bash scripts/test.sh packages/design/test/domain/project-vent-solve.test.ts && bash scripts/test.sh packages/ui/test/hooks/MobileSheet-hooks.test.ts && bash scripts/test.sh packages/ui/test/hooks/OriginalFilters-hooks.test.ts && bash scripts/test.sh packages/ui/test/logic/prGroup.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T626.yml
+  - bugs/BUG_20261030_mobile-revert-menu-closes-before-discard-answer.md
+  - packages/ui/test/hooks/MobileShell-hooks.test.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/portFieldsView.ts
+  - packages/ui/src/logic/prGroup.ts
+  - packages/ui/src/logic/ventGroup.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - packages/ui/test/logic/ventGroup.test.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/sheetSlots.ts
+  - packages/design/test/architecture-no-forwards.test.ts
+  - packages/design/test/domain/box-passive-radiator.test.ts
+  - packages/design/test/domain/driver-edit-parity-e150he-44.test.ts
+  - packages/design/test/domain/field-dq.test.ts
+  - packages/design/test/domain/managed-project.test.ts
+  - packages/design/test/domain/project-pr-solve.test.ts
+  - packages/design/test/domain/project-vent-solve.test.ts
+  - packages/design/test/fixtures/winisdEditCapture.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/test/logic/prGroup.test.ts

@@ -59,8 +59,8 @@ const DRIVER_EDITS: readonly {readonly run: string; readonly field: string; read
 
 /** Where the vented box's vent is edited; `Num` and `dia` are WinISD's Vents-tab fields. */
 const VENT_EDITS: readonly {readonly run: string; readonly field: string; readonly write: (p: OpenISDProject, v: number) => void}[] = [
-  {run: 'vented-ventdia', field: 'dia', write: (p, v) => p.batch(() => { p.box.vented.vent.diameter_m.set(v); p.notifyVentChanged(); })},
-  {run: 'vented-ventnum', field: 'Num', write: (p, v) => p.batch(() => { p.box.vented.vent.count.set(v); p.notifyVentChanged(); })},
+  {run: 'vented-ventdia', field: 'dia', write: (p, v) => p.batch(() => { p.box.vented.vent.diameter_m.set(v); p.recalc(); })},
+  {run: 'vented-ventnum', field: 'Num', write: (p, v) => p.batch(() => { p.box.vented.vent.count.set(v); p.recalc(); })},
 ];
 
 function expectEdit(capture: EditCapture, pane: string, field: string): void {

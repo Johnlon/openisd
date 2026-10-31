@@ -88,7 +88,7 @@ export interface MobileShellApi {
   reloadForUpdate: () => Promise<void>;
   /** Not now: hide the notice until a newer build waits or the next launch. */
   dismissUpdateBanner: () => void;
-  revertProject: () => void;
+  revertProject: () => Promise<void>;
   browseDrivers: () => void;
   optionsOpen: import('vue').Ref<boolean>;
   openOptions: () => void;
@@ -383,8 +383,8 @@ export function useMobileShell(): MobileShellApi {
       cancelLabel: 'Keep',
     });
   }
-  function revertProject(): void {
-    if (isModified.value) resetProjectToGround(confirmDiscard);
+  async function revertProject(): Promise<void> {
+    if (isModified.value) await resetProjectToGround(confirmDiscard);
     closeMenu();
   }
 

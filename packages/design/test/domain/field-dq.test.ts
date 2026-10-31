@@ -89,7 +89,7 @@ describe('structural DQ on ReadonlyField<T>', () => {
 
     p.box.passiveRadiator.addedMass_kg.clear();
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling * 1.5);
-    p.notifyPrChanged();
+    p.recalc();
 
     const massCell = p.box.passiveRadiator.addedMass_kg;
     const tuningCell = p.box.passiveRadiator.tuning_goal_hz;
@@ -101,7 +101,7 @@ describe('structural DQ on ReadonlyField<T>', () => {
 
     // Reset to reachable tuning
     p.box.passiveRadiator.tuning_goal_hz.set(ceiling);
-    p.notifyPrChanged();
+    p.recalc();
 
     expect(p.box.passiveRadiator.addedMass_kg.dq).toEqual([]);
     expect(p.box.passiveRadiator.tuning_goal_hz.dq).toEqual([]);

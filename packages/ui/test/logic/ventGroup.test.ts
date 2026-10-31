@@ -17,7 +17,9 @@ import assert from 'node:assert/strict';
 import {OpenISDDriver, ProjectBuilder, type OpenISDProject} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {
-  notifyVentChanged,
+  enterVentArea,
+  suspendVentSolve,
+  ventSolveSuspended,
   ventAchievedFb,
   VentMember,
   ventMaxReachableFb,
@@ -46,7 +48,7 @@ function ventedProject() {
   p.box.vented.vent.shape.set('round');
   p.box.vented.vent.diameter_m.set(0.05);
   p.box.vented.vent.endCorrection_m.set(0.6);
-  p.notifyVentChanged();
+  p.recalc();
   return p;
 }
 
@@ -140,7 +142,7 @@ describe('ventGroup', () => {
   // the other's entered fact and lets the solver re-derive it — so an "over-determined" pair
   // (both members simultaneously 'entered' and contradictory) can no longer occur BY DESIGN; the
   // old test asserting that state persisted is gone, replaced below.
-  describe('notifyVentChanged() re-derives the calculated member', () => {
+  describe('recalc() re-derives the calculated member', () => {
     let p: ReturnType<typeof ventedProject>;
     beforeEach(() => { p = ventedProject(); });
 
@@ -165,7 +167,7 @@ describe('ventGroup', () => {
     it('THE DIRECTION TEST — changing vent diameter holds the tuning and moves the length', () => {
       const lenBefore = p.box.vented.vent.length_m.value;
       p.box.vented.vent.diameter_m.set(0.07);
-      notifyVentChanged(p);
+      p.recalc();
       assert.equal(p.box.vented.tuning_goal_hz.value, 40, 'an entered tuning must never be rewritten by the solver');
       assert.notEqual(p.box.vented.vent.length_m.value, lenBefore, 'the length must absorb the diameter change');
     });
@@ -174,7 +176,7 @@ describe('ventGroup', () => {
       tuning(p).clear();
       ventLength(p).set(0.154);
       p.box.vented.vent.diameter_m.set(0.07);
-      notifyVentChanged(p);
+      p.recalc();
       assert.equal(p.box.vented.vent.length_m.value, 0.154, 'an entered length must never be rewritten');
       assert.notEqual(p.box.vented.tuning_goal_hz.value, 40, 'now the TUNING absorbs the diameter change');
     });
@@ -184,7 +186,7 @@ describe('ventGroup', () => {
       // whatever was previously the pair's stated target, even one as far off as 0.999 m.
       ventLength(p).set(0.999);
       p.box.vented.vent.diameter_m.set(0.07);
-      notifyVentChanged(p);
+      p.recalc();
       assert.equal(p.box.vented.vent.length_m.value, 0.999, 'the entered length is held exactly');
       assert.equal(p.box.vented.tuning_goal_hz.calculated, true, 'the domain re-derives tuning, not the UI');
       assert.notEqual(p.box.vented.tuning_goal_hz.value, 40, 'the old entered tuning target is gone, not held alongside it');
@@ -328,5 +330,45 @@ describe('ventGroup', () => {
       const ceiling = ventMaxReachableFb(p);
       assert.ok(ceiling != null && Math.abs(ceiling - CEILING_HZ) < 1e-6);
     });
+  });
+});
+
+describe('ventGroup — the remaining members and the restore suspension', () => {
+  it('VOLUME enters the chamber volume and reports it entered', () => {
+    const p = ventedProject();
+    VentMember.VOLUME.enter(p, 0.03);
+    assert.equal(p.box.vented.volume_m3.value, 0.03);
+    assert.equal(VentMember.VOLUME.state(p), 'E');
+  });
+
+  it('DIAMETER reports its state, and clear hands the diameter back', () => {
+    const p = ventedProject();
+    VentMember.DIAMETER.enter(p, 0.06);
+    assert.equal(VentMember.DIAMETER.state(p), 'E');
+    VentMember.DIAMETER.clear(p);
+    assert.notEqual(VentMember.DIAMETER.state(p), 'E');
+  });
+
+  it('WIDTH and HEIGHT enter the slot sides', () => {
+    const p = ventedProject();
+    p.box.vented.vent.shape.set('slotted');
+    VentMember.WIDTH.enter(p, 0.08);
+    VentMember.HEIGHT.enter(p, 0.03);
+    assert.equal(p.box.vented.vent.width_m.value, 0.08);
+    assert.equal(p.box.vented.vent.height_m.value, 0.03);
+  });
+
+  it('enterVentArea sets the port area', () => {
+    const p = ventedProject();
+    const area = 0.004;
+    enterVentArea(p, p.box.vented.vent, area);
+    assert.equal(p.box.vented.vent.area_m2.value, area);
+  });
+
+  it('ventSolveSuspended is true only inside suspendVentSolve, and is restored after a throw', () => {
+    assert.equal(ventSolveSuspended(), false);
+    assert.equal(suspendVentSolve(() => ventSolveSuspended()), true);
+    assert.throws(() => suspendVentSolve(() => { throw new Error('restore failed'); }), /restore failed/);
+    assert.equal(ventSolveSuspended(), false);
   });
 });

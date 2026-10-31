@@ -663,6 +663,7 @@
     "bugs/BUG_20261029_driver_tuple_rejected_by_projection.md",
     "bugs/BUG_20261029_preview-builds-hide-cloud-sync.md",
     "bugs/BUG_20261030_converter_flags_multiple_values_as_unknown.md",
+    "bugs/BUG_20261030_mobile-revert-menu-closes-before-discard-answer.md",
     "bugs/BUG_20261030_parse-repairing-crashes-on-symbol-path.md",
     "bugs/BUG_20261030_project-hides-reported-voice-coil-readings.md",
     "bugs/BUG_20261030_projects-archive-accepts-invalid-utf8.md",
