@@ -60,6 +60,14 @@ export class OpenIsdPassiveRadiatorSpec {
         this.weight_kg = prSpec(section, 'weight_kg');
     }
 
+    /** The Xmax this radiator has once picked into a project: its own, else its Xlim ("Xmech"). A
+     *  radiator has no voice coil, so a record that states a mechanical limit and no Xmax has that
+     *  limit as its Xmax (QO327, John 31 Oct 2026: "stick xmech in the Xmax field as that's what a
+     *  Human would do"). Null when the record has neither; the box's starting rule then applies. */
+    get pickedXmax_m(): number | null {
+        return this.Xmax_m.entered ? this.Xmax_m.value : (this.Xlim_m.entered ? this.Xlim_m.value : null);
+    }
+
     /** The seven figures of the radiator's T/S set that were typed or loaded, nothing derived. */
     #stated(): PrSpecValues {
         const stated = (f: Entered & Readable<number | null>): number | null => f.entered ? f.value : null;
@@ -95,7 +103,7 @@ export class OpenIsdPassiveRadiatorSpec {
         return pr.checkSpec(stated, this.#precisions(), air);
     }
 
-    /** A record just adopted into a project: each of Cms, Mms and Rms is dropped (reads N, and
+    /** A record just adopted into a project: its Xlim becomes its Xmax when it has none; each of Cms, Mms and Rms is dropped (reads N, and
      *  `resolve` fills it) when the record states its other half - Vas, Fs, Qms - so the four
      *  WinISD figures drive it; one whose other half is absent stays entered. Nothing is ever
      *  copied and then flipped to calculated (BUG_20261031_phone-pr-p173-cms-display, John
@@ -107,5 +115,7 @@ export class OpenIsdPassiveRadiatorSpec {
         drop(this.Cms_m_per_N, this.Vas_m3);
         drop(this.Mms_kg, this.Fs_hz);
         drop(this.Rms_kg_per_s, this.Qms);
+        const picked = this.pickedXmax_m;
+        if (!this.Xmax_m.entered && picked !== null) this.Xmax_m.set(picked, this.Xlim_m.precision ?? undefined);
     }
 }

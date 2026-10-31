@@ -374,14 +374,16 @@ test.describe('New Project wizard', () => {
         const entries = z.object({specs: z.object({'passive-radiator': z.record(z.string(), z.unknown())})}).parse(record).specs['passive-radiator'];
         return z.object({value: z.number()}).parse(entries[key]).value;
       };
-      // [step box, PR page field, catalogue figure in the box's unit]: Vas in L, Sd in cm2.
+      // [step box, PR page field, catalogue figure in the box's unit]: Vas in L, Sd in cm2, Xmax in mm.
       const shown = [
         ['#np-pr-vas', 'pr_Vas_l', figureOf('Vas_m3') * 1000],
         ['#np-pr-qms', 'pr_Qms', figureOf('Qms')],
         ['#np-pr-fs', 'pr_Fs_hz', figureOf('Fs_hz')],
         ['#np-pr-sd', 'pr_Sd_cm2', figureOf('Sd_m2') * 10000],
+        // A radiator has no voice coil: its Xlim (19 mm) is its Xmax, on the step and the PR page (QO327).
+        ['#np-pr-xmax', 'pr_Xmax_mm', figureOf('Xlim_m') * 1000],
       ] as const;
-      expect(() => figureOf('Xmax_m'), 'the record states no Xmax, so the step leaves it blank').toThrow();
+      expect(() => figureOf('Xmax_m'), 'the record states no Xmax').toThrow();
 
       await page.locator('.tb-btn[title*="New project"]').click();
       const modal = page.locator('.overlay.open');
@@ -394,7 +396,6 @@ test.describe('New Project wizard', () => {
       await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
       await expect(modal.locator('#np-pr-name')).toHaveValue(/E150HE-PR/);
 
-      await expect(modal.locator('#np-pr-xmax')).toHaveValue('');
       for (const [box, , expected] of shown) {
         await expect.poll(async () => parseFloat(await modal.locator(box).inputValue()), { message: `${box} after the pick` }).toBeCloseTo(expected, 1);
       }
