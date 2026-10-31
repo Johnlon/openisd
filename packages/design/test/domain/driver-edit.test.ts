@@ -8,6 +8,8 @@ import {OpenISDPassiveRadiatorStandalone} from '../../domain/passiveRadiator/ope
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {VoiceCoilWiring} from '../../domain/voiceCoilWiring.js';
 import {isRecord, at, specSection, prSpecSection, driverFrom, driverJson} from '../fixtures/domainBuilders.js';
+import {NULL_GUID} from '../../domain/project/nullDriverId.js';
+import {realAppContext, type AppContext} from '../../domain/appContext.js';
 
 describe('editing a driver — copy, then update or drop', () => {
   const wooferDriver = () => driverFrom({
@@ -65,13 +67,14 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(project.driver.specs.Fs_hz.value).toBe(333333);
   });
 
-  it('adopting a standalone driver gives the embedded project record a fresh UUID', () => {
+  it('adopting a standalone driver leaves the embedded project driver holding the null GUID', () => {
     const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
     const source = wooferDriver();
 
     project.loadDriver(source);
 
-    expect(project.driver.uuid()).not.toBe(source.uuid());
+    expect(project.toStoredText()).toContain('"uuid":{"value":"00000000-0000-0000-0000-000000000000"}');
+    expect(project.toStoredText()).not.toContain(source.uuid());
   });
 
   it('discards an edit by dropping the copy — nothing to roll back', () => {
@@ -154,21 +157,58 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(wdrText).not.toContain('roo=5\n');
   });
 
-  it('loading a project file gives its embedded driver a fresh project-owned UUID', () => {
+  it('two drivers detached from one project get different real ids, neither the null GUID', () => {
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+
+    const first = project.driver.detach();
+    const second = project.driver.detach();
+
+    expect(first.uuid()).not.toBe(second.uuid());
+    expect(first.uuid()).not.toBe(NULL_GUID);
+    expect(second.uuid()).not.toBe(NULL_GUID);
+  });
+
+  it('a detached project driver takes its id from the injected AppContext', () => {
+    let count = 0;
+    const context: AppContext = {...realAppContext, newId: () => `minted-${++count}`};
+    const project = new ProjectBuilder(wooferDriver(), createEngine(), context).sealed().volume_m3(0.03).build();
+
+    const first = project.driver.detach().uuid();
+    const second = project.driver.detach().uuid();
+
+    expect(first).toMatch(/^minted-\d+$/);
+    expect(second).toMatch(/^minted-\d+$/);
+    expect(second).not.toBe(first);
+  });
+
+  it('the null GUID is in no driver file a project driver is exported to, detached or copied', () => {
+    const project = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
+
+    for (const driver of [project.driver.detach(), project.driver.copyAsNew(() => 'minted-copy')]) {
+      expect(driver.uuid()).not.toBe(NULL_GUID);
+      expect(driver.toOwdrText()).not.toContain(NULL_GUID);
+      expect(driver.toWdrIniText().value).not.toContain(NULL_GUID);
+    }
+  });
+
+  it('copyAsNew() takes the new id from the id source it is given', () => {
+    expect(wooferDriver().copyAsNew(() => 'given-id').uuid()).toBe('given-id');
+  });
+
+  it('loading a project file leaves its embedded driver holding the null GUID', () => {
     const original = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build();
-    const originalDriverUuid = original.driver.uuid();
 
     const loaded = OpenISDProject.fromOwprText(original.toOwprText(), createEngine());
     if (Array.isArray(loaded)) throw new Error(loaded.join(', '));
 
-    expect(loaded.driver.uuid()).not.toBe(originalDriverUuid);
+    expect(loaded.toOwprText()).toContain(NULL_GUID);
   });
 
   it('renameToCopy() prefixes the model so the copy is a distinct brand/model', () => {
     const driver = new ProjectBuilder(wooferDriver(), createEngine()).sealed().volume_m3(0.03).build().driver.detach();
     expect(driver.model.value).toBe('RS225');
 
-    driver.renameToCopy();
+    driver.renameToCopy(() => 'minted-copy');
     expect(driver.model.value).toBe('Copy of RS225');
   });
 
@@ -215,7 +255,7 @@ describe('editing a driver — copy, then update or drop', () => {
     const driver = wooferDriver();
     const originalUuid = driver.cloneDriver().uuid.value;
 
-    driver.renameToCopy();
+    driver.renameToCopy(() => 'minted-copy');
 
     expect(driver.cloneDriver().uuid.value).not.toBe(originalUuid);
     expect(driver.model.value).toBe('Copy of RS225');

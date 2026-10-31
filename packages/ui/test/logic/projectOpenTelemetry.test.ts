@@ -16,11 +16,11 @@ describe('project-open telemetry', () => {
     driver.brand.set('Dayton Audio');
     driver.model.set('RS225P-8');
 
-    const project = appState.createProject(driver, builder => builder.sealed(), () => {});
+    appState.createProject(driver, builder => builder.sealed(), () => {});
 
     expect(telemetry.record).toHaveBeenCalledWith({
       kind: 'project_open', source: 'wizard', box: 'sealed',
-      driverId: project.driver.uuid(), driverName: 'Dayton Audio RS225P-8',
+      driverName: 'Dayton Audio RS225P-8',
     });
   });
 

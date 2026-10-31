@@ -11,7 +11,7 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
-import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {OpenISDDriver, OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf} from '../../src/logic/bundledIndexRows.js';
 import {chipsOf, driverHasDqIssues, radiatorHasDqIssues} from '../../src/logic/driverDisplay.js';
@@ -86,7 +86,7 @@ function recordOf(p: DeviceFixture) {
   };
 }
 
-function driverOf(fields: FixtureFields, sources?: FixtureSources): OpenISDDriver {
+function driverOf(fields: FixtureFields, sources?: FixtureSources): OpenISDDriverStandalone {
   const d = OpenISDDriver.fromConformingRecord(
     recordOf({ uuid: UUID_D, brand: 'Tang Band', model: 'W5-1138SMF', driverType: 'woofer', section: 'woofer', fields, sources }),
     createEngine());

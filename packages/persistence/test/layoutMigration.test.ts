@@ -1,14 +1,15 @@
 import {describe, it} from 'vitest';
+import {createEngine} from '@openisd/design/engine';
 import assert from 'node:assert/strict';
 import {STORAGE_LAYOUT} from '../src/storageLayout.js';
 import {createLayoutMigrator, type LayoutStep} from '../src/repos/layoutMigration.js';
-import {LAYOUT_STEPS} from '../src/repos/layoutSteps.js';
+import {createLayoutSteps} from '../src/repos/layoutSteps.js';
 
 const step = (from: number): LayoutStep => ({from, migrate: data => ({...data, k: `${data.k ?? ''}>${from + 1}`}), migrateFile: file => ({...file, k: `${String(file.k ?? '')}>${from + 1}`})});
 
 describe('the layout migrator', () => {
   it('the app has a step for every layout below its own', () => {
-    assert.equal(createLayoutMigrator({layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS}).covers(), true);
+    assert.equal(createLayoutMigrator({layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')}).covers(), true);
   });
 
   it('migrates one layout at a time, in order, telling each layout reached', () => {

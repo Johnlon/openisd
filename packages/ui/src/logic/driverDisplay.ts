@@ -5,7 +5,7 @@
  * the driver itself (John, 2026-09-05: "this facade... it's not domain logic it's display and
  * search logic").
  */
-import type {OpenISDDriver, OpenISDPassiveRadiatorStandalone, Readable} from '@openisd/design';
+import type {OpenISDDriver, OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone, Readable} from '@openisd/design';
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 import {Chip, DriverType} from '@openisd/design/filter';
 import {NumberField} from '@openisd/design/fields';
@@ -46,7 +46,7 @@ export interface SearchSubject {
   readonly Znom_ohm: number | null;
 }
 
-export function searchSubjectOfDriver(driver: OpenISDDriver): SearchSubject {
+export function searchSubjectOfDriver(driver: OpenISDDriverStandalone): SearchSubject {
   const s = specSummaryOf(driver);
   return { id: driver.uuid(), name: displayNameOf(driver), chips: chipsOf(driver).types, Fs_hz: s.Fs, Sd_m2: s.Sd, Znom_ohm: s.Znom };
 }

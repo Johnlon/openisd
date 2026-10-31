@@ -990,7 +990,10 @@ export const openISDProjectJsonSchema = z.strictObject({
 });
 export type OpenISDProjectJson = z.infer<typeof openISDProjectJsonSchema>;
 
+/** A stored or `.owpr` project: its durable id first (John, QO312), then the name and the two states.
+ *  The id lives with the project forever, in browser storage and `.owpr`, and never in a `.wpr`. */
 export const openISDProjectSessionJsonSchema = z.strictObject({
+    id: z.string().min(1),
     label: z.string(),
     saved: openISDProjectJsonSchema,
     edited: openISDProjectJsonSchema.nullable(),

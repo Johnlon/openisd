@@ -125,7 +125,7 @@ function saveAsCopy(): void {
   renameQuestionOpen.value = false;
   // A copy is a DIFFERENT driver (QO81): its own record identity, never the source's — sharing
   // the source's uuid would make the two rows answer to one favourites entry.
-  commitToMyDrivers(draftDriver.value.copyAsNew(), false);
+  commitToMyDrivers(driverDrafts.copyAsNew(draftDriver.value), false);
   logging.flash('Saved as a copy to My Drivers');
   selection.closeEditor();
   emit('close');
@@ -522,7 +522,7 @@ function confirmSaveToMyDrivers() {
     // A copy is a DIFFERENT driver: fresh identity, never an overwrite (QO81). `upsert` with no
     // uuid mints a new REPOSITORY key regardless, but the driver's own record uuid — what
     // favourites key off — travels with the record unless reassigned here.
-    const saved = myDrivers.upsert(draftDriver.value.copyAsNew());
+    const saved = myDrivers.upsert(driverDrafts.copyAsNew(draftDriver.value));
     saveMyDialogOpen.value = false;
     copiedMsg.value = saved ? 'Copied to My Drivers' : 'Saved drivers are read-only — copy not stored';
     logging.flash(copiedMsg.value);
@@ -537,7 +537,7 @@ function confirmSaveToMyDrivers() {
     // identity rather than the source's (the bug: editing a library driver and saving it kept
     // that driver's own uuid, so its favourite star stayed linked to the library original's).
     const opened = savedEntryForSubject() != null;
-    commitToMyDrivers(opened ? draftDriver.value : draftDriver.value.copyAsNew(), opened);
+    commitToMyDrivers(opened ? draftDriver.value : driverDrafts.copyAsNew(draftDriver.value), opened);
     logging.flash('Saved to My Drivers');
     selection.closeEditor();
     emit('close');

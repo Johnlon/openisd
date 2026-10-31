@@ -1,3 +1,4 @@
+import { STORAGE_LAYOUT } from '../../../src/storageLayout.js';
 import { describe, expect, it } from 'vitest';
 import { DeviceName } from '@openisd/design/cloud';
 const ANDROID_PHONE_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 9 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36';
@@ -9,7 +10,7 @@ import { createMemoryStorage } from '../../../src/storage/keyValueStorage.js';
 import { goodProjectText } from '../../fixtures/projectTexts.js';
 import { createQuotaStorage } from '../../fixtures/quotaStorage.js';
 import type { LayoutRules } from '../../../src/repos/layoutMigration.js';
-import { LAYOUT_STEPS } from '../../../src/repos/layoutSteps.js';
+import { createLayoutSteps } from '../../../src/repos/layoutSteps.js';
 import { projectRepoOn } from '../../fixtures/repoOn.js';
 import type { FileStorage } from '../../../src/storage/fileStorage.js';
 
@@ -22,7 +23,7 @@ const noFiles: FileStorage = {
 };
 
 const FIXED_NOW = new Date(2026, 9, 13, 21, 5, 0).getTime();
-const RULES: LayoutRules = { layout: 2, steps: LAYOUT_STEPS };
+const RULES: LayoutRules = { layout: 2, steps: createLayoutSteps(createEngine(), () => 'test-project-id') };
 
 function setup(initialData: Record<string, string> = {}) {
   const storage = createMemoryStorage(initialData);
@@ -46,7 +47,7 @@ describe('projectDocs', () => {
     expect(read.docs[0]).toEqual({
       id: { kind: 'project', uuid: 'p-1' },
       body: text,
-      layout: 2,
+      layout: STORAGE_LAYOUT,
     });
   });
 

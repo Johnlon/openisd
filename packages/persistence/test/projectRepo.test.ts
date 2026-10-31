@@ -486,6 +486,40 @@ describe('projectRepo', () => {
     });
   });
 
+  describe('a file opened when its project is already stored (T622, QO312: a project id is never shared)', () => {
+    it('keeps the id the file carries when no stored project has it', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const made = project('Fresh');
+      const opened = repo.readProjectText(made.toOwprText());
+      assert.ok(!Array.isArray(opened));
+      expect(opened.uuid()).toBe(made.uuid());
+    });
+
+    it('gives the copy a new id when a stored project has the file\'s id, and the stored one is left as it was', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const made = project('ABC');
+      repo.storeNew(made, [made]);
+      const text = made.toOwprText();
+      const first = repo.readProjectText(text);
+      const second = repo.readProjectText(text);
+      assert.ok(!Array.isArray(first) && !Array.isArray(second));
+      expect(first.uuid()).not.toBe(made.uuid());
+      expect(second.uuid()).not.toBe(made.uuid());
+      expect(repo.listStoredProjects()).toHaveLength(1);
+      expect(repo.loadStoredProject(made.uuid())).toSatisfy((p: unknown) => p instanceof OpenISDProject && p.uuid() === made.uuid());
+    });
+
+    it('storing the copy of an already stored file with the same content keeps the stored copy', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const made = project('ABC');
+      repo.storeNew(made, [made]);
+      const copy = repo.readProjectText(made.toOwprText());
+      assert.ok(!Array.isArray(copy));
+      repo.storeNew(copy, [copy]);
+      expect(repo.listStoredProjects()).toHaveLength(1);
+    });
+  });
+
   describe('retired field migration (BUG_20261009_retired-field-reset-notice-on-every-load)', () => {
     it('a stored project with front.losses.Qicl loads with no notice and is stored without it; a second load shows nothing', () => {
       const legacy = projectWithFrontQicl('bp4');

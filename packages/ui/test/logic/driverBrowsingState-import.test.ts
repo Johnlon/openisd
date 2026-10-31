@@ -83,4 +83,18 @@ describe('My Drivers Load File flashes what it did', () => {
     await load(browsing, new File(['hello'], 'notes.txt'));
     expect(flash).toHaveBeenCalledWith('Could not import notes.txt: it is not a driver file (expected .wdr or .owdr)');
   });
+
+  it('cloning a driver files a copy named "Copy of ..." under a new id and previews it', () => {
+    const { browsing, files, flash } = setUp();
+    const project = files.projectFromText(readFileSync(GOLDEN_SEALED, 'utf8'), ProjectFileFormat.Wpr).value;
+    if (!project) throw new Error('the golden must load');
+    const source = project.driver.detach();
+    const sourceModel = source.model.value;
+
+    browsing.cloneDriver(source);
+
+    expect(flash).toHaveBeenCalledWith('Cloned to My Drivers');
+    expect(browsing.previewDriver.value?.model.value).toBe(`Copy of ${sourceModel}`);
+    expect(browsing.previewDriver.value?.uuid()).not.toBe(source.uuid());
+  });
 });

@@ -1,7 +1,7 @@
 import {shallowRef} from 'vue';
 import type {PhoneHelpSection} from '@openisd/design/fields';
 import {useEscToClose} from '../logic/useEscToClose.js';
-import type {OpenISDDriver} from '@openisd/design';
+import type {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
 import type {MyDriverRepo} from '@openisd/persistence';
 
 /**
@@ -17,7 +17,7 @@ export function ebpVal(driver: OpenISDDriver): number | null {
 
 /** Save `driver` to My Drivers: over the row `replacesUuid` names, or as a new row when it is
  *  ''. False = My Drivers refused (read-only). */
-export function commitMyDriver(myDrivers: MyDriverRepo, driver: OpenISDDriver, replacesUuid: string): boolean {
+export function commitMyDriver(myDrivers: MyDriverRepo, driver: OpenISDDriverStandalone, replacesUuid: string): boolean {
   return myDrivers.upsert(driver, replacesUuid === '' ? undefined : replacesUuid) !== null;
 }
 

@@ -25,7 +25,7 @@ import { parse as parseYmlToJs } from "yaml"; // driver.yml input; openisd/.wdr 
 import {z} from "zod";
 
 import type {Calculated, Entered, Readable} from "./cell.js";
-import {OpenISDDriver} from "./driver/openISDDriver.js";
+import {OpenISDDriver, type OpenISDDriverStandalone} from "./driver/openISDDriver.js";
 import {OpenISDPassiveRadiatorStandalone} from "./passiveRadiator/openISDPassiveRadiatorStandalone.js";
 import {type DriverError, type Engine} from "../engine/index.js";
 
@@ -740,7 +740,7 @@ export class DriverRecordConverter {
    *  `Comment=` when present, `'woofer'` otherwise), then validate that record into a driver. */
   winIsdDriverToOpenIsdDriver(
     text: string
-  ): { value: OpenISDDriver | null; errors: DriverError[] } {
+  ): { value: OpenISDDriverStandalone | null; errors: DriverError[] } {
     const errors: DriverError[] = [];
     const wdrDriver = WinISDDriver.fromWdrIni(text);
     const { record, warnings } = winISDDriverToOpenISDDeviceJson(wdrDriver);

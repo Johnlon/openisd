@@ -376,8 +376,15 @@ export function createAppState(deps: AppStateDeps): AppState {
     }
   }
 
+  /** Two open projects never share an id: a project whose id is held by one of `others` (a second
+   *  copy of an open file) takes a new one. */
+  function giveOwnIdAmong(project: OpenISDProject, others: readonly OpenISDProject[]): void {
+    if (others.some(other => other !== project && other.uuid() === project.uuid())) project.assignNewId();
+  }
+
   /** Add a newly-created or re-imported project to the registry and focus it. */
   function addProject(project: OpenISDProject): void {
+    giveOwnIdAmong(project, projects.value);
     assignTraceColor(project, projects.value);
     projects.value = [...projects.value, project];
     focusedIndex.value = projects.value.length - 1;
@@ -875,6 +882,7 @@ export function createAppState(deps: AppStateDeps): AppState {
       addProject(project);
       return;
     }
+    giveOwnIdAmong(project, projects.value.filter((_, i) => i !== focusedIndex.value));
     projects.value = projects.value.map((existing, i) => (i === focusedIndex.value ? project : existing));
   }
 

@@ -2,12 +2,12 @@ import {describe, expect, it, vi} from 'vitest';
 import {createRenderer, defineComponent} from 'vue';
 import {PhoneHelpSection} from '@openisd/design/fields';
 import {MY_DRIVERS_KEY, createMemoryStorage} from '@openisd/persistence';
-import {OpenISDDriver} from '@openisd/design';
+import {OpenISDDriver, OpenISDDriverStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {commitMyDriver, ebpVal, useDriverEditorHelp} from '../../src/hooks/DriverEditorModal-hooks.js';
 import {myDriverRepoOn} from '../fixtures/repoOn.js';
 
-function completeDriver(): OpenISDDriver {
+function completeDriver(): OpenISDDriverStandalone {
   const engine = createEngine();
   const driver = OpenISDDriver.empty(engine);
   driver.specs.Fs_hz.set(40);
@@ -52,7 +52,7 @@ describe('DriverEditorModal-hooks', () => {
 
     it('files a new row when nothing was opened', () => {
       const {myDrivers, driver} = savedWith('Fixture');
-      expect(commitMyDriver(myDrivers, driver.copyAsNew(), '')).toBe(true);
+      expect(commitMyDriver(myDrivers, driver.copyAsNew(() => 'minted-copy'), '')).toBe(true);
       expect(myDrivers.list()).toHaveLength(2);
     });
 

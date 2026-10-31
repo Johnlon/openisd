@@ -10,7 +10,7 @@
  * messages; this module owns the format conversion. Nothing here touches app state or the
  * DOM.
  */
-import {OpenISDDriver, OpenISDProject, DriverRecordConverter, WinIsdProjectConverter} from '@openisd/design';
+import {OpenISDDriver, type OpenISDDriverStandalone, OpenISDProject, DriverRecordConverter, WinIsdProjectConverter} from '@openisd/design';
 import {DriverFileFormat, ProjectFileFormat} from '../fileFormat.js';
 import type {DriverError, Engine} from '@openisd/design/engine';
 import type {ExportedFiles, ProjectRepo} from '@openisd/persistence';
@@ -59,7 +59,7 @@ export class DesignFiles {
 
   /** Driver file text → a standalone driver, or the reasons it could not be read. A `.wdr`
    *  goes through the WinISD converter; an `.owdr` IS the app's own record. */
-  driverFromText(text: string, format: DriverFileFormat): { value: OpenISDDriver | null; errors: DriverError[] } {
+  driverFromText(text: string, format: DriverFileFormat): { value: OpenISDDriverStandalone | null; errors: DriverError[] } {
     if (format === DriverFileFormat.Wdr) return this.#drivers.winIsdDriverToOpenIsdDriver(text);
     const opened = this.exportedFiles.open(text);
     if (opened.kind === 'newer') {

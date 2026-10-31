@@ -1,10 +1,10 @@
-import type {OpenISDDriver} from '@openisd/design';
+import type {OpenISDDriverStandalone} from '@openisd/design';
 import type {BundledDriverRepo} from '@openisd/persistence';
 import type {Telemetry} from './telemetry.js';
 
 /** Records `driver_pick` for a driver the user chose: `bundled` with its catalogue id and name when the
  *  catalogue lists it, else `mine` (a saved or imported driver all live in My Drivers). */
-export function driverPickRecorder(telemetry: Telemetry, catalogue: BundledDriverRepo): (driver: OpenISDDriver) => void {
+export function driverPickRecorder(telemetry: Telemetry, catalogue: BundledDriverRepo): (driver: OpenISDDriverStandalone) => void {
   return driver => {
     void catalogue.index().then(rows => {
       const row = rows.find(r => r.uuid === driver.uuid());

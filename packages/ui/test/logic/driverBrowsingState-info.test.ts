@@ -25,12 +25,12 @@ describe('project driver information',()=>{
     app.driverBrowsing.showProjectDriverInfo();
     expect(app.presentation.browseOpen).toBe(true);
     expect(app.driverBrowsing.projectInfoOpen.value).toBe(true);
-    // Domain accessors return views; compare driver identity, not wrapper identity.
-    expect(app.driverBrowsing.previewDriver.value?.uuid()).toBe(embedded.uuid());
+    // The embedded driver has no id; the preview is a copy of it carrying its values.
+    expect(app.driverBrowsing.previewDriver.value?.specs.Fs_hz.value).toBe(37);
     expect(app.driverBrowsing.previewData.value?.name).toBe('Project Only');
     expect(app.presentation.editDriverInfo).toBe(false);
     expect(app.appState.isModified.value).toBe(false);
-    expect(project.driver.uuid()).toBe(embedded.uuid());
+    expect(embedded.model.value).toBe('Only');
     expect(project.driver.specs.Fs_hz.value).toBe(37);
     app.driverBrowsing.openedLibrary();
     expect(app.driverBrowsing.initialized.value).toBe(false);

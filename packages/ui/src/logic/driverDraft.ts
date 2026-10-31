@@ -24,11 +24,11 @@ export function wiringOptions(): readonly SelectorOption<VoiceCoilWiring>[] {
 export interface DriverDraft {
   /** The driver being edited. A detached copy: writing to it changes nothing else until the
    *  editor commits. */
-  readonly driver: OpenISDDriver;
+  readonly driver: OpenISDDriverStandalone;
   /** Throw the edits away and start again from the same seed. */
   reset(): void;
   /** Adopt a driver read from a file as the new draft, replacing what was there. */
-  replace(driver: OpenISDDriver): void;
+  replace(driver: OpenISDDriverStandalone): void;
   /** Set the coil wiring. The select's option list (`VC_CONNECTION_OPTIONS`) carries the domain's
    *  own wiring values, so the chosen option is written as-is — nothing to map. */
   setWiring(choice: VoiceCoilWiring): void;
@@ -46,6 +46,11 @@ export interface DriverDraft {
 export class DriverDrafts {
   constructor(private readonly engine: Engine, private readonly appContext: AppContext) {}
 
+  /** `driver` as a new entity: an independent standalone copy with a new id from the app context. */
+  copyAsNew(driver: OpenISDDriver): OpenISDDriverStandalone {
+    return driver.copyAsNew(() => this.appContext.newId());
+  }
+
   /** Open an editing session on `subject`.
    *
    *  The seed differs by subject: a My Driver's picked driver, a blank driver for a fresh My
@@ -55,7 +60,7 @@ export class DriverDrafts {
     subject: EditorDraftSeed,
     projectDriver?: () => OpenISDDriver,
   ): DriverDraft {
-    const seedDraft = (): OpenISDDriver => {
+    const seedDraft = (): OpenISDDriverStandalone => {
       if (subject.kind === 'project') {
         if (!projectDriver) {
           throw new Error('DriverDrafts.open: a project subject needs the project driver to seed from');
@@ -70,16 +75,16 @@ export class DriverDrafts {
     return {
       get driver() { return current; },
       reset() { current = seedDraft(); },
-      replace(driver: OpenISDDriver) { current = driver; },
+      replace(driver: OpenISDDriverStandalone) { current = driver; },
       setWiring(choice: VoiceCoilWiring) {
         const d = current;
         d.specs.VCCon.set(choice);
       },
       get autoCalculate() {
-        return current instanceof OpenISDDriverStandalone ? current.autoCalculate : true;
+        return current.autoCalculate;
       },
       setAutoCalculate(enabled: boolean) {
-        if (current instanceof OpenISDDriverStandalone) current.setAutoCalculate(enabled);
+        current.setAutoCalculate(enabled);
       },
     };
   }

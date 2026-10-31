@@ -1,7 +1,8 @@
 import {describe, expect, it, vi} from 'vitest';
+import {createEngine} from '@openisd/design/engine';
 import type {ExportNotice} from '../../src/logic/exportNotice.js';
 import {
-  createBuildStamp, createMemoryStorage, createStoreOpening, LAYOUT_STEPS, STORAGE_LAYOUT, OPENISD_BACKUP_PREFIX, OPENISD_PROJECTS_KEY,
+  createBuildStamp, createMemoryStorage, createStoreOpening, createLayoutSteps, STORAGE_LAYOUT, OPENISD_BACKUP_PREFIX, OPENISD_PROJECTS_KEY,
   OPENISD_STORAGE_LAYOUT_KEY, type OpenStore, type StoreOpening,
 } from '@openisd/persistence';
 import {createStoreGateSession} from '../../src/logic/storeGate.js';
@@ -19,7 +20,7 @@ function blockedOpening() {
     }),
   });
   const opening: StoreOpening = createStoreOpening(storage, {
-    build: BUILD, now: () => NOW, rules: {layout: STORAGE_LAYOUT, steps: LAYOUT_STEPS}, memoryStorage: createMemoryStorage,
+    build: BUILD, now: () => NOW, rules: {layout: STORAGE_LAYOUT, steps: createLayoutSteps(createEngine(), () => 'test-project-id')}, memoryStorage: createMemoryStorage,
   }, () => undefined);
   if (opening.kind === 'ready') throw new Error('expected the newer store to be refused');
   return {storage, opening};

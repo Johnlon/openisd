@@ -330,9 +330,9 @@
     "statements": 66
   },
   "packages/ui/src/logic/appState.ts": {
-    "lines": 89,
-    "branches": 75,
-    "functions": 83,
+    "lines": 90,
+    "branches": 76,
+    "functions": 84,
     "statements": 88
   },
   "packages/ui/src/logic/appUpdate.ts": {
@@ -402,10 +402,10 @@
     "statements": 0
   },
   "packages/ui/src/logic/driverBrowsingState.ts": {
-    "lines": 50,
-    "branches": 33,
-    "functions": 48,
-    "statements": 46
+    "lines": 54,
+    "branches": 34,
+    "functions": 50,
+    "statements": 50
   },
   "packages/ui/src/logic/driverCells.ts": {
     "lines": 100,
@@ -420,10 +420,10 @@
     "statements": 83
   },
   "packages/ui/src/logic/driverDraft.ts": {
-    "lines": 64,
-    "branches": 30,
-    "functions": 70,
-    "statements": 63
+    "lines": 100,
+    "branches": 100,
+    "functions": 100,
+    "statements": 100
   },
   "packages/ui/src/logic/driverFileText.ts": {
     "lines": 76,

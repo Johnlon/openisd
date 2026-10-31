@@ -1,5 +1,5 @@
 /** REPO: domain access to the My Drivers collection. Takes a storage, returns domain objects. */
-import {OpenISDDriver} from '@openisd/design';
+import {OpenISDDriver, type OpenISDDriverStandalone} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {KeyValueStorage} from '../storage/keyValueStorage.js';
 import {type BrokenEntry, createSavedEntries, type SavedEntries, type SavedWrite} from './savedEntries.js';
@@ -22,7 +22,7 @@ export const MY_DRIVERS_KEY = OPENISD_MY_DRIVERS_KEY;
 
 export type MyDriversRead =
   /** Bucket readable. `broken` entries are preserved in storage and surfaced, never hidden. */
-  | { kind: 'ok'; drivers: { uuid: string; driver: OpenISDDriver }[]; broken: BrokenEntry[] }
+  | { kind: 'ok'; drivers: { uuid: string; driver: OpenISDDriverStandalone }[]; broken: BrokenEntry[] }
   /** Storage itself is inaccessible (private mode, browser policy). Not a corruption. */
   | { kind: 'unavailable' }
   /** The bucket's string is not a readable envelope. The bucket is READ-ONLY until the user
@@ -34,13 +34,13 @@ export interface MyDriverRepo {
   read(): MyDriversRead;
   /** Every saved driver, in saved order — `[]` when the bucket is unavailable or unreadable.
    *  Surfaces that must react to failure use `read()`. */
-  list(): { uuid: string; driver: OpenISDDriver }[];
+  list(): { uuid: string; driver: OpenISDDriverStandalone }[];
   /** Replace the whole collection — used by "reset to the demo samples". Refused (false)
    *  while the bucket is unreadable. Each entry mints a fresh uuid. */
-  replaceAll(list: OpenISDDriver[]): SavedWrite;
+  replaceAll(list: OpenISDDriverStandalone[]): SavedWrite;
   /** Save one driver. `uuid` absent mints a fresh identity (a new entry); `uuid` present
    *  overwrites that entry. Returns the uuid it was saved under; null = refused (read-only). */
-  upsert(d: OpenISDDriver, uuid?: string): { uuid: string; overwrote: boolean } | null;
+  upsert(d: OpenISDDriverStandalone, uuid?: string): { uuid: string; overwrote: boolean } | null;
   /** Remove the saved driver with this uuid. Refused (false) while unreadable. */
   remove(uuid: string): SavedWrite;
   /** Remove ONE broken entry by its `BrokenEntry.key` — the surface challenges first. */
@@ -53,7 +53,7 @@ export interface MyDriverRepo {
 }
 
 export function createMyDriverRepo(storage: KeyValueStorage, engine: Engine, backup: StorageBackup, onSaved: () => void): MyDriverRepo {
-  const library: SavedEntries<OpenISDDriver> = createSavedEntries(storage, {
+  const library: SavedEntries<OpenISDDriverStandalone> = createSavedEntries(storage, {
     key: MY_DRIVERS_KEY,
     open: (record) => OpenISDDriver.fromConformingRecord(record, engine),
     snapshot: (driver) => driver.cloneDriver(),

@@ -55,7 +55,8 @@ describe('the driver list filters', () => {
     const myDriverRepo = myDriverRepoOn(storage, engine);
     const project = files.projectFromText(readFileSync(GOLDEN, 'utf8'), ProjectFileFormat.Wpr).value;
     if (!project) throw new Error('the golden must load');
-    const saved = myDriverRepo.upsert(project.driver);
+    const mine = project.driver.detach();
+    const saved = myDriverRepo.upsert(mine);
     if (!saved) throw new Error('the driver must save');
     const browsing = createDriverBrowsingState({
       driverRepo: createBundledDriverRepo({
@@ -66,7 +67,7 @@ describe('the driver list filters', () => {
       exportNotice: {exported: () => undefined}, appState, presentation,
     });
     browsing.reloadMyDrivers();
-    return {browsing, uuid: saved.uuid, driverUuid: project.driver.uuid()};
+    return {browsing, uuid: saved.uuid, driverUuid: mine.uuid()};
   }
 
   it('Favorites cannot be switched on with no favourites', () => {

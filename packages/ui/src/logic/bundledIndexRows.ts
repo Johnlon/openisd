@@ -12,11 +12,11 @@
  * Figures are `.value` — the value the app shows, stated or solved — matching what
  * `specSummaryOf` gave the filter when the picker held domain objects. Absent stays null.
  */
-import type {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import type {OpenISDDriverStandalone, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import type {BundledDriverIndexRow, BundledPassiveRadiatorIndexRow} from '@openisd/persistence';
 import {chipsOf, displayNameOf, driverHasDqIssues, radiatorHasDqIssues} from './driverDisplay.js';
 
-export function bundledDriverIndexRowOf(driver: OpenISDDriver, path: string): BundledDriverIndexRow {
+export function bundledDriverIndexRowOf(driver: OpenISDDriverStandalone, path: string): BundledDriverIndexRow {
   const s = driver.specs;
   const chips = chipsOf(driver);
   return {
