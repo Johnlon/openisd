@@ -425,9 +425,9 @@ describe('projectRepo', () => {
     it('stores a project that has no stored copy, unchanged, and says it is stored', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const made = project('Fresh');
-      expect(repo.isStored(made, [made])).toBe(false);
+      expect(repo.isStored(made)).toBe(false);
       expect(repo.storeNew(made, [made]).kind).toBe('saved');
-      expect(repo.isStored(made, [made])).toBe(true);
+      expect(repo.isStored(made)).toBe(true);
       expect(made.isModified()).toBe(false);
       expect(repo.listStoredProjects().map(e => e.name)).toEqual(['Fresh']);
     });
@@ -468,8 +468,8 @@ describe('projectRepo', () => {
       const second = project('ABC');
       repo.saveToStorageAs(first, 'one');
       repo.saveToStorageAs(second, 'one');
-      expect(repo.isStored(first, [first, second])).toBe(true);
-      expect(repo.isStored(second, [first, second])).toBe(false);
+      expect(repo.isStored(first)).toBe(true);
+      expect(repo.isStored(second)).toBe(false);
       repo.storeNew(second, [first, second]);
       expect(repo.storedIdOf(second)).not.toBe('one');
       expect(repo.listStoredProjects().map(e => e.name)).toEqual(['ABC', 'ABC']);
@@ -482,7 +482,7 @@ describe('projectRepo', () => {
       const refuse = vi.spyOn(storage, 'set').mockImplementation(() => { throw new Error('quota'); });
       expect(repo.storeNew(made, [made]).kind).toBe('failed');
       refuse.mockRestore();
-      expect(repo.isStored(made, [made])).toBe(false);
+      expect(repo.isStored(made)).toBe(false);
     });
   });
 
@@ -493,6 +493,18 @@ describe('projectRepo', () => {
       const opened = repo.readProjectText(made.toOwprText());
       assert.ok(!Array.isArray(opened));
       expect(opened.uuid()).toBe(made.uuid());
+    });
+
+    it('never refuses a layout-3 file that has lost its id: one is minted on read (QO315)', () => {
+      const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
+      const parsed: unknown = JSON.parse(exportedFilesOn().stamp(project('No id').toOwprText()));
+      assert.ok(isRecord(parsed));
+      const {id: _lost, ...withoutId} = parsed;
+      const text = JSON.stringify(withoutId);
+      expect(text).toContain('"layout":3');
+      const opened = repo.readProjectText(text);
+      assert.ok(!Array.isArray(opened), Array.isArray(opened) ? opened.join('; ') : '');
+      expect(opened.uuid()).not.toBe('');
     });
 
     it('gives the copy a new id when a stored project has the file\'s id, and the stored one is left as it was', () => {

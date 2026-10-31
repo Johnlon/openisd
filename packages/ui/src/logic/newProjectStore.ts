@@ -21,7 +21,7 @@ export function startStoringNewProjects(deps: NewProjectStoreDeps): () => void {
   const storeOpen = (closeRefused: boolean): void => {
     for (const project of [...appState.openProjects()]) {
       const open = appState.openProjects();
-      if (projectRepo.isStored(project, open)) continue;
+      if (projectRepo.isStored(project)) continue;
       if (projectRepo.storeNew(project, open).kind === 'failed') {
         if (closeRefused) appState.removeProject(open.indexOf(project));
         deps.onFailed();

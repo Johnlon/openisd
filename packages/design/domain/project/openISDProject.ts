@@ -521,6 +521,12 @@ export class OpenISDProject {
         this.#notify();
     }
 
+    /** Take `id` as this project's id: a project saved over an already saved one is that one. */
+    adoptId(id: string): void {
+        this.#uuid = id;
+        this.#notify();
+    }
+
     /** This project's durable id: in its stored and `.owpr` text, never in a `.wpr`. */
     uuid(): string {
         return this.#uuid;
