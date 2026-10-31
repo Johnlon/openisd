@@ -349,6 +349,10 @@ test.describe('New Project wizard', () => {
       await modal.locator('button', { hasText: 'Next' }).click();
       await choosePassiveRadiator(page);
 
+      // "Define new passive radiator" states nothing: the three boxes are blank before the test types over them.
+      for (const id of ['#np-pr-vas', '#np-pr-qms', '#np-pr-fs']) {
+        await expect(modal.locator(id), `${id} before typing`).toHaveValue('');
+      }
       for (const [id, text] of [['#np-pr-vas', '40'], ['#np-pr-qms', '6'], ['#np-pr-fs', '18']] as const) {
         await modal.locator(id).fill(text);
         await modal.locator(id).press('Tab');
