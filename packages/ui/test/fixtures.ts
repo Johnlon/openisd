@@ -115,10 +115,33 @@ export async function resetApp(page: Page, additions: TestAdditions): Promise<vo
   await page.setViewportSize({ width: 1280, height: 720 });
 
   await dismissOverlays(page);
+  await restoreAutomaticSkin(page);
   await closeAllProjects(page);
   await restoreOptions(page);
   await restoreSidebarWidth(page);
   await clearHash(page);
+}
+
+/** Every test starts on the skin the window gives (F58): a skin a test chose stays chosen on the shared
+ *  page, so it is undone the way a user does, with "Automatic view", and the desktop shell a 1280 px
+ *  window gives is checked before the test runs. */
+async function restoreAutomaticSkin(page: Page): Promise<void> {
+  // The window was just widened: let the app finish following it before reading which shell shows.
+  // Only a chosen phone skin keeps the mobile shell on a 1280 px window.
+  const desktopShown = await expect(page.locator('.original-root')).toBeVisible({timeout: 2000}).then(() => true, () => false);
+  if (!desktopShown) {
+    await page.locator('.mob-hamburger').click();
+    const automatic = page.locator('.mob-menu-item', {hasText: 'Automatic view'});
+    if (await automatic.count() > 0) await automatic.click();
+    else await page.locator('.mob-menu-close').click();
+  } else {
+    await page.locator('.tb-btn[title="Info"]').click();
+    const automatic = page.getByText('Automatic view', {exact: true});
+    if (await automatic.count() > 0) await automatic.click();
+    else await page.keyboard.press('Escape');
+  }
+  await expect(page.locator('.original-root'), 'resetApp: a 1280 px window shows the desktop shell').toBeVisible();
+  await expect(page.locator('.mobile-root')).toHaveCount(0);
 }
 
 const OVERLAY_SELECTOR = '.overlay.on, .overlay.open, .wd-overlay, .confirm-overlay, .opt-overlay, .mob-align-overlay, .mob-action-sheet-overlay, .mob-menu-overlay, .mob-np-overlay, .mob-dlg, dialog[open]';

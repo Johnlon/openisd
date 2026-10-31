@@ -56,7 +56,15 @@ interface UiState {
   splashSeen?: boolean;
   /** Manual, persisted skin choice from the Info menu. Absent means "follow the viewport" —
    *  `App.vue`'s `activeSkin` falls back to `narrowViewport` below. */
-  skinOverride?: 'original' | 'mobile';
+  skinOverride?: SkinChoice;
+}
+
+/** A skin the person can choose from the Info menu. */
+export type SkinChoice = 'original' | 'mobile';
+
+/** `value` as a skin the app offers, or undefined for anything else (a saved view is outside data). */
+export function parseSkinChoice(value: unknown): SkinChoice | undefined {
+  return value === 'original' || value === 'mobile' ? value : undefined;
 }
 
 export interface PresentationState {

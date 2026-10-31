@@ -21,12 +21,14 @@ failed every time before the fix and passes after.
 
 ## Fix
 
-The announcements spec no longer sets a skin; the 1280 px window already gives the desktop shell.
+- The announcements spec no longer sets a skin; the 1280 px window already gives the desktop shell.
+- The app reads a saved skin choice through `parseSkinChoice` (presentationState.ts): only 'original'
+  or 'mobile' is kept; anything else is dropped and the skin follows the window (John: "should have
+  been rejected"). Unit test in `packages/ui/test/logic/viewSnapshot.test.ts`.
+- Every test checks the skin before it runs (John: "each test suite should check the skin before
+  running"): `resetApp` undoes a chosen skin with "Automatic view", as a user does, and checks the
+  desktop shell a 1280 px window gives.
 
 ## Left open (after the release)
 
-- `resetApp` should return the skin to "Automatic view" through the menu, as a user does, so no spec
-  can leak a skin choice again.
-- The app accepts an invalid stored `skinOverride` ('desktop'); a stored view should be parsed and an
-  unknown skin dropped.
 - The announcements spec writes app storage directly and reloads (rules: no backdoor, no reload).

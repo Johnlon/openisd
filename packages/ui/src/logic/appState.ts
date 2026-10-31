@@ -45,7 +45,7 @@ import {
     type AppSettingsRepo, copyOfName, uniqueName,
     type ViewSnapshot,
 } from '@openisd/persistence';
-import {assignTraceColor, type PresentationState} from './presentationState.js';
+import {assignTraceColor, parseSkinChoice, type PresentationState} from './presentationState.js';
 import {BOX_TYPE_OPTIONS, NumberField, parseUnitRotation, type SelectorOption} from '@openisd/design/fields';
 import {ventSolveSuspended} from './ventGroup.js';
 import {projectDriverTelemetry} from './telemetry/projectDriver.js';
@@ -895,6 +895,9 @@ export function createAppState(deps: AppStateDeps): AppState {
     if (v.ui) {
       Object.assign(presentation.ui, v.ui);   // the whole view context is carried by a share link (stateToUrl, human ruling 2026-08-14) — nothing in it is stripped
       presentation.ui.unitTokens = {...parseUnitRotation(v.ui.unitTokens)};   // an older save's short-named unit choices move to their field
+      const skin = parseSkinChoice(v.ui.skinOverride);   // a skin the app does not offer is dropped: the skin then follows the window (F58)
+      if (skin === undefined) delete presentation.ui.skinOverride;
+      else presentation.ui.skinOverride = skin;
     }
     if (v.chart) {
       presentation.sweepRange = {min: v.chart.sweepRange.min, max: v.chart.sweepRange.max};
