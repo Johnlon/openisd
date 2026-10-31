@@ -378,7 +378,8 @@ export function measureSummaryContent(root: Element): FieldVisualReport {
       const unitBox = unit.getBoundingClientRect();
       column.unit.push(unitText.left);
       const valueUnitGap = unitText.left - text.right;
-      if (valueUnitGap < 3.5) issues.push({field, problem: `summary value has less than 4px separation from its unit (${valueUnitGap.toFixed(2)}px; CSS gap ${getComputedStyle(unit.parentElement!).columnGap})`});
+      const cssGap = unit.ownerDocument.defaultView?.getComputedStyle(unit.parentElement!).columnGap ?? '(unavailable)';
+      if (valueUnitGap < 3.5) issues.push({field, problem: `summary value has less than 4px separation from its unit (${valueUnitGap.toFixed(2)}px; CSS gap ${cssGap})`});
       if (unitText.left < unitBox.left - 0.5 || unitText.right > unitBox.right + 0.5 || unitText.right > box.right + 0.5) issues.push({field, problem: 'summary unit text overflows its column'});
     }
   }
