@@ -112,6 +112,8 @@ test.describe('Original Advanced tab', () => {
     });
 
     test('air constants and calculated readouts occupy two aligned columns', async ({ appPage: page }) => {
+      // Two columns need the room of a wide window; a narrow pane wraps the calculated column under the entered one (BUG_20261031).
+      await page.setViewportSize({width: 1920, height: 1080});
       const positions = await page.locator('.adv-air-fields .field').evaluateAll(fields => fields.map(field => {
         const rect=field.getBoundingClientRect();return {left:rect.left,top:rect.top,bottom:rect.bottom};
       }));
@@ -541,6 +543,20 @@ test.describe('Original Advanced tab', () => {
             els => els.map(e => Math.round(e.getBoundingClientRect().left)));
           expect(new Set(lefts).size, `${group}: one column`).toBe(1);
         }
+      });
+    }
+
+    // BUG_20261031: T607's wider air rows pushed the Advanced tab to 1225 px wide; it scrolled sideways below 1600.
+    for (const [width, height] of [[1280, 800], [1366, 768]] as const) {
+      test(`the Advanced tab fits at ${width}x${height} with no sideways scroll and the switch groups side by side`, async ({ appPage: page }) => {
+        await page.setViewportSize({width, height});
+        const pane = page.locator('.tab-section.active');
+        const [scroll, client] = await pane.evaluate(el => [el.scrollWidth, el.clientWidth]);
+        expect(scroll, `pane scrolls sideways at ${width}x${height}`).toBeLessThanOrEqual(client);
+        const options = (await page.locator('.option-switch-group').boundingBox())!;
+        const bugs = (await page.locator('.error-switch-group').boundingBox())!;
+        expect(bugs.x).toBeGreaterThanOrEqual(options.x + options.width);
+        expect(Math.abs(bugs.y - options.y)).toBeLessThanOrEqual(1);
       });
     }
 
