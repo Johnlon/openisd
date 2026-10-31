@@ -195,6 +195,12 @@ fragment release changes across parallel branches or worktrees; merge required w
 branch before continuing release verification. Coordinate with other repositories only where their
 work is an actual dependency, and consume their committed output on the integrated release branch.
 
+## SDLC policy — always
+
+[`docs/SDLC_POLICY.md`](docs/SDLC_POLICY.md): John's standing orders. Main broken → fix it directly on main, only
+the fix, no branches or housekeeping; failing tests → one spec, then a cluster of 2–3, then the suite; release
+fixes before new work; agent sessions run in tmux under the keeper; a restarted agent coordinates before working.
+
 ## Loaded on demand
 
 The rest of the project's working conventions live in path-scoped rules and docs so they only
