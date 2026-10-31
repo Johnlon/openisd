@@ -15,8 +15,13 @@ test.describe('Driver browser', () => {
 
     const preview = page.locator('.driver-library .preview');
     await expect(preview).toBeVisible();
-    await expect(preview).toContainText(/Re\s+3\.400\s+Ω/);
-    await expect(preview).toContainText(/BL\s+7\.17000\s+Tm/);
+    const specification = (label: string) => preview.locator('.spec-row').filter({
+      has: page.locator('.spec-lbl', {hasText: new RegExp(`^${label}$`)}),
+    });
+    await expect(specification('Re').locator('.spec-val b')).toHaveText('3.400');
+    await expect(specification('Re').locator('.spec-unit')).toHaveText('Ω');
+    await expect(specification('BL').locator('.spec-val b')).toHaveText('7.17000');
+    await expect(specification('BL').locator('.spec-unit')).toHaveText('Tm');
   });
 
   test('the selected-driver summary has a consistent inner gutter', async ({page}) => {

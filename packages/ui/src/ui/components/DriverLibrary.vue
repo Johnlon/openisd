@@ -610,8 +610,8 @@ onMounted(openedLibrary);
   color: #000;
 }
 .driver-library .spec-val.has-unit-slot {
-  grid-template-columns: minmax(0, 1fr) 3.5em;
-  column-gap: 4px;
+  grid-template-columns: minmax(0, 1fr) 3em;
+  column-gap: 6px;
 }
 .driver-library .spec-val b {
   min-width: 0;

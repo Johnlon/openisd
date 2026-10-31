@@ -152,7 +152,8 @@
 
 /* Text and choice rows reserve the same warning rail as numeric rows. */
 .joined-fields:not(.app-root-mobile) .ui-pick-field:not(.mob-ui-field) {
-  grid-template-columns:max-content var(--pick-width,max-content) 16px;
+  grid-template-columns:var(--label-w,var(--ctl-label-w,150px)) var(--pick-width,max-content) 16px;
+  column-gap:2px;
 }
 .joined-fields:not(.app-root-mobile) .ui-pick-field > label {padding-right:22px;box-sizing:border-box;}
 

@@ -25,7 +25,7 @@ const props = defineProps<{
 <style scoped>
 .ui-pick-field:not(.mob-ui-field) {
   display: grid;
-  grid-template-columns: var(--label-w, var(--ctl-label-w)) var(--pick-width, max-content) 16px;
+  grid-template-columns: var(--label-w, var(--ctl-label-w, 150px)) var(--pick-width, max-content) 16px;
   column-gap: 4px;
   align-items: center;
 }

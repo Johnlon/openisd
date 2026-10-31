@@ -74,7 +74,9 @@ for (const mobile of [false, true]) {
         const columns = new Map<number, Edges[]>();
         for (const e of r) columns.set(Math.round(e.labelLeft), [...(columns.get(Math.round(e.labelLeft)) ?? []), e]);
         for (const e of r) {
-          expect(e.controlLeft - e.labelLeft, `${e.id}: same label-to-control distance as ${r[0]?.id}`).toBeCloseTo((r[0]?.controlLeft ?? 0) - (r[0]?.labelLeft ?? 0), 0);
+          const actualLabelGap = e.controlLeft - e.labelLeft;
+          const firstLabelGap = (r[0]?.controlLeft ?? 0) - (r[0]?.labelLeft ?? 0);
+          expect(actualLabelGap, `${e.id}: label-to-control distance ${actualLabelGap.toFixed(1)}px; ${r[0]?.id} is ${firstLabelGap.toFixed(1)}px`).toBeCloseTo(firstLabelGap, 0);
           expect(e.height, `${e.id}: same height as ${r[0]?.id}`).toBeCloseTo(r[0]?.height ?? 0, 0);
         }
         expect(columns.size, `${box}: label columns`).toBe(mobile ? 1 : desktopColumns);

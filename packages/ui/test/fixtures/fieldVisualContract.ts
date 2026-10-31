@@ -348,7 +348,7 @@ export function measureSummaryContent(root: Element): FieldVisualReport {
   const document = root.ownerDocument;
   const issues: FieldVisualIssue[] = [];
   const rows = [...root.querySelectorAll<HTMLElement>('.spec-row')].filter(row => row.checkVisibility());
-  const columns = new Map<number, {right: number[]; unit: number[]}>();
+  const columns = new Map<number, {right: Array<{field: string; edge: number}>; unit: number[]}>();
   const glyphs = (element: Element): DOMRect => {
     const range = document.createRange();
     range.selectNodeContents(element);
@@ -372,18 +372,20 @@ export function measureSummaryContent(root: Element): FieldVisualReport {
     if (!numeric && value.parentElement !== null && Math.abs(text.left - value.parentElement.getBoundingClientRect().left) > 1) issues.push({field, problem:'summary text is indented inside its value column'});
     const column = columns.get(Math.round(box.left)) ?? {right: [], unit: []};
     columns.set(Math.round(box.left), column);
-    if (numeric) column.right.push(text.right);
+    if (numeric) column.right.push({field, edge: text.right});
     if (unit?.textContent?.trim()) {
       const unitText = glyphs(unit);
       const unitBox = unit.getBoundingClientRect();
       column.unit.push(unitText.left);
-      if (unitText.left - text.right < 3.5) issues.push({field, problem: 'summary value has less than 4px separation from its unit'});
+      const valueUnitGap = unitText.left - text.right;
+      if (valueUnitGap < 3.5) issues.push({field, problem: `summary value has less than 4px separation from its unit (${valueUnitGap.toFixed(2)}px; CSS gap ${getComputedStyle(unit.parentElement!).columnGap})`});
       if (unitText.left < unitBox.left - 0.5 || unitText.right > unitBox.right + 0.5 || unitText.right > box.right + 0.5) issues.push({field, problem: 'summary unit text overflows its column'});
     }
   }
   const drift = (values: number[]): number => values.length === 0 ? 0 : Math.max(...values) - Math.min(...values);
   for (const [left, column] of columns) {
-    if (drift(column.right) > 1) issues.push({field: `summary column at ${left}px`, problem: 'numeric glyphs do not share a right edge'});
+    const rightDrift = drift(column.right.map(value => value.edge));
+    if (rightDrift > 1) issues.push({field: `summary column at ${left}px`, problem: `numeric glyphs do not share a right edge (${rightDrift.toFixed(2)}px: ${column.right.map(value => `${value.field}=${value.edge.toFixed(2)}`).join(', ')})`});
     if (drift(column.unit) > 1) issues.push({field: `summary column at ${left}px`, problem: 'unit glyphs do not share a left edge'});
   }
   return {rows: rows.length, controls, issues};
