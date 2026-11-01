@@ -1,0 +1,16 @@
+id: F61
+owner: Johnlon
+status: open
+sha: f708994f1a67d6e1afdaf7e7e3e5aac0c9d29228
+tested: f708994f1a67d6e1afdaf7e7e3e5aac0c9d29228
+last_green: a26209018954fa389c80480706457e706a280bd9
+range: a26209018954fa389c80480706457e706a280bd9..f708994f1a67d6e1afdaf7e7e3e5aac0c9d29228
+full_output: /home/john/work/winisd/openisd/build/test-logs/post-land-red-f708994f1a.log
+goal: main is red at f708994f1a; make the full suite pass again
+commits: |
+  f708994f1a (auto) ci: pin Python 3.12 for the suite's pillow/numpy step
+failing: |
+
+output: |
+  2026-11-01T21:23:14.660Z 104705-1793568193-11236 actions: start 2026-11-01T21:23:14Z f708994f1a (Johnlon/openisd suite.yml)
+  2026-11-01T21:33:21.162Z 104705-1793568193-11236 actions: no suite.yml run on f708994f1a after 600s (or GitHub cannot be read); red
