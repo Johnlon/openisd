@@ -7,3 +7,7 @@ goal: Fix flaky number-box-drag-spin spec on CI (BUG_20261101)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T642.yml
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/test/ui/number-box-drag-spin.browser.spec.ts
+  - bugs/BUG_20261101_number-box-drag-spin-flaky-on-ci.md
+  - packages/ui/test/visual/SOURCES.sha256
