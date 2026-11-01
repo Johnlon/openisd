@@ -1,0 +1,10 @@
+id: T640
+release_note: internal
+repo: openisd
+owner: chart-help
+status: done
+goal: Every chart in the phone skin has the same (?) help control and popup with a plain explanation and references.
+done_test: bash scripts/test.sh packages/design/test/fields/chartHelp.test.ts packages/ui/test/scripts/mobile-surface-manifest.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T640.yml

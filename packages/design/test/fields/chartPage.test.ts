@@ -15,9 +15,9 @@ describe('ChartPageSizes', () => {
 });
 
 describe('ChartPageHelp', () => {
-  it('only the SPL response chart has help text', () => {
-    expect(ChartPageHelp.forChart('SPL response')?.intro).toContain('How loud the speaker plays');
-    expect(ChartPageHelp.forChart('Impedance')).toBeNull();
+  it('the SPL response chart starts with what it shows; a name that is no chart has no help', () => {
+    expect(ChartPageHelp.forChart('SPL response')?.intro).toContain('The loudness the speaker makes');
+    expect(ChartPageHelp.forChart('No such chart')).toBeNull();
   });
 
   it('the Tune sheet help has one line per row shown for the box, named as the sheet names them', () => {

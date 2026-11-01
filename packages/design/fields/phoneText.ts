@@ -12,12 +12,19 @@ export interface PhoneHelpRow {
   readonly difference?: WinisdDifference;
 }
 
+/** A teaching page outside OpenISD: its title and its web address. */
+export interface HelpLink {
+  readonly title: string;
+  readonly url: string;
+}
+
 /** What a section band's ? opens: what the section is for, then one line per row in it. */
 export class PhoneHelpSection {
   constructor(
     readonly title: string,
     readonly intro: string,
     readonly rows: readonly PhoneHelpRow[],
+    readonly links: readonly HelpLink[] = [],
   ) {}
 }
 
