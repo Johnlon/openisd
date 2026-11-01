@@ -1,0 +1,91 @@
+id: T636
+release_note: internal
+repo: openisd
+owner: fable-sub
+status: done
+goal: The Projects list has an Open | All choice in both skins; default All.
+done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts && bash scripts/test.sh packages/ui/test/hooks/OriginalProjectList-hooks.test.ts
+visual_note: The Projects list gains an Open / All choice above the list (desktop sidebar shows in the wizard pictures).
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-empty
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-abc-step4
+  - desktop-wizard-abc-step5
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass4-step4
+  - desktop-wizard-bandpass4-step5
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-bandpass6-step4
+  - desktop-wizard-bandpass6-step5
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-box-passive-radiator-step4
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-sealed-step5
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - desktop-wizard-vented-step5
+  - mobile-menu
+files:
+  - tasks/T636.yml
+  - packages/design/fields/projectRows.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/projectRows.test.ts
+  - packages/ui/src/hooks/projectBinView.ts
+  - packages/ui/src/hooks/OriginalProjectList-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/shells/original/OriginalProjectList.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileProjectsPane.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/test/hooks/OriginalProjectList-hooks.test.ts
+  - packages/ui/test/ui/projects-open-all.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-empty.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
