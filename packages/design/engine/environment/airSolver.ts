@@ -5,20 +5,23 @@
  *   sound   c = f(T, RH, p)   the WinISD air model (`soundSpeedAt`)
  *   density ρ = γ·p/c²        closed form, invertible for any one of p, c, ρ
  *
- * Any relation with exactly one open quantity solves it (density in closed form, sound by
- * bracketed bisection: c rises with T and RH and falls with p). Open pressure and c together,
- * with T, RH and ρ entered, are solved in pressure alone. A relation whose quantities are all
- * known and was not used to solve anything is a consistency check, by the same rule as
- * `ConsistencyCheck`: each value carries a half-width (entered: its typed precision; solved: the
- * widths of its inputs carried through), and the stated values disagree only when the gap exceeds
- * the target's own width plus how far every other input's width moves the prediction.
+ * Back-calculation runs only along STRONG dependencies (John, 1 Nov 2026): a typed c may solve T
+ * (by bracketed bisection: c rises with T), a typed ρ may solve p (when c is known) or c (when p is
+ * known). A typed c never solves RH or p: c hardly depends on them, and a c typed 349 once gave
+ * p = 8091 Pa. T, RH and p that nothing solves take the app's value, in the order p, RH, T, each
+ * followed by a fresh pass of the relations, so T is the box left open for a typed c. The app's
+ * three are total on their own (`AppAir`), so T, RH and p always have a value; c and ρ follow from
+ * them, and the result has no empty quantity.
  *
- * A quantity no calculation path gives takes the app's value (`AppAir`), as a calculated one: T,
- * RH and p first, then c and ρ, each followed by a fresh pass of the relations. So a blank value
- * follows the app's Options until it is typed, and a typed c with T cleared gives T from c, not
- * the app's T. A value no path gives and the app cannot give either (its own value outside the
- * limits) is `null` with an issue naming the relation's fields, never a wild number: no root
- * inside the field's limits, a c so coarse that every value in the range matches it.
+ * A typed c or ρ the solver cannot honour (no temperature in the model's domain gives this c, a
+ * c of zero, a ρ no pressure in range fits) stays as typed and raises an issue whose text gives the
+ * reason, marking both the typed box and the box it could not solve.
+ *
+ * A relation whose quantities are all known and was not used to solve anything is a consistency
+ * check, by the same rule as `ConsistencyCheck`: each value carries a half-width (entered: its
+ * typed precision; solved: the widths of its inputs carried through), and the stated values
+ * disagree only when the gap exceeds the target's own width plus how far every other input's
+ * width moves the prediction.
  */
 import {NumberField} from '../../fields/field.js';
 import {GAMMA, soundSpeedAt, temperatureIssues} from '../air.js';
@@ -43,19 +46,19 @@ export interface AirInputs {
   readonly rho: AirInput;
 }
 
-/** Each quantity's value, entered or solved; `null` where it could not be determined. */
+/** Each quantity's value, entered or solved: there is always one. */
 export interface AirSolvedValues {
-  readonly tempK: number | null;
-  readonly humidityPct: number | null;
-  readonly pressurePa: number | null;
-  readonly c: number | null;
-  readonly rho: number | null;
+  readonly tempK: number;
+  readonly humidityPct: number;
+  readonly pressurePa: number;
+  readonly c: number;
+  readonly rho: number;
 }
 
 export interface AirSolution {
   readonly values: AirSolvedValues;
   /** The half-width of each value (the typed precision of an entered one, the carried-through
-   *  width of a solved one, 0 for the app's value); `null` where there is no value. */
+   *  width of a solved one, 0 for the app's value). */
   readonly widths: AirSolvedValues;
   readonly issues: readonly AirIssue[];
 }
@@ -143,15 +146,15 @@ interface AirRelation {
   solveOpen(known: ReadonlyMap<AirQuantityName, Quantity>, gaveUp: ReadonlySet<AirQuantityName>): RelationStep | null;
 }
 
-/** A relation over exactly the fields `F`: the compiler requires a solver for every one of them,
- *  and none for a field the relation lacks. */
+/** A relation over exactly the fields `F`, with a solver for each field that may be back-calculated
+ *  (only strong dependencies are: a field without one is never solved from the others). */
 class FieldRelation<F extends AirQuantityName> implements AirRelation {
   constructor(
     readonly formula: string,
     readonly fields: readonly F[],
     readonly target: F,
     readonly predict: (known: Snapshot) => number,
-    private readonly solvers: {readonly [K in F]: FieldSolver},
+    private readonly solvers: {readonly [K in F]?: FieldSolver},
   ) {}
 
   solveOpen(known: ReadonlyMap<AirQuantityName, Quantity>, gaveUp: ReadonlySet<AirQuantityName>): RelationStep | null {
@@ -159,6 +162,7 @@ class FieldRelation<F extends AirQuantityName> implements AirRelation {
     const target = open[0];
     if (open.length !== 1 || target === undefined || gaveUp.has(target)) return null;
     const solver = this.solvers[target];
+    if (solver === undefined) return null;
     return {target, outcome: solver(snapshotOf(known)), again: solver};
   }
 }
@@ -167,7 +171,7 @@ function densityResult(v: number): Outcome {
   return Number.isFinite(v) ? solved(v) : failed('the density relation gives no number');
 }
 
-/** Solves one of T, RH, p from a typed c, given `at`: c as a function of that quantity. */
+/** Solves T from a typed c, given `at`: c as a function of T. */
 function soundBracket(
   at: (x: number) => number, limits: {readonly min: number; readonly max: number},
   known: Snapshot,
@@ -182,10 +186,10 @@ function soundBracket(
   // A c just past the end of the range, within its own precision, is the end itself.
   const lowEnd = cMin <= cMax ? min : max, highEnd = cMin <= cMax ? max : min;
   const cLow = Math.min(cMin, cMax), cHigh = Math.max(cMin, cMax);
-  if (c < cLow) return cLow - c <= width ? solved(lowEnd) : failed('no value in range gives this c');
-  if (c > cHigh) return c - cHigh <= width ? solved(highEnd) : failed('no value in range gives this c');
+  if (c < cLow) return cLow - c <= width ? solved(lowEnd) : failed('no temperature in range gives this c');
+  if (c > cHigh) return c - cHigh <= width ? solved(highEnd) : failed('no temperature in range gives this c');
   const root = bisect(x => at(x) - c, min, max);
-  return root === null ? failed('no value in range gives this c') : solved(root);
+  return root === null ? failed('no temperature in range gives this c') : solved(root);
 }
 
 const DENSITY: AirRelation = Object.freeze(new FieldRelation<'pressurePa' | 'c' | 'rho'>(
@@ -211,8 +215,6 @@ const SOUND: AirRelation = Object.freeze(new FieldRelation<'tempK' | 'humidityPc
       return Number.isFinite(c) ? solved(c) : failed('no air at these conditions');
     },
     tempK: k => soundBracket(x => soundSpeed(x, k.humidityPct.value, k.pressurePa.value), LIMITS.tempK, k),
-    humidityPct: k => soundBracket(x => soundSpeed(k.tempK.value, x, k.pressurePa.value), LIMITS.humidityPct, k),
-    pressurePa: k => soundBracket(x => soundSpeed(k.tempK.value, k.humidityPct.value, x), LIMITS.pressurePa, k),
   },
 ));
 
@@ -246,27 +248,45 @@ function propagatedWidth(
 
 function withinLimits(name: AirQuantityName, value: number): boolean {
   const {min, max} = LIMITS[name];
-  return Number.isFinite(value) && value >= min && value <= max && (name !== 'c' && name !== 'rho' || value > 0);
+  return Number.isFinite(value) && value >= min && value <= max && (name === 'humidityPct' || value > 0);
 }
 
+/** The names an issue's sentence uses for the quantities. */
+const SAYS: Readonly<Record<AirQuantityName, string>> = Object.freeze({
+  tempK: 'temperature', humidityPct: 'humidity', pressurePa: 'pressure', c: 'sound velocity', rho: 'air density',
+});
+
+/** `target` could not be worked out from the typed c or ρ of `relation`. The issue marks the target
+ *  and the typed box it came from, and its sentence says why. */
 function unavailable(target: AirQuantityName, relation: AirRelation, why: string, known: ReadonlyMap<AirQuantityName, Quantity>): AirIssue {
-  return missingDependencies(target, [{
+  const typed = relation.fields.filter(f => f !== target && known.has(f));
+  const drivers = typed.filter(f => f === 'c' || f === 'rho');
+  const issue = missingDependencies(target, [{
     formula: `${relation.formula} - ${why}`,
-    required: relation.fields.filter(f => f !== target && known.has(f)),
+    required: typed,
     missing: [target],
   }]);
+  const sources = drivers.map(f => `the typed ${SAYS[f]}`).join(' and ');
+  return {
+    ...issue,
+    fields: [target, ...drivers],
+    text: `${SAYS[target][0]?.toUpperCase() ?? ''}${SAYS[target].slice(1)} cannot be worked out from ${sources === '' ? 'the other values' : sources}: ${why}. `
+      + `It keeps the app's value. Change or clear the ${drivers.map(f => SAYS[f]).join(' or ') || SAYS[target]} to let the air be calculated.`,
+  };
 }
 
-/** The app's value of one air quantity. */
-function appValue(appAir: AppAir, name: AirQuantityName): number {
+/** The app's value of one of the three conditions the app holds. */
+function appValue(appAir: AppAir, name: AppQuantityName): number {
   switch (name) {
     case 'tempK': return appAir.temperature();
     case 'humidityPct': return appAir.humidity();
     case 'pressurePa': return appAir.pressure();
-    case 'c': return appAir.c();
-    case 'rho': return appAir.rho();
   }
 }
+
+/** The three the app holds, in the order they are filled: T last, so a typed c can solve it. */
+type AppQuantityName = 'pressurePa' | 'humidityPct' | 'tempK';
+const APP_FILL_ORDER: readonly AppQuantityName[] = Object.freeze<AppQuantityName[]>(['pressurePa', 'humidityPct', 'tempK']);
 
 export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   const known = new Map<AirQuantityName, Quantity>();
@@ -327,22 +347,21 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   propagate();
 
   // No path gave these: the app's value stands in, then the relations run again from it.
-  for (const name of QUANTITIES) {
+  for (const name of APP_FILL_ORDER) {
     if (known.has(name)) continue;
-    const value = appValue(appAir, name);
-    if (!withinLimits(name, value)) continue;
-    record(name, value, 0);
+    record(name, appValue(appAir, name), 0);
     propagate();
   }
 
-  for (const name of QUANTITIES) {
-    if (known.has(name) || gaveUp.has(name)) continue;
-    const routes = RELATIONS.filter(r => r.fields.includes(name)).map(r => ({
-      formula: r.formula,
-      required: r.fields.filter(f => f !== name && known.has(f)),
-      missing: r.fields.filter(f => !known.has(f)),
-    }));
-    issues.push(missingDependencies(name, routes));
+  // c and ρ follow from the three. One a relation gave up on (a typed c of zero leaves no density
+  // to compute) is the model's own, beside the issue that says why.
+  if (!known.has('c')) {
+    const {tempK, humidityPct, pressurePa} = snapshotOf(known);
+    record('c', soundSpeedAt(tempK.value, humidityPct.value, pressurePa.value), 0);
+  }
+  if (!known.has('rho')) {
+    const {tempK, humidityPct, pressurePa} = snapshotOf(known);
+    record('rho', GAMMA * pressurePa.value / soundSpeedAt(tempK.value, humidityPct.value, pressurePa.value) ** 2, 0);
   }
 
   // A relation that solved nothing but has all its quantities known must agree with them.
@@ -369,15 +388,14 @@ export function solveAir(inputs: AirInputs, appAir: AppAir): AirSolution {
   const tempK = known.get('tempK');
   if (tempK !== undefined) issues.push(...temperatureIssues(tempK.value));
 
-  const valueOf = (name: AirQuantityName): number | null => known.get(name)?.value ?? null;
-  const widthOf = (name: AirQuantityName): number | null => known.get(name)?.width ?? null;
   return {
     widths: {
-      tempK: widthOf('tempK'), humidityPct: widthOf('humidityPct'), pressurePa: widthOf('pressurePa'), c: widthOf('c'), rho: widthOf('rho'),
+      tempK: final.tempK.width, humidityPct: final.humidityPct.width, pressurePa: final.pressurePa.width,
+      c: final.c.width, rho: final.rho.width,
     },
     values: {
-      tempK: valueOf('tempK'), humidityPct: valueOf('humidityPct'),
-      pressurePa: valueOf('pressurePa'), c: valueOf('c'), rho: valueOf('rho'),
+      tempK: final.tempK.value, humidityPct: final.humidityPct.value,
+      pressurePa: final.pressurePa.value, c: final.c.value, rho: final.rho.value,
     },
     issues,
   };

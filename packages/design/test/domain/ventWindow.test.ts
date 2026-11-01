@@ -3,13 +3,14 @@ import {simpleField} from '../../domain/cell.js';
 import {VentWindow} from '../../domain/box/ventWindow.js';
 import type {VentJson} from '../../domain/openisdSchema.js';
 import {createEngine} from '../../engine/Engine.js';
+import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 
 const engine = createEngine();
 
 function windowOver(vent: VentJson): {window: VentWindow; record: () => VentJson} {
   let current = vent;
   const lens = simpleField(() => current, next => { current = next; });
-  const window = new VentWindow(lens, engine.vent, () => ({kind: 'notAvailable', issues: []}));
+  const window = new VentWindow(lens, engine.vent, () => REFERENCE_AIR);
   return {window, record: () => current};
 }
 

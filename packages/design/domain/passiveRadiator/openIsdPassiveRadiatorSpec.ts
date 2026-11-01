@@ -1,5 +1,5 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import type { AirState, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
+import type { Air, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { prSpec } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
@@ -90,7 +90,7 @@ export class OpenIsdPassiveRadiatorSpec {
     /** Write every figure the stated ones derive onto its field as calculated, `air` being the
      *  project's, and return the stated figures that contradict each other. A stated figure is
      *  never touched; one nothing derives reads not-available. */
-    resolve(pr: PrEngine, air: AirState): PrSpecIssue[] {
+    resolve(pr: PrEngine, air: Air): PrSpecIssue[] {
         const stated = this.#stated();
         const solved = pr.solveSpec(stated, air);
         const write = (field: Entered & Calculatable<number> & Unsolvable, value: number | null): void => {

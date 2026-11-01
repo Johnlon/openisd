@@ -70,7 +70,7 @@ describe('a new project', () => {
     expect(p.envRoo_kg_per_m3.provenance).toBe('C');
     expect(p.envC_m_per_s.value).toBeCloseTo(GOLDEN_C, 9);
     expect(p.envRoo_kg_per_m3.value).toBeCloseTo(GOLDEN_RHO, 9);
-    expect(p.air.kind).toBe('available');
+    expect(p.air.c()).toBeCloseTo(GOLDEN_C, 9);
     expect(p.isModified()).toBe(false);
   });
 
@@ -120,7 +120,7 @@ describe('loading', () => {
     expect(back.envTempK.provenance).toBe('C');
     expect(back.envTempK.value).toBe(300.15);
     expect(back.envC_m_per_s.provenance).toBe('C');
-    expect(back.air.kind).toBe('available');
+    expect(back.air.c()).toBeGreaterThan(0);
     expect(back.isModified()).toBe(false);
   });
 
@@ -174,7 +174,7 @@ describe('clearing', () => {
     expect(p.envTempK.value).toBe(293.15);
     expect(p.envTempK.provenance).toBe('C');
     expect(p.envC_m_per_s.value).toBeCloseTo(GOLDEN_C, 9);
-    expect(p.air.kind).toBe('available');
+    expect(p.air.c()).toBeCloseTo(GOLDEN_C, 9);
     expect(p.sweep(GRID).issues.map(i => i.text)).toEqual([]);
     expect(p.sweep(GRID).values).not.toBeNull();
   });
@@ -222,15 +222,14 @@ describe('clearing', () => {
 });
 
 describe('conflicts and round trips', () => {
-  it('all five entered with c 1 m/s off: dq on c, T, RH, p; the air is available with the typed c (test 13)', () => {
+  it('all five entered with c 1 m/s off: dq on c, T, RH, p; the air takes the typed c (test 13)', () => {
     const p = sealed(createEngine());
     p.envC_m_per_s.set(GOLDEN_C + 1, 0.0005);
     p.envRoo_kg_per_m3.set(GOLDEN_RHO, 0.0000005);
     for (const f of [p.envC_m_per_s, p.envTempK, p.envHumidityPct, p.envPressurePa]) {
       expect(f.dq.some(i => i.kind === 'inconsistent-inputs'), f.name).toBe(true);
     }
-    const air = p.air;
-    expect(air.kind === 'available' ? air.air.c() : NaN).toBe(GOLDEN_C + 1);
+    expect(p.air.c()).toBe(GOLDEN_C + 1);
   });
 
   it('round trip keeps every mark, value and precision; the stored text recomputes its dq (test 14)', () => {
@@ -274,7 +273,7 @@ describe('the sweep', () => {
 
   it('is blocked by an entered temperature the air model does not support', () => {
     const p = sealed(createEngine());
-    p.envTempK.set(1000);
+    p.envTempK.set(5000);
     expect(p.sweep(GRID).values).toBeNull();
     expect(p.sweep(GRID).issues.length).toBeGreaterThan(0);
   });

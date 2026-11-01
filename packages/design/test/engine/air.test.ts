@@ -171,9 +171,9 @@ describe('Engine.solveEnvironment — the unified { value, issues } bundle (C5)'
     assert.deepEqual(issues, []);
   });
 
-  it('resolves the air and reports the issues together, honouring an entered out-of-range temperature', () => {
+  it('resolves the air and reports the issues together, honouring an entered temperature above the model range', () => {
     const engine = createEngine();
-    const { values, issues } = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 100 });
+    const { values, issues } = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 5000 });
     assert.ok(values.rho > 0);
     assert.equal(issues.length, 1);
     assert.deepEqual(issues[0].target, 'tempK');
@@ -191,20 +191,26 @@ describe('environmentIssues — out-of-range entered air inputs', () => {
     assert.deepEqual(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 293.15 }).issues, []);
   });
 
-  it('reports a missing-dependencies issue for an entered temperature below the supported range', () => {
+  it('reports a missing-dependencies issue for an entered temperature of zero', () => {
     const engine = createEngine();
-    const issues = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 100 }).issues;
+    const issues = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 0 }).issues;
     assert.equal(issues.length, 1);
     assert.deepEqual(issues[0], engine.issues.missingDependencies('tempK', [{
-      formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
+      formula: `tempK must be above ${MIN_SUPPORTED_TEMP_K} K and at most ${MAX_SUPPORTED_TEMP_K} K`,
       required: ['tempK'], missing: ['tempK'],
     }]));
   });
 
   it('reports the same shape for an entered temperature above the supported range', () => {
     const engine = createEngine();
-    const issues = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 500 }).issues;
+    const issues = engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 1500 }).issues;
     assert.equal(issues.length, 1);
     assert.equal(issues[0].target, 'tempK');
+  });
+
+  it('has no typing band: a cold 150 K and a hot 400 K raise nothing', () => {
+    const engine = createEngine();
+    assert.deepEqual(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 150 }).issues, []);
+    assert.deepEqual(engine.environment.solve({ ...REFERENCE_CONDITIONS, tempK: 400 }).issues, []);
   });
 });

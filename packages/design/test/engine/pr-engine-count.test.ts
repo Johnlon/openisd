@@ -1,5 +1,4 @@
 import {describe, expect, it} from 'vitest';
-import {availableAir} from '../../engine/index.js';
 import {createEngine} from '../../engine/Engine.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {fakeSolverField} from './testSolver.js';
@@ -24,8 +23,8 @@ describe('PrEngine.solve radiator count', () => {
   it('counts one radiator when the count is blank', () => {
     const blank = prParams(null);
     const one = prParams(1);
-    engine.pr.solve(blank, availableAir(REFERENCE_AIR));
-    engine.pr.solve(one, availableAir(REFERENCE_AIR));
+    engine.pr.solve(blank, REFERENCE_AIR);
+    engine.pr.solve(one, REFERENCE_AIR);
     expect(blank.tuning_goal_hz.value).toBe(one.tuning_goal_hz.value);
     expect(blank.systemTuning_hz.value).toBe(one.systemTuning_hz.value);
     expect(blank.tuning_goal_hz.value).toBeGreaterThan(0);
@@ -37,7 +36,7 @@ describe('PrEngine.checkSpec', () => {
   const exact = {Fs_hz: 0, Qms: 0, Vas_m3: 0, Sd_m2: 0, Mms_kg: 0, Cms_m_per_N: 0, Rms_kg_per_s: 0};
 
   it('names Mms as the missing figure when Cms is known from Vas and Sd but Fs is not stated', () => {
-    const issues = engine.pr.checkSpec({...none, Vas_m3: 0.0048, Sd_m2: 0.0095, Qms: 3.3}, exact, availableAir(REFERENCE_AIR));
+    const issues = engine.pr.checkSpec({...none, Vas_m3: 0.0048, Sd_m2: 0.0095, Qms: 3.3}, exact, REFERENCE_AIR);
     expect(issues).toHaveLength(1);
     expect(issues[0]).toMatchObject({kind: 'missing-dependencies', target: 'Mms_kg'});
   });
