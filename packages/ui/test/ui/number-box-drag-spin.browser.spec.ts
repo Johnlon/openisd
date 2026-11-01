@@ -99,8 +99,7 @@ test.describe('desktop skin, mouse', () => {
     await page.mouse.down();
     await page.mouse.move(from.x, from.y + 40, {steps: 6});
     await expect.poll(async () => (await numberIn(box)) < 19).toBe(true);
-    const marked = await box.evaluate(el => el instanceof HTMLInputElement ? el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0) : null);
-    expect(marked).toHaveLength(1);
+    await expect.poll(() => box.evaluate(el => el instanceof HTMLInputElement ? el.value.slice(el.selectionStart ?? 0, el.selectionEnd ?? 0).length : -1)).toBe(1);
     await page.mouse.up();
   });
 

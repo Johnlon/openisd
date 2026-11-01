@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: agent
 status: done
+landed: 3c68e3003975df6263ff3a3232289c7741efcee6
 goal: Solvers and sweeps take Air always: solverParamsIn/sweepDriverIn, no Air|null
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
