@@ -116,6 +116,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - uses: actions/setup-python@v5
+        with:
+          # The runner image moved to Python 3.14 on 1 Nov 2026, which has no pillow 10.4.0 wheel;
+          # pin the interpreter so the pinned wheels below install without a source build.
+          python-version: '3.12'
       - name: Pillow and numpy for the feedback-page tools
         run: python3 -m pip install pillow==10.4.0 numpy==2.1.3
       - name: shell tests
