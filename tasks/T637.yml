@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 588b436d7824ae61d2039dd4bc2e89b9136ea19d
 goal: Solvers take Air, never an absent AirState
 done_test: bash scripts/test.sh packages/design/test/engine/air-state.test.ts && bash scripts/quiet-test.sh npm run typecheck
 files:
