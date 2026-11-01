@@ -156,6 +156,8 @@ export interface AppStateDeps {
   presentation: PresentationState;
   /** Where usage events go; omitted means none are recorded. */
   telemetry?: Telemetry;
+  /** Told of a fault the app survives (the sweep worker failing); omitted means it is dropped. */
+  reportFault?: (fault: Error) => void;
 }
 
 /** The app's live reactive state: the open-project registry, the focused project's sweep curves
@@ -629,7 +631,7 @@ export function createAppState(deps: AppStateDeps): AppState {
   // The sweep runs in a Web Worker so a held spinner never blocks the page: one request in
   // flight, only the newest waiting, a reply for a project no longer focused dropped.
   const sweepRunner = new LatestSweepRunner<OpenISDProject>(
-    sweepTransport(new SweepComputer(engine.simulation), reply => sweepRunner.replied(reply)),
+    sweepTransport(new SweepComputer(engine.simulation), reply => sweepRunner.replied(reply), deps.reportFault),
     (_project, reply) => showSweep(reply),
   );
 

@@ -204,7 +204,11 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   });
   // The two live state objects, built once here and handed to everything that needs them.
   const presentation = createPresentationState();
-  const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry });
+  // The crash reporter needs the app state (open projects, box) for its context, so it is built after it;
+  // a fault raised before then is kept and sent once it exists.
+  let reportFault: (fault: Error) => void = fault => { earlyFaults.push(fault); };
+  const earlyFaults: Error[] = [];
+  const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry, reportFault: fault => reportFault(fault) });
   const logging = createLogging();
   // The bundled catalogue — docs/design/BUNDLED_CATALOGUE_API.md. Two repos over the same
   // mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
@@ -310,6 +314,8 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
     errorContext,
     (message, frames) => crashHash(appVersionText, message, frames),
   );
+  reportFault = fault => crashReports.logOnly(fault);
+  for (const fault of earlyFaults.splice(0)) reportFault(fault);
   const launchEnvironment = (): LaunchEnvironment => ({
     standalone: matchMedia('(display-mode: standalone)').matches,
     platformHint: platformHintOf(navigator),

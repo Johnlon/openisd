@@ -1,0 +1,18 @@
+id: T639
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: iOS crash reports say only Script error: send the place of a masked error, forward sweep worker errors, reproduce the passive-radiator box tab on WebKit
+done_test: bash scripts/test.sh packages/ui/test/logic/browserListeners.test.ts packages/ui/test/logic/sweepTransport.test.ts
+files:
+  - tasks/T639.yml
+  - bugs/BUG_20261101_ios-script-error-passive-radiator-box-tab.md
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/src/logic/telemetry/browserListeners.ts
+  - packages/ui/src/logic/sweepTransport.ts
+  - packages/ui/src/logic/appState.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/logic/browserListeners.test.ts
+  - packages/ui/test/logic/sweepTransport.test.ts
+  - packages/ui/test/visual/SOURCES.sha256

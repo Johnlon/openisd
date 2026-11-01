@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: dfc6b1eec3abb0a07a01b063dd8765efccf3907d
 goal: Known-defect tests are banned: it.fails must name a BUG_ file, architecture test enforces it
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
