@@ -410,6 +410,37 @@ test.describe('New Project wizard', () => {
       }
     });
 
+    // QO379 (John, 2026-11-01): on the phone a pick left every box blank and said nothing. The
+    // record's fetch is the outside system here; a 404 stands in for whatever the phone hit.
+    test('a bundled radiator whose record is not served says so on the step; Next stays disabled', async ({ appPage: page, browserLog }) => {
+      await page.route(/\/drivers\/.+\.json$/, route => route.fulfill({ status: 404, body: 'not here' }));
+
+      await page.locator('.tb-btn[title*="New project"]').click();
+      const modal = page.locator('.overlay.open');
+      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
+      await footerNext(page).click();
+      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.getByLabel('Box type').selectOption('box-passive-radiator');
+      await modal.locator('button', { hasText: 'Next' }).click();
+      await modal.locator('#np-pr-select').click();
+      await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
+
+      const error = modal.locator('.np-pr-error');
+      await expect(error).toBeVisible();
+      await expect(error).toContainText('E150HE-PR');
+      await expect(error).toContainText('404');
+      await expect(modal.locator('#np-pr-name')).toHaveValue('');
+      await expect(footerNext(page)).toBeDisabled();
+
+      // The 404 itself is the only diagnostic this test expects; the failed pick is caught and
+      // shown, never an uncaught rejection.
+      expect(browserLog.pageErrors).toEqual([]);
+      expect(browserLog.consoleErrors.filter(e => !/e150he-pr\.json|404/.test(e))).toEqual([]);
+      expect(browserLog.networkErrors.filter(e => !/e150he-pr\.json/.test(e))).toEqual([]);
+      browserLog.reset();
+      await modal.getByRole('button', { name: 'Cancel', exact: true }).click();
+    });
+
   });
 
   test.describe('with no project open', () => {

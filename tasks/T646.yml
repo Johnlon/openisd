@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 361916d1c7c56106ec4bd9de451e31348eeb85ef
 goal: Precache driver and passive-radiator catalogue so the installed app works offline (QO380 decision A)
 done_test: bash scripts/test.sh packages/ui/test/logic/sw-precache.test.ts
 files:

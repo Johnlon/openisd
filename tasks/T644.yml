@@ -1,0 +1,10 @@
+id: T644
+release_note: internal
+repo: openisd
+owner: sub
+status: done
+goal: Bundled PR pick shows visible error, awaits load
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T644.yml
+  - packages/ui/test/visual/SOURCES.sha256
