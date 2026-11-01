@@ -670,6 +670,8 @@
     "bugs/BUG_20261030_wdr-connection-reading-judged-as-numvc.md",
     "bugs/BUG_20261031_advanced-tab-scrolls-sideways-at-1280.md",
     "bugs/BUG_20261031_announcements-spec-leaves-desktop-skin.md",
+    "bugs/BUG_20261031_crash-attach-addeventlistener-undefined.md",
+    "bugs/BUG_20261031_crash-no-project-is-focused.md",
     "bugs/BUG_20261031_layout-upgrade-makes-conflict-copies.md",
     "bugs/BUG_20261031_phone-pr-p173-cms-display.md",
     "bugs/BUG_20261031_post-land-ignores-hand-started-suite-run.md",

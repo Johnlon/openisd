@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 17210d7e04f964ffe56e7f43524076dadf0dd2a0
 goal: iOS crash reports say only Script error: send the place of a masked error, forward sweep worker errors, reproduce the passive-radiator box tab on WebKit
 done_test: bash scripts/test.sh packages/ui/test/logic/browserListeners.test.ts packages/ui/test/logic/sweepTransport.test.ts
 files:

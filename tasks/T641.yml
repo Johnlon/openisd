@@ -1,0 +1,13 @@
+id: T641
+release_note: internal
+repo: openisd
+owner: claude
+status: done
+goal: Record the two production crashes from the telemetry dashboard
+done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
+files:
+  - bugs/BUG_20261031_crash-attach-addeventlistener-undefined.md
+  - bugs/BUG_20261031_crash-no-project-is-focused.md
+  - packages/ui/test/ui/no-focused-project-reads.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - tasks/T641.yml
