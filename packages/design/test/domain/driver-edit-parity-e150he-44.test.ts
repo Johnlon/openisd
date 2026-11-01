@@ -184,6 +184,7 @@ describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-se
   const swept = sweepAfterEdit(project, capture);
   chartCases(capture, swept, ['tfmag', 'groupdelay', 'tfphase']);
   for (const q of ['spl', 'excursion', 'impedance', 'impedancephase', 'maxpower', 'maxspl'] as const) {
+    // BUG_20261019_winisd-numvc-is-not-a-simulation-input (NUMVC_BUG)
     it.fails(`${q} after numVC edit — ${NUMVC_BUG}`, () => assertChartMatches(capture, swept, q, rules));
   }
   it('Box tab: Vb, Fsc and Qtc read as WinISD prints them', () => {
@@ -194,6 +195,7 @@ describe('E150HE-44 sealed, numVC typed in the Driver editor (sweep-t429-e150-se
   it('Driver editor: every stated field except USPL has WinISD\'s value and E/C mark', () => {
     expect(editorDeviations(project, capture, (f) => !UNSTATED_ZERO_KEYS.includes(f.key) && f.key !== 'USPL')).toEqual([]);
   });
+  // BUG_20261019_winisd-numvc-is-not-a-simulation-input (NUMVC_BUG)
   it.fails(`Driver editor: USPL after numVC edit — ${NUMVC_BUG}`, () => {
     expect(editorDeviations(project, capture, (f) => f.key === 'USPL')).toEqual([]);
   });

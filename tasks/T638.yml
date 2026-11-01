@@ -1,0 +1,9 @@
+id: T638
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Known-defect tests are banned: it.fails must name a BUG_ file, architecture test enforces it
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T638.yml

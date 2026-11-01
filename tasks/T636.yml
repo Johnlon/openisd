@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable-sub
 status: done
+landed: afee287b813f9e490e5953d0b0ced53076b2f595
 goal: The Projects list has an Open | All choice in both skins; default All.
 done_test: bash scripts/test.sh packages/design/test/fields/projectRows.test.ts && bash scripts/test.sh packages/ui/test/hooks/OriginalProjectList-hooks.test.ts
 visual_note: The Projects list gains an Open / All choice above the list (desktop sidebar shows in the wizard pictures).

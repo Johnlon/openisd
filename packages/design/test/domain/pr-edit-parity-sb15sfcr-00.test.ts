@@ -39,6 +39,7 @@ function describeRun(run: Run): void {
     for (const c of checks) {
       const bug = KNOWN.get(`${run.fixture}|${c.label}`);
       if (bug === undefined) it(`${c.label} matches`, c.check);
+      // `bug` is a BUG_ file from KNOWN (BUG_PR_SD)
       else it.fails(`${c.label} after PR ${run.edit.field} — ${bug}`, c.check);
     }
   });

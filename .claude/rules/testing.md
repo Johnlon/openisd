@@ -23,3 +23,9 @@ files by the object under test, feature decoupling at the test level, and the ti
 
 Fast-gate requirement (typecheck + unit tests after every change): `.claude/rules/verify.md`,
 always active.
+
+> **A test asserts the RIGHT behaviour, never the current wrong one.** John, 1 Nov 2026, on a test
+> that asserted a throw as a "known defect": "this is criminal". A defect we cannot fix now is
+> written as the right expectation under `it.fails(...)` / `test.fails(...)`, whose title or an
+> adjacent comment names the bug file (`BUG_<date>_<slug>`). A test that pins a defect as correct is
+> itself a defect and gets a bug file. Gate: `packages/design/test/architecture-tests-never-pin-a-defect.test.ts`.

@@ -140,6 +140,7 @@ export function describeRun(driver: DriverRuns, run: Run): void {
     for (const c of checks) {
       const bug = driver.known.get(`${run.fixture}|${c.label}`);
       if (bug === undefined) it(`${c.label} matches`, c.check);
+      // `bug` is a BUG_ file from driver.known (BUG_NUMVC, BUG_BP4_GD)
       else it.fails(`${c.label} after ${run.edit.field} — ${bug}`, c.check);
     }
     if (capture.editor !== null) {
