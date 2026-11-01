@@ -1,0 +1,9 @@
+id: T643
+release_note: internal
+repo: openisd
+owner: agent
+status: done
+goal: Solvers and sweeps take Air always: solverParamsIn/sweepDriverIn, no Air|null
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T643.yml

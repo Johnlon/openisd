@@ -3,7 +3,8 @@
  * solver quantity plus the BL WinISD's entered-BL mix uses. Plain data, so it crosses a Worker
  * boundary (structured clone) and the sweep it gives is unchanged.
  */
-import {describe, expect, it} from 'vitest';
+import {describe, expect, expectTypeOf, it} from 'vitest';
+import type {Air} from '../../engine/air.js';
 import {createEngine} from '../../engine/Engine.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import type {SweepDriver} from '../../engine/solverTypes.js';
@@ -44,8 +45,8 @@ describe('OpenIsdDriverSpec.sweepDriver — the projection at the project seam',
 
   it('carries each quantity\'s value as the solver handles hold it', () => {
     const s = specs();
-    const d = s.sweepDriver(null);
-    const handles = s.solverParams(null);
+    const d = s.sweepDriver();
+    const handles = s.solverParams();
     expect(d.values.Fs_hz).toBe(handles.Fs_hz.value);
     expect(d.values.Qes).toBe(handles.Qes.value);
     expect(d.values.wiring).toBe(handles.wiring.value);
@@ -54,8 +55,16 @@ describe('OpenIsdDriverSpec.sweepDriver — the projection at the project seam',
 
   it('winisdBL_Tm is the entered BL, null when BL is not entered', () => {
     const s = specs();
-    expect(s.sweepDriver(null).winisdBL_Tm).toBeNull();
+    expect(s.sweepDriver().winisdBL_Tm).toBeNull();
     s.BL_Tm.set(7.17);
-    expect(s.sweepDriver(null).winisdBL_Tm).toBe(7.17);
+    expect(s.sweepDriver().winisdBL_Tm).toBe(7.17);
+  });
+
+  it('an absent air is a type error: the air parameter is exactly Air', () => {
+    const s = specs();
+    expectTypeOf(s.sweepDriverIn).parameters.toEqualTypeOf<[Air]>();
+    expectTypeOf(s.solverParamsIn).parameters.toEqualTypeOf<[Air]>();
+    expectTypeOf(s.sweepDriver).parameters.toEqualTypeOf<[]>();
+    expectTypeOf(s.solverParams).parameters.toEqualTypeOf<[]>();
   });
 });

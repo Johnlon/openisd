@@ -448,9 +448,9 @@ export class OpenIsdDriverSpec {
      *  `air`: the circuit's air is the PROJECT's, when one is given — the driver's own
      *  `c_m_per_s`/`roo_kg_per_m3` are display-only and feed no calculation
      *  (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md). A caller with no
-     *  project (a standalone driver's own chart) passes none, and the spread already carries the
-     *  driver's own stated pair. */
-    solverParams(air: Air | null = null): DriverSolverParams {
+     *  project (a standalone driver's own chart) uses `solverParams()`, which carries the
+     *  driver's own stated pair; `solverParamsIn(air)` is the project's. */
+    solverParams(): DriverSolverParams {
         const wiring: Wiring = this.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
         const Re_ohm = this.Re_ohm.value;
         const BL_Tm = this.BL_Tm.value;
@@ -466,17 +466,27 @@ export class OpenIsdDriverSpec {
             Re_terminal_ohm: computedSlot(Re_terminal_ohm),
             BL_terminal_Tm: computedSlot(BL_terminal_entered_Tm),
             wiring: wiringInput,
-            ...(air !== null ? { c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho()) } : {}),
         };
+    }
+
+    /** `solverParams` with the circuit's air taken from `air` (the project's) instead of the driver's own pair. */
+    solverParamsIn(air: Air): DriverSolverParams {
+        return { ...this.solverParams(), c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho()) };
     }
 
     /** `solverParams`' values as plain data for `SimulationEngine.sweep`/`maxCurves`, with the
      *  entered BL WinISD's entered-BL mix reads (null when BL is derived). */
-    sweepDriver(air: Air | null = null): SweepDriver {
-        return {
-            values: valuesOf(this.solverParams(air)),
-            winisdBL_Tm: this.BL_Tm.entered ? this.BL_Tm.value : null,
-        };
+    sweepDriver(): SweepDriver {
+        return { values: valuesOf(this.solverParams()), winisdBL_Tm: this.#enteredBL() };
+    }
+
+    /** `sweepDriver` with the circuit's air taken from `air` (the project's). */
+    sweepDriverIn(air: Air): SweepDriver {
+        return { values: valuesOf(this.solverParamsIn(air)), winisdBL_Tm: this.#enteredBL() };
+    }
+
+    #enteredBL(): number | null {
+        return this.BL_Tm.entered ? this.BL_Tm.value : null;
     }
 
     /** The issues the last `resolve()` produced — empty before the first one has run. */
