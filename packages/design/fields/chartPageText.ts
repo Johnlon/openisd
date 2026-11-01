@@ -1,4 +1,5 @@
 import type {BoxType} from '../engine/index.js';
+import {CHART_HELP} from './chartHelpText.js';
 import {PhoneHelpSection, type PhoneHelpRow} from './phoneText.js';
 import {SheetField} from './sheetField.js';
 import type {SheetMode} from './sheetMode.js';
@@ -30,12 +31,12 @@ const WHAT_IF_INTRO = 'Tries other values on the chart without changing the desi
 
 /** The words on the phone Graph page: what each chart band's ? and each sheet band's ? opens. */
 export class ChartPageHelp {
-  /** The help of the SPL response chart; the other charts have no help text yet. */
-  static readonly SPL = new PhoneHelpSection('SPL response', 'How loud the speaker plays at each frequency, for the input power on the Signal page.', []);
+  /** The help of every chart, in chart-menu order. */
+  static readonly CHARTS: readonly PhoneHelpSection[] = Object.values(CHART_HELP);
 
-  /** The help of a chart's band, or null when the chart has no help text. */
+  /** The help of a chart's band, by the chart's name; null for a name that is no chart. */
   static forChart(chartName: string): PhoneHelpSection | null {
-    return chartName === ChartPageHelp.SPL.title ? ChartPageHelp.SPL : null;
+    return ChartPageHelp.CHARTS.find(section => section.title === chartName) ?? null;
   }
 
   /** The help of a sheet's band: what the sheet is for, then one line per row it shows for this box. */

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: claude
 status: done
+landed: 071b0d740cd3cfbf514a3adc6481d20d23c45e76
 goal: Record the two production crashes from the telemetry dashboard
 done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:
