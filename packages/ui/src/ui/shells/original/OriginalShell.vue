@@ -44,7 +44,7 @@ const {
   handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
   handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
   toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-  projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
+  projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, exportProjectsArchive, openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
   projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   saveProject, saveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
@@ -250,6 +250,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           :projectQuery="projectQuery"
           :projectOrder="projectOrder"
           :projectOrders="projectOrders"
+          :projectScope="projectScope"
           :binRows="binRows"
           :binTotal="binTotal"
           :binOpen="binOpen"
@@ -257,6 +258,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           :storeLabel="storeLabel"
           @update:projectQuery="val => projectQuery = val"
           @update:projectOrder="val => projectOrder = val"
+          @update:projectScope="val => projectScope = val"
           @update:binOpen="val => binOpen = val"
           @choose="chooseProject"
           @close="requestCloseProject"

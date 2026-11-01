@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 51e0dc9f82ab673740d724796d21c5d1cdeae595
 label: fixes
 goal: Post-land accepts a passing suite run on the exact commit, whether a push or a hand start began it (QO328)
 done_test: bash scripts/quiet-test.sh bash scripts/land/test/post-land-actions.e2e.test.sh

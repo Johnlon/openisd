@@ -12,6 +12,8 @@ import {
   projectSyncMark,
   splitConflictName,
   viewProjectRows,
+  scopeProjectRows,
+  PROJECT_LIST_SCOPES,
 } from '../../fields/projectRows.js';
 
 const DAY_MS = new Date(2026, 9, 14, 11, 5).getTime();
@@ -138,5 +140,22 @@ describe('the phone Save button', () => {
 
   it('confirms a save with the project name', () => {
     expect(savedMessage('Sub 12')).toBe('Saved Sub 12');
+  });
+});
+
+describe('scopeProjectRows', () => {
+  const mixed = [
+    projectRow(source('Closed one')),
+    projectRow(source('Open one', {open: open({active: true})})),
+    projectRow(source('Open two', {open: open({active: false})})),
+  ];
+  it('all keeps every row', () => {
+    expect(scopeProjectRows(mixed, 'all').map(r => r.key)).toEqual(['Closed one', 'Open one', 'Open two']);
+  });
+  it('open keeps only the open rows', () => {
+    expect(scopeProjectRows(mixed, 'open').map(r => r.key)).toEqual(['Open one', 'Open two']);
+  });
+  it('lists Open then All, as labels', () => {
+    expect(PROJECT_LIST_SCOPES.map(s => [s.scope, s.label])).toEqual([['open', 'Open'], ['all', 'All']]);
   });
 });
