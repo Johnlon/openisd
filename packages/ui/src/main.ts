@@ -10,6 +10,7 @@ import {
     createAppSettingsRepo,
     createBackupRepo,
     createBundledDriverRepo,
+    createCatalogueSource,
     createBundledPassiveRadiatorRepo,
     createFileOpen,
     createFileStorage,
@@ -215,11 +216,12 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // both held for CATALOGUE_MAX_AGE_MS and then fetched again, so a long-lived tab picks up a
   // republished catalogue without a reload. Nothing is awaited here — the app mounts first.
   const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
-  const driverRepo = createBundledDriverRepo({ fetch, baseUrl: import.meta.env.BASE_URL, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
+  const catalogue = createCatalogueSource({ fetch, url: `${import.meta.env.BASE_URL}catalogue.json`, build: import.meta.env.VITE_CATALOGUE_BUILD, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
+  const driverRepo = createBundledDriverRepo({ bundle: catalogue, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
   const myDriverRepo = createMyDriverRepo(storage, engine, storageBackup, saves.notify);
   const prefs = createPrefsRepo(storage, saves.notify);
   const myPassiveRadiators = createMyPassiveRadiatorRepo(storage, storageBackup, saves.notify);
-  const bundledPRs = createBundledPassiveRadiatorRepo({ fetch, baseUrl: import.meta.env.BASE_URL, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
+  const bundledPRs = createBundledPassiveRadiatorRepo({ bundle: catalogue, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now });
   // STORAGE (port): the interactive file-save destination. Two SEPARATE instances — one for
   // the project (retains the open project's file handle), one for the driver editor's one-shot
   // .wdr/.owdr export — so exporting a driver cannot silently retarget the project Save button.

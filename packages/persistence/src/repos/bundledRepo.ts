@@ -13,6 +13,7 @@
  * clock.
  */
 import type {BundledIndexRow, IndexRead} from './bundledIndex.js';
+import type {CatalogueBundle} from './catalogueBundle.js';
 
 // ── Index readers: the pieces `readBundledDriverIndex` / `readBundledPassiveRadiatorIndex` share ──
 
@@ -87,14 +88,17 @@ export function readIndex<Row extends BundledIndexRow>(
 
 
 export interface BundledRepoDeps<Row extends BundledIndexRow, Device> {
-  readonly fetch: typeof fetch;
-  readonly indexUrl: string;
-  readonly recordUrl: (path: string) => string;
+  /** The one catalogue file (catalogueBundle.ts `createCatalogueSource`), shared by both repos. */
+  readonly bundle: () => Promise<CatalogueBundle>;
+  /** This kind's index rows inside the bundle, unparsed. */
+  readonly indexOf: (bundle: CatalogueBundle) => unknown;
+  /** This kind's uuid -> record map inside the bundle. */
+  readonly recordsOf: (bundle: CatalogueBundle) => Readonly<Record<string, unknown>>;
   /** The index's shape reader — `readBundledDriverIndex` or `readBundledPassiveRadiatorIndex`. */
   readonly readIndex: (json: unknown) => IndexRead<Row>;
   /** The domain seam — the device, or the problems that stop the record being one. */
   readonly construct: (record: unknown) => Device | string[];
-  /** How long a fetched index or device is trusted before it is fetched again. */
+  /** How long a loaded index or device is trusted before it is read from the bundle again. */
   readonly maxAge_ms: number;
   readonly now: () => number;
 }
@@ -116,14 +120,6 @@ interface Fetched<T> {
   readonly at: number;
 }
 
-async function fetchJson(fetchImpl: typeof fetch, url: string): Promise<unknown> {
-  const response = await fetchImpl(url);
-  if (!response.ok) {
-    throw new Error(`bundled catalogue: ${url} was not served (HTTP ${response.status}) — rebuild it with scripts/bundle-drivers.mjs`);
-  }
-  return response.json();
-}
-
 export function createBundledRepo<Row extends BundledIndexRow, Device>(deps: BundledRepoDeps<Row, Device>): BundledRepo<Row, Device> {
   let index: Fetched<readonly Row[]> | null = null;
   const devices = new Map<string, Fetched<Device>>();
@@ -134,10 +130,11 @@ export function createBundledRepo<Row extends BundledIndexRow, Device>(deps: Bun
   async function loadIndex(): Promise<readonly Row[]> {
     if (fresh(index)) return index.value;
     const at = deps.now();
-    const read = deps.readIndex(await fetchJson(deps.fetch, deps.indexUrl));
+    const bundle = await deps.bundle();
+    const read = deps.readIndex(deps.indexOf(bundle));
     if ('problems' in read) {
       throw new Error(
-        `bundled catalogue: ${deps.indexUrl} is not a usable index — rebuild it with scripts/bundle-drivers.mjs:\n` +
+        `bundled catalogue: ${bundle.url} has an unusable index — rebuild the app:\n` +
         read.problems.map(m => `  - ${m}`).join('\n'),
       );
     }
@@ -150,12 +147,16 @@ export function createBundledRepo<Row extends BundledIndexRow, Device>(deps: Bun
     if (fresh(cached)) return cached.value;
     const rows = await loadIndex();
     const row = rows.find(r => r.uuid === uuid);
-    if (row === undefined) throw new Error(`bundled catalogue: ${uuid} is not in the index ${deps.indexUrl}`);
-    const url = deps.recordUrl(row.path);
+    const bundle = await deps.bundle();
+    if (row === undefined) throw new Error(`bundled catalogue: ${uuid} is not in the index of ${bundle.url}`);
+    const records = deps.recordsOf(bundle);
+    if (!Object.hasOwn(records, uuid)) {
+      throw new Error(`bundled catalogue: ${bundle.url} lists ${row.path} (${uuid}) but holds no record for it — rebuild the app`);
+    }
     const at = deps.now();
-    const device = deps.construct(await fetchJson(deps.fetch, url));
+    const device = deps.construct(records[uuid]);
     if (Array.isArray(device)) {
-      throw new Error(`bundled catalogue: ${url} is not a usable record:\n` + device.map(m => `  - ${m}`).join('\n'));
+      throw new Error(`bundled catalogue: ${row.path} (${uuid}) in ${bundle.url} is not a usable record:\n` + device.map(m => `  - ${m}`).join('\n'));
     }
     devices.set(uuid, { value: device, at });
     return device;

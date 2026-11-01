@@ -34,7 +34,7 @@ import {createAppVersionPort} from '../../src/logic/appVersion.js';
 import {appSettingsRepoOn, backupOn, backupRepoOn, myDriverRepoOn, myPassiveRadiatorRepoOn, projectRepoOn, viewStateRepoOn, exportedFilesOn, storageHistoryOn} from '../fixtures/repoOn.js';
 
 const CATALOGUE_MAX_AGE_MS = 60 * 60 * 1000;
-const unusedFetch: typeof fetch = () => Promise.reject(new Error('fetch not used in this test'));
+const unusedBundle = (): Promise<never> => Promise.reject(new Error('catalogue not used in this test'));
 // Fake confirm port for tests — always confirms
 const fakeConfirmPort: ConfirmPort = {
   ask: async () => true,
@@ -49,13 +49,13 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     view: viewStateRepoOn(storage), appSettings: appSettingsRepoOn(storage),
   }), (thrown) => isStoredDataFault(thrown) ? thrown.store : null, {lines: () => [], summary: () => null}, {lines: () => []}, () => null, () => '');
   const driverRepo = createBundledDriverRepo({
-    fetch: unusedFetch, baseUrl: '/', engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
+    bundle: unusedBundle, engine, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });
   const myDriverRepo = myDriverRepoOn(storage, engine);
   const prefs = createPrefsRepo(storage, () => undefined);
   const myPassiveRadiators = myPassiveRadiatorRepoOn(storage);
   const bundledPassiveRadiators = createBundledPassiveRadiatorRepo({
-    fetch: unusedFetch, baseUrl: '/', maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
+    bundle: unusedBundle, maxAge_ms: CATALOGUE_MAX_AGE_MS, now: Date.now,
   });
   const fileStorage = createFileStorage();
   const driverFileStorage = createFileStorage();

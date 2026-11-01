@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sub
 status: done
+landed: c363b02bfce26b532bfec87ca3b3c81018f3eb94
 goal: Bundled PR pick shows visible error, awaits load
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

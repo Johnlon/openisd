@@ -60,7 +60,7 @@ describe('the driver list filters', () => {
     if (!saved) throw new Error('the driver must save');
     const browsing = createDriverBrowsingState({
       driverRepo: createBundledDriverRepo({
-        fetch: () => Promise.reject(new Error('fetch not used')), baseUrl: '/', engine, maxAge_ms: 1, now: Date.now,
+        bundle: () => Promise.reject(new Error('catalogue not used')), engine, maxAge_ms: 1, now: Date.now,
       }),
       myDriverRepo, prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({appState, presentation}), files, confirmReset: {ask: async () => true},

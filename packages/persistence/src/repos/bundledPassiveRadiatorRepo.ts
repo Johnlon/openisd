@@ -1,12 +1,13 @@
 /** REPO: the bundled passive-radiator catalogue — docs/design/BUNDLED_CATALOGUE_API.md
  *  "Passive radiators".
  *
- *  `createBundledRepo` with the radiator's data: `passive-radiators-index.json` under the app
- *  base, read by `readBundledPassiveRadiatorIndex`, and records opened through
+ *  `createBundledRepo` with the radiator's data: the `passiveRadiatorRows` and `passiveRadiators` of the one
+ *  catalogue file (catalogueBundle.ts), read by `readBundledPassiveRadiatorIndex`, and records opened through
  *  `OpenISDPassiveRadiatorStandalone.fromConformingRecord`. Records live in the same `drivers/`
  *  store as the drivers' — a radiator record is a device record. */
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import type {BundledPassiveRadiatorIndexRow, IndexRead} from './bundledIndex.js';
+import type {CatalogueBundle} from './catalogueBundle.js';
 import {baseOf, createBundledRepo, type FieldReader, readIndex} from './bundledRepo.js';
 
 function radiatorRowOf(row: Record<string, unknown>, where: string, f: FieldReader): BundledPassiveRadiatorIndexRow | null {
@@ -30,11 +31,9 @@ export function readBundledPassiveRadiatorIndex(json: unknown): IndexRead<Bundle
 }
 
 export interface BundledPassiveRadiatorRepoDeps {
-  readonly fetch: typeof fetch;
-  /** `import.meta.env.BASE_URL` — `/`, the GitHub Pages `/openisd/`, or Electron's `./`. */
-  readonly baseUrl: string;
-  /** Handed to the domain seam that opens each record — injected, never constructed here. */
-  /** How long a fetched index or radiator is trusted before it is fetched again. */
+  /** The one catalogue file, shared with the driver repo (catalogueBundle.ts). */
+  readonly bundle: () => Promise<CatalogueBundle>;
+  /** How long a loaded index or radiator is trusted before it is read again. */
   readonly maxAge_ms: number;
   readonly now: () => number;
 }
@@ -50,9 +49,9 @@ export interface BundledPassiveRadiatorRepo {
 
 export function createBundledPassiveRadiatorRepo(deps: BundledPassiveRadiatorRepoDeps): BundledPassiveRadiatorRepo {
   return createBundledRepo<BundledPassiveRadiatorIndexRow, OpenISDPassiveRadiatorStandalone>({
-    fetch: deps.fetch,
-    indexUrl: `${deps.baseUrl}passive-radiators-index.json`,
-    recordUrl: path => `${deps.baseUrl}drivers/${path}.json`,
+    bundle: deps.bundle,
+    indexOf: b => b.passiveRadiatorRows,
+    recordsOf: b => b.passiveRadiators,
     readIndex: readBundledPassiveRadiatorIndex,
     construct: record => OpenISDPassiveRadiatorStandalone.fromConformingRecord(record),
     maxAge_ms: deps.maxAge_ms,

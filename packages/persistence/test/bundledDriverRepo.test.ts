@@ -12,12 +12,12 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
+import type {CatalogueBundle} from '../src/repos/catalogueBundle.js';
 import {createBundledDriverRepo, readBundledDriverIndex} from '../src/repos/bundledDriverRepo.js';
 import {OpenISDDriver} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
-const BASE = '/openisd/';
 
 const driverRecord = OpenISDDriver.empty(engine).toOpenIsdDeviceJson();
 
@@ -56,35 +56,26 @@ const radiatorRow = {
   Qms: 4.02,
 };
 
-function server(files: Record<string, unknown>) {
-  const hits: string[] = [];
-  const fetchImpl: typeof fetch = async (input) => {
-    const url = String(input);
-    hits.push(url);
-    if (!(url in files)) return new Response('not here', { status: 404 });
-    return new Response(JSON.stringify(files[url]), { status: 200, headers: { 'content-type': 'application/json' } });
-  };
-  return { hits, fetchImpl };
+/** A bundle source holding the given rows and records. */
+function bundleOf(driverRows: unknown, drivers: Record<string, unknown>): () => Promise<CatalogueBundle> {
+  return async () => ({ url: '/catalogue.json', build: 'b-test', driverRows, passiveRadiatorRows: [], drivers, passiveRadiators: {} });
 }
 
 describe('createBundledDriverRepo', () => {
-  it('reads drivers-index.json under the app base and loads a driver record as an OpenISDDriver', async () => {
-    const s = server({
-      [`${BASE}drivers-index.json`]: [{ ...driverRow, uuid: driverRecord.uuid.value, path: 'brand/drv/openisd.yml' }],
-      [`${BASE}drivers/brand/drv/openisd.yml.json`]: driverRecord,
+  it('reads the driver rows of the catalogue file and loads a driver record as an OpenISDDriver', async () => {
+    const uuid = driverRecord.uuid.value;
+    const repo = createBundledDriverRepo({
+      bundle: bundleOf([{ ...driverRow, uuid, path: 'brand/drv' }], { [uuid]: driverRecord }), engine, maxAge_ms: 60_000, now: () => 0,
     });
-    const repo = createBundledDriverRepo({ fetch: s.fetchImpl, baseUrl: BASE, engine, maxAge_ms: 60_000, now: () => 0 });
     const rows = await repo.index();
-    assert.equal(rows[0].uuid, driverRecord.uuid.value);
-    const driver = await repo.load(driverRecord.uuid.value);
+    assert.equal(rows[0].uuid, uuid);
+    const driver = await repo.load(uuid);
     assert.ok(driver instanceof OpenISDDriver);
-    assert.equal(driver.uuid(), driverRecord.uuid.value);
-    assert.deepEqual(s.hits, [`${BASE}drivers-index.json`, `${BASE}drivers/brand/drv/openisd.yml.json`]);
+    assert.equal(driver.uuid(), uuid);
   });
 
   it('refuses a radiator-shaped index through the driver reader, naming the missing column', async () => {
-    const s = server({ [`${BASE}drivers-index.json`]: [radiatorRow] });
-    const repo = createBundledDriverRepo({ fetch: s.fetchImpl, baseUrl: BASE, engine, maxAge_ms: 60_000, now: () => 0 });
+    const repo = createBundledDriverRepo({ bundle: bundleOf([radiatorRow], {}), engine, maxAge_ms: 60_000, now: () => 0 });
     await assert.rejects(repo.index(), (e: Error) => e.message.includes('[0].chips'));
   });
 });
