@@ -137,6 +137,7 @@ export interface MobileShellApi {
   searchOffered: import('vue').ComputedRef<boolean>;
   projectQuery: import('vue').Ref<string>;
   projectOrder: import('vue').Ref<import('@openisd/design/fields').ProjectRowOrder>;
+  projectScope: import('vue').Ref<import('@openisd/design/fields').ProjectListScope>;
   projectOrders: readonly import('@openisd/design/fields').ProjectRowOrder[];
   /** Opens a saved project, or makes an open one active. */
   chooseProject: (row: ProjectListRow) => void;
@@ -246,7 +247,7 @@ export function useMobileShell(): MobileShellApi {
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
-  const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
+  const {query: projectQuery, order: projectOrder, scope: projectScope, orders: projectOrders} = binView;
   function openProjectsPane(): void {
     recentActions.record('dialog:projects');
     binView.refresh();
@@ -599,7 +600,7 @@ export function useMobileShell(): MobileShellApi {
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
     goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
-    projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
+    projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
     openProjectRows, selectOpenProject, closeOpenProject,
     setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,

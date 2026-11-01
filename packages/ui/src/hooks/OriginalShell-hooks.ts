@@ -330,7 +330,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
-  const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
+  const {query: projectQuery, order: projectOrder, scope: projectScope, orders: projectOrders} = binView;
   const projectListRef = ref<{ focusSearchOrList(): void } | null>(null);
   function openClick() {
     recentActions.record('dialog:open-project');
@@ -816,7 +816,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
+    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
     projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,

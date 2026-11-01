@@ -158,7 +158,32 @@ export const PROJECT_LIST_TEXT = {
   UNSAVED_MARK: 'Unsaved',
   TRACE_CHECKBOX_TITLE: "Show/hide this project's trace on the graph",
   RENAME_ARIA: 'Rename project',
+  SCOPE_ARIA: 'Which projects to list',
 } as const;
+
+/** Which projects the list shows: only the open ones, or every one. */
+export type ProjectListScope = 'open' | 'all';
+
+export interface ProjectListScopeChoice {
+  readonly scope: ProjectListScope;
+  readonly label: string;
+}
+
+/** The choices in the order the control shows them. */
+export const PROJECT_LIST_SCOPES: readonly ProjectListScopeChoice[] = [
+  {scope: 'open', label: 'Open'},
+  {scope: 'all', label: 'All'},
+];
+
+export const DEFAULT_PROJECT_LIST_SCOPE: ProjectListScope = 'all';
+
+/** `rows` the scope lets through. */
+export function scopeProjectRows<H>(rows: readonly ProjectRow<H>[], scope: ProjectListScope): ProjectRow<H>[] {
+  switch (scope) {
+    case 'open': return rows.filter(row => row.open.kind === 'open');
+    case 'all': return [...rows];
+  }
+}
 
 
 function rowMenu(source: ProjectRowSource<unknown>, conflict: boolean): readonly ProjectRowAction[] {

@@ -3,7 +3,7 @@ import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import {useOriginalProjectList, type OriginalProjectListProps, type OriginalProjectListEmit} from '../../../hooks/OriginalProjectList-hooks.js';
 const props = defineProps<OriginalProjectListProps>();
 const emit = defineEmits<OriginalProjectListEmit>();
-const {emptyBinLabel, PROJECT_LIST_TEXT, editingRow, editingName, startRename, setRenameInput, commitRename, cancelRename, searchInputRef, listRef, focusSearchOrList, menuOpen, openRowMenu, openRowContextMenu, onSortChange, onQueryInput, onToggleShow, onRowClick, handleMenuAction, colourInput, onColourClick, openColourPicker, onColourInput, desktopMenuItems} = useOriginalProjectList(props, emit);
+const {emptyBinLabel, PROJECT_LIST_TEXT, PROJECT_LIST_SCOPES, setScope, editingRow, editingName, startRename, setRenameInput, commitRename, cancelRename, searchInputRef, listRef, focusSearchOrList, menuOpen, openRowMenu, openRowContextMenu, onSortChange, onQueryInput, onToggleShow, onRowClick, handleMenuAction, colourInput, onColourClick, openColourPicker, onColourInput, desktopMenuItems} = useOriginalProjectList(props, emit);
 defineExpose({focusSearchOrList});
 </script>
 
@@ -18,6 +18,17 @@ defineExpose({focusSearchOrList});
         </div>
       </div>
       <div class="header-controls">
+        <div class="project-scope" role="group" :aria-label="PROJECT_LIST_TEXT.SCOPE_ARIA">
+          <button
+            v-for="s in PROJECT_LIST_SCOPES"
+            :key="s.scope"
+            type="button"
+            class="project-scope-btn"
+            :class="{on: projectScope === s.scope}"
+            :aria-pressed="projectScope === s.scope"
+            @click="setScope(s.scope)"
+          >{{ s.label }}</button>
+        </div>
         <select
           class="project-sort-select"
           :value="projectOrder.label"
@@ -256,6 +267,27 @@ defineExpose({focusSearchOrList});
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
+}
+
+.project-scope {
+  display: inline-flex;
+  border: 1px solid #bbb;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.project-scope-btn {
+  padding: 2px 6px;
+  font-size: 11px;
+  border: none;
+  background: #f7f7f7;
+  cursor: pointer;
+}
+.project-scope-btn + .project-scope-btn {
+  border-left: 1px solid #bbb;
+}
+.project-scope-btn.on {
+  background: #dce8f8;
+  font-weight: 600;
 }
 
 .project-sort-select {

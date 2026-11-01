@@ -2,7 +2,7 @@
 import {shallowRef} from 'vue';
 import type {ProjectListRow} from '../../../hooks/projectBinView.js';
 import type {BinRow} from '../../../hooks/binRows.js';
-import {PROJECT_LIST_TEXT, type ProjectRowAction, type ProjectRowOrder} from '@openisd/design/fields';
+import {PROJECT_LIST_TEXT, PROJECT_LIST_SCOPES, type ProjectListScope, type ProjectRowAction, type ProjectRowOrder} from '@openisd/design/fields';
 import MobilePaneDialog from './MobilePaneDialog.vue';
 import ToolbarIcon from '../../components/ToolbarIcon.vue';
 import {inputChecked} from '../../../logic/domEvents.js';
@@ -39,6 +39,7 @@ const emit = defineEmits<{
 }>();
 
 const projectQuery = defineModel<string>('query', {required: true});
+const projectScope = defineModel<ProjectListScope>('scope', {required: true});
 const projectOrder = defineModel<ProjectRowOrder>('order', {required: true});
 const binOpen = defineModel<boolean>('binOpen', {required: true});
 
@@ -100,6 +101,18 @@ function executeRowAction(action: ProjectRowAction): void {
           placeholder="Search projects"
           aria-label="Search projects"
         >
+        <div class="mob-project-sort mob-project-scope" role="group" :aria-label="PROJECT_LIST_TEXT.SCOPE_ARIA">
+          <button
+            v-for="s in PROJECT_LIST_SCOPES"
+            :key="s.scope"
+            type="button"
+            :class="{on: projectScope === s.scope}"
+            :aria-pressed="projectScope === s.scope"
+            @click="projectScope = s.scope"
+          >
+            {{ s.label }}
+          </button>
+        </div>
         <div class="mob-project-sort" role="group" aria-label="Sort projects">
           <button
             v-for="o in projectOrders"
