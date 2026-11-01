@@ -3,7 +3,7 @@ import {expect, exportedProjectOwpr, forEachEditorTab, openAProject, openDriverE
 import {setFocusedBoxType} from '../fixtures.js';
 import {NumberField, UNIT_GROUPS} from '@openisd/design/fields';
 import {OpenISDDriver} from '@openisd/design';
-import {availableAir, createEngine, DEFAULT_VENTED_DESIGN_LIMITS, FixedAir} from '@openisd/design/engine';
+import {createEngine, DEFAULT_VENTED_DESIGN_LIMITS, FixedAir} from '@openisd/design/engine';
 import {DRIVER_SPEC_FIELD_NAMES, type NumericDriverSpecFieldName} from '../../../design/domain/driver/driverSpecFieldName.js';
 import {z} from 'zod';
 
@@ -126,7 +126,7 @@ function projectAirValues(project: unknown) {
 }
 
 function projectAir(project: unknown) {
-  return availableAir(new FixedAir(projectAirValues(project)));
+  return new FixedAir(projectAirValues(project));
 }
 
 function projectEngine(project: unknown) {

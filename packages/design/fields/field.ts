@@ -657,7 +657,10 @@ export class NumberField extends Field {
     value: "adv_Temp_K",
     label: "Temperature",
     display: {kind: 'switchable', group: 'temp', base: 'K'},
-    limits: {min: 173.15, max: 373.15},
+    // The air model's own domain: above 0 K, up to a temperature far past any room (John, 1 Nov
+    // 2026: no -100..+100 degC typing band). The solver's temperature search covers this band.
+    limits: {min: 0, max: 1000},
+    floor: "positive",
     precision: 2,
     description: "Ambient Temperature\nUsed to calculate the speed of sound and the density of air.",
   });

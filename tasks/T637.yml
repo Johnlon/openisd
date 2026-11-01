@@ -1,0 +1,60 @@
+id: T637
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Solvers take Air, never an absent AirState
+done_test: bash scripts/test.sh packages/design/test/engine/air-state.test.ts && bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T637.yml
+  - bugs/BUG_20261031_pr-spec-accepts-air-not-available.md
+  - bugs/BUG_20261101_air-dq-marks-not-shown.md
+  - docs/testing/DEFECT_PINNING_SWEEP_20261101.md
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/ventWindow.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driver/openISDDriverEmbedded.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/domain/project/openISDProject.ts
+  - packages/design/domain/project/projectAir.ts
+  - packages/design/domain/project/projectResolve.ts
+  - packages/design/domain/project/projectSweep.ts
+  - packages/design/engine/air.ts
+  - packages/design/engine/driver/DriverEngine.ts
+  - packages/design/engine/driver/routes/RouteGroup.ts
+  - packages/design/engine/environment/airSolver.ts
+  - packages/design/engine/index.ts
+  - packages/design/engine/pr/PrEngine.ts
+  - packages/design/engine/vent/VentEngine.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/architecture-defect-pin-scan.ts
+  - packages/design/test/architecture-engine-boundary.test.ts
+  - packages/design/test/architecture-tests-never-pin-a-defect.test.ts
+  - packages/design/test/domain/driver-air-is-the-projects.test.ts
+  - packages/design/test/domain/openIsdDriverSpec.test.ts
+  - packages/design/test/domain/project-air.test.ts
+  - packages/design/test/domain/project/project-air.coverage.test.ts
+  - packages/design/test/domain/project/project-sweep-source.test.ts
+  - packages/design/test/domain/ventWindow.test.ts
+  - packages/design/test/engine/air-solver.test.ts
+  - packages/design/test/engine/air-state.test.ts
+  - packages/design/test/engine/air.test.ts
+  - packages/design/test/engine/driver-consistency-check.test.ts
+  - packages/design/test/engine/driver-engine-widths.test.ts
+  - packages/design/test/engine/driver-solve.test.ts
+  - packages/design/test/engine/pr-consistency.test.ts
+  - packages/design/test/engine/pr-engine-count.test.ts
+  - packages/design/test/engine/testSolver.ts
+  - packages/design/test/engine/vent-consistency.test.ts
+  - packages/design/test/fixtures/driverSolverRun.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/hooks/ventReadouts.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/hooks/OriginalShell-hooks.test.ts
+  - packages/ui/test/scripts/bundle-drivers-disposition.test.ts
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T638.yml
+  - packages/ui/test/ui/air-dq-marks.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json

@@ -39,7 +39,7 @@ import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
-import type {DqReadout} from '../logic/cellDataQuality.js';
+import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
@@ -49,24 +49,6 @@ import {useCompareOverlays} from './compareOverlays.js';
 import {projectCloudMarks, useCloudSync, useCloudSyncUi} from './CloudSync-hooks.js';
 import type {ConflictCopy} from '@openisd/design/cloud';
 import {CLOUD_SYNC_MENU_LABEL, DriverId, ProjectId} from '@openisd/design/cloud';
-
-export type AirField = 'temperature' | 'humidity' | 'pressure' | 'soundVelocity' | 'airDensity';
-
-const AIR_FIELD_LIMITS: Readonly<Record<AirField, { min: number; max: number; label: string }>> = {
-  temperature: { min: 0, max: 400, label: 'Temperature' },
-  humidity: { min: 0, max: 100, label: 'Relative humidity' },
-  pressure: { min: 1000, max: 200000, label: 'Air pressure' },
-  soundVelocity: { min: 0, max: 1000, label: 'Sound velocity' },
-  airDensity: { min: 0, max: 10, label: 'Air density' },
-};
-
-export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
-  if (value == null) return [];
-  const limit = AIR_FIELD_LIMITS[field];
-  return Number.isFinite(value) && value >= limit.min && value <= limit.max
-    ? []
-    : [`${limit.label} is outside the sane range (${limit.min}–${limit.max})`];
-}
 
 /** WinISD's own `YYYYMMDD` date format — duplicated from the domain's `dateStamp` rather than
  *  imported, since `domain/index.ts` exports only class/interface types. */
@@ -105,11 +87,12 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
-  function dqOf(airField: AirField, field: () => EnvField) {
+  /** The field's own marks and provenance: whatever the air resolve found about it, with its reason. */
+  function dqOf(field: () => EnvField) {
     return computed<DqReadout>(() => {
       void changed.value;
-      const f = field();
-      return { dq: airFieldDataQuality(airField, f.value), dqState: f.provenance };
+      void project.value;
+      return dqOfCell(field());
     });
   }
   function entryOf(field: () => EnvField) {
@@ -142,8 +125,8 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   return {
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
     envSoundVelocityStored: storedOf(soundVelocity), envAirDensityStored: storedOf(airDensity),
-    envTempDq: dqOf('temperature', temp), envHumidityDq: dqOf('humidity', humidity), envPressureDq: dqOf('pressure', pressure),
-    envSoundVelocityDq: dqOf('soundVelocity', soundVelocity), envAirDensityDq: dqOf('airDensity', airDensity),
+    envTempDq: dqOf(temp), envHumidityDq: dqOf(humidity), envPressureDq: dqOf(pressure),
+    envSoundVelocityDq: dqOf(soundVelocity), envAirDensityDq: dqOf(airDensity),
     advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
   };

@@ -53,16 +53,30 @@ describe('air solver — back-solving one cleared value', () => {
     assert.deepEqual(r.issues, []);
   });
 
-  it('p from a typed c (T and RH entered)', () => {
+  it('a typed c never solves p: p takes the app value and the typed c is marked against the model', () => {
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T), humidityPct: entered(RH), c: entered(AIR.c)}));
-    assert.ok(relative(r.values.pressurePa, P) < 1e-9, `p ${r.values.pressurePa}`);
+    assert.equal(r.values.pressurePa, engine.environment.appAir.pressure());
+    assert.equal(r.values.c, AIR.c);
+    assert.ok(r.issues.some(i => i.kind === 'inconsistent-inputs' && i.fields.includes('c')));
   });
 
-  it('RH from a typed c (T and p entered)', () => {
+  it('a typed c never solves RH: RH takes the app value and the typed c is marked against the model', () => {
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T), pressurePa: entered(P), c: entered(AIR.c)}));
-    assert.ok(relative(r.values.humidityPct, RH) < 1e-9, `RH ${r.values.humidityPct}`);
+    assert.equal(r.values.humidityPct, engine.environment.appAir.humidity());
+    assert.equal(r.values.c, AIR.c);
+    assert.ok(r.issues.some(i => i.kind === 'inconsistent-inputs' && i.fields.includes('c')));
+  });
+
+  it('a typed c with nothing else solves T alone: p and RH take the app values (fill order p, RH, T)', () => {
+    const app = engine.environment.appAir;
+    const c = engine.environment.solve({tempK: 290, humidityPct: app.humidity(), pressurePa: app.pressure()}).values.c;
+    const r = engine.environment.solveAir(inputs({c: entered(c)}));
+    assert.equal(r.values.pressurePa, app.pressure());
+    assert.equal(r.values.humidityPct, app.humidity());
+    assert.ok(relative(r.values.tempK, 290) < 1e-9, `T ${r.values.tempK}`);
+    assert.deepEqual(r.issues, []);
   });
 
   it('p from a typed ρ with c entered', () => {
@@ -101,13 +115,11 @@ describe('air solver — coupled p and c', () => {
 });
 
 describe('air solver — round trip', () => {
-  it('forward then clearing each of T, RH, p recovers it', () => {
+  it('forward then clearing T recovers it from a typed c', () => {
     for (const [t, rh, p] of [[T, RH, P], [278.15, 10, 105000], [313.15, 90, 80000]] as const) {
       const a = engine.environment.solve({tempK: t, humidityPct: rh, pressurePa: p}).values;
       const fromT = engine.environment.solveAir(inputs({humidityPct: entered(rh), pressurePa: entered(p), c: entered(a.c)}));
-      const fromP = engine.environment.solveAir(inputs({tempK: entered(t), humidityPct: entered(rh), c: entered(a.c)}));
       assert.ok(relative(fromT.values.tempK, t) < 1e-9, `T at ${t}`);
-      assert.ok(relative(fromP.values.pressurePa, p) < 1e-9, `p at ${p}`);
     }
   });
 });
@@ -153,23 +165,24 @@ describe('air solver — conflicts', () => {
 });
 
 describe('air solver — missing and unreachable', () => {
-  it('T and RH open with only p, c entered: no path gives T so it takes the app value, and RH is solved from it', () => {
-    const appT = engine.environment.appAir.temperature();
-    const c = engine.environment.solve({tempK: appT, humidityPct: 70, pressurePa: P}).values.c;
+  it('RH and T open with only p, c entered: RH takes the app value and T is solved from c', () => {
+    const app = engine.environment.appAir;
+    const c = engine.environment.solve({tempK: 305, humidityPct: app.humidity(), pressurePa: P}).values.c;
     const r = engine.environment.solveAir(inputs({pressurePa: entered(P), c: entered(c, 0.0005)}));
-    assert.equal(r.values.tempK, appT);
-    assert.ok(relative(r.values.humidityPct, 70) < 1e-3);
+    assert.equal(r.values.humidityPct, app.humidity());
+    assert.ok(relative(r.values.tempK, 305) < 1e-3);
     assert.deepEqual(r.issues.filter(i => i.kind === 'missing-dependencies'), []);
   });
 
-  it('nothing entered: every quantity takes the app value, c and ρ from the app three', () => {
+  it('nothing entered: T, RH and p take the app value, c and ρ are calculated from them', () => {
     const r = engine.environment.solveAir(inputs({}));
     const app = engine.environment.appAir;
     assert.equal(r.values.tempK, app.temperature());
     assert.equal(r.values.humidityPct, app.humidity());
     assert.equal(r.values.pressurePa, app.pressure());
-    assert.equal(r.values.c, app.c());
-    assert.equal(r.values.rho, app.rho());
+    const wanted = engine.environment.solve({tempK: app.temperature(), humidityPct: app.humidity(), pressurePa: app.pressure()}).values;
+    assert.equal(r.values.c, wanted.c);
+    assert.equal(r.values.rho, wanted.rho);
     assert.deepEqual(r.issues, []);
   });
 
@@ -179,65 +192,51 @@ describe('air solver — missing and unreachable', () => {
     assert.notEqual(r.values.tempK, engine.environment.appAir.temperature());
   });
 
-  it('T from a c no temperature in range gives: the issue stays on tempK, and T takes the app value', () => {
+  it('T from a c no temperature in range gives: T takes the app value, c stays as typed, and both carry the reason', () => {
     const r = engine.environment.solveAir(inputs({
       humidityPct: entered(RH), pressurePa: entered(P), c: entered(999, 0.005)}));
     assert.equal(r.values.tempK, engine.environment.appAir.temperature());
-    assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'tempK'));
+    assert.equal(r.values.c, 999);
+    const issue = r.issues.find(i => i.kind === 'missing-dependencies' && i.target === 'tempK');
+    assert.ok(issue);
+    assert.deepEqual(issue.fields, ['tempK', 'c']);
+    assert.match(issue.text, /no temperature in range gives this c/);
+    assert.match(issue.text, /typed sound velocity/);
   });
 
-  it('entered T outside the supported range keeps the temperature range issue', () => {
+  it('there is no typing band on temperature: 150 K and 400 K raise no range issue', () => {
+    for (const t of [150, 400]) {
+      const r = engine.environment.solveAir(inputs({tempK: entered(t), humidityPct: entered(RH), pressurePa: entered(P)}));
+      assert.deepEqual(r.issues, [], `T ${t}`);
+    }
+  });
+
+  it('a temperature the model does not cover (above 1000 K) keeps the temperature issue', () => {
     const r = engine.environment.solveAir(inputs({
-      tempK: entered(1000), humidityPct: entered(RH), pressurePa: entered(P)}));
+      tempK: entered(5000), humidityPct: entered(RH), pressurePa: entered(P)}));
     assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'tempK'));
   });
 });
 
-describe('air solver — ill-conditioned back-solves are not available, never a wild number', () => {
-  it('RH from a c that implies RH above 100: the issue stays on humidityPct, and RH takes the app value', () => {
+describe('air solver — a typed c never moves RH or p, however far off', () => {
+  it('a c that implies RH above 100 leaves RH at the app value and marks the disagreement', () => {
     const c100 = engine.environment.solve({tempK: T, humidityPct: 100, pressurePa: P}).values.c;
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T), pressurePa: entered(P), c: entered(c100 + 0.5, 0.0005)}));
     assert.equal(r.values.humidityPct, engine.environment.appAir.humidity());
-    assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'humidityPct'));
+    assert.ok(r.issues.some(i => i.kind === 'inconsistent-inputs' && i.fields.includes('c')));
   });
 
-  it('RH from a c that implies RH below 0: the issue stays on humidityPct, and RH takes the app value', () => {
-    const c0 = engine.environment.solve({tempK: T, humidityPct: 0, pressurePa: P}).values.c;
-    const r = engine.environment.solveAir(inputs({
-      tempK: entered(T), pressurePa: entered(P), c: entered(c0 - 0.5, 0.0005)}));
-    assert.equal(r.values.humidityPct, engine.environment.appAir.humidity());
-    assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'humidityPct'));
-  });
-
-  it('RH from a c typed so coarsely that every humidity matches it: the issue stays on humidityPct, and RH takes the app value', () => {
-    const c0 = engine.environment.solve({tempK: T, humidityPct: 0, pressurePa: P}).values.c;
-    const c100 = engine.environment.solve({tempK: T, humidityPct: 100, pressurePa: P}).values.c;
-    const mid = (c0 + c100) / 2;
-    const r = engine.environment.solveAir(inputs({
-      tempK: entered(T), pressurePa: entered(P), c: entered(Math.round(mid), 5)}));
-    assert.equal(r.values.humidityPct, engine.environment.appAir.humidity());
-    assert.ok(r.issues.some(i => i.kind === 'missing-dependencies' && i.target === 'humidityPct'));
-  });
-
-  it('RH from a c typed finely enough to pin it: solved', () => {
-    const r = engine.environment.solveAir(inputs({
-      tempK: entered(T), pressurePa: entered(P), c: entered(AIR.c, 0.0005)}));
-    assert.ok(relative(r.values.humidityPct, RH) < 1e-9);
-  });
-
-  it('RH just past 100 but within the typed c precision: clamps to the limit', () => {
-    const c100 = engine.environment.solve({tempK: T, humidityPct: 100, pressurePa: P}).values.c;
-    const r = engine.environment.solveAir(inputs({
-      tempK: entered(T), pressurePa: entered(P), c: entered(c100 + 0.0004, 0.0005)}));
-    assert.equal(r.values.humidityPct, 100);
+  it('a c that implies a wild pressure (349 m/s with T and RH entered) leaves p at the app value', () => {
+    const r = engine.environment.solveAir(inputs({tempK: entered(T), humidityPct: entered(RH), c: entered(349, 0.005)}));
+    assert.equal(r.values.pressurePa, engine.environment.appAir.pressure());
   });
 });
 
 describe('air solver — edges of the solvable range', () => {
   const forward = (tempK: number) => engine.environment.solve({tempK, humidityPct: RH, pressurePa: P}).values.c;
 
-  it.each([[173.15], [373.15]])('a c that is exactly the value at T = %s K gives that end', (end) => {
+  it.each([[1000]])('a c that is exactly the value at T = %s K gives that end', (end) => {
     const r = engine.environment.solveAir(inputs({
       humidityPct: entered(RH), pressurePa: entered(P), c: entered(forward(end))}));
     assert.equal(r.values.tempK, end);
@@ -263,14 +262,14 @@ describe('air solver — edges of the solvable range', () => {
   it('coupled p and c carry the widths of T, RH and ρ', () => {
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T, 0.05), humidityPct: entered(RH, 0.5), rho: entered(AIR.rho, 0.0005)}));
-    assert.ok(r.widths.pressurePa! > 0);
-    assert.ok(r.widths.c! > 0);
+    assert.ok(r.widths.pressurePa > 0);
+    assert.ok(r.widths.c > 0);
   });
 
   it('T, RH, p with widths give c a width', () => {
     const r = engine.environment.solveAir(inputs({
       tempK: entered(T, 0.05), humidityPct: entered(RH, 0.5), pressurePa: entered(P, 5)}));
-    assert.ok(r.widths.c! > 0);
+    assert.ok(r.widths.c > 0);
   });
 });
 
@@ -294,32 +293,22 @@ describe('air solver — a density that cannot be calculated', () => {
   });
 });
 
-describe('air solver — an app air outside the limits', () => {
-  it('leaves p, c and ρ unavailable when nothing is entered, each naming its relations', () => {
-    const settings = {
-      ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS,
-      envDefaults: vi.fn(() => ({...DEFAULT_ENV_DEFAULTS, pressurePa: 0})),
-    };
-    const r = createEngine(settings).environment.solveAir(inputs({}));
-    assert.equal(r.values.pressurePa, null);
-    assert.equal(r.values.c, null);
-    assert.equal(r.values.rho, null);
-    const targets = r.issues.filter(i => i.kind === 'missing-dependencies').map(i => i.target).sort();
-    assert.deepEqual(targets, ['c', 'pressurePa', 'rho']);
-    assert.equal(settings.envDefaults.mock.calls.length > 0, true);
-  });
-
+describe('air solver — an app air outside the limits is the built-in constant', () => {
   it.each([
-    ['tempK', 0],
-    ['humidityPct', -1],
-  ] as const)('gives no %s when the app value is outside its limits', (field, outside) => {
+    ['tempK', 0, DEFAULT_ENV_DEFAULTS.tempK],
+    ['humidityPct', -1, DEFAULT_ENV_DEFAULTS.humidityPct],
+    ['pressurePa', 0, DEFAULT_ENV_DEFAULTS.pressurePa],
+    ['pressurePa', NaN, DEFAULT_ENV_DEFAULTS.pressurePa],
+  ] as const)('%s of %s in the app setting gives the constant %s and a full air', (field, outside, constant) => {
     const settings = {
       ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS,
-      envDefaults: () => ({...DEFAULT_ENV_DEFAULTS, [field]: outside}),
+      envDefaults: vi.fn(() => ({...DEFAULT_ENV_DEFAULTS, [field]: outside})),
     };
     const r = createEngine(settings).environment.solveAir(inputs({}));
-    assert.equal(r.values[field], null);
-    assert.equal(r.widths[field], null);
+    assert.equal(r.values[field], constant);
+    assert.equal(Number.isFinite(r.values.c), true);
+    assert.equal(Number.isFinite(r.values.rho), true);
+    assert.deepEqual(r.issues, []);
   });
 });
 
@@ -328,13 +317,13 @@ describe('air solver — c that does not sit on the model', () => {
 
   it('a rounded c gives the T whose model c is that figure, to the last digit', () => {
     const r = engine.environment.solveAir(inputs({humidityPct: entered(RH), pressurePa: entered(P), c: entered(340.5, 0.05)}));
-    assert.ok(Math.abs(forward(r.values.tempK!) - 340.5) < 1e-9);
+    assert.ok(Math.abs(forward(r.values.tempK) - 340.5) < 1e-9);
   });
 
-  it('a c just below the value at the coldest T, within its precision, gives the coldest T', () => {
+  it('a c just above the value at the hottest T, within its precision, gives the hottest T', () => {
     const r = engine.environment.solveAir(inputs({
-      humidityPct: entered(RH), pressurePa: entered(P), c: entered(forward(173.15) - 0.001, 0.01)}));
-    assert.equal(r.values.tempK, 173.15);
+      humidityPct: entered(RH), pressurePa: entered(P), c: entered(forward(1000) + 0.001, 0.01)}));
+    assert.equal(r.values.tempK, 1000);
   });
 
   it('a c that is not a number gives no T from it, with the reason on T', () => {

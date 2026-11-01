@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import type {DriverSolverParams, SolverField} from '../../engine/solverTypes.js';
 import {createEngine} from '../../engine/Engine.js';
-import {availableAir} from '../../engine/index.js';
 import type {TestSolverQuantities} from './testSolver.js';
 import {checkConsistency, fakeSolverField, solveConsistencyGroup} from './testSolver.js';
 import assert from 'node:assert/strict';
@@ -124,7 +123,7 @@ describe('Engine.solveDriver', () => {
     it('writes the derived Qts onto its handle when Qes and Qms are entered', () => {
       const Qes = 0.4, Qms = 3.0;
       const p = driverParams({ Qes, Qms });
-      const issues = engine.driver.solve(p, availableAir(AIR));
+      const issues = engine.driver.solve(p, AIR);
       expect(p.Qts.value).toBeCloseTo((Qes * Qms) / (Qes + Qms), 12);
       expect(p.Qts.calculated).toBe(true);
       expect(issues).toEqual([]);
@@ -133,7 +132,7 @@ describe('Engine.solveDriver', () => {
     it('never overwrites an entered value even when it disagrees with the derived value', () => {
       const Qes = 0.4, Qms = 3.0;
       const p = driverParams({ Qes, Qms, Qts: 7.5 });
-      const issues = engine.driver.solve(p, availableAir(AIR));
+      const issues = engine.driver.solve(p, AIR);
       expect(p.Qts.value).toBe(7.5);
       expect(p.Qts.entered).toBe(true);
       expect(issues).toEqual(checkConsistency({ Qts: 7.5, Qes, Qms }));
@@ -141,21 +140,21 @@ describe('Engine.solveDriver', () => {
 
     it('leaves an underivable non-entered field not-available', () => {
       const p = driverParams({ Qes: 0.4 });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.Qts.value).toBeNull();
     });
 
     it('returns the same issues checkConsistency would for the same entered numbers', () => {
       const input: TestSolverQuantities = { Qes: 0.4 };
       const p = driverParams({ Qes: 0.4 });
-      const issues = engine.driver.solve(p, availableAir(AIR));
+      const issues = engine.driver.solve(p, AIR);
       expect(issues).toEqual(checkConsistency(input));
     });
 
     it('a not-entered c_m_per_s defaults to the given air and is written back as calculated', () => {
       const p = driverParams({});
       const write = vi.spyOn(p.c_m_per_s, 'setCalculated');
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(write).toHaveBeenCalledWith(AIR.c());
       expect(p.c_m_per_s.value).toBe(AIR.c());
     });
@@ -163,7 +162,7 @@ describe('Engine.solveDriver', () => {
     it('a not-entered roo_kg_per_m3 defaults to the given air and is written back as calculated', () => {
       const p = driverParams({});
       const write = vi.spyOn(p.roo_kg_per_m3, 'setCalculated');
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(write).toHaveBeenCalledWith(AIR.rho());
       expect(p.roo_kg_per_m3.value).toBe(AIR.rho());
     });
@@ -171,7 +170,7 @@ describe('Engine.solveDriver', () => {
     it('an entered c_m_per_s/roo_kg_per_m3 is replaced by the given air, written as calculated', () => {
       // John, 2026-10-05: a driver record's own c and roo feed no calculation.
       const p = driverParams({ c_m_per_s: 111111, roo_kg_per_m3: 2.5 });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.c_m_per_s.value).toBe(AIR.c());
       expect(p.c_m_per_s.entered).toBe(false);
       expect(p.roo_kg_per_m3.value).toBe(AIR.rho());
@@ -181,7 +180,7 @@ describe('Engine.solveDriver', () => {
     it('derives Sd from Vas and Cms in the given air, whatever c and roo the record enters', () => {
       const Vas_m3 = 0.05, Cms_m_per_N = 0.0009;
       const p = driverParams({ c_m_per_s: 0, roo_kg_per_m3: 7, Vas_m3, Cms_m_per_N });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.Sd_m2.value).toBeCloseTo(Math.sqrt(Vas_m3 / (AIR.rho() * AIR.c() * AIR.c() * Cms_m_per_N)), 12);
     });
   });
@@ -190,40 +189,40 @@ describe('Engine.solveDriver', () => {
     it('derives Mms from Fs/Qms/Rms', () => {
       const Fs_hz = 40, Qms = 3.0, Rms_kg_per_s = 0.5;
       const p = driverParams({ Fs_hz, Qms, Rms_kg_per_s });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.Mms_kg.value).toBeCloseTo((Rms_kg_per_s * Qms) / (2 * Math.PI * Fs_hz), 12);
     });
 
     it('derives Mms from Qes/Bl/Fs/Re', () => {
       const Qes = 0.4, BL_Tm = 6, Fs_hz = 40, Re_ohm = 6;
       const p = driverParams({ Qes, BL_Tm, Fs_hz, Re_ohm });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.Mms_kg.value).toBeCloseTo((Qes * BL_Tm * BL_Tm) / (2 * Math.PI * Fs_hz * Re_ohm), 12);
     });
 
     it('derives Hg from Hc/Xmax on the equal-or-under overhang arm (Hc <= 2·Xmax)', () => {
       const Xmax_m = 0.005, Hc_m = 0.005;
       const p = driverParams({ Xmax_m, Hc_m });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.Hg_m.value).toBeCloseTo(Hc_m + 2 * Xmax_m, 12);
     });
 
     it('falls back to deriving Sd from Vd/Xmax when Sd is not otherwise derivable', () => {
       const Vd_m3 = 0.0002, Xmax_m = 0.005;
       const p = driverParams({ Vd_m3, Xmax_m });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.Sd_m2.value).toBeCloseTo(Vd_m3 / Xmax_m, 12);
     });
 
     it('recovers Qes from η₀/Fs/Vas — round trip through the same relation the forward η₀ route uses', () => {
       const Fs_hz = 40, Vas_m3 = 0.05, Qes0 = 0.4;
       const p1 = driverParams({ Fs_hz, Vas_m3, Qes: Qes0 });
-      engine.driver.solve(p1, availableAir(AIR));
+      engine.driver.solve(p1, AIR);
       const no0 = p1.no.value!;
       expect(no0).not.toBeNull();
 
       const p2 = driverParams({ Fs_hz, Vas_m3, no: no0 });
-      engine.driver.solve(p2, availableAir(AIR));
+      engine.driver.solve(p2, AIR);
       expect(p2.Qes.value).toBeCloseTo(Qes0, 9);
     });
   });
@@ -235,7 +234,7 @@ describe('Engine.solveDriver', () => {
       const Re_ohm = 6.4, SPL_dB = 90;
       const USPL_dB = SPL_dB + 10 * Math.log10(V283_SQ / Re_ohm);
       const p = driverParams({ SPL_dB, USPL_dB });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.Re_ohm.value).toBeCloseTo(Re_ohm, 9);
     });
 
@@ -243,7 +242,7 @@ describe('Engine.solveDriver', () => {
       const Re_ohm = 6.4, SPLref_dB = 90;
       const USPL_dB = SPLref_dB + 10 * Math.log10(V283_SQ / Re_ohm);
       const p = driverParams({ Re_ohm, USPL_dB });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       expect(p.SPLref_dB.value).toBeCloseTo(SPLref_dB, 9);
     });
   });
@@ -264,7 +263,7 @@ describe('Engine.solveDriver', () => {
       const Qes = 0.4, Qms = 3.0;
       const p = driverParams({ Qes, Qms });
       p.Qts = enteredButNull;
-      const issues = engine.driver.solve(p, availableAir(AIR));
+      const issues = engine.driver.solve(p, AIR);
       // `entered: true` with `value: null` cannot arise from `fakeSolverField`'s own invariant, but
       // `enteredDriverValue`'s `?? undefined` must still treat it as absent for solving — the group
       // still resolves Qts from Qes/Qms internally — while `writeDriverBack`'s `if (field.entered)
@@ -277,7 +276,7 @@ describe('Engine.solveDriver', () => {
   describe('Engine.solveDriver — nominalImpedance guards a non-finite Re', () => {
     it('yields a calculated NaN Znom when Re_ohm is entered as Infinity (Infinity > 0 but not isFinite)', () => {
       const p = driverParams({ Re_ohm: Infinity });
-      engine.driver.solve(p, availableAir(AIR));
+      engine.driver.solve(p, AIR);
       // The Znom-from-Re block guards only `Re_ohm > 0` (true for Infinity) and assigns
       // `nominalImpedance(Re_ohm)` directly, bypassing `setVal`'s own isFinite check — so
       // `nominalImpedance`'s own `!isFinite(Re)` guard is what actually stops this at NaN.
@@ -439,7 +438,7 @@ describe('Engine.solveDriver', () => {
       const p = driverParams({});
       p.Qes = fakeSolverField(0.45, 0.005);
       p.Qms = fakeSolverField(3.2, 0.05);
-      engine.driver.solve(p, availableAir(AIR_E));
+      engine.driver.solve(p, AIR_E);
       expect(p.Qts.calculated).toBe(true);
       expect(p.Qts.precision).toBeCloseTo(qtsHalfWidth(0.45, 0.005, 3.2, 0.05), 9);
     });
@@ -448,7 +447,7 @@ describe('Engine.solveDriver', () => {
       const p = driverParams({});
       p.Sd_m2 = fakeSolverField(0.2, 0.05);
       p.Xmax_m = fakeSolverField(0.03, 0.0005);
-      engine.driver.solve(p, availableAir(AIR_E));
+      engine.driver.solve(p, AIR_E);
       const vd = p.Vd_m3.value!;
       expect(vd.toFixed(knownDecimals(p.Vd_m3.precision!, vd))).toBe('0.006');
     });
@@ -457,14 +456,14 @@ describe('Engine.solveDriver', () => {
       const p = driverParams({});
       p.Sd_m2 = fakeSolverField(0.2, 0.005);
       p.Xmax_m = fakeSolverField(0.03, 0.00005);
-      engine.driver.solve(p, availableAir(AIR_E));
+      engine.driver.solve(p, AIR_E);
       const vd = p.Vd_m3.value!;
       expect(vd.toFixed(knownDecimals(p.Vd_m3.precision!, vd))).toBe('0.0060');
     });
 
     it('a value calculated from no entered input carries no precision', () => {
       const p = driverParams({});
-      engine.driver.solve(p, availableAir(AIR_E));
+      engine.driver.solve(p, AIR_E);
       expect(p.c_m_per_s.calculated).toBe(true);
       expect(p.c_m_per_s.precision).toBeNull();
     });

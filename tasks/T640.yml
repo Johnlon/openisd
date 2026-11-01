@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: chart-help
 status: done
+landed: b6cb9e743e7a58e63fc15722935deb39ae27d415
 goal: Every chart in the phone skin has the same (?) help control and popup with a plain explanation and references.
 done_test: bash scripts/test.sh packages/design/test/fields/chartHelp.test.ts packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:

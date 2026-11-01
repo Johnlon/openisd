@@ -1,5 +1,5 @@
-import {type Engine, airIfAvailable} from '../../engine/index.js';
-import type { AirState, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
+import {type Engine} from '../../engine/index.js';
+import type { Air, BoxType, DqIssue, VentedAlignment } from '../../engine/index.js';
 import { CalculatedFieldImpl, DerivableFieldImpl, DualWriteFieldImpl, absentCell, enteredCell, calculatedCell, defaultedField, entryField, focus, nullableField, pairedField, settlingNullableField, simpleField } from '../cell.js';
 import type { Clearable, Entered, Precise, Readable, SimpleField, Writable } from '../cell.js';
 import type { SealedLosses } from '../losses.js';
@@ -142,7 +142,7 @@ export class OpenISDBox implements Box {
      *  home for it (it lives on the project's driverEmbedding, which the box does not own). */
     readonly #rs: () => number;
     /** The project's own resolved air, injected: the starting radiator's Vas is worked out in it. */
-    readonly #air: () => AirState;
+    readonly #air: () => Air;
     readonly #nDrivers: () => number;
 
     private constructor(
@@ -152,7 +152,7 @@ export class OpenISDBox implements Box {
         rs: () => number,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
-        air: () => AirState,
+        air: () => Air,
         nDrivers: () => number,
     ) {
         this.#driver = driver;
@@ -454,8 +454,8 @@ export class OpenISDBox implements Box {
                 const mech = {Mms_kg: r.spec.Mms_kg.value, Cms_m_per_N: r.spec.Cms_m_per_N.value};
                 const prSd = r.spec.Sd_m2.value;
                 const prNum = this.passiveRadiator.count.value || 1;
-                const nowAir = airIfAvailable(air());
-                if (!(nowAir !== null && Vb != null && Vb > 0 && mech.Mms_kg !== null && mech.Mms_kg > 0 && prSd !== null && prSd > 0
+                const nowAir = air();
+                if (!(Vb != null && Vb > 0 && mech.Mms_kg !== null && mech.Mms_kg > 0 && prSd !== null && prSd > 0
                     && mech.Cms_m_per_N !== null && mech.Cms_m_per_N > 0 && prNum > 0)) {
                     return absentCell<number>('naturalTuning_hz');
                 }
@@ -475,8 +475,8 @@ export class OpenISDBox implements Box {
                 const prSd = r.spec.Sd_m2.value;
                 const prCms = r.spec.Cms_m_per_N.value;
                 const prNum = this.passiveRadiator.count.value || 1;
-                const nowAir = airIfAvailable(air());
-                if (!(nowAir !== null && Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
+                const nowAir = air();
+                if (!(Vb != null && Vb > 0 && prMmd != null && prSd != null && prCms != null && fp_hz > 0)) {
                     return absentCell<number>('addedMassForTuning_kg');
                 }
                 const totalMass = this.#engine.pr.massForFp({ Vb, prMmd, prMadd: 0, prSd, prCms, prNum }, fp_hz, nowAir);
@@ -628,8 +628,8 @@ export class OpenISDBox implements Box {
         if (sd !== null && xmax !== null) spec.Vd_m3.set(sd * xmax);
         if (spec.Qms.value === null) spec.Qms.set(STARTING.radiatorQms);
         if (spec.Fs_hz.value === null) spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
-        const air = airIfAvailable(this.#air());
-        if (spec.Vas_m3.value === null && sd !== null && air !== null) spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, sd, air));
+        const air = this.#air();
+        if (spec.Vas_m3.value === null && sd !== null) spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, sd, air));
     }
 
     /** Give the active box type its starting values where nothing is entered yet: sealed gets the
@@ -686,8 +686,8 @@ export class OpenISDBox implements Box {
                 if (spec.Fs_hz.value === null && startSd !== null) {
                     spec.Fs_hz.set(this.#engine.pr.fsWithMass(STARTING.radiatorMms_kg, 0, STARTING.radiatorCms_m_per_N));
                 }
-                const startAir = airIfAvailable(this.#air());
-                if (spec.Vas_m3.value === null && startSd !== null && startAir !== null) {
+                const startAir = this.#air();
+                if (spec.Vas_m3.value === null && startSd !== null) {
                     spec.Vas_m3.set(this.#engine.pr.vas(STARTING.radiatorCms_m_per_N, startSd, startAir));
                 }
                 return;
@@ -759,7 +759,7 @@ export class OpenISDBox implements Box {
         rs: () => number,
         issues: () => ProjectIssues,
         ventTuningExtra: () => DqIssue | null,
-        air: () => AirState,
+        air: () => Air,
         nDrivers: () => number,
     ): OpenISDBox {
         return new OpenISDBox(slot, driver, engine, rs, issues, ventTuningExtra, air, nDrivers);
