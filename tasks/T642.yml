@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-flake
 status: done
+landed: a26209018954fa389c80480706457e706a280bd9
 goal: Fix flaky number-box-drag-spin spec on CI (BUG_20261101)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

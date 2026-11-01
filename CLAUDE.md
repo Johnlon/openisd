@@ -182,6 +182,19 @@ available for review.
 
 After every release, verify that production's build ID matches the GitHub Latest release. A successful
 deploy workflow alone does not prove users receive that build.
+Also verify the production announcements Worker answers (it is deployed separately, from
+`cloudflare/announcements/wrangler.production.toml`; a GitHub Pages deploy does not deploy it). On
+1 Nov 2026 production announcements had never worked because that Worker was never deployed.
+
+## Offline — release critical
+
+John, 2026-11-01 (QO380): "my app must work offline". Everything the app needs to make and edit a
+project, the whole bundled driver and radiator catalogue included, is on the device after install;
+no feature fetches at the moment of use. Cloud sync and announcements are the only two things
+allowed to need the network; they wait for a connection and catch up later, and neither may block or
+degrade anything the user does offline. Every release verifies offline project creation from an
+installed worker: `scripts/hosting/test/offline-catalogue.e2e.mjs` (install online, go offline,
+reload, New project > passive radiator > pick E150HE-PR, every box fills).
 
 ## General rules — always
 
