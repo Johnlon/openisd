@@ -79,6 +79,13 @@ try {
   await page.goto(`${origin}/`);
   check(await untilStarted(page, 20000), 'the build starts online at /');
   await page.evaluate(() => navigator.serviceWorker.ready);
+  // The worker now precaches the whole catalogue, so installing takes seconds, and the app reloads
+  // itself onto the new worker meanwhile: wait for a worker to control a started page rather than
+  // reloading into that reload.
+  for (let i = 0; i < 120; i++) {
+    try { if (await isStarted(page) && await page.evaluate(() => navigator.serviceWorker.controller !== null)) break; } catch { /* mid-reload */ }
+    await page.waitForTimeout(500);
+  }
   await page.reload();
   await untilStarted(page, 20000);
   const controller = await page.evaluate(() => navigator.serviceWorker.controller?.scriptURL ?? 'none');

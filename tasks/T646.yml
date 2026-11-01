@@ -1,0 +1,28 @@
+id: T646
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Precache driver and passive-radiator catalogue so the installed app works offline (QO380 decision A)
+done_test: bash scripts/test.sh packages/ui/test/logic/sw-precache.test.ts
+files:
+  - tasks/T646.yml
+  - vite.config.js
+  - CLAUDE.md
+  - packages/ui/test/logic/sw-precache.test.ts
+  - scripts/hosting/test/offline-catalogue.e2e.mjs
+notes: |
+  Decision A (QO380): vite.config.js now precaches drivers-index.json, passive-radiators-index.json
+  and drivers/**/*.json with the shell: 1946 distinct entries, ~19.4 MiB raw, 4.68 MiB gzipped on
+  the wire. The StaleWhileRevalidate catalogue handler stays as the fallback for an uncached record.
+  Proof: packages/ui/test/logic/sw-precache.test.ts (built sw.js manifest); and
+  scripts/hosting/test/offline-catalogue.e2e.mjs (persistent 374x705 mobile profile, real worker):
+  A fresh install, offline reload, New project > passive radiator > E150HE-PR fills Vas/Qms/Fs/Sd/Xmax;
+  B previous build's worker (origin/main config, 14 entries) replaced by this build, page stayed
+  usable throughout, precache 1946/1946, then the same offline pick.
+  Measured on this machine, local server, gzip as hosts serve it, no throttle: fresh install 25-44 s
+  (varies with load), 4.68 MiB; upgrade from the previous worker 28-38 s, 3.87 MiB (fewer: shell files
+  the old worker already held are reused). Phone-like throttle was NOT measured: a bandwidth-limited
+  server attempt did not complete and was removed. Arithmetic only: 4.68 MiB at 1.6 Mbit/s is about
+  25 s of transfer plus request latency across 1946 files at roughly 6 parallel (about 50 s at 150 ms),
+  so expect 1-2 minutes on a slow phone link, in the background after first load.
