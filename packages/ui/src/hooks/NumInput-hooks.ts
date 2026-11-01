@@ -193,6 +193,15 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
         pointerSpinOccurred = true;
         last = dragClock.now();
         el.setPointerCapture(press.id);
+        // The browser's own press-and-drag selection extends from the pressed digit to the end of the
+        // text on each mouse move; put the driven digit back at once, not at the next tick.
+        const keepDigit = () => {
+          const at = lastCaret;
+          if (at.kind !== 'digit' || touchCaret) return;
+          if (el.selectionStart !== at.at || el.selectionEnd !== at.at + 1) el.setSelectionRange(at.at, at.at + 1);
+        };
+        el.addEventListener('select', keepDigit, {signal: abort.signal});
+        document.addEventListener('selectionchange', keepDigit, {signal: abort.signal});
         timer = dragClock.every(tick, DRAG_TICK_MS);
         tick();
       }
