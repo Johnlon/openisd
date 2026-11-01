@@ -242,13 +242,15 @@ export default defineConfig(({ command, mode }) => ({
         // Current app code handles controllerchange safely: reload when clean, offer when edited.
         skipWaiting: true,
         clientsClaim: true,
-        // The catalogue indexes and record files are NOT precached (2000 files, 14 MB): they are
-        // cached as they are used, and re-validated in the background on every use, so a
-        // republished catalogue reaches an installed app without a reinstall and nothing is
-        // held longer than maxAgeSeconds. The app shell itself is precached and revision-hashed;
-        // registerType 'autoUpdate' reloads open pages onto a new build.
-        globPatterns: ['**/*.{js,css,html,svg,ico}'],
-        globIgnores: ['drivers/**', 'drivers-index.json', 'passive-radiators-index.json'],
+        // The catalogue (both indexes and every drivers/**/*.json record, ~2000 files, ~21 MB) is
+        // precached with the shell, revision-hashed by workbox, so a pick never needs the network
+        // and the installed app works offline (John, QO380, 2026-11-01). A republished catalogue
+        // changes the hashes, so each release re-fetches only the changed files. registerType
+        // 'autoUpdate' reloads open pages onto a new build.
+        globPatterns: ['**/*.{js,css,html,svg,ico}', 'drivers-index.json', 'passive-radiators-index.json', 'drivers/**/*.json'],
+        // The largest file is the drivers index (~0.8 MB); workbox's 2 MiB default would do, but
+        // the limit is stated so growth to 4 MiB still precaches rather than silently dropping out.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         // No navigation fallback: the worker answers a page only when it has that exact page
         // precached (the copy's own index.html, about/ and install/, a directory address reaching
         // its index.html). Every other address in its scope goes to the network. The root
@@ -265,8 +267,9 @@ export default defineConfig(({ command, mode }) => ({
         // The query is still the page's to read. The hosted copies stay out: their paths are not
         // in this build's precache, whatever the query.
         ignoreURLParametersMatching: [/.*/],
-        // A RegExp, not a function: workbox serialises this into sw.js, where a closure over
-        // this file's variables would not exist.
+        // Fallback only, for a record not yet precached (a catalogue republished between
+        // releases). A RegExp, not a function: workbox serialises this into sw.js, where a
+        // closure over this file's variables would not exist.
         runtimeCaching: [{
           urlPattern: /\/(drivers-index\.json|passive-radiators-index\.json|drivers\/.+\.json)$/,
           handler: 'StaleWhileRevalidate',
