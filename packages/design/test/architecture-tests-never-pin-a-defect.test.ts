@@ -20,6 +20,9 @@ describe('the scan flags a test that holds a defect in place', () => {
     expect(defectPinFindings(at("it.fails('a BUG_20261101_x', () => {});"))).toEqual([]);
     expect(defectPinFindings(at("it.fails(`${t}`, () => {});\n// BUG_20261101_x"))).toEqual([]);
   });
+  it.each(['it.skip(', 'test.skip(', 'describe.skip(', 'xit(', 'xtest(', 'it.todo(', 'test.fixme('])('flags the skip "%s"', (call) => {
+    expect(defectPinFindings(at(`${call}'a', () => {});`))).toHaveLength(1);
+  });
   it.each(['known defect', 'Known Bug', 'documents the bug', 'pins the bug', 'current (wrong)', 'asserts the throw'])('flags the phrase "%s"', (p) => {
     expect(defectPinFindings(at(`// ${p}`))).toHaveLength(1);
     expect(defectPinFindings(at(`// ${p} BUG_20261101_x`))).toEqual([]);

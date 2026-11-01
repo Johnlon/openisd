@@ -34,6 +34,17 @@ export function pinPhrasesWithoutBugFile(file: TestFile): readonly string[] {
   return found;
 }
 
+/** A skip is a fail (TESTING_STRATEGY): a skipped, todo or fixme test is deleted, fixed, or made an `it.fails` naming its bug. */
+const SKIP_CALL = /\b(?:it|test|describe)\.(?:skip|todo|fixme)\b|\b(?:xit|xtest|xdescribe)\s*\(/;
+
+export function skippedTests(file: TestFile): readonly string[] {
+  const found: string[] = [];
+  file.text.split('\n').forEach((line, i) => {
+    if (SKIP_CALL.test(line) && !/^\s*(\/\/|\*|\/\*)/.test(line)) found.push(`${file.path}:${i + 1}: skipped test (a skip is a fail)`);
+  });
+  return found;
+}
+
 export function defectPinFindings(files: readonly TestFile[]): readonly string[] {
-  return files.flatMap((f) => [...failsWithoutBugFile(f), ...pinPhrasesWithoutBugFile(f)]);
+  return files.flatMap((f) => [...failsWithoutBugFile(f), ...pinPhrasesWithoutBugFile(f), ...skippedTests(f)]);
 }
