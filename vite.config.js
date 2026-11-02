@@ -2,9 +2,10 @@ import {defineConfig} from 'vite';
 import vue from '@vitejs/plugin-vue';
 import {VitePWA} from 'vite-plugin-pwa';
 import {fileURLToPath} from 'url';
-import {join} from 'path';
-import {createReadStream, existsSync, readFileSync, writeFileSync} from 'fs';
+import {join, resolve} from 'path';
+import {existsSync, readFileSync, writeFileSync} from 'fs';
 import {execFileSync} from 'child_process';
+import {buildCatalogueBundle, writeBuiltCatalogue} from './scripts/catalogueBundle.mjs';
 
 // Optional desktop target, built by `make electron`. It shares the entire UI and engine
 // with the web app and differs only in how the assets are addressed and cached:
@@ -43,6 +44,12 @@ export function buildVersion(command, env = process.env) {
 }
 const UI_ROOT = join(fileURLToPath(import.meta.url), '..', 'packages', 'ui');
 
+// The build id stamped into every bundled index and record and checked by the app that loads them
+// (CLAUDE.md "Offline"; scripts/catalogueStamp.mjs). Dev servers have no build version: 'dev'.
+export function catalogueBuild(command, env = process.env) {
+  return buildVersion(command, env) || 'dev';
+}
+
 // vite-plugin-pwa puts a manifest link and a registerSW.js script, both relative to the page, into
 // every html page. On about/ and install/ under a hosted copy (v/<stamp>/about/) they resolve to
 // files that do not exist, and the script would register a worker at the wrong address. Those
@@ -71,6 +78,20 @@ const stripPwaFromSubpagesPlugin = {
   },
 };
 
+// The build's catalogue is ONE file, catalogue.json, made from public/'s indexes and records after
+// Vite copies public/ into the output and before the service worker's precache manifest is written
+// (closeBundle, 'pre'); the per-record files and indexes are removed from the output, so the
+// manifest holds one catalogue entry with one revision hash.
+function bundleCatalogueInBuild(command) {
+  let outDir = '';
+  return {
+    name: 'bundle-catalogue',
+    apply: 'build',
+    configResolved(config) { outDir = resolve(config.root, config.build.outDir); },
+    closeBundle: { order: 'pre', handler() { writeBuiltCatalogue(outDir, catalogueBuild(command)); } },
+  };
+}
+
 // In dev mode, inject a script that unregisters any stale PWA service worker on every
 // page load. Prevents cached compiled JS from masking source changes after a prod build.
 const clearSwInDev = {
@@ -85,30 +106,35 @@ const clearSwInDev = {
 };
 
 // The bundled catalogue (docs/design/BUNDLED_CATALOGUE_API.md) is served as static files from
-// packages/ui/public/: /drivers-index.json, /passive-radiators-index.json, /drivers/<path>.json.
+// packages/ui/public/: /drivers-index.json, /passive-radiators-index.json, /drivers/<path>.json,
+// which the build (and, in dev, the middleware below) turns into the one /catalogue.json.
 // The browser suite runs against a small catalogue cut from the tracked one
 // (scripts/test-bundle.mjs): with OPENISD_DRIVERS_BUNDLE_DIR set, those paths are answered from
 // that directory instead of public/, so every spec boots against six reference devices rather
 // than two thousand. Dev-server only — a production build serves public/ and nothing else.
 const CATALOGUE_DIR = process.env.OPENISD_DRIVERS_BUNDLE_DIR;
-const CATALOGUE_PATH = /^\/(drivers-index\.json|passive-radiators-index\.json|drivers\/.+\.json)$/;
-function useCatalogue(server) {
-    if (!CATALOGUE_DIR) return;
+function useCatalogue(command) {
+  return (server) => {
+    // A preview serves a finished build, which already holds catalogue.json: only a substitute
+    // directory replaces it.
+    if (command === 'build' && !CATALOGUE_DIR) return;
+    const dir = CATALOGUE_DIR ?? join(UI_ROOT, 'public');
+    const build = catalogueBuild(command);
+    let text = null; // the catalogue is static for one server run: built on first request
     server.middlewares.use((req, res, next) => {
-      const url = (req.url ?? '').split('?')[0];
-      const m = CATALOGUE_PATH.exec(url);
-      if (!m) return next();
-      const file = join(CATALOGUE_DIR, m[1]);
-      if (!existsSync(file)) { res.statusCode = 404; res.end(`${url}: not in ${CATALOGUE_DIR}`); return; }
+      if ((req.url ?? '').split('?')[0] !== '/catalogue.json') return next();
+      text ??= JSON.stringify(buildCatalogueBundle(dir, build).bundle);
       res.setHeader('Content-Type', 'application/json');
-      createReadStream(file).pipe(res);
+      res.end(text);
     });
+  };
 }
 // Dev server and the suite's preview server alike; a deploy build sets no OPENISD_DRIVERS_BUNDLE_DIR.
 const serveCatalogue = {
   name: 'serve-catalogue',
-  configureServer: useCatalogue,
-  configurePreviewServer: useCatalogue,
+  configureServer: useCatalogue('serve'),
+  // The preview server serves a finished build, whose app was built with the 'build' id.
+  configurePreviewServer: useCatalogue('build'),
 };
 
 // The browser suite's vite serves a fixed tree for one run: it needs no file watcher, and the
@@ -169,6 +195,7 @@ export default defineConfig(({ command, mode }) => ({
   base,
   define: {
     'import.meta.env.VITE_BUILD_VERSION': JSON.stringify(buildVersion(command)),
+    'import.meta.env.VITE_CATALOGUE_BUILD': JSON.stringify(catalogueBuild(command)),
     // The app registers its own service worker (so a refusal is caught), in builds that ship one.
     'import.meta.env.VITE_SERVICE_WORKER': JSON.stringify(ELECTRON || command === 'serve' || mode === 'test' ? 'off' : 'on'),
   },
@@ -214,6 +241,7 @@ export default defineConfig(({ command, mode }) => ({
   plugins: [
     clearSwInDev,
     serveCatalogue,
+    bundleCatalogueInBuild(command),
     ...(command === 'serve' ? [createServeDevVersion(command)] : []),
     vue(),
     // No service worker in the browser suite's build (mode test): a precaching SW would fetch every
@@ -242,15 +270,15 @@ export default defineConfig(({ command, mode }) => ({
         // Current app code handles controllerchange safely: reload when clean, offer when edited.
         skipWaiting: true,
         clientsClaim: true,
-        // The catalogue (both indexes and every drivers/**/*.json record, ~2000 files, ~21 MB) is
-        // precached with the shell, revision-hashed by workbox, so a pick never needs the network
-        // and the installed app works offline (John, QO380, 2026-11-01). A republished catalogue
-        // changes the hashes, so each release re-fetches only the changed files. registerType
+        // The catalogue is ONE file (catalogue.json: both indexes and every record, ~21 MB raw),
+        // precached with the shell as one entry with one revision hash, so a pick never needs the
+        // network and the installed app works offline (John, QO380, 2026-11-01). A republished
+        // catalogue changes the hash, so a release re-fetches that one file. registerType
         // 'autoUpdate' reloads open pages onto a new build.
-        globPatterns: ['**/*.{js,css,html,svg,ico}', 'drivers-index.json', 'passive-radiators-index.json', 'drivers/**/*.json'],
-        // The largest file is the drivers index (~0.8 MB); workbox's 2 MiB default would do, but
-        // the limit is stated so growth to 4 MiB still precaches rather than silently dropping out.
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,svg,ico}', 'catalogue.json'],
+        // The catalogue is the largest file (~21 MB); the limit is stated so growth still precaches
+        // rather than silently dropping out.
+        maximumFileSizeToCacheInBytes: 48 * 1024 * 1024,
         // No navigation fallback: the worker answers a page only when it has that exact page
         // precached (the copy's own index.html, about/ and install/, a directory address reaching
         // its index.html). Every other address in its scope goes to the network. The root
@@ -267,14 +295,6 @@ export default defineConfig(({ command, mode }) => ({
         // The query is still the page's to read. The hosted copies stay out: their paths are not
         // in this build's precache, whatever the query.
         ignoreURLParametersMatching: [/.*/],
-        // Fallback only, for a record not yet precached (a catalogue republished between
-        // releases). A RegExp, not a function: workbox serialises this into sw.js, where a
-        // closure over this file's variables would not exist.
-        runtimeCaching: [{
-          urlPattern: /\/(drivers-index\.json|passive-radiators-index\.json|drivers\/.+\.json)$/,
-          handler: 'StaleWhileRevalidate',
-          options: { cacheName: 'openisd-catalogue', expiration: { maxAgeSeconds: 7 * 24 * 3600 } },
-        }],
       },
     })]),
     // Last, so it sees what vite-plugin-pwa injected.

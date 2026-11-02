@@ -1,7 +1,7 @@
 // End-to-end proof (QO380, "my app must work offline") that an installed worker holds the whole
 // bundled catalogue: online once, then offline, reload, New project > passive radiator > pick
 // E150HE-PR fills every box. Second scenario, release critical: a persistent profile with the
-// PREVIOUS build's worker (origin/main's vite.config.js) is upgraded to this build; the page stays
+// PREVIOUS build's worker (the config before the catalogue precache) is upgraded to this build; the page stays
 // usable while the new worker installs and the catalogue precache completes. Prints install time
 // and bytes on the wire (gzipped, as the host serves them).
 // Usage: node scripts/hosting/test/offline-catalogue.e2e.mjs        (~1 min, most of it two builds)
@@ -30,11 +30,14 @@ function build(outName, configArg, version) {
 }
 console.log(`[${seconds()}] building this build`);
 const newSite = build('new', [], 'v-e2e-new');
-// The previous build: origin/main's config, run from a scratch copy beside the real one so its
+// The previous build: the config of the last commit before the catalogue was precached (T646's
+// parent), so the upgrade under test is "no catalogue precache" to "whole catalogue precached";
+// origin/main's config precaches too, and its entry count equals this build's, so the wait for the
+// new precache would end at once. Run from a scratch copy beside the real one so its
 // relative paths resolve; removed straight after.
-console.log(`[${seconds()}] building the previous build (origin/main config)`);
+console.log(`[${seconds()}] building the previous build (config before the catalogue precache)`);
 const prevConfig = path.join(root, 'vite.config.prev-e2e.js');
-fs.writeFileSync(prevConfig, execFileSync('git', ['show', 'origin/main:vite.config.js'], {cwd: root, encoding: 'utf8'}));
+fs.writeFileSync(prevConfig, execFileSync('git', ['show', '361916d1c^:vite.config.js'], {cwd: root, encoding: 'utf8'}));
 let oldSite;
 try { oldSite = build('old', ['--config', prevConfig], 'v-e2e-old'); } finally { fs.rmSync(prevConfig, {force: true}); }
 
@@ -80,7 +83,7 @@ const catalogueCached = page => page.evaluate(async () => {
     if (!name.includes('precache')) continue;
     const cache = await caches.open(name);
     const keys = await cache.keys();
-    if (keys.some(r => r.url.includes('drivers-index.json'))) return keys.length;
+    if (keys.some(r => r.url.includes('catalogue.json'))) return keys.length;
   }
   return 0;
 });
@@ -138,7 +141,8 @@ const phone = {viewport: {width: 374, height: 705}, deviceScaleFactor: 2.566, is
 const newCount = manifestCount(newSite);
 const oldCount = manifestCount(oldSite);
 console.log(`[${seconds()}] precache entries: previous build ${oldCount}, this build ${newCount}`);
-check(newCount > oldCount + 1900, 'this build precaches the catalogue; the previous one did not');
+check(fs.readFileSync(path.join(newSite, 'sw.js'), 'utf8').includes('catalogue.json') && !fs.readFileSync(path.join(oldSite, 'sw.js'), 'utf8').includes('catalogue.json'), 'this build precaches the catalogue file; the previous one did not');
+console.log(`[${seconds()}] catalogue.json: ${fs.statSync(path.join(newSite, 'catalogue.json')).size} bytes raw, ${zlib.gzipSync(fs.readFileSync(path.join(newSite, 'catalogue.json'))).length} gzipped`);
 
 // Scenario A: fresh install of this build, then offline.
 {

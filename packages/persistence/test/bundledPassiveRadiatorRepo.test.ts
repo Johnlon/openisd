@@ -8,12 +8,12 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
+import type {CatalogueBundle} from '../src/repos/catalogueBundle.js';
 import {createBundledPassiveRadiatorRepo, readBundledPassiveRadiatorIndex} from '../src/repos/bundledPassiveRadiatorRepo.js';
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 
 const engine = createEngine();
-const BASE = '/openisd/';
 
 const driverRecord = OpenISDDriver.empty(engine).toOpenIsdDeviceJson();
 const radiatorRecord = OpenISDPassiveRadiatorStandalone.empty().clonePassiveRadiator();
@@ -53,40 +53,33 @@ const radiatorRow = {
   Qms: 4.02,
 };
 
-function server(files: Record<string, unknown>) {
-  const hits: string[] = [];
-  const fetchImpl: typeof fetch = async (input) => {
-    const url = String(input);
-    hits.push(url);
-    if (!(url in files)) return new Response('not here', { status: 404 });
-    return new Response(JSON.stringify(files[url]), { status: 200, headers: { 'content-type': 'application/json' } });
-  };
-  return { hits, fetchImpl };
+/** A bundle source holding the given radiator rows and records. */
+function bundleOf(passiveRadiatorRows: unknown, passiveRadiators: Record<string, unknown>): () => Promise<CatalogueBundle> {
+  return async () => ({ url: '/catalogue.json', build: 'b-test', driverRows: [], passiveRadiatorRows, drivers: {}, passiveRadiators });
 }
 
 describe('createBundledPassiveRadiatorRepo', () => {
-  it('reads passive-radiators-index.json under the app base and loads a radiator record as an OpenISDPassiveRadiatorStandalone', async () => {
-    const s = server({
-      [`${BASE}passive-radiators-index.json`]: [{ ...radiatorRow, uuid: radiatorRecord.uuid.value, path: 'brand/pr/openisd.yml' }],
-      [`${BASE}drivers/brand/pr/openisd.yml.json`]: radiatorRecord,
+  it('reads the radiator rows of the catalogue file and loads a record as an OpenISDPassiveRadiatorStandalone', async () => {
+    const uuid = radiatorRecord.uuid.value;
+    const repo = createBundledPassiveRadiatorRepo({
+      bundle: bundleOf([{ ...radiatorRow, uuid, path: 'brand/pr' }], { [uuid]: radiatorRecord }), maxAge_ms: 60_000, now: () => 0,
     });
-    const repo = createBundledPassiveRadiatorRepo({ fetch: s.fetchImpl, baseUrl: BASE, maxAge_ms: 60_000, now: () => 0 });
     const rows = await repo.index();
-    assert.equal(rows[0].uuid, radiatorRecord.uuid.value);
-    const pr = await repo.load(radiatorRecord.uuid.value);
+    assert.equal(rows[0].uuid, uuid);
+    const pr = await repo.load(uuid);
     assert.ok(pr instanceof OpenISDPassiveRadiatorStandalone);
-    assert.equal(pr.uuid(), radiatorRecord.uuid.value);
+    assert.equal(pr.uuid(), uuid);
   });
 
   it('refuses a driver record through the radiator seam, naming the problem', async () => {
-    const s = server({
-      [`${BASE}passive-radiators-index.json`]: [{ ...radiatorRow, uuid: radiatorRecord.uuid.value, path: 'brand/pr/openisd.yml' }],
-      [`${BASE}drivers/brand/pr/openisd.yml.json`]: driverRecord,
+    const uuid = radiatorRecord.uuid.value;
+    const repo = createBundledPassiveRadiatorRepo({
+      bundle: bundleOf([{ ...radiatorRow, uuid, path: 'brand/pr' }], { [uuid]: driverRecord }), maxAge_ms: 60_000, now: () => 0,
     });
-    const repo = createBundledPassiveRadiatorRepo({ fetch: s.fetchImpl, baseUrl: BASE, maxAge_ms: 60_000, now: () => 0 });
-    await assert.rejects(repo.load(radiatorRecord.uuid.value), (e: Error) => /passive-radiator section/.test(e.message));
+    await assert.rejects(repo.load(uuid), (e: Error) => /passive-radiator section/.test(e.message));
   });
 });
+
 describe('readBundledPassiveRadiatorIndex', () => {
   it('returns the rows of a well-formed index', () => {
     const out = readBundledPassiveRadiatorIndex([radiatorRow]);

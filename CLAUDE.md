@@ -200,6 +200,11 @@ The bundled driver and radiator records are split from the app only to load in t
 are part of the app's version: the app reads only records of its own build, every record keeps a
 permanent uuid across re-scrapes, and a record-version mismatch is a refusal with a message, never a
 blank.
+Mechanism: the build writes the whole catalogue as ONE file, `catalogue.json`
+(`{build, driverRows, passiveRadiatorRows, drivers: {uuid: record}, passiveRadiators: {uuid: record}}`,
+`scripts/catalogueBundle.mjs`; only records with a woofer or passive-radiator section), precached as one
+entry; the loader opens it only when `build` is the app's own build id, else throws
+`CatalogueBuildMismatch` naming both builds (`packages/persistence/src/repos/catalogueBundle.ts`).
 
 ## General rules — always
 

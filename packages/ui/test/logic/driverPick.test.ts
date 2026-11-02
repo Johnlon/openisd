@@ -1,7 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createEngine} from '@openisd/design/engine';
 import {ProjectBuilder} from '@openisd/design';
-import {createBundledDriverRepo} from '@openisd/persistence';
+import {createBundledDriverRepo, createCatalogueSource} from '@openisd/persistence';
 import {driverPickRecorder} from '../../src/logic/telemetry/driverPick.js';
 import {fieldsOf, type TelemetryEvent} from '../../src/logic/telemetry/events.js';
 import type {Telemetry} from '../../src/logic/telemetry/telemetry.js';
@@ -10,16 +10,18 @@ const engine = createEngine();
 const driver = ProjectBuilder.empty(engine).driver.detach();
 
 function indexJson(uuid: string): string {
-  return JSON.stringify([{
+  return JSON.stringify({build: 'test', passiveRadiatorRows: [], drivers: {}, passiveRadiators: {}, driverRows: [{
     uuid, path: 'morel/mw-1258', name: 'Morel MW 1258', dq: false, datasheet: null, productPage: null, listingPage: null,
     chips: ['woofer'], canonical: 'Woofer', Fs_hz: 28, Sd_m2: 0.0471, Xmax_m: 0.01, Vd_m3: 0.000471, Znom_ohm: 8,
-  }]);
+  }]});
 }
 
 function recorderOver(fetchIndex: () => Promise<Response>) {
   const record = vi.fn<(e: TelemetryEvent) => void>();
   const telemetry: Telemetry = {record, flush: vi.fn()};
-  const catalogue = createBundledDriverRepo({fetch: fetchIndex, baseUrl: '/', engine, maxAge_ms: 1, now: Date.now});
+  const catalogue = createBundledDriverRepo({
+    bundle: createCatalogueSource({fetch: fetchIndex, url: '/catalogue.json', build: 'test', maxAge_ms: 1, now: Date.now}), engine, maxAge_ms: 1, now: Date.now,
+  });
   return {record, pick: driverPickRecorder(telemetry, catalogue)};
 }
 

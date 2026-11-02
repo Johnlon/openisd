@@ -1,6 +1,7 @@
 export type {
   BundledIndexRow, BundledDriverIndexRow, BundledPassiveRadiatorIndexRow, IndexRead, IndexRows, IndexProblems,
 } from './repos/bundledIndex.js';
+export { type CatalogueBundle, CatalogueBuildMismatch, createCatalogueSource, parseCatalogueBundle } from './repos/catalogueBundle.js';
 export { type BundledDriverRepo, type BundledDriverRepoDeps, createBundledDriverRepo, readBundledDriverIndex } from './repos/bundledDriverRepo.js';
 
 export {

@@ -13,19 +13,24 @@ const LOGO_URL = '../logo-wide.svg';
 const driverCount = ref<number | null>(null);
 const passiveRadiatorCount = ref<number | null>(null);
 
-/** An index is a JSON array; its length is the count. A failed fetch leaves the count unstated. */
-async function indexLength(url: string): Promise<number | null> {
+/** The catalogue file is one object holding both index arrays; a failed fetch leaves the counts unstated. */
+async function catalogueCounts(): Promise<{drivers: number; passiveRadiators: number} | null> {
   try {
-    const body: unknown = await (await fetch(url)).json();
-    return Array.isArray(body) ? body.length : null;
+    const body: unknown = await (await fetch('../catalogue.json')).json();
+    if (typeof body !== 'object' || body === null || !('driverRows' in body) || !('passiveRadiatorRows' in body)) return null;
+    const {driverRows, passiveRadiatorRows} = body;
+    return Array.isArray(driverRows) && Array.isArray(passiveRadiatorRows)
+      ? {drivers: driverRows.length, passiveRadiators: passiveRadiatorRows.length}
+      : null;
   } catch {
     return null;
   }
 }
 
 onMounted(async () => {
-  driverCount.value = await indexLength('../drivers-index.json');
-  passiveRadiatorCount.value = await indexLength('../passive-radiators-index.json');
+  const counts = await catalogueCounts();
+  driverCount.value = counts?.drivers ?? null;
+  passiveRadiatorCount.value = counts?.passiveRadiators ?? null;
 });
 </script>
 

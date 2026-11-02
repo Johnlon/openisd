@@ -9,6 +9,22 @@ import {createEngine} from '@openisd/design/engine';
 import {owdrText, type SeedDriver} from '../fixtures/seedMyDrivers.js';
 
 const E150HE_PR_RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'drivers', 'dayton-audio', 'e150he-pr.json');
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+const CATALOGUE_SHAPE = z.object({
+  passiveRadiators: z.record(z.string(), z.unknown()),
+  passiveRadiatorRows: z.array(z.object({ uuid: z.string(), name: z.string() }).passthrough()),
+}).passthrough();
+
+/** The built catalogue.json text with the named passive radiator's record removed and its row kept. */
+function builtCatalogueWithout(name: string): string {
+  const file = join(REPO_ROOT, 'build', `test-dist-${process.env.OPENISD_TEST_PORT ?? '4100'}`, 'catalogue.json');
+  const built = CATALOGUE_SHAPE.parse(JSON.parse(readFileSync(file, 'utf8')));
+  const row = built.passiveRadiatorRows.find(r => r.name.includes(name));
+  if (row === undefined) throw new Error(`${name} is not in the built catalogue`);
+  const kept = Object.fromEntries(Object.entries(built.passiveRadiators).filter(([uuid]) => uuid !== row.uuid));
+  return JSON.stringify({ ...built, passiveRadiators: kept });
+}
+
 const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 's-re.wdr');
 
 /**
@@ -411,34 +427,47 @@ test.describe('New Project wizard', () => {
     });
 
     // QO379 (John, 2026-11-01): on the phone a pick left every box blank and said nothing. The
-    // record's fetch is the outside system here; a 404 stands in for whatever the phone hit.
-    test('a bundled radiator whose record is not served says so on the step; Next stays disabled', async ({ appPage: page, browserLog }) => {
-      await page.route(/\/drivers\/.+\.json$/, route => route.fulfill({ status: 404, body: 'not here' }));
+    // catalogue file is the outside system here: a tab that starts being served a catalogue with
+    // the E150HE-PR record missing stands in for whatever the phone hit. The app holds the
+    // catalogue it loaded for an hour, so this is a tab of its own, routed before it loads.
+    test('a bundled radiator whose record is not in the catalogue says so on the step; Next stays disabled', async ({ browser, appPage }) => {
+      const context = await browser.newContext({ baseURL: new URL(appPage.url()).origin, viewport: { width: 1280, height: 720 } });
+      try {
+        // Served from the built catalogue on disk (a spec never fetches through the test runner).
+        const body = builtCatalogueWithout('E150HE-PR');
+        await context.route(/\/catalogue\.json$/, route => route.fulfill({ status: 200, contentType: 'application/json', body }));
+        const page = await context.newPage();
+        const pageErrors: string[] = [];
+        page.on('pageerror', e => pageErrors.push(e.message));
+        await page.addInitScript(() => {
+          try { localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); } catch { /* storage disabled */ }
+          try { localStorage.setItem('openisd_persist_warning_dismissed', '1'); } catch { /* storage disabled */ }
+          try { sessionStorage.setItem('openisd_usage_notice_shown', '1'); } catch { /* storage disabled */ }
+        });
+        await page.goto('/');
+        await page.locator('.original-root').waitFor({ state: 'visible' });
 
-      await page.locator('.tb-btn[title*="New project"]').click();
-      const modal = page.locator('.overlay.open');
-      await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
-      await footerNext(page).click();
-      await modal.locator('button', { hasText: 'Next' }).click();
-      await modal.getByLabel('Box type').selectOption('box-passive-radiator');
-      await modal.locator('button', { hasText: 'Next' }).click();
-      await modal.locator('#np-pr-select').click();
-      await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
+        await page.locator('.tb-btn[title*="New project"]').click();
+        const modal = page.locator('.overlay.open');
+        await modal.locator('.dlist .ditem').first().click();
+        await footerNext(page).click();
+        await modal.locator('button', { hasText: 'Next' }).click();
+        await modal.getByLabel('Box type').selectOption('box-passive-radiator');
+        await modal.locator('button', { hasText: 'Next' }).click();
+        await modal.locator('#np-pr-select').click();
+        await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
 
-      const error = modal.locator('.np-pr-error');
-      await expect(error).toBeVisible();
-      await expect(error).toContainText('E150HE-PR');
-      await expect(error).toContainText('404');
-      await expect(modal.locator('#np-pr-name')).toHaveValue('');
-      await expect(footerNext(page)).toBeDisabled();
-
-      // The 404 itself is the only diagnostic this test expects; the failed pick is caught and
-      // shown, never an uncaught rejection.
-      expect(browserLog.pageErrors).toEqual([]);
-      expect(browserLog.consoleErrors.filter(e => !/e150he-pr\.json|404/.test(e))).toEqual([]);
-      expect(browserLog.networkErrors.filter(e => !/e150he-pr\.json/.test(e))).toEqual([]);
-      browserLog.reset();
-      await modal.getByRole('button', { name: 'Cancel', exact: true }).click();
+        const error = modal.locator('.np-pr-error');
+        await expect(error).toBeVisible();
+        await expect(error).toContainText('E150HE-PR');
+        await expect(error).toContainText('no record');
+        await expect(modal.locator('#np-pr-name')).toHaveValue('');
+        await expect(footerNext(page)).toBeDisabled();
+        // The failed pick is caught and shown, never an uncaught rejection.
+        expect(pageErrors).toEqual([]);
+      } finally {
+        await context.close();
+      }
     });
 
   });

@@ -1,11 +1,13 @@
 /** REPO: the bundled driver catalogue — docs/design/BUNDLED_CATALOGUE_API.md "Drivers".
  *
- *  `createBundledRepo` with the driver's data: `drivers-index.json` under the app base, read by
+ *  `createBundledRepo` with the driver's data: the `driverRows` and `drivers` of the one catalogue file
+ *  (catalogueBundle.ts), read by
  *  `readBundledDriverIndex`, and records opened through `OpenISDDriver.fromConformingRecord`. The
  *  list is index rows; a driver becomes a domain object only when `load()` is asked for it. */
 import {OpenISDDriver, type OpenISDDriverStandalone} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {BundledDriverIndexRow, IndexRead} from './bundledIndex.js';
+import type {CatalogueBundle} from './catalogueBundle.js';
 import {baseOf, createBundledRepo, type FieldReader, readIndex} from './bundledRepo.js';
 
 function driverRowOf(row: Record<string, unknown>, where: string, f: FieldReader): BundledDriverIndexRow | null {
@@ -28,12 +30,11 @@ export function readBundledDriverIndex(json: unknown): IndexRead<BundledDriverIn
 }
 
 export interface BundledDriverRepoDeps {
-  readonly fetch: typeof fetch;
-  /** `import.meta.env.BASE_URL` — `/`, the GitHub Pages `/openisd/`, or Electron's `./`. */
-  readonly baseUrl: string;
+  /** The one catalogue file, shared with the radiator repo (catalogueBundle.ts). */
+  readonly bundle: () => Promise<CatalogueBundle>;
   /** Handed to the domain seam that opens each record — injected, never constructed here. */
   readonly engine: Engine;
-  /** How long a fetched index or driver is trusted before it is fetched again. */
+  /** How long a loaded index or driver is trusted before it is read again. */
   readonly maxAge_ms: number;
   readonly now: () => number;
 }
@@ -49,9 +50,9 @@ export interface BundledDriverRepo {
 
 export function createBundledDriverRepo(deps: BundledDriverRepoDeps): BundledDriverRepo {
   return createBundledRepo<BundledDriverIndexRow, OpenISDDriverStandalone>({
-    fetch: deps.fetch,
-    indexUrl: `${deps.baseUrl}drivers-index.json`,
-    recordUrl: path => `${deps.baseUrl}drivers/${path}.json`,
+    bundle: deps.bundle,
+    indexOf: b => b.driverRows,
+    recordsOf: b => b.drivers,
     readIndex: readBundledDriverIndex,
     construct: record => OpenISDDriver.fromConformingRecord(record, deps.engine),
     maxAge_ms: deps.maxAge_ms,
