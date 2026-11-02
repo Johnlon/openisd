@@ -171,16 +171,17 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // A dev server and the browser suite get `NoTelemetry` (the suite opts one spec in).
   const buildVersion: unknown = import.meta.env.VITE_BUILD_VERSION;
   const appVersionText = typeof buildVersion === 'string' ? buildVersion : '';
-  const telemetryEndpoint = chooseEndpoint({
+  const telemetryTarget = chooseEndpoint({
     hostname: location.hostname,
     mode: import.meta.env.MODE,
     testOptIn: Reflect.get(globalThis, 'openisdTelemetryOn') === true,
   });
   const telemetryStorage = localStore;
-  const telemetry: Telemetry = telemetryEndpoint === null
+  const telemetry: Telemetry = telemetryTarget === null
     ? new NoTelemetry()
     : new BeaconTelemetry({
-        endpoint: telemetryEndpoint,
+        endpoint: telemetryTarget.endpoint,
+        environment: telemetryTarget.environment,
         version: appVersionText,
         beacon: (url, body) => navigator.sendBeacon(url, body),
         online: () => navigator.onLine,

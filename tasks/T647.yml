@@ -1,0 +1,14 @@
+id: T647
+release_note: internal
+repo: openisd
+owner: telemetry
+status: done
+goal: Telemetry sends from test.openisd.app too, every event carrying environment production|test; localhost sends nothing.
+done_test: bash scripts/test.sh packages/ui/test/logic/telemetry.test.ts
+files:
+  - packages/ui/src/logic/telemetry/endpoint.ts
+  - packages/ui/src/logic/telemetry/events.ts
+  - packages/ui/src/logic/telemetry/telemetry.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/logic/telemetry.test.ts
+  - tasks/T647.yml

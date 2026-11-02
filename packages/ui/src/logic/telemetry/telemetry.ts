@@ -1,4 +1,4 @@
-import {type Fields, fieldsOf, type TelemetryEvent, type WireEvent} from './events.js';
+import {type Fields, fieldsOf, type TelemetryEnvironment, type TelemetryEvent, type WireEvent} from './events.js';
 
 /** What the app records events into. Fire-and-forget: nothing returns, nothing is awaited. */
 export interface Telemetry {
@@ -22,6 +22,8 @@ export interface BeaconTelemetryDeps {
   readonly sessionId: string;
   /** The anonymous browser id, sent with every event. */
   readonly browserId: string;
+  /** Sent with every event, so the collector can keep test and production apart. */
+  readonly environment: TelemetryEnvironment;
 }
 
 export const MAX_BATCH_EVENTS = 50;
@@ -37,7 +39,7 @@ export class BeaconTelemetry implements Telemetry {
 
   record(event: TelemetryEvent): void {
     const fields: Fields = fieldsOf(event);
-    this.queue.push({name: event.kind, ts: this.deps.now(), version: this.deps.version, session: this.deps.sessionId, browser_id: this.deps.browserId, fields});
+    this.queue.push({name: event.kind, ts: this.deps.now(), version: this.deps.version, session: this.deps.sessionId, browser_id: this.deps.browserId, environment: this.deps.environment, fields});
   }
 
   flush(): void {

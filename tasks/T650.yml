@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet-seam
 status: done
+landed: e10cb007725fea2065c5828c9e503b1ba2350e0f
 goal: The bundled catalogue is ONE file carrying the build id; the loader refuses another build's file with a message naming both builds
 done_test: bash scripts/quiet-test.sh node scripts/hosting/test/offline-catalogue.e2e.mjs
 files:
