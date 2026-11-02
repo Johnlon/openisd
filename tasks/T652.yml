@@ -1,0 +1,11 @@
+id: T652
+release_note: internal
+repo: openisd
+owner: claude-release
+status: done
+goal: integrate.sh lets a branch delete a test when the branch also deletes every module that test imports; any other deleted test is still refused
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/integrate.e2e.test.sh
+files:
+  - tasks/T652.yml
+  - scripts/integrate.sh
+  - scripts/land/test/integrate.e2e.test.sh
