@@ -1,0 +1,12 @@
+id: T655
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The driver model gate cannot be skipped by a branch cut before it or by a branch that edits it: land.sh runs check-model-ruling.sh from origin/main's copy, and the GitHub suite runs it on every land/<task> candidate
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/land-model-ruling.e2e.test.sh
+files:
+  - tasks/T655.yml
+  - scripts/land.sh
+  - land.conf
+  - scripts/land/test/land-model-ruling.e2e.test.sh

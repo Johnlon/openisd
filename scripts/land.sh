@@ -343,9 +343,11 @@ fi
 if [ -f scripts/visual/check-sources.sh ]; then
   run_gate visual-sources /dev/null "bash scripts/visual/check-sources.sh" origin/main HEAD
 fi
-# Driver model files change only with John's ruling named in the task file (`ruling: QO<n>`, QO392).
-if [ -f scripts/land/check-model-ruling.sh ]; then
-  run_gate model-ruling /dev/null "bash scripts/land/check-model-ruling.sh" "$TASK" origin/main HEAD
+# Driver model files change only with John's ruling named in the task file (`ruling: QO<n>`, QO392). The gate
+# runs from origin/main's copy, never the branch's, so a branch cannot skip it by deleting or editing it (T655).
+if git cat-file -e origin/main:scripts/land/check-model-ruling.sh 2> /dev/null; then
+  git show origin/main:scripts/land/check-model-ruling.sh > "$WORK/check-model-ruling.sh"
+  run_gate model-ruling /dev/null "bash $WORK/check-model-ruling.sh" "$ID" origin/main HEAD
 fi
 for sha in $(git rev-list origin/main..HEAD); do
   git log -1 --format=%B "$sha" > "$WORK/message"

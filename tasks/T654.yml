@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 75ccd38c0b27b25691cf342c64da3aa865ff7697
 goal: Converter derives per-coil Re/BL from flat numVC/VCCon; voice_coil key refused; Qes cap and sub-watt Pe limits lifted
 done_test: bash scripts/test.sh packages/design/test/winisd/driverRecordConverter.coverage.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/design/test/engine/physicalRange.test.ts
 files:
