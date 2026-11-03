@@ -82,16 +82,6 @@ export function previewSpecsOf(driver: OpenISDDriver): PreviewSpec[] {
   };
   const canonical = chipsOf(driver).canonical;
   const ebpVal = driver.ebp();
-  const reported = (field: 'Re_ohm' | 'BL_Tm', label: string): PreviewSpec | null => {
-    if (driver.specField(field).value !== null) return null;
-    const readings = driver.reportedSpecReadings(field);
-    if (readings.length === 0) return null;
-    return {
-      kind: PreviewSpecKind.Text,
-      label: `${label} (reported)`,
-      value: readings.map(reading => `${reading.text} (${reading.source.replaceAll('_', ' ')})`).join('; '),
-    };
-  };
   const rows: (PreviewSpec | null)[] = [
     { label: 'Fs',   ...fmtField(NumberField.FS_HZ, n.Fs) },
     { label: 'Qts',  ...fmtField(NumberField.QTS, n.Qts) },
@@ -99,8 +89,6 @@ export function previewSpecsOf(driver: OpenISDDriver): PreviewSpec[] {
     { label: 'Qms',  ...fmtField(NumberField.QMS, n.Qms) },
     { label: 'Re',   ...fmtField(NumberField.RE_OHM, n.Re) },
     { label: 'BL',   ...fmtField(NumberField.BL_TM, driver.specs.BL_Tm.value) },
-    reported('Re_ohm', 'Re'),
-    reported('BL_Tm', 'BL'),
     { label: 'Le',   ...fmtField(NumberField.LE_H, n.Le) },
     { label: 'Vas',  ...fmtField(NumberField.VAS_M3, n.Vas) },
     { label: 'Sd',   ...fmtField(NumberField.SD_M2, n.Sd) },

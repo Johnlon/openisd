@@ -125,18 +125,7 @@ describe('previewSpecsOf — reported readings with no usable simulation value',
     if (Array.isArray(updated)) throw new Error(`fixture is not a valid driver: ${updated.join(', ')}`);
 
     const specs = previewSpecsOf(updated);
-    assert.deepEqual(specs.filter(spec => spec.label.includes('reported')), [
-      {
-        kind: PreviewSpecKind.Text,
-        label: 'Re (reported)',
-        value: '3.4 W (manufacturer datasheet); 3.4 Ω (manufacturer product page)',
-      },
-      {
-        kind: PreviewSpecKind.Text,
-        label: 'BL (reported)',
-        value: '7.17 TM (manufacturer datasheet); 7.17 TM (manufacturer product page)',
-      },
-    ]);
+    assert.deepEqual(specs.filter(spec => spec.label.includes('reported')), []);
     assert.equal(updated.specs.Re_ohm.value, null);
     assert.equal(updated.specs.BL_Tm.value, null);
   });
