@@ -19,9 +19,8 @@ describe('CHART_HELP: every chart has help with four parts', () => {
         expect(words).toBeGreaterThanOrEqual(50);
         expect(words).toBeLessThanOrEqual(140);
       });
-      it('has one to three https references', () => {
-        expect(help.links.length).toBeGreaterThanOrEqual(1);
-        expect(help.links.length).toBeLessThanOrEqual(3);
+      it('has at most two https references', () => {
+        expect(help.links.length).toBeLessThanOrEqual(2);
         for (const link of help.links) { expect(link.url).toMatch(/^https:\/\//); expect(link.title.length).toBeGreaterThan(5); }
       });
       it('avoids formulaic openers ("essential", "critical")', () => {
@@ -42,6 +41,29 @@ describe('CHART_HELP: every chart has help with four parts', () => {
       it(id, () => {
         expect(CHART_HELP[id].links.map(link => link.url)).toEqual(['https://eminence.com/blogs/blog/understanding-spl']);
       });
+    }
+  });
+
+  // John, 3 Nov 2026: "want simple clear info". Each page below was read in full and kept only when it
+  // is plain, short, about that chart, and agrees with the help text; a chart with no such page has no link.
+  describe('every chart links only to the simple pages chosen for it', () => {
+    const AUDIOHOLICS = 'https://www.audioholics.com/loudspeaker-articles/sealed-vs-ported-subwoofers';
+    const IMPEDANCE = 'https://audiojudgement.com/speaker-impedance-curve-explained/';
+    const SOS_FILTERS = 'https://www.soundonsound.com/sound-advice/q-what-are-filters-and-what-do-they-do';
+    const SOS_FILTER_EQ = 'https://www.soundonsound.com/sound-advice/q-whats-difference-between-filtering-and-eq';
+    const SPL = 'https://eminence.com/blogs/blog/understanding-spl';
+    const EXPECTED: Record<keyof typeof CHART_HELP, readonly string[]> = {
+      SPL: [SPL], MaxSPL: [SPL],
+      TFMag: [AUDIOHOLICS], GD: [AUDIOHOLICS], RearPortGain: [AUDIOHOLICS],
+      MaxPwr: ['https://international.mtx.com/library-speakers'],
+      Excursion: ['https://www.subwoofer-builder.com/xmax.htm'],
+      Zmag: [IMPEDANCE], Zph: [IMPEDANCE],
+      FltMag: [SOS_FILTERS], FltPhase: [SOS_FILTER_EQ], FltGD: [SOS_FILTER_EQ],
+      PRTFMag: [], PRTFPhase: [], PRExcursion: [], Phase: [], VA: [],
+      RearPort: [], FrontPort: [], FrontPortGain: [], IntraPort: [],
+    };
+    for (const id of CHART_IDS) {
+      it(id, () => { expect(CHART_HELP[id].links.map(link => link.url)).toEqual(EXPECTED[id]); });
     }
   });
 
