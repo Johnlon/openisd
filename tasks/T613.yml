@@ -1,0 +1,11 @@
+id: T613
+release_note: internal
+repo: openisd
+owner: opi
+status: done
+goal: The repo MUST hold a detailed build specification for the crossover System window (functions, maths, .owsy file, UI both skins, tests, and open investigations) when the crossover work starts, except no app code
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T613.yml
+  - docs/design/SPEC_CROSSOVER_SYSTEM.md
+ruling: "John, 3 Nov 2026: land to main as a plan/proposal."

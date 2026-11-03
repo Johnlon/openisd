@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: ea27223c7717b78f8337e211bf3ef94b9738807a
 ruling: QO398
 goal: Dia is gone from the driver model; .wdr import ignores Dia and export writes Dia=0 (ruling: QO398)
 done_test: bash scripts/test.sh packages/design/test/domain/dia-retired.test.ts packages/design/test/winisd/wdr-model-coverage.test.ts packages/design/test/winisd/openisdToWdr.test.ts
