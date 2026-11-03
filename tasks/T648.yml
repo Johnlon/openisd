@@ -1,0 +1,13 @@
+id: T648
+release_note: "Every chart help popup on the phone now says how to read the chart for a design, with real thresholds, one fix, and primary-source references."
+repo: openisd
+owner: fable
+status: done
+goal: Phone chart help texts rewritten for a beginner (QO334): every popup says what the chart shows, how to read it for a design, concrete thresholds where they exist, and one tuning action
+done_test: bash scripts/test.sh packages/design/test/fields/chartHelp.test.ts
+files:
+  - packages/design/fields/chartHelpText.ts
+  - packages/design/test/fields/chartHelp.test.ts
+  - packages/design/test/fields/chartPage.test.ts
+  - tasks/T648.yml
+  - packages/ui/test/visual/SOURCES.sha256
