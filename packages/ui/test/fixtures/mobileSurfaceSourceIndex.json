@@ -1028,6 +1028,7 @@
     "packages/design/AGENTS.md",
     "packages/design/CLAUDE.md",
     "packages/design/compat/README.md",
+    "packages/design/test/fixtures/corpus/dayton-audio/cx120-8.driver.json.provenance.md",
     "packages/design/test/fixtures/corpus/faitalpro-12pr300-8.driver.json.provenance.md",
     "packages/design/test/fixtures/corpus/sb-acoustics-sb15bac30-8-coax.driver.json.provenance.md",
     "packages/design/test/fixtures/corpus/sb-acoustics-sw26dac76-3-dv.driver.json.provenance.md",

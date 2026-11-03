@@ -725,10 +725,13 @@ export class NumberField extends Field {
     value: "Qes",
     label: "Qes",
     display: {kind: 'fixed', symbol: ''},
-    limits: {min: 0, max: 5},
+    // Qes has no finite upper physical bound: Qes = Qts·Qms/(Qms−Qts), so it grows without
+    // bound as Qts approaches Qms from below. Keep the numeric-entry ceiling at the largest
+    // finite value representable by this model rather than rejecting valid high-Q drivers.
+    limits: {min: 0, max: Number.MAX_VALUE},
     floor: "positive",
     precision: 3,
-    plausible: {min: 0.01, max: 5.0},
+    plausible: {min: 0.01, max: Number.MAX_VALUE},
     description: "Electrical Quality Factor (Qes)\nDamping at Fs from back-EMF in the voice coil.",
   });
   static readonly QMS = new NumberField({
@@ -809,7 +812,7 @@ export class NumberField extends Field {
     limits: {min: 0, max: 100000},
     floor: "positive",
     precision: 2,
-    plausible: {min: 1.0, max: 20000.0},
+    plausible: {min: 0, max: 20000.0},
     description: "Continuous Power Handling (Pe)\nThermal/RMS rating: the power the coil dissipates indefinitely without failing.\nNot the datasheet's peak/short-term figure — see \"Peak power\".",
   });
   static readonly POWER_PEAK_W = new NumberField({

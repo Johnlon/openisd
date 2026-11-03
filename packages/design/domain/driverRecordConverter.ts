@@ -196,18 +196,6 @@ const scraperEntrySchema = z.strictObject({
   dq_scraper: dqMarks(),
 });
 
-const scraperVoiceCoilTupleSchema = z.strictObject({
-  basis: z.strictObject({
-    Re_ohm: z.enum(["per-coil", "for-stated-connection", "unknown"]),
-    BL_Tm: z.enum(["per-coil", "for-stated-connection", "unknown"]),
-  }),
-  Re_ohm: scraperEntrySchema.nullable().optional(),
-  BL_Tm: scraperEntrySchema.nullable().optional(),
-  numVC: z.union([scraperEntrySchema, z.strictObject({state: z.literal("not-stated")})]),
-  connection: z.enum(["series", "parallel", "unknown", "not-stated"]),
-  connection_reading: scraperEntrySchema.nullable(),
-});
-
 /** One scraper-supplied entry as the schema parsed it. */
 type ScraperEntry = z.infer<typeof scraperEntrySchema>;
 
@@ -506,7 +494,8 @@ function wdrCommentOf(driver: OpenISDDriver): string {
   const rejectedLines = rejectedReadingCommentLines(driver);
   const missingLines = rejectedLines.filter((l) => !baseComment.includes(l));
   if (missingLines.length === 0) return baseComment;
-  return baseComment ? `${baseComment}\n${missingLines.join("\n")}` : missingLines.join("\n");
+  if (!baseComment) return missingLines.join("\n");
+  return `${baseComment}\n${missingLines.join("\n")}`;
 }
 
 export function openIsdDriverToWinIsdDriver(
@@ -830,109 +819,54 @@ export class DriverRecordConverter {
         continue;
       }
       const fields: Record<string, unknown> = {};
-      const hasVoiceCoilTuple = (sectionKey === "woofer" || sectionKey === "tweeter") && Object.hasOwn(section, "voice_coil");
-      const flatVoiceCoilFields = ["Re_ohm", "BL_Tm", "numVC", "VCCon"];
-      const hasMixedVoiceCoilShape = hasVoiceCoilTuple && flatVoiceCoilFields.some(field => Object.hasOwn(section, field));
       for (const [field, entry] of Object.entries(section)) {
-        if (field === "voice_coil" && (sectionKey === "woofer" || sectionKey === "tweeter")) {
-          if (hasMixedVoiceCoilShape) {
-            // Keep the illegal key in place so OpenISD's strict record schema rejects the mixed
-            // tuple-plus-flat representation. Neither representation wins by precedence.
-            fields.voice_coil = entry;
-          } else {
-            Object.assign(fields, this.#projectVoiceCoilTuple(entry, sectionKey, warnings));
-          }
-          continue;
-        }
-        const projected = this.#projectScraperEntry(entry, sectionKey, field,  warnings);
+        const projected = this.#projectScraperEntry(entry, sectionKey, field, warnings);
         fields[field] = entryWithoutAppOnlyKeys(projected);
       }
+      this.#derivePerCoilVoiceCoilFields(fields);
       sections[sectionKey] = fields;
     }
     return sections;
   }
 
-  #projectVoiceCoilTuple(
-    value: unknown,
-    section: string,
-    warnings: DriverError[]
-  ): Record<string, unknown> {
-    if (!isKeyedObject(value)) return {voice_coil: value};
-    const tupleForSchema: Record<string, unknown> = {};
-    for (const [key, member] of Object.entries(value)) {
-      if (key === "Re_ohm" || key === "BL_Tm" || key === "numVC" || key === "connection_reading") {
-        if (member === null || !isKeyedObject(member) || "state" in member) {
-          tupleForSchema[key] = member;
-        } else {
-          tupleForSchema[key] = entryForScraperSchema(member);
+  #derivePerCoilVoiceCoilFields(fields: Record<string, unknown>): void {
+    const numVc = fields.numVC;
+    if (!isKeyedObject(numVc) || numVc.state !== 'E' || typeof numVc.value !== 'number') return;
+    const numCoils = numVc.value;
+    if (!Number.isInteger(numCoils) || numCoils < 2 || numCoils > 4) return;
+
+    const vcCon = fields.VCCon;
+    if (!isKeyedObject(vcCon) || vcCon.state !== 'E' || typeof vcCon.value !== 'number') return;
+    const connection = vcCon.value;
+    if (connection !== 1 && connection !== 2) return;
+
+    const isPerCoilReForm = (entry: Record<string, unknown>): boolean => {
+      const origin = typeof entry.origin === 'string' ? entry.origin : undefined;
+      if (!origin || !isKeyedObject(entry.readings)) return false;
+      const reading = entry.readings[origin];
+      if (!isKeyedObject(reading) || typeof reading.actual_reading !== 'string') return false;
+      return /^\s*\d+\s*[x×]\s*/.test(reading.actual_reading);
+    };
+
+    if (connection === 2) {
+      const re = fields.Re_ohm;
+      if (isKeyedObject(re) && re.state === 'E' && typeof re.value === 'number') {
+        if (!isPerCoilReForm(re)) {
+          fields.Re_ohm = { ...re, value: re.value / numCoils };
         }
-      } else {
-        tupleForSchema[key] = member;
+      }
+      const bl = fields.BL_Tm;
+      if (isKeyedObject(bl) && bl.state === 'E' && typeof bl.value === 'number') {
+        fields.BL_Tm = { ...bl, value: bl.value / numCoils };
+      }
+    } else if (connection === 1) {
+      const re = fields.Re_ohm;
+      if (isKeyedObject(re) && re.state === 'E' && typeof re.value === 'number') {
+        if (!isPerCoilReForm(re)) {
+          fields.Re_ohm = { ...re, value: re.value * numCoils };
+        }
       }
     }
-    const parsed = scraperVoiceCoilTupleSchema.safeParse(tupleForSchema);
-    if (!parsed.success) return {voice_coil: value};
-
-    const tuple = parsed.data;
-    const result: Record<string, unknown> = {};
-    let coilCount: number | undefined;
-    if ("readings" in tuple.numVC) {
-      const projectedCount = this.#projectParsedEntry(tuple.numVC, section, "numVC", warnings);
-      result.numVC = projectedCount;
-      if (projectedCount.state === "E") coilCount = projectedCount.value;
-    }
-    if (coilCount !== undefined && (!Number.isInteger(coilCount) || coilCount < 1 || coilCount > 4)) {
-      coilCount = undefined;
-      warnings.push({level: "warn", field: `${section}.numVC`, message: "voice-coil scaling unavailable: coil count is not an integer from 1 through 4"});
-    }
-
-    const connectionReading = tuple.connection_reading;
-    if (tuple.connection === "series" || tuple.connection === "parallel") {
-      if (connectionReading !== null) {
-        const projectedConnection = this.#projectParsedEntry(connectionReading, section, "VCCon", warnings);
-        result.VCCon = {
-          ...projectedConnection,
-          state: "E",
-          value: tuple.connection === "series" ? 2 : 1,
-          ...("origin" in projectedConnection
-            ? {}
-            : {origin: Object.keys(connectionReading.readings)[0]}),
-        };
-      }
-    } else if (tuple.connection === "unknown" && connectionReading !== null) {
-      result.VCCon = {state: "N", readings: connectionReading.readings};
-      warnings.push({level: "warn", field: `${section}.VCCon`, message: "voice-coil connection is unclassified; source reading is retained and no wiring is inferred"});
-    }
-
-    for (const field of ["Re_ohm", "BL_Tm"] as const) {
-      const sourceEntry = tuple[field];
-      if (sourceEntry === undefined || sourceEntry === null) continue;
-      const projected = this.#projectParsedEntry(sourceEntry, section, field, warnings);
-      const basis = tuple.basis[field];
-      if (basis === "per-coil") {
-        result[field] = projected;
-        continue;
-      }
-      if (basis === "unknown") {
-        result[field] = projected;
-        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil reading basis is unknown; the stated value is retained without scaling"});
-        continue;
-      }
-      if (coilCount === undefined || (tuple.connection !== "series" && tuple.connection !== "parallel")) {
-        result[field] = projected;
-        warnings.push({level: "warn", field: `${section}.${field}`, message: "voice-coil connection or count is unstated; the stated value is retained without scaling"});
-        continue;
-      }
-      if (projected.state !== "E") {
-        result[field] = projected;
-        continue;
-      }
-      const factor = field === "Re_ohm"
-        ? tuple.connection === "series" ? 1 / coilCount : coilCount
-        : tuple.connection === "series" ? 1 / coilCount : 1;
-      result[field] = {...projected, value: projected.value * factor};
-    }
-    return result;
   }
 
   /** One scraper-supplied spec entry — `scraperEntrySchema`'s shape — projected into the entry the

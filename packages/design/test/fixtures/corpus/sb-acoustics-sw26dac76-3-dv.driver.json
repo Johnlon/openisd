@@ -312,60 +312,53 @@
           }
         }
       },
-      "voice_coil": {
-        "BL_Tm": {
-          "definition": "motor force factor (T·m)",
-          "readings": {
-            "manufacturer_datasheet": {
-              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
-              "read_precision": 0.05,
-              "read_value": 19.4
-            },
-            "manufacturer_product_page": {
-              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
-              "read_precision": 0.05,
-              "read_value": 19.4
-            }
+      "BL_Tm": {
+        "definition": "motor force factor (T·m)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+            "read_precision": 0.05,
+            "read_value": 19.4
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+            "read_precision": 0.05,
+            "read_value": 19.4
           }
-        },
-        "Re_ohm": {
-          "definition": "DC voice coil resistance (Ω)",
-          "readings": {
-            "manufacturer_product_page": {
-              "actual_reading": "2 x 2.4 Ω",
-              "read_precision": 0.05,
-              "read_value": 2.4
-            }
+        }
+      },
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "2 x 2.4 Ω",
+            "read_precision": 0.05,
+            "read_value": 2.4
           }
-        },
-        "basis": {
-          "BL_Tm": "for-stated-connection",
-          "Re_ohm": "per-coil"
-        },
-        "connection": "series",
-        "connection_reading": {
-          "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
-          "readings": {
-            "manufacturer_datasheet": {
-              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
-              "read_precision": 0.5,
-              "read_value": 2.0
-            },
-            "manufacturer_product_page": {
-              "actual_reading": "(par./ser.) 9.7/19.4 Tm",
-              "read_precision": 0.5,
-              "read_value": 2.0
-            }
+        }
+      },
+      "VCCon": {
+        "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+            "read_precision": 0.5,
+            "read_value": 2.0
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "(par./ser.) 9.7/19.4 Tm",
+            "read_precision": 0.5,
+            "read_value": 2.0
           }
-        },
-        "numVC": {
-          "definition": "number of voice coils; 2 marks a dual-voice-coil driver",
-          "readings": {
-            "manufacturer_product_page": {
-              "actual_reading": "2 x 2.4 Ω",
-              "read_precision": 0.5,
-              "read_value": 2.0
-            }
+        }
+      },
+      "numVC": {
+        "definition": "number of voice coils; 2 marks a dual-voice-coil driver",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "2 x 2.4 Ω",
+            "read_precision": 0.5,
+            "read_value": 2.0
           }
         }
       },

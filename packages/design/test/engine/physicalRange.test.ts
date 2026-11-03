@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import type {OutOfRangeIssue} from '../../engine/consistency.js';
 import type {DriverIssue} from '../../engine/driver/DriverEngine.js';
 import {createEngine} from '../../engine/Engine.js';
+import {NumberField} from '../../fields/field.js';
 import {checkConsistency, driverParams} from './testSolver.js';
 
 const engine = createEngine();
@@ -26,6 +27,23 @@ describe('checkRange (D5/O4)', () => {
 
   it('reports nothing for a value inside its band', () => {
     expect(rangeIssues({ Qts: 0.4, Fs_hz: 45 })).toEqual([]);
+  });
+
+  it('accepts high finite electrical Q values without an arbitrary upper plausibility cap', () => {
+    expect(NumberField.QES.limits.max).toBe(Number.MAX_VALUE);
+    expect(NumberField.QES.plausible.max).toBe(Number.MAX_VALUE);
+    expect(rangeIssues({Qes: 5.001})).toEqual([]);
+    expect(rangeIssues({Qes: 7.91})).toEqual([]);
+    expect(rangeIssues({Qes: 1000})).toEqual([]);
+  });
+
+  it('keeps the positive lower plausibility bound for Qes', () => {
+    expect(rangeIssues({Qes: 0.009})).toEqual([engine.issues.outOfRange('Qes', 0.009, 0.01, 'below')]);
+  });
+
+  it('accepts a published sub-watt continuous power rating', () => {
+    expect(rangeIssues({Pe_W: 0.3})).toEqual([]);
+    expect(rangeIssues({Pe_W: 60})).toEqual([]);
   });
 
   // Every field states a band now: where nothing narrower than the entry band is known, the

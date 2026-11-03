@@ -10,11 +10,18 @@ import {WinISDDriver} from '@openisd/design/winisd';
 
 const engine = createEngine();
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus', 'sb-acoustics-sw26dac76-3-dv.driver.json');
+const CX120_FIXTURE = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', 'corpus', 'dayton-audio', 'cx120-8.driver.json');
 
 type Json = Record<string, unknown>;
 
 function isJson(v: unknown): v is Json {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function parseJson(text: string): Json {
+  const parsed: unknown = JSON.parse(text);
+  if (!isJson(parsed)) throw new Error('expected a JSON object');
+  return parsed;
 }
 
 function child(v: unknown, key: string): Json {
@@ -24,29 +31,24 @@ function child(v: unknown, key: string): Json {
   return next;
 }
 
-/** The sw26dac76 record: a dual-voice-coil woofer stated as a `voice_coil` tuple. */
 function record(): Json {
   const parsed: unknown = JSON.parse(readFileSync(FIXTURE, 'utf8'));
   if (!isJson(parsed)) throw new Error('fixture is not an object');
   return parsed;
 }
 
-const read = (value: number, extra: Json = {}): Json => ({actual_reading: String(value), read_value: value, ...extra});
-const entry = (value: number, role = 'manufacturer_datasheet'): Json => ({readings: {[role]: read(value)}});
-
-function tupleOf(overrides: Json): Json {
-  return {
-    basis: {Re_ohm: 'per-coil', BL_Tm: 'per-coil'},
-    Re_ohm: entry(2.4),
-    BL_Tm: entry(9.7),
-    numVC: entry(2),
-    connection: 'series',
-    connection_reading: entry(2),
-    ...overrides,
-  };
+function cx120Record(): Json {
+  const parsed: unknown = JSON.parse(readFileSync(CX120_FIXTURE, 'utf8'));
+  if (!isJson(parsed)) throw new Error('CX120-8 fixture is not an object');
+  return parsed;
 }
 
-/** The record with its woofer section replaced by `fields` (and no tuple unless `fields` has one). */
+const read = (value: number, extra: Json = {}): Json => ({actual_reading: String(value), read_value: value, ...extra});
+const entry = (value: number, role = 'manufacturer_datasheet', extraReading: Json = {}): Json => ({
+  readings: {[role]: {...read(value), ...extraReading}},
+});
+
+/** The record with its woofer section replaced by `fields`. */
 function withWoofer(fields: Json): Json {
   const rec = record();
   const specs = child(rec, 'specs');
@@ -63,94 +65,137 @@ function wooferOf(openisd: string | null): Json {
   return child(child(JSON.parse(openisd), 'specs'), 'woofer');
 }
 
+function wdrValue(wdr: string | null, key: string): string {
+  if (wdr === null) throw new Error('no WDR text');
+  const match = new RegExp(`^${key}=(.*?)\\r?$`, 'm').exec(wdr);
+  if (match === null) throw new Error(`no ${key} row`);
+  return match[1]!;
+}
+
 const warnings = (errors: DriverError[]) => errors.filter(e => e.level === 'warn').map(e => e.message);
 
-describe('DriverRecordConverter — voice-coil tuple edge cases', () => {
-  it('a voice_coil that is not an object is left for the record schema to refuse', () => {
-    const {errors} = convert(withWoofer({Fs_hz: entry(30), voice_coil: 5}));
-    expect(errors.some(e => e.level === 'error')).toBe(true);
+describe('DriverRecordConverter — voice-coil derivation and edge cases', () => {
+  it('keeps the CX120-8 published tweeter Qes=7.91 entered and preserves its source reading', () => {
+    const {openisd, wdr} = convert(cx120Record());
+    if (openisd === null) throw new Error('CX120-8 source did not project');
+    const projected = parseJson(openisd);
+    const specs = child(projected, 'specs');
+    const tweeter = child(specs, 'tweeter');
+
+    expect(child(tweeter, 'Qes')).toMatchObject({
+      state: 'E', value: 7.91,
+      readings: {manufacturer_datasheet: {actual_reading: '7.91', read_value: 7.91}},
+    });
+    expect(child(tweeter, 'Qms')).toMatchObject({state: 'E', value: 2.2});
+    expect(child(tweeter, 'Qts')).toMatchObject({state: 'E', value: 1.72});
+    expect(projected.data_sources).toMatchObject({value: {
+      manufacturer_datasheet: 'https://daytonaudio.com/images/resources/295-384--dayton-audio-cx120-8-coaxial-driver-with-1-inch-tweeter-specifications.pdf',
+      manufacturer_product_page: 'https://daytonaudio.com/product/1524/cx120-8-4-coaxial-driver-with-3-4-silk-dome-tweeter-8-ohm',
+    }});
+    expect(wdr).not.toContain('Qes: manufacturer_datasheet 7.91 — impossible for Qes');
   });
 
-  it('a tuple that does not match its schema is left for the record schema to refuse', () => {
-    const {errors} = convert(withWoofer({Fs_hz: entry(30), voice_coil: {connection: 'series'}}));
-    expect(errors.some(e => e.level === 'error')).toBe(true);
+  it.each([5.001, 7.91, 1000])('accepts a finite Qes value above the former 5.0 cap (%s)', value => {
+    const source = cx120Record();
+    const specs = child(source, 'specs');
+    const tweeter = child(specs, 'tweeter');
+    tweeter.Qes = {readings: {manufacturer_datasheet: read(value)}};
+    const {openisd} = convert(source);
+    if (openisd === null) throw new Error('CX120-8 source did not project');
+    expect(child(child(child(parseJson(openisd), 'specs'), 'tweeter'), 'Qes'))
+      .toMatchObject({state: 'E', value});
   });
 
-  it('an implausible coil count preserves stated-connection readings without scaling', () => {
-    const dq = {kind: 'range', severity: 'warn', rule: 'r', detail: 'd', params: {}};
+  it('projects SB sw26dac76-3-dv flat driver.json form with per-coil derivation and no basis keys', () => {
+    const {openisd, wdr, errors} = convert(record());
+    expect(errors.filter(error => error.level === 'error')).toEqual([]);
+    const woofer = wooferOf(openisd);
+    expect(child(woofer, 'Re_ohm')).toMatchObject({state: 'E', value: 2.4});
+    expect(child(woofer, 'BL_Tm')).toMatchObject({state: 'E', value: 9.7});
+    expect(woofer).not.toHaveProperty('Re_basis');
+    expect(woofer).not.toHaveProperty('BL_basis');
+    expect(child(woofer, 'numVC')).toMatchObject({state: 'E', value: 2});
+    expect(child(woofer, 'VCCon')).toMatchObject({state: 'E', value: 2});
+    expect(wdrValue(wdr, 'Re')).toBe('4.8');
+    expect(wdrValue(wdr, 'BL')).toBe('19.4');
+    expect(wdrValue(wdr, 'numVC')).toBe('2');
+    expect(wdrValue(wdr, 'VCCon')).toBe('2');
+  });
+
+  it('derives per-coil values for series connection (VCCon 2)', () => {
+    const withoutNx = convert(withWoofer({
+      Fs_hz: entry(30),
+      numVC: entry(2),
+      VCCon: entry(2),
+      Re_ohm: entry(4.8, 'manufacturer_datasheet', {actual_reading: '4.8 Ω'}),
+      BL_Tm: entry(19.4, 'manufacturer_datasheet', {actual_reading: '19.4 Tm'}),
+    }));
+    const woofer1 = wooferOf(withoutNx.openisd);
+    expect(child(woofer1, 'Re_ohm').value).toBe(2.4);
+    expect(child(woofer1, 'BL_Tm').value).toBe(9.7);
+    expect(woofer1).not.toHaveProperty('Re_basis');
+    expect(woofer1).not.toHaveProperty('BL_basis');
+
+    const withNx = convert(withWoofer({
+      Fs_hz: entry(30),
+      numVC: entry(2),
+      VCCon: entry(2),
+      Re_ohm: entry(2.4, 'manufacturer_datasheet', {actual_reading: '2 x 2.4 Ω'}),
+      BL_Tm: entry(19.4, 'manufacturer_datasheet', {actual_reading: '19.4 Tm'}),
+    }));
+    const woofer2 = wooferOf(withNx.openisd);
+    expect(child(woofer2, 'Re_ohm').value).toBe(2.4);
+    expect(child(woofer2, 'BL_Tm').value).toBe(9.7);
+  });
+
+  it('derives per-coil values for parallel connection (VCCon 1)', () => {
+    const withoutNx = convert(withWoofer({
+      Fs_hz: entry(30),
+      numVC: entry(2),
+      VCCon: entry(1),
+      Re_ohm: entry(1.2, 'manufacturer_datasheet', {actual_reading: '1.2 Ω'}),
+      BL_Tm: entry(9.7, 'manufacturer_datasheet', {actual_reading: '9.7 Tm'}),
+    }));
+    const woofer1 = wooferOf(withoutNx.openisd);
+    expect(child(woofer1, 'Re_ohm').value).toBe(2.4);
+    expect(child(woofer1, 'BL_Tm').value).toBe(9.7);
+    expect(woofer1).not.toHaveProperty('Re_basis');
+    expect(woofer1).not.toHaveProperty('BL_basis');
+
+    const withNx = convert(withWoofer({
+      Fs_hz: entry(30),
+      numVC: entry(2),
+      VCCon: entry(1),
+      Re_ohm: entry(2.4, 'manufacturer_datasheet', {actual_reading: '2 × 2.4 Ω'}),
+      BL_Tm: entry(9.7, 'manufacturer_datasheet', {actual_reading: '9.7 Tm'}),
+    }));
+    const woofer2 = wooferOf(withNx.openisd);
+    expect(child(woofer2, 'Re_ohm').value).toBe(2.4);
+    expect(child(woofer2, 'BL_Tm').value).toBe(9.7);
+  });
+
+  it('leaves single-coil or unstated connection values unscaled without warnings', () => {
     const {openisd, errors} = convert(withWoofer({
-      voice_coil: tupleOf({
-        basis: {Re_ohm: 'for-stated-connection', BL_Tm: 'for-stated-connection'},
-        numVC: entry(9),
-        Re_ohm: {...entry(4.8), dq_scraper: [dq]},
-      }),
+      Fs_hz: entry(30),
+      Re_ohm: entry(5.5),
+      BL_Tm: entry(7.17),
     }));
     const woofer = wooferOf(openisd);
-    expect(child(woofer, 'Re_ohm')).toMatchObject({state: 'E', value: 4.8, dq_scraper: [dq]});
-    expect(child(woofer, 'BL_Tm')).toMatchObject({state: 'E', value: 9.7});
-    expect(child(woofer, 'BL_Tm')).not.toHaveProperty('dq_scraper');
-    expect(warnings(errors).filter(m => m.includes('stated value is retained without scaling'))).toHaveLength(2);
+    expect(child(woofer, 'Re_ohm').value).toBe(5.5);
+    expect(child(woofer, 'BL_Tm').value).toBe(7.17);
+    expect(woofer).not.toHaveProperty('Re_basis');
+    expect(woofer).not.toHaveProperty('BL_basis');
+    expect(warnings(errors)).toEqual([]);
   });
 
-  it('a coil count that is not a whole number from 1 to 4 turns scaling off with a warning', () => {
+  it('rejects a section containing voice_coil naming the key', () => {
     const {errors} = convert(withWoofer({
-      voice_coil: tupleOf({basis: {Re_ohm: 'for-stated-connection', BL_Tm: 'per-coil'}, numVC: entry(2.5, 'manual')}),
+      Fs_hz: entry(30),
+      voice_coil: {connection: 'series'},
     }));
-    expect(warnings(errors)).toContain('voice-coil scaling unavailable: coil count is not an integer from 1 through 4');
-  });
-
-  it('scales Re and BL by the stated connection: series divides both, parallel multiplies Re only', () => {
-    const basis = {Re_ohm: 'for-stated-connection', BL_Tm: 'for-stated-connection'};
-    const series = wooferOf(convert(withWoofer({voice_coil: tupleOf({basis, numVC: entry(2), Re_ohm: entry(4.8), BL_Tm: entry(19.4)})})).openisd);
-    expect(child(series, 'Re_ohm').value).toBeCloseTo(2.4);
-    expect(child(series, 'BL_Tm').value).toBeCloseTo(9.7);
-    const parallel = wooferOf(convert(withWoofer({
-      voice_coil: tupleOf({basis, connection: 'parallel', numVC: entry(2), Re_ohm: entry(1.2), BL_Tm: entry(9.7)}),
-    })).openisd);
-    expect(child(parallel, 'Re_ohm').value).toBeCloseTo(2.4);
-    expect(child(parallel, 'BL_Tm').value).toBeCloseTo(9.7);
-    expect(child(parallel, 'VCCon').value).toBe(1);
-  });
-
-  it('a stated-connection reading with no winner stays N', () => {
-    const {openisd} = convert(withWoofer({
-      voice_coil: tupleOf({
-        basis: {Re_ohm: 'for-stated-connection', BL_Tm: 'per-coil'},
-        Re_ohm: {readings: {manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'}}},
-      }),
-    }));
-    expect(child(wooferOf(openisd), 'Re_ohm').state).toBe('N');
-  });
-
-  it('a series connection with no connection reading writes no wiring entry', () => {
-    const {openisd} = convert(withWoofer({voice_coil: tupleOf({connection: 'series', connection_reading: null})}));
-    expect(child(wooferOf(openisd), 'VCCon').state).not.toBe('E');
-  });
-
-  it('a connection reading nothing can win keeps its first source as the origin', () => {
-    const {openisd} = convert(withWoofer({
-      voice_coil: tupleOf({connection_reading: {readings: {manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'}}}}),
-    }));
-    expect(child(wooferOf(openisd), 'VCCon')).toMatchObject({state: 'E', value: 2, origin: 'manufacturer_datasheet'});
-  });
-
-  it('judges the connection reading as the connection (VCCon), not as the coil count (numVC)', () => {
-    const {errors} = convert(withWoofer({
-      voice_coil: tupleOf({connection_reading: {readings: {manufacturer_datasheet: read(2), measured: read(3)}}}),
-    }));
-    const disagreements = errors.filter(e => e.message.startsWith('sources disagree'));
-    expect(disagreements.map(e => e.field)).toEqual(['woofer.VCCon']);
-  });
-
-  it('an unclassified connection keeps its readings and warns that no wiring is inferred', () => {
-    const {errors} = convert(withWoofer({voice_coil: tupleOf({connection: 'unknown'})}));
-    expect(warnings(errors)).toContain('voice-coil connection is unclassified; source reading is retained and no wiring is inferred');
-  });
-
-  it('a reading basis that is unknown preserves its entered value without per-coil scaling', () => {
-    const {openisd, errors} = convert(withWoofer({voice_coil: tupleOf({basis: {Re_ohm: 'unknown', BL_Tm: 'per-coil'}})}));
-    expect(child(wooferOf(openisd), 'Re_ohm')).toMatchObject({state: 'E', value: 2.4});
-    expect(warnings(errors)).toContain('voice-coil reading basis is unknown; the stated value is retained without scaling');
+    // The converter passes an unknown key on for the record schema to refuse (see 'an entry shaped
+    // too strangely' below): the projection is written, the error names the key.
+    expect(errors.some(e => e.level === 'error' && e.message.includes('voice_coil'))).toBe(true);
   });
 });
 
