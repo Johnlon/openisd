@@ -8,7 +8,7 @@ const REF = {
   BR: {title: 'Wikipedia: Bass reflex', url: 'https://en.wikipedia.org/wiki/Bass_reflex'},
   GD: {title: 'Wikipedia: Group delay and phase delay', url: 'https://en.wikipedia.org/wiki/Group_delay_and_phase_delay'},
   IMP: {title: 'Wikipedia: Electrical impedance', url: 'https://en.wikipedia.org/wiki/Electrical_impedance'},
-  SPL: {title: 'Wikipedia: Sound pressure', url: 'https://en.wikipedia.org/wiki/Sound_pressure'},
+  SPL: {title: 'Eminence: Understanding SPL', url: 'https://eminence.com/blogs/blog/understanding-spl'},
   BODE: {title: 'Wikipedia: Bode plot', url: 'https://en.wikipedia.org/wiki/Bode_plot'},
   TF: {title: 'Wikipedia: Transfer function', url: 'https://en.wikipedia.org/wiki/Transfer_function'},
   PH: {title: 'Wikipedia: Phase (waves)', url: 'https://en.wikipedia.org/wiki/Phase_(waves)'},
@@ -33,7 +33,7 @@ export const CHART_HELP: Record<ChartId, PhoneHelpSection> = {
     {label: 'Axes', text: 'Across: frequency in Hz, log scale. Up: sound pressure level in dB at 1 m.'},
     {label: 'Good', text: 'A smooth, flat curve across your working passband. Raise or lower the Signal page power to see how loud the design plays, and check that its output keeps up with the other drivers in a multi-way system.'},
     {label: 'Faults', text: 'A hump in the upper bass means the box is too small or driver Qts is too high; enlarge the box to flatten it. A steep cliff in deep bass is normal for vented boxes.'},
-  ], [REF.SPL, REF.TS, REF.SMALL_DR]),
+  ], [REF.SPL]),
   TFMag: new PhoneHelpSection('Transfer function magnitude', 'The normalised frequency response of the box, drawn relative to the passband so the flat part sits at 0 dB.', [
     {label: 'Axes', text: 'Across: frequency in Hz, log scale. Up: output in dB relative to the passband; the dashed line marks -3 dB.'},
     {label: 'Good', text: 'Flat at 0 dB across the passband. Read the bass cut-off (F3) at the -3 dB line: sealed boxes roll off at about 12 dB per octave, whereas vented boxes roll off at 24 dB per octave. Vented designs reach deeper but fall fast below the tuning.'},
@@ -68,7 +68,7 @@ export const CHART_HELP: Record<ChartId, PhoneHelpSection> = {
     {label: 'Axes', text: 'Across: frequency in Hz, log scale. Up: sound pressure level in dB at 1 m.'},
     {label: 'Good', text: 'A high, smooth curve combining box efficiency plus the power limit to show the ceiling of clean acoustic output.'},
     {label: 'Faults', text: 'Gaps against your output target show where the design falls short. Fix: choose a driver with higher sensitivity or greater Xmax, or add a second driver.'},
-  ], [REF.SPL, REF.TS, REF.SMALL_DR]),
+  ], [REF.SPL]),
   VA: new PhoneHelpSection('Amplifier apparent load power', 'The apparent power the amplifier must supply to the speaker load, measured in volt-amps.', [
     {label: 'Axes', text: 'Across: frequency in Hz, log scale. Up: apparent load power in VA.'},
     {label: 'Good', text: 'A modest curve that tracks the real input wattage, showing an easy electrical load for the amplifier.'},

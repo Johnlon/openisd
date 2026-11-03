@@ -684,6 +684,7 @@
     "bugs/BUG_20261101_ios-script-error-passive-radiator-box-tab.md",
     "bugs/BUG_20261101_number-box-drag-spin-flaky-on-ci.md",
     "bugs/BUG_20261101_wizard-pr-pick-blank-boxes.md",
+    "bugs/BUG_20261103_phone-spl-help-popup-scrolls.md",
     "bugs/_archive/BUG_20261029_coax_tweeter_voice_coil_tuple_rejected.md",
     "bugs/_archive/BUG_20261030_converter_flags_multiple_values_as_unknown.md",
     "cloudflare/announcements/README.md",

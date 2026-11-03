@@ -37,6 +37,14 @@ describe('CHART_HELP: every chart has help with four parts', () => {
     });
   }
 
+  describe('SPL charts link only to the Eminence SPL page (John, 3 Nov 2026: "just spl - it\'s a better reference")', () => {
+    for (const id of ['SPL', 'MaxSPL'] as const) {
+      it(id, () => {
+        expect(CHART_HELP[id].links.map(link => link.url)).toEqual(['https://eminence.com/blogs/blog/understanding-spl']);
+      });
+    }
+  });
+
   describe('key design thresholds and landmarks are present', () => {
     it('SPL mentions 1 m and Signal page power', () => {
       const text = [CHART_HELP.SPL.intro, ...CHART_HELP.SPL.rows.map(r => r.text)].join(' ');
