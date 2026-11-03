@@ -92,7 +92,8 @@ One landing at a time (flock `LAND_LOCK`). In order:
 5. Gates, each with its own deadline (`GATE_DEADLINE_S`; lint and typecheck have none, `LINT_DEADLINE_S`/`TYPECHECK_DEADLINE_S`=0): lint on the changed files, typecheck,
    the unit tests the change reaches, every architecture unit test (`scripts/land/unit-architecture.sh`,
    whatever changed: they read the source tree, so the import graph never picks them), `done_test`,
-   attribution guard on each new commit message. A gate past its deadline is refused
+   model-ruling gate (driver model files `openisdSchema.ts`, `openIsdDriverSpec.ts`, `driverSpecFieldName.ts`
+   change only when the task file has `ruling: QO<n>`, QO392), attribution guard on each new commit message. A gate past its deadline is refused
    and killed.
 6. Candidate: the rebased commit is pushed to `land/<task>`, which starts the full suite on GitHub Actions
    (`.github/workflows/suite.yml`, about 4 min). `CANDIDATE_CMD` (`scripts/land/post-land/actions.sh`)
