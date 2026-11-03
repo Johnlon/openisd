@@ -1,0 +1,17 @@
+id: T645
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Wizard passive radiator pick: a failed record load shows its error on the step and is recorded; the step edits a copy of the bundled radiator, never the repo's cached instance (QO379)
+done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+files:
+  - tasks/T645.yml
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/style.css
+note: Landed within T644 (c363b02bf), which carries these tests and the hook change; this task closes with its task file only.
