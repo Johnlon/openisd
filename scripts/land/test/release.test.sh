@@ -99,7 +99,7 @@ cp "$REPO/scripts/snap.sh" "$REPO/scripts/snap-prune.sh" "$REPO/scripts/release.
 mkdir -p scripts/hosting; cp "$REPO/scripts/hosting/releaseNotes.mjs" scripts/hosting/
 # The two browser runs release.sh starts are stand-ins that record how they were called.
 mkdir -p scripts/hosting/test scripts/ui-gallery
-for f in scripts/hosting/test/hosted-copies.e2e.mjs scripts/ui-gallery/capture.mjs; do
+for f in scripts/hosting/test/hosted-copies.e2e.mjs scripts/hosting/test/offline-catalogue.e2e.mjs scripts/ui-gallery/capture.mjs; do
   cat > "$f" <<STUB
 import fs from 'node:fs';
 fs.appendFileSync(process.env.GH_STATE + '/calls.log', ['node', '$f', ...process.argv.slice(2)].join(' ') + '\\n');
@@ -195,6 +195,7 @@ grep -Fq 'gh workflow run deploy.yml --ref main --field publish_production=true 
   || fail "production deploy dispatch: $(tail -10 "$GH_STATE/calls.log")"
 ! grep -qE 'release (download|create)|npm|vite' "$GH_STATE/calls.log" && ok "downloads nothing, builds nothing, creates nothing" || fail "unexpected calls: $(cat "$GH_STATE/calls.log")"
 grep -q '^node scripts/hosting/test/hosted-copies.e2e.mjs' "$GH_STATE/calls.log" && ok "promotion runs the hosted copies end-to-end test" || fail "no hosted copies run: $(cat "$GH_STATE/calls.log")"
+grep -q '^node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app$' "$GH_STATE/calls.log" && ok "promotion runs the upgrade journey from the live production worker" || fail "no upgrade journey run: $(cat "$GH_STATE/calls.log")"
 grep -q '^node scripts/ui-gallery/capture.mjs --after https://snapshots.openisd.app/snap/20260101T0102Z/ --before none$' "$GH_STATE/calls.log" && ok "the gallery shows the snapshot from snapshots.openisd.app" || fail "gallery call: $(grep capture "$GH_STATE/calls.log")"
 out=$(bash scripts/release.sh --public 7.0.952 20260101T0102Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'already exists' <<< "$out" && ok "promoting twice is refused" || fail "twice: $r $out"
@@ -263,6 +264,11 @@ manifest="build/release-preflight/20260106T0000Z-7.0.1103.json"
 [ -s "$manifest" ] && ok "prepare saves a release-readiness record" || fail "no readiness record: $manifest"
 ! remote_has v20260106T0000Z && [ -z "$(release_json v20260106T0000Z)" ] && ok "preparation publishes nothing" || fail "prepare published a release"
 jq '.checks.uiGallery = "failed"' "$manifest" > "$S/invalid-manifest.json"
+jq -e '.checks.upgradeFromProduction == "passed"' "$manifest" > /dev/null && ok "readiness record carries the upgrade journey check" || fail "readiness record lacks upgradeFromProduction: $(cat "$manifest")"
+jq 'del(.checks.upgradeFromProduction)' "$manifest" > "$S/no-upgrade-manifest.json"
+out=$(bash scripts/release.sh --approve-prepared "$S/no-upgrade-manifest.json" 2>&1); r=$?
+[ $r = 1 ] && grep -q 'invalid release-readiness record' <<< "$out" && ! remote_has v20260106T0000Z \
+  && ok "approval rejects a readiness record without the upgrade journey check" || fail "readiness record without upgrade check accepted: $r $out"
 out=$(bash scripts/release.sh --approve-prepared "$S/invalid-manifest.json" 2>&1); r=$?
 [ $r = 1 ] && grep -q 'invalid release-readiness record' <<< "$out" && ! remote_has v20260106T0000Z \
   && ok "approval rejects a readiness record without passing checks" || fail "invalid readiness record: $r $out"
@@ -320,6 +326,7 @@ out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
   && ok "approved version tag points at the prepared snapshot" || fail "approved version tag points elsewhere"
 [ "$(rel_tip)" = "$prepared_release_tip" ] && ok "approval leaves an already-containing release branch unchanged" || fail "release branch changed unexpectedly"
 [ "$(grep -c '^node scripts/hosting/test/hosted-copies.e2e.mjs$' "$GH_STATE/calls.log")" = 1 ] \
+  && [ "$(grep -c '^node scripts/hosting/test/offline-catalogue.e2e.mjs ' "$GH_STATE/calls.log")" = 1 ] \
   && [ "$(grep -c '^node scripts/ui-gallery/capture.mjs ' "$GH_STATE/calls.log")" = 1 ] \
   && [ "$(wc -l < "$GH_STATE/calls.log")" -gt "$prepared_calls" ] \
   && ok "approval skips the completed browser checks and dispatches deployment" \

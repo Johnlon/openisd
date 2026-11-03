@@ -1,0 +1,13 @@
+id: T649
+release_note: internal
+repo: openisd
+owner: fable
+status: in_progress
+goal: Upgrade journey as a release gate: a phone profile running the live production worker is updated to the release build, stays usable, and picks a radiator offline with every box filled
+done_test: bash scripts/test.sh scripts/land/test/release.test.sh
+files:
+  - tasks/T649.yml
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - scripts/hosting/test/offline-catalogue.e2e.mjs
+note: Gate run 3 Nov 2026 after rebase onto the one-file catalogue: offline-catalogue.e2e.mjs --previous https://openisd.app (previous v20261031T1739Z) all passed in 20 s; upgrade 4.7 s, 1.90 MiB.
