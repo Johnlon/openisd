@@ -1,0 +1,15 @@
+id: T653
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+ruling: QO392
+goal: land.sh refuses a landing that changes a driver model file (openisdSchema.ts, openIsdDriverSpec.ts, driverSpecFieldName.ts) unless the task file names a board item carrying John's ruling (ruling: QOnnn).
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/model-ruling.test.sh
+files:
+  - tasks/T653.yml
+  - scripts/land/check-model-ruling.sh
+  - scripts/land/test/model-ruling.test.sh
+  - scripts/land.sh
+  - docs/DEV_PROCESS.md
+  - CLAUDE.md

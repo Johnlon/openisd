@@ -24,6 +24,7 @@
 #   5. lint (the changed files as arguments), typecheck, unit (the changed files as arguments; every
 #      unit test the change reaches, within UNIT_DEADLINE_S), architecture (every architecture unit
 #      test, whatever changed), done_test (never a browser spec),
+#      model-ruling (driver model files change only with `ruling: QO<n>` in the task file),
 #      attribution (each new commit's message on stdin), each within GATE_DEADLINE_S
 #   5c. candidate: the rebased commit is pushed to land/<task>, a pull request is opened from it to main (when
 #      land.conf sets PULL_REQUESTS; closed, saying why, if the landing is refused), and CANDIDATE_CMD waits
@@ -341,6 +342,10 @@ fi
 # Visual baselines: a task that changes UI sources has re-taken the baselines on exactly those sources.
 if [ -f scripts/visual/check-sources.sh ]; then
   run_gate visual-sources /dev/null "bash scripts/visual/check-sources.sh" origin/main HEAD
+fi
+# Driver model files change only with John's ruling named in the task file (`ruling: QO<n>`, QO392).
+if [ -f scripts/land/check-model-ruling.sh ]; then
+  run_gate model-ruling /dev/null "bash scripts/land/check-model-ruling.sh" "$TASK" origin/main HEAD
 fi
 for sha in $(git rev-list origin/main..HEAD); do
   git log -1 --format=%B "$sha" > "$WORK/message"
