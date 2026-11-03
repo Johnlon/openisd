@@ -6,4 +6,5 @@ status: open
 goal: Chart help links for every chart except SPL/Max SPL: replace theory references (Wikipedia, JAES papers, Linkwitz) with better, practical, less theoretical pages like Eminence's 'Understanding SPL' (John, 3 Nov 2026); check each link opens and reads well for a beginner
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
+  - docs/research/CHART_HELP_LINK_CANDIDATES.md
   - tasks/T657.yml
