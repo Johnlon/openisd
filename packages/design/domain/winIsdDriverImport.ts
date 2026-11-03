@@ -195,7 +195,6 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     readSpecEntryInto(specEntries, wdr, 'Mms_kg', 'Mms', warnings);
     readSpecEntryInto(specEntries, wdr, 'Sd_m2', 'Sd', warnings);
     readSpecEntryInto(specEntries, wdr, 'Vas_m3', 'Vas', warnings);
-    readSpecEntryInto(specEntries, wdr, 'Dia_m', 'Dia', warnings);
     readSpecEntryInto(specEntries, wdr, 'Vd_m3', 'Vd', warnings);
     readSpecEntryInto(specEntries, wdr, 'no', 'no', warnings);
     readSpecEntryInto(specEntries, wdr, 'Dd_m', 'Dd', warnings);

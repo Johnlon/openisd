@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 24e7ff7d1ba5ad002400b58698e310178424e9f2
 goal: Driver preview shows no (reported) Re/BL rows
 done_test: bash scripts/test.sh packages/ui/test/logic/driverDisplay.test.ts
 files:

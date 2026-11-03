@@ -135,7 +135,6 @@ const EXEMPT_DRIVER_FIELDS: ReadonlyMap<NumericDriverSpecFieldName, string> = ne
   ['SPL_dB', 'datasheet sensitivity; the charts compute SPL from the circuit'],
   ['Dd_m', 'effective diameter; read only to size starting vent geometry'],
   ['EBP_hz', 'derived datasheet figure Fs/Qes'],
-  ['Dia_m', 'frame diameter, a physical dimension'],
   ['Vd_m3', 'displacement volume, derived from Sd and Xmax'],
   ['no', 'reference efficiency, derived datasheet figure'],
   ['SPLmax_dB', 'datasheet maximum SPL'],

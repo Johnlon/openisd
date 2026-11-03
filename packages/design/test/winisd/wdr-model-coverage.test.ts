@@ -30,7 +30,7 @@ function recordWithEveryKeyEntered(): { record: object } {
         Re_ohm: spec(105), Le_H: spec(106), fLe_hz: spec(107), KLe_H_sqrtHz: spec(108),
         BL_Tm: spec(109), Xmax_m: spec(110), Cms_m_per_N: spec(111), Qms: spec(112), Qes: spec(113),
         Rms_kg_per_s: spec(114), Mms_kg: spec(115), Sd_m2: spec(116), Vas_m3: spec(117),
-        Dia_m: spec(118), Vd_m3: spec(119), no: spec(120), Dd_m: spec(121), EBP_hz: spec(122),
+        Vd_m3: spec(119), no: spec(120), Dd_m: spec(121), EBP_hz: spec(122),
         Hc_m: spec(123), Hg_m: spec(124), SPLmax_dB: spec(125), SPLmaxLF_dB: spec(126),
         USPL_dB: spec(127), alfaVC_per_K: spec(128), Rt_K_per_W: spec(129), Ct_J_per_K: spec(130),
         gamma_m_per_s2_A: spec(131), Rme_kg_per_s: spec(132), Mpow_N_per_sqrtW: spec(133),

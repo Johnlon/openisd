@@ -89,7 +89,6 @@ export interface DriverSpecsSection {
     readonly numVC?: SpecEntryJson;
     readonly VCCon?: SpecEntryJson;
     // Ordinarily derived, but WinISD lets a human TYPE any of them, and an entered value is a fact.
-    readonly Dia_m?: SpecEntryJson;
     readonly Vd_m3?: SpecEntryJson;
     readonly no?: SpecEntryJson;
     readonly SPLmax_dB?: SpecEntryJson;
@@ -143,7 +142,6 @@ export interface PassiveRadiatorSpecsSection {
     readonly Vd_m3?: SpecEntryJson;
     readonly Xmax_m?: SpecEntryJson;
     readonly Xlim_m?: SpecEntryJson;
-    readonly Dia_m?: SpecEntryJson;
     readonly Dd_m?: SpecEntryJson;
     readonly DVol_m3?: SpecEntryJson;
     // Mounting dimensions — a radiator sits on a baffle exactly as a driver does (John 2026-08-27).
@@ -447,7 +445,7 @@ const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strict
     Fs_hz: e, Re_ohm: e, Le_H: e, fLe_hz: e, KLe_H_sqrtHz: e, Znom_ohm: e,
     Qts: e, Qes: e, Qms: e, Vas_m3: e, Sd_m2: e, BL_Tm: e,
     Mms_kg: e, Cms_m_per_N: e, Rms_kg_per_s: e, Xmax_m: e, Xlim_m: e, SPL_dB: e,
-    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: e, Dia_m: e,
+    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: e,
     Vd_m3: e, no: e, SPLmax_dB: e, SPLmaxLF_dB: e, USPL_dB: e, alfaVC_per_K: e,
     Rt_K_per_W: e, Ct_J_per_K: e, gamma_m_per_s2_A: e, Rme_kg_per_s: e, Mpow_N_per_sqrtW: e, Mcost_kg_per_s: e,
     Gloss: e, c_m_per_s: e, roo_kg_per_m3: e, Vcd_m: e, Hg_m: e, Hc_m: e,
@@ -460,7 +458,7 @@ const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strict
  *  thermal parameters describe nothing on one — a DIFFERENT schema, not a narrowed driver's. */
 const passiveRadiatorSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
     Fs_hz: e, Qms: e, Cms_m_per_N: e, Mms_kg: e, Rms_kg_per_s: e, Sd_m2: e,
-    Vas_m3: e, Vd_m3: e, Xmax_m: e, Xlim_m: e, Dia_m: e, Dd_m: e,
+    Vas_m3: e, Vd_m3: e, Xmax_m: e, Xlim_m: e, Dd_m: e,
     DVol_m3: e, Thick_m: e, Depth_m: e, Basket_m: e, Outer_m: e, OuterX_m: e,
     OuterY_m: e, weight_kg: e,
 }).partial();

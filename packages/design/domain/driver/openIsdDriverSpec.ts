@@ -59,7 +59,6 @@ const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze(
     Dd_m: NumberField.DD_M.floor,
     EBP_hz: NumberField.EBP_HZ.floor,
     numVC: NumberField.NUMVC.floor,
-    Dia_m: 'positive',
     Vd_m3: NumberField.VD_M3.floor,
     no: NumberField.NO.floor,
     SPLmax_dB: NumberField.SPLMAX_DB.floor,
@@ -171,7 +170,6 @@ export class OpenIsdDriverSpec {
      *  stores `calcVCCon()`'s default as a 'C' entry. */
     readonly VCCon: Readable<VoiceCoilWiring | null> & Entered & Calculated & Writable<VoiceCoilWiring> & Clearable & Calculatable<VoiceCoilWiring> & Unsolvable;
     // Ordinarily derived, but WinISD lets a human type any of them, and an entered value is a fact.
-    readonly Dia_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Vd_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly no: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly SPLmax_dB: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -345,7 +343,6 @@ export class OpenIsdDriverSpec {
         this.Pe_W = f('Pe_W');
         this.Dd_m = f('Dd_m');
         this.EBP_hz = f('EBP_hz');
-        this.Dia_m = f('Dia_m');
         this.Vd_m3 = f('Vd_m3');
         this.no = f('no');
         this.SPLmax_dB = f('SPLmax_dB');

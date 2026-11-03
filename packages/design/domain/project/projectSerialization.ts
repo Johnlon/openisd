@@ -1,5 +1,6 @@
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
 import { withMovedChamberQicl } from './movedChamberQicl.js';
+import { withoutRetiredSpecKeys } from '../retiredSpecKeys.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { parseRepairing, type Repaired } from '../schemaRepair.js';
 import { slimmedProjectSession } from './slimDriver.js';
@@ -80,7 +81,7 @@ export function parseOwprSession(text: string, newId: () => string): { session: 
     } catch {
         return {errors: ['not valid JSON']};
     }
-    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(withProjectId(parsed, newId)));
+    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(withoutRetiredSpecKeys(withProjectId(parsed, newId))));
     if (!result.success) {
         return {errors: result.error.issues.map(issue => issue.path.length === 0
             ? issue.message
@@ -100,7 +101,7 @@ export function parseOwprSessionRepairing(text: string, newId: () => string): Re
     } catch {
         return ['not valid JSON'];
     }
-    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(withProjectId(parsed, newId)));
+    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(withoutRetiredSpecKeys(withProjectId(parsed, newId))));
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
     const paired = singleEnteredVentPairs(retired.session);

@@ -13,7 +13,7 @@ import {driverSpecFloor} from '../../domain/driver/openIsdDriverSpec.js';
 /** The spec fields the registry has no `NumberField` for — nobody has stated a band for them,
  *  so there is nothing to hang the floor on and the domain states it beside the registry. */
 const EXPECTED_WITHOUT_FIELD = [
-  'VCCon', 'Dia_m', 'freq_low_hz', 'freq_high_hz', 'weight_kg', 'OuterX_m', 'OuterY_m',
+  'VCCon', 'freq_low_hz', 'freq_high_hz', 'weight_kg', 'OuterX_m', 'OuterY_m',
 ];
 
 describe('every driver spec field has a floor, stated once', () => {

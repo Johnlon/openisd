@@ -23,7 +23,6 @@ export class OpenIsdPassiveRadiatorSpec {
     readonly Vd_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Xmax_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Xlim_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-    readonly Dia_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Dd_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly DVol_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Thick_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -48,7 +47,6 @@ export class OpenIsdPassiveRadiatorSpec {
         this.Vd_m3 = prSpec(section, 'Vd_m3');
         this.Xmax_m = prSpec(section, 'Xmax_m');
         this.Xlim_m = prSpec(section, 'Xlim_m');
-        this.Dia_m = prSpec(section, 'Dia_m');
         this.Dd_m = prSpec(section, 'Dd_m');
         this.DVol_m3 = prSpec(section, 'DVol_m3');
         this.Thick_m = prSpec(section, 'Thick_m');

@@ -48,7 +48,7 @@ describe('every spec field supports get/set/get/clear/get — clear() actually c
     const NUMERIC_FIELD_NAMES = [
         'Fs_hz', 'Re_ohm', 'Le_H', 'fLe_hz', 'KLe_H_sqrtHz', 'Znom_ohm', 'Qts', 'Qes', 'Qms',
         'Vas_m3', 'Sd_m2', 'BL_Tm', 'Mms_kg', 'Cms_m_per_N', 'Rms_kg_per_s', 'Xmax_m', 'Xlim_m',
-        'SPL_dB', 'Pe_W', 'Dd_m', 'EBP_hz', 'Dia_m', 'Vd_m3', 'no', 'SPLmax_dB',
+        'SPL_dB', 'Pe_W', 'Dd_m', 'EBP_hz', 'Vd_m3', 'no', 'SPLmax_dB',
         'SPLmaxLF_dB', 'USPL_dB', 'alfaVC_per_K', 'Rt_K_per_W', 'Ct_J_per_K', 'gamma_m_per_s2_A',
         'Rme_kg_per_s', 'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'Gloss',
         'Vcd_m', 'Hg_m', 'Hc_m', 'Thick_m', 'Depth_m', 'MagDepth_m', 'Magnet_m', 'Basket_m',

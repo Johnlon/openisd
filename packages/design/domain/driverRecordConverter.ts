@@ -576,7 +576,8 @@ export function openIsdDriverToWinIsdDriver(
     wdrRow(errors, spec.Mms_kg, true, "Mms"),
     wdrRow(errors, spec.Sd_m2, true, "Sd"),
     wdrRow(errors, spec.Vas_m3, true, "Vas"),
-    wdrRow(errors, spec.Dia_m, true, "Dia"),
+    // Dia is Dd's old name; WinISD hides its box and writes 0, unmarked, in every file (QO398).
+    ["Dia", { value: "0", state: "not-available" }],
     wdrRow(errors, spec.Vd_m3, true, "Vd"),
     wdrRow(errors, spec.no, true, "no"),
     wdrRow(errors, spec.Dd_m, true, "Dd"),
