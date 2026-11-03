@@ -5,6 +5,9 @@
 // usable while the new worker installs and the catalogue precache completes. Prints install time
 // and bytes on the wire (gzipped, as the host serves them).
 // Usage: node scripts/hosting/test/offline-catalogue.e2e.mjs        (~1 min, most of it two builds)
+//        node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app
+//          The release gate (T649): the "previous" build is the LIVE site, mirrored from its worker's
+//          precache list, so the upgrade a real installed app will make is the one proven.
 import {execFileSync} from 'node:child_process';
 import http from 'node:http';
 import zlib from 'node:zlib';
@@ -35,11 +38,41 @@ const newSite = build('new', [], 'v-e2e-new');
 // origin/main's config precaches too, and its entry count equals this build's, so the wait for the
 // new precache would end at once. Run from a scratch copy beside the real one so its
 // relative paths resolve; removed straight after.
-console.log(`[${seconds()}] building the previous build (config before the catalogue precache)`);
-const prevConfig = path.join(root, 'vite.config.prev-e2e.js');
-fs.writeFileSync(prevConfig, execFileSync('git', ['show', '361916d1c^:vite.config.js'], {cwd: root, encoding: 'utf8'}));
+const previousArg = process.argv.indexOf('--previous');
+const previousOrigin = previousArg === -1 ? null : process.argv[previousArg + 1];
+if (previousArg !== -1 && !/^https:\/\/[^/]+$/.test(previousOrigin ?? '')) {
+  console.error('usage: --previous https://<host>  (an origin, no path)');
+  process.exit(2);
+}
+// Mirror a live site into a folder: its worker, the workbox module it imports, and every file the
+// worker's precache lists, so the local server can serve that site as the previous build on one origin.
+async function mirror(outName, site) {
+  const out = path.join(scratch, outName);
+  const get = async rel => {
+    const res = await fetch(`${site}/${rel}`, {cache: 'no-store'});
+    if (!res.ok) throw new Error(`${site}/${rel}: ${res.status}`);
+    const f = path.join(out, rel);
+    fs.mkdirSync(path.dirname(f), {recursive: true});
+    fs.writeFileSync(f, Buffer.from(await res.arrayBuffer()));
+    return fs.readFileSync(f, 'utf8');
+  };
+  const sw = await get('sw.js');
+  const imported = [...sw.matchAll(/define\(\["\.\/(workbox-[^"]+)"\]/g)].map(m => `${m[1]}.js`);
+  const listed = [...new Set([...sw.matchAll(/"?url"?:\s*"([^"]+)"/g)].map(m => m[1]))];
+  for (const rel of [...imported, ...listed, 'build-info.json']) await get(rel);
+  return out;
+}
 let oldSite;
-try { oldSite = build('old', ['--config', prevConfig], 'v-e2e-old'); } finally { fs.rmSync(prevConfig, {force: true}); }
+if (previousOrigin === null) {
+  console.log(`[${seconds()}] building the previous build (config before the catalogue precache)`);
+  const prevConfig = path.join(root, 'vite.config.prev-e2e.js');
+  fs.writeFileSync(prevConfig, execFileSync('git', ['show', '361916d1c^:vite.config.js'], {cwd: root, encoding: 'utf8'}));
+  try { oldSite = build('old', ['--config', prevConfig], 'v-e2e-old'); } finally { fs.rmSync(prevConfig, {force: true}); }
+} else {
+  console.log(`[${seconds()}] mirroring the previous build from ${previousOrigin}`);
+  oldSite = await mirror('old', previousOrigin);
+  console.log(`[${seconds()}] previous build is ${JSON.parse(fs.readFileSync(path.join(oldSite, 'build-info.json'), 'utf8')).version}`);
+}
 
 const types = {'.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.json': 'application/json', '.webmanifest': 'application/manifest+json'};
 let served = newSite;
@@ -178,7 +211,8 @@ console.log(`[${seconds()}] catalogue.json: ${fs.statSync(path.join(newSite, 'ca
     try { if (await started_(page) && await page.evaluate(() => navigator.serviceWorker.controller !== null)) break; } catch { /* mid-reload */ }
     await page.waitForTimeout(500);
   }
-  check(await catalogueCached(page) === 0, 'B: the previous worker holds no catalogue precache');
+  const oldCatalogue = await catalogueCached(page);
+check(oldCatalogue === 0 || oldCatalogue >= oldCount, `B: the previous worker's precache is settled (${oldCatalogue} entries)`);
   served = newSite;
   wireBytes = 0;
   const t0 = Date.now();

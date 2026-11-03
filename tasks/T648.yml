@@ -3,6 +3,7 @@ release_note: "Every chart help popup on the phone now says how to read the char
 repo: openisd
 owner: fable
 status: done
+landed: f28eed6aff2e57d117faa28ee743aabf5eb6b1cc
 goal: Phone chart help texts rewritten for a beginner (QO334): every popup says what the chart shows, how to read it for a design, concrete thresholds where they exist, and one tuning action
 done_test: bash scripts/test.sh packages/design/test/fields/chartHelp.test.ts
 files:
