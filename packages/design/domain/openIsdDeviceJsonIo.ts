@@ -7,6 +7,7 @@
  */
 import {newUuid} from './newUuid.js';
 import {openISDDeviceJsonSchema} from './openisdSchema.js';
+import {withoutRetiredSpecKeys} from './retiredSpecKeys.js';
 import type {OpenISDDeviceJson as OpenISDDeviceJsonRecord} from './openisdSchema.js';
 
 // A local type alias, not a re-export statement: the re-export form (`export type {X} from 'Y'`)
@@ -87,7 +88,7 @@ export const OpenISDDeviceJson = Object.freeze({
     },
 
     fromConformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
-        const result = openISDDeviceJsonSchema.safeParse(record);
+        const result = openISDDeviceJsonSchema.safeParse(withoutRetiredSpecKeys(record));
         if (result.success) return {json: result.data};
         return {
             problems: result.error.issues.map(issue => issue.path.length === 0

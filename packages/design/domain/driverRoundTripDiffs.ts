@@ -108,7 +108,6 @@ function oidComparableCells(
     ["Mms_kg", spec.Mms_kg],
     ["Sd_m2", spec.Sd_m2],
     ["Vas_m3", spec.Vas_m3],
-    ["Dia_m", spec.Dia_m],
     ["Vd_m3", spec.Vd_m3],
     ["no", spec.no],
     ["Dd_m", spec.Dd_m],

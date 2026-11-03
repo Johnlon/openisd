@@ -58,7 +58,6 @@ program.
 | `Rms_kg_per_s` | `Rms` | kg/s | Mechanical damping from friction, including the resistive part of the radiation load. Larger `Qms` gives smaller `Rms`. WH |
 | `Sd_m2` | `Sd` | m² | Effective surface area of the diaphragm. WH |
 | `Dd_m` | `Dd` | m | Diameter of the diaphragm. WH |
-| `Dia_m` | `Dia` | m | Nominal driver diameter. CF |
 | `Vd_m3` | `Vd` | m³ | Volume displacement — how much air the driver moves over its linear range. `Vd = Xmax·Sd`. WH · CF |
 | `EBP_hz` | `EBP` | Hz | Efficiency–bandwidth product, `Fs/Qes`. A rough sealed-versus-vented indicator. WH · CF |
 
@@ -171,7 +170,7 @@ carries none of `Re`, `Le`, `BL`, `Qes`, `Qts`, `Znom`, `Pe`, `SPL`, the thermal
 anything about a magnet.
 
 It states: `Fs_hz`, `Qms`, `Cms_m_per_N`, `Mms_kg`, `Rms_kg_per_s`, `Sd_m2`, `Vas_m3`, `Vd_m3`,
-`Xmax_m`, `Xlim_m`, `Dia_m`, `Dd_m`, `DVol_m3`, plus the mounting dimensions `Thick_m`,
+`Xmax_m`, `Xlim_m`, `Dd_m`, `DVol_m3`, plus the mounting dimensions `Thick_m`,
 `Depth_m`, `Basket_m`, `Outer_m`, `OuterX_m`, `OuterY_m`, `weight_kg` — and `brand` / `model`,
 because a radiator is a product you buy. Each means exactly what the driver table above says.
 

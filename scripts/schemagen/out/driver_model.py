@@ -269,7 +269,6 @@ class DriverSpecsWoofer(Strict):
     EBP_hz: SpecEntry = None
     numVC: SpecEntry = None
     VCCon: SpecEntry = None
-    Dia_m: SpecEntry = None
     Vd_m3: SpecEntry = None
     no: SpecEntry = None
     SPLmax_dB: SpecEntry = None
@@ -317,7 +316,6 @@ class RadiatorSpecsPassiveRadiator(Strict):
     Vd_m3: SpecEntry = None
     Xmax_m: SpecEntry = None
     Xlim_m: SpecEntry = None
-    Dia_m: SpecEntry = None
     Dd_m: SpecEntry = None
     DVol_m3: SpecEntry = None
     Thick_m: SpecEntry = None
