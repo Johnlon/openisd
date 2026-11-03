@@ -19,9 +19,9 @@ describe('CHART_HELP: every chart has help with four parts', () => {
         expect(words).toBeGreaterThanOrEqual(50);
         expect(words).toBeLessThanOrEqual(140);
       });
-      it('has one to three https references', () => {
+      it('has one or two https references', () => {
         expect(help.links.length).toBeGreaterThanOrEqual(1);
-        expect(help.links.length).toBeLessThanOrEqual(3);
+        expect(help.links.length).toBeLessThanOrEqual(2);
         for (const link of help.links) { expect(link.url).toMatch(/^https:\/\//); expect(link.title.length).toBeGreaterThan(5); }
       });
       it('avoids formulaic openers ("essential", "critical")', () => {
@@ -42,6 +42,33 @@ describe('CHART_HELP: every chart has help with four parts', () => {
       it(id, () => {
         expect(CHART_HELP[id].links.map(link => link.url)).toEqual(['https://eminence.com/blogs/blog/understanding-spl']);
       });
+    }
+  });
+
+  // John, 3 Nov 2026: "want simple clear info". Each page below was read in full and kept only when it
+  // is plain, about that chart, and agrees with the help text. "we should be able to find links for everything".
+  describe('every chart links only to the simple pages chosen for it', () => {
+    const AUDIOHOLICS = 'https://www.audioholics.com/loudspeaker-articles/sealed-vs-ported-subwoofers';
+    const IMPEDANCE = 'https://audiojudgement.com/speaker-impedance-curve-explained/';
+    const SOS_FILTERS = 'https://www.soundonsound.com/sound-advice/q-what-are-filters-and-what-do-they-do';
+    const SOS_FILTER_EQ = 'https://www.soundonsound.com/sound-advice/q-whats-difference-between-filtering-and-eq';
+    const SPL = 'https://eminence.com/blogs/blog/understanding-spl';
+    const SBL_PR = 'https://speakerboxlite.com/articles/passive-radiator-enclosures-deep-dive-into-bass-efficiency-smart-design';
+    const SBL_GRAPHS = 'https://speakerboxlite.com/articles/overview-simulation-graphs-speaker-box-lite-analyzing-speaker-performance';
+    const EXPECTED: Record<keyof typeof CHART_HELP, readonly string[]> = {
+      SPL: [SPL], MaxSPL: [SPL],
+      TFMag: [AUDIOHOLICS], GD: [AUDIOHOLICS], RearPortGain: [AUDIOHOLICS],
+      MaxPwr: ['https://international.mtx.com/library-speakers'],
+      Excursion: ['https://www.subwoofer-builder.com/xmax.htm'],
+      Zmag: [IMPEDANCE], Zph: [IMPEDANCE],
+      FltMag: [SOS_FILTERS], FltPhase: [SOS_FILTER_EQ], FltGD: [SOS_FILTER_EQ],
+      PRTFMag: [SBL_PR], PRTFPhase: [SBL_PR], PRExcursion: [SBL_PR],
+      Phase: [SBL_GRAPHS], RearPort: [SBL_GRAPHS], FrontPort: [SBL_GRAPHS], IntraPort: [SBL_GRAPHS],
+      FrontPortGain: ['https://speakerboxlite.com/articles/world-speaker-enclosures-sealed-transmission-line'],
+      VA: ['https://ch.yamaha.com/de/business/audio/resources/self-training/micro-tutorial/20170921'],
+    };
+    for (const id of CHART_IDS) {
+      it(id, () => { expect(CHART_HELP[id].links.map(link => link.url)).toEqual(EXPECTED[id]); });
     }
   });
 

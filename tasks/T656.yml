@@ -3,6 +3,7 @@ release_note: "The SPL and Maximum SPL chart help now links to Eminence's plain 
 repo: openisd
 owner: fable
 status: done
+landed: e8bda1f22e25c00e52c07c0cc8533822695841b6
 goal: SPL and Maximum SPL chart help popups link only to the Eminence 'Understanding SPL' page (John, 3 Nov)
 done_test: bash scripts/test.sh packages/design/test/fields/chartHelp.test.ts
 files:
