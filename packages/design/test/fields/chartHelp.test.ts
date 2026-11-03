@@ -24,6 +24,64 @@ describe('CHART_HELP: every chart has help with four parts', () => {
         expect(help.links.length).toBeLessThanOrEqual(3);
         for (const link of help.links) { expect(link.url).toMatch(/^https:\/\//); expect(link.title.length).toBeGreaterThan(5); }
       });
+      it('avoids formulaic openers ("essential", "critical")', () => {
+        const fullText = [help.intro, ...help.rows.map(row => row.text)].join(' ');
+        expect(fullText).not.toMatch(/\b(essential|critical)\b/i);
+      });
+      it('uses British spelling', () => {
+        const fullText = [help.intro, ...help.rows.map(row => row.text)].join(' ');
+        expect(fullText).not.toMatch(/\bmeters?\b/i);
+        expect(fullText).not.toMatch(/\bcenter(ed|ing)?\b/i);
+        expect(fullText).not.toMatch(/\bnormaliz(ed|ing|ation)\b/i);
+      });
     });
   }
+
+  describe('key design thresholds and landmarks are present', () => {
+    it('SPL mentions 1 m and Signal page power', () => {
+      const text = [CHART_HELP.SPL.intro, ...CHART_HELP.SPL.rows.map(r => r.text)].join(' ');
+      expect(text).toMatch(/1 m/);
+      expect(text).toMatch(/Signal/);
+    });
+    it('TFMag mentions F3, -3 dB, 12 dB and 24 dB per octave', () => {
+      const text = [CHART_HELP.TFMag.intro, ...CHART_HELP.TFMag.rows.map(r => r.text)].join(' ');
+      expect(text).toMatch(/F3/);
+      expect(text).toMatch(/-3 dB/);
+      expect(text).toMatch(/12 dB/);
+      expect(text).toMatch(/24 dB/);
+    });
+    it('GD and FltGD mention 15 to 20 ms at 40 Hz', () => {
+      for (const id of ['GD', 'FltGD'] as const) {
+        const text = [CHART_HELP[id].intro, ...CHART_HELP[id].rows.map(r => r.text)].join(' ');
+        expect(text).toMatch(/15.*20 ms/);
+        expect(text).toMatch(/40 Hz/);
+      }
+    });
+    it('Excursion and PRExcursion mention Xmax and subsonic filter', () => {
+      for (const id of ['Excursion', 'PRExcursion'] as const) {
+        const text = [CHART_HELP[id].intro, ...CHART_HELP[id].rows.map(r => r.text)].join(' ');
+        expect(text).toMatch(/Xmax/);
+        expect(text).toMatch(/subsonic/);
+      }
+    });
+    it('MaxPwr mentions thermal and excursion limits', () => {
+      const text = [CHART_HELP.MaxPwr.intro, ...CHART_HELP.MaxPwr.rows.map(r => r.text)].join(' ');
+      expect(text).toMatch(/thermal/);
+      expect(text).toMatch(/excursion/);
+    });
+    it('Zmag mentions Fc, Fb, and crossover', () => {
+      const text = [CHART_HELP.Zmag.intro, ...CHART_HELP.Zmag.rows.map(r => r.text)].join(' ');
+      expect(text).toMatch(/Fc/);
+      expect(text).toMatch(/Fb/);
+      expect(text).toMatch(/crossover/);
+    });
+    it('air velocity charts mention 17 m/s, 35 m/s, and the limit line', () => {
+      for (const id of ['RearPort', 'FrontPort', 'IntraPort'] as const) {
+        const text = [CHART_HELP[id].intro, ...CHART_HELP[id].rows.map(r => r.text)].join(' ');
+        expect(text).toMatch(/17 m\/s/);
+        expect(text).toMatch(/35 m\/s/);
+        expect(text).toMatch(/limit line/);
+      }
+    });
+  });
 });
