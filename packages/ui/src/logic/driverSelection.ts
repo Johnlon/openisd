@@ -33,10 +33,9 @@ import type {DriverFileFormat} from '../fileFormat.js';
 // selection means — they call this.
 
 /** Outcome of a selection. `error` is a message the picker shows in its own status line. */
-export interface SelectionResult {
-  ok: boolean;
-  error?: string;
-}
+export type SelectionResult =
+  | { ok: true }
+  | { ok: false; error: string };
 
 // ---- reading a driver file off the user's own disk -------------------------------------
 // Driver file IO that is not bound to a project — Load File… lands a driver in My Drivers,

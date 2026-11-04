@@ -13,6 +13,9 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {parse as parseYaml} from 'yaml';
+import {OpenISDDriver} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
+import {driverHasDqIssues} from '../../src/logic/driverDisplay.js';
 import {isBundlable, project} from '../../../../scripts/bundleProjection.mjs';
 
 /** `yaml`'s `parse()` returns `any`; this fixture parser reads the boundary once and hands back
@@ -98,7 +101,12 @@ specs:
       true,
       'no driver is excluded for missing spec params (QO81) — Fs is a spec param like any other',
     );
-    // The badge half of the QO79 ruling is asserted in test/logic/bundledIndexRows.test.ts (driverHasDqIssues).
+    // The badge half of the QO79 ruling: a driver stating no spec parameters shows the warning.
+    assert.equal(
+      driverHasDqIssues(OpenISDDriver.empty(createEngine())),
+      true,
+      'a driver missing Fs, Qts and Vas bundles AND carries the health warning (QO79)',
+    );
   });
 
   it('excludes a structurally unreadable record (no `specs` container at all)', () => {
