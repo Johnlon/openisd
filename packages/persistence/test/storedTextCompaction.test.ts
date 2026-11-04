@@ -4,6 +4,9 @@
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {createStoredTextCompaction} from '../src/repos/storedTextCompaction.js';
 import {OPENISD_BACKUP_PREFIX, OPENISD_MY_DRIVERS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY} from '../src/repos/storageKeys.js';
 import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
@@ -52,6 +55,15 @@ describe('run', () => {
 
     assert.deepEqual(outcome, {kind: 'nothingToDo'});
     assert.equal(backupKeys(storage).length, 0);
+  });
+
+  it('writes schemaVersion into a stored project that has none, and then has nothing to do (QO395)', () => {
+    const saved = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'design', 'test', 'fixtures', 'air-migration', 'saved-by-t375-sample_project_vented.owpr'), 'utf8');
+    const storage = createMemoryStorage({[OPENISD_STATE_KEY]: JSON.stringify({id: 'p1', ...JSON.parse(saved)})});
+    const compaction = createStoredTextCompaction(storage, backupOn(storage), () => undefined);
+    assert.equal(compaction.run().kind, 'rewritten');
+    assert.match(storage.get(OPENISD_STATE_KEY) ?? '', /"schemaVersion":3,/);
+    assert.deepEqual(compaction.run(), {kind: 'nothingToDo'});
   });
 
   it('does nothing on an empty store', () => {

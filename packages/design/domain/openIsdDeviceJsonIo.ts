@@ -7,7 +7,7 @@
  */
 import {newUuid} from './newUuid.js';
 import {openISDDeviceJsonSchema} from './openisdSchema.js';
-import {withoutRetiredSpecKeys} from './retiredSpecKeys.js';
+import {CURRENT_SCHEMA_VERSION, upgradeToCurrent} from './schemaVersion.js';
 import type {OpenISDDeviceJson as OpenISDDeviceJsonRecord} from './openisdSchema.js';
 
 // A local type alias, not a re-export statement: the re-export form (`export type {X} from 'Y'`)
@@ -84,11 +84,13 @@ export const OpenISDDeviceJson = Object.freeze({
     toOpenisdDriverJson(json: OpenISDDeviceJson): string {
         const { uuid, ...withoutUuid } = json;
         void uuid;
-        return JSON.stringify(sortKeysDeep(withoutUuid), null, 2);
+        return JSON.stringify(sortKeysDeep({...withoutUuid, schemaVersion: CURRENT_SCHEMA_VERSION}), null, 2);
     },
 
     fromConformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
-        const result = openISDDeviceJsonSchema.safeParse(withoutRetiredSpecKeys(record));
+        const upgraded = upgradeToCurrent(record);
+        if ('refusal' in upgraded) return {problems: [upgraded.refusal]};
+        const result = openISDDeviceJsonSchema.safeParse(upgraded.value);
         if (result.success) return {json: result.data};
         return {
             problems: result.error.issues.map(issue => issue.path.length === 0

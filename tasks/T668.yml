@@ -1,0 +1,26 @@
+id: T668
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+ruling: QO395
+goal: Saved projects, saved drivers and driver records carry schemaVersion (slim = 3, none = 2); load upgrades step by step before the strict parse; a newer number refuses with an update-the-app message (ruling: QO395)
+done_test: bash scripts/test.sh packages/design/test/domain/schema-version.test.ts packages/design/test/domain/dia-retired.test.ts packages/persistence/test/storageUpgrade.test.ts packages/persistence/test/storedTextCompaction.test.ts packages/persistence/test/projectRepo.test.ts
+files:
+  - tasks/T668.yml
+  - scripts/schemagen/out/driver_model.py
+  - packages/design/domain/schemaVersion.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/openIsdDeviceJsonIo.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/test/domain/schema-version.test.ts
+  - packages/persistence/src/storageLayout.ts
+  - packages/persistence/src/repos/layoutSteps.ts
+  - packages/persistence/test/storageUpgrade.test.ts
+  - packages/persistence/test/storedTextCompaction.test.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/persistence/test/goldens/**
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - scripts/roundTripGate.mjs

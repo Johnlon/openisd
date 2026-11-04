@@ -59,9 +59,14 @@ for (const c of cases) {
 
     it('migrates one layout at a time, each step reproducing that layout\'s golden dump', () => {
       const reached: number[] = [];
-      const migrated = createLayoutMigrator(APP_RULES).migrate(oldest, born(c), (layout, data) => {
+      const migrator = createLayoutMigrator(APP_RULES);
+      // A step that reads and writes a record uses the domain's writer of today, so a step's output can differ from
+      // the golden dump of its layout only in how today's writer spells the records (a field added since). Both are
+      // compared after the rest of the steps have written them the same way.
+      const settled = (data: Dump, layout: number): Dump => migrator.migrate(withoutLayoutKey(data), layout) ?? {};
+      const migrated = migrator.migrate(oldest, born(c), (layout, data) => {
         reached.push(layout);
-        assert.deepEqual(sorted(withoutLayoutKey(data)), sorted(withoutLayoutKey(dumpAt(c, layout))), `layout ${layout}`);
+        assert.deepEqual(sorted(settled(data, layout)), sorted(settled(dumpAt(c, layout), layout)), `layout ${layout}`);
       });
       assert.ok(migrated !== null);
       assert.deepEqual(reached, Array.from({length: STORAGE_LAYOUT - born(c)}, (_, i) => born(c) + 1 + i));
@@ -143,6 +148,7 @@ describe('case backup-file: an older backup file restores into the current app',
   const file1 = goldenText('backup-file', 'file-layout-1.json');
   const file2 = goldenText('backup-file', 'file-layout-2.json');
   const file3 = goldenText('backup-file', 'file-layout-3.json');
+  const file4 = goldenText('backup-file', 'file-layout-4.json');
   const expected: unknown = JSON.parse(goldenText('backup-file', 'expected.json'));
 
   function restoreInto() {
@@ -151,47 +157,51 @@ describe('case backup-file: an older backup file restores into the current app',
     return {opening, repo};
   }
 
-  for (const [layout, file] of [[1, file1], [2, file2]] as const) {
-    it(`restoring the layout-${layout} file migrates it, and exporting again writes the layout-3 file`, () => {
+  for (const [layout, file] of [[1, file1], [2, file2], [3, file3]] as const) {
+    it(`restoring the layout-${layout} file migrates it, and exporting again writes the layout-4 file`, () => {
       const {opening, repo} = restoreInto();
       assert.equal(repo.importAll(file, {replaceEverything: true}).kind, 'ok');
       assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), expected);
-      assert.equal(repo.exportAll(), file3);
+      assert.equal(repo.exportAll(), file4);
     });
   }
 
-  it('the layout-3 file restores to the same store, and exports as itself', () => {
+  it('the layout-4 file restores to the same store, and exports as itself', () => {
     const {opening, repo} = restoreInto();
-    assert.equal(repo.importAll(file3, {replaceEverything: true}).kind, 'ok');
+    assert.equal(repo.importAll(file4, {replaceEverything: true}).kind, 'ok');
     assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), expected);
-    assert.equal(repo.exportAll(), file3);
+    assert.equal(repo.exportAll(), file4);
   });
 });
 
-describe('exported files: an older file opens, and the current app writes the layout-3 file', () => {
+describe('exported files: an older file opens, and the current app writes the layout-4 file', () => {
   const files = createExportedFiles(APP_RULES);
 
   for (const [name, ext, read] of [
     ['exported-driver-file', 'owdr', aDriverFromFile],
     ['exported-project-file', 'owpr', aProjectFromFile],
   ] as const) {
-    it(`${name}: layouts 1, 2 and 3 read the same, and writing stamps the current layout`, () => {
+    it(`${name}: layouts 1 to 4 read the same, and writing stamps the current layout`, () => {
       const file1 = goldenText(name, `file-layout-1.${ext}`);
       const file2 = goldenText(name, `file-layout-2.${ext}`);
       const file3 = goldenText(name, `file-layout-3.${ext}`);
+      const file4 = goldenText(name, `file-layout-4.${ext}`);
       const expected: unknown = JSON.parse(goldenText(name, 'expected.json'));
 
       const fromOne = files.open(file1);
       const fromTwo = files.open(file2);
       const fromThree = files.open(file3);
-      assert.ok(fromOne.kind === 'ok' && fromTwo.kind === 'ok' && fromThree.kind === 'ok');
+      const fromFour = files.open(file4);
+      assert.ok(fromOne.kind === 'ok' && fromTwo.kind === 'ok' && fromThree.kind === 'ok' && fromFour.kind === 'ok');
       assert.equal(fromOne.text, file1, 'a layout-1 file carries no stamp and no step changes it');
       assert.equal(fromTwo.text, file1, 'the stamp comes off, leaving the fields as they were');
       assert.equal(fromThree.text, file1, 'the stamp comes off, leaving the fields as they were');
       assert.ok(typeof expected === 'object' && expected !== null);
+      assert.equal(files.stamp(fromFour.text), file4, 'fixed point');
+      assert.equal(read(fromFour.text), read(fromOne.text), 'the version-stamped file reads the same');
       assert.deepEqual(Object.values(expected), [read(fromOne.text)]);
-      assert.equal(files.stamp(fromThree.text), file3, 'fixed point');
-      assert.ok(file3.startsWith('{\n  "layout": 3,'));
+      assert.ok(file4.startsWith('{\n  "layout": 4,'));
+      assert.ok(file4.includes('"schemaVersion": 3'), 'the current app writes the schema version');
     });
   }
 });

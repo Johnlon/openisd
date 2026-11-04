@@ -1,6 +1,6 @@
 import { openISDProjectSessionJsonSchema } from '../openisdSchema.js';
 import { withMovedChamberQicl } from './movedChamberQicl.js';
-import { withoutRetiredSpecKeys } from '../retiredSpecKeys.js';
+import { CURRENT_SCHEMA_VERSION, upgradeToCurrent } from '../schemaVersion.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { parseRepairing, type Repaired } from '../schemaRepair.js';
 import { slimmedProjectSession } from './slimDriver.js';
@@ -20,9 +20,14 @@ export function sessionOf(id: string, name: string, saved: OpenISDProjectJson, e
 /** The slimmed session with its keys in the schema's order, so one project is always one text
  *  however its records were built (a converter, an edit, a load). What the schema does not accept
  *  comes back as it was: the repo that owns the text reports it. */
+function canonicalOrNull(slimmed: unknown): unknown {
+    const stamped = isRecord(slimmed) ? {...slimmed, schemaVersion: CURRENT_SCHEMA_VERSION} : slimmed;
+    const result = openISDProjectSessionJsonSchema.safeParse(stamped);
+    return result.success ? result.data : null;
+}
+
 function canonicalSession(slimmed: unknown): unknown {
-    const result = openISDProjectSessionJsonSchema.safeParse(slimmed);
-    return result.success ? result.data : slimmed;
+    return canonicalOrNull(slimmed) ?? slimmed;
 }
 
 function slimmedCanonical(session: unknown): unknown {
@@ -68,7 +73,10 @@ export function compactedStoredText(text: string): string | null {
         return null;
     }
     if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
-    return JSON.stringify(slimmedCanonical(parsed), withoutDerived);
+    const upgraded = upgradeToCurrent(parsed);
+    if ('refusal' in upgraded) return null;
+    const canonical = canonicalOrNull(slimmedProjectSession(upgraded.value)) ?? slimmedProjectSession(parsed);
+    return JSON.stringify(canonical, withoutDerived);
 }
 
 /** `.owpr` text parsed and validated, or everything wrong with it. Stops short of building an
@@ -81,7 +89,9 @@ export function parseOwprSession(text: string, newId: () => string): { session: 
     } catch {
         return {errors: ['not valid JSON']};
     }
-    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(withoutRetiredSpecKeys(withProjectId(parsed, newId))));
+    const upgraded = upgradeToCurrent(withProjectId(parsed, newId));
+    if ('refusal' in upgraded) return {errors: [upgraded.refusal]};
+    const result = openISDProjectSessionJsonSchema.safeParse(withMovedChamberQicl(upgraded.value));
     if (!result.success) {
         return {errors: result.error.issues.map(issue => issue.path.length === 0
             ? issue.message
@@ -101,7 +111,9 @@ export function parseOwprSessionRepairing(text: string, newId: () => string): Re
     } catch {
         return ['not valid JSON'];
     }
-    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(withoutRetiredSpecKeys(withProjectId(parsed, newId))));
+    const upgraded = upgradeToCurrent(withProjectId(parsed, newId));
+    if ('refusal' in upgraded) return [upgraded.refusal];
+    const repaired = parseRepairing(openISDProjectSessionJsonSchema, withMovedChamberQicl(upgraded.value));
     if (Array.isArray(repaired)) return repaired;
     const retired = retireLossMode(repaired.value);
     const paired = singleEnteredVentPairs(retired.session);

@@ -2,7 +2,7 @@
  *  once shipped: a later layout adds a step. Each is proved against its golden dumps by
  *  `storageUpgrade.test.ts`. */
 import type {FileJson, LayoutStep, StoreData} from './layoutMigration.js';
-import {OpenISDProject} from '@openisd/design';
+import {OpenISDDriver, OpenISDPassiveRadiatorStandalone, OpenISDProject} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import {
   OPENISD_MY_DRIVERS_KEY, OPENISD_MY_PASSIVE_RADIATORS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_PROJECTS_KEY, OPENISD_QUARANTINE_SESSION_KEY, OPENISD_STATE_KEY,
@@ -112,10 +112,69 @@ function stepTwoToThree(engine: Engine, newId: () => string): LayoutStep {
   };
 }
 
+/** `text` (a stored project) written again as the current app writes it, under its own id; a text
+ *  that is not a readable project stays exactly as it is. */
+function projectTextResaved(text: string, engine: Engine): string {
+  const project = parsed(text);
+  if (!isRecord(project) || typeof project.id !== 'string') return text;
+  return OpenISDProject.textWithId(text, project.id, engine) ?? text;
+}
+
+/** The bucket text `value` (`{entries: [{text, ...}]}`) with each project text written again. */
+function bucketResaved(value: string | undefined, engine: Engine): string | undefined {
+  if (value === undefined) return undefined;
+  const bucket = parsed(value);
+  if (!isRecord(bucket) || !isUnknownArray(bucket.entries)) return value;
+  const entries = bucket.entries.map((entry): unknown =>
+    isRecord(entry) && typeof entry.text === 'string' ? {...entry, text: projectTextResaved(entry.text, engine)} : entry);
+  return JSON.stringify({...bucket, entries});
+}
+
+/** A library bucket text (`{entries: [{uuid, record}]}`) with each record read and written again by `resave`;
+ *  a record it cannot read stays as it is. */
+function libraryResaved(value: string | undefined, resave: (record: unknown) => unknown): string | undefined {
+  if (value === undefined) return undefined;
+  const bucket = parsed(value);
+  if (!isRecord(bucket) || !isUnknownArray(bucket.entries)) return value;
+  const entries = bucket.entries.map((entry): unknown =>
+    isRecord(entry) && 'record' in entry ? {...entry, record: resave(entry.record)} : entry);
+  return JSON.stringify({...bucket, entries});
+}
+
+/** Layout 3 -> 4: every stored project, driver and passive radiator carries `schemaVersion`
+ *  (QO395). Each is read through the upgrade and written again the way every later write does it.
+ *  Exported `.owpr` and `.owdr` files are not touched: a file with no version reads as version 2. */
+function stepThreeToFour(engine: Engine): LayoutStep {
+  return {
+    from: 3,
+    migrate(data: StoreData): StoreData {
+      const next: Record<string, string> = {...data};
+      for (const key of [OPENISD_PROJECTS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY]) {
+        const resaved = bucketResaved(data[key], engine);
+        if (resaved !== undefined) next[key] = resaved;
+      }
+      const autosave = data[OPENISD_STATE_KEY];
+      if (autosave !== undefined) next[OPENISD_STATE_KEY] = projectTextResaved(autosave, engine);
+      const drivers = libraryResaved(data[OPENISD_MY_DRIVERS_KEY], record => {
+        const driver = OpenISDDriver.fromConformingRecord(record, engine);
+        return Array.isArray(driver) ? record : driver.cloneDriver();
+      });
+      if (drivers !== undefined) next[OPENISD_MY_DRIVERS_KEY] = drivers;
+      const radiators = libraryResaved(data[OPENISD_MY_PASSIVE_RADIATORS_KEY], record => {
+        const radiator = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
+        return Array.isArray(radiator) ? record : radiator.clonePassiveRadiator();
+      });
+      if (radiators !== undefined) next[OPENISD_MY_PASSIVE_RADIATORS_KEY] = radiators;
+      return next;
+    },
+    migrateFile: (file: FileJson): FileJson => file,
+  };
+}
+
 /** The steps that bring an older store up to the current layout. Step 2 to 3 loads and writes each
  *  stored project, so it takes an engine from the caller. The app gives it one with
  *  default settings: the store (and so the app's settings) is not readable until it is migrated.
  *  It also takes the source of new project ids. */
 export function createLayoutSteps(engine: Engine, newId: () => string): readonly LayoutStep[] {
-  return [STEP_1_TO_2, stepTwoToThree(engine, newId)];
+  return [STEP_1_TO_2, stepTwoToThree(engine, newId), stepThreeToFour(engine)];
 }
