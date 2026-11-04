@@ -11,6 +11,9 @@
 #     origin/main, or its content is (merging it changes nothing but its own task file, once main says the task
 #     is done: land.sh squashes). A land/<task> candidate branch on origin
 #     goes when it is on origin/main;
+#   - a stray/ branch (stray/main-folder, stray/<copy>: where sync-main-folder.sh keeps stray work, T661) goes on the
+#     same terms as a task branch: checked out nowhere and its content is on origin/main; one with work found
+#     nowhere else is kept;
 #   - a folder <workspace>/<repo>-* that is not a worktree and has no git data goes when it holds only generated
 #     folders (node_modules, build, test-results, playwright-report, dist, .vite), and is more than a day old.
 # Every removal and every kept item with a reason is logged with a UTC timestamp.
@@ -115,7 +118,7 @@ while read -r br; do
   safe "refs/heads/$br" "$br" || continue
   tip="$(g rev-parse --short=10 "refs/heads/$br")"
   g branch -q -D "$br" && log "deleted branch $br ($tip): on origin/main"
-done < <(g for-each-ref --format='%(refname:short)' 'refs/heads/t[0-9]*')
+done < <(g for-each-ref --format='%(refname:short)' 'refs/heads/t[0-9]*' 'refs/heads/stray/*')
 while read -r rb; do
   br="${rb#origin/}"
   case "$br" in t[0-9]*) wanted "$br" || continue ;; land/*) [ -z "$only" ] || continue ;; *) continue ;; esac

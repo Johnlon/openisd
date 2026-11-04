@@ -15,7 +15,7 @@ fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 # run <repo> <tool> <json tool_input> <cwd>: exit code of that repo's gate
 run() { printf '{"cwd":"%s","tool_input":%s}' "$4" "$3" | GATES_REPO="$1" python3 "$1/gates.py" PreToolUse "$2" 2> "$S/err"; }
 run "$S/main" Edit "{\"file_path\":\"$S/main/a.ts\"}" "$S/main"; r=$?
-[ $r != 0 ] && grep -q "Edit in a worktree (scripts/new-task.sh), never in the main folder." "$S/err" && ok "Edit in the main folder is refused with the message" || fail "Edit main (r=$r)"
+[ $r != 0 ] && grep -q "The main folder only mirrors main; work in a task worktree: bash scripts/new-task.sh" "$S/err" && ok "Edit in the main folder is refused with the message" || fail "Edit main (r=$r)"
 run "$S/main" Write "{\"file_path\":\"a.ts\"}" "$S/main"; r=$?
 [ $r != 0 ] && ok "Write with a relative path in the main folder is refused" || fail "Write relative (r=$r)"
 run "$S/main" Bash "{\"command\":\"sed -i s/a/b/ a.ts\"}" "$S/main"; r=$?
@@ -40,5 +40,13 @@ run "$S/main" Bash "{\"command\":\"sed -i s/a/b/ $S/main/a.ts\"}" "$S/wt"; r=$?
 [ $r != 0 ] && ok "sed -i on the main folder's absolute path from a worktree is refused" || fail "abs main from wt (r=$r)"
 run "$S/main" Bash "{\"command\":\"cd $S/main-t1 && sed -i s/a/b/ $S/main/a.ts\"}" "$S/main"; r=$?
 [ $r != 0 ] && ok "a cd elsewhere does not excuse an absolute main-folder path" || fail "cd + abs main (r=$r)"
+# T661: the gate protects the main folder and synced copies from any checkout, not other worktrees
+git -C "$S/main" worktree add -q --detach "$S/preview" 2> /dev/null; git -C "$S/main" config --add openisd.syncedCopy "$S/preview"
+run "$S/wt" Edit "{\"file_path\":\"$S/main/a.ts\"}" "$S/wt"; r=$?
+[ $r != 0 ] && grep -q "task worktree" "$S/err" && ok "a worktree's gate refuses an Edit inside the main folder" || fail "wt gate -> main (r=$r)"
+run "$S/wt" Write "{\"file_path\":\"$S/preview/a.ts\"}" "$S/wt"; r=$?
+[ $r != 0 ] && ok "a synced copy is refused too" || fail "synced copy (r=$r)"
+run "$S/wt" Edit "{\"file_path\":\"$S/main-t1/a.ts\"}" "$S/wt"; r=$?
+[ $r = 0 ] && ok "another worktree is allowed" || fail "other wt (r=$r)"
 [ $fails = 0 ] && { echo "main-folder-edit-guard: all passed"; exit 0; }
 echo "main-folder-edit-guard: $fails failed"; exit 1

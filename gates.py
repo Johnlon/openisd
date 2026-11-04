@@ -14,8 +14,8 @@ cores and timed the suites out).
 
 PreToolUse / Edit, Write, NotebookEdit, and Bash `sed -i` / `perl -i`: NO EDIT IN THE MAIN FOLDER (T476).
 The main folder is kept at the last green commit by `scripts/land/sync-main-folder.sh`; an edit made there
-is stray work. All work happens in a worktree (`scripts/new-task.sh`). This gate fires only when the
-repo it runs for IS the main folder (git config `openisd.mainFolder`); a worktree never trips it. Ignored
+is stray work. All work happens in a worktree (`scripts/new-task.sh`). T661: the gate protects the main folder and every synced copy (git config `openisd.mainFolder`,
+`openisd.syncedCopy`) from whichever checkout it runs in; other worktrees are never refused. Ignored
 output (`build/`, `node_modules/`) is allowed. The sync script and `land.sh` are not tool calls, so they are
 never blocked.
 """
@@ -50,15 +50,25 @@ def command_of(payload: str) -> str:
 
 EDIT_TOOLS = ("Edit", "Write", "NotebookEdit", "MultiEdit")
 IN_PLACE = re.compile(SEGMENT_START + r"(sed\s+(-\S*\s+)*-\S*i|perl\s+(-\S*\s+)*-\S*i)")
-MAIN_FOLDER_MESSAGE = "Edit in a worktree (scripts/new-task.sh), never in the main folder."
+MAIN_FOLDER_MESSAGE = 'The main folder only mirrors main; work in a task worktree: bash scripts/new-task.sh <owner> "<goal>"'
 ALLOWED_TOP = ("build", "node_modules")
 
 
-def main_folder() -> str:
-    """This gate's repo when it is the main folder, else an empty string."""
+def git_out(repo: str, *args: str) -> list[str]:
+    out = subprocess.run(["git", "-C", repo, *args], capture_output=True, text=True)
+    return [line for line in out.stdout.splitlines() if line] if out.returncode == 0 else []
+
+
+def protected_roots() -> list[str]:
+    """The main folder (git config openisd.mainFolder, else the main checkout) and every synced copy
+    (openisd.syncedCopy), whichever checkout this gate runs from. Other worktrees are not protected."""
     repo = os.path.realpath(os.environ.get("GATES_REPO") or os.path.dirname(os.path.abspath(__file__)))
-    out = subprocess.run(["git", "-C", repo, "config", "--get", "openisd.mainFolder"], capture_output=True, text=True)
-    return repo if out.returncode == 0 and os.path.realpath(out.stdout.strip()) == repo else ""
+    common = git_out(repo, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if not common:
+        return []
+    configured = git_out(repo, "config", "--get", "openisd.mainFolder")
+    roots = [configured[0] if configured else os.path.dirname(common[0])] + git_out(repo, "config", "--get-all", "openisd.syncedCopy")
+    return [os.path.realpath(r) for r in roots]
 
 
 def in_main_folder(path: str, base: str, main: str) -> bool:
@@ -72,17 +82,18 @@ LEADING_CD = re.compile(r"^\s*cd\s+(['\"]?)([^'\"\s;&|]+)\1\s*(&&|;)")
 ABS_PATH = re.compile(r"(?<![\w.])/[^\s'\";&|()<>]+")
 
 
-def bash_edits_main_folder(command: str, cwd: str, main: str) -> bool:
+def bash_edits_main_folder(command: str, cwd: str, roots: list[str]) -> bool:
     """An in-place edit hits the main folder when a path it names is inside it, or, naming no path
     elsewhere, when it runs there: a leading `cd X &&` sets where it runs, else the session cwd.
     Paths compare by whole components, so a sibling worktree (openisd-t450) is not the main folder (T478)."""
     paths = [p for p in ABS_PATH.findall(command) if not p.startswith("/dev/")]
-    if any(in_main_folder(p, cwd, main) for p in paths):
+    if any(in_main_folder(p, cwd, root) for p in paths for root in roots):
         return True
     if paths:
         return False
     cd = LEADING_CD.match(command)
-    return in_main_folder(os.path.join(cwd, cd.group(2)) if cd else cwd, cwd, main)
+    where = os.path.join(cwd, cd.group(2)) if cd else cwd
+    return any(in_main_folder(where, cwd, root) for root in roots)
 
 
 def payload_object(payload: str) -> dict:
@@ -94,18 +105,18 @@ def payload_object(payload: str) -> dict:
 
 
 def check_edit(tool: str, payload: str) -> int:
-    main = main_folder()
-    if not main:
+    roots = protected_roots()
+    if not roots:
         return 0
     data = payload_object(payload)
     tool_input = data.get("tool_input") if isinstance(data.get("tool_input"), dict) else {}
-    cwd = data.get("cwd") if isinstance(data.get("cwd"), str) else main
+    cwd = data.get("cwd") if isinstance(data.get("cwd"), str) else roots[0]
     if tool in EDIT_TOOLS:
         path = tool_input.get("file_path") or tool_input.get("notebook_path")
-        hit = isinstance(path, str) and in_main_folder(path, cwd, main)
+        hit = isinstance(path, str) and any(in_main_folder(path, cwd, root) for root in roots)
     else:
         command = tool_input.get("command") if isinstance(tool_input.get("command"), str) else ""
-        hit = bool(IN_PLACE.search(command)) and bash_edits_main_folder(command, cwd, main)
+        hit = bool(IN_PLACE.search(command)) and bash_edits_main_folder(command, cwd, roots)
     if not hit:
         return 0
     print("openisd gate: " + MAIN_FOLDER_MESSAGE, file=sys.stderr)

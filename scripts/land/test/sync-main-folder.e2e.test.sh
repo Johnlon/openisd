@@ -25,7 +25,8 @@ chmod +x "$SCRATCH/systemctl"
 export SYNC_LOG="$SCRATCH/sync.log" SYNC_NPM="$SCRATCH/npm"; mkdir -p "$OPENISD_STATE_DIR"
 printf '#!/usr/bin/env bash\necho "npm $* in $PWD" >> "%s/npm.calls"\n' "$SCRATCH" > "$SCRATCH/npm"; chmod +x "$SCRATCH/npm"
 fails=0
-trap 'rm -rf "$SCRATCH" "$GITCFG"' EXIT
+# T661: synced copies are read-only; make them writable before any delete
+trap 'chmod -R u+w "$SCRATCH" 2> /dev/null; rm -rf "$SCRATCH" "$GITCFG"' EXIT
 ok()   { echo "ok   $1"; }
 fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 SYNC="$REPO/scripts/land/sync-main-folder.sh"
@@ -34,7 +35,7 @@ GREEN="$OPENISD_STATE_DIR/post-land.green"
 # setup: origin with one commit; the main folder (a clone, as the real one); the preview, a detached worktree
 # of it listed in openisd.syncedCopy; a dev clone that lands commits.
 setup() {
-  rm -rf "$SCRATCH/w" "$SCRATCH/npm.calls" "$SCRATCH/systemctl.calls" "$SCRATCH/unit.exists" "$SCRATCH/restart.fails" "$SYNC_LOG"; mkdir -p "$SCRATCH/w"; cd "$SCRATCH/w" || exit 2
+  chmod -R u+w "$SCRATCH/w" 2> /dev/null; rm -rf "$SCRATCH/w" "$SCRATCH/npm.calls" "$SCRATCH/systemctl.calls" "$SCRATCH/unit.exists" "$SCRATCH/restart.fails" "$SYNC_LOG"; mkdir -p "$SCRATCH/w"; cd "$SCRATCH/w" || exit 2
   git init -q --bare -b main origin.git
   git clone -q origin.git dev 2> /dev/null
   printf 'a\n' > dev/a.txt; printf 'q1\n' > dev/questions.yml; printf 'lock1\n' > dev/package-lock.json
@@ -194,6 +195,61 @@ bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
 if [ $r = 0 ] && [ "$(head_of main)" = "$s" ]; then ok "the last green survives a wiped runtime dir"
 else fail "green lost with the runtime dir (r=$r): $(tail -3 "$SCRATCH/out")"; fi
 mkdir -p "$OPENISD_RUNTIME_DIR"
+
+# 13. T661: one stray branch per copy, appended to, never a new branch per sync
+#     (a) two syncs with stray edits: ONE stray/main-folder branch holding both edits
+setup; land a.txt b; printf 'edit-one\n' >> main/questions.yml
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r1=$?
+land a.txt c; chmod -R u+w main; printf 'edit-two\n' >> main/questions.yml
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r2=$?
+if [ $r1 = 0 ] && [ $r2 = 0 ] && [ "$(git -C main branch --list 'stray/*' | wc -l)" = 1 ] \
+   && git -C main rev-parse -q --verify refs/heads/stray/main-folder > /dev/null \
+   && git -C main show stray/main-folder:questions.yml | grep -q edit-two \
+   && [ -n "$(git -C main log -S edit-one --format=%H stray/main-folder -- questions.yml)" ] \
+   && [ "$(head_of main)" = "$(head_of dev)" ] && [ -z "$(dirty main)" ]; then
+  ok "two syncs with stray edits make ONE stray/main-folder branch holding both"
+else fail "one stray branch (r=$r1/$r2 branches=$(git -C main branch --list 'stray/*' | tr '\n' ' ')): $(tail -3 "$SCRATCH/out")"; fi
+#     (b) the preview copy gets stray/<basename>
+setup; land a.txt b; printf 'pv-edit\n' >> preview/questions.yml
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && git -C main show stray/preview:questions.yml | grep -q pv-edit && [ -z "$(dirty preview)" ] && [ "$(head_of preview)" = "$(head_of dev)" ]; then
+  ok "a preview copy's stray edit goes to stray/preview"
+else fail "preview stray (r=$r branches=$(git -C main branch --list 'stray/*' | tr '\n' ' ')): $(tail -3 "$SCRATCH/out")"; fi
+
+# 14. T661: a main folder left on a stray branch (or any other branch) ends on main
+setup; land a.txt b; git -C main switch -q -c stray/20261025T131334Z
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && [ "$(git -C main symbolic-ref -q HEAD)" = refs/heads/main ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -z "$(dirty main)" ]; then
+  ok "a clean main folder left on a stray branch ends on main at the passed commit"
+else fail "left on stray, clean (r=$r head=$(git -C main symbolic-ref -q HEAD)): $(tail -3 "$SCRATCH/out")"; fi
+setup; land a.txt b; git -C main switch -q -c t999; printf 'own\n' > main/own.txt; git -C main add own.txt; git -C main commit -qm own; own=$(head_of main)
+printf 'dirty-edit\n' >> main/questions.yml
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+if [ $r = 0 ] && [ "$(git -C main symbolic-ref -q HEAD)" = refs/heads/main ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ -z "$(dirty main)" ] \
+   && git -C main merge-base --is-ancestor "$own" stray/main-folder && git -C main show stray/main-folder:questions.yml | grep -q dirty-edit; then
+  ok "a dirty main folder with own commits on another branch: work kept on stray/main-folder, ends on main"
+else fail "left on other branch, dirty (r=$r): $(tail -3 "$SCRATCH/out")"; fi
+
+# 15. T661: after a sync the tracked files of each copy are read-only, and so are the tracked folders (no new file
+#     in them); node_modules, build/, .git and untracked files stay writable; the next sync still moves the copy
+#     and locks it again
+setup; land a.txt b; mkdir -p dev/src dev/.claude; echo s > dev/src/s.txt; echo r > dev/.claude/rule.md; git -C dev add -A; git -C dev commit -qm src; git -C dev push -q origin main
+git -C dev rev-parse HEAD > "$GREEN"
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+w5=0; { echo x > main/.claude/scheduled_tasks.lock; } 2> /dev/null && w5=1
+w1=0; { echo x >> main/a.txt; } 2> /dev/null && w1=1
+w2=0; { echo x > main/src/new.txt; } 2> /dev/null && w2=1
+w3=0; { echo x >> preview/src/s.txt; } 2> /dev/null && w3=1
+echo y > main/node_modules/y && echo z > main/untracked-root.txt && w4=1 || w4=0
+if [ $r = 0 ] && [ $w1 = 0 ] && [ $w2 = 0 ] && [ $w3 = 0 ] && [ $w4 = 1 ] && [ $w5 = 1 ] && [ -z "$(git -C main status --porcelain --untracked-files=no)" ]; then
+  ok "after a sync the copies' tracked files and tracked folders are read-only; node_modules, untracked files and dot folders (.claude) stay writable"
+else fail "lock (r=$r tracked=$w1 newfile=$w2 preview=$w3 free=$w4 dotdir=$w5): $(tail -3 "$SCRATCH/out")"; fi
+land a.txt d; printf 'new\n' >> dev/src/s.txt; git -C dev commit -qam more; git -C dev push -q origin main; git -C dev rev-parse HEAD > "$GREEN"
+bash "$SYNC" "$SCRATCH/w/main" > "$SCRATCH/out" 2>&1; r=$?
+w1=0; { echo x >> main/a.txt; } 2> /dev/null && w1=1
+if [ $r = 0 ] && [ "$(head_of main)" = "$(head_of dev)" ] && [ "$(head_of preview)" = "$(head_of dev)" ] && [ $w1 = 0 ] && [ -z "$(git -C main status --porcelain --untracked-files=no)" ]; then
+  ok "a locked copy still moves to the next passed commit and is locked again"
+else fail "relock (r=$r tracked=$w1): $(tail -3 "$SCRATCH/out")"; fi
 
 [ $fails = 0 ] && { echo "sync-main-folder.e2e: all passed"; exit 0; }
 echo "sync-main-folder.e2e: $fails failed"; exit 1

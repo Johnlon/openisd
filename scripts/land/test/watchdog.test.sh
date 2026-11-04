@@ -11,7 +11,7 @@ PIDS=(); fails=0
 # itself. The session also holds the job-control groups a `set -m` child makes, which a group kill misses.
 cleanup() {
   for p in "${PIDS[@]}"; do pkill -KILL -s "$p" 2> /dev/null; kill -KILL -- "-$p" 2> /dev/null; kill -KILL "$p" 2> /dev/null; done
-  rm -rf "$SCRATCH"
+  chmod -R u+w "$SCRATCH" 2> /dev/null; rm -rf "$SCRATCH"
 }
 trap cleanup EXIT
 trap 'exit 130' INT
@@ -119,7 +119,7 @@ git clone -q "$SCRATCH/origin.git" "$WATCHDOG_REPO" 2> /dev/null
   && mkdir -p tasks/fixes && printf 'id: F0\nstatus: closed\n' > tasks/fixes/F0.yml && git add . \
   && git commit -qm base && git push -q origin main ) || fail "scratch repo setup"
 # Fs as origin/main has them; an F's age is the time of the last commit that touched it.
-mk_f() { printf 'id: %s\nowner: %s\nstatus: open\ngoal: x\n' "$1" "$2" > "$WATCHDOG_REPO/tasks/fixes/$1.yml"
+mk_f() { chmod -R u+w "$WATCHDOG_REPO" 2> /dev/null; printf 'id: %s\nowner: %s\nstatus: open\ngoal: x\n' "$1" "$2" > "$WATCHDOG_REPO/tasks/fixes/$1.yml"
   ( cd "$WATCHDOG_REPO" && git add "tasks/fixes/$1.yml" && GIT_COMMITTER_DATE="$3" git commit -qm "$1" && git push -q origin main ); }
 mk_f F1 bob "$(date -d '2 hours ago' +%s) +0000"; mk_f F3 "" "$(date -d '2 hours ago' +%s) +0000"; mk_f F2 bob "$(date +%s) +0000"
 # An F only in the main checkout (not on origin/main) is not an open F

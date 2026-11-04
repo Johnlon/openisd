@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: opi
 status: done
+landed: 0ef44f58674f08c23b1780bd5ba01ea82b9ba064
 goal: The repo MUST hold a detailed build specification for the crossover System window (functions, maths, .owsy file, UI both skins, tests, and open investigations) when the crossover work starts, except no app code
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
