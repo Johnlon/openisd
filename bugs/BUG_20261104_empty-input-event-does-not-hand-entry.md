@@ -1,6 +1,6 @@
 # BUG_20261104_empty-input-event-does-not-hand-entry
 
-**Status:** OPEN (found by T663, 4 Nov 2026)
+**Status:** FIXED (T669) - not an app bug: the test filled an unfocused box, and focus selects only the last digit, so fill('') left "7" typed; the test now clicks first.
 
 ## Symptom
 

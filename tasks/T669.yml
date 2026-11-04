@@ -1,0 +1,11 @@
+id: T669
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: A single input event that empties a number box hands the entry over, the same as a keyboard clear (BUG_20261104_empty-input-event-does-not-hand-entry)
+done_test: bash scripts/test.sh packages/ui/test/architecture/ui-clear-tests-use-keyboard.test.ts
+files:
+  - tasks/T669.yml
+  - packages/ui/test/ui/sealed-triple.browser.spec.ts
+  - bugs/BUG_20261104_empty-input-event-does-not-hand-entry.md

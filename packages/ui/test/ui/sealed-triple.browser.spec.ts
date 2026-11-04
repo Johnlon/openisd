@@ -62,10 +62,10 @@ for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
     });
 
     test('an input event with an empty value also hands the Fsc entry to Volume', async ({page}) => {
-      test.fail(true, 'BUG_20261104_empty-input-event-does-not-hand-entry');
       await fillAndCommit(input(page, 'Fsc'), '70');
       const shown = {Volume: await input(page, 'Volume').inputValue(), Qtc: await input(page, 'Qtc').inputValue()};
       const fsc = input(page, 'Fsc');
+      await fsc.click();   // a user clicks first; focus alone selects only the last digit, so a bare fill('') left "7"
       await fsc.fill('');
       expect(await provenances(page)).toEqual(entered('Volume'));
       await fsc.press('Tab');

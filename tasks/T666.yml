@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: e251d9dd840c36ec211112ca523e968ee44d2b93
 goal: Code review T603 fixes: a failed driver selection always carries its message (F07); an unreadable project list is kept and reported, never replaced by the legacy keys (F09); the missing-spec-params warning assertion is restored (F05)
 done_test: bash scripts/test.sh packages/ui/test/logic/driverBrowsingState-selection-failure.test.ts packages/persistence/test/projectRepo-corrupt-collection.test.ts packages/ui/test/scripts/bundle-drivers-disposition.test.ts
 files:
