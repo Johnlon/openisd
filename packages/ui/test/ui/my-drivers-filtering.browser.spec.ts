@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 import type {Page} from '@playwright/test';
 import {expect, openAProject, test} from '../fixtures.js';
 import {myDriversJson, type SeedDriver} from '../fixtures/seedMyDrivers.js';
@@ -41,7 +42,7 @@ test('My Drivers honour the Fs bounds', async ({ page }) => {
   await expect(page.locator(MY_ROWS)).toHaveCount(1);
   await expect(page.locator(MY_ROWS)).toContainText('Silk Dome Tweeter');
 
-  await page.locator('input.pnum[title*="Minimum Fs" i]').fill('');
+  await clearWithKeyboard(page.locator('input.pnum[title*="Minimum Fs" i]'));
   await page.locator('input.pnum[title*="Maximum Fs" i]').fill('100');
   await expect(page.locator(MY_ROWS)).toHaveCount(1);
   await expect(page.locator(MY_ROWS)).toContainText('Deep Subwoofer');

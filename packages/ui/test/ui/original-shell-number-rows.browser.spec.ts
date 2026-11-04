@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 import type {Locator, Page} from '@playwright/test';
 import {expect, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 
@@ -38,7 +39,7 @@ test.describe('Signal Generator Hz', () => {
   test('an emptied box is refused: never blank or 0 once left', async ({appPage: page}) => {
     const box = row(page).locator('input');
     const before = await box.inputValue();
-    await box.fill('');
+    await clearWithKeyboard(box);
     await box.press('Tab');
     await expect(box).not.toHaveValue('0');
     // The box keeps the refused text until Esc; the stored frequency never changed.
@@ -93,7 +94,7 @@ test.describe('Sealed alignment dialog Volume', () => {
   test('an emptied volume is refused: Accept keeps the last good volume', async ({appPage: page}) => {
     const dialog = await openDialog(page);
     const box = dialog.locator('#og-sealed-alignment-volume');
-    await box.fill('');
+    await clearWithKeyboard(box);
     await box.press('Tab');
     await expect(box).not.toHaveValue('0');
     await dialog.locator('button.ok-btn').click();

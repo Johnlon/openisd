@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 import {expect, test, openAMobileProject, openAProject, COMPLETE_DRIVER_PROJECT_OWPR} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {MOBILE_SURFACES} from '../fixtures/mobileSurfaceManifest.js';
@@ -141,7 +142,7 @@ for (const skin of ['phone','desktop'] as const) {
     const modal=page.locator('.de-modal');
     await modal.getByRole('button',{name:'Parameters',exact:true}).click();
     const input=modal.locator('.ui-field[data-field="Fs_hz"] input');
-    await input.fill('');await input.blur();
+    await clearWithKeyboard(input);await input.blur();
     await expect(input).toHaveClass(/de-input-empty/);
     expect((await modal.evaluate(measureFieldBorders)).issues).toEqual([]);
   });

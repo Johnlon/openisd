@@ -3,7 +3,7 @@ import {
   setFocusedDriverSpecs, setFocusedSealedLosses, setFocusedSeriesResistance, test, W5_1138SMF,
 } from '../fixtures.js';
 import type {Page} from '@playwright/test';
-import {fillAndBlur, fillAndCommit, numInputByLabel} from '../fixtures/numField.js';
+import {fillAndBlur, fillAndCommit, numInputByLabel, clearWithKeyboard} from '../fixtures/numField.js';
 
 /**
  * The Original shell's Box tab: the box-type selector, the per-type fields, the sealed Fsc/Qtc
@@ -45,7 +45,7 @@ test('emptying the box volume settles it to the alignment volume', async ({ appP
   await vol.fill('40');
   await vol.blur();
   await expect(vol).toHaveValue(/^40/);
-  await vol.fill('');
+  await clearWithKeyboard(vol);
   await vol.blur();
   await expect(vol).toHaveValue('10.69');
 });

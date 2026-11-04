@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * The mobile Box tab. The FIELD WIRING itself (what a box-type change or a volume edit means)
  * is proven once, in `packages/ui/test/hooks/boxFields.test.ts`'s `createSelectedBox`/
@@ -76,7 +77,7 @@ test.describe('MobileBoxTab', () => {
     await input.fill('40');
     await input.blur();
     await expect(input).toHaveValue(/^40/);
-    await input.fill('');
+    await clearWithKeyboard(input);
     await input.blur();
     await expect(input).toHaveValue('10.69');
   });

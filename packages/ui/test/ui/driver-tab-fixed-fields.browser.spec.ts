@@ -1,6 +1,6 @@
 import {expect, openAProject, test} from '../fixtures.js';
 import {measureFieldContent} from '../fixtures/fieldVisualContract.js';
-import {fillAndBlur} from '../fixtures/numField.js';
+import {fillAndBlur, clearWithKeyboard} from '../fixtures/numField.js';
 
 /**
  * The Driver tab's voice-coil temperature rise and added mass are UIFixedFields
@@ -19,7 +19,7 @@ for (const label of ['Voice coil temp rise', 'Added mass to cone']) {
     const row = page.locator('.ui-field', { hasText: label });
     const box = row.locator('input');
     await fillAndBlur(box, '7');
-    await box.fill('');
+    await clearWithKeyboard(box);
     await expect(box).toHaveValue('');
     await expect(row.locator('.ui-field-dq-btn')).toBeVisible();
     await box.press('Escape');

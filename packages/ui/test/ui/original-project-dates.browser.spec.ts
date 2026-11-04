@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * The desktop Project tab's Created and Modified (John, 17 Oct 2026): shown as "16 Oct 2026" through the
  * one design formatter; the stored stamp stays WinISD's YYYYMMDD. The boxes write when the typist is
@@ -25,7 +26,7 @@ test('Created and Modified show as "16 Oct 2026"', async ({page}) => {
 for (const typed of ['2026-10-16', '16 Oct 2026']) {
   test(`typing "${typed}" key by key keeps the typed text, then shows "16 Oct 2026"`, async ({page}) => {
     const created = box(page, 'Created');
-    await created.fill('');
+    await clearWithKeyboard(created);
     await created.pressSequentially(typed);
     await expect(created).toHaveValue(typed);
     await created.press('Enter');
