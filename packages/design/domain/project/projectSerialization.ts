@@ -4,6 +4,7 @@ import { withoutRetiredSpecKeys } from '../retiredSpecKeys.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import { parseRepairing, type Repaired } from '../schemaRepair.js';
 import { slimmedProjectSession } from './slimDriver.js';
+import { withoutDerivedMarks } from '../derivedMarks.js';
 import { retireLossMode } from './retiredLossMode.js';
 import { singleEnteredVentPairs } from './singleEnteredVentPairs.js';
 
@@ -32,14 +33,7 @@ function slimmedCanonical(session: unknown): unknown {
 /** A session as `.owpr` text — openisd's own format. Lossless: there is nothing to drop and no
  *  error to report. */
 export function owprTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(slimmedCanonical(session), null, 2);
-}
-
-/** `dq_calculated` marks are worked out again on every load, so the stored text leaves them out. */
-const DERIVED_KEY = 'dq_calculated';
-
-function withoutDerived(key: string, value: unknown): unknown {
-    return key === DERIVED_KEY ? undefined : value;
+    return JSON.stringify(slimmedCanonical(session), withoutDerivedMarks, 2);
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
@@ -49,7 +43,7 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
 /** A session as the text browser storage holds it: one compact line, without what the load
  *  works out again. `.owpr` files keep their indented form with everything in it. */
 export function storedTextOf(session: OpenISDProjectSessionJson): string {
-    return JSON.stringify(slimmedCanonical(session), withoutDerived);
+    return JSON.stringify(slimmedCanonical(session), withoutDerivedMarks);
 }
 
 /** A text written before projects carried an id gets one here, once, when it is read; a text
@@ -68,7 +62,7 @@ export function compactedStoredText(text: string): string | null {
         return null;
     }
     if (!isRecord(parsed) || !isRecord(parsed.saved)) return null;
-    return JSON.stringify(slimmedCanonical(parsed), withoutDerived);
+    return JSON.stringify(slimmedCanonical(parsed), withoutDerivedMarks);
 }
 
 /** `.owpr` text parsed and validated, or everything wrong with it. Stops short of building an

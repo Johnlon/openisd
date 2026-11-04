@@ -82,8 +82,7 @@ describe('resolveAir', () => {
     expect(record().roo_kg_per_m3).toMatchObject({state: 'C', value: 1.2, precision: 0.1});
     expect(result.issues).toEqual([conflict]);
     expect(result.air.c()).toBe(343);
-    const marked = record().pressure_Pa;
-    expect(marked?.state === 'C' ? marked.dq_calculated?.length : -1).toBe(1);
+    expect(JSON.stringify(record())).not.toContain('dq_calculated');
   });
 
   it('leaves an entered quantity as typed and fills every other one: p, RH, T from the app, c and rho from them', () => {

@@ -12,7 +12,7 @@ import type {
     Unsolvable,
     Writable
 } from '../cell.js';
-import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField, writeEntryDq} from '../cell.js';
+import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField} from '../cell.js';
 import type {DriverDeviceJson, SpecEntryJson} from '../openisdSchema.js';
 import {
     calcNumVC,
@@ -316,7 +316,6 @@ export class OpenIsdDriverSpec {
                 },
                 dq: (list) => {
                     wiringDq = list;
-                    writeEntryDq(wiringSlot, list);
                 },
             },
         );

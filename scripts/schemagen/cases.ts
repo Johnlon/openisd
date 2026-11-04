@@ -185,8 +185,6 @@ export function edgeCases(): Case[] {
         ['entry corroboration bad', [...fsEntry, 'corroboration'], 'MAYBE'],
         ['entry readings empty', [...fsEntry, 'readings'], {}],
         ['entry readings not an object', [...fsEntry, 'readings'], []],
-        ['entry dq_scraper bad mark', [...fsEntry, 'dq_scraper'], [{kind: 'k'}]],
-        ['entry dq params not an object', [...fsEntry, 'dq_calculated'], [{kind: 'k', severity: 's', rule: 'r', detail: 'd', params: []}]],
         ['calculated entry with origin', [...woofer, 'Qts', 'origin'], 'x'],
         ['calculated entry with readings', [...woofer, 'Qts', 'readings'], {}],
         ['reading read_value missing', [...reading, 'read_value'], DELETE],

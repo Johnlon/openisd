@@ -1,6 +1,5 @@
 import type {DqIssue, SolverField, SolverInput} from '@openisd/design/engine';
 import type {SpecEntryJson} from './openisdSchema.js';
-import type {DqMark} from './specEntry.js';
 import {isUsable} from './corroboration.js';
 import {halfUlp} from './precision.js';
 
@@ -392,7 +391,7 @@ export function entryField(
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v, precision) => { liveDq = []; slot.set({ state: 'C', value: v, precision }); },
-    dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
+    dq: (list) => { liveDq = list; },
     notAvailable: () => {
       liveDq = [];
       if (slot.value?.state === 'C') {
@@ -424,50 +423,6 @@ export function statedPrecisionOf(entry: Extract<SpecEntryJson, {state: 'E'}>): 
   return precision ?? entry.precision;
 }
 
-/** One `DqIssue` as the debug-trail mark it becomes (D14/D14a) — `params` carries the finding
- *  itself (numbers/strings/string arrays only), not just prose. `non-physical`, plausibility's
- *  own `out-of-range` (vent/PR `Vb`/`Fb`), `target-unreachable`, `invalid-value` and
- *  `negative-value` keep the generic shape this function always wrote before D14 — only `inconsistent-inputs`,
- *  `missing-dependencies` and the driver-field `out-of-range` (D14, `OutOfRangeIssue`, told apart
- *  from plausibility's by `'field' in issue`) get a mark that names what it found. */
-function issueMark(issue: DqIssue, detail: string): DqMark {
-  switch (issue.kind) {
-    case 'inconsistent-inputs':
-      return {
-        kind: 'calc', severity: 'error', rule: 'inconsistent-inputs',
-        params: {
-          target: issue.target, fields: [...issue.fields], formula: issue.formula,
-          expected: issue.expected, actual: issue.actual, relative: issue.relative,
-        },
-        detail,
-      };
-    case 'missing-dependencies':
-      return {
-        kind: 'calc', severity: 'error', rule: 'missing-dependencies',
-        params: { target: issue.target, missing: [...new Set(issue.routes.flatMap(r => r.missing))] },
-        detail,
-      };
-    case 'out-of-range':
-      if ('field' in issue) {
-        return {
-          kind: 'range', severity: 'error',
-          rule: issue.side === 'below' ? 'range-below-min' : 'range-above-max',
-          params: { field: issue.field, value: issue.value, limit: issue.limit },
-          detail,
-        };
-      }
-      return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
-    case 'approximate-charts':
-      return { kind: 'calc', severity: 'warn', rule: 'approximate-charts', params: { fields: [...issue.fields] }, detail };
-    case 'non-physical':
-    case 'target-unreachable':
-    case 'invalid-value':
-    case 'negative-value':
-    case 'required-value':
-      return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
-  }
-}
-
 /** `entryField` for a value that is never N: an empty slot reads `fallback()` as calculated.
  *  `clear()` empties the slot, so an E value goes back to C. */
 export function defaultingEntryField(
@@ -484,22 +439,7 @@ export function defaultingEntryField(
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
-    dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
-  });
-}
-
-/** Records that `list` of live issues happened, for the on-disk debug trail only — never read
- *  back into a field's own `dq` (see `entryField`). No entry, no mark: an absent slot has
- *  nothing to carry a note on. */
-export function writeEntryDq(
-  slot: SimpleField<SpecEntryJson | undefined>,
-  list: readonly DqIssue[],
-): void {
-  const current = slot.value;
-  if (current === undefined || current.state === 'N') return;
-  slot.set({
-    ...current,
-    dq_calculated: list.map(issue => issueMark(issue, issue.text)),
+    dq: (list) => { liveDq = list; },
   });
 }
 

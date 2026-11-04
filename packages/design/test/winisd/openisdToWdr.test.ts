@@ -326,8 +326,8 @@ const WITH_XLIM = recordWith(`  woofer:
       readings: {manual: {read_value: 0.0125}}
 `);
 
-describe('openisd.json → winisd.wdr — DQ marks travel into Comment= ', () => {
-  it('a coaxial\'s tweeter marks travel into Comment= after the woofer\'s', () => {
+describe('openisd.json → winisd.wdr — DQ marks never travel into Comment= (QO414)', () => {
+  it('a coaxial\'s tweeter marks are not written into Comment=', () => {
     const coax = recordWith(`  woofer: {}
   tweeter:
     Fs_hz:
@@ -337,7 +337,7 @@ describe('openisd.json → winisd.wdr — DQ marks travel into Comment= ', () =>
         - {kind: range, severity: error, rule: range-above-max, params: {field: Fs, value: 2000, limit: 1000, unit: Hz}, detail: 'Fs=2000 above max 1000 Hz'}
 `);
     const { value } = wdrOf(coax);
-    assert.match(commentBlockOf(value!), /\[DQ\] Fs_hz=2000: Fs=2000 above max 1000 Hz/);
+    assert.equal(commentBlockOf(value!), '');
   });
 
   it('a spec key holding no entry writes no DQ line', () => {
@@ -360,7 +360,7 @@ describe('openisd.json → winisd.wdr — DQ marks travel into Comment= ', () =>
     assert.equal(commentBlockOf(value!), '');
   });
 
-  it('a record with N marks produces N [DQ] lines, in record order, each field=value: offence', () => {
+  it('a record with marks produces no [DQ] lines: the comment is the driver\'s own', () => {
     const withDq = recordWith(`  woofer:
     Qts:
       readings: {manual: {read_value: 1.5}}
@@ -368,24 +368,8 @@ describe('openisd.json → winisd.wdr — DQ marks travel into Comment= ', () =>
         - {kind: range, severity: error, rule: range-above-max, params: {field: Qts, value: 1.5, limit: 0.8, unit: ''}, detail: 'Qts=1.5 above max 0.8'}
     Vas_m3:
       readings: {manual: {read_value: 0.14}}
-      dq_scraper:
-        - {kind: range, severity: error, rule: range-above-max, params: {field: Vas, value: 140, limit: 60, unit: L}, detail: 'Vas=140 above max 60 L'}
 `).replace("comment: {value: '', origin: entered}", "comment: {value: 'a driver', origin: entered}");
     const { value } = wdrOf(withDq);
-    const comment = commentBlockOf(value!);
-    // Three marks: the two scraped ones, plus the one the app itself puts on Qts when it loads
-    // the record (a stated Qts with neither Qes nor Qms to check it against). The comment
-    // carries the SAME marks the openisd.json does — the app's export, one producer (John,
-    // 2026-09-20) — in record order: each field's scraper marks, then its calculated ones.
-    // The calculated mark's `detail` is the issue rendered to a sentence (engine's
-    // `dqIssueText`, reached through `cell.ts#writeEntryDq`); a scraper mark's `detail` is
-    // authored text and rides through unchanged. Vas_m3 is stated in SI (0.14 m³ = 140 L, the
-    // scraper's own unit) — deliberately inside Vas_m3's own physical band (D5/O4:
-    // 1e-6..1.0 m³), so the only Vas mark here is the scraper's own; the app's calculated
-    // range check has nothing to add and this stays a two-field, three-mark fixture.
-    assert.equal(comment,
-      "a driver\n[DQ] Qts=1.5: Qts=1.5 above max 0.8\n"
-      + "[DQ] Qts=1.5: Only Qts is stated, so Qes and Qms are taken as twice Qts, as WinISD does. The charts are approximate - state Qes and Qms for accurate ones.\n"
-      + "[DQ] Vas_m3=0.14: Vas=140 above max 60 L");
+    assert.equal(commentBlockOf(value!), 'a driver');
   });
 });

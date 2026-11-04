@@ -311,6 +311,7 @@ export class ZodTranslator {
         if (Node.isNullLiteral(e)) return 'None';
         if (Node.isNumericLiteral(e)) return e.getText();
         if (Node.isStringLiteral(e)) return JSON.stringify(e.getLiteralText());
+        if (Node.isIdentifier(e) && e.getText() === 'undefined') return 'None';
         if (Node.isIdentifier(e)) {
             const name = bound.get(e.getText());
             if (name !== undefined) return name;
@@ -520,7 +521,10 @@ export class PythonEmitter {
     #classFor(t: PyObject, hint: string): string {
         const name = this.#name(t.hint !== '' ? t.hint : hint);
         const fields = t.fields.map(f => {
-            const ann = this.#annotation(f.type, `${name}_${f.name}`);
+            const annotated = this.#annotation(f.type, `${name}_${f.name}`);
+            // A key that parses and comes out as nothing (`droppedMarks`) is left out of the dump, as Zod leaves it out.
+            const dropped = f.type.kind === 'piped' && f.type.members.length === 1 && f.type.members[0].transform?.expr === 'None';
+            const ann = dropped ? `Annotated[${annotated}, Field(exclude=True)]` : annotated;
             const pyName = /^[A-Za-z_][A-Za-z0-9_]*$/.test(f.name) ? f.name : null;
             if (pyName === null) {
                 const safe = snake(f.name);

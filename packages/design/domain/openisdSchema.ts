@@ -30,7 +30,7 @@ import {READER_VALUES} from './reader.js';
 import type {OpenISDDriver} from './driver/openISDDriver.js';
 import type {BoxType, Filter, PassFamily} from '../engine/index.js';
 import type {VentShape} from './vent.js';
-import {dqMarks} from './specEntry.js';
+import {droppedMarks} from './specEntry.js';
 
 /**
  * One SOURCE'S READING of one field, as the scraper recorded it. Names are the corpus's own.
@@ -314,8 +314,8 @@ const enteredEntrySchema = z.strictObject({
     readings: z.record(z.string(), readingJsonSchema).refine(
         r => Object.keys(r).length > 0, 'expected at least one reading').optional(),
     corroboration: corroborationJsonSchema.optional(),
-    dq_scraper: dqMarks(),
-    dq_calculated: dqMarks(),
+    dq_scraper: droppedMarks(),
+    dq_calculated: droppedMarks(),
 });
 
 /** A calculated spec entry: a `value` plus `state:'C'`, the precision it inherits, and its own dq
@@ -326,7 +326,7 @@ const calculatedEntrySchema = z.strictObject({
     /** Half-width the value inherits from its most precise entered input, in SI — stored as an
      *  entered value's `precision` is. Absent when no entered width reaches it. */
     precision: z.number().positive().optional(),
-    dq_calculated: dqMarks(),
+    dq_calculated: droppedMarks(),
 });
 
 /** A spec field where no reading wins (T018, John 2026-10-11: "field gets no value"): every
@@ -337,15 +337,14 @@ const notAvailableEntrySchema = z.strictObject({
     state: z.literal('N'),
     readings: z.record(z.string(), readingJsonSchema).refine(
         r => Object.keys(r).length > 0, 'expected at least one reading'),
-    dq_scraper: dqMarks(),
-    dq_calculated: dqMarks(),
+    dq_scraper: droppedMarks(),
+    dq_calculated: droppedMarks(),
 });
 
 /**
  * A spec field: `value` + `state` (T11), `origin`/`readings` riding beside an entered value as
- * provenance only. `dq_scraper` and `dq_calculated` are split BY PRODUCER: a scraper finds
- * structural, parse and source problems (entered values only); only the calculation finds T/S
- * parameters that disagree with each other (either state).
+ * provenance only. `dq_scraper` and `dq_calculated` are accepted on read and dropped (QO414, John
+ * 4 Nov 2026): data-quality marks are worked out live and never stored.
  *
  * ONE VALUE, ONE FLAG (T11, John: "it gets written into the Json simple as that… do not muddle
  * semantics"): `value` is the number, `state` says whether it was TYPED ('E') or DERIVED ('C') —
@@ -397,7 +396,7 @@ const scrapedFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
     value,
     origin: z.string().optional(),
     readings: z.record(z.string(), value).optional(),
-    dq_scraper: dqMarks(),
+    dq_scraper: droppedMarks(),
     note: z.unknown().optional(),
 });
 

@@ -145,11 +145,12 @@ describe('slimmedProjectSession', () => {
 });
 
 describe('the project text', () => {
-  it('is much smaller than the unslimmed driver made it', () => {
+  it('is smaller than the unslimmed driver made it', () => {
     const p = project();
     const slim = p.toOwprText();
     const fat = JSON.stringify(p.cloneSession(), null, 2);
-    expect(slim.length).toBeLessThan(fat.length / 2);
+    // Marks are no longer in the model (QO414), so the saving is the readings and categories alone.
+    expect(slim.length).toBeLessThan(fat.length * 0.9);
     expect(deviceOf(slim)).not.toHaveProperty('categories');
     expect(slim).not.toContain('dq_calculated');
     expect(slim).not.toContain('readings');

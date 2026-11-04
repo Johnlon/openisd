@@ -12,6 +12,11 @@
 import {existsSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 
+/** The same two keys as `withoutDerivedMarks` (packages/design/domain/derivedMarks.ts). This file is loaded by
+ *  plain node (vite.config.js), which cannot import the TypeScript package; catalogue-bundle.test.ts pins the two together. */
+const DERIVED_MARK_KEYS = ['dq_calculated', 'dq_scraper'];
+export const withoutDerivedMarks = (key, value) => (DERIVED_MARK_KEYS.includes(key) ? undefined : value);
+
 /** 'driver' | 'passiveRadiator' | null (dropped) for one record. */
 export function classifyRecord(record) {
   const specs = record !== null && typeof record === 'object' ? record.specs : undefined;
@@ -36,7 +41,8 @@ export function selectKind(rows, kind, recordOfRow) {
 
 /** The bundle object and its counts, from a catalogue directory. */
 export function buildCatalogueBundle(dir, build) {
-  const read = (rel) => JSON.parse(readFileSync(join(dir, rel), 'utf8'));
+  // Marks are worked out live on load, never stored (QO414): the records leave the bundler without them.
+  const read = (rel) => JSON.parse(JSON.stringify(JSON.parse(readFileSync(join(dir, rel), 'utf8')), withoutDerivedMarks));
   const recordOfRow = (row) => read(`drivers/${row.path}.json`);
   const drivers = selectKind(read('drivers-index.json'), 'driver', recordOfRow);
   const radiators = selectKind(read('passive-radiators-index.json'), 'passiveRadiator', recordOfRow);

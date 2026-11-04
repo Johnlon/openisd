@@ -226,13 +226,14 @@ describe('DriverRecordConverter — scraper entries', () => {
     expect(JSON.stringify(wooferOf(openisd).Fs_hz)).not.toContain('stale');
   });
 
-  it('an entry no reading can win keeps the scraper marks beside its readings', () => {
+  it('an entry no reading can win keeps its readings and carries no scraper marks across (QO414)', () => {
     const dq = {kind: 'range', severity: 'warn', rule: 'r', detail: 'd', params: {}};
     const {openisd} = convert(withWoofer({
       Fs_hz: entry(30),
       Qts: {readings: {manual: {actual_reading: 'N/A', rejected: 'no-numeric-value'}}, dq_scraper: [dq]},
     }));
-    expect(child(wooferOf(openisd), 'Qts')).toMatchObject({state: 'N', dq_scraper: [dq]});
+    expect(child(wooferOf(openisd), 'Qts')).toMatchObject({state: 'N'});
+    expect(child(wooferOf(openisd), 'Qts')).not.toHaveProperty('dq_scraper');
   });
 
   it('a non-object entry is passed through unchanged', () => {

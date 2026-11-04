@@ -1,5 +1,5 @@
 import type { SignalEngine, SignalIssue } from '../../engine/index.js';
-import { DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, enteredCell, focus, writeEntryDq } from '../cell.js';
+import { DefaultingFieldImpl, DualWriteFieldImpl, absentCell, calculatedCell, enteredCell } from '../cell.js';
 import type { SimpleField } from '../cell.js';
 import { calculatedEntry, enteredEntry } from '../specEntry.js';
 import type { OpenISDProjectJson } from '../openisdSchema.js';
@@ -73,7 +73,7 @@ export class ProjectSignal {
                     signal.set({...signal.value, power_W: undefined, voltage_V: keepVoltage ? enteredEntry(voltage_V.value) : voltage_V});
                 },
                 calculated: (v: number) => signal.set({...signal.value, power_W: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'power_W'), list),
+                dq: () => undefined,
             },
         );
     }
@@ -122,7 +122,7 @@ export class ProjectSignal {
                     signal.set({...signal.value, voltage_V: undefined, power_W: keepPower ? enteredEntry(power_W.value) : undefined});
                 },
                 calculated: (v: number) => signal.set({...signal.value, voltage_V: calculatedEntry(v)}),
-                dq: (list) => writeEntryDq(focus(signal, 'voltage_V'), list),
+                dq: () => undefined,
             },
         );
     }

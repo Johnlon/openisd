@@ -45,6 +45,16 @@ const dumpAt = (c: StoreCase, layout: number): Dump => {
   assert.ok(dump !== undefined, `case ${c.name} has no dump for layout ${layout}`);
   return dump;
 };
+/** QO414 (John, 4 Nov 2026): data-quality marks are derived, never stored, and an old dump that holds
+ *  them still loads. The fixed-point check leaves `dq_calculated` and `dq_scraper` out of BOTH sides:
+ *  the loaders no longer write them, which is not a layout change and needs no bump. */
+const withoutDerivedMarks = (dump: Dump): Dump => Object.fromEntries(Object.entries(dump).map(([key, text]) => {
+  try {
+    return [key, JSON.stringify(JSON.parse(text), (k, v: unknown) => (k === 'dq_calculated' || k === 'dq_scraper' ? undefined : v), text.includes('\n') ? 2 : undefined)];
+  } catch {
+    return [key, text];
+  }
+}));
 const withoutLayoutKey = (dump: Dump): Dump => Object.fromEntries(Object.entries(dump).filter(([k]) => k !== OPENISD_STORAGE_LAYOUT_KEY));
 
 describe('the goldens hold every case', () => {
@@ -106,7 +116,7 @@ for (const c of cases) {
     it('a dump at the current layout is a fixed point: load then write back reproduces it byte for byte', () => {
       const raw = createMemoryStorage({...dumpAt(c, STORAGE_LAYOUT)});
       writeBack(raw);
-      assert.deepEqual(sorted(dumpOf(raw)), sorted(dumpAt(c, STORAGE_LAYOUT)),
+      assert.deepEqual(sorted(withoutDerivedMarks(dumpOf(raw))), sorted(withoutDerivedMarks(dumpAt(c, STORAGE_LAYOUT))),
         `${c.name}: the loaders now write layout ${STORAGE_LAYOUT} differently. Layout changed: bump STORAGE_LAYOUT, add a migration step and dump-layout-${STORAGE_LAYOUT + 1}.json for every case.`);
     });
   });

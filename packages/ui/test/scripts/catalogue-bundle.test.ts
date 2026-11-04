@@ -1,5 +1,9 @@
 import {describe, expect, it} from 'vitest';
-import {classifyRecord, selectKind} from '../../../../scripts/catalogueBundle.mjs';
+import {mkdtempSync, mkdirSync, writeFileSync, readFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {withoutDerivedMarks as designReplacer} from '@openisd/design';
+import {buildCatalogueBundle, withoutDerivedMarks, classifyRecord, selectKind} from '../../../../scripts/catalogueBundle.mjs';
 
 const woofer = {specs: {woofer: {}}};
 const both = {specs: {woofer: {}, tweeter: {}}};
@@ -31,5 +35,27 @@ describe('selectKind: the index lists exactly what the bundle holds', () => {
   });
   it('drops a row whose record is of the other kind', () => {
     expect(selectKind([{uuid: 'p', path: 'a/p'}], 'driver', () => pr).rows).toEqual([]);
+  });
+});
+
+describe('buildCatalogueBundle: data-quality marks are never written (QO414)', () => {
+  it('leaves dq_calculated and dq_scraper out of every record it bundles', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bundle-'));
+    mkdirSync(join(dir, 'drivers', 'a'), {recursive: true});
+    const marked = {specs: {woofer: {Fs_hz: {state: 'E', value: 30, dq_calculated: [{detail: 'x'}], dq_scraper: [{detail: 'y'}]}}}};
+    writeFileSync(join(dir, 'drivers', 'a', 'w.json'), JSON.stringify(marked));
+    writeFileSync(join(dir, 'drivers-index.json'), JSON.stringify([{uuid: 'w', path: 'a/w'}]));
+    writeFileSync(join(dir, 'passive-radiators-index.json'), '[]');
+    const {bundle} = buildCatalogueBundle(dir, 'b1');
+    const text = JSON.stringify(bundle);
+    expect(text).toContain('"Fs_hz"');
+    expect(text).not.toMatch(/dq_calculated|dq_scraper/);
+    expect(readFileSync(join(dir, 'drivers', 'a', 'w.json'), 'utf8')).toContain('dq_calculated');
+  });
+});
+
+describe('the bundler\'s mark replacer is the design package\'s', () => {
+  it('drops the same keys', () => {
+    for (const key of ['dq_calculated', 'dq_scraper', 'value', 'readings']) expect(withoutDerivedMarks(key, 1)).toBe(designReplacer(key, 1));
   });
 });
