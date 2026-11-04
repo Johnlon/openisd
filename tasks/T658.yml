@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: ceb60c22760a5c167959c83dbe28de048684cb7a
 goal: Remove docs that still describe the pre-T650 per-record catalogue
 done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:

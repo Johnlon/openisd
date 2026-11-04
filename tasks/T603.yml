@@ -1,0 +1,10 @@
+id: T603
+release_note: internal
+repo: openisd
+owner: agy
+status: done
+goal: Scan the full OpenISD code tree for hacks and violations, classify each finding with evidence and impact, and track required fixes or accepted exceptions.
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T603.yml
+  - docs/research/CODE_REVIEW_T603.md
