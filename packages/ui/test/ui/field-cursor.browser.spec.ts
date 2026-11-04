@@ -116,3 +116,31 @@ for (const mutation of [
     expect((await input.evaluate(measureCursorOrdinaryInk)).issues).toContain(mutation.issue);
   });
 }
+
+/** The blink's ordinary phase must show each value in its own provenance colour. */
+test('desktop: the blinking digit keeps the colour of entered and calculated values', async ({page}) => {
+  await page.setViewportSize({width: 1280, height: 900});
+  await page.goto('/');
+  await openAProject(page, COMPLETE_DRIVER_PROJECT_OWPR);
+  await page.locator('.project-nav li').filter({hasText: /^Box$/}).click();
+  await page.locator('#og-box-type').selectOption('sealed');
+  const inks: string[] = [];
+  for (const field of ['box_Vb_l', 'box_Fsc_hz']) {
+    const row = page.locator(`.ui-field[data-field="${field}"]:visible`), input = row.locator('input');
+    await input.focus();
+    await input.evaluate(element => { if (element instanceof HTMLInputElement) element.setSelectionRange(0, 1); });
+    await expect(row.locator('.num-mark-underline')).toBeVisible();
+    const seen = await input.evaluate(element => {
+      const marker = element.closest('.num-input-wrap')?.querySelector('.num-mark-underline');
+      if (!(marker instanceof HTMLElement)) throw new Error('no marker');
+      const animation = marker.getAnimations()[0];
+      if (animation === undefined) throw new Error('no animation');
+      animation.pause();
+      animation.currentTime = 750;
+      return {marker: getComputedStyle(marker).color, input: getComputedStyle(element).color};
+    });
+    inks.push(seen.input);
+    expect(seen.marker === 'rgba(0, 0, 0, 0)' || seen.marker === seen.input).toBe(true);
+  }
+  expect(inks[0]).not.toBe(inks[1]);
+});

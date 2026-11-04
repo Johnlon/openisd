@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 22fdd4980613897f671b11cc42619a23fa25fcfb
 goal: A single input event that empties a number box hands the entry over, the same as a keyboard clear (BUG_20261104_empty-input-event-does-not-hand-entry)
 done_test: bash scripts/test.sh packages/ui/test/architecture/ui-clear-tests-use-keyboard.test.ts
 files:
