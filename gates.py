@@ -78,22 +78,79 @@ def in_main_folder(path: str, base: str, main: str) -> bool:
     return full.split(os.sep)[len(main.split(os.sep))] not in ALLOWED_TOP if full != main else True
 
 
-LEADING_CD = re.compile(r"^\s*cd\s+(['\"]?)([^'\"\s;&|]+)\1\s*(&&|;)")
+CD_SEGMENT = re.compile(r"^\s*cd\s+(['\"]?)([^'\"\s;&|]+)\1\s*$")
 ABS_PATH = re.compile(r"(?<![\w.])/[^\s'\";&|()<>]+")
+HEREDOC = re.compile(r"<<(-?)\s*(['\"]?)([A-Za-z_]\w*)\2")
+
+
+def command_segments(command: str) -> list[str]:
+    """Split a shell command on ; & | and newline outside quotes, dropping heredoc bodies.
+    Quoted text stays inside its segment, so a quoted `;` does not split."""
+    segments: list[str] = []
+    current: list[str] = []
+    quote = ""
+    pending: list[tuple[bool, str]] = []
+    i = 0
+    while i < len(command):
+        ch = command[i]
+        if quote:
+            current.append(ch)
+            if ch == quote:
+                quote = ""
+        elif ch in "'\"":
+            quote = ch
+            current.append(ch)
+        else:
+            m = HEREDOC.match(command, i) if ch == "<" else None
+            if m:
+                pending.append((m.group(1) == "-", m.group(3)))
+                current.append(m.group(0))
+                i = m.end()
+                continue
+            if ch == "\n":
+                segments.append("".join(current))
+                current = []
+                for strip_tabs, word in pending:
+                    i += 1
+                    while i < len(command):
+                        end = command.find("\n", i)
+                        line = command[i:] if end < 0 else command[i:end]
+                        i = len(command) if end < 0 else end
+                        if (line.lstrip("\t") if strip_tabs else line) == word:
+                            break
+                        i += 1
+                    i -= 1
+                pending = []
+            elif ch in ";&|":
+                segments.append("".join(current))
+                current = []
+            else:
+                current.append(ch)
+        i += 1
+    segments.append("".join(current))
+    return [seg for seg in segments if seg.strip()]
 
 
 def bash_edits_main_folder(command: str, cwd: str, roots: list[str]) -> bool:
-    """An in-place edit hits the main folder when a path it names is inside it, or, naming no path
-    elsewhere, when it runs there: a leading `cd X &&` sets where it runs, else the session cwd.
-    Paths compare by whole components, so a sibling worktree (openisd-t450) is not the main folder (T478)."""
-    paths = [p for p in ABS_PATH.findall(command) if not p.startswith("/dev/")]
-    if any(in_main_folder(p, cwd, root) for p in paths for root in roots):
-        return True
-    if paths:
-        return False
-    cd = LEADING_CD.match(command)
-    where = os.path.join(cwd, cd.group(2)) if cd else cwd
-    return any(in_main_folder(where, cwd, root) for root in roots)
+    """Per command segment: an in-place edit (sed -i, perl -i) as the segment's own command hits the
+    main folder when a path it names is inside it, or, naming no path, when it runs there: an earlier
+    `cd X` segment sets where it runs, else the session cwd. Heredoc bodies and other segments are
+    ignored. Paths compare by whole components, so a sibling worktree (openisd-t450) is not the main folder (T478)."""
+    where = cwd
+    for seg in command_segments(command):
+        cd = CD_SEGMENT.match(seg)
+        if cd:
+            where = os.path.join(where, cd.group(2))
+            continue
+        if not IN_PLACE.search(seg.lstrip()):
+            continue
+        paths = [p for p in ABS_PATH.findall(seg) if not p.startswith("/dev/")]
+        if paths:
+            if any(in_main_folder(p, where, root) for p in paths for root in roots):
+                return True
+        elif any(in_main_folder(where, cwd, root) for root in roots):
+            return True
+    return False
 
 
 def payload_object(payload: str) -> dict:
@@ -116,7 +173,7 @@ def check_edit(tool: str, payload: str) -> int:
         hit = isinstance(path, str) and any(in_main_folder(path, cwd, root) for root in roots)
     else:
         command = tool_input.get("command") if isinstance(tool_input.get("command"), str) else ""
-        hit = bool(IN_PLACE.search(command)) and bash_edits_main_folder(command, cwd, roots)
+        hit = bash_edits_main_folder(command, cwd, roots)
     if not hit:
         return 0
     print("openisd gate: " + MAIN_FOLDER_MESSAGE, file=sys.stderr)

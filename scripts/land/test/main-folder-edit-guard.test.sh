@@ -48,5 +48,20 @@ run "$S/wt" Write "{\"file_path\":\"$S/preview/a.ts\"}" "$S/wt"; r=$?
 [ $r != 0 ] && ok "a synced copy is refused too" || fail "synced copy (r=$r)"
 run "$S/wt" Edit "{\"file_path\":\"$S/main-t1/a.ts\"}" "$S/wt"; r=$?
 [ $r = 0 ] && ok "another worktree is allowed" || fail "other wt (r=$r)"
+# T664: decided per command segment; heredoc bodies and quoted text are not edits
+run "$S/main" Bash "{\"command\":\"sed -i s/a/b/ $S/wt/a.ts && cat $S/main/a.ts\"}" "$S/wt"; r=$?
+[ $r = 0 ] && ok "edit in a worktree, then cat of a main-folder path, is allowed" || fail "seg wt + cat main (r=$r)"
+run "$S/main" Bash "{\"command\":\"cat > $S/wt/h.md <<'EOF'\\nrun sed -i on $S/main/a.ts\\nEOF\"}" "$S/wt"; r=$?
+[ $r = 0 ] && ok "a heredoc body naming sed -i and the main folder is allowed" || fail "heredoc (r=$r)"
+run "$S/main" Bash "{\"command\":\"echo \\\"sed -i s/a/b/ $S/main/a.ts\\\"\"}" "$S/wt"; r=$?
+[ $r = 0 ] && ok "a quoted string naming sed -i and the main folder is allowed" || fail "quoted (r=$r)"
+run "$S/main" Bash "{\"command\":\"cat $S/wt/a.ts; sed -i s/a/b/ $S/main/a.ts\"}" "$S/wt"; r=$?
+[ $r != 0 ] && ok "a later segment editing the main folder is refused" || fail "later seg main (r=$r)"
+run "$S/main" Bash "{\"command\":\"cd $S/main && sed -i s/a/b/ a.ts\"}" "$S/wt"; r=$?
+[ $r != 0 ] && ok "cd into the main folder then relative sed -i is refused" || fail "cd main + rel (r=$r)"
+run "$S/main" Bash "{\"command\":\"cat > $S/wt/h.md <<'EOF'\\nx\\nEOF\\nsed -i s/a/b/ $S/main/a.ts\"}" "$S/wt"; r=$?
+[ $r != 0 ] && ok "an edit after a heredoc is still refused" || fail "after heredoc (r=$r)"
+run "$S/main" Bash "{\"command\":\"x=\$(sed -i s/a/b/ $S/main/a.ts)\"}" "$S/wt"; r=$?
+[ $r != 0 ] && ok "an edit inside a command substitution is still refused" || fail "subst (r=$r)"
 [ $fails = 0 ] && { echo "main-folder-edit-guard: all passed"; exit 0; }
 echo "main-folder-edit-guard: $fails failed"; exit 1
