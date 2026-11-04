@@ -5,7 +5,7 @@
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> [--force]
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> --only-record <brand/sku> [--only-record ...]
  *
- * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is `--corpus <dir>` (required;
+ * The corpus is `--corpus <dir>` (required;
  * only scripts/sync-driver-snapshot.sh passes it, from committed winisd_drivers/snapshot/datasheets); each `<brand>/<sku>/openisd.json` is the canonical
  * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
  *

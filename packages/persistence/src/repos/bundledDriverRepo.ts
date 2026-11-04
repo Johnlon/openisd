@@ -1,4 +1,4 @@
-/** REPO: the bundled driver catalogue — docs/design/BUNDLED_CATALOGUE_API.md "Drivers".
+/** REPO: the bundled driver catalogue.
  *
  *  `createBundledRepo` with the driver's data: the `driverRows` and `drivers` of the one catalogue file
  *  (catalogueBundle.ts), read by

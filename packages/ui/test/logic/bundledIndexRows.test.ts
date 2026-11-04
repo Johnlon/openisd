@@ -1,6 +1,5 @@
 /**
- * `bundledIndexRows.ts` — the writer side of the bundled catalogue's indexes
- * (docs/design/BUNDLED_CATALOGUE_API.md "Writer side").
+ * `bundledIndexRows.ts` — the writer side of the bundled catalogue's indexes.
  *
  * `scripts/bundle-drivers.mjs` calls these over each record's domain object to write
  * `drivers-index.json` and `passive-radiators-index.json`. They compose the app's own functions —

@@ -1,6 +1,5 @@
 /**
- * The writer side of the bundled catalogue's indexes — docs/design/BUNDLED_CATALOGUE_API.md
- * "Writer side".
+ * The writer side of the bundled catalogue's indexes.
  *
  * `scripts/bundle-drivers.mjs` (under vite-node) opens each corpus record as a domain object and
  * calls these to produce the row `drivers-index.json` / `passive-radiators-index.json` carry for

@@ -35,7 +35,6 @@ outside every repo (John, 17 Oct 2026). `inbox.py` reads and writes it.
 | [docs/design/WDR_LOGIC.md](docs/design/WDR_LOGIC.md)                         | How `.wdr` files are loaded and saved                    |
 | [docs/design/STATE_MODEL.md](docs/design/STATE_MODEL.md)                     | Dialog drafts, commit and cancel rules                   |
 | [docs/design/REACTIVITY.md](docs/design/REACTIVITY.md)                       | How domain changes reach Vue                             |
-| [docs/design/BUNDLED_CATALOGUE_API.md](docs/design/BUNDLED_CATALOGUE_API.md) | The catalogue index and on-demand records                |
 | [docs/design/BROWSER_STORAGE_KEYS.md](docs/design/BROWSER_STORAGE_KEYS.md)   | Every browser storage key                                 |
 | [docs/design/PERSISTENCE_NAMING_AND_PLACEMENT.md](docs/design/PERSISTENCE_NAMING_AND_PLACEMENT.md) | Repository naming and placement rules      |
 | [docs/design/MY_DRIVERS_STORAGE_FAILURES.md](docs/design/MY_DRIVERS_STORAGE_FAILURES.md) | How a corrupt My Drivers entry is handled  |

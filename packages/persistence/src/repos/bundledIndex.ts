@@ -1,5 +1,5 @@
 /**
- * The bundled catalogue's index rows — docs/design/BUNDLED_CATALOGUE_API.md.
+ * The bundled catalogue's index rows.
  *
  * `scripts/bundle-drivers.mjs` writes these (through `bundledDriverIndexRowOf` /
  * `bundledPassiveRadiatorIndexRowOf` in packages/ui/src/logic/bundledIndexRows.ts, with the app's

@@ -87,7 +87,7 @@ function previewVMOf(d: OpenISDDriverStandalone): PreviewVM {
 // APPLICATION state, so it lives in `logic`: the search box, the chips, the scope, which row
 // is being summarised and what a click does are all decisions about what the app is showing
 // and what happens next. The bundled pool is `driverRepo`'s index — rows, not domain objects
-// (docs/design/BUNDLED_CATALOGUE_API.md): a driver is loaded through `driverRepo.load()` only
+// : a driver is loaded through `driverRepo.load()` only
 // when it is picked. The repo is never asked what is on screen.
 
 export const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kicks in

@@ -1,5 +1,4 @@
-/** REPO: the bundled passive-radiator catalogue — docs/design/BUNDLED_CATALOGUE_API.md
- *  "Passive radiators".
+/** REPO: the bundled passive-radiator catalogue.
  *
  *  `createBundledRepo` with the radiator's data: the `passiveRadiatorRows` and `passiveRadiators` of the one
  *  catalogue file (catalogueBundle.ts), read by `readBundledPassiveRadiatorIndex`, and records opened through

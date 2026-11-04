@@ -116,7 +116,7 @@ describe('composition root', () => {
     assert.equal(mainSource.includes('sources.json'), false);
   });
 
-  // The catalogue is fetched from public/ (docs/design/BUNDLED_CATALOGUE_API.md), never imported
+  // The catalogue is fetched from public/, never imported
   // as a module: a module import of a 10 MB JSON was served by vite as a 49 MB script (data +
   // inline source map) on every page load, typed in full by vue-tsc, and pulled into every
   // ts-morph program the architecture tests build.

@@ -196,7 +196,8 @@ degrade anything the user does offline. Every release verifies offline project c
 installed worker: `scripts/hosting/test/offline-catalogue.e2e.mjs` (install online, go offline,
 reload, New project > passive radiator > pick E150HE-PR, every box fills).
 
-The bundled driver and radiator records are split from the app only to load in the background; they
+The bundled driver and radiator records are installed with the app in its precache, same version,
+read from the phone's stored copy after the screen is up, never downloaded at use; they
 are part of the app's version: the app reads only records of its own build, every record keeps a
 permanent uuid across re-scrapes, and a record-version mismatch is a refusal with a message, never a
 blank.

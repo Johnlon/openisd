@@ -1,0 +1,30 @@
+id: T658
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: Remove docs that still describe the pre-T650 per-record catalogue
+done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T618.yml
+  - tasks/T658.yml
+  - CLAUDE.md
+  - DOCUMENTATION.md
+  - docs/design/BUNDLED_CATALOGUE_API.md
+  - packages/persistence/src/repos/bundledDriverRepo.ts
+  - packages/persistence/src/repos/bundledIndex.ts
+  - packages/persistence/src/repos/bundledPassiveRadiatorRepo.ts
+  - packages/persistence/src/repos/bundledRepo.ts
+  - packages/persistence/test/bundledDriverRepo.test.ts
+  - packages/persistence/test/bundledPassiveRadiatorRepo.test.ts
+  - packages/persistence/test/bundledRepo.test.ts
+  - packages/ui/public/bundled-catalogue.README.md
+  - packages/ui/src/logic/bundledIndexRows.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/logic/bundledIndexRows.test.ts
+  - packages/ui/test/scripts/vite-config.test.ts
+  - scripts/bundle-drivers.mjs
+  - vite.config.js

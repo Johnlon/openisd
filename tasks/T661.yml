@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: bc34f535297e2fa6231a9251febaa1d4d7c9f6f7
 goal: Stray edits in the main folder and the preview copy go to one stray branch per copy (stray/main-folder, stray/<copy>), appended to, never a new branch per sync, and the main folder never stays on a stray branch; housekeeping deletes stray branches whose content is on origin/main (John, 3 Nov 2026: fix immediately)
 done_test: bash scripts/quiet-test.sh bash scripts/land/test/sync-main-folder.e2e.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/tidy-branches.e2e.test.sh && bash scripts/quiet-test.sh bash scripts/land/test/main-folder-edit-guard.test.sh
 files:

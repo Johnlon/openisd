@@ -1,5 +1,5 @@
 /**
- * The bundled driver repo — docs/design/BUNDLED_CATALOGUE_API.md "Drivers".
+ * The bundled driver repo.
  *
  * `createBundledRepo` with the driver data: which index file, which shape reader, which domain
  * seam. The mechanism is proven in bundledRepo.test.ts; what these pin is the data — the URLs

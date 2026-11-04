@@ -1,5 +1,5 @@
 /**
- * The fetch-and-cache mechanism both bundled repos are built on — docs/design/BUNDLED_CATALOGUE_API.md "Mechanism".
+ * The fetch-and-cache mechanism both bundled repos are built on.
  *
  * `createBundledRepo` reads an index, resolves a uuid to its record path, fetches the record,
  * constructs the device through the domain seam it was handed, and caches it. Both bundled repos

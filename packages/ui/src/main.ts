@@ -212,7 +212,7 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   const earlyFaults: Error[] = [];
   const appState = createAppState({ engine, appSettings: appSettingsRepo, presentation, telemetry, reportFault: fault => reportFault(fault) });
   const logging = createLogging();
-  // The bundled catalogue — docs/design/BUNDLED_CATALOGUE_API.md. Two repos over the same
+  // The bundled catalogue. Two repos over the same
   // mechanism: an index fetched when a picker opens, one record fetched when a device is picked,
   // both held for CATALOGUE_MAX_AGE_MS and then fetched again, so a long-lived tab picks up a
   // republished catalogue without a reload. Nothing is awaited here — the app mounts first.

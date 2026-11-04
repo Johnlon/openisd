@@ -1,5 +1,5 @@
 /**
- * The fetch-and-cache mechanism both bundled repos are built on — docs/design/BUNDLED_CATALOGUE_API.md "Mechanism".
+ * The fetch-and-cache mechanism both bundled repos are built on.
  *
  * Internal to this package: `bundledDriverRepo.ts` and `bundledPassiveRadiatorRepo.ts` are this
  * with different data (index URL, shape reader, domain seam) and are what the barrel exports.

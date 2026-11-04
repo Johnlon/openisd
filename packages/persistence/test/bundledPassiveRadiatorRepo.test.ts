@@ -1,5 +1,5 @@
 /**
- * The bundled passive-radiator repo — docs/design/BUNDLED_CATALOGUE_API.md "Passive radiators".
+ * The bundled passive-radiator repo.
  *
  * `createBundledRepo` with the radiator data: `passive-radiators-index.json` under the app base,
  * read through the radiator shape reader, loading an OpenISDPassiveRadiatorStandalone. The

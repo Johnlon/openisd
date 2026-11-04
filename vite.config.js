@@ -105,7 +105,7 @@ const clearSwInDev = {
   },
 };
 
-// The bundled catalogue (docs/design/BUNDLED_CATALOGUE_API.md) is served as static files from
+// The bundled catalogue is served as static files from
 // packages/ui/public/: /drivers-index.json, /passive-radiators-index.json, /drivers/<path>.json,
 // which the build (and, in dev, the middleware below) turns into the one /catalogue.json.
 // The browser suite runs against a small catalogue cut from the tracked one
