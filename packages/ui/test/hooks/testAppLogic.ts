@@ -84,6 +84,7 @@ export function testAppLogic(overrides: Partial<AppLogic> = {}): AppLogic {
     driverFileStorage, faultLog, projectRepo, projectBin, viewStateRepo, storageHistory: storageHistoryOn(storage, projectRepo), storageUsage,
     browserStorage: createBrowserStoragePort(undefined, 'This browser'), persistence: createPersistenceStatus(createBrowserStoragePort(undefined, 'This browser'), storage), saves: createSaveSignal(),
     appUpdate: new AppUpdate({
+      controlledAtLoad: true,
       container: {addEventListener: () => {}},
       visibility: {onVisible: () => {}},
       timer: {every: () => {}},

@@ -48,7 +48,7 @@ class FakeCaches implements CacheStore {
 
 const SCOPE = 'https://x.test/test/';
 
-function build(unsaved = false, cacheNames: string[] = []) {
+function build(unsaved = false, cacheNames: string[] = [], controlledAtLoad = true) {
   const registration = new FakeRegistration(SCOPE);
   const container = new FakeContainer();
   const caches = new FakeCaches(cacheNames);
@@ -57,7 +57,7 @@ function build(unsaved = false, cacheNames: string[] = []) {
   const reload = vi.fn();
   const flags = {unsaved};
   const update = new AppUpdate({
-    container, caches, reload,
+    container, caches, reload, controlledAtLoad,
     visibility: {onVisible: l => { visible = l; }},
     timer: {every: (ms, run) => { tick = {ms, run}; }},
     anyUnsaved: () => flags.unsaved,
@@ -68,6 +68,37 @@ function build(unsaved = false, cacheNames: string[] = []) {
 const settle = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 
 describe('AppUpdate', () => {
+  it('does not reload on the first takeover of a page that loaded without a worker', async () => {
+    const t = build(false, [], false);
+    await t.update.attach(t.registration);
+    t.container.controllerChange();
+    expect(t.reload).not.toHaveBeenCalled();
+  });
+
+  it('reloads on a later takeover once the page was claimed', async () => {
+    const t = build(false, [], false);
+    await t.update.attach(t.registration);
+    t.container.controllerChange();
+    t.container.controllerChange();
+    expect(t.reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('reloads once on takeover of a page a worker controlled at load, nothing unsaved', async () => {
+    const t = build(false, [], true);
+    await t.update.attach(t.registration);
+    t.container.controllerChange();
+    t.container.controllerChange();
+    expect(t.reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers the update instead of reloading on takeover with unsaved edits', async () => {
+    const t = build(true, [], true);
+    await t.update.attach(t.registration);
+    t.container.controllerChange();
+    expect(t.reload).not.toHaveBeenCalled();
+    expect(t.update.state.value).toEqual({kind: 'offered'});
+  });
+
   it('has nothing to check before a worker is registered', async () => {
     const t = build();
     await t.update.check();

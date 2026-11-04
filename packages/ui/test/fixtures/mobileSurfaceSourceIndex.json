@@ -642,6 +642,7 @@
     "bugs/BUG_20261101_ios-script-error-passive-radiator-box-tab.md",
     "bugs/BUG_20261103_phone-spl-help-popup-scrolls.md",
     "bugs/BUG_20261104_empty-input-event-does-not-hand-entry.md",
+    "bugs/BUG_20261104_refresh-recovery-reloads-again-after-landing.md",
     "bugs/_archive/BUG_20261029_coax_tweeter_voice_coil_tuple_rejected.md",
     "bugs/_archive/BUG_20261030_converter_flags_multiple_values_as_unknown.md",
     "cloudflare/announcements/README.md",

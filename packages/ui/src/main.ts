@@ -266,7 +266,9 @@ function startApp(store: OpenStore, overlay: LoadingOverlay | null, recordedProj
   // worker, so there a scripted host stands in (scriptedUpdateHost.ts).
   const updateHost = new ScriptedUpdateHost(location.origin + import.meta.env.BASE_URL);
   const testBuild = import.meta.env.MODE === 'test';
+  const controlledAtLoad = testBuild || ('serviceWorker' in navigator && navigator.serviceWorker.controller !== null);
   const appUpdate = new AppUpdate({
+    controlledAtLoad,
     container: testBuild ? updateHost : navigator.serviceWorker,
     visibility: {onVisible: listener => document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') listener(); })},
     timer: {every: (ms, listener) => { setInterval(listener, ms); }},

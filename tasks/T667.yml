@@ -1,0 +1,16 @@
+id: T667
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: After the refresh-recovery page (or any first install), the app does not reload itself on the first service-worker takeover of a page that had no worker: it is already the newest build
+done_test: bash scripts/test.sh packages/ui/test/logic/appUpdate.test.ts
+files:
+  - tasks/T667.yml
+  - bugs/BUG_20261104_refresh-recovery-reloads-again-after-landing.md
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/src/logic/appUpdate.ts
+  - packages/ui/src/main.ts
+  - packages/ui/test/hooks/testAppLogic.ts
+  - packages/ui/test/logic/appUpdate.test.ts
+  - packages/ui/test/visual/SOURCES.sha256

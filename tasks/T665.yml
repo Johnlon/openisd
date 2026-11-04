@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: c34f46e3b99cb0f9040a06d6ff42749ab2138677
 goal: Bug files whose defect is fixed on main move to bugs/archive with the fixing task named; the unsure ones are checked by running their spec first
 done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:
