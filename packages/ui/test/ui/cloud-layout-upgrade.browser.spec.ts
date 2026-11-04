@@ -3,7 +3,7 @@
  * upgrade in place. Sync makes no conflict copy of any project, on Drive or in the browser.
  * The layout-2 store and Drive file are seeded the way the older build left them (the golden
  * layout-2 dump); real sync and Drive client run over an emulated Drive.
- * bugs/BUG_20261031_layout-upgrade-makes-conflict-copies.md
+ * bugs/archive/BUG_20261031_layout-upgrade-makes-conflict-copies.md
  */
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';

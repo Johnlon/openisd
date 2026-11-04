@@ -1,5 +1,7 @@
 # Project hides published voice-coil readings when their basis is unknown
 
+**Status (4 Nov 2026):** OPEN. `slimDriver.ts` now keeps the `state: N` readings in the project, but no screen under `packages/ui/src` shows them yet, so the "surface them to the user" half of the fix is not done. No spec asserts the visible readings.
+
 ## Symptom
 
 John reports that bundled drivers loaded into projects show blank Re/BL fields and appear to

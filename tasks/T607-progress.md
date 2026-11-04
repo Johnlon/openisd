@@ -78,7 +78,7 @@ no claim is made that the live test site has these fixes.
 - [x] The driver summary MUST fail a general alignment check when its columns visibly drift. Evidence pending: run the existing parity check, reproduce the real defect in a shared rendered-summary checker, then apply it to both hosts and widths before fixing source.
 - [x] The driver information MUST remain aligned and visually consistent when the fix is reviewed. Evidence pending: red-to-green tests, personal old/new comparisons and independent Gemini critique of the added view.
 
-New issue: `bugs/BUG_20261026_driver-selector-summary-alignment-regression.md`. This extends
+New issue: `bugs/archive/BUG_20261026_driver-selector-summary-alignment-regression.md`. This extends
 the ongoing task; the earlier six-view findings and green test evidence remain valid for
 their stated scope. Nothing is deployed.
 

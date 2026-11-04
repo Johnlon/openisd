@@ -9,7 +9,7 @@ goal: Dia is gone from the driver model; .wdr import ignores Dia and export writ
 done_test: bash scripts/test.sh packages/design/test/domain/dia-retired.test.ts packages/design/test/winisd/wdr-model-coverage.test.ts packages/design/test/winisd/openisdToWdr.test.ts
 files:
   - tasks/T660.yml
-  - bugs/BUG_20261103_winisd-dia-duplicates-dd.md
+  - bugs/archive/BUG_20261103_winisd-dia-duplicates-dd.md
   - docs/FIELD_REFERENCE.md
   - scripts/schemagen/out/driver_model.py
   - packages/design/domain/openisdSchema.ts

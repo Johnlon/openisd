@@ -11,4 +11,4 @@ files:
   - tasks/T635.yml
   - scripts/land/post-land/actions.sh
   - scripts/land/test/post-land-actions.e2e.test.sh
-  - bugs/BUG_20261031_post-land-ignores-hand-started-suite-run.md
+  - bugs/archive/BUG_20261031_post-land-ignores-hand-started-suite-run.md

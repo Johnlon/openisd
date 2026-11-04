@@ -9,7 +9,7 @@ done_test: bash scripts/test.sh packages/ui/test/hooks/MobileShell-hooks.test.ts
 files:
   - packages/ui/test/visual/SOURCES.sha256
   - tasks/T626.yml
-  - bugs/BUG_20261030_mobile-revert-menu-closes-before-discard-answer.md
+  - bugs/archive/BUG_20261030_mobile-revert-menu-closes-before-discard-answer.md
   - packages/ui/test/hooks/MobileShell-hooks.test.ts
   - packages/ui/src/hooks/MobileShell-hooks.ts
   - packages/ui/src/hooks/portFieldsView.ts

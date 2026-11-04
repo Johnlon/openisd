@@ -8,7 +8,7 @@ goal: Loading a stored project and saving it gives the same bytes: the embedded 
 done_test: bash scripts/test.sh packages/design/test/domain/project/stored-text.test.ts packages/design/test/domain/project/project-id.test.ts packages/design/test/domain/driver-edit.test.ts packages/persistence/test/storageUpgrade.test.ts packages/persistence/test/projectRepo.test.ts packages/persistence/test/layoutSteps.test.ts packages/persistence/test/layoutMigration.test.ts packages/persistence/test/myDriverRepo.test.ts packages/ui/test/logic/projectIdNeverShared.test.ts packages/persistence/test/layoutSteps.test.ts packages/persistence/test/stampedStore.test.ts packages/persistence/test/cloud/ledgerFollowsRewrite.test.ts packages/persistence/test/cloud/forgetOnReplace.test.ts packages/persistence/test/cloud/syncEngine.test.ts
 files:
   - bugs/BUG_20261013_project-driver-uuid-reminted-on-read.md
-  - bugs/BUG_20261031_layout-upgrade-makes-conflict-copies.md
+  - bugs/archive/BUG_20261031_layout-upgrade-makes-conflict-copies.md
   - bugs/archive/BUG_20261013_project-driver-uuid-reminted-on-read.md
   - packages/design/domain/driver/openISDDriver.ts
   - packages/design/domain/driver/openISDDriverEmbedded.ts

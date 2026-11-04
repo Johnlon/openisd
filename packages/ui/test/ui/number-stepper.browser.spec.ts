@@ -150,7 +150,7 @@ test.describe('Mobile skin', () => {
 });
 
 /**
- * John, 2026-10-16 (bugs/BUG_20261016_mobile-vent-stepper-jumps-focus-ignores-caret-no-digit-marker.md):
+ * John, 2026-10-16 (bugs/archive/BUG_20261016_mobile-vent-stepper-jumps-focus-ignores-caret-no-digit-marker.md):
  * on the phone vent editor a ▲ press stepped the tenths whatever the caret, moved focus to the next
  * box, and marked nothing. Focus stays on the pressed button, the step uses the caret the box had
  * before the press (kept for further presses), and the stepped digit is marked.

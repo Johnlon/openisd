@@ -383,7 +383,7 @@ test.describe('New Project wizard', () => {
       await expect.poll(async () => parseFloat(await page.locator('#og-pr-fs').inputValue())).toBeCloseTo(18, 3);
     });
 
-    // bugs/BUG_20261031_pr-pick-leaves-values-blank.md: the pick filled the name and left the boxes blank.
+    // bugs/archive/BUG_20261031_pr-pick-leaves-values-blank.md: the pick filled the name and left the boxes blank.
     test('picking the bundled E150HE-PR fills every figure the step shows from its catalogue record, and the project shows the same', async ({ appPage: page }) => {
       const figureOf = (key: string): number => {
         const record: unknown = JSON.parse(readFileSync(E150HE_PR_RECORD, 'utf8'));

@@ -7,7 +7,7 @@
  * Every build is the same app (John, 29 Oct 2026: "you dont make diffetne builds of the app").
  * The Google client id decides whether cloud sync is built in, so it lives in the repo, read by
  * every build (Vite reads packages/ui/.env), and never comes from a CI-only variable.
- * Bug: bugs/BUG_20261029_preview-builds-hide-cloud-sync.md.
+ * Bug: bugs/archive/BUG_20261029_preview-builds-hide-cloud-sync.md.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

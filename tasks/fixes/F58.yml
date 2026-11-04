@@ -72,4 +72,4 @@ also_red:
     failing: |
     
 closed_note: |
-  Closed by cover: the full suite is green at e366a72dc (GitHub run 41225575863, started by hand on the direct push), which holds every red commit listed here. Cause and fix: bugs/BUG_20261031_announcements-spec-leaves-desktop-skin.md.
+  Closed by cover: the full suite is green at e366a72dc (GitHub run 41225575863, started by hand on the direct push), which holds every red commit listed here. Cause and fix: bugs/archive/BUG_20261031_announcements-spec-leaves-desktop-skin.md.

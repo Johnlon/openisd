@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: c34082ff82a8ad92c033d43e8bbc426336eee132
 goal: UI tests clear number boxes the way a user does (select and Delete), carried over from branch t607-fix-c2, with an architecture test that bans fill('') clears
 done_test: bash scripts/test.sh packages/ui/test/architecture/ui-clear-tests-use-keyboard.test.ts
 files:

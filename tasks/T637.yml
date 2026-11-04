@@ -8,8 +8,8 @@ goal: Solvers take Air, never an absent AirState
 done_test: bash scripts/test.sh packages/design/test/engine/air-state.test.ts && bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T637.yml
-  - bugs/BUG_20261031_pr-spec-accepts-air-not-available.md
-  - bugs/BUG_20261101_air-dq-marks-not-shown.md
+  - bugs/archive/BUG_20261031_pr-spec-accepts-air-not-available.md
+  - bugs/archive/BUG_20261101_air-dq-marks-not-shown.md
   - docs/testing/DEFECT_PINNING_SWEEP_20261101.md
   - packages/design/domain/box/openISDBox.ts
   - packages/design/domain/box/ventWindow.ts

@@ -14,7 +14,7 @@ visual:
   - mobile-tab-enclosure
   - mobile-wizard-sealed-step4
 files:
-  - bugs/BUG_20261026_mobile-alignment-readout-stepper-gap.md
+  - bugs/archive/BUG_20261026_mobile-alignment-readout-stepper-gap.md
   - packages/ui/src/style.css
   - packages/ui/test/architecture/mobile-readout-unit-placement.test.ts
   - packages/ui/test/ui/mobile-box-tab-alignment.browser.spec.ts

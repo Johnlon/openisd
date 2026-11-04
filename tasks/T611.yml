@@ -14,4 +14,4 @@ files:
   - packages/ui/test/visual/SOURCES.sha256
   - .github/workflows/build.yml
   - packages/ui/test/architecture/architecture-every-build-has-cloud-sync.test.ts
-  - bugs/BUG_20261029_preview-builds-hide-cloud-sync.md
+  - bugs/archive/BUG_20261029_preview-builds-hide-cloud-sync.md

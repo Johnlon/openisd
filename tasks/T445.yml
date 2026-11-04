@@ -18,4 +18,4 @@ files:
   - packages/ui/test/ui/mobile-menu.browser.spec.ts
   - packages/ui/test/visual/SOURCES.sha256
 visual: []
-blocked_reason: rebase onto origin/main conflicts in: bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md 
+blocked_reason: rebase onto origin/main conflicts in: bugs/archive/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md 

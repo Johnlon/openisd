@@ -10,6 +10,6 @@ files:
   - tasks/T642.yml
   - packages/ui/src/hooks/NumInput-hooks.ts
   - packages/ui/test/ui/number-box-drag-spin.browser.spec.ts
-  - bugs/BUG_20261101_number-box-drag-spin-flaky-on-ci.md
+  - bugs/archive/BUG_20261101_number-box-drag-spin-flaky-on-ci.md
   - packages/ui/test/visual/SOURCES.sha256
   - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json

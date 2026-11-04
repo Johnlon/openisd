@@ -1,6 +1,6 @@
 # Rendition branch exposes desktop pane height and scrolling failures
 
-Status: open. The selected controls are now34px tall in40px rows; the old shell sizing/layout still assumes the smaller fields.
+Status: open (4 Nov 2026: `original-shell-layout.browser.spec.ts` now passes 20/20 on main, but it does not assert the Alignment-link/diagram collision, the cue-width findings, or the 320/360/374 phone edge checks listed below, so the file stays open). The selected controls are now34px tall in40px rows; the old shell sizing/layout still assumes the smaller fields.
 
 Evidence: original-shell-layout.browser.spec.ts fails3/17 cases in build/test-logs/20261027-042241-3023676.log: bottom-panel height after reload differs397.828125 versus380.4375; the stable-height guard expects less than240 but observes380; Advanced overflows horizontally at the tested short window (scrollWidth1149/clientWidth1140). No tests are skipped or relaxed.
 

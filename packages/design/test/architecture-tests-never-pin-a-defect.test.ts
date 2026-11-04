@@ -1,6 +1,6 @@
 /**
  * A test asserts the RIGHT behaviour, never the current wrong one (John, 1 Nov 2026, on
- * bugs/BUG_20261030_parse-repairing-crashes-on-symbol-path.md: "this is criminal"). A defect we
+ * bugs/archive/BUG_20261030_parse-repairing-crashes-on-symbol-path.md: "this is criminal"). A defect we
  * cannot fix now is the right expectation under `it.fails`, which names its bug file.
  */
 import {describe, expect, it} from 'vitest';

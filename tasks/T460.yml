@@ -25,7 +25,7 @@ files:
   -
   - bugs/BUG_20261018_typed-bl-conflict-no-dq-mark.md
   - bugs/BUG_20261017_auto-y-overlaps-first-frequency-label.md
-  - bugs/BUG_20261019_desktop-target-tuning-label-cut.md
+  - bugs/archive/BUG_20261019_desktop-target-tuning-label-cut.md
   - bugs/BUG_20261016_new-project-wizard-steps-inconsistent.md
 visual:
   - desktop-box-abc

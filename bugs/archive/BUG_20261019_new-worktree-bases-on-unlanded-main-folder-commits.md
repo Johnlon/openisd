@@ -5,7 +5,7 @@
 There is one script, `_agent_files/bin/new-worktree.sh`, and it starts a new branch from local main when local main is ahead of origin/main; local main is ahead only because sync-main-folder adds "WIP main folder: stray edits" commits that never land, so every new branch carries them. New branches must start from origin/main.
 
 ## Symptom
-On 19 Oct 2026 five bug-fix branches (worktrees openisd-t440b, -t445, -t450, -t460, t440-d) each inherited three WIP commits (bda316a9, 89c5c456, ae6ac8f5). After T439 landed a newer copy of `bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md`, each `land.sh` run stopped on a rebase conflict in that file.
+On 19 Oct 2026 five bug-fix branches (worktrees openisd-t440b, -t445, -t450, -t460, t440-d) each inherited three WIP commits (bda316a9, 89c5c456, ae6ac8f5). After T439 landed a newer copy of `bugs/archive/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md`, each `land.sh` run stopped on a rebase conflict in that file.
 
 ## Evidence
 - Old script chose "the newer of local main and origin/main" as the base.
