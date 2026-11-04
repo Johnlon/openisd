@@ -17,14 +17,20 @@ export function numInputByLabel(page: Page, labelText: string, scope: Locator = 
     .locator('input[data-numinput], input[type="number"]');
 }
 
+/** Clear a field with the same selected-text deletion gesture a person uses. */
+export async function clearWithKeyboard(input: Locator): Promise<void> {
+  await input.click();
+  await input.press('Control+a');
+  await input.press('Delete');
+}
+
 /** Type into an already-resolved field and commit it by blurring (Tab) — the app's commit point. */
 export async function fillAndCommit(input: Locator, value: string): Promise<void> {
   // Focusing a box puts its caret on the last digit (the digit that spins), so a bare `fill` on an unfocused
   // box replaces only that digit. A user clicks the box first and then replaces all of it.
   await input.click();
   if (value === '') {
-    await input.press('Control+a');
-    await input.press('Delete');
+    await clearWithKeyboard(input);
   } else {
     await input.fill(value);
   }
@@ -77,7 +83,7 @@ export class PageOps {
  *  same gesture `PageOps.setNum` wraps. */
 export async function fillAndBlur(input: Locator, value: string): Promise<void> {
   await input.click();   // focus puts the caret on the last digit; click first so fill replaces the whole value
-  await input.fill(value);
+  if (value === '') await clearWithKeyboard(input); else await input.fill(value);
   await input.blur();
 }
 /** Paste `text` into a field at its caret or selection, as a real paste event (no clipboard permission needed). */

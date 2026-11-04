@@ -80,6 +80,7 @@ files:
   - packages/design/fields/phoneRowSizes.ts
   - packages/design/test/fields/phoneRowColumns.test.ts
   - packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
+  - packages/ui/test/architecture/ui-clear-tests-use-keyboard.test.ts
   - packages/ui/src/ui/shells/original/OriginalShell.vue
   - packages/ui/test/ui/driver-editor-units.browser.spec.ts
   - bugs/BUG_20261026_driver-selector-summary-alignment-regression.md

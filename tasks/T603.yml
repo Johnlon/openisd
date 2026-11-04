@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: agy
 status: done
+landed: 90561d71889c781d45a2119518fdfbc2ff696bfd
 goal: Scan the full OpenISD code tree for hacks and violations, classify each finding with evidence and impact, and track required fixes or accepted exceptions.
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

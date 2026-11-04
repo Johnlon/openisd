@@ -7,6 +7,7 @@ import type {Page} from '@playwright/test';
 import {expect, test} from '../fixtures.js';
 import {forceMobileSkin, tapMobileMenuItem} from '../fixtures/mobileSkin.js';
 import {PIXEL_9} from '../fixtures/phoneSizes.js';
+import {clearWithKeyboard} from '../fixtures/numField.js';
 
 const TEST_DRIVER = 'Tang Band W5-1138SMF';
 const BOXES = ['#np-pr-name', '#np-pr-vas', '#np-pr-qms', '#np-pr-fs', '#np-pr-sd', '#np-pr-xmax'] as const;
@@ -42,7 +43,7 @@ test('(a) emptying Vas, then picking the same radiator again, fills every box', 
   await pickE150(page);
   await expectAllFilled(page, 'first pick');
   const vas = await page.locator('#np-pr-vas').inputValue();
-  await page.locator('#np-pr-vas').fill('');
+  await clearWithKeyboard(page.locator('#np-pr-vas'));
   await pickE150(page);
   await expectAllFilled(page, 'after emptying Vas and picking again');
   await expect(page.locator('#np-pr-vas')).toHaveValue(vas);
@@ -51,7 +52,7 @@ test('(a) emptying Vas, then picking the same radiator again, fills every box', 
 test('(b)(d) a second wizard, after a created project or a cancelled one, fills every box on a pick', async ({page}) => {
   await openWizardAtRadiatorStep(page);
   await pickE150(page);
-  await page.locator('#np-pr-fs').fill('');
+  await clearWithKeyboard(page.locator('#np-pr-fs'));
   await page.locator('.mob-np-footer').getByText('Cancel', {exact: true}).click();
   await expect(page.locator('.mob-np-overlay')).toBeHidden();
 

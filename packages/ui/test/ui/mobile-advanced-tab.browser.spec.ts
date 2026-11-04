@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * The mobile Advanced tab. The FIELD WIRING itself (env overrides, loss mode, WinISD-compat
  * switches) is proven once, in `packages/ui/test/hooks/OriginalShell-hooks.test.ts`'s
@@ -70,9 +71,9 @@ test('typing a sound velocity and an air density enters them; clearing returns t
   await expect(rho).not.toHaveClass(/value-c/);
   await expect(c).toHaveValue(/222\.5/);
 
-  await c.fill('');
+  await clearWithKeyboard(c);
   await c.press('Tab');
-  await rho.fill('');
+  await clearWithKeyboard(rho);
   await rho.press('Tab');
   await expect(c).toHaveClass(/value-c/);
   await expect(rho).toHaveClass(/value-c/);

@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * The Driver Editor (DriverEditorModal, shared with desktop) at phone width, opened from the mobile
  * Driver tab.
@@ -337,7 +338,7 @@ test('on the phone the incomplete-driver text scrolls with the fields, not fixed
   await page.getByText('Edit', { exact: true }).click();
   await expect(page.locator('.de-modal')).toBeVisible();
   await page.locator('.de-tab', { hasText: 'General' }).click();
-  await page.locator('.de-fld[data-field-key="brand"] input').fill('');
+  await clearWithKeyboard(page.locator('.de-fld[data-field-key="brand"] input'));
   const strip = page.locator('.de-incomplete').first();
   await expect(strip).toBeVisible();
   expect(await strip.evaluate(el => el.closest('.de-scroll') !== null), 'the strip is inside the scroll area').toBe(true);

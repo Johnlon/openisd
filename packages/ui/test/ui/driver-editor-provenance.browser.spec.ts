@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 import {driverEditorField, expect, forEachEditorTab, openAProject, openAMobileProject, openDriverEditor, seedDriverInEditor, test} from '../fixtures.js';
 import type {Page} from '@playwright/test';
 import {PROVENANCE_MAP} from '../../src/logic/provenance.js';
@@ -140,7 +141,7 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
     const qes = page.locator('.de-fld:has-text("Qes") input').first();
     const qms = page.locator('.de-fld:has-text("Qms") input').first();
 
-    await qts.fill('');
+    await clearWithKeyboard(qts);
     await qes.fill('0.35');
     await qms.fill('3.50');
 
@@ -152,7 +153,7 @@ test.describe('Driver Editor E/C/N Provenance Class Audit', () => {
     await page.getByRole('button', { name: 'Parameters', exact: true }).click();
 
     const input = page.locator('.de-fld:has-text("Pe") input').first();
-    await input.fill('');
+    await clearWithKeyboard(input);
 
     const hasNotEntered = await input.evaluate(el => el.closest('.value-n') !== null);
     expect(hasNotEntered).toBe(true);

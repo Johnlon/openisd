@@ -1,6 +1,6 @@
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, expectChartDrawn, openAProject, openTab, shownDriverSpec, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
-import {fillAndBlur} from '../fixtures/numField.js';
+import {fillAndBlur, clearWithKeyboard} from '../fixtures/numField.js';
 
 /**
  * The Original shell's Signal tab. P (System input power) and V (Driver input voltage) are one
@@ -115,7 +115,7 @@ test.describe('Original Signal tab', () => {
       const row = page.locator('.ui-field', { hasText: 'Series resistance' });
       const box = row.locator('input');
       await fillAndBlur(box, '0.5');
-      await box.fill('');
+      await clearWithKeyboard(box);
       await expect(box).toHaveValue('');
       await expect(row.locator('.ui-field-dq-btn')).toBeVisible();
       await box.press('Escape');
