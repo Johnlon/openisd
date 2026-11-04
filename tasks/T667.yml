@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 51a30535aa8067d45f3114b8662c143b7fa800fb
 goal: After the refresh-recovery page (or any first install), the app does not reload itself on the first service-worker takeover of a page that had no worker: it is already the newest build
 done_test: bash scripts/test.sh packages/ui/test/logic/appUpdate.test.ts
 files:

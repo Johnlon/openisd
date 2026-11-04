@@ -489,7 +489,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       return;
     }
     const res = await selection.selectDriver(d);
-    if (!res.ok) { statusErr.value = true; statusMsg.value = res.error!; return; }
+    if (!res.ok) { statusErr.value = true; statusMsg.value = res.error; return; }
     statusMsg.value = '';
   }
 

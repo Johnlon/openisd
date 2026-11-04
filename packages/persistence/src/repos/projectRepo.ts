@@ -355,17 +355,35 @@ function projectNameOf(text: string): string | null {
   }
 }
 
+  /** The collection text already kept whole and reported, so each unreadable text is handled once. */
+  let keptUnreadable: string | null = null;
+
+  /** A saved-projects list that exists but cannot be read is never replaced by the single-project
+   *  keys: its raw text is kept whole in a pre-repair copy and the fault is reported. The primary
+   *  list's fault is raised at start-up (`migrateStoredProjects`); a legacy list's is raised here. */
+  function keepUnreadableCollection(key: string, text: string, why: string): void {
+    if (keptUnreadable === text) return;
+    keptUnreadable = text;
+    backup.keepPreRepairCopy('projects', text);
+    if (key !== PROJECTS_STORAGE_KEY) console.error(createStoredDataFault('project', `stored projects collection ${key} ${why}`));
+  }
+
   function readStoredEntries(): StoredProjectEntry[] {
     for (const key of [PROJECTS_STORAGE_KEY, LEGACY_PROJECTS_STORAGE_KEY]) {
       const collectionText = storage.get(key);
       if (collectionText === null) continue;
+      let payload: StoredProjectsPayload | null;
       try {
-        const parsed: unknown = JSON.parse(collectionText);
-        const payload = storedProjectsPayload(parsed);
-        // A readable list is the answer even when empty: the user deleted the last one, and the
-        // single-project keys below would bring it back.
-        if (payload) return payload.entries;
-      } catch { /* fall through to the legacy single-project key */ }
+        payload = storedProjectsPayload(JSON.parse(collectionText));
+      } catch {
+        keepUnreadableCollection(key, collectionText, 'is not valid JSON');
+        return [];
+      }
+      // A readable list is the answer even when empty: the user deleted the last one, and the
+      // single-project keys below would bring it back.
+      if (payload) return payload.entries;
+      keepUnreadableCollection(key, collectionText, 'has an invalid shape');
+      return [];
     }
     for (const key of [PROJECT_STORAGE_KEY, LEGACY_PROJECT_STORAGE_KEY]) {
       const text = storage.get(key);
