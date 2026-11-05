@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 22a795aee8351e85e7c39cd86f639bce28687a80
 goal: Carry from t607-fix-c2: digit restore only on a Tab return, a fresh selection is kept on refocus, chart reference lines draw one crisp pixel row, ABC three-port columns fit a narrow bottom panel
 done_test: bash scripts/test.sh packages/ui/test/hooks/NumInput-hooks.test.ts packages/design/test/chart/chart-layout.test.ts
 files:

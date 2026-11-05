@@ -537,8 +537,10 @@ export const openISDDeviceJsonSchema = z.strictObject({
         // Optional (T433): today's scraper record carries neither, and an absent one stays absent —
         // no default is invented for it. An older record still carrying them parses beside it.
         missing: z.string().array().optional(),
-        invalid: z.string().array(),
-        parse_errors: z.string().array(),
+        // Optional (QO395): the scraper's new driver.json has no `quality.invalid`, and the slim model
+        // has no quality block at all. Old records still carrying them parse beside a new one with neither.
+        invalid: z.string().array().optional(),
+        parse_errors: z.string().array().optional(),
         cross_source_only: z.unknown().array().optional(),
     }),
     manufacturer: textField,

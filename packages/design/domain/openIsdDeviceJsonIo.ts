@@ -6,6 +6,7 @@
  * save.
  */
 import {newUuid} from './newUuid.js';
+import {withoutScraperOnlyFields} from './withoutScraperOnlyFields.js';
 import {openISDDeviceJsonSchema} from './openisdSchema.js';
 import {CURRENT_SCHEMA_VERSION, upgradeToCurrent} from './schemaVersion.js';
 import type {OpenISDDeviceJson as OpenISDDeviceJsonRecord} from './openisdSchema.js';
@@ -53,7 +54,7 @@ function stripDriverYmlOnlyFields(value: unknown): unknown {
 
 function freshDriverRecord(value: unknown): unknown {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
-    return { ...value, uuid: { value: newUuid() } };
+    return { ...withoutScraperOnlyFields(Object.fromEntries(Object.entries(value))), uuid: { value: newUuid() } };
 }
 
 export function sortKeysDeep(value: unknown): unknown {

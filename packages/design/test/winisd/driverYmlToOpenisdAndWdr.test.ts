@@ -55,6 +55,27 @@ function scraperTupleFixture(name: string): string {
 
 describe('driverYmlToOpenisdAndWdr', () => {
   describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error array', () => {
+    it('accepts the scraper\'s new driver.json shape: discontinued present, no quality.invalid, issue or cross_references; drops discontinued (QO395)', () => {
+      const record: unknown = parse(daytonDriverYml());
+      if (!isRecord(record) || !isRecord(record.quality) || !isRecord(record.scraper_meta)) throw new Error('fixture shape');
+      const {invalid: _invalid, issue: _issue, cross_references: _cross, ...quality} = record.quality;
+      const {pdf_corroboration: _pdf, datasheet_fallback: _fallback, manufacturer_datasheet: _datasheet, ...scraperMeta} = record.scraper_meta;
+      const newShape = {...record, discontinued: false, quality, scraper_meta: scraperMeta};
+      const result = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(JSON.stringify(newShape));
+      assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
+      assert.ok(result.openisd !== null && result.wdr !== null);
+      assert.equal('discontinued' in JSON.parse(result.openisd), false, 'the slim model carries no discontinued');
+    });
+
+    it('still accepts an old record that carries quality.cross_references and the old scraper_meta keys', () => {
+      const record: unknown = parse(daytonDriverYml());
+      if (!isRecord(record) || !isRecord(record.quality)) throw new Error('fixture shape');
+      const old = {...record, quality: {...record.quality, cross_references: []}};
+      const result = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(JSON.stringify(old));
+      assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
+      assert.ok(result.openisd !== null);
+    });
+
     it('projects per-coil and series tuple values into app values and terminal WDR values', () => {
       const source = scraperTupleFixture('sb-acoustics-sw26dac76-3-dv.driver.json');
       const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);

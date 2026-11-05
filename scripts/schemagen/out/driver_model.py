@@ -39,8 +39,8 @@ class RootQuality(Strict):
     confirmed_fields: list[str] = None
     fields_with_issues: list[str] = None
     missing: list[str] = None
-    invalid: list[str]
-    parse_errors: list[str]
+    invalid: list[str] = None
+    parse_errors: list[str] = None
     cross_source_only: list[object] = None
 
 _union_text_field_dq_scraper_1_member_0 = TypeAdapter(object, config=ConfigDict(strict=True))

@@ -21,6 +21,7 @@
  * `jsonRoundTripDiffs`) live in `driverRoundTripDiffs.ts` — this file keeps the conversion logic
  * itself.
  */
+import { withoutScraperOnlyFields } from "./withoutScraperOnlyFields.js";
 import { parse as parseYmlToJs } from "yaml"; // driver.yml input; openisd/.wdr output is JSON/INI
 import {z} from "zod";
 
@@ -740,7 +741,7 @@ export class DriverRecordConverter {
     // rather than discovered by re-walking the finished record a second time; the text pass below
     // adds one per character it had to rewrite, to the same array.
     const warnings: DriverError[] = [];
-    const record = this.#stripScraperOnlyFieldsFromJavascriptObject(javascriptThing,  warnings);
+    const record = this.#stripScraperOnlyFieldsFromJavascriptObject(withoutScraperOnlyFields(javascriptThing),  warnings);
 
     return { ok: true, record: makeObjectTextWinisdSafe(record, "", warnings), warnings };
   }
