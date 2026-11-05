@@ -355,7 +355,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             () => enteredCell('sku', this.record.value.sku.value),
             {
                 entered: (v: string) => {
-                    this.record.set({...this.record.value, sku: {value: v, grounds: [{origin: 'manual', reading: v}]}});
+                    this.record.set({...this.record.value, sku: {value: v}});
                 },
             },
         );

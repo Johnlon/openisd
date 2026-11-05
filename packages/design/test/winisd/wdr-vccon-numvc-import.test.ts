@@ -14,7 +14,6 @@
  * zero or absent then it should [be] recorded as C in openisd and the default calculated 1 comes
  * thru").
  */
-import {isUsable} from '../../domain/corroboration.js';
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 
@@ -24,10 +23,9 @@ import {driverSpecsOf} from '../../domain/openisdSchema.js';
 import {winISDDriverToOpenISDDeviceJson} from '../../domain/winIsdDriverImport.js';
 
 /** Every entry this file imports is entered — narrows the `SpecEntryJson` union so a test can
- *  read `.readings` without repeating the guard at each call site. */
+ *  read `.value` without repeating the guard at each call site. */
 function manualValue(entry: Extract<SpecEntryJson, { state: 'E' }>): number | undefined {
-  const manual = entry.readings?.manual;
-  return manual !== undefined && isUsable(manual) ? manual.read_value : undefined;
+  return entry.value;
 }
 
 function asEntered(entry: SpecEntryJson | undefined): Extract<SpecEntryJson, { state: 'E' }> {
@@ -50,13 +48,11 @@ describe('.wdr VCCon import', () => {
     const entry = vcconOf(wdrStating('2', 'N'));
     assert.notEqual(entry, undefined);
     assert.equal(manualValue(asEntered(entry)), 2);
-    assert.equal(asEntered(entry).dq_calculated, undefined);
   });
 
   it('VCCon=1 marked N imports as parallel', () => {
     const entry = vcconOf(wdrStating('1', 'N'));
     assert.equal(manualValue(asEntered(entry)), 1);
-    assert.equal(asEntered(entry).dq_calculated, undefined);
   });
 
   it('VCCon=2 marked E imports as series', () => {
@@ -125,13 +121,11 @@ describe('.wdr numVC import', () => {
   it('numVC=2 imports untouched', () => {
     const entry = numVCOf(wdrStatingNumVC('2'));
     assert.equal(manualValue(asEntered(entry)), 2);
-    assert.equal(asEntered(entry).dq_calculated, undefined);
   });
 
   it('numVC=4 imports untouched — four coils is a real driver', () => {
     const entry = numVCOf(wdrStatingNumVC('4'));
     assert.equal(manualValue(asEntered(entry)), 4);
-    assert.equal(asEntered(entry).dq_calculated, undefined);
   });
 
   it('numVC=123 is coerced to 1 — warning emitted, no dq mark on the record', () => {
@@ -139,8 +133,6 @@ describe('.wdr numVC import', () => {
     const entry = numVCOf(wdr);
     const warnings = numVCWarningsOf(wdr);
     assert.equal(manualValue(asEntered(entry)), 1);
-    assert.equal(asEntered(entry).readings?.manual?.actual_reading, '123');
-    assert.equal(asEntered(entry).dq_calculated, undefined);
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.level, 'warn');
     assert.equal(warnings[0]!.field, 'numVC');
@@ -152,8 +144,6 @@ describe('.wdr numVC import', () => {
     const entry = numVCOf(wdr);
     const warnings = numVCWarningsOf(wdr);
     assert.equal(manualValue(asEntered(entry)), 1);
-    assert.equal(asEntered(entry).readings?.manual?.actual_reading, '0');
-    assert.equal(asEntered(entry).dq_calculated, undefined);
     assert.equal(warnings.length, 1);
     assert.equal(warnings[0]!.field, 'numVC');
   });

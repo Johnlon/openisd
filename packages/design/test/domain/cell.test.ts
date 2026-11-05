@@ -171,17 +171,14 @@ describe('entryField — precision, derived from the entry\'s own shape', () => 
     expect(field.precision).toBeCloseTo(0.005, 9);
   });
 
-  it('an entered value with a matching reading uses that reading\'s own stated precision', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>({
-      state: 'E', value: 0.49, origin: 'datasheet',
-      readings: { datasheet: { read_value: 0.49, read_precision: 0.01 } },
-    });
+  it('an entered value that states a precision uses it', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>({ state: 'E', value: 0.49, precision: 0.01 });
     const field = entryField(slot, 'x');
     expect(field.precision).toBe(0.01);
   });
 
-  it('an entered value naming an origin with no matching reading falls back to half-ulp', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>({ state: 'E', value: 0.49, origin: 'datasheet' });
+  it('an entered value that states no precision falls back to half-ulp', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>({ state: 'E', value: 0.49 });
     const field = entryField(slot, 'x');
     expect(field.precision).toBeCloseTo(0.005, 9);
   });

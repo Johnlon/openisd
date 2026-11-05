@@ -468,18 +468,14 @@ export class WinIsdProjectConverter {
           });
           return {value: null, errors};
         }
-        const manual = (v: number): SpecEntryJson => ({state: 'E', value: v, origin: 'manual', readings: {manual: {actual_reading: String(v), read_value: v}}});
+        const manual = (v: number): SpecEntryJson => ({state: 'E', value: v});
         // The .wpr states only Vas/Qms/Fs/Sd/Xmax; the project's resolve derives Mms, Cms and Rms.
         const radiatorRecord: RadiatorDeviceJson = {
           brand: {value: 'WinISD import'}, model: {value: 'passive-radiator'},
           manufacturer: {value: 'WinISD import'}, driver_type: {value: ['passive-radiator']},
           uuid: {value: '00000000-0000-4000-8000-000000000002'},
-          sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
+          sku: {value: ''},
           data_sources: {value: {}},
-          quality: {
-            confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-            parse_errors: [], cross_source_only: [],
-          },
           specs: {
             'passive-radiator': {
               ...(vas != null ? {Vas_m3: manual(vas)} : {}),

@@ -60,11 +60,10 @@ describe('driver.json the scraper writes today', () => {
     assert.ok(project(NEW_RECORD).wdr?.toLowerCase().includes('printed') === false);
   });
 
-  it('an absent quality.missing stays absent: no default is invented', () => {
-    const quality = at(parse(project(NEW_RECORD).openisd ?? 'null'), 'quality');
-    assert.ok(isRecord(quality));
-    assert.ok(!('missing' in quality), 'quality.missing stays absent');
-    assert.ok(!('cross_source_only' in quality), 'quality.cross_source_only stays absent');
+  it('the quality summary stays in driver.json: openisd.json (the slim model) carries none (QO395)', () => {
+    const record: unknown = parse(project(NEW_RECORD).openisd ?? 'null');
+    assert.ok(isRecord(record));
+    assert.ok(!('quality' in record), 'openisd.json has no quality');
   });
 
   it('a string driver_type and a one-element array parse to the same list', () => {

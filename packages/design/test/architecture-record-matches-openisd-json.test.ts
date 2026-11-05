@@ -22,14 +22,14 @@ describe('OpenISDDeviceJson matches the openisd.json record', () => {
   // Counting records is NOT a substitute and is not done here: a count cannot distinguish "the
   // model requires it" from "every record we happen to hold has it".
   const ALWAYS = [
-    'uuid', 'quality', 'manufacturer', 'brand', 'model', 'sku',
+    'uuid', 'manufacturer', 'brand', 'model', 'sku',
     'driver_type', 'data_sources', 'specs',
   ];
-  // `authoritative` is retired (John, 2026-10-04: "kill it" — the app picks the origin itself,
-  // selectOrigin.ts). Records written before winisd_tools stopped emitting it still carry it, so
-  // it stays readable, optional, and is never written.
+  // openisd.json is the slim model (QO395, John 3 Nov 2026): `quality`, `authoritative`,
+  // `categories` and `nominal_size_cm` are not in it. A record that still carries them is
+  // upgraded on load (`slimModel.ts`) and they stay in driver.json.
   const SOMETIMES = [
-    'authoritative', 'series', 'nominal_size_cm', 'product_image', 'description',
+    'series', 'product_image', 'description',
     'surround_material', 'provided_by', 'comment', 'added', 'curves',
   ];
 

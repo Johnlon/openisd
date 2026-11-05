@@ -89,8 +89,8 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(at(app, 'specs', 'woofer', 'BL_basis'), undefined);
       assert.equal(at(app, 'specs', 'woofer', 'numVC', 'value'), 2);
       assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'value'), 2, '2 is series in the app record');
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings', 'manufacturer_datasheet', 'read_value'), 19.4,
-        'raw source reading remains the published series total');
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings'), undefined,
+        'the raw source reading (the published series total, 19.4) stays in driver.json; the .wdr below carries it');
 
       const winisd = WinISDDriver.fromWdrIni(wdr);
       assert.equal(winisd.cell('Re').value, '4.8');
@@ -169,7 +169,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
         'top-level keys are alphabetical');
     });
 
-    it('keeps a rejected reading with its printed text, beside the usable ones (QO177)', () => {
+    it('a rejected reading beside a usable one: the value is the usable one and the readings stay in driver.json (QO177, QO395)', () => {
       // Synthetic Re entry: one usable reading, one source that printed N/A.
       const record: unknown = parse(daytonDriverYml());
       const woofer = at(record, 'specs', 'woofer');
@@ -183,11 +183,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
       const { openisd, errors } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
       assert.ok(openisd !== null, `a readable record produces openisd.yml; errors: ${JSON.stringify(errors)}`);
 
-      const reReadings = at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings');
-      assert.deepEqual(reReadings, {
-        manufacturer_listing_page: {actual_reading: '3.1 Ω', read_value: 3.1},
-        manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
-      });
+      assert.equal(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings'), undefined);
       assert.equal(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'value'), 3.1);
     });
 
@@ -270,7 +266,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(at(re, 'readings', 'manufacturer_datasheet', 'actual_reading'), 'banana');
     });
 
-    it('an unknown rejection reason loads, keeps the reading and raw reason, and raises one named warning', () => {
+    it('an unknown rejection reason loads and raises one named warning', () => {
       const record: unknown = parse(daytonDriverYml());
       const woofer = at(record, 'specs', 'woofer');
       if (!isRecord(woofer)) throw new Error('expected specs.woofer');
@@ -280,8 +276,6 @@ describe('driverYmlToOpenisdAndWdr', () => {
       }};
       const { openisd, errors } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
       assert.ok(openisd !== null, `errors: ${JSON.stringify(errors)}`);
-      assert.deepEqual(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings', 'manufacturer_datasheet'),
-        {actual_reading: 'tbd', rejected: 'synthetic-new-reason'});
       const named = errors.filter(e => e.message.includes('unrecognised rejection reason'));
       assert.equal(named.length, 1);
       assert.ok(named[0].message.includes('synthetic-new-reason'));
@@ -544,19 +538,24 @@ describe('driverYmlToOpenisdAndWdr', () => {
       // adds (John, 2026-08-31, 2026-09-01, 2026-09-05, 2026-09-20 option A, D9/D11): `dq_calculated`,
       // the `state`/`value` pair on every entered spec entry, the `state: C` entries the solver
       // derives on load, and — since driver.yml stopped carrying them (D15) — the `origin`/
-      // `corroboration` a spec entry now gets computed for it here rather than supplied. Anything
-      // else that changed is a silent loss, and this is the assertion that names it.
+      // `corroboration` a spec entry now gets computed for it here rather than supplied. Since
+      // openisd.json is the slim model (QO395) it also drops what stays in driver.json: `readings`,
+      // `quality`, `dq_scraper`, `sku.grounds`, `categories`, `nominal_size_cm`, `authoritative`, and
+      // takes the stated `precision` off the winning reading. Anything else that changed is a silent
+      // loss, and this is the assertion that names it.
       const source = daytonDriverYml();
       const { openisd } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
       assert.ok(openisd !== null);
       const isCalculatedEntry = (v: unknown): boolean =>
         isRecord(v) && !Array.isArray(v) && v.state === 'C';
+      const SLIM_DROPS = ['readings', 'quality', 'dq_scraper', 'grounds', 'categories', 'nominal_size_cm', 'authoritative', 'precision'];
       const stripDeep = (v: unknown): unknown => {
         if (Array.isArray(v)) return v.map(stripDeep);
         if (!isRecord(v)) return v;
         return Object.fromEntries(Object.entries(v)
           .filter(([k, x]) => k !== 'definition' && k !== 'scraper_meta' && k !== 'origin'
             && k !== 'corroboration' && k !== 'dq_calculated' && k !== 'state' && k !== 'value' && k !== 'schemaVersion'
+            && !SLIM_DROPS.includes(k)
             && !isCalculatedEntry(x))
           .map(([k, x]) => [k, stripDeep(x)]));
       };

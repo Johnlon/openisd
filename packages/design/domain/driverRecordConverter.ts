@@ -39,6 +39,7 @@ import {
 } from "./openisdSchema.js";
 import {winISDDriverToOpenISDDeviceJson} from "./winIsdDriverImport.js";
 import {sortKeysDeep} from "./openIsdDeviceJsonIo.js";
+import {slimmedDevice} from "./slimModel.js";
 import {dqMarks} from "./specEntry.js";
 import {selectOrigin} from "./selectOrigin.js";
 import {sourceRank} from "./sourceRank.js";
@@ -429,7 +430,7 @@ function rejectedReadingCommentLines(driver: OpenISDDriver): string[] {
   for (const section of sections) {
     for (const [field, entry] of Object.entries(section)) {
       if (entry === undefined || !('state' in entry) || entry.state !== "N") continue;
-      const ranked = Object.entries(entry.readings).sort(
+      const ranked = Object.entries(entry.readings ?? {}).sort(
         ([a], [b]) => sourceRank(a) - sourceRank(b) || a.localeCompare(b)
       );
       for (const [role, r] of ranked) {
@@ -743,7 +744,9 @@ export class DriverRecordConverter {
     const warnings: DriverError[] = [];
     const record = this.#stripScraperOnlyFieldsFromJavascriptObject(withoutScraperOnlyFields(javascriptThing),  warnings);
 
-    return { ok: true, record: makeObjectTextWinisdSafe(record, "", warnings), warnings };
+    // The record leaves the bridge in the slim model (QO395): the readings, origin and verdicts above
+    // decided each value and its precision, and stay in driver.json.
+    return { ok: true, record: makeObjectTextWinisdSafe(slimmedDevice(record), "", warnings), warnings };
   }
 
   /**

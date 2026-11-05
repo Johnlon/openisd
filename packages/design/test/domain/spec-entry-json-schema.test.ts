@@ -8,12 +8,20 @@ describe('specEntryJsonSchema — the {state, value} sum type', () => {
     expect(() => specEntryJsonSchema.parse(bareScraperShape)).toThrow();
   });
 
-  it('parses an entry the bridge already built: {state:"E", value, origin, readings}', () => {
-    const built = {
-      state: 'E' as const, value: 32.5, origin: 'datasheet',
-      readings: { datasheet: { read_value: 32.5 } },
-    };
+  it('parses an entry the bridge built: {state:"E", value, precision}', () => {
+    const built = { state: 'E' as const, value: 32.5, precision: 0.05 };
     expect(specEntryJsonSchema.parse(built)).toEqual(built);
+  });
+
+  it('refuses the provenance the slim model leaves in driver.json: origin, readings, corroboration, dq marks (QO395)', () => {
+    for (const extra of [{ origin: 'datasheet' }, { readings: { datasheet: { read_value: 32.5 } } }, { corroboration: 'MATCH' }, { dq_scraper: [] }, { dq_calculated: [] }]) {
+      expect(() => specEntryJsonSchema.parse({ state: 'E', value: 32.5, ...extra })).toThrow();
+    }
+  });
+
+  it('a not-available entry keeps the readings the Driver Editor still quotes (QO420 open)', () => {
+    const none = { state: 'N' as const, readings: { datasheet: { actual_reading: 'N/A', rejected: 'no-numeric-value' } } };
+    expect(specEntryJsonSchema.parse(none)).toEqual(none);
   });
 
   it('a record with neither state nor any recognised shape is a parse error', () => {

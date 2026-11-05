@@ -141,12 +141,14 @@ function libraryResaved(value: string | undefined, resave: (record: unknown) => 
   return JSON.stringify({...bucket, entries});
 }
 
-/** Layout 3 -> 4: every stored project, driver and passive radiator carries `schemaVersion`
- *  (QO395). Each is read through the upgrade and written again the way every later write does it.
- *  Exported `.owpr` and `.owdr` files are not touched: a file with no version reads as version 2. */
-function stepThreeToFour(engine: Engine): LayoutStep {
+/** Every stored project, driver and passive radiator read through the upgrade and written again the
+ *  way every later write does it. Layout 3 -> 4: each carries `schemaVersion` (QO395). Layout 4 -> 5:
+ *  each is in the slim model, so a record the layout-4 build wrote with readings, quality and the
+ *  rest sheds them once. Exported `.owpr` and `.owdr` files are not touched: a file with no
+ *  version reads as version 2. */
+function stepResavingEverything(from: number, engine: Engine): LayoutStep {
   return {
-    from: 3,
+    from,
     migrate(data: StoreData): StoreData {
       const next: Record<string, string> = {...data};
       for (const key of [OPENISD_PROJECTS_KEY, OPENISD_OPEN_SESSIONS_KEY, OPENISD_QUARANTINE_SESSION_KEY]) {
@@ -176,5 +178,5 @@ function stepThreeToFour(engine: Engine): LayoutStep {
  *  default settings: the store (and so the app's settings) is not readable until it is migrated.
  *  It also takes the source of new project ids. */
 export function createLayoutSteps(engine: Engine, newId: () => string): readonly LayoutStep[] {
-  return [STEP_1_TO_2, stepTwoToThree(engine, newId), stepThreeToFour(engine)];
+  return [STEP_1_TO_2, stepTwoToThree(engine, newId), stepResavingEverything(3, engine), stepResavingEverything(4, engine)];
 }

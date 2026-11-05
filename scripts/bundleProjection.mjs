@@ -7,12 +7,15 @@
  * and section checks, not a wrapped domain object or an Engine.
  */
 import {driverDeviceJsonSchema, radiatorDeviceJsonSchema} from '../packages/design/domain/openisdSchema.ts';
+import {upgradeToCurrent} from '../packages/design/domain/schemaVersion.ts';
 
 /** Whether the record is structurally readable as a device — schema validates and it has the
  *  section of a driver or of a passive radiator (the bundle carries both kinds). No Engine, no
  *  domain object creation. */
 function recordConforms(record) {
-  return driverDeviceJsonSchema.safeParse(record).success || radiatorDeviceJsonSchema.safeParse(record).success;
+  const upgraded = upgradeToCurrent(record);
+  if ('refusal' in upgraded) return false;
+  return driverDeviceJsonSchema.safeParse(upgraded.value).success || radiatorDeviceJsonSchema.safeParse(upgraded.value).success;
 }
 
 /** A record-level `{ value, origin, definition }` wrapper's value. */
@@ -20,7 +23,7 @@ const valueOf = node => (node && typeof node === 'object' && 'value' in node ? n
 
 /** Row metadata for one openisd.json record: display name, driver_type, and whether it
  *  belongs in the bundle — computed once so the app does not redo it per render. The
- *  record itself is carried through to the caller verbatim, unmodified.
+ *  record itself is carried through to the caller unmodified (the bundler writes its slim form).
  *
  *  The final rule (QO79 amended, QO81, John — the paraphrase in this codebase is not a
  *  quotation of his exact words; see `questions.yml` QO81 for those): every structurally
@@ -33,11 +36,10 @@ const valueOf = node => (node && typeof node === 'object' && 'value' in node ? n
  *
  *  `recordConforms` (schema validation + section check) is checked first, before any
  *  field is read off `record` — a record failing it may not even be an object. It catches two
- *  throw classes: an absent or non-object `specs` (`readCell`/`OpenISDDriver#specs()`), and an
- *  absent `quality`/`quality.missing`/`quality.parse_errors` (`recordStandingIsOk`, which
- *  `driverHasDqIssues` reads unconditionally on every bundled row) — the same check that
+ *  throw classes: an absent or non-object `specs` (`readCell`/`OpenISDDriver#specs()`), and a
+ *  record the load upgrade cannot bring to the slim model (a newer schemaVersion) — the same check that
  *  guards My Drivers reads (`myDrivers.ts::list()`), so neither seam enforces a shape the
- *  other does not. It does NOT catch a `specs` whose interior is not the `_SpecEntry` shape —
+ *  other does not. The record has no `quality` (QO395; `quality.parse_errors` went with it). It does NOT catch a `specs` whose interior is not the `_SpecEntry` shape —
  *  `{specs:{woofer:{fs:12}}}` and `{specs:{woofer:'banana'}}` both conform here and still
  *  throw downstream in `readCell`/`OpenISDDriver`
  *  (open: `bugs/BUG_20260822_openisddriver_getters_throw_on_a_record_that_has_specs_but_not_the_spec_entry_shape.md`). */
