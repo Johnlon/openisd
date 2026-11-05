@@ -20,6 +20,7 @@ import {openStoredProject as openStoredProjectFromStore} from '../logic/storedPr
 import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
 import {copyChartDefinition, cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {createDesktopHelp} from './desktopHelp.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, FrequencyAxis, interpolatedY, TAB_META} from '@openisd/design/chart';
@@ -554,6 +555,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (tab === 'enclosure') featureUse.feature('vents');
   }, { immediate: true });
   watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
+  const desktopHelp = createDesktopHelp({ activeTab, selectedBox });
 
   // ---- Projects list -------------------------------------------------------------
   const projectList = computed(() => openProjects());
@@ -820,7 +822,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
-    showEnclosureTab, enclosureNavLabel,
+    showEnclosureTab, enclosureNavLabel, ...desktopHelp,
     selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 2b45f0f0a83bc9be7b1509539a924125d8554390
 goal: The stale mobile worker recovery check does not fail when the app navigates again after the refresh: find why it navigates a second time and fix it at its source
 done_test: bash scripts/test.sh packages/ui/test/logic/appUpdate.test.ts
 files:
