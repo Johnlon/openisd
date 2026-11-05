@@ -95,5 +95,11 @@ refused_gates "$r" && ok "8 John-answered QO that names T90, not T9, refuses" ||
 setup "" tsconfig.json; sed -i '/^GATE_FILES=/d' land.conf; git add -A; git commit -qm nogf; r=$(land)
 if refused_gates "$r" && grep -q 'GATE_FILES is not set in land.conf' "$SCRATCH/out"; then ok "9 unset GATE_FILES refuses"; else fail "9 (r=$r)"; fi
 
+# 10: land.conf and scripts/land.sh are themselves gate files (QO313). Edit = append a comment so the scratch run still works.
+for gf in land.conf scripts/land.sh; do
+    setup "" f.txt; echo "# edit" >> "$gf"; git add -A; git commit -qm wip2; r=$(land)
+    if refused_gates "$r" && grep -q "$gf" "$SCRATCH/out"; then ok "10 $gf without field refuses gates"; else fail "10 $gf (r=$r): $(tr '\n' ' ' < "$SCRATCH/out" | cut -c1-300)"; fi
+done
+
 [ $fails = 0 ] && { echo "land-gates: all passed"; exit 0; }
 echo "land-gates: $fails failed"; exit 1
