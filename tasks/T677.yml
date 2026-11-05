@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: c9ac3de0c374395f0389e16786694762f3a09e76
 goal: Bug files found incorrect or obsolete by the 5 Nov review move to bugs/archive, each with its verdict and evidence
 done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:

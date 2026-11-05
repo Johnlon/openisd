@@ -1,0 +1,11 @@
+id: T680
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Record: a phone turned sideways gets the desktop layout (QO418)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - bugs/BUG_20261105_phone-sideways-gets-desktop-layout.md
+  - tasks/T680.yml
