@@ -1,5 +1,5 @@
 import {expect, openTab, test, editorTab, openDriverEditor} from '../fixtures.js';
-import type {Page} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 import {readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -96,7 +96,15 @@ const CASES: readonly Case[] = [
   {box: 'abc', driver: 'dayton-audio/cx120-8', radiator: null},
 ];
 
-async function runJourney(page: Page, phone: boolean, c: Case): Promise<void> {
+
+/** The labels of the number boxes inside `scope` that hold no value. A box's label is its field key or its row label. */
+async function blankBoxes(scope: Locator): Promise<string[]> {
+  return scope.evaluateAll(roots => roots.flatMap(root => Array.from(root.querySelectorAll('input'))
+    .filter(i => (i.type === 'text' || i.type === 'number') && i.inputMode !== 'text' && i.value.trim() === '' && !i.disabled && i.offsetParent !== null)
+    .map(i => i.closest('[data-field-key]')?.getAttribute('data-field-key') ?? i.closest('.mob-field-row, .ui-field')?.textContent?.trim().slice(0, 30) ?? i.id)));
+}
+
+async function runJourney(page: Page, phone: boolean, c: Case, blanks: boolean): Promise<void> {
   const driver = loadRecord(c.driver, 'drivers-index.json');
   const radiator = c.radiator === null ? null : loadRecord(c.radiator.path, 'passive-radiators-index.json');
   const root = page.locator(phone ? '.mob-np-overlay' : '.overlay.open');
@@ -147,6 +155,7 @@ async function runJourney(page: Page, phone: boolean, c: Case): Promise<void> {
   // The project's Driver tab: every box holds the record's figure.
   await openTab(page, 'Driver');
   if (phone) {
+    if (blanks) expect.soft(await blankBoxes(page.locator('.mobile-root')), 'phone Driver tab: boxes left blank').toEqual([]);
     for (const f of PHONE_FIGURES) {
       const box = mobileFieldRow(page, f.label).locator('input').first();
       await expect.soft(box, `driver ${f.label} has a value`).toHaveValue(/\d/);
@@ -155,6 +164,7 @@ async function runJourney(page: Page, phone: boolean, c: Case): Promise<void> {
   } else {
     await openDriverEditor(page);
     await editorTab(page, 'Parameters');
+    if (blanks) expect.soft(await blankBoxes(page.locator('.de-body')), 'driver editor Parameters: boxes left blank').toEqual([]);
     for (const f of EDITOR_FIGURES) {
       if (driver.figure(f.key) === null) continue;
       const box = page.locator(`.de-body [data-field-key="${f.key}"] input`).first();
@@ -167,6 +177,7 @@ async function runJourney(page: Page, phone: boolean, c: Case): Promise<void> {
 
   if (radiator !== null) {
     if (phone) await openTab(page, 'Box');
+    if (blanks) expect.soft(await blankBoxes(phone ? page.locator('.mobile-root') : page.locator('.tab-section.active')), 'passive radiator page: boxes left blank').toEqual([]);
     const shown = await readPassiveRadiatorTab(page);
     const num = (field: NumberField, key: string) => Number(field.format(required(radiator, key)));
     const xmaxKey = radiator.figure('Xmax_m') !== null ? 'Xmax_m' : 'Xlim_m';
@@ -179,12 +190,21 @@ async function runJourney(page: Page, phone: boolean, c: Case): Promise<void> {
   }
 }
 
+const BLANK_BOXES_BUG = 'BUG_20261105_driver-editor-parameter-boxes-blank-after-pick';
+
 test.describe('Journey: pick a bundled driver and radiator, every box fills', () => {
   for (const c of CASES) {
     const title = `${c.box} / ${c.driver}${c.radiator === null ? '' : ` + ${c.radiator.path}`}`;
 
     test(`desktop: ${title}`, async ({appPage: page}) => {
-      await runJourney(page, false, c);
+      await runJourney(page, false, c, false);
+
+      await expect(page.locator('.overlay.open'), 'the wizard is closed').toHaveCount(0);
+    });
+
+    test(`desktop: every box holds a value: ${title}`, async ({appPage: page}) => {
+      test.fail(true, BLANK_BOXES_BUG);
+      await runJourney(page, false, c, true);
 
       await expect(page.locator('.overlay.open'), 'the wizard is closed').toHaveCount(0);
     });
@@ -195,7 +215,15 @@ test.describe('Journey: pick a bundled driver and radiator, every box fills', ()
       test(`phone: ${title}`, async ({page}) => {
         await forceMobileSkin(page);
         await page.goto('/');
-        await runJourney(page, true, c);
+        await runJourney(page, true, c, false);
+
+        await expect(page.locator('.mob-np-overlay'), 'the wizard is closed').toHaveCount(0);
+      });
+
+      test(`phone: every box holds a value: ${title}`, async ({page}) => {
+        await forceMobileSkin(page);
+        await page.goto('/');
+        await runJourney(page, true, c, true);
 
         await expect(page.locator('.mob-np-overlay'), 'the wizard is closed').toHaveCount(0);
       });
