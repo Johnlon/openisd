@@ -65,6 +65,10 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
 
   const focused = ref(false);
   let pointerEntering = false;
+  // A Tab or Shift+Tab pressed on the unit or a spinner button: the focus it moves back into the
+  // box is a keyboard return, which restores the chosen place. A focus by script (a test's fill,
+  // a dialog's autofocus) is not, and keeps whatever selection the script makes next.
+  let tabReturn = false;
   const groupFocused = ref(false);
   const badEntry = ref(false);
   /** The person emptied the box (a typed blank), as opposed to a box that never had a value. */
@@ -101,7 +105,9 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
 
   function onFocus(event: FocusEvent) {
     const fromPointer = pointerEntering;
+    const fromTab = tabReturn;
     pointerEntering = false;
+    tabReturn = false;
     const entering = !groupFocused.value;
     focused.value = true;
     groupFocused.value = true;
@@ -109,11 +115,15 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
       if (fromPointer) return;
       // Returning from the unit or spinner keeps the chosen place. Cancel restoration
       // if a subsequent native selection or pointer action has taken ownership.
-      if (ownGroup(event.relatedTarget)) {
+      if (fromTab && ownGroup(event.relatedTarget)) {
         nativeTextSelection = false;
         const index = underlineIndex.value ?? digitAtCaret(display.value, display.value.length);
+        const el = inputEl.value;
+        const focusedSelection = el === null ? null : `${el.selectionStart}:${el.selectionEnd}`;
         queueMicrotask(() => {
-          if (!nativeTextSelection && document.activeElement === inputEl.value && index !== null) chooseDigit(index);
+          // A select-all (or any selection) made straight after focusing has taken ownership.
+          const selectionMoved = el !== null && `${el.selectionStart}:${el.selectionEnd}` !== focusedSelection;
+          if (!nativeTextSelection && !selectionMoved && document.activeElement === inputEl.value && index !== null) chooseDigit(index);
         });
       }
       return;
@@ -357,7 +367,13 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     applyEdit(el, pastedEdit(boxOf(el), e.clipboardData.getData('text')));
   }
 
+  /** Marks a Tab pressed on the unit or a spinner button (see `tabReturn`). */
+  function onGroupKeydown(e: KeyboardEvent): void {
+    tabReturn = e.key === 'Tab' && e.currentTarget !== inputEl.value;
+  }
+
   function onKeydown(e: KeyboardEvent) {
+    onGroupKeydown(e);
     if ((e.shiftKey && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a')) nativeTextSelection = true;
     if (e.key === 'Escape') {
       nativeTextSelection = true;
@@ -570,7 +586,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     if (e.pointerType !== 'touch') stopRepeat();
   }
 
-  function onStepperFocus(): void { groupFocused.value = true; }
+  function onStepperFocus(): void { groupFocused.value = true; tabReturn = false; }
 
   function onStepperBlur(e: FocusEvent): void {
     clearRepeat();
@@ -697,6 +713,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
 
   function leaveGroup(): void {
     pointerEntering = false;
+    tabReturn = false;
     groupFocused.value = false;
     underlineIndex.value = null;
     stopRepeat();
@@ -753,5 +770,5 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   /** A phone keyboard with a minus where the value can be negative, the decimal pad otherwise. */
   const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 'decimal');
 
-  return {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, classes, refusal, hasDq, helpText, dqTooltip, underlineIndex, showStepper, dqNoteTitle, isRootCause, isSymptom, onFocus, onBoxPointer, onBoxPointerUp, onBoxDoubleClick, onKeydown, onKeyup, onBeforeInput, onPaste, onWheel, onInput, onBlur, onStepperPointerDown, onStepperPointerUp, stopRepeat, onStepperLeave, onStepperFocus, onStepperBlur};
+  return {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, classes, refusal, hasDq, helpText, dqTooltip, underlineIndex, showStepper, dqNoteTitle, isRootCause, isSymptom, onFocus, onBoxPointer, onBoxPointerUp, onBoxDoubleClick, onKeydown, onGroupKeydown, onKeyup, onBeforeInput, onPaste, onWheel, onInput, onBlur, onStepperPointerDown, onStepperPointerUp, stopRepeat, onStepperLeave, onStepperFocus, onStepperBlur};
 }

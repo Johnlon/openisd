@@ -123,9 +123,11 @@ export function drawOne(
     } else {
       ctx.strokeStyle = s.color;
       const wraps = new Set(s.wraps);
+      // A reference line is level: centre it on a device-pixel row so it draws one crisp row.
+      const at = s.reference ? (v: number) => layout.crispRowY(Y(v), dpr) : Y;
       ctx.beginPath(); let started = false;
       for (let i = 0; i < s.xs.length; i++) {
-        const y = Y(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
+        const y = at(s.ys[i]); if (!isFinite(y)) { started = false; continue; }
         if (!started || wraps.has(i)) { ctx.moveTo(X(s.xs[i]), y); started = true; } else ctx.lineTo(X(s.xs[i]), y);
       }
       ctx.stroke();

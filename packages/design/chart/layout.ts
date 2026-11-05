@@ -44,6 +44,12 @@ export class ChartLayout {
     return Math.min(Math.max(lineX, half), panelWidthPx - half);
   }
 
+  /** A level reference line's y, moved to the middle of the device-pixel row it falls in, so the line draws
+   *  one solid row in its own colour at every chart height, not two half-blended rows. */
+  crispRowY(yCssPx: number, devicePixelRatio: number): number {
+    return (Math.floor(yCssPx * devicePixelRatio) + 0.5) / devicePixelRatio;
+  }
+
   /** The least clear space between two neighbouring frequency labels. */
   static readonly MIN_FREQ_LABEL_GAP_PX = 6;
 

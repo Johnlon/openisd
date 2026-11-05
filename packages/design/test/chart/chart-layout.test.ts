@@ -2,6 +2,16 @@ import {describe, expect, it} from 'vitest';
 import {ChartLayout} from '../../chart/index.js';
 
 describe('ChartLayout', () => {
+  it('centres a level reference line on a device-pixel row', () => {
+    const layout = ChartLayout.CHART;
+    expect(layout.crispRowY(10.3, 1)).toBe(10.5);
+    expect(layout.crispRowY(10.9, 1)).toBe(10.5);
+    expect(layout.crispRowY(10.3, 2)).toBe(10.25);
+    expect(layout.crispRowY(10.9, 2)).toBe(10.75);
+    // the device row the line lands on is a whole row plus a half
+    for (const dpr of [1, 1.5, 2, 2.566]) expect((layout.crispRowY(37.77, dpr) * dpr) % 1).toBeCloseTo(0.5, 9);
+  });
+
   it('keeps the top level label below the title, with a gap', () => {
     const layout = ChartLayout.CHART;
     expect(layout.levelLabelTopPx).toBeGreaterThanOrEqual(layout.titleBottomPx + layout.gapPx);

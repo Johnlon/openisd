@@ -1333,6 +1333,16 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:1; grid-row:3; }
   .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:3; }
 }
+/* Below ~830px the three ABC columns cannot keep 262px each: they share the pane, and each field's label
+   and box split the column. */
+@container og-pane (max-width:830px) {
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) { gap:4px; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .ui-field { grid-template-columns:74px 93px 38px 0px; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .port-tuning-placeholder { width:auto; }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col { min-width:0; grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .vent-port-row > .field:not(.ui-field) { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .port-columns .vent-groups:has(> .vent-col:nth-child(3)) > .vent-col .field select { width:100%; min-width:0; }
+}
 @container og-pane (max-width:831px) {
   .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col { width:auto; flex:1 1 0; min-width:262px; max-width:400px; grid-template-columns:131px minmax(0,1fr); }
   .port-columns .vent-groups:has(> .vent-col:nth-child(2):last-child) > .vent-col :is(.vent-port-row > .field, .port-tuning-row > .ui-field, .port-tuning-placeholder) { grid-column:1 / -1; }

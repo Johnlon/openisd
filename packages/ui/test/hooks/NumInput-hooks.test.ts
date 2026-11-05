@@ -318,6 +318,13 @@ function focusIn(api: ReturnType<typeof setup>['api']) {
   api.onFocus(focusEvent('focus'));
 }
 
+/** A Tab pressed on a button of the group: the keydown reaches the group's key handler with that button as its current target. */
+function pressTabOn(api: ReturnType<typeof setup>['api'], target: EventTarget): void {
+  const listener = (e: Event) => { if (playsKeyboard(e)) api.onGroupKeydown(e); };
+  target.addEventListener('keydown', listener, {once: true});
+  target.dispatchEvent(new KeyEventStub('keydown', 'Tab'));
+}
+
 function pointer(type: string, props: Record<string, unknown> = {}): PointerEvent {
   return typed(playsPointer, 'pointer', type, {isPrimary: true, pointerType: 'mouse', button: 0, pointerId: 1, clientX: 5, clientY: 10, shiftKey: false, ...props});
 }
@@ -450,6 +457,7 @@ describe('useNumInput value, unit and focus flow', () => {
     expect(api.underlineIndex.value).toBeNull();
     documentStub.activeElement = input;
     input.value = api.display.value;
+    pressTabOn(api, button);
     api.onFocus(focusEvent('focus', button));
     await Promise.resolve();
     expect(api.underlineIndex.value).not.toBeNull();
@@ -459,14 +467,52 @@ describe('useNumInput value, unit and focus flow', () => {
     app.unmount();
   });
 
+  it('does not restore the chosen digit when a script focuses the box from its button', async () => {
+    const {api, app, input, button} = setup({modelValue: 12.3});
+    focusIn(api);
+    documentStub.activeElement = input;
+    input.value = api.display.value;
+    api.onFocus(focusEvent('focus', button));
+    await Promise.resolve();
+    expect(api.underlineIndex.value).toBeNull();
+    app.unmount();
+  });
+
+  it('does not restore the chosen digit after a Tab pressed in the box itself', async () => {
+    const {api, app, input, button} = setup({modelValue: 12.3});
+    focusIn(api);
+    documentStub.activeElement = input;
+    input.value = api.display.value;
+    pressTabOn(api, input);
+    api.onFocus(focusEvent('focus', button));
+    await Promise.resolve();
+    expect(api.underlineIndex.value).toBeNull();
+    app.unmount();
+  });
+
+  it('keeps a selection made right after a Tab return instead of restoring the digit', async () => {
+    const {api, app, input, button} = setup({modelValue: 12.3});
+    focusIn(api);
+    documentStub.activeElement = input;
+    input.value = api.display.value;
+    pressTabOn(api, button);
+    api.onFocus(focusEvent('focus', button));
+    input.setSelectionRange(0, input.value.length);
+    await Promise.resolve();
+    expect(api.underlineIndex.value).toBeNull();
+    app.unmount();
+  });
+
   it('cancels the restored digit when the user selects text instead', async () => {
     const {api, app, input, button} = setup({modelValue: 12.3});
     focusIn(api);
     documentStub.activeElement = null;
+    pressTabOn(api, button);
     api.onFocus(focusEvent('focus', button));
     await Promise.resolve();
     expect(api.underlineIndex.value).toBeNull();
     documentStub.activeElement = input;
+    pressTabOn(api, button);
     api.onFocus(focusEvent('focus', button));
     api.onKeydown(keyEvt('keydown', {key: 'a', ctrlKey: true, target: input}));
     await Promise.resolve();

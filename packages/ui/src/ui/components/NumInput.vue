@@ -24,7 +24,7 @@ const emit = defineEmits<{
   /** What is wrong with the text in the box and what to enter instead; '' when it is acceptable. */
   refusal: [text: string];
 }>();
-const {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, classes, refusal, hasDq, helpText, dqTooltip, underlineIndex, showStepper, dqNoteTitle, isRootCause, isSymptom, onFocus, onBoxPointer, onBoxPointerUp, onBoxDoubleClick, onKeydown, onKeyup, onBeforeInput, onPaste, onWheel, onInput, onBlur, onStepperPointerDown, onStepperPointerUp, stopRepeat, onStepperLeave, onStepperFocus, onStepperBlur} = useNumInput(props, emit, {
+const {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, classes, refusal, hasDq, helpText, dqTooltip, underlineIndex, showStepper, dqNoteTitle, isRootCause, isSymptom, onFocus, onBoxPointer, onBoxPointerUp, onBoxDoubleClick, onKeydown, onGroupKeydown, onKeyup, onBeforeInput, onPaste, onWheel, onInput, onBlur, onStepperPointerDown, onStepperPointerUp, stopRepeat, onStepperLeave, onStepperFocus, onStepperBlur} = useNumInput(props, emit, {
   presentationState: useApp().presentation,
   stepperPin: inject(STEPPER_PIN, null),
   fieldEditMode: inject(FIELD_EDIT_MODE, null),
@@ -41,7 +41,7 @@ const {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, c
     <span v-if="underlineIndex !== null" class="num-mark-overlay" aria-hidden="true"><span class="num-mark-pre">{{ display.slice(0, underlineIndex) }}</span><span class="num-mark-underline">{{ display.slice(underlineIndex, underlineIndex + 1) }}</span><span class="num-mark-post">{{ display.slice(underlineIndex + 1) }}</span></span>
   </span>
   <span v-if="hasDq || (refusal !== '' && !hideMark)" class="dq-note" :class="{ 'dq-note-root': isRootCause || refusal !== '', 'dq-note-symptom': isSymptom }" :title="refusal !== '' ? `⚠ ${refusal}` : dqNoteTitle">⚠</span>
-  <span v-if="$slots.unit" ref="unitEl" class="num-unit" @focusin="onStepperFocus" @focusout="onStepperBlur"><slot name="unit" /></span>
+  <span v-if="$slots.unit" ref="unitEl" class="num-unit" @focusin="onStepperFocus" @focusout="onStepperBlur" @keydown="onGroupKeydown"><slot name="unit" /></span>
   <span v-if="showStepper" class="num-stepper">
     <button ref="increaseEl" type="button" class="num-stepper-btn" title="Increase"
       @pointerdown="onStepperPointerDown(1, $event)" @pointerup="onStepperPointerUp" @pointerleave="onStepperLeave" @pointercancel="stopRepeat"
