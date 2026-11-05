@@ -12,7 +12,7 @@ const driver = ProjectBuilder.empty(engine).driver.detach();
 function indexJson(uuid: string): string {
   return JSON.stringify({build: 'test', passiveRadiatorRows: [], drivers: {}, passiveRadiators: {}, driverRows: [{
     uuid, path: 'morel/mw-1258', name: 'Morel MW 1258', dq: false, datasheet: null, productPage: null, listingPage: null,
-    chips: ['woofer'], canonical: 'Woofer', Fs_hz: 28, Sd_m2: 0.0471, Xmax_m: 0.01, Vd_m3: 0.000471, Znom_ohm: 8,
+    chips: ['woofer'], canonical: 'Woofer', Fs_hz: 28, Sd_m2: 0.0471, Xmax_m: 0.01, Vd_m3: 0.000471, Znom_ohm: 8, freq_low_hz: null, freq_high_hz: null,
   }]});
 }
 

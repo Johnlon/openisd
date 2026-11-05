@@ -28,6 +28,7 @@ import {
     type SearchCriteria,
     searchSubjectOfDriver,
     searchSubjectOfIndexRow,
+    statedRangeResult,
 } from './driverDisplay.js';
 import {driverFromFileText, type DriverSelection} from './driverSelection.js';
 import type {DesignFiles} from './fileImportExport.js';
@@ -90,6 +91,11 @@ function previewVMOf(d: OpenISDDriverStandalone): PreviewVM {
 // : a driver is loaded through `driverRepo.load()` only
 // when it is picked. The repo is never asked what is on screen.
 
+/** The rows in their order, the ones marked as stating no range moved below the rest. */
+function matchesBeforeNotStated<T>(rows: readonly T[], notStated: (row: T) => boolean): T[] {
+  return [...rows.filter(r => !notStated(r)), ...rows.filter(notStated)];
+}
+
 export const DISPLAY_LIMIT = 200;   // rows shown before "search to filter" kicks in
 
 // The filter-bar chips, in render order. The set, its labels and its tooltips are
@@ -117,6 +123,8 @@ export interface DriverBrowsingState {
   filterQ: Ref<string>;
   typeStates: Ref<Record<string, string>>;
   fsMin: Ref<string>; fsMax: Ref<string>;
+  rangeFrom: Ref<string>; rangeTo: Ref<string>;
+  rangeKeepUnstated: Ref<boolean>;
   sdMin: Ref<string>; sdMax: Ref<string>;
   selZ: Ref<string[]>;
   displayLimit: Ref<number>;
@@ -212,6 +220,9 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const typeStates = ref<Record<string, string>>({});   // id → 'include' | 'exclude'
   const fsMin = ref('');
   const fsMax = ref('');
+  const rangeFrom = ref('');
+  const rangeTo = ref('');
+  const rangeKeepUnstated = ref(true);   // ticked: drivers that state no range stay in the list
   const sdMin = ref('');   // cm²
   const sdMax = ref('');   // cm²
   const selZ = ref<string[]>([]);   // '4', '8', '16'
@@ -293,6 +304,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
 
   function clearParamFilters(): void {
     typeStates.value = {}; fsMin.value = ''; fsMax.value = '';
+    rangeFrom.value = ''; rangeTo.value = ''; rangeKeepUnstated.value = true;
     sdMin.value = ''; sdMax.value = ''; selZ.value = [];
     displayLimit.value = DISPLAY_LIMIT;
   }
@@ -310,6 +322,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
       query: filterQ.value,
       typeStates: typeStates.value,
       fsMin: fsMin.value, fsMax: fsMax.value,
+      rangeFrom: rangeFrom.value, rangeTo: rangeTo.value, rangeKeepUnstated: rangeKeepUnstated.value,
       sdMin: sdMin.value, sdMax: sdMax.value,
       selZ: selZ.value,
       favoritesOnly: favoritesOnly.value,
@@ -317,14 +330,24 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     };
   }
 
+  /** Whether this row stays in the list only because it states no range: it goes below the matches, marked. */
+  function rangeNotStated(row: BundledDriverIndexRow): boolean {
+    return statedRangeResult(searchSubjectOfIndexRow(row), criteria()) === 'notStated';
+  }
+
+  /** The My Drivers counterpart of `rangeNotStated`. */
+  function myRangeNotStated(row: MyDriverRow): boolean {
+    return statedRangeResult(searchSubjectOfDriver(row.driver), criteria()) === 'notStated';
+  }
+
   const filteredDrivers = computed<readonly BundledDriverIndexRow[]>(() => {
     // The scope chip gates the whole pool: outside `Bundled`/`All` the library is not a
     // candidate at all.
     const pool: readonly BundledDriverIndexRow[] = driverScope.value.includesBundled ? allDrivers.value : [];
     const c = criteria();
-    return [...pool.filter(row => matchesCriteria(searchSubjectOfIndexRow(row), c))].sort((a, b) =>
+    return matchesBeforeNotStated([...pool.filter(row => matchesCriteria(searchSubjectOfIndexRow(row), c))].sort((a, b) =>
       a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
-    );
+    ), rangeNotStated);
   });
 
   const displayedDrivers = computed<readonly BundledDriverIndexRow[]>(() => filteredDrivers.value.slice(0, displayLimit.value));
@@ -335,7 +358,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
   const filteredMyDrivers = computed<MyDriverRow[]>(() => {
     const list: MyDriverRow[] = driverScope.value.includesMine ? myDrivers.value : [];
     const c = criteria();
-    return list.filter(row => matchesCriteria(searchSubjectOfDriver(row.driver), c));
+    return matchesBeforeNotStated(list.filter(row => matchesCriteria(searchSubjectOfDriver(row.driver), c)), myRangeNotStated);
   });
 
   /**
@@ -590,7 +613,7 @@ export function createDriverBrowsingState(deps: DriverBrowsingStateDeps): Driver
     DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES, DISPLAY_LIMIT,
     allDrivers, statusMsg, statusErr, initialized,
     filterQ, typeStates,
-    fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
+    fsMin, fsMax, rangeFrom, rangeTo, rangeKeepUnstated, sdMin, sdMax, selZ, displayLimit,
     toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
     // favourites — `clearParamFilters` deliberately leaves favoritesOnly alone: that button
     // says "clear all type and parameter filters", and Favorites is neither.

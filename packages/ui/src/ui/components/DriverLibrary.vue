@@ -45,7 +45,7 @@ const {
   DRIVER_TYPES, DRIVER_TYPE_HELP_ROWS, DRIVER_SCOPES,
   allDrivers, statusMsg, statusErr,
   filterQ, typeStates,
-  fsMin, fsMax, sdMin, sdMax, selZ, displayLimit,
+  fsMin, fsMax, rangeFrom, rangeTo, rangeKeepUnstated, sdMin, sdMax, selZ, displayLimit,
   toggleType, toggleZ, clearParamFilters, activeFilters, filtersOn, foldedFilterCount, clearAllFilters,
   filteredDrivers, displayedDrivers, listTruncated, listedCount,
   filteredMyDrivers, displayNameOf, driverId, editMyDriver, editOverviewDriver, deleteMyDriver,
@@ -107,7 +107,7 @@ onMounted(openedLibrary);
                   :title="t.title"
                   @click="toggleType(t.value)">{{ t.label }}</button>
 
-          <button v-if="Object.keys(typeStates).length || fsMin || fsMax || sdMin || sdMax || selZ.length"
+          <button v-if="Object.keys(typeStates).length || fsMin || fsMax || rangeFrom || rangeTo || !rangeKeepUnstated || sdMin || sdMax || selZ.length"
                   class="type-chip type-clear"
                   @click="clearParamFilters">✕ clear</button>
 
@@ -133,7 +133,7 @@ onMounted(openedLibrary);
         </div>
 
         <div class="param-row">
-          <span class="pgroup">
+          <span class="pgroup pg-fs">
           <span class="plabel" :class="{ active: fsMin || fsMax }">Fs</span>
           <input class="pnum" :class="{ active: fsMin }" type="text" v-model="fsMin" placeholder="min" title="Minimum Fs (Hz)">
           <span class="pmid">–</span>
@@ -141,7 +141,21 @@ onMounted(openedLibrary);
           <span class="plabel" :class="{ active: fsMin || fsMax }">Hz</span>
           </span>
 
-          <span class="pgroup">
+          <span class="pgroup pg-range">
+          <span class="plabel" :class="{ active: rangeFrom || rangeTo }">Range</span>
+          <input class="pnum" :class="{ active: rangeFrom }" type="text" v-model="rangeFrom" placeholder="from" title="The maker's stated range must reach down to this frequency (Hz). The checkbox keeps or hides drivers that state no range.">
+          <span class="pmid">–</span>
+          <input class="pnum" :class="{ active: rangeTo }" type="text" v-model="rangeTo" placeholder="to" title="The maker's stated range must reach up to this frequency (Hz). The checkbox keeps or hides drivers that state no range.">
+          <span class="plabel" :class="{ active: rangeFrom || rangeTo }">Hz</span>
+          </span>
+
+          <span class="pgroup pg-keep">
+          <label class="plabel range-keep" :class="{ active: !rangeKeepUnstated }"
+                 title="Include drivers whose maker states no frequency range. Ticked: they stay in the list, after the matches. Unticked: only drivers that state a range are listed.">
+            <input type="checkbox" v-model="rangeKeepUnstated"> Include unstated</label>
+          </span>
+
+          <span class="pgroup pg-sd">
           <span class="plabel" :class="{ active: sdMin || sdMax }">Sd</span>
           <input class="pnum" :class="{ active: sdMin }" type="text" v-model="sdMin" placeholder="min" title="Minimum Sd (cm²)">
           <span class="pmid">–</span>
@@ -149,7 +163,7 @@ onMounted(openedLibrary);
           <span class="plabel" :class="{ active: sdMin || sdMax }">cm²</span>
           </span>
 
-          <span class="pgroup">
+          <span class="pgroup pg-z">
           <span class="plabel" :class="{ active: selZ.length }">Z</span>
           <button v-for="z in ['4', '8', '16']" :key="z"
                   class="zchip" :class="{ active: selZ.includes(z) }"
@@ -448,6 +462,12 @@ onMounted(openedLibrary);
   background: rgba(255, 180, 84, .05);
 }
 /* DQ warning badge — amber triangle, shown inline after the driver name */
+.driver-library .range-keep {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
 .driver-library .dq-flag {
   flex-shrink: 0;
   font-size: 11px;
@@ -911,11 +931,18 @@ onMounted(openedLibrary);
 
 /* Param search inputs (Fs, Sd) */
 .param-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: max-content max-content;
+  justify-content: start;
   align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
+  gap: 4px 8px;
 }
+/* Three lines (John, 5 Nov 2026): Fs; Range with its checkbox at the right; Sd with Z at the right. The leading
+   labels share a width so the boxes line up down the column. The phone stacks every group instead (below). */
+.param-row > .pg-fs { grid-column: 1 / -1; }
+.param-row > .pg-range, .param-row > .pg-sd { grid-column: 1; }
+.param-row > .pg-keep, .param-row > .pg-z { grid-column: 2; }
+.pgroup > .plabel:first-child { min-width: 44px; }
 .plabel {
   font-size: 11px;
   color: #444;
@@ -1069,7 +1096,7 @@ onMounted(openedLibrary);
 .driver-library.dl-phone .dl-filters-toggle.on { background: #e0efff; border-color: #7fb3ff; color: #0b4f9e; font-weight: 600; }
 .driver-library.dl-phone .type-row { flex: none; flex-wrap: wrap; gap: 6px; padding: 6px 16px; }
 .driver-library.dl-phone .type-chip, .driver-library.dl-phone .zchip { height: 30px; padding: 0 10px; border-radius: 15px; font-size: 13px; }
-.driver-library.dl-phone .param-row { flex: none; flex-direction: column; align-items: stretch; gap: 0; }
+.driver-library.dl-phone .param-row { display: flex; flex: none; flex-direction: column; align-items: stretch; gap: 0; }
 .driver-library.dl-phone .pgroup { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 16px; }
 .driver-library.dl-phone .pnum { width: 72px; height: 34px; font-size: 15px; box-sizing: border-box; }
 .driver-library.dl-phone .fav-row { flex: none; padding: 6px 16px; flex-wrap: wrap; gap: 6px; }
