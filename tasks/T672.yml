@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 8be1445fa6a40a21136e65c30016da4d2d3724a9
 ruling: QO414
 goal: DQ marks (dq_calculated, dq_scraper) are never written anywhere: My Drivers, project files, exports, backups and the driver bundle leave them out; they are always worked out live; old saved data still loads with them silently dropped
 done_test: bash scripts/test.sh packages/persistence/test/derivedMarksNeverWritten.test.ts packages/persistence/test/storageUpgrade.test.ts packages/ui/test/scripts/catalogue-bundle.test.ts

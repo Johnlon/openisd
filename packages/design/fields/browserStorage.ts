@@ -49,11 +49,11 @@ export function siteStorageLine(estimate: StorageEstimate | null): string | null
   return `This site uses ${formatByteSize(estimate.usage)} of the ${formatByteSize(estimate.quota)} this browser allows.`;
 }
 
-/** "Storage is 86% full (40 projects, 4.3 MB of 5 MB used). Export or delete old projects." when
+/** "OpenISD storage is 86% full. Turn on Google sync to avoid risk of data loss, export your projects or clean up old projects." when
  *  the local store or the site's whole allowance is at least STORAGE_FULL_FROM full, else null. */
 export function storageFullWarning(use: StoredUse, estimate: StorageEstimate | null): string | null {
   const percent = storageFullPercent(use, estimate);
-  return percent === null ? null : `Storage is ${percent}% full (${storageUseLine(use)}). Export or delete old projects.`;
+  return percent === null ? null : `OpenISD storage is ${percent}% full. Turn on Google sync to avoid risk of data loss, export your projects or clean up old projects.`;
 }
 
 /** How full storage is, in whole percent (at most 100), when it is at least STORAGE_FULL_FROM full:

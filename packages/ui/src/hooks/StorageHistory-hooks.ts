@@ -85,7 +85,7 @@ export interface StorageHistoryAPI {
   readonly usedLine: Ref<string>;
   /** "This site uses 1.2 MB of the 2.3 GB this browser allows."; null when the browser cannot say. */
   readonly siteLine: Ref<string | null>;
-  /** "Storage is 86% full. Export or delete old projects."; null below 80%. */
+  /** "OpenISD storage is 86% full. Turn on Google sync …"; null below 80%. */
   readonly fullWarning: Ref<string | null>;
   /** Shown while the browser may clear OpenISD's data; null when it keeps it. */
   readonly persistWarning: Ref<string | null>;

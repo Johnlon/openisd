@@ -50,10 +50,10 @@ describe('storage use', () => {
     const gb = {usage: 10, quota: 1e9};
     const use = (share: number) => ({projectCount: 40, localBytes: LOCAL_STORE_LIMIT_BYTES * share});
     expect(storageFullWarning(use(0.79), gb)).toBeNull();
-    expect(storageFullWarning(use(0.8), gb)).toBe('Storage is 80% full (40 projects, 4.0 MB of 5 MB used). Export or delete old projects.');
-    expect(storageFullWarning(use(0.86), null)).toBe('Storage is 86% full (40 projects, 4.3 MB of 5 MB used). Export or delete old projects.');
-    expect(storageFullWarning(use(0), {usage: 95, quota: 100})).toBe('Storage is 95% full (40 projects, 0 B of 5 MB used). Export or delete old projects.');
-    expect(storageFullWarning(use(1.2), null)).toBe('Storage is 100% full (40 projects, 6.0 MB of 5 MB used). Export or delete old projects.');
+    expect(storageFullWarning(use(0.8), gb)).toBe('OpenISD storage is 80% full. Turn on Google sync to avoid risk of data loss, export your projects or clean up old projects.');
+    expect(storageFullWarning(use(0.86), null)).toBe('OpenISD storage is 86% full. Turn on Google sync to avoid risk of data loss, export your projects or clean up old projects.');
+    expect(storageFullWarning(use(0), {usage: 95, quota: 100})).toBe('OpenISD storage is 95% full. Turn on Google sync to avoid risk of data loss, export your projects or clean up old projects.');
+    expect(storageFullWarning(use(1.2), null)).toBe('OpenISD storage is 100% full. Turn on Google sync to avoid risk of data loss, export your projects or clean up old projects.');
   });
 });
 
@@ -76,7 +76,7 @@ describe('the save flash', () => {
 
   it('warns instead of the usage line once storage is nearly full', () => {
     expect(savedNotice(1, {projectCount: 40, localBytes: 0.86 * LOCAL_STORE_LIMIT_BYTES}))
-      .toBe('Saved 1 project. Storage is 86% full (40 projects, 4.3 MB of 5 MB used). Export or delete old projects.');
+      .toBe('Saved 1 project. OpenISD storage is 86% full. Turn on Google sync to avoid risk of data loss, export your projects or clean up old projects.');
   });
 });
 
