@@ -167,8 +167,11 @@ export function checkOpenisdRoundTrip(record, relPath) {
   // the gap; it is an API addition to packages/design and needs John's approval.
   if (typeof read.toOpenIsdDeviceJson !== 'function') return { ok: true, device: read };
 
-  const reserialisedRecord = read.toOpenIsdDeviceJson();
-  const divergence = firstDivergence(record, reserialisedRecord);
+  // `schemaVersion` is the app's stamp of the format it reads and writes (QO395); a record on disk
+  // may carry none (it reads as version 2), so the stamp is not part of the data compared.
+  const withoutVersion = (r) => Object.fromEntries(Object.entries(r).filter(([key]) => key !== 'schemaVersion'));
+  const reserialisedRecord = withoutVersion(read.toOpenIsdDeviceJson());
+  const divergence = firstDivergence(withoutVersion(record), reserialisedRecord);
   if (divergence) {
     return { ok: false, message: `${relPath}: round-trip mismatch at ${divergence}` };
   }

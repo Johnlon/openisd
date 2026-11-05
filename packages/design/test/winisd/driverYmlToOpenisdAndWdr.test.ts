@@ -535,7 +535,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
         if (!isRecord(v)) return v;
         return Object.fromEntries(Object.entries(v)
           .filter(([k, x]) => k !== 'definition' && k !== 'scraper_meta' && k !== 'origin'
-            && k !== 'corroboration' && k !== 'dq_calculated' && k !== 'state' && k !== 'value'
+            && k !== 'corroboration' && k !== 'dq_calculated' && k !== 'state' && k !== 'value' && k !== 'schemaVersion'
             && !isCalculatedEntry(x))
           .map(([k, x]) => [k, stripDeep(x)]));
       };

@@ -1,5 +1,5 @@
 /**
- * A browser already synced with Drive at storage layout 2 loads the layout-3 app: its projects
+ * A browser already synced with Drive at storage layout 2 loads the layout-4 app: its projects
  * upgrade in place. Sync makes no conflict copy of any project, on Drive or in the browser.
  * The layout-2 store and Drive file are seeded the way the older build left them (the golden
  * layout-2 dump); real sync and Drive client run over an emulated Drive.
@@ -37,7 +37,7 @@ function layoutTwoProject(): {readonly id: string; readonly text: string; readon
   return {id: entry['id'], text: entry['text'], bucket: dump['openisd_projects'], state: dump['openisd_state']};
 }
 
-test('a layout-2 store synced with Drive upgrades to layout 3 without a conflict copy', async ({page}) => {
+test('a layout-2 store synced with Drive upgrades to layout 4 without a conflict copy', async ({page}) => {
   const {id, text, bucket, state} = layoutTwoProject();
   const hash = createHash('sha256').update(canonical(JSON.parse(text))).digest('hex');
   const drive = await emulateDriveServer(page);
@@ -66,7 +66,7 @@ test('a layout-2 store synced with Drive upgrades to layout 3 without a conflict
   await expect(page.locator('.cloud-modal')).toContainText('Synced');
 
   // The upgraded project replaces the older one on Drive, in the same file.
-  await expect.poll(() => drive.listFiles().map(f => `${f.name} layout ${f.appProperties['layout']}`)).toEqual([`project-${id}.owpr layout 3`]);
+  await expect.poll(() => drive.listFiles().map(f => `${f.name} layout ${f.appProperties['layout']}`)).toEqual([`project-${id}.owpr layout 4`]);
   // The conflict notice from before the upgrade is still there, and no new copy was made.
   await expect(page.locator('.cloud-modal .cloud-sync-conflict-row')).toHaveCount(1);
   await expect(page.locator('.cloud-modal .cloud-sync-conflict-row')).toContainText('Beta (conflict, 12 Oct 2026, iPhone)');

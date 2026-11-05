@@ -371,6 +371,7 @@ class Root(Strict):
     added: TextField = None
     specs: Specs
     curves: dict[str, RootCurves] = None
+    schemaVersion: Number = None
 
 ROOT = Root
 TAGS = frozenset({"<woofer>", "<E>", "<C>", "<N>", "<passive-radiator>"})

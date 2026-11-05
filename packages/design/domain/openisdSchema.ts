@@ -580,6 +580,9 @@ export const openISDDeviceJsonSchema = z.strictObject({
         }),
         origin: z.string(),
     })).optional(),
+    // Which format this record is in (`schemaVersion.ts`). Last, so a save adds no diff noise to
+    // the keys above. Set by the load upgrade; a record the app builds itself gets it when saved.
+    schemaVersion: z.number().optional(),
 });
 
 /**
@@ -992,6 +995,8 @@ export type OpenISDProjectJson = z.infer<typeof openISDProjectJsonSchema>;
 export const openISDProjectSessionJsonSchema = z.strictObject({
     id: z.string().min(1),
     label: z.string(),
+    // Which format this file is in (`schemaVersion.ts`); written on every save, set by the load upgrade.
+    schemaVersion: z.number().optional(),
     saved: openISDProjectJsonSchema,
     edited: openISDProjectJsonSchema.nullable(),
 });

@@ -11,6 +11,7 @@ import { deviceWithoutImportSku } from '../project/withoutImportSku.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import { blankDeviceRecord } from './blankDeviceRecord.js';
 import { OpenISDDevice } from './openISDDevice.js';
+import { CURRENT_SCHEMA_VERSION } from '../schemaVersion.js';
 import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
 
@@ -308,7 +309,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  `{...}` spread is not enough, since every nested field object (`brand`, `driver_type`,
      *  `specs.woofer.Fs`, …) would still be the same reference as the live record. */
     cloneDriver(): DriverDeviceJson {
-        return structuredClone(this.record.value);
+        return {...structuredClone(this.record.value), schemaVersion: CURRENT_SCHEMA_VERSION};
     }
 
     /** Replace this driver's whole record with `source`'s current values. The write-back

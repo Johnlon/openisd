@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 8f820843c1e7f3e3267f1d2c0482a6d808af9e63
 goal: Reword storage-full warning (QO234)
 done_test: bash scripts/test.sh packages/design/test/fields/browserStorage.test.ts
 files:
