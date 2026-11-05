@@ -73,6 +73,9 @@ Three kinds of WinISD difference, handled differently:
   chart, a calculated value, an input WinISD ignores, a field WinISD does not let you type. A
   trivial difference gets no cue and no question to John: keep OpenISD's way and record it in the
   bug file. Example: a value the file never gave is blank in OpenISD and an entered 0 in WinISD.
+- **A box the datasheet never states stays empty** (John, 2026-11-05, QO424), unless the engine can
+  calculate it from stated values (then it shows the calculated value) or its absence stops
+  charting and there is an obvious default (then the app fills a calculated default).
 
 - Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
   is at driver side").

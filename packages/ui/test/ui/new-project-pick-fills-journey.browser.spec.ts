@@ -104,6 +104,25 @@ async function blankBoxes(scope: Locator): Promise<string[]> {
     .map(i => i.closest('[data-field-key]')?.getAttribute('data-field-key') ?? i.closest('.mob-field-row, .ui-field')?.textContent?.trim().slice(0, 30) ?? i.id)));
 }
 
+/**
+ * QO424 (John, 5 Nov 2026): a box the record never states may stay empty, unless (1) the engine can calculate it from
+ * values the record does state (then the box shows the calculated value), or (2) its absence stops charting and there is
+ * an obvious default. The engine's solve routes (geometryRoutes.ts, advancedRoutes.ts) are the calculable cases:
+ * KLe = Le*sqrt(2*pi*fLe); Hc from Xmax and Hg; Hg from Xmax and Hc. Pe_W and Xmax_m both absent leaves Max SPL
+ * unbounded (SimulationEngine.maxCurves advisory); one of them bounds it. fLe, Xlim and power_peak feed no chart.
+ */
+function mustNotBeBlank(record: Record_, key: string): boolean {
+  const stated = (k: string) => record.figure(k) !== null;
+  switch (key) {
+    case 'KLe_H_sqrtHz': return stated('Le_H') && stated('fLe_hz');
+    case 'Hc_m': return stated('Xmax_m') && stated('Hg_m');
+    case 'Hg_m': return stated('Xmax_m') && stated('Hc_m');
+    case 'Pe_W': return !stated('Xmax_m');
+    case 'fLe_hz': case 'Xlim_m': case 'power_peak_W': return false;
+    default: return true;
+  }
+}
+
 async function runJourney(page: Page, phone: boolean, c: Case, blanks: boolean): Promise<void> {
   const driver = loadRecord(c.driver, 'drivers-index.json');
   const radiator = c.radiator === null ? null : loadRecord(c.radiator.path, 'passive-radiators-index.json');
@@ -164,7 +183,10 @@ async function runJourney(page: Page, phone: boolean, c: Case, blanks: boolean):
   } else {
     await openDriverEditor(page);
     await editorTab(page, 'Parameters');
-    if (blanks) expect.soft(await blankBoxes(page.locator('.de-body')), 'driver editor Parameters: boxes left blank').toEqual([]);
+    if (blanks) {
+      const blank = await blankBoxes(page.locator('.de-body'));
+      expect.soft(blank.filter(k => mustNotBeBlank(driver, k)), 'driver editor Parameters: boxes left blank that the record states, the engine calculates, or charting needs').toEqual([]);
+    }
     for (const f of EDITOR_FIGURES) {
       if (driver.figure(f.key) === null) continue;
       const box = page.locator(`.de-body [data-field-key="${f.key}"] input`).first();
@@ -190,8 +212,6 @@ async function runJourney(page: Page, phone: boolean, c: Case, blanks: boolean):
   }
 }
 
-const BLANK_BOXES_BUG = 'BUG_20261105_driver-editor-parameter-boxes-blank-after-pick';
-
 test.describe('Journey: pick a bundled driver and radiator, every box fills', () => {
   for (const c of CASES) {
     const title = `${c.box} / ${c.driver}${c.radiator === null ? '' : ` + ${c.radiator.path}`}`;
@@ -203,7 +223,6 @@ test.describe('Journey: pick a bundled driver and radiator, every box fills', ()
     });
 
     test(`desktop: every box holds a value: ${title}`, async ({appPage: page}) => {
-      test.fail(true, BLANK_BOXES_BUG);
       await runJourney(page, false, c, true);
 
       await expect(page.locator('.overlay.open'), 'the wizard is closed').toHaveCount(0);

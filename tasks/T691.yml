@@ -1,0 +1,15 @@
+id: T691
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Unstated driver boxes stay empty unless calculable or needed to chart (QO424)
+done_test: bash scripts/test.sh packages/design/test/architecture-tests-never-pin-a-defect.test.ts
+files:
+  - tasks/T691.yml
+  - CLAUDE.md
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - bugs/BUG_20261105_driver-editor-parameter-boxes-blank-after-pick.md
+  - bugs/archive/BUG_20261105_driver-editor-parameter-boxes-blank-after-pick.md
+ruling: QO424

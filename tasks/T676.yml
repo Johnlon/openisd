@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 3cba42f8281c6aad9f361461033946a4fc672f7d
 goal: Desktop skin gets the help ? on section headers and the i popups (Placement, EBP), as John accepted on QO269; text comes from packages/design, same as the phone
 done_test: bash scripts/test.sh packages/design/test/fields/desktopHelp.test.ts packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:
