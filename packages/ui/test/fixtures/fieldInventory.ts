@@ -109,10 +109,10 @@ export function measureFieldInventory(root: Element, expected: readonly Expected
   for (const control of controls) {
     if (!accounted.has(control)) issues.push(`unaccounted value control: ${control.tagName} ${control.id || control.getAttribute('aria-label') || control.className}`);
   }
-  for (const part of [...root.querySelectorAll('.ui-field-label,.ui-field-unit,.mob-sheet-unit,.winisd-deviation-cue,.ui-field-dq-btn,.num-stepper-btn')].filter(hasLayout)) {
+  for (const part of [...root.querySelectorAll('.ui-field-label,.ui-field-unit,.winisd-deviation-cue,.ui-field-dq-btn,.num-stepper-btn')].filter(hasLayout)) {
     if (!allParts.has(part)) issues.push(`unaccounted field part: ${part.className}`);
   }
-  for (const row of [...root.querySelectorAll('.ui-field,.mob-sheet-cell')].filter(hasLayout)) {
+  for (const row of [...root.querySelectorAll('.ui-field')].filter(hasLayout)) {
     if (!owners.has(row)) issues.push(`unaccounted field row: ${row.getAttribute('data-field') ?? row.className}`);
   }
   return {expected: expected.length, matched: owners.size, controls: controls.length, accounted: accounted.size, issues};

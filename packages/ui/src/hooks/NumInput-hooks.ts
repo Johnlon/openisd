@@ -1,9 +1,7 @@
 
 import {computed, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {CARET_HOLD_START_MS, DragSpin, DRAG_SPIN_THRESHOLD_PX, caretRepeatDelayMs, digitAtCaret, pressedDigit, formatFixed, NUMBER_TEXT, pastedEdit, typedEdit, spinStep, NumberField, type FieldSpin, type NumberEdit, type SpinDirection, type SteppedPlace, type StepAt} from '@openisd/design/fields';
-import type {ProvenanceLetter} from '@openisd/design';
 import {inputFrom} from '../logic/domEvents.js';
-import {dqReason} from '../logic/cellDataQuality.js';
 import {entryRefusal, type EntryBounds} from '../logic/entryRefusal.js';
 import type {StepperPin} from '../logic/stepperPin.js';
 import type {DragClock} from '../logic/dragClock.js';
@@ -26,14 +24,9 @@ export interface NumInputProps {
   blankRefused?: boolean;
   /** Allow values outside the registry's sanity range so the caller can show a DQ warning. */
   allowOutOfRange?: boolean;
-  dq?: readonly string[];
-  dqState?: ProvenanceLetter;
   stepper?: boolean;
   /** Replaces the field's own spin rule (an even-only Order box moves 2 a press). */
   spin?: FieldSpin;
-  /** The host draws the ⚠ itself (`UIField`), so this box draws no mark of its own. */
-  hideMark?: boolean;
-
 }
 export interface NumInputEmit {
   (event: 'update:modelValue', value: number | null, precision?: number): void;
@@ -755,20 +748,11 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
       'de-input-mandatory': props.mandatory,
       'de-input-empty': props.mandatory && isEmp,
       'value-empty': (props.field instanceof NumberField ? props.field.emptyAndAllowed(props.modelValue ?? null) : false),
-      'dq-flag': hasDq.value,
-      'dq-root': isRootCause.value,
-      'dq-symptom': isSymptom.value,
     };
   });
-
-  const hasDq = computed(() => props.dq != null && props.dq.length > 0);
-  const isRootCause = computed(() => hasDq.value && props.dqState === 'E');
-  const isSymptom = computed(() => hasDq.value && props.dqState === 'C');
-  const dqTooltip = computed(() => dqReason({ dq: props.dq ?? [], dqState: props.dqState ?? 'N' }));
-  const dqNoteTitle = computed(() => hasDq.value ? `⚠ ${dqTooltip.value}` : '');
 
   /** A phone keyboard with a minus where the value can be negative, the decimal pad otherwise. */
   const keyboard = computed<'decimal' | 'text'>(() => effMin.value < 0 ? 'text' : 'decimal');
 
-  return {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, classes, refusal, hasDq, helpText, dqTooltip, underlineIndex, showStepper, dqNoteTitle, isRootCause, isSymptom, onFocus, onBoxPointer, onBoxPointerUp, onBoxDoubleClick, onKeydown, onGroupKeydown, onKeyup, onBeforeInput, onPaste, onWheel, onInput, onBlur, onStepperPointerDown, onStepperPointerUp, stopRepeat, onStepperLeave, onStepperFocus, onStepperBlur};
+  return {inputEl, unitEl, increaseEl, decreaseEl, isReadonly, keyboard, display, classes, refusal, helpText, underlineIndex, showStepper, onFocus, onBoxPointer, onBoxPointerUp, onBoxDoubleClick, onKeydown, onGroupKeydown, onKeyup, onBeforeInput, onPaste, onWheel, onInput, onBlur, onStepperPointerDown, onStepperPointerUp, stopRepeat, onStepperLeave, onStepperFocus, onStepperBlur};
 }

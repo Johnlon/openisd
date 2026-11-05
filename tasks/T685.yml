@@ -4,6 +4,7 @@ repo: openisd
 owner: sonnet
 ruling: QO395
 status: done
+landed: cb8bca77e0bd198af10d8bb02af09760749b073a
 goal: openisd.json is the slim model: the schema keeps only values (state, value, precision), names and texts, the 3 manufacturer links, driver type and curves; the 2 to 3 upgrade drops readings, origin, corroboration, dq marks, quality, sku grounds and other data_sources after computing stated precision; slimDriver goes (ruling: QO395)
 done_test: bash scripts/test.sh packages/design/test/domain/slim-model.test.ts packages/design/test/domain/schema-version.test.ts packages/design/test/domain/project/stored-text.test.ts packages/design/test/domain/driver-record.test.ts packages/persistence/test/storageUpgrade.test.ts
 visual:

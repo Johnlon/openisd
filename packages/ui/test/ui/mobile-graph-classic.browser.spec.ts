@@ -110,7 +110,7 @@ for (const size of PHONE_SIZES) {
       await expect(band).toContainText(sheetName);
       expect(Math.abs(await band.evaluate(el => el.getBoundingClientRect().height) - SHEET_BAND_PX), 'sheet band height').toBeLessThanOrEqual(TOL);
       await expect(band.getByRole('button', {name: `Help: ${sheetName}`})).toBeVisible();
-      for (const h of await sheet.locator('.mob-sheet-line').evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) {
+      for (const h of await sheet.locator('.ui-field').evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) {
         expect(Math.abs(h - SHEET_ROW_PX), 'sheet row height').toBeLessThanOrEqual(TOL);
       }
       const chart = await heightOf(page, '.mob-chart-cell .gpanel');
@@ -119,21 +119,21 @@ for (const size of PHONE_SIZES) {
       for (const h of await sheet.locator('.mob-sheet-btn').evaluateAll(els => els.map(e => e.getBoundingClientRect().height))) {
         expect(Math.abs(h - PhoneRowSizes.BUTTON_PX), 'sheet button height').toBeLessThanOrEqual(TOL);
       }
-      const cut = await sheet.locator('.mob-sheet-label, .mob-sheet-value input').evaluateAll(els =>
+      const cut = await sheet.locator('.ui-field-label, .ui-field-value input').evaluateAll(els =>
         els.filter(e => e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1).map(e => e instanceof HTMLInputElement ? e.value : e.textContent?.trim()));
       expect(cut, 'no row label or value cut').toEqual([]);
-      const covered = await sheet.locator('.mob-sheet-cell').evaluateAll(cells => cells.flatMap(cell => {
+      const covered = await sheet.locator('.ui-field').evaluateAll(cells => cells.flatMap(cell => {
         const input = cell.querySelector('input');
-        const unit = cell.querySelector('.mob-sheet-unit');
-        if (input === null || unit === null) return [];
+        const unit = cell.querySelector('.ui-field-unit');
+        if (input === null || unit === null || unit.getBoundingClientRect().width === 0) return [];   // a unitless field draws no chip, so it hides nothing
         const ctx = document.createElement('canvas').getContext('2d');
         if (ctx === null) return [];
         const st = getComputedStyle(input);
         ctx.font = `${st.fontWeight} ${st.fontSize} ${st.fontFamily}`;
         const textEnd = input.getBoundingClientRect().left + parseFloat(st.paddingLeft) + ctx.measureText(input.value).width;
-        return textEnd > unit.getBoundingClientRect().left ? [`${cell.querySelector('.mob-sheet-label')?.textContent}: ${input.value}`] : [];
+        return textEnd > unit.getBoundingClientRect().left ? [`${cell.querySelector('.ui-field-label')?.textContent}: ${input.value}`] : [];
       }));
-      expect(await sheet.locator('.mob-sheet-cell .mob-sheet-unit').count(), 'units are measured').toBeGreaterThan(0);
+      expect(await sheet.locator('.ui-field-unit').count(), 'units are measured').toBeGreaterThan(0);
       expect(covered, 'no value hidden under its unit').toEqual([]);
       await expect(sheet.getByRole('button', {name: 'Reset'}), 'only What-if has Reset').toHaveCount(resetButtons);
       await expect(page.locator('.gautoy'), 'Auto Y is not on the phone chart').toHaveCount(0);

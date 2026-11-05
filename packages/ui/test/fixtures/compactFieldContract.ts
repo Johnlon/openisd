@@ -15,7 +15,7 @@ export function measureCompactFields(root: Element, reference: {intrinsic:readon
   const getComputedStyle = view.getComputedStyle.bind(view);
   const issues: string[] = [];
   const wraps: string[] = [];
-  const rows = [...root.querySelectorAll<HTMLElement>('.ui-field[data-field], .mob-sheet-cell[data-field]')].filter(row=>row.checkVisibility());
+  const rows = [...root.querySelectorAll<HTMLElement>('.ui-field[data-field]')].filter(row=>row.checkVisibility());
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   if (context === null) throw new Error('No text measurement context');
@@ -26,13 +26,13 @@ export function measureCompactFields(root: Element, reference: {intrinsic:readon
     const key = row.dataset.field ?? '';
     const approved=geometry[index];
     const expected = intrinsic.find(field => field.key === key);
-    const label = row.querySelector('label,.mob-sheet-label')?.textContent?.trim() ?? key;
+    const label = row.querySelector('label')?.textContent?.trim() ?? key;
     const fail = (message: string) => issues.push(`${label}: ${message}`);
     if(!approved){fail('missing approved geometry');continue;}
     if(approved.field!==key)fail(`field identity ${key}, expected ${approved.field}`);
     if(approved.specimen!==null&&row.closest('[data-specimen]')?.getAttribute('data-specimen')!==approved.specimen)fail('catalogue specimen order/identity differs');
     if (!expected) { fail('unknown semantic field'); continue; }
-    const value = row.querySelector<HTMLInputElement | HTMLSelectElement | HTMLElement>('.ui-field-value input,.ui-field-value select,.ui-field-value .mob-readonly,.mob-sheet-value input,.mob-sheet-value select');
+    const value = row.querySelector<HTMLInputElement | HTMLSelectElement | HTMLElement>('.ui-field-value input,.ui-field-value select,.ui-field-value .mob-readonly');
     if (value === null) { fail('missing native value control'); continue; }
     measured++;
     const readonly = row.dataset.access === 'readonly';
@@ -49,7 +49,7 @@ export function measureCompactFields(root: Element, reference: {intrinsic:readon
     if (!row.classList.contains('ui-field-note-open') && Math.abs(rowBox.height-approved.rowHeight)>0.5)fail(`row depth ${rowBox.height}, expected ${approved.rowHeight}`);
     const style = getComputedStyle(value);
     if (parseFloat(style.borderLeftWidth) < 1 || style.borderLeftStyle === 'none' || style.borderLeftColor === 'rgba(0, 0, 0, 0)') fail('border missing');
-    const unit = row.querySelector<HTMLElement>('.ui-field-unit,.mob-sheet-unit');
+    const unit = row.querySelector<HTMLElement>('.ui-field-unit');
     const unitVisible = unit !== null && visible(unit) && (unit.textContent?.trim() ?? '') !== '';
     if (expected.hasUnits !== unitVisible) fail('unit presence differs from intrinsic field');
     if(unitVisible&&unit!==null){
@@ -67,7 +67,7 @@ export function measureCompactFields(root: Element, reference: {intrinsic:readon
       const gap = dev.getBoundingClientRect().left - edge;
       if (gap < -0.5 || gap > 6) fail(`model cue must follow the last control by 0–6px (gap ${gap})`);
     }
-    const completeControl = [value, ...row.querySelectorAll<HTMLElement>('.ui-field-unit,.mob-sheet-unit,.ui-field-dq-btn,.num-stepper-btn,.winisd-deviation-cue')];
+    const completeControl = [value, ...row.querySelectorAll<HTMLElement>('.ui-field-unit,.ui-field-dq-btn,.num-stepper-btn,.winisd-deviation-cue')];
     for (const part of completeControl.filter(visible)) {
       const edge = part.getBoundingClientRect();
       if (edge.width === 0 || edge.height === 0) continue;
@@ -79,7 +79,7 @@ export function measureCompactFields(root: Element, reference: {intrinsic:readon
     const text = value instanceof HTMLInputElement ? value.value : value instanceof HTMLSelectElement ? value.selectedOptions[0]?.textContent ?? '' : value.textContent ?? '';
     const content = box.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight) - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth);
     if (context.measureText(text).width > content + 0.5) fail('numeric text is clipped');
-    const labelElement = row.querySelector('label,.mob-sheet-label');
+    const labelElement = row.querySelector('label');
     if (labelElement !== null) {
       const labelStyle = getComputedStyle(labelElement);
       if (labelElement.getBoundingClientRect().height > parseFloat(labelStyle.lineHeight) + 1) wraps.push(label);

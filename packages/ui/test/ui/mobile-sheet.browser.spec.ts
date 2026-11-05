@@ -39,7 +39,7 @@ for (const mode of ['Tune', 'What-if'] as const) {
   test(`${mode}: driver count uses the native count picker and preserves the mode's commit behaviour`, async ({page}) => {
     await openGraph(page);
     await page.getByRole('button', {name: `Open ${mode}`}).click();
-    const row = page.locator('.mob-sheet-cell').filter({has: page.locator('.mob-sheet-label', {hasText: /^Drivers$/})});
+    const row = page.locator('.mob-sheet .ui-field').filter({has: page.locator('.ui-field-label', {hasText: /^Drivers$/})});
     const picker = row.getByRole('combobox');
     await expect(picker).toBeVisible();
     await expect(row.locator('input,.num-stepper')).toHaveCount(0);
@@ -72,7 +72,7 @@ test('Tune and What-if each have their own pull-tab, side by side, and no mode t
   await expect(sheet.getByRole('group')).toHaveCount(0);
   await expect(sheet.getByRole('button', { name: 'Reset' })).toHaveCount(0);
   await expect(sheet.getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close');
-  await expect(sheet.locator('.mob-sheet-label', { hasText: /^Fs$/ })).toHaveCount(0);
+  await expect(sheet.locator('.ui-field-label', { hasText: /^Fs$/ })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Open What-if' })).toHaveCount(0);
   await sheet.getByRole('button', { name: 'Close' }).click();
   await expect(sheet).toHaveCount(0);
@@ -84,7 +84,7 @@ test('Tune and What-if each have their own pull-tab, side by side, and no mode t
   await expect(sheet).toHaveAttribute('aria-label', 'What-if');
   await expect(sheet.getByRole('button', { name: 'Reset' })).toHaveAttribute('title', "Back to the design's values");
   await expect(sheet.getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close. The design is not changed.');
-  await expect(sheet.locator('.mob-sheet-label', { hasText: /^Fs$/ })).toHaveCount(1);
+  await expect(sheet.locator('.ui-field-label', { hasText: /^Fs$/ })).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Open Tune' })).toHaveCount(0);
   await sheet.getByRole('button', { name: 'Close' }).click();
   await expect(sheet).toHaveCount(0);
@@ -111,7 +111,7 @@ test('Tune: stepping a field modifies the project; edit survives Close and reloa
   await expect(panel.getByRole('checkbox', { name: 'Auto Y' })).toHaveCount(0);
   await expect(sheet.getByRole('checkbox', { name: 'Auto Y' })).toHaveCount(1);
 
-  const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
+  const cell = sheet.locator('.ui-field', { has: page.locator('.ui-field-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);
   await cell.getByTitle('Increase').click();
 
@@ -146,7 +146,7 @@ test('What-if: stepping a field changes charts but not the project; Close puts c
   await expect(sheet).toBeVisible();
   const initialPicture = await chartPicture(page);
 
-  const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
+  const cell = sheet.locator('.ui-field', { has: page.locator('.ui-field-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);
   await cell.getByTitle('Increase').click();
 
@@ -171,14 +171,14 @@ test('a What-if experiment never shows in Tune', async ({ page }) => {
   await sheet.getByRole('button', { name: 'Close' }).click();
 
   await page.getByRole('button', { name: 'Open What-if' }).click();
-  const whatIfCell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
+  const whatIfCell = sheet.locator('.ui-field', { has: page.locator('.ui-field-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(whatIfCell);
   await whatIfCell.getByTitle('Increase').click();
   await expect.poll(() => shown(whatIfCell)).toBeGreaterThan(initialVolume);
   await sheet.getByRole('button', { name: 'Close' }).click();
 
   await page.getByRole('button', { name: 'Open Tune' }).click();
-  const tuneCell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
+  const tuneCell = sheet.locator('.ui-field', { has: page.locator('.ui-field-label', { hasText: 'Box volume' }) });
   await expect.poll(() => shown(tuneCell)).toBe(initialVolume);
   await expect.poll(() => chartPicture(page)).toBe(initialPicture);
   expect(await focusedIsModified(page)).toBe(false);
@@ -192,7 +192,7 @@ test('dragging the mobile sheet down closes it and ends What-if What-if', async 
   const sheet = page.locator('.mob-sheet');
   await expect(sheet).toBeVisible();
 
-  const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
+  const cell = sheet.locator('.ui-field', { has: page.locator('.ui-field-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);
   await cell.getByTitle('Increase').click();
   await expect.poll(() => shown(cell)).toBeGreaterThan(initialVolume);
@@ -211,7 +211,7 @@ test('leaving the Graph page with What-if sheet open ends the What-if', async ({
   const sheet = page.locator('.mob-sheet');
   await expect(sheet).toBeVisible();
 
-  const cell = sheet.locator('.mob-sheet-cell', { has: page.locator('.mob-sheet-label', { hasText: 'Box volume' }) });
+  const cell = sheet.locator('.ui-field', { has: page.locator('.ui-field-label', { hasText: 'Box volume' }) });
   const initialVolume = await shown(cell);
   await cell.getByTitle('Increase').click();
   await expect.poll(() => shown(cell)).toBeGreaterThan(initialVolume);
@@ -233,7 +233,7 @@ test.describe('phone keyboard', () => {
     const sheet = page.locator('.mob-sheet');
     await expect(sheet).toBeVisible();
 
-    const driversCell = sheet.locator('.mob-sheet-cell').filter({has: page.locator('.mob-sheet-label', {hasText: /^Fs$/})});
+    const driversCell = sheet.locator('.ui-field').filter({has: page.locator('.ui-field-label', {hasText: /^Fs$/})});
     const input = driversCell.locator('input');
     const upBtn = driversCell.locator('.num-stepper-btn').first();
 
@@ -272,9 +272,9 @@ for (const mode of ['Tune', 'What-if']) {
   test(`${mode}: native Tab keeps the draft through unit and both spinners`, async ({page}) => {
     await openGraph(page);
     await page.getByRole('button', {name: 'Open ' + mode}).click();
-    const row = page.locator('.mob-sheet-cell').filter({has: page.locator('.mob-sheet-label', {hasText: /^Box volume$/})});
+    const row = page.locator('.mob-sheet .ui-field').filter({has: page.locator('.ui-field-label', {hasText: /^Box volume$/})});
     const input = row.locator('input');
-    const unit = row.locator('.mob-sheet-unit');
+    const unit = row.locator('.ui-field-unit');
     const up = row.getByTitle('Increase', {exact: true});
     const down = row.getByTitle('Decrease', {exact: true});
     await input.fill('12.3400');

@@ -39,10 +39,10 @@ for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetName of
     const buttons = await sizes('.mob-sheet-btn');
     expect(buttons.length, 'Close, and Reset on What-if').toBeGreaterThan(0);
     expect(buttons.filter(c => c.w < SheetSizes.TOUCH_MIN_PX || Math.abs(c.h - SheetSizes.TOUCH_MIN_PX) > 0.5), 'buttons not the 44 px button').toEqual([]);
-    const rowParts = await sizes('.mob-sheet .num-stepper-btn, .mob-sheet-unit.unit-toggle');
+    const rowParts = await sizes('.mob-sheet .num-stepper-btn, .ui-field-unit.unit-toggle');
     expect(rowParts.filter(c => c.w < PhoneRowSizes.CLASSIC.unitColPx || c.h < PhoneRowSizes.CLASSIC.inputMinPx - 2), 'row ▲▼ and units smaller than the standard row').toEqual([]);
 
-    const offRows = await page.locator('.mob-sheet-line').evaluateAll((els, px) =>
+    const offRows = await page.locator('.mob-sheet .ui-field').evaluateAll((els, px) =>
       els.map(el => el.getBoundingClientRect().height).filter(h => Math.abs(h - px) > 0.5), PhoneRowSizes.CLASSIC.rowMinPx);
     expect(offRows, 'rows not the standard 40 px').toEqual([]);
 
