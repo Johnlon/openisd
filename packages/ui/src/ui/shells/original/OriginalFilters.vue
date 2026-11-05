@@ -10,6 +10,7 @@
  */
 import {computed, ref} from 'vue';
 import type {FilterType} from '@openisd/design/engine';
+import {DesktopLabels, PHONE_FILTER_CHIPS} from '@openisd/design/fields';
 import {inputChecked} from '../../../logic/domEvents.js';
 import type {OriginalFiltersAPI} from '../../../hooks/OriginalFilters-hooks.js';
 import PassFilterEditor from './filters/PassFilterEditor.vue';
@@ -26,18 +27,7 @@ const filters = computed(() => api.filters.value);
 
 /** One quick-add button per type, WinISD's Filter Editor "Filter type" order, then the two
  *  OpenISD-only shelves. */
-const QUICK_ADD: { type: FilterType; label: string }[] = [
-  { type: 'lowpass',      label: '+ LP' },
-  { type: 'highpass',     label: '+ HP' },
-  { type: 'allpass',      label: '+ AP' },
-  { type: 'linkwitz',     label: '+ LT' },
-  { type: 'peaking',      label: '+ PEQ' },
-  { type: 'peakHighpass', label: '+ Peak HP' },
-  { type: 'staticGain',   label: '+ Gain' },
-  { type: 'raisedCosine', label: '+ DLP' },
-  { type: 'lowshelf',     label: '+ LS' },
-  { type: 'highshelf',    label: '+ HS' },
-];
+const QUICK_ADD: { type: FilterType; label: string }[] = PHONE_FILTER_CHIPS.map(chip => ({ type: chip.type, label: DesktopLabels.addFilter(chip) }));
 const BADGE: Record<FilterType, string> = {
   lowpass: 'LP', highpass: 'HP', allpass: 'AP', linkwitz: 'LT', peaking: 'PEQ',
   peakHighpass: 'PHP', staticGain: 'GAIN', raisedCosine: 'DLP', lowshelf: 'LS', highshelf: 'HS',

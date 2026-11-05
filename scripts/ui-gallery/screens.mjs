@@ -131,6 +131,7 @@ export const SCREENS = [
   { key: 'tab-project', label: 'Project tab', vp: [DESKTOP], covers: ['OriginalShell'], act: (p) => p.getByText('Project', { exact: true }).last().click(T) },
   { key: 'whatif', label: 'What-if panel', vp: [DESKTOP], covers: ['OriginalWhatIf'], act: async (p) => { await p.getByRole('button', { name: /What-if/ }).first().click(T); await p.waitForTimeout(600); } },
   { key: 'differences-help', label: 'Help link beside a compatibility group', vp: [DESKTOP], covers: ['CompatGroupHelpLink', 'WinisdDifferencesModal', 'ErrorSwitchGroup'], act: async (p) => { await clickText(p, 'Advanced'); await openGroupHelp(p); } },
+  { key: 'desktop-section-help', label: 'Help panel from a section band ?', vp: [DESKTOP], covers: ['DesktopHelpPanel'], act: async (p) => { await clickText(p, 'Driver'); await p.locator('.tab-section.active').getByRole('button', { name: 'Help: Placement', exact: true }).click(T); await p.getByRole('dialog', { name: 'Help: Placement', exact: true }).waitFor(T); } },
   { key: 'differences-cue', label: 'Difference (≠W) popup', vp: [DESKTOP], covers: ['WinisdDeviationCue', 'WinisdDifferencesModal'], act: async (p) => { await clickText(p, 'Box'); await openDeviationCue(p); } },
   // The driver editor, every tab at the top and scrolled to the bottom (it opens on Parameters).
   { key: 'editor-general-top', label: 'Driver editor, General, top', vp: [DESKTOP], keep: true, covers: ['DriverEditorModal'], act: openEditorGeneral(desktopDriverTab) },
