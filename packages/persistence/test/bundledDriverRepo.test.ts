@@ -36,6 +36,8 @@ const driverRow = {
   Xmax_m: 0.0093,
   Vd_m3: null,
   Znom_ohm: 4,
+  freq_low_hz: 30,
+  freq_high_hz: null,
 };
 
 const radiatorRow = {

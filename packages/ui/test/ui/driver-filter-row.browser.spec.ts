@@ -2,7 +2,7 @@ import {expect, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 
 /**
- * The driver filter row (Fs, Sd, Z) wraps only between its groups: a group's label, boxes, unit
+ * The driver filter row (Fs, Range, Sd, Z; the Range checkbox appears once a Range box is used) wraps only between its groups: a group's label, boxes, unit
  * or chips always share one line (John, 16 Oct 2026: "Z" ended one line and the 4Ω/8Ω/16Ω chips
  * began the next).
  */
@@ -15,7 +15,7 @@ for (const width of [360, 390]) {
     await page.locator('.mob-np-body .dl-filters-toggle').click();
     await expect(page.locator('.mob-np-body .param-row')).toBeVisible();
     const groups = page.locator('.mob-np-body .param-row .pgroup');
-    await expect(groups).toHaveCount(3);
+    await expect(groups).toHaveCount(4);
     const tops = await groups.evaluateAll(nodes => nodes.map(group => {
       const parts = [...group.children].map(child => Math.round(child.getBoundingClientRect().top + child.getBoundingClientRect().height / 2));
       return {spread: Math.max(...parts) - Math.min(...parts), right: group.getBoundingClientRect().right};
