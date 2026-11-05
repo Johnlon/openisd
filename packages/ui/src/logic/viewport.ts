@@ -15,10 +15,14 @@ export interface ViewportWatch {
   stop: () => void;
 }
 
-/** `query` defaults to the mobile-skin breakpoint (600px — see the plan: comfortably below
+/** When the phone layout applies: a narrow window, or a touch screen with a short window (a phone
+ *  turned sideways, QO418). A mouse-driven short window and tablets (iPad 1024x768) stay desktop. */
+export const PHONE_LAYOUT_QUERY = '(max-width: 600px), (pointer: coarse) and (max-height: 500px)';
+
+/** `query` defaults to PHONE_LAYOUT_QUERY (narrow part: 600px — see the plan: comfortably below
  *  `original-shell-layout.browser.spec.ts`'s 780px floor and Playwright's default 1280×720 viewport,
  *  so no existing desktop spec crosses it). */
-export function createViewportWatch(query = '(max-width: 600px)'): ViewportWatch {
+export function createViewportWatch(query = PHONE_LAYOUT_QUERY): ViewportWatch {
   const mql = window.matchMedia(query);
   const narrow = ref(mql.matches);
   const onChange = (e: MediaQueryListEvent) => { narrow.value = e.matches; };

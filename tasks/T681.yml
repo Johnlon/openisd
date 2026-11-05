@@ -1,0 +1,14 @@
+id: T681
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: A phone turned sideways stays on the phone layout (QO418, John: y); the skin choice no longer rests on window width alone
+done_test: bash scripts/test.sh packages/ui/test/logic/viewport.test.ts
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T681.yml
+  - packages/ui/src/logic/viewport.ts
+  - packages/ui/test/logic/viewport.test.ts
+  - packages/ui/test/ui/skin-selection.browser.spec.ts

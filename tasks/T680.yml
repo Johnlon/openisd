@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: e743e8cc0d64f10602c24d9189dd2352200bb773
 goal: Record: a phone turned sideways gets the desktop layout (QO418)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

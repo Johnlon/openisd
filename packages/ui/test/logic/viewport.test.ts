@@ -7,7 +7,7 @@
  */
 import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import {createViewportWatch} from '../../src/logic/viewport.js';
+import {createViewportWatch, PHONE_LAYOUT_QUERY} from '../../src/logic/viewport.js';
 
 type Listener = (e: { matches: boolean }) => void;
 
@@ -61,9 +61,15 @@ describe('createViewportWatch', () => {
     vi.stubGlobal('window', { matchMedia: (q: string) => { seenQuery = q; return fakeMatchMedia(false).mql; } });
     try {
       createViewportWatch();
-      assert.equal(seenQuery, '(max-width: 600px)');
+      assert.equal(seenQuery, PHONE_LAYOUT_QUERY);
       createViewportWatch('(max-width: 480px)');
       assert.equal(seenQuery, '(max-width: 480px)');
     } finally { vi.unstubAllGlobals(); }
+  });
+});
+
+describe('PHONE_LAYOUT_QUERY (QO418: a phone turned sideways keeps the phone layout)', () => {
+  it('is a narrow window, or a touch screen with a short window', () => {
+    assert.equal(PHONE_LAYOUT_QUERY, '(max-width: 600px), (pointer: coarse) and (max-height: 500px)');
   });
 });
