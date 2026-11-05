@@ -620,7 +620,9 @@ function fromMore(action: () => void) {
 }
 
 // Phone: the "N values disagree" bar. Its list stays shut while the inspector is on (it would sit on the card).
-const disagreeOpen = ref(false);
+// Opened from the Driver tab's "N values disagree" link, it starts open; the request is read once.
+const disagreeOpen = ref(presentationState.editDriverShowDisagreements);
+presentationState.editDriverShowDisagreements = false;
 const disagreeListShown = computed(() => disagreeOpen.value && !inspectProvenance.value);
 function toggleDisagree() {
   if (inspectProvenance.value) logging.flash(PhoneEditorText.CLOSE_PROVENANCE_FIRST);

@@ -9,6 +9,7 @@
 import {APP_UPDATE_TEXT, CompatSwitchGroup, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
+import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
@@ -69,7 +70,7 @@ const {
   boxResonance, rearQtc, prSystemTuningDq,
   fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, rearTuningCell, rearResonance,
-  model, startEdit, showDriverInfo, startWhatIf, placement,
+  model, startEdit, showDriverDisagreements, showDriverInfo, startWhatIf, placement, driverConsistencyReasons,
   ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
@@ -486,7 +487,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               </div>
             </div>
           </div>
-          <p class="hint driver-model-hint">Temp rise × resistance TC model voice-coil power compression; added mass raises Mms (lowers Fs). WinISD parity.</p>
+          <div class="driver-hint-row">
+            <DriverConsistencyList inline :count="driverConsistencyReasons.length" @open="showDriverDisagreements" />
+          </div>
         </section>
 
         <!-- ===== Enclosure / Vents tab ===== -->
@@ -1264,6 +1267,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    that by keeping every control at its natural width (the `flex:none` rules below) and
    letting the PANE scroll when the sum no longer fits. `overflow:auto` on both axes is
    what makes the clipped content still reachable, which a Win32 window cannot offer. */
+/* The Driver tab's last row: the consistency summary left of the grey hint line, on one line (T662). */
+.driver-hint-row { display:flex; align-items:baseline; min-width:0; min-height:18px; }
 .tab-section.active { visibility:visible; min-height:0; overflow-x:auto; overflow-y:auto; }
 .section-header { background:#e2e2e2; border:1px solid #ccc; padding:2px 8px; font-weight:600; line-height:1.25; margin-bottom:4px; }
 /* Columns keep their natural width and never shrink below their contents. A shrinking

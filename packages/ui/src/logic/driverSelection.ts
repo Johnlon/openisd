@@ -103,7 +103,8 @@ export interface DriverSelection {
   selectDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
   editMyDriver(d: OpenISDDriverStandalone, uuid?: string): void;
   editOverviewDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
-  editProjectDriver(): void;
+  /** Open the editor on the project's driver; `showDisagreements` opens it with the disagreement list showing. */
+  editProjectDriver(showDisagreements?: boolean): void;
   openNewDriver(): void;
   /** What the editor is open on right now, and what to seed its own draft from. */
   editSubject(): EditorDraftSeed;
@@ -185,9 +186,10 @@ export function createDriverSelection(deps: DriverSelectionDeps): DriverSelectio
     },
 
     /** Open the editor on the project's own driver. */
-    editProjectDriver() {
+    editProjectDriver(showDisagreements = false) {
       subject = { kind: 'project' };
       editSeed = null;
+      presentationState.editDriverShowDisagreements = showDisagreements;
       presentationState.editDriverInfo = true;
     },
 

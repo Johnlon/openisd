@@ -1,8 +1,14 @@
+import {readFileSync} from 'node:fs';
 import {describe, it, expect} from 'vitest';
+import {OpenISDDriver} from '../../domain/driver/openISDDriver.js';
+import {formatSignificant} from '../../fields/format.js';
 import assert from 'node:assert/strict';
 import {createEngine} from '../../engine/Engine.js';
 import type {CalculationIssue} from '../../engine/consistency.js';
 const engine = createEngine();
+
+const BC_18NW100_4 = readFileSync(
+  new URL('../../../ui/public/drivers/b-c-speakers/18nw100-4.json', import.meta.url), 'utf-8');
 
 describe('DqIssue text', () => {
   describe('a DqIssue reports its own text', () => {
@@ -40,7 +46,7 @@ describe('DqIssue text', () => {
       const issue: CalculationIssue<string> = engine.issues.inconsistentInputs<string>(
         'Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 1, 1.953, 0.953);
       expect(issue.text).toBe(
-        'Qts, Qes, Qms disagree by 95.3%: Qts = Qes·Qms/(Qes+Qms). Every field in the group is marked '
+        'Qts, Qes, Qms disagree by 48.8%: Qts = Qes·Qms/(Qes+Qms). Every field in the group is marked '
         + '- correct one of them, or clear one to let it be calculated.',
       );
     });
@@ -97,5 +103,35 @@ describe('DqIssue text', () => {
       expect(engine.issues.quantityOutOfBand('Fb', 1, 10, 20).text).toMatch(/plausible/);
       expect(engine.issues.targetUnreachable('length_m', 42).text).toMatch(/42 Hz/);
     });
+  });
+
+  describe('the gap an inconsistent-inputs warning prints', () => {
+    it('a tiny nonzero gap keeps enough digits to be nonzero, never 0.0%', () => {
+      const text = (actual: number): string => engine.issues.inconsistentInputs<string>('Qts', ['Qts', 'Qes'], 'f', 1, actual, 0).text;
+      expect(text(1.0004)).toContain('disagree by 0.040%');
+      expect(text(1.000004)).toContain('disagree by 0.00040%');
+      expect(text(1.5)).toContain('disagree by 33.3%');
+      expect(text(1.002)).toContain('disagree by 0.2%');
+    });
+
+    // BUG_20261104_driver-consistency-gap-shown-as-zero: BL stated 24.7 Tm, implied 26.748 Tm.
+    it('B&C 18NW100-4 BL states the real stated-vs-implied gap (7.7%), not 0.0%', () => {
+      const driver = OpenISDDriver.fromConformingRecord(JSON.parse(BC_18NW100_4), engine);
+      if (Array.isArray(driver)) throw new Error(driver.join('; '));
+      const bl = driver.dataQualityWarnings().find(w => w.field === 'BL_Tm');
+      expect(bl?.message).toMatch(/disagree by 7\.7%/);
+      expect(bl?.message).not.toMatch(/0\.0%/);
+    });
+  });
+});
+
+describe('formatSignificant', () => {
+  it('rounds to 3 significant figures, keeping trailing zeros', () => {
+    expect(formatSignificant(24.7)).toBe('24.7');
+    expect(formatSignificant(26.74834)).toBe('26.7');
+    expect(formatSignificant(30)).toBe('30.0');
+    expect(formatSignificant(32.56)).toBe('32.6');
+    expect(formatSignificant(1234.5)).toBe('1235');
+    expect(formatSignificant(0.000123456)).toBe('0.000123');
   });
 });

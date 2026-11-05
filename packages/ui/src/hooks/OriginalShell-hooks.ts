@@ -630,6 +630,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   // ---- Driver identity + placement ----------------------------------------------
   const model = computed(() => { void projectChanged.value; return project.value.driver.model.value || driverName.value; });
 
+  /** The stated values that disagree with each other, as the Driver Editor lists them. */
+  const driverConsistencyReasons = computed(() => { void projectChanged.value; return project.value.driver.inconsistentInputReasons(); });
+
   // The Project tab's text fields bind here. Each `SimpleField<string>` on `OpenISDProject` is not
   // itself `v-model`-able, so this is a thin get/set bridge onto `.value`/`.set()` — reading
   // `projectChanged` in the getter re-derives it on every focused-project mutation.
@@ -726,6 +729,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   function startEdit() {
     recentActions.record('dialog:driver-editor');
     editProjectDriver();
+  }
+  /** The Driver tab's "N values disagree" link: the same editor as Edit, with its disagreement list showing. */
+  function showDriverDisagreements() {
+    recentActions.record('dialog:driver-editor');
+    editProjectDriver(true);
   }
 
   // R1 refresh fidelity — RECORD an open What-if? panel / Driver Editor so a reload can restore it.
@@ -824,7 +832,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
-    model, startEdit, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement,
+    model, startEdit, showDriverDisagreements, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement, driverConsistencyReasons,
     activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,

@@ -1,0 +1,36 @@
+id: T662
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: A driver consistency warning states the real gap between the stated and implied value (18NW100-4 BL: about 7.7%, never 'disagree by 0.0%'), and the desktop and phone Driver tabs list the driver's consistency checks as the Driver Editor does
+done_test: bash scripts/test.sh packages/design/test/engine/dq-issue-text.test.ts packages/design/test/domain/driver-dq-reasons.test.ts packages/design/test/domain/driver-consistency-solver-golden.test.ts
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/logic/sweepIssueMessage.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/src/ui/field-catalogue.css
+  - tasks/T662.yml
+  - bugs/BUG_20261104_driver-consistency-gap-shown-as-zero.md
+  - packages/design/engine/consistency.ts
+  - packages/design/engine/issues/IssueEngine.ts
+  - packages/design/test/architecture-no-forwards.test.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/test/engine/dq-issue-text.test.ts
+  - packages/design/test/domain/driver-dq-reasons.test.ts
+  - packages/design/test/fixtures/driverSolverGolden.ts
+  - packages/ui/src/ui/components/DriverConsistencyList.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/test/ui/mobile-driver-tab.browser.spec.ts
+  - packages/ui/test/ui/driver-tab-consistency.browser.spec.ts
+ruling_layout: "John 4 Nov 2026, asked 'will a big error like that cause scrollbars the bottom panel' (measured: no scrollbar, but the panel grew and the chart shrank up to 19%); chose 'a- popup': the bottom panel never changes height; the summary line sits in the hint row; the list opens as a popup over the chart."
+ruling_open_editor: "John 4 Nov 2026: 'the actual error is only visible on the driver editor so viewing the error should open the driver editor' (dictated as survey/diary editor). Clicking the summary opens the Driver Editor with its disagreement list shown; no popup."
+ruling_hint: "John 4 Nov 2026: 'lose this label' (the grey Temp rise hint under the Driver tab fields). The row stays, reserved for the warning link, so the panel height never changes."
+visual:
+  - desktop-tab-driver
+  - mobile-tab-driver

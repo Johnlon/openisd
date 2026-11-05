@@ -6,10 +6,18 @@
  */
 import type {VentedDesignQuantity} from './plausibility.js';
 
-/** A near-miss needs its decimal to be readable; a gross one is quoted whole. */
+/** A near-miss needs its decimal to be readable; a gross one is quoted whole. A nonzero gap
+ *  below 0.1% gets two significant digits (0.040%, 0.00040%), so it never reads as 0.0%. */
 export function pct(relative: number): string {
   const p = relative * 100;
-  return p >= 100 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
+  if (p >= 100) return `${Math.round(p)}%`;
+  if (p > 0 && p < 0.1) return `${p.toFixed(1 - Math.floor(Math.log10(p)))}%`;
+  return `${p.toFixed(1)}%`;
+}
+
+/** The real relative gap between a stated and an implied value, as the fraction of the larger. */
+export function relativeGap(expected: number, actual: number): number {
+  return Math.abs(expected - actual) / Math.max(Math.abs(expected), Math.abs(actual));
 }
 
 /** Readable at a glance: one decimal for anything a person would read as a number, two

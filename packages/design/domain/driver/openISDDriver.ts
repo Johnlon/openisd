@@ -13,6 +13,8 @@ import { blankDeviceRecord } from './blankDeviceRecord.js';
 import { OpenISDDevice } from './openISDDevice.js';
 import { CURRENT_SCHEMA_VERSION } from '../schemaVersion.js';
 import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
+import { NumberField } from '../../fields/field.js';
+import { formatSignificant } from '../../fields/format.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
 
 /**
@@ -43,6 +45,14 @@ import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
  */
 
 const NOT_A_DRIVER = 'no woofer section — this record is a passive radiator, nothing to simulate';
+
+/** A value of the quantity `key` in the field's display unit, to 3 significant figures, then its unit. */
+function displayed(key: string, valueSI: number): string {
+    const field = NumberField.named(key);
+    if (field === undefined) return String(valueSI);
+    const unit = field.unitLabel();
+    return `${formatSignificant(field.toDisplay(valueSI))}${unit === '' ? '' : ` ${unit}`}`;
+}
 
 export abstract class OpenISDDriver extends OpenISDDevice {
     static fromConformingRecord(record: unknown, engine: Engine): OpenISDDriverStandalone | string[] {
@@ -110,6 +120,10 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  derived figures, and every one of them comes from here and nowhere else. */
     protected readonly engine: Engine;
 
+    /** The owner's cached issues when this driver is a short-lived window (an embedded driver);
+     *  absent for a standalone driver, which keeps its own. */
+    private readonly durableIssues: (() => readonly DriverIssue[]) | undefined;
+
     protected constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
@@ -121,6 +135,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
+        this.durableIssues = durableIssues;
         this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues);
     }
 
@@ -150,7 +165,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  calculated one fed back as if it had been typed, or the group could never be reported as
      *  inconsistent no matter how wrong the user's OWN numbers are). */
     issues(): readonly DriverIssue[] {
-        return this.specs.issues();
+        return this.durableIssues === undefined ? this.specs.issues() : this.durableIssues();
     }
 
     /** What actually blanks a chart: a quantity the solver cannot derive, or a mandatory field
@@ -257,7 +272,10 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.issues().flatMap(issue => {
             switch (issue.kind) {
                 case 'inconsistent-inputs':
-                    return [{subject: issue.target, text: `${issue.formula} — stated as ${issue.actual}, the others imply ${issue.expected}`}];
+                    return [{
+                        subject: this.engine.issues.plainNames(issue.target),
+                        text: `stated as ${displayed(issue.target, issue.actual)}, the others imply ${displayed(issue.target, issue.expected)}, ${this.engine.issues.percentApart(issue.expected, issue.actual)} apart`,
+                    }];
                 case 'missing-dependencies':
                 case 'approximate-charts':
                 case 'out-of-range':

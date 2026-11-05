@@ -1,4 +1,4 @@
-import {decimal, pct, plainNames} from './issueText.js';
+import {decimal, pct, plainNames, relativeGap} from './issueText.js';
 import type {MaxCurvesResult, SweepResult} from './types.js';
 import type {VentedPlausibilityIssue} from './plausibility.js';
 
@@ -141,14 +141,16 @@ export function missingDependencies<Q extends string>(
   };
 }
 
-/** Stated values that contradict the formula relating them — every field in the group is marked. */
+/** Stated values that contradict the formula relating them — every field in the group is marked.
+ *  The sentence states the real gap between the stated and implied values; `relative` is only
+ *  the part of it left after rounding uncertainty and tolerance, which decided whether to warn. */
 export function inconsistentInputs<Q extends string>(
   target: Q, fields: readonly Q[], formula: string, expected: number, actual: number,
   relative: number,
 ): CalculationIssue<Q> {
   return {
     kind: 'inconsistent-inputs', target, fields, formula, expected, actual, relative,
-    text: plainNames(`${fields.join(', ')} disagree by ${pct(relative)}: ${formula}. Every field in the `
+    text: plainNames(`${fields.join(', ')} disagree by ${pct(relativeGap(expected, actual))}: ${formula}. Every field in the `
       + 'group is marked - correct one of them, or clear one to let it be calculated.'),
   };
 }

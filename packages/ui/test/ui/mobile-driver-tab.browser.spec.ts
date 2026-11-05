@@ -4,8 +4,11 @@
  * the overlays themselves behave correctly (`mobile-driver-browser`, `mobile-driver-editor` and
  * their own spec files cover that).
  */
+import {readFileSync} from 'node:fs';
 import {expect, openAMobileProject, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
+
+const B_AND_C_18NW100 = readFileSync('packages/ui/public/drivers/b-c-speakers/18nw100-4.json');
 
 test.beforeEach(async ({ appPage: page }) => {
   await forceMobileSkin(page);
@@ -46,13 +49,13 @@ test('the Connection dropdown uses the same value width as the other Driver drop
   expect(Math.abs(widths.connection - widths.drivers), 'Connection must not use the full-width select variant').toBeLessThanOrEqual(0.5);
 });
 
-test('page order matches the mock: name, buttons, Driver band, count, wiring, Key figures band, five figures', async ({ appPage: page }) => {
+test('page order matches the mock: name, buttons, Driver band, count, wiring, Key figures band, five figures, then the consistency checks', async ({ appPage: page }) => {
   await page.setViewportSize({ width: 374, height: 705 });
   const kids = await page.locator('.mob-classic').evaluate(root => [...root.children].map(e => ({
     cls: e.className,
     text: (e instanceof HTMLElement ? e.innerText : '').replace(/\s+/g, ' ').trim(),
   })));
-  expect(kids.map(k => k.text.split(' ')[0])).toEqual(['Tang', 'Select', 'DRIVER', 'Drivers', 'Connection', 'KEY', 'Fs', 'Qts', 'Vas', 'Re', 'Xmax']);
+  expect(kids.map(k => k.text.split(' ')[0])).toEqual(['Tang', 'Select', 'DRIVER', 'Drivers', 'Connection', 'KEY', 'Fs', 'Qts', 'Vas', 'Re', 'Xmax', '⚠']);
   expect(kids.filter(k => k.cls.includes('mob-band')).map(k => k.text)).toEqual(['DRIVER ?', 'KEY FIGURES ?']);
 });
 
@@ -94,4 +97,22 @@ test('the Select driver button text is visible against its background', async ({
     return { text: s.color, background: s.backgroundColor };
   });
   expect(colours.text).not.toBe(colours.background);
+});
+
+test('the Driver tab lists the driver\'s consistency checks (B&C 18NW100-4: BL disagrees)', async ({ appPage: page }) => {
+  await page.getByRole('button', {name: 'Select driver'}).click();
+  await page.locator('.driver-library input[type="file"]').setInputFiles({
+    name: '18nw100-4.owdr', mimeType: 'application/json', buffer: B_AND_C_18NW100,
+  });
+  await expect(page.locator('.driver-library .preview')).toBeVisible();
+  await page.locator('.driver-library .use-btn').click();
+  await expect(page.locator('.wb-modal')).toHaveCount(0);
+  const summary = page.locator('.driver-consistency-summary');
+  await expect(summary).toBeVisible();
+  await expect(page.locator('.de-body')).toHaveCount(0);
+  await summary.click();
+  await expect(page.locator('.de-body')).toBeVisible();
+  const list = page.locator('.de-dq-list');
+  await expect(list).toBeVisible();
+  await expect(list).toContainText('force factor (BL) stated as 24.7 Tm, the others imply 26.7 Tm, 7.7% apart');
 });

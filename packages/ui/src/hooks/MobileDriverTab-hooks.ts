@@ -31,6 +31,11 @@ export function useMobileDriverTab() {
     const spec = project.value.driver.specs;
     return {Fs: spec.Fs_hz.value, Qts: spec.Qts.value, Vas: spec.Vas_m3.value, Re: spec.Re_ohm.value, Xmax: spec.Xmax_m.value};
   });
+  /** The stated values that disagree with each other, as the Driver Editor lists them. */
+  const consistencyReasons = computed(() => {
+    void projectChanged.value;
+    return project.value.driver.inconsistentInputReasons();
+  });
   const keyFigureDq = computed(() => {
     void projectChanged.value;
     const device = project.value.driver.toOpenIsdDeviceJson();
@@ -39,9 +44,11 @@ export function useMobileDriverTab() {
 
   function browseDrivers(): void { presentationState.browseOpen = true; }
   function editDriver(): void { selection.editProjectDriver(); }
+  /** The "N values disagree" link: the same editor, with its disagreement list showing. */
+  function showDisagreements(): void { selection.editProjectDriver(true); }
 
   return {
-    project, brand, model, fullName, keyFigures, keyFigureDq, browseDrivers, editDriver,
+    project, brand, model, fullName, keyFigures, keyFigureDq, consistencyReasons, browseDrivers, editDriver, showDisagreements,
     showDriverInfo: driverBrowsing.showProjectDriverInfo,
     N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption,
   };

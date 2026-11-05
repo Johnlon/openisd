@@ -425,6 +425,9 @@ export class PhoneEditorText {
   /** What a tap on the bar says while the inspector is open (the list would sit on the card). */
   static readonly CLOSE_PROVENANCE_FIRST = 'Close provenance to open this list';
 
+  /** The tooltip on the Driver tab's "N values disagree" link, which opens the Driver Editor. */
+  static readonly OPEN_EDITOR_TO_FIX = 'Open the Driver Editor to see and fix these values';
+
   /** The bar's heading: "3 values disagree", or "1 value disagrees". */
   static disagreeHeading(count: number): string {
     return count === 1 ? '1 value disagrees' : `${count} values disagree`;

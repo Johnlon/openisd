@@ -96,7 +96,7 @@
 
 /* Explanations use the full pane instead of becoming a tall strip beside wider controls. */
 .compact-fields .driver-columns .field-row {margin-bottom:0 !important;}
-.compact-fields .driver-model-hint {margin:4px 0 0 !important;}
+.compact-fields .driver-hint-row {margin:4px 0 0 !important;}
 .compact-fields .adv-air-fields {column-gap:8px !important;}
 .compact-fields .adv-two-col {gap:22px !important;}
 /* Keep explanatory prose readable when classic panes scroll at narrower window widths. */

@@ -2,13 +2,14 @@
 // The mobile Driver tab — identity, driver count, voice-coil wiring and the driver's key figures.
 // Thin: all state and domain reads/writes live in useMobileDriverTab() (src/hooks/MobileDriverTab-hooks.ts).
 import {NumberField, PhoneHelp, PhoneLabels} from '@openisd/design/fields';
+import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
 import PhoneButton from './PhoneButton.vue';
 import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileDriverTab } from '../../../hooks/MobileDriverTab-hooks.js';
 
-const { project, fullName, keyFigures, keyFigureDq, browseDrivers, editDriver, showDriverInfo, N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption } = useMobileDriverTab();
+const { project, fullName, keyFigures, keyFigureDq, consistencyReasons, browseDrivers, editDriver, showDisagreements, showDriverInfo, N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption } = useMobileDriverTab();
 </script>
 
 <template>
@@ -44,6 +45,7 @@ const { project, fullName, keyFigures, keyFigureDq, browseDrivers, editDriver, s
     <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.VAS_M3" label="Vas" :value="keyFigures.Vas" readonly plain />
     <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.RE_OHM" label="Re" :value="keyFigures.Re" :dq="keyFigureDq.Re" note-tone="warning" readonly plain />
     <UIFixedField class="mob-ui-field mob-ui-field-tap" @click="editDriver" @keydown.enter="editDriver" :field="NumberField.XMAX_M" label="Xmax" :value="keyFigures.Xmax" readonly plain />
+    <DriverConsistencyList :count="consistencyReasons.length" @open="showDisagreements" />
   </PhoneClassicPage>
 </template>
 

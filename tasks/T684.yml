@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: d40e36489e170a53b4b10210926f204624e66b1f
 goal: Journey tests: from an empty app, pick a bundled driver and radiator for each box type; every box fills with the record's value, phone and desktop (QO326)
 done_test: bash scripts/test.sh packages/ui/test/architecture/ui-clear-tests-use-keyboard.test.ts
 files:
