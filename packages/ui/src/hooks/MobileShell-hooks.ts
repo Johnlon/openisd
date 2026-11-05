@@ -10,7 +10,7 @@ import {useApp} from '../logic/app.js';
 import {useFeatureUse, useRecentActions} from './telemetryContext.js';
 import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {inputFrom} from '../logic/domEvents.js';
-import {visibleViewportHeightPx, visibleViewportTopPx} from '../logic/visibleViewport.js';
+import {shellHeightPx, visibleViewportTopPx} from '../logic/visibleViewport.js';
 import {STEPPER_PIN, StepperPin} from '../logic/stepperPin.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
@@ -432,12 +432,12 @@ export function useMobileShell(): MobileShellApi {
   // CSS `100vh`/`100dvh` is not enough on its own: real browsers vary in whether/when they
   // shrink it for their own chrome (a mobile address bar, a download shelf, any other bar a
   // given browser version adds). The shell takes its height from a JS measurement instead —
-  // `visibleViewportHeightPx` says which number and why — re-read on every event any browser
+  // `shellHeightPx` says which number and why — re-read on every event any browser
   // fires when such a bar appears or disappears.
-  const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : visibleViewportHeightPx(window));
+  const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : shellHeightPx(window));
   const viewportTopPx = ref(0);
   function updateViewportHeight(): void {
-    viewportHeightPx.value = visibleViewportHeightPx(window);
+    viewportHeightPx.value = shellHeightPx(window);
     viewportTopPx.value = visibleViewportTopPx(window);
   }
   // The visible screen changed size (the keyboard): the box being typed in is scrolled into view

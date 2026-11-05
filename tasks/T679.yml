@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: f31a5ffec4cc723c68782eed7a676de7c01a5efc
 goal: The phone sheet's number boxes use the shared field component: MobileSheet is the last screen building NumInput and UnitToggle by hand (BUG_20261005_no-common-ui-field-component)
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts packages/ui/test/hooks/NumInput-hooks.test.ts packages/ui/test/scripts/mobile-surface-manifest.test.ts
 files:

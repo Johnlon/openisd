@@ -20,11 +20,26 @@ export interface VisualViewportLike {
 }
 
 export interface ViewportSource {
+  readonly innerWidth: number;
   readonly innerHeight: number;
   readonly visualViewport: VisualViewportLike | null;
 }
 
 const UNZOOMED_TOLERANCE = 0.01;
+
+/** A window this short and wider than tall is a phone turned sideways. */
+const SIDEWAYS_MAX_HEIGHT_PX = 500;
+
+/** A phone turned sideways (QO418). Its page keeps the upright height and the document scrolls. */
+export function isSidewaysPhone(w: ViewportSource): boolean {
+  return w.innerWidth > w.innerHeight && w.innerHeight <= SIDEWAYS_MAX_HEIGHT_PX;
+}
+
+/** The phone shell's height: the visible height, or sideways the upright height (the window
+ *  width) so the page is the normal phone page seen through a window. */
+export function shellHeightPx(w: ViewportSource): number {
+  return isSidewaysPhone(w) ? w.innerWidth : visibleViewportHeightPx(w);
+}
 
 export function visibleViewportHeightPx(w: ViewportSource): number {
   const vv = w.visualViewport;
@@ -38,7 +53,8 @@ export function visibleViewportHeightPx(w: ViewportSource): number {
 // of nothing shows above the keyboard (John's Pixel 9, 19 Oct 2026). 0 under pinch-zoom, as above.
 export function visibleViewportTopPx(w: ViewportSource): number {
   const vv = w.visualViewport;
-  if (vv === null || Math.abs(vv.scale - 1) > UNZOOMED_TOLERANCE) return 0;
+  // Sideways the document itself scrolls, so the browser's pan needs no compensation.
+  if (isSidewaysPhone(w) || vv === null || Math.abs(vv.scale - 1) > UNZOOMED_TOLERANCE) return 0;
   return Math.round(vv.offsetTop);
 }
 

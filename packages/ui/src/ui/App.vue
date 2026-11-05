@@ -188,7 +188,8 @@ onUnmounted(() => {
   max-width: 480px;
   margin: 0 auto;
   /* No explicit height here on purpose: MobileShell.vue's .mobile-root sets its OWN height from
-     a JS-measured visible viewport height (more robust than any CSS vh/dvh — see visibleViewport.ts).
+     a JS-measured visible viewport height (more robust than any CSS vh/dvh — see visibleViewport.ts);
+     sideways that height is the window width, so the document scrolls and the grey is a drag surface.
      Every other child of this element is position:fixed (out of normal flow), so with no height
      of its own, this element's auto height just matches .mobile-root's exactly — no risk of the
      two disagreeing and one clipping or gapping past the other. */
