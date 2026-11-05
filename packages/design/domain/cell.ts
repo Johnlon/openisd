@@ -1,6 +1,5 @@
 import type {DqIssue, SolverField, SolverInput} from '@openisd/design/engine';
 import type {SpecEntryJson} from './openisdSchema.js';
-import {isUsable} from './corroboration.js';
 import {halfUlp} from './precision.js';
 
 // ───────────────────────────────── Capability atoms ─────────────────────────────────────────────
@@ -403,24 +402,17 @@ export function entryField(
 
 /** D13 — the STATED precision of this value, never the precision the field could support.
  *
- *  Three sources, in order of how directly each one knows what was stated:
- *  1. the winning reading's `read_precision` — the scraper measured it and says so;
- *  2. the entry's own `precision`, written when the value was entered: the entering unit's
+ *  Two sources, in order of how directly each one knows what was stated:
+ *  1. the entry's own `precision`, written when the value was entered: the entering unit's
  *     least significant digit, in SI. A value typed into a field showing 2 decimals of grams
- *     states 30 g to ±0.005 g, and the conversion to `0.03` kg is not allowed to lose that;
- *  3. the printed decimals of the stored value. A record stating `0.5` kg states one decimal of
+ *     states 30 g to ±0.005 g, and the conversion to `0.03` kg is not allowed to lose that. A
+ *     scraped value gets it from the winning reading's `read_precision` when the bridge writes
+ *     the record, or the load upgrade works it out (`slimModel.ts`);
+ *  2. the printed decimals of the stored value. A record stating `0.5` kg states one decimal of
  *     a kilogram and nothing finer — `0.5` is not `0.50000` — so this is the right answer for a
  *     value that arrived as a number in a file and never went through a field. */
 function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
-  return statedPrecisionOf(entry) ?? halfUlp(entry.value);
-}
-
-/** Sources 1 and 2 of `entryPrecision`: what the entry states, without the printed-decimals
- *  fallback, which the value alone supplies. Undefined when the entry states none. */
-export function statedPrecisionOf(entry: Extract<SpecEntryJson, {state: 'E'}>): number | undefined {
-  const reading = entry.origin !== undefined ? entry.readings?.[entry.origin] : undefined;
-  const precision = reading !== undefined && isUsable(reading) ? reading.read_precision : undefined;
-  return precision ?? entry.precision;
+  return entry.precision ?? halfUlp(entry.value);
 }
 
 /** `entryField` for a value that is never N: an empty slot reads `fallback()` as calculated.

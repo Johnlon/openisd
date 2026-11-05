@@ -7,6 +7,7 @@
  * silent drop of what the older app cannot read.
  */
 import {withoutRetiredSpecKeys} from './retiredSpecKeys.js';
+import {withSlimModel} from './slimModel.js';
 
 export const CURRENT_SCHEMA_VERSION = 3;
 /** What a file with no `schemaVersion` is: everything saved before versions existed. */
@@ -30,9 +31,11 @@ function recordOr(upgraded: unknown, fallback: PlainRecord): PlainRecord {
     return isRecord(upgraded) ? upgraded : fallback;
 }
 
-/** 2 to 3: the retired spec keys go. */
+/** 2 to 3: the retired spec keys go, and the record becomes the slim model (`slimModel.ts`): the
+ *  stated reading precision moves onto each entered value, then readings, origin, quality and the
+ *  rest are dropped. */
 const UPGRADE_STEPS: readonly UpgradeStep[] = Object.freeze([
-    {from: 2, upgrade: (value: PlainRecord) => recordOr(withoutRetiredSpecKeys(value), value)},
+    {from: 2, upgrade: (value: PlainRecord) => recordOr(withSlimModel(withoutRetiredSpecKeys(value)), value)},
 ]);
 
 function versionOf(value: PlainRecord): number | string {
@@ -59,5 +62,8 @@ export function upgradeToCurrent(value: unknown, current: number = CURRENT_SCHEM
         const step = steps.find(s => s.from === at);
         upgraded = step === undefined ? upgraded : step.upgrade(upgraded);
     }
-    return {value: {...upgraded, schemaVersion: current}};
+    // A build before the slim model stamped 3 on records that still had the old fields (T668): the
+    // slim model is applied again to the current version, which changes nothing in a slim record.
+    const settled = current === CURRENT_SCHEMA_VERSION ? recordOr(withSlimModel(upgraded), upgraded) : upgraded;
+    return {value: {...settled, schemaVersion: current}};
 }

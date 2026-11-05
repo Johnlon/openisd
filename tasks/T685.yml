@@ -1,0 +1,81 @@
+id: T685
+release_note: internal
+repo: openisd
+owner: sonnet
+ruling: QO395
+status: done
+goal: openisd.json is the slim model: the schema keeps only values (state, value, precision), names and texts, the 3 manufacturer links, driver type and curves; the 2 to 3 upgrade drops readings, origin, corroboration, dq marks, quality, sku grounds and other data_sources after computing stated precision; slimDriver goes (ruling: QO395)
+done_test: bash scripts/test.sh packages/design/test/domain/slim-model.test.ts packages/design/test/domain/schema-version.test.ts packages/design/test/domain/project/stored-text.test.ts packages/design/test/domain/driver-record.test.ts packages/persistence/test/storageUpgrade.test.ts
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+files:
+  - packages/design/domain/cell.ts
+  - packages/design/domain/driver/blankDeviceRecord.ts
+  - packages/design/domain/driver/openISDDevice.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/domain/project/slimDriver.ts
+  - packages/design/domain/project/withoutImportSku.ts
+  - packages/design/domain/schemaVersion.ts
+  - packages/design/domain/slimModel.ts
+  - packages/design/domain/specEntry.ts
+  - packages/design/domain/winIsdDriverImport.ts
+  - packages/design/domain/winIsdProjectConverter.ts
+  - packages/design/test/**
+  - packages/design/test/architecture-record-matches-openisd-json.test.ts
+  - packages/design/test/domain/cell.test.ts
+  - packages/design/test/domain/data-sources-schema.test.ts
+  - packages/design/test/domain/driver-edit.test.ts
+  - packages/design/test/domain/driver-record.test.ts
+  - packages/design/test/domain/driver-type-roles.test.ts
+  - packages/design/test/domain/openisd-device-json-specs.test.ts
+  - packages/design/test/domain/project/slim-driver.coverage.test.ts
+  - packages/design/test/domain/project/slim-driver.test.ts
+  - packages/design/test/domain/retired-authoritative-field.test.ts
+  - packages/design/test/domain/slim-model.test.ts
+  - packages/design/test/domain/spec-entry-json-schema.test.ts
+  - packages/design/test/winisd/driverRecordConverter.coverage.test.ts
+  - packages/design/test/winisd/driverYmlReads.test.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - packages/design/test/winisd/scraper-driver-json-projection.test.ts
+  - packages/design/test/winisd/wdr-parstate-load-table.test.ts
+  - packages/design/test/winisd/wdr-vccon-numvc-import.test.ts
+  - packages/persistence/src/repos/layoutSteps.ts
+  - packages/persistence/src/storageLayout.ts
+  - packages/persistence/test/**
+  - packages/persistence/test/goldens/**
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/persistence/test/storageUpgrade.test.ts
+  - scripts/bundle-drivers.mjs
+  - scripts/bundleProjection.mjs
+  - scripts/roundTripGate.mjs
+  - scripts/schemagen/**
+  - scripts/schemagen/cases.ts
+  - scripts/schemagen/out/driver_model.py
+  - tasks/T685.yml
+  - packages/ui/test/ui/cloud-layout-upgrade.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png

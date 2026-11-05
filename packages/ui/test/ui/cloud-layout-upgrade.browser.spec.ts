@@ -37,7 +37,7 @@ function layoutTwoProject(): {readonly id: string; readonly text: string; readon
   return {id: entry['id'], text: entry['text'], bucket: dump['openisd_projects'], state: dump['openisd_state']};
 }
 
-test('a layout-2 store synced with Drive upgrades to layout 4 without a conflict copy', async ({page}) => {
+test('a layout-2 store synced with Drive upgrades to layout 5 without a conflict copy', async ({page}) => {
   const {id, text, bucket, state} = layoutTwoProject();
   const hash = createHash('sha256').update(canonical(JSON.parse(text))).digest('hex');
   const drive = await emulateDriveServer(page);
@@ -66,7 +66,7 @@ test('a layout-2 store synced with Drive upgrades to layout 4 without a conflict
   await expect(page.locator('.cloud-modal')).toContainText('Synced');
 
   // The upgraded project replaces the older one on Drive, in the same file.
-  await expect.poll(() => drive.listFiles().map(f => `${f.name} layout ${f.appProperties['layout']}`)).toEqual([`project-${id}.owpr layout 4`]);
+  await expect.poll(() => drive.listFiles().map(f => `${f.name} layout ${f.appProperties['layout']}`)).toEqual([`project-${id}.owpr layout 5`]);
   // The conflict notice from before the upgrade is still there, and no new copy was made.
   await expect(page.locator('.cloud-modal .cloud-sync-conflict-row')).toHaveCount(1);
   await expect(page.locator('.cloud-modal .cloud-sync-conflict-row')).toContainText('Beta (conflict, 12 Oct 2026, iPhone)');

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 3783402048819ca24b36ab9676cde2f248653c70
 goal: A driver consistency warning states the real gap between the stated and implied value (18NW100-4 BL: about 7.7%, never 'disagree by 0.0%'), and the desktop and phone Driver tabs list the driver's consistency checks as the Driver Editor does
 done_test: bash scripts/test.sh packages/design/test/engine/dq-issue-text.test.ts packages/design/test/domain/driver-dq-reasons.test.ts packages/design/test/domain/driver-consistency-solver-golden.test.ts
 files:

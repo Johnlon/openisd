@@ -1,28 +1,23 @@
 /**
- * A WinISD file states no short code (QO259), but earlier imports stored one anyway: the model
- * text for a `.wdr` driver, 'WPR-IMPORT' for a `.wpr` project's passive radiator. A saved
- * project carrying such a code loads with none ('') and the field is reported as repaired.
- * A code that came from a datasheet, or one that differs from the model, is left alone.
+ * A WinISD file states no short code (QO259), but earlier imports stored one anyway: 'WPR-IMPORT'
+ * for a `.wpr` project's passive radiator (the model text stored for a `.wdr` driver is cleared
+ * once by the load upgrade, which still sees the grounds that said it was typed by the import,
+ * `slimModel.ts`). A saved project carrying the placeholder loads with none ('') and the field is
+ * reported as repaired.
  */
 import type {OpenISDProjectJson, OpenISDProjectSessionJson} from '../openisdSchema.js';
 import type {FieldPath} from '../schemaRepair.js';
 
 const IMPORT_PLACEHOLDER = 'WPR-IMPORT';
 
-function isImportSku(sku: {readonly value: string; readonly grounds: readonly {readonly origin: string}[]}, model: string): boolean {
-    if (sku.value === IMPORT_PLACEHOLDER) return true;
-    return sku.value !== '' && sku.value === model && sku.grounds.every(g => g.origin === 'manual');
-}
-
 interface SkuHolder {
-    readonly sku: {readonly value: string; readonly grounds: readonly {readonly origin: string}[]};
-    readonly model: {readonly value: string};
+    readonly sku: {readonly value: string};
 }
 
 /** `device` with an import's placeholder short code cleared; `device` itself when it has none. */
 export function deviceWithoutImportSku<D extends SkuHolder>(device: D): D {
-    if (!isImportSku(device.sku, device.model.value)) return device;
-    return {...device, sku: {value: '', grounds: [{origin: 'manual' as const, reading: ''}]}};
+    if (device.sku.value !== IMPORT_PLACEHOLDER) return device;
+    return {...device, sku: {value: ''}};
 }
 
 function clearedProject(project: OpenISDProjectJson, where: 'saved' | 'edited'): {project: OpenISDProjectJson; repaired: FieldPath[]} {

@@ -75,17 +75,14 @@ function wdrValue(wdr: string | null, key: string): string {
 const warnings = (errors: DriverError[]) => errors.filter(e => e.level === 'warn').map(e => e.message);
 
 describe('DriverRecordConverter — voice-coil derivation and edge cases', () => {
-  it('keeps the CX120-8 published tweeter Qes=7.91 entered and preserves its source reading', () => {
+  it('keeps the CX120-8 published tweeter Qes=7.91 entered, with the precision its reading states and no readings (QO395)', () => {
     const {openisd, wdr} = convert(cx120Record());
     if (openisd === null) throw new Error('CX120-8 source did not project');
     const projected = parseJson(openisd);
     const specs = child(projected, 'specs');
     const tweeter = child(specs, 'tweeter');
 
-    expect(child(tweeter, 'Qes')).toMatchObject({
-      state: 'E', value: 7.91,
-      readings: {manufacturer_datasheet: {actual_reading: '7.91', read_value: 7.91}},
-    });
+    expect(child(tweeter, 'Qes')).toEqual({state: 'E', value: 7.91, precision: 0.005});
     expect(child(tweeter, 'Qms')).toMatchObject({state: 'E', value: 2.2});
     expect(child(tweeter, 'Qts')).toMatchObject({state: 'E', value: 1.72});
     expect(projected.data_sources).toMatchObject({value: {

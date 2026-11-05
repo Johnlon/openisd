@@ -13,14 +13,13 @@ import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {openISDDeviceJsonSchema} from '../../domain/openisdSchema.js';
 
-const entry = (v: number) => ({state: 'E' as const, value: v, origin: 'entered', readings: {entered: {read_value: v}}});
+const entry = (v: number) => ({state: 'E' as const, value: v});
 
 function record(specs: unknown): unknown {
   return {
     uuid: {value: '00000000-0000-4000-8000-000000000009'},
-    quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []},
     manufacturer: {value: 'Dayton'}, brand: {value: 'Dayton'}, model: {value: 'RS225'},
-    sku: {value: 'RS225', grounds: [{origin: 'manual', reading: 'RS225'}]},
+    sku: {value: 'RS225'},
     driver_type: {value: ['woofer']},
     data_sources: {value: {}},
     specs,
@@ -72,7 +71,7 @@ describe('openISDDeviceJsonSchema.specs — a driver OR a radiator, never both, 
   // A reading is itself a sum (Usable | Rejected…), so a malformed reading is named at the reading
   // (`readings.datasheet`), not at one member's field: no variant owns the finding.
   it('a bad reading inside a section is named by its own path — the sum does not swallow member findings', () => {
-    const problems = problemsOf({woofer: {Fs_hz: {state: 'E', value: 30, origin: 'datasheet', readings: {datasheet: {read_value: 'thirty'}}}}});
+    const problems = problemsOf({woofer: {Fs_hz: {state: 'N', readings: {datasheet: {read_value: 'thirty'}}}}});
     assert.ok(problems.some(p => p.startsWith('specs.woofer.Fs_hz.readings.datasheet')),
       `the member's issue path was lost: ${problems.join(' | ')}`);
   });

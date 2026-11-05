@@ -508,13 +508,13 @@ describe('projectRepo', () => {
       expect(repo.listStoredProjects()).toHaveLength(0);
     });
 
-    it('never refuses a layout-4 file that has lost its id: one is minted on read (QO315)', () => {
+    it('never refuses a current-layout file that has lost its id: one is minted on read (QO315)', () => {
       const repo = projectRepoOn(engine, noFiles, createMemoryStorage(), 'http://localhost');
       const parsed: unknown = JSON.parse(exportedFilesOn().stamp(project('No id').toOwprText()));
       assert.ok(isRecord(parsed));
       const {id: _lost, ...withoutId} = parsed;
       const text = JSON.stringify(withoutId);
-      expect(text).toContain('"layout":4');
+      expect(text).toContain('"layout":5');
       const opened = repo.readProjectText(text);
       assert.ok(!Array.isArray(opened), Array.isArray(opened) ? opened.join('; ') : '');
       expect(opened.uuid()).not.toBe('');

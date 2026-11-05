@@ -233,7 +233,7 @@ describe('editing a driver — copy, then update or drop', () => {
     expect(text.trimStart().startsWith('{')).toBe(true);
     const parsed: unknown = JSON.parse(text);
     if (!isRecord(parsed)) throw new Error('expected an object');
-    expect(parsed.quality).toBeDefined();
+    expect('quality' in parsed).toBe(false);
     expect(parsed.brand).toBeDefined();
     expect(parsed.specs).toBeDefined();
     expect('uuid' in parsed).toBe(false);

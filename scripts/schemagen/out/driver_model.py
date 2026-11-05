@@ -34,80 +34,26 @@ class Strict(BaseModel):
 class RootUuid(Strict):
     value: str
 
-class RootQuality(Strict):
-    issue: str = None
-    confirmed_fields: list[str] = None
-    fields_with_issues: list[str] = None
-    missing: list[str] = None
-    invalid: list[str] = None
-    parse_errors: list[str] = None
-    cross_source_only: list[object] = None
-
-_union_text_field_dq_scraper_1_member_0 = TypeAdapter(object, config=ConfigDict(strict=True))
-def _union_text_field_dq_scraper_1_finish_0(_mark):
-    return None
-def _union_text_field_dq_scraper_1(v):
-    return _union(v, [(_union_text_field_dq_scraper_1_member_0, _union_text_field_dq_scraper_1_finish_0)])
-
-TextFieldDqScraper = Annotated[object, BeforeValidator(_union_text_field_dq_scraper_1)]
-
-class TextField(Strict):
-    value: str
-    origin: str = None
-    readings: dict[str, str] = None
-    dq_scraper: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
-    note: object = None
-
-class RootSkuGrounds(Strict):
-    origin: str
-    reading: str
-
-class RootSku(Strict):
-    value: str
-    grounds: Annotated[list[RootSkuGrounds], Field(min_length=1)]
-
-_union_driver_roles_field_value_2_member_0 = TypeAdapter(str, config=ConfigDict(strict=True))
-def _union_driver_roles_field_value_2_finish_0(role):
+_union_driver_roles_field_value_1_member_0 = TypeAdapter(str, config=ConfigDict(strict=True))
+def _union_driver_roles_field_value_1_finish_0(role):
     return [role]
-_union_driver_roles_field_value_2_member_1 = TypeAdapter(list[str], config=ConfigDict(strict=True))
-def _union_driver_roles_field_value_2_finish_1(out):
+_union_driver_roles_field_value_1_member_1 = TypeAdapter(list[str], config=ConfigDict(strict=True))
+def _union_driver_roles_field_value_1_finish_1(out):
     return out
-def _union_driver_roles_field_value_2(v):
-    return _union(v, [(_union_driver_roles_field_value_2_member_0, _union_driver_roles_field_value_2_finish_0), (_union_driver_roles_field_value_2_member_1, _union_driver_roles_field_value_2_finish_1)])
+def _union_driver_roles_field_value_1(v):
+    return _union(v, [(_union_driver_roles_field_value_1_member_0, _union_driver_roles_field_value_1_finish_0), (_union_driver_roles_field_value_1_member_1, _union_driver_roles_field_value_1_finish_1)])
 
-def _driver_roles_field_value_3(roles):
+def _driver_roles_field_value_2(roles):
     if not (len(set(roles)) == len(roles)):
         raise ValueError("a role appears twice")
     return roles
 
-DriverRolesFieldValue = Annotated[Annotated[list[str], Field(min_length=1)], AfterValidator(_driver_roles_field_value_3)]
+DriverRolesFieldValue = Annotated[Annotated[list[str], Field(min_length=1)], AfterValidator(_driver_roles_field_value_2)]
 
-DriverRolesFieldValue2 = Annotated[DriverRolesFieldValue, BeforeValidator(_union_driver_roles_field_value_2)]
+DriverRolesFieldValue2 = Annotated[DriverRolesFieldValue, BeforeValidator(_union_driver_roles_field_value_1)]
 
 class DriverRolesField(Strict):
     value: DriverRolesFieldValue2
-    origin: str = None
-    readings: dict[str, DriverRolesFieldValue2] = None
-    dq_scraper: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
-    note: object = None
-
-class CategoriesFieldValue(Strict):
-    label: str
-    url: str
-
-class CategoriesField(Strict):
-    value: Annotated[list[CategoriesFieldValue], Field(min_length=1)]
-    origin: str = None
-    readings: dict[str, Annotated[list[CategoriesFieldValue], Field(min_length=1)]] = None
-    dq_scraper: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
-    note: object = None
-
-class RootNominalSizeCm(Strict):
-    value: Number
-    origin: str = None
-    readings: dict[str, Number] = None
-    dq_scraper: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
-    note: object = None
 
 class RootDataSourcesValue(Strict):
     manufacturer_datasheet: str = None
@@ -120,6 +66,16 @@ class RootDataSourcesValue(Strict):
 class RootDataSources(Strict):
     value: RootDataSourcesValue
 
+class EnteredEntry(Strict):
+    state: Literal["E"]
+    value: Number
+    precision: Annotated[Number, Field(gt=0)] = None
+
+class CalculatedEntry(Strict):
+    state: Literal["C"]
+    value: Number
+    precision: Annotated[Number, Field(gt=0)] = None
+
 class ReaderRead(Strict):
     actual_reading: str
     read_value: Number | None
@@ -131,12 +87,12 @@ class ReaderRead(Strict):
             raise ValueError("read_precision needs a read_value")
         return self
 
-def _usable_reading_reads_5(r):
+def _usable_reading_reads_4(r):
     if not (len(list(r)) > 0):
         raise ValueError("expected at least one reader")
     return r
 
-UsableReadingReads = Annotated[dict[Literal["text_layer", "type3_decode", "pymupdf4llm", "ocr_tesseract", "ocr_rapidocr"], ReaderRead], AfterValidator(_usable_reading_reads_5)]
+UsableReadingReads = Annotated[dict[Literal["text_layer", "type3_decode", "pymupdf4llm", "ocr_tesseract", "ocr_rapidocr"], ReaderRead], AfterValidator(_usable_reading_reads_4)]
 
 class UsableReading(Strict):
     actual_reading: str = None
@@ -147,8 +103,8 @@ class UsableReading(Strict):
     note: str = None
     reads: UsableReadingReads = None
 
-_union_reading_json_schema_4_member_0 = TypeAdapter(UsableReading)
-def _union_reading_json_schema_4_finish_0(out):
+_union_reading_json_schema_3_member_0 = TypeAdapter(UsableReading)
+def _union_reading_json_schema_3_finish_0(out):
     return out.model_dump(by_alias=True, exclude_unset=True)
 class RejectedParsedReading(Strict):
     actual_reading: str
@@ -160,8 +116,8 @@ class RejectedParsedReading(Strict):
     note: str = None
     reads: UsableReadingReads = None
 
-_union_reading_json_schema_4_member_1 = TypeAdapter(RejectedParsedReading)
-def _union_reading_json_schema_4_finish_1(out):
+_union_reading_json_schema_3_member_1 = TypeAdapter(RejectedParsedReading)
+def _union_reading_json_schema_3_finish_1(out):
     return out.model_dump(by_alias=True, exclude_unset=True)
 class RejectedUnparsedReading(Strict):
     actual_reading: str = None
@@ -171,15 +127,15 @@ class RejectedUnparsedReading(Strict):
     note: str = None
     reads: UsableReadingReads = None
 
-_union_reading_json_schema_4_member_2 = TypeAdapter(RejectedUnparsedReading)
-def _union_reading_json_schema_4_finish_2(out):
+_union_reading_json_schema_3_member_2 = TypeAdapter(RejectedUnparsedReading)
+def _union_reading_json_schema_3_finish_2(out):
     return out.model_dump(by_alias=True, exclude_unset=True)
-def _rejected_unrecognised_parsed_reading_rejected_6(reason):
+def _rejected_unrecognised_parsed_reading_rejected_5(reason):
     if not (not (any((known == reason) for known in [*["no-numeric-value", "unit-not-recognised", "multiple-values"], *["ohm-glyph-merged-as-digit"]]))):
         raise ValueError("a recognised rejection reason belongs to its own variant")
     return reason
 
-RejectedUnrecognisedParsedReadingRejected = Annotated[str, AfterValidator(_rejected_unrecognised_parsed_reading_rejected_6)]
+RejectedUnrecognisedParsedReadingRejected = Annotated[str, AfterValidator(_rejected_unrecognised_parsed_reading_rejected_5)]
 
 class RejectedUnrecognisedParsedReading(Strict):
     actual_reading: str
@@ -191,8 +147,8 @@ class RejectedUnrecognisedParsedReading(Strict):
     note: str = None
     reads: UsableReadingReads = None
 
-_union_reading_json_schema_4_member_3 = TypeAdapter(RejectedUnrecognisedParsedReading)
-def _union_reading_json_schema_4_finish_3(out):
+_union_reading_json_schema_3_member_3 = TypeAdapter(RejectedUnrecognisedParsedReading)
+def _union_reading_json_schema_3_finish_3(out):
     return out.model_dump(by_alias=True, exclude_unset=True)
 class RejectedUnrecognisedUnparsedReading(Strict):
     actual_reading: str = None
@@ -202,49 +158,31 @@ class RejectedUnrecognisedUnparsedReading(Strict):
     note: str = None
     reads: UsableReadingReads = None
 
-_union_reading_json_schema_4_member_4 = TypeAdapter(RejectedUnrecognisedUnparsedReading)
-def _union_reading_json_schema_4_finish_4(out):
+_union_reading_json_schema_3_member_4 = TypeAdapter(RejectedUnrecognisedUnparsedReading)
+def _union_reading_json_schema_3_finish_4(out):
     return out.model_dump(by_alias=True, exclude_unset=True)
-def _union_reading_json_schema_4(v):
-    return _union(v, [(_union_reading_json_schema_4_member_0, _union_reading_json_schema_4_finish_0), (_union_reading_json_schema_4_member_1, _union_reading_json_schema_4_finish_1), (_union_reading_json_schema_4_member_2, _union_reading_json_schema_4_finish_2), (_union_reading_json_schema_4_member_3, _union_reading_json_schema_4_finish_3), (_union_reading_json_schema_4_member_4, _union_reading_json_schema_4_finish_4)])
+def _union_reading_json_schema_3(v):
+    return _union(v, [(_union_reading_json_schema_3_member_0, _union_reading_json_schema_3_finish_0), (_union_reading_json_schema_3_member_1, _union_reading_json_schema_3_finish_1), (_union_reading_json_schema_3_member_2, _union_reading_json_schema_3_finish_2), (_union_reading_json_schema_3_member_3, _union_reading_json_schema_3_finish_3), (_union_reading_json_schema_3_member_4, _union_reading_json_schema_3_finish_4)])
 
-Reading = Annotated[object, BeforeValidator(_union_reading_json_schema_4)]
+Reading = Annotated[object, BeforeValidator(_union_reading_json_schema_3)]
 
-def _entered_entry_readings_7(r):
+def _not_available_entry_readings_6(r):
     if not (len(list(r)) > 0):
         raise ValueError("expected at least one reading")
     return r
 
-EnteredEntryReadings = Annotated[dict[str, Reading], AfterValidator(_entered_entry_readings_7)]
-
-class EnteredEntry(Strict):
-    state: Literal["E"]
-    value: Number
-    precision: Annotated[Number, Field(gt=0)] = None
-    origin: str = None
-    readings: EnteredEntryReadings = None
-    corroboration: Literal["MATCH", "MISMATCH", "NOT_MATCHABLE", "UNMATCHED"] = None
-    dq_scraper: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
-    dq_calculated: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
-
-class CalculatedEntry(Strict):
-    state: Literal["C"]
-    value: Number
-    precision: Annotated[Number, Field(gt=0)] = None
-    dq_calculated: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
+NotAvailableEntryReadings = Annotated[dict[str, Reading], AfterValidator(_not_available_entry_readings_6)]
 
 class NotAvailableEntry(Strict):
     state: Literal["N"]
-    readings: EnteredEntryReadings
-    dq_scraper: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
-    dq_calculated: Annotated[TextFieldDqScraper, Field(exclude=True)] = None
+    readings: NotAvailableEntryReadings = None
 
-def _tag_state_8(v):
+def _tag_state_7(v):
     if isinstance(v, dict) and v.get("state") in ("E", "C", "N"):
         return '<' + v["state"] + '>'
     return None
 
-SpecEntry = Annotated[Union[Annotated[EnteredEntry, Tag("<E>")], Annotated[CalculatedEntry, Tag("<C>")], Annotated[NotAvailableEntry, Tag("<N>")]], Discriminator(_tag_state_8)]
+SpecEntry = Annotated[Union[Annotated[EnteredEntry, Tag("<E>")], Annotated[CalculatedEntry, Tag("<C>")], Annotated[NotAvailableEntry, Tag("<N>")]], Discriminator(_tag_state_7)]
 
 class DriverSpecsWoofer(Strict):
     Fs_hz: SpecEntry = None
@@ -330,7 +268,7 @@ class RadiatorSpecsPassiveRadiator(Strict):
 class RadiatorSpecs(Strict):
     passive_radiator: RadiatorSpecsPassiveRadiator = Field(alias="passive-radiator")
 
-def _dispatch_specs_json_schema_9(v):
+def _dispatch_specs_json_schema_8(v):
     keyed = isinstance(v, dict)
     claims_0 = keyed and "woofer" in v
     claims_1 = keyed and "passive-radiator" in v
@@ -338,7 +276,7 @@ def _dispatch_specs_json_schema_9(v):
         return None  # a driver (a 'woofer' section, optionally with a 'tweeter' section) or a passive radiator (a 'passive-radiator' section) — not both, not neither
     return "<woofer>" if claims_0 else "<passive-radiator>"
 
-Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_9)]
+Specs = Annotated[Union[Annotated[DriverSpecs, Tag("<woofer>")], Annotated[RadiatorSpecs, Tag("<passive-radiator>")]], Discriminator(_dispatch_specs_json_schema_8)]
 
 class RootCurvesValue(Strict):
     type: str
@@ -352,23 +290,19 @@ class RootCurves(Strict):
 
 class Root(Strict):
     uuid: RootUuid
-    quality: RootQuality
-    manufacturer: TextField
-    brand: TextField
-    model: TextField
-    sku: RootSku
+    manufacturer: RootUuid
+    brand: RootUuid
+    model: RootUuid
+    sku: RootUuid
     driver_type: DriverRolesField
-    categories: CategoriesField = None
-    series: TextField = None
-    nominal_size_cm: RootNominalSizeCm = None
+    series: RootUuid = None
     data_sources: RootDataSources
-    authoritative: RootUuid = None
-    product_image: TextField = None
-    description: TextField = None
-    surround_material: TextField = None
-    provided_by: TextField = None
-    comment: TextField = None
-    added: TextField = None
+    product_image: RootUuid = None
+    description: RootUuid = None
+    surround_material: RootUuid = None
+    provided_by: RootUuid = None
+    comment: RootUuid = None
+    added: RootUuid = None
     specs: Specs
     curves: dict[str, RootCurves] = None
     schemaVersion: Number = None
@@ -376,4 +310,4 @@ class Root(Strict):
 ROOT = Root
 TAGS = frozenset({"<woofer>", "<E>", "<C>", "<N>", "<passive-radiator>"})
 DISPATCH_TAGS = frozenset({"<woofer>", "<passive-radiator>"})
-DISCRIMINATOR_FIELD = {"_tag_state_8": "state", "_dispatch_specs_json_schema_9": None}
+DISCRIMINATOR_FIELD = {"_tag_state_7": "state", "_dispatch_specs_json_schema_8": None}

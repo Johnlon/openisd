@@ -17,11 +17,6 @@ export const dqMarks = () => z.strictObject({
     params: z.record(z.string(), z.unknown()),
 }).array().optional();
 
-/** A data-quality mark key an older file or record may still carry (QO414, John 4 Nov 2026:
- *  "dont write DQ stuff anywhere - its all meant to be dynamic"; "silently dropped"). It parses
- *  and comes out as nothing: marks are worked out live, shown on screen, never stored. */
-export const droppedMarks = () => z.unknown().transform((_mark) => undefined).optional();
-
 /** One data-quality mark. `kind` says who found it and how: `calc` and `range` are computed,
  *  `corroboration` is the scraper's cross-source verdict. Shape follows the corpus. */
 export interface DqMark {

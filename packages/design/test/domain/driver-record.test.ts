@@ -23,7 +23,6 @@ describe('OpenISDDriver record', () => {
       expect(record.brand.value).toBe('Dayton');
       const fs = wooferOf(record)?.Fs_hz;
       if (fs?.state !== 'E') throw new Error('expected an entered Fs_hz entry');
-      expect(fs.origin).toBe('scraped');
       expect(fs.value).toBe(30);
     });
 
@@ -317,7 +316,8 @@ describe('OpenISDDriver record', () => {
     });
 
     it('names EVERY bad reading inside one spec field, not just the first', () => {
-      // Two faults in ONE field's readings. A walk that returns on its first fault reports the
+      // Two faults in ONE field's readings (a not-available entry: the only entry that keeps its readings
+      // in the slim model). A walk that returns on its first fault reports the
       // datasheet reading and stops, so the picker shows a reader one problem, they fix it, and
       // are then shown the next — which is what "every problem at once" is supposed to prevent.
       const record = {
@@ -325,18 +325,13 @@ describe('OpenISDDriver record', () => {
         model: { value: 'RS225' },
         manufacturer: { value: 'Dayton' },
         uuid: { value: '00000000-0000-4000-8000-000000000000' },
-        sku: { value: 'TEST-SKU', grounds: [{ origin: 'manufacturer_datasheet', reading: 'TEST-SKU' }] },
+        sku: { value: 'TEST-SKU' },
         driver_type: {value: ['woofer']},
         data_sources: { value: { manufacturer_datasheet: 'https://example.invalid/ds.pdf' } },
-        quality: {
-          confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-          parse_errors: [], cross_source_only: [],
-        },
         specs: {
           woofer: {
             Fs_hz: {
-              state: 'E', value: 30,
-              origin: 'datasheet',
+              state: 'N',
               readings: {
                 datasheet: { read_value: 'thirty' },
                 measured: { read_value: null },
