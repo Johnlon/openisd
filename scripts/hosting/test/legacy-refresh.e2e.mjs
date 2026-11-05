@@ -83,6 +83,17 @@ try {
   latest = true;
   await page.goto(origin + '/about/refresh/', {waitUntil: 'load'});
   await page.waitForURL(url => url.pathname === '/' && url.searchParams.has('_openisd_refresh'), {timeout: 20000});
+  // The refresh page writes the new shell into a document the legacy worker still controls. The new worker
+  // then claims it and the app reloads once (AppUpdate.onControllerChange, controlledAtLoad was true).
+  // Recovery is finished when that reload has landed: this document is a reload (the written one is a
+  // plain navigation) and the latest worker is the one controlling it.
+  await page.waitForFunction(async () => {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const controller = navigator.serviceWorker.controller;
+    const [navigation] = performance.getEntriesByType('navigation');
+    return navigation?.type === 'reload' && registration?.active != null && controller === registration.active
+      && controller.state === 'activated';
+  }, undefined, {timeout: 30000});
   await page.waitForSelector('#app', {timeout: 20000});
   await page.waitForFunction(bundle => [...document.scripts].some(script => script.src.endsWith(bundle)), mainBundle, {timeout: 20000});
 

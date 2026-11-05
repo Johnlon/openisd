@@ -1,0 +1,11 @@
+id: T689
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: The stale mobile worker recovery check does not fail when the app navigates again after the refresh: find why it navigates a second time and fix it at its source
+done_test: bash scripts/test.sh packages/ui/test/logic/appUpdate.test.ts
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - tasks/T689.yml
+  - scripts/hosting/test/legacy-refresh.e2e.mjs
