@@ -54,11 +54,28 @@ setup $'ruling: QO392\n'; r=$(land)
 setup ""; r=$(land)
 refused_model "$r" && ok "2 model change without a ruling refuses" || fail "2 (r=$r): $(says)"
 
-setup ""
-git rm -q scripts/land/check-model-ruling.sh
-sed -i 's# scripts/land/check-model-ruling.sh##' land.conf
-git add -A; git commit -qm "drop the gate"; r=$(land)
-refused_model "$r" && ok "3 a branch that deletes the gate still refuses" || fail "3 (r=$r): $(says)"
+drop_gate() {
+    git rm -q scripts/land/check-model-ruling.sh
+    sed -i 's# scripts/land/check-model-ruling.sh##' land.conf
+    git add -A; git commit -qm "drop the gate"
+}
+refused_gate_files() { [ "$1" = 1 ] && grep -q 'REFUSED by gate gates:' "$SCRATCH/out"; }
+
+setup ""; drop_gate; r=$(land)
+refused_gate_files "$r" && ok "3 a branch that deletes the gate, unapproved, is refused by the gate-files gate" || fail "3 (r=$r): $(says)"
+
+setup $'gates_approved: QO1\n'
+cat > "$SCRATCH/questions.yml" <<'Q'
+questions:
+- id: QO1
+  title: Gate change for T9
+  thread:
+  - id: QO1.c1
+    by: John
+    text: ok
+Q
+drop_gate; r=$(land)
+refused_model "$r" && ok "3b an approved branch that deletes the gate is still refused by model-ruling (origin/main's copy runs)" || fail "3b (r=$r): $(says)"
 
 [ $fails = 0 ] && { echo "land-model-ruling: all passed"; exit 0; }
 echo "land-model-ruling: $fails failed"; exit 1
