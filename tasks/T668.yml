@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: b2cff1209edbe2fcd8da507d23eb255e751ce25e
 ruling: QO395
 goal: Saved projects, saved drivers and driver records carry schemaVersion (slim = 3, none = 2); load upgrades step by step before the strict parse; a newer number refuses with an update-the-app message (ruling: QO395)
 done_test: bash scripts/test.sh packages/design/test/domain/schema-version.test.ts packages/design/test/domain/dia-retired.test.ts packages/persistence/test/storageUpgrade.test.ts packages/persistence/test/storedTextCompaction.test.ts packages/persistence/test/projectRepo.test.ts
