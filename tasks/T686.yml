@@ -1,0 +1,17 @@
+id: T686
+release_note: internal
+repo: openisd
+owner: sonnet
+ruling: QO420
+status: done
+goal: The Driver Editor and the phone driver tab no longer show the maker-reports-Re/BL note; the boxes stay empty (ruling: QO420)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T686.yml
+  - packages/ui/src/ui/components/DriverEditorModal.vue
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/logic/unknownVoiceCoilReading.ts
+  - packages/ui/test/logic/unknownVoiceCoilReading.test.ts
+  - packages/ui/coverage-baseline.json
+  - packages/ui/test/visual/SOURCES.sha256

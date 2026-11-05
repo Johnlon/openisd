@@ -4,6 +4,7 @@ repo: openisd
 owner: sonnet
 ruling: QO395
 status: done
+landed: 2599ed706b7ba8b9655893ddb4bfc5f5da25b686
 goal: selectOrigin: a manual reading (an override from driver.json) wins over every other reading (ruling: QO395)
 done_test: bash scripts/test.sh packages/design/test/domain/selectOrigin.test.ts
 files:

@@ -9,7 +9,6 @@ import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
 import {ARRAY_WIRING_OPTIONS, NumberField} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
-import {unknownVoiceCoilReading} from '../logic/unknownVoiceCoilReading.js';
 
 const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
@@ -36,11 +35,6 @@ export function useMobileDriverTab() {
     void projectChanged.value;
     return project.value.driver.inconsistentInputReasons();
   });
-  const keyFigureDq = computed(() => {
-    void projectChanged.value;
-    const device = project.value.driver.toOpenIsdDeviceJson();
-    return {Re: unknownVoiceCoilReading(device, 'Re_ohm')};
-  });
 
   function browseDrivers(): void { presentationState.browseOpen = true; }
   function editDriver(): void { selection.editProjectDriver(); }
@@ -48,7 +42,7 @@ export function useMobileDriverTab() {
   function showDisagreements(): void { selection.editProjectDriver(true); }
 
   return {
-    project, brand, model, fullName, keyFigures, keyFigureDq, consistencyReasons, browseDrivers, editDriver, showDisagreements,
+    project, brand, model, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements,
     showDriverInfo: driverBrowsing.showProjectDriverInfo,
     N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption,
   };
