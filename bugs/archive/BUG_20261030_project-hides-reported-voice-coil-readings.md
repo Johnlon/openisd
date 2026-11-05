@@ -48,3 +48,5 @@ Load each real bundled record into a project, inspect the visible field/detail, 
 project, and assert that the exact raw readings and explicit coil tuple states survive. Also assert
 that unknown-basis fields are not silently consumed as per-coil calculation inputs and that the
 FaitalPRO `14.1 N/A` reading remains unparsed.
+
+Verdict (5 Nov 2026): obsolete. slimDriver.ts keeps the readings; DriverEditorModal.vue and MobileDriverTab-hooks.ts show them.

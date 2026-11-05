@@ -15,3 +15,5 @@ Test "an input event with an empty value also hands the Fsc entry to Volume" in
 4f45ba5b6). Desktop and mobile both fail on current main. The test is marked `test.fail` with
 this bug id until the app is fixed. A keyboard clear (select, Delete) is covered by the other
 specs and passes.
+
+Verdict (5 Nov 2026): incorrect. Not an app bug: the test filled an unfocused box; T669 corrected the test (22fdd4980).

@@ -15,3 +15,5 @@ Test script selector, not the app.
 
 ## Fix
 No app change. `packages/ui/test/ui/mobile-new-project-keeps-other-box-type.browser.spec.ts` creates A (Vented) then B (Closed) through the phone wizard and checks A is still Vented and not Unsaved. Passes (it never failed: there is no app defect to fail on).
+
+Verdict (5 Nov 2026): incorrect. The review script picked the wrong select; mobile-new-project-keeps-other-box-type.browser.spec.ts shows the app is right.

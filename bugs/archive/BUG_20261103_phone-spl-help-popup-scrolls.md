@@ -32,3 +32,5 @@ chart, the SPL one included. It fails on main today.
 John, 3 Nov 2026: "if the help popup scrolls then it's not a disaster as long as the contents are good
 quality and the UI is clean". The sheet's 80% height cap with its own scroll is kept. T656 cut the SPL
 popup's links to one (Eminence), which also shortens it.
+
+Verdict (5 Nov 2026): incorrect. John's ruling of 3 Nov 2026 accepts a scrolling help popup.

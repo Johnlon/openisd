@@ -40,3 +40,5 @@ conversion separately for Re and BL, and leaves unsupported basis/connection val
 with warnings. It rejects tuple-plus-flat input. The fix is committed on
 `codex/20261029-voice-coil-tuple` but is not integrated into the OpenISD release branch yet. Keep
 this bug open until the receiving OpenISD session integrates it.
+
+Verdict (5 Nov 2026): obsolete. Superseded by T654 (75ccd38c0).

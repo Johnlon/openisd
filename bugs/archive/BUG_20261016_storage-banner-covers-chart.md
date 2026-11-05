@@ -19,3 +19,5 @@ Passes. If the banner is wanted out of the way of the menu, that is a new ruling
 below the banner instead of over it), not a layout bug.
 
 T416 (18 Oct 2026) removed the banner for a popup; the spec named above is now `storage-popup-layout.browser.spec.ts`.
+
+Verdict (5 Nov 2026): incorrect. The overlap was the chart menu, which opens over the page by design; T416 replaced the banner with a popup.

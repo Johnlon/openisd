@@ -27,3 +27,5 @@ is slower. A framenavigated probe showed the second navigation at +1.4 s.
 First controller claim on a page that had no controller must not reload (the page is already the
 newest build). Reload only on controllerchange when the page had a controller before.
 The test then needs no wait.
+
+Verdict (5 Nov 2026): obsolete. Fixed by T667 (51a30535a), appUpdate.ts controlledAtLoad.
