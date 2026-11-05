@@ -636,6 +636,7 @@
     "bugs/BUG_20261101_ios-script-error-passive-radiator-box-tab.md",
     "bugs/BUG_20261104_driver-consistency-gap-shown-as-zero.md",
     "bugs/BUG_20261105_abc-columns-scroll-sideways-at-780.md",
+    "bugs/BUG_20261105_driver-editor-parameter-boxes-blank-after-pick.md",
     "bugs/BUG_20261105_phone-sideways-gets-desktop-layout.md",
     "bugs/_archive/BUG_20261029_coax_tweeter_voice_coil_tuple_rejected.md",
     "bugs/_archive/BUG_20261030_converter_flags_multiple_values_as_unknown.md",
