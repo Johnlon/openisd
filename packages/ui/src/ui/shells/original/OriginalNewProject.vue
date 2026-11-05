@@ -3,7 +3,7 @@
  * New Project wizard — WinISD step order (Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata).
  * State management delegated to useOgNewProject() hook per ui.md.
  */
-import { onBeforeUnmount, ref } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { NumberField, PickWidth, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
@@ -17,6 +17,9 @@ import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import {DriverListMode} from '../../../logic/driverListMode.js';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
+import WizardInfoButton from '../../components/WizardInfoButton.vue';
+import WizardInfoCard from '../../components/WizardInfoCard.vue';
+import { createWizardInfo } from '../../../hooks/wizardInfo.js';
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -100,6 +103,9 @@ function handleCancel() {
 }
 
 useEscToClose(() => true, handleCancel);
+// Registered after the dialog's own Escape, so Escape closes the popup first.
+const ebpText = computed(() => ReadoutFormat.EBP.text(ebp.value, '--'));
+const { infoCard, openPlacementInfo, openEbpInfo, closeInfo } = createWizardInfo(ebpText);
 
 // Step 1 IS the driver library (FIX_WIZARD_SEALED Q1): choosing a driver hands it to the wizard
 // for as long as the wizard is open; closing the wizard disarms that handoff.
@@ -148,6 +154,7 @@ function handleCreate() {
           <div class="radio-group field-row">
             <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
             <label><input type="radio" name="placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
+            <WizardInfoButton label="About driver placement" @click="openPlacementInfo" />
           </div>
           <div class="field-row">
             <UIPickField label="Voice coil connection" input-id="np-wiring" :width="PickWidth.SHORT">
@@ -170,7 +177,8 @@ function handleCreate() {
 
           <div class="ebp-readout-card">
             <div class="ebp-row">
-              <span class="ebp-label">Efficiency Bandwidth Product (EBP):</span> <strong class="ebp-value">{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong>
+              <span class="ebp-label">Efficiency Bandwidth Product (EBP):</span> <strong class="ebp-value">{{ ebpText }}</strong>
+              <WizardInfoButton label="About EBP" @click="openEbpInfo" />
             </div>
             <div class="suitability-row">
               <span class="suitability-badge" :class="ebpSuitabilityLabel.toLowerCase().startsWith('sealed') ? 'sealed' : ebpSuitabilityLabel.toLowerCase().startsWith('vented') ? 'vented' : 'either'">
@@ -199,7 +207,7 @@ function handleCreate() {
 
           <div class="readout-box">
             <div class="readout-item"><span>Calculated Qtc:</span> <strong>{{ ReadoutFormat.QTC.text(qtc, '--') }}</strong></div>
-            <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
+            <div class="readout-item"><span>EBP:</span> <strong>{{ ebpText }}</strong><WizardInfoButton label="About EBP" @click="openEbpInfo" /></div>
             <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
           </div>
         </div>
@@ -222,7 +230,7 @@ function handleCreate() {
           <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
 
           <div class="readout-box">
-            <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
+            <div class="readout-item"><span>EBP:</span> <strong>{{ ebpText }}</strong><WizardInfoButton label="About EBP" @click="openEbpInfo" /></div>
             <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
           </div>
         </div>
@@ -276,11 +284,17 @@ function handleCreate() {
           <button class="cancel-btn" @click="handleCancel">Cancel</button>
         </div>
       </div>
+      <WizardInfoCard v-if="infoCard" :card="infoCard" @close="closeInfo" />
     </div>
   </div>
 </template>
 
 <style scoped>
+.modal { position: relative; }
+/* The popup is a 400px card over the middle of the dialog, as on the phone but not bottom-anchored. */
+.modal :deep(.mob-np-icard) { left: 50%; right: auto; bottom: auto; top: 110px; width: 400px; margin-left: -200px; box-sizing: border-box; }
+.modal :deep(.mob-np-info) { width: 28px; height: 28px; }
+.ebp-row, .readout-item { display: flex; align-items: center; gap: 6px; }
 .np-chambers { display: flex; gap: 32px; align-items: flex-start; }
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
 .np-chamber .field { margin-bottom: 6px; }

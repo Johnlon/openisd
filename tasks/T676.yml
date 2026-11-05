@@ -1,0 +1,73 @@
+id: T676
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Desktop skin gets the help ? on section headers and the i popups (Placement, EBP), as John accepted on QO269; text comes from packages/design, same as the phone
+done_test: bash scripts/test.sh packages/design/test/fields/desktopHelp.test.ts packages/ui/test/scripts/mobile-surface-manifest.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
+  - tasks/T676.yml
+  - scripts/ui-gallery/screens.mjs
+  - packages/design/fields/desktopHelp.ts
+  - packages/design/fields/index.ts
+  - packages/design/test/fields/desktopHelp.test.ts
+  - packages/ui/src/hooks/desktopHelp.ts
+  - packages/ui/src/hooks/wizardInfo.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/components/DesktopBand.vue
+  - packages/ui/src/ui/components/DesktopHelpPanel.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/test/ui/desktop-help.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/design/fields/phoneText.ts
+  - packages/ui/src/ui/shells/original/OriginalFilters.vue
+  - bugs/BUG_20261105_desktop-box-tab-scrolls-sideways-at-1024.md
+  - bugs/BUG_20261105_desktop-advanced-tab-scrolls-sideways-at-1024.md
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - desktop-wizard-abc-step3
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4

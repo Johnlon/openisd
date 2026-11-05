@@ -3,7 +3,7 @@
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, ReadoutFormat, WinisdDeviation, type WizardInfoCard as WizardInfoCardData } from '@openisd/design/fields';
+import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -12,6 +12,7 @@ import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import PhoneButton from './PhoneButton.vue';
 import PlacementDiagram from '../../components/PlacementDiagram.vue';
 import WizardHelpSheet from '../../components/WizardHelpSheet.vue';
+import {createWizardInfo} from '../../../hooks/wizardInfo.js';
 import WizardInfoButton from '../../components/WizardInfoButton.vue';
 import WizardInfoCard from '../../components/WizardInfoCard.vue';
 import MobileKeyStrip from './MobileKeyStrip.vue';
@@ -105,17 +106,11 @@ function handleCancel() {
 useEscToClose(() => true, handleCancel);
 
 // The ⓘ popups and the step bar's help sheet, over the page; Escape closes the top one first.
-const info = ref<'placement' | 'ebp' | null>(null);
 const helpOpen = ref(false);
-useEscToClose(() => info.value !== null, () => { info.value = null; });
 useEscToClose(() => helpOpen.value, () => { helpOpen.value = false; });
 const ebpText = computed(() => ReadoutFormat.EBP.text(ebp.value, '--'));
 const ebpBadge = computed(() => PhoneWizardText.ebpBadge(ebpSuitability.value));
-const infoCard = computed<WizardInfoCardData | null>(() => {
-  if (info.value === 'placement') return PhoneWizardText.PLACEMENT_INFO;
-  if (info.value === 'ebp') return PhoneWizardText.ebpInfo(ebpText.value);
-  return null;
-});
+const {infoCard, openPlacementInfo, openEbpInfo, closeInfo} = createWizardInfo(ebpText);
 const boxLabel = computed(() => BOX_OPTIONS.find(o => o.value === boxType.value)?.label ?? '');
 /** The banner's second line: the driver's figures, its EBP, or the box and driver count, by step. */
 const bannerSub = computed(() => {
@@ -188,7 +183,7 @@ function handleCreate() {
               <option value="standard">{{ PhoneWizardText.PLACEMENT_STANDARD }}</option>
               <option value="iso">{{ PhoneWizardText.PLACEMENT_ISOBARIK }}</option>
             </select>
-            <WizardInfoButton label="About driver placement" @click="info = 'placement'" />
+            <WizardInfoButton label="About driver placement" @click="openPlacementInfo" />
           </div>
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
@@ -216,7 +211,7 @@ function handleCreate() {
               <span><span class="mob-np-ebp-val">{{ PhoneWizardText.EBP_LABEL }}: {{ ebpText }}</span> <span class="mob-np-ebp-formula">{{ PhoneWizardText.EBP_FORMULA }}</span></span>
               <span v-if="ebpBadge" class="mob-np-ebp-badge" :class="ebpBadge.tone">{{ ebpBadge.label }}</span>
             </div>
-            <WizardInfoButton label="About EBP" @click="info = 'ebp'" />
+            <WizardInfoButton label="About EBP" @click="openEbpInfo" />
           </div>
           <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
@@ -297,7 +292,7 @@ function handleCreate() {
       <PhoneButton v-else primary class="np-primary" :disabled="!canCreate" @click="handleCreate">{{ PhoneWizardText.CREATE }}</PhoneButton>
     </div>
 
-    <WizardInfoCard v-if="infoCard" :card="infoCard" @close="info = null" />
+    <WizardInfoCard v-if="infoCard" :card="infoCard" @close="closeInfo" />
     <WizardHelpSheet v-if="helpOpen" :title="stepLabel" :sections="helpSections" @close="helpOpen = false" />
   </div>
 </template>

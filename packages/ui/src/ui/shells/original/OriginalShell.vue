@@ -6,7 +6,7 @@
 // src/hooks/OriginalShell-hooks.ts (`useOriginalShell`), where it is a plain composable that
 // gets unit-tested without a DOM. This `<script setup>` is nothing but a hook call plus the
 // child-component imports; the template reads the destructured API surface only.
-import {APP_UPDATE_TEXT, CompatSwitchGroup, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
+import {APP_UPDATE_TEXT, CompatSwitchGroup, DesktopLabels, NO_PROJECT_OPEN, NumberField, ReadoutFormat, TextField, ToggleField, WinisdDeviation} from '@openisd/design/fields';
 import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
@@ -25,6 +25,8 @@ import ErrorSwitchGroup from '../../components/ErrorSwitchGroup.vue';
 import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import CompatGroupHelpLink from '../../components/CompatGroupHelpLink.vue';
 import ToggleLabel from '../../components/ToggleLabel.vue';
+import DesktopBand from '../../components/DesktopBand.vue';
+import DesktopHelpPanel from '../../components/DesktopHelpPanel.vue';
 import {injectWinisdDifferencesModal} from '../../../hooks/WinisdDifferencesModal-hooks.js';
 import {injectDiagnosticsModal} from '../../../hooks/DiagnosticsModal-hooks.js';
 import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
@@ -58,6 +60,8 @@ const {
   genOn, toggleGenerate, genHz,
   boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
   showEnclosureTab, enclosureNavLabel,
+  helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
+  placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
   selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
@@ -371,11 +375,11 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
           <div class="box-layout">
             <div v-if="!isDual" class="box-fields-col" style="width: 412px; --label-w:150px;">
-              <div class="section-header">Rear chamber</div>
+              <DesktopBand :section="rearChamberHelp" @help="openSectionHelp" />
               <div class="field-row">
                 <UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" />
-                <button v-if="selectedBox === 'sealed'" class="link-btn" title="Choose a sealed-box alignment and calculate its volume" @click="sealedAlignmentEditor.openEditor">Alignment</button>
-                <button v-if="selectedBox === 'vented'" class="link-btn" title="Choose a vented-box alignment and calculate its volume and tuning" @click="ventedAlignmentEditor.openEditor">Alignment</button>
+                <button v-if="selectedBox === 'sealed'" class="link-btn" title="Choose a sealed-box alignment and calculate its volume" @click="sealedAlignmentEditor.openEditor">{{ DesktopLabels.ALIGNMENT }}</button>
+                <button v-if="selectedBox === 'vented'" class="link-btn" title="Choose a vented-box alignment and calculate its volume and tuning" @click="ventedAlignmentEditor.openEditor">{{ DesktopLabels.ALIGNMENT }}</button>
               </div>
               <div class="field-row" style="flex-wrap: nowrap;">
                 <!-- A vented chamber's tuning is a real design choice (the port is an extra
@@ -397,12 +401,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <UIField class="field" input-id="og-box-qtc" :field="NumberField.BOX_QTC_VALUE" :cell="sealedQtcCell" :deviation="WinisdDeviation.CLOSED_BOX_TYPING" />
               </div>
               <p v-if="selectedBox === 'vented' && fbUnreachable" id="og-fb-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
-              <button class="link-btn" @click="lossesOpen = 'whole'">Advanced-&gt;</button>
+              <button class="link-btn" @click="lossesOpen = 'whole'">{{ DesktopLabels.LOSSES_LINK }}</button>
             </div>
 
             <template v-else>
               <div class="box-fields-col">
-                <div class="section-header">Rear chamber</div>
+                <DesktopBand :section="rearChamberHelp" @help="openSectionHelp" />
                 <div class="field-row"><UIField class="field" input-id="og-box-volume" :field="NumberField.BOX_VB_L" :cell="boxVolumeCell" /></div>
                 <div class="field-row">
                   <UIField v-if="rearTuningCell && (selectedBox === 'bandpass6' || selectedBox === 'abc')" class="field" :field="NumberField.BOX_FRC_HZ" :cell="rearTuningCell" />
@@ -411,16 +415,16 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div v-if="selectedBox === 'bandpass4'" class="field-row">
                   <UIFixedField class="field" :field="NumberField.QTS" label="Qtc" :value="rearQtc" :format="ReadoutFormat.QTC" readonly />
                 </div>
-                <button class="link-btn" @click="lossesOpen = 'rear'">Advanced-&gt;</button>
+                <button class="link-btn" @click="lossesOpen = 'rear'">{{ DesktopLabels.LOSSES_LINK }}</button>
               </div>
               <div class="box-fields-col">
-                <div class="section-header">Front chamber</div>
+                <DesktopBand :section="frontChamberHelp" @help="openSectionHelp" />
                 <div class="field-row"><UIField v-if="frontVolumeCell" class="field" input-id="og-front-volume" :field="NumberField.BOX_VF_L" :cell="frontVolumeCell" /></div>
                 <div class="field-row">
                   <UIField id="og-ffc-target-field" class="field" input-id="og-ffc-target" :title="FB_TARGET_TIP" :field="NumberField.BOX_FFC_HZ" :cell="activeTuning" />
                 </div>
                 <p v-if="fbUnreachable" id="og-ffc-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
-                <button class="link-btn" @click="lossesOpen = 'front'">Advanced-&gt;</button>
+                <button class="link-btn" @click="lossesOpen = 'front'">{{ DesktopLabels.LOSSES_LINK }}</button>
               </div>
             </template>
 
@@ -456,9 +460,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           </div>
           <div class="two-col driver-columns" style="margin-top:6px;">
             <div style="--label-w:150px;">
-              <div class="section-header" style="margin-bottom:4px;">Placement</div>
+              <DesktopBand :section="placementHelp" style="margin-bottom:4px;" @help="openSectionHelp" />
               <div class="field-row" style="margin-bottom:4px;">
-                <div class="field"><label>Num. of drivers</label>
+                <div class="field"><label>{{ DesktopLabels.NUM_DRIVERS }}</label>
                   <select :value="project.nDrivers.value" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) project.nDrivers.set(n); }"><option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                   <span>driver(s)</span>
                   <WinisdDeviationCue v-if="driverCountDeviationShown" :deviation="WinisdDeviation.DRIVER_COUNT" />
@@ -469,13 +473,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
               </div>
               <div class="field-row" style="margin-bottom:4px;">
-                <div class="field"><label>Voice coil connection</label>
+                <div class="field"><label>{{ DesktopLabels.VOICE_COIL_CONNECTION }}</label>
                   <select :value="project.wiring.value" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
                 </div>
               </div>
             </div>
             <div style="--label-w:172px;">
-              <div class="section-header">Advanced options</div>
+              <DesktopBand :section="advancedOptionsHelp" @help="openSectionHelp" />
               <div class="beside-hint">
                 <div class="driver-advanced-fields" style="--label-w: 160px;">
                   <div class="field-row"><UIFixedField class="field" :field="NumberField.DRIVER_VCTEMPRISE_K" :value="project.vcTempRise_K.value" @update:value="v => project.vcTempRise_K.set(v)" /></div>
@@ -498,12 +502,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <div v-if="selectedBox === 'box-passive-radiator'">
             <div class="field-row driver-id-row" style="--label-w:36px; margin-bottom:8px;">
               <div class="field tight entered" :title="TextField.PR_NAME.description"><label>{{ TextField.PR_NAME.label }}</label><input id="og-pr-name" type="text" style="width:330px" :value="project.box.passiveRadiator.radiator.model.value" @input="e => project.box.passiveRadiator.radiator.model.set(inputValue(e))"></div>
-              <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">Select passive radiator</button>
-              <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">Save to library</button>
+              <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">{{ DesktopLabels.SELECT_PASSIVE_RADIATOR }}</button>
+              <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">{{ DesktopLabels.SAVE_PASSIVE_RADIATOR }}</button>
             </div>
             <div class="two-col pr-controls" style="gap:12px;">
               <div style="--label-w:58px;">
-                <div class="section-header">Passive radiator parameters</div>
+                <DesktopBand :section="passiveRadiatorHelp" title="Passive radiator parameters" @help="openSectionHelp" />
                 <div style="display: grid; grid-template-columns: auto auto; column-gap: 26px; row-gap: 0; margin-bottom: 0;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
                   <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
@@ -515,7 +519,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 </div>
               </div>
               <div style="--label-w:167px;">
-                <div class="section-header">User options</div>
+                <DesktopBand :section="userOptionsHelp" @help="openSectionHelp" />
                 <div class="field-row" style="margin-bottom:3px;">
                   <UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
                     <template #value="{id}">
@@ -545,12 +549,12 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <!-- Every ported box shares the same columns; slotted Width and Height occupy separate rows. -->
             <div class="vent-groups">
               <div v-for="port in ventPorts" :key="port.name" class="vent-col">
-                <div class="vent-col-title section-header">{{ ventPorts.length === 1 ? 'Vents' : port.name }}</div>
+                <DesktopBand class="vent-col-title" :section="ventHelp(port.name)" :title="ventPorts.length === 1 ? 'Vents' : port.name" @help="openSectionHelp" />
                 <div class="vent-port-row port-tuning-row">
                   <UIField v-if="port.tuning" :id="ventPorts.length === 1 ? 'og-vent-fb-target-field' : undefined" class="field" :input-id="ventPorts.length === 1 ? 'og-vent-fb-target' : `og-vent-tuning-${port.name.toLowerCase()}`" :title="FB_TARGET_TIP" :field="port.tuning.field" :cell="port.tuning.cell" />
                   <div v-else class="port-tuning-placeholder" aria-hidden="true"></div>
                   <div class="field">
-                    <label>Shape</label>
+                    <label>{{ DesktopLabels.VENT_SHAPE }}</label>
                     <select :id="ventPorts.length === 1 ? 'vent-shape' : `og-vent-shape-${port.name.toLowerCase()}`" :value="port.vent.shape.value" @change="e => { const shape = selectedOption(e, VENT_SHAPE_OPTIONS); if (shape !== null) port.vent.shape.set(shape); }">
                       <option v-for="o in VENT_SHAPE_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
@@ -563,7 +567,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   </template>
                   <UIField v-else class="field" :title="VENT_GEOMETRY_TIP" :input-id="`og-vent-diameter-${port.name.toLowerCase()}`" :field="NumberField.VENT_D_CM" :cell="port.vent.diameter_m" />
                   <div class="field port-count-field">
-                    <label>Number</label>
+                    <label>{{ DesktopLabels.VENT_COUNT }}</label>
                     <select :id="ventPorts.length === 1 ? 'vent-count' : `og-vent-count-${port.name.toLowerCase()}`" :value="port.vent.count.value" @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) port.vent.count.set(n); }">
                       <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
                     </select>
@@ -572,7 +576,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 <div class="vent-port-row">
                   <UIField class="field" :input-id="ventPorts.length === 1 ? 'og-vent-length' : `og-vent-length-${port.name.toLowerCase()}`" :field="NumberField.VENT_L_CM" :cell="port.vent.length_m" />
                   <div class="field">
-                    <label>End Correction</label>
+                    <label>{{ DesktopLabels.VENT_END_CORRECTION }}</label>
                     <select :value="port.vent.endCorrection_m.value" @change="e => { const k = selectedOption(e, END_CORRECTION_OPTIONS); if (k !== null) port.vent.endCorrection_m.set(k); }">
                       <option v-for="o in END_CORRECTION_OPTIONS" :key="o.value" :value="o.value" :title="o.label">{{ o.compactLabel }} ({{ o.value }})</option>
                     </select>
@@ -584,7 +588,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                 </div>
               </div>
               <div v-if="ventPorts.length === 1" class="vent-settings-col" style="--label-w:110px;">
-                <div class="section-header">Limits</div>
+                <DesktopBand :section="limitsHelp" @help="openSectionHelp" />
                 <div class="field-row"><UIFixedField class="field" input-id="og-vent-velocity-limit" :field="NumberField.VENT_PORTVELOCITYLIMIT_M_PER_S" :value="project.portVelocityLimit_m_per_s.value" @update:value="v => project.portVelocityLimit_m_per_s.set(v)" /></div>
                 <p v-if="fbUnreachable" id="og-vent-unreachable" class="hint" style="color:#a11;">{{ fbUnreachableMsg }}</p>
               </div>
@@ -601,13 +605,13 @@ provideCellScope({ revision: projectChanged, written: () => {} });
         <section class="tab-section" :class="{ active: activeTab === 'signal' }">
           <div class="two-col">
             <div style="--label-w:60px;">
-              <div class="section-header">Listening place</div>
+              <DesktopBand :section="listeningPlaceHelp" @help="openSectionHelp" />
               <div class="field-row"><div class="field"><label>Distance</label><input type="text" class="greyed" value="1.000" disabled><span class="unit">{{ NumberField.SIGNAL_DISTANCE_M.unitLabel() }}</span></div></div>
-              <div class="field-row"><div class="field"><label>Angle</label><input type="text" class="greyed" value="0.0000" disabled><span class="unit">{{ NumberField.SIGNAL_ANGLE_RAD.unitLabel() }}</span></div></div>
+              <div class="field-row"><div class="field"><label>{{ DesktopLabels.ANGLE }}</label><input type="text" class="greyed" value="0.0000" disabled><span class="unit">{{ NumberField.SIGNAL_ANGLE_RAD.unitLabel() }}</span></div></div>
               <p class="hint">Listening distance/angle are not modelled yet.</p>
             </div>
             <div style="--label-w:208px;">
-              <div class="section-header">Signal source</div>
+              <DesktopBand :section="signalSourceHelp" @help="openSectionHelp" />
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_PIN_W" :cell="project.powerDrive_W" :readonly="powerLocked" /></div>
               <div class="field-row"><UIField class="field" :field="NumberField.SIGNAL_DRIVEV_V" :cell="project.driveVoltage_V" /></div>
               <div class="field-row"><UIFixedField class="field" :field="NumberField.SIGNAL_RS_OHM" :value="rsOhm" @update:value="v => project.Rs_ohm.set(v)" /></div>
@@ -725,6 +729,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
         <!-- Save rail — stacked on the right edge so the buttons consume no vertical space. -->
         <div class="save-rail">
+          <button v-if="projectOpen && tabHelpShown" type="button" class="tab-help-btn" aria-label="Help: this tab" title="What this tab is for" @click="openTabHelp">?</button>
           <button v-if="projectOpen" class="edit-btn what-if-btn" title="Try other values and watch the charts. The design is not changed." @click="startWhatIf">&#9835; What-if</button>
           <button v-if="projectOpen" class="edit-btn project-save-btn" title="Save the project to browser storage" @click="saveProject">Save</button>
           <button v-if="projectOpen" class="edit-btn revert-btn" :disabled="!isModified" :title="isModified ? 'Revert — discard all unsaved changes and return to the last saved version.' : 'Revert — no unsaved changes to discard.'" @click="resetProjectToGround(confirmDiscard)">Revert</button>
@@ -735,6 +740,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
           <p>No projects open</p>
         </div>
       </div>
+      <DesktopHelpPanel v-if="helpPanel !== null" :title="helpPanel.title" :sections="helpPanel.sections" @close="closeHelp" />
     </div>
 
     <ProvenanceLegend>
@@ -1105,7 +1111,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* ---------- Main: 2x2 quadrants + draggable splitters ---------- */
 /* Track sizes come from the inline mainStyle (presentationState.ui.originalNavW,
    0px when a panel is collapsed; the bottom track is always `auto`: the tallest tab, never dragged); these template values are only the no-JS fallback. */
-.main { display:grid; grid-template-columns:175px 7px 1fr; grid-template-rows:1fr 7px auto;
+.main { position:relative; display:grid; grid-template-columns:175px 7px 1fr; grid-template-rows:1fr 7px auto;
   grid-template-areas:"nav vsplit graph" "hsplit hsplit hsplit" "rail rail content";
   flex:1 1 auto; min-height:0; overflow:hidden; }
 .quad-topleft { grid-area:nav; background:#f7f7f7; display:flex; flex-direction:column; padding:10px; gap:10px; overflow-y:auto; overflow-x:hidden; min-height:0; min-width:0; }
@@ -1248,6 +1254,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
    there, and it is why the rail stretches rather than hugging its content at the top. */
 /* The unsaved-changes yellow the rail already uses for its dot and label — Revert is the
    action that clears exactly what that dot is reporting (John, 2026-09-25). */
+.tab-help-btn { flex:none; width:22px; height:22px; padding:0; border:1px solid #999; border-radius:50%; background:#fff; color:#1868d1; font-weight:700; font-size:13px; line-height:1; cursor:pointer; }
+.tab-help-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
 .save-rail .project-save-btn { margin-top:auto; background:#22803e; border-color:#19632f; color:#fff; font-weight:600; }
 .save-rail .project-save-btn:hover { background:#19632f; }
 .save-rail .revert-btn { background:#e0a800; border-color:#b88a00; color:#3a2600; font-weight:600; }
