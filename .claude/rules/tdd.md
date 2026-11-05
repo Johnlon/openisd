@@ -18,10 +18,9 @@ actually observe the bug or the feature:
    fake hook object injected in place of the real `*-hooks.ts` composable. Proves the component
    reads/writes the hook's surface correctly (template bindings, event wiring), not the hook's
    own logic — that's already covered at layer 2.
-4. **Full browser** (`packages/ui/test/ui/*.browser.spec.ts` via `npx playwright test`) — real
+4. **Full browser** (`packages/ui/test/ui/*.browser.spec.ts` via `bash scripts/test.sh <spec>`) — real
    DOM, real hooks, real engine. High-value, proves actual end-to-end wiring, but slow. Add one
    sparingly per feature to prove the seams connect — not to re-verify logic already covered at
    layers 1-3.
 
-Watch it fail for the right reason, implement, watch it pass, then run the domain suite before
-declaring done.
+Watch it fail for the right reason, implement, watch it pass. While changing code, run only the one small test for that change. When there are no further changes, run the bigger batch once for the whole collection of changes; if it finds something, fix it and save the batch run for the end again.

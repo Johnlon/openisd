@@ -155,7 +155,7 @@ not an arbitrary port, so previews cannot be mistaken for main or for another ta
 
 ## Test output — quiet by default
 
-Run every test/typecheck/gate via `bash scripts/quiet-test.sh <command>`; it hides passing lines and
+Run tests with `bash scripts/test.sh <spec>`; run typecheck and other gates with `bash scripts/quiet-test.sh <command>`; it hides passing lines and
 logs the full output to `build/test-logs/`. Rule: `.claude/rules/verify.md`.
 Unit tests, linting, typechecks, and targeted singleton browser specs (`bash scripts/test.sh <spec>`)
 run immediately without queueing. Only untargeted/heavy Chromium sweeps queue for the admission slot.

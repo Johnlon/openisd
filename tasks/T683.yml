@@ -1,0 +1,14 @@
+id: T683
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+goal: Agent rule docs say what the repo does (QO396 F70-F72, F95-F97, F106, F107)
+done_test: bash scripts/test.sh packages/design/test/scripts/probe-config.test.ts
+files:
+  - tasks/T683.yml
+  - CLAUDE.md
+  - .claude/rules/typescript.md
+  - .claude/rules/verify.md
+  - .claude/rules/tdd.md
+  - .claude/rules/testing.md
