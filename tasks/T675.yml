@@ -1,0 +1,20 @@
+id: T675
+release_note: The driver library can filter by the frequency range the maker states
+repo: openisd
+owner: fab
+status: done
+goal: The driver library has a stated range filter: From and To boxes in Hz; a driver matches when its stated range covers what is typed; a checkbox says whether drivers with no stated range stay in the list (ticked by default), after the matches (QO416)
+done_test: bash scripts/test.sh packages/ui/test/logic/searchSubject.test.ts packages/ui/test/logic/driverFilters.test.ts
+files:
+  - tasks/T675.yml
+  - packages/persistence/src/repos/bundledIndex.ts
+  - packages/persistence/src/repos/bundledDriverRepo.ts
+  - packages/persistence/test/**
+  - packages/ui/src/logic/bundledIndexRows.ts
+  - packages/ui/src/logic/driverDisplay.ts
+  - packages/ui/src/logic/driverBrowsingState.ts
+  - packages/ui/src/ui/components/DriverLibrary.vue
+  - packages/ui/public/drivers-index.json
+  - packages/ui/test/**
+  - docs/**
+  - packages/ui/test/visual/SOURCES.sha256

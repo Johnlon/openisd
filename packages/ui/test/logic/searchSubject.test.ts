@@ -15,6 +15,7 @@ import {
     chipsOf,
     displayNameOf,
     matchesCriteria,
+    statedRangeResult,
     type SearchCriteria,
     type SearchSubject,
     searchSubjectOfDriver,
@@ -47,10 +48,11 @@ const row: BundledDriverIndexRow = {
   datasheet: null, productPage: null, listingPage: null,
   chips: chipsOf(driver).types, canonical: chipsOf(driver).canonical,
   Fs_hz: 45, Sd_m2: 0.0075, Xmax_m: null, Vd_m3: null, Znom_ohm: 4,
+  freq_low_hz: null, freq_high_hz: null,
 };
 
 const noCriteria: SearchCriteria = {
-  query: '', typeStates: {}, fsMin: '', fsMax: '', sdMin: '', sdMax: '', selZ: [],
+  query: '', typeStates: {}, fsMin: '', fsMax: '', rangeFrom: '', rangeTo: '', rangeKeepUnstated: true, sdMin: '', sdMax: '', selZ: [],
   favoritesOnly: false, favorites: [],
 };
 
@@ -91,5 +93,57 @@ describe('matchesCriteria over a subject', () => {
   it('favourites-only admits a subject whose id is starred', () => {
     assert.equal(matchesCriteria(searchSubjectOfIndexRow(row), { ...noCriteria, favoritesOnly: true, favorites: [UUID] }), true);
     assert.equal(matchesCriteria(searchSubjectOfIndexRow(row), { ...noCriteria, favoritesOnly: true, favorites: [] }), false);
+  });
+
+  describe('the stated range filter', () => {
+    const stating = (freq_low_hz: number | null, freq_high_hz: number | null): SearchSubject =>
+      ({ ...searchSubjectOfIndexRow(row), freq_low_hz, freq_high_hz });
+    const typed = (rangeFrom: string, rangeTo: string): SearchCriteria => ({ ...noCriteria, rangeFrom, rangeTo });
+
+    it('a driver whose stated range covers what is typed matches', () => {
+      assert.equal(statedRangeResult(stating(30, 3000), typed('40', '2000')), 'covers');
+      assert.equal(statedRangeResult(stating(40, 2000), typed('40', '2000')), 'covers', 'the ends themselves count');
+    });
+
+    it('a driver that stops short at either end is out of the list', () => {
+      assert.equal(statedRangeResult(stating(50, 3000), typed('40', '2000')), 'short');
+      assert.equal(statedRangeResult(stating(30, 1000), typed('40', '2000')), 'short');
+      assert.equal(matchesCriteria(stating(50, 3000), typed('40', '2000')), false);
+    });
+
+    it('filling one box checks only that end', () => {
+      assert.equal(statedRangeResult(stating(30, 100), typed('40', '')), 'covers');
+      assert.equal(statedRangeResult(stating(50, 100), typed('40', '')), 'short');
+      assert.equal(statedRangeResult(stating(500, 3000), typed('', '2000')), 'covers');
+      assert.equal(statedRangeResult(stating(500, 1000), typed('', '2000')), 'short');
+    });
+
+    it('a driver with no stated range stays in the list, marked not stated', () => {
+      assert.equal(statedRangeResult(stating(null, null), typed('40', '2000')), 'notStated');
+      assert.equal(matchesCriteria(stating(null, null), typed('40', '2000')), true);
+    });
+
+    it('a driver stating one end is judged on that end, and is not stated for the other', () => {
+      assert.equal(statedRangeResult(stating(50, null), typed('40', '2000')), 'short');
+      assert.equal(statedRangeResult(stating(30, null), typed('40', '2000')), 'notStated');
+      assert.equal(statedRangeResult(stating(30, null), typed('40', '')), 'covers');
+    });
+
+    it('unticking the checkbox hides drivers that state no range, and only those', () => {
+      const strict = { ...typed('40', '2000'), rangeKeepUnstated: false };
+      assert.equal(matchesCriteria(stating(null, null), strict), false);
+      assert.equal(matchesCriteria(stating(30, null), strict), false, 'one end not stated is not stated');
+      assert.equal(matchesCriteria(stating(30, 3000), strict), true);
+      assert.equal(matchesCriteria(stating(50, 3000), strict), false);
+    });
+
+    it('the checkbox does nothing while both boxes are empty', () => {
+      assert.equal(matchesCriteria(stating(null, null), { ...noCriteria, rangeKeepUnstated: false }), true);
+    });
+
+    it('empty or unreadable boxes mean the filter is off', () => {
+      assert.equal(statedRangeResult(stating(null, null), typed('', '')), 'off');
+      assert.equal(statedRangeResult(stating(50, 100), typed('abc', '')), 'off');
+    });
   });
 });

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 9e99db9d7f80ccc108190f2e43192a51d8374792
 goal: Agent rule docs say what the repo does (QO396 F70-F72, F95-F97, F106, F107)
 done_test: bash scripts/test.sh packages/design/test/scripts/probe-config.test.ts
 files:
