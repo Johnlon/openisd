@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: 321a4ebab4e8777f66acb1d8919337737b747806
 goal: A phone sideways: dragging on the grey either side of the phone column scrolls the page, so the normal layout is viewed through a window (QO418)
 done_test: bash scripts/test.sh packages/ui/test/logic/visibleViewport.test.ts
 files:

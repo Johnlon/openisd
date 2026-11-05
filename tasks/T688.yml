@@ -1,0 +1,12 @@
+id: T688
+release_note: internal
+repo: openisd
+owner: sonnet
+ruling: QO395
+status: done
+goal: selectOrigin: a manual reading (an override from driver.json) wins over every other reading (ruling: QO395)
+done_test: bash scripts/test.sh packages/design/test/domain/selectOrigin.test.ts
+files:
+  - tasks/T688.yml
+  - packages/design/domain/selectOrigin.ts
+  - packages/design/test/domain/selectOrigin.test.ts

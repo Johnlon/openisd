@@ -37,7 +37,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       manufacturer_product_page: {read_value: 41},
       distributor_datasheet: {read_value: 41},
       distributor_product_page: {read_value: 42},
-      manual: {read_value: 43},
+      supplier_note: {read_value: 43},
     };
     expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_product_page'});
   });
@@ -47,7 +47,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       manufacturer_product_page: {read_value: 41},
       distributor_datasheet: {read_value: 41},
       distributor_product_page: {read_value: 42},
-      manual: {read_value: 42},
+      supplier_note: {read_value: 42},
     };
     expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manufacturer_product_page'});
   });
@@ -58,7 +58,7 @@ describe('selectOrigin — which source wins a field, four tiers', () => {
       distributor_datasheet: {read_value: 41},
       distributor_product_page: {read_value: 41},
       distributor_listing_page: {read_value: 41},
-      manual: {read_value: 42},
+      supplier_note: {read_value: 42},
     };
     expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
   });
@@ -123,10 +123,20 @@ describe('selectOrigin — ties on source rank', () => {
 
   it('the best-ranked source carrying the majority value is the one named', () => {
     const readings = {
-      manual: {read_value: 41},
+      supplier_note: {read_value: 41},
       distributor_datasheet: {read_value: 41},
       manufacturer_datasheet: {read_value: 40},
     };
     expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'distributor_datasheet'});
+  });
+
+  it('a manual reading (an override) wins over every other reading, even a strict majority and a better rank', () => {
+    const readings = {
+      manufacturer_datasheet: {read_value: 40},
+      distributor_datasheet: {read_value: 40},
+      distributor_product_page: {read_value: 40},
+      manual: {read_value: 45},
+    };
+    expect(selectOrigin(readings, 'Fs_hz', alwaysPlausible)).toMatchObject({kind: 'winner', role: 'manual', reading: {read_value: 45}});
   });
 });
