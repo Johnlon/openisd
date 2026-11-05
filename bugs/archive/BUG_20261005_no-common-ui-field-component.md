@@ -1,6 +1,6 @@
 # BUG_20261005_no-common-ui-field-component
 
-**Status:** OPEN
+**Status:** FIXED (T679, 5 Nov 2026)
 
 ## Symptom
 A number field (LABEL, VALUE, DQ, UNIT) is hand-built at every site, and the parts behave differently in
@@ -79,11 +79,11 @@ Step 1 done: `4c41761a`. `UIField` taking a domain cell is allowed by ruling QO1
   open (divide by zero); `Fs=0` and `Re=0` reopen fine. So an export must never write `Vas=0`. Other driver
   fields at 0 not yet tested.
 - "just save 1 as vas and vol if not stated", then option B: a blank Vas or box volume exports as 1 L
-  (`0.001` m³) in both `.wpr` and `.wdr`, Vas still marked N, with an export warning ("Vas was blank; written as
-  1 L so WinISD can open the file"). Re-importing reads it as an entered 1 L (`N + nonzero → entered`); the
-  warning is what tells the user.
+  (`0.001` m³) in both `.wpr` and `.wdr`, with an export warning ("Vas was blank; written as 1 L so WinISD can
+  open the file"). The earlier "Vas still marked N" and the re-import reading "`N + nonzero → entered`" are
+  void: DQ marks are never written anywhere (QO414, T672); the warning is what tells the user.
 
-## Temporary debt — remove when the last screen uses UIField
+## Temporary debt — REMOVED by T679
 `NumInput` still draws its own ⚠ (`dq-note`, `dq`/`dqState` props) for the screens not yet moved, and
 `UIField` turns that off with `hideMark`. That is `NumInput` doing two jobs. Once every screen uses `UIField`:
 delete `NumInput`'s ⚠, its `dq`/`dqState` props and `hideMark`. `NumInput` is then the value box only (typing,
@@ -103,3 +103,8 @@ John, 16 Oct 2026: finish it. Every number field goes onto UIField; no hand-buil
 - Desktop What-if fields are native `type="number"` boxes with browser arrows; Box tab and driver editor fields are NumInput with none. Inconsistent.
 - Ruling: every desktop number field shows the ▲▼ step buttons (NumInput `stepper`), same step rule as mobile (digit at the remembered caret, tenths if none). The What-if panel moves onto NumInput/UIField, no native number inputs left.
 - While stepping, the stepped digit is marked: desktop keeps focus in the box and selects that digit; mobile (button holds focus, keyboard down) draws an underline under that digit. The mark follows place value (tenths stays tenths across 9.9 → 10.0), not character index.
+
+## Closing evidence (T679, 5 Nov 2026)
+- The last hand-built number box, the phone Tune and What-if sheets (`MobileSheet.vue`), is now a `UIFixedField` row (the shared `UIFieldBody`), with the port press handlers on the row and the count box through the shared control.
+- `packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts`: no .vue under packages/ui/src except `UIFieldBody.vue` renders `<NumInput` (red on MobileSheet before, green after).
+- `NumInput`'s own ⚠ (`dq-note`, `dq`/`dqState` props, `hideMark`) is deleted; `UIFieldBody` owns the ⚠.

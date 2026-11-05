@@ -61,7 +61,7 @@ test('Tune sheet: with Auto Y unticked an edit leaves the Y range, ticked it res
   await page.getByRole('button', {name: 'Open Tune'}).click();
   const sheet = page.locator('.mob-sheet');
   const box = sheet.getByRole('checkbox', {name: 'Auto Y'});
-  const cell = sheet.locator('.mob-sheet-cell', {has: page.locator('.mob-sheet-label', {hasText: 'Box volume'})});
+  const cell = sheet.locator('.mob-sheet-cell', {has: page.locator('.ui-field-label', {hasText: 'Box volume'})});
   const before = (await panel.getAttribute('data-y-range')) ?? '';
   await box.uncheck();
   for (let i = 0; i < 12; i++) await cell.getByTitle('Increase').click();

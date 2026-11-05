@@ -217,6 +217,6 @@ test.describe('Original Signal tab with a complete driver', () => {
     await expectChartDrawn(page);
 
     await page.locator('.project-nav li', { hasText: 'Signal' }).click();
-    await expect(page.locator('.field', { hasText: 'System input power' }).locator('.dq-note')).toHaveCount(0);
+    await expect(page.locator('.ui-field', { hasText: 'System input power' }).locator('.ui-field-dq-btn')).toHaveCount(0);
   });
 });

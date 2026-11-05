@@ -1406,7 +1406,6 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   color: var(--bad);
 }
 .field.dq-flag { border-color: var(--bad); }
-.field.dq-flag :deep(.dq-note) { margin-left: 2px; }
 .field .unit { color:#555; min-width:3.5em; }
 textarea.comment, textarea.description { width:100%; border:1px solid #999; border-radius:2px; padding:6px; resize:vertical; }
 .radio-group { display:flex; align-items:center; gap:14px; }

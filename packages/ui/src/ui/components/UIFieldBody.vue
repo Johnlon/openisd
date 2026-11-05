@@ -129,7 +129,7 @@ function write(v: number | null, precision?: number): void {
           <option v-for="option in field.countOptions()" :key="option.value" :value="option.value">{{ option.label }}</option>
         </select>
         <NumInput v-else :id="id" :class="[view.provenanceClass, view.dqClasses]" :model-value="view.value" :field="field"
-          :half-width="view.precision" :mandatory="view.mandatory" :min="min" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :spin="spin" :blank-refused="binding.kind === 'fixed'" hide-mark
+          :half-width="view.precision" :mandatory="view.mandatory" :min="min" :max="max" :allow-out-of-range="allowOutOfRange" :stepper="stepper" :spin="spin" :blank-refused="binding.kind === 'fixed'"
           @update:model-value="write" @refusal="text => refusal = text">
           <template #unit><UnitToggle :field="field" unit-class="ui-field-unit" /></template>
         </NumInput>

@@ -3,6 +3,7 @@ release_note: The driver library can filter by the frequency range the maker sta
 repo: openisd
 owner: fab
 status: done
+landed: 6203a626173d8a37afb9fc6eaf9468c98d303101
 goal: The driver library has a stated range filter: From and To boxes in Hz; a driver matches when its stated range covers what is typed; a checkbox says whether drivers with no stated range stay in the list (ticked by default), after the matches (QO416)
 done_test: bash scripts/test.sh packages/ui/test/logic/searchSubject.test.ts packages/ui/test/logic/driverFilters.test.ts
 files:
