@@ -2,8 +2,12 @@ id: T699
 release_note: internal
 repo: openisd
 owner: claude
-status: open
+status: ready
 goal: On the desktop PR tab the Num. of PRs dropdown is 90 px wide, like Num. of drivers
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts
 files:
+  - bugs/BUG_20261106_desktop-pr-count-dropdown-wide.md
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
   - tasks/T699.yml
