@@ -14,7 +14,9 @@ import {createMemoryStorage} from '../src/storage/keyValueStorage.js';
 import {myDriverRepoOn} from './fixtures/repoOn.js';
 
 const engine = createEngine();
-const BC_18NW100_4 = new URL('../../ui/public/drivers/b-c-speakers/18nw100-4.json', import.meta.url);
+// A fixed copy of the bundled B&C 18NW100-4 from before the QO422 rebuild: it still carries the marks the
+// rebuilt catalogue no longer has, so these checks keep their meaning whatever the bundle holds.
+const BC_18NW100_4 = new URL('./fixtures/bc-18nw100-4-with-marks.json', import.meta.url);
 const bcRecord: unknown = JSON.parse(readFileSync(BC_18NW100_4, 'utf8'));
 const noMarks = (text: string) => assert.ok(!/dq_calculated|dq_scraper/.test(text), 'a data-quality mark was written');
 

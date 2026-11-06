@@ -20,6 +20,7 @@
     "origin": "manufacturer_product_page",
     "value": "The BD90-6-727 is a 5 inch midrange driver with diamond dome."
   },
+  "discontinued": false,
   "driver_type": {
     "definition": "what kind of driver this is (closed vocabulary); decides which specs section applies",
     "origin": "manufacturer_product_page",
@@ -37,7 +38,128 @@
     "origin": "manufacturer_product_page",
     "value": "BD90-6-727"
   },
-  "printed": [],
+  "printed": [
+    {
+      "actual_reading": "BD 90-6-727",
+      "label": "Title",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: h1",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Dome material Diamond",
+      "label": "Feature",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: featuresTable row 1",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Application MIDRANGE",
+      "label": "Feature",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: featuresTable row 2",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Overall diameter 124 MM",
+      "label": "Feature",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: featuresTable row 3",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Cutout Diameter 124.4 MM",
+      "label": "Feature",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: featuresTable row 4",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Overall depth 56 MM",
+      "label": "Feature",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: featuresTable row 5",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Motor assembly depth --",
+      "label": "Feature",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: featuresTable row 6",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Motor assembly diameter --",
+      "label": "Feature",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: featuresTable row 7",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "<span style=\"color:#000000;\">8</span> mm",
+      "label": "Min. frontplate thickness",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Min. frontplate thickness",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "<span style=\"color:#000000;\">53</span> mm",
+      "label": "Overall depth",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Overall depth",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "<span style=\"color:#000000;\">--</span> mm",
+      "label": "Motor assembly depth",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Motor assembly depth",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "<span style=\"color:#000000;\">--</span> mm",
+      "label": "Motor assembly diameter",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Motor assembly diameter",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "<span style=\"color:#000000;\">--</span> mm",
+      "label": "Screwfitting",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Screwfitting",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "<span style=\"color:#000000;\">+: 6.3 x 0.8 / -: 4.8 x 0.8</span> mm",
+      "label": "Terminal",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Terminal",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "6.0 Kg",
+      "label": "Shipping weight (pair)",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Shipping weight (pair)",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "<span style=\"color:#000000;\">350/160/110</span> mm",
+      "label": "Shipping box size (pair)",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: mechanical_data: Shipping box size (pair)",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Ti",
+      "label": "Voice coil former material",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: voice_coil_parameters: Voice coil former material",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "Cu",
+      "label": "Voice coil material",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: voice_coil_parameters: Voice coil material",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "underhung",
+      "label": "Motor type",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: voice_coil_parameters: Motor type",
+      "origin": "manufacturer_product_page"
+    },
+    {
+      "actual_reading": "No",
+      "label": "Ferrofluid filling",
+      "locator": "https://accuton.com/home-audio/drivers/diamond/BD90-6-727: voice_coil_parameters: Ferrofluid filling",
+      "origin": "manufacturer_product_page"
+    }
+  ],
   "product_image": {
     "definition": "the manufacturer's product photo for this driver",
     "origin": "manufacturer_product_page",
@@ -48,13 +170,7 @@
     "origin": "openisd",
     "value": "OpenIsd"
   },
-  "quality": {
-    "invalid": [],
-    "parse_errors": [
-      "Outer_m='<span style=\"color:#000000;\">124</span> mm': ENCODING changes the reading of Outer_m: raw cell '<span style=\"color:#000000;\">124</span> mm' reads no usable reading, cleaned text '124 mm' reads value 0.124 precision 0.0005; raw text retained as encoding-changed with no numeric value",
-      "Basket_m='<span style=\"color:#000000;\">124.4</span> mm': ENCODING changes the reading of Basket_m: raw cell '<span style=\"color:#000000;\">124.4</span> mm' reads no usable reading, cleaned text '124.4 mm' reads value 0.1244 precision 5e-05; raw text retained as encoding-changed with no numeric value"
-    ]
-  },
+  "quality": {},
   "scraper_meta": {
     "category": {
       "definition": "the category text parsed from the manufacturer product page",
@@ -92,6 +208,16 @@
   },
   "specs": {
     "woofer": {
+      "BL_Tm": {
+        "definition": "motor force factor (T·m)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "10.7",
+            "read_precision": 0.05,
+            "read_value": 10.7
+          }
+        }
+      },
       "Basket_m": {
         "definition": "basket diameter — the baffle cutout, stored in m",
         "readings": {
@@ -190,6 +316,16 @@
           }
         }
       },
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_product_page": {
+            "actual_reading": "5.5 Ohm",
+            "read_precision": 0.05,
+            "read_value": 5.5
+          }
+        }
+      },
       "Rms_kg_per_s": {
         "definition": "mechanical suspension resistance (kg/s)",
         "readings": {
@@ -248,26 +384,6 @@
             "actual_reading": "+/-3.0 mm",
             "read_precision": 5e-05,
             "read_value": 0.003
-          }
-        }
-      },
-      "BL_Tm": {
-        "definition": "motor force factor (T·m)",
-        "readings": {
-          "manufacturer_product_page": {
-            "actual_reading": "10.7",
-            "read_precision": 0.05,
-            "read_value": 10.7
-          }
-        }
-      },
-      "Re_ohm": {
-        "definition": "DC voice coil resistance (Ω)",
-        "readings": {
-          "manufacturer_product_page": {
-            "actual_reading": "5.5 Ohm",
-            "read_precision": 0.05,
-            "read_value": 5.5
           }
         }
       }
