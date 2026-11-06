@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: sonnet
 status: done
+landed: 0bd0fc699fa1032ec9bf2c143af1e5242bd4f970
 goal: Unstated driver boxes stay empty unless calculable or needed to chart (QO424)
 done_test: bash scripts/test.sh packages/design/test/architecture-tests-never-pin-a-defect.test.ts
 files:

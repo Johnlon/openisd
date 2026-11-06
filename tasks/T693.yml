@@ -1,0 +1,15 @@
+id: T693
+release_note: "Driver catalogue rebuilt: fuller, corrected readings for almost every bundled driver."
+repo: openisd
+owner: fable
+status: done
+goal: Refresh the bundled driver catalogue from the QO422 rebuilt winisd_drivers snapshot
+done_test: bash scripts/quiet-test.sh npm run typecheck && bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/ui/test/scripts/bundle-outputs.test.ts && bash scripts/quiet-test.sh bash scripts/land/test/sync-driver-snapshot.test.sh
+ruling: QO422
+files:
+  - tasks/T693.yml
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - bugs/**
+  - packages/ui/test/visual/SOURCES.sha256
