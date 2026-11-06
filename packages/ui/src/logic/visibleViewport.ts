@@ -12,6 +12,8 @@
 // for every bar they show, and fires its own `resize`. It also shrinks under pinch-zoom, which
 // must NOT shrink the layout, so at any scale other than 1 the layout viewport is used instead.
 
+import {isSidewaysPhone} from './viewport.js';
+
 export interface VisualViewportLike {
   readonly height: number;
   readonly scale: number;
@@ -26,14 +28,6 @@ export interface ViewportSource {
 }
 
 const UNZOOMED_TOLERANCE = 0.01;
-
-/** A window this short and wider than tall is a phone turned sideways. */
-const SIDEWAYS_MAX_HEIGHT_PX = 500;
-
-/** A phone turned sideways (QO418). Its page keeps the upright height and the document scrolls. */
-export function isSidewaysPhone(w: ViewportSource): boolean {
-  return w.innerWidth > w.innerHeight && w.innerHeight <= SIDEWAYS_MAX_HEIGHT_PX;
-}
 
 /** The phone shell's height: the visible height, or sideways the upright height (the window
  *  width) so the page is the normal phone page seen through a window. */

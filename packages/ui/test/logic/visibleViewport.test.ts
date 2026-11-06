@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
-import {isSidewaysPhone, shellHeightPx, visibleViewportHeightPx, visibleViewportTopPx} from '../../src/logic/visibleViewport.js';
+import {isSidewaysPhone} from '../../src/logic/viewport.js';
+import {shellHeightPx, visibleViewportHeightPx, visibleViewportTopPx} from '../../src/logic/visibleViewport.js';
 
 describe('visible viewport height', () => {
   it('is the visual viewport height when the browser reports one at scale 1', () => {
@@ -29,10 +30,10 @@ describe('visible viewport top', () => {
 describe('phone turned sideways', () => {
   const kbd = {height: 150, scale: 1, offsetTop: 100};
   it('is a short window wider than tall; upright, desktop and tall wide windows are not', () => {
-    expect(isSidewaysPhone({innerWidth: 705, innerHeight: 374, visualViewport: null})).toBe(true);
-    expect(isSidewaysPhone({innerWidth: 850, innerHeight: 390, visualViewport: null})).toBe(true);
-    expect(isSidewaysPhone({innerWidth: 374, innerHeight: 705, visualViewport: null})).toBe(false);
-    expect(isSidewaysPhone({innerWidth: 1280, innerHeight: 720, visualViewport: null})).toBe(false);
+    expect(isSidewaysPhone({innerWidth: 705, innerHeight: 374})).toBe(true);
+    expect(isSidewaysPhone({innerWidth: 850, innerHeight: 390})).toBe(true);
+    expect(isSidewaysPhone({innerWidth: 374, innerHeight: 705})).toBe(false);
+    expect(isSidewaysPhone({innerWidth: 1280, innerHeight: 720})).toBe(false);
   });
   it('gives the shell the window width as height, with or without the keyboard, and no pan offset', () => {
     expect(shellHeightPx({innerWidth: 705, innerHeight: 374, visualViewport: null})).toBe(705);

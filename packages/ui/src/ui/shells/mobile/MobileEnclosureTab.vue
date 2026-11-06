@@ -18,7 +18,7 @@ const {
   prResonanceMassDq, prFsMass_hz,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-  VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
+  VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS,
   FB_TARGET_TIP, VENT_GEOMETRY_TIP,
 } = useMobileEnclosureTab();
 </script>
@@ -28,13 +28,7 @@ const {
     <PhoneBand :section="section.help" />
     <p v-if="section.name === 'Intra'" class="mob-cnote">{{ PhoneBoxText.INTRA_VENT_NOTE }}</p>
     <UIField v-if="section.tuning" class="mob-ui-field" :title="FB_TARGET_TIP" :field="section.tuning.field" :label="section.tuning.label" :cell="section.tuning.cell" stepper />
-    <div class="mob-crow">
-      <label class="mob-crow-label">Number of Vents</label>
-      <select class="mob-cselect" :value="section.vent.count.value"
-              @change="e => { const n = selectedOption(e, VENT_COUNT_OPTIONS); if (n !== null) section.vent.count.set(n); }">
-        <option v-for="o in VENT_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-      </select>
-    </div>
+    <UIFixedField class="mob-ui-field" :field="NumberField.VENT_COUNT" :label="'Number of Vents'" :value="section.vent.count.value" @update:value="n => section.vent.count.set(n)" />
     <div class="mob-crow">
       <label class="mob-crow-label">Shape</label>
       <select class="mob-cselect" :value="section.vent.shape.value"
@@ -89,10 +83,7 @@ const {
 
     <section class="mob-csection">
     <PhoneBand :section="PhoneHelp.USER_OPTIONS" />
-    <div class="mob-crow">
-      <label class="mob-crow-label" for="mob-pr-count">{{ NumberField.PR_NUM.label }}</label>
-      <select id="mob-pr-count" class="mob-cselect" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }"><option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
-    </div>
+    <UIFixedField class="mob-ui-field" input-id="mob-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" @update:value="n => project.box.passiveRadiator.count.set(n)" />
     <UIField class="mob-ui-field" :field="NumberField.PR_MADD_G" :label="PhoneLabels.PR_ADDED_MASS" :cell="project.box.passiveRadiator.addedMass_kg" stepper />
     <UIFixedField class="mob-ui-field" :field="NumberField.PR_FSMASS_HZ" :label="PhoneLabels.PR_FPR_MASS" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly plain />
     </section>
