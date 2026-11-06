@@ -1,0 +1,9 @@
+id: T696
+release_note: internal
+repo: openisd
+owner: maryu
+status: open
+goal: README and gaps docs brought up to date, for John's review on a branch
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T696.yml
