@@ -645,6 +645,7 @@
     "bugs/BUG_20261105_desktop-advanced-tab-scrolls-sideways-at-1024.md",
     "bugs/BUG_20261105_desktop-box-tab-scrolls-sideways-at-1024.md",
     "bugs/BUG_20261105_phone-sideways-gets-desktop-layout.md",
+    "bugs/BUG_20261106_phone-whatif-tune-keyboard-hides-box.md",
     "bugs/_archive/BUG_20261029_coax_tweeter_voice_coil_tuple_rejected.md",
     "bugs/_archive/BUG_20261030_converter_flags_multiple_values_as_unknown.md",
     "cloudflare/announcements/README.md",

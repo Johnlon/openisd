@@ -54,7 +54,7 @@ const diagnostics = injectDiagnosticsModal();
 </script>
 
 <template>
-  <div class="mobile-root" :style="[phoneClassicFieldVars, { height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }]">
+  <div class="mobile-root" :style="[phoneClassicFieldVars, { height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px', marginBottom: viewportTopPx + 'px' }]">
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <!-- No top bar over the Graph destination — it's deliberately full-screen (see

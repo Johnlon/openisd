@@ -13,7 +13,7 @@ import { inputChecked } from '../../../logic/domEvents.js';
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean; autoY: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: boolean] }>();
 
-const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, rowsEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: props.mode });
 </script>
@@ -26,7 +26,7 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
       <PhoneBand :section="help" />
     </div>
-    <div class="mob-sheet-rows" :style="{ '--mob-row-slots': rowSlots }">
+    <div ref="rowsEl" class="mob-sheet-rows" :style="{ '--mob-row-slots': rowSlots }">
       <div v-for="(line, lineIdx) in lines" :key="lineIdx" class="mob-sheet-line">
         <UIFixedField v-for="cell in line" :key="cell.field.label" class="mob-ui-field" :field="cell.field.field" :label="mode.labelOf(cell.field)" :value="cell.value" stepper
                       @pointerdown="portValuePress($event, cell)" @mousedown="portValuePress($event, cell)" @click="portValuePress($event, cell)"

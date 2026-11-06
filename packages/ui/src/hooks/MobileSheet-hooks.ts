@@ -7,7 +7,7 @@
  * The drag handle sets the sheet's height; dragging it down far enough closes it. The rows and
  * the session come from the skin-neutral `createSheetSession`, shared with desktop.
  */
-import {computed, ref} from 'vue';
+import {computed, nextTick, onBeforeUnmount, onMounted, ref} from 'vue';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse} from './telemetryContext.js';
 import type {ComputedRef, Ref} from 'vue';
@@ -64,6 +64,8 @@ export interface MobileSheetAPI {
   /** What the ? on the sheet's band opens: the sheet, then one line per row it shows for this box. */
   readonly help: ComputedRef<PhoneHelpSection>;
   readonly sheetEl: Ref<HTMLElement | null>;
+  /** The scrolling list of rows; the box being typed in is kept in the middle of it when the keyboard comes up. */
+  readonly rowsEl: Ref<HTMLElement | null>;
   /** The sheet's inline height: its default (CSS) until dragged. */
   readonly sheetStyle: ComputedRef<string>;
   setValue(field: SheetField, v: number | null): void;
@@ -86,6 +88,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
 
   const isOpen = computed(() => open());
   const sheetEl = ref<HTMLElement | null>(null);
+  const rowsEl = ref<HTMLElement | null>(null);
   const height = ref<number | null>(null);
   /** Dragged, the sheet takes the finger's height, past the usual cap. */
   const sheetStyle = computed(() => height.value === null ? '' : `height: ${height.value}px; max-height: none`);
@@ -136,6 +139,22 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
 
   function reset(): void { session.reset(); }
 
+  // The keyboard shrinks the visible screen, and the rows list (a few rows tall by then) is left
+  // scrolled where the box was before: a box in the middle of the list ends up under the keyboard.
+  // The shell leaves the Graph page unscrolled (T529), so the sheet centres the box being typed in
+  // within its own list, which shows the rows above and below it too.
+  function centreFocusedRow(): void {
+    const list = rowsEl.value;
+    const el = document.activeElement;
+    if (list === null || !(el instanceof HTMLInputElement) || !list.contains(el)) return;
+    const listBox = list.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    list.scrollTop += (box.top + box.height / 2) - (listBox.top + listBox.height / 2);
+  }
+  function onVisibleResize(): void { void nextTick().then(centreFocusedRow); }
+  onMounted(() => { window.visualViewport?.addEventListener('resize', onVisibleResize); });
+  onBeforeUnmount(() => { window.visualViewport?.removeEventListener('resize', onVisibleResize); });
+
   // Pull-tab: a tap opens (click); an upward drag also sizes the sheet to where the finger went.
   let tabStartY: number | null = null;
   function onTabDown(e: PointerEvent): void { tabStartY = e.clientY; }
@@ -169,7 +188,7 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
   return {
     isOpen, lines: session.lines, rows: session.rows, rowSlots: session.rowSlots, mode,
     sizeStyle: [...PhoneRowSizes.CLASSIC.cssVars(), ...PhoneRowColumns.STANDARD.cssVars()].map(([name, value]) => `${name}: ${value}`).join('; '), help,
-    portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+    portEditor, portView, portValuePress, closePortEditor, sheetEl, rowsEl, sheetStyle, setValue, openSheet, close, reset,
     onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp,
   };
 }
