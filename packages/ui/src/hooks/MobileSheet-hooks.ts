@@ -7,7 +7,7 @@
  * The drag handle sets the sheet's height; dragging it down far enough closes it. The rows and
  * the session come from the skin-neutral `createSheetSession`, shared with desktop.
  */
-import {computed, nextTick, onBeforeUnmount, onMounted, ref} from 'vue';
+import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue';
 import {useApp} from '../logic/app.js';
 import {useFeatureUse} from './telemetryContext.js';
 import type {ComputedRef, Ref} from 'vue';
@@ -152,8 +152,19 @@ export function useMobileSheet({ open, setOpen, mode }: MobileSheetDeps): Mobile
     list.scrollTop += (box.top + box.height / 2) - (listBox.top + listBox.height / 2);
   }
   function onVisibleResize(): void { void nextTick().then(centreFocusedRow); }
+  // The list also changes height when the page gives it room (the legend, chart heading and tab bar go
+  // while typing) or takes it back, which can come after the screen's own resize event.
+  let listResize: ResizeObserver | null = null;
+  onMounted(() => {
+    const observer = new ResizeObserver(onVisibleResize);
+    listResize = observer;
+    watch(rowsEl, (list, previous) => {
+      if (previous !== null && previous !== undefined) observer.unobserve(previous);
+      if (list !== null) observer.observe(list);
+    }, {immediate: true});
+  });
   onMounted(() => { window.visualViewport?.addEventListener('resize', onVisibleResize); });
-  onBeforeUnmount(() => { window.visualViewport?.removeEventListener('resize', onVisibleResize); });
+  onBeforeUnmount(() => { window.visualViewport?.removeEventListener('resize', onVisibleResize); listResize?.disconnect(); });
 
   // Pull-tab: a tap opens (click); an upward drag also sizes the sheet to where the finger went.
   let tabStartY: number | null = null;

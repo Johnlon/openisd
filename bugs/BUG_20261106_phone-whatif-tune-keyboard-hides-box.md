@@ -1,6 +1,6 @@
 # BUG_20261106_phone-whatif-tune-keyboard-hides-box
 
-**Status:** RESOLVED. Release blocker with priority over all other activities (John, 6 Nov 2026).
+**Status:** OPEN (fix in T700; open until John passes it on his phone)
 
 ## Symptom
 Phone, What-if and Tune: tap a number box and the keyboard comes up and hides the box completely. The bottom buttons are hidden while the keyboard is up, but their space is not reclaimed, so a grey blank area sits over the input. It is worse than before: the box used to stay visible, though narrow.
@@ -18,3 +18,18 @@ Regressed by: the pan compensation (19 Oct, `top` on the shell, `visibleViewport
 
 ## Verification
 `bash scripts/test.sh packages/ui/test/ui/mobile-sheet-keyboard.browser.spec.ts`: Tune and What-if, boxes at top, middle and bottom (port area excluded, it opens the port's fields): box wholly in the visible screen, nothing covering it, neighbours visible, the tab bar ends at the keyboard's top edge with the sheet directly above it (no blank), no page scrollbars, Close back in view when the keyboard goes. The keyboard is a scripted stand-in, not a real phone: needs John's Pixel 9 to confirm.
+
+
+## Reopened 6 Nov 2026 (T700) - John's Pixel 9, Chrome custom tab, test.openisd.app
+John: "looks terrible cant see the field at all". Earlier: "I must be able to see the full field that I'm focusing on and ideal the ones above and below". Also a grey blank and hidden buttons whose space was not reclaimed. His screenshot (`ui-gallery/T698-keyboard/john-pixel-whatif-keyboard.png`) shows toolbar, a 3-line legend, a short chart, the What-if heading, Auto Y / Reset / Close and the tab bar on the keyboard, and no number rows at all.
+
+### Cause (verified from the code and by measurement)
+There are two things. (1) The T698 test kept the layout 705 high and shrank only the visual viewport; on John's phone the keyboard shrinks the layout itself (the viewport meta has no `interactive-widget`, and the screenshot shows an app area of about 341), a case no test covered. (2) A layout of 374 x 341 is wider than tall and under 500 high, so `isSidewaysPhone` took it for a phone turned sideways: the shell height became the window width (374 in a 341 window, the document scrolls) and the sheet got 41 px of rows. After the fix the legend, chart heading and tab bar, plus a 120 px chart minimum, were still taking the height the rows needed.
+
+### Fix
+- `visibleViewport.ts`: `isSidewaysShell`; a short wide window whose width is the last upright width is a keyboard, not sideways. `MobileShell-hooks.ts` remembers the upright width.
+- `keyboardIsUp` (shell under 80% of its tallest height at this width) with a box in a Graph sheet focused sets `mob-sheet-typing` on the shell: legend, chart heading and tab bar go (the tab bar is `v-show`, so it returns), the chart keeps 80 px. Everything returns when the box loses focus or the keyboard goes.
+- `MobileSheet-hooks.ts`: the list centres the focused row also when its own height changes (ResizeObserver).
+
+### Verification
+`mobile-sheet-keyboard-resize.browser.spec.ts` (new; stand-in shrinks the layout to 374 x 341 after focus, back to 374 x 705): Tune and What-if, boxes top, middle, bottom: box wholly in the list, uncovered at its corners and centre, neighbours visible and uncovered, footer at the bottom edge, no page scrollbars, tab bar, legend and chart heading back at 705. Red before the fix (shell 374 high in a 341 layout). Measured at 341: 45 head, 80 chart, 212 sheet (24 handle, 133 rows = 3 boxes, 53 footer). Still needs John's Pixel 9.

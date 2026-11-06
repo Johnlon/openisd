@@ -10,7 +10,7 @@ import {useApp} from '../logic/app.js';
 import {useFeatureUse, useRecentActions} from './telemetryContext.js';
 import type {ActionName} from '../logic/telemetry/errorContext.js';
 import {inputFrom} from '../logic/domEvents.js';
-import {shellHeightPx, visibleViewportTopPx} from '../logic/visibleViewport.js';
+import {keyboardIsUp, shellHeightPx, visibleViewportTopPx, type UprightWidthPx} from '../logic/visibleViewport.js';
 import {STEPPER_PIN, StepperPin} from '../logic/stepperPin.js';
 import {injectSplashModal} from './SplashModal-hooks.js';
 import {createAppUpdateUi} from './appUpdateUi.js';
@@ -101,6 +101,8 @@ export interface MobileShellApi {
   viewportHeightPx: import('vue').Ref<number>;
   /** How far the browser has panned the page (the keyboard): the shell is moved down by it. */
   viewportTopPx: import('vue').Ref<number>;
+  /** A box in a Graph sheet has focus with the keyboard up: the page gives the rows the height. */
+  sheetTyping: import('vue').ComputedRef<boolean>;
   /** The space below the form that keeps a box in place when ▲▼ closes the keyboard (`StepperPin`). */
   pinSpacePx: import('vue').Ref<number>;
   /** Bound to `.mob-content`'s `scroll`: the scroll edges, and the pin. */
@@ -434,11 +436,31 @@ export function useMobileShell(): MobileShellApi {
   // given browser version adds). The shell takes its height from a JS measurement instead —
   // `shellHeightPx` says which number and why — re-read on every event any browser
   // fires when such a bar appears or disappears.
-  const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : shellHeightPx(window));
+  // The width the window had when last upright: a keyboard that shrinks the layout to wider than
+  // tall at that same width is still upright, not a phone turned sideways (isSidewaysShell).
+  let uprightWidth: UprightWidthPx = null;
+  function rememberUprightWidth(): void { if (window.innerHeight >= window.innerWidth) uprightWidth = window.innerWidth; }
+  if (typeof window !== 'undefined') rememberUprightWidth();
+  const viewportHeightPx = ref(typeof window === 'undefined' ? 0 : shellHeightPx(window, uprightWidth));
   const viewportTopPx = ref(0);
+  // While a box in a Graph sheet has focus with the keyboard up, the sheet's rows get priority for
+  // height: the shell gets the class `mob-sheet-typing` and the chart page drops its legend, chart
+  // heading and the tab bar (BUG_20261106_phone-whatif-tune-keyboard-hides-box).
+  let tallestShellPx = 0;
+  let tallestAtWidth = 0;
+  const keyboardUp = ref(false);
+  const sheetBoxFocused = ref(false);
+  const sheetTyping = computed(() => keyboardUp.value && sheetBoxFocused.value);
+  function inSheetBox(t: EventTarget | null): boolean { return t instanceof HTMLInputElement && t.closest('.mob-sheet') !== null; }
+  function onFocusIn(e: FocusEvent): void { sheetBoxFocused.value = inSheetBox(e.target); }
+  function onFocusOut(e: FocusEvent): void { sheetBoxFocused.value = inSheetBox(e.relatedTarget); }
   function updateViewportHeight(): void {
-    viewportHeightPx.value = shellHeightPx(window);
-    viewportTopPx.value = visibleViewportTopPx(window);
+    rememberUprightWidth();
+    viewportHeightPx.value = shellHeightPx(window, uprightWidth);
+    viewportTopPx.value = visibleViewportTopPx(window, uprightWidth);
+    if (tallestAtWidth !== window.innerWidth) { tallestAtWidth = window.innerWidth; tallestShellPx = 0; }
+    tallestShellPx = Math.max(tallestShellPx, viewportHeightPx.value);
+    keyboardUp.value = keyboardIsUp(viewportHeightPx.value, tallestShellPx);
   }
   // The visible screen changed size (the keyboard): the box being typed in is scrolled into view
   // inside the form, and a pinned box is held where it was. On the Graph destination, the content
@@ -462,6 +484,8 @@ export function useMobileShell(): MobileShellApi {
   function remeasureSoon(): void { updateViewportHeight(); requestAnimationFrame(updateViewportHeight); }
   onMounted(() => {
     window.addEventListener('resize', updateViewportHeight);
+    document.addEventListener('focusin', onFocusIn);
+    document.addEventListener('focusout', onFocusOut);
     window.visualViewport?.addEventListener('resize', onVisibleResize);
     window.visualViewport?.addEventListener('scroll', onVisibleResize);
     window.addEventListener('scroll', remeasureSoon);
@@ -471,6 +495,8 @@ export function useMobileShell(): MobileShellApi {
   });
   onUnmounted(() => {
     window.removeEventListener('resize', updateViewportHeight);
+    document.removeEventListener('focusin', onFocusIn);
+    document.removeEventListener('focusout', onFocusOut);
     window.visualViewport?.removeEventListener('resize', onVisibleResize);
     window.visualViewport?.removeEventListener('scroll', onVisibleResize);
     window.removeEventListener('scroll', remeasureSoon);
@@ -598,7 +624,7 @@ export function useMobileShell(): MobileShellApi {
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
     saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
-    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
+    goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
     projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, chooseProject,
     openProjectRows, selectOpenProject, closeOpenProject,

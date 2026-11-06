@@ -91,10 +91,9 @@ for (const mode of ['Tune', 'What-if'] as const) {
         expect(await whollyVisible(page, inputs.nth(neighbour)), `row ${neighbour} next to ${index} visible`).toBe(true);
       }
       // No blank band: the tab bar ends at the bottom of the visible screen, the sheet sits right above it.
-      const edge = await page.evaluate(() => ({bar: document.querySelector('.mob-tabbar')!.getBoundingClientRect().bottom, top: window.visualViewport!.offsetTop, h: window.visualViewport!.height}));
+      // While typing the page hides the tab bar (rows get the height), so the sheet's footer ends there.
+      const edge = await page.evaluate(() => ({bar: document.querySelector('.mob-sheet-foot')!.getBoundingClientRect().bottom, top: window.visualViewport!.offsetTop, h: window.visualViewport!.height}));
       expect(Math.abs(edge.bar - (edge.top + edge.h))).toBeLessThan(2);
-      const gap = await page.evaluate(() => document.querySelector('.mob-tabbar')!.getBoundingClientRect().top - document.querySelector('.mob-sheet')!.getBoundingClientRect().bottom);
-      expect(Math.abs(gap)).toBeLessThan(2);
       const scroll = await page.evaluate(() => ({x: document.documentElement.scrollWidth > window.innerWidth, y: document.documentElement.scrollHeight > window.innerHeight}));
       expect(scroll).toEqual({x: false, y: false});
     }

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: a087103a9faf5ab89551f0417de697e7e19d529a
 goal: Every number and count control on every screen is drawn by the common field component: the desktop chart frequency box and the hand-built count dropdowns move onto it, the gate catches them, and there is one definition of a sideways phone
 done_test: bash scripts/test.sh packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts packages/ui/test/logic/viewport.test.ts packages/ui/test/logic/visibleViewport.test.ts
 files:
