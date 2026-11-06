@@ -10,10 +10,8 @@ import {createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createVentReadouts, FB_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {computed} from 'vue';
-import {END_CORRECTION_OPTIONS, NumberField, PhoneHelp, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
+import {END_CORRECTION_OPTIONS, PhoneHelp, VENT_SHAPE_OPTIONS} from '@openisd/design/fields';
 
-const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
-const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
 
 export function useMobileEnclosureTab() {
   const {boxTypeIsSimulatable, definePassiveRadiator, focusedProject, projectChanged} = useApp().appState;
@@ -42,7 +40,7 @@ export function useMobileEnclosureTab() {
     prResonanceMassDq, prFsMass_hz, prNaturalFh,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
-    VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
+    VENT_SHAPE_OPTIONS, END_CORRECTION_OPTIONS,
     FB_TARGET_TIP, VENT_GEOMETRY_TIP,
   };
 }

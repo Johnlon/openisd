@@ -23,7 +23,7 @@ async function chartHeight(page: Page): Promise<number> {
   return page.locator('.mob-chart-cell .gpanel').first().evaluate(el => el.getBoundingClientRect().height);
 }
 async function selectRectangularTwoVents(page: Page): Promise<void> {
-  const select = (label: string) => page.locator('.mob-crow', {hasText: label}).first().locator('select');
+  const select = (label: string) => page.locator('.mob-crow, .ui-field', {hasText: label}).first().locator('select');
   await select('Number of Vents').selectOption('2');
   await select('Shape').selectOption('slotted');
 }

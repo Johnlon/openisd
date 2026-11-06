@@ -44,7 +44,7 @@ test('Driver phone: every field border remains painted around its value', async 
   await openClosedBox(page, 'mobile');
   await page.locator('.mob-tab').filter({hasText: /^Driver$/}).click();
   const report = await page.locator('.mob-content').evaluate(measureFieldBorders);
-  expect(report.rows).toBe(5);
+  expect(report.rows, "the five key figures and the number of drivers (a count, T690)").toBe(6);
   expect(report.controls).toBe(report.rows);
   expect(report.issues).toEqual([]);
 });
