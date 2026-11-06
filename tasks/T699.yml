@@ -1,0 +1,9 @@
+id: T699
+release_note: internal
+repo: openisd
+owner: claude
+status: open
+goal: On the desktop PR tab the Num. of PRs dropdown is 90 px wide, like Num. of drivers
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T699.yml
