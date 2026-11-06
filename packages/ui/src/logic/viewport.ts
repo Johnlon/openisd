@@ -15,9 +15,24 @@ export interface ViewportWatch {
   stop: () => void;
 }
 
+/** A window this short and wider than tall is a phone turned sideways (QO418). The one figure
+ *  behind both the media query below and `isSidewaysPhone`. */
+export const SIDEWAYS_PHONE_MAX_HEIGHT_PX = 500;
+
 /** When the phone layout applies: a narrow window, or a touch screen with a short window (a phone
  *  turned sideways, QO418). A mouse-driven short window and tablets (iPad 1024x768) stay desktop. */
-export const PHONE_LAYOUT_QUERY = '(max-width: 600px), (pointer: coarse) and (max-height: 500px)';
+export const PHONE_LAYOUT_QUERY = `(max-width: 600px), (pointer: coarse) and (max-height: ${SIDEWAYS_PHONE_MAX_HEIGHT_PX}px)`;
+
+export interface WindowSize {
+  readonly innerWidth: number;
+  readonly innerHeight: number;
+}
+
+/** Whether the window is shaped like a phone turned sideways. The query adds the touch-screen
+ *  test, so a 900x400 mouse window is sideways-shaped here but keeps the desktop layout. */
+export function isSidewaysPhone(w: WindowSize): boolean {
+  return w.innerWidth > w.innerHeight && w.innerHeight <= SIDEWAYS_PHONE_MAX_HEIGHT_PX;
+}
 
 /** `query` defaults to PHONE_LAYOUT_QUERY (narrow part: 600px — see the plan: comfortably below
  *  `original-shell-layout.browser.spec.ts`'s 780px floor and Playwright's default 1280×720 viewport,

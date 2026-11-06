@@ -174,3 +174,13 @@ test('ABC labels use readable text without wrapping or clipping',async({page})=>
  expect(failures).toEqual([]);
  expect(await page.locator('.tab-section.active').evaluate(measureFieldLayoutRegions)).toMatchObject({issues:[]});
 });
+
+test('Passive Radiator tab shows every control inside its section at 1280x720',async({page})=>{
+ await page.setViewportSize({width:1280,height:720});await page.goto('/');await openAProject(page,COMPLETE_DRIVER_PROJECT_OWPR);await setFocusedBoxType(page,'box-passive-radiator');await page.locator('.project-nav li').filter({hasText:'Passive Radiator'}).click();
+ const section=page.locator('.tab-section.active');
+ const sectionRight=(await section.boundingBox())!.x+(await section.boundingBox())!.width;
+ expect(await section.evaluate(el=>el.scrollWidth-el.clientWidth),'the section scrolls sideways').toBeLessThanOrEqual(0);
+ const rights=await section.locator('input,select,button,label').evaluateAll(els=>els.filter(el=>el.getBoundingClientRect().width>0).map(el=>el.getBoundingClientRect().right));
+ expect(Math.max(...rights),'a control reaches past the section edge').toBeLessThanOrEqual(sectionRight+0.5);
+ for(const label of await section.locator('.pr-controls label').all()) expect(await label.evaluate(el=>el.scrollWidth-el.clientWidth),'a label is cut').toBeLessThanOrEqual(0);
+});

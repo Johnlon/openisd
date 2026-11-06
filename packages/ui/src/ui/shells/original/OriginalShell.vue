@@ -11,6 +11,7 @@ import ProvenanceLegend from '../../components/ProvenanceLegend.vue';
 import UIField from '../../components/UIField.vue';
 import DriverConsistencyList from '../../components/DriverConsistencyList.vue';
 import UIFixedField from '../../components/UIFixedField.vue';
+import UIPickField from '../../components/UIPickField.vue';
 import UISettlingField from '../../components/UISettlingField.vue';
 import {provideCellScope} from '../../components/cellScope.js';
 import {useApp} from '../../../logic/app.js';
@@ -63,7 +64,7 @@ const {
   showEnclosureTab, enclosureNavLabel,
   helpPanel, closeHelp, openSectionHelp, openTabHelp, tabHelpShown, rearChamberHelp, frontChamberHelp, passiveRadiatorHelp, userOptionsHelp,
   placementHelp, advancedOptionsHelp, listeningPlaceHelp, signalSourceHelp, limitsHelp, ventHelp,
-  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+  selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
   boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
   sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
   sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -75,7 +76,7 @@ const {
   fbUnreachable, fbUnreachableMsg, isDual,
   frontVolumeCell, rearTuningCell, rearResonance,
   model, startEdit, showDriverDisagreements, showDriverInfo, startWhatIf, placement, driverConsistencyReasons,
-  ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS,
+  ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS,
   prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
   prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
   prResonanceMassDq, prFsMass_hz,
@@ -460,23 +461,19 @@ provideCellScope({ revision: projectChanged, written: () => {} });
             <button class="edit-btn" title="Full editor for this driver in the current project." @click="startEdit">&#9998; Edit</button>
           </div>
           <div class="two-col driver-columns" style="margin-top:6px;">
-            <div style="--label-w:150px;">
+            <div class="short-pick-fields" style="--label-w:160px;">
               <DesktopBand :section="placementHelp" style="margin-bottom:4px;" @help="openSectionHelp" />
               <div class="field-row" style="margin-bottom:4px;">
-                <div class="field"><label>{{ DesktopLabels.NUM_DRIVERS }}</label>
-                  <select :value="project.nDrivers.value" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) project.nDrivers.set(n); }"><option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
-                  <span>driver(s)</span>
-                  <WinisdDeviationCue v-if="driverCountDeviationShown" :deviation="WinisdDeviation.DRIVER_COUNT" />
-                </div>
+                <UIFixedField class="field" input-id="og-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="DesktopLabels.NUM_DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" :deviation="driverCountDeviationShown ? WinisdDeviation.DRIVER_COUNT : undefined" />
               </div>
               <div class="radio-group field-row" style="margin-bottom:4px;">
                 <label><input type="radio" name="og-placement" value="standard" v-model="placement"> Standard</label>
                 <label><input type="radio" name="og-placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
               </div>
               <div class="field-row" style="margin-bottom:4px;">
-                <div class="field"><label>{{ DesktopLabels.VOICE_COIL_CONNECTION }}</label>
-                  <select :value="project.wiring.value" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
-                </div>
+                <UIPickField class="field" common :label="DesktopLabels.VOICE_COIL_CONNECTION" input-id="og-wiring">
+                  <select id="og-wiring" :value="project.wiring.value" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) project.wiring.set(w); }"><option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option></select>
+                </UIPickField>
               </div>
             </div>
             <div style="--label-w:172px;">
@@ -508,10 +505,10 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <button class="edit-btn" title="Browse bundled + saved passive radiators — click one to load it into this project." @click="prBrowseOpen = true">{{ DesktopLabels.SELECT_PASSIVE_RADIATOR }}</button>
               <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">{{ DesktopLabels.SAVE_PASSIVE_RADIATOR }}</button>
             </div>
-            <div class="two-col pr-controls" style="gap:12px;">
+            <div class="two-col pr-controls" style="gap:10px;">
               <div style="--label-w:58px;">
                 <DesktopBand :section="passiveRadiatorHelp" title="Passive radiator parameters" @help="openSectionHelp" />
-                <div style="display: grid; grid-template-columns: auto auto; column-gap: 26px; row-gap: 0; margin-bottom: 0;">
+                <div style="display: grid; grid-template-columns: auto auto; column-gap: 5px; row-gap: 0; margin-bottom: 0;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
                   <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
                   <UIField class="field" input-id="og-pr-fs" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" />
@@ -521,25 +518,19 @@ provideCellScope({ revision: projectChanged, written: () => {} });
                   <UIField class="field" :field="NumberField.PR_XMAX_MM" :cell="project.box.passiveRadiator.radiator.spec.Xmax_m" />
                 </div>
               </div>
-              <div style="--label-w:167px;">
+              <div style="--label-w:162px;">
                 <DesktopBand :section="userOptionsHelp" @help="openSectionHelp" />
                 <div class="field-row" style="margin-bottom:3px;">
-                  <UIFixedField class="field entered" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined">
-                    <template #value="{id}">
-                      <select :id="id" :value="project.box.passiveRadiator.count.value" @change="e => { const n = selectedOption(e, PR_COUNT_OPTIONS); if (n !== null) project.box.passiveRadiator.count.set(n); }">
-                        <option v-for="o in PR_COUNT_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-                      </select>
-                    </template>
-                  </UIFixedField>
+                  <UIFixedField class="field" input-id="og-pr-count" :field="NumberField.PR_NUM" :value="project.box.passiveRadiator.count.value" @update:value="n => project.box.passiveRadiator.count.set(n)" :deviation="prNprDeviationShown ? WinisdDeviation.PR_NPR_RESONANCE : undefined" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px;">
                   <UIField class="field" input-id="og-pr-fp" :field="NumberField.PR_FP_HZ" :cell="project.box.passiveRadiator.tuning_goal_hz" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px; gap:8px;">
-                  <UIField class="field" style="--label-w:167px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
+                  <UIField class="field" style="--label-w:162px;" input-id="og-pr-madd" :field="NumberField.PR_MADD_G" :cell="project.box.passiveRadiator.addedMass_kg" />
                 </div>
                 <div class="field-row" style="margin-bottom:3px;">
-                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:167px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
+                  <UIFixedField :class="['field', { 'dq-flag': prResonanceMassDq.dq.length > 0 }]" style="--label-w:162px;" input-id="og-pr-fs-mass" :field="NumberField.PR_FSMASS_HZ" :value="prFsMass_hz" :dq="prResonanceMassDq.dq" readonly />
                 </div>
               </div>
             </div>

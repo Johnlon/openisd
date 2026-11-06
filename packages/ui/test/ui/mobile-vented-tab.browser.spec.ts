@@ -76,7 +76,7 @@ test.describe('MobileVentedTab', () => {
     const area = mobileFieldRow(page, 'Cross area').locator('input');
     const one = parseFloat(await area.inputValue());
     expect(one).toBeGreaterThan(0);
-    await page.locator('.mob-crow', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
+    await page.locator('.mob-ui-field', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
     await expect.poll(async () => parseFloat(await area.inputValue()) / one).toBeCloseTo(2, 2);
   });
 

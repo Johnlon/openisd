@@ -7,10 +7,9 @@
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {ARRAY_WIRING_OPTIONS, NumberField} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
 
-const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
 export function useMobileDriverTab() {
   const {appState, driverBrowsing, presentation: presentationState} = useApp();
@@ -44,6 +43,6 @@ export function useMobileDriverTab() {
   return {
     project, brand, model, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements,
     showDriverInfo: driverBrowsing.showProjectDriverInfo,
-    N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption,
+    ARRAY_WIRING_OPTIONS, selectedOption,
   };
 }

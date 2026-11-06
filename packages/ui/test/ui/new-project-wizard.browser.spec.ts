@@ -165,7 +165,7 @@ test.describe('New Project wizard', () => {
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await footerNext(page).click();                           // step 2
       await footerNext(page).click();                           // step 3
-      await expect(modal.locator('.ebp-row')).toHaveText(/^Efficiency Bandwidth Product \(EBP\): [\d.]+$/);
+      await expect(modal.locator('.ebp-row')).toHaveText(/^Efficiency Bandwidth Product \(EBP\): [\d.]+\?$/);  // the trailing ? is the desktop skin's help button (T690)
     });
 
     test('changing the Options air leaves an open project\'s temperature alone; a project made after it gets the new value', async ({ appPage: page }) => {

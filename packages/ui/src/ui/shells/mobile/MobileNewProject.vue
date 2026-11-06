@@ -42,7 +42,6 @@ const {
   nDrivers,
   placement,
   wiring,
-  N_DRIVERS_OPTIONS,
   ARRAY_WIRING_OPTIONS,
 
   boxType,
@@ -171,12 +170,7 @@ function handleCreate() {
         <!-- Step 2: Driver count & placement -->
         <template v-if="isCountStep">
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_DRIVER_ARRAY }}</span></div>
-          <div class="mob-crow">
-            <label class="mob-crow-label" for="np-ndrivers">{{ PhoneLabels.DRIVERS }}</label>
-            <select id="np-ndrivers" class="mob-cselect" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }">
-              <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-            </select>
-          </div>
+          <UIFixedField class="mob-ui-field" input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="nDrivers" @update:value="n => nDrivers = n" />
           <div class="mob-crow">
             <label class="mob-crow-label" for="np-placement">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
             <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placement">
@@ -329,7 +323,7 @@ function handleCreate() {
 .mob-np-banner + .mob-band { margin-top: 0; }
 
 /* Placement: the select keeps its width; the ⓘ sits in the 90 px stepper area (46 + 44) */
-.mob-cselect-info { margin-right: 46px; }
+.mob-classic .mob-cselect.mob-cselect-info { margin-right: 46px; }
 .mob-np-info { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: none; background: none; color: var(--acc); padding: 0; cursor: pointer; }
 .mob-np-pic { display: flex; justify-content: center; align-items: center; padding: 12px 0; border-bottom: 1px solid #e6e6e6; }
 .mob-np-pic-note { flex-direction: column; gap: 4px; }

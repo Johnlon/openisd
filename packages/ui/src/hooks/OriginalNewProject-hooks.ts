@@ -79,7 +79,6 @@ export interface OriginalNewProjectAPI {
   readonly nDrivers: Ref<number>;
   readonly placement: Ref<'standard' | 'iso'>;
   readonly wiring: Ref<Wiring>;
-  readonly N_DRIVERS_OPTIONS: readonly SelectorOption<number>[];
   readonly ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[];
 
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
@@ -235,7 +234,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   });
   const projDescription = ref('');
 
-  const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
   const hadUnsaved = computed(() => isModified.value);
 
@@ -556,7 +554,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     nDrivers,
     placement,
     wiring,
-    N_DRIVERS_OPTIONS,
     ARRAY_WIRING_OPTIONS,
 
     boxType,
