@@ -115,6 +115,11 @@
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) .ui-field-dev {grid-column:2 / 4;}
 /* PR columns retain one complete box width even when a symbol needs a wider unit cap. */
 .joined-fields:not(.app-root-mobile) .pr-controls .ui-field.ui-field[data-field] {--joined-box:150px;}
+/* The Num. of drivers and Voice coil connection dropdowns (desktop Driver tab Placement panel, wizard step 2) have
+   no number boxes under them, so they are only as wide as "Parallel" and its arrow: 90 px, both the same (QO426.c87,
+   c96, QO428.c2). Set the way .pr-controls sets its 150: the group's --joined-box; the pick list takes the same width. */
+.joined-fields:not(.app-root-mobile) .short-pick-fields .ui-field.ui-field[data-field] {--joined-box:90px;}
+.joined-fields:not(.app-root-mobile) .short-pick-fields .ui-pick-field.ui-pick-common {--pick-width:calc(90px + 4px);}
 /* The dense vent pane keeps its existing caption scale and drops only absent spinner tracks. */
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .field > label {font-size:11px;line-height:12px;}
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) {--joined-buttons:0px;}

@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: fable
 status: done
+landed: 842552a50a4116aee6ec769832d519d73f2d21ec
 goal: The driver bridge projects a record whose T/S values disagree, instead of refusing it (Bliesma W137A/W137P, QO414); then refresh the catalogue from winisd_drivers f4aa7daed
 done_test: bash scripts/test.sh packages/design/test/winisd/scraper-driver-json-projection.test.ts
 files:

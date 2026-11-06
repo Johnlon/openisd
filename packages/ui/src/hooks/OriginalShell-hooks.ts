@@ -170,9 +170,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { projectRepo, projectBin } = useApp();
   const { editProjectDriver } = selection;
 
-  const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
   const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
-  const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
 
   // The focused project's own trace/legend colour — a project attribute saved in its project
   // file (`OpenISDProject.traceColor`), not a page-level index: it must follow the project
@@ -823,7 +821,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
     showEnclosureTab, enclosureNavLabel, ...desktopHelp,
-    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -835,7 +833,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
     model, startEdit, showDriverDisagreements, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement, driverConsistencyReasons,
-    activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
+    activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,

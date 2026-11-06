@@ -9,7 +9,7 @@ import PhoneBand from './PhoneBand.vue';
 import PhoneClassicPage from './PhoneClassicPage.vue';
 import { useMobileDriverTab } from '../../../hooks/MobileDriverTab-hooks.js';
 
-const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements, showDriverInfo, N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption } = useMobileDriverTab();
+const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements, showDriverInfo, ARRAY_WIRING_OPTIONS, selectedOption } = useMobileDriverTab();
 </script>
 
 <template>
@@ -23,13 +23,7 @@ const { project, fullName, keyFigures, consistencyReasons, browseDrivers, editDr
       <button type="button" class="mob-btn mob-btn-secondary" @click="editDriver">Edit</button>
     </div>
     <PhoneBand :section="PhoneHelp.DRIVER" />
-    <div class="mob-crow">
-      <label class="mob-crow-label" for="mob-n-drivers">{{ PhoneLabels.DRIVERS }}</label>
-      <select id="mob-n-drivers" class="mob-cselect" :value="project.nDrivers.value"
-              @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) project.nDrivers.set(n); }">
-        <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-      </select>
-    </div>
+    <UIFixedField class="mob-ui-field" input-id="mob-n-drivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="project.nDrivers.value" @update:value="n => project.nDrivers.set(n)" />
     <div class="mob-crow">
       <label class="mob-crow-label" for="mob-wiring">{{ PhoneLabels.CONNECTION }}</label>
       <select id="mob-wiring" class="mob-cselect" :value="project.wiring.value"

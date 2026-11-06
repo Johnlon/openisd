@@ -242,5 +242,6 @@ enter context when relevant, not on every session:
   read before writing any `todowrite` list.
 - **Multi-session coordination** (disjoint file assignment, dispatch): [`docs/MULTI_SESSION_COORDINATION.md`](docs/MULTI_SESSION_COORDINATION.md).
 - **UI does no maths, formatting or constants**: `.claude/rules/ui.md` — lint bans `Math.log/pow/…` and `.toFixed(` under `packages/ui/src`; use `packages/design` axes and `fields/format.ts`.
+- **Field layout** (nothing clipped, aligned edges, one width and height per group): `.claude/rules/field-layout.md` — auto-loads under `packages/ui/**`; gate `packages/ui/test/ui/field-layout-rules.browser.spec.ts`.
 - **UI test fixtures & scratch specs**: `.claude/rules/ui-test-fixtures.md` — auto-loads under
   `packages/ui/test/`.
