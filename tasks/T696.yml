@@ -7,3 +7,11 @@ goal: README and gaps docs brought up to date, for John's review on a branch
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T696.yml
+  - README.md
+  - OPENISD_WINISD_GAPS_AND_BUGS.md
+  - FEATURES.md
+  - BACKLOG.md
+  - ARCHITECTURE.md
+  - docs/images/app/simulator.png
+  - docs/images/app/whatif.png
+  - docs/images/app/driver-library.png

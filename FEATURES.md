@@ -22,9 +22,14 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 - Impedance magnitude and phase.
 - Port air velocity.
 - Maximum SPL (excursion or power limited) and maximum power.
+- Amplifier apparent load power (VA).
+- Port gain for the vented and bandpass vents, and the passive radiator's transfer function and
+  phase.
 - The filter chain's magnitude, phase and group delay.
 - Several open projects overlaid on one chart.
 - A cursor that snaps to peaks and can be locked or typed.
+- A help page for each chart, on desktop and phone: how to read the chart, what is good, what
+  to fix.
 
 ### Design tools
 
@@ -41,7 +46,8 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 ### Signal and environment
 
 - Drive voltage or input power, series resistance, Rg placement.
-- Filters: high-pass, low-pass, Linkwitz transform, parametric EQ, low shelf, high shelf.
+- Filters: high-pass, low-pass, all-pass, Linkwitz transform, parametric EQ, low shelf, high
+  shelf, static gain and raised cosine.
 - Voice-coil temperature rise, and added mass on the cone.
 - Force flat response, and Xmax-limited SPL.
 - Temperature, humidity and pressure per project, through WinISD's air model.
@@ -49,9 +55,10 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 
 ### Drivers and data
 
-- A bundled catalogue of 1,603 drivers and 79 passive radiators, built from the sibling
+- A bundled catalogue of 1,917 drivers and 81 passive radiators, built from the sibling
   `winisd_drivers` repository, with source links. It is searched by name and filtered by type,
-  Fs, Sd and impedance.
+  Fs, the frequency range the maker states, Sd and impedance. The list says which filters are on
+  and has a Clear filters button.
 - My Drivers and My Passive Radiators, kept in the browser, and driver favourites.
 - Driver editor with E/C/N provenance on every field.
 
@@ -61,17 +68,24 @@ Other tools in this space are in [docs/research/COMPETITIVE_LANDSCAPE.md](docs/r
 - OpenISD `.owpr` projects and `.owdr` drivers.
 - Share a design as a link.
 - Several projects open at once, autosaved in the browser.
+- A Projects panel (desktop) and pane (phone) listing every saved and open project, with search,
+  sort, rename and row actions.
+- Deleting a project moves it to a Bin, where it can be restored or deleted for good.
+- Options, "Your data": storage used, a request to the browser to keep the data, and a list of
+  backups taken before changes and repairs, which can be restored or exported.
+- Optional cloud sync to your own Google Drive: projects, drivers, passive radiators, favourites
+  and Options, with a log of what it sent and received, and conflict copies named by device.
+- Number boxes with step arrows, and spin by dragging left or right on a digit.
 - Installable PWA that works offline; an optional Electron desktop build.
 
 ## Planned
 
 ### Simulation
 
-- Isobaric loading.
+- Isobaric loading chosen in the app. A WinISD file that states it is already simulated, but the
+  New project wizard says "Iso-Barik (not modelled)" and the app has no control for it.
 - Transmission line and quarter-wave enclosures; horns.
 - Listening distance and off-axis angle (currently fixed at 1 m, on axis).
-- Amplifier load (VA) chart, port gain, and radiator transfer function charts.
-- All-pass, raised-cosine delay and static-gain filters.
 - Step response.
 - Baffle step and diffraction.
 

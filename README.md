@@ -27,8 +27,9 @@ Every curve redraws as you type. There is no Calculate button.
 ## Features
 
 - **Box types:**
-  - sealed, vented, 4th-order bandpass and passive radiator;
-  - several drivers, wired in series or parallel.
+  - sealed, vented, 4th-order bandpass, 6th-order bandpass, ABC and passive radiator;
+  - round or slotted vents, with a count and an end correction;
+  - several drivers, wired in series or parallel, and dual voice coils.
 - **Charts:**
   - SPL and transfer function;
   - group delay;
@@ -37,12 +38,18 @@ Every curve redraws as you type. There is no Calculate button.
   - port air velocity;
   - maximum SPL and maximum power;
   - the filter chain's response;
-  - several designs overlaid for comparison.
+  - several designs overlaid for comparison;
+  - a cursor that snaps to peaks, and can be locked or typed;
+  - a help page for each chart on desktop and phone: how to read it and what to fix.
 - **Design tools:**
   - WinISD's sealed and vented alignments (QB3, BB4, EBS3, EBS6, C4);
   - vent length from tuning, and tuning from length;
   - radiator mass for a target tuning;
-  - an EBP gauge.
+  - an EBP gauge;
+  - the filter chain: high-pass, low-pass, all-pass, Linkwitz transform, parametric EQ, shelves,
+    static gain and raised cosine;
+  - an equation inspector that shows the formula behind a value;
+  - a signal generator that plays a tone.
 - **Solvers that work in every direction.** Enter what you know and the rest is derived. For
   example, any two of Qts, Qes and Qms give the third.
 - **Data-quality marks:**
@@ -50,18 +57,26 @@ Every curve redraws as you type. There is no Calculate button.
   - when a driver's own figures contradict each other, the app says which ones.
 - **What-if.** Adjust a driver's parameters and the box, and watch the curves respond.
   Nothing is saved; cancel and the design is exactly as it was.
-- **Driver library.** 1,603 drivers and 79 passive radiators come bundled, with source links,
-  alongside your own saved drivers.
+- **Driver library.** 1,917 drivers and 81 passive radiators come bundled, with source links,
+  alongside your own saved drivers. Filter by type, Fs, the frequency range the maker states, Sd
+  and impedance.
+- **Number boxes.** Type a value, use the arrows, or drag left or right on a digit to spin it.
+  The digit you press sets the step.
 - **Air per project.** Each project has its own temperature, humidity and pressure, which set
   the speed of sound and the air density through WinISD's own air model.
 - **Files and sharing:**
   - WinISD `.wdr` and `.wpr`, and OpenISD's own `.owpr` and `.owdr`;
   - share a design as a link;
   - open projects are saved automatically in the browser.
+- **Projects.** A Projects panel lists every saved and open project, with search and sort. A
+  deleted project goes to a Bin, where you can restore it. Options, "Your data", shows the storage
+  used and lists backups you can restore or export.
+- **Optional Google Drive sync.** Off until you turn it on. It copies your projects, drivers and
+  Options to your own Google Drive and shows what it did. See [Privacy](#privacy).
 
 ![What-if panel open over the charts](docs/images/app/whatif.png)
 
-![Driver database with type, Fs, Sd and impedance filters](docs/images/app/driver-library.png)
+![Driver database with type, Fs, stated range, Sd and impedance filters, set to Woofer, 8 ohm, Fs 30 to 50 Hz](docs/images/app/driver-library.png)
 
 ## OpenISD and WinISD
 
@@ -107,8 +122,12 @@ Details:
 npm install
 npm run dev        # development server
 npm run build      # production build in packages/ui/dist/
-npm test           # the full test gate
+npm test packages/design/test/engine/circuit.test.ts   # one test file
 ```
+
+`npm test` needs a target: a unit test file, or a `*.browser.spec.ts` browser spec. With no target
+it stops and says so, because the full suite runs on GitHub Actions for each change that lands on
+main. A maintainer can run both suites by setting `OPENISD_FULL_GATE=1`.
 
 ## Documentation
 

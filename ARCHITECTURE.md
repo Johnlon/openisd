@@ -548,7 +548,7 @@ WinISD's side comes from its screenshots, its help files and the probes in `wini
 | Vented alignments QB3, BB4, EBS3, EBS6, C4           | yes    | yes     |
 | Vent length from tuning, and tuning from length      | yes    | yes     |
 | Radiator added mass for a target tuning              | not verified | yes |
-| Driver library                                       | local `.wdr` files | 1,603 drivers and 79 radiators bundled, plus My Drivers |
+| Driver library                                       | local `.wdr` files | 1,917 drivers and 81 radiators bundled, plus My Drivers |
 | Data-quality marks on inconsistent or missing inputs | no     | yes     |
 | Equation inspector (the formula behind a value)      | no     | yes     |
 | What-if tuning panel                                 | no     | yes     |
