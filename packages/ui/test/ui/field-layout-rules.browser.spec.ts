@@ -191,8 +191,8 @@ test('desktop Passive Radiator tab: every User options label is on one line and 
 
 /** John, QO426.c87, c96, QO428.c2: the Num. of drivers and Voice coil connection dropdowns on the desktop Driver tab
  *  and the wizard's step 2 have no number boxes under them, so they are as wide as "Parallel" and its arrow (90 px,
- *  the old hand-built width), both the same, and nothing in either list is cut off. The Num. of PRs dropdown has
- *  number boxes under it and stays at the number-box width. */
+ *  the old hand-built width), both the same, and nothing in either list is cut off. The Num. of PRs dropdown on the
+ *  Passive Radiator tab is the same 90 px (QO428); the number boxes beside it keep their width. */
 const SHORT_DROPDOWN_PX = 90;
 
 /** Width and edges of a dropdown, and whether its longest option text fits when that option is chosen. */
@@ -236,9 +236,11 @@ for (const screen of COUNT_SCREENS) {
   });
 }
 
-test('desktop Passive Radiator tab: Num. of PRs keeps the number-box width, not the short width', async ({page}) => {
+test(`desktop Passive Radiator tab: Num. of PRs is ${SHORT_DROPDOWN_PX} px, nothing cut off`, async ({page}) => {
   await startDesktop(page, 'box-passive-radiator');
   await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();
-  // It measured 150 px here (not 124) before and after this change: only the Driver tab and wizard dropdowns changed.
-  expect((await dropdown(page, 'og-pr-count')).width).toBeCloseTo(150, 0);
+  const count = await dropdown(page, 'og-pr-count');
+  expect(count.width).toBeCloseTo(SHORT_DROPDOWN_PX, 0);
+  expect(count.fits, `"${count.longest}" ${count.textPx}px in ${count.width}px`).toBe(true);
+  expect(count.clipped).toBe(false);
 });
