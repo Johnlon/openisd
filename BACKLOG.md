@@ -33,7 +33,7 @@ list is the smaller engineering and UI work items around what already ships.
 | Vb/Fb cannot be dragged directly on the enclosure-tuning graph. | `GraphPanel.vue`, `canvas.ts`, `ventGroup.ts` |
 | The vent solver has no feasible-region chart (diameter vs length, iso-Fb lines, a safe-velocity band). | `series.ts`, `canvas.ts`, `ventGroup.ts` |
 | The box picture is one fixed drawing per box type; no schematic follows the entered volumes, vent and driver. | `BoxTypeDiagram.vue` |
-| Whether the URL should update live (bookmarkable) or only through Share is undecided. | `applicationIO.ts`, `App.vue`, `persistence/projectRepo.ts` |
+| Whether the URL should update live (bookmarkable) or only through Share is undecided. | `applicationIO.ts`, `App.vue`, `packages/persistence/src/repos/projectRepo.ts` |
 
 ## Files and driver data
 

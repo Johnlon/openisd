@@ -97,8 +97,8 @@ only on Windows, and its source was never released. OpenISD carries the idea for
   - contradictory inputs are marked, not silently discarded;
   - a typed value is never rewritten behind the user's back;
   - each project keeps its own air conditions.
-- **Parity state** (2026-10-21; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
-  SB15SFCR-00): 248 of 269 cells in the
+- **Parity state** (2026-11-06; drivers W5-1138SMF and E150HE-44, radiators ND140-PR and
+  SB15SFCR-00): 250 of 269 cells in the
   [WinISD equivalence register](docs/research/WINISD_EQUIVALENCE.md) match WinISD, most to
   ≤ 1e-12. Every chart exists for every box type.
 - **Remaining gaps:**
@@ -106,8 +106,8 @@ only on Windows, and its source was never released. OpenISD carries the idea for
     bandpass Fr and Ff, and the maximum-power/Xmax crossover.
   - after one typed edit, WinISD and OpenISD differ in these: the number of voice coils (WinISD
     ignores it; sealed box), the driver editor's fLe, KLe, Hc and Hg when the file does not state them
-    (sealed, vented and 6th-order bandpass boxes), the vent cross area after more vents are typed
-    (vented box), and the passive radiator Vas (WinISD rounds it) and Sd (WinISD ignores it).
+    (sealed, vented and 6th-order bandpass boxes), and the passive radiator Vas (WinISD rounds it)
+    and Sd (WinISD ignores it).
   - not yet compared after an edit: a typed vent end correction (vented box).
 
 Details:
