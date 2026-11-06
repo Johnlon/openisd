@@ -40,12 +40,18 @@ const WDR_HEADER_FIELDS = [
  * are expected to move on a round trip, not a coding error, so both rows' marks are overwritten
  * unconditionally before printing rather than compared.
  */
+/** A snapshot value with float noise removed: a per-coil value multiplied back up (2.6 x 3 =
+ *  7.800000000000001) is the same number to 12 significant digits, not a coding error. */
+function snapshotValue(value: unknown): unknown {
+  return typeof value === "number" ? Number(value.toPrecision(12)) : value;
+}
+
 function wdrDriverSnapshotJson(d: WinISDDriver): string {
   const header = Object.fromEntries(
     WDR_HEADER_FIELDS.map((field) => [field, d.headerField(field) ?? ""])
   );
   const rows: Record<string, { value: unknown; state: string }> = Object.fromEntries(
-    d.rows().map(([key, cell]) => [key, { value: cell.value, state: cell.state }])
+    d.rows().map(([key, cell]) => [key, { value: snapshotValue(cell.value), state: cell.state }])
   );
   rows.VCCon.state = "value-only";
   rows.Xlim.state = "value-only";
@@ -151,7 +157,7 @@ function oidDriverSnapshotJson(driver: OpenISDDriver): string {
   const rows: Record<string, { value: unknown; state: string }> = Object.fromEntries(
     oidComparableCells(spec).map(([key, cell]) => [
       key,
-      { value: cell.value, state: comparableOidState(cell) },
+      { value: snapshotValue(cell.value), state: comparableOidState(cell) },
     ])
   );
   return JSON.stringify({ rows }, null, 2);

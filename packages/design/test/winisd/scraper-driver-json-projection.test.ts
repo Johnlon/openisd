@@ -79,3 +79,15 @@ describe('driver.json the scraper writes today', () => {
     assert.deepEqual(rolesOf(['subwoofer']), ['subwoofer']);
   });
 });
+
+describe('records whose T/S values disagree (QO414: consistency warnings never refuse a record)', () => {
+  for (const code of ['w137a-854-8', 'w137p-854-8']) {
+    it(`bliesma ${code} (3 voice coils, printed T/S disagree) projects; the disagreement is a warning only`, () => {
+      const text = readFileSync(join(FIXTURES, `bliesma-${code}.driver.json`), 'utf8');
+      const result = project(text);
+      assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
+      assert.ok(result.openisd !== null && result.wdr !== null);
+      assert.ok(result.errors.some(e => e.level === 'warn' && /disagree/.test(e.message)));
+    });
+  }
+});

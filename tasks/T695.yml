@@ -1,0 +1,13 @@
+id: T695
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+goal: The driver bridge projects a record whose T/S values disagree, instead of refusing it (Bliesma W137A/W137P, QO414); then refresh the catalogue from winisd_drivers f4aa7daed
+done_test: bash scripts/test.sh packages/design/test/winisd/scraper-driver-json-projection.test.ts
+files:
+  - tasks/T695.yml
+  - packages/design/domain/driverRoundTripDiffs.ts
+  - packages/design/test/winisd/scraper-driver-json-projection.test.ts
+  - packages/design/test/fixtures/scraper-driver-json/bliesma-w137a-854-8.driver.json
+  - packages/design/test/fixtures/scraper-driver-json/bliesma-w137p-854-8.driver.json
