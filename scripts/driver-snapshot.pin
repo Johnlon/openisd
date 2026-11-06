@@ -1,5 +1,5 @@
 {
-  "winisd_drivers_commit": "a48574efc217d2bb891bc10cfbb69da94a62cb20",
+  "winisd_drivers_commit": "1adc37e4ad146e6935883ecd946a10463e800407",
   "fixtures": {
     "accuton/bd90-6-727/driver.json": "be4429f5e61c7cd84caa4e9c938e357f20ef72221d4b4608093291f94f5b4383",
     "accuton/bd90-6-727/openisd.json": "519aea28d87412c95772734a72ddf36b47a8687c578e480f32dcf34d3706c196",

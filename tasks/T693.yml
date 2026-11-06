@@ -3,6 +3,7 @@ release_note: "Driver catalogue rebuilt: fuller, corrected readings for almost e
 repo: openisd
 owner: fable
 status: done
+landed: 205f61c311d87a3f1b0e98ebd42e0858567965ae
 goal: Refresh the bundled driver catalogue from the QO422 rebuilt winisd_drivers snapshot
 done_test: bash scripts/quiet-test.sh npm run typecheck && bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/ui/test/scripts/bundle-outputs.test.ts && bash scripts/quiet-test.sh bash scripts/land/test/sync-driver-snapshot.test.sh
 ruling: QO422
