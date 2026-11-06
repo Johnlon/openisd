@@ -15,3 +15,5 @@ files:
   - docs/images/app/simulator.png
   - docs/images/app/whatif.png
   - docs/images/app/driver-library.png
+  - docs/research/WINISD_EQUIVALENCE.md
+  - docs/research/WINISD_PARITY.md

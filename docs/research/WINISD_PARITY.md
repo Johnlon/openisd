@@ -417,17 +417,11 @@ CIPM-2007 was removed 2026-10-05.
 1. **Box-pane resonance shows the wrong quantity for a plain vented box** — a wrong number
    under a WinISD field name, which reads as verified parity. The PR-box half of this same
    defect is fixed; the vented half is not (see Part 2 "Box pane" above).
-2. **Environment model** — WinISD derives c/ρ from temperature, humidity AND pressure.
-   OpenISD's values match WinISD's, but only temperature is wired: humidity and pressure are
-   collected, persisted, and ignored.
-3. **Off-axis + configurable listening distance** — OpenISD is fixed 1 m on-axis.
-4. **Figure-of-merit read-outs are declared "calculated" but nothing computes them.** `Rme`,
-   `gamma` and `Mpow` have closed forms confirmed against WinISD; `Gloss`, `SPLmaxLF`,
-   `SPLmax` and `Mcost` have none known.
-5. **Filters**: all-pass, raised-cosine delay, static gain.
-6. **Charts**: amplifier VA load, port gain, intrachamber velocity, PR-specific TF/phase.
-7. **Enclosure types**: isobaric, 6th-order bandpass and ABC are offered but unmodelled.
-8. **Vents**: vent count (1–4) and slot/rectangular vents are absent.
+2. **Off-axis + configurable listening distance** — OpenISD is fixed 1 m on-axis.
+3. **Figure-of-merit read-outs with no formula:** `Gloss`, `SPLmaxLF` and `SPLmax` have no closed
+   form known, so nothing computes them.
+4. **Enclosure types**: isobaric loading has no control in the app; a WinISD file that states it
+   is simulated.
 
 ---
 
