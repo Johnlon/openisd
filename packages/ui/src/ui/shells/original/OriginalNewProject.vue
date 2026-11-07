@@ -76,7 +76,8 @@ const {
 
   isPassiveRadiator,
   passiveRadiatorView,
-  passiveRadiatorEdits,
+  passiveRadiatorCells,
+  setPassiveRadiatorName,
   passiveRadiatorBrowseOpen,
   loadSavedPassiveRadiator,
   loadBundledPassiveRadiator,
@@ -234,9 +235,9 @@ function handleCreate() {
         <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
         <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
           <UIFixedField input-id="np-starting-volume" label="Starting volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
-          <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
+          <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" :radiator="passiveRadiatorView" :cells="passiveRadiatorCells" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
-            @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
+            @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
           <div v-if="passiveRadiatorPickError" class="readout-warning np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
         </div>
 

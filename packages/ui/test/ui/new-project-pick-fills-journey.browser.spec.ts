@@ -84,7 +84,7 @@ interface Case {
   readonly radiator: {readonly path: string; readonly pickText: string} | null;
 }
 
-/** The test build bundles 11 records (fixtures/test-bundle-paths.json); the cases use those. */
+/** The test build bundles 15 records (fixtures/test-bundle-paths.json); the cases use those. */
 const CASES: readonly Case[] = [
   {box: 'sealed', driver: 'dayton-audio/e150he-44', radiator: null},
   {box: 'vented', driver: 'tang-band/w5-1138smf', radiator: null},
