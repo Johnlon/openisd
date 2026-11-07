@@ -1,0 +1,11 @@
+id: T705
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Record OpenISD 7.0.958 in the release ledger
+done_test: grep -Fq '| 7.0.958 | 20261107T0050Z |' RELEASES.md
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - RELEASES.md
+  - tasks/T705.yml

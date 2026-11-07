@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: agents
 status: done
+landed: aa93ac0cfa0894a48ec6c7bb77e073fe370392f7
 goal: The offline release test follows the radiator pick to the project page
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
