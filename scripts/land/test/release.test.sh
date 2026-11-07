@@ -103,6 +103,10 @@ for f in scripts/hosting/test/hosted-copies.e2e.mjs scripts/hosting/test/offline
   cat > "$f" <<STUB
 import fs from 'node:fs';
 fs.appendFileSync(process.env.GH_STATE + '/calls.log', ['node', '$f', ...process.argv.slice(2)].join(' ') + '\\n');
+// Where the check ran: its directory and the commit checked out there.
+import {execSync} from 'node:child_process';
+fs.appendFileSync(process.env.GH_STATE + '/where.log', ['$f', process.cwd(), execSync('git rev-parse HEAD').toString().trim(), fs.existsSync('node_modules') ? 'nm' : 'no-nm'].join(' ') + '\\n');
+if (process.env.E2E_FAIL && '$f'.endsWith('offline-catalogue.e2e.mjs')) process.exit(1);
 STUB
 done
 printf 'id: F1\nstatus: closed\n' > tasks/fixes/F1.yml
@@ -331,6 +335,31 @@ out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
   && [ "$(wc -l < "$GH_STATE/calls.log")" -gt "$prepared_calls" ] \
   && ok "approval skips the completed browser checks and dispatches deployment" \
   || fail "approval reran preflight or omitted deployment: $(cat "$GH_STATE/calls.log")"
+
+# ---- 6d. the checks run on the snapshot's code, not on the checkout the script starts in -----------
+# HEAD is later than the snapshot (FF_SHA); the checks must run in a temporary worktree at FF_SHA.
+mkdir -p node_modules/pkg; echo fake > node_modules/pkg/index.js
+add_snap 20260107T0000Z "$FF_SHA" 2026-01-07T00:00:00Z
+: > "$GH_STATE/where.log"; wt_before="$(git worktree list | wc -l)"
+out=$(bash scripts/release.sh --public 7.0.2000 20260107T0000Z 2>&1); r=$?
+[ $r = 0 ] && ok "release of an older snapshot exits 0" || fail "older snapshot release: $r $out"
+grep -c 'e2e.mjs' "$GH_STATE/where.log" | grep -qx 2 \
+  && awk -v want="$FF_SHA" -v home="$W" '/e2e.mjs/ && ($3 != want || $2 == home) {bad=1} END {exit bad}' "$GH_STATE/where.log" \
+  && ok "both e2e checks ran at the snapshot's commit, outside the starting checkout" || fail "checks ran in the wrong place: $(cat "$GH_STATE/where.log") want $FF_SHA not $W"
+! grep -q 'no-nm' "$GH_STATE/where.log" && ok "the check checkout has node_modules" || fail "no node_modules in the check checkout"
+[ "$(git worktree list | wc -l)" = "$wt_before" ] && ok "the temporary worktree is gone after success" || fail "worktree left: $(git worktree list)"
+grep -q 'capture.mjs --after https://snapshots.openisd.app/snap/20260107T0000Z/' "$GH_STATE/calls.log" && ok "the gallery still runs from the starting checkout" || fail "gallery call"
+grep -q '^| 7.0.2000 ' RELEASES.md && ok "the RELEASES.md row is written in the starting checkout" || fail "RELEASES.md row"
+# a failing check still removes the worktree
+add_snap 20260108T0000Z "$FF_SHA" 2026-01-08T00:00:00Z
+out=$(E2E_FAIL=1 bash scripts/release.sh --public 7.0.2001 20260108T0000Z 2>&1); r=$?
+[ $r = 1 ] && grep -q 'upgrade from the live production worker failed' <<< "$out" && ok "a failing check refuses the release" || fail "failing check: $r $out"
+[ "$(git worktree list | wc -l)" = "$wt_before" ] && ok "the temporary worktree is gone after a failure" || fail "worktree left after failure: $(git worktree list)"
+[ -f node_modules/pkg/index.js ] && ok "cleanup leaves the starting node_modules alone" || fail "node_modules damaged"
+! remote_has v20260108T0000Z && ok "the failed release published nothing" || fail "tag published despite failure"
+# the failed snapshot is dropped so later sections see only real snapshots
+git push -q origin ":refs/tags/snap-20260108T0000Z"; git tag -d snap-20260108T0000Z > /dev/null
+jq 'map(select(.tag_name != "snap-20260108T0000Z"))' "$GH_STATE/releases.json" > "$GH_STATE/n" && mv "$GH_STATE/n" "$GH_STATE/releases.json"
 
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?

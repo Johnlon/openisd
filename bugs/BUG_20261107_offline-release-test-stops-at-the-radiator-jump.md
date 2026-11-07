@@ -1,6 +1,6 @@
 # BUG_20261107_offline-release-test-stops-at-the-radiator-jump
 
-**Status:** IN PROGRESS: fault 1 fixed, fault 2 open
+**Status:** FIXED: fault 1 fixed (T704), fault 2 fixed (T706)
 
 ## Symptom
 1. `scripts/hosting/test/offline-catalogue.e2e.mjs` times out after 30 s in `pickRadiatorOffline`, so `scripts/release.sh` refuses to release.
@@ -16,7 +16,7 @@
 
 ## Fix
 1. After the pick the test presses Back, as a person would, then checks every box still fills offline.
-2. Not fixed here.
+2. Fixed by T706: `release.sh` runs both e2e checks in a temporary detached worktree at the snapshot's commit (node_modules symlinked from the starting checkout), removed on every exit.
 
 ## Verification
 1. `node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app`, the form `release.sh` runs.
