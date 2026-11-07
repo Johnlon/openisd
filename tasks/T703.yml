@@ -3,6 +3,7 @@ release_note: Both passive radiator pages show Vas, Qms, Fs, Sd, Mms, Cms, Rms a
 repo: openisd
 owner: agents
 status: done
+landed: 44666f17c27854ec25cc8c5425c994781ae20a0e
 goal: Radiator pages show all eight figures, stated or calculated
 done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
 visual_note: New Project wizard, passive radiator step, on phone and desktop. Look at the blue Select PR button on desktop and at the figure boxes; there were five, now there are eight, with Mms, Cms and Rms added. Desktop draws them in two columns.

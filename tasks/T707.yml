@@ -1,0 +1,20 @@
+id: T707
+release_note: On the desktop New Project radiator step every number box is the same width.
+repo: openisd
+owner: agents
+status: done
+goal: The desktop New Project radiator step keeps one value width on all eight boxes
+done_test: bash scripts/quiet-test.sh npm run typecheck
+visual_note: Desktop New Project wizard, passive radiator step. Look at the number boxes; Cms and Rms were wider than the rest, now all are one width.
+files:
+  - tasks/T707.yml
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - bugs/BUG_20261107_desktop-wizard-radiator-box-widths-differ.md
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+visual:
+  - desktop-wizard-box-passive-radiator-step4

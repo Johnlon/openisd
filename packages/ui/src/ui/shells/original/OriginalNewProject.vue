@@ -233,7 +233,7 @@ function handleCreate() {
         </div>
 
         <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
-        <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
+        <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content np-pr-fields">
           <UIFixedField input-id="np-starting-volume" label="Starting volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
           <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" :radiator="passiveRadiatorView" :cells="passiveRadiatorCells" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"

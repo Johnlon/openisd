@@ -117,6 +117,8 @@
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) .ui-field-dev {grid-column:2 / 4;}
 /* PR columns retain one complete box width even when a symbol needs a wider unit cap. */
 .joined-fields:not(.app-root-mobile) .pr-controls .ui-field.ui-field[data-field] {--joined-box:150px;}
+/* The desktop wizard's radiator step: the same 150 as the project page, so a wider unit cap does not widen one row. */
+.joined-fields:not(.app-root-mobile) .np-pr-fields .ui-field.ui-field[data-field] {--joined-box:150px;}
 /* The Num. of drivers and Voice coil connection dropdowns (desktop Driver tab Placement panel, wizard step 2) have
    no number boxes under them, so they are only as wide as "Parallel" and its arrow: 90 px, both the same (QO426.c87,
    c96, QO428.c2). Set the way .pr-controls sets its 150: the group's --joined-box; the pick list takes the same width. */
