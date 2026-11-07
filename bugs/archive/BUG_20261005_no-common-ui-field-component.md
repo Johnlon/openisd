@@ -1,0 +1,110 @@
+# BUG_20261005_no-common-ui-field-component
+
+**Status:** FIXED (T679, 5 Nov 2026)
+
+## Symptom
+A number field (LABEL, VALUE, DQ, UNIT) is hand-built at every site, and the parts behave differently in
+each place:
+- The ⚠ is built four ways, and three of them can't be read on a touch screen (title-only):
+  - `NumInput`'s own `dq-note` span (title only)
+  - the driver editor's `DqMark` (tap opens the reason)
+  - What-if's span (hover tooltip, click to pin)
+  - Box tab Volume's span (title only)
+- Box widths differ by site. Only the driver editor is fixed (90px).
+- An emptied box stores 0 at some sites (`set(v ?? 0)`) and clears at others.
+- The PR spec fields show no ⚠ at all (BUG_20261005_pr-spec-fields-show-no-dq).
+
+## Evidence
+Checked 2026-10-05:
+- `DriverEditorModal.vue`: 46 copies of `.de-fld` > label + `NumInput` + `DqMark` + `UnitToggle`.
+- `OriginalShell.vue` and the mobile tabs repeat their own `.field` / `.mob-field-row` rows around `NumInput`.
+
+## Cause
+There is no field component. Every site assembles the four parts itself.
+
+## Fix
+One `UIField` component: LABEL | VALUE | DQ | UNIT, bound to a domain cell and a `NumberField`.
+- Reads value, provenance colour, precision, mandatory state and DQ from the cell.
+- An empty box calls `clear()`; a number calls `set(v, precision)`.
+- The ⚠ opens its reason on tap or click, the same on phone and desktop.
+- The box and unit have fixed widths. A parent grid can line the four tracks up with `subgrid`.
+- Change notification comes from a typed `CellScope` that the hosting view provides.
+
+Migration order, each step its own commit with browser tests:
+1. Driver editor
+2. PR pane (both shells)
+3. The rest of both shells
+4. What-if
+
+Step 1 done: `4c41761a`. `UIField` taking a domain cell is allowed by ruling QO173.
+
+## Rulings (John, 2026-10-06)
+- Emptied box: "just show errors". The box stays blank with a ⚠; no invented default and no 0. Applies to
+  box volume (must be > 0), losses Ql/Qa/Qp, Rs, VC temp rise and driver added mass. These domain fields become
+  "number or nothing", and every reader handles "nothing".
+- PR added mass: solved from target tuning when one is set; otherwise blank with a ⚠.
+- Air temp / humidity / pressure and drive V: "NO", "leave them". They keep snapping back to their default.
+- The ⚠ gives "the user the info they need to fix it": what is wrong, the other fields involved, the allowed
+  range in the unit shown, and what clears it.
+- Wording: an entered value reads "Conflicts with other values: …"; a calculated one reads "Calculated from
+  flagged values: …".
+- The losses popup gets a Reset button back to WinISD's defaults (Ql 10, Qa 100, Qp 100).
+- `de-fld` (driver editor field) leaves `UIField`; fields use `ui-field` everywhere, and `de-` stays on
+  editor-only containers.
+- An architecture test bans `?? 0` in a box's update handler.
+- PR target tuning above the bare-cone natural tuning: "if we have a rule to prevent going to a freq above the
+  natural freq then keep it". Today only the desktop box enforces it (`:max="prNaturalFh"`, OriginalShell.vue);
+  the mobile box has no limit. The ceiling moves onto the domain field, so `UIField` applies it in every view.
+- "keep mobile in line with desktop": every rule and limit a desktop box has, the mobile box has too. Today
+  these mobile boxes bind no registry field and so have no limits: Box tab volume, front volume, Frc, Fb
+  target, sealed alignment volume, Ql/Qa/Qp; Enclosure tab vent width/height/diameter/length, vent tuning,
+  port velocity limit; Signal tab Rs. Moving them to `UIField` binds the field and closes the gap.
+- "add 2 to the plan - ok": quantities that cannot physically be 0 get a registry minimum above 0
+  (`fields/field.ts`), so a typed 0 is refused at the box (red, nothing stored, reverts on leaving) with the
+  agreed ⚠ text. Fields: driver Qts, Qes, Qms, Vas, Mms, Cms, BL, Rms, Dd, Xmax, Pe, Znom, Mpow; box Fb target,
+  vent cross-section area; PR Xmax. 0 stays allowed where it means "none": Le, added mass, VC temp rise,
+  Rs, Gloss, AlfaVC.
+- A refused entry ("b"): the box keeps the refused text, red, with the ⚠ from the field's own limits, until
+  it is fixed or Esc restores the stored value. Leaving the box does not revert it. Nothing invalid is ever
+  stored; meanwhile the charts use the last stored value. Two error sources: the box (typed text invalid,
+  from the registry limits) and the domain (stored values missing or in conflict, from `cell.dq`).
+
+- WinISD export of a blank box volume: "wpr export 0 and N" — the `.wpr` gets 0 for a blank volume; the export
+  is not refused. Checked 2026-10-06 under wine (`winisd_research/toys/vr_zero_load_probe.py`, results in
+  `runs/vr_zero_load/`): WinISD opens the sealed, vented and PR sample projects with `Vr=0` without crashing or
+  a dialog; the PR response draws as a flat 0 dB line. The `.wpr` `[Box]` section has no ParState, so there is
+  no N mark to write for the volume.
+- Driver values at 0 with mark N (same probe, `winisd_research/PROBE_FINDINGS.md` BUG-014): a `.wdr` with Vas, Fs
+  or Re = 0 loads, survives editor Save and a recalc, and saves. A project with `Vas=0` then CRASHES WinISD on
+  open (divide by zero); `Fs=0` and `Re=0` reopen fine. So an export must never write `Vas=0`. Other driver
+  fields at 0 not yet tested.
+- "just save 1 as vas and vol if not stated", then option B: a blank Vas or box volume exports as 1 L
+  (`0.001` m³) in both `.wpr` and `.wdr`, with an export warning ("Vas was blank; written as 1 L so WinISD can
+  open the file"). The earlier "Vas still marked N" and the re-import reading "`N + nonzero → entered`" are
+  void: DQ marks are never written anywhere (QO414, T672); the warning is what tells the user.
+
+## Temporary debt — REMOVED by T679
+`NumInput` still draws its own ⚠ (`dq-note`, `dq`/`dqState` props) for the screens not yet moved, and
+`UIField` turns that off with `hideMark`. That is `NumInput` doing two jobs. Once every screen uses `UIField`:
+delete `NumInput`'s ⚠, its `dq`/`dqState` props and `hideMark`. `NumInput` is then the value box only (typing,
+units, limits, red border, reporting a refusal); `UIField` owns the ⚠.
+
+## Verification
+- Browser spec on `UIField` in the editor: tap ⚠ shows the reason, the unit is untouched, the width is the
+  same in every unit, and an empty box clears.
+- Every migrated view's existing specs pass.
+
+## Update 16 Oct 2026
+The component exists: `UIField` / `UIFieldBody` (landed T036, 11 Oct), used on the Box, Enclosure and Signal tabs, the port fields, and parts of the driver editor and Original shell. Still hand-built from NumInput + UnitToggle with their own ⚠: OriginalWhatIf, MobileWhatIfSheet, OptionsModal, OriginalNewProject, MobileNewProject, NewProjectPassiveRadiatorStep, MobileAdvancedTab, the rest of DriverEditorModal and OriginalShell, DriverLibrary, PRBrowser.
+What-if (desktop, OriginalWhatIf) done by T565: every number field is a UIField row; no NumInput, UnitToggle or hand-built ⚠ left in it.
+John, 16 Oct 2026: finish it. Every number field goes onto UIField; no hand-built ⚠ remains; an architecture test pins it (no NumInput or UnitToggle outside UIFieldBody).
+
+## John's rulings, 16 Oct 2026 (afternoon)
+- Desktop What-if fields are native `type="number"` boxes with browser arrows; Box tab and driver editor fields are NumInput with none. Inconsistent.
+- Ruling: every desktop number field shows the ▲▼ step buttons (NumInput `stepper`), same step rule as mobile (digit at the remembered caret, tenths if none). The What-if panel moves onto NumInput/UIField, no native number inputs left.
+- While stepping, the stepped digit is marked: desktop keeps focus in the box and selects that digit; mobile (button holds focus, keyboard down) draws an underline under that digit. The mark follows place value (tenths stays tenths across 9.9 → 10.0), not character index.
+
+## Closing evidence (T679, 5 Nov 2026)
+- The last hand-built number box, the phone Tune and What-if sheets (`MobileSheet.vue`), is now a `UIFixedField` row (the shared `UIFieldBody`), with the port press handlers on the row and the count box through the shared control.
+- `packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts`: no .vue under packages/ui/src except `UIFieldBody.vue` renders `<NumInput` (red on MobileSheet before, green after).
+- `NumInput`'s own ⚠ (`dq-note`, `dq`/`dqState` props, `hideMark`) is deleted; `UIFieldBody` owns the ⚠.

@@ -1,0 +1,15 @@
+id: T673
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: e1a6da03aa0c8d0fd13a316faaf8bd6b3910d520
+goal: land.conf and scripts/land.sh are gate files: a change to them needs John's board approval (QO313)
+done_test: bash scripts/land/test/land-gates.test.sh
+gates_approved: QO313
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - tasks/T673.yml
+  - land.conf
+  - scripts/land/test/land-gates.test.sh
+  - scripts/land/test/land-model-ruling.e2e.test.sh

@@ -101,6 +101,10 @@ export {
   projectSyncMark,
   splitConflictName,
   viewProjectRows,
+  scopeProjectRows,
+  PROJECT_LIST_SCOPES,
+  DEFAULT_PROJECT_LIST_SCOPE,
+  type ProjectListScope,
   type ProjectOpenState,
   type ProjectRow,
   type ProjectRowAction,
@@ -148,9 +152,11 @@ export { SheetField, type SheetSlot } from './sheetField.js';
 export { SheetSizes } from './sheetSizes.js';
 export { ChartPageSizes, type ChartPageSizesValues } from './chartPageSizes.js';
 export { ChartPageHelp } from './chartPageText.js';
+export { CHART_HELP } from './chartHelpText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
-export { type PhoneHelpRow, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneBoxText, PhoneHelp, PhoneDriverListText, PhonePrBrowserText, PhoneEditorText } from './phoneText.js';
+export { type PhoneHelpRow, PhoneHelpRows, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneBoxText, PhoneHelp, PhoneDriverListText, PhonePrBrowserText, PhoneEditorText } from './phoneText.js';
+export { DesktopHelp, DesktopLabels } from './desktopHelp.js';
 export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } from './phoneWizardText.js';
 export { DesktopSizes, PickWidth } from './desktopSizes.js';
 export { SheetMode, type SheetEdits } from './sheetMode.js';

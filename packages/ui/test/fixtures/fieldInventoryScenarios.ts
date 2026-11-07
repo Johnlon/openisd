@@ -42,6 +42,17 @@ function choice(key: string, owner: string, label: string, options: readonly {va
     nativeReadOnly: null, nativeChecked: null, disabled: false, options: expectedOptions(options),
     parts: enabledParts([{name: 'label', selector: 'label', count: 1, visible: true, text: label}])};
 }
+/** A count the person picks from a list, drawn by UIFieldBody as a select (NumberEditor.CountSelect). */
+function countOccurrence(field: NumberField, label: string): ExpectedFieldOccurrence {
+  return {
+    key: field.value, owner: fieldSelector(field), valueSelector: 'select', editorSelector: 'select', ownerAttributes: {'data-access': FieldAccess.Writable},
+    valueAttributes: {tabindex: null}, nativeReadOnly: null, nativeChecked: null, disabled: false, options: expectedOptions(field.countOptions()),
+    parts: enabledParts([
+      {name: 'label', selector: 'label.ui-field-label', count: 1, visible: true, text: label},
+      {name: 'unit', selector: '.ui-field-unit', count: 1, visible: false, text: ''},
+    ]),
+  };
+}
 function closedBoxInventory(phone: boolean): readonly ExpectedFieldOccurrence[] {
   return [
     choice(EnumField.BOX_TYPE.value, '.mob-crow:has(> #mob-box-type),.field:has(> #og-box-type)', phone ? 'Box type' : 'Box Type', EnumField.BOX_TYPE.options),
@@ -54,7 +65,7 @@ function closedBoxInventory(phone: boolean): readonly ExpectedFieldOccurrence[] 
 export const CLOSED_BOX_INVENTORY = closedBoxInventory(true);
 export const DESKTOP_CLOSED_BOX_INVENTORY = closedBoxInventory(false);
 export const PHONE_DRIVER_INVENTORY: readonly ExpectedFieldOccurrence[] = [
-  choice(NumberField.DRIVER_NDRIVERS.value, '.mob-crow:has(> #mob-n-drivers)', PhoneLabels.DRIVERS, NumberField.DRIVER_NDRIVERS.countOptions()),
+  countOccurrence(NumberField.DRIVER_NDRIVERS, PhoneLabels.DRIVERS),
   choice(EnumField.DRIVER_ARRAYWIRING.value, '.mob-crow:has(> #mob-wiring)', PhoneLabels.CONNECTION, EnumField.DRIVER_ARRAYWIRING.options),
   ...[NumberField.FS_HZ, NumberField.QTS, NumberField.VAS_M3, NumberField.RE_OHM, NumberField.XMAX_M].map(field => numericOccurrence(field, READONLY)),
 ];

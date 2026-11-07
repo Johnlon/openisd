@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 import {expect, openAProject, test} from '../fixtures.js';
 
 // The clean synthetic driver (no Mms/Cms/BL, consistent T/S, no sku) is the fixture these
@@ -41,7 +42,7 @@ test.describe('Driver Editor — solver wiring', () => {
     const qesf = page.locator('.de-fld:has-text("Qes") input');
     const qmsf = page.locator('.de-fld:has-text("Qms") input');
 
-    await qtsf.fill('');
+    await clearWithKeyboard(qtsf);
     await qesf.fill('0.400');
     await qmsf.fill('4.000');
 
@@ -56,7 +57,7 @@ test.describe('Driver Editor — solver wiring', () => {
     const qesf = page.locator('.de-fld:has-text("Qes") input');
     const qmsf = page.locator('.de-fld:has-text("Qms") input');
 
-    await qtsf.fill('');
+    await clearWithKeyboard(qtsf);
     await qesf.fill('0.400');
     await qmsf.fill('4.000');
     await expect(qtsf).toHaveValue('0.3636');
@@ -77,7 +78,7 @@ test.describe('Driver Editor — solver wiring', () => {
 
   test('UI preserves solver state across Parameters and Advanced tab switches', async ({ page }) => {
     const qtsf = page.locator('.de-fld:has-text("Qts") input');
-    await qtsf.fill('');
+    await clearWithKeyboard(qtsf);
     await page.locator('.de-fld:has-text("Qes") input').fill('0.400');
     await page.locator('.de-fld:has-text("Qms") input').fill('4.000');
     await expect(qtsf).toHaveValue('0.3636');

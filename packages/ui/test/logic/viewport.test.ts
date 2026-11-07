@@ -7,7 +7,7 @@
  */
 import {describe, it, vi} from 'vitest';
 import assert from 'node:assert/strict';
-import {createViewportWatch} from '../../src/logic/viewport.js';
+import {createViewportWatch, isSidewaysPhone, PHONE_LAYOUT_QUERY, SIDEWAYS_PHONE_MAX_HEIGHT_PX} from '../../src/logic/viewport.js';
 
 type Listener = (e: { matches: boolean }) => void;
 
@@ -61,9 +61,29 @@ describe('createViewportWatch', () => {
     vi.stubGlobal('window', { matchMedia: (q: string) => { seenQuery = q; return fakeMatchMedia(false).mql; } });
     try {
       createViewportWatch();
-      assert.equal(seenQuery, '(max-width: 600px)');
+      assert.equal(seenQuery, PHONE_LAYOUT_QUERY);
       createViewportWatch('(max-width: 480px)');
       assert.equal(seenQuery, '(max-width: 480px)');
     } finally { vi.unstubAllGlobals(); }
+  });
+});
+
+describe('PHONE_LAYOUT_QUERY (QO418: a phone turned sideways keeps the phone layout)', () => {
+  it('is a narrow window, or a touch screen with a short window', () => {
+    assert.equal(PHONE_LAYOUT_QUERY, '(max-width: 600px), (pointer: coarse) and (max-height: 500px)');
+  });
+});
+
+describe('one definition of a sideways phone', () => {
+  it('the query and isSidewaysPhone share one height figure', () => {
+    assert.ok(PHONE_LAYOUT_QUERY.includes(`(max-height: ${SIDEWAYS_PHONE_MAX_HEIGHT_PX}px)`));
+  });
+  it('is true for 705x374 and 850x390 and a 900x400 window, false for upright and desktop', () => {
+    const size = (innerWidth: number, innerHeight: number) => ({innerWidth, innerHeight});
+    assert.equal(isSidewaysPhone(size(705, 374)), true);
+    assert.equal(isSidewaysPhone(size(850, 390)), true);
+    assert.equal(isSidewaysPhone(size(900, 400)), true);
+    assert.equal(isSidewaysPhone(size(374, 705)), false);
+    assert.equal(isSidewaysPhone(size(1280, 720)), false);
   });
 });

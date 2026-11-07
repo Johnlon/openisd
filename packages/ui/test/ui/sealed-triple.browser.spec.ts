@@ -61,6 +61,20 @@ for (const skin of ['desktop', 'mobile'] as const satisfies readonly Skin[]) {
       await expect(input(page, 'Qtc')).toHaveValue(shown.Qtc);
     });
 
+    test('an input event with an empty value also hands the Fsc entry to Volume', async ({page}) => {
+      await fillAndCommit(input(page, 'Fsc'), '70');
+      const shown = {Volume: await input(page, 'Volume').inputValue(), Qtc: await input(page, 'Qtc').inputValue()};
+      const fsc = input(page, 'Fsc');
+      await fsc.click();   // a user clicks first; focus alone selects only the last digit, so a bare fill('') left "7"
+      await fsc.fill('');
+      expect(await provenances(page)).toEqual(entered('Volume'));
+      await fsc.press('Tab');
+      expect(await provenances(page)).toEqual(entered('Volume'));
+      await expect(fsc).toHaveValue(/^70/);
+      await expect(input(page, 'Volume')).toHaveValue(shown.Volume);
+      await expect(input(page, 'Qtc')).toHaveValue(shown.Qtc);
+    });
+
     test('a typed Qtc is the entered one: Volume and Fsc follow it', async ({page}) => {
       const volumeBefore = await input(page, 'Volume').inputValue();
       await fillAndCommit(input(page, 'Qtc'), '0.8');

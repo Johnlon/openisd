@@ -1,23 +1,17 @@
 /** projectSweep's free functions over a sweep source: blank boxes of every type, and a source whose
- *  engine or air stops the sweep. */
+ *  engine stops the sweep. */
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../../engine/Engine.js';
-import type {AirState} from '../../../engine/index.js';
+import type {Air} from '../../../engine/index.js';
 import {ProjectBuilder} from '../../../domain/openisdTransforms.js';
 import type {OpenISDProject} from '../../../domain/project/openISDProject.js';
-import {sweepPlanOf, ventMaxReachableFbOf} from '../../../domain/project/projectSweep.js';
+import {sweepPlanOf} from '../../../domain/project/projectSweep.js';
 import type {ProjectSweepSource} from '../../../domain/project/projectSweep.js';
-import {driverFrom, spec, specSection} from '../../fixtures/domainBuilders.js';
 
 const GRID = {fmin: 20, fmax: 2000, N: 20};
 
-const driver = () => driverFrom({
-  brand: 'Dayton', model: 'RS225', section: 'woofer',
-  spec: {...specSection({Fs_hz: 30, Qts: 0.4, Sd_m2: 0.02, Cms_m_per_N: 0.0005, Mmd_kg: 0.05, Rms_Ns_per_m: 2, Xmax_m: 0.008}), Re_ohm: spec(6), Qes: spec(0.45), Qms: spec(3.6)},
-});
-
 /** The source `OpenISDProject` builds for a sweep, over the project's public fields, with `air` and `engine` as given. */
-function sourceOf(p: OpenISDProject, engine: ReturnType<typeof createEngine>, air: AirState = p.air): ProjectSweepSource {
+function sourceOf(p: OpenISDProject, engine: ReturnType<typeof createEngine>, air: Air = p.air): ProjectSweepSource {
   return {
     driver: p.driver, box: p.box, nDrivers: p.nDrivers, wiring: p.wiring, Rs_ohm: p.Rs_ohm, circuitModel: p.circuitModel,
     winisdDriverModel: p.winisdDriverModel, winisdVaModel: p.winisdVaModel, winisdWrapPhase: p.winisdWrapPhase,
@@ -45,13 +39,6 @@ describe('a box with nothing stated', () => {
 });
 
 describe('a source that cannot sweep', () => {
-  it('blocks with the air issues when the air has no value', () => {
-    const engine = createEngine();
-    const p = new ProjectBuilder(driver(), engine).sealed().volume_m3(0.03).build();
-    const air: AirState = {kind: 'notAvailable', issues: []};
-    expect(sweepPlanOf(sourceOf(p, engine, air), GRID)).toEqual({kind: 'blocked', issues: []});
-  });
-
   it('blocks on a blank box volume with the engine\'s own issues', () => {
     const engine = createEngine();
     const p = ProjectBuilder.empty(engine);
@@ -59,13 +46,5 @@ describe('a source that cannot sweep', () => {
     p.box.volumeOf('sealed').clear();
     const plan = sweepPlanOf(sourceOf(p, engine), GRID);
     expect(plan).toEqual({kind: 'blocked', issues: p.boxParamsIssues()});
-  });
-
-  it('reads no maximum reachable tuning from a vented box whose air has no value', () => {
-    const engine = createEngine();
-    const p = new ProjectBuilder(driver(), engine).vented().volume_m3(0.05).tuning_goal_hz(35).build();
-    const air: AirState = {kind: 'notAvailable', issues: []};
-    expect(ventMaxReachableFbOf(sourceOf(p, engine, air)).value).toBeNull();
-    expect(ventMaxReachableFbOf(sourceOf(p, engine)).value).toBeGreaterThan(35);
   });
 });

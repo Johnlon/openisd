@@ -13,6 +13,9 @@
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
 import {parse as parseYaml} from 'yaml';
+import {OpenISDDriver} from '@openisd/design';
+import {createEngine} from '@openisd/design/engine';
+import {driverHasDqIssues} from '../../src/logic/driverDisplay.js';
 import {isBundlable, project} from '../../../../scripts/bundleProjection.mjs';
 
 /** `yaml`'s `parse()` returns `any`; this fixture parser reads the boundary once and hands back
@@ -98,11 +101,12 @@ specs:
       true,
       'no driver is excluded for missing spec params (QO81) — Fs is a spec param like any other',
     );
-    // FIXME(bugs/archive/BUG_20260908_dq_badge_never_fires_for_a_driver_missing_its_spec_params.md):
-    // the other half of the QO79 ruling — that the ⚠ badge fires for this record — was asserted
-    // here and cannot be, because the badge now asks `checkConsistency()`, which finds
-    // CONTRADICTIONS between stated values and so reports nothing for a driver stating nothing.
-    // Restore this assertion with the missing-required-parameters check that bug specifies.
+    // The badge half of the QO79 ruling: a driver stating no spec parameters shows the warning.
+    assert.equal(
+      driverHasDqIssues(OpenISDDriver.empty(createEngine())),
+      true,
+      'a driver missing Fs, Qts and Vas bundles AND carries the health warning (QO79)',
+    );
   });
 
   it('excludes a structurally unreadable record (no `specs` container at all)', () => {

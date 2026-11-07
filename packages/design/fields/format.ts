@@ -99,3 +99,14 @@ export function formatByteSize(bytes: number): string {
 export function formatCountOf(n: number, noun: string): string {
   return `${formatCount(n)} ${noun}${n === 1 ? '' : 's'}`;
 }
+
+/** `v` to 3 significant figures, trailing zeros kept ("30.0"); never exponent form. */
+export function formatSignificant(v: number): string {
+  if (!Number.isFinite(v)) return String(v);
+  if (v === 0) return '0';
+  const magnitude = Math.floor(Math.log10(Math.abs(v)));
+  if (magnitude >= 2) return String(Math.round(v));
+  const places = 2 - magnitude;
+  const scale = 10 ** places;
+  return (Math.round(v * scale) / scale).toFixed(places);
+}

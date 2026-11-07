@@ -7,7 +7,7 @@
  * at setup time, before its first render, so the skin is decided from whatever viewport the
  * page already has at load — not from a later resize.
  */
-import {expect, test} from '../fixtures.js';
+import {expect, openAMobileProject, test} from '../fixtures.js';
 
 test('the default (wide) viewport renders the desktop shell, with no mobile root in the DOM', async ({ page }) => {
   await page.goto('/');
@@ -91,4 +91,55 @@ test('on a phone-width window, "Automatic view" undoes "Switch to Desktop view" 
   await expect(page.locator('.mobile-root')).toBeVisible();
   await page.reload();
   await expect(page.locator('.mobile-root')).toBeVisible();
+});
+
+// QO418: a phone turned sideways keeps the phone layout. Tablets and mouse-driven short windows stay desktop.
+test.describe('touch phone, turned sideways', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 705, height: 374 } });
+
+  test('705x374 touch is the mobile shell', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.mobile-root')).toBeVisible();
+    await expect(page.locator('.original-root')).toHaveCount(0);
+  });
+
+  test('rotating with a project open and an unsaved edit keeps the project and the edit', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await openAMobileProject(page);
+    const input = page.locator('.mob-content input').first();
+    await input.fill('1.234');
+    await input.blur();
+    const edited = await input.inputValue();
+    await page.setViewportSize({ width: 844, height: 390 });
+    await expect(page.locator('.mobile-root')).toBeVisible();
+    await expect(page.locator('.mob-tabbar')).toBeVisible();
+    await expect(page.locator('.mob-content input').first()).toHaveValue(edited);
+  });
+
+  test('the saved Desktop choice still wins sideways', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true, skinOverride: 'original' } }));
+    });
+    await page.goto('/');
+    await expect(page.locator('.original-root')).toBeVisible();
+  });
+});
+
+test.describe('tablets and mouse windows stay desktop', () => {
+  for (const [w, h] of [[1024, 768], [768, 1024]] as const) {
+    test(`${w}x${h} touch tablet`, async ({ browser }) => {
+      const ctx = await browser.newContext({ hasTouch: true, viewport: { width: w, height: h } });
+      const page = await ctx.newPage();
+      await page.goto('/');
+      await expect(page.locator('.original-root')).toBeVisible();
+      await ctx.close();
+    });
+  }
+
+  test('a short mouse window (900x400) stays desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 400 });
+    await page.goto('/');
+    await expect(page.locator('.original-root')).toBeVisible();
+  });
 });

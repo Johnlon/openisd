@@ -1,0 +1,15 @@
+id: T694
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: a81066532b3c2fd407659bee6eb507aff8860743
+goal: Refresh the bundled driver catalogue from winisd_drivers 1adc37e4a (SEAS tweeters rebuilt)
+done_test: bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/ui/test/scripts/bundle-outputs.test.ts
+ruling: QO422
+files:
+  - tasks/T694.yml
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - packages/ui/test/visual/SOURCES.sha256

@@ -33,10 +33,9 @@ import type {DriverFileFormat} from '../fileFormat.js';
 // selection means — they call this.
 
 /** Outcome of a selection. `error` is a message the picker shows in its own status line. */
-export interface SelectionResult {
-  ok: boolean;
-  error?: string;
-}
+export type SelectionResult =
+  | { ok: true }
+  | { ok: false; error: string };
 
 // ---- reading a driver file off the user's own disk -------------------------------------
 // Driver file IO that is not bound to a project — Load File… lands a driver in My Drivers,
@@ -104,7 +103,8 @@ export interface DriverSelection {
   selectDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
   editMyDriver(d: OpenISDDriverStandalone, uuid?: string): void;
   editOverviewDriver(d: OpenISDDriverStandalone): Promise<SelectionResult>;
-  editProjectDriver(): void;
+  /** Open the editor on the project's driver; `showDisagreements` opens it with the disagreement list showing. */
+  editProjectDriver(showDisagreements?: boolean): void;
   openNewDriver(): void;
   /** What the editor is open on right now, and what to seed its own draft from. */
   editSubject(): EditorDraftSeed;
@@ -186,9 +186,10 @@ export function createDriverSelection(deps: DriverSelectionDeps): DriverSelectio
     },
 
     /** Open the editor on the project's own driver. */
-    editProjectDriver() {
+    editProjectDriver(showDisagreements = false) {
       subject = { kind: 'project' };
       editSeed = null;
+      presentationState.editDriverShowDisagreements = showDisagreements;
       presentationState.editDriverInfo = true;
     },
 

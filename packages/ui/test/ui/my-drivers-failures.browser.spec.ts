@@ -178,6 +178,10 @@ test('a saved driver can be edited and cancelled with no project open', async ({
   await page.locator('.de-btns').getByRole('button',{name:'Cancel',exact:true}).click();
   await expect(page.locator('.de-modal')).toHaveCount(0);
   await expect(page.locator('.project-row')).toHaveCount(0);
-  // The repository normalizes the envelope on load; every saved entry must remain intact.
-  expect(parseMyDriversBucket(await page.evaluate(key=>localStorage.getItem(key), MY_DRIVERS_KEY)).entries).toEqual(parseMyDriversBucket(original).entries);
+  // The store upgrade writes each saved record again in the current format (QO395: it gains its
+  // schemaVersion and the calculated values); every saved entry must remain, still the saved driver.
+  const after = await page.evaluate(key => localStorage.getItem(key), MY_DRIVERS_KEY);
+  expect((parseMyDriversBucket(after).entries ?? []).map(e => e.uuid)).toEqual((parseMyDriversBucket(original).entries ?? []).map(e => e.uuid));
+  expect(after).toContain('Independent');
+  expect(after).not.toContain('Uncommitted change');
 });

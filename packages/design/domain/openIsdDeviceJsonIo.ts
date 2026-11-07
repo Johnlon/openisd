@@ -6,7 +6,9 @@
  * save.
  */
 import {newUuid} from './newUuid.js';
+import {withoutScraperOnlyFields} from './withoutScraperOnlyFields.js';
 import {openISDDeviceJsonSchema} from './openisdSchema.js';
+import {CURRENT_SCHEMA_VERSION, upgradeToCurrent} from './schemaVersion.js';
 import type {OpenISDDeviceJson as OpenISDDeviceJsonRecord} from './openisdSchema.js';
 
 // A local type alias, not a re-export statement: the re-export form (`export type {X} from 'Y'`)
@@ -52,7 +54,7 @@ function stripDriverYmlOnlyFields(value: unknown): unknown {
 
 function freshDriverRecord(value: unknown): unknown {
     if (typeof value !== 'object' || value === null || Array.isArray(value)) return value;
-    return { ...value, uuid: { value: newUuid() } };
+    return { ...withoutScraperOnlyFields(Object.fromEntries(Object.entries(value))), uuid: { value: newUuid() } };
 }
 
 export function sortKeysDeep(value: unknown): unknown {
@@ -83,11 +85,13 @@ export const OpenISDDeviceJson = Object.freeze({
     toOpenisdDriverJson(json: OpenISDDeviceJson): string {
         const { uuid, ...withoutUuid } = json;
         void uuid;
-        return JSON.stringify(sortKeysDeep(withoutUuid), null, 2);
+        return JSON.stringify(sortKeysDeep({...withoutUuid, schemaVersion: CURRENT_SCHEMA_VERSION}), null, 2);
     },
 
     fromConformingRecord(record: unknown): { json: OpenISDDeviceJson } | { problems: string[] } {
-        const result = openISDDeviceJsonSchema.safeParse(record);
+        const upgraded = upgradeToCurrent(record);
+        if ('refusal' in upgraded) return {problems: [upgraded.refusal]};
+        const result = openISDDeviceJsonSchema.safeParse(upgraded.value);
         if (result.success) return {json: result.data};
         return {
             problems: result.error.issues.map(issue => issue.path.length === 0

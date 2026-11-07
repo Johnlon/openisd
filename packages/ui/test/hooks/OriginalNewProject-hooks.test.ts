@@ -6,6 +6,7 @@ import { NEW_PROJECT_VENTED_QL, type NewProjectPassiveRadiatorRepos, useOgNewPro
 import { OpenISDPassiveRadiatorStandalone } from '@openisd/design';
 import { type BundledPassiveRadiatorRepo, createMemoryStorage } from '@openisd/persistence';
 import { vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { createAppStateFixture } from '../fixtures/appStateFixture.js';
 import { nextTick } from 'vue';
 import {myPassiveRadiatorRepoOn} from '../fixtures/repoOn.js';
@@ -664,9 +665,9 @@ describe('useOgNewProject — vented plausibility readout', () => {
 // WinISD's wizard has a passive-radiator step after the box type: pick or enter the radiator
 // (Vas / Qms / Fs / Sd / Xmax). bugs/archive/BUG_20261001_new-project-wizard-skips-the-passive-radiator-step.md
 describe('useOgNewProject — passive-radiator step', () => {
-  function atBoxTypeStep(passiveRadiators: NewProjectPassiveRadiatorRepos) {
+  function atBoxTypeStep(passiveRadiators: NewProjectPassiveRadiatorRepos, reportFault?: (fault: Error) => void) {
     const engine = createEngine();
-    const wizard = useOgNewProject({ appState: createAppStateFixture().appState, passiveRadiators, areas: engine, initialDriver: createTestDriver(engine) });
+    const wizard = useOgNewProject({ appState: createAppStateFixture(undefined, undefined, reportFault).appState, passiveRadiators, areas: engine, initialDriver: createTestDriver(engine) });
     wizard.next();
     wizard.next();
     wizard.boxType.value = 'box-passive-radiator';
@@ -719,6 +720,183 @@ describe('useOgNewProject — passive-radiator step', () => {
 
     expect(load).toHaveBeenCalledWith('bundled-1');
     expect(wizard.passiveRadiatorView.value?.name).toBe('Bundled PR');
+    expect(wizard.passiveRadiatorPickError.value).toBeNull();
+  });
+
+  // QO379 (John, 2026-11-01): on the phone a pick left every box blank and said nothing. A pick
+  // whose record cannot be loaded says so on the step and is recorded as a fault; it never fails
+  // silently.
+  it('a bundled radiator whose record cannot be loaded says so on the step and is recorded as a fault', async () => {
+    const reportFault = vi.fn<(fault: Error) => void>();
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() =>
+      Promise.reject(new Error('bundled catalogue: /drivers/x.json was not served (HTTP 404)')));
+    const engine = createEngine();
+    const wizard = useOgNewProject({
+      appState: createAppStateFixture().appState, areas: engine, initialDriver: createTestDriver(engine),
+      passiveRadiators: testPassiveRadiators({ index: () => Promise.resolve([]), load }), reportFault,
+    });
+    wizard.next(); wizard.next();
+    wizard.boxType.value = 'box-passive-radiator';
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+
+    expect(wizard.passiveRadiatorView.value).toBeNull();
+    expect(wizard.passiveRadiatorPickError.value).toContain('HTTP 404');
+    expect(reportFault).toHaveBeenCalledTimes(1);
+    expect(reportFault.mock.calls[0]?.[0].message).toContain('HTTP 404');
+    expect(wizard.canNext.value).toBe(false);
+  });
+
+  it('a pick that fails and then one that loads clears the step\'s error', async () => {
+    let fail = true;
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() =>
+      fail ? Promise.reject(new Error('bundled catalogue: not served (HTTP 503)')) : Promise.resolve(testRadiator('Bundled PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(wizard.passiveRadiatorPickError.value).toContain('HTTP 503');
+    fail = false;
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+
+    expect(wizard.passiveRadiatorPickError.value).toBeNull();
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Bundled PR');
+  });
+
+  // The repo hands out its one cached instance ("callers copy before editing", bundledRepo.ts).
+  // The step edits a copy: a value typed or cleared here never reaches the catalogue's instance,
+  // so the next pick of the same radiator shows the record, not the last wizard's edits.
+  it('editing a picked bundled radiator on the step leaves the catalogue\'s instance untouched', async () => {
+    const cached = testRadiator('Bundled PR');
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(cached));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    wizard.passiveRadiatorEdits.setVas_m3(0.01);
+    wizard.passiveRadiatorEdits.setQms(null);
+    wizard.passiveRadiatorEdits.setName('Renamed');
+
+    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeCloseTo(0.01, 9);
+    expect(cached.spec.Vas_m3.value).toBeCloseTo(0.05, 9);
+    expect(cached.spec.Qms.value).toBe(5);
+    expect(cached.model.value).toBe('Bundled PR');
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeCloseTo(0.05, 9);
+    expect(wizard.passiveRadiatorView.value?.Qms).toBe(5);
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Bundled PR');
+  });
+
+  it('a project made from a picked bundled radiator does not share the catalogue\'s instance', async () => {
+    const cached = testRadiator('Bundled PR');
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(cached));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    wizard.next();
+    wizard.projName.value = 'From bundled';
+
+    const radiator = wizard.createProject()?.box.passiveRadiator.radiator;
+    radiator?.spec.Vas_m3.set(0.02);
+
+    expect(cached.spec.Vas_m3.value).toBeCloseTo(0.05, 9);
+  });
+
+  // Two picks in flight: the later pick is the one the step ends up showing, whichever record
+  // arrives first.
+  it('when two picks are in flight the step shows the later pick', async () => {
+    let resolveFirst: (pr: OpenISDPassiveRadiatorStandalone) => void = () => {};
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>((uuid) =>
+      uuid === 'slow' ? new Promise(resolve => { resolveFirst = resolve; }) : Promise.resolve(testRadiator('Fast PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+
+    const slow = wizard.loadBundledPassiveRadiator('slow');
+    await wizard.loadBundledPassiveRadiator('fast');
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Fast PR');
+    resolveFirst(testRadiator('Slow PR'));
+    await slow;
+
+    expect(wizard.passiveRadiatorView.value?.name).toBe('Fast PR');
+  });
+
+  it('the real bundled E150HE-PR record fills every field of the step', async () => {
+    const record: unknown = JSON.parse(readFileSync(new URL('../../public/drivers/dayton-audio/e150he-pr.json', import.meta.url), 'utf8'));
+    const opened = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
+    if (Array.isArray(opened)) throw new Error(opened.join('; '));
+    const wizard = atBoxTypeStep({ saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(opened) } });
+    wizard.next();
+
+    await wizard.loadBundledPassiveRadiator('e150he-pr');
+
+    const view = wizard.passiveRadiatorView.value;
+    expect(wizard.passiveRadiatorPickError.value).toBeNull();
+    expect(view?.name).toContain('E150HE-PR');
+    for (const key of ['Vas_m3', 'Qms', 'Fs_hz', 'Sd_m2', 'Xmax_m'] as const) {
+      expect(view?.[key], key).toEqual(expect.any(Number));
+    }
+  });
+
+  /** The real E150HE-PR record opened once, as the bundled repo holds it: one cached instance every pick returns. */
+  function cachedRealRadiator(): OpenISDPassiveRadiatorStandalone {
+    const record: unknown = JSON.parse(readFileSync(new URL('../../public/drivers/dayton-audio/e150he-pr.json', import.meta.url), 'utf8'));
+    const opened = OpenISDPassiveRadiatorStandalone.fromConformingRecord(record);
+    if (Array.isArray(opened)) throw new Error(opened.join('; '));
+    return opened;
+  }
+  const FIVE = ['Vas_m3', 'Qms', 'Fs_hz', 'Sd_m2', 'Xmax_m'] as const;
+
+  it('(b) picking the same cached radiator in a second wizard, after the first made a project, fills every box with the record values', async () => {
+    const cached = cachedRealRadiator();
+    const repos: NewProjectPassiveRadiatorRepos = { saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(cached) } };
+    const first = atBoxTypeStep(repos);
+    first.next();
+    await first.loadBundledPassiveRadiator('e150he-pr');
+    const before = { ...first.passiveRadiatorView.value };
+    first.passiveRadiatorEdits.setVas_m3(0.5);
+    first.passiveRadiatorEdits.setName('Edited');
+    first.next();
+    first.projName.value = 'P1';
+    expect(first.createProject()).not.toBeNull();
+
+    const second = atBoxTypeStep(repos);
+    second.next();
+    await second.loadBundledPassiveRadiator('e150he-pr');
+
+    expect(second.passiveRadiatorView.value).toEqual(before);
+    for (const key of FIVE) expect(second.passiveRadiatorView.value?.[key], key).toEqual(expect.any(Number));
+  });
+
+  it('(d) picking after a wizard was cancelled midway fills every box', async () => {
+    const cached = cachedRealRadiator();
+    const repos: NewProjectPassiveRadiatorRepos = { saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(cached) } };
+    const first = atBoxTypeStep(repos);
+    first.next();
+    await first.loadBundledPassiveRadiator('e150he-pr');
+    first.passiveRadiatorEdits.setFs_hz(null);
+    first.cancel();
+
+    const second = atBoxTypeStep(repos);
+    second.next();
+    await second.loadBundledPassiveRadiator('e150he-pr');
+    for (const key of FIVE) expect(second.passiveRadiatorView.value?.[key], key).toEqual(expect.any(Number));
+  });
+
+  it('(a) clearing a box then picking the same radiator again refills every box', async () => {
+    const cached = cachedRealRadiator();
+    const wizard = atBoxTypeStep({ saved: testPassiveRadiators().saved, bundled: { index: () => Promise.resolve([]), load: () => Promise.resolve(cached) } });
+    wizard.next();
+    await wizard.loadBundledPassiveRadiator('e150he-pr');
+    const full = { ...wizard.passiveRadiatorView.value };
+    wizard.passiveRadiatorEdits.setVas_m3(null);
+    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeNull();
+
+    await wizard.loadBundledPassiveRadiator('e150he-pr');
+
+    expect(wizard.passiveRadiatorView.value).toEqual(full);
+    expect(wizard.passiveRadiatorPickId.value).toBe(2);
   });
 
   it('a radiator defined at step 4 carries the five parameters typed into it', () => {

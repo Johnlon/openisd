@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * The Box page's vent sections and the five-tab bar: there is no enclosure tab, and a sealed box has
  * no Vents section. The vent and passive radiator sections' own contents are `mobile-vented-tab` and
@@ -79,7 +80,7 @@ test.describe('MobileEnclosureTab', () => {
   // stores 0. A cleared diameter settles to the 50 mm starting port (John, 2026-10-09).
   test('an emptied vent diameter settles to the starting port instead of becoming 0', async ({ appPage: page }) => {
     const diameter = page.locator('.ui-field', { hasText: 'Vent diameter' }).locator('input');
-    await diameter.fill('');
+    await clearWithKeyboard(diameter);
     await diameter.blur();
     await expect(diameter).toHaveValue(/^5(\.0+)?$/);
   });

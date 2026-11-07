@@ -1,5 +1,5 @@
 // Keeps a number box where it is on the phone screen when its ▲▼ press closes the keyboard
-// (bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md).
+// (bugs/archive/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md).
 //
 // The phone shell is as tall as the visible screen, so the keyboard closing makes the form taller
 // and its scroll moves the rows under the finger. `pin` adds a screen of space below the form at

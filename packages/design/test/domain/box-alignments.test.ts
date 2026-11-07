@@ -243,7 +243,7 @@ describe('OpenISDBox alignments', () => {
       expect(p.sweepN.value).toBeNull();
     });
 
-    it('P and V dq writes carry the issue\'s own sentence into the record trail', () => {
+    it('P and V dq writes are not stored in the record (QO414)', () => {
       const engine = createEngine();
       const p = new ProjectBuilder(driverFrom({
         brand: 'Dayton', model: 'RS225', section: 'woofer',
@@ -257,7 +257,7 @@ describe('OpenISDBox alignments', () => {
       const owpr: unknown = JSON.parse(p.toOwprText());
       if (!isRecord(owpr)) throw new Error('expected an object');
       const branch = owpr.edited ?? owpr.saved;
-      expect(at(branch, 'signal', 'power_W', 'dq_calculated', 0, 'detail')).toBe(mark.text);
+      expect(JSON.stringify(branch)).not.toContain('dq_calculated');
     });
 
     it('a vent with no stated count STORES one port as a calculated entry — the same route numVC takes', () => {

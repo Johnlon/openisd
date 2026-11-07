@@ -2,19 +2,18 @@
 // One bottom sheet on the mobile Graph page, Tune or What-if (each its own sheet, with its own
 // fields): a pull-tab when closed, a resizable sheet of rows when open. Its band (name and ?) is
 // the drag handle. Behaviour lives in MobileSheet-hooks.ts.
-import NumInput from '../../components/NumInput.vue';
+import UIFixedField from '../../components/UIFixedField.vue';
 import VentPortFields from '../../components/VentPortFields.vue';
-import UnitToggle from '../../components/UnitToggle.vue';
 import PhoneBand from './PhoneBand.vue';
 import PhoneButton from './PhoneButton.vue';
 import { useMobileSheet } from '../../../hooks/MobileSheet-hooks.js';
-import { NumberEditor, SheetMode } from '@openisd/design/fields';
-import { inputChecked, selectedOption } from '../../../logic/domEvents.js';
+import { SheetMode } from '@openisd/design/fields';
+import { inputChecked } from '../../../logic/domEvents.js';
 
 const props = defineProps<{ open: boolean; mode: SheetMode; hidden: boolean; autoY: boolean }>();
 const emit = defineEmits<{ 'update:open': [open: boolean]; 'update:autoY': [on: boolean] }>();
 
-const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, sheetStyle, setValue, openSheet, close, reset,
+const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, portValuePress, closePortEditor, sheetEl, rowsEl, sheetStyle, setValue, openSheet, close, reset,
   onTabDown, onTabUp, onHandleDown, onHandleMove, onHandleUp } =
   useMobileSheet({ open: () => props.open, setOpen: v => emit('update:open', v), mode: props.mode });
 </script>
@@ -27,23 +26,11 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
          @pointerdown="onHandleDown" @pointermove="onHandleMove" @pointerup="onHandleUp" @pointercancel="onHandleUp">
       <PhoneBand :section="help" />
     </div>
-    <div class="mob-sheet-rows" :style="{ '--mob-row-slots': rowSlots }">
+    <div ref="rowsEl" class="mob-sheet-rows" :style="{ '--mob-row-slots': rowSlots }">
       <div v-for="(line, lineIdx) in lines" :key="lineIdx" class="mob-sheet-line">
-        <div v-for="cell in line" :key="cell.field.label" class="mob-sheet-cell mob-sheet-row" :data-field="cell.field.field.value">
-          <span class="mob-sheet-label">{{ mode.labelOf(cell.field) }}</span>
-          <span class="mob-sheet-value">
-            <select v-if="cell.field.field.editor === NumberEditor.CountSelect" :value="cell.value" :aria-label="mode.labelOf(cell.field)"
-                    @change="event => { const value = selectedOption(event, cell.field.field.countOptions()); if (value !== null) setValue(cell.field, value); }">
-              <option v-for="option in cell.field.field.countOptions()" :key="option.value" :value="option.value">{{ option.label }}</option>
-            </select>
-            <NumInput v-else :field="cell.field.field" :model-value="cell.value" :precision="cell.field.field.precision"
-                      :aria-label="mode.labelOf(cell.field)" stepper
+        <UIFixedField v-for="cell in line" :key="cell.field.label" class="mob-ui-field" :field="cell.field.field" :label="mode.labelOf(cell.field)" :value="cell.value" stepper
                       @pointerdown="portValuePress($event, cell)" @mousedown="portValuePress($event, cell)" @click="portValuePress($event, cell)"
-                      @update:model-value="(v: number | null) => setValue(cell.field, v)">
-              <template #unit><UnitToggle :field="cell.field.field" unit-class="mob-sheet-unit" /></template>
-            </NumInput>
-          </span>
-        </div>
+                      @update:value="(v: number) => setValue(cell.field, v)" />
       </div>
     </div>
     <div v-if="portEditor !== null" class="mob-sheet-port" role="dialog" :aria-label="portEditor.field.portTitle ?? 'Port'">
@@ -117,87 +104,6 @@ const { isOpen, lines, rowSlots, mode, help, sizeStyle, portEditor, portView, po
   min-height: 0;
   overflow-y: auto;
 }
-.mob-sheet-line {
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  height: var(--mob-row-min);
-  padding: 0 16px;
-  border-bottom: 1px solid #e6e6e6;
-}
-.mob-sheet-line:last-child { border-bottom: none; }
-
-.mob-sheet-cell {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-.mob-sheet-label {
-  flex: none;
-  box-sizing: border-box;
-  width: var(--mob-label-w);
-  padding-right: 8px;
-  font-size: 14px;
-  line-height: var(--mob-label-lh);
-  color: #555;
-}
-
-.mob-sheet-value {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-}
-.mob-sheet-value :deep(.num-input-wrap) { flex: 1 1 auto; width: 0; min-width: 0; }
-.mob-sheet-value :deep(.num-stepper) { flex: none; margin-left: 6px !important; gap: 4px; }
-.mob-sheet-value :deep(.num-stepper-btn) {
-  width: var(--mob-stepper-w) !important;
-  min-width: var(--mob-stepper-w);
-  height: var(--mob-input-h) !important;
-  padding: 0;
-  border: 1px solid #999;
-  border-radius: 6px;
-  background: linear-gradient(#fdfdfd, #e2e2e2);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  font-size: 18px !important;
-  line-height: 1;
-  color: #222;
-}
-.mob-sheet-value :deep(select) {
-  width: 108px; min-width: 0; height: var(--mob-input-h); box-sizing: border-box;
-  border: 1px solid #c4c4c4; border-radius: 4px; background: #fff; color: var(--fg); font: inherit; padding: 0 8px;
-}
-.mob-sheet-value :deep(input) {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  height: var(--mob-input-h);
-  padding: 0 46px 0 var(--mob-col-gutter);
-  border: 1px solid #c4c4c4;
-  border-radius: 4px;
-  background: #fff;
-  color: var(--fg);
-  font: inherit;
-}
-.mob-sheet-value :deep(input:focus) { border: 2px solid var(--acc); outline: none; }
-/* The unit sits inside the box's right edge, left of the ▲▼ pair (two buttons, a 4 px gap, a 6 px margin). */
-.mob-sheet-cell :deep(.mob-sheet-unit) {
-  position: absolute;
-  top: 1px;
-  bottom: 1px;
-  right: calc(var(--mob-stepper-w) * 2 + 10px + 1px);
-  box-sizing: border-box;
-  min-width: var(--mob-stepper-w);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-/* The unit's look (chip) is drawn by UnitToggle, the same for fixed and rotating units. */
-
 .mob-sheet-foot {
   flex: none;
   display: flex;

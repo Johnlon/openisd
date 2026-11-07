@@ -22,5 +22,5 @@ files:
   - packages/ui/test/ui/original-project-list.browser.spec.ts
   - packages/ui/test/ui/mobile-project-list.browser.spec.ts
   - packages/ui/test/fixtures/**
-  - bugs/BUG_20261009_projects-look-lost-across-addresses.md
+  - bugs/archive/BUG_20261009_projects-look-lost-across-addresses.md
   - tasks/T031.yml

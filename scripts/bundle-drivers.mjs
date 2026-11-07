@@ -5,7 +5,7 @@
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> [--force]
  *   npx tsx scripts/bundle-drivers.mjs --corpus <datasheets-dir> --only-record <brand/sku> [--only-record ...]
  *
- * Design: docs/design/BUNDLED_CATALOGUE_API.md. The corpus is `--corpus <dir>` (required;
+ * The corpus is `--corpus <dir>` (required;
  * only scripts/sync-driver-snapshot.sh passes it, from committed winisd_drivers/snapshot/datasheets); each `<brand>/<sku>/openisd.json` is the canonical
  * driver record (ARCHITECTURE.md AD-8), written by winisd_tools. Nothing else is read.
  *
@@ -13,7 +13,9 @@
  *
  *   drivers-index.json               BundledDriverIndexRow[]          — what the driver picker lists
  *   passive-radiators-index.json     BundledPassiveRadiatorIndexRow[] — what the PR browser lists
- *   drivers/<brand>/<sku>.json       the canonical record, verbatim   — fetched when a device is picked
+ *   drivers/<brand>/<sku>.json       the record in the slim model     — fetched when a device is picked
+ *                                    (the load upgrade's output, schemaVersion 3: no readings, origin,
+ *                                    quality or dq marks; those stay in driver.json, QO395)
  *
  * Each record is opened through the domain's own seam (`OpenISDDriver.fromConformingRecord` /
  * `OpenISDPassiveRadiatorStandalone.fromConformingRecord`, inside the round-trip gate) and its
@@ -47,6 +49,7 @@ import {
 } from './bundleStamp.mjs';
 import {bundledDriverIndexRowOf, bundledPassiveRadiatorIndexRowOf} from '../packages/ui/src/logic/bundledIndexRows.ts';
 import {OpenISDPassiveRadiatorStandalone} from '@openisd/design';
+import {upgradeToCurrent} from '../packages/design/domain/schemaVersion.ts';
 
 const RECORD_FILE = 'openisd.json';
 
@@ -125,7 +128,7 @@ function main() {
         } else {
           driverRows.push(bundledDriverIndexRowOf(device, path));
         }
-        records.push({ path, record });
+        records.push({ path, record: upgradeToCurrent(record).value });
         perGroup.set(group, (perGroup.get(group) ?? 0) + 1);
       }
     }

@@ -34,37 +34,6 @@ class Strict(BaseModel):
 class RootUuid(Strict):
     value: str
 
-class RootQuality(Strict):
-    issue: str = None
-    confirmed_fields: list[str] = None
-    fields_with_issues: list[str] = None
-    missing: list[str] = None
-    invalid: list[str]
-    parse_errors: list[str]
-    cross_source_only: list[object] = None
-
-class TextFieldDqScraper(Strict):
-    kind: str
-    severity: str
-    rule: str
-    detail: str
-    params: dict[str, object]
-
-class TextField(Strict):
-    value: str
-    origin: str = None
-    readings: dict[str, str] = None
-    dq_scraper: list[TextFieldDqScraper] = None
-    note: object = None
-
-class RootSkuGrounds(Strict):
-    origin: str
-    reading: str
-
-class RootSku(Strict):
-    value: str
-    grounds: Annotated[list[RootSkuGrounds], Field(min_length=1)]
-
 _union_driver_roles_field_value_1_member_0 = TypeAdapter(str, config=ConfigDict(strict=True))
 def _union_driver_roles_field_value_1_finish_0(role):
     return [role]
@@ -85,28 +54,6 @@ DriverRolesFieldValue2 = Annotated[DriverRolesFieldValue, BeforeValidator(_union
 
 class DriverRolesField(Strict):
     value: DriverRolesFieldValue2
-    origin: str = None
-    readings: dict[str, DriverRolesFieldValue2] = None
-    dq_scraper: list[TextFieldDqScraper] = None
-    note: object = None
-
-class CategoriesFieldValue(Strict):
-    label: str
-    url: str
-
-class CategoriesField(Strict):
-    value: Annotated[list[CategoriesFieldValue], Field(min_length=1)]
-    origin: str = None
-    readings: dict[str, Annotated[list[CategoriesFieldValue], Field(min_length=1)]] = None
-    dq_scraper: list[TextFieldDqScraper] = None
-    note: object = None
-
-class RootNominalSizeCm(Strict):
-    value: Number
-    origin: str = None
-    readings: dict[str, Number] = None
-    dq_scraper: list[TextFieldDqScraper] = None
-    note: object = None
 
 class RootDataSourcesValue(Strict):
     manufacturer_datasheet: str = None
@@ -118,6 +65,16 @@ class RootDataSourcesValue(Strict):
 
 class RootDataSources(Strict):
     value: RootDataSourcesValue
+
+class EnteredEntry(Strict):
+    state: Literal["E"]
+    value: Number
+    precision: Annotated[Number, Field(gt=0)] = None
+
+class CalculatedEntry(Strict):
+    state: Literal["C"]
+    value: Number
+    precision: Annotated[Number, Field(gt=0)] = None
 
 class ReaderRead(Strict):
     actual_reading: str
@@ -209,34 +166,16 @@ def _union_reading_json_schema_3(v):
 
 Reading = Annotated[object, BeforeValidator(_union_reading_json_schema_3)]
 
-def _entered_entry_readings_6(r):
+def _not_available_entry_readings_6(r):
     if not (len(list(r)) > 0):
         raise ValueError("expected at least one reading")
     return r
 
-EnteredEntryReadings = Annotated[dict[str, Reading], AfterValidator(_entered_entry_readings_6)]
-
-class EnteredEntry(Strict):
-    state: Literal["E"]
-    value: Number
-    precision: Annotated[Number, Field(gt=0)] = None
-    origin: str = None
-    readings: EnteredEntryReadings = None
-    corroboration: Literal["MATCH", "MISMATCH", "NOT_MATCHABLE", "UNMATCHED"] = None
-    dq_scraper: list[TextFieldDqScraper] = None
-    dq_calculated: list[TextFieldDqScraper] = None
-
-class CalculatedEntry(Strict):
-    state: Literal["C"]
-    value: Number
-    precision: Annotated[Number, Field(gt=0)] = None
-    dq_calculated: list[TextFieldDqScraper] = None
+NotAvailableEntryReadings = Annotated[dict[str, Reading], AfterValidator(_not_available_entry_readings_6)]
 
 class NotAvailableEntry(Strict):
     state: Literal["N"]
-    readings: EnteredEntryReadings
-    dq_scraper: list[TextFieldDqScraper] = None
-    dq_calculated: list[TextFieldDqScraper] = None
+    readings: NotAvailableEntryReadings = None
 
 def _tag_state_7(v):
     if isinstance(v, dict) and v.get("state") in ("E", "C", "N"):
@@ -269,7 +208,6 @@ class DriverSpecsWoofer(Strict):
     EBP_hz: SpecEntry = None
     numVC: SpecEntry = None
     VCCon: SpecEntry = None
-    Dia_m: SpecEntry = None
     Vd_m3: SpecEntry = None
     no: SpecEntry = None
     SPLmax_dB: SpecEntry = None
@@ -317,7 +255,6 @@ class RadiatorSpecsPassiveRadiator(Strict):
     Vd_m3: SpecEntry = None
     Xmax_m: SpecEntry = None
     Xlim_m: SpecEntry = None
-    Dia_m: SpecEntry = None
     Dd_m: SpecEntry = None
     DVol_m3: SpecEntry = None
     Thick_m: SpecEntry = None
@@ -353,25 +290,22 @@ class RootCurves(Strict):
 
 class Root(Strict):
     uuid: RootUuid
-    quality: RootQuality
-    manufacturer: TextField
-    brand: TextField
-    model: TextField
-    sku: RootSku
+    manufacturer: RootUuid
+    brand: RootUuid
+    model: RootUuid
+    sku: RootUuid
     driver_type: DriverRolesField
-    categories: CategoriesField = None
-    series: TextField = None
-    nominal_size_cm: RootNominalSizeCm = None
+    series: RootUuid = None
     data_sources: RootDataSources
-    authoritative: RootUuid = None
-    product_image: TextField = None
-    description: TextField = None
-    surround_material: TextField = None
-    provided_by: TextField = None
-    comment: TextField = None
-    added: TextField = None
+    product_image: RootUuid = None
+    description: RootUuid = None
+    surround_material: RootUuid = None
+    provided_by: RootUuid = None
+    comment: RootUuid = None
+    added: RootUuid = None
     specs: Specs
     curves: dict[str, RootCurves] = None
+    schemaVersion: Number = None
 
 ROOT = Root
 TAGS = frozenset({"<woofer>", "<E>", "<C>", "<N>", "<passive-radiator>"})

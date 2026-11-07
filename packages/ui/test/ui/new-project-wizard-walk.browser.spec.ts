@@ -179,7 +179,7 @@ async function desktopExpectBanner(page: Page, driver: CatalogueRecord, line: Ba
 
 async function desktopExpectEbp(page: Page, ebpText: string, suitability: EbpSuitability): Promise<void> {
   const root = page.locator('.overlay.open');
-  await expect.soft(root.locator('.ebp-row')).toHaveText(`Efficiency Bandwidth Product (EBP): ${ebpText}`);
+  await expect.soft(root.locator('.ebp-row')).toHaveText(`Efficiency Bandwidth Product (EBP): ${ebpText}?`); // the trailing ? is the desktop help button (T690)
   await expect.soft(root.locator('.suitability-badge')).toHaveText(desktopSuitabilityLabel(suitability));
 }
 

@@ -1,4 +1,4 @@
-import type {Air, AirState, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
+import type {Air, CalculationIssue, DqIssue, DriverEngine, DriverIssue, DriverQuantityName, DriverSolverParams, DriverValues, IssueEngine, OutOfRangeIssue, SolverInput, SweepDriver, Wiring} from '../../engine/index.js';
 import {NumberField} from '../../fields/field.js';
 import type {ValueFloor} from '../../fields/field.js';
 import type {
@@ -12,7 +12,7 @@ import type {
     Unsolvable,
     Writable
 } from '../cell.js';
-import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField, writeEntryDq} from '../cell.js';
+import {absentCell, calculatedCell, DualWriteFieldImpl, enteredCell, entryField} from '../cell.js';
 import type {DriverDeviceJson, SpecEntryJson} from '../openisdSchema.js';
 import {
     calcNumVC,
@@ -59,7 +59,6 @@ const FLOORS: Readonly<Record<DriverSpecFieldName, ValueFloor>> = Object.freeze(
     Dd_m: NumberField.DD_M.floor,
     EBP_hz: NumberField.EBP_HZ.floor,
     numVC: NumberField.NUMVC.floor,
-    Dia_m: 'positive',
     Vd_m3: NumberField.VD_M3.floor,
     no: NumberField.NO.floor,
     SPLmax_dB: NumberField.SPLMAX_DB.floor,
@@ -171,7 +170,6 @@ export class OpenIsdDriverSpec {
      *  stores `calcVCCon()`'s default as a 'C' entry. */
     readonly VCCon: Readable<VoiceCoilWiring | null> & Entered & Calculated & Writable<VoiceCoilWiring> & Clearable & Calculatable<VoiceCoilWiring> & Unsolvable;
     // Ordinarily derived, but WinISD lets a human type any of them, and an entered value is a fact.
-    readonly Dia_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Vd_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly no: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly SPLmax_dB: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -225,7 +223,7 @@ export class OpenIsdDriverSpec {
         driver: DriverEngine,
         issues: IssueEngine,
         /** The driver's air: what a not-entered `c_m_per_s`/`roo_kg_per_m3` reads as. */
-        air: () => AirState,
+        air: () => Air,
         /** Where a field's dq is read from when THIS spec object cannot be relied on to still
          *  exist between the resolve that produced it and the read that wants it — the project's
          *  embedded driver, rebuilt fresh on every access, which discards `entryField`'s own
@@ -318,7 +316,6 @@ export class OpenIsdDriverSpec {
                 },
                 dq: (list) => {
                     wiringDq = list;
-                    writeEntryDq(wiringSlot, list);
                 },
             },
         );
@@ -345,7 +342,6 @@ export class OpenIsdDriverSpec {
         this.Pe_W = f('Pe_W');
         this.Dd_m = f('Dd_m');
         this.EBP_hz = f('EBP_hz');
-        this.Dia_m = f('Dia_m');
         this.Vd_m3 = f('Vd_m3');
         this.no = f('no');
         this.SPLmax_dB = f('SPLmax_dB');
@@ -387,7 +383,7 @@ export class OpenIsdDriverSpec {
      *  fresh at read time and left unstored (supersedes the earlier QO127 "stated-only, nothing
      *  writes back" framing). Runs the engine over this window's own 44 handles, caches the
      *  issues, and returns them; `air` is the driver's own resolved `{ rho, c }`. */
-    resolve(air: AirState): readonly DriverIssue[] {
+    resolve(air: Air): readonly DriverIssue[] {
         // The wiring's WinISD default, written into the record as a 'C' entry before the solve
         // reads it — the same route `c_m_per_s` takes, so a saved driver states its wiring
         // rather than leaving every reader to reapply the app's default (John, 2026-09-24).
@@ -448,9 +444,9 @@ export class OpenIsdDriverSpec {
      *  `air`: the circuit's air is the PROJECT's, when one is given — the driver's own
      *  `c_m_per_s`/`roo_kg_per_m3` are display-only and feed no calculation
      *  (BUG_20260924_driver-solve-and-sweep-use-different-air-models.md). A caller with no
-     *  project (a standalone driver's own chart) passes none, and the spread already carries the
-     *  driver's own stated pair. */
-    solverParams(air: Air | null = null): DriverSolverParams {
+     *  project (a standalone driver's own chart) uses `solverParams()`, which carries the
+     *  driver's own stated pair; `solverParamsIn(air)` is the project's. */
+    solverParams(): DriverSolverParams {
         const wiring: Wiring = this.VCCon.value === VoiceCoilWiring.Series ? 'series' : 'parallel';
         const Re_ohm = this.Re_ohm.value;
         const BL_Tm = this.BL_Tm.value;
@@ -466,17 +462,27 @@ export class OpenIsdDriverSpec {
             Re_terminal_ohm: computedSlot(Re_terminal_ohm),
             BL_terminal_Tm: computedSlot(BL_terminal_entered_Tm),
             wiring: wiringInput,
-            ...(air !== null ? { c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho()) } : {}),
         };
+    }
+
+    /** `solverParams` with the circuit's air taken from `air` (the project's) instead of the driver's own pair. */
+    solverParamsIn(air: Air): DriverSolverParams {
+        return { ...this.solverParams(), c_m_per_s: computedSlot(air.c()), roo_kg_per_m3: computedSlot(air.rho()) };
     }
 
     /** `solverParams`' values as plain data for `SimulationEngine.sweep`/`maxCurves`, with the
      *  entered BL WinISD's entered-BL mix reads (null when BL is derived). */
-    sweepDriver(air: Air | null = null): SweepDriver {
-        return {
-            values: valuesOf(this.solverParams(air)),
-            winisdBL_Tm: this.BL_Tm.entered ? this.BL_Tm.value : null,
-        };
+    sweepDriver(): SweepDriver {
+        return { values: valuesOf(this.solverParams()), winisdBL_Tm: this.#enteredBL() };
+    }
+
+    /** `sweepDriver` with the circuit's air taken from `air` (the project's). */
+    sweepDriverIn(air: Air): SweepDriver {
+        return { values: valuesOf(this.solverParamsIn(air)), winisdBL_Tm: this.#enteredBL() };
+    }
+
+    #enteredBL(): number | null {
+        return this.BL_Tm.entered ? this.BL_Tm.value : null;
     }
 
     /** The issues the last `resolve()` produced — empty before the first one has run. */

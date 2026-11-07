@@ -1,6 +1,6 @@
 # Calculated values are painted as entered on the rendition branch
 
-Status: open; detected in the first same-project production comparison, before claiming the branch ready.
+Status: fixed; (was open; detected in the first same-project production comparison, before claiming the branch ready.)
 
 Production v20261025T2233Z paints closed-box Fsc71.95 and Qtc0.707 blue. The local rendition branch at c120b6b11 plus the current working changes paints both green. The underlying inputs correctly carry value-c. The new generic green input rule failed to include the production provenance class in its calculated-value override. The catalogue used fixed bindings, so all44 numeric base forms still passed their paint test.
 
@@ -37,3 +37,13 @@ native caret and did not obtain a marker; explicit ArrowLeft→End, matching the
 end-caret regression, establishes the required initial condition. No app source changed.
 Required closure: failing real calculated-field blink-phase regression, preservation of
 normal foreground across provenance states and focused Argon recheck.
+
+## Closure, 4 November 2026 (T670)
+
+Fixed on main. Calculated values paint `--acc` (`style.css:75`, `field-catalogue.css:56`). The blink keyframes
+(`spin-inverse-blink`, `joined-inverse-blink`) hold the digit at transparent in the normal phase, so the
+input's own glyph colour shows through; they hardcode only the inverse phase. Measured at phase 750 ms on
+the Closed Box page: Vb (entered) marker transparent over green input, Fsc (calculated) marker transparent over
+calculated-colour input. Regression spec: field-cursor.browser.spec.ts "the blinking digit keeps the colour of
+entered and calculated values" (passed on first run, no CSS change needed); calculated ink on both skins is also
+covered by field-renditions.browser.spec.ts.

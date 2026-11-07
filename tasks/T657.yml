@@ -1,0 +1,15 @@
+id: T657
+release_note: "Every chart help popup now links to one plain, practical page instead of Wikipedia and research papers."
+repo: openisd
+owner: fable
+status: done
+landed: 6222c814d81ba35eeea062eab762d7a3de544382
+goal: Every chart help popup links to one or two simple, practical pages, each read in full and agreeing with the help text (John, 3 Nov 2026: "want simple clear info"; "we should be able to find links for everything")
+done_test: bash scripts/test.sh packages/design/test/fields/chartHelp.test.ts
+files:
+  - packages/design/fields/chartHelpText.ts
+  - packages/design/test/fields/chartHelp.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - docs/research/CHART_HELP_LINK_CANDIDATES.md
+  - tasks/T657.yml
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json

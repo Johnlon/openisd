@@ -38,7 +38,7 @@ describe('My Drivers Load File flashes what it did', () => {
     const logging: Logging = { message: ref(''), flash: vi.fn() };
     const browsing = createDriverBrowsingState({
       driverRepo: createBundledDriverRepo({
-        fetch: () => Promise.reject(new Error('fetch not used')), baseUrl: '/', engine, maxAge_ms: 1, now: Date.now,
+        bundle: () => Promise.reject(new Error('catalogue not used')), engine, maxAge_ms: 1, now: Date.now,
       }),
       myDriverRepo: myDriverRepoOn(storage, engine), prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({ appState, presentation }), files, confirmReset: fakeConfirmPort, exportNotice: {exported: () => undefined},

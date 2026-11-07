@@ -12,8 +12,8 @@ files:
   - bugs/BUG_20261018_phone-equation-inspector-covers-editor-tabs.md
   - packages/ui/src/ui/components/EquationInspectorModal.vue
   - tasks/T418.yml
-  - bugs/BUG_20261020_phone-driver-editor-general-boxes-narrow.md
-  - bugs/BUG_20261020_phone-driver-editor-tab-has-line-across.md
+  - bugs/archive/BUG_20261020_phone-driver-editor-general-boxes-narrow.md
+  - bugs/archive/BUG_20261020_phone-driver-editor-tab-has-line-across.md
   - bugs/BUG_20261018_box-advanced-buttons-under-44.md
   - packages/ui/src/style.css
   - packages/ui/src/ui/App.vue

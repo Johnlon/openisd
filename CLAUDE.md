@@ -73,6 +73,9 @@ Three kinds of WinISD difference, handled differently:
   chart, a calculated value, an input WinISD ignores, a field WinISD does not let you type. A
   trivial difference gets no cue and no question to John: keep OpenISD's way and record it in the
   bug file. Example: a value the file never gave is blank in OpenISD and an entered 0 in WinISD.
+- **A box the datasheet never states stays empty** (John, 2026-11-05, QO424), unless the engine can
+  calculate it from stated values (then it shows the calculated value) or its absence stops
+  charting and there is an obvious default (then the app fills a calculated default).
 
 - Every control OpenISD shares with WinISD behaves exactly as WinISD does, by default (e.g. "Rg
   is at driver side").
@@ -155,7 +158,7 @@ not an arbitrary port, so previews cannot be mistaken for main or for another ta
 
 ## Test output — quiet by default
 
-Run every test/typecheck/gate via `bash scripts/quiet-test.sh <command>`; it hides passing lines and
+Run tests with `bash scripts/test.sh <spec>`; run typecheck and other gates with `bash scripts/quiet-test.sh <command>`; it hides passing lines and
 logs the full output to `build/test-logs/`. Rule: `.claude/rules/verify.md`.
 Unit tests, linting, typechecks, and targeted singleton browser specs (`bash scripts/test.sh <spec>`)
 run immediately without queueing. Only untargeted/heavy Chromium sweeps queue for the admission slot.
@@ -182,6 +185,30 @@ available for review.
 
 After every release, verify that production's build ID matches the GitHub Latest release. A successful
 deploy workflow alone does not prove users receive that build.
+Also verify the production announcements Worker answers (it is deployed separately, from
+`cloudflare/announcements/wrangler.production.toml`; a GitHub Pages deploy does not deploy it). On
+1 Nov 2026 production announcements had never worked because that Worker was never deployed.
+
+## Offline — release critical
+
+John, 2026-11-01 (QO380): "my app must work offline". Everything the app needs to make and edit a
+project, the whole bundled driver and radiator catalogue included, is on the device after install;
+no feature fetches at the moment of use. Cloud sync and announcements are the only two things
+allowed to need the network; they wait for a connection and catch up later, and neither may block or
+degrade anything the user does offline. Every release verifies offline project creation from an
+installed worker: `scripts/hosting/test/offline-catalogue.e2e.mjs` (install online, go offline,
+reload, New project > passive radiator > pick E150HE-PR, every box fills).
+
+The bundled driver and radiator records are installed with the app in its precache, same version,
+read from the phone's stored copy after the screen is up, never downloaded at use; they
+are part of the app's version: the app reads only records of its own build, every record keeps a
+permanent uuid across re-scrapes, and a record-version mismatch is a refusal with a message, never a
+blank.
+Mechanism: the build writes the whole catalogue as ONE file, `catalogue.json`
+(`{build, driverRows, passiveRadiatorRows, drivers: {uuid: record}, passiveRadiators: {uuid: record}}`,
+`scripts/catalogueBundle.mjs`; only records with a woofer or passive-radiator section), precached as one
+entry; the loader opens it only when `build` is the app's own build id, else throws
+`CatalogueBuildMismatch` naming both builds (`packages/persistence/src/repos/catalogueBundle.ts`).
 
 ## General rules — always
 
@@ -201,6 +228,9 @@ work is an actual dependency, and consume their committed output on the integrat
 the fix, no branches or housekeeping; failing tests → one spec, then a cluster of 2–3, then the suite; release
 fixes before new work; agent sessions run in tmux under the keeper; a restarted agent coordinates before working.
 
+Driver model files (`openisdSchema.ts`, `openIsdDriverSpec.ts`, `driverSpecFieldName.ts`) change only with John's ruling,
+named as `ruling: QO<n>` in the task file; `land.sh` refuses otherwise (QO392, 3 Nov 2026).
+
 ## Loaded on demand
 
 The rest of the project's working conventions live in path-scoped rules and docs so they only
@@ -212,5 +242,6 @@ enter context when relevant, not on every session:
   read before writing any `todowrite` list.
 - **Multi-session coordination** (disjoint file assignment, dispatch): [`docs/MULTI_SESSION_COORDINATION.md`](docs/MULTI_SESSION_COORDINATION.md).
 - **UI does no maths, formatting or constants**: `.claude/rules/ui.md` — lint bans `Math.log/pow/…` and `.toFixed(` under `packages/ui/src`; use `packages/design` axes and `fields/format.ts`.
+- **Field layout** (nothing clipped, aligned edges, one width and height per group): `.claude/rules/field-layout.md` — auto-loads under `packages/ui/**`; gate `packages/ui/test/ui/field-layout-rules.browser.spec.ts`.
 - **UI test fixtures & scratch specs**: `.claude/rules/ui-test-fixtures.md` — auto-loads under
   `packages/ui/test/`.

@@ -1,0 +1,311 @@
+{
+  "added": {
+    "definition": "when this record was added, ISO yyyy-mm-dd",
+    "origin": "openisd",
+    "value": "2026-10-31"
+  },
+  "brand": {
+    "definition": "the selling brand; equals the manufacturer except for house brands",
+    "origin": "manufacturer_datasheet",
+    "value": "BlieSMa"
+  },
+  "data_sources": {
+    "definition": "the record-wide provenance index — every source role used anywhere in this file resolves to a URL here",
+    "value": {
+      "manufacturer_datasheet": "https://bliesma.de/Datasheet W137A.pdf",
+      "manufacturer_listing_page": "https://bliesma.de/products.html"
+    }
+  },
+  "discontinued": false,
+  "driver_type": {
+    "definition": "what kind of driver this is (closed vocabulary); decides which specs section applies",
+    "origin": "manufacturer_datasheet",
+    "value": [
+      "woofer"
+    ]
+  },
+  "manufacturer": {
+    "definition": "the company that makes the driver; a second-order descriptive field, shown only when it differs from the brand",
+    "origin": "manufacturer_datasheet",
+    "value": "BlieSMa"
+  },
+  "model": {
+    "definition": "the vendor's exact designation including the impedance variant — unique within a brand, and the name shown in the driver browser",
+    "origin": "manufacturer_datasheet",
+    "value": "W137A-854 8 Ω"
+  },
+  "printed": [
+    {
+      "actual_reading": "W137A-854 137mm Aluminum-Magnesium Alloy Dome Woofer",
+      "label": "Product title",
+      "locator": "https://bliesma.de/products.html",
+      "origin": "manufacturer_listing_page"
+    }
+  ],
+  "product_image": {
+    "definition": "the manufacturer's product photo for this driver",
+    "origin": "manufacturer_listing_page",
+    "value": "https://bliesma.de/img\\W137A.png"
+  },
+  "provided_by": {
+    "definition": "who supplied this record — the OpenISD project for a pipeline-emitted record",
+    "origin": "openisd",
+    "value": "OpenIsd"
+  },
+  "quality": {},
+  "scraper_meta": {
+    "scraper": {
+      "definition": "the vendor scraper/extraction method that produced this record",
+      "value": "bliesma_pdf_extractor"
+    }
+  },
+  "sku": {
+    "definition": "the canonical identity code — the vendor designation slugified, impedance variant included; names the record directory (guard-enforced equal) and is unique within the manufacturer",
+    "grounds": [
+      {
+        "definition": "the printed designation the code was derived from",
+        "origin": "manufacturer_datasheet",
+        "reading": "W137A-854 8 Ω"
+      }
+    ],
+    "value": "w137a-854-8"
+  },
+  "specs": {
+    "woofer": {
+      "BL_Tm": {
+        "definition": "motor force factor (T·m)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "10 T*m",
+            "read_precision": 0.5,
+            "read_value": 10.0
+          }
+        }
+      },
+      "Cms_m_per_N": {
+        "definition": "suspension compliance (m/N)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.94 mm/N",
+            "read_precision": 5e-06,
+            "read_value": 0.00094
+          }
+        }
+      },
+      "Fs_hz": {
+        "definition": "free-air resonance frequency (Hz)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "31.5 Hz",
+            "read_precision": 0.05,
+            "read_value": 31.5
+          }
+        }
+      },
+      "Hc_m": {
+        "definition": "voice-coil winding height — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "19.5 mm",
+            "read_precision": 5e-05,
+            "read_value": 0.0195
+          }
+        }
+      },
+      "Hg_m": {
+        "definition": "magnetic air-gap height — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "4.5 mm",
+            "read_precision": 5e-05,
+            "read_value": 0.0045
+          }
+        }
+      },
+      "Le_H": {
+        "definition": "voice-coil inductance (H)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.13 mH",
+            "read_precision": 5e-06,
+            "read_value": 0.00013
+          }
+        }
+      },
+      "Mms_kg": {
+        "definition": "moving mass including air load — stored in kg, not g",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "27.1 g",
+            "read_precision": 5e-05,
+            "read_value": 0.0271
+          }
+        }
+      },
+      "Pe_W": {
+        "definition": "rated thermal power handling (W, IEC 268-5)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "(RMS) 75 W",
+            "read_precision": 0.5,
+            "read_value": 75.0
+          }
+        }
+      },
+      "Qes": {
+        "definition": "electrical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.41",
+            "read_precision": 0.005,
+            "read_value": 0.41
+          }
+        }
+      },
+      "Qms": {
+        "definition": "mechanical Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "7.12",
+            "read_precision": 0.005,
+            "read_value": 7.12
+          }
+        }
+      },
+      "Qts": {
+        "definition": "total Q factor at Fs (dimensionless)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.39",
+            "read_precision": 0.005,
+            "read_value": 0.39
+          }
+        }
+      },
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "7.8 Ω",
+            "read_precision": 0.05,
+            "read_value": 7.8
+          }
+        }
+      },
+      "Rms_kg_per_s": {
+        "definition": "mechanical suspension resistance (kg/s)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "0.75 kg/s",
+            "read_precision": 0.005,
+            "read_value": 0.75
+          }
+        }
+      },
+      "SPL_dB": {
+        "definition": "sensitivity (dB)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "85 dB",
+            "note": "2.83V/1m",
+            "read_precision": 0.5,
+            "read_value": 85.0
+          }
+        }
+      },
+      "Sd_m2": {
+        "definition": "effective piston area — stored in m², not cm²",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "175 cm²",
+            "read_precision": 5e-05,
+            "read_value": 0.0175
+          }
+        }
+      },
+      "VCCon": {
+        "definition": "dual-coil wiring the published T/S was measured in (1 = parallel, 2 = series)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "wiring diagram",
+            "rejected": "no-numeric-value"
+          }
+        }
+      },
+      "Vas_m3": {
+        "definition": "equivalent compliance volume — stored in m³, not litres",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "40.9 L",
+            "read_precision": 5e-05,
+            "read_value": 0.0409
+          }
+        }
+      },
+      "Vcd_m": {
+        "definition": "voice coil diameter — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "64 mm",
+            "read_precision": 0.0005,
+            "read_value": 0.064
+          }
+        }
+      },
+      "Xlim_m": {
+        "definition": "one-way mechanical excursion limit before damage — stored in m, not mm; distinct from Xmax, the linear limit",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "24 mm",
+            "read_precision": 0.00025,
+            "read_value": 0.012
+          }
+        }
+      },
+      "Xmax_m": {
+        "definition": "one-way linear excursion limit — stored in m, not mm",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "15 mm",
+            "read_precision": 0.00025,
+            "read_value": 0.0075
+          }
+        }
+      },
+      "Znom_ohm": {
+        "definition": "nominal impedance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "8 Ω",
+            "read_precision": 0.5,
+            "read_value": 8.0
+          }
+        }
+      },
+      "numVC": {
+        "definition": "number of voice coils; 2 marks a dual-voice-coil driver",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "3 independent voice coils",
+            "read_precision": 0.5,
+            "read_value": 3.0
+          }
+        }
+      },
+      "weight_kg": {
+        "definition": "net driver weight (kg)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "1.6 kg",
+            "read_precision": 0.05,
+            "read_value": 1.6
+          }
+        }
+      }
+    }
+  },
+  "uuid": {
+    "definition": "stable record identity, minted by the pipeline at first emit and never re-derived",
+    "value": "29c4fb6d-8902-41b2-98a5-12c03befcb96"
+  }
+}

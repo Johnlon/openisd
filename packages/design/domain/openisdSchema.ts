@@ -30,7 +30,6 @@ import {READER_VALUES} from './reader.js';
 import type {OpenISDDriver} from './driver/openISDDriver.js';
 import type {BoxType, Filter, PassFamily} from '../engine/index.js';
 import type {VentShape} from './vent.js';
-import {dqMarks} from './specEntry.js';
 
 /**
  * One SOURCE'S READING of one field, as the scraper recorded it. Names are the corpus's own.
@@ -89,7 +88,6 @@ export interface DriverSpecsSection {
     readonly numVC?: SpecEntryJson;
     readonly VCCon?: SpecEntryJson;
     // Ordinarily derived, but WinISD lets a human TYPE any of them, and an entered value is a fact.
-    readonly Dia_m?: SpecEntryJson;
     readonly Vd_m3?: SpecEntryJson;
     readonly no?: SpecEntryJson;
     readonly SPLmax_dB?: SpecEntryJson;
@@ -143,7 +141,6 @@ export interface PassiveRadiatorSpecsSection {
     readonly Vd_m3?: SpecEntryJson;
     readonly Xmax_m?: SpecEntryJson;
     readonly Xlim_m?: SpecEntryJson;
-    readonly Dia_m?: SpecEntryJson;
     readonly Dd_m?: SpecEntryJson;
     readonly DVol_m3?: SpecEntryJson;
     // Mounting dimensions — a radiator sits on a baffle exactly as a driver does (John 2026-08-27).
@@ -291,17 +288,9 @@ export type RejectedReadingJson =
     | RejectedParsedReadingJson | RejectedUnparsedReadingJson
     | RejectedUnrecognisedParsedReadingJson | RejectedUnrecognisedUnparsedReadingJson;
 
-/** The corroboration verdict a scraped entry's readings settled on (D11) — `Corroboration.ALL`'s
- *  wire values. Absent on a hand-typed entry and on any entry with fewer than two usable readings
- *  (`UNMATCHED` is itself a verdict and is always written, so absence here means "no readings to
- *  corroborate at all", i.e. a single-source entry that predates this scheme). */
-const corroborationJsonSchema = z.enum(['MATCH', 'MISMATCH', 'NOT_MATCHABLE', 'UNMATCHED']);
-
-/** An entered spec entry: a `value` plus `state:'E'`, with `origin`/`readings` riding beside it
- *  as information only — which source won, and every source's reading. `readings` carries AT
- *  LEAST ONE when present — `SpecEntry.readings` is `Field(min_length=1)` upstream, because an
- *  entry naming a winning origin with nothing under it is a field with no value — but a
- *  hand-typed value (`enteredEntry`) has neither `origin` nor `readings` at all. */
+/** An entered spec entry: a `value` plus `state:'E'`, and the precision it states. Nothing else is
+ *  stored (QO395, John 3 Nov 2026: openisd.json is the slim model): which source won, every
+ *  source's reading and the cross-source verdict stay in driver.json. */
 const enteredEntrySchema = z.strictObject({
     state: z.literal('E'),
     value: z.number(),
@@ -311,61 +300,41 @@ const enteredEntrySchema = z.strictObject({
      *  plain number, where its own decimals are the statement (`0.5` kg is 1 dp of a kilogram).
      *  Never the precision the FIELD supports — that is a display question. */
     precision: z.number().positive().optional(),
-    // `_KEY_PRIORITY_LIST` order (`model_driver.py:1509`) — see the note on the record schema below.
-    origin: z.string().optional(),
-    readings: z.record(z.string(), readingJsonSchema).refine(
-        r => Object.keys(r).length > 0, 'expected at least one reading').optional(),
-    corroboration: corroborationJsonSchema.optional(),
-    dq_scraper: dqMarks(),
-    dq_calculated: dqMarks(),
 });
 
-/** A calculated spec entry: a `value` plus `state:'C'`, the precision it inherits, and its own dq
- *  — nothing was read, so no `origin`/`readings`/`dq_scraper` (only a scraper produces those). */
+/** A calculated spec entry: a `value` plus `state:'C'` and the precision it inherits. */
 const calculatedEntrySchema = z.strictObject({
     state: z.literal('C'),
     value: z.number(),
     /** Half-width the value inherits from its most precise entered input, in SI — stored as an
      *  entered value's `precision` is. Absent when no entered width reaches it. */
     precision: z.number().positive().optional(),
-    dq_calculated: dqMarks(),
 });
 
 /** A spec field where no reading wins (T018, John 2026-10-11: "field gets no value"): every
  *  reading is rejected ("N/A", "banana") or physically impossible (a passive radiator's Sd of
- *  9 m²). `state:'N'`, no `value`, and every reading kept in `readings` — rejected ones and
- *  usable-but-impossible ones alike — so nothing the source said is lost. */
+ *  9 m²). `state:'N'`, no `value`. The rejected readings stay on the entry only so the Driver
+ *  Editor can say what the maker printed under Re and BL (`unknownVoiceCoilReading`); QO420
+ *  (open) decides whether that note goes, and with it these readings. */
 const notAvailableEntrySchema = z.strictObject({
     state: z.literal('N'),
     readings: z.record(z.string(), readingJsonSchema).refine(
-        r => Object.keys(r).length > 0, 'expected at least one reading'),
-    dq_scraper: dqMarks(),
-    dq_calculated: dqMarks(),
+        r => Object.keys(r).length > 0, 'expected at least one reading').optional(),
 });
 
 /**
- * A spec field: `value` + `state` (T11), `origin`/`readings` riding beside an entered value as
- * provenance only. `dq_scraper` and `dq_calculated` are split BY PRODUCER: a scraper finds
- * structural, parse and source problems (entered values only); only the calculation finds T/S
- * parameters that disagree with each other (either state).
+ * A spec field: `value` + `state` (T11) and the precision the value states.
  *
  * ONE VALUE, ONE FLAG (T11, John: "it gets written into the Json simple as that… do not muddle
  * semantics"): `value` is the number, `state` says whether it was TYPED ('E') or DERIVED ('C') —
- * absence of the whole entry means 'N', not-available. There is no separate value channel for a
- * calculated figure: a `'C'` entry writes the SAME `value` field an `'E'` entry does, so a reader
- * never juggles two numbers wondering which one is live.
+ * and 'N' says no reading gave one. There is no separate value channel for a calculated figure: a
+ * `'C'` entry writes the SAME `value` field an `'E'` entry does, so a reader never juggles two
+ * numbers wondering which one is live.
  *
- * `origin`/`readings` ride BESIDE an `'E'` entry as INFORMATION ONLY — which source's reading
- * won, and what every source said. A hand-typed value has neither: there was no source to name.
- * A `'C'` entry has no `origin`/`readings` at all — nothing was read, `crosscheck.py` never ran.
- *
- * NO LEGACY PREPROCESS (D15): a bare `{origin, readings}` shape with no `state` key — the old
- * `driver.yml` shape, before the scraper's own origin pick and corroboration verdict were retired
- * from the scraper side — is no longer accepted here. `driverRecordConverter.ts` builds the
- * `{state:'E', value, origin, corroboration, readings, dq_scraper}` entry itself, choosing the
- * origin and computing corroboration on this side (`sourceRank.ts`, `corroboration.ts`), before
- * this schema ever parses it — so a bare scraper shape reaching this union IS a parse error, not
- * a shape to be silently upgraded.
+ * Origin, readings, the corroboration verdict and the data-quality marks are not part of this
+ * model (QO395, QO414): a file saved before `schemaVersion` 3 carries them, and the load upgrade
+ * (`schemaVersion.ts`) turns the stated reading precision into `precision` and drops the rest
+ * before this schema reads the record.
  */
 export const specEntryJsonSchema =
     z.discriminatedUnion('state', [enteredEntrySchema, calculatedEntrySchema, notAvailableEntrySchema]);
@@ -386,31 +355,9 @@ export type CalculatedEntryJson = z.infer<typeof calculatedEntrySchema>;
 // here. It is driver.yml's, and never reaches an openisd.yml or a .wdr (John, 2026-09-01). A
 // consumer of this record already knows what `Fs` is.
 
-/** READ off a source. `origin` names the source the value came from and `readings` keeps what each
- *  one said. (`ScrapedField`, model_driver.py:155.)
- *
- *  `origin` is a plain string, not an enum of source roles: the scraper owns that list
- *  (`SourceRole`, model_driver.py) and nothing else here mirrors it, so a copy would be a second
- *  source of truth free to drift from the one that writes these records.
- *
- *  Optional, where the scraper has it required, because this schema also reads records the APP
- *  wrote: a driver the user typed was read off no source and has no role to name. */
-const scrapedFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
-    value,
-    origin: z.string().optional(),
-    readings: z.record(z.string(), value).optional(),
-    dq_scraper: dqMarks(),
-    note: z.unknown().optional(),
-});
-
-/** COMPUTED from other fields. No origin — nothing was read — but `grounds` carries the evidence,
- *  and there is always at least one. (`DerivedField`, model_driver.py:193.) */
-const derivedFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
-    value,
-    grounds: z.strictObject({
-        origin: z.string(), reading: z.string(),
-    }).array().min(1),
-});
+/** A text-like field: its value, nothing else. Which source it was read off, what each one said
+ *  and the scraper's notes stay in driver.json (QO395). */
+const valueFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({value});
 
 /** A fact about the RECORD, not about the driver — a uuid, where its sources were. Nothing was
  *  read and nothing was derived, so neither origin nor grounds. (`BookkeepingField`,
@@ -419,20 +366,16 @@ const bookkeepingFieldOf = <T extends z.ZodType>(value: T) => z.strictObject({
     value,
 });
 
-const textField = scrapedFieldOf(z.string());
+const textField = valueFieldOf(z.string());
 
 /** A driver's roles: one or more, each once (`DriverRoles`, winisd_tools QT84). The scraper stores
  *  them in `DriverType` declaration order, so one record has one canonical list. A record written
  *  before QT84 holds one role as a bare string; it reads as a one-role list (repair, never refuse:
  *  the whole corpus and every stored project still carry the string). */
-const driverRolesField = scrapedFieldOf(
+const driverRolesField = valueFieldOf(
     z.union([z.string().transform(role => [role]), z.string().array()])
         .pipe(z.string().array().min(1).refine(roles => new Set(roles).size === roles.length, {message: 'a role appears twice'})),
 );
-
-/** Every category the manufacturer publishes the driver under, each with its listing page URL. */
-const categoriesField = scrapedFieldOf(z.strictObject({label: z.string(), url: z.string()}).array().min(1));
-
 
 // ── THE SPEC SECTIONS, BY NAME ────────────────────────────────────────────────────────────────
 //
@@ -447,7 +390,7 @@ const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strict
     Fs_hz: e, Re_ohm: e, Le_H: e, fLe_hz: e, KLe_H_sqrtHz: e, Znom_ohm: e,
     Qts: e, Qes: e, Qms: e, Vas_m3: e, Sd_m2: e, BL_Tm: e,
     Mms_kg: e, Cms_m_per_N: e, Rms_kg_per_s: e, Xmax_m: e, Xlim_m: e, SPL_dB: e,
-    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: e, Dia_m: e,
+    Pe_W: e, Dd_m: e, EBP_hz: e, numVC: e, VCCon: e,
     Vd_m3: e, no: e, SPLmax_dB: e, SPLmaxLF_dB: e, USPL_dB: e, alfaVC_per_K: e,
     Rt_K_per_W: e, Ct_J_per_K: e, gamma_m_per_s2_A: e, Rme_kg_per_s: e, Mpow_N_per_sqrtW: e, Mcost_kg_per_s: e,
     Gloss: e, c_m_per_s: e, roo_kg_per_m3: e, Vcd_m: e, Hg_m: e, Hc_m: e,
@@ -460,7 +403,7 @@ const driverSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strict
  *  thermal parameters describe nothing on one — a DIFFERENT schema, not a narrowed driver's. */
 const passiveRadiatorSpecsSectionJsonSchema = (e: typeof specEntryJsonSchema) => z.strictObject({
     Fs_hz: e, Qms: e, Cms_m_per_N: e, Mms_kg: e, Rms_kg_per_s: e, Sd_m2: e,
-    Vas_m3: e, Vd_m3: e, Xmax_m: e, Xlim_m: e, Dia_m: e, Dd_m: e,
+    Vas_m3: e, Vd_m3: e, Xmax_m: e, Xlim_m: e, Dd_m: e,
     DVol_m3: e, Thick_m: e, Depth_m: e, Basket_m: e, Outer_m: e, OuterX_m: e,
     OuterY_m: e, weight_kg: e,
 }).partial();
@@ -530,40 +473,23 @@ export const openISDDeviceJsonSchema = z.strictObject({
     // Zod's `safeParse` preserves this declaration order; reordering here causes diff noise on save.
     // Envelope types (scraped/derived/bookkeeping) exactly match `OpenIsdYmlFile` definitions.
     uuid: bookkeepingFieldOf(z.string()),
-    quality: z.strictObject({
-        issue: z.string().optional(),
-        // Optional (D3/D17): derived from corroboration, not stored by a post-D9/D11 driver.yml —
-        // but the existing corpus is NOT regenerated by this work, so an old record still carrying
-        // them must keep parsing beside a new one that has neither.
-        confirmed_fields: z.string().array().optional(),
-        fields_with_issues: z.string().array().optional(),
-        // Optional (T433): today's scraper record carries neither, and an absent one stays absent —
-        // no default is invented for it. An older record still carrying them parses beside it.
-        missing: z.string().array().optional(),
-        invalid: z.string().array(),
-        parse_errors: z.string().array(),
-        cross_source_only: z.unknown().array().optional(),
-    }),
     manufacturer: textField,
     brand: textField,
     model: textField,
-    sku: derivedFieldOf(z.string()),
+    sku: valueFieldOf(z.string()),
     driver_type: driverRolesField,
-    categories: categoriesField.optional(),
     series: textField.optional(),
-    nominal_size_cm: scrapedFieldOf(z.number()).optional(),
+    // The links the app opens (QO395): a datasheet, a product page and a listing page, the maker's
+    // and, when the maker publishes no datasheet, the distributor's copy (QO282, John 2026-10-19).
+    // Any other source stays in driver.json.
     data_sources: bookkeepingFieldOf(z.strictObject({
         manufacturer_datasheet: z.string().optional(),
         manufacturer_product_page: z.string().optional(),
         manufacturer_listing_page: z.string().optional(),
-        // Backup sources when the maker publishes no datasheet (QO282, John 2026-10-19).
         distributor_datasheet: z.string().optional(),
         distributor_product_page: z.string().optional(),
         distributor_listing_page: z.string().optional(),
     })),
-    // Retired (John, 2026-10-04): the app picks a reading's origin itself (selectOrigin.ts). Older
-    // records still carry it, so it parses; nothing reads it and OpenISD never writes it.
-    authoritative: bookkeepingFieldOf(z.string()).optional(),
     product_image: textField.optional(),
     description: textField.optional(),
     surround_material: textField.optional(),
@@ -583,6 +509,9 @@ export const openISDDeviceJsonSchema = z.strictObject({
         }),
         origin: z.string(),
     })).optional(),
+    // Which format this record is in (`schemaVersion.ts`). Last, so a save adds no diff noise to
+    // the keys above. Set by the load upgrade; a record the app builds itself gets it when saved.
+    schemaVersion: z.number().optional(),
 });
 
 /**
@@ -995,6 +924,8 @@ export type OpenISDProjectJson = z.infer<typeof openISDProjectJsonSchema>;
 export const openISDProjectSessionJsonSchema = z.strictObject({
     id: z.string().min(1),
     label: z.string(),
+    // Which format this file is in (`schemaVersion.ts`); written on every save, set by the load upgrade.
+    schemaVersion: z.number().optional(),
     saved: openISDProjectJsonSchema,
     edited: openISDProjectJsonSchema.nullable(),
 });

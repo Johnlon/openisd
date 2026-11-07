@@ -138,6 +138,11 @@ Each has a gate test where it can be enforced:
   written as strings in the test. It tests nothing; import the real module.
 - **A test of a test helper:** asserting a mock factory's own defaults.
 - **The same behaviour pinned twice at the same layer:** keep the stronger test, remove the other.
+- **A test that asserts the current wrong behaviour:** a test asserts the RIGHT behaviour, never the
+  current wrong one (John, 1 Nov 2026: "this is criminal"). A defect we cannot fix now is the right
+  expectation under `it.fails` / `test.fails`, whose title or adjacent comment names its bug file
+  (`BUG_<date>_<slug>`); a test that pins a defect as correct is itself a defect and gets a bug file.
+  Gate: `architecture-tests-never-pin-a-defect.test.ts`.
 - A file named after a layer ("wiring", "logic", "app", "advanced"), a bug, a ticket or a
   behaviour sentence ("tab-scroll", "blur-must-notify").
 

@@ -5,6 +5,7 @@ import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { blankDeviceRecord } from '../driver/blankDeviceRecord.js';
 import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';
+import { CURRENT_SCHEMA_VERSION } from '../schemaVersion.js';
 
 /** A radiator that belongs to no box — straight out of the bundle, or served from My PRs. The
  *  ONLY radiator type the selector popup and the PR editor ever see, and what `configurePR()`
@@ -52,7 +53,7 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
      *  record it stores, never field by field. Clones before handing it out, so the caller can
      *  store the result without aliasing this radiator's own live record. */
     clonePassiveRadiator(): RadiatorDeviceJson {
-        return structuredClone(this.slot.value);
+        return {...structuredClone(this.slot.value), schemaVersion: CURRENT_SCHEMA_VERSION};
     }
 
     /** The record as the app holds it — the radiator's counterpart of `OpenISDDriver.toOpenIsdDeviceJson()`,

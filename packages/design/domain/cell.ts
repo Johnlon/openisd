@@ -1,7 +1,5 @@
 import type {DqIssue, SolverField, SolverInput} from '@openisd/design/engine';
 import type {SpecEntryJson} from './openisdSchema.js';
-import type {DqMark} from './specEntry.js';
-import {isUsable} from './corroboration.js';
 import {halfUlp} from './precision.js';
 
 // ───────────────────────────────── Capability atoms ─────────────────────────────────────────────
@@ -392,7 +390,7 @@ export function entryField(
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v, precision) => { liveDq = []; slot.set({ state: 'C', value: v, precision }); },
-    dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
+    dq: (list) => { liveDq = list; },
     notAvailable: () => {
       liveDq = [];
       if (slot.value?.state === 'C') {
@@ -404,68 +402,17 @@ export function entryField(
 
 /** D13 — the STATED precision of this value, never the precision the field could support.
  *
- *  Three sources, in order of how directly each one knows what was stated:
- *  1. the winning reading's `read_precision` — the scraper measured it and says so;
- *  2. the entry's own `precision`, written when the value was entered: the entering unit's
+ *  Two sources, in order of how directly each one knows what was stated:
+ *  1. the entry's own `precision`, written when the value was entered: the entering unit's
  *     least significant digit, in SI. A value typed into a field showing 2 decimals of grams
- *     states 30 g to ±0.005 g, and the conversion to `0.03` kg is not allowed to lose that;
- *  3. the printed decimals of the stored value. A record stating `0.5` kg states one decimal of
+ *     states 30 g to ±0.005 g, and the conversion to `0.03` kg is not allowed to lose that. A
+ *     scraped value gets it from the winning reading's `read_precision` when the bridge writes
+ *     the record, or the load upgrade works it out (`slimModel.ts`);
+ *  2. the printed decimals of the stored value. A record stating `0.5` kg states one decimal of
  *     a kilogram and nothing finer — `0.5` is not `0.50000` — so this is the right answer for a
  *     value that arrived as a number in a file and never went through a field. */
 function entryPrecision(entry: Extract<SpecEntryJson, {state: 'E'}>): number {
-  return statedPrecisionOf(entry) ?? halfUlp(entry.value);
-}
-
-/** Sources 1 and 2 of `entryPrecision`: what the entry states, without the printed-decimals
- *  fallback, which the value alone supplies. Undefined when the entry states none. */
-export function statedPrecisionOf(entry: Extract<SpecEntryJson, {state: 'E'}>): number | undefined {
-  const reading = entry.origin !== undefined ? entry.readings?.[entry.origin] : undefined;
-  const precision = reading !== undefined && isUsable(reading) ? reading.read_precision : undefined;
-  return precision ?? entry.precision;
-}
-
-/** One `DqIssue` as the debug-trail mark it becomes (D14/D14a) — `params` carries the finding
- *  itself (numbers/strings/string arrays only), not just prose. `non-physical`, plausibility's
- *  own `out-of-range` (vent/PR `Vb`/`Fb`), `target-unreachable`, `invalid-value` and
- *  `negative-value` keep the generic shape this function always wrote before D14 — only `inconsistent-inputs`,
- *  `missing-dependencies` and the driver-field `out-of-range` (D14, `OutOfRangeIssue`, told apart
- *  from plausibility's by `'field' in issue`) get a mark that names what it found. */
-function issueMark(issue: DqIssue, detail: string): DqMark {
-  switch (issue.kind) {
-    case 'inconsistent-inputs':
-      return {
-        kind: 'calc', severity: 'error', rule: 'inconsistent-inputs',
-        params: {
-          target: issue.target, fields: [...issue.fields], formula: issue.formula,
-          expected: issue.expected, actual: issue.actual, relative: issue.relative,
-        },
-        detail,
-      };
-    case 'missing-dependencies':
-      return {
-        kind: 'calc', severity: 'error', rule: 'missing-dependencies',
-        params: { target: issue.target, missing: [...new Set(issue.routes.flatMap(r => r.missing))] },
-        detail,
-      };
-    case 'out-of-range':
-      if ('field' in issue) {
-        return {
-          kind: 'range', severity: 'error',
-          rule: issue.side === 'below' ? 'range-below-min' : 'range-above-max',
-          params: { field: issue.field, value: issue.value, limit: issue.limit },
-          detail,
-        };
-      }
-      return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
-    case 'approximate-charts':
-      return { kind: 'calc', severity: 'warn', rule: 'approximate-charts', params: { fields: [...issue.fields] }, detail };
-    case 'non-physical':
-    case 'target-unreachable':
-    case 'invalid-value':
-    case 'negative-value':
-    case 'required-value':
-      return { kind: 'calc', severity: 'error', rule: 'issue', params: {}, detail };
-  }
+  return entry.precision ?? halfUlp(entry.value);
 }
 
 /** `entryField` for a value that is never N: an empty slot reads `fallback()` as calculated.
@@ -484,22 +431,7 @@ export function defaultingEntryField(
     entered: (v, precision) => { liveDq = []; slot.set({ state: 'E', value: v, precision }); },
     clear: () => { liveDq = []; slot.set(undefined); },
     calculated: (v) => { liveDq = []; slot.set({ state: 'C', value: v }); },
-    dq: (list) => { liveDq = list; writeEntryDq(slot, list); },
-  });
-}
-
-/** Records that `list` of live issues happened, for the on-disk debug trail only — never read
- *  back into a field's own `dq` (see `entryField`). No entry, no mark: an absent slot has
- *  nothing to carry a note on. */
-export function writeEntryDq(
-  slot: SimpleField<SpecEntryJson | undefined>,
-  list: readonly DqIssue[],
-): void {
-  const current = slot.value;
-  if (current === undefined || current.state === 'N') return;
-  slot.set({
-    ...current,
-    dq_calculated: list.map(issue => issueMark(issue, issue.text)),
+    dq: (list) => { liveDq = list; },
   });
 }
 

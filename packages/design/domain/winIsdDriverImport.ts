@@ -48,11 +48,7 @@ function wdrVCConEntry(
     const stated = Number(raw);
 
     if (stated === 1 || stated === 2) {
-        return {
-            state: 'E', value: stated,
-            origin: 'manual',
-            readings: {manual: {actual_reading: raw, read_value: stated}},
-        };
+        return {state: 'E', value: stated};
     }
     // Out of range for the two-position dropdown WinISD's own UI offers (1 parallel, 2 series)
     // — not a value a human could have entered, so it is omitted rather than coerced into an
@@ -77,21 +73,13 @@ function wdrNumVCEntry(
 ): SpecEntryJson {
     const stated = Number(cell.value);
     if (Number.isInteger(stated) && stated >= 1 && stated <= 4) {
-        return {
-            state: 'E', value: stated,
-            origin: 'manual',
-            readings: {manual: {actual_reading: cell.value, read_value: stated}},
-        };
+        return {state: 'E', value: stated};
     }
     warnings.push({
         level: 'warn', field: 'numVC',
         message: `numVC=${stated} is not a coil count between 1 and 4 — read as 1`,
     });
-    return {
-        state: 'E', value: 1,
-        origin: 'manual',
-        readings: {manual: {actual_reading: cell.value, read_value: 1}},
-    };
+    return {state: 'E', value: 1};
 }
 
 /** Read the `.wdr` row `wdrKey` into the record's spec entries, under `schemaKey`. C (derived) is
@@ -126,11 +114,7 @@ function readSpecEntryInto(
     } else if (wdrKey === 'numVC') {
         entries[schemaKey] = wdrNumVCEntry(cell, warnings);
     } else {
-        entries[schemaKey] = {
-            state: 'E', value: numValue,
-            origin: 'manual',
-            readings: {manual: {actual_reading: cell.value, read_value: numValue}},
-        };
+        entries[schemaKey] = {state: 'E', value: numValue};
     }
 }
 
@@ -157,11 +141,7 @@ function perCoilEntryInto(
     const entry = entries[schemaKey];
     if (entry?.state !== 'E') return;
     const value = perCoil(entry.value);
-    entries[schemaKey] = {
-        ...entry,
-        value,
-        readings: {manual: {actual_reading: wdr.cell(wdrKey).value, read_value: value}},
-    };
+    entries[schemaKey] = {...entry, value};
 }
 
 export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
@@ -195,7 +175,6 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     readSpecEntryInto(specEntries, wdr, 'Mms_kg', 'Mms', warnings);
     readSpecEntryInto(specEntries, wdr, 'Sd_m2', 'Sd', warnings);
     readSpecEntryInto(specEntries, wdr, 'Vas_m3', 'Vas', warnings);
-    readSpecEntryInto(specEntries, wdr, 'Dia_m', 'Dia', warnings);
     readSpecEntryInto(specEntries, wdr, 'Vd_m3', 'Vd', warnings);
     readSpecEntryInto(specEntries, wdr, 'no', 'no', warnings);
     readSpecEntryInto(specEntries, wdr, 'Dd_m', 'Dd', warnings);
@@ -249,15 +228,11 @@ export function winISDDriverToOpenISDDeviceJson(wdr: WinISDDriver):
     // A file with no tag — every real WinISD file — falls back to `woofer`, today's behaviour.
     const record: OpenISDDeviceJson = {
         uuid: {value: newUuid()},
-        quality: {
-            confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [],
-            parse_errors: [], cross_source_only: [],
-        },
         manufacturer: {value: manufacturer},
         brand: {value: brand},
         model: {value: model},
         // A WinISD file states no short code (QO259).
-        sku: {value: '', grounds: [{origin: 'manual', reading: ''}]},
+        sku: {value: ''},
         driver_type: {value: [...(wdr.driverTypes() ?? ['woofer'])]},
         data_sources: {value: {}},
         ...(providedBy ? {provided_by: providedBy} : {}),

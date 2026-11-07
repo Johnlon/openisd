@@ -725,12 +725,6 @@
     "functions": 85,
     "statements": 90
   },
-  "packages/ui/src/logic/unknownVoiceCoilReading.ts": {
-    "lines": 100,
-    "branches": 84,
-    "functions": 100,
-    "statements": 86
-  },
   "packages/ui/src/logic/urlAppState.ts": {
     "lines": 100,
     "branches": 100,

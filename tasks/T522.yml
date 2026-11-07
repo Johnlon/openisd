@@ -9,7 +9,7 @@ done_test: bash scripts/test.sh packages/design/test/fields/caret-spin.test.ts
 files:
   - tasks/T522.yml
   - packages/ui/test/visual/SOURCES.sha256
-  - bugs/BUG_20261021_sealed-box-volume-no-spin-underline.md
+  - bugs/archive/BUG_20261021_sealed-box-volume-no-spin-underline.md
   - packages/design/fields/caretSpin.ts
   - packages/design/fields/index.ts
   - packages/design/test/fields/caret-spin.test.ts

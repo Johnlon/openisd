@@ -20,7 +20,7 @@ import {DriverScope} from '../../src/driverScope.js';
 import {myDriverRepoOn, projectRepoOn, exportedFilesOn} from '../fixtures/repoOn.js';
 
 const NONE: SearchCriteria = {
-  query: '', typeStates: {}, fsMin: '', fsMax: '', sdMin: '', sdMax: '', selZ: [], favoritesOnly: false, favorites: [],
+  query: '', typeStates: {}, fsMin: '', fsMax: '', rangeFrom: '', rangeTo: '', rangeKeepUnstated: true, sdMin: '', sdMax: '', selZ: [], favoritesOnly: false, favorites: [],
 };
 
 describe('activeFilterLabels: which filters are on, in words', () => {
@@ -39,6 +39,10 @@ describe('activeFilterLabels: which filters are on, in words', () => {
 
   it('names a maximum alone', () => {
     expect(activeFilterLabels({...NONE, fsMax: '40'}, DriverScope.Bundled)).toEqual(['Fs ≤ 40 Hz', 'Bundled only']);
+    expect(activeFilterLabels({...NONE, rangeFrom: '40', rangeTo: '2000'}, DriverScope.All)).toEqual(['Range 40–2000 Hz']);
+    expect(activeFilterLabels({...NONE, rangeFrom: '40'}, DriverScope.All)).toEqual(['Range from 40 Hz']);
+    expect(activeFilterLabels({...NONE, rangeTo: '2000'}, DriverScope.All)).toEqual(['Range to 2000 Hz']);
+    expect(activeFilterLabels({...NONE, rangeFrom: '40', rangeKeepUnstated: false}, DriverScope.All)).toEqual(['Range from 40 Hz, stated only']);
   });
 });
 
@@ -60,7 +64,7 @@ describe('the driver list filters', () => {
     if (!saved) throw new Error('the driver must save');
     const browsing = createDriverBrowsingState({
       driverRepo: createBundledDriverRepo({
-        fetch: () => Promise.reject(new Error('fetch not used')), baseUrl: '/', engine, maxAge_ms: 1, now: Date.now,
+        bundle: () => Promise.reject(new Error('catalogue not used')), engine, maxAge_ms: 1, now: Date.now,
       }),
       myDriverRepo, prefs: createPrefsRepo(storage, () => undefined), logging,
       selection: createDriverSelection({appState, presentation}), files, confirmReset: {ask: async () => true},

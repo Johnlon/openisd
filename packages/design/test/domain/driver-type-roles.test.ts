@@ -34,11 +34,10 @@ function withRoles(roles: unknown): unknown {
 }
 
 describe('driver_type roles — schema', () => {
-  it('accepts a two-role list, with categories', () => {
+  it('accepts a two-role list', () => {
     const parsed = OpenISDDeviceJson.fromDriverYmlRecord(withRoles(['woofer', 'midrange']));
     assert.ok('json' in parsed, JSON.stringify(parsed));
     assert.deepEqual(parsed.json.driver_type.value, ['woofer', 'midrange']);
-    assert.equal(parsed.json.categories?.value[0]?.label, 'Woofers');
   });
 
   it('refuses an empty list', () => {
@@ -57,13 +56,13 @@ describe('driver_type roles — schema', () => {
 });
 
 describe('driver_type roles — the bridge', () => {
-  it('converts a list-shaped driver.json and mirrors driver_type and categories into openisd.json', () => {
+  it('converts a list-shaped driver.json and mirrors driver_type into openisd.json (categories stay in driver.json)', () => {
     const result = new DriverRecordConverter(createEngine()).driverYmlToOpenisdAndWdr(fixtureWithRoles(['woofer', 'midrange']));
     assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
     assert.equal(typeof result.wdr, 'string');
     assert.ok(result.openisd !== null);
     const out: unknown = JSON.parse(result.openisd);
-    assert.ok(typeof out === 'object' && out !== null && 'driver_type' in out && 'categories' in out);
+    assert.ok(typeof out === 'object' && out !== null && 'driver_type' in out && !('categories' in out));
     const driverType = out.driver_type;
     assert.ok(typeof driverType === 'object' && driverType !== null && 'value' in driverType);
     assert.deepEqual(driverType.value, ['woofer', 'midrange']);

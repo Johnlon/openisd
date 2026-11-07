@@ -4,7 +4,7 @@ import type {Locator} from '@playwright/test';
 
 /**
  * A ▲▼ tap with the keyboard up closes the keyboard; the box stays where it was on screen, so the
- * next tap at the same spot steps the same box (bugs/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md).
+ * next tap at the same spot steps the same box (bugs/archive/BUG_20261019_phone-field-jumps-when-stepper-closes-keyboard.md).
  * The keyboard is played by shrinking the viewport, as the phone's visible screen shrinks.
  */
 const PHONE = {width: 374, height: 705};

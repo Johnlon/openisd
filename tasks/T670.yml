@@ -1,0 +1,12 @@
+id: T670
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: ec9840d2114e69addcbf9143a8da62b6089ef114
+goal: The number box's blinking cursor keeps the value's own colour for entered, calculated and not-available values (BUG_20261027_rendition-branch-calculated-values-shown-entered)
+done_test: bash scripts/test.sh packages/ui/test/architecture/advanced-air-fields-wrap.test.ts
+files:
+  - tasks/T670.yml
+  - packages/ui/test/ui/field-cursor.browser.spec.ts
+  - bugs/BUG_20261027_rendition-branch-calculated-values-shown-entered.md

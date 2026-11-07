@@ -9,11 +9,13 @@ const props = defineProps<{
   inputId: string;
   /** How wide the control is on the desktop; the phone's row sizes its own and passes none. */
   width?: PickWidth;
+  /** The control takes the common number field's value width and left edge, so it lines up with the count beside it. */
+  common?: boolean;
 }>();
 </script>
 
 <template>
-  <div class="ui-field ui-pick-field" :style="{'--pick-width': props.width?.css}">
+  <div class="ui-field ui-pick-field" :class="{'ui-pick-common': common}" :style="{'--pick-width': props.width?.css}">
     <label class="ui-field-label" :for="inputId">{{ label }}</label>
     <span class="ui-field-value"><slot /></span>
     <span v-if="$slots.dq" class="ui-field-dq"><slot name="dq" /></span>
@@ -29,6 +31,9 @@ const props = defineProps<{
   column-gap: 4px;
   align-items: center;
 }
+.ui-pick-common { --stepper-w: var(--ctl-stepper-w, 14px); --pick-width: calc(90px + 2px + 2 * var(--stepper-w)); }
+/* The count dropdown beside it is the value column less its 4 px gap; the same width, never wider. */
+.ui-pick-field.ui-pick-common:not(.mob-ui-field) :deep(select) { width: calc(var(--pick-width) - 4px); }
 .ui-pick-field > label { grid-column: 1; white-space: nowrap; }
 .ui-pick-field .ui-field-value { grid-column: 2; display: inline-flex; align-items: center; }
 .ui-pick-field:not(.mob-ui-field) :deep(select), .ui-pick-field:not(.mob-ui-field) :deep(input) { width: 100%; }

@@ -8,7 +8,7 @@ import type {
   SweepDriver,
   VentSolverParams,
 } from '@openisd/design/engine';
-import {availableAir, createEngine} from '@openisd/design/engine';
+import {createEngine} from '@openisd/design/engine';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {halfUlp} from '../../domain/precision.js';
 
@@ -191,7 +191,7 @@ function bagFromDriverHandles(p: DriverSolverParams): TestSolverQuantities {
  *  air being a parameter at all. */
 export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERENCE_AIR): TestSolverQuantities {
   const handles = driverHandlesFrom(d);
-  engine.driver.solve(handles, availableAir(air));
+  engine.driver.solve(handles, air);
   return bagFromDriverHandles(handles);
 }
 
@@ -199,7 +199,7 @@ export function solveConsistencyGroup(d: TestSolverQuantities, air: Air = REFERE
  *  the ONE place this check now runs (co-located with the solve it validates, S2-10). `d` is
  *  entered-only, matching the deleted `checkConsistency()`'s own contract. */
 export function checkConsistency(d: TestSolverQuantities, air: Air = REFERENCE_AIR) {
-  return engine.driver.solve(driverHandlesFrom(d), availableAir(air));
+  return engine.driver.solve(driverHandlesFrom(d), air);
 }
 
 function prHandlesFrom(p: TestPrQuantities): PrSolverParams {
@@ -231,12 +231,12 @@ function bagFromPrHandles(p: PrSolverParams): TestPrQuantities {
  *  every one of them unchanged; a test specifically proving air-sensitivity passes its own. */
 export function solvePrConsistencyGroup(d: TestPrQuantities, air: Air = REFERENCE_AIR): TestPrQuantities {
   const handles = prHandlesFrom(d);
-  engine.pr.solve(handles, availableAir(air));
+  engine.pr.solve(handles, air);
   return bagFromPrHandles(handles);
 }
 
 export function checkPrConsistency(d: TestPrQuantities, air: Air = REFERENCE_AIR) {
-  return engine.pr.solve(prHandlesFrom(d), availableAir(air));
+  return engine.pr.solve(prHandlesFrom(d), air);
 }
 
 function ventHandlesFrom(v: TestVentQuantities): VentSolverParams {
@@ -260,12 +260,12 @@ function bagFromVentHandles(v: VentSolverParams): TestVentQuantities {
 
 export function solveVentConsistencyGroup(d: TestVentQuantities, air: Air = REFERENCE_AIR): TestVentQuantities {
   const handles = ventHandlesFrom(d);
-  engine.vent.solve(handles, availableAir(air));
+  engine.vent.solve(handles, air);
   return bagFromVentHandles(handles);
 }
 
 export function checkVentConsistency(d: TestVentQuantities, air: Air = REFERENCE_AIR) {
-  return engine.vent.solve(ventHandlesFrom(d), availableAir(air));
+  return engine.vent.solve(ventHandlesFrom(d), air);
 }
 
 function sealedAlignmentHandlesFrom(s: TestSealedAlignmentQuantities): SealedAlignmentSolverParams {

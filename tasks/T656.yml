@@ -1,0 +1,16 @@
+id: T656
+release_note: "The SPL and Maximum SPL chart help now links to Eminence's plain guide to SPL instead of three theory references."
+repo: openisd
+owner: fable
+status: done
+landed: e8bda1f22e25c00e52c07c0cc8533822695841b6
+goal: SPL and Maximum SPL chart help popups link only to the Eminence 'Understanding SPL' page (John, 3 Nov)
+done_test: bash scripts/test.sh packages/design/test/fields/chartHelp.test.ts
+files:
+  - tasks/T656.yml
+  - packages/design/fields/chartHelpText.ts
+  - packages/design/test/fields/chartHelp.test.ts
+  - packages/ui/test/ui/mobile-chart-help.browser.spec.ts
+  - bugs/BUG_20261103_phone-spl-help-popup-scrolls.md
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json

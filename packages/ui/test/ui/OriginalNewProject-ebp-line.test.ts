@@ -1,7 +1,8 @@
 /**
  * BUG_20261019_desktop-wizard-ebp-no-space-after-colon: wizard step 3's EBP line reads
  * "Efficiency Bandwidth Product (EBP): 78.9". Vue drops whitespace between two elements when it holds a
- * line break, so the label and the value must be separated by a space Vue keeps.
+ * line break, so the label and the value must be separated by a space Vue keeps. T676 added the About EBP
+ * i button after the value, so it is the row's last child; the space between label and value is what is tested.
  */
 import {describe, it} from 'vitest';
 import assert from 'node:assert/strict';
@@ -30,6 +31,6 @@ describe('OriginalNewProject step 3 EBP line', () => {
     const row = findByClass(descriptor.template.ast.children, 'ebp-row');
     assert.ok(row, 'the .ebp-row element');
     const kinds = row.children.map(c => (c.type === NodeTypes.ELEMENT ? c.tag : c.type === NodeTypes.TEXT ? `text:${c.content}` : String(c.type)));
-    assert.deepEqual(kinds, ['span', 'text: ', 'strong']);
+    assert.deepEqual(kinds, ['span', 'text: ', 'strong', 'WizardInfoButton']);
   });
 });

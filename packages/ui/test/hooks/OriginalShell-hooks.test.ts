@@ -11,7 +11,6 @@ import {testAppLogic} from './testAppLogic.js';
 import {createEngine} from '@openisd/design/engine';
 import {OpenISDProject, ProjectBuilder} from '@openisd/design';
 import {
-  airFieldDataQuality,
   createEnvironmentAir,
   fillBlankMeta,
   useOriginalShell,
@@ -67,44 +66,7 @@ describe('OriginalShell-hooks', () => {
       vi.restoreAllMocks();
     }
   });
-
-  describe('airFieldDataQuality', () => {
-    it('returns empty array when value is null', () => {
-      expect(airFieldDataQuality('temperature', null)).toEqual([]);
-      expect(airFieldDataQuality('humidity', null)).toEqual([]);
-      expect(airFieldDataQuality('pressure', null)).toEqual([]);
-    });
-
-    it('validates temperature limits (0–400)', () => {
-      expect(airFieldDataQuality('temperature', 293.15)).toEqual([]);
-      expect(airFieldDataQuality('temperature', -5)).toEqual([
-        'Temperature is outside the sane range (0–400)',
-      ]);
-      expect(airFieldDataQuality('temperature', 500)).toEqual([
-        'Temperature is outside the sane range (0–400)',
-      ]);
-    });
-
-    it('validates relative humidity limits (0–100)', () => {
-      expect(airFieldDataQuality('humidity', 50)).toEqual([]);
-      expect(airFieldDataQuality('humidity', -1)).toEqual([
-        'Relative humidity is outside the sane range (0–100)',
-      ]);
-      expect(airFieldDataQuality('humidity', 101)).toEqual([
-        'Relative humidity is outside the sane range (0–100)',
-      ]);
-    });
-
-    it('validates air pressure limits (1000–200000)', () => {
-      expect(airFieldDataQuality('pressure', 101325)).toEqual([]);
-      expect(airFieldDataQuality('pressure', 500)).toEqual([
-        'Air pressure is outside the sane range (1000–200000)',
-      ]);
-      expect(airFieldDataQuality('pressure', 250000)).toEqual([
-        'Air pressure is outside the sane range (1000–200000)',
-      ]);
-    });
-  });
+;
 
   describe('createEnvironmentAir', () => {
 
@@ -176,13 +138,26 @@ describe('OriginalShell-hooks', () => {
       expect(envTempStored.value).toBe(false);
     });
 
-    it('flags a temperature outside 0-400K via envTempDq, same rule as airFieldDataQuality', () => {
+    it('shows the field\'s own mark, with its reason, for a temperature the air model does not cover', () => {
       const {project} = createCompleteProject();
-      const {advTemp, envTempDq} = harness(project);
+      const {tick, advTemp, envTempDq} = harness(project);
 
-      advTemp.value = 500;
-      expect(envTempDq.value.dq).toEqual(airFieldDataQuality('temperature', 500));
+      advTemp.value = 5000;
+      tick();
+      expect(envTempDq.value.dq).toEqual(project.envTempK.dq.map(issue => issue.text));
       expect(envTempDq.value.dq.length).toBeGreaterThan(0);
+    });
+
+    it('shows a mark with the reason on a typed c the air cannot honour and on the temperature it could not solve', () => {
+      const {project} = createCompleteProject();
+      const {tick, advSoundVelocity, envSoundVelocityDq, envTempDq} = harness(project);
+
+      project.clearAir();
+      advSoundVelocity.value = 900;
+      tick();
+      expect(envSoundVelocityDq.value.dq.join(' ')).toContain('no temperature in range gives this c');
+      expect(envTempDq.value.dq.join(' ')).toContain('no temperature in range gives this c');
+      expect(envSoundVelocityDq.value.dqState).toBe('E');
     });
 
     it('clearing each air field text clears its entry and reads back as the app default, calculated', () => {

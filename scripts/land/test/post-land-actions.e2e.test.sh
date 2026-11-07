@@ -16,13 +16,16 @@ fail() { echo "FAIL $1"; fails=$((fails + 1)); }
 
 # The fake gh. Per sha, in $FAKE_GH: <sha>.conclusion (success|failure; missing = no run yet),
 # <sha>.log (--log-failed), <sha>.artifacts/failures-<n>/ (run download), <sha>.watch (seconds the watch
-# takes). The run id is the sha. Every call is logged to $FAKE_GH/calls.
+# takes), <sha>.event (what started the run: push, the default, or workflow_dispatch for a hand start; a
+# `run list --event X` sees only runs X started). The run id is the sha. Every call is logged to $FAKE_GH/calls.
 mkdir -p "$SCRATCH/bin"
 cat > "$SCRATCH/bin/gh" <<'GH'
 #!/usr/bin/env bash
 echo "$*" >> "$FAKE_GH/calls"
-[ "$1 $2" = "run list" ] && { shift 2; while [ $# -gt 0 ]; do [ "$1" = --commit ] && sha="$2"; shift; done
-  [ -f "$FAKE_GH/$sha.conclusion" ] && echo "$sha"; exit 0; }
+[ "$1 $2" = "run list" ] && { shift 2; event=""; while [ $# -gt 0 ]; do [ "$1" = --commit ] && sha="$2"; [ "$1" = --event ] && event="$2"; shift; done
+  [ -f "$FAKE_GH/$sha.conclusion" ] || exit 0
+  [ -n "$event" ] && [ "$event" != "$(cat "$FAKE_GH/$sha.event" 2>/dev/null || echo push)" ] && exit 0
+  echo "$sha"; exit 0; }
 id="$3"
 case "$1 $2" in
   "run watch") sleep "$(cat "$FAKE_GH/$id.watch" 2>/dev/null || echo 0)"; exit 0 ;;
@@ -63,8 +66,13 @@ fixes_for() { git -C "$SCRATCH/w/c" pull -q origin main; grep -l "sha: $1" "$SCR
 
 # 1. a green Actions run records the sha as the last green
 setup; s=$(commit_push one); echo success > "$FAKE_GH/$s.conclusion"; post "$s" a; r=$?
-if [ $r = 0 ] && [ "$(green)" = "$s" ] && grep -q "run list --repo owner/name --workflow suite.yml --event push --commit $s" "$FAKE_GH/calls"; then
+if [ $r = 0 ] && [ "$(green)" = "$s" ] && grep -q "run list --repo owner/name --workflow suite.yml --commit $s" "$FAKE_GH/calls"; then
     ok "green run records the sha"; else fail "green (r=$r) $(git -C "$SCRATCH/w/c" pull -q origin main; sed -n "/^output/,\$p" "$SCRATCH"/w/c/tasks/fixes/F1.yml)"; fi
+
+# 1b. a green run started by hand (workflow_dispatch) on the exact commit counts like a push run (QO328)
+setup; s=$(commit_push oneb); echo success > "$FAKE_GH/$s.conclusion"; echo workflow_dispatch > "$FAKE_GH/$s.event"; post "$s" a; r=$?
+if [ $r = 0 ] && [ "$(green)" = "$s" ]; then
+    ok "a hand-started green run records the sha"; else fail "hand-started green (r=$r) $(tail -3 "$SCRATCH/out.a")"; fi
 
 # 2. a red run opens an F naming the failing specs and linking the run
 setup; s=$(commit_push two); echo failure > "$FAKE_GH/$s.conclusion"

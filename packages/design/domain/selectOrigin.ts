@@ -1,7 +1,7 @@
 /**
  * D9 — which source's reading becomes a spec entry's `origin`.
  *
- * Four tiers, in rank order (John, 2026-08-30 + 2026-10-11):
+ * Four tiers, in rank order, after one override rule: a usable plausible `manual` reading wins outright (ruling QO395) (John, 2026-08-30 + 2026-10-11):
  * (1) IMPOSSIBLE or REJECTED readings are dropped first (impossible = not isPlausible for the
  *     field; Rejected = a rejected reading from T017, including text-only ones).
  * (2) Among the survivors, a STRICT majority (more than half of the survivors, not just the
@@ -12,7 +12,7 @@
  *
  * Worked examples:
  * - 2/1/1: Four surviving readings — manufacturer_product_page states 41, distributor_datasheet
- *   states 41, distributor_product_page states 42, manual states 43. The count for 41 is 2 out of
+ *   states 41, distributor_product_page states 42, supplier_note states 43. The count for 41 is 2 out of
  *   4 (50%), which is not strictly more than half (> 2), so 2/1/1 is not a strict majority and
  *   falls through to step (3) (source rank), where manufacturer_product_page wins.
  * - All-rejected: Two readings — distributor_datasheet has actual_reading 'N/A' (rejected:
@@ -27,6 +27,9 @@ import {sourceRank} from './sourceRank.js';
 export type OriginResult =
   | { readonly kind: 'winner'; readonly role: string; readonly reading: UsableReadingJson }
   | { readonly kind: 'none' };
+
+/** The role of a hand-entered override value; it outranks every other reading. */
+const MANUAL_ROLE = 'manual';
 
 type RoleReading = readonly [string, Reading];
 
@@ -54,6 +57,10 @@ export function selectOrigin(
   if (survivors.length === 0) {
     return { kind: 'none' };
   }
+
+  // A manual reading is an override: it beats every other survivor (D9 tier 0).
+  const override = survivors.find(([role]) => role === MANUAL_ROLE);
+  if (override !== undefined) return { kind: 'winner', role: override[0], reading: override[1] };
 
   // Only one value can hold a strict majority; the first survivor (best rank) carrying it wins.
   const majorityThreshold = survivors.length / 2;

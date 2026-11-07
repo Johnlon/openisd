@@ -1,5 +1,5 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
-import type { AirState, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
+import type { Air, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
 import { prSpec } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
@@ -23,7 +23,6 @@ export class OpenIsdPassiveRadiatorSpec {
     readonly Vd_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Xmax_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Xlim_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
-    readonly Dia_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Dd_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly DVol_m3: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
     readonly Thick_m: Readable<number | null> & Entered & Calculated & Precise & Writable<number> & Clearable & Calculatable<number> & Unsolvable;
@@ -48,7 +47,6 @@ export class OpenIsdPassiveRadiatorSpec {
         this.Vd_m3 = prSpec(section, 'Vd_m3');
         this.Xmax_m = prSpec(section, 'Xmax_m');
         this.Xlim_m = prSpec(section, 'Xlim_m');
-        this.Dia_m = prSpec(section, 'Dia_m');
         this.Dd_m = prSpec(section, 'Dd_m');
         this.DVol_m3 = prSpec(section, 'DVol_m3');
         this.Thick_m = prSpec(section, 'Thick_m');
@@ -90,7 +88,7 @@ export class OpenIsdPassiveRadiatorSpec {
     /** Write every figure the stated ones derive onto its field as calculated, `air` being the
      *  project's, and return the stated figures that contradict each other. A stated figure is
      *  never touched; one nothing derives reads not-available. */
-    resolve(pr: PrEngine, air: AirState): PrSpecIssue[] {
+    resolve(pr: PrEngine, air: Air): PrSpecIssue[] {
         const stated = this.#stated();
         const solved = pr.solveSpec(stated, air);
         const write = (field: Entered & Calculatable<number> & Unsolvable, value: number | null): void => {

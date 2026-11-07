@@ -51,6 +51,8 @@ LAND_LOCK="$SCRATCH/land.lock"
 CONF
     echo base > a.txt; echo base > b.txt; echo ok > tests/old.test.sh
     echo base > packages/persistence/src/openisdSchema.ts
+    echo 'export const gone = 1;' > packages/persistence/src/gone.ts
+    printf "import {gone} from '../packages/persistence/src/gone.js';\n" > tests/gone.test.ts
     touch tasks/fixes/.keep
     git add -A; git commit -qm base; git push -q origin main
     cd ..
@@ -88,6 +90,20 @@ before=$(origin_head); integrate T1 feat; r=$?
 if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && out_has "gate branch-tests" && out_has "old.test.sh"; then
     ok "deleted test refused (branch-tests)"
 else fail "deleted test (r=$r): $(show_out)"; fi
+
+# (b2) a branch that deletes a test together with every module it imports integrates (T652)
+setup; branch feat; c1 rm -q tests/gone.test.ts packages/persistence/src/gone.ts; c1 commit -qm "drop gone"; back
+before=$(origin_head); integrate T1 feat; r=$?
+if [ $r = 0 ] && [ "$(origin_head)" != "$before" ]; then
+    ok "test deleted with its module integrates"
+else fail "test deleted with its module (r=$r): $(show_out)"; fi
+
+# (b3) a branch that deletes that test but keeps its module is refused
+setup; branch feat; c1 rm -q tests/gone.test.ts; c1 commit -qm "drop gone test"; back
+before=$(origin_head); integrate T1 feat; r=$?
+if [ $r = 1 ] && [ "$(origin_head)" = "$before" ] && out_has "gate branch-tests" && out_has "gone.test.ts"; then
+    ok "test deleted, module kept: refused"
+else fail "test deleted, module kept (r=$r): $(show_out)"; fi
 
 # (c) a branch whose own test fails is refused
 setup; branch feat; echo FAILME > "$W/w1/tests/bad.test.ts"; c1 add -A; c1 commit -qm "bad test"; back

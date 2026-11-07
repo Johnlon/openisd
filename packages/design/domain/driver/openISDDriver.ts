@@ -1,5 +1,5 @@
-import {type Engine, FixedAir, availableAir} from '../../engine/index.js';
-import type { AirState, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
+import {type Engine, FixedAir} from '../../engine/index.js';
+import type { Air, DriverError, DriverIssue, EbpSuitability, SealedParams, VentedAlignment, VentedDesign } from '../../engine/index.js';
 import { realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { ReadableFieldImpl, SetOnlyFieldImpl, absentCell, enteredCell, resolvingField } from '../cell.js';
@@ -11,7 +11,10 @@ import { deviceWithoutImportSku } from '../project/withoutImportSku.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import { blankDeviceRecord } from './blankDeviceRecord.js';
 import { OpenISDDevice } from './openISDDevice.js';
+import { CURRENT_SCHEMA_VERSION } from '../schemaVersion.js';
 import type { NumericDriverSpecFieldName } from './driverSpecFieldName.js';
+import { NumberField } from '../../fields/field.js';
+import { formatSignificant } from '../../fields/format.js';
 import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
 
 /**
@@ -42,6 +45,14 @@ import { OpenIsdDriverSpec } from './openIsdDriverSpec.js';
  */
 
 const NOT_A_DRIVER = 'no woofer section — this record is a passive radiator, nothing to simulate';
+
+/** A value of the quantity `key` in the field's display unit, to 3 significant figures, then its unit. */
+function displayed(key: string, valueSI: number): string {
+    const field = NumberField.named(key);
+    if (field === undefined) return String(valueSI);
+    const unit = field.unitLabel();
+    return `${formatSignificant(field.toDisplay(valueSI))}${unit === '' ? '' : ` ${unit}`}`;
+}
 
 export abstract class OpenISDDriver extends OpenISDDevice {
     static fromConformingRecord(record: unknown, engine: Engine): OpenISDDriverStandalone | string[] {
@@ -103,16 +114,20 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  2026-10-05). An embedded driver's is the project's live environment
      *  (`OpenISDDriverEmbedded.wrap()`); a standalone driver's is the app's environment defaults.
      *  `resolve()` reads it fresh on every call. */
-    protected readonly airProvider: () => AirState;
+    protected readonly airProvider: () => Air;
 
     /** The one calculation surface. INJECTED, exactly as `OpenISDProject`'s is — a driver reports
      *  derived figures, and every one of them comes from here and nowhere else. */
     protected readonly engine: Engine;
 
+    /** The owner's cached issues when this driver is a short-lived window (an embedded driver);
+     *  absent for a standalone driver, which keeps its own. */
+    private readonly durableIssues: (() => readonly DriverIssue[]) | undefined;
+
     protected constructor(
         record: SimpleField<DriverDeviceJson>,
         engine: Engine,
-        airProvider: () => AirState,
+        airProvider: () => Air,
         /** See `OpenIsdDriverSpec`'s own parameter — only an embedded driver supplies one. */
         durableIssues?: () => readonly DriverIssue[],
     ) {
@@ -120,6 +135,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         this.engine = engine;
         this.record = record;
         this.airProvider = airProvider;
+        this.durableIssues = durableIssues;
         this.specs = new OpenIsdDriverSpec(record, 'woofer', engine.driver, engine.issues, airProvider, durableIssues);
     }
 
@@ -140,18 +156,6 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.specs[field];
     }
 
-    /** The source's own text for a field that has readings but no usable simulation value.
-     *  Each field is queried independently; a reported reading is never promoted to E or fed
-     *  into the solver by this accessor. */
-    reportedSpecReadings(field: NumericDriverSpecFieldName): readonly {source: string; text: string}[] {
-        const entry = this.record.value.specs.woofer[field];
-        if (entry === undefined || entry.state !== 'N') return [];
-        return Object.entries(entry.readings).flatMap(([source, reading]) => {
-            const text = reading.actual_reading ?? ('read_value' in reading ? String(reading.read_value) : '');
-            return text.length === 0 ? [] : [{source, text}];
-        });
-    }
-
     /** Everything this driver's stated values disagree about — an over-specified driver whose
      *  numbers cannot all be true at once — or cannot yet derive, because too few of a group
      *  (e.g. Qts's Qes/Qms pair) are stated. Empty when consistent and fully solvable.
@@ -161,7 +165,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  calculated one fed back as if it had been typed, or the group could never be reported as
      *  inconsistent no matter how wrong the user's OWN numbers are). */
     issues(): readonly DriverIssue[] {
-        return this.specs.issues();
+        return this.durableIssues === undefined ? this.specs.issues() : this.durableIssues();
     }
 
     /** What actually blanks a chart: a quantity the solver cannot derive, or a mandatory field
@@ -268,7 +272,10 @@ export abstract class OpenISDDriver extends OpenISDDevice {
         return this.issues().flatMap(issue => {
             switch (issue.kind) {
                 case 'inconsistent-inputs':
-                    return [{subject: issue.target, text: `${issue.formula} — stated as ${issue.actual}, the others imply ${issue.expected}`}];
+                    return [{
+                        subject: this.engine.issues.plainNames(issue.target),
+                        text: `stated as ${displayed(issue.target, issue.actual)}, the others imply ${displayed(issue.target, issue.expected)}, ${this.engine.issues.percentApart(issue.expected, issue.actual)} apart`,
+                    }];
                 case 'missing-dependencies':
                 case 'approximate-charts':
                 case 'out-of-range':
@@ -320,7 +327,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
      *  `{...}` spread is not enough, since every nested field object (`brand`, `driver_type`,
      *  `specs.woofer.Fs`, …) would still be the same reference as the live record. */
     cloneDriver(): DriverDeviceJson {
-        return structuredClone(this.record.value);
+        return {...structuredClone(this.record.value), schemaVersion: CURRENT_SCHEMA_VERSION};
     }
 
     /** Replace this driver's whole record with `source`'s current values. The write-back
@@ -366,7 +373,7 @@ export abstract class OpenISDDriver extends OpenISDDevice {
             () => enteredCell('sku', this.record.value.sku.value),
             {
                 entered: (v: string) => {
-                    this.record.set({...this.record.value, sku: {value: v, grounds: [{origin: 'manual', reading: v}]}});
+                    this.record.set({...this.record.value, sku: {value: v}});
                 },
             },
         );
@@ -488,7 +495,7 @@ export class OpenISDDriverStandalone extends OpenISDDriver {
         // eslint-disable-next-line prefer-const
         let driver!: OpenISDDriverStandalone;
         const record = resolvingField(raw, () => driver.resolve());
-        driver = new OpenISDDriverStandalone(record, engine, () => availableAir(new FixedAir({c: engine.environment.appAir.c(), rho: engine.environment.appAir.rho()})));
+        driver = new OpenISDDriverStandalone(record, engine, () => new FixedAir(engine.environment.solve({tempK: engine.environment.appAir.temperature(), humidityPct: engine.environment.appAir.humidity(), pressurePa: engine.environment.appAir.pressure()}).values));
         // The one-shot cache-on-load (S7-d): a standalone driver is a genuine single long-lived
         // instance, so — unlike an embedded one, rebuilt fresh on every access — resolving once
         // here is exactly the "'C' is a cache, recomputed on load" contract, not a write-on-read

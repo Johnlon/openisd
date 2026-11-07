@@ -21,6 +21,7 @@
 import {OpenISDDriver, OpenISDPassiveRadiatorStandalone} from '@openisd/design';
 import {createEngine} from '@openisd/design/engine';
 import {DriverRecordConverter} from '@openisd/design';
+import {upgradeToCurrent} from '../packages/design/domain/schemaVersion.ts';
 
 /** Whether `v` is a `state:'C'` `SpecEntryJson` — a quantity the driver's own `resolve()`
  *  (S2-7c) derived, never a fact materialising from nowhere. `{state, value}` is a shape
@@ -167,8 +168,15 @@ export function checkOpenisdRoundTrip(record, relPath) {
   // the gap; it is an API addition to packages/design and needs John's approval.
   if (typeof read.toOpenIsdDeviceJson !== 'function') return { ok: true, device: read };
 
-  const reserialisedRecord = read.toOpenIsdDeviceJson();
-  const divergence = firstDivergence(record, reserialisedRecord);
+  // `schemaVersion` is the app's stamp of the format it reads and writes (QO395); a record on disk
+  // may carry none (it reads as version 2), so the stamp is not part of the data compared. The
+  // record is compared in the slim model the app reads: what the load upgrade drops from an older
+  // record (readings, origin, quality, ...) is not loss, it stays in driver.json.
+  const withoutVersion = (r) => Object.fromEntries(Object.entries(r).filter(([key]) => key !== 'schemaVersion'));
+  const upgraded = upgradeToCurrent(record);
+  if ('refusal' in upgraded) return { ok: false, message: `${relPath}: ${upgraded.refusal}` };
+  const reserialisedRecord = withoutVersion(read.toOpenIsdDeviceJson());
+  const divergence = firstDivergence(withoutVersion(upgraded.value), reserialisedRecord);
   if (divergence) {
     return { ok: false, message: `${relPath}: round-trip mismatch at ${divergence}` };
   }

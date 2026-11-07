@@ -1,0 +1,35 @@
+id: T672
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: 8be1445fa6a40a21136e65c30016da4d2d3724a9
+ruling: QO414
+goal: DQ marks (dq_calculated, dq_scraper) are never written anywhere: My Drivers, project files, exports, backups and the driver bundle leave them out; they are always worked out live; old saved data still loads with them silently dropped
+done_test: bash scripts/test.sh packages/persistence/test/derivedMarksNeverWritten.test.ts packages/persistence/test/storageUpgrade.test.ts packages/ui/test/scripts/catalogue-bundle.test.ts
+files:
+  - tasks/T672.yml
+  - packages/design/domain/cell.ts
+  - packages/design/domain/derivedMarks.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/index.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/domain/project/projectSignal.ts
+  - packages/design/domain/specEntry.ts
+  - packages/design/test/domain/box-alignments.test.ts
+  - packages/design/test/domain/cell.test.ts
+  - packages/design/test/domain/openISDBox.test.ts
+  - packages/design/test/domain/project/project-air.coverage.test.ts
+  - packages/design/test/domain/project/slim-driver.test.ts
+  - packages/design/test/winisd/driverRecordConverter.coverage.test.ts
+  - packages/design/test/winisd/openisdToWdr.test.ts
+  - packages/design/test/winisd/wdr-comment.test.ts
+  - packages/persistence/test/storageUpgrade.test.ts
+  - packages/persistence/test/derivedMarksNeverWritten.test.ts
+  - packages/ui/test/scripts/catalogue-bundle.test.ts
+  - scripts/catalogueBundle.mjs
+  - scripts/schemagen/cases.ts
+  - scripts/schemagen/translate.ts
+  - scripts/schemagen/out/driver_model.py

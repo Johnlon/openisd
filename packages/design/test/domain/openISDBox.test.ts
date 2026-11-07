@@ -156,7 +156,7 @@ describe('OpenISDBox — sealed volume, Qtc and Fsc', () => {
     expect(project.box.sealed.volume_m3.entered).toBe(true);
   });
 
-  it('a Qtc mark written by the solver is recorded on the stored Qtc entry', () => {
+  it('a Qtc mark written by the solver is not stored on the Qtc entry (QO414)', () => {
     const project = projectOf('sealed');
     project.box.sealed.q_tc.set(0.7);
     const mark = engine.issues.targetUnreachable('q_tc', 0);
@@ -164,7 +164,7 @@ describe('OpenISDBox — sealed volume, Qtc and Fsc', () => {
     const stored: unknown = JSON.parse(project.toOwprText());
     const qtc = isRecord(stored) && isRecord(stored.edited) && isRecord(stored.edited.box) && isRecord(stored.edited.box.sealed)
       ? stored.edited.box.sealed.Qtc : undefined;
-    expect(isRecord(qtc) ? qtc.dq_calculated : undefined).toHaveLength(1);
+    expect(isRecord(qtc) ? qtc.dq_calculated : 'no entry').toBeUndefined();
   });
 
   it('an entered Fsc cannot give a volume while the driver states no Fs, Vas or Qts', () => {

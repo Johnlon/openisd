@@ -50,7 +50,7 @@ export abstract class OpenISDDevice {
         return new SetOnlyFieldImpl<string>(
             () => enteredCell('', this.#slot.value[key].value),
             {
-                entered: (v: string) => this.#slot.set({...this.#slot.value, [key]: {value: v, origin: 'entered'}}),
+                entered: (v: string) => this.#slot.set({...this.#slot.value, [key]: {value: v}}),
             },
         );
     }
@@ -64,7 +64,7 @@ export abstract class OpenISDDevice {
                     : enteredCell<string | null>('', stated.value);
             },
             {
-                entered: (v: string) => this.#slot.set({...this.#slot.value, [key]: {value: v, origin: 'entered'}}),
+                entered: (v: string) => this.#slot.set({...this.#slot.value, [key]: {value: v}}),
             },
         );
     }

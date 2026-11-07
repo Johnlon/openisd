@@ -23,7 +23,7 @@ async function chartHeight(page: Page): Promise<number> {
   return page.locator('.mob-chart-cell .gpanel').first().evaluate(el => el.getBoundingClientRect().height);
 }
 async function selectRectangularTwoVents(page: Page): Promise<void> {
-  const select = (label: string) => page.locator('.mob-crow', {hasText: label}).first().locator('select');
+  const select = (label: string) => page.locator('.mob-crow, .ui-field', {hasText: label}).first().locator('select');
   await select('Number of Vents').selectOption('2');
   await select('Shape').selectOption('slotted');
 }
@@ -57,13 +57,13 @@ for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetKind of
     const sheet = page.locator('.mob-sheet');
     await expect(sheet).toBeVisible();
     const rows = page.locator('.mob-sheet-rows');
-    await expect(page.locator('.mob-sheet-cell')).toHaveCount(sheetKind.rows(box));
+    await expect(page.locator('.mob-sheet .ui-field')).toHaveCount(sheetKind.rows(box));
 
     const vertical = await rows.evaluate(el => ({scroll: el.scrollHeight, client: el.clientHeight}));
     expect(vertical.scroll - vertical.client, `rows scroll by ${vertical.scroll - vertical.client}px`).toBeLessThanOrEqual(await allowedRowsOverflow(page));
     const horizontal = await rows.evaluate(el => ({scroll: el.scrollWidth, client: el.clientWidth}));
     expect(horizontal.scroll, `rows overflow sideways by ${horizontal.scroll - horizontal.client}px`).toBeLessThanOrEqual(horizontal.client);
-    const linesFit = await page.locator('.mob-sheet-line').evaluateAll(els => els.map(e => e.scrollWidth <= e.clientWidth));
+    const linesFit = await page.locator('.mob-sheet .ui-field').evaluateAll(els => els.map(e => e.scrollWidth <= e.clientWidth));
     expect(linesFit.every(Boolean)).toBe(true);
     expect(await chartHeight(page)).toBeGreaterThanOrEqual(MIN_CHART_PX);
 
@@ -73,16 +73,16 @@ for (const size of PHONE_SIZES) for (const box of BOXES) for (const sheetKind of
     expect(closeRect.right).toBeLessThanOrEqual(size.width);
 
     // Every row can be scrolled fully into the rows box.
-    const last = page.locator('.mob-sheet-cell').last();
+    const last = page.locator('.mob-sheet .ui-field').last();
     await last.scrollIntoViewIfNeeded();
     const lastBottom = await last.evaluate(el => el.getBoundingClientRect().bottom);
     const rowsBottom = await rows.evaluate(el => el.getBoundingClientRect().bottom);
     expect(lastBottom).toBeLessThanOrEqual(rowsBottom + 1);
-    await page.locator('.mob-sheet-cell').first().scrollIntoViewIfNeeded();
+    await page.locator('.mob-sheet .ui-field').first().scrollIntoViewIfNeeded();
 
     // An edit never resizes the sheet.
     const before = await sheet.evaluate(el => el.getBoundingClientRect().height);
-    await page.locator('.mob-sheet-cell').first().getByTitle('Increase').click();
+    await page.locator('.mob-sheet .ui-field').first().getByTitle('Increase').click();
     expect(await sheet.evaluate(el => el.getBoundingClientRect().height)).toBe(before);
     expect(await chartHeight(page)).toBeGreaterThanOrEqual(MIN_CHART_PX);
   });

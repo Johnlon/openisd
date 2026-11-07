@@ -3,7 +3,7 @@ import type {Page} from '@playwright/test';
 
 /**
  * No field label on the Original Box or Vented tab is cut by an ellipsis at 1280x800
- * (bugs/BUG_20261019_desktop-target-tuning-label-cut.md: "Tuning freq (Fb)" showed as
+ * (bugs/archive/BUG_20261019_desktop-target-tuning-label-cut.md: "Tuning freq (Fb)" showed as
  * "Target …", "Number of Vents" as "Number of Ve…"). A label may wrap onto two lines, never be cut.
  */
 

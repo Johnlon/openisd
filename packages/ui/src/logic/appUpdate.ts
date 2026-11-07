@@ -57,6 +57,9 @@ export interface AppUpdateDeps {
   readonly anyUnsaved: () => boolean;
   readonly reload: () => void;
   readonly caches: CacheStore;
+  /** A worker controlled this page when it loaded (so the page may run an old build). False on a first
+   *  install or after /about/refresh/: the first takeover then is a claim, not an update. */
+  readonly controlledAtLoad: boolean;
 }
 
 /** Where the running page stands against the deployed build. */
@@ -78,10 +81,14 @@ export class AppUpdate {
   /** The waiting worker the user was offered, or dismissed. A different one is a newer build. */
   private pending: WaitingWorker | null = null;
   private reloaded = false;
+  /** Whether a worker controls this page; the first claim of an uncontrolled page flips it. */
+  private controlled: boolean;
   /** Null until the worker is registered (or for good where it cannot be). */
   private registration: UpdateRegistration | null = null;
 
-  constructor(private readonly deps: AppUpdateDeps) {}
+  constructor(private readonly deps: AppUpdateDeps) {
+    this.controlled = deps.controlledAtLoad;
+  }
 
   /** Starts watching a registration, and checks once. */
   async attach(registration: UpdateRegistration): Promise<void> {
@@ -160,6 +167,11 @@ export class AppUpdate {
   /** The new build took over: this page, or another tab of the app, told it to. Either way this page
    *  still runs the old build, whose files the new worker no longer holds. */
   private onControllerChange(): void {
+    if (!this.controlled) {
+      // First claim of a page that loaded without a worker: it already runs the newest build.
+      this.controlled = true;
+      return;
+    }
     if (this.current.value.kind === 'switching' || !this.deps.anyUnsaved()) {
       this.reloadOnce();
       return;

@@ -98,14 +98,14 @@ describe('entryField — a field over a C/E-flagged entry slot', () => {
     expect(field.calculated).toBe(false);
   });
 
-  it('setDq(list) writes dq_calculated marks whose detail is the issue\'s own sentence, read back live through dq', () => {
+  it('setDq(list) is read back live through dq and writes nothing into the slot (QO414)', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
     const field = entryField(slot, 'x');
     field.set(5);
     const mark = issue('x');
     field.setDq([mark]);
     expect(field.dq).toEqual([mark]);
-    expect(slot.value?.dq_calculated?.[0].detail).toBe(mark.text);
+    expect(JSON.stringify(slot.value)).not.toContain('dq_calculated');
   });
 
   it('setDq() with no list at all clears dq to empty, the same as an explicit []', () => {
@@ -150,94 +150,6 @@ describe('entryField — a field over a C/E-flagged entry slot', () => {
   });
 });
 
-describe('entryField — writeEntryDq\'s persisted mark shape, per DqIssue variant (D14/D14a)', () => {
-  it('inconsistent-inputs: kind calc, rule inconsistent-inputs, params name the whole finding', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
-    const field = entryField(slot, 'Qts');
-    field.set(0.6);
-    const mark = engine.issues.inconsistentInputs('Qts', ['Qts', 'Qes', 'Qms'], 'Qts = Qes·Qms/(Qes+Qms)', 0.452, 0.6, 0.33);
-    field.setDq([mark]);
-    expect(slot.value?.dq_calculated?.[0]).toEqual({
-      kind: 'calc', severity: 'error', rule: 'inconsistent-inputs',
-      params: { target: 'Qts', fields: ['Qts', 'Qes', 'Qms'], formula: 'Qts = Qes·Qms/(Qes+Qms)', expected: 0.452, actual: 0.6, relative: 0.33 },
-      detail: mark.text,
-    });
-  });
-
-  it('missing-dependencies: kind calc, rule missing-dependencies, params name the target and every route\'s missing field, deduplicated', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
-    const field = entryField(slot, 'Qts');
-    field.set(0.4);
-    const mark = engine.issues.missingDependencies('Qts', [
-      { formula: 'Qts = Qes·Qms/(Qes+Qms)', required: ['Qes', 'Qms'], missing: ['Qes'] },
-      { formula: 'Qts = Qes·Qms/(Qes+Qms) v2', required: ['Qes', 'Qms'], missing: ['Qes'] },
-    ]);
-    field.setDq([mark]);
-    expect(slot.value?.dq_calculated?.[0]).toEqual({
-      kind: 'calc', severity: 'error', rule: 'missing-dependencies',
-      params: { target: 'Qts', missing: ['Qes'] },
-      detail: mark.text,
-    });
-  });
-
-  it('out-of-range (driver field): kind range, rule range-below-min, params name field/value/limit', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
-    const field = entryField(slot, 'Qts');
-    field.set(0.02);
-    const mark = engine.issues.outOfRange('Qts', 0.02, 0.1, 'below');
-    field.setDq([mark]);
-    expect(slot.value?.dq_calculated?.[0]).toEqual({
-      kind: 'range', severity: 'error', rule: 'range-below-min',
-      params: { field: 'Qts', value: 0.02, limit: 0.1 },
-      detail: mark.text,
-    });
-  });
-
-  it('out-of-range (driver field): rule range-above-max on the other side', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
-    const field = entryField(slot, 'Qts');
-    field.set(12);
-    field.setDq([engine.issues.outOfRange('Qts', 12, 2, 'above')]);
-    expect(slot.value?.dq_calculated?.[0]).toMatchObject({ kind: 'range', rule: 'range-above-max' });
-  });
-
-  it('out-of-range (vented plausibility, quantity/min/max shape): keeps the generic calc/issue mapping', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
-    const field = entryField(slot, 'Fb');
-    field.set(400);
-    const mark = engine.issues.quantityOutOfBand('Fb', 400, 10, 150);
-    field.setDq([mark]);
-    expect(slot.value?.dq_calculated?.[0]).toEqual({
-      kind: 'calc', severity: 'error', rule: 'issue', params: {},
-      detail: mark.text,
-    });
-  });
-
-  it('non-physical: keeps the generic calc/issue mapping', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
-    const field = entryField(slot, 'Fb');
-    field.set(-5);
-    const mark = engine.issues.nonPhysicalQuantity('Fb', -5);
-    field.setDq([mark]);
-    expect(slot.value?.dq_calculated?.[0]).toEqual({
-      kind: 'calc', severity: 'error', rule: 'issue', params: {},
-      detail: mark.text,
-    });
-  });
-
-  it('target-unreachable: keeps the generic calc/issue mapping', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
-    const field = entryField(slot, 'length_m');
-    field.set(0.5);
-    const mark = issue('length_m', 120);
-    field.setDq([mark]);
-    expect(slot.value?.dq_calculated?.[0]).toEqual({
-      kind: 'calc', severity: 'error', rule: 'issue', params: {},
-      detail: mark.text,
-    });
-  });
-});
-
 describe('entryField — precision, derived from the entry\'s own shape', () => {
   it('a calculated entry reports null precision', () => {
     const slot = fakeSlot<SpecEntryJson | undefined>(undefined);
@@ -259,17 +171,14 @@ describe('entryField — precision, derived from the entry\'s own shape', () => 
     expect(field.precision).toBeCloseTo(0.005, 9);
   });
 
-  it('an entered value with a matching reading uses that reading\'s own stated precision', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>({
-      state: 'E', value: 0.49, origin: 'datasheet',
-      readings: { datasheet: { read_value: 0.49, read_precision: 0.01 } },
-    });
+  it('an entered value that states a precision uses it', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>({ state: 'E', value: 0.49, precision: 0.01 });
     const field = entryField(slot, 'x');
     expect(field.precision).toBe(0.01);
   });
 
-  it('an entered value naming an origin with no matching reading falls back to half-ulp', () => {
-    const slot = fakeSlot<SpecEntryJson | undefined>({ state: 'E', value: 0.49, origin: 'datasheet' });
+  it('an entered value that states no precision falls back to half-ulp', () => {
+    const slot = fakeSlot<SpecEntryJson | undefined>({ state: 'E', value: 0.49 });
     const field = entryField(slot, 'x');
     expect(field.precision).toBeCloseTo(0.005, 9);
   });

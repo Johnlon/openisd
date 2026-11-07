@@ -77,16 +77,14 @@
 /* Fixed symbols use their actual text width; short symbols retain the normal rail. */
 .joined-fields .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:not(.unit-toggle) {width:max-content;min-width:34px;max-width:var(--joined-chip);padding:0;}
 .joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:not(.unit-toggle) {min-width:40px;}
+/* On the phone an empty unit (a count dropdown has none) is still the classic control height, but takes no width and shows nothing. */
+.joined-fields.app-root-mobile .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:empty {display:inline-flex;width:0;min-width:0;padding:0;border:0;overflow:hidden;}
 /* The shared subgrid owns the full box width; wide unit caps must not enlarge only the input. */
 /* Sheet inputs share the control inset; account for their resting/focused borders. */
-.joined-fields .mob-sheet-cell .num-mark-overlay {font:inherit;line-height:normal;padding:0 calc(var(--mob-col-gutter) + 1px);text-align:left;}
-.joined-fields .mob-sheet-cell:has(input:focus) .num-mark-overlay {padding-left:calc(var(--mob-col-gutter) + 2px);}
 /* Readouts retain production's UI typeface while remaining native readonly inputs. */
 .joined-fields.app-root-mobile .ui-field.ui-field-readout:is([data-field],.joined-field) .ui-field-value input[readonly] {font-family:Inter,system-ui,sans-serif;line-height:1.5;}
 
 /* Numeric entries use the same typeface in sheets as in tab/dialog fields. */
-.joined-fields.app-root-mobile .mob-sheet-cell input[data-numinput],
-.joined-fields.app-root-mobile .mob-sheet-cell .num-mark-overlay {font:15px Arial,sans-serif;}
 
 /* Long fixed symbols retain an inset inside the joined desktop outline. */
 .joined-fields:not(.app-root-mobile) .ui-field.ui-field:is([data-field],.joined-field) .ui-field-unit:not(.unit-toggle) {padding:0 4px;}
@@ -119,6 +117,11 @@
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) .ui-field-dev {grid-column:2 / 4;}
 /* PR columns retain one complete box width even when a symbol needs a wider unit cap. */
 .joined-fields:not(.app-root-mobile) .pr-controls .ui-field.ui-field[data-field] {--joined-box:150px;}
+/* The Num. of drivers and Voice coil connection dropdowns (desktop Driver tab Placement panel, wizard step 2) have
+   no number boxes under them, so they are only as wide as "Parallel" and its arrow: 90 px, both the same (QO426.c87,
+   c96, QO428.c2). Set the way .pr-controls sets its 150: the group's --joined-box; the pick list takes the same width. */
+.joined-fields:not(.app-root-mobile) .short-pick-fields .ui-field.ui-field[data-field] {--joined-box:90px;}
+.joined-fields:not(.app-root-mobile) .short-pick-fields .ui-pick-field.ui-pick-common {--pick-width:calc(90px + 4px);}
 /* The dense vent pane keeps its existing caption scale and drops only absent spinner tracks. */
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .field > label {font-size:11px;line-height:12px;}
 .joined-fields:not(.app-root-mobile) .vent-pane-tight .ui-field.ui-field[data-field]:not(:has(.num-stepper)) {--joined-buttons:0px;}

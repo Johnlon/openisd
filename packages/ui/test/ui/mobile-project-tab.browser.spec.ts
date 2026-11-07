@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * The mobile Project tab — name, creator, created/modified, description. Reached via the
  * hamburger menu (not the bottom tab bar — it's secondary, not a primary design destination).
@@ -55,7 +56,7 @@ test('Created and Modified show as "16 Oct 2026", and a typed date reads back in
 for (const typed of ['2026-10-16', '16 Oct 2026']) {
   test(`typing "${typed}" key by key keeps the typed text, and the date is stored`, async ({ page }) => {
     const created = page.locator('#mob-proj-created');
-    await created.fill('');
+    await clearWithKeyboard(created);
     await created.pressSequentially(typed);
     await expect(created).toHaveValue(typed);
     await created.blur();

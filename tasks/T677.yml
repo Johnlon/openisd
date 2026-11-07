@@ -1,0 +1,25 @@
+id: T677
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: c9ac3de0c374395f0389e16786694762f3a09e76
+goal: Bug files found incorrect or obsolete by the 5 Nov review move to bugs/archive, each with its verdict and evidence
+done_test: bash scripts/test.sh packages/ui/test/scripts/mobile-surface-manifest.test.ts
+files:
+  - tasks/T677.yml
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - bugs/BUG_20261016_storage-banner-covers-chart.md
+  - bugs/archive/BUG_20261016_storage-banner-covers-chart.md
+  - bugs/BUG_20261018_new-project-changes-other-project-box-type.md
+  - bugs/archive/BUG_20261018_new-project-changes-other-project-box-type.md
+  - bugs/BUG_20261029_driver_tuple_rejected_by_projection.md
+  - bugs/archive/BUG_20261029_driver_tuple_rejected_by_projection.md
+  - bugs/BUG_20261030_project-hides-reported-voice-coil-readings.md
+  - bugs/archive/BUG_20261030_project-hides-reported-voice-coil-readings.md
+  - bugs/BUG_20261103_phone-spl-help-popup-scrolls.md
+  - bugs/archive/BUG_20261103_phone-spl-help-popup-scrolls.md
+  - bugs/BUG_20261104_empty-input-event-does-not-hand-entry.md
+  - bugs/archive/BUG_20261104_empty-input-event-does-not-hand-entry.md
+  - bugs/BUG_20261104_refresh-recovery-reloads-again-after-landing.md
+  - bugs/archive/BUG_20261104_refresh-recovery-reloads-again-after-landing.md

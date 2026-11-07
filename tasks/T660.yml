@@ -1,0 +1,32 @@
+id: T660
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: ea27223c7717b78f8337e211bf3ef94b9738807a
+ruling: QO398
+goal: Dia is gone from the driver model; .wdr import ignores Dia and export writes Dia=0 (ruling: QO398)
+done_test: bash scripts/test.sh packages/design/test/domain/dia-retired.test.ts packages/design/test/winisd/wdr-model-coverage.test.ts packages/design/test/winisd/openisdToWdr.test.ts
+files:
+  - tasks/T660.yml
+  - bugs/archive/BUG_20261103_winisd-dia-duplicates-dd.md
+  - docs/FIELD_REFERENCE.md
+  - scripts/schemagen/out/driver_model.py
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/retiredSpecKeys.ts
+  - packages/design/domain/openIsdDeviceJsonIo.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/domain/driver/openIsdDriverSpec.ts
+  - packages/design/domain/driver/driverSpecFieldName.ts
+  - packages/design/domain/passiveRadiator/openIsdPassiveRadiatorSpec.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/domain/driverRoundTripDiffs.ts
+  - packages/design/domain/winIsdDriverImport.ts
+  - packages/design/test/domain/dia-retired.test.ts
+  - packages/design/test/domain/driver-spec-field-clear.test.ts
+  - packages/design/test/domain/driver-spec-field.test.ts
+  - packages/design/test/domain/driver-spec-floor-coverage.test.ts
+  - packages/design/test/domain/driver-value-validity.test.ts
+  - packages/design/test/domain/every-input-recalculates.test.ts
+  - packages/design/test/winisd/wdr-model-coverage.test.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json

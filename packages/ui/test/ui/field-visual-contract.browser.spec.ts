@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 import {COMPLETE_DRIVER_PROJECT_OWPR, expect, openAMobileProject, openAProject, setFocusedBoxType, test} from '../fixtures.js';
 import {forceMobileSkin} from '../fixtures/mobileSkin.js';
 import {measureFieldBorders, measureFieldContent} from '../fixtures/fieldVisualContract.js';
@@ -43,7 +44,7 @@ test('Driver phone: every field border remains painted around its value', async 
   await openClosedBox(page, 'mobile');
   await page.locator('.mob-tab').filter({hasText: /^Driver$/}).click();
   const report = await page.locator('.mob-content').evaluate(measureFieldBorders);
-  expect(report.rows).toBe(5);
+  expect(report.rows, "the five key figures and the number of drivers (a count, T690)").toBe(6);
   expect(report.controls).toBe(report.rows);
   expect(report.issues).toEqual([]);
 });
@@ -121,7 +122,7 @@ for (const width of [360, 374]) {
     await page.setViewportSize({width, height: 740});
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     const qms = page.locator('.mob-ui-field').filter({has: page.locator('label', {hasText: /^Qms$/})}).locator('input');
-    await qms.fill('');
+    await clearWithKeyboard(qms);
     await qms.blur();
     await expect(qms).toHaveValue('');
     for (const label of ['Mms', 'Cms']) {
@@ -160,7 +161,7 @@ test('PR labels reserve warning space before and after DQ appears', async ({page
   }).map(label=>label.textContent));
   expect(wraps, 'PR labels remain on one line with warning space reserved').toEqual([]);
   const before = await labelWidths();
-  await page.locator('#og-pr-vas').fill('');
+  await clearWithKeyboard(page.locator('#og-pr-vas'));
   await page.locator('#og-pr-vas').blur();
   await expect(root.locator('.ui-field-dq-btn').first()).toBeVisible();
   expect(await labelWidths()).toEqual(before);

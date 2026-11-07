@@ -10,7 +10,7 @@ files:
   - vite.config.js
   - .github/workflows/suite.yml
   - scripts/hosting/test/offline-start.e2e.mjs
-  - bugs/BUG_20261029_app-fails-to-start-offline.md
+  - bugs/archive/BUG_20261029_app-fails-to-start-offline.md
   - packages/ui/test/logic/projectChanged.test.ts
   - packages/ui/src/logic/appState.ts
   - packages/ui/test/ui/desktop-project-rows.browser.spec.ts
@@ -60,16 +60,16 @@ files:
   - packages/ui/test/ui/options-dialog.browser.spec.ts
   - packages/ui/test/ui/mobile-project-tab-classic.browser.spec.ts
   - packages/ui/test/ui/original-field-regions.browser.spec.ts
-  - bugs/BUG_20261027_gallery_commented_surfaces_overlap.md
+  - bugs/archive/BUG_20261027_gallery_commented_surfaces_overlap.md
   - tasks/T607.yml
   - bugs/BUG_20261026_ui-contract-coverage-gaps.md
   - tasks/T607-progress.md
   - packages/ui/test/fixtures/fieldVisualContract.ts
   - packages/ui/test/ui/field-visual-contract.browser.spec.ts
-  - bugs/BUG_20261026_mobile-closed-box-values-overlap-cues.md
+  - bugs/archive/BUG_20261026_mobile-closed-box-values-overlap-cues.md
   - packages/ui/src/style.css
   - packages/ui/src/ui/components/UIFieldBody.vue
-  - bugs/BUG_20261026_fixed-unit-backgrounds-cover-field-borders.md
+  - bugs/archive/BUG_20261026_fixed-unit-backgrounds-cover-field-borders.md
   - CLAUDE.md
   - packages/ui/src/ui/components/UnitToggle.vue
   - packages/ui/src/ui/components/NumInput.vue
@@ -80,11 +80,12 @@ files:
   - packages/design/fields/phoneRowSizes.ts
   - packages/design/test/fields/phoneRowColumns.test.ts
   - packages/ui/test/architecture/phone-unit-chip-owned-by-unittoggle.test.ts
+  - packages/ui/test/architecture/ui-clear-tests-use-keyboard.test.ts
   - packages/ui/src/ui/shells/original/OriginalShell.vue
   - packages/ui/test/ui/driver-editor-units.browser.spec.ts
-  - bugs/BUG_20261026_driver-selector-summary-alignment-regression.md
-  - bugs/BUG_20261026_sealed-to-pr-leaves-dummy-qms-empty.md
-  - bugs/BUG_20261026_advanced-air-density-unit-indented.md
+  - bugs/archive/BUG_20261026_driver-selector-summary-alignment-regression.md
+  - bugs/archive/BUG_20261026_sealed-to-pr-leaves-dummy-qms-empty.md
+  - bugs/archive/BUG_20261026_advanced-air-density-unit-indented.md
   - bugs/BUG_20261026_phone-warning-difference-cue-placement.md
   - packages/ui/test/ui/driver-summary-contract.browser.spec.ts
   - packages/ui/src/ui/components/DriverLibrary.vue
@@ -131,7 +132,7 @@ files:
   - packages/ui/test/ui/original-shell-layout.browser.spec.ts
   - packages/design/fields/caretSpin.ts
   - packages/design/test/fields/caret-spin.test.ts
-  - bugs/BUG_20261027_end-caret-spins-wrong-digit.md
+  - bugs/archive/BUG_20261027_end-caret-spins-wrong-digit.md
   - packages/ui/test/ui/num-input-caret.browser.spec.ts
   - docs/design/reviews/T607-argon-strategy-review.txt
   - docs/design/reviews/T607-argon-work-review.txt
@@ -160,12 +161,12 @@ files:
   - packages/ui/src/ui/joined-fields.css
 
   - scripts/publish-joined-field-review.mjs
-  - bugs/BUG_20261027_joined_field_restore_gaps.md
+  - bugs/archive/BUG_20261027_joined_field_restore_gaps.md
   - docs/design/reviews/T607-argon-joined-field-review.txt
 
   - packages/ui/test/ui/box-losses-layout.browser.spec.ts
   - docs/design/T607-surface-audit.md
-  - bugs/BUG_20261027_box_losses_label_and_surface_audit_gaps.md
+  - bugs/archive/BUG_20261027_box_losses_label_and_surface_audit_gaps.md
 
   - scripts/capture-box-losses-review.mjs
 
@@ -196,7 +197,7 @@ files:
   - packages/ui/test/ui/mobile-field-widths.browser.spec.ts
   - scripts/capture-field-consistency-review.mjs
   - scripts/publish-field-consistency-review.mjs
-  - bugs/BUG_20261027_spinner_swipe_changes_value.md
+  - bugs/archive/BUG_20261027_spinner_swipe_changes_value.md
   - bugs/BUG_20261027_phone_field_widths_differ_by_page.md
   - docs/design/reviews/T607-argon-field-consistency-review.txt
 
@@ -224,8 +225,8 @@ files:
   - scripts/mobile-surface-capture-navigation.ts
   - scripts/capture-desktop-surface-manifest.ts
   - scripts/publish-surface-visual-catalogue.ts
-  - bugs/BUG_20261027_production_capture_serviceworker_blocked.md
-  - bugs/BUG_20261027_visual_catalogue_reference_ambiguous.md
+  - bugs/archive/BUG_20261027_production_capture_serviceworker_blocked.md
+  - bugs/archive/BUG_20261027_visual_catalogue_reference_ambiguous.md
 
   - scripts/capture-approved-field-paint.ts
   - scripts/capture-approved-field-geometry.ts

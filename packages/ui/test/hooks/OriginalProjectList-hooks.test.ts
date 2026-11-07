@@ -74,6 +74,7 @@ function setupList() {
     searchOffered: false,
     projectQuery: '',
     projectOrder: view.order.value,
+    projectScope: 'all',
     projectOrders: view.orders,
     binRows: [],
     binTotal: '0 B',

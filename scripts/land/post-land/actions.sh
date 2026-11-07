@@ -42,10 +42,12 @@ stamp() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 echo "actions: start $(stamp) ${sha:0:10} ($repo $workflow)"
 
 # The run is registered a few seconds after the push. GitHub has no call that waits for it, so ask again
-# every poll_s, up to find_s.
+# every poll_s, up to find_s. Any run of the suite on this exact commit counts, whatever started it: a
+# push to land/<task>, or a hand start (workflow_dispatch) on a commit pushed straight to main (QO328,
+# John 31 Oct 2026). The newest such run is the result.
 id=""; started=$SECONDS
 while :; do
-  id="$(gh run list --repo "$repo" --workflow "$workflow" --event push --commit "$sha" --limit 1 \
+  id="$(gh run list --repo "$repo" --workflow "$workflow" --commit "$sha" --limit 1 \
         --json databaseId --jq '.[0].databaseId // empty' 2>/dev/null)" || id=""
   [ -z "$id" ] || break
   owner_alive || { echo "actions: owner $owner is gone; stopping"; exit 2; }

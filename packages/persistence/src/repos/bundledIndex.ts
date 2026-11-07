@@ -1,5 +1,5 @@
 /**
- * The bundled catalogue's index rows — docs/design/BUNDLED_CATALOGUE_API.md.
+ * The bundled catalogue's index rows.
  *
  * `scripts/bundle-drivers.mjs` writes these (through `bundledDriverIndexRowOf` /
  * `bundledPassiveRadiatorIndexRowOf` in packages/ui/src/logic/bundledIndexRows.ts, with the app's
@@ -44,6 +44,9 @@ export interface BundledDriverIndexRow extends BundledIndexRow {
   /** Air moved — what a matching radiator is sized from. */
   readonly Vd_m3: number | null;
   readonly Znom_ohm: number | null;
+  /** The frequency range the maker states: what the stated range filter reads. */
+  readonly freq_low_hz: number | null;
+  readonly freq_high_hz: number | null;
 }
 
 /** One bundled passive radiator as the PR browser lists it. Raw SI, as the record states it —

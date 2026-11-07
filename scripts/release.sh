@@ -50,6 +50,7 @@ if [ "$MODE" = approve ]; then
 const fs = require('node:fs');
 const m = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 if (m.version !== 1 || m.checks?.hostedCopies !== 'passed' || m.checks?.uiGallery !== 'passed'
+    || m.checks?.upgradeFromProduction !== 'passed'
     || typeof m.public !== 'string' || !/^\d+\.\d+\.\d+$/.test(m.public)
     || typeof m.stamp !== 'string' || !/^\d{8}T\d{4}Z$/.test(m.stamp)
     || !/^[0-9a-f]{40}$/.test(m.snapshotSha) || !/^[0-9a-f]{40}$/.test(m.mainSha)
@@ -179,6 +180,9 @@ fi
 if [ "$MODE" != approve ]; then
   # Every release starts in a browser that already runs the live build (T396). A failure stops it.
   node scripts/hosting/test/hosted-copies.e2e.mjs || refuse "hosted copies end-to-end test failed"
+  # The upgrade journey (T649): a phone profile running the LIVE production worker is updated to this
+  # build, stays usable meanwhile, and picks a radiator offline with every box filled.
+  node scripts/hosting/test/offline-catalogue.e2e.mjs --previous https://openisd.app || refuse "upgrade from the live production worker failed"
 
   # Compare this snapshot with current Latest and save the gallery outside the source tree.
   BEFORE=none
@@ -201,7 +205,7 @@ const record = {
   version: 1, public: publicNumber, stamp, snapshotSha, mainSha, latestTag,
   releaseTip, releasePush, notesFile, notesSha256, testVersion, productionVersion,
   preparedAt: Number(preparedAt), expiresAt: Number(expiresAt),
-  checks: {hostedCopies: 'passed', uiGallery: 'passed'},
+  checks: {hostedCopies: 'passed', uiGallery: 'passed', upgradeFromProduction: 'passed'},
 };
 fs.writeFileSync(path, `${JSON.stringify(record, null, 2)}\n`, {mode: 0o600});
 NODE

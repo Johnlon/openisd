@@ -13,7 +13,8 @@
 #   1. no open tasks/fixes/*.yml, unless the task is labelled `fixes`
 #   2. a fresh worktree of origin/main, node_modules hardlinked in
 #   3. git merge --squash <branch>; a conflict exits 3
-#   4. branch-tests: every test file the branch added or changed still exists, and passes
+#   4. branch-tests: every test file the branch added or changed still exists, and passes; a deleted
+#      test is refused unless the branch also deletes every module it imports (T652)
 #   5. lint, typecheck, unit (the unit half every land.sh runs)
 #   6. corpus, when the merge touches the schema, projectRepo, a loader or `driver_type`: the
 #      stored-data corpus spec and the schemagen proof (SDLC S4)
@@ -154,11 +155,30 @@ if ! git merge --squash "$BRANCH_REF" > "$WORK/merge.out" 2>&1; then
 fi
 
 # 4. branch-tests: each test the branch added or changed exists after the merge, and passes
+# A deleted test passes only when it imports at least one relative module and the branch deletes every
+# one of them: the code it tested is gone with it (T652, 2 Nov 2026: T618 removed the catalogue-file
+# loader and its test together). Any other deleted test is refused.
+deleted_with_its_modules() { # deleted_with_its_modules <test path>
+  local test="$1" dir spec base found=0 cand
+  dir="$(dirname "$test")"
+  while IFS= read -r spec; do
+    found=1
+    base="$(realpath -m --relative-to=. "$dir/${spec%.js}")"
+    for cand in "$base.ts" "$base.mts" "$base.js" "$base.mjs" "$base"; do
+      git -C "$ROOT" cat-file -e "$BASE:$cand" 2> /dev/null || continue
+      git -C "$ROOT" cat-file -e "$BRANCH_REF:$cand" 2> /dev/null && return 1
+      continue 2
+    done
+    return 1
+  done < <(git -C "$ROOT" show "$BASE:$test" | sed -nE "s/^[[:space:]]*import[^'\"]*['\"](\.\.?\/[^'\"]+)['\"].*/\1/p")
+  [ "$found" = 1 ]
+}
 unit_tests=(); sh_tests=()
 while IFS=$'\t' read -r st path; do
   case "$path" in *.test.ts|*.spec.ts|*.test.sh) ;; *) continue ;; esac
   case "$st" in
-    D) GATE_OUT=/dev/null; refuse branch-tests "$BRANCH deletes the test $path" ;;
+    D) deleted_with_its_modules "$path" && continue
+       GATE_OUT=/dev/null; refuse branch-tests "$BRANCH deletes the test $path" ;;
     *) [ -f "$path" ] || { GATE_OUT=/dev/null; refuse branch-tests "$path (added or changed by $BRANCH) is missing after the merge"; } ;;
   esac
   case "$path" in

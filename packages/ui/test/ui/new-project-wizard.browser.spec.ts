@@ -9,6 +9,22 @@ import {createEngine} from '@openisd/design/engine';
 import {owdrText, type SeedDriver} from '../fixtures/seedMyDrivers.js';
 
 const E150HE_PR_RECORD = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'public', 'drivers', 'dayton-audio', 'e150he-pr.json');
+const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');
+const CATALOGUE_SHAPE = z.object({
+  passiveRadiators: z.record(z.string(), z.unknown()),
+  passiveRadiatorRows: z.array(z.object({ uuid: z.string(), name: z.string() }).passthrough()),
+}).passthrough();
+
+/** The built catalogue.json text with the named passive radiator's record removed and its row kept. */
+function builtCatalogueWithout(name: string): string {
+  const file = join(REPO_ROOT, 'build', `test-dist-${process.env.OPENISD_TEST_PORT ?? '4100'}`, 'catalogue.json');
+  const built = CATALOGUE_SHAPE.parse(JSON.parse(readFileSync(file, 'utf8')));
+  const row = built.passiveRadiatorRows.find(r => r.name.includes(name));
+  if (row === undefined) throw new Error(`${name} is not in the built catalogue`);
+  const kept = Object.fromEntries(Object.entries(built.passiveRadiators).filter(([uuid]) => uuid !== row.uuid));
+  return JSON.stringify({ ...built, passiveRadiators: kept });
+}
+
 const WDR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..', 'drivers', 'myprobes', 'per_field_and_misc', 's-re.wdr');
 
 /**
@@ -149,7 +165,7 @@ test.describe('New Project wizard', () => {
       await modal.locator('.dlist .ditem', { hasText: 'Wizard Test RS225' }).first().click();
       await footerNext(page).click();                           // step 2
       await footerNext(page).click();                           // step 3
-      await expect(modal.locator('.ebp-row')).toHaveText(/^Efficiency Bandwidth Product \(EBP\): [\d.]+$/);
+      await expect(modal.locator('.ebp-row')).toHaveText(/^Efficiency Bandwidth Product \(EBP\): [\d.]+\?$/);  // the trailing ? is the desktop skin's help button (T690)
     });
 
     test('changing the Options air leaves an open project\'s temperature alone; a project made after it gets the new value', async ({ appPage: page }) => {
@@ -367,7 +383,7 @@ test.describe('New Project wizard', () => {
       await expect.poll(async () => parseFloat(await page.locator('#og-pr-fs').inputValue())).toBeCloseTo(18, 3);
     });
 
-    // bugs/BUG_20261031_pr-pick-leaves-values-blank.md: the pick filled the name and left the boxes blank.
+    // bugs/archive/BUG_20261031_pr-pick-leaves-values-blank.md: the pick filled the name and left the boxes blank.
     test('picking the bundled E150HE-PR fills every figure the step shows from its catalogue record, and the project shows the same', async ({ appPage: page }) => {
       const figureOf = (key: string): number => {
         const record: unknown = JSON.parse(readFileSync(E150HE_PR_RECORD, 'utf8'));
@@ -407,6 +423,50 @@ test.describe('New Project wizard', () => {
       for (const [, field, expected] of shown) {
         const box = page.locator(`[data-field="${field}"] input`);
         await expect.poll(async () => parseFloat(await box.inputValue()), { message: `${field} on the PR page` }).toBeCloseTo(expected, 1);
+      }
+    });
+
+    // QO379 (John, 2026-11-01): on the phone a pick left every box blank and said nothing. The
+    // catalogue file is the outside system here: a tab that starts being served a catalogue with
+    // the E150HE-PR record missing stands in for whatever the phone hit. The app holds the
+    // catalogue it loaded for an hour, so this is a tab of its own, routed before it loads.
+    test('a bundled radiator whose record is not in the catalogue says so on the step; Next stays disabled', async ({ browser, appPage }) => {
+      const context = await browser.newContext({ baseURL: new URL(appPage.url()).origin, viewport: { width: 1280, height: 720 } });
+      try {
+        // Served from the built catalogue on disk (a spec never fetches through the test runner).
+        const body = builtCatalogueWithout('E150HE-PR');
+        await context.route(/\/catalogue\.json$/, route => route.fulfill({ status: 200, contentType: 'application/json', body }));
+        const page = await context.newPage();
+        const pageErrors: string[] = [];
+        page.on('pageerror', e => pageErrors.push(e.message));
+        await page.addInitScript(() => {
+          try { localStorage.setItem('openisd_view', JSON.stringify({ ui: { splashSeen: true } })); } catch { /* storage disabled */ }
+          try { localStorage.setItem('openisd_persist_warning_dismissed', '1'); } catch { /* storage disabled */ }
+          try { sessionStorage.setItem('openisd_usage_notice_shown', '1'); } catch { /* storage disabled */ }
+        });
+        await page.goto('/');
+        await page.locator('.original-root').waitFor({ state: 'visible' });
+
+        await page.locator('.tb-btn[title*="New project"]').click();
+        const modal = page.locator('.overlay.open');
+        await modal.locator('.dlist .ditem').first().click();
+        await footerNext(page).click();
+        await modal.locator('button', { hasText: 'Next' }).click();
+        await modal.getByLabel('Box type').selectOption('box-passive-radiator');
+        await modal.locator('button', { hasText: 'Next' }).click();
+        await modal.locator('#np-pr-select').click();
+        await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'E150HE-PR' }).first().click();
+
+        const error = modal.locator('.np-pr-error');
+        await expect(error).toBeVisible();
+        await expect(error).toContainText('E150HE-PR');
+        await expect(error).toContainText('no record');
+        await expect(modal.locator('#np-pr-name')).toHaveValue('');
+        await expect(footerNext(page)).toBeDisabled();
+        // The failed pick is caught and shown, never an uncaught rejection.
+        expect(pageErrors).toEqual([]);
+      } finally {
+        await context.close();
       }
     });
 

@@ -50,6 +50,8 @@ export interface OriginalNewProjectDeps {
   initialDriver?: OpenISDDriver | null;
   /** The app state the wizard creates its project in; the app facade's by default. */
   appState?: AppState;
+  /** Where a failed radiator pick is recorded; the app state's by default. */
+  reportFault?: (fault: Error) => void;
 }
 
 export interface OriginalNewProjectAPI {
@@ -77,7 +79,6 @@ export interface OriginalNewProjectAPI {
   readonly nDrivers: Ref<number>;
   readonly placement: Ref<'standard' | 'iso'>;
   readonly wiring: Ref<Wiring>;
-  readonly N_DRIVERS_OPTIONS: readonly SelectorOption<number>[];
   readonly ARRAY_WIRING_OPTIONS: readonly SelectorOption<Wiring>[];
 
   // Step 3: Box type & starting volume (non-sealed types; a sealed box gets its volume from step 4)
@@ -150,6 +151,10 @@ export interface OriginalNewProjectAPI {
   loadSavedPassiveRadiator(uuid: string): void;
   /** Choose a bundled radiator by its catalogue id. */
   loadBundledPassiveRadiator(uuid: string): Promise<void>;
+  /** Counts radiator picks (chosen or defined); the step is keyed by it so a pick starts every box afresh, a refused empty entry included. */
+  readonly passiveRadiatorPickId: Ref<number>;
+  /** Why the last bundled-radiator pick failed (the radiator and the reason); null when it did not. */
+  readonly passiveRadiatorPickError: Ref<string | null>;
   /** Start a radiator that states nothing, for the user to type in. */
   defineNewPassiveRadiator(): void;
 
@@ -181,7 +186,9 @@ export const NEW_PROJECT_VENTED_QL = DEFAULT_NEW_PROJECT_VENTED_QL;
 const NEW_PROJECT_SEALED_LOSSES = {Ql: DEFAULT_NEW_PROJECT_VENTED_QL, Qa: DEFAULT_NEW_PROJECT_QA};
 
 export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProjectAPI {
-  const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, focusedProject, isModified, newProjectBoxTypeOptions, newProjectDriver } = deps?.appState ?? useApp().appState;
+  const appState = deps?.appState ?? useApp().appState;
+  const { IMPLEMENTED_BOX_TYPES, createProject: createProjectInStore, focusedProject, isModified, newProjectBoxTypeOptions, newProjectDriver } = appState;
+  const reportFault = deps?.reportFault ?? appState.reportFault;
   const eng: OriginalNewProjectEngineAreas = deps?.areas ?? useApp().engine;
   const prRepos: NewProjectPassiveRadiatorRepos = deps?.passiveRadiators
     ?? { saved: useApp().myPassiveRadiators, bundled: useApp().bundledPassiveRadiators };
@@ -227,7 +234,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   });
   const projDescription = ref('');
 
-  const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
   const hadUnsaved = computed(() => isModified.value);
 
@@ -393,19 +399,52 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
   const passiveRadiatorBrowseOpen = ref(false);
 
   function loadSavedPassiveRadiator(uuid: string): void {
+    latestPick++;
     passiveRadiatorBrowseOpen.value = false;
     const entry = prRepos.saved.list().find(e => e.uuid === uuid);
-    if (entry) passiveRadiator.value = entry.passiveRadiator;
+    if (entry) { passiveRadiator.value = ownCopy(entry.passiveRadiator); passiveRadiatorPickId.value++; }
   }
 
+  const passiveRadiatorPickError = ref<string | null>(null);
+  const passiveRadiatorPickId = ref(0);
+
+  /** The wizard edits its radiator, so it never holds the repo's cached instance: a box emptied
+   *  here would stay empty for every later pick of that radiator. */
+  function ownCopy(pr: OpenISDPassiveRadiatorStandalone): OpenISDPassiveRadiatorStandalone {
+    return OpenISDPassiveRadiatorStandalone.wrap(pr.clonePassiveRadiator());
+  }
+
+  /** The radiator's catalogue name for the error text; its id when the index cannot say. */
+  async function nameOf(uuid: string): Promise<string> {
+    const rows = await prRepos.bundled.index().catch((): readonly {readonly uuid: string; readonly name: string}[] => []);
+    const row = rows.find(r => r.uuid === uuid);
+    return row === undefined ? uuid : `${row.name} (${uuid})`;
+  }
+
+  /** The latest pick; a load that resolves after a newer pick began is dropped. */
+  let latestPick = 0;
+
   async function loadBundledPassiveRadiator(uuid: string): Promise<void> {
+    const pick = ++latestPick;
     passiveRadiatorBrowseOpen.value = false;
-    passiveRadiator.value = await prRepos.bundled.load(uuid);
+    passiveRadiatorPickError.value = null;
+    try {
+      const loaded = await prRepos.bundled.load(uuid);
+      if (pick === latestPick) { passiveRadiator.value = ownCopy(loaded); passiveRadiatorPickId.value++; }
+    } catch (thrown) {
+      if (pick !== latestPick) return;
+      const fault = thrown instanceof Error ? thrown : new Error(String(thrown));
+      const named = await nameOf(uuid);
+      passiveRadiatorPickError.value = `Could not load passive radiator ${named}: ${fault.message}`;
+      reportFault(fault);
+    }
   }
 
   function defineNewPassiveRadiator(): void {
+    latestPick++;
     passiveRadiatorBrowseOpen.value = false;
     passiveRadiator.value = OpenISDPassiveRadiatorStandalone.empty();
+    passiveRadiatorPickId.value++;
   }
 
   const passiveRadiatorView = computed<PassiveRadiatorStepView | null>(() => {
@@ -515,7 +554,6 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     nDrivers,
     placement,
     wiring,
-    N_DRIVERS_OPTIONS,
     ARRAY_WIRING_OPTIONS,
 
     boxType,
@@ -561,6 +599,8 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     passiveRadiatorBrowseOpen,
     loadSavedPassiveRadiator,
     loadBundledPassiveRadiator,
+    passiveRadiatorPickError,
+    passiveRadiatorPickId,
     defineNewPassiveRadiator,
 
     projName,

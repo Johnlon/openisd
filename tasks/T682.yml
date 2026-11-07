@@ -1,0 +1,17 @@
+id: T682
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: 321a4ebab4e8777f66acb1d8919337737b747806
+goal: A phone sideways: dragging on the grey either side of the phone column scrolls the page, so the normal layout is viewed through a window (QO418)
+done_test: bash scripts/test.sh packages/ui/test/logic/visibleViewport.test.ts
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T682.yml
+  - packages/ui/src/logic/visibleViewport.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/ui/App.vue
+  - packages/ui/test/logic/visibleViewport.test.ts
+  - packages/ui/test/ui/mobile-sideways-window.browser.spec.ts

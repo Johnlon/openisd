@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 import {editorTab, expect, openAProject, test} from '../fixtures.js';
 
 // These editor-semantics tests run on the clean synthetic driver, not the scraped W5 sample:
@@ -35,7 +36,7 @@ test('brand and model fields are mandatory, have bold borders, and turn red when
   // 4. Brand empty check (and verifying focus is kept)
   await brandInput.focus();
   await expect(brandInput).toBeFocused();
-  await brandInput.fill('');
+  await clearWithKeyboard(brandInput);
   // Verify it turns red / has empty validation class without losing focus
   await expect(brandInput).toHaveClass(/de-input-empty/);
   await expect(brandInput).toBeFocused();
@@ -43,7 +44,7 @@ test('brand and model fields are mandatory, have bold borders, and turn red when
   // 5. Model empty check (and verifying focus is kept)
   await modelInput.focus();
   await expect(modelInput).toBeFocused();
-  await modelInput.fill('');
+  await clearWithKeyboard(modelInput);
   // Verify it turns red / has empty validation class without losing focus
   await expect(modelInput).toHaveClass(/de-input-empty/);
   await expect(modelInput).toBeFocused();
@@ -65,28 +66,28 @@ test('brand and model fields are mandatory, have bold borders, and turn red when
   // Fs empty check without losing focus
   await fsInput.focus();
   await expect(fsInput).toBeFocused();
-  await fsInput.fill('');
+  await clearWithKeyboard(fsInput);
   await expect(fsInput).toHaveClass(/de-input-empty/);
   await expect(fsInput).toBeFocused();
 
   // Vas empty check without losing focus
   await vasInput.focus();
   await expect(vasInput).toBeFocused();
-  await vasInput.fill('');
+  await clearWithKeyboard(vasInput);
   await expect(vasInput).toHaveClass(/de-input-empty/);
   await expect(vasInput).toBeFocused();
 
   // Re empty check without losing focus
   await reInput.focus();
   await expect(reInput).toBeFocused();
-  await reInput.fill('');
+  await clearWithKeyboard(reInput);
   await expect(reInput).toHaveClass(/de-input-empty/);
   await expect(reInput).toBeFocused();
 
   // Sd empty check without losing focus
   await sdInput.focus();
   await expect(sdInput).toBeFocused();
-  await sdInput.fill('');
+  await clearWithKeyboard(sdInput);
   await expect(sdInput).toHaveClass(/de-input-empty/);
   await expect(sdInput).toBeFocused();
 });
@@ -110,7 +111,7 @@ test('a sku-bearing driver: clearing Model empties it and sku is untouched', asy
   await expect(skuInput).not.toHaveValue('');    // the W5 sample carries a sku
   const skuBefore = await skuInput.inputValue();
 
-  await modelInput.fill('');
+  await clearWithKeyboard(modelInput);
   await expect(modelInput).toHaveValue('');
   await expect(modelInput).toHaveClass(/de-input-empty/);
   await expect(skuInput).toHaveValue(skuBefore);    // untouched, no re-fill from sku
@@ -141,7 +142,7 @@ const copyBtn = (page: import('@playwright/test').Page) => page.locator('.de-mod
 
 test('OK, Export and Copy stay live on an incomplete driver, and it commits', async ({ page }) => {
   await openParameters(page);
-  for (const f of ['Fs', 'Vas', 'Re', 'Sd', 'Qts', 'Qes', 'Qms']) await field(page, f).fill('');
+  for (const f of ['Fs', 'Vas', 'Re', 'Sd', 'Qts', 'Qes', 'Qms']) await clearWithKeyboard(field(page, f));
   await field(page, 'Qms').blur();
 
   await expect(okBtn(page)).toBeEnabled();
@@ -159,7 +160,7 @@ const brandInputOf = (page: import('@playwright/test').Page) => page.locator('.d
 test('a missing Brand pops a message instead of a dead button, and lands the caret on it', async ({ page }) => {
   await openParameters(page);
   await editorTab(page, 'General');          // Brand only exists on this pane
-  await brandInputOf(page).fill('');
+  await clearWithKeyboard(brandInputOf(page));
 
   await expect(okBtn(page)).toBeEnabled();          // never disabled — it answers the click
   await okBtn(page).click();
@@ -177,7 +178,7 @@ test('a missing Brand pops a message instead of a dead button, and lands the car
 test('Copy to My Drivers and Export are gated the same way', async ({ page }) => {
   await openParameters(page);
   await editorTab(page, 'General');
-  await brandInputOf(page).fill('');
+  await clearWithKeyboard(brandInputOf(page));
 
   await copyBtn(page).click();
   await expect(page.getByText('Brand and Model are both required')).toBeVisible();
@@ -200,7 +201,7 @@ test('Copy to My Drivers and Export are gated the same way', async ({ page }) =>
 test('a missing Brand raises the IDENTITY strip only, and blanks no chart', async ({ page }) => {
   await openParameters(page);
   await editorTab(page, 'General');
-  await brandInputOf(page).fill('');
+  await clearWithKeyboard(brandInputOf(page));
   await brandInputOf(page).blur();
 
   const identity = page.locator('.de-incomplete', { hasText: 'filed under a name' });
@@ -218,7 +219,7 @@ test('a missing Brand raises the IDENTITY strip only, and blanks no chart', asyn
 
 test('a missing Fs raises the CHART strip only, and the driver can still be filed', async ({ page }) => {
   await openParameters(page);
-  await field(page, 'Fs').fill('');
+  await clearWithKeyboard(field(page, 'Fs'));
   await field(page, 'Fs').blur();
 
   const charts = page.locator('.de-incomplete', { hasText: 'charts stay blank' });
@@ -255,9 +256,9 @@ test('stated values that disagree raise the CONSISTENCY strip, and no chart stri
 test('each strip says BECAUSE, matching the present-tense facts it lists', async ({ page }) => {
   await openParameters(page);
   await editorTab(page, 'General');
-  await brandInputOf(page).fill('');
+  await clearWithKeyboard(brandInputOf(page));
   await editorTab(page, 'Parameters');       // Fs is a Parameters cell, Brand was a General one
-  await field(page, 'Fs').fill('');
+  await clearWithKeyboard(field(page, 'Fs'));
   await field(page, 'Fs').blur();
 
   for (const heading of await page.locator('.de-incomplete-hd').allTextContents()) {
@@ -272,7 +273,7 @@ test('an incomplete driver is flagged in the editor, naming what is missing', as
   const warn = page.locator('.de-incomplete');
   await expect(warn).toHaveCount(0);                        // the clean fixture driver is complete
 
-  await field(page, 'Fs').fill('');
+  await clearWithKeyboard(field(page, 'Fs'));
   await field(page, 'Fs').blur();
   await expect(warn).toBeVisible();
   await expect(warn).toContainText('Fs');
@@ -280,8 +281,8 @@ test('an incomplete driver is flagged in the editor, naming what is missing', as
 
 test('two of Qts/Qes/Qms are needed to simulate — the trio is flagged as a GROUP', async ({ page }) => {
   await openParameters(page);
-  await field(page, 'Qts').fill('');
-  await field(page, 'Qes').fill('');
+  await clearWithKeyboard(field(page, 'Qts'));
+  await clearWithKeyboard(field(page, 'Qes'));
   await field(page, 'Qms').blur();
   // No single Q is mandatory, so the warning names the trio, not one field.
   await expect(page.locator('.de-incomplete')).toContainText('Qts');

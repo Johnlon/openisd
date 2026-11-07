@@ -3,6 +3,8 @@ import { nextTick, ref, shallowRef, onMounted, onUnmounted } from 'vue';
 import {
   emptyBinLabel,
   PROJECT_LIST_TEXT,
+  PROJECT_LIST_SCOPES,
+  type ProjectListScope,
   type ProjectRowAction,
   type ProjectRowOrder,
 } from '@openisd/design/fields';
@@ -20,6 +22,7 @@ export interface OriginalProjectListProps {
   projectQuery: string;
   projectOrder: ProjectRowOrder;
   projectOrders: readonly ProjectRowOrder[];
+  projectScope: ProjectListScope;
   binRows: readonly BinRow[];
   binTotal: string;
   binOpen: boolean;
@@ -30,6 +33,7 @@ export interface OriginalProjectListProps {
 export interface OriginalProjectListEmit {
   (e: 'update:projectQuery', val: string): void;
   (e: 'update:projectOrder', val: ProjectRowOrder): void;
+  (e: 'update:projectScope', val: ProjectListScope): void;
   (e: 'update:binOpen', val: boolean): void;
   (e: 'choose', row: ProjectListRow): void;
   (e: 'close', project: OpenISDProject): void;
@@ -158,6 +162,10 @@ function onSortChange(e: Event): void {
   }
 }
 
+function setScope(scope: ProjectListScope): void {
+  emit('update:projectScope', scope);
+}
+
 function onQueryInput(e: Event): void {
   emit('update:projectQuery', inputValue(e));
 }
@@ -276,5 +284,5 @@ function desktopMenuItems(row: ProjectListRow): readonly {action: ProjectRowActi
   return [...row.menu, {action: 'copyCharts', label: 'Copy charts from active project'}];
 }
 
-return {emptyBinLabel, PROJECT_LIST_TEXT, editingRow, editingName, startRename, setRenameInput, commitRename, cancelRename, searchInputRef, listRef, focusSearchOrList, menuOpen, closeMenu, openRowMenu, openRowContextMenu, onSortChange, onQueryInput, onToggleShow, onRowClick, handleMenuAction, colourInput, onColourClick, openColourPicker, onColourInput, desktopMenuItems};
+return {emptyBinLabel, PROJECT_LIST_TEXT, PROJECT_LIST_SCOPES, editingRow, editingName, startRename, setRenameInput, commitRename, cancelRename, searchInputRef, listRef, focusSearchOrList, menuOpen, closeMenu, openRowMenu, openRowContextMenu, onSortChange, setScope, onQueryInput, onToggleShow, onRowClick, handleMenuAction, colourInput, onColourClick, openColourPicker, onColourInput, desktopMenuItems};
 }

@@ -1,6 +1,5 @@
 /**
- * The writer side of the bundled catalogue's indexes — docs/design/BUNDLED_CATALOGUE_API.md
- * "Writer side".
+ * The writer side of the bundled catalogue's indexes.
  *
  * `scripts/bundle-drivers.mjs` (under vite-node) opens each corpus record as a domain object and
  * calls these to produce the row `drivers-index.json` / `passive-radiators-index.json` carry for
@@ -34,6 +33,8 @@ export function bundledDriverIndexRowOf(driver: OpenISDDriverStandalone, path: s
     Xmax_m: s.Xmax_m.value,
     Vd_m3: s.Vd_m3.value,
     Znom_ohm: s.Znom_ohm.value,
+    freq_low_hz: s.freq_low_hz.value,
+    freq_high_hz: s.freq_high_hz.value,
   };
 }
 

@@ -184,31 +184,19 @@
           }
         }
       },
-      "voice_coil": {
-        "BL_Tm": null,
-        "Re_ohm": {
-          "definition": "DC voice coil resistance (Ω)",
-          "readings": {
-            "manufacturer_datasheet": {
-              "actual_reading": "3.8 Ω",
-              "read_precision": 0.05,
-              "read_value": 3.8
-            },
-            "manufacturer_product_page": {
-              "actual_reading": "3.8 Ω",
-              "read_precision": 0.05,
-              "read_value": 3.8
-            }
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "3.8 Ω",
+            "read_precision": 0.05,
+            "read_value": 3.8
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "3.8 Ω",
+            "read_precision": 0.05,
+            "read_value": 3.8
           }
-        },
-        "basis": {
-          "BL_Tm": "unknown",
-          "Re_ohm": "unknown"
-        },
-        "connection": "not-stated",
-        "connection_reading": null,
-        "numVC": {
-          "state": "not-stated"
         }
       },
       "weight_kg": {
@@ -475,45 +463,34 @@
           }
         }
       },
-      "voice_coil": {
-        "BL_Tm": {
-          "definition": "motor force factor (T·m)",
-          "readings": {
-            "manufacturer_datasheet": {
-              "actual_reading": "5.3 Tm",
-              "read_precision": 0.05,
-              "read_value": 5.3
-            },
-            "manufacturer_product_page": {
-              "actual_reading": "5.3 Tm",
-              "read_precision": 0.05,
-              "read_value": 5.3
-            }
+      "BL_Tm": {
+        "definition": "motor force factor (T·m)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "5.3 Tm",
+            "read_precision": 0.05,
+            "read_value": 5.3
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "5.3 Tm",
+            "read_precision": 0.05,
+            "read_value": 5.3
           }
-        },
-        "Re_ohm": {
-          "definition": "DC voice coil resistance (Ω)",
-          "readings": {
-            "manufacturer_datasheet": {
-              "actual_reading": "5.7Ω",
-              "read_precision": 0.05,
-              "read_value": 5.7
-            },
-            "manufacturer_product_page": {
-              "actual_reading": "5.7 Ω",
-              "read_precision": 0.05,
-              "read_value": 5.7
-            }
+        }
+      },
+      "Re_ohm": {
+        "definition": "DC voice coil resistance (Ω)",
+        "readings": {
+          "manufacturer_datasheet": {
+            "actual_reading": "5.7Ω",
+            "read_precision": 0.05,
+            "read_value": 5.7
+          },
+          "manufacturer_product_page": {
+            "actual_reading": "5.7 Ω",
+            "read_precision": 0.05,
+            "read_value": 5.7
           }
-        },
-        "basis": {
-          "BL_Tm": "unknown",
-          "Re_ohm": "unknown"
-        },
-        "connection": "not-stated",
-        "connection_reading": null,
-        "numVC": {
-          "state": "not-stated"
         }
       },
       "weight_kg": {

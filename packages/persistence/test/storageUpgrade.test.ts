@@ -45,6 +45,33 @@ const dumpAt = (c: StoreCase, layout: number): Dump => {
   assert.ok(dump !== undefined, `case ${c.name} has no dump for layout ${layout}`);
   return dump;
 };
+/** QO414 (John, 4 Nov 2026): data-quality marks are derived, never stored, and an old dump that holds
+ *  them still loads. The fixed-point check leaves `dq_calculated` and `dq_scraper` out of BOTH sides:
+ *  the loaders no longer write them, which is not a layout change and needs no bump. */
+const withoutDerivedMarks = (dump: Dump): Dump => Object.fromEntries(Object.entries(dump).map(([key, text]) => {
+  try {
+    return [key, JSON.stringify(JSON.parse(text), (k, v: unknown) => (k === 'dq_calculated' || k === 'dq_scraper' ? undefined : v), text.includes('\n') ? 2 : undefined)];
+  } catch {
+    return [key, text];
+  }
+}));
+/** `value` with every `data_sources` emptied, at any depth, looking inside text that is itself JSON. The layout-3
+ *  app wrote a project's embedded driver without its links (T158, the embedded-driver slimming, removed with QO395);
+ *  the slim model keeps them, so a step from layout 2 gains the links the layout-3 dump never had. */
+function withoutLinks(value: unknown): unknown {
+  if (typeof value === 'string') {
+    try {
+      const inner: unknown = JSON.parse(value);
+      return typeof inner === 'object' && inner !== null ? JSON.stringify(withoutLinks(inner)) : value;
+    } catch {
+      return value;
+    }
+  }
+  if (Array.isArray(value)) return value.map(withoutLinks);
+  if (typeof value !== 'object' || value === null) return value;
+  return Object.fromEntries(Object.entries(value).map(([key, v]) => [key, key === 'data_sources' ? {value: {}} : withoutLinks(v)]));
+}
+const withoutDataSourceLinks = (dump: Dump): Dump => Object.fromEntries(Object.entries(dump).map(([key, text]) => [key, String(withoutLinks(text))]));
 const withoutLayoutKey = (dump: Dump): Dump => Object.fromEntries(Object.entries(dump).filter(([k]) => k !== OPENISD_STORAGE_LAYOUT_KEY));
 
 describe('the goldens hold every case', () => {
@@ -59,9 +86,14 @@ for (const c of cases) {
 
     it('migrates one layout at a time, each step reproducing that layout\'s golden dump', () => {
       const reached: number[] = [];
-      const migrated = createLayoutMigrator(APP_RULES).migrate(oldest, born(c), (layout, data) => {
+      const migrator = createLayoutMigrator(APP_RULES);
+      // A step that reads and writes a record uses the domain's writer of today, so a step's output can differ from
+      // the golden dump of its layout only in how today's writer spells the records (a field added since). Both are
+      // compared after the rest of the steps have written them the same way.
+      const settled = (data: Dump, layout: number): Dump => withoutDataSourceLinks(migrator.migrate(withoutLayoutKey(data), layout) ?? {});
+      const migrated = migrator.migrate(oldest, born(c), (layout, data) => {
         reached.push(layout);
-        assert.deepEqual(sorted(withoutLayoutKey(data)), sorted(withoutLayoutKey(dumpAt(c, layout))), `layout ${layout}`);
+        assert.deepEqual(sorted(settled(data, layout)), sorted(settled(dumpAt(c, layout), layout)), `layout ${layout}`);
       });
       assert.ok(migrated !== null);
       assert.deepEqual(reached, Array.from({length: STORAGE_LAYOUT - born(c)}, (_, i) => born(c) + 1 + i));
@@ -106,7 +138,7 @@ for (const c of cases) {
     it('a dump at the current layout is a fixed point: load then write back reproduces it byte for byte', () => {
       const raw = createMemoryStorage({...dumpAt(c, STORAGE_LAYOUT)});
       writeBack(raw);
-      assert.deepEqual(sorted(dumpOf(raw)), sorted(dumpAt(c, STORAGE_LAYOUT)),
+      assert.deepEqual(sorted(withoutDerivedMarks(dumpOf(raw))), sorted(withoutDerivedMarks(dumpAt(c, STORAGE_LAYOUT))),
         `${c.name}: the loaders now write layout ${STORAGE_LAYOUT} differently. Layout changed: bump STORAGE_LAYOUT, add a migration step and dump-layout-${STORAGE_LAYOUT + 1}.json for every case.`);
     });
   });
@@ -143,6 +175,8 @@ describe('case backup-file: an older backup file restores into the current app',
   const file1 = goldenText('backup-file', 'file-layout-1.json');
   const file2 = goldenText('backup-file', 'file-layout-2.json');
   const file3 = goldenText('backup-file', 'file-layout-3.json');
+  const file4 = goldenText('backup-file', 'file-layout-4.json');
+  const file5 = goldenText('backup-file', 'file-layout-5.json');
   const expected: unknown = JSON.parse(goldenText('backup-file', 'expected.json'));
 
   function restoreInto() {
@@ -151,47 +185,55 @@ describe('case backup-file: an older backup file restores into the current app',
     return {opening, repo};
   }
 
-  for (const [layout, file] of [[1, file1], [2, file2]] as const) {
-    it(`restoring the layout-${layout} file migrates it, and exporting again writes the layout-3 file`, () => {
+  for (const [layout, file] of [[1, file1], [2, file2], [3, file3], [4, file4]] as const) {
+    it(`restoring the layout-${layout} file migrates it, and exporting again writes the layout-5 file`, () => {
       const {opening, repo} = restoreInto();
       assert.equal(repo.importAll(file, {replaceEverything: true}).kind, 'ok');
       assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), expected);
-      assert.equal(repo.exportAll(), file3);
+      // Layouts 3 and 4 wrote a project's embedded driver without its links (see `withoutLinks`): compare without them.
+      assert.equal(String(withoutLinks(repo.exportAll())), String(withoutLinks(file5)));
     });
   }
 
-  it('the layout-3 file restores to the same store, and exports as itself', () => {
+  it('the layout-5 file restores to the same store, and exports as itself', () => {
     const {opening, repo} = restoreInto();
-    assert.equal(repo.importAll(file3, {replaceEverything: true}).kind, 'ok');
+    assert.equal(repo.importAll(file5, {replaceEverything: true}).kind, 'ok');
     assert.deepEqual(JSON.parse(JSON.stringify(summaryOf(opening.storage))), expected);
-    assert.equal(repo.exportAll(), file3);
+    assert.equal(repo.exportAll(), file5);
   });
 });
 
-describe('exported files: an older file opens, and the current app writes the layout-3 file', () => {
+describe('exported files: an older file opens, and the current app writes the layout-5 file', () => {
   const files = createExportedFiles(APP_RULES);
 
   for (const [name, ext, read] of [
     ['exported-driver-file', 'owdr', aDriverFromFile],
     ['exported-project-file', 'owpr', aProjectFromFile],
   ] as const) {
-    it(`${name}: layouts 1, 2 and 3 read the same, and writing stamps the current layout`, () => {
+    it(`${name}: layouts 1 to 5 read the same, and writing stamps the current layout`, () => {
       const file1 = goldenText(name, `file-layout-1.${ext}`);
       const file2 = goldenText(name, `file-layout-2.${ext}`);
       const file3 = goldenText(name, `file-layout-3.${ext}`);
+      const file4 = goldenText(name, `file-layout-4.${ext}`);
+      const file5 = goldenText(name, `file-layout-5.${ext}`);
       const expected: unknown = JSON.parse(goldenText(name, 'expected.json'));
 
       const fromOne = files.open(file1);
       const fromTwo = files.open(file2);
       const fromThree = files.open(file3);
-      assert.ok(fromOne.kind === 'ok' && fromTwo.kind === 'ok' && fromThree.kind === 'ok');
+      const fromFour = files.open(file4);
+      const fromFive = files.open(file5);
+      assert.ok(fromOne.kind === 'ok' && fromTwo.kind === 'ok' && fromThree.kind === 'ok' && fromFour.kind === 'ok' && fromFive.kind === 'ok');
       assert.equal(fromOne.text, file1, 'a layout-1 file carries no stamp and no step changes it');
       assert.equal(fromTwo.text, file1, 'the stamp comes off, leaving the fields as they were');
       assert.equal(fromThree.text, file1, 'the stamp comes off, leaving the fields as they were');
       assert.ok(typeof expected === 'object' && expected !== null);
+      assert.equal(files.stamp(fromFive.text), file5, 'fixed point');
+      assert.equal(read(fromFour.text), read(fromOne.text), 'the version-stamped file reads the same');
+      assert.equal(read(fromFive.text), read(fromOne.text), 'the slim file reads the same');
       assert.deepEqual(Object.values(expected), [read(fromOne.text)]);
-      assert.equal(files.stamp(fromThree.text), file3, 'fixed point');
-      assert.ok(file3.startsWith('{\n  "layout": 3,'));
+      assert.ok(file5.startsWith('{\n  "layout": 5,'));
+      assert.ok(file4.includes('"schemaVersion": 3'), 'the current app writes the schema version');
     });
   }
 });

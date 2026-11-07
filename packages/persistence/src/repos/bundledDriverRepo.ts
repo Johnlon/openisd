@@ -1,11 +1,13 @@
-/** REPO: the bundled driver catalogue — docs/design/BUNDLED_CATALOGUE_API.md "Drivers".
+/** REPO: the bundled driver catalogue.
  *
- *  `createBundledRepo` with the driver's data: `drivers-index.json` under the app base, read by
+ *  `createBundledRepo` with the driver's data: the `driverRows` and `drivers` of the one catalogue file
+ *  (catalogueBundle.ts), read by
  *  `readBundledDriverIndex`, and records opened through `OpenISDDriver.fromConformingRecord`. The
  *  list is index rows; a driver becomes a domain object only when `load()` is asked for it. */
 import {OpenISDDriver, type OpenISDDriverStandalone} from '@openisd/design';
 import type {Engine} from '@openisd/design/engine';
 import type {BundledDriverIndexRow, IndexRead} from './bundledIndex.js';
+import type {CatalogueBundle} from './catalogueBundle.js';
 import {baseOf, createBundledRepo, type FieldReader, readIndex} from './bundledRepo.js';
 
 function driverRowOf(row: Record<string, unknown>, where: string, f: FieldReader): BundledDriverIndexRow | null {
@@ -17,9 +19,12 @@ function driverRowOf(row: Record<string, unknown>, where: string, f: FieldReader
   const Xmax_m = f.nullableNumber(row.Xmax_m, `${where}.Xmax_m`);
   const Vd_m3 = f.nullableNumber(row.Vd_m3, `${where}.Vd_m3`);
   const Znom_ohm = f.nullableNumber(row.Znom_ohm, `${where}.Znom_ohm`);
+  const freq_low_hz = f.nullableNumber(row.freq_low_hz, `${where}.freq_low_hz`);
+  const freq_high_hz = f.nullableNumber(row.freq_high_hz, `${where}.freq_high_hz`);
   if (base === null || chips === null || canonical === null || Fs_hz === undefined || Sd_m2 === undefined
-      || Xmax_m === undefined || Vd_m3 === undefined || Znom_ohm === undefined) return null;
-  return { ...base, chips, canonical, Fs_hz, Sd_m2, Xmax_m, Vd_m3, Znom_ohm };
+      || Xmax_m === undefined || Vd_m3 === undefined || Znom_ohm === undefined
+      || freq_low_hz === undefined || freq_high_hz === undefined) return null;
+  return { ...base, chips, canonical, Fs_hz, Sd_m2, Xmax_m, Vd_m3, Znom_ohm, freq_low_hz, freq_high_hz };
 }
 
 /** `drivers-index.json` as loaded: the rows, or every problem naming row and field. */
@@ -28,12 +33,11 @@ export function readBundledDriverIndex(json: unknown): IndexRead<BundledDriverIn
 }
 
 export interface BundledDriverRepoDeps {
-  readonly fetch: typeof fetch;
-  /** `import.meta.env.BASE_URL` — `/`, the GitHub Pages `/openisd/`, or Electron's `./`. */
-  readonly baseUrl: string;
+  /** The one catalogue file, shared with the radiator repo (catalogueBundle.ts). */
+  readonly bundle: () => Promise<CatalogueBundle>;
   /** Handed to the domain seam that opens each record — injected, never constructed here. */
   readonly engine: Engine;
-  /** How long a fetched index or driver is trusted before it is fetched again. */
+  /** How long a loaded index or driver is trusted before it is read again. */
   readonly maxAge_ms: number;
   readonly now: () => number;
 }
@@ -49,9 +53,9 @@ export interface BundledDriverRepo {
 
 export function createBundledDriverRepo(deps: BundledDriverRepoDeps): BundledDriverRepo {
   return createBundledRepo<BundledDriverIndexRow, OpenISDDriverStandalone>({
-    fetch: deps.fetch,
-    indexUrl: `${deps.baseUrl}drivers-index.json`,
-    recordUrl: path => `${deps.baseUrl}drivers/${path}.json`,
+    bundle: deps.bundle,
+    indexOf: b => b.driverRows,
+    recordsOf: b => b.drivers,
     readIndex: readBundledDriverIndex,
     construct: record => OpenISDDriver.fromConformingRecord(record, deps.engine),
     maxAge_ms: deps.maxAge_ms,

@@ -7,11 +7,9 @@
 import {computed} from 'vue';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
 import {useApp} from '../logic/app.js';
-import {ARRAY_WIRING_OPTIONS, NumberField} from '@openisd/design/fields';
+import {ARRAY_WIRING_OPTIONS} from '@openisd/design/fields';
 import {selectedOption} from '../logic/domEvents.js';
-import {unknownVoiceCoilReading} from '../logic/unknownVoiceCoilReading.js';
 
-const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
 
 export function useMobileDriverTab() {
   const {appState, driverBrowsing, presentation: presentationState} = useApp();
@@ -31,18 +29,20 @@ export function useMobileDriverTab() {
     const spec = project.value.driver.specs;
     return {Fs: spec.Fs_hz.value, Qts: spec.Qts.value, Vas: spec.Vas_m3.value, Re: spec.Re_ohm.value, Xmax: spec.Xmax_m.value};
   });
-  const keyFigureDq = computed(() => {
+  /** The stated values that disagree with each other, as the Driver Editor lists them. */
+  const consistencyReasons = computed(() => {
     void projectChanged.value;
-    const device = project.value.driver.toOpenIsdDeviceJson();
-    return {Re: unknownVoiceCoilReading(device, 'Re_ohm')};
+    return project.value.driver.inconsistentInputReasons();
   });
 
   function browseDrivers(): void { presentationState.browseOpen = true; }
   function editDriver(): void { selection.editProjectDriver(); }
+  /** The "N values disagree" link: the same editor, with its disagreement list showing. */
+  function showDisagreements(): void { selection.editProjectDriver(true); }
 
   return {
-    project, brand, model, fullName, keyFigures, keyFigureDq, browseDrivers, editDriver,
+    project, brand, model, fullName, keyFigures, consistencyReasons, browseDrivers, editDriver, showDisagreements,
     showDriverInfo: driverBrowsing.showProjectDriverInfo,
-    N_DRIVERS_OPTIONS, ARRAY_WIRING_OPTIONS, selectedOption,
+    ARRAY_WIRING_OPTIONS, selectedOption,
   };
 }

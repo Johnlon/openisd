@@ -2,7 +2,8 @@ id: T618
 release_note: internal
 repo: openisd
 owner: codex
-status: claimed
+status: blocked
+blocked_reason: held for John's hunk-by-hunk reapply plan onto main (3 Nov 2026); the release branch release/20261030-integrated lands nothing as T618
 gates_approved: QO316
 goal: Refresh OpenISD catalogue from tuple-aware snapshot and expose test servers for review
 done_test: bash scripts/quiet-test.sh npm run typecheck:design && bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/design/test/winisd/driverRecordConverter.coverage.test.ts packages/ui/test/scripts/bundle-outputs.test.ts && bash scripts/quiet-test.sh bash scripts/land/test/sync-driver-snapshot.test.sh

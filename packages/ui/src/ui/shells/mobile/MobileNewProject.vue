@@ -3,7 +3,7 @@
 // Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata). Uses the SAME
 // useOgNewProject() hook as OriginalNewProject.vue: one wizard implementation, two presentations.
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, ReadoutFormat, WinisdDeviation, type WizardInfoCard as WizardInfoCardData } from '@openisd/design/fields';
+import { NumberField, PhoneLabels, PhoneWizardHelp, PhoneWizardText, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -12,6 +12,7 @@ import BoxTypeDiagram from '../../components/BoxTypeDiagram.vue';
 import PhoneButton from './PhoneButton.vue';
 import PlacementDiagram from '../../components/PlacementDiagram.vue';
 import WizardHelpSheet from '../../components/WizardHelpSheet.vue';
+import {createWizardInfo} from '../../../hooks/wizardInfo.js';
 import WizardInfoButton from '../../components/WizardInfoButton.vue';
 import WizardInfoCard from '../../components/WizardInfoCard.vue';
 import MobileKeyStrip from './MobileKeyStrip.vue';
@@ -41,7 +42,6 @@ const {
   nDrivers,
   placement,
   wiring,
-  N_DRIVERS_OPTIONS,
   ARRAY_WIRING_OPTIONS,
 
   boxType,
@@ -72,6 +72,8 @@ const {
   ventedTuning_hz,
   ventedVolumeWarning,
   ventedTuningWarning,
+  passiveRadiatorPickError,
+  passiveRadiatorPickId,
 
   isPassiveRadiator,
   passiveRadiatorView,
@@ -103,17 +105,11 @@ function handleCancel() {
 useEscToClose(() => true, handleCancel);
 
 // The ⓘ popups and the step bar's help sheet, over the page; Escape closes the top one first.
-const info = ref<'placement' | 'ebp' | null>(null);
 const helpOpen = ref(false);
-useEscToClose(() => info.value !== null, () => { info.value = null; });
 useEscToClose(() => helpOpen.value, () => { helpOpen.value = false; });
 const ebpText = computed(() => ReadoutFormat.EBP.text(ebp.value, '--'));
 const ebpBadge = computed(() => PhoneWizardText.ebpBadge(ebpSuitability.value));
-const infoCard = computed<WizardInfoCardData | null>(() => {
-  if (info.value === 'placement') return PhoneWizardText.PLACEMENT_INFO;
-  if (info.value === 'ebp') return PhoneWizardText.ebpInfo(ebpText.value);
-  return null;
-});
+const {infoCard, openPlacementInfo, openEbpInfo, closeInfo} = createWizardInfo(ebpText);
 const boxLabel = computed(() => BOX_OPTIONS.find(o => o.value === boxType.value)?.label ?? '');
 /** The banner's second line: the driver's figures, its EBP, or the box and driver count, by step. */
 const bannerSub = computed(() => {
@@ -174,19 +170,14 @@ function handleCreate() {
         <!-- Step 2: Driver count & placement -->
         <template v-if="isCountStep">
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_DRIVER_ARRAY }}</span></div>
-          <div class="mob-crow">
-            <label class="mob-crow-label" for="np-ndrivers">{{ PhoneLabels.DRIVERS }}</label>
-            <select id="np-ndrivers" class="mob-cselect" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }">
-              <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
-            </select>
-          </div>
+          <UIFixedField class="mob-ui-field" input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" :label="PhoneLabels.DRIVERS" :value="nDrivers" @update:value="n => nDrivers = n" />
           <div class="mob-crow">
             <label class="mob-crow-label" for="np-placement">{{ PhoneWizardText.PLACEMENT_LABEL }}</label>
             <select id="np-placement" class="mob-cselect mob-cselect-info" v-model="placement">
               <option value="standard">{{ PhoneWizardText.PLACEMENT_STANDARD }}</option>
               <option value="iso">{{ PhoneWizardText.PLACEMENT_ISOBARIK }}</option>
             </select>
-            <WizardInfoButton label="About driver placement" @click="info = 'placement'" />
+            <WizardInfoButton label="About driver placement" @click="openPlacementInfo" />
           </div>
           <div class="mob-np-pic mob-np-pic-note">
             <PlacementDiagram :placement="placement" />
@@ -214,7 +205,7 @@ function handleCreate() {
               <span><span class="mob-np-ebp-val">{{ PhoneWizardText.EBP_LABEL }}: {{ ebpText }}</span> <span class="mob-np-ebp-formula">{{ PhoneWizardText.EBP_FORMULA }}</span></span>
               <span v-if="ebpBadge" class="mob-np-ebp-badge" :class="ebpBadge.tone">{{ ebpBadge.label }}</span>
             </div>
-            <WizardInfoButton label="About EBP" @click="info = 'ebp'" />
+            <WizardInfoButton label="About EBP" @click="openEbpInfo" />
           </div>
           <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
@@ -256,9 +247,10 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_BOX }}</span></div>
           <UIFixedField class="mob-ui-field" input-id="np-starting-volume" :label="PhoneWizardText.STARTING_VOLUME_LABEL" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_RADIATOR }}</span></div>
-          <NewProjectPassiveRadiatorStep classic field-class="mob-ui-field" :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
+          <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" classic field-class="mob-ui-field" :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
               @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
-            @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
+            @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
+          <div v-if="passiveRadiatorPickError" class="mob-chint mob-chint-warn np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
           <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
 
@@ -294,7 +286,7 @@ function handleCreate() {
       <PhoneButton v-else primary class="np-primary" :disabled="!canCreate" @click="handleCreate">{{ PhoneWizardText.CREATE }}</PhoneButton>
     </div>
 
-    <WizardInfoCard v-if="infoCard" :card="infoCard" @close="info = null" />
+    <WizardInfoCard v-if="infoCard" :card="infoCard" @close="closeInfo" />
     <WizardHelpSheet v-if="helpOpen" :title="stepLabel" :sections="helpSections" @close="helpOpen = false" />
   </div>
 </template>
@@ -331,7 +323,7 @@ function handleCreate() {
 .mob-np-banner + .mob-band { margin-top: 0; }
 
 /* Placement: the select keeps its width; the ⓘ sits in the 90 px stepper area (46 + 44) */
-.mob-cselect-info { margin-right: 46px; }
+.mob-classic .mob-cselect.mob-cselect-info { margin-right: 46px; }
 .mob-np-info { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: none; background: none; color: var(--acc); padding: 0; cursor: pointer; }
 .mob-np-pic { display: flex; justify-content: center; align-items: center; padding: 12px 0; border-bottom: 1px solid #e6e6e6; }
 .mob-np-pic-note { flex-direction: column; gap: 4px; }

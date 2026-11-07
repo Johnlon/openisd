@@ -1,0 +1,17 @@
+id: T678
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 068b055aec9073aefddfe2314b9acb989f9fc524
+ruling: QO395
+goal: The bridge accepts the scraper's new driver.json shape (discontinued present, no quality.invalid, no cross_references) and drops discontinued (ruling: QO395)
+done_test: bash scripts/test.sh packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+files:
+  - tasks/T678.yml
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/openIsdDeviceJsonIo.ts
+  - packages/design/domain/withoutScraperOnlyFields.ts
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - scripts/schemagen/out/driver_model.py

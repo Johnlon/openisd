@@ -1,0 +1,18 @@
+id: T698
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 092bae7e6d89034fcae4939669c8c6457dbdf179
+goal: Phone What-if and Tune: the number box being typed in stays fully visible above the keyboard, with the space of the hidden buttons reclaimed
+done_test: bash scripts/test.sh packages/ui/test/logic/visibleViewport.test.ts
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/visual/SOURCES.sha256
+  - bugs/BUG_20261106_phone-whatif-tune-keyboard-hides-box.md
+  - tasks/T698.yml
+  - packages/ui/src/ui/App.vue
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileSheet.vue
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/test/ui/mobile-sheet-keyboard.browser.spec.ts

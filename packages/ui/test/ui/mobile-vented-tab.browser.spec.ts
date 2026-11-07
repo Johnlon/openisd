@@ -1,3 +1,4 @@
+import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * The mobile Vented tab (the tab bar's label for a vented box; the panel itself is headed "Vents").
  * The FIELD WIRING itself (the vent-group Helmholtz relation) is proven once, in
@@ -46,7 +47,7 @@ test.describe('MobileVentedTab', () => {
     const lengthInput = mobileFieldRow(page, 'Vent length').locator('input');
     const lengthBefore = await lengthInput.inputValue();
 
-    await fbInput.fill('');
+    await clearWithKeyboard(fbInput);
     await fbInput.blur();
 
     await expect(fbInput).toBeVisible();
@@ -63,7 +64,7 @@ test.describe('MobileVentedTab', () => {
     const areaBefore = await area.inputValue();
     const diameterBefore = await diameter.inputValue();
 
-    await diameter.fill('');
+    await clearWithKeyboard(diameter);
     await diameter.blur();
 
     await expect(diameter).toHaveValue(diameterBefore);
@@ -75,7 +76,7 @@ test.describe('MobileVentedTab', () => {
     const area = mobileFieldRow(page, 'Cross area').locator('input');
     const one = parseFloat(await area.inputValue());
     expect(one).toBeGreaterThan(0);
-    await page.locator('.mob-crow', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
+    await page.locator('.mob-ui-field', { hasText: 'Number of Vents' }).locator('select').selectOption('2');
     await expect.poll(async () => parseFloat(await area.inputValue()) / one).toBeCloseTo(2, 2);
   });
 

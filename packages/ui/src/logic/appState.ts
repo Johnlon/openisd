@@ -156,12 +156,16 @@ export interface AppStateDeps {
   presentation: PresentationState;
   /** Where usage events go; omitted means none are recorded. */
   telemetry?: Telemetry;
+  /** Told of a fault the app survives (the sweep worker failing); omitted means it is dropped. */
+  reportFault?: (fault: Error) => void;
 }
 
 /** The app's live reactive state: the open-project registry, the focused project's sweep curves
  *  and issues, and the application settings. Built once by the composition root, reached by
  *  components through `useApp().appState`. */
 export interface AppState {
+  /** Report a caught fault to the app's crash reporter (logged only); nothing when none was given. */
+  reportFault(fault: Error): void;
   /** The WinISD difference markers (≠W) show (Options → General). Reactive. */
   differenceCuesShown(): boolean;
   /** Show or hide every ≠W marker. A UI preference: no project recalls. */
@@ -629,7 +633,7 @@ export function createAppState(deps: AppStateDeps): AppState {
   // The sweep runs in a Web Worker so a held spinner never blocks the page: one request in
   // flight, only the newest waiting, a reply for a project no longer focused dropped.
   const sweepRunner = new LatestSweepRunner<OpenISDProject>(
-    sweepTransport(new SweepComputer(engine.simulation), reply => sweepRunner.replied(reply)),
+    sweepTransport(new SweepComputer(engine.simulation), reply => sweepRunner.replied(reply), deps.reportFault),
     (_project, reply) => showSweep(reply),
   );
 
@@ -940,6 +944,7 @@ export function createAppState(deps: AppStateDeps): AppState {
   });
 
   return {
+    reportFault: fault => deps.reportFault?.(fault),
     differenceCuesShown, setDifferenceCuesShown, ventedLimits, setVentedLimits, envDefaults, setEnvDefaults,
     engine, appContext,
     openProjects, focusedProject, focusProject, removeProject, addProject, openProjectByIdentity,

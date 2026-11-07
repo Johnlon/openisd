@@ -77,6 +77,8 @@ export interface PresentationState {
   editDriver: boolean;
   /** The Driver Editor modal (Brand/Model/Comment/Provided by) is open. */
   editDriverInfo: boolean;
+  /** The Driver Editor opens with its "values disagree" list already showing (read once by the editor). */
+  editDriverShowDisagreements: boolean;
   /** Per-chart Y-axis override; absent entry = auto-scale. Keyed by the chart, so a row in
    *  the Options dialog cannot write under a key no chart reads. */
   yRanges: Partial<Record<ChartId, YRange>>;
@@ -124,6 +126,7 @@ export function createPresentationState(): PresentationState {
     browseOpen: false,
     editDriver: false,
     editDriverInfo: false,
+    editDriverShowDisagreements: false,
     optionsOpen: false,
     openDialogOpen: false,
     projectsRequests: 0,

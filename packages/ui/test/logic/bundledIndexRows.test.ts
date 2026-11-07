@@ -1,6 +1,5 @@
 /**
- * `bundledIndexRows.ts` — the writer side of the bundled catalogue's indexes
- * (docs/design/BUNDLED_CATALOGUE_API.md "Writer side").
+ * `bundledIndexRows.ts` — the writer side of the bundled catalogue's indexes.
  *
  * `scripts/bundle-drivers.mjs` calls these over each record's domain object to write
  * `drivers-index.json` and `passive-radiators-index.json`. They compose the app's own functions —
@@ -138,7 +137,7 @@ describe('bundledDriverIndexRowOf', () => {
     const row = bundledDriverIndexRowOf(driverOf({ Fs_hz: 45 }), 'a/b/openisd.yml');
     assert.deepEqual(Object.keys(row).sort(), [
       'Fs_hz', 'Sd_m2', 'Vd_m3', 'Xmax_m', 'Znom_ohm', 'canonical', 'chips', 'datasheet', 'dq',
-      'listingPage', 'name', 'path', 'productPage', 'uuid',
+      'freq_high_hz', 'freq_low_hz', 'listingPage', 'name', 'path', 'productPage', 'uuid',
     ]);
   });
 });

@@ -1,0 +1,21 @@
+id: T671
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: 22a795aee8351e85e7c39cd86f639bce28687a80
+goal: Carry from t607-fix-c2: digit restore only on a Tab return, a fresh selection is kept on refocus, chart reference lines draw one crisp pixel row, ABC three-port columns fit a narrow bottom panel
+done_test: bash scripts/test.sh packages/ui/test/hooks/NumInput-hooks.test.ts packages/design/test/chart/chart-layout.test.ts
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - bugs/BUG_20261105_abc-columns-scroll-sideways-at-780.md
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T671.yml
+  - packages/ui/src/hooks/NumInput-hooks.ts
+  - packages/ui/src/ui/components/NumInput.vue
+  - packages/ui/src/ui/canvas.ts
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/design/chart/layout.ts
+  - packages/design/test/chart/chart-layout.test.ts
+  - packages/ui/test/hooks/NumInput-hooks.test.ts
+  - packages/ui/test/ui/abc-vent-columns-fit.browser.spec.ts

@@ -32,7 +32,7 @@ describe('driver spec-field value validity — every field has its OWN floor', (
     it.each([
       'Fs_hz', 'Re_ohm', 'fLe_hz', 'Qts', 'Qes', 'Qms', 'Vas_m3', 'Sd_m2', 'BL_Tm', 'Mms_kg',
       'Cms_m_per_N', 'Rms_kg_per_s', 'Xmax_m', 'Xlim_m', 'Pe_W', 'Dd_m', 'EBP_hz', 'numVC',
-      'Dia_m', 'Vd_m3', 'no', 'Rt_K_per_W', 'Ct_J_per_K', 'gamma_m_per_s2_A', 'Rme_kg_per_s',
+      'Vd_m3', 'no', 'Rt_K_per_W', 'Ct_J_per_K', 'gamma_m_per_s2_A', 'Rme_kg_per_s',
       'Mpow_N_per_sqrtW', 'Mcost_kg_per_s', 'Gloss', 'Vcd_m',
       'Hg_m', 'Hc_m', 'freq_low_hz', 'freq_high_hz', 'power_peak_W', 'weight_kg', 'Thick_m',
       'Depth_m', 'MagDepth_m', 'Magnet_m', 'Basket_m', 'Outer_m', 'OuterX_m', 'OuterY_m',

@@ -52,21 +52,45 @@ function scraperTupleFixture(name: string): string {
   return readFileSync(join(FIXTURES, name), 'utf8');
 }
 
+
 describe('driverYmlToOpenisdAndWdr', () => {
   describe('driverYmlToOpenisdAndWdr — one call, both derived files, one error array', () => {
+    it('accepts the scraper\'s new driver.json shape: discontinued present, no quality.invalid, issue or cross_references; drops discontinued (QO395)', () => {
+      const record: unknown = parse(daytonDriverYml());
+      if (!isRecord(record) || !isRecord(record.quality) || !isRecord(record.scraper_meta)) throw new Error('fixture shape');
+      const {invalid: _invalid, issue: _issue, cross_references: _cross, ...quality} = record.quality;
+      const {pdf_corroboration: _pdf, datasheet_fallback: _fallback, manufacturer_datasheet: _datasheet, ...scraperMeta} = record.scraper_meta;
+      const newShape = {...record, discontinued: false, quality, scraper_meta: scraperMeta};
+      const result = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(JSON.stringify(newShape));
+      assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
+      assert.ok(result.openisd !== null && result.wdr !== null);
+      assert.equal('discontinued' in JSON.parse(result.openisd), false, 'the slim model carries no discontinued');
+    });
+
+    it('still accepts an old record that carries quality.cross_references and the old scraper_meta keys', () => {
+      const record: unknown = parse(daytonDriverYml());
+      if (!isRecord(record) || !isRecord(record.quality)) throw new Error('fixture shape');
+      const old = {...record, quality: {...record.quality, cross_references: []}};
+      const result = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(JSON.stringify(old));
+      assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
+      assert.ok(result.openisd !== null);
+    });
+
     it('projects per-coil and series tuple values into app values and terminal WDR values', () => {
       const source = scraperTupleFixture('sb-acoustics-sw26dac76-3-dv.driver.json');
       const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
-      assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
-      assert.ok(wdr !== null, `tuple record writes WDR; errors: ${JSON.stringify(errors)}`);
+      assert.ok(openisd !== null, `fixture projects; errors: ${JSON.stringify(errors)}`);
+      assert.ok(wdr !== null, `fixture writes WDR; errors: ${JSON.stringify(errors)}`);
 
       const app: unknown = parse(openisd);
       assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 2.4);
       assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), 9.7);
+      assert.equal(at(app, 'specs', 'woofer', 'Re_basis'), undefined);
+      assert.equal(at(app, 'specs', 'woofer', 'BL_basis'), undefined);
       assert.equal(at(app, 'specs', 'woofer', 'numVC', 'value'), 2);
       assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'value'), 2, '2 is series in the app record');
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings', 'manufacturer_datasheet', 'read_value'), 19.4,
-        'raw source reading remains the published series total');
+      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings'), undefined,
+        'the raw source reading (the published series total, 19.4) stays in driver.json; the .wdr below carries it');
 
       const winisd = WinISDDriver.fromWdrIni(wdr);
       assert.equal(winisd.cell('Re').value, '4.8');
@@ -74,51 +98,41 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.deepEqual(errors.filter(error => error.level === 'error'), []);
     });
 
-    it('keeps each reported voice-coil value entered when tuple metadata is incomplete', () => {
-      const source = scraperTupleFixture('faitalpro-12pr300-8.driver.json');
-      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
-      assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
-      assert.ok(wdr !== null, `tuple record writes WDR; errors: ${JSON.stringify(errors)}`);
-
+    it('a single-coil sheet leaves values unchanged and produces no warnings about basis', () => {
+      const source = daytonDriverYml();
+      const {openisd, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
+      assert.ok(openisd !== null);
       const app: unknown = parse(openisd);
-      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'state'), 'E');
-      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 5.4);
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'state'), 'E');
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'value'), 14.1);
-      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 5.4);
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'readings', 'manufacturer_product_page', 'read_value'), 14.1);
-      assert.equal(WinISDDriver.fromWdrIni(wdr).cell('Re').value, '5.4');
-      assert.equal(WinISDDriver.fromWdrIni(wdr).cell('BL').value, '14.1');
-      assert.ok(errors.some(error => error.level === 'warn' && error.message.includes('basis is unknown')),
-        'warns that the stated Re value was retained without tuple-based scaling');
+      // dayton-ce28n-4 prints Re 3.79 Ω, numVC 1, VCCon 1: one coil, so nothing is derived.
+      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'value'), 3.79);
+      assert.equal(at(app, 'specs', 'woofer', 'numVC', 'value'), 1);
+      assert.equal(at(app, 'specs', 'woofer', 'VCCon', 'value'), 1);
+      assert.equal(at(app, 'specs', 'woofer', 'Re_basis'), undefined);
+      assert.equal(at(app, 'specs', 'woofer', 'BL_basis'), undefined);
+      assert.ok(!errors.some(e => e.message.toLowerCase().includes('basis')));
     });
 
-    it('projects a coax tweeter tuple whose coil count and connection are not stated', () => {
-      const source = scraperTupleFixture('sb-acoustics-sb15bac30-8-coax.driver.json');
-      const {openisd, wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
-      assert.ok(openisd !== null, `tuple record projects; errors: ${JSON.stringify(errors)}`);
-      assert.ok(wdr !== null, `woofer section still writes WDR; errors: ${JSON.stringify(errors)}`);
-
-      const app: unknown = parse(openisd);
-      assert.equal(at(app, 'specs', 'woofer', 'Re_ohm', 'state'), 'E');
-      assert.equal(at(app, 'specs', 'woofer', 'BL_Tm', 'state'), 'E');
-      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'state'), 'E');
-      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'value'), 3.8);
-      assert.equal(at(app, 'specs', 'tweeter', 'Re_ohm', 'readings', 'manufacturer_product_page', 'read_value'), 3.8);
-      assert.equal(at(app, 'specs', 'tweeter', 'voice_coil'), undefined);
-      assert.deepEqual(errors.filter(error => error.level === 'error'), []);
-    });
-
-    it('rejects tuple records that also provide flat voice-coil fields', () => {
-      const record: unknown = parse(scraperTupleFixture('sb-acoustics-sw26dac76-3-dv.driver.json'));
-      const woofer = at(record, 'specs', 'woofer');
-      if (!isRecord(woofer)) throw new Error('expected specs.woofer');
-      woofer.Re_ohm = {readings: {manufacturer_product_page: {actual_reading: '2.4 Ω', read_value: 2.4}}};
-
-      const {wdr, errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
-      assert.equal(wdr, null);
+    it('rejects a section containing voice_coil naming the key', () => {
+      const record = {
+        uuid: {value: '00000000-0000-4000-8000-000000000001'},
+        manufacturer: {value: 'Acme'},
+        brand: {value: 'Acme'},
+        model: {value: 'Test'},
+        driver_type: {value: ['woofer']},
+        data_sources: {value: {}},
+        specs: {
+          woofer: {
+            Fs_hz: {readings: {manual: {actual_reading: '30', read_value: 30}}},
+            voice_coil: {
+              BL_Tm: {readings: {manual: {actual_reading: '10', read_value: 10}}},
+            },
+          },
+        },
+      };
+      const {errors} = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
+      // The converter passes the unknown key on for the record schema to refuse: the error names it.
       assert.ok(errors.some(error => error.level === 'error' && error.message.includes('voice_coil')),
-        `strict bridge rejects the mixed representation; errors: ${JSON.stringify(errors)}`);
+        `errors should name the voice_coil key; got: ${JSON.stringify(errors)}`);
     });
 
     it('returns openisd.yml text, wdr text, and an errors array', () => {
@@ -155,7 +169,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
         'top-level keys are alphabetical');
     });
 
-    it('keeps a rejected reading with its printed text, beside the usable ones (QO177)', () => {
+    it('a rejected reading beside a usable one: the value is the usable one and the readings stay in driver.json (QO177, QO395)', () => {
       // Synthetic Re entry: one usable reading, one source that printed N/A.
       const record: unknown = parse(daytonDriverYml());
       const woofer = at(record, 'specs', 'woofer');
@@ -169,11 +183,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
       const { openisd, errors } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
       assert.ok(openisd !== null, `a readable record produces openisd.yml; errors: ${JSON.stringify(errors)}`);
 
-      const reReadings = at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings');
-      assert.deepEqual(reReadings, {
-        manufacturer_listing_page: {actual_reading: '3.1 Ω', read_value: 3.1},
-        manufacturer_datasheet: {actual_reading: 'N/A', rejected: 'no-numeric-value'},
-      });
+      assert.equal(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings'), undefined);
       assert.equal(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'value'), 3.1);
     });
 
@@ -256,7 +266,7 @@ describe('driverYmlToOpenisdAndWdr', () => {
       assert.equal(at(re, 'readings', 'manufacturer_datasheet', 'actual_reading'), 'banana');
     });
 
-    it('an unknown rejection reason loads, keeps the reading and raw reason, and raises one named warning', () => {
+    it('an unknown rejection reason loads and raises one named warning', () => {
       const record: unknown = parse(daytonDriverYml());
       const woofer = at(record, 'specs', 'woofer');
       if (!isRecord(woofer)) throw new Error('expected specs.woofer');
@@ -266,8 +276,6 @@ describe('driverYmlToOpenisdAndWdr', () => {
       }};
       const { openisd, errors } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(stringifyYaml(record));
       assert.ok(openisd !== null, `errors: ${JSON.stringify(errors)}`);
-      assert.deepEqual(at(parse(openisd), 'specs', 'woofer', 'Re_ohm', 'readings', 'manufacturer_datasheet'),
-        {actual_reading: 'tbd', rejected: 'synthetic-new-reason'});
       const named = errors.filter(e => e.message.includes('unrecognised rejection reason'));
       assert.equal(named.length, 1);
       assert.ok(named[0].message.includes('synthetic-new-reason'));
@@ -530,20 +538,24 @@ describe('driverYmlToOpenisdAndWdr', () => {
       // adds (John, 2026-08-31, 2026-09-01, 2026-09-05, 2026-09-20 option A, D9/D11): `dq_calculated`,
       // the `state`/`value` pair on every entered spec entry, the `state: C` entries the solver
       // derives on load, and — since driver.yml stopped carrying them (D15) — the `origin`/
-      // `corroboration` a spec entry now gets computed for it here rather than supplied. Anything
-      // else that changed is a silent loss, and this is the assertion that names it.
+      // `corroboration` a spec entry now gets computed for it here rather than supplied. Since
+      // openisd.json is the slim model (QO395) it also drops what stays in driver.json: `readings`,
+      // `quality`, `dq_scraper`, `sku.grounds`, `categories`, `nominal_size_cm`, `authoritative`, and
+      // takes the stated `precision` off the winning reading. Anything else that changed is a silent
+      // loss, and this is the assertion that names it.
       const source = daytonDriverYml();
       const { openisd } = new DriverRecordConverter(engine).driverYmlToOpenisdAndWdr(source);
       assert.ok(openisd !== null);
-
       const isCalculatedEntry = (v: unknown): boolean =>
         isRecord(v) && !Array.isArray(v) && v.state === 'C';
+      const SLIM_DROPS = ['readings', 'quality', 'dq_scraper', 'grounds', 'categories', 'nominal_size_cm', 'authoritative', 'precision'];
       const stripDeep = (v: unknown): unknown => {
         if (Array.isArray(v)) return v.map(stripDeep);
         if (!isRecord(v)) return v;
         return Object.fromEntries(Object.entries(v)
           .filter(([k, x]) => k !== 'definition' && k !== 'scraper_meta' && k !== 'origin'
-            && k !== 'corroboration' && k !== 'dq_calculated' && k !== 'state' && k !== 'value'
+            && k !== 'corroboration' && k !== 'dq_calculated' && k !== 'state' && k !== 'value' && k !== 'schemaVersion'
+            && !SLIM_DROPS.includes(k)
             && !isCalculatedEntry(x))
           .map(([k, x]) => [k, stripDeep(x)]));
       };

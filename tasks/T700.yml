@@ -1,0 +1,21 @@
+id: T700
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: 03c9b30794b14a93a7f2121ecf406102e48a07f1
+goal: Phone What-if and Tune: with the keyboard shrinking the layout to 374x341, the focused box and its neighbour rows show fully and no blank band
+done_test: bash scripts/test.sh packages/ui/test/logic/visibleViewport.test.ts
+files:
+  - tasks/T700.yml
+  - bugs/BUG_20261106_phone-whatif-tune-keyboard-hides-box.md
+  - packages/ui/src/logic/visibleViewport.ts
+  - packages/ui/src/hooks/MobileShell-hooks.ts
+  - packages/ui/src/hooks/MobileSheet-hooks.ts
+  - packages/ui/src/ui/shells/mobile/MobileShell.vue
+  - packages/ui/src/ui/shells/mobile/MobileChartView.vue
+  - packages/ui/test/logic/visibleViewport.test.ts
+  - packages/ui/test/ui/mobile-sheet-keyboard.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-keyboard-resize.browser.spec.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/visual/SOURCES.sha256

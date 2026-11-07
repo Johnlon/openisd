@@ -1,6 +1,6 @@
 import {expect, openAProject, test} from '../fixtures.js';
 import type {Locator, Page} from '@playwright/test';
-import {fillAndBlur} from '../fixtures/numField.js';
+import {fillAndBlur, clearWithKeyboard} from '../fixtures/numField.js';
 
 /**
  * Driver editor — a value shows the decimals it is known to (John, 2026-10-02):
@@ -21,7 +21,7 @@ async function openParameters(page: Page) {
 /** Type `value` key by key and commit with Tab. `fill()` sends no keydown, which NumInput reads
  *  as a spinner step and rounds to the field's decimals — a person typing never does that. */
 async function typeAndCommit(input: Locator, value: string) {
-  await input.fill('');
+  await clearWithKeyboard(input);
   await input.pressSequentially(value);
   await input.press('Tab');
 }

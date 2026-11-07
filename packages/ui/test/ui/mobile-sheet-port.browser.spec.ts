@@ -23,7 +23,7 @@ async function openSheet(page: Page, type: string, mode: 'tune' | 'whatIf' = 'tu
 }
 
 const cell = (page: Page, title: string) =>
-  page.locator('.mob-sheet-cell', {has: page.locator('.mob-sheet-label', {hasText: new RegExp(`^${title}$`)})});
+  page.locator('.mob-sheet .ui-field', {has: page.locator('.ui-field-label', {hasText: new RegExp(`^${title}$`)})});
 
 test('vented Tune: ▲ steps the port area', async ({page}) => {
   await openSheet(page, 'vented', 'tune');

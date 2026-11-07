@@ -1,0 +1,24 @@
+id: T654
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 75ccd38c0b27b25691cf342c64da3aa865ff7697
+goal: Converter derives per-coil Re/BL from flat numVC/VCCon; voice_coil key refused; Qes cap and sub-watt Pe limits lifted
+done_test: bash scripts/test.sh packages/design/test/winisd/driverRecordConverter.coverage.test.ts packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts packages/design/test/engine/physicalRange.test.ts
+files:
+  - packages/design/domain/driverRecordConverter.ts
+  - packages/design/fields/field.ts
+  - packages/design/test/engine/physicalRange.test.ts
+  - packages/design/test/fixtures/corpus/dayton-audio/cx120-8.driver.json
+  - packages/design/test/fixtures/corpus/dayton-audio/cx120-8.driver.json.provenance.md
+  - packages/design/test/fixtures/corpus/faitalpro-12pr300-8.driver.json
+  - packages/design/test/fixtures/corpus/sb-acoustics-sb15bac30-8-coax.driver.json
+  - packages/design/test/fixtures/corpus/sb-acoustics-sw26dac76-3-dv.driver.json
+  - packages/design/test/winisd/driverRecordConverter.coverage.test.ts
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/design/test/fixtures/driver-snapshot/accuton/bd90-6-727/driver.json
+  - scripts/driver-snapshot.pin
+  - tasks/T654.yml

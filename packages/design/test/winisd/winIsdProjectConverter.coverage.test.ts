@@ -169,20 +169,20 @@ describe('WinIsdProjectConverter import — odd box and vent entries', () => {
   });
 });
 
-describe('WinIsdProjectConverter export — air the project has no value for', () => {
-  it('writes the template\'s T, p and phi for an air quantity that is blank and that the app cannot supply', () => {
+describe('WinIsdProjectConverter export — air a project cleared and the app cannot supply', () => {
+  it('writes the built-in constants for T, p and phi when the project is cleared and the app setting is out of range', () => {
     let defaults: EnvDefaults = {tempK: 293.15, humidityPct: 30, pressurePa: 101325};
     const own = createEngine({ventedLimits: () => DEFAULT_VENTED_DESIGN_LIMITS, envDefaults: () => defaults});
     const driver = OpenISDDriver.empty(own);
     driver.specs.Re_ohm.set(6);
     const project = new ProjectBuilder(driver, own).sealed().volume_m3(0.03).build();
-    defaults = {tempK: 1, humidityPct: 500, pressurePa: 1};
+    defaults = {tempK: 0, humidityPct: 500, pressurePa: 1};
     project.envTempK.clear();
     project.envHumidityPct.clear();
     project.envPressurePa.clear();
-    expect([project.envTempK.value, project.envHumidityPct.value, project.envPressurePa.value]).toEqual([null, null, null]);
+    expect([project.envTempK.value, project.envHumidityPct.value, project.envPressurePa.value]).toEqual([293.15, 30, 101325]);
     const box = sectionOf(wprTextOf(project).text, 'Box');
-    // The template's own air stands in; the app's out-of-range values are not written.
+    // The app's out-of-range values are the built-in constants, and those are written.
     expect(box).toMatch(/^T=293\.15$/m);
     expect(box).toMatch(/^p=101325$/m);
     expect(box).toMatch(/^phi=0\.3$/m);

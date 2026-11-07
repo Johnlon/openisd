@@ -13,7 +13,7 @@ wires the concrete graph.
 **Closed sets are enums.** Java-style classes, not TS `enum`. `.value` is the only thing that
 crosses a boundary (wire string, storage, reactive store) — never the member itself. `static
 parse()` is the only string→member boundary. `static ALL` is built by reflection, declared last.
-Reference: `DriverType`/`Chip` in `packages/ui/src/driverType.ts`.
+Reference: `DriverType`/`Chip` in `packages/design/filter/driverType.ts`.
 
 **Encapsulation.** A layer never touches another layer's private shape — not via a type alias,
 `unknown`/`any`/`object`, a structural clone, a getter returning the private object, or a

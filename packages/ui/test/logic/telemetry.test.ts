@@ -28,7 +28,7 @@ function rig(options: {online?: boolean; accepted?: boolean} = {}) {
   const sent: {url: string; body: Blob}[] = [];
   const beacon = vi.fn((url: string, body: Blob) => { sent.push({url, body}); return options.accepted ?? true; });
   const telemetry = new BeaconTelemetry({
-    endpoint: TELEMETRY_ENDPOINT, version: 'v1', beacon, online: () => options.online ?? true, now: () => 1000, sessionId: 'sess', browserId: 'browser-1',
+    endpoint: TELEMETRY_ENDPOINT, version: 'v1', beacon, online: () => options.online ?? true, now: () => 1000, sessionId: 'sess', browserId: 'browser-1', environment: 'production',
   });
   const bodies = async (): Promise<unknown[][]> => Promise.all(sent.map(async s => {
     const parsed: unknown = JSON.parse(await s.body.text());
@@ -52,7 +52,7 @@ describe('BeaconTelemetry', () => {
     expect(r.sent[0]?.url).toBe(TELEMETRY_ENDPOINT);
     expect(r.sent[0]?.body.type).toBe('text/plain');
     expect(await r.bodies()).toEqual([[{
-      name: 'launch', ts: 1000, version: 'v1', session: 'sess', browser_id: 'browser-1',
+      name: 'launch', ts: 1000, version: 'v1', session: 'sess', browser_id: 'browser-1', environment: 'production',
       fields: {mode: 'standalone', platform: 'Android', skin: 'mobile', w: 390, h: 844, screen: '<600', lang: 'en-GB', ref: 'example.org'},
     }]]);
   });
@@ -61,7 +61,7 @@ describe('BeaconTelemetry', () => {
     const r = rig();
     new LaunchReporter(r.telemetry, () => ({...ENV, keysLost: ['openisd_my_drivers', 'openisd_view']}), work => work(), noInstall()).report('mobile');
     expect(await r.bodies()).toEqual([[{
-      name: 'launch', ts: 1000, version: 'v1', session: 'sess', browser_id: 'browser-1',
+      name: 'launch', ts: 1000, version: 'v1', session: 'sess', browser_id: 'browser-1', environment: 'production',
       fields: {
         mode: 'standalone', platform: 'Android', skin: 'mobile', w: 390, h: 844, screen: '<600', lang: 'en-GB', ref: 'example.org',
         keysLost: 'openisd_my_drivers,openisd_view',
@@ -256,14 +256,30 @@ describe('launch helpers and endpoint', () => {
     expect(referrerHost('not a url')).toBe('');
   });
 
-  it('chooses no endpoint on localhost or in the suite unless opted in', () => {
+  it('chooses no target on localhost, other hosts or in the suite unless opted in', () => {
     expect(chooseEndpoint({hostname: 'localhost', mode: 'development', testOptIn: false})).toBeNull();
     expect(chooseEndpoint({hostname: '127.0.0.1', mode: 'production', testOptIn: false})).toBeNull();
     expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: false})).toBeNull();
-    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: true})).toBe(TELEMETRY_ENDPOINT);
-    expect(chooseEndpoint({hostname: 'openisd.app', mode: 'production', testOptIn: false})).toBe(TELEMETRY_ENDPOINT);
-    expect(chooseEndpoint({hostname: 'test.openisd.app', mode: 'production', testOptIn: false})).toBeNull();
     expect(chooseEndpoint({hostname: 'x.github.io', mode: 'production', testOptIn: false})).toBeNull();
+    expect(chooseEndpoint({hostname: 'snapshots.openisd.app', mode: 'production', testOptIn: false})).toBeNull();
+  });
+
+  it('derives the environment from the hostname: production sends as production, test sends as test', () => {
+    expect(chooseEndpoint({hostname: 'openisd.app', mode: 'production', testOptIn: false})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'production'});
+    expect(chooseEndpoint({hostname: 'test.openisd.app', mode: 'production', testOptIn: false})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'test'});
+    expect(chooseEndpoint({hostname: 'localhost', mode: 'test', testOptIn: true})).toEqual({endpoint: TELEMETRY_ENDPOINT, environment: 'test'});
+  });
+
+  it('puts the environment on every event sent', async () => {
+    const sent: Blob[] = [];
+    const telemetry = new BeaconTelemetry({
+      endpoint: TELEMETRY_ENDPOINT, version: 'v1', beacon: (_u, body) => { sent.push(body); return true; }, online: () => true,
+      now: () => 1000, sessionId: 'sess', browserId: 'browser-1', environment: 'test',
+    });
+    telemetry.record(PICK);
+    telemetry.flush();
+    const parsed: unknown = JSON.parse(await (sent[0]?.text() ?? Promise.resolve('[]')));
+    expect(parsed).toMatchObject([{name: 'driver_pick', environment: 'test'}]);
   });
 });
 

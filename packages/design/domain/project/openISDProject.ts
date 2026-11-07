@@ -1,11 +1,11 @@
 import {type Engine} from '../../engine/index.js';
-import type { AirState, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
+import type { Air, BoxParamsIssue, ChartId, DriverError, Filter, MaxCurvesResult, MaxCurvesSolveResult, SweepPeaks, SweepResult, SweepSolveResult } from '../../engine/index.js';
 import { dateStamp, realAppContext } from '../appContext.js';
 import type { AppContext } from '../appContext.js';
 import { defaultedField, focus, simpleField } from '../cell.js';
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import type { EnvironmentIssue } from '../../engine/index.js';
-import { airStateOf } from './projectAir.js';
+import { airOf } from './projectAir.js';
 import { DEFAULT_SOURCE_RESISTANCE_OHM } from '../../fields/defaults.js';
 import type { OpenISDProjectJson, OpenISDProjectSessionJson } from '../openisdSchema.js';
 import type { Box } from '../box/box.js';
@@ -105,7 +105,7 @@ export class OpenISDProject {
         return OpenISDDriverEmbedded.wrap(
             focus(focus(root, 'driverEmbedding'), 'device'),
             this.#engine,
-            () => this.#airState(root),
+            () => this.#airOver(root),
             () => this.#issues.driver,
             () => this.#appContext.newId(),
         );
@@ -117,10 +117,9 @@ export class OpenISDProject {
         return airFieldsOver(focus(root, 'environment'), () => this.#issues.air);
     }
 
-    /** `root`'s air, as the solvers that write values take it: available when its c and ρ both
-     *  hold a value. */
-    #airState(root: SimpleField<OpenISDProjectJson>): AirState {
-        return airStateOf(this.#airFieldsOver(root), this.#issues.air);
+    /** `root`'s air: its c and ρ, which every resolve settles. */
+    #airOver(root: SimpleField<OpenISDProjectJson>): Air {
+        return airOf(this.#airFieldsOver(root), this.#engine.environment);
     }
 
     /** The embedded driver — built fresh from the current record on every access, never held: the
@@ -141,7 +140,7 @@ export class OpenISDProject {
             () => root.value.driverEmbedding.Rs_ohm,
             () => this.#issues,
             () => this.#issues.ventTuningExtra,
-            () => this.#airState(root),
+            () => this.#airOver(root),
             () => root.value.driverEmbedding.nDrivers,
         );
     }
@@ -734,10 +733,9 @@ export class OpenISDProject {
 
     // ── ENVIRONMENT ───────────────────────────────────────────────────────────────────────────
 
-    /** The project's own air, or why it has none: what every calculation of this project runs in.
-     *  Available when its c and ρ both hold a value. */
-    get air(): AirState {
-        return this.#airState(this.#root());
+    /** The project's own air: what every calculation of this project runs in. */
+    get air(): Air {
+        return this.#airOver(this.#root());
     }
 
     /** The five air fields over the notifying environment slot. */
@@ -828,7 +826,7 @@ export class OpenISDProject {
             alfaVC_per_K: this.alfaVC_per_K,
             sweepN: this.sweepN,
             driveVoltage_V: this.#signalOver(root).sweepVoltage_V,
-            air: this.#airState(root),
+            air: this.#airOver(root),
             airIssues: this.#airRangeIssues(root),
             engine: this.#engine,
             ventIssues: this.#issues.vent,

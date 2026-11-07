@@ -8,7 +8,7 @@ goal: Sealed alignment picker: the picked Qtc is the entered value, the lossy in
 done_test: bash scripts/test.sh packages/ui/test/hooks/SealedAlignment-hooks.test.ts packages/design/test/domain/driver-design-queries.test.ts
 files:
   - tasks/T347.yml
-  - bugs/BUG_20261016_sealed-alignment-picker-qtc-disagrees-with-box-tab-qtc.md
+  - bugs/archive/BUG_20261016_sealed-alignment-picker-qtc-disagrees-with-box-tab-qtc.md
   - bugs/BUG_20261017_winisd-sealed-picker-volume-formula-unknown.md
   - packages/design/domain/box/openISDBox.ts
   - packages/design/domain/boxDefaults.ts

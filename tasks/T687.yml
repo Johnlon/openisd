@@ -1,0 +1,13 @@
+id: T687
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: bf79cf711bbdbd2851ef5a706040f0adee50f2bf
+goal: Journey spec: every number box shown for the driver and radiator holds a value, stated or calculated; blank is a defect (QO326 follow-up)
+done_test: bash scripts/test.sh packages/ui/test/architecture/ui-clear-tests-use-keyboard.test.ts
+files:
+  - tasks/T687.yml
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - bugs/BUG_20261105_driver-editor-parameter-boxes-blank-after-pick.md
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json

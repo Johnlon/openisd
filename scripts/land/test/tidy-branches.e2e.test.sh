@@ -100,6 +100,17 @@ tidy
 [ -d "$SCRATCH/young-copy" ] && ok "a copy younger than 6 h stays (a live run's)" || fail "young copy removed"
 [ -d "$SCRATCH/old-ahead" ] && ok "an old copy holding a commit not on main stays" || fail "old-ahead removed"
 
+# 1d. T661: stray/* branches: one checked out nowhere whose content is on origin/main goes; one holding work found
+#     nowhere else stays
+setup
+gm branch stray/old origin/main
+echo unique > "$SCRATCH/u.txt"; blob=$(gm hash-object -w "$SCRATCH/u.txt")
+tree=$(gm ls-tree origin/main | { cat; printf '100644 blob %s\tuniq.txt\n' "$blob"; } | gm mktree)
+gm update-ref refs/heads/stray/main-folder "$(gm commit-tree "$tree" -p origin/main -m 'WIP stray')"
+tidy
+! has_branch stray/old && grep -q "deleted branch stray/old" "$TIDY_LOG" && ok "a stray branch whose content is on origin/main goes, logged" || fail "stray/old kept: $(cat "$SCRATCH/out")"
+has_branch stray/main-folder && ok "a stray branch holding work found nowhere else stays" || fail "stray/main-folder removed"
+
 # 2. leftover folders: only generated folders and no git data goes
 mkdir -p "$M-t20/node_modules/x" "$M-t20/build" "$M-t21" "$M-t22"; echo keep > "$M-t21/notes.txt"; echo "gitdir: /nowhere" > "$M-t22/.git"
 mkdir -p "$M-t23/node_modules"

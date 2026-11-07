@@ -56,7 +56,7 @@ const emit = defineEmits<{
 .np-pr-step { margin-top: 10px; }
 .np-pr-step:has(.np-pr-browse-classic) { margin-top: 0; }
 .np-pr-browse { width: 100%; min-height: var(--ctl-h); border: 1px solid #999; background: #f0f0f0; color: #222; border-radius: 4px; font: inherit; cursor: pointer; }
-.np-pr-browse-classic { width: calc(100% - 32px); min-height: 38px; margin: 8px 16px; background: #fff; border-color: #aaa; font-size: 14px; font-weight: 600; }
+.np-pr-browse-classic { width: calc(100% - 32px); min-height: 38px; margin: 8px 16px; background: var(--acc); border-color: var(--acc); color: #fff; font-size: 14px; font-weight: 600; }
 .np-pr-hint { color: #555; font-size: 13px; margin: 8px 0 12px; }
 .np-pr-step :deep(.ui-field) { margin-top: 10px; }
 </style>

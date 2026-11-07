@@ -1,6 +1,6 @@
 import type {Locator} from '@playwright/test';
 import {chartPicture, expect, expectChartDrawn, openAProject, test} from '../fixtures.js';
-import {fillAndBlur} from '../fixtures/numField.js';
+import {fillAndBlur, clearWithKeyboard} from '../fixtures/numField.js';
 
 /** The `.filter-edit-body` row whose label starts with `label`: a `UIFixedField` row for a number, or the
  *  Subtype `<label>` around its select. Anchored so "Q" never matches "Qp". */
@@ -114,7 +114,7 @@ test('an emptied field waits for the entry instead of snapping to its limit', as
   const panel = page.locator('.content-panel');
   await panel.locator('.action-btn', {hasText: '+ LP'}).click();
   const cutoff = editorField(panel, 'Cutoff');
-  await cutoff.fill('');
+  await clearWithKeyboard(cutoff);
   await expect(cutoff).toHaveValue('');
   await expect(panel.locator('.filter-summary')).toContainText('fc=50.00 Hz');
 });

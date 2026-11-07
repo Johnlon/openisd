@@ -26,6 +26,9 @@ function showDifference(row: PhoneHelpRow): void {
       </div>
       <p class="mob-help-intro">{{ props.section.intro }}</p>
       <p v-for="row in props.section.rows" :key="row.label" class="mob-help-row"><b>{{ row.label }}:</b> {{ row.text }}<template v-if="row.difference !== undefined"> <button type="button" class="mob-help-more" @click="showDifference(row)">More in Differences ›</button></template></p>
+    <ul v-if="props.section.links.length > 0" class="mob-help-links">
+        <li v-for="link in props.section.links" :key="link.url"><a :href="link.url" target="_blank" rel="noopener noreferrer">{{ link.title }}</a></li>
+      </ul>
     </div>
   </div>
 </template>

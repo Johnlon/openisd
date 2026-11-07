@@ -1,0 +1,15 @@
+id: T697
+release_note: internal
+repo: openisd
+owner: fable
+status: done
+landed: 0cc5556c84ad2730dd78e0b458000a594a4efa98
+goal: Refresh the bundled driver catalogue from winisd_drivers b1e107516 (Bliesma W137A/W137P rebuilt)
+done_test: bash scripts/quiet-test.sh bash scripts/test.sh packages/design/test/scripts/driver-snapshot-pin.test.ts packages/ui/test/scripts/bundle-outputs.test.ts
+ruling: QO422
+files:
+  - tasks/T697.yml
+  - packages/ui/public/**
+  - packages/design/test/fixtures/driver-snapshot/**
+  - scripts/driver-snapshot.pin
+  - packages/ui/test/visual/SOURCES.sha256

@@ -1,0 +1,95 @@
+id: T690
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: a087103a9faf5ab89551f0417de697e7e19d529a
+goal: Every number and count control on every screen is drawn by the common field component: the desktop chart frequency box and the hand-built count dropdowns move onto it, the gate catches them, and there is one definition of a sideways phone
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts packages/ui/test/logic/viewport.test.ts packages/ui/test/logic/visibleViewport.test.ts
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-abc-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass4-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-bandpass6-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step2.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-sealed-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-enclosure.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step1.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-sealed-step2.png
+  - bugs/BUG_20261105_desktop-driver-tab-count-and-connection-widths.md
+  - bugs/BUG_20261105_desktop-advanced-air-value-widths.md
+  - bugs/BUG_20261105_phone-box-tab-box-type-width.md
+  - bugs/BUG_20261105_desktop-wizard-info-glyph-off-centre.md
+  - packages/ui/src/ui/components/WizardInfoButton.vue
+  - packages/ui/src/ui/components/DesktopBand.vue
+  - bugs/BUG_20261105_phone-filters-strip-scrolls-sideways.md
+  - bugs/BUG_20261105_desktop-whatif-panel-scrolls-and-wizard-count-width.md
+  - .claude/rules/field-layout.md
+  - CLAUDE.md
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-port.browser.spec.ts
+  - bugs/archive/BUG_20261105_desktop-vent-count-hand-built.md
+  - bugs/BUG_20261105_desktop-vent-count-hand-built.md
+  - bugs/BUG_20261105_desktop-abc-port-columns-edges-and-widths.md
+  - packages/ui/test/fixtures/fieldLayoutAudit.ts
+  - packages/ui/src/hooks/MobileDriverTab-hooks.ts
+  - packages/ui/src/hooks/MobileEnclosureTab-hooks.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/hooks/OriginalShell-hooks.ts
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/src/logic/viewport.ts
+  - packages/ui/src/logic/visibleViewport.ts
+  - packages/ui/src/ui/components/VentPortFields.vue
+  - packages/ui/src/ui/components/WhatIfBoxField.vue
+  - packages/ui/src/ui/shells/mobile/MobileDriverTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/src/ui/components/UIPickField.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts
+  - packages/ui/test/ui/original-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/mobile-vented-tab.browser.spec.ts
+  - packages/ui/test/ui/original-bottom-panel-height.browser.spec.ts
+  - packages/ui/test/ui/original-bandpass-vents.browser.spec.ts
+  - packages/ui/test/ui/desktop-help.browser.spec.ts
+  - packages/design/fields/index.ts
+  - packages/design/fields/options.ts
+  - packages/design/fields/desktopHelp.ts
+  - packages/ui/test/fixtures/approvedJoinedGeometry.json
+  - packages/ui/test/fixtures/fieldInventoryScenarios.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/ui/original-field-regions.browser.spec.ts
+  - packages/ui/test/logic/viewport.test.ts
+  - packages/ui/test/logic/visibleViewport.test.ts
+  - packages/ui/test/ui/field-visual-contract.browser.spec.ts
+  - packages/ui/test/ui/mobile-sheet-fit.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-selects.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-walk.browser.spec.ts
+  - tasks/T690.yml
+visual:
+  - desktop-tab-driver
+  - desktop-wizard-abc-step3
+  - desktop-wizard-bandpass4-step3
+  - desktop-wizard-bandpass6-step3
+  - desktop-wizard-box-passive-radiator-step3
+  - desktop-wizard-sealed-step1
+  - desktop-wizard-sealed-step2
+  - desktop-wizard-sealed-step3
+  - desktop-wizard-sealed-step4
+  - desktop-wizard-vented-step3
+  - desktop-wizard-vented-step4
+  - mobile-tab-box
+  - mobile-tab-driver
+  - mobile-tab-enclosure
+  - mobile-wizard-sealed-step1
+  - mobile-wizard-sealed-step2

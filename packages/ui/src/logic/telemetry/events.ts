@@ -96,6 +96,9 @@ export type TelemetryEvent =
 export type FieldValue = string | number | boolean;
 export type Fields = Record<string, FieldValue>;
 
+/** Where an event comes from: the live site or the test site. */
+export type TelemetryEnvironment = 'production' | 'test';
+
 /** One event as the collector receives it. */
 export interface WireEvent {
   readonly name: TelemetryEvent['kind'];
@@ -104,6 +107,7 @@ export interface WireEvent {
   readonly session: string;
   /** Anonymous random id of this browser, minted on first launch; linked to no account or name. */
   readonly browser_id: string;
+  readonly environment: TelemetryEnvironment;
   readonly fields: Fields;
 }
 

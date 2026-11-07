@@ -24,6 +24,10 @@ export interface SearchCriteria {
   typeStates: Record<string, string>;
   /** Hz */
   fsMin: string; fsMax: string;
+  /** Hz: the range a driver's stated range must cover. */
+  rangeFrom: string; rangeTo: string;
+  /** The Range checkbox: whether drivers that state no range stay in the list while the Range boxes are in use. */
+  rangeKeepUnstated: boolean;
   /** cm² */
   sdMin: string; sdMax: string;
   /** Nominal impedances to admit, as strings: '4', '8', '16'. */
@@ -44,15 +48,20 @@ export interface SearchSubject {
   readonly Fs_hz: number | null;
   readonly Sd_m2: number | null;
   readonly Znom_ohm: number | null;
+  /** The frequency range the maker states. */
+  readonly freq_low_hz: number | null;
+  readonly freq_high_hz: number | null;
 }
 
 export function searchSubjectOfDriver(driver: OpenISDDriverStandalone): SearchSubject {
   const s = specSummaryOf(driver);
-  return { id: driver.uuid(), name: displayNameOf(driver), chips: chipsOf(driver).types, Fs_hz: s.Fs, Sd_m2: s.Sd, Znom_ohm: s.Znom };
+  return { id: driver.uuid(), name: displayNameOf(driver), chips: chipsOf(driver).types, Fs_hz: s.Fs, Sd_m2: s.Sd, Znom_ohm: s.Znom,
+    freq_low_hz: driver.specs.freq_low_hz.value, freq_high_hz: driver.specs.freq_high_hz.value };
 }
 
 export function searchSubjectOfIndexRow(row: BundledDriverIndexRow): SearchSubject {
-  return { id: row.uuid, name: row.name, chips: row.chips, Fs_hz: row.Fs_hz, Sd_m2: row.Sd_m2, Znom_ohm: row.Znom_ohm };
+  return { id: row.uuid, name: row.name, chips: row.chips, Fs_hz: row.Fs_hz, Sd_m2: row.Sd_m2, Znom_ohm: row.Znom_ohm,
+    freq_low_hz: row.freq_low_hz, freq_high_hz: row.freq_high_hz };
 }
 
 /** The stated T/S numbers of one driver's active section, plus its derived inductance — the
@@ -82,16 +91,6 @@ export function previewSpecsOf(driver: OpenISDDriver): PreviewSpec[] {
   };
   const canonical = chipsOf(driver).canonical;
   const ebpVal = driver.ebp();
-  const reported = (field: 'Re_ohm' | 'BL_Tm', label: string): PreviewSpec | null => {
-    if (driver.specField(field).value !== null) return null;
-    const readings = driver.reportedSpecReadings(field);
-    if (readings.length === 0) return null;
-    return {
-      kind: PreviewSpecKind.Text,
-      label: `${label} (reported)`,
-      value: readings.map(reading => `${reading.text} (${reading.source.replaceAll('_', ' ')})`).join('; '),
-    };
-  };
   const rows: (PreviewSpec | null)[] = [
     { label: 'Fs',   ...fmtField(NumberField.FS_HZ, n.Fs) },
     { label: 'Qts',  ...fmtField(NumberField.QTS, n.Qts) },
@@ -99,8 +98,6 @@ export function previewSpecsOf(driver: OpenISDDriver): PreviewSpec[] {
     { label: 'Qms',  ...fmtField(NumberField.QMS, n.Qms) },
     { label: 'Re',   ...fmtField(NumberField.RE_OHM, n.Re) },
     { label: 'BL',   ...fmtField(NumberField.BL_TM, driver.specs.BL_Tm.value) },
-    reported('Re_ohm', 'Re'),
-    reported('BL_Tm', 'BL'),
     { label: 'Le',   ...fmtField(NumberField.LE_H, n.Le) },
     { label: 'Vas',  ...fmtField(NumberField.VAS_M3, n.Vas) },
     { label: 'Sd',   ...fmtField(NumberField.SD_M2, n.Sd) },
@@ -134,6 +131,22 @@ export function previewTextOf(driver: OpenISDDriver): {
   };
 }
 
+/** How a subject answers the stated range filter: off (no box filled), covers, short (it stops short of what
+ *  was typed, so it leaves the list) or notStated (it does not state an end that was asked about, so it stays). */
+export type StatedRangeResult = 'off' | 'covers' | 'short' | 'notStated';
+
+/** Filling one box checks only that end. A stated end that falls short decides, even if the other end is not stated. */
+export function statedRangeResult(subject: SearchSubject, c: SearchCriteria): StatedRangeResult {
+  const from = parseFloat(c.rangeFrom), to = parseFloat(c.rangeTo);
+  const askFrom = isFinite(from), askTo = isFinite(to);
+  if (!askFrom && !askTo) return 'off';
+  const low = subject.freq_low_hz, high = subject.freq_high_hz;
+  if (askFrom && low !== null && low > from) return 'short';
+  if (askTo && high !== null && high < to) return 'short';
+  if ((askFrom && low === null) || (askTo && high === null)) return 'notStated';
+  return 'covers';
+}
+
 /**
  * The filter bar as a single predicate over a subject — every control at the top of the browser,
  * in one place. Shared by the bundled pool and by My Drivers because a filter that skips a section
@@ -162,6 +175,8 @@ export function matchesCriteria(subject: SearchSubject, c: SearchCriteria): bool
   if (isFinite(fsMaxV) && !(Fs != null && Fs <= fsMaxV)) return false;
   if (isFinite(sdMinV) && !(Sd != null && Sd * 1e4 >= sdMinV)) return false;
   if (isFinite(sdMaxV) && !(Sd != null && Sd * 1e4 <= sdMaxV)) return false;
+  const range = statedRangeResult(subject, c);
+  if (range === 'short' || (range === 'notStated' && !c.rangeKeepUnstated)) return false;
   if (c.selZ.length &&
       !c.selZ.some(oz => Znom != null && Math.abs(Znom - parseFloat(oz)) < 1.5)) return false;
 
@@ -175,6 +190,16 @@ function rangeLabel(name: string, min: string, max: string, unit: string): strin
   if (lo && hi) return `${name} ${lo}–${hi} ${unit}`;
   if (lo) return `${name} ≥ ${lo} ${unit}`;
   if (hi) return `${name} ≤ ${hi} ${unit}`;
+  return null;
+}
+
+/** The stated range boxes in words: "Range 40–2000 Hz", "Range from 40 Hz", "Range to 2000 Hz", or null when both are empty. */
+function statedRangeLabel(from: string, to: string, unit: string, keepUnstated: boolean): string | null {
+  const lo = from.trim(), hi = to.trim();
+  const tail = keepUnstated ? '' : ', stated only';
+  if (lo && hi) return `Range ${lo}–${hi} ${unit}${tail}`;
+  if (lo) return `Range from ${lo} ${unit}${tail}`;
+  if (hi) return `Range to ${hi} ${unit}${tail}`;
   return null;
 }
 
@@ -195,6 +220,8 @@ export function activeFilterLabels(c: SearchCriteria, scope: DriverScope): strin
   // The filter boxes take Fs in its base unit (Hz) and Sd in cm² (`matchesCriteria`); the labels name those units.
   const fs = rangeLabel('Fs', c.fsMin, c.fsMax, NumberField.FS_HZ.unitLabel());
   if (fs) labels.push(fs);
+  const range = statedRangeLabel(c.rangeFrom, c.rangeTo, NumberField.FS_HZ.unitLabel(), c.rangeKeepUnstated);
+  if (range) labels.push(range);
   const sd = rangeLabel('Sd', c.sdMin, c.sdMax, NumberField.SD_M2.unitLabel('cm2'));
   if (sd) labels.push(sd);
   if (c.selZ.length) labels.push(`Z ${c.selZ.map(z => `${z}${NumberField.ZNOM_OHM.unitLabel()}`).join(' or ')}`);

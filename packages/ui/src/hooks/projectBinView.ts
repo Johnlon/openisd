@@ -15,6 +15,9 @@ import {
   type ProjectRow,
   type ProjectRowOrder,
   viewProjectRows,
+  scopeProjectRows,
+  DEFAULT_PROJECT_LIST_SCOPE,
+  type ProjectListScope,
 } from '@openisd/design/fields';
 import {binRows, binTotalSize, type BinRow} from './binRows.js';
 
@@ -47,6 +50,8 @@ export interface ProjectBinView {
   /** What the search box holds. */
   readonly query: Ref<string>;
   readonly order: Ref<ProjectRowOrder>;
+  /** Whether the list shows only the open projects or all of them. */
+  readonly scope: Ref<ProjectListScope>;
   readonly orders: readonly ProjectRowOrder[];
   readonly binRows: Ref<BinRow[]>;
   /** The Bin's total size. */
@@ -85,6 +90,7 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
   const binOpen = ref(false);
   const query = ref('');
   const order = shallowRef<ProjectRowOrder>(PROJECT_ROW_ORDER_LIST[0]);
+  const scope = ref<ProjectListScope>(DEFAULT_PROJECT_LIST_SCOPE);
   function openState(project: OpenISDProject | null): ProjectOpenState {
     if (project === null) return {kind: 'closed'};
     return {
@@ -142,11 +148,12 @@ export function createProjectBinView(deps: ProjectBinViewDeps): ProjectBinView {
   return {
     projectRows,
     // A word typed while the box was offered stops filtering once the box is gone.
-    shownProjects: computed(() => viewProjectRows(projectRows.value, order.value, projectRows.value.length > PROJECT_SEARCH_FROM_ROWS ? query.value : '')),
+    shownProjects: computed(() => viewProjectRows(scopeProjectRows(projectRows.value, scope.value), order.value, projectRows.value.length > PROJECT_SEARCH_FROM_ROWS ? query.value : '')),
     projectsFooter: computed(() => projectRowsFooter(projectRows.value)),
     searchOffered: computed(() => projectRows.value.length > PROJECT_SEARCH_FROM_ROWS),
     query,
     order,
+    scope,
     orders: PROJECT_ROW_ORDER_LIST,
     binRows: rows,
     binTotal,

@@ -1,0 +1,44 @@
+id: T668
+release_note: internal
+repo: openisd
+owner: sonnet
+status: done
+landed: b2cff1209edbe2fcd8da507d23eb255e751ce25e
+ruling: QO395
+goal: Saved projects, saved drivers and driver records carry schemaVersion (slim = 3, none = 2); load upgrades step by step before the strict parse; a newer number refuses with an update-the-app message (ruling: QO395)
+done_test: bash scripts/test.sh packages/design/test/domain/schema-version.test.ts packages/design/test/domain/dia-retired.test.ts packages/persistence/test/storageUpgrade.test.ts packages/persistence/test/storedTextCompaction.test.ts packages/persistence/test/projectRepo.test.ts
+files:
+  - tasks/T668.yml
+  - scripts/schemagen/out/driver_model.py
+  - packages/design/domain/schemaVersion.ts
+  - packages/design/domain/openisdSchema.ts
+  - packages/design/domain/openIsdDeviceJsonIo.ts
+  - packages/design/domain/driver/openISDDriver.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts
+  - packages/design/domain/project/projectSerialization.ts
+  - packages/design/test/domain/schema-version.test.ts
+  - packages/persistence/src/storageLayout.ts
+  - packages/persistence/src/repos/layoutSteps.ts
+  - packages/persistence/test/storageUpgrade.test.ts
+  - packages/persistence/test/storedTextCompaction.test.ts
+  - packages/persistence/test/projectRepo.test.ts
+  - packages/persistence/test/goldens/**
+  - packages/design/test/winisd/driverYmlToOpenisdAndWdr.test.ts
+  - scripts/roundTripGate.mjs
+  - packages/ui/test/ui/cloud-layout-upgrade.browser.spec.ts
+  - packages/ui/test/ui/my-drivers-failures.browser.spec.ts
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/*.png
+visual_note: The projects list footer shows a stored size one digit larger (for example 6.2 KB becomes 6.3 KB) because every saved project now carries its schema version.
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal

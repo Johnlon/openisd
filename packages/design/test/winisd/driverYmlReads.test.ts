@@ -52,14 +52,14 @@ describe('driver.yml readings with reads', () => {
     for (const shown of ['type3_decode=456 Hz', 'ocr_tesseract=486 Hz', 'ocr_rapidocr=456 Hz']) expect(warning?.message).toContain(shown);
   });
 
-  it('readers that agree raise no warning, and the reads are kept in the record', () => {
+  it('readers that agree raise no warning, and the reads stay in driver.json, not in openisd.json (QO395)', () => {
     const {errors, openisd} = convert(ymlWithFsReads({
       text_layer: cell(456, '456 Hz'),
       ocr_tesseract: cell(456, '456 Hz'),
     }));
     expect(errors.filter(e => e.message.includes('readers disagree'))).toEqual([]);
-    expect(openisd).toContain('text_layer');
-    expect(openisd).toContain('ocr_tesseract');
+    expect(openisd).not.toContain('text_layer');
+    expect(openisd).not.toContain('ocr_tesseract');
   });
 
   it('no agreement is stored in the record', () => {

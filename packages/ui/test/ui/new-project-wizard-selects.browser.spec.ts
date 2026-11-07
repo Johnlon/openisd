@@ -13,10 +13,11 @@ import {PIXEL_9} from '../fixtures/phoneSizes.js';
 
 const TEST_DRIVER = 'Tang Band W5-1138SMF';
 
-/** Each pick list on steps 2 to 4, and the width it had on the desktop in 7.0.951. */
+/** Each word pick list on steps 2 to 4, and the width it had on the desktop in 7.0.951. The number of
+ *  drivers is a count, drawn by the common number field (T690), so its size is not a pick-list size. The
+ *  voice coil connection takes the count's width and left edge (John, 5 Nov 2026, T690), so 90 on the desktop (QO428.c2, no number boxes under them). */
 const PICKS = [
-  {step: 2, box: 'sealed', id: 'np-ndrivers', desktopWidth: 180},
-  {step: 2, box: 'sealed', id: 'np-wiring', desktopWidth: 180},
+  {step: 2, box: 'sealed', id: 'np-wiring', desktopWidth: 90},
   {step: 3, box: 'sealed', id: 'np-box-type', desktopWidth: 240},
   {step: 4, box: 'sealed', id: 'np-alignment', desktopWidth: 260},
   {step: 4, box: 'vented', id: 'np-vented-alignment', desktopWidth: 260},
@@ -82,7 +83,7 @@ for (const skin of SKINS) {
       await page.goto('/');
     });
 
-    for (const {step, box, id} of PICKS) {
+    for (const {step, box, id} of PICKS.filter(pick => skin.mobile || pick.id !== 'np-wiring')) {
       test(`${id} fills its field column`, async ({page}) => {
         await toStep(page, skin.mobile, step, box);
         const m = await measure(page, id);
@@ -108,6 +109,52 @@ for (const skin of SKINS) {
 test.describe('Desktop wizard pick list widths', () => {
   test.beforeEach(async ({page}) => { await page.goto('/'); });
 
+  test('np-wiring is as wide as the count above it, at the same left edge (90 px, QO428.c2)', async ({page}) => {
+    await toStep(page, false, 2, 'sealed');
+    const box = (id: string) => page.locator(`#${id}`).evaluate(el => { const b = el.getBoundingClientRect(); return {x: b.x, width: b.width}; });
+    expect(await box('np-wiring')).toEqual(await box('np-ndrivers'));
+  });
+
+  test('the Standard radio circle starts at the left edge of the dropdowns above and below it', async ({page}) => {
+    await toStep(page, false, 2, 'sealed');
+    const left = (selector: string) => page.locator(selector).first().evaluate(el => el.getBoundingClientRect().x);
+    expect(await left('input[name=placement][value=standard]')).toBeCloseTo(await left('#np-ndrivers'), 0);
+  });
+
+  test('the Placement label is visible on one line, at the left edge of the other step 2 labels, with the radio group named by it', async ({page}) => {
+    await toStep(page, false, 2, 'sealed');
+    const label = page.locator('.overlay.open #np-placement-label');
+    await expect(label).toBeVisible();
+    await expect(label).toHaveText('Placement');
+    const rect = (sel: string) => page.locator(sel).first().evaluate(el => { const b = el.getBoundingClientRect(); return {x: b.x, y: b.y, w: b.width, h: b.height}; });
+    const placement = await rect('.overlay.open #np-placement-label');
+    const drivers = await page.locator('.overlay.open label[for=np-ndrivers]').evaluate(el => el.getBoundingClientRect().x);
+    const wiring = await page.locator('.overlay.open label[for=np-wiring]').evaluate(el => el.getBoundingClientRect().x);
+    expect(drivers).toBeCloseTo(wiring, 0);
+    expect(placement.x).toBeCloseTo(drivers, 0);
+    expect(placement.h).toBeLessThan(24);
+    const group = page.locator('.overlay.open [role=group][aria-labelledby=np-placement-label]');
+    await expect(group).toHaveCount(1);
+    const info = await rect('.overlay.open .radio-group .desk-band-help');
+    const radio = await rect('input[name=placement][value=standard]');
+    expect(Math.abs(info.y + info.h / 2 - (radio.y + radio.h / 2))).toBeLessThanOrEqual(3);
+    const overflow = await page.locator('.overlay.open .modal-body').evaluate(el => el.scrollWidth - el.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test('the ? glyph is centred in its button', async ({page}) => {
+    await toStep(page, false, 2, 'sealed');
+    const offset = await page.locator('.overlay.open .desk-band-help').first().evaluate(button => {
+      const outer = button.getBoundingClientRect();
+      const range = document.createRange();
+      range.selectNodeContents(button);
+      const glyph = range.getBoundingClientRect();
+      return {x: glyph.x + glyph.width / 2 - (outer.x + outer.width / 2), y: glyph.y + glyph.height / 2 - (outer.y + outer.height / 2)};
+    });
+    expect(Math.abs(offset.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(offset.y)).toBeLessThanOrEqual(1);
+  });
+
   for (const {step, box, id, desktopWidth} of PICKS) {
     test(`${id} is ${desktopWidth}px wide, as in 7.0.951`, async ({page}) => {
       await toStep(page, false, step, box);
@@ -128,3 +175,21 @@ test.describe('Pixel 9 wizard pick list text', () => {
     });
   }
 });
+
+for (const width of [374, 320]) {
+  test.describe(`Phone wizard step 2 at ${width}px`, () => {
+    test.use({viewport: {width, height: 705}});
+
+    test('driver count, placement and connection are one width, from one left edge', async ({page}) => {
+      await forceMobileSkin(page);
+      await page.goto('/');
+      await toStep(page, true, 2, 'sealed');
+      const boxes = await Promise.all(['np-ndrivers', 'np-placement', 'np-wiring'].map(async id => {
+        const b = (await page.locator(`#${id}`).boundingBox())!;
+        return {id, x: Math.round(b.x), width: Math.round(b.width)};
+      }));
+      expect(new Set(boxes.map(b => b.x)).size, JSON.stringify(boxes)).toBe(1);
+      expect(new Set(boxes.map(b => b.width)).size, JSON.stringify(boxes)).toBe(1);
+    });
+  });
+}

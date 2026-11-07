@@ -36,9 +36,9 @@ const headerVars = Object.fromEntries(PhoneHeaderSizes.CLASSIC.cssVars());
 const {
   projectOpen, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
   menuOpen, toggleMenu, closeMenu, exportProjectsArchive, openFromDisk, isModified, saveProject, saveAllProjects, anyUnsaved, flashMessage, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, dismissReconnect, revertProject, projectTitle,
-  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, pinSpacePx, onContentScroll,
+  browseDrivers, optionsOpen, openOptions, about, goToProject, goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
   contentEl, canScrollUp, canScrollDown,
-  username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel, chooseProject,
+  username, appVersion, projectsPaneOpen, openProjectsPane, closeProjectsPane, projectRows, openProjectRows, selectOpenProject, closeOpenProject, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel, chooseProject,
   setProjectTraceVisible, cycleProjectColour, closeProjectRow, duplicateProjectRow, exportProjectRow, renameProjectRow, resolveProjectRow,
   binRows, binTotal, binOpen, binLabel, moveToBin, restoreFromBin, deleteForever, emptyBin,
   cloudEnabled, cloudSyncDisplay, handleSyncTap, onSyncPointerDown, onSyncPointerUp, onSyncPointerCancel,
@@ -54,7 +54,7 @@ const diagnostics = injectDiagnosticsModal();
 </script>
 
 <template>
-  <div class="mobile-root" :style="[phoneClassicFieldVars, { height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px' }]">
+  <div class="mobile-root" :style="[phoneClassicFieldVars, { height: viewportHeightPx ? viewportHeightPx + 'px' : undefined, top: viewportTopPx + 'px', marginBottom: viewportTopPx + 'px' }]" :class="{ 'mob-sheet-typing': sheetTyping }">
     <input ref="fileInput" type="file" :accept="OpenableFiles.ACCEPT" style="display:none" @change="openImportedFile">
 
     <!-- No top bar over the Graph destination — it's deliberately full-screen (see
@@ -134,7 +134,7 @@ const diagnostics = injectDiagnosticsModal();
         <button type="button" class="mob-update-reload" @click="turnOnHint">{{ cloudSyncDisplay.hint.yes }}</button>
         <button type="button" class="mob-update-later" :aria-label="cloudSyncDisplay.hint.no" :title="cloudSyncDisplay.hint.no" @click="dismissHint">&#10005;</button>
       </div>
-      <MobileTabBar v-model="destination" :shadow-above="canScrollDown" />
+      <MobileTabBar v-show="!sheetTyping" v-model="destination" :shadow-above="canScrollDown" />
 
     </template>
 
@@ -228,6 +228,7 @@ const diagnostics = injectDiagnosticsModal();
       v-if="projectsPaneOpen"
       v-model:query="projectQuery"
       v-model:order="projectOrder"
+      v-model:scope="projectScope"
       v-model:binOpen="binOpen"
       :project-rows="projectRows"
       :shown-projects="shownProjects"
@@ -294,6 +295,11 @@ const diagnostics = injectDiagnosticsModal();
   font: 15px/1.5 "Inter", system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
 }
+/* Typing in a Graph sheet's box with the keyboard up (MobileShell-hooks sheetTyping): the rows get the
+   height. The legend and each chart's band go; the chart keeps a short strip to watch the curve move. */
+.mobile-root.mob-sheet-typing :deep(.mob-chart-legend),
+.mobile-root.mob-sheet-typing :deep(.mob-chart-cell .mob-band) { display: none; }
+.mobile-root.mob-sheet-typing :deep(.mob-chart-stack) { min-height: 80px; }
 .mob-content {
   flex: 1;
   /* display:flex here too (not just flex:1) so a full-screen child (the Graph destination) can

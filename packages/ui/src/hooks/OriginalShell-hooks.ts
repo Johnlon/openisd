@@ -20,6 +20,7 @@ import {openStoredProject as openStoredProjectFromStore} from '../logic/storedPr
 import {createProjectBinView, type ProjectListRow} from './projectBinView.js';
 import {copyChartDefinition, cycleTraceColor, traceColor} from '../logic/presentationState.js';
 import {useFocusedProject} from '../logic/focusedProjectContext.js';
+import {createDesktopHelp} from './desktopHelp.js';
 import {createVentReadouts, FB_TARGET_TIP, FH_TARGET_TIP, VENT_GEOMETRY_TIP} from './ventReadouts.js';
 import {createPassiveRadiatorActions} from './passiveRadiatorActions.js';
 import {buildPlotData, FrequencyAxis, interpolatedY, TAB_META} from '@openisd/design/chart';
@@ -39,7 +40,7 @@ import {SealedAlignmentEditor} from './SealedAlignment-hooks.js';
 import {VentedAlignmentEditor} from './VentedAlignment-hooks.js';
 import {OriginalFilters} from './OriginalFilters-hooks.js';
 import type {Calculated, Clearable, Entered, OpenISDProject, Readable, SimpleField, Writable} from '@openisd/design';
-import type {DqReadout} from '../logic/cellDataQuality.js';
+import {dqOfCell, type DqReadout} from '../logic/cellDataQuality.js';
 import {isTabId, type TabId} from '../logic/tabId.js';
 import {createBoxLosses, createBoxVolume, createChamberFields, createSealedReadouts, createSelectedBox} from './boxFields.js';
 import {createDriveSignal} from './driveSignal.js';
@@ -49,24 +50,6 @@ import {useCompareOverlays} from './compareOverlays.js';
 import {projectCloudMarks, useCloudSync, useCloudSyncUi} from './CloudSync-hooks.js';
 import type {ConflictCopy} from '@openisd/design/cloud';
 import {CLOUD_SYNC_MENU_LABEL, DriverId, ProjectId} from '@openisd/design/cloud';
-
-export type AirField = 'temperature' | 'humidity' | 'pressure' | 'soundVelocity' | 'airDensity';
-
-const AIR_FIELD_LIMITS: Readonly<Record<AirField, { min: number; max: number; label: string }>> = {
-  temperature: { min: 0, max: 400, label: 'Temperature' },
-  humidity: { min: 0, max: 100, label: 'Relative humidity' },
-  pressure: { min: 1000, max: 200000, label: 'Air pressure' },
-  soundVelocity: { min: 0, max: 1000, label: 'Sound velocity' },
-  airDensity: { min: 0, max: 10, label: 'Air density' },
-};
-
-export function airFieldDataQuality(field: AirField, value: number | null): readonly string[] {
-  if (value == null) return [];
-  const limit = AIR_FIELD_LIMITS[field];
-  return Number.isFinite(value) && value >= limit.min && value <= limit.max
-    ? []
-    : [`${limit.label} is outside the sane range (${limit.min}–${limit.max})`];
-}
 
 /** WinISD's own `YYYYMMDD` date format — duplicated from the domain's `dateStamp` rather than
  *  imported, since `domain/index.ts` exports only class/interface types. */
@@ -105,11 +88,12 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   function storedOf(field: () => EnvField) {
     return computed<boolean>(() => { void changed.value; void project.value; return field().entered; });
   }
-  function dqOf(airField: AirField, field: () => EnvField) {
+  /** The field's own marks and provenance: whatever the air resolve found about it, with its reason. */
+  function dqOf(field: () => EnvField) {
     return computed<DqReadout>(() => {
       void changed.value;
-      const f = field();
-      return { dq: airFieldDataQuality(airField, f.value), dqState: f.provenance };
+      void project.value;
+      return dqOfCell(field());
     });
   }
   function entryOf(field: () => EnvField) {
@@ -142,8 +126,8 @@ export function createEnvironmentAir({ project, projectChanged: changed }: Envir
   return {
     envTempStored: storedOf(temp), envHumidityStored: storedOf(humidity), envPressureStored: storedOf(pressure),
     envSoundVelocityStored: storedOf(soundVelocity), envAirDensityStored: storedOf(airDensity),
-    envTempDq: dqOf('temperature', temp), envHumidityDq: dqOf('humidity', humidity), envPressureDq: dqOf('pressure', pressure),
-    envSoundVelocityDq: dqOf('soundVelocity', soundVelocity), envAirDensityDq: dqOf('airDensity', airDensity),
+    envTempDq: dqOf(temp), envHumidityDq: dqOf(humidity), envPressureDq: dqOf(pressure),
+    envSoundVelocityDq: dqOf(soundVelocity), envAirDensityDq: dqOf(airDensity),
     advTemp, advHumidity, advPressure, advSoundVelocity, advAirDensity,
     resetAirToAppDefaults, advAir,
   };
@@ -186,9 +170,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
   const { projectRepo, projectBin } = useApp();
   const { editProjectDriver } = selection;
 
-  const N_DRIVERS_OPTIONS = NumberField.DRIVER_NDRIVERS.countOptions();
   const VENT_COUNT_OPTIONS = NumberField.VENT_COUNT.countOptions();
-  const PR_COUNT_OPTIONS = NumberField.PR_NUM.countOptions();
 
   // The focused project's own trace/legend colour — a project attribute saved in its project
   // file (`OpenISDProject.traceColor`), not a page-level index: it must follow the project
@@ -330,7 +312,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     cloudMarks: () => projectCloudMarks(cloudSyncForProjects),
   });
   const {projectRows, shownProjects, projectsFooter, searchOffered, binRows, binTotal, binOpen, binLabel} = binView;
-  const {query: projectQuery, order: projectOrder, orders: projectOrders} = binView;
+  const {query: projectQuery, order: projectOrder, scope: projectScope, orders: projectOrders} = binView;
   const projectListRef = ref<{ focusSearchOrList(): void } | null>(null);
   function openClick() {
     recentActions.record('dialog:open-project');
@@ -571,6 +553,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     if (tab === 'enclosure') featureUse.feature('vents');
   }, { immediate: true });
   watch(showEnclosureTab, (show) => { if (!show && activeTab.value === 'enclosure') activeTab.value = 'box'; });
+  const desktopHelp = createDesktopHelp({ activeTab, selectedBox });
 
   // ---- Projects list -------------------------------------------------------------
   const projectList = computed(() => openProjects());
@@ -646,6 +629,9 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
 
   // ---- Driver identity + placement ----------------------------------------------
   const model = computed(() => { void projectChanged.value; return project.value.driver.model.value || driverName.value; });
+
+  /** The stated values that disagree with each other, as the Driver Editor lists them. */
+  const driverConsistencyReasons = computed(() => { void projectChanged.value; return project.value.driver.inconsistentInputReasons(); });
 
   // The Project tab's text fields bind here. Each `SimpleField<string>` on `OpenISDProject` is not
   // itself `v-model`-able, so this is a thin get/set bridge onto `.value`/`.set()` — reading
@@ -744,6 +730,11 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     recentActions.record('dialog:driver-editor');
     editProjectDriver();
   }
+  /** The Driver tab's "N values disagree" link: the same editor as Edit, with its disagreement list showing. */
+  function showDriverDisagreements() {
+    recentActions.record('dialog:driver-editor');
+    editProjectDriver(true);
+  }
 
   // R1 refresh fidelity — RECORD an open What-if? panel / Driver Editor so a reload can restore it.
   // Restoring is the boot's own phase (`logic/boot.ts`), which runs it after the project and
@@ -816,7 +807,7 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     handleCloudDisconnect, handleCloudOpenConflict, handleViewConflicts,
     handleHintTurnOn, handleHintDismiss, CLOUD_SYNC_MENU_LABEL,
     toggleDropdown, openDd, openClick, closeDropdown, presentationState, isModified,
-    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
+    openDialogOpen, projectRows, shownProjects, projectsFooter, searchOffered, projectQuery, projectOrder, projectScope, projectOrders, storeLabel: projectRepo.storeLabel, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, chooseProject, switchToMobile, useAutomaticSkin, skinIsAutomatic,
     projectListRef, duplicateProject, exportProject, cycleProjectColor, setProjectColor, copyProjectCharts, saveProjectRow, renameProject,
     binRows, binTotal, binOpen, binLabel, moveToBin: binView.moveToBin, restoreFromBin: binView.restoreFromBin, deleteForever: binView.deleteForever, emptyBin: binView.emptyBin,
     saveProject: handleSaveProject, saveAllProjects: handleSaveAllProjects, anyUnsaved, resetProjectToGround, confirmDiscard, about, optionsOpen,
@@ -829,8 +820,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     copyCurrentProject, requestCloseProject, closeChallenge, saveThenClose, closeProject,
     genOn, toggleGenerate, genHz,
     boxLabel, pending, openCharts, chartStackEl, chartStackStyle, chartsHigh, CHARTS_HIGH_OPTIONS, overlays, activeTab,
-    showEnclosureTab, enclosureNavLabel,
-    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, N_DRIVERS_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
+    showEnclosureTab, enclosureNavLabel, ...desktopHelp,
+    selectedBox, BOX_TYPE_OPTIONS, IMPLEMENTED_BOX_TYPES, ARRAY_WIRING_OPTIONS, abcVelocityApplies, errorSwitches, chartDeviations, prNprDeviationShown, driverCountDeviationShown,
      boxVolumeCell, sealedFscCell, sealedQtcCell, sealedAlignmentEditor, sealedAlignmentOpen, sealedAlignmentDeviationShown,
      sealedAlignmentOptions, sealedAlignmentSelected, sealedAlignmentVolume_m3, sealedAlignmentEbp,
      sealedAlignmentSuitability, sealedAlignmentSuitabilityLabel, originalFilters,
@@ -841,8 +832,8 @@ export function useOriginalShell(options?: { sealedReadouts?: typeof createSeale
     boxResonance, rearQtc, prSystemTuningDq,
     fbUnreachable, fbUnreachableMsg, isDual,
     frontVolumeCell, rearTuningCell, rearResonance,
-    model, startEdit, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement,
-    activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, PR_COUNT_OPTIONS, portPipeResonance_hz,
+    model, startEdit, showDriverDisagreements, showDriverInfo: driverBrowsing.showProjectDriverInfo, startWhatIf, placement, driverConsistencyReasons,
+    activeVent, activeTuning, ventPorts, END_CORRECTION_OPTIONS, VENT_SHAPE_OPTIONS, VENT_COUNT_OPTIONS, portPipeResonance_hz,
     prBrowseOpen, loadPREntry, loadBundledPassiveRadiatorEntry, defineNewPREntry,
     prSaveOpen, prSaveFields, prSaveCanSave, openPRSave, cancelPRSave, confirmPRSave,
     prAddedMassDq, prTuningDq, prResonanceMassDq, prFsMass_hz, prNaturalFh,

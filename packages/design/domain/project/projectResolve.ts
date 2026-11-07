@@ -64,7 +64,7 @@ export function resolveProject(ctx: ProjectResolveContext): ProjectIssues {
 
     // Before the driver: the five air quantities are worked out first, from the entered ones and
     // else from the app's values, so the driver, the box and the sweep run in a settled air.
-    const {issues: airIssues, state: air} = resolveAir(airFieldsOver(directRoot), engine.environment);
+    const {issues: airIssues, air} = resolveAir(airFieldsOver(directRoot), engine.environment);
     const driver = driverOver(directRoot);
     const driverIssues = driver.resolve();
 

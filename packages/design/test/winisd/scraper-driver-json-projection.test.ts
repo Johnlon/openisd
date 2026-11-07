@@ -60,11 +60,10 @@ describe('driver.json the scraper writes today', () => {
     assert.ok(project(NEW_RECORD).wdr?.toLowerCase().includes('printed') === false);
   });
 
-  it('an absent quality.missing stays absent: no default is invented', () => {
-    const quality = at(parse(project(NEW_RECORD).openisd ?? 'null'), 'quality');
-    assert.ok(isRecord(quality));
-    assert.ok(!('missing' in quality), 'quality.missing stays absent');
-    assert.ok(!('cross_source_only' in quality), 'quality.cross_source_only stays absent');
+  it('the quality summary stays in driver.json: openisd.json (the slim model) carries none (QO395)', () => {
+    const record: unknown = parse(project(NEW_RECORD).openisd ?? 'null');
+    assert.ok(isRecord(record));
+    assert.ok(!('quality' in record), 'openisd.json has no quality');
   });
 
   it('a string driver_type and a one-element array parse to the same list', () => {
@@ -79,4 +78,16 @@ describe('driver.json the scraper writes today', () => {
     assert.deepEqual(rolesOf('subwoofer'), ['subwoofer']);
     assert.deepEqual(rolesOf(['subwoofer']), ['subwoofer']);
   });
+});
+
+describe('records whose T/S values disagree (QO414: consistency warnings never refuse a record)', () => {
+  for (const code of ['w137a-854-8', 'w137p-854-8']) {
+    it(`bliesma ${code} (3 voice coils, printed T/S disagree) projects; the disagreement is a warning only`, () => {
+      const text = readFileSync(join(FIXTURES, `bliesma-${code}.driver.json`), 'utf8');
+      const result = project(text);
+      assert.deepEqual(result.errors.filter(e => e.level === 'error'), []);
+      assert.ok(result.openisd !== null && result.wdr !== null);
+      assert.ok(result.errors.some(e => e.level === 'warn' && /disagree/.test(e.message)));
+    });
+  }
 });

@@ -3,8 +3,8 @@
  * New Project wizard — WinISD step order (Driver -> Num/placement -> Box type + EBP -> Sealed alignment -> Metadata).
  * State management delegated to useOgNewProject() hook per ui.md.
  */
-import { onBeforeUnmount, ref } from 'vue';
-import { NumberField, PickWidth, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
+import { computed, onBeforeUnmount, ref } from 'vue';
+import { NumberField, PhoneWizardText, PickWidth, ReadoutFormat, WinisdDeviation } from '@openisd/design/fields';
 import { useOgNewProject } from '../../../hooks/OriginalNewProject-hooks.js';
 import { createNewProjectFooter } from '../../../hooks/NewProjectFooter-hooks.js';
 import { useEscToClose } from '../../../logic/useEscToClose.js';
@@ -17,6 +17,9 @@ import WinisdDeviationCue from '../../components/WinisdDeviationCue.vue';
 import {DriverListMode} from '../../../logic/driverListMode.js';
 import DriverLibrary from '../../components/DriverLibrary.vue';
 import NewProjectPassiveRadiatorStep from '../../components/NewProjectPassiveRadiatorStep.vue';
+import WizardInfoButton from '../../components/WizardInfoButton.vue';
+import WizardInfoCard from '../../components/WizardInfoCard.vue';
+import { createWizardInfo } from '../../../hooks/wizardInfo.js';
 
 const emit = defineEmits<{ close: [] }>();
 
@@ -39,7 +42,6 @@ const {
   nDrivers,
   placement,
   wiring,
-  N_DRIVERS_OPTIONS,
   ARRAY_WIRING_OPTIONS,
 
   boxType,
@@ -69,6 +71,8 @@ const {
   ventedTuning_hz,
   ventedVolumeWarning,
   ventedTuningWarning,
+  passiveRadiatorPickError,
+  passiveRadiatorPickId,
 
   isPassiveRadiator,
   passiveRadiatorView,
@@ -98,6 +102,9 @@ function handleCancel() {
 }
 
 useEscToClose(() => true, handleCancel);
+// Registered after the dialog's own Escape, so Escape closes the popup first.
+const ebpText = computed(() => ReadoutFormat.EBP.text(ebp.value, '--'));
+const { infoCard, openPlacementInfo, openEbpInfo, closeInfo } = createWizardInfo(ebpText);
 
 // Step 1 IS the driver library (FIX_WIZARD_SEALED Q1): choosing a driver hands it to the wizard
 // for as long as the wizard is open; closing the wizard disarms that handoff.
@@ -135,20 +142,18 @@ function handleCreate() {
         </div>
 
         <!-- Step 2: Driver count & placement -->
-        <div v-else-if="isCountStep" class="step-content">
+        <div v-else-if="isCountStep" class="step-content short-pick-fields">
           <div class="field-row">
-            <UIPickField label="Num. of drivers" input-id="np-ndrivers" :width="PickWidth.SHORT">
-              <select id="np-ndrivers" :value="nDrivers" @change="e => { const n = selectedOption(e, N_DRIVERS_OPTIONS); if (n !== null) nDrivers = n; }">
-                <option v-for="o in N_DRIVERS_OPTIONS" :key="o.value" :value="o.value">{{ o.label }} driver(s)</option>
-              </select>
-            </UIPickField>
+            <UIFixedField input-id="np-ndrivers" :field="NumberField.DRIVER_NDRIVERS" label="Num. of drivers" :value="nDrivers" @update:value="n => nDrivers = n" />
           </div>
-          <div class="radio-group field-row">
+          <div class="radio-group field-row" role="group" aria-labelledby="np-placement-label">
+            <span id="np-placement-label" class="placement-label">{{ PhoneWizardText.PLACEMENT_LABEL }}</span>
             <label><input type="radio" name="placement" value="standard" v-model="placement"> Standard</label>
             <label><input type="radio" name="placement" value="iso" v-model="placement" disabled> Iso-Barik <em style="color:#999">(not modelled)</em></label>
+            <WizardInfoButton question label="About driver placement" @click="openPlacementInfo" />
           </div>
           <div class="field-row">
-            <UIPickField label="Voice coil connection" input-id="np-wiring" :width="PickWidth.SHORT">
+            <UIPickField label="Voice coil connection" input-id="np-wiring" common>
               <select id="np-wiring" :value="wiring" @change="e => { const w = selectedOption(e, ARRAY_WIRING_OPTIONS); if (w !== null) wiring = w; }">
                 <option v-for="o in ARRAY_WIRING_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
@@ -168,7 +173,8 @@ function handleCreate() {
 
           <div class="ebp-readout-card">
             <div class="ebp-row">
-              <span class="ebp-label">Efficiency Bandwidth Product (EBP):</span> <strong class="ebp-value">{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong>
+              <span class="ebp-label">Efficiency Bandwidth Product (EBP):</span> <strong class="ebp-value">{{ ebpText }}</strong>
+              <WizardInfoButton question label="About EBP" @click="openEbpInfo" />
             </div>
             <div class="suitability-row">
               <span class="suitability-badge" :class="ebpSuitabilityLabel.toLowerCase().startsWith('sealed') ? 'sealed' : ebpSuitabilityLabel.toLowerCase().startsWith('vented') ? 'vented' : 'either'">
@@ -197,7 +203,7 @@ function handleCreate() {
 
           <div class="readout-box">
             <div class="readout-item"><span>Calculated Qtc:</span> <strong>{{ ReadoutFormat.QTC.text(qtc, '--') }}</strong></div>
-            <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
+            <div class="readout-item"><span>EBP:</span> <strong>{{ ebpText }}</strong><WizardInfoButton question label="About EBP" @click="openEbpInfo" /></div>
             <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
           </div>
         </div>
@@ -220,7 +226,7 @@ function handleCreate() {
           <div v-if="ventedTuningWarning" class="readout-warning" role="alert" aria-live="polite" data-testid="np-vented-tuning-warning">{{ ventedTuningWarning }}</div>
 
           <div class="readout-box">
-            <div class="readout-item"><span>EBP:</span> <strong>{{ ReadoutFormat.EBP.text(ebp, '--') }}</strong></div>
+            <div class="readout-item"><span>EBP:</span> <strong>{{ ebpText }}</strong><WizardInfoButton question label="About EBP" @click="openEbpInfo" /></div>
             <div class="readout-item"><span>Recommendation:</span> <strong>{{ ebpSuitabilityLabel }}</strong></div>
           </div>
         </div>
@@ -228,9 +234,10 @@ function handleCreate() {
         <!-- Step 4: Passive Radiator (WinISD's own wizard step: the radiator and its Vas / Qms / Fs / Sd / Xmax) -->
         <div v-else-if="isBoxDetailsStep && isPassiveRadiator" class="step-content">
           <UIFixedField input-id="np-starting-volume" label="Starting volume" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
-          <NewProjectPassiveRadiatorStep :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
+          <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
             @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
-            @load-saved="loadSavedPassiveRadiator" @load-bundled="id => void loadBundledPassiveRadiator(id)" @define="defineNewPassiveRadiator" />
+            @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
+          <div v-if="passiveRadiatorPickError" class="readout-warning np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
         </div>
 
         <!-- Step 4: Chambers (4th and 6th order bandpass, ABC): each chamber's volume and tuning together -->
@@ -273,11 +280,16 @@ function handleCreate() {
           <button class="cancel-btn" @click="handleCancel">Cancel</button>
         </div>
       </div>
+      <WizardInfoCard v-if="infoCard" :card="infoCard" @close="closeInfo" />
     </div>
   </div>
 </template>
 
 <style scoped>
+.modal { position: relative; }
+/* The popup is a 400px card over the middle of the dialog, as on the phone but not bottom-anchored. */
+.modal :deep(.mob-np-icard) { left: 50%; right: auto; bottom: auto; top: 110px; width: 400px; margin-left: -200px; box-sizing: border-box; }
+.ebp-row, .readout-item { display: flex; align-items: center; gap: 6px; }
 .np-chambers { display: flex; gap: 32px; align-items: flex-start; }
 .np-chamber h4 { margin: 0 0 8px; font-weight: 600; }
 .np-chamber .field { margin-bottom: 6px; }
@@ -304,7 +316,8 @@ function handleCreate() {
 .field input, .field select { border: 1px solid #999; padding: 4px 6px; border-radius: 2px; background: #fff; }
 .field input { width: 140px; }
 .field .unit { color: #555; }
-.radio-group { margin-left: 156px; gap: 16px; margin-bottom: 12px; }
+.radio-group { gap: 16px; margin-bottom: 12px; }
+.placement-label { color: #333; white-space: nowrap; flex: none; width: 153px; }
 .radio-group label { cursor: pointer; }
 .ebp-readout-card { background: #f0f7f0; border: 1px solid #c0e0c0; border-radius: 4px; padding: 10px 14px; margin: 12px 0; display: flex; align-items: center; justify-content: space-between; }
 .ebp-row { font-size: 13.5px; }

@@ -1,0 +1,12 @@
+id: T664
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+landed: 0e87a183d2a682bace1c2c576e5a47890516dae1
+goal: The main-folder edit gate refuses a shell command only when the in-place edit itself targets the main folder; a main-folder path named elsewhere in the command (another segment, a heredoc body, a quoted string) no longer blocks it
+done_test: bash scripts/quiet-test.sh bash scripts/land/test/main-folder-edit-guard.test.sh
+files:
+  - tasks/T664.yml
+  - gates.py
+  - scripts/land/test/main-folder-edit-guard.test.sh

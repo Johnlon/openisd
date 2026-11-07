@@ -14,11 +14,13 @@ import {
 } from '../consistency.js';
 import type {VentedDesignQuantity, VentedPlausibilityIssue} from '../plausibility.js';
 import {nonPhysicalQuantity, quantityOutOfBand} from '../plausibility.js';
-import {plainNames} from '../issueText.js';
+import {pct, plainNames, relativeGap} from '../issueText.js';
 
 export interface IssueEngine {
   /** A sentence with every internal field key replaced by the name a person reads. */
   plainNames(text: string): string;
+  /** How far apart two values are, as the percentage text a sentence quotes (fraction of the larger). */
+  percentApart(expected: number, actual: number): string;
   /** A target no route can reach yet, naming every blocked route and what it still needs. */
   missingDependencies<Q extends string>(target: Q, routes: readonly SolveRoute<Q>[]): CalculationIssue<Q>;
   /** Stated values that contradict the formula relating them — every field in the group is marked. */
@@ -53,6 +55,9 @@ export interface IssueEngine {
 
 export class IssueEngineImpl implements IssueEngine {
   readonly plainNames = plainNames;
+  percentApart(expected: number, actual: number): string {
+    return pct(relativeGap(expected, actual));
+  }
   readonly missingDependencies = missingDependencies;
   readonly inconsistentInputs = inconsistentInputs;
   readonly outOfRange = outOfRange;

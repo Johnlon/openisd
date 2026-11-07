@@ -41,7 +41,6 @@
 import {NumberField} from '../fields/field.js';
 import {missingDependencies} from './consistency.js';
 import type {CalculationIssue} from './consistency.js';
-import type {AirIssue} from './environment/airSolver.js';
 
 /** Ratio of specific heats for air — DPC `air.htm`: "For dry air gamma = 1.40 is a good estimate". */
 export const GAMMA = 1.4;
@@ -79,10 +78,6 @@ export interface Air {
  * it is never a live link, and no solver sees it.
  */
 export interface AppAir {
-  /** Speed of sound at the app's constants, m/s. */
-  c(): number;
-  /** Density at the app's constants, kg/m³. */
-  rho(): number;
   /** The app's temperature, K. */
   temperature(): number;
   /** The app's relative humidity, percent. */
@@ -91,16 +86,29 @@ export interface AppAir {
   pressure(): number;
 }
 
-/** The app's air over its three Options constants: c and ρ are the air model's answer for them.
- *  Read at call time, so a changed Options value is seen by the next fill. */
-export function appAirOf(constants: () => AirEnvironment): AppAir {
-  const values = (): AirValues => winisdAir(constants().tempK, constants().humidityPct, constants().pressurePa);
+/** The app's three Options constants, each one the Options value or, where that is blank or outside
+ *  the band the input allows, the built-in WinISD standard-air constant. This is the second step of
+ *  the chain for T, RH and p: project value, else this app setting, else the built-in constant
+ *  (John, 1 Nov 2026: "the value can never be 'n'"). */
+export function appEnvironmentOf(raw: AirEnvironment): AirEnvironment {
+  const within = (value: number, band: {readonly min: number; readonly max: number}, constant: number, aboveMin = false): number =>
+    Number.isFinite(value) && (aboveMin ? value > band.min : value >= band.min) && value <= band.max ? value : constant;
   return {
-    c: () => values().c,
-    rho: () => values().rho,
-    temperature: () => constants().tempK,
-    humidity: () => constants().humidityPct,
-    pressure: () => constants().pressurePa,
+    tempK: within(raw.tempK, NumberField.ADV_TEMP_K.limits, DEFAULT_T_REF_K, true),
+    humidityPct: within(raw.humidityPct, NumberField.ADV_HUMIDITY_PCT.limits, DEFAULT_RH_REF_PCT),
+    pressurePa: within(raw.pressurePa, NumberField.ADV_PRESSURE_KPA.limits, DEFAULT_P_REF_PA),
+  };
+}
+
+/** The app's air over its three Options constants, each total on its own: a blank or out-of-range
+ *  one is already the built-in constant (`appEnvironmentOf`). Read at call time, so a changed
+ *  Options value is seen by the next fill. */
+export function appAirOf(constants: () => AirEnvironment): AppAir {
+  const settled = (): AirEnvironment => appEnvironmentOf(constants());
+  return {
+    temperature: () => settled().tempK,
+    humidity: () => settled().humidityPct,
+    pressure: () => settled().pressurePa,
   };
 }
 
@@ -108,28 +116,6 @@ export function appAirOf(constants: () => AirEnvironment): AppAir {
 export type AirWorkingName = 'c_m_per_s' | 'roo_kg_per_m3';
 /** Both air names, in the order an issue lists them. */
 export const AIR_WORKING_NAMES: readonly AirWorkingName[] = Object.freeze<AirWorkingName[]>(['c_m_per_s', 'roo_kg_per_m3']);
-
-/**
- * The air a solver that WRITES calculated values is given: either c and ρ are there, or they are
- * not available and `issues` say why. A solver given `notAvailable` still runs every route that
- * needs no air, and leaves each air-dependent value it was not given not available.
- */
-export type AirState =
-  | {readonly kind: 'available'; readonly air: Air}
-  | {readonly kind: 'notAvailable'; readonly issues: readonly AirIssue[]};
-
-/** The air of an `AirState` that has one, else null. */
-export function airIfAvailable(state: AirState): Air | null {
-  switch (state.kind) {
-    case 'available': return state.air;
-    case 'notAvailable': return null;
-  }
-}
-
-/** The `AirState` of an air that is there. */
-export function availableAir(air: Air): AirState {
-  return {kind: 'available', air};
-}
 
 /** c and ρ as plain numbers: what the air solver produces and what a stored c or ρ field holds. */
 export interface AirValues {
@@ -173,9 +159,9 @@ export type EnvironmentIssue = CalculationIssue<EnvironmentQuantityName>;
  * forced to also destructure an issues array that is empty in the overwhelming common case.
  */
 export function temperatureIssues(tempK: number): readonly EnvironmentIssue[] {
-  if (tempK >= MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K) return [];
+  if (tempK > MIN_SUPPORTED_TEMP_K && tempK <= MAX_SUPPORTED_TEMP_K) return [];
   return [missingDependencies('tempK', [{
-    formula: `tempK must be between ${MIN_SUPPORTED_TEMP_K} K and ${MAX_SUPPORTED_TEMP_K} K`,
+    formula: `tempK must be above ${MIN_SUPPORTED_TEMP_K} K and at most ${MAX_SUPPORTED_TEMP_K} K`,
     required: ['tempK'], missing: ['tempK'],
   }])];
 }
@@ -226,7 +212,9 @@ function hylandWexlerVapourPressure(tempK: number): number {
 /** WinISD's air: `c` from the moist-air molar mass, then `ρ = γ·p/c²` (see the module docstring). */
 function winisdAir(tempK: number, humidityPct: number, pressurePa: number): AirValues {
   // No enhancement factor: WinISD's mole fraction is the bare ratio.
-  const xv = (humidityPct / 100) * hylandWexlerVapourPressure(tempK) / pressurePa;
+  // The mole fraction of water is at most 1: past it the molar mass would turn negative, and the
+  // model give no number for a very humid, very low pressure corner.
+  const xv = Math.min(1, (humidityPct / 100) * hylandWexlerVapourPressure(tempK) / pressurePa);
   const molarMass = M_DRY_DPC + xv * (M_WATER_DPC - M_DRY_DPC);
   const c = Math.sqrt(GAMMA * R_MOLAR_DPC * tempK / molarMass);
   return { rho: GAMMA * pressurePa / (c * c), c };

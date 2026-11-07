@@ -1,6 +1,5 @@
 import {describe, expect, it} from 'vitest';
 import {createEngine} from '../../engine/Engine.js';
-import {availableAir} from '../../engine/index.js';
 import {REFERENCE_AIR} from '../fixtures/referenceAir.js';
 import {driverParams, sweepDriver} from './testSolver.js';
 
@@ -22,9 +21,9 @@ describe('DriverEngine.solve widths', () => {
     const params = driverParams(STATED);
     const fs = params.Fs_hz;
     const wide = {...params, Fs_hz: {...fs, get value() { return fs.value; }, get precision() { return 1e6; }}};
-    engine.driver.solve(wide, availableAir(REFERENCE_AIR));
+    engine.driver.solve(wide, REFERENCE_AIR);
     const narrow = driverParams(STATED);
-    engine.driver.solve(narrow, availableAir(REFERENCE_AIR));
+    engine.driver.solve(narrow, REFERENCE_AIR);
     expect(params.Qts.value).toBeCloseTo(0.5 * 4 / 4.5, 12);
     // Qts does not depend on Fs, so Fs's width adds nothing to it.
     expect(params.Qts.precision).toBe(narrow.Qts.precision);

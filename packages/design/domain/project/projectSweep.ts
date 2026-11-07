@@ -1,8 +1,8 @@
 import type {
-    Air, AirState, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
+    Air, AirValues, BoxParamsIssue, EnvironmentIssue, Engine, MaxCurvesSolveResult, PrIssue, SimulatableBoxType,
     SimulationEngine, SweepDriver, SweepIssue, SweepParams, SweepSolveResult, VentIssue,
 } from '../../engine/index.js';
-import { FixedAir, airIfAvailable } from '../../engine/index.js';
+import { FixedAir } from '../../engine/index.js';
 import type { Filter, EnclosureParams } from '../../engine/index.js';
 import { CalculatedFieldImpl, absentCell, calculatedCell } from '../cell.js';
 import type { Calculated, Readable, SimpleField } from '../cell.js';
@@ -50,8 +50,8 @@ export interface ProjectSweepSource {
     readonly alfaVC_per_K: SimpleField<number>;
     readonly sweepN: SimpleField<number | null>;
     readonly driveVoltage_V: number;
-    /** The project's air, or why it has none: a sweep does not run without it. */
-    readonly air: AirState;
+    /** The project's air. */
+    readonly air: Air;
     /** What is wrong with the conditions the air runs in (an entered temperature the air model
      *  does not support); a sweep does not run while any is. */
     readonly airIssues: readonly EnvironmentIssue[];
@@ -343,15 +343,14 @@ export type SweepPlan =
 /** The driver as the sweep reads it. "Two-BL driver" ticked is WinISD's bug: the typed BL sets the motor's
  *  push while Qes sets the damping. Unticked there is one BL, the one Re, Fs, Qes and Vas imply, and a typed BL is not read. */
 function sweepDriverOf(source: ProjectSweepSource, air: Air): SweepDriver {
-    const entered = source.driver.specs.sweepDriver(air);
+    const entered = source.driver.specs.sweepDriverIn(air);
     return source.winisdDriverModel.value ? entered : {...entered, winisdBL_Tm: null};
 }
 
 export function sweepPlanOf(source: ProjectSweepSource, P: FrequencyGrid): SweepPlan {
     const box = engineBoxTypeOf(source);
-    if (source.air.kind === 'notAvailable') return {kind: 'blocked', issues: source.air.issues};
     if (source.airIssues.length) return {kind: 'blocked', issues: source.airIssues};
-    const air = source.air.air;
+    const air = source.air;
     const boxIssues = boxSweepIssuesOf(source, box);
     if (boxIssues.length) return {kind: 'blocked', issues: boxIssues};
     // A blank box volume: the engine's own "Box volume (Vb) must be greater than zero" names it.
@@ -421,9 +420,7 @@ export function ventMaxReachableFbOf(source: ProjectSweepSource): Readable<numbe
             return absentCell<number>('ventMaxReachableFb');
         }
         const count = source.box.vented.vent.count.value;
-        const air = airIfAvailable(source.air);
-        if (air === null) return absentCell<number>('ventMaxReachableFb');
-        const v = source.engine.vent.tuningFromLength(Vb, 0, Sp, count, air, source.box.vented.vent.endCorrection_m.value);
+        const v = source.engine.vent.tuningFromLength(Vb, 0, Sp, count, source.air, source.box.vented.vent.endCorrection_m.value);
         return calculatedCell<number | null>('ventMaxReachableFb', v);
     });
 }

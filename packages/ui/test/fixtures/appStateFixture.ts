@@ -17,13 +17,13 @@ export interface AppStateFixture {
 }
 
 /** `storage` is where the application settings live; pass one to start from settings already written. */
-export function createAppStateFixture(storage: ListableStorage = createMemoryStorage(), telemetry?: Telemetry): AppStateFixture {
+export function createAppStateFixture(storage: ListableStorage = createMemoryStorage(), telemetry?: Telemetry, reportFault?: (fault: Error) => void): AppStateFixture {
   const appSettings = appSettingsRepoOn(storage);
   const engine = createEngine({
     ventedLimits: () => appSettings.ventedLimits(),
     envDefaults: () => appSettings.envDefaults(),
   });
   const presentation = createPresentationState();
-  const appState = createAppState({engine, appSettings, presentation, telemetry});
+  const appState = createAppState({engine, appSettings, presentation, telemetry, reportFault});
   return {appState, presentation, appSettings};
 }

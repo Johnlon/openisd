@@ -20,12 +20,11 @@ const CFC100 = join(dirname(fileURLToPath(import.meta.url)), '..', 'fixtures', '
 function record(dataSources: Record<string, string>): unknown {
   return {
     uuid: {value: '00000000-0000-4000-8000-000000000009'},
-    quality: {confirmed_fields: [], fields_with_issues: [], missing: [], invalid: [], parse_errors: [], cross_source_only: []},
     manufacturer: {value: 'Dayton'}, brand: {value: 'Dayton'}, model: {value: 'CFC100-4'},
-    sku: {value: 'CFC100-4', grounds: [{origin: 'distributor_datasheet', reading: 'CFC100-4'}]},
+    sku: {value: 'CFC100-4'},
     driver_type: {value: ['woofer']},
     data_sources: {value: dataSources},
-    specs: {woofer: {Fs_hz: {state: 'E', value: 30, origin: 'distributor_datasheet', readings: {distributor_datasheet: {read_value: 30}}}}},
+    specs: {woofer: {Fs_hz: {state: 'E', value: 30}}},
   };
 }
 

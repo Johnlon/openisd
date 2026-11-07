@@ -14,4 +14,4 @@ files:
   - scripts/land/test/watchdog.test.sh
   - bugs/BUG_20261020_watchdog-test-flaky.md
   - packages/ui/test/ui/mobile-shell.browser.spec.ts
-  - bugs/BUG_20261020_mobile-logo-test-reads-before-decode.md
+  - bugs/archive/BUG_20261020_mobile-logo-test-reads-before-decode.md
