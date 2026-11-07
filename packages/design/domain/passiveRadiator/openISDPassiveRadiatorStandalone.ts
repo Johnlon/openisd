@@ -3,6 +3,7 @@ import type { AppContext } from '../appContext.js';
 import { asRadiatorDevice } from '../openisdSchema.js';
 import { OpenISDDeviceJson } from '../openIsdDeviceJsonIo.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
+import type { Air, PrEngine, PrSpecIssue } from '../../engine/index.js';
 import { blankDeviceRecord } from '../driver/blankDeviceRecord.js';
 import { OpenISDPassiveRadiator } from './openISDPassiveRadiator.js';
 import { CURRENT_SCHEMA_VERSION } from '../schemaVersion.js';
@@ -37,15 +38,26 @@ export class OpenISDPassiveRadiatorStandalone extends OpenISDPassiveRadiator {
     private constructor(
         read: () => RadiatorDeviceJson,
         set: (json: RadiatorDeviceJson) => void,
+        conflicts: () => readonly PrSpecIssue[],
+        private readonly noteConflicts: (issues: readonly PrSpecIssue[]) => void,
     ) {
-        super({get value() { return read(); }, set});
+        super({get value() { return read(); }, set}, conflicts);
     }
 
     static wrap(json: RadiatorDeviceJson): OpenISDPassiveRadiatorStandalone {
         let current = json;
+        let issues: readonly PrSpecIssue[] = [];
         return new OpenISDPassiveRadiatorStandalone(() => current, (j) => {
             current = j;
+        }, () => issues, (found) => {
+            issues = found;
         });
+    }
+
+    /** Fill every figure the stated ones give and mark the stated ones that contradict each other,
+     *  for a radiator being edited outside a project (the New Project wizard's copy). */
+    resolve(pr: PrEngine, air: Air): void {
+        this.noteConflicts(this.spec.resolve(pr, air));
     }
 
     /** @internal The record a save writes, deep-cloned — the radiator's counterpart to

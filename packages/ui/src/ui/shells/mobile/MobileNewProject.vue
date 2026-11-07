@@ -77,7 +77,8 @@ const {
 
   isPassiveRadiator,
   passiveRadiatorView,
-  passiveRadiatorEdits,
+  passiveRadiatorCells,
+  setPassiveRadiatorName,
   passiveRadiatorBrowseOpen,
   loadSavedPassiveRadiator,
   loadBundledPassiveRadiator,
@@ -247,9 +248,9 @@ function handleCreate() {
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_BOX }}</span></div>
           <UIFixedField class="mob-ui-field" input-id="np-starting-volume" :label="PhoneWizardText.STARTING_VOLUME_LABEL" :field="NumberField.BOX_VB_L" :value="volume_m3" @update:value="v => volume_m3 = v" />
           <div class="mob-band"><span class="mob-band-title">{{ PhoneWizardText.BAND_RADIATOR }}</span></div>
-          <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" classic field-class="mob-ui-field" :radiator="passiveRadiatorView" :edits="passiveRadiatorEdits" :browsing="passiveRadiatorBrowseOpen"
+          <NewProjectPassiveRadiatorStep :key="passiveRadiatorPickId" classic field-class="mob-ui-field" :radiator="passiveRadiatorView" :cells="passiveRadiatorCells" :browsing="passiveRadiatorBrowseOpen"
               @browse="passiveRadiatorBrowseOpen = true" @close-browse="passiveRadiatorBrowseOpen = false"
-            @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
+            @rename="setPassiveRadiatorName" @load-saved="loadSavedPassiveRadiator" @load-bundled="loadBundledPassiveRadiator" @define="defineNewPassiveRadiator" />
           <div v-if="passiveRadiatorPickError" class="mob-chint mob-chint-warn np-pr-error" role="alert" aria-live="polite">{{ passiveRadiatorPickError }}</div>
           <div class="mob-np-pic"><BoxTypeDiagram :box-type="boxType" /></div>
         </template>
