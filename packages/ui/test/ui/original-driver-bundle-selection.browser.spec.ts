@@ -8,8 +8,6 @@ import {DRIVER_SPEC_FIELD_NAMES, type NumericDriverSpecFieldName} from '../../..
 import {z} from 'zod';
 
 const BUNDLE_PATHS = z.string().array().parse(JSON.parse(readFileSync('packages/ui/test/fixtures/test-bundle-paths.json', 'utf8')));
-const DRIVER_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => !path.endsWith('-pr'));
-const PR_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => path.endsWith('-pr'));
 
 const EXPECTED_REPORTED_COIL_VALUES: Record<string, Record<string, Record<string, number>>> = {
   'tang-band/w5-1138smf': {woofer: {Re_ohm: 3.4, BL_Tm: 7.17}},
@@ -43,6 +41,10 @@ type DriverRecord = z.infer<typeof DriverRecordSchema>;
 function bundledRecord(path: string): DriverRecord {
   return DriverRecordSchema.parse(JSON.parse(readFileSync(`packages/ui/public/drivers/${path}.json`, 'utf8')));
 }
+
+const DRIVER_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => 'woofer' in bundledRecord(path).specs);
+// The radiators that state every figure. Those that do not are covered by new-project-radiator-eight-figures.
+const PR_BUNDLE_PATHS = BUNDLE_PATHS.filter(path => path.endsWith('-pr'));
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

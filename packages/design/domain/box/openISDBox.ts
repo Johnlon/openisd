@@ -440,6 +440,9 @@ export class OpenISDBox implements Box {
                 prSlot.set({ ...prSlot.value, ...chosen.clonePassiveRadiator() });
                 getRadiator().spec.adoptDatasheetFigures();
             },
+            holdEditedPR: (edited: OpenISDPassiveRadiatorStandalone) => {
+                prSlot.set({ ...prSlot.value, ...edited.clonePassiveRadiator() });
+            },
             get radiator() {
                 return getRadiator();
             },

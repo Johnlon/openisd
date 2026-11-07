@@ -1,0 +1,38 @@
+id: T703
+release_note: Both passive radiator pages show Vas, Qms, Fs, Sd, Mms, Cms, Rms and Xmax, each stated or calculated, and the New Project wizard keeps what you type. The Select PR button is blue on desktop too.
+repo: openisd
+owner: agents
+status: done
+goal: Radiator pages show all eight figures, stated or calculated
+done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+visual_note: New Project wizard, passive radiator step, on phone and desktop. Look at the blue Select PR button on desktop and at the figure boxes; there were five, now there are eight, with Mms, Cms and Rms added. Desktop draws them in two columns.
+files:
+  - packages/ui/test/fixtures/approvedJoinedGeometry.json
+  - packages/ui/test/fixtures/approvedJoinedPaint.json
+  - packages/ui/test/ui/original-driver-bundle-selection.browser.spec.ts
+  - bugs/BUG_20261107_radiator-pages-miss-figures-the-datasheet-gives.md
+  - packages/ui/test/ui/mobile-box-page-order.browser.spec.ts
+  - packages/design/domain/box/openISDBox.ts
+  - packages/design/domain/box/passiveRadiatorBox.ts
+  - packages/design/domain/openisdTransforms.ts
+  - packages/design/domain/passiveRadiator/openISDPassiveRadiatorStandalone.ts
+  - packages/design/test/domain/pr-adopt-datasheet-figures.test.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue
+  - packages/ui/src/ui/shells/mobile/MobileEnclosureTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalNewProject.vue
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/fixtures/test-bundle-paths.json
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/test/scripts/test-bundle.test.ts
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/ui/new-project-radiator-eight-figures.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - tasks/T703.yml
+visual:
+  - desktop-wizard-box-passive-radiator-step4
+  - mobile-wizard-box-passive-radiator-step4

@@ -731,6 +731,19 @@
         }
       },
       {
+        "field": "Rms_kg_per_s",
+        "specimen": null,
+        "valueWidth": 160,
+        "rowHeight": 40,
+        "rowWidth": 374,
+        "unit": {
+          "leftFromValueRight": -60,
+          "rightFromValueRight": 0,
+          "topFromValueTop": 0,
+          "height": 34
+        }
+      },
+      {
         "field": "pr_Xmax_mm",
         "specimen": null,
         "valueWidth": 160,
