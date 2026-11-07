@@ -157,6 +157,8 @@ async function pickRadiatorOffline(page, label) {
   const modal = page.locator('.mob-np-body');
   await modal.locator('#np-pr-select').click();
   await page.locator('.pr-lib-item .pr-lib-name', {hasText: 'E150HE-PR'}).first().click();
+  // A pick moves on to the project page (QO442); Back is how a person sees the boxes again.
+  await page.locator('.mob-np-footer').getByText(/Back/).click();
   const filled = [];
   for (const id of ['#np-pr-vas', '#np-pr-qms', '#np-pr-fs', '#np-pr-sd', '#np-pr-xmax']) {
     // The boxes fill a moment after the pick: wait for each, as a user would.

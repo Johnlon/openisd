@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: agents
 status: done
+landed: 8dfc73fa8a19eaa9dada5f2b512fadcf659f4bb7
 goal: Picking a radiator in the New Project wizard jumps to the project page; the step says select or define below
 done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
 visual_note: New Project wizard, passive radiator step, on phone and desktop. Look at the line under the select button; it now says Select a Passive Radiator or define one below. The phone had no line before.

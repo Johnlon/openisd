@@ -1,0 +1,12 @@
+id: T704
+release_note: internal
+repo: openisd
+owner: agents
+status: done
+goal: The offline release test follows the radiator pick to the project page
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T704.yml
+  - scripts/hosting/test/offline-catalogue.e2e.mjs
+  - bugs/BUG_20261107_offline-release-test-stops-at-the-radiator-jump.md
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
