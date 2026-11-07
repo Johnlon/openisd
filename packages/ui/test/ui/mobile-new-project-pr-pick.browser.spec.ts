@@ -83,3 +83,13 @@ test('(4) touching the boxes while the pick is still loading never leaves a blan
   await expectAllFilled(page, 'after the delayed load');
   await expect(page.locator('.np-pr-error')).toHaveCount(0);
 });
+
+test('(e) the Select PR button is the wizard blue, like Next', async ({page}) => {
+  await openWizardAtRadiatorStep(page);
+  const select = page.locator('#np-pr-select');
+  const next = page.locator('.mob-np-footer').getByText('Next ▸', {exact: true});
+  const bg = await next.evaluate(e => getComputedStyle(e).backgroundColor);
+  await expect(select).toHaveCSS('background-color', bg);
+  await expect(select).toHaveCSS('color', 'rgb(255, 255, 255)');
+  console.log('SELECT_PR_BG', await select.evaluate(e => getComputedStyle(e).backgroundColor), 'next', bg);
+});

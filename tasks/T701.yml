@@ -1,0 +1,18 @@
+id: T701
+release_note: internal
+repo: openisd
+owner: claude-t
+status: done
+goal: Select PR button in New Project wizard is blue; resolve phone keyboard bug
+done_test: bash scripts/test.sh packages/ui/test/architecture/no-numinput-outside-uifieldbody.test.ts
+visual_note: On the phone New project wizard, passive radiator step, the Select PR button is now blue with white text, like Next.
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - tasks/T701.yml
+  - packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue
+  - packages/ui/test/ui/mobile-new-project-pr-pick.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - bugs/BUG_20261106_phone-whatif-tune-keyboard-hides-box.md
+visual:
+  - mobile-wizard-box-passive-radiator-step4

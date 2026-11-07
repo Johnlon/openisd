@@ -1,6 +1,6 @@
 # BUG_20261106_phone-whatif-tune-keyboard-hides-box
 
-**Status:** OPEN (fix in T700; open until John passes it on his phone)
+**Status:** RESOLVED (fix in T700). John passed the fix on his Pixel on 7 Nov (board QO440).
 
 ## Symptom
 Phone, What-if and Tune: tap a number box and the keyboard comes up and hides the box completely. The bottom buttons are hidden while the keyboard is up, but their space is not reclaimed, so a grey blank area sits over the input. It is worse than before: the box used to stay visible, though narrow.
