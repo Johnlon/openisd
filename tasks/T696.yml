@@ -4,7 +4,7 @@ repo: openisd
 owner: maryu
 status: open
 goal: README and gaps docs brought up to date, for John's review on a branch
-done_test: bash scripts/quiet-test.sh npm run typecheck
+done_test: bash scripts/test.sh packages/ui/test/architecture/architecture-tracked-pngs-are-intact.test.ts
 files:
   - tasks/T696.yml
   - README.md
@@ -17,3 +17,14 @@ files:
   - docs/images/app/driver-library.png
   - docs/research/WINISD_EQUIVALENCE.md
   - docs/research/WINISD_PARITY.md
+  - packages/ui/test/architecture/architecture-tracked-pngs-are-intact.test.ts
+  - docs/images/winisd/chart-dropdown.png
+  - docs/images/winisd/chart-transfer-function-magnitude.png
+  - docs/images/winisd/filters-tab-edit-static-gain.png
+  - docs/images/winisd/new-project-wizard-5-name.png
+  - docs/images/winisd/passive-radiator-tab.png
+  - docs/images/winisd/vents-tab.png
+note: >-
+  A repo-wide word rewrite on 29 Sep 2026 (og to original) also changed bytes inside seven tracked
+  PNGs. The six WinISD captures are restored from the commit before it; the README driver-library
+  picture is retaken. The new architecture test checks every tracked PNG's chunks and CRCs.
