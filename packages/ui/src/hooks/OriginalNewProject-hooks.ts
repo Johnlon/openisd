@@ -402,7 +402,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     latestPick++;
     passiveRadiatorBrowseOpen.value = false;
     const entry = prRepos.saved.list().find(e => e.uuid === uuid);
-    if (entry) { passiveRadiator.value = ownCopy(entry.passiveRadiator); passiveRadiatorPickId.value++; }
+    if (entry) adoptPick(entry.passiveRadiator);
   }
 
   const passiveRadiatorPickError = ref<string | null>(null);
@@ -412,6 +412,15 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
    *  here would stay empty for every later pick of that radiator. */
   function ownCopy(pr: OpenISDPassiveRadiatorStandalone): OpenISDPassiveRadiatorStandalone {
     return OpenISDPassiveRadiatorStandalone.wrap(pr.clonePassiveRadiator());
+  }
+
+  /** A pick moves on to the project page, as choosing a driver does; the step's boxes are for
+   *  defining a radiator by hand (QO442, John 7 Nov 2026). A pick that finishes after the person
+   *  left the step keeps them where they are. */
+  function adoptPick(pr: OpenISDPassiveRadiatorStandalone): void {
+    passiveRadiator.value = ownCopy(pr);
+    passiveRadiatorPickId.value++;
+    if (step.value === WizardStep.BOX_DETAILS) next();
   }
 
   /** The radiator's catalogue name for the error text; its id when the index cannot say. */
@@ -430,7 +439,7 @@ export function useOgNewProject(deps?: OriginalNewProjectDeps): OriginalNewProje
     passiveRadiatorPickError.value = null;
     try {
       const loaded = await prRepos.bundled.load(uuid);
-      if (pick === latestPick) { passiveRadiator.value = ownCopy(loaded); passiveRadiatorPickId.value++; }
+      if (pick === latestPick) adoptPick(loaded);
     } catch (thrown) {
       if (pick !== latestPick) return;
       const fault = thrown instanceof Error ? thrown : new Error(String(thrown));

@@ -40,6 +40,7 @@ export class PhoneWizardText {
   static readonly VOLUME_LABEL = 'Volume';
   static readonly TUNING_LABEL = 'Tuning';
   static readonly SELECT_PR = 'Select PR ▸';
+  static readonly SELECT_OR_DEFINE_PR = 'Select a Passive Radiator or define one below';
 
   static readonly PROJECT_NAME_LABEL = 'Project name';
   static readonly DESCRIPTION_LABEL = 'Description';

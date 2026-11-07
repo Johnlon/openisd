@@ -210,8 +210,7 @@ test.describe('Original Passive Radiator tab', () => {
       await wizard.getByLabel('Box type').selectOption('box-passive-radiator');
       await next.click();                                        // step 4: the radiator
       await wizard.locator('#np-pr-select').click();
-      await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();
-      await next.click();
+      await page.locator('.pr-lib-item .pr-lib-name', { hasText: 'ND140-PR' }).first().click();   // the pick moves on to the project page (QO442)
       await wizard.locator('input[type="text"]').fill('ND140-PR from the wizard');
       await next.click();                                        // Create
       await page.locator('.project-nav li', {hasText: 'Passive Radiator'}).click();

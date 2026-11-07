@@ -408,6 +408,8 @@ async function walk(page: Page, skin: Skin): Promise<void> {
 
   await root.locator('#np-pr-select').click();
   await page.locator('.pr-lib-item .pr-lib-name', {hasText: 'E150HE-PR'}).first().click();
+  // A pick moves on to the project page (QO442); Back is how the boxes are seen again.
+  await footerButton(page, skin, skin.buttons.back).click();
   await expect(root.locator('#np-pr-name'), 'radiator name').toHaveValue(radiator.model);
   for (const f of STEP_RADIATOR_FIGURES) {
     await expect.soft(root.locator(f.id), `${f.id} after the pick`).toHaveValue(f.field.format(required(radiator, f.key)));

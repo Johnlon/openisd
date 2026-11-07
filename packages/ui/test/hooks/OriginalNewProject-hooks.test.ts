@@ -723,6 +723,20 @@ describe('useOgNewProject — passive-radiator step', () => {
     expect(wizard.passiveRadiatorPickError.value).toBeNull();
   });
 
+  // QO442 (John, 7 Nov 2026): a pick moves on to the project page, as choosing a driver does.
+  it('picking a bundled radiator moves on to the project page; defining one stays on the step', async () => {
+    const load = vi.fn<BundledPassiveRadiatorRepo['load']>(() => Promise.resolve(testRadiator('Bundled PR')));
+    const wizard = atBoxTypeStep(testPassiveRadiators({ index: () => Promise.resolve([]), load }));
+    wizard.next();
+    const radiatorStep = wizard.step.value;
+
+    wizard.defineNewPassiveRadiator();
+    expect(wizard.step.value).toBe(radiatorStep);
+
+    await wizard.loadBundledPassiveRadiator('bundled-1');
+    expect(wizard.step.value).toBe(WizardStep.PROJECT_INFO);
+  });
+
   // QO379 (John, 2026-11-01): on the phone a pick left every box blank and said nothing. A pick
   // whose record cannot be loaded says so on the step and is recorded as a fault; it never fails
   // silently.

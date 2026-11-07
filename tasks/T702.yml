@@ -1,0 +1,31 @@
+id: T702
+release_note: internal
+repo: openisd
+owner: agents
+status: done
+goal: Picking a radiator in the New Project wizard jumps to the project page; the step says select or define below
+done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+visual_note: New Project wizard, passive radiator step, on phone and desktop. Look at the line under the select button; it now says Select a Passive Radiator or define one below. The phone had no line before.
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-box-passive-radiator-step4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-wizard-box-passive-radiator-step4.png
+  - tasks/T702.yml
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/ui/test/fixtures/test-bundle-paths.json
+  - packages/ui/test/scripts/test-bundle.test.ts
+  - packages/ui/test/ui/new-project-wizard-radiator-calc.browser.spec.ts
+  - bugs/BUG_20261107_new-project-wizard-radiator-pane-shows-no-calculated-values.md
+  - packages/ui/test/ui/new-project-wizard-radiator-pick.browser.spec.ts
+  - packages/ui/test/ui/mobile-new-project-pr-pick.browser.spec.ts
+  - packages/ui/test/ui/original-pr-tab.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard.browser.spec.ts
+  - packages/ui/test/ui/new-project-wizard-walk.browser.spec.ts
+  - packages/ui/test/ui/new-project-pick-fills-journey.browser.spec.ts
+  - packages/ui/test/hooks/OriginalNewProject-hooks.test.ts
+  - packages/ui/src/hooks/OriginalNewProject-hooks.ts
+  - packages/ui/src/ui/components/NewProjectPassiveRadiatorStep.vue
+  - packages/design/fields/phoneWizardText.ts
+visual:
+  - desktop-wizard-box-passive-radiator-step4
+  - mobile-wizard-box-passive-radiator-step4

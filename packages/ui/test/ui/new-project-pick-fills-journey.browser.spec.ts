@@ -154,6 +154,8 @@ async function runJourney(page: Page, phone: boolean, c: Case, blanks: boolean):
   if (radiator !== null && c.radiator !== null) {
     await root.locator('#np-pr-select').click();
     await page.locator('.pr-lib-item .pr-lib-name', {hasText: c.radiator.pickText}).first().click();
+    // A pick moves on to the project page (QO442); Back is how the boxes are seen again.
+    await root.getByRole('button', {name: /Back/}).click();
     await expect(root.locator('#np-pr-name')).toHaveValue(radiator.model);
     const boxes: readonly [string, string, NumberField][] = [
       ['#np-pr-vas', 'Vas_m3', NumberField.PR_VAS_L], ['#np-pr-qms', 'Qms', NumberField.PR_QMS],
