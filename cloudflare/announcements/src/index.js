@@ -1,5 +1,17 @@
 const ANNOUNCEMENTS = [
   {
+    id: 'openisd-7.0.959',
+    version: '7.0.959',
+    published: '2026-11-07',
+    title: 'Passive radiator figures',
+    summary: 'Radiator pages show all eight figures.',
+    body: [
+      'Passive radiator pages show all eight figures, from the datasheet or calculated from it.',
+      'On desktop, the New Project radiator step shows all eight values at one width.',
+    ],
+    href: 'https://openisd.app/',
+  },
+  {
     id: 'openisd-7.0.958',
     version: '7.0.958',
     published: '2026-11-07',
