@@ -3,6 +3,7 @@ release_note: On the desktop New Project radiator step every number box is the s
 repo: openisd
 owner: agents
 status: done
+landed: 078f58a7b0b31c4e3dd3d38e5a4e6767107a1b1a
 goal: The desktop New Project radiator step keeps one value width on all eight boxes
 done_test: bash scripts/quiet-test.sh npm run typecheck
 visual_note: Desktop New Project wizard, passive radiator step. Look at the number boxes; Cms and Rms were wider than the rest, now all are one width.

@@ -1,5 +1,19 @@
 const ANNOUNCEMENTS = [
   {
+    id: 'openisd-7.0.958',
+    version: '7.0.958',
+    published: '2026-11-07',
+    title: 'Driver catalogue rebuilt',
+    summary: 'Fuller and corrected readings for almost every bundled driver.',
+    body: [
+      'Driver catalogue rebuilt, with fuller and corrected readings for almost every bundled driver.',
+      'The driver library can filter by the frequency range the maker states.',
+      'Chart help now links to plain, practical pages.',
+      'On the phone, the box you type in stays visible above the keyboard.',
+    ],
+    href: 'https://openisd.app/',
+  },
+  {
     id: 'openisd-7.0.957',
     version: '7.0.957',
     published: '2026-10-26',
