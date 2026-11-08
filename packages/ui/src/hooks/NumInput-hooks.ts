@@ -28,6 +28,11 @@ export interface NumInputProps {
   /** Replaces the field's own spin rule (an even-only Order box moves 2 a press). */
   spin?: FieldSpin;
 }
+/** A value the box can be undone to, with the precision it was entered to. */
+interface UndoPoint {
+  value: number;
+  halfWidth: number | null | undefined;
+}
 export interface NumInputEmit {
   (event: 'update:modelValue', value: number | null, precision?: number): void;
   (event: 'blur'): void;
@@ -47,10 +52,10 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   const {presentationState, stepperPin, fieldEditMode, dragClock, attrs} = dependencies;
   const activeToken = computed(() => props.field?.unitTokenFor(presentationState.ui.unitTokens ?? {}));
 
-  function fmt(v: number | null | undefined): string {
+  function fmt(v: number | null | undefined, halfWidth: number | null | undefined = props.halfWidth): string {
     if (v == null || !isFinite(v)) return '';
     if (props.field) {
-      return props.field.format(v, props.halfWidth, activeToken.value);
+      return props.field.format(v, halfWidth, activeToken.value);
     }
     const minDp = props.precision ?? 2;
     return formatFixed(v, minDp);
@@ -97,6 +102,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
   });
 
   function onFocus(event: FocusEvent) {
+    if (!editedThisFocus) valueBeforeEdit = currentUndoPoint();
     const fromPointer = pointerEntering;
     const fromTab = tabReturn;
     pointerEntering = false;
@@ -340,11 +346,64 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     el.dispatchEvent(new Event('input', {bubbles: true}));
   }
 
+  /** The box's own one-step undo: the value it held before its last committed edit. A second undo swaps back. */
+  let undoTo: UndoPoint | null = null;
+  /** True once the user has edited the box in this focus; cleared on leaving it and by an undo. */
+  let editedThisFocus = false;
+
+  /** The stored value now, with the precision it was entered to; null when the box holds nothing. */
+  function currentUndoPoint(): UndoPoint | null {
+    return props.modelValue === null || props.modelValue === undefined ? null : {value: props.modelValue, halfWidth: props.halfWidth};
+  }
+
+  /** The value the box held when the user began editing it; what a committed edit can be undone to. */
+  let valueBeforeEdit: UndoPoint | null = null;
+
+  /** The box lost focus with an accepted edit: that edit is now committed and undoable. */
+  function commitEdit(): void {
+    if (!editedThisFocus || refusal.value !== '') return;
+    if (valueBeforeEdit !== null) undoTo = valueBeforeEdit;
+    editedThisFocus = false;
+  }
+
+  /** Ctrl-Z: an edit still in the box reverts its text to the stored value (as Esc does); otherwise
+   *  the previous committed value goes back in the box and is committed, and the value it replaced
+   *  becomes the next undo. */
+  function undoLastCommit(el: HTMLInputElement): void {
+    if (editedThisFocus || refusal.value !== '') {
+      editedThisFocus = false;
+      revertToStored(el);
+      return;
+    }
+    if (undoTo === null) return;
+    const target = undoTo;
+    undoTo = currentUndoPoint();
+    badEntry.value = false;
+    emptied.value = false;
+    display.value = fmt(target.value, target.halfWidth);
+    el.value = display.value;
+    emit('update:modelValue', target.value, target.halfWidth ?? undefined);
+  }
+
+  /** Put the stored value back over whatever is in the box, and clear any refusal. */
+  function revertToStored(el: HTMLInputElement | null) {
+    badEntry.value = false;
+    emptied.value = false;
+    display.value = fmt(props.modelValue);
+    if (el) el.value = display.value;
+  }
+
   /** Letters never go in: the design rule judges the text the edit would leave. */
   function onBeforeInput(e: InputEvent) {
     const el = inputEl.value;
     if (!el || isReadonly.value) return;
-    if (e.inputType === 'insertText' || e.inputType === 'insertReplacementText') {
+    if (e.inputType === 'historyUndo' || e.inputType === 'historyRedo') {
+      // The browser's own undo replays edits against text the app has since rewritten (a cut, then a
+      // calculated value put in the box), and joins the old and new text. The box has its own
+      // one-step undo instead; redo does nothing.
+      e.preventDefault();
+      if (e.inputType === 'historyUndo') undoLastCommit(el);
+    } else if (e.inputType === 'insertText' || e.inputType === 'insertReplacementText') {
       if (e.data !== null && typedEdit(boxOf(el), e.data).kind === 'refuse') e.preventDefault();
     } else if (e.inputType === 'insertFromDrop' && e.dataTransfer) {
       e.preventDefault();
@@ -380,10 +439,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
         // also reach a dialog's own Esc-to-close.
         e.preventDefault();
         e.stopPropagation();
-        badEntry.value = false;
-        emptied.value = false;
-        display.value = fmt(props.modelValue);
-        if (e.target instanceof HTMLInputElement) e.target.value = display.value;
+        revertToStored(e.target instanceof HTMLInputElement ? e.target : null);
         return;
       }
     }
@@ -494,6 +550,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
 
     }
     lastStep = {place: spun.place, at: caretForStep()};
+    editedThisFocus = true;
     if (valid(si)) emit('update:modelValue', si, typedPrecision(spun.text));
   }
 
@@ -673,6 +730,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
     const t = inputFrom(e);
     if (t === null) return;
     display.value = t.value;
+    editedThisFocus = true;
     nativeTextSelection = false;
     lastStep = null;
     rememberCaret();
@@ -693,6 +751,7 @@ export function useNumInput(props: Readonly<NumInputProps>, emit: NumInputEmit, 
 
   function onBlur(e: Event) {
     clearRepeat();
+    commitEdit();
     focused.value = false;
     // Unit and spinner controls share the number's draft and chosen place.
     if (e instanceof FocusEvent && ownGroup(e.relatedTarget)) {

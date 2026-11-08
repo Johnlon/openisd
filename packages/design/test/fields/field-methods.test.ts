@@ -5,12 +5,12 @@ describe('NumberField', () => {
   describe('NumberField core methods', () => {
     it('format formats values according to field precision and unit scaling', () => {
       expect(NumberField.BOX_VB_L.format(0.025)).toBe('25.00'); // 0.025 m³ = 25.00 L (precision 2 in L)
-      expect(NumberField.RE_OHM.format(6.2)).toBe('6.200'); // Re base precision 3
+      expect(NumberField.RE_OHM.format(6.2)).toBe('6.20'); // Re base precision 3
     });
 
     it('format respects halfWidth uncertainty intervals', () => {
       // 0.2200 m = 220.0 mm (halfWidthSI 0.00005 m = 0.05 mm -> 1 dp, clamped to field min dp 3 in mm)
-      expect(NumberField.XMAX_M.format(0.22, 0.00005, 'mm')).toBe('220.000');
+      expect(NumberField.XMAX_M.format(0.22, 0.00005, 'mm')).toBe('220.00');
       // 0.02500 m³ = 25.00 L (halfWidthSI 0.000005 m³ = 0.005 L -> 2 dp in L)
       expect(NumberField.BOX_VB_L.format(0.025, 0.000005, 'L')).toBe('25.00');
     });

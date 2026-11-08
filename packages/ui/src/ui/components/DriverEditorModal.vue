@@ -1280,6 +1280,11 @@ input.value-n, .de-fld.value-n input, .de-modal select.value-n { color: var(--mu
      provenance highlight (painted on `.de-fld`, wrapping all four parts) read as one component
      per field. bugs/archive/BUG_20260817_driver_editor_labels_overflow_a_fixed_62px_column.md */
   width: auto !important;
+  max-width: none !important;
+  /* A label never wraps and never breaks inside a word: the shared joined-field rule sets
+     `white-space: normal; overflow-wrap: anywhere`, which breaks "USPL" into "USP" / "L" the moment its track is narrower than the text. */
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
   text-align: left !important;
   flex: 0 0 auto !important;
 }

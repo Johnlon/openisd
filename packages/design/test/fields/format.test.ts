@@ -1,5 +1,6 @@
 import {describe, it, expect} from 'vitest';
-import {formatFixed, formatByteSize, formatCountOf, formatFixedOrDash, formatTime} from '../../fields/format.js';
+import {formatFixed, formatByteSize, formatCountOf, formatFixedOrDash, formatTime, formatTrimmed} from '../../fields/format.js';
+import {NumberField} from '../../fields/field.js';
 
 describe('fixed-decimal number formatting', () => {
   it('formatFixed: the value to the decimals asked', () => {
@@ -35,3 +36,23 @@ describe('fixed-decimal number formatting', () => {
   });
 });
 
+
+describe('QO454 decimals rule: at least 2 decimals, no trailing zeros past 2', () => {
+  it('formatTrimmed drops zeros past the second decimal', () => {
+    expect(formatTrimmed(14.7, 5)).toBe('14.70');
+    expect(formatTrimmed(7.17, 5)).toBe('7.17');
+    expect(formatTrimmed(7.1734, 5)).toBe('7.1734');
+    expect(formatTrimmed(2.28816, 5)).toBe('2.28816');
+    expect(formatTrimmed(0.57, 3)).toBe('0.57');
+    expect(formatTrimmed(5, 3)).toBe('5.00');
+    expect(formatTrimmed(5, 0)).toBe('5');
+    expect(formatTrimmed(5.5, 1)).toBe('5.5');
+  });
+
+  it('NumberField.format applies it', () => {
+    expect(NumberField.BL_TM.format(14.7)).toBe('14.70');
+    expect(NumberField.BL_TM.format(7.17)).toBe('7.17');
+    expect(NumberField.BL_TM.format(7.1734)).toBe('7.1734');
+    expect(NumberField.QES.format(0.57)).toBe('0.57');
+  });
+});

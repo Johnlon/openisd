@@ -42,7 +42,7 @@ describe('OriginalShell-hooks', () => {
     app.provide(APP_LOGIC, logic);
     app.provide(FOCUSED_PROJECT, computed(() => project));
     app.provide(SplashModalKey, {
-      open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null),
+      open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null), aboutLabel: computed(() => 'About OpenISD'),
       dismiss: () => undefined, show: () => undefined,
     });
     provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));
@@ -269,7 +269,7 @@ describe('OriginalShell-hooks', () => {
       app.provide(APP_LOGIC, testAppLogic());
       app.provide(FOCUSED_PROJECT, computed(() => project));
       app.provide(SplashModalKey, {
-        open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null),
+        open: computed(() => false), driverCount: ref(null), passiveRadiatorCount: ref(null), versions: ref(null), aboutLabel: computed(() => 'About OpenISD'),
         dismiss: () => undefined, show: () => undefined,
       });
       provideCloudSync(app, null, createCloudUiStore(createMemoryStorage()));

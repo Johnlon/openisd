@@ -93,6 +93,8 @@ export interface MobileShellApi {
   optionsOpen: import('vue').Ref<boolean>;
   openOptions: () => void;
   about: () => void;
+  /** The Info menu's About item text, with the version once known. */
+  aboutLabel: import('vue').ComputedRef<string>;
   pane: import('vue').Ref<MobilePane | null>;
   closePane: () => void;
   goToProject: () => void;
@@ -187,7 +189,7 @@ export function useMobileShell(): MobileShellApi {
   const { setSkinOverride } = presentationState;
   const { designIO, projectRepo, projectBin, appUpdate, appVersion, confirmPort, logging } = useApp();
   const { saveProject, saveAllProjects } = designIO;
-  const { show: about } = injectSplashModal();
+  const { show: about, aboutLabel } = injectSplashModal();
   const projectOpen = computed(() => focusedProject() != null);
   const projectTitle = computed(() => { void projectChanged.value; return focusedProject()?.title() ?? ''; });
   const destination = ref<MobileDestination>('box');
@@ -622,7 +624,7 @@ export function useMobileShell(): MobileShellApi {
   return {
     projectOpen, projectTitle, destination, fileInput, openImportedFile, openNewProject, switchToDesktop, useAutomaticSkin, skinIsAutomatic,
     menuOpen, toggleMenu, closeMenu, exportProjectsArchive: () => designIO.exportProjectsArchive(), openFromDisk, isModified,
-    saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, goToProject,
+    saveProject, saveAllProjects, anyUnsaved, updateBannerVisible, reloadForUpdate, dismissUpdateBanner, revertProject, browseDrivers, optionsOpen, openOptions, about, aboutLabel, goToProject,
     contentEl, canScrollUp, canScrollDown, updateScrollEdges, username, appVersion: appVersion.label, flashMessage: logging.message,
     goToAdvanced, pane, closePane, viewportHeightPx, viewportTopPx, sheetTyping, pinSpacePx, onContentScroll,
     projectsPaneOpen, openProjectsPane, closeProjectsPane,
