@@ -147,7 +147,7 @@ function restoreDefaults() {
   draft.chartColors = {};
   draft.unitTokens = {};
   draft.yRanges = {};
-  draft.P = { fmin: 10, fmax: 20000 };
+  draft.P = { fmin: NumberField.PLOT_RANGE_DEFAULT_HZ.min, fmax: NumberField.PLOT_RANGE_DEFAULT_HZ.max };
   onFreqChange();
   unitsResetPending.value = true;
 }
@@ -198,7 +198,7 @@ function setLimit(chartId: ChartId, key: 'min' | 'max', v: number) {
   }
 }
 function resetLimit(chartId: ChartId) { delete draft.yRanges[chartId]; }
-function resetFreqRange() { draft.P = { fmin: 10, fmax: 20000 }; onFreqChange(); }
+function resetFreqRange() { draft.P = { fmin: NumberField.PLOT_RANGE_DEFAULT_HZ.min, fmax: NumberField.PLOT_RANGE_DEFAULT_HZ.max }; onFreqChange(); }
 // The number a limit box shows: the draft when it has one, else the row's own default (what an
 // untouched row promises). Never NaN, so the box is never blank.
 function limitShown(row: LimitRow, key: 'min' | 'max'): number {

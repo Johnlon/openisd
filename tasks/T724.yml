@@ -3,6 +3,7 @@ release_note: "The Save As / Export menu closes when it loses focus or when its 
 repo: openisd
 owner: cover
 status: done
+landed: 80b1192c311ede43ca5143656ddef82a2abecf42
 goal: The Save As / Export menu closes when it loses focus or its project closes
 done_test: bash scripts/test.sh packages/ui/test/ui/focusLeft.test.ts
 ruling: QO459

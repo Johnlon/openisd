@@ -4,6 +4,7 @@ import {useFocusedProject} from '../../logic/focusedProjectContext.js';
 import type {Design, FrequencyAxis, FrequencyDragMode, LevelAxis, LevelDragMode, SnapDirection, SnapExtremum} from '@openisd/design/chart';
 import type {Geo} from '../../types.js';
 import type {ChartId} from '@openisd/design/engine';
+import {NumberField} from '@openisd/design/fields';
 import {DESKTOP_DRAW_STYLE, drawOne, PHONE_DRAW_STYLE} from '../canvas.js';
 import {useGraphPanel} from '../../hooks/GraphPanel-hooks.js';
 import {useApp} from '../../logic/app.js';
@@ -207,10 +208,10 @@ function onPointerUp(e: PointerEvent) {
 }
 
 // Double-click the Y-axis strip resets that chart's level scale to auto; double-click
-// the X-axis strip resets the frequency range to the 1–20 kHz default.
+// the X-axis strip resets the frequency range to the app default (NumberField.PLOT_RANGE_DEFAULT_HZ).
 function onDblClick(e: MouseEvent) {
   if (yAxisZone(e)) resetY();
-  else if (xAxisZone(e)) { presentationState.sweepRange = { min: 1, max: 20000 }; }
+  else if (xAxisZone(e)) { presentationState.sweepRange = { min: NumberField.PLOT_RANGE_DEFAULT_HZ.min, max: NumberField.PLOT_RANGE_DEFAULT_HZ.max }; }
 }
 
 function onPointerLeave() {

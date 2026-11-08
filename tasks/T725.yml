@@ -1,0 +1,44 @@
+id: T725
+release_note: "The default chart frequency range now ends at 1000 Hz instead of 20000 Hz (App options, and the chart's double-click reset)."
+repo: openisd
+owner: cover
+status: done
+goal: App options: the default chart frequency range ends at 1000 Hz, not 20000
+done_test: bash scripts/test.sh packages/ui/test/logic/presentationState-skin.test.ts
+why: John, 8 Nov 2026 (chat): "change the default freq range top end from 20k to 1000 - app options". The default was typed in four places; now one constant, NumberField.PLOT_RANGE_DEFAULT_HZ.
+files:
+  - tasks/T725.yml
+  - packages/design/fields/field.ts
+  - packages/ui/src/logic/presentationState.ts
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/src/ui/components/GraphPanel.vue
+  - packages/ui/test/logic/presentationState-skin.test.ts
+  - packages/ui/test/ui/no-project-shell.browser.spec.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-graph.png
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
+  - mobile-tab-graph
