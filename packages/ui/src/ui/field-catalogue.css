@@ -32,8 +32,6 @@
 .compact-fields.compact-fields .ui-field.ui-field:has(.ui-field-unit:empty) .num-stepper {grid-column:3 / 5 !important;justify-self:start !important;}
 .compact-fields.compact-fields .ui-field.ui-field:has(.ui-field-unit:empty):has(.num-stepper) .ui-field-dev {grid-column:3 / 5 !important;margin-left:82px !important;}
 .compact-fields.compact-fields .ui-field.ui-field:has(.ui-field-unit:empty):not(:has(.num-stepper)) .ui-field-dev {grid-column:3 !important;}
-.compact-fields.compact-fields .ui-field.ui-field.ui-field-note-open {height:auto !important;min-height:40px !important;}
-.compact-fields.compact-fields .ui-field.ui-field .ui-field-note {grid-column:1 / -1 !important;grid-row:2 !important;}
 /* Wider free-text/select editors use the available value tracks. Numeric counts stay 108px. */
 .compact-fields.compact-fields .ui-field.ui-pick-field .ui-field-value > :is(input,select,textarea) {grid-column:2 / 5 !important;width:100% !important;max-width:none !important;}
 .compact-fields.compact-fields .ui-field.ui-pick-field .ui-field-dev {grid-column:5 !important;}

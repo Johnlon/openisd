@@ -115,7 +115,7 @@ test('What-if: the same mark appears on every member of the group as the driver 
 });
 
 
-test('What-if: clicking the alert icon shows the reason under the field and clicking it again hides it', async ({ page }) => {
+test('What-if: clicking the alert icon shows the reason in a popup and clicking it again hides it', async ({ page }) => {
   await openWhatIf(page);
 
   const mms = whatIfField(page, 'Mms').locator('input');
@@ -133,11 +133,10 @@ test('What-if: clicking the alert icon shows the reason under the field and clic
   await expect(note).toBeVisible();
   await expect(note).toContainText('disagree by');
 
-  // The note sits in the panel's own layout: inside the panel, never clipped by it.
+  // The note is a popup: it is read inside the window, never off its edge.
   const inside = await note.evaluate(el => {
     const r = el.getBoundingClientRect();
-    const p = el.closest('.what-if-panel')!.getBoundingClientRect();
-    return r.left >= p.left && r.right <= p.right && r.top >= p.top && r.bottom <= p.bottom;
+    return r.left >= 0 && r.right <= window.innerWidth && r.top >= 0 && r.bottom <= window.innerHeight;
   });
   expect(inside).toBe(true);
 

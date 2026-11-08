@@ -183,10 +183,6 @@ useEscToClose(() => presentationState.editDriver, close);
   grid-template-columns:subgrid !important; width:auto !important; max-width:none !important;
   --joined-chip:var(--what-if-chip-w);
 }
-/* The alert note spans the field's four tracks. Its text must not size them: a max-content track would
-   grow to the note's whole sentence and push the field past the panel's edge. With its inline size
-   contained, the note takes the tracks' width and wraps inside it. */
-.what-if-panel :deep(.ui-field.ui-field[data-field] .ui-field-note) { contain:inline-size; }
 /* The common field's chip is at least 34px; the What-if's narrower boxes take a narrower chip. */
 .what-if-panel :deep(.ui-field.ui-field[data-field] .ui-field-unit:not(.unit-toggle)) { min-width:var(--what-if-chip-w); }
 /* The label track is the longest label plus the desktop's 22px warning slot after every label (kept
