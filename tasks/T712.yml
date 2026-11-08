@@ -7,3 +7,5 @@ goal: Desktop What-if: labels sit next to their boxes, no wide gap
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
   - tasks/T712.yml
+  - bugs/BUG_20261108_desktop-whatif-wide-gap-between-labels-and-boxes.md
+  - packages/ui/src/ui/shells/original/OriginalWhatIf.vue
