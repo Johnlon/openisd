@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: maryu
 status: done
+landed: 0cef044eb51b9bb960beaacc999cc960f484caa6
 goal: Desktop splitter buttons show whole when the left panel or bottom section is hidden
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:

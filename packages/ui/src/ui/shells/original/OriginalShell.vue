@@ -1248,15 +1248,15 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* ---------- Content panel ---------- */
 .content-panel { grid-area:content; max-height:60vh; min-height:244px; background:#f7f7f7; border:1px solid #888; border-left:none; border-top:none; border-radius:0 6px 6px 0; padding:7px 16px; overflow:hidden; display:flex; flex-direction:row; gap:12px; min-width:0; position:relative; z-index:0; }
 .content-tabs { flex:1 1 auto; min-width:0; min-height:0; overflow-y:auto; display:flex; flex-direction:column; }
-.save-rail { flex:none; display:flex; flex-direction:column; align-items:flex-end; gap:6px; align-self:stretch; }
-/* Revert sits at the rail's BOTTOM, under whichever tab is showing (John, 2026-09-25: "put it
-   on the right bottom of the project tables - all table"). The Save button above it takes `margin-top:auto` to put them
-   there, and it is why the rail stretches rather than hugging its content at the top. */
+.save-rail { flex:none; display:flex; flex-direction:column; align-items:stretch; gap:6px; align-self:stretch; }
+.save-rail > .tab-help-btn { align-self:flex-end; }
+/* Save and Revert sit directly under What-if, in its column, with one button height of gap above
+   Save (John, QO453.c7: "place them under what-if with a one button gap"); not at the panel bottom. */
 /* The unsaved-changes yellow the rail already uses for its dot and label — Revert is the
    action that clears exactly what that dot is reporting (John, 2026-09-25). */
 .tab-help-btn { flex:none; width:22px; height:22px; padding:0; border:1px solid #999; border-radius:50%; background:#fff; color:#1868d1; font-weight:700; font-size:13px; line-height:1; cursor:pointer; }
 .tab-help-btn:hover { background:#dbeaff; border-color:#7fb3ff; }
-.save-rail .project-save-btn { margin-top:auto; background:#22803e; border-color:#19632f; color:#fff; font-weight:600; }
+.save-rail .project-save-btn { margin-top:24px; background:#22803e; border-color:#19632f; color:#fff; font-weight:600; }
 .save-rail .project-save-btn:hover { background:#19632f; }
 .save-rail .revert-btn { background:#e0a800; border-color:#b88a00; color:#3a2600; font-weight:600; }
 .save-rail .revert-btn:hover:not(:disabled) { background:#f0b80c; }
@@ -1290,7 +1290,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 /* The field span is fixed at the WIDEST box layout (the dual-chamber types: two field
    columns + the gap), so the diagram column starts at the same x for every box type
    instead of being pushed to the far right whenever the fields need less room. */
-.box-tab-row { display:flex; gap:24px; align-items:flex-start; --box-col-w:302px; --box-col-gap:24px; }
+.box-tab-row { display:flex; gap:24px; align-items:flex-start; min-height:100%; --box-col-w:302px; --box-col-gap:24px; }
 .box-tab-row .field-row { margin-bottom: 4px; }
 .box-tab-row .section-header { margin-bottom: 4px; padding: 2px 8px; }
 .box-tab-main { flex:none; width:calc(var(--box-col-w) * 2 + var(--box-col-gap)); }
