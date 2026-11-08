@@ -1,5 +1,18 @@
 const ANNOUNCEMENTS = [
   {
+    id: 'openisd-7.0.960',
+    version: '7.0.960',
+    published: '2026-11-08',
+    title: 'Tidier What-if, discontinued parts hidden',
+    summary: 'What-if boxes sit by their labels; discontinued parts are no longer listed.',
+    body: [
+      'The desktop What-if panel puts each box next to its label, and its boxes are narrower.',
+      'What-if now says your project will not be updated.',
+      'Discontinued drivers and passive radiators, such as the Visaton PR 250, are no longer listed. Projects that use one still open.',
+    ],
+    href: 'https://openisd.app/',
+  },
+  {
     id: 'openisd-7.0.959',
     version: '7.0.959',
     published: '2026-11-07',

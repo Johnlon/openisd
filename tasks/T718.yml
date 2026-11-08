@@ -1,0 +1,10 @@
+id: T718
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+goal: Announce OpenISD 7.0.960 in the app
+done_test: node --test cloudflare/announcements/test/worker.test.mjs && grep -Fq "id: 'openisd-7.0.960'" cloudflare/announcements/src/index.js
+files:
+  - cloudflare/announcements/src/index.js
+  - tasks/T718.yml
