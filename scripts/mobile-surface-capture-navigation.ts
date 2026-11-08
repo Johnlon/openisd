@@ -33,7 +33,7 @@ export async function openCaptureSurface(page:Page,surface:MobileSurface):Promis
   case 'empty':await openMobileMenu(page);await page.locator('.mob-open-project-close').first().click();return '.mobile-root';
   case 'pr-picker':case 'pr-save':await tab(page,'Box');await page.locator('#mob-box-type').selectOption('box-passive-radiator');await page.getByRole('button',{name:surface.id==='pr-picker'?'Select PR':'Save to library',exact:true}).click();return surface.id==='pr-picker'?'.pr-phone':'.save-lib-panel';
   case 'equations':await editor(page);await page.locator('.de-provenance-chk').filter({hasText:'Inspect Provenance'}).locator('input').click();return '.eq-inspector-card';
-  case 'options-limits-help':await tapMobileMenuItem(page,'Options');await page.getByTestId('limits-more').click();return '[data-testid=limits-more-popup]';
+  case 'options-limits-help':await tapMobileMenuItem(page,'Options');await page.locator('.mob-band',{hasText:'Vented design limits'}).locator('.mob-band-help').click();return '.mob-help-sheet';
   case 'cloud':if(await page.locator('.cloud-sync-badge').count()===0)throw new Error('VIEW UNAVAILABLE: cloud entry is not enabled in this build');await page.locator('.cloud-sync-badge').click();return '.cloud-sync-dialog';
   case 'menu':case 'project-import':await openMobileMenu(page);return '.mob-menu-overlay';
   case 'exports':await openMobileMenu(page);await page.locator('#btnExportMenu').click();return '.export-menu-list';

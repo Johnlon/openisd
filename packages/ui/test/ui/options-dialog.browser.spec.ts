@@ -390,6 +390,17 @@ test.describe('Options dialog', () => {
         await expect(page.locator('#set-max-tuning')).toHaveValue('150.00');
       });
 
+      // QO467.c35, c39, c40: no inline More info; one line says what the limits do.
+      test('Vented design limits has one plain line, no More info, and a ? that says what the limits are for', async ({ page }) => {
+        await openOptions(page);
+        await expect(page.getByTestId('limits-more')).toHaveCount(0);
+        await expect(page.locator('.opt-modal')).toContainText('This panel allows you to set limits on acceptable ranges for certain values, open the help (?) for more info.');
+        await page.getByRole('button', {name: 'Help: Vented design limits'}).click();
+        const sheet = page.locator('.mob-help-sheet');
+        await expect(sheet).toContainText('Catches a likely mistake in a vented box: a volume or tuning outside these ranges gets a warning mark. WinISD has no such check, so the results still match WinISD.');
+        await expect(sheet).toContainText('Min box volume: a box smaller than this gets a warning mark.');
+      });
+
       test('an inside-out band is refused, and OK stays dead until it is a band', async ({ page }) => {
         await openOptions(page);
 
