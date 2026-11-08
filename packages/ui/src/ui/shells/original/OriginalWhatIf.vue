@@ -169,7 +169,7 @@ useEscToClose(() => presentationState.editDriver, close);
    column's label track is as wide as the longest label it shows and every box in the column
    starts at one edge, right after it (John, 8 Nov 2026, QO449.c11: "too much space between labels
    and cells"). The same structure as the driver editor's fields. */
-.what-if-panel { --what-if-box-w:124px; --what-if-cue-w:24px; --what-if-spacer-w:12px; }
+.what-if-panel { --what-if-box-w:93px; --what-if-chip-w:29px; --what-if-cue-w:24px; --what-if-spacer-w:12px; }
 .what-if-content {
   display:grid; column-gap:2px; row-gap:0;
   grid-template-columns:max-content var(--what-if-box-w) max-content var(--what-if-cue-w) var(--what-if-spacer-w) max-content var(--what-if-box-w) max-content var(--what-if-cue-w);
@@ -181,7 +181,10 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-box-placeholder { min-width:0; }
 .what-if-panel :deep(.ui-field.ui-field[data-field]) {
   grid-template-columns:subgrid !important; width:auto !important; max-width:none !important;
+  --joined-chip:var(--what-if-chip-w);
 }
+/* The common field's chip is at least 34px; the What-if's narrower boxes take a narrower chip. */
+.what-if-panel :deep(.ui-field.ui-field[data-field] .ui-field-unit:not(.unit-toggle)) { min-width:var(--what-if-chip-w); }
 /* The label track is the longest label plus the desktop's 22px warning slot after every label (kept
    so a warning never moves the boxes). */
 .what-if-panel .what-if-content :deep(.ui-field.ui-field[data-field] > .ui-field-label) {
