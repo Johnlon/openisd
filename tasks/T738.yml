@@ -1,0 +1,9 @@
+id: T738
+release_note: internal
+repo: openisd
+owner: learn
+status: done
+goal: Bug file: a typed driver Cms, Mms or Rms is ignored by the charts (QO463.c62)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T738.yml
