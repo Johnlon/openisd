@@ -4,6 +4,7 @@ import {ProjectBuilder} from '../../domain/openisdTransforms.js';
 import {OpenISDProject} from '../../domain/project/openISDProject.js';
 import {createEngine} from '../../engine/Engine.js';
 import {DEFAULT_SOURCE_RESISTANCE_OHM} from '../../fields/defaults.js';
+import {DEFAULT_VENTED_ALIGNMENT} from '../../fields/options.js';
 
 function driver(): OpenISDDriver {
   const d = OpenISDDriver.empty(createEngine());
@@ -32,10 +33,10 @@ describe('box starting values on a type switch', () => {
     expect(p.box.sealed.q_tc.value).toBeCloseTo(0.707, 3);
   });
 
-  it('vented: the QB3 design for the source-loaded Qts, a 50 mm vent', () => {
+  it('vented: the default-alignment (C4) design for the source-loaded Qts, a 50 mm vent', () => {
     const p = sealedProject();
     p.box.boxType.set('vented');
-    const design = p.driver.ventedDesign('qb3', DEFAULT_SOURCE_RESISTANCE_OHM, p.box.vented.losses.Ql.value)!;
+    const design = p.driver.ventedDesign(DEFAULT_VENTED_ALIGNMENT, DEFAULT_SOURCE_RESISTANCE_OHM, p.box.vented.losses.Ql.value)!;
     expect(p.box.vented.volume_m3.value).toBe(design.Vb);
     expect(p.box.vented.tuning_goal_hz.value).toBe(design.Fb);
     expect(p.box.vented.vent.diameter_m.value).toBe(0.05);

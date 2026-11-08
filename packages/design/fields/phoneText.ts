@@ -1,4 +1,5 @@
 import type {BoxType, FilterType} from '../engine/index.js';
+import {DEFAULT_P_REF_PA} from '../engine/air.js';
 import {NumberField, ToggleField} from './field.js';
 import {WinisdDeviation, WinisdFilterDeviation} from './winisdDeviation.js';
 import {WinisdDifference} from './winisdDifference.js';
@@ -311,7 +312,7 @@ export class PhoneHelp {
   static readonly ADVANCED_ENVIRONMENT = new PhoneHelpSection('Environment', 'The air this project plays into. It changes the speed of sound and the weight of the air, which moves the results a little. Clear a value to use the app\'s air.', [
     {label: 'Temperature', text: 'how warm the air is.'},
     {label: 'Relative humidity', text: 'how much water the air holds, as a share of the most it could hold.'},
-    {label: 'Air pressure', text: 'the weight of the air above you. Sea level is 101325 Pa.'},
+    {label: 'Air pressure', text: `the weight of the air above you. Sea level is ${DEFAULT_P_REF_PA} Pa.`},
     {label: 'Sound velocity', text: 'how fast sound travels in this air. Worked out from the three above; type a value to set it yourself.'},
     {label: 'Air density', text: 'how heavy the air is. Worked out from the three above; type a value to set it yourself.'},
     {label: 'Reset to app levels', text: 'sets the air back to the levels in Options.'},

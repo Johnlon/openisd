@@ -5,6 +5,7 @@ import {cAdd, cDiv, cInv, cMul, cPar, cSub, cx} from '../complex.js';
 import type {SweepParams} from '../types.js';
 import {winisdLinePortReactance, droppedEndCorrection_m} from './port.js';
 import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
+import {DEFAULT_NEW_PROJECT_QP} from '../../fields/defaults.js';
 
 export class Bandpass6Box implements BoxModel {
   constructor(private readonly P: SweepParams) {}
@@ -19,7 +20,7 @@ export class Bandpass6Box implements BoxModel {
         // compliance with the SHARED Ql/Qa/Qp, port mass from its own tuning target (no separate
         // geometry field for a second port) — no inter-chamber leak (Ricl dropped).
         const rc2 = rho * c * c;
-        const Qp = P.Qp || 100;
+        const Qp = P.Qp || DEFAULT_NEW_PROJECT_QP;
 
         const Cabr = P.Vb / rc2;
         const wr = 2 * Math.PI * (P.Fr ?? NaN);

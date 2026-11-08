@@ -1,5 +1,9 @@
 import {formatDay, parseBasicUtc} from './format.js';
 import {PhoneHelpSection} from './phoneText.js';
+import {DEFAULT_P_REF_PA, DEFAULT_RH_REF_PCT, DEFAULT_T_REF_K} from '../engine/air.js';
+
+/** The default air temperature in degrees Celsius, for help text (293.15 K is 20 °C). */
+const DEFAULT_T_REF_C = Math.round((DEFAULT_T_REF_K - 273.15) * 100) / 100;
 import type {WinisdDifferenceTone} from './winisdDifferenceSection.js';
 
 /** The two ways to import a file, in John's words (19 Oct 2026), each with the line under it. */
@@ -20,10 +24,10 @@ export class PhoneDialogHelp {
     {label: 'Username', text: 'your name, as it should appear on your projects.'},
   ]);
   static readonly OPTIONS_ENVIRONMENT = new PhoneHelpSection('Environment',
-    'The air your speaker plays into: its temperature, humidity and pressure. They change the speed of sound and the weight of the air, which moves the results a little. Every project uses these unless its own Advanced tab sets other air. The defaults (20 °C, 30 %, sea level) suit most rooms.', [
-      {label: 'Temperature', text: 'the air temperature in kelvin (K). Add 273.15 to the °C value: 20 °C is 293.15 K.'},
+    `The air your speaker plays into: its temperature, humidity and pressure. They change the speed of sound and the weight of the air, which moves the results a little. Every project uses these unless its own Advanced tab sets other air. The defaults (${DEFAULT_T_REF_C} °C, ${DEFAULT_RH_REF_PCT} %, sea level) suit most rooms.`, [
+      {label: 'Temperature', text: `the air temperature in kelvin (K). Add 273.15 to the °C value: ${DEFAULT_T_REF_C} °C is ${DEFAULT_T_REF_K} K.`},
       {label: 'Relative humidity', text: 'how damp the air is, in percent. It hardly changes the result.'},
-      {label: 'Air pressure', text: 'the air pressure in pascals (Pa). 101325 Pa is sea level; it is lower up a mountain.'},
+      {label: 'Air pressure', text: `the air pressure in pascals (Pa). ${DEFAULT_P_REF_PA} Pa is sea level; it is lower up a mountain.`},
       {label: 'Sound velocity', text: 'how fast sound travels in this air. It is worked out from the three values above.'},
       {label: 'Air density', text: 'how heavy this air is. It is worked out from the three values above.'},
       {label: 'Reset to defaults', text: 'puts this section back to how it was when you first opened OpenISD.'},

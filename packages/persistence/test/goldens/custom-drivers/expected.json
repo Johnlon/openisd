@@ -19,7 +19,7 @@
   "settings": {
     "vented": {
       "minVb_m3": 0.001,
-      "maxVb_m3": 1,
+      "maxVb_m3": 0.1,
       "minFb_hz": 10,
       "maxFb_hz": 150
     },

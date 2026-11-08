@@ -6,6 +6,7 @@ import {cAdd, cDiv, cInv, cMul, cPar, cx} from '../complex.js';
 import type {SweepParams} from '../types.js';
 import {winisdLinePortReactance, droppedEndCorrection_m} from './port.js';
 import type {BoxModel, BoxOutput, DriverSideQuantities} from './BoxModel.js';
+import {DEFAULT_NEW_PROJECT_QP} from '../../fields/defaults.js';
 
 export class AbcBox implements BoxModel {
   constructor(private readonly P: SweepParams) {}
@@ -21,7 +22,7 @@ export class AbcBox implements BoxModel {
         // stays (Rai = 0 is a physical fact of this topology, not a loss-Q setting to drop) but
         // without Ricl, the same "no inter-chamber leak" simplification.
         const rc2 = rho * c * c;
-        const Qp = P.Qp || 100;
+        const Qp = P.Qp || DEFAULT_NEW_PROJECT_QP;
 
         const Cabr = P.Vb / rc2;
         const wr = 2 * Math.PI * (P.Fr ?? NaN);
