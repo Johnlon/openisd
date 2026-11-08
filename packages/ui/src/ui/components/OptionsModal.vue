@@ -490,6 +490,15 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
   .opt-body { padding: 12px 8px; }
   .opt-group { padding: 10px 6px; min-width: 0; }
 }
+/* A window wide enough for two columns (BUG_20261108_desktop-options-dialog-taller-than-short-window): the
+   dialog doubles its width and each tab's sections flow into two balanced columns, so a short window
+   (1366x768 and 1536x864 screens) shows every control with nothing to scroll. Narrower windows keep one
+   column and scroll inside the body. */
+@media (min-width: 1180px) {
+  .opt-modal { width: min(1080px, 92vw); }
+  .opt-body { display: block; columns: 2; column-gap: 14px; }
+  .opt-body > * { break-inside: avoid; margin-bottom: 10px; }
+}
 .opt-group-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 .opt-reset-btn { width: max-content; padding: 4px 12px; cursor: pointer; }
 .opt-reset-btn:disabled { cursor: default; opacity: 0.5; }
