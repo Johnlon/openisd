@@ -109,6 +109,8 @@ const { infoCard, openPlacementInfo, openEbpInfo, closeInfo } = createWizardInfo
 
 // Step 1 IS the driver library (FIX_WIZARD_SEALED Q1): choosing a driver hands it to the wizard
 // for as long as the wizard is open; closing the wizard disarms that handoff.
+// A wizard opens on the whole catalogue: the search and filters of an earlier opening are cleared.
+driverBrowsing.clearAllFilters();
 driverBrowsing.embedLibrary(driver => selectDriver(driver));
 onBeforeUnmount(() => driverBrowsing.closeLibrary());
 

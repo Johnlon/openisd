@@ -86,10 +86,6 @@ const GREEN_FILL = /^rgb\(\d+, (1[0-9]{2}|[2-9][0-9]), \d+\)$/;
 async function openWizard(page: Page): Promise<void> {
   await page.locator('.tb-btn[title*="New project"]').click();
   await expect(page.locator('.overlay.open')).toContainText('Select driver for project');
-  // The wizard's driver filters outlast the dialog (the library remembers them); a filter an earlier spec
-  // on this shared page left on hides the specs' drivers, so clear them the way a user does.
-  const clear = page.locator('.overlay.open').getByRole('button', {name: 'Clear filters'});
-  if (await clear.count() > 0) await clear.click();
 }
 
 /** Walk the open wizard: driver → num/placement → box type → (alignment or radiator) → name. */
@@ -189,6 +185,19 @@ test.describe('New Project wizard', () => {
       await buildProject(page, 'sealed', 'Air copy');
       await page.locator('.project-nav li', { hasText: 'Advanced' }).click();
       await expect(advancedTemperature()).toHaveValue('300.00');
+    });
+
+    test('the wizard opens with an empty search and no filters, whatever was typed last time', async ({ appPage: page }) => {
+      await openWizard(page);
+      const modal = page.locator('.overlay.open');
+      await modal.locator('input.filter').fill('zzz-no-such-driver');
+      await expect(modal.locator('.dlist .ditem')).toHaveCount(0);
+      await footer(page).getByRole('button', { name: 'Cancel' }).click();
+      await expect(page.locator('.overlay.open')).toHaveCount(0);
+      await openWizard(page);
+      await expect(modal.locator('input.filter')).toHaveValue('');
+      await expect(modal.getByRole('button', { name: 'Clear filters' })).toHaveCount(0);
+      await expect(modal.locator('.dlist .ditem').first()).toBeVisible();
     });
 
     test('Cancel closes the wizard without creating a project', async ({ appPage: page }) => {

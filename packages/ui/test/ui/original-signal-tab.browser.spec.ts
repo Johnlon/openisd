@@ -30,6 +30,11 @@ test.describe('Original Signal tab', () => {
     await page.locator('.project-nav li', { hasText: 'Signal' }).click();
   });
 
+  test('Distance and Angle show no padded zeros: 1.00 and 0.00', async ({ appPage: page }) => {
+    await expect(signalInput(page, 'Distance')).toHaveValue('1.00');
+    await expect(signalInput(page, 'Angle')).toHaveValue('0.00');
+  });
+
   test('System input power spins by its tenths digit a tap: 1 W up is 1.1 W, down is 0.9 W', async ({ appPage: page }) => {
     const pow = signalInput(page, 'System input power');
     await fillAndBlur(pow, '1');

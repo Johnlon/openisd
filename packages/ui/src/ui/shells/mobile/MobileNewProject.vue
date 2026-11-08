@@ -126,6 +126,8 @@ const helpSections = computed(() => {
   return PhoneWizardHelp.PROJECT_INFO;
 });
 
+// A wizard opens on the whole catalogue: the search and filters of an earlier opening are cleared.
+driverBrowsing.clearAllFilters();
 driverBrowsing.embedLibrary(driver => selectDriver(driver));
 onBeforeUnmount(() => driverBrowsing.closeLibrary());
 

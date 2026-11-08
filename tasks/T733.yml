@@ -1,0 +1,16 @@
+id: T733
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Bugs found by the AI live review of test vs prod (round 2, 8 Nov): fix them
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T733.yml
+  - packages/ui/test/ui/mobile-banner-never-covers-controls.browser.spec.ts
+  - packages/ui/test/ui/whatif-collapse-button.browser.spec.ts
+  - bugs/BUG_20261108_signal-angle-distance-padded-zeros.md bugs/BUG_20261108_project-list-names-cut-with-ellipsis.md bugs/BUG_20261108_wizard-keeps-previous-driver-search.md packages/ui/test/fixtures/mobileSurfaceSourceIndex.json packages/ui/src/ui/shells/original/OriginalShell.vue packages/ui/src/ui/shells/original/OriginalProjectList.vue packages/ui/src/ui/components/DriverLibrary.vue packages/ui/src/ui/shells/original/OriginalNewProject.vue packages/ui/src/ui/shells/mobile/MobileNewProject.vue packages/ui/test/ui/original-signal-tab.browser.spec.ts packages/ui/test/ui/original-project-list.browser.spec.ts packages/ui/test/ui/mobile-new-project-wizard.browser.spec.ts packages/ui/test/ui/new-project-wizard.browser.spec.ts
+visual:
+  - desktop-tab-signal

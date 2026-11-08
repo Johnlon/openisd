@@ -440,10 +440,8 @@ defineExpose({focusSearchOrList});
   flex: 1 1 auto;
   min-width: 0;
   display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  overflow-wrap: normal;
+  white-space: normal;
+  overflow-wrap: anywhere;
   font-size: 12px;
 }
 
