@@ -66,3 +66,4 @@ steps:
 done_test: bash scripts/test.sh packages/design/test/domain/cms-from-vas.test.ts
 files:
   - tasks/T744.yml
+  - packages/design/test/domain/cms-from-vas.test.ts
