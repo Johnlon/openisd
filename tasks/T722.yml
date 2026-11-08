@@ -1,0 +1,9 @@
+id: T722
+release_note: internal
+repo: openisd
+owner: leader
+status: open
+goal: land.sh is a merge queue: every waiting task goes into one candidate and one GitHub run; a red run is split to find the bad task
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T722.yml
