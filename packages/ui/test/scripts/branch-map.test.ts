@@ -16,8 +16,7 @@ const badViews=(map:BranchMap):string[]=>Object.entries(map).flatMap(([id,m])=>m
 describe('branch map',()=>{
   it('maps every Desktop-skin scanned branch',()=>{expect(unmapped(SourceSkin.Desktop,DESKTOP_BRANCH_MAP)).toEqual([]);});
   it('maps every Phone-skin scanned branch',()=>{expect(unmapped(SourceSkin.Phone,PHONE_BRANCH_MAP)).toEqual([]);});
-  // filled in step 3c
-  it.fails('maps every Shared scanned branch',()=>{expect(unmapped(SourceSkin.Shared,SHARED_BRANCH_MAP)).toEqual([]);});
+  it('maps every Shared scanned branch',()=>{expect(unmapped(SourceSkin.Shared,SHARED_BRANCH_MAP)).toEqual([]);});
   it('has no key that is not a scanned branch, in any map',()=>{
     expect([...stale(DESKTOP_BRANCH_MAP),...stale(PHONE_BRANCH_MAP),...stale(SHARED_BRANCH_MAP)]).toEqual([]);
   });

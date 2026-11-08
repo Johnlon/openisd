@@ -61,6 +61,10 @@ const PH='packages/ui/src/ui/shells/mobile/';
 function phoneRuled(id:string,kind:ViewKind,owner:string,reach:string):ViewEntry {
   return {id,skin:ViewSkin.Phone,kind,owner:PH+owner,reach,decision:JOHN_RULING};
 }
+const CMP='packages/ui/src/ui/components/';
+function sharedRuled(id:string,kind:ViewKind,owner:string,reach:string):ViewEntry {
+  return {id,skin:ViewSkin.Both,kind,owner,reach,decision:JOHN_RULING};
+}
 /** John, 8 Nov 2026 (T739): warning and error popups, field notes and inline sections are views. Found by the source scan, absent from the older manifests. */
 const RULED_VIEWS:readonly ViewEntry[]=[
   ruled('desktop/difference-cue',ViewKind.FieldNote,SHELL,'Click the ≠W Difference cue by a control, chart or filter editor: a popup says what WinISD does instead.'),
@@ -94,5 +98,23 @@ const RULED_VIEWS:readonly ViewEntry[]=[
   phoneRuled('phone/cloud-reconnect-strip',ViewKind.WarningPopup,'MobileShell.vue','Cloud sync needs the user to reconnect: a strip appears above the tab bar.'),
   phoneRuled('phone/cloud-conflict-notice',ViewKind.WarningPopup,'MobileShell.vue','Cloud sync finds a conflicting project: a notice appears above the tab bar.'),
   phoneRuled('phone/cloud-hint',ViewKind.FieldNote,'MobileShell.vue','Cloud sync has a hint to show: a strip with a Yes button appears above the tab bar.'),
+  sharedRuled('shared/field-catalogue',ViewKind.Page,'packages/ui/src/ui/components/FieldCatalogue.vue','Open the app with ?field-catalogue in the address: a page lists a sample of every field style.'),
+  sharedRuled('shared/flash-message',ViewKind.FieldNote,CMP+'Flash.vue','The app has a short message to show: a strip appears (desktop skin).'),
+  sharedRuled('shared/chart-readout',ViewKind.FieldNote,'packages/ui/src/ui/canvas.ts','Move over a chart, or drag across it: a read-out box shows the values, or the range, ripple, peak and trough.'),
+  sharedRuled('shared/driver-delete-challenge-warning',ViewKind.WarningPopup,CMP+'DriverBrowser.vue','Driver browser, press delete on saved drivers before exporting: a red warning says deleting destroys the only copy.'),
+  sharedRuled('shared/graph-warning-pill',ViewKind.WarningPopup,CMP+'GraphPanel.vue','A chart has warnings: a pill with the first warning appears on the chart, with a dismiss button.'),
+  sharedRuled('shared/graph-blocked-message',ViewKind.ErrorPopup,CMP+'GraphPanel.vue','A chart cannot be plotted: a Can\'t plot message lists the fields that block it.'),
+  sharedRuled('shared/graph-context-menu',ViewKind.Menu,CMP+'GraphPanel.vue','Right-click a chart: a menu offers to place the marker, snap the cursor to peaks and troughs, and jump to roll-offs.'),
+  sharedRuled('shared/store-gate',ViewKind.ErrorPopup,CMP+'StoreGate.vue','Start the app when saved data cannot be opened safely: a full-screen gate offers Restore, Open read-only and Export everything.'),
+  sharedRuled('shared/winisd-difference-entry',ViewKind.InlineExpansion,CMP+'WinisdDifferencesModal.vue','OpenISD and WinISD differences dialog: tap an entry to unfold its WinISD and OpenISD text.'),
+  sharedRuled('shared/about-page',ViewKind.Page,'packages/ui/about/index.html','Open /about/ in a browser: the static About OpenISD page.'),
+  sharedRuled('shared/install-page',ViewKind.Page,'packages/ui/install/index.html','Open /install/ in a browser: the static Add OpenISD as an app page.'),
+  sharedRuled('shared/options-error',ViewKind.ErrorPopup,CMP+'OptionsModal.vue','Options, type a value the app refuses (or a limit it rejects): a red message appears and Apply is blocked.'),
+  sharedRuled('shared/storage-warning',ViewKind.WarningPopup,CMP+'StorageHistory.vue','Options, Your data, when storage may not persist or is nearly full: a warning line appears above the usage.'),
+  sharedRuled('shared/storage-restore-picker',ViewKind.InlineExpansion,CMP+'StorageHistory.vue','Options, Your data, tap Restore on a backup row: its projects list opens inline, each with a Restore button.'),
+  sharedRuled('shared/driver-editor-incomplete-warning',ViewKind.WarningPopup,CMP+'DriverEditorModal.vue','Driver editor with a missing brand or model, charts blocked, or disagreeing values: a warning strip lists why.'),
+  sharedRuled('shared/driver-library-storage-note',ViewKind.WarningPopup,CMP+'DriverLibrary.vue','Driver list when browser storage is inaccessible: a note says saved drivers are unavailable.'),
+  sharedRuled('shared/driver-library-broken-entry',ViewKind.WarningPopup,CMP+'DriverLibrary.vue','Driver list with a saved driver this version cannot read: a flagged row offers Export and Delete.'),
+  sharedRuled('shared/driver-type-help',ViewKind.FieldNote,CMP+'DriverLibrary.vue','Driver list filters, press the ? by the types: a table explains the driver range classifications.'),
 ];
 export const VIEW_INDEX:readonly ViewEntry[]=Object.freeze([...MOBILE_SURFACES.map(fromMobile),...DESKTOP_SURFACES.map(fromDesktop),...RULED_VIEWS]);
