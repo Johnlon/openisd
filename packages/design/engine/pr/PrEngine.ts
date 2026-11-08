@@ -35,8 +35,7 @@ export type PrSpecPrecision = Readonly<Record<keyof PrSpecValues, number>>;
 export type PrSpecIssue = CalculationIssue<RouteQuantity>;
 
 /** `air` where taken is the PROJECT's own resolved `{ rho, c }` — see `vent/VentEngine.ts`.
- *  `vas`/`cmsFromVas` take none: no environment reaches their call sites, so ρ/c are the
- *  reference environment's, computed live — never a stored constant. */
+ */
 export interface PrEngine {
   /** System resonance with `prNum` radiators in parallel: PR compliance `Cap = prCms·prSd²`,
    *  `Cpar = Cab·N·Cap/(Cab+N·Cap)`, `fp = 1/(2π·√((Map/N)·Cpar))` — the Fb WinISD displays.
@@ -47,18 +46,11 @@ export interface PrEngine {
   massForFp(p: PrParams, fp: number, air: Air): number;
   /** Compliance-equivalent volume, cubic metres: `Vas = Cms·Sd²·ρ·c²`. */
   vas(prCms: number, prSd: number, air: Air): number;
-  /** Compliance from Vas (cubic metres) and Sd — the inverse of `vas`. 0 when Sd ≤ 0. */
-  cmsFromVas(prVas_m3: number, prSd: number, air: Air): number;
   /** Free-air resonance loaded with added cone mass: `1/(2π·√((Mmd+Madd)·Cms))` — the
    *  radiator alone, no box. 0 when the total mass or compliance is non-positive. */
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number;
-  /** Moving mass from free-air Fs and compliance — the inverse of `fsWithMass` with no added
-   *  mass. 0 when Fs or Cms is non-positive. */
-  mmdFromFs(prFsHz: number, prCms: number): number;
   /** Mechanical Q: `√(Mmd/Cms)/Rms`. 0 when Rms ≤ 0. */
   qms(prMmd: number, prCms: number, prRms: number): number;
-  /** Mechanical resistance from Qms — the inverse of `qms`. 0 when Qms ≤ 0. */
-  rmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number;
   /** The radiator's seven stated figures run through the driver's consistency relations, in
    *  the project's `air`: every figure derivable from the stated ones comes back with them, a
    *  stated one unchanged, an underivable one null. Pass only what was entered. */
@@ -108,26 +100,13 @@ export class PrEngineImpl implements PrEngine {
     return prCms * prSd * prSd * air.rho() * air.c() * air.c();
   }
 
-  cmsFromVas(prVas_m3: number, prSd: number, air: Air): number {
-    if (!(prSd > 0)) return 0;
-    return prVas_m3 / (prSd * prSd * air.rho() * air.c() * air.c());
-  }
-
   fsWithMass(prMmd: number, prMadd: number, prCms: number): number {
     const m = prMmd + prMadd;
     return m > 0 && prCms > 0 ? 1 / (2 * Math.PI * Math.sqrt(m * prCms)) : 0;
   }
 
-  mmdFromFs(prFsHz: number, prCms: number): number {
-    return prFsHz > 0 && prCms > 0 ? 1 / ((2 * Math.PI * prFsHz) ** 2 * prCms) : 0;
-  }
-
   qms(prMmd: number, prCms: number, prRms: number): number {
     return prRms > 0 ? Math.sqrt(prMmd / prCms) / prRms : 0;
-  }
-
-  rmsFromQms(prQmsValue: number, prMmd: number, prCms: number): number {
-    return prQmsValue > 0 ? Math.sqrt(prMmd / prCms) / prQmsValue : 0;
   }
 
   solveSpec(stated: PrSpecValues, air: Air): PrSpecValues {
