@@ -53,7 +53,7 @@ steps:
     done: "page link with agy PASS, sent to John on the board."
   - n: 9
     worker: sonnet
-    do: "Records: WINISD_PARITY.md row (an option, not a bug); WINISD_EQUIVALENCE register cell and README parity bullets if a cell changes; close bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md and the T732 bug; help page entry for the switch."
+    do: "Records: WINISD_PARITY.md row (an option, not a bug); WINISD_EQUIVALENCE register cell and README parity bullets if a cell changes; close bugs/BUG_20261108_driver-typed-cms-mms-rms-ignored-by-charts.md and the T732 bug; help page entry for the switch; the (?) help for Cms, Vas, Fs, Mms, Qms and Rms on driver and radiator says in plain words that in each pair the one you typed last wins and the other is worked out again (John, QO470: last wins is ok as long as the help says so)."
     done: "docs committed."
   - n: 10
     worker: sonnet (read-only reviewer)
