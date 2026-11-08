@@ -1,0 +1,9 @@
+id: T726
+release_note: internal
+repo: openisd
+owner: cover
+status: open
+goal: Every app default lives in one constant; the wizard, first-use project, engine fallbacks and settings repos read it
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - tasks/T726.yml
