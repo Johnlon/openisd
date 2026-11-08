@@ -1,5 +1,7 @@
 # Phone Box tab: the Box type dropdown is wider than every box under it
 
+**Status:** CLOSED, John: looks ok, leave it (chat, 8 Nov 2026).
+
 Status: OPEN. Found by T690's field layout rules gate (`field-layout-rules.browser.spec.ts`), 5 Nov 2026.
 
 On the phone Box tab the Box type dropdown is 260 px wide (right edge 358) and the number boxes under it are 160 or 170 px wide (right edge 258 or 268). Rule 4: one width and one right edge in a group.

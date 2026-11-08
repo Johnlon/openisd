@@ -5,6 +5,7 @@ owner: cover
 status: claimed
 done_test: test -z "$(ls bugs | grep -i winisd)"
 files:
+  - bugs/BUG_20261105_phone-box-tab-box-type-width.md
   - bugs/BUG_20261105_phone-filters-strip-scrolls-sideways.md
   - bugs/BUG_20261026_catalogue-and-compact-field-review.md
   - bugs/BUG_20261027_rendition-branch-calculated-values-shown-entered.md
