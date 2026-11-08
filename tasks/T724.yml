@@ -1,0 +1,17 @@
+id: T724
+release_note: "The Save As / Export menu closes when it loses focus or when its project is closed, so it can no longer act on a project that is gone."
+repo: openisd
+owner: cover
+status: done
+goal: The Save As / Export menu closes when it loses focus or its project closes
+done_test: bash scripts/test.sh packages/ui/test/ui/focusLeft.test.ts
+ruling: QO459
+why: John, 8 Nov 2026 (QO459, chat): "Close that menu if it loses focus"; BUG_20261031_crash-no-project-is-focused.
+files:
+  - tasks/T724.yml
+  - packages/ui/src/ui/components/ExportMenu.vue
+  - packages/ui/src/ui/components/focusLeft.ts
+  - packages/ui/test/ui/focusLeft.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/ui/export-menu-closes.browser.spec.ts
+  - bugs/BUG_20261031_crash-no-project-is-focused.md

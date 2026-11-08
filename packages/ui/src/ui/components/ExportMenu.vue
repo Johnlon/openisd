@@ -7,7 +7,8 @@
  * the app's shared CSS vars (--panel/--fg/--line/--acc), so this adapts automatically
  * without bespoke styling.
  */
-import {onMounted, onUnmounted, ref} from 'vue';
+import {onMounted, onUnmounted, ref, watch} from 'vue';
+import {focusLeft} from './focusLeft.js';
 import {useApp} from '../../logic/app.js';
 
 const props = defineProps<{ disabled?: boolean }>();
@@ -19,12 +20,17 @@ const open = ref(false);
 function toggle(): void { if (props.disabled) return; open.value = !open.value; }
 function close(): void { open.value = false; }
 function choose(): void { close(); emit('chosen'); }
+const root = ref<HTMLElement | null>(null);
+/** Focus moved outside the menu (keyboard, or a click a parent menu swallows): the menu closes (John, 8 Nov 2026, QO459). */
+function onFocusOut(e: FocusEvent): void { if (focusLeft(root.value, e.relatedTarget)) close(); }
+/** The project is gone while the menu is open: its items would read a project that is not there. */
+watch(() => props.disabled, (d) => { if (d) close(); });
 onMounted(() => document.addEventListener('click', close));
 onUnmounted(() => document.removeEventListener('click', close));
 </script>
 
 <template>
-  <div class="export-menu" @click.stop>
+  <div ref="root" class="export-menu" @click.stop @focusout="onFocusOut">
     <button type="button" id="btnExportMenu" class="export-menu-trigger" :disabled="disabled"
             :title="disabled
               ? 'Save As / Export — open or create a project first.'

@@ -3,6 +3,7 @@ release_note: "On the phone, the Signal tab's number boxes are narrower."
 repo: openisd
 owner: cover
 status: done
+landed: 27984fb722cea0a5ededde04a20557138ed87969
 goal: Phone Signal tab: number box input area 60% of its current width
 done_test: bash scripts/test.sh packages/design/test/fields/phoneRowColumns.test.ts
 files:
