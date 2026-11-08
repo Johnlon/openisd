@@ -379,3 +379,55 @@ test('green Save sits immediately above Revert and saves the open project', asyn
  await expect(page.locator('.prov-legend .unsaved-label')).toHaveCount(0);
  await expect(page.locator('.save-rail .revert-btn')).toBeDisabled();
 });
+
+test.describe('Save and Revert sit under What-if with a one-button gap (QO453.c7)', () => {
+  const BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
+  for (const vp of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+    test(`at ${vp.width}x${vp.height}, for every box type`, async ({ appPage: page }) => {
+      await page.setViewportSize(vp);
+      const panelHs: number[] = [];
+      for (const b of BOXES) {
+        await setFocusedBoxType(page, b);
+        const m = await page.evaluate(() => {
+          const r = (s: string) => { const e = document.querySelector(s); if (!e) throw new Error(s); return e.getBoundingClientRect(); };
+          const panel = document.querySelector('.content-panel');
+          if (!panel) throw new Error('panel');
+          return { plain: r('.driver-id-row .edit-btn'), w: r('.save-rail .what-if-btn'), s: r('.save-rail .project-save-btn'), v: r('.save-rail .revert-btn'), panel: panel.getBoundingClientRect(),
+            panelClip: panel.scrollHeight - panel.clientHeight, docScroll: document.documentElement.scrollWidth - document.documentElement.clientWidth };
+        });
+        expect(m.w.height, `${b} What-if keeps the height of an ordinary button`).toBeCloseTo(m.plain.height, 0);
+        expect(Math.abs(m.s.left - m.w.left), `${b} Save left = What-if left`).toBeLessThanOrEqual(1);
+        expect(Math.abs(m.s.top - m.w.bottom - m.w.height), `${b} gap = one button height`).toBeLessThanOrEqual(2);
+        expect(Math.abs(m.v.left - m.s.left), `${b} Revert same column`).toBeLessThanOrEqual(1);
+        expect(m.v.top - m.s.bottom, `${b} Revert directly below Save`).toBeLessThanOrEqual(8);
+        expect(m.v.bottom, `${b} Revert inside panel`).toBeLessThanOrEqual(m.panel.bottom);
+        expect(m.v.bottom, `${b} Revert not at the panel bottom`).toBeLessThan(m.panel.bottom - 20);
+        expect(m.panelClip, `${b} nothing clipped`).toBeLessThanOrEqual(1);
+        expect(m.docScroll, `${b} no page scrollbar`).toBeLessThanOrEqual(0);
+        panelHs.push(m.panel.height);
+      }
+    });
+  }
+});
+
+test.describe('Box notes column shows every hint in full', () => {
+  const BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
+  for (const vp of [{ width: 1366, height: 768 }, { width: 1920, height: 1080 }]) {
+    test(`at ${vp.width}x${vp.height}, no box type clips or scrolls its notes`, async ({ appPage: page }) => {
+      await page.setViewportSize(vp);
+      for (const b of BOXES) {
+        await setFocusedBoxType(page, b);
+        const m = await page.evaluate(() => {
+          const col = document.querySelector('.box-notes-col');
+          if (!col) throw new Error('.box-notes-col');
+          const hints = col.querySelectorAll('.hint');
+          const last = hints[hints.length - 1];
+          if (!last) throw new Error('no hint');
+          return { hidden: col.scrollHeight - col.clientHeight, lastBottom: last.getBoundingClientRect().bottom, colBottom: col.getBoundingClientRect().bottom };
+        });
+        expect(m.hidden, `${b} notes column hides no text`).toBeLessThanOrEqual(1);
+        expect(m.lastBottom, `${b} last hint inside the notes column`).toBeLessThanOrEqual(m.colBottom + 1);
+      }
+    });
+  }
+});

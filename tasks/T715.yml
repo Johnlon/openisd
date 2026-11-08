@@ -1,0 +1,38 @@
+id: T715
+release_note: On the desktop, Save and Revert sit under the What-if button, away from the bottom of the box.
+repo: openisd
+owner: leader
+status: done
+goal: "I want the Save/Revert button moved away from the bottom of the box - place them under what-if with a one button gap (John, QO453.c7)"
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/original-shell-layout.browser.spec.ts
+  - bugs/BUG_20261108_desktop-abc-hint-clipped-in-box-notes.md
+  - tasks/T715.yml
+  - packages/ui/test/visual/SOURCES.sha256
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-box-passive-radiator.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-sealed.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-vented.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-advanced.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-driver.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-filters.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-project.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-tab-signal.png
+visual:
+  - desktop-box-abc
+  - desktop-box-bandpass4
+  - desktop-box-bandpass6
+  - desktop-box-box-passive-radiator
+  - desktop-box-sealed
+  - desktop-box-vented
+  - desktop-tab-advanced
+  - desktop-tab-box
+  - desktop-tab-driver
+  - desktop-tab-filters
+  - desktop-tab-project
+  - desktop-tab-signal
