@@ -13,6 +13,8 @@
  */
 
 import type {Air} from '../air.js';
+import {resolveCms} from './cmsResolver.js';
+import type {CmsSource} from './cmsResolver.js';
 import {
     referenceEfficiency,
     splFromEfficiency
@@ -34,6 +36,7 @@ import {
   RMS_FROM_FS_MMS_QMS_ROUTE, RouteGroup, withQuantity,
 } from './routes/index.js';
 import type {DriverRoute} from './routes/index.js';
+import {VAS_FROM_CMS_SD_ROUTE} from './routes/efficiencyRoutes.js';
 
 /** WinISD's fallback for a driver with a Qts and neither Qes nor Qms (decompile `fr_45e090`: `+0x4c8 = 2*Qts`):
  *  both Q's are twice Qts, which makes the total Q equal Qts. */
@@ -119,7 +122,7 @@ export interface DriverEngine {
    *  A driver with a Qts but neither Qes nor Qms gets WinISD's fallback, Qes = Qms = 2·Qts.
    *  Each is replaced only where its own inputs are positive and the result is positive;
    *  otherwise the stated value stands. `air` is the project's. */
-  circuitValues(values: DriverValues, air: Air): DriverValues;
+  circuitValues(values: DriverValues, air: Air, cmsSource: CmsSource): DriverValues;
   /** Efficiency bandwidth product — Fs/Qes, the sealed-vs-vented indicator. */
   ebp(Fs_hz: number, Qes: number): number;
   /** The enclosure type an EBP points at: below 50 sealed, above 100 vented, else either. */
@@ -175,7 +178,7 @@ export class DriverEngineImpl implements DriverEngine {
   readonly isPhysicallyPlausible = isPhysicallyPlausible;
   readonly rangeIssue = rangeIssue;
 
-  circuitValues(values: DriverValues, air: Air): DriverValues {
+  circuitValues(values: DriverValues, air: Air, cmsSource: CmsSource): DriverValues {
     const positive = (x: number | null | undefined): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0;
     const {Fs_hz, Vas_m3, Sd_m2, Qts} = values;
     const fallback = !positive(values.Qes) && !positive(values.Qms) && positive(Qts) ? WINISD_Q_FALLBACK_FACTOR * Qts : null;
@@ -185,9 +188,9 @@ export class DriverEngineImpl implements DriverEngine {
       const v = route.value(working);
       return positive(v) ? v : null;
     };
-    const Cms = positive(air.c()) && positive(air.rho()) && positive(Vas_m3) && positive(Sd_m2)
+    const cmsFromVas = positive(air.c()) && positive(air.rho()) && positive(Vas_m3) && positive(Sd_m2)
       ? routeValue(CMS_FROM_VAS_SD_ROUTE, {Vas_m3, Sd_m2, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()}) : null;
-    const Cms_m_per_N = Cms ?? values.Cms_m_per_N;
+    const Cms_m_per_N = resolveCms(cmsSource, values.Cms_m_per_N, cmsFromVas);
     const Mms = positive(Fs_hz) && positive(Cms_m_per_N)
       ? routeValue(MMS_FROM_FS_CMS_ROUTE, {Fs_hz, Cms_m_per_N}) : null;
     const Mms_kg = Mms ?? values.Mms_kg;
@@ -280,7 +283,7 @@ export class DriverEngineImpl implements DriverEngine {
     // THE RELATIONS RUN ON TERMINAL Re AND BL. A `.wdr`'s Qes, Rme and Mpow describe the driver the
     // amplifier sees, and a multi-coil driver's wiring changes both Re and BL. The record keeps them
     // per coil, so they are converted in here and back at the end; callers see per-coil values.
-    const r = this.solveTerminal(toTerminalSpace(p), air);
+    const r = this.solveTerminal(toTerminalSpace(this.withVasFromTypedCms(p, air)), air);
 
     // THE TERMINAL VALUES, LAST. Not a relation - nothing else in the group constrains them, and
     // they answer a question about the WIRING rather than about the driver's parameters. `r.Re_ohm`
@@ -298,6 +301,13 @@ export class DriverEngineImpl implements DriverEngine {
     if (r.BL_Tm != null) r.BL_Tm = p.BL_Tm ?? perCoilBL_Tm(r.BL_Tm, r.numVC, r.wiring);
 
     return r;
+  }
+
+  /** Typed last wins: a stated Cms with no stated Vas gives Vas through the compliance route first,
+   *  ahead of the efficiency route that otherwise fills a missing Vas. */
+  private withVasFromTypedCms(p: DriverWorkingSet, air: Air): DriverWorkingSet {
+    const Vas_m3 = VAS_FROM_CMS_SD_ROUTE.value({...p, c_m_per_s: air.c(), roo_kg_per_m3: air.rho()});
+    return Vas_m3 === null || !(Vas_m3 > 0) ? p : {...p, Vas_m3};
   }
 
   /** The consistency group over a set whose `Re_ohm` and `BL_Tm` are TERMINAL values; the result's

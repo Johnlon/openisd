@@ -3,7 +3,7 @@
  * plot bundles, the designs shown on a chart. Engine shapes (SweepResult, …) come from the engine.
  */
 import type {ChartLayout} from './layout.js';
-import type {BoxType, MaxCurvesResult, SweepDriver, SweepResult} from '../engine/index.js';
+import type {BoxType, MaxCurvesResult, SweepDriverFigures, SweepResult} from '../engine/index.js';
 import type {FrequencyAxis, LevelAxis} from './axis.js';
 
 /** One plotted line. Optional fields are set only by the series that need them. */
@@ -77,7 +77,7 @@ export type PlotParams = {
 
 /** A design shown on a chart — the current design plus any pinned comparisons. */
 export interface Design {
-  driver: SweepDriver | null;
+  driver: SweepDriverFigures | null;
   box: BoxType;
   P: PlotParams;
   curves: SweepResult | null;

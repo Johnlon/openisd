@@ -39,11 +39,11 @@ export class OpenIsdPassiveRadiatorSpec {
             conflicts().filter(issue => issue.fields.some(field => field === name));
         this.Fs_hz = prSpec(section, 'Fs_hz', marks('Fs_hz'));
         this.Qms = prSpec(section, 'Qms', marks('Qms'));
-        this.Cms_m_per_N = prSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'));
+        this.Cms_m_per_N = prSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'), 'Vas_m3');
         this.Mms_kg = prSpec(section, 'Mms_kg', marks('Mms_kg'));
         this.Rms_kg_per_s = prSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'));
         this.Sd_m2 = prSpec(section, 'Sd_m2', marks('Sd_m2'));
-        this.Vas_m3 = prSpec(section, 'Vas_m3', marks('Vas_m3'));
+        this.Vas_m3 = prSpec(section, 'Vas_m3', marks('Vas_m3'), 'Cms_m_per_N');
         this.Vd_m3 = prSpec(section, 'Vd_m3');
         this.Xmax_m = prSpec(section, 'Xmax_m');
         this.Xlim_m = prSpec(section, 'Xlim_m');

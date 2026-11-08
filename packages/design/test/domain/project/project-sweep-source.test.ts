@@ -6,6 +6,7 @@ import type {Air} from '../../../engine/index.js';
 import {ProjectBuilder} from '../../../domain/openisdTransforms.js';
 import type {OpenISDProject} from '../../../domain/project/openISDProject.js';
 import {sweepPlanOf} from '../../../domain/project/projectSweep.js';
+import {cmsSourceOf} from '../../../domain/project/cmsSource.js';
 import type {ProjectSweepSource} from '../../../domain/project/projectSweep.js';
 
 const GRID = {fmin: 20, fmax: 2000, N: 20};
@@ -17,7 +18,7 @@ function sourceOf(p: OpenISDProject, engine: ReturnType<typeof createEngine>, ai
     winisdDriverModel: p.winisdDriverModel, winisdVaModel: p.winisdVaModel, winisdWrapPhase: p.winisdWrapPhase,
     winisdDriverCountModel: p.winisdDriverCountModel, winisdFlatModel: p.winisdFlatModel,
     winisdAbcIntraPortVelocity: p.winisdAbcIntraPortVelocity, winisdPrNprResonance: p.winisdPrNprResonance,
-    winisdBesselHighpass: p.winisdBesselHighpass, winisdAbcGroupDelay: p.winisdAbcGroupDelay,
+    winisdBesselHighpass: p.winisdBesselHighpass, winisdAbcGroupDelay: p.winisdAbcGroupDelay, cmsSource: cmsSourceOf(p),
     winisdTlPortNoEndCorrection: p.winisdTlPortNoEndCorrection, rgAtDriverSide: p.rgAtDriverSide,
     useTransmissionLinePortModel: p.useTransmissionLinePortModel, forceFlatResponse: p.forceFlatResponse,
     filters: p.filters, driverAddedMass_kg: p.driverAddedMass_kg, vcTempRise_K: p.vcTempRise_K, loading: p.loading,

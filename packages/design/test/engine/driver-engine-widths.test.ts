@@ -9,7 +9,7 @@ describe('DriverEngine.circuitValues with figures too extreme to compute from', 
   it('keeps the stated Cms when Vas and Sd give a compliance that overflows', () => {
     // Sd² underflows to 0, so Vas / (rho·c²·Sd²) is Infinity: not a usable compliance.
     const values = sweepDriver({Vas_m3: 1, Sd_m2: 1e-200, Cms_m_per_N: 0.009}).values;
-    expect(engine.driver.circuitValues(values, REFERENCE_AIR).Cms_m_per_N).toBe(0.009);
+    expect(engine.driver.circuitValues(values, REFERENCE_AIR, {kind: 'VasWins'}).Cms_m_per_N).toBe(0.009);
   });
 });
 
