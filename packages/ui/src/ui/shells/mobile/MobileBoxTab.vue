@@ -41,7 +41,7 @@ useEscToClose(() => lossesOpen.value !== null, () => { lossesOpen.value = null; 
     <PhoneBand :section="PhoneHelp.BOX" />
     <div class="mob-crow">
       <label class="mob-crow-label" for="mob-box-type">Box type</label>
-      <select id="mob-box-type" class="mob-cselect mob-cselect-wide" :value="selectedBox"
+      <select id="mob-box-type" class="mob-cselect mob-cselect-aligned" :value="selectedBox"
               @change="e => selectBoxType((e.target as HTMLSelectElement).value)">
         <option v-for="o in BOX_TYPE_OPTIONS" :key="o.value" :value="o.value" :class="{ 'not-implemented': !IMPLEMENTED_BOX_TYPES.includes(o.value) }">{{ o.label }}</option>
       </select>

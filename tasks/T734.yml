@@ -1,0 +1,32 @@
+id: T734
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Phone labels on one line, phone Filters strip and Box type width, desktop skin clipping at phone width (AI live review findings, round 3)
+done_test: bash scripts/quiet-test.sh npm run typecheck
+files:
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-filters.png
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T734.yml
+  - bugs/BUG_20261108_phone-field-labels-wrap.md
+  - packages/ui/test/ui/phone-field-labels-one-line.browser.spec.ts
+  - packages/design/fields/phoneRowSizes.ts
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - packages/design/test/fields/phoneRowSizes.test.ts
+  - bugs/BUG_20261108_desktop-skin-clips-toolbar-at-phone-width.md
+  - bugs/BUG_20261105_phone-filters-strip-scrolls-sideways.md
+  - bugs/BUG_20261105_phone-box-tab-box-type-width.md
+  - packages/ui/src/ui/shells/mobile/MobileFiltersTab.vue
+  - packages/ui/src/ui/shells/mobile/MobileBoxTab.vue
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/shells/original/OriginalShell.vue
+  - packages/ui/test/ui/field-layout-rules.browser.spec.ts
+  - packages/ui/test/ui/mobile-filters-tab.browser.spec.ts
+  - packages/ui/test/ui/desktop-toolbar-fits-window.browser.spec.ts
+visual:
+  - mobile-menu
+  - mobile-tab-box
+  - mobile-tab-filters

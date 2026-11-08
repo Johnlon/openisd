@@ -24,8 +24,6 @@ interface KnownFault {readonly screen: string; readonly rules: readonly Rule[]; 
 const ALL_BOXES = ['sealed', 'vented', 'box-passive-radiator', 'bandpass4', 'bandpass6', 'abc'] as const;
 const KNOWN: readonly KnownFault[] = [
   ...ALL_BOXES.map(box => ({screen: `desktop ${box} Advanced`, rules: ['R4'] as const, bug: 'BUG_20261105_desktop-advanced-air-value-widths'})),
-  ...(['sealed', 'vented', 'box-passive-radiator', 'bandpass6', 'abc'] as const).map(box => ({screen: `phone ${box} Box`, rules: ['R4'] as const, bug: 'BUG_20261105_phone-box-tab-box-type-width'})),
-  ...ALL_BOXES.map(box => ({screen: `phone ${box} Filters`, rules: ['R2', 'R7'] as const, bug: 'BUG_20261105_phone-filters-strip-scrolls-sideways'})),
   {screen: 'desktop abc ABC', rules: ['R3', 'R4'], bug: 'BUG_20261105_desktop-abc-port-columns-edges-and-widths'},
 ];
 

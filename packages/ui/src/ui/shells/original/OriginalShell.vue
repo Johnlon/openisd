@@ -900,8 +900,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 
 
 /* ---------- Toolbar ---------- */
-.toolbar { display:flex; align-items:center; gap:12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
-.tb-icons { display:flex; align-items:center; gap:6px; flex:none; }
+.toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; background:#eee; border-bottom:1px solid #bbb; padding:4px 12px; }
+.tb-icons { display:flex; flex-wrap:wrap; align-items:center; gap:4px 6px; flex:0 1 auto; min-width:0; }
 .tb-btn { display:flex; align-items:center; justify-content:center; flex:none; width:34px; height:30px; padding:0; font:inherit; color:inherit; background:#f7f7f7; border:1px solid #bbb; border-radius:3px; cursor:pointer; position:relative; }
 .tb-menu { position:relative; flex:none; }
 .tb-btn .caret { position:absolute; bottom:2px; right:2px; }
@@ -1050,7 +1050,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .cloud-modal-close-btn:hover {
   background: #f0f0f0;
 }
-.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:12px; white-space:nowrap; flex:1 0 auto; margin-left:auto; }
+.cursor-readout { line-height:1; color:#222; font-size:14px; cursor:default; display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:4px 12px; white-space:nowrap; flex:1 1 auto; min-width:0; flex-wrap:wrap; margin-left:auto; }
 .cursor-readout .ro-hz, .cursor-readout .ro-val { font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; }
 .ro-hz-input {
   width: 82px;

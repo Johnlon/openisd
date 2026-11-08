@@ -3,6 +3,7 @@ release_note: internal
 repo: openisd
 owner: cover
 status: done
+landed: dc011c23a174a5bf65e37607f1b143e07697f29b
 goal: Bugs found by the AI live review of test vs prod (round 2, 8 Nov): fix them
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
