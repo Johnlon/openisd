@@ -1,0 +1,24 @@
+id: T729
+release_note: internal
+repo: openisd
+owner: cover
+status: done
+goal: Field notes are popups everywhere; a note never changes the grid
+done_test: bash scripts/test.sh packages/ui/test/hooks/fieldNotePlacement.test.ts
+why: |
+  John, 8 Nov 2026: "clicking the dq - must show a popup on the driver editor on desktop";
+  "Use a popup every where instead of this"; "all /!\ to use a popup so that view corruption and
+  mangling (pushing out of way) cannot occur"; of the Vented tab, "make it a popup so this can't happen"
+  (it could not be dismissed). QO462, 8 Nov: "ok providing the boxes dont run off the screen";
+  "I want it to dismiss on loss of focus".
+files:
+  - packages/ui/test/visual/SOURCES.sha256
+  - tasks/T729.yml
+  - bugs/BUG_20261108_driver-editor-warning-note-widens-grid-boxes-off-screen.md
+  - packages/ui/src/ui/components/UIFieldBody.vue
+  - packages/ui/src/style.css
+  - packages/ui/src/ui/joined-fields.css
+  - packages/ui/src/ui/field-catalogue.css
+  - packages/ui/test/ui/field-note-popup.browser.spec.ts
+  - packages/ui/src/hooks/fieldNotePlacement.ts
+  - packages/ui/test/hooks/fieldNotePlacement.test.ts

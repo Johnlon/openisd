@@ -6,15 +6,15 @@
  * - LABEL is the field's registry label; hovering it gives the registry description.
  * - VALUE is a fixed-width box coloured by provenance (entered / calculated / none). A number
  *   writes `cell.set(v, precision)`; an emptied box writes `cell.clear()`, never 0.
- * - DQ is a ⚠ button when the cell carries flags. A tap or click opens the reason under the
- *   field; a `title` alone is never shown on a touch screen.
+ * - DQ is a ⚠ button when the cell carries flags. A tap or click opens the reason as a popup
+ *   under the glyph, out of the grid; a `title` alone is never shown on a touch screen.
  * - UNIT is the field's unit toggle, in a fixed-width slot that is kept even when empty.
  *
  * The root is a 4-track grid. A parent grid can make it `subgrid` so every field in a column
  * shares one label edge, one value edge and one unit edge.
  * bugs/BUG_20261005_no-common-ui-field-component.md
  */
-import {computed, ref, useId} from 'vue';
+import {computed, onBeforeUnmount, ref, useId, watch} from 'vue';
 import {NumberEditor, PhoneRowColumns} from '@openisd/design/fields';
 import NumInput from './NumInput.vue';
 import {selectedOption} from '../../logic/domEvents.js';
@@ -25,6 +25,7 @@ import {useCellScope} from './cellScope.js';
 import type {UIBinding, UIFieldCommon} from './uiFieldBinding.js';
 import {CellClass, cellClassOf} from '../../logic/driverCells.js';
 import {dqOfCell, dqReason} from '../../logic/cellDataQuality.js';
+import {useFieldNotePlacement} from '../../hooks/useFieldNotePlacement.js';
 
 const props = withDefaults(defineProps<UIFieldCommon & {binding: UIBinding}>(), {
   required: false,
@@ -88,12 +89,49 @@ const view = computed(() => {
   }
 });
 
+/** Whether the popup is shown: a click on the glyph toggles it, a new refusal opens it; a click
+ *  outside, Esc and a cleared refusal close it, so it can always be dismissed. */
 const reasonOpen = ref(false);
+const root = ref<HTMLElement | null>(null);
+const noteEl = ref<HTMLElement | null>(null);
+/** Inline offsets that keep the popup inside the window. */
+const noteStyle = useFieldNotePlacement(root, noteEl, reasonOpen);
 /** What is wrong with the text in the box, from the box itself; '' when it may be stored. A
  *  refused entry was never stored, so the cell's own DQ cannot know about it. */
 const refusal = ref('');
 /** The ⚠ sentence: a refused entry first, since it is what the person is looking at. */
 const reason = computed(() => refusal.value !== '' ? refusal.value : view.value.reason);
+
+watch(refusal, text => { reasonOpen.value = text !== ''; });
+
+function closeOnOutsideClick(event: MouseEvent): void {
+  if (event.target instanceof Node && root.value?.contains(event.target) === true) return;
+  reasonOpen.value = false;
+}
+/** Focus leaving the field (box, glyph or popup) closes the popup (John, 8 Nov, QO462). */
+function closeOnFocusLeave(event: FocusEvent): void {
+  if (event.relatedTarget instanceof Node && root.value?.contains(event.relatedTarget) === true) return;
+  reasonOpen.value = false;
+}
+function closeOnEscape(event: KeyboardEvent): void {
+  if (event.key !== 'Escape') return;
+  // Esc dismisses only the popup: the dialog behind it stays open.
+  if (refusal.value === '') event.stopPropagation();
+  reasonOpen.value = false;
+}
+watch(reasonOpen, open => {
+  if (open) {
+    document.addEventListener('click', closeOnOutsideClick, true);
+    document.addEventListener('keydown', closeOnEscape, true);
+  } else {
+    document.removeEventListener('click', closeOnOutsideClick, true);
+    document.removeEventListener('keydown', closeOnEscape, true);
+  }
+});
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeOnOutsideClick, true);
+  document.removeEventListener('keydown', closeOnEscape, true);
+});
 
 function write(v: number | null, precision?: number): void {
   const binding = props.binding;
@@ -115,7 +153,7 @@ function write(v: number | null, precision?: number): void {
 </script>
 
 <template>
-  <div :data-field="field.value" :data-access="readonly ? 'readonly' : 'writable'" :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false, 'ui-field-note-open': (reasonOpen || refusal !== '') && reason}]">
+  <div ref="root" @focusout="closeOnFocusLeave" :data-field="field.value" :data-access="readonly ? 'readonly' : 'writable'" :style="columnVars" :class="['ui-field', {'ui-field-readout': readonly, 'ui-field-defaulted': defaulted === true, 'ui-field-stored': defaulted === false}]">
     <label class="ui-field-label" :for="id" :title="field.description || undefined">{{ label ?? field.label }}</label>
     <span class="ui-field-dq">
       <button v-if="reason" type="button" class="ui-field-dq-btn" :title="reason" :aria-expanded="reasonOpen"
@@ -139,7 +177,7 @@ function write(v: number | null, precision?: number): void {
     <span v-if="deviation" class="ui-field-dev">
       <WinisdDeviationCue :deviation="deviation" />
     </span>
-    <span v-if="(reasonOpen || refusal !== '') && reason" :class="['ui-field-note', {'ui-field-note-warning': noteTone === 'warning'}]" role="note" @click.stop="reasonOpen = false">{{ reason }}</span>
+    <span v-if="reasonOpen && reason" ref="noteEl" :style="noteStyle" :class="['ui-field-note', {'ui-field-note-warning': noteTone === 'warning'}]" role="note">{{ reason }}</span>
   </div>
 </template>
 
@@ -184,10 +222,12 @@ function write(v: number | null, precision?: number): void {
   grid-column: 3; justify-self: start; width: max-content; min-width: 34px; box-sizing: border-box;
   white-space: nowrap; text-align: left;
 }
-/* Under the field's own row, in the layout: it takes its own space and never covers the row below. */
+/* A popup under the glyph's row, out of the grid: it takes no space, so a note can never change a
+   row's height or push a box (John, 8 Nov 2026: "Use a popup every where instead of this"). */
 .ui-field-note {
-  grid-column: 1 / -1; margin-top: 2px;
-  white-space: normal; overflow-wrap: anywhere;
+  position: absolute; top: 100%; left: 0; z-index: 20; margin-top: 2px;
+  width: max-content; max-width: min(320px, 90vw); box-sizing: border-box;
+  white-space: normal; overflow-wrap: anywhere; box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
   padding: 4px 6px; border: 1px solid var(--bad); border-radius: 4px;
   background: var(--panel); color: var(--fg); font-size: 11px; line-height: 1.3;
 }

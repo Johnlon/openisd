@@ -88,18 +88,19 @@ test.describe('MobileBoxTab', () => {
     await expect(page.locator('.ui-field-label', { hasText: 'Vb' }).first()).toBeVisible();
   });
 
-  test('a field DQ explanation expands its row instead of covering the next field', async ({ appPage: page }) => {
+  test('a field DQ explanation is a popup: the row keeps its box and the next field does not move', async ({ appPage: page }) => {
     await page.locator('#mob-box-type').selectOption('box-passive-radiator');
     const qms = mobileFieldRow(page, 'Qms').first();
     const next = qms.locator('xpath=following-sibling::*[contains(concat(" ", normalize-space(@class), " "), " mob-ui-field ")][1]');
+    const boxOf = (row: typeof qms) => row.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, width: r.width, height: r.height}; });
+    const qmsBefore = await boxOf(qms);
+    const nextBefore = await boxOf(next);
     await qms.locator('input').fill('-1');
     await qms.locator('input').blur();
-    const note = qms.locator('.ui-field-note');
-    await expect(note).toBeVisible();
+    await expect(qms.locator('.ui-field-note')).toBeVisible();
 
-    const noteBox = await note.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, height: r.height}; });
-    const nextBox = await next.evaluate(el => { const r = el.getBoundingClientRect(); return {y: r.y, height: r.height}; });
-    expect(noteBox.y + noteBox.height > nextBox.y + 1).toBe(false);
+    expect(await boxOf(qms)).toEqual(qmsBefore);
+    expect(await boxOf(next)).toEqual(nextBefore);
   });
 
   test('editing the volume writes the value through to the field', async ({ appPage: page }) => {
