@@ -83,7 +83,7 @@ test('Tune and What-if each have their own pull-tab, side by side, and no mode t
   await whatIf.click();
   await expect(sheet).toHaveAttribute('aria-label', 'What-if');
   await expect(sheet.getByRole('button', { name: 'Reset' })).toHaveAttribute('title', "Back to the design's values");
-  await expect(sheet.getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close. The design is not changed.');
+  await expect(sheet.getByRole('button', { name: 'Close' })).toHaveAttribute('title', 'Close. Your project will not be updated.');
   await expect(sheet.locator('.ui-field-label', { hasText: /^Fs$/ })).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Open Tune' })).toHaveCount(0);
   await sheet.getByRole('button', { name: 'Close' }).click();

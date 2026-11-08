@@ -3,6 +3,7 @@ release_note: Discontinued drivers and passive radiators, such as the Visaton PR
 repo: openisd
 owner: leader
 status: done
+landed: 6cbe5821c9f716b39d3dee84b494a18f66fc2077
 goal: Discontinued drivers and passive radiators are not in the bundled catalogue (QO450 A)
 done_test: bash scripts/test.sh packages/ui/test/scripts/discontinued-flag.test.ts
 files:

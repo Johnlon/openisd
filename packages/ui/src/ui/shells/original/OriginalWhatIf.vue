@@ -98,11 +98,11 @@ useEscToClose(() => presentationState.editDriver, close);
       <span>What-if</span>
       <div class="what-if-title-actions">
         <button type="button" class="collapse-btn" :aria-expanded="!collapsed" :aria-label="collapsed ? 'Expand What-if panel' : 'Collapse What-if panel to reveal the chart'" :title="collapsed ? 'Expand the What-if controls' : 'Collapse the controls; What-if stays active'" @click="collapsed = !collapsed">{{ collapsed ? 'Expand' : 'Collapse' }}</button>
-        <button type="button" class="close-btn" aria-label="Close What-if" title="Close. The design is not changed." @click="close">✕</button>
+        <button type="button" class="close-btn" aria-label="Close What-if" title="Close. Your project will not be updated." @click="close">✕</button>
       </div>
     </div>
     <div class="what-if-content" v-show="!collapsed">
-      <p class="what-if-hint">Try values and watch the charts. The design is not changed.</p>
+      <p class="what-if-hint">Experiment - Try values &amp; watch the charts. Your project will not be updated.</p>
 
       <div class="what-if-subsect">Driver</div>
       <div class="what-if-grid">
@@ -137,7 +137,7 @@ useEscToClose(() => presentationState.editDriver, close);
 
     <div class="what-if-btns">
       <button title="Back to the design's values" @click="reset">Reset</button>
-      <button class="footer-buttons-pri" title="Close. The design is not changed." @click="close">Close</button>
+      <button class="footer-buttons-pri" title="Close. Your project will not be updated." @click="close">Close</button>
     </div>
       <ProvenanceLegend class="what-if-legend" />
     </div>
@@ -161,24 +161,34 @@ useEscToClose(() => presentationState.editDriver, close);
 .what-if-panel-collapsed { max-height:none; overflow:visible; padding-bottom:8px; }
 .what-if-panel-collapsed .what-if-titlebar { margin-bottom:0; }
 .what-if-legend { margin-top: 10px; border: 1px solid var(--line); border-radius: 4px; }
-.what-if-hint { color: #777; font-style: italic; font-size: 11.5px; margin-bottom: 8px; }
-.what-if-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
-.what-if-box-grid { display:flex; flex-direction:column; gap:6px; }
-.what-if-box-line { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:12px; align-items:start; }
-.what-if-box-line-full { grid-template-columns:minmax(0, 1fr); }
-.what-if-box-placeholder { min-width:0; }
-/* Keep box labels on the app's usual left edge and reserve enough room for "Front port area".
-   The input and its two spinner buttons use 80px + 2×14px, narrowing each control slightly. */
-.what-if-panel { --label-w:128px; --what-if-box-w:124px; }
-.what-if-panel :deep(.ui-field.ui-field[data-field] > .ui-field-label) {
-  grid-column:1; grid-row:1; width:100%; max-width:none; box-sizing:border-box;
-  justify-self:stretch; margin-right:22px; padding:0; white-space:nowrap; overflow-wrap:normal; text-align:left;
-  max-width:calc(100% - 22px);
+/* The content is a grid, where margins add up instead of merging. The hint keeps the spacing it had
+   as a block: 1em above it counting the title bar's 6px, and below it only the next heading's 10px. */
+.what-if-hint { color: #777; font-style: italic; font-size: 11.5px; margin: calc(1em - 6px) 0 0; }
+/* One grid for the whole panel: two columns of fields, each four tracks (label, box, buttons, cue),
+   with a spacer between them. Every section and every field takes these tracks by subgrid, so a
+   column's label track is as wide as the longest label it shows and every box in the column
+   starts at one edge, right after it (John, 8 Nov 2026, QO449.c11: "too much space between labels
+   and cells"). The same structure as the driver editor's fields. */
+.what-if-panel { --what-if-box-w:93px; --what-if-chip-w:29px; --what-if-cue-w:24px; --what-if-spacer-w:12px; }
+.what-if-content {
+  display:grid; column-gap:2px; row-gap:0;
+  grid-template-columns:max-content var(--what-if-box-w) max-content var(--what-if-cue-w) var(--what-if-spacer-w) max-content var(--what-if-box-w) max-content var(--what-if-cue-w);
 }
+.what-if-content > * { grid-column:1 / -1; }
+.what-if-grid, .what-if-box-grid, .what-if-box-line { display:grid; grid-template-columns:subgrid; grid-column:1 / -1; row-gap:6px; align-items:start; }
+.what-if-grid > :nth-child(odd), .what-if-box-line > :nth-child(odd) { grid-column:1 / 5; }
+.what-if-grid > :nth-child(even), .what-if-box-line > :nth-child(even) { grid-column:6 / 10; }
+.what-if-box-placeholder { min-width:0; }
 .what-if-panel :deep(.ui-field.ui-field[data-field]) {
-  --joined-label:var(--label-w) !important;
-  --joined-box:var(--what-if-box-w) !important;
-  --joined-model:24px !important;
+  grid-template-columns:subgrid !important; width:auto !important; max-width:none !important;
+  --joined-chip:var(--what-if-chip-w);
+}
+/* The common field's chip is at least 34px; the What-if's narrower boxes take a narrower chip. */
+.what-if-panel :deep(.ui-field.ui-field[data-field] .ui-field-unit:not(.unit-toggle)) { min-width:var(--what-if-chip-w); }
+/* The label track is the longest label plus the desktop's 22px warning slot after every label (kept
+   so a warning never moves the boxes). */
+.what-if-panel .what-if-content :deep(.ui-field.ui-field[data-field] > .ui-field-label) {
+  grid-column:1; grid-row:1; white-space:nowrap; overflow-wrap:normal; text-align:left; padding-right:0;
 }
 .what-if-subsect { color: #7d9fc9; font-weight: 600; font-size: 12px; margin: 10px 0 2px; }
 .what-if-btns { display: flex; gap: 8px; justify-content: flex-end; padding-top: 8px; border-top: 1px solid #ddd; margin-top: 10px; }
