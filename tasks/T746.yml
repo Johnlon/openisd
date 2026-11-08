@@ -6,6 +6,7 @@ status: open
 goal: Options vented design limits: no inline More info; the (?) help says what the limits are for, on both skins (QO467.c39, c40)
 done_test: bash scripts/quiet-test.sh npm run typecheck
 files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
   - packages/ui/test/visual/SOURCES.sha256
   - tasks/T746.yml
   - BACKLOG.md
