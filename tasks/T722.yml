@@ -12,6 +12,9 @@ plan:
   - Only the final push to main is serialised (a short lock). Green and main unchanged since the candidate: push.
   - Green but main moved meanwhile: rebase onto the new main. No clash (the tasks changed disjoint files and the rebase is clean): push without a new run. Clash (shared files or a rebase conflict): run again on the rebased candidate, then push.
   - Red: refused with its run link, as today.
+  - Fail fast (John, 8 Nov ~02:20, via cover (2)): the task-file checks (done_test kind, allowlist) run before any gate; T720 spent 285 s on gates and was then refused for naming a browser spec in done_test.
+  - Gates in parallel (John, via cover (2)): lint, typecheck, unit, architecture tests and done_test run side by side; the first red kills the rest (about 30 s instead of 90 s).
+  - Find and cut the ~190 s before the first gate (lock, rebase, setup), measured from the land logs.
   - Proven first in a scratch repo with real processes and two concurrent landings, one clashing pair and one disjoint pair (processes.md rule 7), wired in only when no landing or post-land run is active.
 done_test: bash scripts/land/test/land-side-by-side.e2e.test.sh
 files:
