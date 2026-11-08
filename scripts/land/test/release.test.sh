@@ -84,10 +84,43 @@ cat > "$S/bin/curl" <<'CURLSHIM'
 case "${*: -1}" in
   https://test.openisd.app/build-info.json) printf '{"version":"%s"}\n' "${TEST_BUILD_INFO:-}" ;;
   https://openisd.app/build-info.json) printf '{"version":"%s"}\n' "${PROD_BUILD_INFO:-}" ;;
+  https://announce.test/announcements) cat "$GH_STATE/live.json" ;;
   *) echo "curl shim: unsupported URL ${*: -1}" >&2; exit 1 ;;
 esac
 CURLSHIM
 chmod +x "$S/bin/curl"
+
+# Stand-ins for the announcement deploy, new-task.sh and land.sh release.sh calls.
+export RELEASE_ANNOUNCE_URL=https://announce.test/announcements
+cat > "$S/announce-deploy" <<'AD'
+#!/usr/bin/env bash
+# deploy stand-in: logs the folder and commit it deploys from, then publishes that folder's ids as the live list.
+echo "$ANNOUNCE_DIR $(git -C "$ANNOUNCE_DIR" rev-parse HEAD)" >> "$GH_STATE/deploy.log"
+[ -z "${DEPLOY_FAIL:-}" ] || exit 1
+[ -z "${DEPLOY_STALE:-}" ] || exit 0
+sed -n "s/.*id: '\(openisd-[0-9.]*\)'.*/\1/p" "$ANNOUNCE_DIR/cloudflare/announcements/src/index.js" | jq -R . | jq -sc 'map({id: .})' > "$GH_STATE/live.json"
+AD
+export RELEASE_ANNOUNCE_DEPLOY="bash $S/announce-deploy"
+echo '[]' > "$GH_STATE/live.json"
+export LEDGER_STORE="$S/ledger-store"; mkdir -p "$LEDGER_STORE"
+cat > "$S/new-task" <<'NT'
+#!/usr/bin/env bash
+# new-task stand-in: a worktree on a new branch, seeded with the ledger landed so far; prints "T<n> <path>".
+echo "$*" >> "$GH_STATE/newtask.log"
+n=$((900 + $(wc -l < "$GH_STATE/newtask.log"))); d="$LEDGER_STORE/wt-$n"
+git worktree add -q -b "t$n" "$d" HEAD
+[ ! -f "$LEDGER_STORE/RELEASES.md" ] || cp "$LEDGER_STORE/RELEASES.md" "$d/RELEASES.md"
+mkdir -p "$d/tasks"; printf 'id: T%s\nstatus: open\ngoal: x\n' "$n" > "$d/tasks/T$n.yml"
+git -C "$d" add -A; git -C "$d" commit -q -m "(auto) T$n: new"
+echo "T$n $d"
+NT
+cat > "$S/land" <<'LD'
+#!/usr/bin/env bash
+# land stand-in: records where it ran, and takes the worktree's RELEASES.md as landed.
+echo "$(pwd) $* $(git log -1 --format=%s) $(git status --porcelain | wc -l)" >> "$GH_STATE/land.log"
+cp RELEASES.md "$LEDGER_STORE/RELEASES.md"
+LD
+export RELEASE_NEW_TASK="bash $S/new-task" RELEASE_LAND="bash $S/land"
 
 # ---- git: an isolated config and a bare remote ----------------------------------------------------
 printf '[user]\n\tname = Test\n\temail = test@example.test\n[init]\n\tdefaultBranch = main\n' > "$S/gitconfig"
@@ -110,6 +143,10 @@ if (process.env.E2E_FAIL && '$f'.endsWith('offline-catalogue.e2e.mjs')) process.
 STUB
 done
 printf 'id: F1\nstatus: closed\n' > tasks/fixes/F1.yml
+mkdir -p cloudflare/announcements/src
+{ echo 'export const ANNOUNCEMENTS = ['
+  for n in 7.0.950 7.0.951 7.0.952 7.0.1000 7.0.1001 7.0.1100 7.0.1101 7.0.1102 7.0.1103 7.0.2000 7.0.2001 7.0.2002 7.0.2003; do echo "  {id: 'openisd-$n', title: 'x'},"; done
+  echo '];'; } > cloudflare/announcements/src/index.js
 git remote add origin "$GH_REMOTE"
 git add -A; git commit -q -m "first change"; git push -q origin main
 printf 'id: T001\nstatus: done\nrelease_note: "Users can do the second thing."\n' > tasks/T001.yml
@@ -175,6 +212,10 @@ out=$(bash scripts/release.sh --public 7.0.951 20260101T0102Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'F2.yml' <<< "$out" && ok "refuses while an F is open" || fail "open F: $r $out"
 ! remote_has v20260101T0102Z && ok "refusal created no tag" || fail "tag created despite refusal"
 rm tasks/fixes/F2.yml
+out=$(bash scripts/release.sh --public 7.0.9999 20260101T0102Z 2>&1); r=$?
+[ $r = 1 ] && grep -q 'land an announcement for OpenISD 7.0.9999 first' <<< "$out" && ! remote_has v20260101T0102Z && ok "refuses a release with no announcement, before any tag" || fail "no announcement: $r $out"
+out=$(bash scripts/release.sh --prepare --public 7.0.9999 20260101T0102Z 2>&1); r=$?
+[ $r = 1 ] && grep -q 'land an announcement' <<< "$out" && ok "prepare refuses a release with no announcement" || fail "prepare no announcement: $r $out"
 
 # the public number: required, three numbers
 out=$(bash scripts/release.sh 20260101T0102Z 2>&1); r=$?
@@ -193,7 +234,13 @@ rel="$(release_json v20260101T0102Z)"
 [ -z "$(release_json snap-20260101T0102Z)" ] && ok "the snapshot release became the release" || fail "snapshot release remains"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$HEAD_SHA" ] && ok "branch release at the promoted commit" || fail "release branch"
 [ "$(release_json v20260101T0102Z | jq -r .name)" = "OpenISD 7.0.951" ] && ok "the release is titled OpenISD <public number>" || fail "release title: $(release_json v20260101T0102Z)"
-grep -q '^| 7.0.951 | 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://snapshots.openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' RELEASES.md && ok "promotion appends the RELEASES.md row" || fail "RELEASES.md row: $(cat RELEASES.md 2>&1)"
+grep -q '^| 7.0.951 | 20260101T0102Z | 1 Jan 2026, 01:02 | `'"${HEAD_SHA:0:9}"'` | \[v/20260101T0102Z\](https://snapshots.openisd.app/v/20260101T0102Z/) | \[GitHub\](https://github.com/Johnlon/openisd/releases/tag/v20260101T0102Z) | Users can do the second thing. |$' "$LEDGER_STORE/RELEASES.md" && ok "promotion lands the RELEASES.md row" || fail "RELEASES.md row: $(cat "$LEDGER_STORE/RELEASES.md" 2>&1)"
+[ ! -e RELEASES.md ] && ok "the starting folder gets no RELEASES.md" || fail "RELEASES.md written in the starting folder"
+grep -q '^release Record OpenISD 7.0.951 in the release ledger$' "$GH_STATE/newtask.log" && ok "the ledger row has its own task" || fail "new-task call: $(cat "$GH_STATE/newtask.log")"
+grep -q "^$LEDGER_STORE/wt-901 T901 (auto) T901: Record OpenISD 7.0.951 in the release ledger 0\$" "$GH_STATE/land.log" && ok "land.sh runs in the task worktree on a committed row" || fail "land call: $(cat "$GH_STATE/land.log")"
+grep -Fq 'done_test: grep -Fq "| 7.0.951 | 20260101T0102Z |" RELEASES.md' "$LEDGER_STORE/wt-901/tasks/T901.yml" && grep -q '^release_note: internal$' "$LEDGER_STORE/wt-901/tasks/T901.yml" && grep -q '^  - RELEASES.md$' "$LEDGER_STORE/wt-901/tasks/T901.yml" && grep -q '^  - tasks/T901.yml$' "$LEDGER_STORE/wt-901/tasks/T901.yml" && ok "the task file has done_test, release_note and files" || fail "task file: $(cat "$LEDGER_STORE/wt-901/tasks/T901.yml")"
+grep -q " $HEAD_SHA\$" "$GH_STATE/deploy.log" && ok "the announcements Worker is deployed from the snapshot commit" || fail "announce deploy: $(cat "$GH_STATE/deploy.log" 2>&1)"
+grep -q '"id":"openisd-7.0.951"' "$GH_STATE/live.json" && ok "the live announcements list carries the release's id" || fail "live list"
 grep -Fq 'gh workflow run deploy.yml --ref main --field publish_production=true --field expected_build_id=v20260101T0102Z' "$GH_STATE/calls.log" \
   && ok "promotion dispatches production deployment from main" \
   || fail "production deploy dispatch: $(tail -10 "$GH_STATE/calls.log")"
@@ -217,10 +264,10 @@ out=$(bash scripts/release.sh --public 7.0.950 --notes-file "$S/notes.md" 202601
 ! remote_has v20260102T0000Z && ok "refused numbers created no tag" || fail "tag created despite refused number"
 bash scripts/release.sh --public 7.0.1000 --notes-file "$S/notes.md" 20260102T0000Z > /dev/null 2>&1
 [ "$(release_json v20260102T0000Z | jq -r .body)" = "$(cat "$S/notes.md")" ] && ok "--notes-file replaces the notes" || fail "--notes-file body"
-grep -q 'Hand-written note\.' RELEASES.md && ok "RELEASES.md row uses the given notes" || fail "RELEASES.md notes cell"
+grep -q 'Hand-written note\.' "$LEDGER_STORE/RELEASES.md" && ok "RELEASES.md row uses the given notes" || fail "RELEASES.md notes cell"
 grep -q 'capture.mjs --after https://snapshots.openisd.app/snap/20260102T0000Z/ --before https://snapshots.openisd.app/v/20260101T0102Z/$' "$GH_STATE/calls.log" && ok "the gallery's before is the Latest release on snapshots.openisd.app" || fail "gallery before: $(grep capture "$GH_STATE/calls.log")"
 out=$(bash scripts/release.sh --public 7.0.1001 --notes-file "$S/missing.md" 20260101T0310Z 2>&1); [ $? = 1 ] && ok "--notes-file with no such file is refused" || fail "missing notes file"
-[ "$(grep -n '^| 7\.' RELEASES.md | head -1 | grep -c 20260102T0000Z)" = 1 ] && ok "RELEASES.md is newest first" || fail "RELEASES.md order"
+[ "$(grep -n '^| 7\.' "$LEDGER_STORE/RELEASES.md" | head -1 | grep -c 20260102T0000Z)" = 1 ] && ok "RELEASES.md is newest first" || fail "RELEASES.md order"
 [ "$(git ls-remote origin refs/heads/release | cut -f1)" = "$NEW_SHA" ] && ok "branch release fast-forwarded" || fail "release branch not advanced"
 [ "$(release_json v20260102T0000Z | jq -r .latest)" = true ] && [ "$(release_json v20260101T0102Z | jq -r .latest)" = false ] && ok "newest release is Latest" || fail "latest flags"
 bash scripts/release.sh --public 7.0.1001 20260101T0310Z > /dev/null 2>&1
@@ -340,26 +387,36 @@ out=$(bash scripts/release.sh --approve-prepared "$manifest" 2>&1); r=$?
 # HEAD is later than the snapshot (FF_SHA); the checks must run in a temporary worktree at FF_SHA.
 mkdir -p node_modules/pkg; echo fake > node_modules/pkg/index.js
 add_snap 20260107T0000Z "$FF_SHA" 2026-01-07T00:00:00Z
-: > "$GH_STATE/where.log"; wt_before="$(git worktree list | wc -l)"
+: > "$GH_STATE/where.log"; wt_count() { git worktree list | grep -vc "$LEDGER_STORE"; }; wt_before="$(wt_count)"
 out=$(bash scripts/release.sh --public 7.0.2000 20260107T0000Z 2>&1); r=$?
 [ $r = 0 ] && ok "release of an older snapshot exits 0" || fail "older snapshot release: $r $out"
 grep -c 'e2e.mjs' "$GH_STATE/where.log" | grep -qx 2 \
   && awk -v want="$FF_SHA" -v home="$W" '/e2e.mjs/ && ($3 != want || $2 == home) {bad=1} END {exit bad}' "$GH_STATE/where.log" \
   && ok "both e2e checks ran at the snapshot's commit, outside the starting checkout" || fail "checks ran in the wrong place: $(cat "$GH_STATE/where.log") want $FF_SHA not $W"
 ! grep -q 'no-nm' "$GH_STATE/where.log" && ok "the check checkout has node_modules" || fail "no node_modules in the check checkout"
-[ "$(git worktree list | wc -l)" = "$wt_before" ] && ok "the temporary worktree is gone after success" || fail "worktree left: $(git worktree list)"
+[ "$(wt_count)" = "$wt_before" ] && ok "the temporary worktree is gone after success" || fail "worktree left: $(git worktree list)"
 grep -q 'capture.mjs --after https://snapshots.openisd.app/snap/20260107T0000Z/' "$GH_STATE/calls.log" && ok "the gallery still runs from the starting checkout" || fail "gallery call"
-grep -q '^| 7.0.2000 ' RELEASES.md && ok "the RELEASES.md row is written in the starting checkout" || fail "RELEASES.md row"
+grep -q '^| 7.0.2000 ' "$LEDGER_STORE/RELEASES.md" && [ ! -e RELEASES.md ] && ok "the RELEASES.md row lands from a task worktree, not the starting checkout" || fail "RELEASES.md row"
 # a failing check still removes the worktree
 add_snap 20260108T0000Z "$FF_SHA" 2026-01-08T00:00:00Z
 out=$(E2E_FAIL=1 bash scripts/release.sh --public 7.0.2001 20260108T0000Z 2>&1); r=$?
 [ $r = 1 ] && grep -q 'upgrade from the live production worker failed' <<< "$out" && ok "a failing check refuses the release" || fail "failing check: $r $out"
-[ "$(git worktree list | wc -l)" = "$wt_before" ] && ok "the temporary worktree is gone after a failure" || fail "worktree left after failure: $(git worktree list)"
+[ "$(wt_count)" = "$wt_before" ] && ok "the temporary worktree is gone after a failure" || fail "worktree left after failure: $(git worktree list)"
 [ -f node_modules/pkg/index.js ] && ok "cleanup leaves the starting node_modules alone" || fail "node_modules damaged"
 ! remote_has v20260108T0000Z && ok "the failed release published nothing" || fail "tag published despite failure"
 # the failed snapshot is dropped so later sections see only real snapshots
 git push -q origin ":refs/tags/snap-20260108T0000Z"; git tag -d snap-20260108T0000Z > /dev/null
 jq 'map(select(.tag_name != "snap-20260108T0000Z"))' "$GH_STATE/releases.json" > "$GH_STATE/n" && mv "$GH_STATE/n" "$GH_STATE/releases.json"
+
+# the announcements Worker deploy fails, or goes out without the id: the release is out, the exit is non-zero
+add_snap 20260109T0000Z "$FF_SHA" 2026-01-09T00:00:00Z
+out=$(DEPLOY_FAIL=1 bash scripts/release.sh --public 7.0.2002 20260109T0000Z 2>&1); r=$?
+[ $r != 0 ] && remote_has v20260109T0000Z && grep -q 'announcement' <<< "$out" && grep -q 'rerun' <<< "$out" && ok "a failed announcements deploy exits non-zero, says to rerun, release stays out" || fail "deploy fail: $r $out"
+grep -q '^| 7.0.2002 ' "$LEDGER_STORE/RELEASES.md" && ok "the ledger row still lands when the announcements deploy fails" || fail "ledger after deploy fail"
+add_snap 20260110T0000Z "$FF_SHA" 2026-01-10T00:00:00Z
+echo '[]' > "$GH_STATE/live.json"
+out=$(DEPLOY_STALE=1 bash scripts/release.sh --public 7.0.2003 20260110T0000Z 2>&1); r=$?
+[ $r != 0 ] && grep -q 'live announcements list' <<< "$out" && ok "a live list without the id fails the release" || fail "stale live list: $r $out"
 
 # ---- 7. --latest rolls back --------------------------------------------------------------------------
 out=$(bash scripts/release.sh --latest 20260101T0102Z 2>&1); r=$?

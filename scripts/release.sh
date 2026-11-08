@@ -18,6 +18,14 @@
 # are only on `release`). The move is worked out and dry-run checked before anything is published.
 # Editing the release triggers .github/workflows/release.yml (the tag push does not), which
 # redeploys the site.
+# Before any outward step (publish and --prepare, and --approve-prepared again) the snapshot's
+# cloudflare/announcements/src/index.js must carry the announcement id openisd-<n.n.n>; no
+# announcement, no release. After the publish it deploys the production announcements Worker from
+# the snapshot and checks the live list carries that id (RELEASE_ANNOUNCE_DEPLOY and
+# RELEASE_ANNOUNCE_URL override the command and the list URL). A failure there exits non-zero but
+# the release is already out: rerun the command it prints.
+# The RELEASES.md row lands itself: a new task (scripts/new-task.sh, RELEASE_NEW_TASK), the row in
+# that task's worktree, a commit, scripts/land.sh (RELEASE_LAND). The starting folder is never written.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -117,6 +125,9 @@ open_fixes="$(grep -lE '^status:[[:space:]]*open[[:space:]]*$' tasks/fixes/*.yml
 
 git fetch --quiet origin "refs/tags/$SNAP:refs/tags/$SNAP"
 SHA="$(git rev-parse "refs/tags/$SNAP^{commit}")"
+# No announcement, no release (T716): the snapshot itself must carry this release's announcement id.
+git show "$SHA:cloudflare/announcements/src/index.js" 2> /dev/null | grep -Fq "id: 'openisd-$PUBLIC'" \
+  || refuse "$SNAP has no announcement openisd-$PUBLIC; land an announcement for OpenISD $PUBLIC first"
 LATEST_TAG="$(gh release view --json tagName --jq .tagName 2> /dev/null || true)"
 MAIN_SHA="$(git ls-remote origin refs/heads/main | awk '{print $1}')"
 [ -n "$MAIN_SHA" ] || refuse "cannot read origin/main"
@@ -241,14 +252,48 @@ gh release edit "$SNAP" --tag "$REL" --title "OpenISD $PUBLIC" --prerelease=fals
 
 [ -z "$RELEASE_PUSH" ] || git push --quiet origin "$RELEASE_PUSH:refs/heads/release"
 
-# RELEASES.md: one row per release, newest first. Left in the working tree for the caller to commit.
+dispatch_production_deploy "$REL"
+
+# Deploy the production announcements Worker from the snapshot's own file, then check the live list.
+# A failure is remembered, not fatal here: the ledger row below still lands, then the exit is non-zero.
+ANNOUNCE_URL="${RELEASE_ANNOUNCE_URL:-https://openisd-announcements.john-lonergan-0e9.workers.dev/announcements}"
+ANNOUNCE_CMD="${RELEASE_ANNOUNCE_DEPLOY:-bash \"\$START_DIR/../openisd-stats/cf.sh\" deploy --config \"\$ANNOUNCE_DIR/cloudflare/announcements/wrangler.production.toml\"}"
+ANNOUNCE_FAILED=''
+START_DIR="$(pwd)"
+ANNOUNCE_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/release-announce.XXXXXX")"
+export ANNOUNCE_DIR="$ANNOUNCE_ROOT/src" START_DIR
+if git worktree add --quiet --detach "$ANNOUNCE_DIR" "$SHA" && (cd "$ANNOUNCE_DIR" && bash -c "$ANNOUNCE_CMD"); then
+  if curl -fsS "$ANNOUNCE_URL" | grep -Fq "\"id\":\"openisd-$PUBLIC\""; then
+    echo "release: announcement openisd-$PUBLIC is live"
+  else
+    ANNOUNCE_FAILED="the live announcements list at $ANNOUNCE_URL does not carry openisd-$PUBLIC"
+  fi
+else
+  ANNOUNCE_FAILED="the announcements Worker deploy failed"
+fi
+rm -rf "$ANNOUNCE_ROOT"; git worktree prune
+
+# RELEASES.md: one row per release, newest first. Written in its own task worktree and landed with
+# land.sh, never in the folder this script started in (main moves only through land.sh).
 DATE="$(date -u -d "${STAMP:0:8} ${STAMP:9:2}:${STAMP:11:2}" '+%-d %b %Y, %H:%M')"
 if [ -n "$NOTES_FILE" ]; then NOTE_TEXT="$(cat "$NOTES_FILE")"; else NOTE_TEXT="$(gh release view "$REL" --json body --jq .body)"; fi
 SUBJECT="$(printf '%s\n' "$NOTE_TEXT" | node scripts/hosting/releaseNotes.mjs headline | tr '|' '/')"
 ROW="| $PUBLIC | $STAMP | $DATE | \`${SHA:0:9}\` | [v/$STAMP](https://snapshots.openisd.app/v/$STAMP/) | [GitHub](https://github.com/Johnlon/openisd/releases/tag/$REL) | $SUBJECT |"
-if [ ! -f RELEASES.md ]; then
-  printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
-fi
-awk -v row="$ROW" '{print} /^\|---/ && !done {print row; done=1}' RELEASES.md > RELEASES.md.new && mv RELEASES.md.new RELEASES.md
-dispatch_production_deploy "$REL"
-echo "release: $REL is Latest at $SHA; RELEASES.md updated, commit it"
+GOAL="Record OpenISD $PUBLIC in the release ledger"
+NEW_TASK_OUT="$(${RELEASE_NEW_TASK:-bash scripts/new-task.sh} release "$GOAL" | tail -1)"
+TASK_ID="${NEW_TASK_OUT%% *}"; TASK_DIR="${NEW_TASK_OUT#* }"
+[[ "$TASK_ID" =~ ^T[0-9]+$ ]] && [ -d "$TASK_DIR" ] || refuse "new-task gave no task and worktree ('$NEW_TASK_OUT'); the release is out, record $PUBLIC in RELEASES.md by hand"
+(
+  cd "$TASK_DIR"
+  if [ ! -f RELEASES.md ]; then
+    printf '# Releases\n\nNewest first. `scripts/release.sh` adds a row when it promotes a snapshot. Dates are UTC.\n\n| Version | Stamp | Date | Commit | Hosted | GitHub | Notes |\n|---|---|---|---|---|---|---|\n' > RELEASES.md
+  fi
+  awk -v row="$ROW" '{print} /^\|---/ && !done {print row; done=1}' RELEASES.md > RELEASES.md.new && mv RELEASES.md.new RELEASES.md
+  printf 'id: %s\nrelease_note: internal\nrepo: openisd\nowner: release\nstatus: open\ngoal: %s\ndone_test: grep -Fq "| %s | %s |" RELEASES.md\nfiles:\n  - RELEASES.md\n  - tasks/%s.yml\n' \
+    "$TASK_ID" "$GOAL" "$PUBLIC" "$STAMP" "$TASK_ID" > "tasks/$TASK_ID.yml"
+  git add RELEASES.md "tasks/$TASK_ID.yml"
+  git commit --quiet -m "(auto) $TASK_ID: $GOAL"
+  ${RELEASE_LAND:-bash scripts/land.sh} "$TASK_ID"
+) || refuse "landing the ledger row ($TASK_ID in $TASK_DIR) failed; the release is out, finish that landing by hand"
+echo "release: $REL is Latest at $SHA; ledger row landed as $TASK_ID"
+[ -z "$ANNOUNCE_FAILED" ] || { echo "release: $REL is out, but $ANNOUNCE_FAILED; rerun: $ANNOUNCE_CMD (from a checkout of $SHA, ANNOUNCE_DIR set to it)" >&2; exit 1; }
