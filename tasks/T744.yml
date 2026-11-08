@@ -75,5 +75,7 @@ files:
   - packages/design/domain/openisdSchema.ts
   - packages/design/domain/openisdTransforms.ts
   - packages/design/domain/project/compatSwitch.ts
+  - packages/design/domain/project/cmsSource.ts
+  - packages/design/test/domain/cms-source.test.ts
   - packages/design/domain/project/projectAdvanced.ts
   - packages/design/domain/project/openISDProject.ts
