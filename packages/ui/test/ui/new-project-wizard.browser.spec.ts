@@ -86,6 +86,10 @@ const GREEN_FILL = /^rgb\(\d+, (1[0-9]{2}|[2-9][0-9]), \d+\)$/;
 async function openWizard(page: Page): Promise<void> {
   await page.locator('.tb-btn[title*="New project"]').click();
   await expect(page.locator('.overlay.open')).toContainText('Select driver for project');
+  // The wizard's driver filters outlast the dialog (the library remembers them); a filter an earlier spec
+  // on this shared page left on hides the specs' drivers, so clear them the way a user does.
+  const clear = page.locator('.overlay.open').getByRole('button', {name: 'Clear filters'});
+  if (await clear.count() > 0) await clear.click();
 }
 
 /** Walk the open wizard: driver → num/placement → box type → (alignment or radiator) → name. */

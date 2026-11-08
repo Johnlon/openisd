@@ -5,8 +5,7 @@ import {clearWithKeyboard} from '../fixtures/numField.js';
 /**
  * Ctrl-Z in a number box is the box's own one-step undo (John, 8 Nov 2026: "CTRL-Z doesn't work at
  * all now"): it puts back, and commits, the value from before the last edit.
- * Edit Driver, Parameters: a refused entry's red message sits inside its own field's row and
- * covers nothing (John, 8 Nov 2026, "serious ui bug ... its the error boxes"); and a typed value
+ * Edit Driver, Parameters: a refused entry's red message is a popup that moves no row (John, 8 Nov 2026, "serious ui bug ... its the error boxes"); and a typed value
  * replaces the old one, also after Ctrl-Z (BUG_20261108_edit-driver-typed-digits-append-to-old-value).
  */
 
@@ -30,37 +29,53 @@ async function box(l: Locator) {
   return b;
 }
 
-test('two refused boxes at once (Qes and Vas) each keep their message in their own row at 2200 px', async ({page}) => {
+const BOXES = [{key: 'Qes', name: 'Qes'}, {key: 'Vas_m3', name: 'Vas'}, {key: 'Mms_kg', name: 'Mms'}] as const;
+
+/** The row's size and the distance to a neighbouring row: scrolling the dialog changes neither, a pushed row changes the second. */
+async function shape(l: Locator) {
+  const b = await box(l);
+  const next = await box(l.locator('xpath=(preceding-sibling::*[not(self::style)]|following-sibling::*[not(self::style)])[1]'));
+  return {width: b.width, height: b.height, toNext: Math.abs(next.y - b.y)};
+}
+
+/** The window's size, read from the page. */
+const windowSize = (page: Page) => page.evaluate(() => ({width: innerWidth, height: innerHeight}));
+
+test('two refused boxes at once (Qes and Vas) each show a popup inside the window and move no row at 2200 px', async ({page}) => {
   await openParameters(page);
   await page.setViewportSize({width: 2200, height: 900});
   const rows = [rowFor(page, 'Qes'), rowFor(page, 'Vas_m3')];
+  const before = await Promise.all(rows.map(r => shape(r)));
   for (const row of rows) {
     const input = row.locator('input').first();
     await clearWithKeyboard(input);
     await input.pressSequentially('.');
     await input.press('Tab');
     await expect(row.locator('.ui-field-note')).toBeVisible();
+    await row.locator('.ui-field-dq-btn').click();
   }
-  await page.screenshot({path: process.env.T727_SHOT_TWO ?? 'build/t727/two-refused.png'});
-  const notes = await Promise.all(rows.map(r => box(r.locator('.ui-field-note'))));
-  const rects = await Promise.all(rows.map(r => box(r)));
-  notes.forEach((n, i) => {
-    expect(n.y).toBeGreaterThanOrEqual(rects[i].y);
-    expect(n.y + n.height).toBeLessThanOrEqual(rects[i].y + rects[i].height + 0.5);
-  });
-  expect(notes[0].y + notes[0].height, 'Qes message ends above Vas row').toBeLessThanOrEqual(rects[1].y + 0.5);
-  const others = page.locator('.de-body .de-fld:visible:not([data-field-key="Qes"]):not([data-field-key="Vas_m3"])');
-  const otherRects = await Promise.all((await others.all()).map(r => box(r)));
-  const overlapping = otherRects.filter(b => notes.some(n => n.x < b.x + b.width && b.x < n.x + n.width && n.y < b.y + b.height && b.y < n.y + n.height));
-  expect(overlapping, 'no message covers another row').toEqual([]);
+  const size = await windowSize(page);
+  for (const row of rows) {
+    await row.locator('.ui-field-dq-btn').click();
+    const note = row.locator('.ui-field-note');
+    await expect(note).toBeVisible();
+    const n = await box(note);
+    expect(n.x).toBeGreaterThanOrEqual(0);
+    expect(n.y).toBeGreaterThanOrEqual(0);
+    expect(n.x + n.width).toBeLessThanOrEqual(size.width);
+    expect(n.y + n.height).toBeLessThanOrEqual(size.height);
+    await row.locator('.ui-field-dq-btn').click();
+    await expect(note).toBeHidden();
+  }
+  const after = await Promise.all(rows.map(r => shape(r)));
+  expect(after).toEqual(before);
 });
 
-const BOXES = [{key: 'Qes', name: 'Qes'}, {key: 'Vas_m3', name: 'Vas'}, {key: 'Mms_kg', name: 'Mms'}] as const;
-
 for (const {key, name} of BOXES) {
-  test(`a refused ${name} entry shows its message inside its own row and covers nothing`, async ({page}) => {
+  test(`a refused ${name} entry shows its message in a popup inside the window and moves no row`, async ({page}) => {
     await openParameters(page);
     const row = rowFor(page, key);
+    const before = await shape(row);
     const input = row.locator('input').first();
     await clearWithKeyboard(input);
     await input.pressSequentially('.');
@@ -69,24 +84,18 @@ for (const {key, name} of BOXES) {
     await expect(note).toBeVisible();
     await page.screenshot({path: process.env[`T727_SHOT_${name}`] ?? `build/t727/run-${name}.png`});
     const n = await box(note);
-    const r = await box(row);
-    expect(n.y).toBeGreaterThanOrEqual(r.y);
-    expect(n.y + n.height).toBeLessThanOrEqual(r.y + r.height + 0.5);
-    expect(n.x).toBeGreaterThanOrEqual(r.x);
-    expect(n.x + n.width).toBeLessThanOrEqual(r.x + r.width + 0.5);
-    // Nothing else (any label, box, unit, other row) is drawn inside the note's rectangle.
-    const covered = await page.evaluate(({x, y, w, h}) => {
-      const hits = new Set<string>();
-      for (const el of document.querySelectorAll('.de-body label, .de-body input, .de-body select, .de-body button, .de-body .ui-field-unit')) {
-        const b = el.getBoundingClientRect();
-        if (b.width === 0 || b.height === 0) continue;
-        if (x < b.right && b.left < x + w && y < b.bottom && b.top < y + h) hits.add(`${el.tagName} ${(el.textContent ?? '').trim().slice(0, 12)}`);
-      }
-      return [...hits];
-    }, {x: n.x, y: n.y, w: n.width, h: n.height});
-    expect(covered, 'controls under the note').toEqual([]);
+    const size = await windowSize(page);
+    expect(n.x).toBeGreaterThanOrEqual(0);
+    expect(n.y).toBeGreaterThanOrEqual(0);
+    expect(n.x + n.width).toBeLessThanOrEqual(size.width);
+    expect(n.y + n.height).toBeLessThanOrEqual(size.height);
+    expect(await shape(row)).toEqual(before);
+    // The popup is drawn on top: the element under its centre is the note itself.
     const top = await page.evaluate(({x, y}) => document.elementFromPoint(x, y)?.className ?? '', {x: n.x + n.width / 2, y: n.y + n.height / 2});
     expect(String(top)).toContain('ui-field-note');
+    // A second click on the glyph closes it.
+    await row.locator('.ui-field-dq-btn').click();
+    await expect(note).toBeHidden();
   });
 }
 
