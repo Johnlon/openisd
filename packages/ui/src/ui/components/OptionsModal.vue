@@ -311,7 +311,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
       <button type="button" class="mob-dlg-btn" @click="close">Cancel</button>
     </template>
   </MobilePaneDialog>
-  <div v-else class="opt-overlay" @click="onBackdrop">
+  <div v-else class="opt-overlay" :class="{ 'opt-with-help': limitsHelpOpen }" @click="onBackdrop">
     <div class="opt-modal">
       <h2 class="opt-h2">Options<button class="opt-x" @click="close" title="Close">✕</button></h2>
 
@@ -442,7 +442,7 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
         <button @click="close">Cancel</button>
       </div>
     </div>
-    <!-- The desktop help, as every desktop ? opens it: down the right of the window, on top of this dialog. -->
+    <!-- The desktop help, as every desktop ? opens it: down the right of the window; the dialog moves left beside it. -->
     <DesktopHelpPanel v-if="limitsHelpOpen" :title="PhoneDialogHelp.OPTIONS_VENTED_LIMITS.title" :sections="[PhoneDialogHelp.OPTIONS_VENTED_LIMITS]" @close="limitsHelpOpen = false" />
   </div>
 </template>
@@ -498,6 +498,13 @@ function limitShown(row: LimitRow, key: 'min' | 'max'): number {
   .opt-modal { width: min(1080px, 92vw); }
   .opt-body { display: block; columns: 2; column-gap: 14px; }
   .opt-body > * { break-inside: avoid; margin-bottom: 10px; }
+}
+/* With the desktop help open (380 px down the right of the window), the dialog moves left and sits beside
+   it, whole: the help never covers OK, Cancel or a box (T746 vision check, 1366x768 and 1440x900). A window
+   too narrow for both side by side keeps the help on top. */
+@media (min-width: 760px) {
+  .opt-overlay.opt-with-help { padding-right: 380px; box-sizing: border-box; }
+  .opt-overlay.opt-with-help .opt-modal { max-width: calc(100% - 24px); }
 }
 .opt-group-actions { display: flex; justify-content: flex-end; margin-top: 8px; }
 .opt-reset-btn { width: max-content; padding: 4px 12px; cursor: pointer; }
