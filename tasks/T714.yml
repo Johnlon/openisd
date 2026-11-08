@@ -1,0 +1,10 @@
+id: T714
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+goal: Record OpenISD 7.0.959 in the release ledger
+done_test: grep -Fq "| 7.0.959 | 20261108T0032Z |" RELEASES.md
+files:
+  - RELEASES.md
+  - tasks/T714.yml
