@@ -1,0 +1,13 @@
+id: T716
+release_note: internal
+repo: openisd
+owner: leader
+status: done
+goal: release.sh refuses a release with no announcement and lands its own RELEASES.md row
+done_test: bash scripts/land/test/release.test.sh
+files:
+  - packages/ui/test/fixtures/mobileSurfaceSourceIndex.json
+  - tasks/T716.yml
+  - scripts/release.sh
+  - scripts/land/test/release.test.sh
+  - bugs/BUG_20261108_release-script-skips-announcement-and-ledger.md

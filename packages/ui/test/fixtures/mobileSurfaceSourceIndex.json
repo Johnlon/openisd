@@ -659,6 +659,7 @@
     "bugs/BUG_20261107_new-project-wizard-radiator-pane-shows-no-calculated-values.md",
     "bugs/BUG_20261107_offline-release-test-stops-at-the-radiator-jump.md",
     "bugs/BUG_20261107_radiator-pages-miss-figures-the-datasheet-gives.md",
+    "bugs/BUG_20261108_release-script-skips-announcement-and-ledger.md",
     "bugs/_archive/BUG_20261029_coax_tweeter_voice_coil_tuple_rejected.md",
     "bugs/_archive/BUG_20261030_converter_flags_multiple_values_as_unknown.md",
     "cloudflare/announcements/README.md",
