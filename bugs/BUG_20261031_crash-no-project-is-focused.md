@@ -1,6 +1,6 @@
 # BUG_20261031_crash-no-project-is-focused
 
-**Status:** OPEN, not reproduced. The reader that throws is unknown. Not fixed by any commit after 3fa2b17dc.
+**Status:** CLOSED, cannot be reproduced on main 8 Nov 2026; cause never found. Closed by John on QO456, 8 Nov 2026.
 
 ## Symptom
 Telemetry: `no project is focused` on v20261015T1542Z (16 Oct, 7 hits, one with a user report) and v20261025T2233Z (28 and 29 Oct, 1 each). Stack: `j` <- `nn.fn` (a computed) <- `Ve` (effect runner).

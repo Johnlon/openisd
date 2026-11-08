@@ -5,6 +5,17 @@ owner: cover
 status: claimed
 done_test: test -z "$(ls bugs | grep -i winisd)"
 files:
+  - bugs/BUG_20261026_catalogue-and-compact-field-review.md
+  - bugs/BUG_20261027_rendition-branch-calculated-values-shown-entered.md
+  - bugs/BUG_20261105_desktop-driver-tab-count-and-connection-widths.md
+  - bugs/BUG_20261105_desktop-wizard-info-glyph-off-centre.md
+  - bugs/BUG_20261105_phone-sideways-gets-desktop-layout.md
+  - bugs/BUG_20261026_ui-contract-coverage-gaps.md
+  - bugs/BUG_20261031_crash-no-project-is-focused.md
+  - bugs/BUG_20261101_ios-script-error-passive-radiator-box-tab.md
+  - bugs/BUG_20261026_phone-warning-difference-cue-placement.md
+  - bugs/BUG_20261026_visual-review-exposes-unit-and-control-regressions.md
+  - bugs/BUG_20261105_desktop-whatif-panel-scrolls-and-wizard-count-width.md
   - tasks/T719.yml
   - CLAUDE.md
   - docs/research/ACCURACY_IMPROVEMENTS.md
