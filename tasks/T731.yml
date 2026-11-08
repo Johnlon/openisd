@@ -1,0 +1,10 @@
+id: T731
+release_note: internal
+repo: openisd
+owner: backlog
+status: done
+goal: BACKLOG: agent ideas - phone chat AI drives OpenISD; in-app agent on a server using John's AI keys, edits the project by tool call
+done_test: grep -Fq "An AI agent inside OpenISD (John, 8 Nov 2026)" BACKLOG.md
+files:
+  - tasks/T731.yml
+  - BACKLOG.md

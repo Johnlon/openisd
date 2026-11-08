@@ -3,6 +3,7 @@ release_note: The desktop What-if panel puts each box next to its label, with no
 repo: openisd
 owner: maryu
 status: done
+landed: 32a17101a90294a95a0bc1823b2ecb59ea8e1953
 goal: Desktop What-if: labels sit next to their boxes, no wide gap
 done_test: bash scripts/test.sh packages/ui/test/hooks/OriginalWhatIf-hooks.test.ts
 files:
