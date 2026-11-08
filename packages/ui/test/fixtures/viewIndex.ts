@@ -57,6 +57,10 @@ const SHELL='packages/ui/src/ui/shells/original/OriginalShell.vue',WIZARD='packa
 function ruled(id:string,kind:ViewKind,owner:string,reach:string):ViewEntry {
   return {id,skin:ViewSkin.Desktop,kind,owner,reach,decision:JOHN_RULING};
 }
+const PH='packages/ui/src/ui/shells/mobile/';
+function phoneRuled(id:string,kind:ViewKind,owner:string,reach:string):ViewEntry {
+  return {id,skin:ViewSkin.Phone,kind,owner:PH+owner,reach,decision:JOHN_RULING};
+}
 /** John, 8 Nov 2026 (T739): warning and error popups, field notes and inline sections are views. Found by the source scan, absent from the older manifests. */
 const RULED_VIEWS:readonly ViewEntry[]=[
   ruled('desktop/difference-cue',ViewKind.FieldNote,SHELL,'Click the ≠W Difference cue by a control, chart or filter editor: a popup says what WinISD does instead.'),
@@ -76,5 +80,19 @@ const RULED_VIEWS:readonly ViewEntry[]=[
   ruled('desktop/projects/new/vented-tuning-warning',ViewKind.WarningPopup,WIZARD,'New project, vented box, details step: enter a tuning the box cannot reach.'),
   ruled('desktop/projects/new/passive-radiator-pick-error',ViewKind.ErrorPopup,WIZARD,'New project, passive radiator, details step: pick a radiator that cannot be used.'),
   ruled('desktop/projects/trace-colour-picker',ViewKind.System,LIST,'Click a project colour swatch: the browser colour picker opens.'),
+  phoneRuled('phone/difference-cue',ViewKind.FieldNote,'filters/PassFields.vue','Tap the ≠W Difference cue by a control or filter field: a popup says what WinISD does instead.'),
+  phoneRuled('phone/response-model-pending-notice',ViewKind.WarningPopup,'MobileBoxTab.vue','Box page, pick a box type the engine does not model yet: a Response model pending notice appears.'),
+  phoneRuled('phone/tuning-unreachable-warning',ViewKind.WarningPopup,'MobileEnclosureTab.vue','Box page, vented box whose target tuning cannot be reached: a red message appears under the field.'),
+  phoneRuled('phone/filter-card-body',ViewKind.InlineExpansion,'MobileFilterCard.vue','Filters page: tap a filter card to open its fields inline.'),
+  phoneRuled('phone/wizard-isobarik-note',ViewKind.FieldNote,'MobileNewProject.vue','New project, driver count step: choose isobarik placement and a caption says it is not modelled.'),
+  phoneRuled('phone/wizard-vented-volume-warning',ViewKind.WarningPopup,'MobileNewProject.vue','New project, vented box, details step: enter a volume the alignment rejects.'),
+  phoneRuled('phone/wizard-vented-tuning-warning',ViewKind.WarningPopup,'MobileNewProject.vue','New project, vented box, details step: enter a tuning the box cannot reach.'),
+  phoneRuled('phone/wizard-passive-radiator-pick-error',ViewKind.ErrorPopup,'MobileNewProject.vue','New project, passive radiator, details step: pick a radiator that cannot be used.'),
+  phoneRuled('phone/save-note',ViewKind.FieldNote,'MobileSaveButton.vue','Tap the Save button: a note hangs under it.'),
+  phoneRuled('phone/flash-strip',ViewKind.FieldNote,'MobileShell.vue','The app has a short message to show: a strip appears above the tab bar.'),
+  phoneRuled('phone/update-strip',ViewKind.WarningPopup,'MobileShell.vue','A newer app version is available: a strip with Reload and Later appears above the tab bar.'),
+  phoneRuled('phone/cloud-reconnect-strip',ViewKind.WarningPopup,'MobileShell.vue','Cloud sync needs the user to reconnect: a strip appears above the tab bar.'),
+  phoneRuled('phone/cloud-conflict-notice',ViewKind.WarningPopup,'MobileShell.vue','Cloud sync finds a conflicting project: a notice appears above the tab bar.'),
+  phoneRuled('phone/cloud-hint',ViewKind.FieldNote,'MobileShell.vue','Cloud sync has a hint to show: a strip with a Yes button appears above the tab bar.'),
 ];
 export const VIEW_INDEX:readonly ViewEntry[]=Object.freeze([...MOBILE_SURFACES.map(fromMobile),...DESKTOP_SURFACES.map(fromDesktop),...RULED_VIEWS]);
