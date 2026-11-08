@@ -669,6 +669,7 @@
     "bugs/BUG_20261108_phone-driver-name-button-overflows.md",
     "bugs/BUG_20261108_phone-field-labels-wrap.md",
     "bugs/BUG_20261108_phone-project-name-cut-in-list.md",
+    "bugs/BUG_20261108_pr-pick-replaces-stated-cms-mms.md",
     "bugs/BUG_20261108_project-list-names-cut-with-ellipsis.md",
     "bugs/BUG_20261108_release-script-skips-announcement-and-ledger.md",
     "bugs/BUG_20261108_signal-angle-distance-padded-zeros.md",

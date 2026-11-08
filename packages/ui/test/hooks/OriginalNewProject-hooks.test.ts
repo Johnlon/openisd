@@ -905,7 +905,7 @@ describe('useOgNewProject — passive-radiator step', () => {
     await wizard.loadBundledPassiveRadiator('e150he-pr');
     const full = { ...wizard.passiveRadiatorView.value };
     wizard.passiveRadiatorCells.Vas_m3.clear();
-    expect(wizard.passiveRadiatorView.value?.Vas_m3).toBeNull();
+    expect(wizard.passiveRadiatorCells.Vas_m3.provenance).toBe('C'); // the record's stated Mms and Cms give it (QO451)
 
     await wizard.loadBundledPassiveRadiator('e150he-pr');
 
@@ -1013,8 +1013,8 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
 
   it('SP22R, which states no Qms and no Fs: both are calculated', async () => {
     const {passiveRadiatorCells: cells} = await pickedThenBack('seas/sp22r');
-    expect(cells.Qms.value).toBeCloseTo(4.813, 2);
-    expect(cells.Fs_hz.value).toBeCloseTo(23.22, 1);
+    expect(cells.Qms.value).toBeCloseTo(4.836, 2); // √(Mms/Cms)/Rms from the stated 28.9 g, 1.61 mm/N, 0.876 kg/s
+    expect(cells.Fs_hz.value).toBeCloseTo(23.33, 1); // from the stated Mms and Cms, kept as stated (QO451)
     expect(cells.Qms.provenance).toBe('C');
     expect(cells.Fs_hz.provenance).toBe('C');
     expect(cells.Vas_m3.provenance).toBe('E');
@@ -1042,19 +1042,21 @@ describe('the radiator step holds all eight figures, stated or calculated (T703)
     expect(cells.Qms.value).toBeNull();
   });
 
-  it('a Cms typed over a record stating Vas reaches the project, with Vas, and both carry the conflict mark', async () => {
+  // QO463 (John, 8 Nov 2026): the figure typed last wins; a typed Cms works Vas out again.
+  it('a Cms typed over a record stating Vas reaches the project, with Vas worked out from it', async () => {
     const wizard = await pickedThenBack('accuton/asp190');
     wizard.passiveRadiatorCells.Cms_m_per_N.set(0.001);
     expect(wizard.passiveRadiatorCells.Cms_m_per_N.entered).toBe(true);
-    expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.length).toBeGreaterThan(0);
-    expect(wizard.passiveRadiatorCells.Vas_m3.dq.length).toBeGreaterThan(0);
+    expect(wizard.passiveRadiatorCells.Vas_m3.provenance).toBe('C');
+    expect(wizard.passiveRadiatorCells.Cms_m_per_N.dq.filter(i => i.kind === 'inconsistent-inputs')).toEqual([]);
     wizard.next();
     wizard.projName.value = 'Typed Cms';
 
     const spec = wizard.createProject()?.box.passiveRadiator.radiator.spec;
     expect(spec?.Cms_m_per_N.entered).toBe(true);
     expect(spec?.Cms_m_per_N.value).toBe(0.001);
-    expect(spec?.Vas_m3.value).toBe(0.027);
+    expect(spec?.Vas_m3.calculated).toBe(true);
+    expect(spec?.Vas_m3.value).not.toBe(0.027);
   });
 
   it('clearing Vas with a typed Cms calculates Vas from Cms and Sd; clearing a figure nothing gives leaves it empty', async () => {

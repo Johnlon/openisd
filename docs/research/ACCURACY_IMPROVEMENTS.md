@@ -87,6 +87,8 @@ Not WinISD differences: nothing WinISD does is replaced.
 | Box leak/absorption/port loss as fixed resistances at the tuning (vented, PR) or ωsc (sealed) | This is Small's convention (Q_L defined at Fb), and OpenISD uses it as WinISD does: there is no other loss model, and Ql and Qa control the losses. |
 | Vented port mass from Fb, vent length ignored                       | Same physics when length and Fb are consistent; OpenISD derives one from the other. |
 | Radiated output = cone − leak − port/radiator                       | Correct; OpenISD's old vented/PR output (cone − port) was the error. |
+| Cms worked out from Vas, Mms from Fs, always | A stated Cms or Mms is kept as stated at the radiator pick (QO451, John 8 Nov 2026); P173 shows Cms 1.01 and Mms 15 g, not 1.0011 and 15.05. A stated pair that disagrees keeps both, each marked. ≠W. |
+| A radiator has only Fs, Qms, Vas, Sd; an edit drives the rest | A typed radiator figure works out again the stated figures it moves (Vas → Cms, Fs → Mms, Qms → Rms, and back), so a typed value always moves the charts (QO463, John 8 Nov 2026). ≠W. |
 | Maximum SPL and Maximum power leave the EQ/filter chain out (row 3) | A filter before the driver scales the SPL by \|Hf\| and the voltage the driver limit allows by 1/\|Hf\|: the limit curves are identical with or without the chain (John, 2026-10-04: no change). [bug](../../bugs/archive/BUG_20260927_max-spl-and-max-power-include-the-filter-chain.md) |
 
 ## Not observable — not planned

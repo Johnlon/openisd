@@ -27,13 +27,12 @@ const p173 = {Fs_hz: 41, Vas_m3: 0.024, Sd_m2: 0.013, Mms_kg: 0.015, Cms_m_per_N
 const missing = (f: {dq: readonly {kind: string}[]}) => f.dq.some(i => i.kind === 'missing-dependencies');
 
 describe('picking a radiator: datasheet Mms, Cms, Rms are copied or left out, never flipped', () => {
-  it('P173: Mms and Cms are left out (Fs and Vas give them) and read calculated; Rms is unknown', () => {
+  it('P173: stated Mms 15 g and Cms 1.01 are kept entered as stated (QO451); Rms is unknown', () => {
     const spec = pick(createEngine(), p173);
-    expect(spec.Mms_kg.entered).toBe(false);
-    expect(spec.Mms_kg.calculated).toBe(true);
-    expect(spec.Cms_m_per_N.entered).toBe(false);
-    expect(spec.Cms_m_per_N.calculated).toBe(true);
-    expect(spec.Cms_m_per_N.value).toBeCloseTo(0.00101, 4);
+    expect(spec.Mms_kg.entered).toBe(true);
+    expect(spec.Mms_kg.value).toBe(0.015);
+    expect(spec.Cms_m_per_N.entered).toBe(true);
+    expect(spec.Cms_m_per_N.value).toBe(0.00101);
     expect(spec.Rms_kg_per_s.value).toBeNull();
   });
 
@@ -65,7 +64,7 @@ describe('picking a radiator: datasheet Mms, Cms, Rms are copied or left out, ne
 });
 
 describe('the "can\'t calculate" warning marks only the empty box', () => {
-  it('P173: Qms is marked; Mms and Cms, which have values, are not', () => {
+  it('P173: Qms is marked; Mms and Cms, which are stated, are not', () => {
     const spec = pick(createEngine(), p173);
     expect(missing(spec.Qms)).toBe(true);
     expect(missing(spec.Mms_kg)).toBe(false);
@@ -88,16 +87,17 @@ describe('a radiator edited before the project exists (the New Project wizard)',
     return radiator;
   };
 
-  it('resolving it alone calculates and marks the figures that contradict each other', () => {
+  it('resolving it alone works out the figures the typed Cms moves (QO463)', () => {
     const engine = createEngine();
     const radiator = edited(engine);
     radiator.resolve(engine.pr, new FixedAir({c: 343, rho: 1.2}));
     expect(radiator.spec.Rms_kg_per_s.calculated).toBe(true);
-    expect(radiator.spec.Cms_m_per_N.dq.length).toBeGreaterThan(0);
-    expect(radiator.spec.Vas_m3.dq.length).toBeGreaterThan(0);
+    expect(radiator.spec.Vas_m3.calculated).toBe(true);
+    expect(radiator.spec.Fs_hz.calculated).toBe(true);
+    expect(radiator.spec.Cms_m_per_N.dq.filter(i => i.kind === 'inconsistent-inputs')).toEqual([]);
   });
 
-  it('the builder takes it as it stands: a typed Cms stays beside a stated Vas', () => {
+  it('the builder takes it as it stands: the typed Cms, with Vas worked out from it', () => {
     const engine = createEngine();
     const driver = driverFromSpec(engine, {
       Fs_hz: 30, Qes: 0.4, Qms: 4, Qts: 1 / (1 / 4 + 1 / 0.4), Re_ohm: 6.4,
@@ -106,6 +106,6 @@ describe('a radiator edited before the project exists (the New Project wizard)',
     const spec = new ProjectBuilder(driver, engine).passiveRadiator().volume_m3(0.03).editedRadiator(edited(engine)).build().box.passiveRadiator.radiator.spec;
     expect(spec.Cms_m_per_N.entered).toBe(true);
     expect(spec.Cms_m_per_N.value).toBe(0.01);
-    expect(spec.Vas_m3.entered).toBe(true);
+    expect(spec.Vas_m3.calculated).toBe(true);
   });
 });

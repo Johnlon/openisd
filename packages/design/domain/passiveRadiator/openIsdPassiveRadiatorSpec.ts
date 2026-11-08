@@ -1,7 +1,7 @@
 import type { Calculatable, Calculated, Clearable, Entered, Precise, Readable, SimpleField, Unsolvable, Writable } from '../cell.js';
 import type { Air, PrEngine, PrSpecIssue, PrSpecPrecision, PrSpecValues } from '../../engine/index.js';
 import type { RadiatorDeviceJson } from '../openisdSchema.js';
-import { prSpec } from '../box/prSpec.js';
+import { prSpec, type PassiveRadiatorFieldName } from '../box/prSpec.js';
 import { radiatorSection } from '../box/radiatorSection.js';
 
 /**
@@ -37,13 +37,13 @@ export class OpenIsdPassiveRadiatorSpec {
         const section = radiatorSection(slot);
         const marks = (name: keyof PrSpecValues) => (): readonly PrSpecIssue[] =>
             conflicts().filter(issue => issue.fields.some(field => field === name));
-        this.Fs_hz = prSpec(section, 'Fs_hz', marks('Fs_hz'));
-        this.Qms = prSpec(section, 'Qms', marks('Qms'));
-        this.Cms_m_per_N = prSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'));
-        this.Mms_kg = prSpec(section, 'Mms_kg', marks('Mms_kg'));
-        this.Rms_kg_per_s = prSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'));
-        this.Sd_m2 = prSpec(section, 'Sd_m2', marks('Sd_m2'));
-        this.Vas_m3 = prSpec(section, 'Vas_m3', marks('Vas_m3'));
+        this.Fs_hz = prSpec(section, 'Fs_hz', marks('Fs_hz'), () => this.#fsMoves());
+        this.Qms = prSpec(section, 'Qms', marks('Qms'), () => this.#qmsMoves());
+        this.Cms_m_per_N = prSpec(section, 'Cms_m_per_N', marks('Cms_m_per_N'), () => this.#cmsMoves());
+        this.Mms_kg = prSpec(section, 'Mms_kg', marks('Mms_kg'), () => this.#mmsMoves());
+        this.Rms_kg_per_s = prSpec(section, 'Rms_kg_per_s', marks('Rms_kg_per_s'), () => this.#rmsMoves());
+        this.Sd_m2 = prSpec(section, 'Sd_m2', marks('Sd_m2'), () => this.#sdMoves());
+        this.Vas_m3 = prSpec(section, 'Vas_m3', marks('Vas_m3'), () => this.#vasMoves());
         this.Vd_m3 = prSpec(section, 'Vd_m3');
         this.Xmax_m = prSpec(section, 'Xmax_m');
         this.Xlim_m = prSpec(section, 'Xlim_m');
@@ -56,6 +56,57 @@ export class OpenIsdPassiveRadiatorSpec {
         this.OuterX_m = prSpec(section, 'OuterX_m');
         this.OuterY_m = prSpec(section, 'OuterY_m');
         this.weight_kg = prSpec(section, 'weight_kg');
+    }
+
+    // The figure typed last wins (QO463, John 8 Nov 2026; docs/design/FIELD_CLEAR_RULE.md
+    // "Passive radiator pairs"). The charts read Cms, Mms and Rms; Vas, Fs and Qms reach them only
+    // through those. Each method names the stated figures a typed one moves; `prSpec` drops them in
+    // the same write and `resolve` works them out again. A figure is named only when its inputs are there.
+
+    /** Vas typed: Cms follows Vas and Sd; Mms (Fs stated) and Rms (Qms stated) follow Cms. */
+    #vasMoves(): PassiveRadiatorFieldName[] {
+        return this.Sd_m2.value === null ? [] : this.#cmsFollowers();
+    }
+
+    /** Sd typed: with Vas stated, as Vas typed; else Vas follows the stated Cms and nothing is dropped. */
+    #sdMoves(): PassiveRadiatorFieldName[] {
+        return this.Vas_m3.entered ? this.#cmsFollowers() : [];
+    }
+
+    /** Cms, and the stated Mms and Rms that follow it once Cms is worked out from Vas and Sd. */
+    #cmsFollowers(): PassiveRadiatorFieldName[] {
+        return ['Cms_m_per_N', ...(this.Fs_hz.entered ? ['Mms_kg' as const] : []), ...(this.Qms.entered ? ['Rms_kg_per_s' as const] : [])];
+    }
+
+    /** Fs typed: Mms follows Fs and Cms; Rms (Qms stated) follows Mms. */
+    #fsMoves(): PassiveRadiatorFieldName[] {
+        if (this.Cms_m_per_N.value === null) return [];
+        return ['Mms_kg', ...(this.Qms.entered ? ['Rms_kg_per_s' as const] : [])];
+    }
+
+    /** Qms typed: Rms follows Qms, Mms and Cms. */
+    #qmsMoves(): PassiveRadiatorFieldName[] {
+        return this.Mms_kg.value === null || this.Cms_m_per_N.value === null ? [] : ['Rms_kg_per_s'];
+    }
+
+    /** Cms typed: Vas follows Cms and Sd; Fs (Mms stated) and Qms (Rms stated) follow Cms. */
+    #cmsMoves(): PassiveRadiatorFieldName[] {
+        return [
+            ...(this.Sd_m2.value !== null ? ['Vas_m3' as const] : []),
+            ...(this.Mms_kg.entered ? ['Fs_hz' as const] : []),
+            ...(this.Rms_kg_per_s.entered && this.Mms_kg.value !== null ? ['Qms' as const] : []),
+        ];
+    }
+
+    /** Mms typed: Fs follows Mms and Cms; Qms (Rms stated) follows Mms. */
+    #mmsMoves(): PassiveRadiatorFieldName[] {
+        if (this.Cms_m_per_N.value === null) return [];
+        return ['Fs_hz', ...(this.Rms_kg_per_s.entered ? ['Qms' as const] : [])];
+    }
+
+    /** Rms typed: Qms follows Rms, Mms and Cms. */
+    #rmsMoves(): PassiveRadiatorFieldName[] {
+        return this.Mms_kg.value === null || this.Cms_m_per_N.value === null ? [] : ['Qms'];
     }
 
     /** The Xmax this radiator has once picked into a project: its own, else its Xlim ("Xmech"). A
@@ -101,18 +152,12 @@ export class OpenIsdPassiveRadiatorSpec {
         return pr.checkSpec(stated, this.#precisions(), air);
     }
 
-    /** A record just adopted into a project: its Xlim becomes its Xmax when it has none; each of Cms, Mms and Rms is dropped (reads N, and
-     *  `resolve` fills it) when the record states its other half - Vas, Fs, Qms - so the four
-     *  WinISD figures drive it; one whose other half is absent stays entered. Nothing is ever
-     *  copied and then flipped to calculated (BUG_20261031_phone-pr-p173-cms-display, John
-     *  31 Oct 2026). */
+    /** A record just adopted into a project: its Xlim becomes its Xmax when it has none, and Rms
+     *  is dropped (reads N, and `resolve` fills it) when the record states Qms. A stated Cms or
+     *  Mms is kept as stated, never replaced by one worked out from Vas or Fs; when the stated
+     *  pair disagrees, `resolve` marks both (QO451, John 8 Nov 2026). */
     adoptDatasheetFigures(): void {
-        const drop = (field: Entered & Clearable, otherHalf: Entered): void => {
-            if (field.entered && otherHalf.entered) field.clear();
-        };
-        drop(this.Cms_m_per_N, this.Vas_m3);
-        drop(this.Mms_kg, this.Fs_hz);
-        drop(this.Rms_kg_per_s, this.Qms);
+        if (this.Rms_kg_per_s.entered && this.Qms.entered) this.Rms_kg_per_s.clear();
         const picked = this.pickedXmax_m;
         if (!this.Xmax_m.entered && picked !== null) this.Xmax_m.set(picked, this.Xlim_m.precision ?? undefined);
     }
