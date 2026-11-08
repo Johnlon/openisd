@@ -506,9 +506,9 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">{{ DesktopLabels.SAVE_PASSIVE_RADIATOR }}</button>
             </div>
             <div class="two-col pr-controls" style="gap:10px;">
-              <div style="--label-w:58px;">
+              <div style="--label-w:46px;">
                 <DesktopBand :section="passiveRadiatorHelp" title="Passive radiator parameters" @help="openSectionHelp" />
-                <div style="display: grid; grid-template-columns: auto auto; column-gap: 5px; row-gap: 0; margin-bottom: 0;">
+                <div style="display: grid; grid-template-columns: auto auto; column-gap: 6px; row-gap: 0; margin-bottom: 0;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
                   <UIField class="field" input-id="og-pr-qms" :field="NumberField.PR_QMS" :cell="project.box.passiveRadiator.radiator.spec.Qms" />
                   <UIField class="field" input-id="og-pr-fs" :field="NumberField.PR_FS_HZ" :cell="project.box.passiveRadiator.radiator.spec.Fs_hz" />
@@ -1327,8 +1327,8 @@ provideCellScope({ revision: projectChanged, written: () => {} });
 .port-columns .port-tuning-placeholder { width:257px; min-height:var(--ctl-h,20px); }
 .port-columns .vent-port-row > .field:not(.ui-field) { grid-template-columns:120px 138px; }
 .port-columns .vent-port-row > .field:has(select:not([id])) { grid-template-columns:120px 138px; column-gap:2px; }
-.port-columns .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:2; grid-row:3; grid-template-columns:44px 85px; }
-.port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:44px 42px; }
+.port-columns .vent-port-row > .field:has(select[id*="vent-shape"]) { grid-column:2; grid-row:3; grid-template-columns:48px 85px; }
+.port-columns .vent-port-row > .field:has(select[id*="vent-count"]) { grid-column:2; grid-row:4; grid-template-columns:48px 42px; }
 .port-columns .field:has(select[id*="vent-count"]) select { width:42px; }
 .port-columns .field:has(select[id*="vent-shape"]) select { width:85px; }
 /* A pane too narrow for the ports side by side (400px each) stacks Shape and Number in one row under

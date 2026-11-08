@@ -97,6 +97,7 @@ import {announceLostKeys} from './logic/lostKeyNotice.js';
 import '@fontsource/inter/latin-400.css';
 import '@fontsource/inter/latin-600.css';
 import '@fontsource/inter/latin-700.css';
+import '@fontsource/jetbrains-mono/latin-400.css';
 import './style.css';
 
 /** The browser's storage under this deployment's prefix: the /test/ build keeps a store of its own. */

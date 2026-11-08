@@ -112,7 +112,7 @@ const emit = defineEmits<{ close: [] }>();
 
 .eq-target {
   color: #38bdf8;
-  font-family: Inter;
+  font-family: "JetBrains Mono";
   font-size: 13px;
 }
 
@@ -187,7 +187,7 @@ const emit = defineEmits<{ close: [] }>();
 }
 
 .eq-formula {
-  font-family: Inter;
+  font-family: "JetBrains Mono";
   font-size: 11.5px;
   color: var(--fg, #f8fafc);
   background: rgba(0, 0, 0, 0.25);
@@ -211,7 +211,7 @@ const emit = defineEmits<{ close: [] }>();
 
 .eq-in-badge {
   font-size: 10px;
-  font-family: Inter;
+  font-family: "JetBrains Mono";
   font-weight: 600;
   padding: 1px 5px;
   border: 1px solid;
