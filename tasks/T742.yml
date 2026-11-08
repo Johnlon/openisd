@@ -190,3 +190,5 @@ visual:
   - mobile-wizard-vented-step3
   - mobile-wizard-vented-step4
   - mobile-wizard-vented-step5
+  - packages/ui/src/ui/components/OptionsModal.vue
+  - packages/ui/test/ui/desktop-options-colour-rows.browser.spec.ts
