@@ -4,7 +4,7 @@ repo: openisd
 owner: leader
 status: in_progress
 ruling: QO466
-goal: The app bundles its own font (Inter), precached for offline use, so every device and every test measures labels in the same font; the shared joined-field label rule no longer breaks a word at any letter
+goal: The app bundles its own fonts and every skin uses its own, never a device default - desktop Selawik (Segoe UI widths, OFL), phone Roboto, mono JetBrains Mono (John, QO466); precached for offline; the shared joined-field label rule no longer breaks a word at any letter
 plan:
   - Bundle Inter (SIL OFL) from a known-good package (@fontsource/inter or @fontsource-variable/inter), latin subset, woff2 only; the weights the app uses.
   - "@font-face self-hosted, font-display: block or swap chosen so first paint has no reflow of labels; body font stack keeps Inter first."
@@ -16,12 +16,23 @@ plan:
 done_test: bash scripts/test.sh packages/ui/test/ui/app-font-bundled.browser.spec.ts packages/ui/test/ui/font-sources.test.ts packages/ui/test/ui/font-precache.test.ts packages/ui/test/ui/field-layout-rules.browser.spec.ts
 files:
   - tasks/T742.yml
+  - packages/design/fields/appFonts.ts
+  - packages/ui/src/fonts.css
+  - packages/ui/src/assets/fonts/selawik-400.woff2
+  - packages/ui/src/assets/fonts/selawik-600.woff2
+  - packages/ui/src/assets/fonts/selawik-700.woff2
+  - packages/ui/src/assets/fonts/selawik-OFL.txt
+  - package-lock.json
   - packages/design/chart/layout.ts
+  - packages/design/fields/index.ts
   - packages/design/test/chart/chart-layout.test.ts
   - packages/ui/about/AboutPage.vue
+  - packages/ui/about/main.ts
   - packages/ui/index.html
+  - packages/ui/package.json
   - packages/ui/src/main.ts
   - packages/ui/src/style.css
+  - packages/ui/src/ui/canvas.ts
   - packages/ui/src/ui/components/CompatGroupHelpLink.vue
   - packages/ui/src/ui/components/DiagnosticsModal.vue
   - packages/ui/src/ui/components/DriverDimensionsDiagram.vue
@@ -35,11 +46,15 @@ files:
   - packages/ui/src/ui/shells/mobile/MobileNewProject.vue
   - packages/ui/src/ui/shells/mobile/MobileShell.vue
   - packages/ui/src/ui/shells/original/OriginalShell.vue
-  - packages/ui/test/visual/SOURCES.sha256
-  - vite.config.js
   - packages/ui/test/ui/app-font-bundled.browser.spec.ts
-  - packages/ui/test/ui/font-precache.test.ts
   - packages/ui/test/ui/font-sources.test.ts
+  - packages/ui/test/visual/SOURCES.sha256
+  - fonttools-4.68.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+  - packages/design/fields/appFonts.ts
+  - packages/ui/src/assets/
+  - packages/ui/src/fonts.css
+  - packages/ui/test/ui/font-precache.test.ts
+  - vite.config.js
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-abc.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass4.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-box-bandpass6.png
@@ -72,6 +87,7 @@ files:
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step3.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step4.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/desktop-wizard-vented-step5.png
+  - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-empty.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-menu.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-advanced.png
   - packages/ui/test/visual/visual.browser.spec.ts-snapshots/mobile-tab-box.png
@@ -132,6 +148,7 @@ visual:
   - desktop-wizard-vented-step3
   - desktop-wizard-vented-step4
   - desktop-wizard-vented-step5
+  - mobile-empty
   - mobile-menu
   - mobile-tab-advanced
   - mobile-tab-box

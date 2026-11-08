@@ -165,7 +165,7 @@ const title = computed(() => faultLog.faults.length ? 'Something went wrong' : f
   font-size: 11px; text-transform: uppercase; opacity: .7;
   border: 1px solid currentColor; border-radius: 3px; padding: 0 .3em; margin-right: .4em;
 }
-.dg-msg { font-family: "JetBrains Mono"; }
+.dg-msg { font-family: var(--font-mono); }
 .dg-count { opacity: .7; margin-left: .4em; }
 .dg-stack {
   font-size: 11px; opacity: .75; margin: .25rem 0 0; white-space: pre-wrap;

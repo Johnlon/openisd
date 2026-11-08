@@ -38,7 +38,7 @@ const sizeVars=computed(()=>Object.fromEntries([...PhoneRowSizes.CLASSIC.cssVars
 .mob-dlgpage .mob-dlim-range span:last-child { width: 34px; font-size: 12px; line-height: 13px; color: var(--mut); }
 .mob-dlgpage .mob-dstate { display: flex; align-items: center; gap: 8px; padding: 10px 16px 2px; font-size: 16px; font-weight: 600; }
 .mob-dlgpage .mob-dstate i { width: 10px; height: 10px; border-radius: 50%; }
-.mob-dlgpage .mob-dpre { margin: 0; padding: 4px 16px 10px; font: 12px/1.5 "JetBrains Mono"; color: var(--fg); white-space: pre-wrap; overflow-wrap: anywhere; max-height: none; opacity: 1; }
+.mob-dlgpage .mob-dpre { margin: 0; padding: 4px 16px 10px; font: 12px/1.5 var(--font-mono); color: var(--fg); white-space: pre-wrap; overflow-wrap: anywhere; max-height: none; opacity: 1; }
 .mob-dlgpage .mob-dcard { border-bottom: 1px solid #e6e6e6; }
 .mob-dlgpage .mob-dcard.bug { box-shadow: inset 3px 0 0 #d4a514; }
 .mob-dlgpage .mob-dcard-head { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; box-sizing: border-box; padding: 6px 8px 6px 16px; border: none; background: #fff; font: inherit; text-align: left; color: var(--fg); cursor: pointer; }

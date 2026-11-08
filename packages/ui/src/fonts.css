@@ -1,0 +1,5 @@
+/* The app's own Selawik (desktop skin), self-hosted; Roboto and the mono face come from @fontsource (main.ts).
+   Family names are those of SkinFonts (packages/design/fields/appFonts.ts). Selawik is SIL OFL 1.1: assets/fonts/selawik-OFL.txt. */
+@font-face { font-family: Selawik; font-weight: 400; font-style: normal; font-display: swap; src: url('./assets/fonts/selawik-400.woff2') format('woff2'); }
+@font-face { font-family: Selawik; font-weight: 600; font-style: normal; font-display: swap; src: url('./assets/fonts/selawik-600.woff2') format('woff2'); }
+@font-face { font-family: Selawik; font-weight: 700; font-style: normal; font-display: swap; src: url('./assets/fonts/selawik-700.woff2') format('woff2'); }

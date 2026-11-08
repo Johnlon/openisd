@@ -155,6 +155,7 @@ export { ChartPageHelp } from './chartPageText.js';
 export { CHART_HELP } from './chartHelpText.js';
 export { PhoneRowColumns, PhoneRowSizes } from './phoneRowSizes.js';
 export { PhoneHeaderSizes } from './phoneHeaderSizes.js';
+export { AppFont, SkinFonts } from './appFonts.js';
 export { type PhoneHelpRow, PhoneHelpRows, type PhoneFilterChip, PHONE_FILTER_CHIPS, PhoneHelpSection, KeyStripText, PhoneLabels, PhoneBoxText, PhoneHelp, PhoneDriverListText, PhonePrBrowserText, PhoneEditorText } from './phoneText.js';
 export { DesktopHelp, DesktopLabels } from './desktopHelp.js';
 export { type EbpBadge, type WizardInfoCard, PhoneWizardText, PhoneWizardHelp } from './phoneWizardText.js';

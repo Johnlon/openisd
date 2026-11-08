@@ -506,7 +506,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
               <button class="edit-btn" title="Save a copy of this passive radiator to your library, under a name you choose" @click="openPRSave">{{ DesktopLabels.SAVE_PASSIVE_RADIATOR }}</button>
             </div>
             <div class="two-col pr-controls" style="gap:10px;">
-              <div style="--label-w:58px;">
+              <div style="--label-w:56px;">
                 <DesktopBand :section="passiveRadiatorHelp" title="Passive radiator parameters" @help="openSectionHelp" />
                 <div style="display: grid; grid-template-columns: auto auto; column-gap: 5px; row-gap: 0; margin-bottom: 0;">
                   <UIField class="field" input-id="og-pr-vas" :field="NumberField.PR_VAS_L" :cell="project.box.passiveRadiator.radiator.spec.Vas_m3" />
@@ -890,7 +890,7 @@ provideCellScope({ revision: projectChanged, written: () => {} });
   --chart-cross:#00000055; --chart-band:rgba(0,0,0,0.05); --chart-band-line:rgba(0,0,0,0.3);
   --readout-bg:rgba(248,250,252,0.92);
   display:flex; flex-direction:column; width:100%; height:100vh; background:#f2f2f2;
-  overflow:hidden; color:#1a1a1a; font-family:Inter; font-size:14px;
+  overflow:hidden; color:#1a1a1a; font-family:var(--font-ui); font-size:14px;
 }
 .original-root button, .original-root select, .original-root input, .original-root textarea { font-family:inherit; font-size:14px; }
 
