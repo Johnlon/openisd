@@ -472,6 +472,35 @@ test.describe('Options dialog', () => {
         }
       });
 
+      // T746 vision check: at 1366 and 1440 the help panel covered OK, Cancel and the limits boxes.
+      // With the help open the dialog moves left and sits beside it, whole.
+      test('the open help sits beside Options and covers none of it on short laptop screens', async ({ page }) => {
+        await page.goto('/');
+        await openAProject(page);
+        for (const size of [{width: 1366, height: 768}, {width: 1440, height: 900}]) {
+          await page.setViewportSize(size);
+          await page.locator('.tb-btn[title="Options"]').click();
+          const group = page.locator('.opt-group', {hasText: 'Vented design limits'});
+          await group.getByRole('button', {name: 'Help: Vented design limits'}).first().click();
+          const panel = page.getByRole('dialog', {name: 'Help: Vented design limits'});
+          await expect(panel).toBeVisible();
+          const p = (await panel.boundingBox())!;
+          const m = (await page.locator('.opt-modal').boundingBox())!;
+          expect(m.x + m.width, `dialog right edge left of the help at ${size.width}x${size.height}`).toBeLessThanOrEqual(p.x);
+          expect(m.x, `dialog inside the window at ${size.width}x${size.height}`).toBeGreaterThanOrEqual(0);
+          expect(m.y + m.height, `dialog inside the window at ${size.width}x${size.height}`).toBeLessThanOrEqual(size.height);
+          for (const name of ['OK', 'Cancel']) {
+            const btn = page.locator('.opt-footer').getByRole('button', {name, exact: true});
+            const c = (await btn.boundingBox())!;
+            expect(await btn.evaluate((el, [px, py]) => el.contains(document.elementFromPoint(px, py)), [c.x + c.width / 2, c.y + c.height / 2]), `${name} not covered`).toBe(true);
+          }
+          await page.keyboard.press('Escape');
+          await expect(panel).toHaveCount(0);
+          await page.locator('.opt-footer').getByRole('button', {name: 'Cancel', exact: true}).click();
+          await expect(page.locator('.opt-modal')).toHaveCount(0);
+        }
+      });
+
       test('an inside-out band is refused, and OK stays dead until it is a band', async ({ page }) => {
         await openOptions(page);
 
